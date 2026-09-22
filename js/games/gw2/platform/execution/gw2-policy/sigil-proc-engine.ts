@@ -16,10 +16,7 @@ import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-pr
 import type { Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
-import type {
-  MaterializerProfessionState,
-  MaterializerState
-} from '#gw2/platform/execution/gw2-policy/materializer-state.js';
+import type { MaterializerState } from '#gw2/platform/execution/gw2-policy/materializer-state.js';
 
 export type SigilTrigger = 'swap' | 'control' | 'strike';
 
@@ -99,11 +96,8 @@ export function createSigilProcEngine(
   };
 
   const restoreEndurance: SigilEffectHandler = ({ context, cause, name, proc }) => {
-    const profession = state.profession;
-    if (!profession) return;
-    const resources = (
-      profession.core && typeof profession.core === 'object' ? profession.core : profession
-    ) as MaterializerProfessionState;
+    const resources = state.profession?.core;
+    if (!resources) return;
     const maximum = Number(resources.maximumEndurance);
     const current = Number(resources.endurance);
     if (!Number.isFinite(maximum) || !Number.isFinite(current)) return;

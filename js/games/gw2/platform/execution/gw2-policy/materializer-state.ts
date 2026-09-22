@@ -10,11 +10,12 @@ import type { Gw2RuntimeConditionEntry } from '#gw2/platform/combat/state/target
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 
 export interface MaterializerProfessionState {
-  /** Family state nests shared resources under core; legacy projections remain flat. */
-  core?: Pick<MaterializerProfessionState, 'maximumEndurance' | 'endurance' | 'enduranceUpdatedAt'>;
-  maximumEndurance?: number;
-  endurance?: number;
-  enduranceUpdatedAt?: number;
+  /** Shared resource grants mutate the live core slice; professions may omit unsupported resources. */
+  core?: {
+    maximumEndurance?: number;
+    endurance?: number;
+    enduranceUpdatedAt?: number;
+  };
 }
 
 export interface MaterializerState {

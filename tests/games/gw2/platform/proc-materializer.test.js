@@ -18,6 +18,53 @@ import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-ev
 import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { createCriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
+import { createSigilProcEngine } from '#gw2/platform/execution/gw2-policy/sigil-proc-engine.js';
+
+test('Energy sigil restores the live core endurance pool and advances its clock', () => {
+  const config = { sigilSets: [{ names: ['Energy'] }] };
+  const { state } = createGw2TriggerMaterializer(config);
+  const core = { maximumEndurance: 100, endurance: 80, enduranceUpdatedAt: 5 };
+  state.profession = { core };
+  const events = [];
+  // The grant must update the existing scheduler-owned object, capped at its profession's maximum.
+  createSigilProcEngine(config, state).materialize(
+    'swap',
+    { emitDerived: (_cause, event) => events.push(event) },
+    { type: 'sigil_swap', at: 6, weaponSet: 1 }
+  );
+  assert.equal(state.profession.core, core);
+  assert.equal(core.endurance, 100);
+  assert.equal(core.enduranceUpdatedAt, 6);
+  assert.equal(events.filter((event) => event.type === 'resource' && event.resource === 'endurance').length, 1);
+});
+
+test('Energy sigil skips absent resources and flat reporting projections', () => {
+  for (const profession of [
+    null,
+    {},
+    { core: {} },
+    { core: { maximumEndurance: 100 } },
+    { core: { endurance: 80 } },
+    // Reporting projections must never be mistaken for the mutable scheduler resource owner.
+    { maximumEndurance: 100, endurance: 80, enduranceUpdatedAt: 5 }
+  ]) {
+    const config = { sigilSets: [{ names: ['Energy'] }] };
+    const { state } = createGw2TriggerMaterializer(config);
+    state.profession = profession;
+    const before = structuredClone(profession);
+    const events = [];
+    createSigilProcEngine(config, state).materialize(
+      'swap',
+      { emitDerived: (_cause, event) => events.push(event) },
+      { type: 'sigil_swap', at: 6, weaponSet: 1 }
+    );
+    assert.deepEqual(profession, before);
+    assert.equal(
+      events.some((event) => event.type === 'resource'),
+      false
+    );
+  }
+});
 
 test('sigil diagnostics correlate same-time causes and retain explicit suppression evidence', () => {
   const diagnostics = createCriticalSigilDiagnostics();
