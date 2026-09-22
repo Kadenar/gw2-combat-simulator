@@ -20,7 +20,6 @@ export interface AutoattackChainContext {
   readonly chainRootId: SkillId;
   readonly expectedSkillId: SkillId;
   readonly interruptingSkill: Skill;
-  readonly interruptingChainRootId: SkillId | null;
 }
 
 export interface AutoattackChainOverride {
@@ -31,12 +30,11 @@ export interface AutoattackChainOverride {
   readonly decision: 'preserve' | 'reset';
 }
 
+/** Reports the resulting chain state so profession observers can manage carryover and expiry. */
 export interface AutoattackChainTransition {
   readonly chainRootId: SkillId;
-  readonly previousSkillId: SkillId;
   readonly nextSkillId: SkillId | null;
   readonly decision: 'advance' | 'complete' | 'preserve' | 'reset';
-  readonly overrideId: string | null;
 }
 
 export interface AutoattackChainTransitionResult {
@@ -218,8 +216,7 @@ function transition(
       cast: context,
       chainRootId: root,
       expectedSkillId: expected,
-      interruptingSkill: skill,
-      interruptingChainRootId: castChainRootId
+      interruptingSkill: skill
     };
     const override = matchingOverride(options.overrides || [], overrideContext);
     // Skill type is irrelevant: only a nonzero cast whose damage lands by cast end
@@ -229,25 +226,20 @@ function transition(
     changes.push(
       Object.freeze({
         chainRootId: root,
-        previousSkillId: expected,
         nextSkillId: decision === 'preserve' ? expected : null,
-        decision,
-        overrideId: override?.id || null
+        decision
       })
     );
   }
 
   if (position && committed) {
-    const previousSkillId = Number(chains[position.root]) || position.root;
     if (position.next == null) delete chains[position.root];
     else chains[position.root] = position.next;
     changes.push(
       Object.freeze({
         chainRootId: position.root,
-        previousSkillId,
         nextSkillId: position.next,
-        decision: position.next == null ? 'complete' : 'advance',
-        overrideId: null
+        decision: position.next == null ? 'complete' : 'advance'
       })
     );
   }
