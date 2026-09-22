@@ -63,7 +63,6 @@ export function createDefaultConfig() {
         Weakness: true,
         Vulnerability: 25
       },
-      boonless: true,
       moving: false,
       nearby: true,
       activatingSkills: false,

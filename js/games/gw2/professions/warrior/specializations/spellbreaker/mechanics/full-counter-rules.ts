@@ -67,12 +67,8 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'warrior.pure-strike',
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
-    parameters: {
-      boonedFactor: 1.05,
-      boonlessFactor: 1.1
-    } as Readonly<Record<string, number>>,
-    factor: (context, _target, parameters) =>
-      context.config?.target?.boonless ? parameters.boonlessFactor : parameters.boonedFactor,
+    // The target never has boons, so the full bonus always applies.
+    factor: 1.1,
     when: (context) => hasTrait(context, TRAIT.PURE_STRIKE)
   },
   {
@@ -83,8 +79,7 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     order: 100,
     when: (context) =>
       hasTrait(context, TRAIT.SUN_AND_MOON_STYLE) &&
-      gw2PrimaryWeapon(context.config, Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1) === 'Dagger' &&
-      context.config?.target?.boonless === true
+      gw2PrimaryWeapon(context.config, Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1) === 'Dagger'
   },
   {
     id: 'warrior.magebane-tether',

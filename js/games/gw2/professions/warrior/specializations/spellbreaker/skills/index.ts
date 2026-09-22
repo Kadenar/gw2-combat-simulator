@@ -115,13 +115,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         type: 'strike',
         coefficient: 1.5,
         hits: 1
-      },
-      {
-        type: 'custom',
-        eventType: 'warrior.boon-removal',
-        event: {
-          attemptedBoonRemovals: 4
-        }
       }
     ],
     castTimeMs: 167
@@ -167,21 +160,11 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
         startAnchor: 'castEnd'
       }
     ],
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    // Targets never carry boons; only the damage pulses and Lightning field have simulated effects.
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 800 + index * 1000, coefficient: 2.25 / 5 }))
-      },
-      {
-        type: 'custom',
-        eventType: 'warrior.boon-removal',
-        atMs: 800,
-        intervalMs: 1000,
-        applications: 5,
-        event: {
-          attemptedBoonRemovals: 1
-        }
       }
     ]),
     castTimeMs: 1000

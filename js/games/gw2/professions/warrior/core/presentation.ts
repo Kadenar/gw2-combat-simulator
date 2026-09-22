@@ -10,20 +10,13 @@ import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type {
   PaletteSkillAvailability,
   ProfessionEffectPresentation,
-  ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
-import type {
-  WarriorSimulationEvent,
-  WarriorSkill,
-  WarriorState,
-  WarriorUiContext,
-  WarriorUiSlice
-} from '#gw2/professions/warrior/types.js';
+import type { WarriorSkill, WarriorState, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 /** Signet Mastery caps at 5 stacks, each granting +100 ferocity. */
@@ -157,29 +150,6 @@ export function warriorBurstPaletteAvailability(
   return { available: true, message: '' };
 }
 
-/**
- * Presents boon-removal effects (e.g. Breaching Strike) in the event log for
- * every warrior specialization. Returning `undefined` for other custom events
- * lets a specialization slice present or suppress its own event types.
- */
-function warriorEventLogRow(
-  _context: WarriorUiContext,
-  event: WarriorSimulationEvent
-): ProfessionEventLogDescriptor | null | undefined {
-  if (event?.type !== 'warrior.boon-removal') return undefined;
-  const attempted = Math.max(1, Math.trunc(Number(event.attemptedBoonRemovals) || 1));
-  const removed = event.boonsRemoved == null ? null : Math.max(0, Number(event.boonsRemoved));
-  const source = event.skillName || event.name || 'Boon removal';
-  const detail = removed == null ? `x${attempted}` : `${removed}/${attempted}`;
-  return {
-    type: event.type,
-    description: `BOON REMOVAL ${source} (${detail})`,
-    className: 'trigger',
-    order: 55,
-    flags: []
-  };
-}
-
 /** True when the build has the Arms trait Signet Mastery selected. */
 function hasSignetMasteryTrait(context: WarriorUiContext): boolean {
   return getActiveTraits((context.build?.specializations || []) as ProfessionTraitSelection[]).some(
@@ -245,7 +215,6 @@ function warriorCoreEffectPresentations(context: WarriorUiContext): ProfessionEf
 export const warriorCoreUi: WarriorUiSlice = Object.freeze({
   assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   effectPresentations: warriorCoreEffectPresentations,
-  eventLogRow: warriorEventLogRow,
   rotationStateSnapshot: warriorCoreStateSnapshot,
   paletteGroups: (context) => (warriorUiSpecialization(context) === 'Core' ? warriorPaletteGroups(context) : []),
   resourceViews: (context) =>

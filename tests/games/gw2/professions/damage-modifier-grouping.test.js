@@ -146,7 +146,7 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
     config: {
       target: {
         health: 100,
-        boonless: true,
+
         nearby: true,
         conditions: { Chilled: true }
       }
@@ -428,17 +428,12 @@ test('Mesmer instrument checks skip other specializations and index events once'
   assert.equal(relevant.reads(), relevant.events.length);
 });
 
-test('Vicious Expression always applies its base multiplicative modifier', () => {
-  const base = modifierContext({
-    traits: [MESMER.VICIOUS_EXPRESSION]
-  });
-  const boonless = modifierContext({
-    traits: [MESMER.VICIOUS_EXPRESSION],
-    config: { target: { boonless: true } }
-  });
-
-  assert.ok(Math.abs(mesmerRules('Core').modifyStrikeDamage(base, 1) - 1.188) < 1e-12);
-  assert.ok(Math.abs(mesmerRules('Core').modifyStrikeDamage(boonless, 1) - 1.242) < 1e-12);
+test('Vicious Expression always applies its boonless-target modifier', () => {
+  // Retained target-boon configuration cannot disable the fixed boonless-target bonus.
+  for (const target of [undefined, { boonless: false }, { boons: ['might'], boonCount: 3 }]) {
+    const context = modifierContext({ traits: [MESMER.VICIOUS_EXPRESSION], config: { target } });
+    assert.ok(Math.abs(mesmerRules('Core').modifyStrikeDamage(context, 1) - 1.242) < 1e-12);
+  }
 });
 
 test('Mesmer strike sigils apply to the player but not illusion sources', () => {

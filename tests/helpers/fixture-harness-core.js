@@ -47,7 +47,6 @@ export function defaultSimulationConfig(overrides = {}) {
         Vulnerability: 25
       },
       moving: false,
-      boonless: true,
       nearby: true,
       activatingSkills: true,
       confusionActivationsPerSecond: 0.5

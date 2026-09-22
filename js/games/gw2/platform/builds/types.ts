@@ -28,7 +28,6 @@ export interface ProfessionBuildAssumptions extends UnvalidatedBuildRecord {
   targetDefiant?: boolean;
   targetDistance?: number;
   targetMoving?: boolean;
-  targetBoonless?: boolean;
   targetSkillActivationsPerSecond?: number;
   targetConditions?: Record<string, number | boolean>;
   timeOfDay?: 'day' | 'night';

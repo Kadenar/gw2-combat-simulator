@@ -1,8 +1,7 @@
+/** Targets never carry boons; configured conditions and runtime condition stacks remain queryable. */
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
-/** Normalizes configured and runtime target conditions behind canonical stack queries. */
-
 const HOSTILE_TARGET_EVENT_TYPES = new Set(['damage', 'condition', 'condition_tick', 'control', 'blind', 'peitha']);
 
 /** Combat Start blocks target damage and conditions; control skill-use notifications can still trigger relic buffs. */
@@ -221,10 +220,6 @@ export interface Gw2TargetConfig {
   readonly defiant?: boolean;
   readonly distance?: number;
   readonly nearby?: boolean;
-  readonly boonless?: boolean;
-  /** Boons the target carries; professions read either the list or the plain count. */
-  readonly boons?: Readonly<Record<string, number | boolean>> | readonly string[];
-  readonly boonCount?: number;
   /** Whether the target is casting; drives interrupt and activation-dependent rules. */
   readonly activatingSkills?: boolean;
   readonly confusionActivationsPerSecond?: number;

@@ -54,7 +54,6 @@ export function createDefaultSimulationAssumptions(
     aegis: true,
 
     targetMoving: false,
-    targetBoonless: true,
     targetConditions: createDefaultTargetConditions(),
     ...overrides
   };

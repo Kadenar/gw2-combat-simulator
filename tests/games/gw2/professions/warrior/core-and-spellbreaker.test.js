@@ -21,6 +21,7 @@ import { WARRIOR_WEAPON_STOW } from '#gw2/professions/warrior/core/skills/action
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/profiles.js';
 import { warriorCoreSkillHandlers } from '#gw2/professions/warrior/core/execution/index.js';
+import { warriorCoreAttributeRules } from '#gw2/professions/warrior/core/traits/modifiers.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { berserkerModule } from '#gw2/professions/warrior/specializations/berserker/module.js';
 import { berserkerAttributeRules } from '#gw2/professions/warrior/specializations/berserker/mechanics/berserk-rules.js';
@@ -1044,16 +1045,6 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
 
   assertFlooredDamageMultiplier(damage(defiantWastrel, "Wastrel's Ruin"), damage(normalWastrel, "Wastrel's Ruin"), 2);
 
-  const breachingDamage = (boonless) =>
-    simulate('Spellbreaker', ['Breaching Strike'], {
-      initialResource: 10,
-      primaryWeapon: 'Dagger',
-      secondaryWeapon: 'Mace',
-      target: { boonless }
-    }).strikeDamage;
-
-  assertFlooredDamageMultiplier(breachingDamage(true), breachingDamage(false), 1.5);
-
   const fixedBreaching = simulate('Spellbreaker', ['Breaching Strike'], {
     initialResource: 10,
     primaryWeapon: 'Dagger',
@@ -1082,26 +1073,20 @@ test('Warrior dagger attacks and bursts use the supplied PvE mechanics', () => {
 
   assert.equal(resolvedBloodthirster.weaponStrengthProfileId, 'weapon.sword');
   assert.equal(resolvedBloodthirster.resolvedWeaponStrength, 1000);
+});
 
-  const slicingDamage = (boonless) =>
-    simulate('Berserker', ['Berserk', 'Slicing Maelstrom'], {
-      initialResource: 30,
-      primaryWeapon: 'Dagger',
-      secondaryWeapon: 'Mace',
-      boons: { quickness: true },
-      selectedTraitIds: [TRAIT.DUAL_WIELDING],
-      target: { boonless }
-    });
-  const normalSlicing = slicingDamage(false);
-  const boonlessSlicing = slicingDamage(true);
-  const slicingStep = boonlessSlicing.steps.find((step) => step.skill === 'Slicing Maelstrom');
-
-  assert.equal(slicingStep.end - slicingStep.start, 400);
-  assertFlooredDamageMultiplier(
-    damage(boonlessSlicing, 'Slicing Maelstrom'),
-    damage(normalSlicing, 'Slicing Maelstrom'),
-    1.5
-  );
+test('Warrior dagger bursts always apply their boonless-target multiplier', () => {
+  // Both skill bonuses use the fixed target scope even when retained config says otherwise.
+  for (const [id, skillId] of [
+    ['warrior.breaching-strike-boonless', ID.BREACHING_STRIKE],
+    ['warrior.slicing-maelstrom-boonless', ID.SLICING_MAELSTROM]
+  ]) {
+    const rule = warriorCoreAttributeRules.modifierRules.find((rule) => rule.id === id);
+    const context = { profession: warriorProfession, config: { target: { boonless: false } }, event: { skillId } };
+    assert.equal(rule.when(context), true);
+    assert.equal(rule.factor, 1.5);
+    assert.equal(rule.when({ ...context, event: { skillId: ID.KICK } }), false);
+  }
 });
 
 test('Arcing Slice scales Fury by adrenaline tier and damage below half health', () => {
@@ -1451,14 +1436,8 @@ test('Warrior core damage traits use their correct modifier buckets', () => {
 
   assertFlooredDamageMultiplier(empoweredSprintPeak, baseline, 1.25 * 1.03);
 
-  const boonedTargetBaseline = configuredKickDamage([], {
-    target: { boonless: false, boonCount: 4 }
-  });
-  const destructionPeak = configuredKickDamage([TRAIT.DESTRUCTION_OF_THE_EMPOWERED, TRAIT.PEAK_PERFORMANCE], {
-    target: { boonless: false, boonCount: 4 }
-  });
-
-  assertFlooredDamageMultiplier(destructionPeak, boonedTargetBaseline, 1.15 * 1.12);
+  // Destruction of the Empowered has no bonus against the permanently boonless target.
+  assert.equal(configuredKickDamage([TRAIT.DESTRUCTION_OF_THE_EMPOWERED]), baseline);
 });
 
 test('Defense traits apply Merciless Hammer and Stalwart Strength', () => {
@@ -1599,25 +1578,22 @@ test('precombat Kick cannot sample criticals or advance hit-dependent procs', ()
 
 test('Spellbreaker offensive traits use multiplicative damage modifiers', () => {
   const damage = (result, name) => result.breakdown.find((entry) => entry.name === name)?.damage || 0;
-  const traitStrike = (selectedTraitIds, targetBoonless, primaryWeapon, secondaryWeapon = 'Mace') =>
+  const traitStrike = (selectedTraitIds, primaryWeapon, secondaryWeapon = 'Mace') =>
     simulate('Spellbreaker', ['Throw Bolas'], {
       selectedTraitIds,
       primaryWeapon,
       secondaryWeapon,
       stats: { precision: 4000 },
-      target: { boonless: targetBoonless }
+      target: {}
     }).strikeDamage;
 
-  const boonlessBase = traitStrike([], true, 'Dagger');
-  const boonlessPure = traitStrike([TRAIT.PURE_STRIKE], true, 'Dagger');
-  const boonedBase = traitStrike([], false, 'Dagger');
-  const boonedPure = traitStrike([TRAIT.PURE_STRIKE], false, 'Dagger');
-  const daggerStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], true, 'Dagger');
-  const swordStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], true, 'Sword');
-  const offhandDaggerStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], true, 'Sword', 'Dagger');
+  const boonlessBase = traitStrike([], 'Dagger');
+  const boonlessPure = traitStrike([TRAIT.PURE_STRIKE], 'Dagger');
+  const daggerStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], 'Dagger');
+  const swordStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], 'Sword');
+  const offhandDaggerStyle = traitStrike([TRAIT.SUN_AND_MOON_STYLE], 'Sword', 'Dagger');
 
   assertFlooredDamageMultiplier(boonlessPure, boonlessBase, 1.1);
-  assertFlooredDamageMultiplier(boonedPure, boonedBase, 1.05);
   assertFlooredDamageMultiplier(daggerStyle, boonlessBase, 1.1);
   assert.ok(Math.abs(swordStyle / boonlessBase - 1) < 1e-9);
   assert.ok(Math.abs(offhandDaggerStyle / boonlessBase - 1) < 1e-9);

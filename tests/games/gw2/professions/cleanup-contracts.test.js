@@ -29,7 +29,6 @@ import { observeConduitTraits } from '#gw2/professions/revenant/specializations/
 import { REVENANT_SKILL_IDS as R, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as W, WARRIOR_TRAIT_IDS as WT } from '#gw2/professions/warrior/data/ids.js';
-import { configuredTargetBoonCount } from '#gw2/professions/warrior/core/mechanics/resolution-helpers.js';
 import {
   activateChant,
   refrains,
@@ -261,21 +260,6 @@ test('Conduit modifiers and Peitha follow all supported button IDs after renamin
       { type: 'damage', at: 1, skillId, skillName: 'Renamed' }
     );
     assert.equal(events.length, skillId === R.TWIN_MOON_SWEEP ? 0 : 1);
-  }
-});
-
-test('Warrior target boon configuration preserves precedence, uniqueness, and normalization', () => {
-  for (const [target, expected] of [
-    [undefined, 0],
-    [{ boonless: true, boons: ['might'], boonCount: 3 }, 0],
-    [{ boons: ['might', 'might', 1, '1'], boonCount: 9 }, 2],
-    [{ boons: [], boonCount: 9 }, 0],
-    [{ boonCount: 2.9 }, 2],
-    [{ boonCount: -1 }, 0],
-    [{ boonCount: 'bad' }, 0],
-    [{ boonless: false }, 1]
-  ]) {
-    assert.equal(configuredTargetBoonCount(target), expected);
   }
 });
 

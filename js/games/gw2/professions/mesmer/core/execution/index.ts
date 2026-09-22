@@ -44,19 +44,9 @@ const mesmerAxesOfSymmetry = augmentSkill<MesmerHandlerContext>({
     )
 });
 
-// Mind Spike is the only fixed profile whose coefficient depends on runtime target state.
-const mesmerMindSpike = augmentSkill<MesmerHandlerContext>({
-  afterEffect: (context, skill, event) => {
-    if (event.type === 'damage' && context.config.target?.boonless && skill.boonlessCoefficient) {
-      context.replaceEvent(event, { coefficient: skill.boonlessCoefficient });
-    }
-  }
-});
-
 export const mesmerCoreSkillHandlers: Readonly<Record<string, Readonly<SkillHandlerStrategy<MesmerHandlerContext>>>> =
   Object.freeze({
     'mesmer.axes-of-symmetry': mesmerAxesOfSymmetry,
-    'mesmer.mind-spike': mesmerMindSpike,
     'mesmer.mental-collapse': augmentSkill<MesmerHandlerContext>({
       afterEffects: (context, skill) => scheduleClarityEffects(context, skill as MesmerSkill)
     }),

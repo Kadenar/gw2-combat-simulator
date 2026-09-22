@@ -62,7 +62,6 @@
     "aegis": true,
     "sharePlayerBoonsWithSummons": true,
     "targetMoving": false,
-    "targetBoonless": true,
     "targetConditions": {
       "Bleeding": 1,
       "Burning": true,

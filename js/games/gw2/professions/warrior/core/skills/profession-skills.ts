@@ -191,13 +191,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         {
           type: 'strike',
           coefficient: 2.5
-        },
-        {
-          type: 'custom',
-          eventType: 'warrior.boon-removal',
-          event: {
-            attemptedBoonRemovals: 2
-          }
         }
       ]
     )

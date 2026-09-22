@@ -300,27 +300,6 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         actorType: 'effect'
       },
       {
-        type: 'strike',
-        coefficient: 0.9,
-        hits: 1,
-        name: 'Lesser Spinal Shivers - One Boon',
-        actorType: 'effect'
-      },
-      {
-        type: 'strike',
-        coefficient: 1.5,
-        hits: 1,
-        name: 'Lesser Spinal Shivers - Two Boons',
-        actorType: 'effect'
-      },
-      {
-        type: 'strike',
-        coefficient: 2.1,
-        hits: 1,
-        name: 'Lesser Spinal Shivers - Three Boons',
-        actorType: 'effect'
-      },
-      {
         type: 'condition',
         condition: 'Chilled',
         stacks: 1,

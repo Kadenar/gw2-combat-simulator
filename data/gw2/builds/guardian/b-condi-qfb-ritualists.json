@@ -59,7 +59,6 @@
     "aegis": true,
     "alliedPlayerCount": 4,
     "targetMoving": false,
-    "targetBoonless": true,
     "targetConditions": {
       "Bleeding": 1,
       "Burning": true,

@@ -20,7 +20,10 @@ test('quickness stays active after restoring a build that disabled it', async ({
   const boons = page.locator('#perma-boons');
   const quickness = boons.getByText('Quickness — always active', { exact: true });
   await expect(quickness).toBeVisible();
-  await expect(quickness).toHaveAttribute('title', 'Skill timings are calibrated with permanent quickness.');
+  await expect(quickness).toHaveAttribute(
+    'data-wiki-description',
+    'Skill timings are calibrated with permanent quickness.'
+  );
   await expect(boons.getByRole('checkbox', { name: 'Quickness', exact: true })).toHaveCount(0);
   expect(await page.evaluate(() => window.professionApp.build.assumptions.quickness)).toBe(true);
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2500);

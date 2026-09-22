@@ -1232,7 +1232,7 @@ test('Thief modifiers follow stable skill and packet IDs after display labels ch
           ])
         }
       },
-      config: { target: { boonless: true } },
+      config: { target: {} },
       time: 0
     }),
     true

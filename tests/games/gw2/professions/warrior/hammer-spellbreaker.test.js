@@ -156,35 +156,26 @@ test('hammer cooldowns, conditional damage, recharge, and Defense traits work', 
   assert.equal(defense.planningState.profession.adrenaline, 16);
 });
 
-test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insight", () => {
+test("Spellbreaker only gains Attacker's Insight from control and lightning leap combos", () => {
   const insightConfig = {
     selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT]
   };
   const insightStacks = (result) => result.planningState.profession.attackerInsightExpiries.length;
-  const removals = (result, skillId) =>
-    result.resolvedEvents.filter((event) => event.type === 'warrior.boon-removal' && event.skillId === skillId);
 
   const breaching = simulate('Spellbreaker', [69297], {
     ...insightConfig,
     primaryWeapon: 'Dagger',
     initialResource: 10,
-    target: { boonless: true }
+    target: {}
   });
 
-  assert.deepEqual(
-    removals(breaching, ID.BREACHING_STRIKE).map(({ attemptedBoonRemovals, boonsRemoved }) => ({
-      attemptedBoonRemovals,
-      boonsRemoved
-    })),
-    [{ attemptedBoonRemovals: 2, boonsRemoved: 0 }]
-  );
   assert.equal(insightStacks(breaching), 0);
 
   const breachingCombo = simulate('Spellbreaker', [ID.WINDS_OF_DISENCHANTMENT, 69297], {
     ...insightConfig,
     primaryWeapon: 'Dagger',
     initialResource: 10,
-    target: { boonless: true }
+    target: {}
   });
 
   assert.equal(insightStacks(breachingCombo), 1);
@@ -205,44 +196,18 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
     [ID.WINDS_OF_DISENCHANTMENT],
     {
       ...insightConfig,
-      target: { boonless: true }
+      target: {}
     },
     observationTail(5000)
-  );
-  const windsRemovals = removals(boonlessWinds, ID.WINDS_OF_DISENCHANTMENT);
-
-  assert.equal(windsRemovals.length, 5);
-  assert.deepEqual(
-    windsRemovals.slice(1).map((event, index) => Number((event.at - windsRemovals[index].at).toFixed(3))),
-    [1, 1, 1, 1]
   );
   assert.equal(insightStacks(boonlessWinds), 0);
 
-  const boonfulWinds = simulate(
-    'Spellbreaker',
-    [ID.WINDS_OF_DISENCHANTMENT],
-    {
-      ...insightConfig,
-      target: { boonless: false }
-    },
-    observationTail(5000)
-  );
-
-  assert.equal(insightStacks(boonfulWinds), 5);
-
   const breakEnchantments = simulate('Spellbreaker', [ID.BREAK_ENCHANTMENTS], {
     ...insightConfig,
-    target: { boonCount: 4 }
+    target: {}
   });
 
-  assert.deepEqual(
-    removals(breakEnchantments, ID.BREAK_ENCHANTMENTS).map(({ attemptedBoonRemovals, boonsRemoved }) => ({
-      attemptedBoonRemovals,
-      boonsRemoved
-    })),
-    [{ attemptedBoonRemovals: 4, boonsRemoved: 4 }]
-  );
-  assert.equal(insightStacks(breakEnchantments), 4);
+  assert.equal(insightStacks(breakEnchantments), 0);
 
   const bullsCharge = simulate('Spellbreaker', [ID.BULLS_CHARGE], {
     ...insightConfig,
@@ -253,7 +218,7 @@ test("Spellbreaker boon removal and lightning leap combos drive Attacker's Insig
 
   const bullsChargeCombo = simulate('Spellbreaker', [ID.WINDS_OF_DISENCHANTMENT, ID.BULLS_CHARGE], {
     ...insightConfig,
-    target: { boonless: true, defiant: true }
+    target: { defiant: true }
   });
 
   assert.equal(insightStacks(bullsChargeCombo), 2);

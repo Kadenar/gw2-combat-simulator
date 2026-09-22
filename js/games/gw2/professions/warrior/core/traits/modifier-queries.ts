@@ -1,4 +1,3 @@
-import { configuredTargetBoonCount } from '#gw2/professions/warrior/core/mechanics/resolution-helpers.js';
 /** Shares live Warrior modifier queries without coupling trait-line fragments to their composer. */
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -52,10 +51,6 @@ export function warriorActiveBuffStacks(context: Gw2ModifierContext, kind: strin
 
 export function warriorActiveBoonCount(context: Gw2ModifierContext): number {
   return GW2_STANDARD_BOONS.filter((boon) => warriorBoonActive(context, boon)).length;
-}
-
-export function warriorTargetBoonCount(context: Gw2ModifierContext): number {
-  return configuredTargetBoonCount(context.config?.target);
 }
 
 // Test both weapon hands at query time, including projected modifier-evaluation swaps.

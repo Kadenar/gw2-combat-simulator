@@ -54,7 +54,6 @@
     "regeneration": true,
     "vigor": true,
     "targetMoving": false,
-    "targetBoonless": true,
     "targetConditions": {
       "Bleeding": 1,
       "Burning": true,

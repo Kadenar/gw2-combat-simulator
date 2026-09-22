@@ -726,7 +726,8 @@ test('Devastation modifiers and Battle Scars use supplied thresholds', () => {
     [TRAIT.DESTRUCTIVE_IMPULSES, { secondaryWeapon: 'Sword' }, 1.075],
     [TRAIT.UNSUSPECTING_STRIKES, { healthDamage: 10 }, 1.2],
     [TRAIT.TARGETED_DESTRUCTION, {}, 1.1],
-    [TRAIT.BRUTALITY, { targetBoons: { protection: true } }, 1.15],
+    // Old target-boon inputs are ignored; Brutality cannot receive its target-boon damage bonus.
+    [TRAIT.BRUTALITY, { targetBoons: { protection: true } }, 1],
     [TRAIT.SWIFT_TERMINATION, { healthDamage: 60 }, 1.2]
   ];
 

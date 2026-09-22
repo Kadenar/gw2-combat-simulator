@@ -62,7 +62,6 @@
     "aegis": true,
     "targetDefiant": true,
     "targetMoving": false,
-    "targetBoonless": true,
     "sharePlayerBoonsWithSummons": false,
     "targetConditions": {
       "Bleeding": 1,

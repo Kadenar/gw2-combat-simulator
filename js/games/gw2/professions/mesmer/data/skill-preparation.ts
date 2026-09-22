@@ -52,7 +52,6 @@ export function mesmerHandlerIdFor(skill: MesmerSkillCatalogFragment): string | 
     return 'mesmer.phantasm';
   }
 
-  if (id === ID.MIND_SPIKE) return 'mesmer.mind-spike';
   return null;
 }
 

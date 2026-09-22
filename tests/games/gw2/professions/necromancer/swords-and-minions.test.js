@@ -127,17 +127,12 @@ test('Necromancer wells use their EVTC packet schedules after the final rotation
   }
 });
 
-test('Dark Pact gains life force only after ripping a boon and inflicts its target and self conditions', () => {
-  const withBoon = simulate('Core', ['Dark Pact'], {
-    initialResource: 0,
-    primaryWeapon: 'Dagger'
-  });
+test('Dark Pact inflicts conditions without gaining life force against the boonless target', () => {
   const boonless = simulate('Core', ['Dark Pact'], {
     initialResource: 0,
     primaryWeapon: 'Dagger',
     target: {
-      ...baseConfig.target,
-      boonless: true
+      ...baseConfig.target
     }
   });
   const targetCondition = (condition) =>
@@ -152,30 +147,10 @@ test('Dark Pact gains life force only after ripping a boon and inflicts its targ
     boonless.events.find((event) => event.type === 'damage' && event.skillId === ID.DARK_PACT)?.coefficient,
     2.4
   );
-  assert.equal(withBoon.planningState.profession.lifeForce, 5);
   assert.equal(boonless.planningState.profession.lifeForce, 0);
   assert.deepEqual([targetCondition('Bleeding')?.stacks, targetCondition('Bleeding')?.duration], [2, 10]);
   assert.deepEqual([selfBleeding?.stacks, selfBleeding?.duration], [2, 10]);
   assert.equal(targetCondition('Immobilized')?.duration, 6);
-});
-
-test('Dark Pact preserves explicit zero-boon inputs when granting life force', () => {
-  // Equivalent empty-target inputs must deny the gain; an omitted count retains the existing one-boon default.
-  for (const [target, expectedLifeForce] of [
-    [{ boonless: false, boonCount: 0 }, 0],
-    [{ boonless: false, boons: [] }, 0],
-    [{ boonless: true }, 0],
-    [{ boonless: false, boonCount: 1 }, 5],
-    [{ boonless: false }, 5]
-  ]) {
-    const result = simulate('Core', ['Dark Pact'], {
-      initialResource: 0,
-      primaryWeapon: 'Dagger',
-      target
-    });
-    assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.lifeForce, expectedLifeForce, JSON.stringify(target));
-  }
 });
 
 test('Life Siphon uses its current PvE strike and bleeding mechanics', () => {

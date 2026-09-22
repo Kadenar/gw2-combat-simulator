@@ -36,12 +36,12 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.MIND_SPIKE]: {
     castTimeMs: 840,
-    boonlessCoefficient: 2,
     nextChainId: null,
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
+        // Mind Spike always receives its boonless-target coefficient.
+        coefficient: 2,
         hits: 1,
         name: 'Damage',
         actorType: 'player',

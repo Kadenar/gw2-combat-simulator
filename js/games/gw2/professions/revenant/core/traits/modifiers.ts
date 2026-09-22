@@ -76,13 +76,6 @@ function activeOffhand(context: RevenantModifierContext): boolean {
   return Boolean(gw2ConfiguredWeaponSet(context.config, set)[1]);
 }
 
-function targetHasDefensiveBoon(context: RevenantModifierContext): boolean {
-  const boons = context.config?.target?.boons || {};
-  return Boolean(
-    (boons as Record<string, boolean | number>).stability || (boons as Record<string, boolean | number>).protection
-  );
-}
-
 // Count distinct self-affecting boons active at the query time for Revenant
 // modifiers that scale with boon variety.
 export function revenantActiveBoonCount(context: RevenantModifierContext): number {
@@ -164,16 +157,6 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     operation: 'multiply',
     factor: (context) => 1 + vulnerabilityStacks(context) * 0.005,
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TARGETED_DESTRUCTION)
-  },
-  {
-    id: 'revenant.brutality',
-    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
-    operation: 'multiply',
-    factor: 1.15,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      hasTrait(context, TRAIT.BRUTALITY) &&
-      targetHasDefensiveBoon(context)
   },
   {
     id: 'revenant.swift-termination',

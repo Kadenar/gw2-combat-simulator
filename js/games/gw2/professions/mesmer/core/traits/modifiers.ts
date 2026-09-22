@@ -192,12 +192,8 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     id: 'mesmer.vicious-expression',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    parameters: modifierParameters({
-      boonlessFactor: 1.15,
-      normalFactor: 1.1
-    }),
-    factor: (context, _target, parameters) =>
-      context.config?.target?.boonless ? parameters.boonlessFactor : parameters.normalFactor,
+    // The target never has boons, so the full bonus always applies.
+    factor: 1.15,
     order: 100,
     when: (context) => hasTrait(context, TRAIT.VICIOUS_EXPRESSION)
   },

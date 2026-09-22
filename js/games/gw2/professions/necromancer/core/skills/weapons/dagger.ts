@@ -11,8 +11,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
       { type: 'strike', coefficient: 2.4 },
       { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10 }
     ]),
-    // Dark Pact grants 5% life force only after ripping a boon; its impact handler owns the self-bleed and immobilize.
-    lifeForceGain: 5,
+    // Dark Pact cannot gain life force: simulated targets have no boons to remove.
     // Custom: Applies self-bleeding and target immobilize only after the first hit; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.dark-pact'
   },

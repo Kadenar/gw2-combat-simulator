@@ -82,7 +82,6 @@
     "vigor": true,
     "aegis": true,
     "targetMoving": false,
-    "targetBoonless": true,
     "targetConditions": {
       "Bleeding": 5,
       "Burning": true,

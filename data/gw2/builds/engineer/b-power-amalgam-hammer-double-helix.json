@@ -77,7 +77,6 @@
     "vigor": true,
     "aegis": true,
     "targetMoving": false,
-    "targetBoonless": true,
     "inDamagingField": false,
     "targetConditions": {
       "Bleeding": 1,

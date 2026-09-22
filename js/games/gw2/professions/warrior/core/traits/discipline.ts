@@ -9,11 +9,7 @@ import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/pol
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { gainWarriorAdrenaline } from '#gw2/professions/warrior/family-state.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
-import {
-  warriorBoonActive,
-  warriorEventSkill,
-  warriorTargetBoonCount
-} from '#gw2/professions/warrior/core/traits/modifier-queries.js';
+import { warriorBoonActive, warriorEventSkill } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
   WarriorCastContext,
@@ -88,15 +84,6 @@ export const warriorDisciplineModifierRules: readonly Gw2ModifierRule[] = Object
     operation: 'damage-additive',
     amount: 0.1,
     when: (context) => hasTrait(context, TRAIT.WARRIORS_SPRINT) && warriorBoonActive(context, 'swiftness')
-  },
-  {
-    id: 'warrior.destruction-of-the-empowered',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    parameters: { damagePerBoon: 0.03 } as Readonly<Record<string, number>>,
-    factor: (context, _target, parameters) => 1 + warriorTargetBoonCount(context) * parameters.damagePerBoon,
-    order: 100,
-    when: (context) => hasTrait(context, TRAIT.DESTRUCTION_OF_THE_EMPOWERED) && warriorTargetBoonCount(context) > 0
   },
   {
     id: 'warrior.burst-mastery',

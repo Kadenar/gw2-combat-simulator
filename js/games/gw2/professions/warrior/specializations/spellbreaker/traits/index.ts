@@ -5,7 +5,6 @@ import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2RechargeRate } from '#gw2/platform/skills/recharge.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { warriorBoonRemovalCounts } from '#gw2/professions/warrior/core/mechanics/resolution-helpers.js';
 
 import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
@@ -63,19 +62,10 @@ function triggerMagebaneTether(
   return true;
 }
 
-// Translate scheduled boon removal, control, and burst damage into Attacker's
+// Target boons never exist; only control and burst damage drive Attacker's
 // Insight, No Escape, and Magebane Tether state without cross-event duplication.
 export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (event.actorType !== 'player') return;
-  if (event.type === 'warrior.boon-removal') {
-    const { removed: applications } = warriorBoonRemovalCounts(context, event);
-    if (applications > 0 && hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
-      gainAttackersInsight(context, spellbreakerState.from(context), event.at, applications);
-    }
-
-    return;
-  }
-
   if (event.type === 'control') {
     if (hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
       gainAttackersInsight(

@@ -113,21 +113,8 @@ export function applyChillOfDeath(context: NecromancerResolverContext, event: Ne
     )
   )
     return;
-  const boons = context.config.target?.boonless
-    ? 0
-    : Math.min(
-        3,
-        Math.max(
-          0,
-          Number(
-            context.config.target?.boonCount ??
-              (Array.isArray(context.config.target?.boons) ? context.config.target.boons.length : 1)
-          )
-        )
-      );
-  const coefficient = Number(
-    profile?.effects?.filter((effect) => effect.type === 'strike')[boons]?.coefficient ?? [0.6, 0.9, 1.5, 2.1][boons]
-  );
+  // No target boons can be removed, so use only the zero-boon strike profile.
+  const coefficient = Number(balanceProfileEffect(profile, 'strike')?.coefficient ?? 0.6);
   queueTraitCoefficientDamage(context, event, {
     name: 'Lesser Spinal Shivers',
     traitId: TRAIT.CHILL_OF_DEATH,

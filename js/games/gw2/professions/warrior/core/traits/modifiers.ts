@@ -103,8 +103,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.5,
     order: 100,
-    when: (context) =>
-      warriorEventSkill(context)?.id === ID.BREACHING_STRIKE && context.config?.target?.boonless === true
+    when: (context) => warriorEventSkill(context)?.id === ID.BREACHING_STRIKE
   },
   {
     id: 'warrior.slicing-maelstrom-boonless',
@@ -112,8 +111,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.5,
     order: 100,
-    when: (context) =>
-      warriorEventSkill(context)?.id === ID.SLICING_MAELSTROM && context.config?.target?.boonless === true
+    when: (context) => warriorEventSkill(context)?.id === ID.SLICING_MAELSTROM
   },
   ...warriorDisciplineModifierRules
 ]);

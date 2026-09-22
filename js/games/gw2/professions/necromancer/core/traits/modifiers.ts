@@ -237,9 +237,8 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
     id: 'necromancer.spiteful-talisman',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    parameters: { boonlessFactor: 1.05, boonedFactor: 1.03 } as Readonly<Record<string, number>>,
-    factor: (context, _target, parameters) =>
-      context.config?.target?.boonless ? parameters.boonlessFactor : parameters.boonedFactor,
+    // The target never has boons, so the full bonus always applies.
+    factor: 1.05,
     order: 100,
     when: (context) => hasTrait(context, TRAIT.SPITEFUL_TALISMAN)
   },

@@ -76,7 +76,6 @@
     "vigor": true,
     "aegis": true,
     "targetMoving": false,
-    "targetBoonless": true,
     "permanentComboField": "Ice",
     "targetConditions": {
       "Bleeding": 1,

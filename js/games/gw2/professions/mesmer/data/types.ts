@@ -123,7 +123,6 @@ export interface MesmerSkill extends Skill {
   readonly duration?: number;
   readonly phantasm?: boolean;
   readonly blade?: boolean;
-  readonly boonlessCoefficient?: number;
   readonly applyConditionsOnInterrupt?: boolean;
   readonly armedAtStart?: boolean;
   readonly flipDelay?: number;

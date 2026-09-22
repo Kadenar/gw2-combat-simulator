@@ -32,7 +32,6 @@ import {
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   NecromancerCastContext,
-  NecromancerConfig,
   NecromancerSchedulerContext,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
@@ -45,13 +44,6 @@ import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 // Each scheduler run consumes observed strike gains exactly once, including gains at time zero.
 const resourceFeedbackCursors = new WeakMap<object, number>();
-
-function targetBoonCount(config: NecromancerConfig): number {
-  if (config.target?.boonless) return 0;
-  if (Array.isArray(config.target?.boons)) return config.target.boons.length;
-  // Preserve explicit zero so boon-removal gains require a boon; only missing counts default to one.
-  return Math.max(0, Number(config.target?.boonCount ?? 1));
-}
 
 function alacrityRecharge(context: NecromancerSchedulerContext, duration: number, at: number): number {
   return duration / (context.hasBuff?.('alacrity', at) ? 1.25 : 1);
@@ -325,11 +317,6 @@ export function applySkillLifeForceGain(context: NecromancerCastContext, skill: 
 
   if (new Set<string | number>([ID.FEAST_OF_CORRUPTION, ID.DEVOURING_DARKNESS]).has(skill.id)) {
     amount += Math.min(5, observeTargetConditionCount(context, context.effectiveEnd, 5));
-  }
-
-  // Dark Pact's fixed gain is conditional on having at least one target boon to remove.
-  if (skill.id === ID.DARK_PACT && targetBoonCount(context.config) === 0) {
-    amount = 0;
   }
 
   if (amount > 0) {

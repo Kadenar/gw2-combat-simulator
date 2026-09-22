@@ -175,7 +175,7 @@ export function completeMesmerCast(context: MesmerCastContext, skill: MesmerSkil
       if (resolution) dispatchShatterResolved(context, resolution);
     } else {
       // Default and augmented profiles still leave direct resource scheduling to Mesmer completion.
-      if ((!skill.handlerId || skill.handlerId === 'mesmer.mind-spike') && !details.resourceScheduledDuringCast) {
+      if (!skill.handlerId && !details.resourceScheduledDuringCast) {
         runtime.skillEffects.scheduleResources(skill, at, context.start);
       }
 

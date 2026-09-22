@@ -73,7 +73,7 @@ export function applyBountifulTheft(context: ThiefCastContext, at: number): void
     duration: gw2SchedulerBoonDuration(context, context.skill, vigorName, Number(vigor?.duration ?? 10)),
     stacks: Number(vigor?.stacks ?? 1)
   });
-  if (context.config.target?.boonless === false) return;
+  // The target is always boonless, so Bountiful Theft also grants Might.
   const mightName = String(might?.boon || 'Might');
   emitSkillBuff(context, {
     at,

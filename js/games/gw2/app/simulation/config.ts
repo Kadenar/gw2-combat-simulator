@@ -195,7 +195,6 @@ export function createGw2SimulationConfig({
       distance: Math.max(0, Number(assumptions.targetDistance ?? 130)),
       conditions: targetConditions,
       moving: Boolean(assumptions.targetMoving),
-      boonless: Boolean(assumptions.targetBoonless),
       nearby: true,
       activatingSkills: targetSkillActivationsPerSecond > 0,
       confusionActivationsPerSecond: targetSkillActivationsPerSecond

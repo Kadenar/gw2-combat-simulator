@@ -52,10 +52,6 @@ export function thiefRuntimeSpecializationState<TState extends object = object>(
   return readProfessionSpecializationState<TState>(context.runtime?.profession, expectedKind) || {};
 }
 
-function targetBoonless(context: Gw2ModifierContext): boolean {
-  return context.config?.target?.boonless !== false;
-}
-
 export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'thief.exposed-weakness',
@@ -130,10 +126,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.2,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      eventSkill(context)?.id === ID.LARCENOUS_STRIKE &&
-      targetBoonless(context)
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && eventSkill(context)?.id === ID.LARCENOUS_STRIKE
   },
   {
     id: 'thief.lead-attacks',

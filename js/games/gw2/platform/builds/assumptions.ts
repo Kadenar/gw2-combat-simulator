@@ -18,8 +18,7 @@ const COMMON_BOOLEAN_ASSUMPTION_DEFAULTS: Readonly<Record<string, boolean>> = Ob
   aegis: false,
   sharePlayerBoonsWithSummons: true,
   targetDefiant: true,
-  targetMoving: false,
-  targetBoonless: false
+  targetMoving: false
 });
 
 /**
