@@ -1,4 +1,4 @@
-import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { ProfessionUiCallbackContext } from '#gw2/platform/profession-presentation/types.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   CastContext,
@@ -220,9 +220,6 @@ export interface ThiefUiContext extends Omit<
   readonly initialInitiative?: number;
   readonly initialShadowForce?: number;
 }
-
-/** UI slice whose callbacks read Thief end-state projections. */
-export type ThiefUiSlice = Partial<ProfessionUiContract<ThiefRuntimeState | Partial<ThiefState>>>;
 
 export interface ThiefWeaponMatcherContext extends Gw2WeaponMatcherContext {
   readonly catalog?: CanonicalCatalog<ThiefSkill> | null;

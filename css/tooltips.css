@@ -112,8 +112,19 @@
   white-space: pre-line;
 }
 
+/* Surface requirements before the description so unavailable skills explain how to become usable. */
+.wiki-tooltip-notice {
+  margin-top: 8px;
+  padding: 6px 8px;
+  border-left: 2px solid #d9bc64;
+  background: #d9bc6414;
+  color: #e5c77c;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 /* Give activation details a quieter, separate surface so they cannot read as part of the skill description. */
-.wiki-tooltip-rotation {
+.wiki-tooltip-details {
   margin-top: 10px;
   padding: 8px;
   border-top: 1px solid #b8aa6c30;
@@ -123,7 +134,7 @@
   line-height: 1.4;
 }
 
-.wiki-tooltip-rotation h3 {
+.wiki-tooltip-details h3 {
   margin-bottom: 6px;
   color: #b2b9ba;
   font-size: 10px;
@@ -132,28 +143,25 @@
   text-transform: uppercase;
 }
 
-.wiki-tooltip-rotation dl {
+.wiki-tooltip-details dl {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px 12px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
   margin: 0;
 }
 
-.wiki-tooltip-rotation dd {
+.wiki-tooltip-details dd {
   margin: 0;
   color: #c0c6c7;
   font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
-.wiki-tooltip-rotation dl > div {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 2px 6px;
-}
-
-.wiki-tooltip-rotation-note {
-  grid-column: 1 / -1;
+/* Each detail owns a full row, with stable label and value columns even when a value wraps. */
+.wiki-tooltip-details dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
 }
 
 .wiki-tooltip-effects-label {
