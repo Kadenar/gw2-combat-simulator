@@ -54,25 +54,23 @@ export const lastTyrant = defineRelic({
     state.stacks = 0;
     state.readyAt = application.at + LAST_TYRANT_INTERNAL_COOLDOWN;
     ctx.recordProc('relic', 'Relic of the Last Tyrant', application.at, application.skillName, 'explosion');
-    if (LAST_TYRANT_EXPLOSION_COEFFICIENT > 0) {
-      ctx.queue.enqueue({
-        type: 'damage',
-        at: application.at,
-        name: 'Relic of the Last Tyrant',
-        skillName: 'Relic of the Last Tyrant',
-        coefficient: LAST_TYRANT_EXPLOSION_COEFFICIENT,
-        hits: 1,
-        hitIndex: 1,
-        totalHits: 1,
-        source: 'Relic',
-        sourceId: 'relic.last-tyrant',
-        actorType: 'effect',
-        ownerActorType: 'player',
-        skillWeapon: 'Unequipped',
-        canCrit: true,
-        triggeredBy: application.skillName
-      });
-    }
+    ctx.queue.enqueue({
+      type: 'damage',
+      at: application.at,
+      name: 'Relic of the Last Tyrant',
+      skillName: 'Relic of the Last Tyrant',
+      coefficient: LAST_TYRANT_EXPLOSION_COEFFICIENT,
+      hits: 1,
+      hitIndex: 1,
+      totalHits: 1,
+      source: 'Relic',
+      sourceId: 'relic.last-tyrant',
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillWeapon: 'Unequipped',
+      canCrit: true,
+      triggeredBy: application.skillName
+    });
 
     applyCondition(ctx, {
       type: 'condition',
