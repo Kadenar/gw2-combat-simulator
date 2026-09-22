@@ -17,11 +17,8 @@ import {
   resolverSkill
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/engineer/core/profiles.js';
-import type {
-  EngineerResolverContext,
-  EngineerResolverEvent,
-  EngineerResolverReactionDetails
-} from '#gw2/professions/engineer/types.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
 
 /** Recognizes resolver events produced by the mech, including legacy summon packets inferred by mechanic slot. */
@@ -115,14 +112,14 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
 ] satisfies readonly ResolvedCriticalHitOptions<
   EngineerResolverContext,
   EngineerResolverEvent,
-  EngineerResolverReactionDetails
+  NativeResolvedDamageDetails
 >[]);
 
 /** Applies on-damage arm traits to qualifying mech strikes while maintaining their independent cooldowns. */
 function reactToMechanistDamage(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
-  _details: EngineerResolverReactionDetails = {}
+  _details: NativeResolvedDamageDetails = {}
 ): void {
   if (!(Number(event.coefficient) > 0)) return;
   const state = procState(context);

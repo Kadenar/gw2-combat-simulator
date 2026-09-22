@@ -16,7 +16,6 @@ import type {
   ProfessionBuildAssumptions
 } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
@@ -135,11 +134,6 @@ export type EngineerResolverContext = Gw2ResolverRuntime & {
   profession: EngineerRuntimeState;
   readonly state?: { readonly profession: EngineerRuntimeState };
 };
-
-export interface EngineerResolverReactionDetails {
-  readonly hitContext?: Gw2HitResolutionContext;
-  readonly criticalChance?: number;
-}
 
 /** Engineer's finalized attributes also carry the pre-profession conversion pool Amalgam evolves from. */
 export interface EngineerFinalizedAttributeResult extends Gw2FinalizedAttributeResult {

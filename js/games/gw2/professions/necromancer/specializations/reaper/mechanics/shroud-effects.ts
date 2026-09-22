@@ -9,11 +9,8 @@ import {
   queueTraitCoefficientDamage,
   targetIsChilled
 } from '#gw2/professions/necromancer/core/traits/index.js';
-import type {
-  NecromancerResolverContext,
-  NecromancerResolverEvent,
-  NecromancerResolverReactionDetails
-} from '#gw2/professions/necromancer/types.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
 import { reaperState } from '#gw2/professions/necromancer/specializations/reaper/state.js';
@@ -22,7 +19,7 @@ import { reaperState } from '#gw2/professions/necromancer/specializations/reaper
 const chillingNovaCriticalHit = onResolvedCriticalHit<
   NecromancerResolverContext,
   NecromancerResolverEvent,
-  NecromancerResolverReactionDetails
+  NativeResolvedDamageDetails
 >({
   id: 'necromancer.chilling-nova',
   materialization: 'threshold',
@@ -62,7 +59,7 @@ const chillingNovaCriticalHit = onResolvedCriticalHit<
 function reactToDamage(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  details: NecromancerResolverReactionDetails = {}
+  details: NativeResolvedDamageDetails = {}
 ): void {
   // The resolved Nova strike queues its condition after sibling strikes, preserving their pre-Chill state.
   if (event.actorType === 'effect' && event.sourceId === TRAIT.CHILLING_NOVA) {

@@ -13,17 +13,14 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { applyTraitCondition } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import type {
-  NecromancerResolverContext,
-  NecromancerResolverEvent,
-  NecromancerResolverReactionDetails
-} from '#gw2/professions/necromancer/types.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 /** Lets player and Ritualist spirit critical hits advance Barbed Precision, while excluding minions. */
 export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
   NecromancerResolverContext,
   NecromancerResolverEvent,
-  NecromancerResolverReactionDetails
+  NativeResolvedDamageDetails
 >({
   id: 'necromancer.barbed-precision',
   order: 0,

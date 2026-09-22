@@ -1,11 +1,11 @@
 /** Public Core Engineer trait dispatcher preserving cross-line reaction order. */
 import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type {
   EngineerCastContext,
   EngineerResolverContext,
   EngineerResolverEvent,
-  EngineerResolverReactionDetails,
   EngineerSkill
 } from '#gw2/professions/engineer/types.js';
 import { applyHgh, observeEngineerHghEvent } from '#gw2/professions/engineer/core/traits/alchemy.js';
@@ -68,7 +68,7 @@ function isExplosion(context: EngineerResolverContext, event: EngineerResolverEv
 export function reactToEngineerDamage(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
-  _details: EngineerResolverReactionDetails = {}
+  _details: NativeResolvedDamageDetails = {}
 ): void {
   if (!(Number(event.coefficient) > 0)) return;
   recordStaticDischargeProc(context, event);

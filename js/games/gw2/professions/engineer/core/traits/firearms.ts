@@ -16,17 +16,14 @@ import {
   queueBuff,
   recordTrait
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
-import type {
-  EngineerResolverContext,
-  EngineerResolverEvent,
-  EngineerResolverReactionDetails
-} from '#gw2/professions/engineer/types.js';
+import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 
 type EngineerCriticalHitDefinition = ResolvedCriticalHitOptions<
   EngineerResolverContext,
   EngineerResolverEvent,
-  EngineerResolverReactionDetails
+  NativeResolvedDamageDetails
 >;
 
 // Keep Firearms critical definitions in gameplay order while shared helpers own sampling and cooldown mechanics.

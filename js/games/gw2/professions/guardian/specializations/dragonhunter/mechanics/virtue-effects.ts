@@ -9,6 +9,7 @@ import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/professions/g
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/index.js';
 import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/professions/guardian/types.js';
 import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 
@@ -56,7 +57,7 @@ function handleJusticePulse(context: GuardianResolverContext, event: GuardianRes
 export function reactToDragonhunterJusticeHit(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
-  dependencies: { readonly hitContext?: object } = {}
+  dependencies: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}
 ): void {
   const core = professionCoreState(context);
   const passiveBefore = Number(core.justicePassiveBurns || 0);

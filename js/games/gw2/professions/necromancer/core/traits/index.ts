@@ -1,11 +1,11 @@
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 /** Dispatches Core Necromancer trait lines in their established cross-line reaction order. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type {
   NecromancerCastContext,
   NecromancerResolverContext,
   NecromancerResolverEvent,
-  NecromancerResolverReactionDetails,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { finalizeNecromancerCast } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
@@ -111,7 +111,7 @@ export function applyNecromancerAfterCastTraits(context: NecromancerCastContext,
 export function reactToNecromancerCoreDamage(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  details: NecromancerResolverReactionDetails = {}
+  details: NativeResolvedDamageDetails = {}
 ): void {
   applyChillOfDeathCondition(context, event);
   if (event.actorType === 'effect' || !(Number(event.coefficient) > 0)) return;

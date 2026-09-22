@@ -24,6 +24,7 @@ import { emitGuardianEvent } from '#gw2/professions/guardian/core/mechanics/even
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type {
   GuardianCastContext,
@@ -33,10 +34,6 @@ import type {
   GuardianSchedulerContext,
   GuardianSkill
 } from '#gw2/professions/guardian/types.js';
-
-interface AshesHitDependencies {
-  readonly hitContext?: object;
-}
 
 /**
  * Determines whether a tome page or Stow Tome is compatible with the currently
@@ -396,7 +393,7 @@ export const tomeCourage = timedEffect<GuardianSchedulerContext, object>({
 export function reactToAshesHit(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
-  { hitContext }: AshesHitDependencies = {}
+  { hitContext }: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}
 ): void {
   const ashes = balanceProfileFromContext(context, PROFILE.ashes);
   const burn = balanceProfileEffect(ashes, 'condition');

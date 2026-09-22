@@ -11,7 +11,6 @@ import type {
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2QueryRuntime } from '#gw2/platform/combat/query/combat-query.js';
@@ -153,10 +152,6 @@ export type NecromancerResolverContext = Gw2ResolverRuntime & {
   profession: NecromancerRuntimeState;
   readonly state?: { readonly profession: NecromancerRuntimeState };
 };
-
-export interface NecromancerResolverReactionDetails {
-  readonly hitContext?: Gw2HitResolutionContext;
-}
 
 export type NecromancerQueryRuntime = Gw2QueryRuntime & {
   readonly profession?: NecromancerRuntimeState | Partial<NecromancerState> | null;

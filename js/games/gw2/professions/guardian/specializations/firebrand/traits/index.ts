@@ -20,6 +20,7 @@ import {
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type {
   GuardianCastContext,
   GuardianResolverContext,
@@ -271,9 +272,7 @@ export function handleFirebrandVirtueActivation(context: GuardianResolverContext
 export function reactToFirebrandJusticeHit(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
-  dependencies: {
-    readonly hitContext?: object;
-  } = {}
+  dependencies: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}
 ): void {
   reactToJusticeHitWithOptions(context, event, dependencies, {
     retainsPassive: hasTrait(context, GUARDIAN_TRAIT_IDS.QUICKFIRE),

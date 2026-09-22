@@ -12,6 +12,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { emitGuardianEvent } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   GuardianCastContext,
@@ -21,10 +22,6 @@ import type {
   GuardianVirtue
 } from '#gw2/professions/guardian/types.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
-
-interface JusticeHitDependencies {
-  readonly hitContext?: object;
-}
 
 const VIRTUES_BY_SLOT: readonly (GuardianVirtue | null)[] = Object.freeze([null, 'justice', 'resolve', 'courage']);
 
@@ -160,11 +157,11 @@ function applyJusticeBurn(
   );
 }
 
-/** Applies the shared Justice hit contract with specialization-selected options. */
+/** Applies Justice from canonical resolved-hit details with specialization-selected options. */
 export function reactToJusticeHitWithOptions(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
-  { hitContext }: JusticeHitDependencies = {},
+  { hitContext }: Pick<NativeResolvedDamageDetails, 'hitContext'> = {},
   {
     retainsPassive = false,
     skillId = GUARDIAN_SKILL_IDS.JUSTICE,

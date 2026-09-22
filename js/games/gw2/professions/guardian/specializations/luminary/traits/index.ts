@@ -24,6 +24,7 @@ import {
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/stances.js';
 
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   GuardianCastContext,
@@ -245,9 +246,7 @@ export function observeLuminaryScheduledEvent(context: GuardianSchedulerContext,
 export function reactToLuminaryJusticeHit(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
-  dependencies: {
-    readonly hitContext?: object;
-  } = {}
+  dependencies: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}
 ): void {
   // Radiant Justice uses the two-second passive packet measured in the Luminary log.
   reactToJusticeHitWithOptions(context, event, dependencies, {

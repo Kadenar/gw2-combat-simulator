@@ -16,21 +16,18 @@ import {
 import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { ThiefSchedulerContext, ThiefSimulationEvent } from '#gw2/professions/thief/types.js';
 import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
 import type { SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
-import type {
-  ThiefResolverContext,
-  ThiefResolverEvent,
-  ThiefResolverReactionDetails
-} from '#gw2/professions/thief/types.js';
+import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 
 type ThiefCriticalHitDefinition = ResolvedCriticalHitOptions<
   ThiefResolverContext,
   ThiefResolverEvent,
-  ThiefResolverReactionDetails
+  NativeResolvedDamageDetails
 >;
 
 const CRITICAL_BOONS = [
@@ -191,7 +188,7 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
   order: 10,
   materialization: 'threshold',
   actorTypes: ['player'] as const,
-  when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: ThiefResolverReactionDetails) =>
+  when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: NativeResolvedDamageDetails) =>
     Boolean(details.hitContext?.critEligible) &&
     criticalBoonEligible(context, event, TRAIT.UNRELENTING_STRIKES, details.hitContext?.critical?.furyActive === true),
   expectedProgress: {
@@ -243,7 +240,7 @@ export const noQuarterCriticalReaction = Object.freeze({
   order: 20,
   materialization: 'threshold',
   actorTypes: ['player'] as const,
-  when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: ThiefResolverReactionDetails) =>
+  when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: NativeResolvedDamageDetails) =>
     Boolean(details.hitContext?.critEligible) &&
     criticalBoonEligible(context, event, TRAIT.NO_QUARTER, details.hitContext?.critical?.furyActive === true),
   expectedProgress: {
