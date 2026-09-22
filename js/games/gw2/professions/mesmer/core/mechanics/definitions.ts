@@ -236,10 +236,10 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, Partia
       spawnAtMs: 2160
     },
     [ID.PHANTASMAL_SHARPSHOOTER]: {
+      // These lifecycle timings are estimates.
       castTimeMs: 520,
       damageAtMs: 1560,
-      spawnAtMs: 1560,
-      estimated: true
+      spawnAtMs: 1560
     },
     [ID.PHANTASMAL_LANCER]: {
       castTimeMs: 520,

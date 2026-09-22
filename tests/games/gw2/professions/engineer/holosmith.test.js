@@ -904,9 +904,7 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
       (event) => event.condition === 'Bleeding' && event.duration === 2
     )
   );
-  assert.ok(
-    enhancedDiskDamage.every((event) => event.enhancedCapacityTier === true && event.holosmithStrikeFactor === 1.35)
-  );
+  assert.ok(enhancedDiskDamage.every((event) => event.holosmithStrikeFactor === 1.35));
 
   const coldWall = run(['Photon Wall', 'Launch Wall', { type: 'wait', durationMs: 1000 }], 0);
   const hotWall = run(['Photon Wall', 'Launch Wall', { type: 'wait', durationMs: 1000 }], 60);
@@ -926,11 +924,7 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
       (event) => event.condition === 'Vulnerability' && event.stacks === 3 && event.duration === 5
     )
   );
-  assert.ok(
-    skillEvents(enhancedWall, 'damage', 'Launch Wall').every(
-      (event) => event.enhancedCapacityTier === true && event.holosmithStrikeFactor === 1.35
-    )
-  );
+  assert.ok(skillEvents(enhancedWall, 'damage', 'Launch Wall').every((event) => event.holosmithStrikeFactor === 1.35));
 
   const blades = (initialHeat, selectedTraitIds = []) =>
     run(['Refraction Cutter', { type: 'wait', durationMs: 1000 }], initialHeat, selectedTraitIds);
@@ -1061,7 +1055,7 @@ test('Holosmith heat-profile patches tune tier effects without changing heat top
 
   assert.equal(disk.planningState.profession.maximumHeat, 150);
   assert.equal(diskPackets.length, 18);
-  assert.ok(diskPackets.every((event) => event.enhancedCapacityTier === true && event.holosmithStrikeFactor === 1.5));
+  assert.ok(diskPackets.every((event) => event.holosmithStrikeFactor === 1.5));
 
   const beam = patchedSimulation(['Prime Light Beam', { type: 'wait', durationMs: 11000 }]);
   const field = beam.resolvedEvents.filter(

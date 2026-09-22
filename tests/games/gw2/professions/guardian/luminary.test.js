@@ -1184,11 +1184,9 @@ test('Luminary stances apply modifiers, combos, delayed damage, and control', ()
   assert.equal(daringBuff.duration, 8);
   const stance = effulgent.events.find((event) => event.type === 'action' && event.skillName === 'Effulgent Stance');
   assert.ok(effulgentDamage.at > stance.endsAt);
-  assert.equal(effulgentDamage.stackCount, 10);
   assert.equal(effulgentDamage.coefficient, 4);
   assert.equal(effulgentDamage.weaponStrengthProfileId, 'nonweapon.unequipped');
   assert.equal(effulgentDamage.weaponStrengthSampled, false);
-  assert.equal(procChargedEffulgent.stackCount, 2);
   assert.ok(Math.abs(procChargedEffulgent.coefficient - 1.2) < 1e-9);
   assert.ok(
     effulgent.procSteps.some(

@@ -132,7 +132,7 @@ export function handleEffulgentActivated(context: GuardianResolverContext, event
   luminaryState.from(context).effulgentStacks = 0;
 }
 
-/** Resolves Effulgent Stance damage and its maximum-stack daze. */
+/** Consumes Effulgent stacks to scale detonation damage and trigger the maximum-stack daze. */
 export function handleEffulgentDetonate(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = luminaryState.from(context);
   const profile = balanceProfileFromContext(context, PROFILE.effulgentStance);
@@ -151,8 +151,7 @@ export function handleEffulgentDetonate(context: GuardianResolverContext, event:
       skillName: 'Effulgent Stance',
       name: 'Effulgent Stance',
       coefficient: Number(strike?.coefficient ?? 0.5) + stacks * Number(profile?.damageIncreasePerStack ?? 0.35),
-      weaponStrengthProfileId: 'nonweapon.unequipped',
-      stackCount: stacks
+      weaponStrengthProfileId: 'nonweapon.unequipped'
     })
   );
   if (stacks === maximumStacks) {

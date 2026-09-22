@@ -23,7 +23,6 @@ export interface HolosmithHeatSnapshot {
 // Holosmith event metadata stays local to the specialization while its packets
 // still travel through the profession-neutral scheduler and resolver queues.
 export interface HolosmithEventMetadata {
-  readonly enhancedCapacityTier?: boolean;
   readonly extraBlades?: number;
   readonly holosmithActivationHeat?: number;
   readonly holosmithConditionBaseDurationFactor?: number;

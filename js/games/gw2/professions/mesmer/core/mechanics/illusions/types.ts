@@ -128,5 +128,4 @@ export interface MesmerPhantasmAttackTiming {
   readonly repeatDamageTicks?: Readonly<Record<string, readonly MesmerAttackTimingTick[]>>;
   readonly repeatDamageTicksByEntity?: readonly Readonly<Record<string, readonly MesmerAttackTimingTick[]>>[];
   readonly phantasmalBladeDelayAfterSpawnMs?: number;
-  readonly estimated?: boolean;
 }

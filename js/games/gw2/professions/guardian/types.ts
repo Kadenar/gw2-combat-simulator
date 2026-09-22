@@ -123,7 +123,6 @@ export interface GuardianStrikeFields {
   readonly priority?: number;
   readonly offTarget?: boolean;
   readonly weaponStrengthProfileId?: string;
-  readonly stackCount?: number;
   readonly willbenderFlames?: boolean;
   readonly at: number;
   readonly sourceId: SkillId;

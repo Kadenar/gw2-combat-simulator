@@ -178,7 +178,6 @@ test('Effulgent counts the final live microsecond but excludes its exact detonat
   handleEffulgentDetonate(context, detonation);
   assert.equal(state.effulgentActiveUntil, 0);
   assert.equal(state.effulgentStacks, 0);
-  assert.equal(context.events.find((event) => event.type === 'damage').stackCount, 1);
 });
 
 test('Radiant Forge exits exactly once at its canonical form deadline', () => {

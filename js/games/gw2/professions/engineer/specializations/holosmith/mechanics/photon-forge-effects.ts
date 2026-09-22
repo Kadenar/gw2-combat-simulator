@@ -111,7 +111,6 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
         skillId: event.skillId,
         skillWeapon: 'Unequipped',
         damageKind: 'explosion',
-        enhancedCapacityTier,
         holosmithStrikeFactor: strikeFactor
       })
     );
@@ -129,7 +128,6 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
         sourceId: event.skillId ?? event.sourceId,
         actorType: 'player',
         skillId: event.skillId,
-        enhancedCapacityTier,
         holosmithConditionBaseDurationFactor: conditionBaseDurationFactor
       })
     );
@@ -141,7 +139,6 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
   // Resolve the heat-dependent cadence once so every delayed packet preserves the activation tier.
   const snapshot = holosmithHeatSnapshotFromEvent(event);
   const tier = holosmithHeatTier(snapshot);
-  const enhancedCapacityTier = tier === 'enhanced';
   const pulses = Math.max(
     0,
     Math.trunc(
@@ -177,7 +174,6 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
         actorType: 'player',
         skillId: event.skillId,
         skillWeapon: 'Utility',
-        enhancedCapacityTier,
         holosmithStrikeFactor: strikeFactor
       })
     );
@@ -205,7 +201,6 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
   // Resolve wall count, delay, and strike scaling from the captured activation tier.
   const snapshot = holosmithHeatSnapshotFromEvent(event);
   const tier = holosmithHeatTier(snapshot);
-  const enhancedCapacityTier = tier === 'enhanced';
   const walls = Math.max(
     0,
     Math.trunc(
@@ -239,7 +234,6 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
         skillId: event.skillId,
         skillWeapon: 'Utility',
         damageKind: 'explosion',
-        enhancedCapacityTier,
         holosmithStrikeFactor: strikeFactor
       })
     );
