@@ -42,7 +42,7 @@ for (const [profession, names] of [
         );
       }
 
-      for (const selectedSkills of [undefined, [name], { [skill.type]: { name } }]) {
+      for (const selectedSkills of [undefined, [name], { [skill.type]: name }]) {
         const result = simulateGw2({ profession, rotation: [name], config: { ...config, selectedSkills } });
         assert.deepEqual(result.warnings, [], name);
         assert.equal(Boolean(result.steps[0].invalid), false, name);

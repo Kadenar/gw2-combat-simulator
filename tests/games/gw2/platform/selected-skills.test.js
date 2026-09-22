@@ -12,11 +12,12 @@ test('selected skill names normalize array and slot-keyed loadouts', () => {
   assert.deepEqual(normalizeSelectedSkillNames({ Heal: 'Three', Utility1: 'Four' }), ['Three', 'Four']);
 });
 
-test('selected skill names read embedded skill objects', () => {
+test('selected skill names discard embedded objects in arrays and slot records', () => {
   const selected = [{ id: 1, name: 'One' }, 'Two', { id: 3, name: 'Three' }];
 
-  assert.deepEqual(normalizeSelectedSkillNames(selected), ['One', 'Two', 'Three']);
-  assert.deepEqual([...selectedSkillNameSet(selected)], ['One', 'Two', 'Three']);
+  assert.deepEqual(normalizeSelectedSkillNames(selected), ['Two']);
+  assert.deepEqual([...selectedSkillNameSet(selected)], ['Two']);
+  assert.deepEqual(normalizeSelectedSkillNames({ Heal: { name: 'One' }, Utility1: 'Two' }), ['Two']);
 });
 
 test('selected skill names reject empty input and malformed entries', () => {
@@ -31,12 +32,12 @@ test('selected skill names reject empty input and malformed entries', () => {
 
 // Simulations reuse a private snapshot; editing the original loadout cannot poison the running or next simulation.
 test('prepared skill membership is reused and isolated from mutable loadouts', () => {
-  const loadout = { Heal: { name: 'One' }, Utility1: 'Two' };
+  const loadout = { Heal: 'One', Utility1: 'Two' };
   const prepared = prepareSelectedSkillLoadout(loadout);
   const names = selectedSkillNameSet(prepared);
   assert.equal(selectedSkillNameSet(prepared), names);
   assert.deepEqual([...names], ['One', 'Two']);
-  loadout.Heal.name = 'Three';
+  loadout.Heal = 'Three';
   assert.deepEqual([...selectedSkillNameSet(prepared)], ['One', 'Two']);
   assert.deepEqual([...selectedSkillNameSet(loadout)], ['Three', 'Two']);
   assert.deepEqual([...selectedSkillNameSet(prepareSelectedSkillLoadout(loadout))], ['Three', 'Two']);

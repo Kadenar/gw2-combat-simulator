@@ -315,9 +315,9 @@ test('runtime skill lookup preserves event, application, and context fallback pr
   assert.equal(eventSkill(context({ event: { skillId: 1 } })), undefined);
 });
 
-test('selected skill queries normalize arrays, slot records, and embedded skill objects', () => {
-  const arrayContext = context({ config: { selectedSkills: ['One', { id: 2, name: 'Two' }] } });
-  const recordContext = context({ config: { selectedSkills: { Heal: 'Three', Utility1: { id: 4, name: 'Four' } } } });
+test('selected skill queries normalize name arrays and slot records', () => {
+  const arrayContext = context({ config: { selectedSkills: ['One', 'Two'] } });
+  const recordContext = context({ config: { selectedSkills: { Heal: 'Three', Utility1: 'Four' } } });
 
   assert.deepEqual([...selectedSkillNames(arrayContext)], ['One', 'Two']);
   assert.deepEqual([...selectedSkillNames(recordContext)], ['Three', 'Four']);

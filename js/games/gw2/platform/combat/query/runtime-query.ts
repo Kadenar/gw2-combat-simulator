@@ -33,7 +33,7 @@ export function eventSkill<TSkill extends Skill>(context: Gw2ModifierContext): T
   return profession?.catalog?.skillsById?.get(skillId);
 }
 
-/** Normalizes array and slot-record loadouts, including legacy embedded skill objects, into skill names. */
+/** Provides skill-name membership for array and slot-record loadouts. */
 export function selectedSkillNames(context: Gw2ModifierContext): ReadonlySet<string> {
   return selectedSkillNameSet(context.config?.selectedSkills);
 }
