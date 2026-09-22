@@ -1,4 +1,5 @@
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
+import { reduceMatchingCooldowns } from '#gw2/platform/execution/cooldowns.js';
 import {
   balanceProfileEffectFromContext,
   balanceProfileValue,
@@ -363,19 +364,18 @@ export const mercurialTendenciesReaction = scheduledReaction<
     if (!isInternalCooldownReady(at, readyAt)) return;
 
     // Find every live Evolve timer because the skill may use either cooldown or ammo recharge tracking.
-    let reducedBy = 0;
     const rechargeReduction = balanceProfileValueFromContext(
       context,
       PROFILE.mercurialTendencies,
       'rechargeReduction',
       2.5
     );
-    const trackedIds = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
-    for (const skillId of trackedIds) {
-      const skill = context.catalog.skillsById.get(skillId);
-      if (!skill || !EVOLVE_SKILL_IDS.has(skill.id)) continue;
-      reducedBy += context.cooldownController.reduceSkillRecharge(skill, rechargeReduction, at);
-    }
+    const reducedBy = reduceMatchingCooldowns(
+      context,
+      (skill) => EVOLVE_SKILL_IDS.has(skill.id),
+      rechargeReduction,
+      at
+    );
 
     if (!(reducedBy > 0)) return;
 

@@ -1,4 +1,5 @@
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
+import { reduceMatchingCooldowns } from '#gw2/platform/execution/cooldowns.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
@@ -14,7 +15,6 @@ import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/ev
 import { emitGuardianProc, guardianTraitIcon } from '#gw2/professions/guardian/core/traits/index.js';
 import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type {
   GuardianCastContext,
@@ -244,17 +244,15 @@ function queueInFlightWeaponCooldownReduction(
 
 function reduceActiveWeaponCooldowns(context: GuardianSchedulerContext, at: number): number {
   const weaponNames = activeWeaponNames(context);
-  const activeIds = new Set<SkillId>([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
   const rechargeReduction = Number(
     balanceProfileFromContext(context, PROFILE.restorativeVirtues)?.rechargeReduction ?? 0.28
   );
-  let reducedBy = 0;
-  for (const skillId of activeIds) {
-    const skill = context.catalog.skillsById.get(skillId) as GuardianSkill | undefined;
-    if (isActiveWeaponSkill(skill, weaponNames)) {
-      reducedBy += context.cooldownController.reduceSkillRecharge(skill, rechargeReduction, at);
-    }
-  }
+  let reducedBy = reduceMatchingCooldowns(
+    context,
+    (skill) => isActiveWeaponSkill(skill, weaponNames),
+    rechargeReduction,
+    at
+  );
 
   reducedBy += queueInFlightWeaponCooldownReduction(context, weaponNames, at);
   return reducedBy;

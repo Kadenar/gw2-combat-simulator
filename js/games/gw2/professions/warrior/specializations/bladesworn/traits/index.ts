@@ -1,4 +1,5 @@
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { reduceMatchingCooldowns } from '#gw2/platform/execution/cooldowns.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
@@ -201,14 +202,13 @@ function skillIsOnActiveBar(context: WarriorCastContext, skill: WarriorSkill): b
 }
 
 function activateLushForest(context: WarriorCastContext, sourceSkill: WarriorSkill, at: number): void {
-  let cooldownReduction = 0;
   const rechargeReduction = Number(balanceProfileFromContext(context, PROFILE.lushForest)?.rechargeReduction ?? 0.75);
-  const skillIds = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
-  for (const skillId of skillIds) {
-    const skill = context.catalog.skillsById.get(skillId);
-    if (!skill || LUSH_FOREST_EXCLUDED_SKILL_IDS.has(Number(skill.id)) || !skillIsOnActiveBar(context, skill)) continue;
-    cooldownReduction += context.cooldownController.reduceSkillRecharge(skill, rechargeReduction, at);
-  }
+  const cooldownReduction = reduceMatchingCooldowns(
+    context,
+    (skill) => !LUSH_FOREST_EXCLUDED_SKILL_IDS.has(Number(skill.id)) && skillIsOnActiveBar(context, skill),
+    rechargeReduction,
+    at
+  );
 
   context.emit({
     type: 'proc',

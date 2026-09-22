@@ -1,4 +1,5 @@
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { reduceMatchingCooldowns } from '#gw2/platform/execution/cooldowns.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -7,25 +8,6 @@ import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/traits/index.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 import type { EngineerCastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
-
-/** Reduces recharge for every active cooldown or ammo skill accepted by the predicate. */
-function reduceMatchingCooldowns(
-  context: EngineerCastContext,
-  predicate: (skill: EngineerSkill) => boolean,
-  seconds: number,
-  at: number
-): number {
-  const ids = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
-  let reducedBy = 0;
-  for (const skillId of ids) {
-    const skill = context.catalog.skillsById.get(skillId);
-    if (skill && predicate(skill)) {
-      reducedBy += context.cooldownController.reduceSkillRecharge(skill, seconds, at);
-    }
-  }
-
-  return reducedBy;
-}
 
 /** Spends dodge endurance, applies dodge-triggered traits, and publishes the resulting Engineer state. */
 export function performEngineerDodge(context: EngineerCastContext, skill: EngineerSkill): void {

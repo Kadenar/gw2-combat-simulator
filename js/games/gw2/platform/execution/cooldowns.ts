@@ -6,7 +6,30 @@ import { EPSILON } from '#kernel/core/clock.js';
  * recharge duration instead of reimplementing the mechanics.
  */
 import type { AmmoState, CooldownController, SchedulerState } from '#gw2/platform/execution/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+
+/** Reduces each matching tracked skill once across cooldown and ammo maps, returning the actual recharge recovered. */
+export function reduceMatchingCooldowns<TSkill extends Skill>(
+  context: {
+    readonly state: Pick<SchedulerState, 'cooldowns' | 'ammo'>;
+    readonly catalog: Pick<CanonicalCatalog<TSkill>, 'skillsById'>;
+    readonly cooldownController: Pick<CooldownController, 'reduceSkillRecharge'>;
+  },
+  predicate: (skill: TSkill) => boolean,
+  seconds: number,
+  at: number
+): number {
+  const ids = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
+  let reducedBy = 0;
+  for (const skillId of ids) {
+    const skill = context.catalog.skillsById.get(skillId);
+    if (skill && predicate(skill)) {
+      reducedBy += context.cooldownController.reduceSkillRecharge(skill, seconds, at);
+    }
+  }
+
+  return reducedBy;
+}
 
 interface CooldownControllerOptions<TProfessionState extends object> {
   readonly state: SchedulerState<TProfessionState>;

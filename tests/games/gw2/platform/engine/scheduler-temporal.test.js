@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
+import { createCooldownController, reduceMatchingCooldowns } from '#gw2/platform/execution/cooldowns.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
@@ -250,6 +250,53 @@ test('skill recharge reduction accepts game-specific base-to-wall-time conversio
   assert.equal(state.cooldowns.get(ordinary.id), 7.2);
   assert.equal(controller.reduceSkillRecharge(ammo, 1, 0), 0.8);
   assert.equal(state.ammo.get(ammo.id).nextRechargeAt, 7.2);
+});
+
+// Bulk reductions must visit depleted and partially spent ammo once and sum the controller's actual reductions.
+test('matching cooldown reductions deduplicate tracked skills, filter safely, and total recovered recharge', () => {
+  const ordinary = { id: 980014 };
+  const depleted = { id: 980015, ammo: 2 };
+  const partial = { id: 980016, ammo: 2 };
+  const excluded = { id: 980017 };
+  const missingId = 980018;
+  const state = {
+    time: 0,
+    ammo: new Map(),
+    cooldowns: new Map([
+      [ordinary.id, 3],
+      [excluded.id, 10],
+      [missingId, 10]
+    ])
+  };
+  const cooldownController = createCooldownController({
+    state,
+    rechargeDuration: () => 10,
+    rechargeReduction: (_skill, reduction) => reduction / 2
+  });
+  cooldownController.spendAmmo(depleted, 0);
+  cooldownController.spendAmmo(depleted, 0);
+  cooldownController.spendAmmo(partial, 0);
+  const context = {
+    state,
+    cooldownController,
+    catalog: { skillsById: new Map([ordinary, depleted, partial, excluded].map((skill) => [skill.id, skill])) }
+  };
+
+  assert.equal(
+    reduceMatchingCooldowns(context, (skill) => skill.id !== excluded.id, 4, 2),
+    5
+  );
+  assert.equal(state.cooldowns.get(ordinary.id), 2);
+  assert.equal(state.ammo.get(depleted.id).nextRechargeAt, 8);
+  assert.equal(state.cooldowns.get(depleted.id), 8);
+  assert.equal(state.ammo.get(partial.id).nextRechargeAt, 8);
+  assert.equal(state.cooldowns.has(partial.id), false);
+  assert.equal(state.cooldowns.get(excluded.id), 10);
+  assert.equal(state.cooldowns.get(missingId), 10);
+  assert.equal(
+    reduceMatchingCooldowns(context, () => false, 4, 2),
+    0
+  );
 });
 
 function temporalCatalog() {
