@@ -1,3 +1,4 @@
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -9,7 +10,7 @@ import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { RangerResolverContext, RangerResolverEvent } from '#gw2/professions/ranger/types.js';
+import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 
 // Only direct attacks spend the charge; trait and stance damage cannot steal it.
 function attackRecipient(event?: SimulationEvent | null): 'pet' | 'player' | undefined {
@@ -43,7 +44,7 @@ export const rangerAttackOfOpportunityModifier: Gw2ModifierRule = {
 /** Grant Maul's next-attack bonus after its own strike resolves, to the selected recipient. */
 export function grantMaulAttackOfOpportunity(
   context: RangerResolverContext,
-  event: RangerResolverEvent,
+  event: Gw2ResolverEvent,
   recipient: 'pet' | 'player'
 ): void {
   if (!isPlayerStrike(event) || (event.skillId !== ID.MAUL && event.skillId !== ID.MAUL_ID_46629)) return;
@@ -71,7 +72,7 @@ export function grantMaulAttackOfOpportunity(
 }
 
 /** Consume after damage calculation, then let Maul grant a fresh, non-stacking charge. */
-export function reactToRangerGreatswordDamage(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function reactToRangerGreatswordDamage(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const recipient = attackRecipient(event);
   if (!recipient) return;
   const kind = `attack-of-opportunity-${recipient}`;

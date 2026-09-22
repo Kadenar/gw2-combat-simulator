@@ -1,3 +1,4 @@
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -9,11 +10,7 @@ import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-stat
 import { revenantCombatActive } from '#gw2/professions/revenant/core/traits/index.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import type {
-  RevenantSimulationEvent,
-  RevenantSchedulerContext,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 type RevenantMechanicContext = RevenantSchedulerContext & {
   readonly start?: number;
@@ -81,7 +78,7 @@ export function syncConduitEnergyCostOverrides(context: RevenantSchedulerContext
 /** Resolves a delayed affinity gain scheduled for a qualifying hit. */
 export const conduitAffinityReaction = scheduledReaction<
   RevenantSchedulerContext,
-  RevenantSimulationEvent,
+  SimulationEvent,
   ConduitAffinityTaskPayload
 >({
   id: 'revenant.affinity-hit',

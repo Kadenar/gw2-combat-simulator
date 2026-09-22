@@ -1,4 +1,5 @@
 /** Coordinates Core scheduler reactions in their established trait, equipment, and skill order. */
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -19,12 +20,7 @@ import {
 import { applyDwarvenBattleTraining, applyViciousReprisal } from '#gw2/professions/revenant/core/traits/retribution.js';
 import { scheduleImpossibleOddsStrike } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { triggerEnchantedDaggers } from '#gw2/professions/revenant/core/mechanics/enchanted-daggers.js';
-import type {
-  RevenantCastContext,
-  RevenantSchedulerContext,
-  RevenantSimulationEvent,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Schedules cast traits after packet handling; completion-gated effects use onCastComplete. */
 export function afterRevenantCast(context: RevenantCastContext, skill: RevenantSkill): void {
@@ -49,7 +45,7 @@ export function afterRevenantCast(context: RevenantCastContext, skill: RevenantS
 }
 
 /** Observes each scheduler event once and preserves mixed trait, relic, and base-skill ordering. */
-export function observeRevenantEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+export function observeRevenantEvent(context: RevenantSchedulerContext, event: SimulationEvent): void {
   if (event.type === 'combat_start') scheduleAssassinsPresence(context, event.at);
   if (revenantCombatActive(context, event.at)) applyIncensedResponse(context, event);
   scheduleImpossibleOddsStrike(context, event);

@@ -1,4 +1,5 @@
 /** Owns Core Ranger Skirmishing dodge, weapon-swap, and critical-hit trait behavior. */
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -17,7 +18,6 @@ import { queueBleeding } from '#gw2/professions/ranger/core/mechanics/resolution
 import type {
   RangerCastContext,
   RangerResolverContext,
-  RangerResolverEvent,
   RangerSchedulerContext,
   RangerSkill
 } from '#gw2/professions/ranger/types.js';
@@ -26,7 +26,7 @@ import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
 type RangerCriticalHitDefinition = ResolvedCriticalHitOptions<
   RangerResolverContext,
-  RangerResolverEvent,
+  Gw2ResolverEvent,
   NativeResolvedDamageDetails
 >;
 
@@ -143,7 +143,7 @@ export const rangerCoreCriticalReactions = Object.freeze({
   materialization: 'threshold',
   chanceOnCriticalHit: 0.33,
   actorTypes: ['player', 'summon'] as const,
-  when(context: RangerResolverContext, event: RangerResolverEvent): boolean {
+  when(context: RangerResolverContext, event: Gw2ResolverEvent): boolean {
     return hasTrait(context, TRAIT.SHARPENED_EDGES) && (event.actorType === 'player' || event.source === 'ranger-pet');
   },
   expectedProgress: {

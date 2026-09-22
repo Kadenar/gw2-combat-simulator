@@ -1,4 +1,5 @@
 /** Owns Core Retribution control and Resolution-dependent strike reactions. */
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -10,14 +11,10 @@ import {
   requireRevenantBalanceProfile as balanceProfile,
   requireRevenantEffect as profileEffect
 } from '#gw2/professions/revenant/core/traits/profile-access.js';
-import type {
-  RevenantSchedulerContext,
-  RevenantSimulationEvent,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Applies Dwarven Battle Training Weakness to each observed control event. */
-export function applyDwarvenBattleTraining(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+export function applyDwarvenBattleTraining(context: RevenantSchedulerContext, event: SimulationEvent): void {
   if (event.type !== 'control' || !hasTrait(context.config, TRAIT.DWARVEN_BATTLE_TRAINING)) return;
   const condition = profileEffect(
     balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.dwarvenBattleTraining),
@@ -37,7 +34,7 @@ export function applyDwarvenBattleTraining(context: RevenantSchedulerContext, ev
 }
 
 /** Grants Vicious Reprisal Might from qualifying strikes while Resolution is active. */
-export function applyViciousReprisal(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+export function applyViciousReprisal(context: RevenantSchedulerContext, event: SimulationEvent): void {
   const state = professionCoreState(context);
   if (!hasTrait(context.config, TRAIT.VICIOUS_REPRISAL) || !context.hasBuff('resolution', event.at)) {
     return;

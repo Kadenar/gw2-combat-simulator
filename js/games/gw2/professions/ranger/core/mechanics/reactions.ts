@@ -1,3 +1,4 @@
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   onResolvedCriticalHit,
   onResolvedDamage,
@@ -14,7 +15,7 @@ import {
   triggerStalkersStrike,
   triggerBloodThirst
 } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
-import type { RangerResolverContext, RangerResolverEvent } from '#gw2/professions/ranger/types.js';
+import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 import {
   handleRangerBeastSkillUsed,
   handleRangerBloodThirst,
@@ -37,7 +38,7 @@ import { reactToRangerGreatswordDamage } from '#gw2/professions/ranger/core/mech
 export { rangerCoreCriticalReactions } from '#gw2/professions/ranger/core/traits/index.js';
 
 /** Dispatch qualifying hits in their established trait/skill order so queued effects and charge use stay stable. */
-export function reactToRangerCoreDamage(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function reactToRangerCoreDamage(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!(Number(event.coefficient) > 0) || event.actorType === 'effect') return;
   consumeOpeningStrike(context, event);
   // The Beast skill's strike resolves before Lesser Sic 'Em is applied, so

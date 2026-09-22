@@ -1,3 +1,4 @@
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { conduitAffinityReaction } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
@@ -19,7 +20,6 @@ import type {
   RevenantPrecastContext,
   RevenantRechargeContext,
   RevenantSchedulerContext,
-  RevenantSimulationEvent,
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
 
@@ -113,7 +113,7 @@ export function afterConduitTraitCast(context: RevenantCastContext, skill: Reven
   }
 }
 
-export function observeConduitTraits(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+export function observeConduitTraits(context: RevenantSchedulerContext, event: SimulationEvent): void {
   conduitAffinityReaction.onEventScheduled.handler(context, event);
 
   if (

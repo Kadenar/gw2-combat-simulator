@@ -1,3 +1,4 @@
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverBuff, buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -13,11 +14,7 @@ import {
 import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type {
-  RangerResolverContext,
-  RangerResolverEvent,
-  RangerSchedulerContext
-} from '#gw2/professions/ranger/types.js';
+import type { RangerResolverContext, RangerSchedulerContext } from '#gw2/professions/ranger/types.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profiles.js';
@@ -25,12 +22,12 @@ import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/range
 import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { grantMaulAttackOfOpportunity } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 
-export function handleSoulbeastModeEvent(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function handleSoulbeastModeEvent(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   soulbeastState.from(context).beastmodeActive = event.active === true;
 }
 
 // Retain the legacy event handler while sharing chronological, self-only extension semantics.
-export function handleRangerBoonExtension(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function handleRangerBoonExtension(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   applyBoonExtension(context.boons, event);
 }
 
@@ -53,7 +50,7 @@ export function activeSoulbeastBuff(context: RangerResolverContext, kind: string
 /** Fresh standard boons use live duration scaling; personal stance buffs retain their authored duration. */
 export function queueSoulbeastBuff(
   context: RangerResolverContext,
-  event: RangerResolverEvent,
+  event: Gw2ResolverEvent,
   kind: string,
   duration: number,
   stacks: number,
@@ -80,7 +77,7 @@ export function queueSoulbeastBuff(
 
 // Beast Ability is always the last skill in beastmodeSkillIds; traits like Live Fast and Go for the Eyes
 // should fire only on the first hit of a multi-hit Beast Ability, not once per packet.
-function firstBeastAbilityHit(context: RangerResolverContext, event: RangerResolverEvent): boolean {
+function firstBeastAbilityHit(context: RangerResolverContext, event: Gw2ResolverEvent): boolean {
   const activePet = rangerPetByName(professionCoreState(context).activePet);
   const beastSkillId = activePet.beastmodeSkillIds.at(-1);
   if (event.skillId !== beastSkillId || !event.activationId) return false;
@@ -93,7 +90,7 @@ function firstBeastAbilityHit(context: RangerResolverContext, event: RangerResol
 /** Preserve the selected profile's condition stack count as well as its duration. */
 function queueCondition(
   context: RangerResolverContext,
-  event: RangerResolverEvent,
+  event: Gw2ResolverEvent,
   condition: string,
   duration: number,
   sourceId: number,
@@ -118,7 +115,7 @@ function queueCondition(
 }
 
 /** Consumes Poisonous Strikes from player hits only while Soulbeast replaces its pet in Beastmode. */
-function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: RangerResolverEvent): void {
+function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const core = professionCoreState(context);
   expireCharges(core.poisonousStrikes, event.at, true);
   if (
@@ -148,7 +145,7 @@ function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Ra
   );
 }
 
-export function reactToSoulbeastDamage(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
   const state = soulbeastState.from(context);
   // Merged Maul grants the player the smaller next-attack bonus in place of the pet's bonus.
@@ -300,7 +297,7 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
 
 // Translate canonical control into Soulbeast trait reactions after the control
 // window has been accepted by the core resolver.
-export function reactToSoulbeastControl(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function reactToSoulbeastControl(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = soulbeastState.from(context);
   if (hasTrait(context, TRAIT.TWICE_AS_VICIOUS)) {
     const buff = profileEffect(context, PROFILE.twiceAsVicious, 'buff');
@@ -342,7 +339,7 @@ export function reactToSoulbeastControl(context: RangerResolverContext, event: R
 }
 
 // Predator's Cunning triggers a flat-coefficient strike on every Poisoned application, not once per tick.
-export function reactToSoulbeastCondition(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function reactToSoulbeastCondition(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (event.condition !== 'Poisoned' || !hasTrait(context, TRAIT.PREDATORS_CUNNING)) {
     return;
   }
@@ -372,8 +369,8 @@ export function reactToSoulbeastCondition(context: RangerResolverContext, event:
 // Quickness itself is excluded from the extension to prevent runaway stacking.
 export function essenceOfSpeedExtension(
   context: RangerResolverContext | RangerSchedulerContext,
-  event: RangerResolverEvent
-): RangerResolverEvent | null {
+  event: Gw2ResolverEvent
+): Gw2ResolverEvent | null {
   const state = soulbeastState.from(context);
   if (
     event.kind !== 'quickness' ||
@@ -400,14 +397,14 @@ export function essenceOfSpeedExtension(
 }
 
 /** Resolver-derived Quickness retains its own extension; scheduled predictions are discarded at handoff. */
-export function reactToSoulbeastBuff(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function reactToSoulbeastBuff(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const extension = essenceOfSpeedExtension(context, event);
   if (extension) context.queue.enqueue(extension);
 }
 
 // Winter's Bite fires once per weapon skill hit via the ranger core flag; the flag is cleared here
 // and is reset by the ranger core when a new weapon cycle begins, not on cooldown expiry.
-export function reactToRangerWinterBite(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function reactToRangerWinterBite(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const core = professionCoreState(context);
   if (
     !core.winterBiteReady ||

@@ -1,3 +1,4 @@
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -10,12 +11,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { eventSkill, queueBleeding } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import type {
-  RangerCastContext,
-  RangerResolverContext,
-  RangerResolverEvent,
-  RangerSkill
-} from '#gw2/professions/ranger/types.js';
+import type { RangerCastContext, RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 
@@ -319,7 +315,7 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
 }
 
 /** Apply Trapper's Expertise once per trap activation when its damage resolves. */
-export function triggerTrappersExpertise(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function triggerTrappersExpertise(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   const skill = eventSkill(context, event);
   if (
@@ -350,7 +346,7 @@ export function triggerTrappersExpertise(context: RangerResolverContext, event: 
 }
 
 /** Apply the trait-selected shortbow condition upgrades after base on-hit effects. */
-export function triggerLightOnYourFeet(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function triggerLightOnYourFeet(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const skill = eventSkill(context, event);
   if (skill?.id === ID.CROSSFIRE && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && context.config?.target?.defiant) {
     const bleeding = skill.effects?.find((effect) => effect.type === 'condition' && effect.condition === 'Bleeding');

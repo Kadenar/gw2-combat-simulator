@@ -1,3 +1,5 @@
+import type { ScheduledTask } from '#gw2/platform/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { expireSkillFlip, armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -9,18 +11,12 @@ import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-stat
  * and the typed tasks that expire those follow-ups.
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type {
-  RevenantCastContext,
-  RevenantScheduledTask,
-  RevenantSchedulerContext,
-  RevenantSimulationEvent,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Resets Coalescence of Ruin when Drop the Hammer's delayed strike lands. */
 export const dropTheHammerReaction = scheduledReaction<
   RevenantSchedulerContext,
-  RevenantSimulationEvent,
+  SimulationEvent,
   Record<string, never>
 >({
   id: 'revenant.drop-the-hammer-reset',
@@ -119,7 +115,7 @@ export function completeRevenantWeaponCast(context: RevenantCastContext, skill: 
 /** Removes True Strike when the scheduled Imperial Guard window expires. */
 export function expireImperialGuard(
   context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<{ readonly identity: number | string }>
+  task: ScheduledTask<{ readonly identity: number | string }>
 ): void {
   if (task.payload == null) return;
   if (!expireSkillFlip(professionCoreState(context).availableFlips, ID.TRUE_STRIKE, task.at, task.payload.identity))

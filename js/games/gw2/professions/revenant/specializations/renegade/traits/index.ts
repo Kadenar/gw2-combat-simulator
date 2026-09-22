@@ -1,3 +1,4 @@
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import {
   emitSkillBuff,
@@ -24,14 +25,13 @@ import type {
   RevenantPrecastContext,
   RevenantRechargeContext,
   RevenantSchedulerContext,
-  RevenantSimulationEvent,
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
 
 export const RENEGADE_CRITICAL_TRAITS_TASK = 'revenant.renegade-critical-traits';
 export const RENEGADE_RAZORCLAW_PROC_TASK = 'revenant.razorclaw-proc';
 
-function criticalCount(context: RevenantSchedulerContext, event: RevenantSimulationEvent): number {
+function criticalCount(context: RevenantSchedulerContext, event: SimulationEvent): number {
   const state = renegadeState.from(context);
   const tracker = { progress: Number(state.renegadeCriticalProgress || 0), readyAt: 0 };
   const application = advanceScheduledCriticalProc(
@@ -44,7 +44,7 @@ function criticalCount(context: RevenantSchedulerContext, event: RevenantSimulat
   return application?.quantity || 0;
 }
 
-function applyCriticalTraits(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+function applyCriticalTraits(context: RevenantSchedulerContext, event: SimulationEvent): void {
   const ambush = hasTrait(context.config, TRAIT.AMBUSH_COMMANDER);
   const enmity = hasTrait(context.config, TRAIT.ENDLESS_ENMITY);
   if (!ambush && !enmity) return;
@@ -91,7 +91,7 @@ function applyCriticalTraits(context: RevenantSchedulerContext, event: RevenantS
   });
 }
 
-function applyVindication(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+function applyVindication(context: RevenantSchedulerContext, event: SimulationEvent): void {
   if (
     event.skillId !== ID.CITADEL_BOMBARDMENT ||
     // Citadel Bombardment is multi-hit; Vindication daze fires only on the first impact
@@ -132,7 +132,7 @@ export function initializeRenegadeTraits(context: RevenantSchedulerContext): voi
   }
 }
 
-export const renegadeCriticalReaction = eventReaction<RevenantSchedulerContext, RevenantSimulationEvent>({
+export const renegadeCriticalReaction = eventReaction<RevenantSchedulerContext, SimulationEvent>({
   id: RENEGADE_CRITICAL_TRAITS_TASK,
   missingEvent: 'error',
   select(context, event) {
@@ -147,7 +147,7 @@ export const renegadeCriticalReaction = eventReaction<RevenantSchedulerContext, 
   execute: applyCriticalTraits
 });
 
-function applyRazorclawProc(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+function applyRazorclawProc(context: RevenantSchedulerContext, event: SimulationEvent): void {
   const razorclaw = renegadeState.from(context).razorclawsRage;
   // Keep activation and same-timestamp gating even when the profile has zero ICD.
   if (!isInternalCooldownReady(event.at, razorclaw.readyAt)) return;
@@ -171,7 +171,7 @@ function applyRazorclawProc(context: RevenantSchedulerContext, event: RevenantSi
 }
 
 /** Resolves a hit-triggered Razorclaw charge when the scheduler reaches the hit timestamp. */
-export const razorclawReaction = eventReaction<RevenantSchedulerContext, RevenantSimulationEvent>({
+export const razorclawReaction = eventReaction<RevenantSchedulerContext, SimulationEvent>({
   id: RENEGADE_RAZORCLAW_PROC_TASK,
   missingEvent: 'error',
   select(context, event) {
@@ -247,7 +247,7 @@ export function applyAshenDemeanor(context: RevenantCastContext, skill: Revenant
   }
 }
 
-export function observeRenegadeTraits(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+export function observeRenegadeTraits(context: RevenantSchedulerContext, event: SimulationEvent): void {
   const state = renegadeState.from(context);
   // Brutal Momentum reacts to received Fury from any source, including outside combat, but never ally-only grants.
   if (

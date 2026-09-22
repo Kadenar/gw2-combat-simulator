@@ -4,7 +4,6 @@ import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { CastLifecycleContext, SchedulerContext, SchedulerState } from '#gw2/platform/execution/types.js';
 import type { Gw2CanonicalBuild, Gw2Build, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
@@ -103,7 +102,6 @@ export type RangerResolverContext = Gw2ResolverRuntime & {
   config: RangerConfig;
   profession: RangerRuntimeState;
 };
-export type RangerResolverEvent = Gw2ResolverEvent;
 
 export interface RangerPlanningStateProjectionOptions {
   readonly schedulerState: SchedulerState<RangerRuntimeState>;

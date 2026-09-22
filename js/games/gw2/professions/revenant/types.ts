@@ -1,11 +1,6 @@
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  CastContext,
-  CastLifecycleContext,
-  ScheduledTask,
-  SchedulerContext
-} from '#gw2/platform/execution/types.js';
+import type { CastContext, CastLifecycleContext, SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -113,13 +108,6 @@ export interface RevenantEnergyCostInput {
   >;
   readonly traits: ReadonlySet<SkillId>;
 }
-
-export type RevenantScheduledTask<TPayload extends object = object> = ScheduledTask<TPayload>;
-
-export type RevenantSimulationEvent = SimulationEvent & {
-  readonly eventOrder?: number;
-  readonly weaponSet?: number;
-};
 
 export type RevenantResolverEvent = Gw2ResolverEvent & {
   readonly lifeSiphon?: boolean;

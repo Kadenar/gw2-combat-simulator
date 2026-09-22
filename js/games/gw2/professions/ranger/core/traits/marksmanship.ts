@@ -1,3 +1,4 @@
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 /** Owns Core Ranger Marksmanship opening-strike and target-health trait behavior. */
@@ -16,12 +17,12 @@ import {
   queueCondition,
   targetHealthFraction
 } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import type { RangerResolverContext, RangerResolverEvent } from '#gw2/professions/ranger/types.js';
+import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 
 // Spend the player or pet Opening Strike independently on its first qualifying
 // hit and attach Vulnerability plus Alpha Focus when selected.
-export function consumeOpeningStrike(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function consumeOpeningStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, TRAIT.OPENING_STRIKE)) return;
   const state = professionCoreState(context);
   const player = isPlayerStrike(event);
@@ -63,7 +64,7 @@ export function consumeOpeningStrike(context: RangerResolverContext, event: Rang
 
 // Convert the target's current health tier into ICD-bound Might stacks on a
 // qualifying player strike, using the resolver's cumulative damage state.
-export function triggerHuntersGaze(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!isPlayerStrike(event) || !hasTrait(context, TRAIT.HUNTERS_GAZE)) return;
   const state = professionCoreState(context);
   if (!isInternalCooldownReady(event.at, state.huntersGazeReadyAt)) return;
@@ -108,7 +109,7 @@ export function triggerHuntersGaze(context: RangerResolverContext, event: Ranger
   );
 }
 
-export function reactToRangerCoreBuff(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function reactToRangerCoreBuff(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const kind = String(event.kind || '').toLowerCase();
   if (kind === 'fury' && event.resolvedAudience?.includesSelf && hasTrait(context, TRAIT.REMORSELESS)) {
     const state = professionCoreState(context);

@@ -1,3 +1,4 @@
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 /** Materializes Abyssal Raze packets while Crushing Abyss lifetime state stays in mechanics. */
@@ -15,12 +16,7 @@ import {
   crushingAbyssStacksAt,
   abyssalRazeRechargeReaction
 } from '#gw2/professions/revenant/core/mechanics/crushing-abyss.js';
-import type {
-  RevenantCastContext,
-  RevenantSimulationEvent,
-  RevenantSchedulerContext,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 // Replace Abyssal Raze's declarative profile with stack-scaled strike and Torment packets.
 function emitAbyssalRazePackets(
@@ -99,7 +95,7 @@ export function castAbyssalRaze(context: RevenantCastContext, skill: RevenantSki
 /** Emits the max-stack Raze owned by a qualifying weapon swap, then publishes cleared state. */
 export const crushingAbyssSwapReaction = scheduledReaction<
   RevenantSchedulerContext,
-  RevenantSimulationEvent,
+  SimulationEvent,
   { readonly weaponSet: number | undefined }
 >({
   id: 'revenant.crushing-abyss-weapon-swap',
@@ -120,10 +116,7 @@ export const crushingAbyssSwapReaction = scheduledReaction<
 });
 
 export const revenantSpearSkillHandlers = Object.freeze({
-  'revenant.spear-recharge': (
-    context: RevenantSchedulerContext,
-    skill: RevenantSkill,
-    event: RevenantSimulationEvent
-  ) => abyssalRazeRechargeReaction.onEventScheduled.handler(context, { skill, event }),
+  'revenant.spear-recharge': (context: RevenantSchedulerContext, skill: RevenantSkill, event: SimulationEvent) =>
+    abyssalRazeRechargeReaction.onEventScheduled.handler(context, { skill, event }),
   'revenant.abyssal-raze': castAbyssalRaze
 });

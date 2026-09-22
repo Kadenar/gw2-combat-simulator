@@ -1,3 +1,4 @@
+import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -20,13 +21,7 @@ import {
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  RevenantCastContext,
-  RevenantScheduledTask,
-  RevenantSchedulerContext,
-  RevenantSimulationEvent,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.js';
 
 const VENGEFUL_HAMMERS_IDS = new Set<SkillId>([ID.VENGEFUL_HAMMERS, ID.VENGEFUL_HAMMERS_ID_56752]);
@@ -188,7 +183,7 @@ interface ImpossibleOddsTaskPayload {
 
 const IMPOSSIBLE_ODDS_TASK = 'revenant.impossible-odds-strike';
 
-function canTriggerImpossibleOdds(event: RevenantSimulationEvent): boolean {
+function canTriggerImpossibleOdds(event: SimulationEvent): boolean {
   return (
     event.type === 'damage' &&
     Number(event.coefficient || 0) > 0 &&
@@ -205,7 +200,7 @@ function canTriggerImpossibleOdds(event: RevenantSimulationEvent): boolean {
 }
 
 /** Schedules eligible strike follow-ups; the task rechecks active upkeep and its cooldown at execution. */
-export function scheduleImpossibleOddsStrike(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+export function scheduleImpossibleOddsStrike(context: RevenantSchedulerContext, event: SimulationEvent): void {
   if (canTriggerImpossibleOdds(event)) {
     context.tasks.schedule({
       id: `${IMPOSSIBLE_ODDS_TASK}:${event.eventOrder}`,
@@ -219,7 +214,7 @@ export function scheduleImpossibleOddsStrike(context: RevenantSchedulerContext, 
 /** Emits a delayed Impossible Odds strike when its upkeep and ICD are active. */
 export function handleImpossibleOddsStrike(
   context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<ImpossibleOddsTaskPayload>
+  task: ScheduledTask<ImpossibleOddsTaskPayload>
 ): void {
   if (!task.payload) return;
   const cause = task.payload.event;

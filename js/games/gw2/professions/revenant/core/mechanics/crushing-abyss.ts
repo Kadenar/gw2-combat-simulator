@@ -1,3 +1,5 @@
+import type { ScheduledTask } from '#gw2/platform/execution/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 /** Owns Crushing Abyss stacks, recharge tasks, and weapon-swap state across spear casts. */
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -7,13 +9,7 @@ import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.
 import { activeStackCount, addTimedStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  RevenantConfig,
-  RevenantScheduledTask,
-  RevenantSchedulerContext,
-  RevenantSimulationEvent,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantConfig, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 
 const RECHARGE_TASK = 'revenant.abyssal-raze-recharge';
@@ -42,7 +38,7 @@ export const abyssalRazeRechargeReaction = scheduledReaction<
   RevenantSchedulerContext,
   {
     readonly skill: RevenantSkill;
-    readonly event: RevenantSimulationEvent;
+    readonly event: SimulationEvent;
   },
   { readonly seconds: number; readonly sourceSkillId: SkillId; readonly sourceSkillName: string }
 >({
@@ -87,7 +83,7 @@ export const abyssalRazeRechargeReaction = scheduledReaction<
 });
 
 /** Grants one Crushing Abyss stack at the delayed impact, up to the skill maximum. */
-export function handleCrushingAbyssGain(context: RevenantSchedulerContext, task: RevenantScheduledTask): void {
+export function handleCrushingAbyssGain(context: RevenantSchedulerContext, task: ScheduledTask<object>): void {
   if (!task.payload) return;
   const skill = context.catalog.skillsById.get(ID.ABYSSAL_RAZE);
   if (!skill) return;

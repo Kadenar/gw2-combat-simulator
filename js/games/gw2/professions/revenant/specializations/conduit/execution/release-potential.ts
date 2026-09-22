@@ -2,6 +2,7 @@
  * Owns Release Potential variant selection and packet materialization.
  * Handler registration lives in sibling `index.ts`.
  */
+import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
@@ -26,17 +27,12 @@ import {
   conduitSkillWeapon,
   conduitStrikeCoefficient as strikeCoefficient
 } from '#gw2/professions/revenant/specializations/conduit/execution/helpers.js';
-import type {
-  RevenantCastContext,
-  RevenantScheduledTask,
-  RevenantSchedulerContext,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Resolve enemy and self Torment from impact-time affinity, including swaps during the windup. */
 export function handleMesmerReleaseConditions(
   context: RevenantSchedulerContext,
-  task: RevenantScheduledTask<{ activationId: string }>
+  task: ScheduledTask<{ activationId: string }>
 ): void {
   if (!task.payload) return;
   const skill = context.catalog.skillsById.get(ID.RELEASE_POTENTIAL_MESMER);

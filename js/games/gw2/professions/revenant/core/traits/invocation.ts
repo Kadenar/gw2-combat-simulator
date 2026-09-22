@@ -1,4 +1,5 @@
 /** Owns Core Invocation trait behavior triggered by a completed legend swap. */
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
@@ -13,19 +14,14 @@ import {
   emitLegendInvocationProfile,
   emitLegendInvocationSkill
 } from '#gw2/professions/revenant/core/traits/invocation-effects.js';
-import type {
-  RevenantCastContext,
-  RevenantSchedulerContext,
-  RevenantSimulationEvent,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 export { emitLegendInvocationProfile, emitLegendInvocationSkill };
 
 const CORE_LEGENDS = new Set<string>([LEGEND.ASSASSIN, LEGEND.DEMON, LEGEND.DWARF, LEGEND.CENTAUR]);
 
 /** Reacts to player-owned Fury received by the player, preserving the triggering event's cause. */
-export function applyIncensedResponse(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+export function applyIncensedResponse(context: RevenantSchedulerContext, event: SimulationEvent): void {
   if (
     event.type !== 'buff' ||
     event.kind !== 'fury' ||

@@ -16,12 +16,7 @@ import {
 } from '#gw2/professions/revenant/core/traits/profile-access.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  RevenantCastContext,
-  RevenantSchedulerContext,
-  RevenantSimulationEvent,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 interface BattleScarGrant {
   readonly at: number;
@@ -103,7 +98,7 @@ export function applyNotoriety(context: RevenantCastContext, skill: RevenantSkil
 }
 
 /** Grants Brutality Quickness once per ICD when a weapon swap completes. */
-export function applyBrutality(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+export function applyBrutality(context: RevenantSchedulerContext, event: SimulationEvent): void {
   const at = Number(event.endsAt ?? event.at);
   const state = professionCoreState(context);
   if (
@@ -142,7 +137,7 @@ export function applyBrutality(context: RevenantSchedulerContext, event: Revenan
 }
 
 /** Grants Dance of Death Battle Scars for newly observed Vulnerability stacks. */
-export function applyDanceOfDeath(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+export function applyDanceOfDeath(context: RevenantSchedulerContext, event: SimulationEvent): void {
   if (event.condition !== 'Vulnerability' || !hasTrait(context.config, TRAIT.DANCE_OF_DEATH)) return;
   grantBattleScars(context, {
     at: event.at,
@@ -155,7 +150,7 @@ export function applyDanceOfDeath(context: RevenantSchedulerContext, event: Reve
 
 // Catch Thrill of Combat up to the current event time, retaining only grants that
 // can still be active and respecting the shared Battle Scars stack cap.
-export function applyThrillOfCombat(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+export function applyThrillOfCombat(context: RevenantSchedulerContext, event: SimulationEvent): void {
   if (!hasTrait(context.config, TRAIT.THRILL_OF_COMBAT)) return;
   const state = professionCoreState(context);
   const battleScars = balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
@@ -204,7 +199,7 @@ export function applyThrillOfCombat(context: RevenantSchedulerContext, event: Re
 }
 
 /** Consumes one active Battle Scar on a qualifying player strike. */
-export function consumeBattleScar(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+export function consumeBattleScar(context: RevenantSchedulerContext, event: SimulationEvent): void {
   const profile = balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
   const strike = profileEffect(profile, 'strike');
   const state = professionCoreState(context);
@@ -257,7 +252,7 @@ export const assassinsPresence = timedEffect<RevenantSchedulerContext, object>({
 });
 
 /** Applies Expose Defenses Vulnerability once after combat becomes active. */
-export function applyExposeDefenses(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+export function applyExposeDefenses(context: RevenantSchedulerContext, event: SimulationEvent): void {
   const state = professionCoreState(context);
   if (state.exposeDefensesUsed || !hasTrait(context.config, TRAIT.EXPOSE_DEFENSES)) return;
   const condition = profileEffect(

@@ -1,3 +1,4 @@
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
@@ -49,7 +50,6 @@ import type {
   RevenantCastContext,
   RevenantPrecastContext,
   RevenantSchedulerContext,
-  RevenantSimulationEvent,
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
 
@@ -284,7 +284,7 @@ function gainConduitAffinityFromCost(context: RevenantCastContext, skill: Revena
   }
 }
 
-function observeConduitEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+function observeConduitEvent(context: RevenantSchedulerContext, event: SimulationEvent): void {
   if (event.type !== 'sigil_swap') return;
   const state = conduitState.from(context);
   const coreState = professionCoreState(context);
@@ -365,7 +365,7 @@ export const conduitSchedulerHooks = Object.freeze({
   onEventScheduled: {
     id: 'revenant.conduit-events',
     order: 20,
-    handler: (context: RevenantSchedulerContext, event: RevenantSimulationEvent): void => {
+    handler: (context: RevenantSchedulerContext, event: SimulationEvent): void => {
       observeConduitTraits(context, event);
       observeConduitEvent(context, event);
     }

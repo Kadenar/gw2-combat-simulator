@@ -5,8 +5,7 @@ import type {
   CastContext,
   CastLifecycleContext,
   SchedulerContext,
-  SchedulerState,
-  ScheduledTask
+  SchedulerState
 } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
@@ -117,8 +116,6 @@ export interface EngineerPlanningStateProjectionOptions {
 }
 
 export type EngineerPlayerStats = Partial<Gw2Stats>;
-
-export type EngineerScheduledTask<TPayload extends object> = ScheduledTask<TPayload>;
 
 export type EngineerResolverEvent = Gw2ResolverEvent & {
   readonly application?: Gw2ResolverEvent;

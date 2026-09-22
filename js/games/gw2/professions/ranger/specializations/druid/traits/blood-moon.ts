@@ -1,12 +1,13 @@
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerResolverContext, RangerResolverEvent } from '#gw2/professions/ranger/types.js';
+import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 
-function triggerBloodMoon(context: RangerResolverContext, event: RangerResolverEvent): void {
+function triggerBloodMoon(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, TRAIT.BLOOD_MOON)) return;
   const bleeding = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.bloodMoon), 'condition');
   context.queue.enqueue(
@@ -27,11 +28,11 @@ function triggerBloodMoon(context: RangerResolverContext, event: RangerResolverE
   );
 }
 
-export function reactToDruidControl(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function reactToDruidControl(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   triggerBloodMoon(context, event);
 }
 
-export function reactToDruidCondition(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function reactToDruidCondition(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   // Blood Moon only triggers on Immobilize, not on all conditions; "Immobile" is an alternate name used by some event sources
   if (event.condition === 'Immobilized' || event.condition === 'Immobile') {
     triggerBloodMoon(context, event);

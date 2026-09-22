@@ -1,8 +1,9 @@
 /** Registers scheduler-phase skill activations for this module. */
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { augmentSkill, replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
 import type { SkillHandlerPhase } from '#gw2/platform/execution/types.js';
-import type { RevenantCastContext, RevenantSimulationEvent, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { gainAncientEchoEnergy, performRevenantDodge } from '#gw2/professions/revenant/core/execution/actions.js';
 import { swapRevenantLegend } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import { activateEnchantedDaggers } from '#gw2/professions/revenant/core/mechanics/enchanted-daggers.js';
@@ -31,11 +32,7 @@ const handlers = Object.freeze({
   }),
   'revenant.spear-recharge': augmentSkill<RevenantCastContext>({
     afterEffect: (context, skill, event) =>
-      revenantSpearSkillHandlers['revenant.spear-recharge'](
-        context,
-        skill as RevenantSkill,
-        event as RevenantSimulationEvent
-      )
+      revenantSpearSkillHandlers['revenant.spear-recharge'](context, skill as RevenantSkill, event as SimulationEvent)
   }),
   'revenant.abyssal-raze': replaceSkill<RevenantCastContext>({
     beforeEffects: revenantSpearSkillHandlers['revenant.abyssal-raze'] as SkillHandlerPhase<RevenantCastContext>

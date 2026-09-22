@@ -1,3 +1,4 @@
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -15,10 +16,10 @@ import {
   isPlayerStrike,
   petDerivedConditionMetadata
 } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import type { RangerResolverContext, RangerResolverEvent } from '#gw2/professions/ranger/types.js';
+import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 
-export function triggerPoisonousStrikes(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function triggerPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   // Pet and merged-player routes share one grant, including its inclusive final hit.
   expireCharges(state.poisonousStrikes, event.at, true);
@@ -51,7 +52,7 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: R
   );
 }
 
-export function triggerSharpeningStone(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function triggerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   // Grants sort by expiry: spend the earliest deadline, and still prune on ineligible hits.
   const { expiries, consumed } = consumeOldestStacks(
@@ -82,7 +83,7 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Ra
 
 // Mirror the active Strength of the Pack proc between Ranger and companion hits
 // while enforcing its event and cooldown guards.
-export function triggerStrengthOfThePack(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function triggerStrengthOfThePack(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!isPlayerStrike(event)) return;
   const active = (context.boons.get('strength-of-the-pack') || []).some(
     (application) =>
@@ -116,7 +117,7 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
 }
 
 /** Add Stalker's Strike's bonus poison only against movement-impaired targets. */
-export function triggerStalkersStrike(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function triggerStalkersStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const skill = eventSkill(context, event);
   if (skill?.id === ID.STALKERS_STRIKE && stalkersStrikeTargetImpaired(context.config, event.at, context)) {
     // The base packet owns three stacks; movement impairment contributes the documented two more.
@@ -139,7 +140,7 @@ export function triggerStalkersStrike(context: RangerResolverContext, event: Ran
 }
 
 /** Consume one live Blood Thirst charge per qualifying hit, excluding its arming skill and exact expiry. */
-export function triggerBloodThirst(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function triggerBloodThirst(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   expireCharges(state.bloodThirst, event.at);
   if (event.sourceId !== ID.CRIPPLING_SHOT && consumeCharge(state.bloodThirst, event.at)) {

@@ -1,3 +1,4 @@
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -24,11 +25,7 @@ import {
 } from '#gw2/professions/revenant/specializations/vindicator/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import type {
-  RevenantSchedulerContext,
-  RevenantSimulationEvent,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 // 1e-9 tolerance prevents floating-point drift from falsely reporting endurance as "full" at max.
 function enduranceNotFull(context: Gw2ModifierContext): boolean {
@@ -79,7 +76,7 @@ function modifyVindicatorAttributes(context: Gw2ModifierContext, attributes: Gw2
   return modified;
 }
 
-function observeVindicatorEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+function observeVindicatorEvent(context: RevenantSchedulerContext, event: SimulationEvent): void {
   if (event.type === 'revenant.state' && event.reason === 'dodge') {
     // Landing-only Dodge inputs supply the strike-profile origin in the dodge state event.
     const skill = context.catalog.skillsById.get(ID.DODGE) as RevenantSkill | undefined;

@@ -1,4 +1,5 @@
 /** Owns Core Corruption trait reactions to legend invocation and scheduled conditions. */
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -8,11 +9,7 @@ import {
   requireRevenantBalanceProfile as balanceProfile,
   requireRevenantEffect as profileEffect
 } from '#gw2/professions/revenant/core/traits/profile-access.js';
-import type {
-  RevenantCastContext,
-  RevenantSchedulerContext,
-  RevenantSimulationEvent
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSchedulerContext } from '#gw2/professions/revenant/types.js';
 
 /** Applies Invoking Torment and its nested Diabolic Inferno packet at invocation time. */
 export function applyInvokingTorment(context: RevenantCastContext, at: number): void {
@@ -28,7 +25,7 @@ export function applyInvokingTorment(context: RevenantCastContext, at: number): 
 }
 
 /** Converts each observed Chilled stack into the configured Abyssal Chill Torment packet. */
-export function applyAbyssalChill(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+export function applyAbyssalChill(context: RevenantSchedulerContext, event: SimulationEvent): void {
   if (event.condition !== 'Chilled' || !hasTrait(context.config, TRAIT.ABYSSAL_CHILL)) return;
   const condition = profileEffect(balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.abyssalChill), 'condition');
   const conditionName = String(condition.condition || 'Torment');

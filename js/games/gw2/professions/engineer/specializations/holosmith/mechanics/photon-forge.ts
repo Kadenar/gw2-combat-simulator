@@ -1,3 +1,4 @@
+import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
@@ -20,12 +21,7 @@ import {
   HOLOSMITH_FORGE_TOGGLE_SKILL_IDS,
   HOLOSMITH_HEAT
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
-import type {
-  EngineerCastContext,
-  EngineerScheduledTask,
-  EngineerSchedulerContext,
-  EngineerSkill
-} from '#gw2/professions/engineer/types.js';
+import type { EngineerCastContext, EngineerSchedulerContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
@@ -342,7 +338,7 @@ export const passiveHeat = timedEffect({
 /** Applies a deferred Overheat lockout to eligible tool-belt cooldowns. */
 export function handlePhotonForgeOverheatPenalty(
   context: EngineerSchedulerContext,
-  task: EngineerScheduledTask<PhotonForgeOverheatPenaltyPayload>
+  task: ScheduledTask<PhotonForgeOverheatPenaltyPayload>
 ): void {
   applyToolbeltOverheatPenalty(context, task.at, Math.max(0, Number(task.payload?.seconds || 0)));
 }

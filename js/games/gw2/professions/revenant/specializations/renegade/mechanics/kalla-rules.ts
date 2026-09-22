@@ -1,3 +1,4 @@
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
@@ -36,12 +37,7 @@ import {
   observeRenegadeTraits
 } from '#gw2/professions/revenant/specializations/renegade/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type {
-  RevenantCastContext,
-  RevenantSchedulerContext,
-  RevenantSimulationEvent,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 function kallasFervorStacks(context: Gw2ModifierContext): number {
   return activeKallasFervorStacks(revenantRuntimeSpecializationState(context, 'Renegade'), context.time);
@@ -204,7 +200,7 @@ const soulcleaveAlliedProcs = timedEffect<RevenantSchedulerContext, object>({
   }
 });
 
-function observeRenegadeEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+function observeRenegadeEvent(context: RevenantSchedulerContext, event: SimulationEvent): void {
   if (
     // sigil_swap events fire on every legend swap; we only care about swaps into Renegade
     event.type !== 'sigil_swap' ||
@@ -247,7 +243,7 @@ export const renegadeSchedulerHooks = Object.freeze({
   onEventScheduled: {
     id: 'revenant.renegade-legend-invocation',
     order: 20,
-    handler: (context: RevenantSchedulerContext, event: RevenantSimulationEvent): void => {
+    handler: (context: RevenantSchedulerContext, event: SimulationEvent): void => {
       // Trait reactions (Ambush Commander, Endless Enmity, Blood Fury, etc.) run before legend-invocation effects so that fervor state is current when Song of the Mists fires
       observeRenegadeTraits(context, event);
       observeRenegadeEvent(context, event);

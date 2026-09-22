@@ -1,3 +1,4 @@
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -5,9 +6,9 @@ import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
-import type { RangerResolverContext, RangerResolverEvent } from '#gw2/professions/ranger/types.js';
+import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 
-export function handleRangerBloodThirst(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function handleRangerBloodThirst(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   // Crippling Shot replaces the remaining charges with a new finite grant.
   professionCoreState(context).bloodThirst = grantCharges(
     Math.max(0, Number(event.charges || 0)),
@@ -15,24 +16,24 @@ export function handleRangerBloodThirst(context: RangerResolverContext, event: R
   );
 }
 
-export function handleRangerWinterBiteReady(context: RangerResolverContext, _event: RangerResolverEvent): void {
+export function handleRangerWinterBiteReady(context: RangerResolverContext, _event: Gw2ResolverEvent): void {
   professionCoreState(context).winterBiteReady = true;
 }
 
 /** Mirror scheduler pet ownership so companion buffs target the current pet incarnation. */
-export function handleRangerPetActive(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function handleRangerPetActive(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   state.petActive = event.active === true;
   state.petAutoGeneration = Number(event.generation);
 }
 
-export function handleRangerBeastSkillUsed(context: RangerResolverContext, _event: RangerResolverEvent): void {
+export function handleRangerBeastSkillUsed(context: RangerResolverContext, _event: Gw2ResolverEvent): void {
   if (hasTrait(context, TRAIT.POISON_MASTER)) {
     professionCoreState(context).poisonMasterPetAttackReady = true;
   }
 }
 
-export function handleRangerPoisonousStrikes(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function handleRangerPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   // Double Arc replaces the shared pet/merged-player grant instead of accumulating charges.
   state.poisonousStrikes = grantCharges(
@@ -41,7 +42,7 @@ export function handleRangerPoisonousStrikes(context: RangerResolverContext, eve
   );
 }
 
-export function handleRangerSharpeningStone(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function handleRangerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   // Recasts add charges without renewing the lifetime of the remaining stones.
   state.sharpeningStoneExpirations = purgeExpiredStacks(state.sharpeningStoneExpirations, event.at);
@@ -53,7 +54,7 @@ export function handleRangerSharpeningStone(context: RangerResolverContext, even
 
 // Retire the outgoing companion's lingering conditions after the swap delay,
 // then advance pet identity and generation state for subsequent attacks.
-export function handleRangerPetSwapped(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function handleRangerPetSwapped(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   const outgoingCompanionId = rangerPetCompanionId(context);
   const removedAt = event.at + 1;

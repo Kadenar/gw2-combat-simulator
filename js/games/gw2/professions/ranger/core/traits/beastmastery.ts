@@ -1,3 +1,4 @@
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 /** Owns Core Ranger Beastmastery command and companion-attack trait behavior. */
@@ -10,12 +11,7 @@ import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.j
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { eventSkill } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import type {
-  RangerCastContext,
-  RangerResolverContext,
-  RangerResolverEvent,
-  RangerSkill
-} from '#gw2/professions/ranger/types.js';
+import type { RangerCastContext, RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
@@ -80,7 +76,7 @@ export function applyRangerCommandTraits(context: RangerCastContext, skill: Rang
 
 // Trigger Go for the Throat from its qualifying Ranger or pet event and apply the
 // profile-owned companion strike with stable ownership.
-export function triggerGoForTheThroat(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   const skill = eventSkill(context, event);
   const beastSkillId = state.activePetSkillIds.at(-1);

@@ -1,3 +1,4 @@
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 /** Owns Core Ranger Wilderness Survival condition and control-triggered trait behavior. */
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -15,12 +16,7 @@ import {
   isPlayerStrike,
   queueCondition
 } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import type {
-  RangerCastContext,
-  RangerResolverContext,
-  RangerResolverEvent,
-  RangerSkill
-} from '#gw2/professions/ranger/types.js';
+import type { RangerCastContext, RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 
 // On an eligible heal, consume Child of Earth's ICD and emit the initial
@@ -72,7 +68,7 @@ export function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill)
   }
 }
 
-export function triggerPoisonMaster(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   if (!state.poisonMasterPetAttackReady || !isPetStrike(event) || !(Number(event.coefficient) > 0)) {
     return;
@@ -98,7 +94,7 @@ export function triggerPoisonMaster(context: RangerResolverContext, event: Range
   );
 }
 
-export function triggerArachnophobia(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function triggerArachnophobia(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (
     !isPetStrike(event) ||
     !hasTrait(context, TRAIT.ARACHNOPHOBIA) ||
@@ -125,7 +121,7 @@ export function triggerArachnophobia(context: RangerResolverContext, event: Rang
 
 // Record the target-control window and dispatch Ranger traits that react to
 // canonical control events without replaying the source effect.
-export function reactToRangerCoreControl(context: RangerResolverContext, event: RangerResolverEvent): void {
+export function reactToRangerCoreControl(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   if (
     !hasTrait(context, TRAIT.CARNIVORE) ||

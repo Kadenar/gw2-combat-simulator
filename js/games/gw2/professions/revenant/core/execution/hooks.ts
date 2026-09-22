@@ -1,9 +1,5 @@
-import type {
-  RevenantSchedulerContext,
-  RevenantCastContext,
-  RevenantSimulationEvent,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { RevenantSchedulerContext, RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { crushingAbyssSwapReaction } from '#gw2/professions/revenant/core/execution/spear.js';
 import {
   advanceRevenantSpearState,
@@ -64,7 +60,7 @@ function advance(context: RevenantSchedulerContext, time: number): void {
   advanceRevenantSpearState(context, time);
 }
 
-function onEventScheduled(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+function onEventScheduled(context: RevenantSchedulerContext, event: SimulationEvent): void {
   dropTheHammerReaction.onEventScheduled.handler(context, event);
   crushingAbyssSwapReaction.onEventScheduled.handler(context, event);
   observeRevenantEvent(context, event);

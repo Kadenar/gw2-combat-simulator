@@ -1,3 +1,4 @@
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -22,7 +23,7 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import type { RevenantSchedulerContext, RevenantSimulationEvent } from '#gw2/professions/revenant/types.js';
+import type { RevenantSchedulerContext } from '#gw2/professions/revenant/types.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import {
   HERALD_SHARED_EMPOWERMENT_PROFILE_ID,
@@ -109,7 +110,7 @@ export const heraldCastRules = Object.freeze({
 const HERALD_SHARED_EMPOWERMENT_TASK = 'revenant.herald-shared-empowerment';
 
 /** Selects observed candidates and applies the local reaction using canonical impact facts. */
-export const sharedEmpowermentReaction = eventReaction<RevenantSchedulerContext, RevenantSimulationEvent>({
+export const sharedEmpowermentReaction = eventReaction<RevenantSchedulerContext, SimulationEvent>({
   id: 'revenant.herald-shared-empowerment',
   order: 20,
   missingEvent: 'skip',
@@ -162,7 +163,7 @@ export const sharedEmpowermentReaction = eventReaction<RevenantSchedulerContext,
   }
 });
 
-function observeHeraldEvent(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+function observeHeraldEvent(context: RevenantSchedulerContext, event: SimulationEvent): void {
   sharedEmpowermentReaction.onEventScheduled.handler(context, event);
 
   if (event.type === 'proc' && event.skillId === ID.TRUE_NATURE_DRAGON && event.procType === 'boon-extension') {

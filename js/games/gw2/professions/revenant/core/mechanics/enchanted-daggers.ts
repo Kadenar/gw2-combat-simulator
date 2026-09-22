@@ -1,4 +1,5 @@
 /** Owns Enchanted Daggers activation and on-hit consumption; catalog fragments live under `legends/assassin.ts`. */
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
@@ -6,12 +7,7 @@ import { requireRevenantEffect as effectByType } from '#gw2/professions/revenant
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
-import type {
-  RevenantCastContext,
-  RevenantSkill,
-  RevenantSchedulerContext,
-  RevenantSimulationEvent
-} from '#gw2/professions/revenant/types.js';
+import type { RevenantCastContext, RevenantSkill, RevenantSchedulerContext } from '#gw2/professions/revenant/types.js';
 
 /** Arms the finite Enchanted Daggers charge/expiry state. */
 export function activateEnchantedDaggers(context: RevenantCastContext, skill: RevenantSkill): void {
@@ -42,7 +38,7 @@ export function activateEnchantedDaggers(context: RevenantCastContext, skill: Re
 }
 
 /** Consumes one unexpired, ready dagger charge after a qualifying player strike. */
-export function triggerEnchantedDaggers(context: RevenantSchedulerContext, event: RevenantSimulationEvent): void {
+export function triggerEnchantedDaggers(context: RevenantSchedulerContext, event: SimulationEvent): void {
   const daggers = professionCoreState(context).enchantedDaggers;
   if (
     event.skillId !== ID.ENCHANTED_DAGGERS &&
