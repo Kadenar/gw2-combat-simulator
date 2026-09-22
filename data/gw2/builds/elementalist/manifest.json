@@ -167,7 +167,7 @@
         "label": "Inferno Alacrity (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-alac-tempest.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-alac-tempest.json",
-        "benchmarkDps": 34476,
+        "benchmarkDps": 34511,
         "upToDate": false
       }
     ]
@@ -233,7 +233,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-catalyst-pistol-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-condi-catalyst-pistol.json",
         "dpsReportUrl": "https://dps.report/Q2mp-20260416-234551_golem",
-        "benchmarkDps": 37817,
+        "benchmarkDps": 37804,
         "upToDate": true
       },
       {

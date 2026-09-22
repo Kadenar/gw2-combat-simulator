@@ -44,7 +44,7 @@
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-2kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-alacrity-amalgam-two-kits-spear",
-        "benchmarkDps": 35676,
+        "benchmarkDps": 35717,
         "upToDate": true
       },
       {
@@ -123,7 +123,7 @@
         "build": "data/gw2/builds/engineer/b-condi-quick-scrapper-spear.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-quick-scrapper-spear-evtc.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-quickness-scrapper-spear",
-        "benchmarkDps": 33467,
+        "benchmarkDps": 33470,
         "upToDate": true
       },
       {
