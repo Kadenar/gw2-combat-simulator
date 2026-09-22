@@ -1,4 +1,5 @@
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
+import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import type {
   CanonicalCatalog,
   BalanceProfile,
@@ -22,11 +23,6 @@ import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2AutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
 
-export interface NativeAutoattackChains {
-  readonly additional?: readonly (readonly SkillId[])[];
-  readonly excludeSkillIds?: readonly SkillId[];
-}
-
 export type NativeSkillHandlerRegistry<TContext extends object> =
   ReadonlyMap<string, SkillHandlerStrategy<TContext>> | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
 
@@ -40,7 +36,7 @@ export interface NativeModuleCatalogData {
   readonly specializations?: readonly CatalogEntity[];
   readonly weapons?: readonly string[];
   readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
-  readonly autoattackChains?: NativeAutoattackChains;
+  readonly autoattackChains?: AutoattackChainOptions;
   /** Runtime-local name selections for identities that collide with Core skills. */
   readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
   /**

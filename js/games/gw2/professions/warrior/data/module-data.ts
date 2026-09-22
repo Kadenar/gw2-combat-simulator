@@ -9,7 +9,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/warrior/data/warrior-a
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/warrior/data/traits-data.js';
 import type { CatalogEntity, Skill } from '#gw2/platform/engine/skills/types.js';
-import type { NativeAutoattackChains } from '#gw2/platform/profession-definition/module-types.js';
+import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 
 const allSkills: readonly Skill[] = Object.freeze([
   ...SKILLS.filter((skill) => !/^\(\(/.test(String(skill.name || ''))),
@@ -61,7 +61,7 @@ const WEAPON_DATA = defineProfessionWeapons({
 });
 
 interface WarriorModuleDataOptions extends ProfessionModuleDataOptions {
-  readonly autoattackChains?: NativeAutoattackChains;
+  readonly autoattackChains?: AutoattackChainOptions;
 }
 
 const createModuleData = createProfessionModuleDataFactory({

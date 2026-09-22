@@ -10,7 +10,7 @@ import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/eng
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { TRAITS } from '#gw2/professions/engineer/data/traits-data.js';
 import type { CatalogEntity, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { NativeAutoattackChains } from '#gw2/platform/profession-definition/module-types.js';
+import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 
 const ENGINEER_SKILL_ICON_OVERRIDES = new Map<string, string>([
   ['Lesser Grenade Barrage', 'https://render.guildwars2.com/file/5B2AB667667749BC1BC7AEFD27362E3E0E0F2FE6/103294.png'],
@@ -160,7 +160,7 @@ const WEAPON_DATA = defineProfessionWeapons({
 });
 
 interface EngineerModuleDataOptions extends ProfessionModuleDataOptions {
-  readonly autoattackChains?: NativeAutoattackChains;
+  readonly autoattackChains?: AutoattackChainOptions;
   readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
 }
 

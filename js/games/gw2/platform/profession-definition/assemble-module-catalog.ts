@@ -1,4 +1,7 @@
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import {
+  createCanonicalCatalog,
+  type AutoattackChainOptions
+} from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { toEntries } from '#kernel/core/collections.js';
 import type {
   CanonicalCatalog,
@@ -12,7 +15,6 @@ import type { ProfessionModuleCatalogFragment } from '#gw2/platform/engine/profe
 import type { SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 import type {
   AnyNativeModule,
-  NativeAutoattackChains,
   NativeCatalogOptions,
   NativeModuleCatalogData,
   NativeSkillHandlerRegistry
@@ -31,7 +33,7 @@ export interface NativeModuleDataSelection {
   readonly specializations?: readonly CatalogEntity[];
   readonly weapons?: readonly string[];
   readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
-  readonly autoattackChains?: NativeAutoattackChains;
+  readonly autoattackChains?: AutoattackChainOptions;
   readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
   readonly specializationOnlySkillIds?: readonly SkillId[];
 }
@@ -365,7 +367,7 @@ function composeNativeCatalog(
     }
   }
 
-  const chainContributions = new Map<string, NativeAutoattackChains>();
+  const chainContributions = new Map<string, AutoattackChainOptions>();
   for (const module of modules) {
     chainContributions.set(module.id, { additional: [], excludeSkillIds: [] });
   }

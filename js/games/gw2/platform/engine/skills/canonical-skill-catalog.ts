@@ -23,7 +23,8 @@ import type {
 } from '#gw2/platform/engine/skills/types.js';
 import type { SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 
-interface AutoattackChainOptions {
+/** Corrects derived catalog chains with authored additions and exclusions shared by module contributions. */
+export interface AutoattackChainOptions {
   readonly additional?: readonly (readonly SkillId[])[];
   readonly excludeSkillIds?: readonly SkillId[];
 }

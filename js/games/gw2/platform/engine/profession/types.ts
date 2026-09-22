@@ -1,4 +1,5 @@
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import type { ProfessionBuildDefinition, UnvalidatedBuild, BuildValidationResult } from '#gw2/platform/builds/types.js';
 /** Defines runtime capabilities and composition inputs; display and build callback types have separate owners. */
 import type {
@@ -123,10 +124,7 @@ export interface ProfessionModuleCatalogFragment {
   readonly specializations?: readonly CatalogEntity[];
   readonly weapons?: readonly string[];
   readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
-  readonly autoattackChains?: {
-    readonly additional?: readonly (readonly SkillId[])[];
-    readonly excludeSkillIds?: readonly SkillId[];
-  };
+  readonly autoattackChains?: AutoattackChainOptions;
   readonly skillNameCollision?: 'first' | 'last';
   readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
 }
