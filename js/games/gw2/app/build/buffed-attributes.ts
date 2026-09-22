@@ -84,7 +84,6 @@ export function calculateBuffedAttributes(
       defiant: Boolean(values.flanking),
       disabled: Boolean(values.controlled),
       controlled: Boolean(values.controlled),
-      boonless: Boolean(values.boonless),
       conditions: targetConditions
     }
   };

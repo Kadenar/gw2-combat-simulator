@@ -9,6 +9,7 @@ import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { escapeHtml } from '#ui/shared/html.js';
+import { equipmentTooltipAttributes } from '#gw2/app/build/equipment-option-labels.js';
 import {
   prefixOptionLabel,
   runeOptionLabel,
@@ -75,7 +76,7 @@ const SLOT_LABELS: Record<string, string> = {
 /** Show each equipment choice consistently, with full names available on icons and abbreviated cells. */
 function equipmentCell(label: string, value: string, compact = false, icon?: string): string {
   const name = value || 'None';
-  return `<td class="optimizer-equipment" aria-label="${escapeHtml(`${label}: ${name}`)}" title="${escapeHtml(`${label}: ${name}`)}">${icon ? `<img src="${escapeHtml(icon)}" alt="${escapeHtml(name)}" width="24" height="24">` : `<span>${escapeHtml(compact ? name.slice(0, 4) : name)}</span>`}</td>`;
+  return `<td class="optimizer-equipment" tabindex="0" aria-label="${escapeHtml(`${label}: ${name}`)}" ${equipmentTooltipAttributes(label, value)}>${icon ? `<img src="${escapeHtml(icon)}" alt="${escapeHtml(name)}" width="24" height="24">` : `<span>${escapeHtml(compact ? name.slice(0, 4) : name)}</span>`}</td>`;
 }
 
 function slotPrefix(equipment: OptimizerEquipment, slot: string): string {

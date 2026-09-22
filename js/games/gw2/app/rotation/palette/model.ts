@@ -616,6 +616,7 @@ export function paletteSkillIsInstant(
 }
 
 export interface PaletteSkillView {
+  readonly skill?: Skill;
   readonly name?: string;
   readonly skillId?: SkillId | null;
   readonly hotkeyAction?: string;
@@ -759,6 +760,7 @@ export function paletteSkillView(
     .join('\n');
   return {
     name: skill.name,
+    skill,
     skillId: skill.id,
     hotkeyAction:
       String(skill.hotkeyAction || '') ||

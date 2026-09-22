@@ -1,4 +1,4 @@
-import { gw2ApiText } from '#gw2/app/shared/html.js';
+import { bindWikiTooltips, wikiTooltipAttributes } from '#gw2/app/shared/wiki-tooltip.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -81,7 +81,7 @@ export function renderTraits(app: ProfessionAppState): void {
                                     const used = selectedNames.includes(candidate.name);
                                     return `<button type="button" class="spec-picker-option${selected ? ' is-selected' : ''}"
                                       data-line="${lineIndex}" data-specialization="${esc(candidate.name)}"
-                                      aria-pressed="${selected}" aria-label="${esc(candidate.name)}" title="${esc(candidate.name)}"${used ? ' disabled' : ''}>
+                                      aria-pressed="${selected}" aria-label="${esc(candidate.name)}" ${wikiTooltipAttributes(candidate.name)}${used ? ' disabled' : ''}>
                                         <img src="${esc(candidate.icon)}" alt=""><span>${esc(candidate.name)}</span>
                                     </button>`;
                                   })
@@ -120,14 +120,14 @@ export function renderTraits(app: ProfessionAppState): void {
                                     <button type="button" class="spec-trait-minor ${selection.disabledMinorTraits?.includes(tier) ? 'dim' : 'sel'}"
                                       data-line="${lineIndex}" data-tier="${tier}" data-pick="0"
                                       aria-pressed="${!selection.disabledMinorTraits?.includes(tier)}" aria-label="${esc(minor.name)}"
-                                      title="${esc(minor.name)}\n${esc(gw2ApiText(minor.description))}"><img src="${esc(minor.icon)}" alt=""></button>
+                                      ${wikiTooltipAttributes(minor.name, minor.description)}><img src="${esc(minor.icon)}" alt=""></button>
                                     <div class="spec-trait-majors">${spec.majorTraits[tier]
                                       .map(
                                         (trait, position) =>
                                           `<button type="button" class="spec-trait-major ${picks[tier] === position + 1 ? 'sel' : 'dim'}"
                                             data-line="${lineIndex}" data-tier="${tier}" data-pick="${position + 1}"
                                             aria-pressed="${picks[tier] === position + 1}" aria-label="${esc(trait.name)}"
-                                            title="${esc(trait.name)}\n${esc(gw2ApiText(trait.description))}"><img src="${esc(trait.icon)}" alt=""></button>`
+                                            ${wikiTooltipAttributes(trait.name, trait.description)}><img src="${esc(trait.icon)}" alt=""></button>`
                                       )
                                       .join('')}</div>
                                 </div>`;
@@ -137,6 +137,7 @@ export function renderTraits(app: ProfessionAppState): void {
                 </div></div>`;
     })
     .join('');
+  bindWikiTooltips();
   container.querySelectorAll('.spec-picker-option').forEach((button) => {
     if (!(button instanceof HTMLButtonElement)) return;
     button.addEventListener('click', () => {

@@ -3,6 +3,8 @@ import { mountTimeSeriesCharts, type ChartOptions } from '#gw2/app/results/chart
 import { mountHitTimeline } from '#ui/results/charts/hit-timeline-view.js';
 import { bindDialog, showDialog } from '#app/page/dialog.js';
 import { escapeHtml } from '#ui/shared/html.js';
+import { wikiTooltipAttributes } from '#gw2/app/shared/wiki-tooltip.js';
+import { equipmentTooltipAttributes } from '#gw2/app/build/equipment-option-labels.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 import type { SkillBreakdownRow } from '#gw2/app/results/skill-breakdown.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
@@ -375,7 +377,7 @@ function skillCellHtml(row: ResultRow, column: ResultColumn, options: RotationRe
   const value = row[column.key];
   if (column.key === 'name') {
     const icon = options.resolveSkillIcon?.(row) || options.placeholderIcon || '';
-    return `<span class="res-skill"><img src="${escapeHtml(icon)}" alt="" />${escapeHtml(value)}</span>`;
+    return `<span class="res-skill" tabindex="0" ${wikiTooltipAttributes(value)}><img src="${escapeHtml(icon)}" alt="" />${escapeHtml(value)}</span>`;
   }
 
   const formatted = column.format
@@ -555,8 +557,13 @@ export function modifierContributionsHtml(model: RotationResultsModel): string {
       </div>
       ${contributions
         .map((contribution) => {
+          // Contribution labels abbreviate upgrades just like the equipment picker; resolve the same wiki article.
+          const upgrade = /^(Sigil|Relic) of (?:the )?(.+)$/.exec(contribution.name);
+          const tooltip = upgrade
+            ? equipmentTooltipAttributes(upgrade[1], upgrade[2])
+            : wikiTooltipAttributes(contribution.name);
           return `<div class="contrib-row">
-          <span class="contrib-name">${
+          <span class="contrib-name" tabindex="0" ${tooltip}>${
             contribution.icon ? `<img src="${escapeHtml(contribution.icon)}" alt="" />` : ''
           }${escapeHtml(contribution.name)}</span>
           <span class="contrib-val">${signedInteger(contribution.dpsIncrease)}</span>
@@ -732,7 +739,7 @@ export function mountRotationResults(
               // Reuse the effect icon while retaining the row's keyboard-accessible tick inspector.
               const icon = MODIFIER_EFFECT_ICONS[CONDITION_ICON_LABELS[condition.name] || condition.name];
               return `<div class="res-row${selectable ? ' res-row-selectable' : ''}"${selectable ? ` role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" aria-label="Inspect ${escapeHtml(condition.name)} ticks" data-condition-name="${escapeHtml(condition.name)}"` : ''}>
-          <span class="res-skill condi">${icon ? `<img src="${escapeHtml(icon)}" alt="" />` : ''}${escapeHtml(condition.name)}</span>
+          <span class="res-skill condi" tabindex="0" ${wikiTooltipAttributes(condition.name)}>${icon ? `<img src="${escapeHtml(icon)}" alt="" />` : ''}${escapeHtml(condition.name)}</span>
           ${
             group.damaging
               ? `<span class="condi">${number(condition.damage)}</span>

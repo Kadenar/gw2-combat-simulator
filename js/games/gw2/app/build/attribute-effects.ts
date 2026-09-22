@@ -281,7 +281,6 @@ export function attributeEffectControls(app: ProfessionAppState): AttributeEffec
       kind: 'special',
       description: 'Control-dependent critical bonuses'
     });
-  trait('Pure Strike', { key: 'boonless', kind: 'special', description: 'Target has no boons' });
   for (const [name, required] of [
     ['Torment', 'Wicked Corruption'],
     ['Burning', 'Radiant Power'],

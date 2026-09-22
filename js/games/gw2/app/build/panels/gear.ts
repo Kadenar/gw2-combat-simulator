@@ -20,6 +20,7 @@ import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js
 import { canEquipWeaponSigil, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
 import { groupedOptions, option } from '#gw2/app/shared/html.js';
 import { escapeHtml } from '#ui/shared/html.js';
+import { wikiTooltipAttributes } from '#gw2/app/shared/wiki-tooltip.js';
 import { requiredElement, requiredSelect } from '#ui/shared/dom.js';
 import {
   foodOptionLabel,
@@ -171,7 +172,7 @@ export function renderGear(app: ProfessionAppState): void {
           const statSlot = twoHanded && slot === 0 ? 'Weapon2H' : `Weapon${slot + 1}`;
           return `<div class="weapon-slot"${hidden ? ' hidden' : ''}>
           <div class="gear-row gear-icon-row weapon-row">
-            <button type="button" class="gear-select-trigger gear-icon-trigger weapon-icon-trigger" popovertarget="weapon-editor-${setNumber}-${slot}" aria-haspopup="dialog" aria-expanded="false" aria-label="Edit weapon set ${setNumber} ${label.toLowerCase()}" title="${escapeHtml(`${weapons[slot] || 'None'} / ${prefixes[slot]}`)}">${equipmentIcon(GEAR_ICONS[weapons[slot]])}</button>
+            <button type="button" class="gear-select-trigger gear-icon-trigger weapon-icon-trigger" popovertarget="weapon-editor-${setNumber}-${slot}" aria-haspopup="dialog" aria-expanded="false" aria-label="Edit weapon set ${setNumber} ${label.toLowerCase()}" ${wikiTooltipAttributes(weapons[slot], prefixOptionLabel(prefixes[slot], statSlot))}>${equipmentIcon(GEAR_ICONS[weapons[slot]])}</button>
             <span class="gear-item-caption"><span class="gear-label">${label} &middot; ${escapeHtml(weapons[slot] || 'None')}</span><span class="gear-equipped-name">${unequipped ? 'Unequipped' : escapeHtml(prefixes[slot])}</span></span>
             <div id="weapon-editor-${setNumber}-${slot}" class="weapon-editor gear-select-menu" popover="auto" role="dialog" aria-label="Weapon set ${setNumber} ${label.toLowerCase()}">
               <div class="weapon-editor-heading"><strong>${label} &middot; Set ${setNumber}</strong><button type="button" class="btn btn-io" popovertarget="weapon-editor-${setNumber}-${slot}" popovertargetaction="hide" aria-label="Close weapon picker">&times;</button></div>
@@ -262,7 +263,7 @@ export function renderGear(app: ProfessionAppState): void {
             ${selectRow('Food', 'sel-food', b.food, groupedOptions(FOOD_GROUPS, b.food, foodOptionLabel), EQUIPMENT_ICONS[b.food] || '')}
             ${selectRow('Utility', 'sel-utility', b.utility, groupedOptions(UTILITY_GROUPS, b.utility, utilityOptionLabel), EQUIPMENT_ICONS[b.utility] || '')}
             <div class="gear-row gear-icon-row">
-                <button type="button" id="btn-jade-bot" class="gear-select-trigger gear-icon-trigger" aria-label="Jade Bot core" aria-pressed="${b.jadeBotCore}" title="${b.jadeBotCore ? 'Disable' : 'Enable'} Jade Bot core">${equipmentIcon(GEAR_ICONS.JadeBot)}</button>
+                <button type="button" id="btn-jade-bot" class="gear-select-trigger gear-icon-trigger" aria-label="Jade Bot core" aria-pressed="${b.jadeBotCore}" ${wikiTooltipAttributes('Jade Bot core', b.jadeBotCore ? 'Enabled' : 'Disabled', 'Power Core')}>${equipmentIcon(GEAR_ICONS.JadeBot)}</button>
                 <span class="gear-item-caption"><span class="gear-label">Jade Bot</span><span class="gear-equipped-name">${b.jadeBotCore ? 'Enabled' : 'Disabled'}</span></span>
             </div>
 `;

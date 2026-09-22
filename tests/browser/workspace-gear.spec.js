@@ -73,7 +73,7 @@ test('skill strip above traits replaces equipped skills without queuing casts', 
     const replacement = await option.getAttribute('data-name');
     await option.click();
     await expect(picker).toHaveCount(0);
-    await expect(slot.locator('.sbar-icon')).toHaveAttribute('title', replacement);
+    await expect(slot.locator('.sbar-icon')).toHaveAttribute('data-wiki-name', replacement);
     expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual(before);
   }
 
@@ -110,7 +110,7 @@ test('utility selections swap slots and normalization repairs duplicate or unava
     await slot.getByRole('button', { name: selected[source], exact: true }).click();
     [selected[destination], selected[source]] = [selected[source], selected[destination]];
     expect(await page.evaluate(() => window.professionApp.build.selectedSkills)).toEqual(selected);
-    await expect(slot.locator('.sbar-icon')).toHaveAttribute('title', selected[destination]);
+    await expect(slot.locator('.sbar-icon')).toHaveAttribute('data-wiki-name', selected[destination]);
     await expect(slot.locator('.sbar-icon')).toBeFocused();
   }
 
@@ -149,7 +149,7 @@ test('flipped utility skills remain replaceable from the skill strip', async ({ 
   const replacement = await option.getAttribute('data-name');
   await option.click();
   expect(await page.evaluate(() => window.professionApp.build.selectedSkills.Utility1)).toBe(replacement);
-  await expect(first.locator('.sbar-icon')).toHaveAttribute('title', replacement);
+  await expect(first.locator('.sbar-icon')).toHaveAttribute('data-wiki-name', replacement);
 });
 
 // Trinkets and infusions sit beside armor, with upgrades and consumables sharing the row below.
@@ -246,7 +246,7 @@ test('workspace places trinkets above infusions and keeps import available witho
   const selectedLegendName = await legend.locator('span').textContent();
   await legend.click();
   expect(await page.evaluate(() => window.professionApp.build.selectedLegends[0])).toBe(selectedLegend);
-  await expect(legendButtons.first()).toHaveAttribute('title', selectedLegendName);
+  await expect(legendButtons.first()).toHaveAttribute('data-wiki-name', selectedLegendName);
   await page.getByRole('button', { name: 'Import GW2 Build', exact: true }).click();
   await expect(page.locator('dialog[open]')).toBeVisible();
 });

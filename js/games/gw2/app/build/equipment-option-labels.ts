@@ -1,4 +1,5 @@
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
+import { wikiTooltipAttributes } from '#gw2/app/shared/wiki-tooltip.js';
 import {
   UTILITY_CONVERSION_RATES,
   UTILITY_DATA,
@@ -12,6 +13,60 @@ import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 
 type NumericValues = Readonly<Record<string, number>>;
+
+/** Expand abbreviated equipment names to their wiki articles while reusing the existing stat descriptions. */
+export function equipmentTooltipAttributes(kind: string, name: string, description = ''): string {
+  let wikiName = name;
+  if (/rune/i.test(kind)) {
+    const noArticle = [
+      'Infiltration',
+      'Balthazar',
+      'Perplexity',
+      'Thorns',
+      'Tormenting',
+      'Fireworks',
+      'Strength',
+      'Rage',
+      'Leadership',
+      'Divinity'
+    ];
+    wikiName = `Superior Rune of ${noArticle.includes(name) ? '' : 'the '}${name}`;
+    description ||= runeOptionLabel(name);
+  } else if (/sig/i.test(kind)) {
+    wikiName = `Superior Sigil of ${['Night', 'Stars'].includes(name) ? 'the ' : ''}${name}`;
+    description ||= sigilOptionLabel(name);
+  } else if (/relic/i.test(kind)) {
+    const article = [
+      'Director',
+      'Steamshrieker',
+      'Blightbringer',
+      'Aristocracy',
+      'Mirage',
+      'Mist Stranger',
+      'Brawler',
+      'Claw',
+      'Dragonhunter',
+      'Deadeye',
+      'Eagle',
+      'Fractal',
+      'Last Tyrant',
+      'Visionary',
+      'Thief',
+      'Warrior'
+    ];
+    wikiName = `Relic of ${article.includes(name) ? 'the ' : ''}${name}`;
+    description ||= relicOptionLabel(name);
+  } else if (/infusion/i.test(kind)) {
+    wikiName = 'Infusion';
+  } else if (/food/i.test(kind)) {
+    description ||= foodOptionLabel(name);
+  } else if (/utility/i.test(kind)) {
+    description ||= utilityOptionLabel(name);
+  }
+
+  return wikiTooltipAttributes(name, description, wikiName);
+}
+
 type UnknownValues = Readonly<Record<string, unknown>>;
 
 const gearStats = GEAR_STATS as Readonly<Record<string, Readonly<Record<string, NumericValues>>>>;

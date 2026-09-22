@@ -1,6 +1,8 @@
 import { bindDropdownSearch } from '#ui/shared/dropdown-search.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import { clamp } from '#kernel/core/numeric.js';
+import { equipmentTooltipAttributes } from '#gw2/app/build/equipment-option-labels.js';
+import { bindWikiTooltips } from '#gw2/app/shared/wiki-tooltip.js';
 
 /** Searchable selects add visible removable choices without requiring Ctrl-click. */
 export function candidatePicker(
@@ -25,7 +27,7 @@ export function candidatePicker(
 }
 
 function candidateChip(key: string, value: string, description: string): string {
-  return `<span class="optimizer-choice" title="${escapeHtml(description || 'None')}"><input type="hidden" name="${key}" value="${escapeHtml(value)}"><span>${escapeHtml(value || 'None')}</span><button type="button" data-remove-choice aria-label="Remove ${escapeHtml(value || 'None')} from ${key}">×</button></span>`;
+  return `<span class="optimizer-choice" tabindex="0" ${equipmentTooltipAttributes(key, value, description)}><input type="hidden" name="${key}" value="${escapeHtml(value)}"><span>${escapeHtml(value || 'None')}</span><button type="button" data-remove-choice aria-label="Remove ${escapeHtml(value || 'None')} from ${key}">×</button></span>`;
 }
 
 /** Filter descriptions and enforce caps using only selected chips, never the search field's text. */
@@ -100,6 +102,7 @@ function splitOptionLabel(label: string): { name: string; details: string } {
 
 // Upgrade detailed native selects into styled popovers while preserving their existing change handlers and values.
 export function enhanceDetailedSelect(select: HTMLSelectElement, index: number | string): void {
+  bindWikiTooltips();
   // Native weapon and infusion selects can use the same menu as the existing icon controls.
   if (!select.parentElement?.classList.contains('gear-select-display')) {
     const wrapper = document.createElement('div');
@@ -135,6 +138,18 @@ export function enhanceDetailedSelect(select: HTMLSelectElement, index: number |
   select.tabIndex = -1;
   select.setAttribute('aria-hidden', 'true');
 
+  const describe = (element: HTMLElement, option: HTMLOptionElement | undefined) => {
+    element.removeAttribute('title');
+    for (const key of ['wikiName', 'wikiDescription', 'wikiPage']) delete element.dataset[key];
+    if (!option?.value) return;
+    const { name, details } = splitOptionLabel(option.textContent);
+    const attributes = document.createElement('span');
+    attributes.innerHTML = `<span ${equipmentTooltipAttributes(select.id, name, details)}></span>`;
+    Object.assign(element.dataset, (attributes.firstElementChild as HTMLElement).dataset);
+  };
+
+  describe(trigger, select.selectedOptions[0]);
+
   const addOption = (optionElement: HTMLOptionElement, parent: HTMLElement): void => {
     if (select.matches('[data-add-choice]') && optionElement.value === '') return;
     const { name, details } = splitOptionLabel(optionElement.textContent);
@@ -145,6 +160,7 @@ export function enhanceDetailedSelect(select: HTMLSelectElement, index: number |
     choice.disabled = optionElement.matches(':disabled');
     choice.setAttribute('role', 'option');
     choice.setAttribute('aria-selected', String(optionElement.selected));
+    describe(choice, optionElement);
 
     const primary = document.createElement('span');
     primary.className = 'gear-option-name';
@@ -225,7 +241,7 @@ export function enhanceDetailedSelect(select: HTMLSelectElement, index: number |
     const name = splitOptionLabel(select.selectedOptions[0]?.textContent || select.value).name;
     const caption = display.closest('.gear-icon-row')?.querySelector('.gear-equipped-name');
     if (caption) caption.textContent = name;
-    trigger.title = name;
+    describe(trigger, select.selectedOptions[0]);
   });
   display.append(menu);
 }

@@ -1,5 +1,6 @@
 /** Composes palette markup from projected state and binds the current rendered controls. */
 import { escapeHtml as esc } from '#ui/shared/html.js';
+import { bindWikiTooltips, skillTooltipAttributes } from '#gw2/app/shared/wiki-tooltip.js';
 import { bindAppPaletteInteractions } from '#gw2/app/rotation/palette/interactions.js';
 import {
   createPaletteContext,
@@ -67,10 +68,11 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
       <span class="pal-skill-resource-value" data-resource-id="${esc(resource.id)}"
         aria-hidden="true">${Math.round(resourceValue)}/${resourceMaximum}</span>`
     : '';
+  // Delayed wiki cards let rapid palette clicks and drags finish without an overlay appearing under the pointer.
   return `<div class="${classes}" data-skill="${esc(view.name)}"
     ${skillId ? `data-skill-id="${esc(skillId)}"` : ''}
     ${hotkeyAction ? `data-hotkey-action="${esc(hotkeyAction)}"` : ''}
-    title="${esc(view.title || view.name)}" draggable="${draggable ? 'true' : 'false'}"
+    ${view.skill ? `${skillTooltipAttributes(view.skill, view.title?.split('\n').slice(1).join('\n'))} data-wiki-delay="700" tabindex="0"` : `title="${esc(view.title || view.name)}"`} draggable="${draggable ? 'true' : 'false'}"
     ${ariaLabel ? `aria-label="${esc(ariaLabel)}"` : ''}
     style="--att-border:${esc(view.color || '#a88be8')}">
     <img src="${esc(view.icon || PLACEHOLDER_ICON)}" alt="" />
@@ -473,4 +475,5 @@ export function renderPalette(app: ProfessionAppState): void {
   element.innerHTML = paletteHtml(app, paletteContext);
 
   bindAppPaletteInteractions(app, element, paletteContext);
+  bindWikiTooltips();
 }

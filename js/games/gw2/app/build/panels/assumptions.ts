@@ -1,5 +1,6 @@
 import { option } from '#gw2/app/shared/html.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
+import { wikiTooltipAttributes } from '#gw2/app/shared/wiki-tooltip.js';
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
 import { isSimulationRandomnessControl } from '#gw2/platform/simulation/randomness.js';
@@ -65,7 +66,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
         <div class="perma-group-content">${contents}</div>
     </details>`;
   const item = ({ name, checked, type, key = name, stacks = null }: EffectItemOptions): string =>
-    `<label class="perma-item" title="${esc(name)}">
+    `<label class="perma-item" ${wikiTooltipAttributes(name)}>
             <input type="checkbox" aria-label="${esc(name)}" data-effect-type="${type}" data-effect-key="${esc(key)}"${checked ? ' checked' : ''}>
             <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS[name])}" alt="">
             ${stacks == null ? '' : `<input type="number" class="perma-stacks" aria-label="${esc(`${name} stacks`)}" data-effect-type="${type}" data-effect-key="${esc(key)}" min="0" max="25" value="${stacks}"${checked ? '' : ' disabled'}>`}
@@ -87,7 +88,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
       })
     ),
     // Explain the fixed timing assumption without exposing an editable boon control.
-    `<span class="boon-control" title="Skill timings are calibrated with permanent quickness.">
+    `<span class="boon-control" tabindex="0" ${wikiTooltipAttributes('Quickness', 'Skill timings are calibrated with permanent quickness.')}>
       <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS.Quickness)}" alt="">
       Quickness — always active
     </span>`
