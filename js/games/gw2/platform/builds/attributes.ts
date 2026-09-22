@@ -319,7 +319,6 @@ export function calculateCommonAttributes(
   }
 
   const conversionPool: Gw2NumericAttributes = {};
-  const conversionPoolNoFood: Gw2NumericAttributes = {};
   // Prebuilt stacks persist on either set and feed conversions; removing a sigil removes its bonus on both sets.
   const stackingSigil = stackingSigilForBuild(build);
   const sigilStats =
@@ -333,13 +332,6 @@ export function calculateCommonAttributes(
       (runes[stat] || 0) +
       (sigilStats[stat] || 0) +
       (foodConverted[stat] || 0) +
-      (infusions[stat] || 0) +
-      (build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0);
-    conversionPoolNoFood[stat] =
-      (baseStats[stat] || 0) +
-      (gear[stat] || 0) +
-      (runes[stat] || 0) +
-      (sigilStats[stat] || 0) +
       (infusions[stat] || 0) +
       (build.jadeBotCore ? jadeBotBonus[stat] || 0 : 0);
   }
@@ -433,9 +425,8 @@ export function calculateCommonAttributes(
     jadeBotCore: Boolean(build.jadeBotCore),
     specializations: [...(build.specializations || [])],
     commonContext: {
-      // Kept only between common calculation and profession finalization.
+      // Pass eligible conversion inputs and duration bonuses to profession finalization.
       conversionPool,
-      conversionPoolNoFood,
       runeDurations,
       foodDurations,
       sigilDurations,

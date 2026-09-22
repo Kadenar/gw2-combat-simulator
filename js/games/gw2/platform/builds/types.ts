@@ -288,7 +288,6 @@ export interface Gw2BuildValidationOptions {
 
 export interface Gw2AttributeCommonContext {
   conversionPool: Gw2NumericAttributes;
-  conversionPoolNoFood: Gw2NumericAttributes;
   runeDurations: Gw2NumericAttributes;
   foodDurations: Gw2NumericAttributes;
   sigilDurations: Gw2NumericAttributes;
