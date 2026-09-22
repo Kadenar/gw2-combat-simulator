@@ -336,6 +336,15 @@ body[data-rotation-comparison] .rotation-comparison-reference-actions[hidden] {
   display: none;
 }
 
+/* Keep the native scroll-link checkbox and its label together as comparison actions wrap. */
+.rotation-comparison-scroll-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
 body[data-rotation-comparison] .rotation-comparison-reference {
   /* Share remaining height between the timelines after accounting for the combined header. */
   display: contents;

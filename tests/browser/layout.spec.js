@@ -944,11 +944,15 @@ test('rotation comparison keeps editable and read-only timelines stacked without
   await expect(page.locator('body')).not.toHaveAttribute('data-rotation-comparison', '');
 });
 
-test('rotation comparison links scrolling in both directions across unequal view lengths', async ({ page }) => {
+test('rotation comparison optionally links combat time across unequal rotations', async ({ page }) => {
   await openSimulator(page);
   await page.evaluate(() => {
     const app = window.professionApp;
-    app.build.rotation = [{ type: 'wait', durationMs: 1000 }];
+    app.build.rotation = [
+      { type: 'wait', durationMs: 1000 },
+      { type: 'combat-start' },
+      { type: 'wait', durationMs: 1000 }
+    ];
     app.changed(false);
   });
   await expect(page.getByRole('button', { name: 'Compare', exact: true })).toBeEnabled();
@@ -958,41 +962,78 @@ test('rotation comparison links scrolling in both directions across unequal view
 
   const current = page.locator('#rotation-timeline');
   const reference = page.locator('#rotation-reference-timeline');
-  // Fixed content isolates native scrolling, including unequal ranges and a reference that cannot scroll.
-  for (const [timeline, height] of [
-    [current, 1200],
-    [reference, 1900]
-  ]) {
-    await timeline.evaluate((element, height) => {
-      element.style.cssText = 'height: 150px; min-height: 150px; flex: none';
-      const content = document.createElement('div');
-      content.style.height = `${height}px`;
-      element.replaceChildren(content);
-    }, height);
+  const linkScrolling = page.getByRole('checkbox', { name: 'Link scrolling by time' });
+  await expect(linkScrolling).not.toBeChecked();
+  // Retain the selected mode during ordinary view refreshes.
+  await linkScrolling.check();
+  await page.evaluate(() => window.professionApp.adapter.renderRotationBuilder(window.professionApp));
+  await expect(linkScrolling).toBeChecked();
+  await linkScrolling.uncheck();
+  for (const timeline of [current, reference]) {
+    await expect(timeline.locator('.rot-skill[data-idx="0"]')).toHaveAttribute('data-combat-time-ms', '-1000');
+    await expect(timeline.locator('.rot-skill[data-idx="2"]')).toHaveAttribute('data-combat-time-ms', '0');
   }
 
-  const progress = (timeline) =>
-    timeline.evaluate((element) => element.scrollTop / (element.scrollHeight - element.clientHeight));
-  await current.hover();
-  await page.mouse.wheel(0, 315);
-  await expect.poll(() => progress(current)).toBeGreaterThan(0.2);
-  await expect.poll(async () => Math.abs((await progress(current)) - (await progress(reference)))).toBeLessThan(0.002);
+  // Fixed rows isolate time alignment from wrapping: Reference advances twice as much combat time per row.
+  for (const [timeline, count, interval] of [
+    [current, 24, 1000],
+    [reference, 32, 2000]
+  ]) {
+    await timeline.evaluate(
+      (element, { count, interval }) => {
+        element.style.cssText = 'height: 150px; min-height: 150px; flex: none; padding: 0; border: 0';
+        element.replaceChildren();
+        for (let index = 0; index < count; index++) {
+          const skill = document.createElement('div');
+          skill.className = 'rot-skill';
+          skill.dataset.combatTimeMs = String(index * interval - 5000);
+          skill.style.cssText = 'height: 100px; margin: 0; border: 0; transform: none';
+          element.append(skill);
+        }
+      },
+      { count, interval }
+    );
+  }
 
-  await reference.hover();
-  await page.mouse.wheel(0, 350);
-  await expect.poll(() => progress(reference)).toBeGreaterThan(0.4);
-  await expect.poll(async () => Math.abs((await progress(current)) - (await progress(reference)))).toBeLessThan(0.002);
+  const position = (timeline) => timeline.evaluate((element) => element.scrollTop);
+  const scroll = (timeline, top) =>
+    timeline.evaluate(async (element, top) => {
+      element.scrollTop = top;
+      // Flush both the original scroll and any mirrored event before asserting independence or feedback suppression.
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }, top);
+  await scroll(current, 600);
+  expect(await position(reference)).toBe(0);
+  await scroll(reference, 800);
+  expect(await position(current)).toBe(600);
 
-  await current.evaluate((element) => (element.scrollTop = element.scrollHeight));
-  await expect.poll(() => progress(reference)).toBe(1);
-  await reference.evaluate((element) => (element.scrollTop = 0));
-  await expect.poll(() => progress(current)).toBe(0);
+  await linkScrolling.check();
+  await scroll(current, 620);
+  expect(await position(reference)).toBe(320);
+  expect(await position(current)).toBe(620);
+  await scroll(reference, 800);
+  expect(await position(current)).toBe(1600);
 
-  await reference.evaluate((element) => (element.firstElementChild.style.height = '20px'));
-  await current.evaluate((element) => (element.scrollTop = 315));
-  // Wait through queued scroll events so a non-scrolling peer cannot bounce Current back to the top.
-  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-  expect(await current.evaluate((element) => element.scrollTop)).toBe(315);
+  // Pre-combat times align too; reaching the shorter rotation's end must not pull the source backwards.
+  await scroll(current, 200);
+  expect(await position(reference)).toBe(100);
+  await scroll(reference, 3000);
+  expect(await position(current)).toBe(2250);
+  expect(await position(reference)).toBe(3000);
+  await scroll(reference, 0);
+  expect(await position(current)).toBe(0);
+
+  await linkScrolling.uncheck();
+  await scroll(current, 600);
+  expect(await position(reference)).toBe(0);
+  await scroll(reference, 800);
+  expect(await position(current)).toBe(600);
+
+  await linkScrolling.check();
+  await reference.evaluate((element) => element.replaceChildren());
+  await scroll(current, 400);
+  expect(await position(current)).toBe(400);
+  expect(await position(reference)).toBe(0);
 
   const detachedReference = await reference.elementHandle();
   await page.getByRole('button', { name: 'Exit compare' }).click();

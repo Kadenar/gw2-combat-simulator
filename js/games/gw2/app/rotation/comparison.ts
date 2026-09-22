@@ -157,6 +157,36 @@ function removeComparisonView(): void {
   document.querySelector('dialog[data-rotation-import-destination="reference"]')?.remove();
 }
 
+/** Aligns the nearest combat-time cast with the source's top row, preserving its partial scroll offset. */
+function alignTimelineCombatTime(source: HTMLElement, target: HTMLElement): void {
+  const sourceTop = source.getBoundingClientRect().top + source.clientTop;
+  let sourceSkill: HTMLElement | undefined;
+  let sourceOffset = Infinity;
+  for (const skill of source.querySelectorAll<HTMLElement>('.rot-skill[data-combat-time-ms]')) {
+    const offset = skill.getBoundingClientRect().top - sourceTop;
+    if (Math.abs(offset) < Math.abs(sourceOffset)) {
+      sourceSkill = skill;
+      sourceOffset = offset;
+    }
+  }
+
+  if (!sourceSkill) return;
+  const timeMs = Number(sourceSkill.dataset.combatTimeMs);
+  let targetSkill: HTMLElement | undefined;
+  let timeDifference = Infinity;
+  for (const skill of target.querySelectorAll<HTMLElement>('.rot-skill[data-combat-time-ms]')) {
+    const difference = Math.abs(Number(skill.dataset.combatTimeMs) - timeMs);
+    if (difference < timeDifference) {
+      targetSkill = skill;
+      timeDifference = difference;
+    }
+  }
+
+  if (!targetSkill) return;
+  const targetTop = target.getBoundingClientRect().top + target.clientTop;
+  target.scrollTop += targetSkill.getBoundingClientRect().top - targetTop - sourceOffset;
+}
+
 function createComparisonView(
   app: ProfessionAppState,
   currentTimeline: HTMLElement
@@ -206,6 +236,9 @@ function createComparisonView(
   referenceSection.className = 'rotation-comparison-reference';
   referenceSection.innerHTML = `<header class="rotation-comparison-reference-header">
       <h4 class="rotation-comparison-timeline-label rotation-comparison-reference-label">Reference — Read only</h4>
+      <label class="rotation-comparison-scroll-link" title="Align casts by combat time when scrolling either rotation. Uncheck to scroll independently.">
+        <input type="checkbox" data-comparison-link-scrolling> Link scrolling by time
+      </label>
       <div class="rotation-comparison-reference-actions" data-comparison-reference-actions hidden>
         <span role="status" data-comparison-status></span>
         <button type="button" class="btn btn-io" data-comparison-reference-load>Load rotation</button>
@@ -224,7 +257,8 @@ function createComparisonView(
   const loadButton = referenceSection.querySelector<HTMLElement>('[data-comparison-reference-load]');
   const emptyLoadButton = referenceSection.querySelector<HTMLButtonElement>('[data-comparison-empty-load]');
   const fileInput = referenceSection.querySelector<HTMLInputElement>('[data-comparison-reference-file]');
-  if (!referenceTimeline || !loadButton || !emptyLoadButton || !fileInput) {
+  const linkScrolling = referenceSection.querySelector<HTMLInputElement>('[data-comparison-link-scrolling]');
+  if (!referenceTimeline || !loadButton || !emptyLoadButton || !fileInput || !linkScrolling) {
     throw new Error('Rotation comparison timeline failed to initialize.');
   }
 
@@ -238,7 +272,7 @@ function createComparisonView(
   currentTimeline.before(currentLabel);
   currentTimeline.after(referenceSection);
 
-  // Match scroll progress across unequal rotations; ignore mirrored events to prevent rounding feedback.
+  // Independent by default; linked inspection uses combat time and ignores mirrored events to prevent feedback.
   comparisonScrollLifecycle = new AbortController();
   const mirroredPositions = new WeakMap<HTMLElement, number>();
   for (const [source, target] of [
@@ -251,8 +285,16 @@ function createComparisonView(
         if (mirroredPositions.get(source) === source.scrollTop) return;
         mirroredPositions.delete(source);
         const scrollRange = source.scrollHeight - source.clientHeight;
-        if (source.hidden || target.hidden || scrollRange <= 0) return;
-        target.scrollTop = (source.scrollTop / scrollRange) * Math.max(0, target.scrollHeight - target.clientHeight);
+        if (
+          !linkScrolling.checked ||
+          source.hidden ||
+          target.hidden ||
+          scrollRange <= 0 ||
+          !currentIsFresh(app) ||
+          app.rotationComparison?.referenceStatus !== 'fresh'
+        )
+          return;
+        alignTimelineCombatTime(source, target);
         mirroredPositions.set(target, target.scrollTop);
       },
       { passive: true, signal: comparisonScrollLifecycle.signal }
