@@ -72,7 +72,7 @@ export function bindWikiTooltips(): void {
     <div id="wiki-tooltip-description" class="wiki-tooltip-description"></div>
     <div class="wiki-tooltip-effects"></div>
     <div class="wiki-tooltip-upgrades"></div>
-    <a target="_blank" rel="noopener noreferrer" aria-label="Open on wiki (opens in a new tab)">Open on wiki <span aria-hidden="true">↗</span></a>`;
+    <a target="_blank" rel="noopener noreferrer" aria-label="Open on wiki (opens in a new tab)">Open on wiki <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4 12 12 4M4 4h8v8" /></svg></a>`;
   document.body.append(panel);
   const heading = panel.querySelector('strong')!;
   const description = panel.querySelector<HTMLElement>('.wiki-tooltip-description')!;
