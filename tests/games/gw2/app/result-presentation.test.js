@@ -581,10 +581,42 @@ test('result charts reuse the target-health DPS snapshot breakpoints', () => {
   assert.match(chartContainer.innerHTML, /data-chart-phase="80-60"[\s\S]*?aria-pressed="false"/);
 });
 
+// Both breakdowns share total damage as their denominator, including entity and environment rows.
+test('damage contribution percentages share a denominator and handle empty damage', () => {
+  const container = inertContainer();
+  const skillRows = [
+    { name: 'Strike', group: 'Player', total: 60 },
+    { name: 'Burn', group: 'Entities', total: 30 },
+    { name: 'External', group: 'Environment', total: 10 }
+  ];
+  mountRotationResults(container, {
+    skillColumns: SKILL_COLS,
+    skillRows,
+    conditions: [{ name: 'Burning', damage: 30, dps: 3, averageStacks: 1 }],
+    conditionTotal: { damage: 30, dps: 3 }
+  });
+  assert.match(container.innerHTML, /Player % Damage: 60\.00%/);
+  assert.match(container.innerHTML, /Entities % Damage: 30\.00%/);
+  assert.match(container.innerHTML, /Environment % Damage: 10\.00%/);
+  assert.match(
+    container.innerHTML,
+    /Burning\.png" alt="" \/>Burning<\/span>\s*<span class="condi">30<\/span>\s*<span>30\.00%<\/span>/
+  );
+  assert.match(container.innerHTML, /<b>30\.00%<\/b>/);
+  assert.equal(skillRows[0].damagePercent, undefined);
+
+  mountRotationResults(container, {
+    skillColumns: SKILL_COLS,
+    skillRows: [{ name: 'No damage', total: 0 }]
+  });
+  assert.match(container.innerHTML, /<span>0\.00%<\/span>/);
+  assert.doesNotMatch(container.innerHTML, /NaN|Infinity/);
+});
+
 test('result sorting handles defaults, numeric directions, strings, and cycling', () => {
   assert.deepEqual(
     SKILL_COLS.map((column) => column.key),
-    ['name', 'strike', 'condition', 'total', 'dps', 'average', 'dct', 'casts', 'hits', 'critChance']
+    ['name', 'strike', 'condition', 'total', 'damagePercent', 'dps', 'average', 'dct', 'casts', 'hits', 'critChance']
   );
   const rows = [
     { name: 'Beta', total: 20, dps: 5 },

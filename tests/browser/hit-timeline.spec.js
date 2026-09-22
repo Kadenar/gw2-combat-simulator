@@ -7,6 +7,7 @@ test('skill details distinguish normal and empowered applications', async ({ pag
   await page.evaluate(async () => {
     const { mountRotationResults, SKILL_COLS } = await import('/js/games/gw2/app/results/analysis-panel.ts');
     document.body.innerHTML = '<div id="series"></div>';
+    document.body.className = 'guardian-theme';
     mountRotationResults(document.querySelector('#series'), {
       showSummary: false,
       skillColumns: SKILL_COLS,
@@ -18,7 +19,7 @@ test('skill details distinguish normal and empowered applications', async ({ pag
           group: 'Player',
           total: 100
         },
-        { key: 'other', name: 'Other Skill', sourceSkill: 'Other Skill', group: 'Player', total: 100 }
+        { key: 'other', name: 'Other Skill', sourceSkill: 'Other Skill', group: 'Player', total: 300 }
       ],
       chartSeries: {
         durationMs: 8000,
@@ -53,12 +54,20 @@ test('skill details distinguish normal and empowered applications', async ({ pag
   });
   const embraceRow = page.locator('[data-skill-key="embrace"]');
   const otherRow = page.locator('[data-skill-key="other"]');
+  // Contribution remains sortable alongside total damage, and skill ticks inherit the profession theme.
+  await expect(embraceRow).toContainText('25.00%');
+  await expect(otherRow).toContainText('75.00%');
+  await page.locator('[data-sort-col="damagePercent"]').click();
+  await expect(page.locator('[data-skill-key]').first()).toHaveAttribute('data-skill-key', 'other');
+  await page.locator('[data-sort-col="damagePercent"]').click();
+  await expect(page.locator('[data-skill-key]').first()).toHaveAttribute('data-skill-key', 'embrace');
   await embraceRow.focus();
   await embraceRow.press('Enter');
   const timeline = page.locator('[data-role="skill-timeline"]');
   await expect(page.locator('[data-role="result-charts"] [data-role="dps-hit-strip"]')).toHaveCount(0);
   await expect(page.locator('[data-role="result-charts"] [data-role="hit-timeline-canvas"]')).toHaveCount(0);
   const strikes = timeline.getByRole('group', { name: 'Strike damage', exact: true });
+  expect(await strikes.locator('canvas').evaluate((canvas) => canvas.getContext('2d').strokeStyle)).toBe('#72c1d9');
   await strikes.getByRole('button', { name: '0.00s · 5 hits', exact: true }).click();
   await expect(strikes.getByRole('columnheader', { name: 'Pulse', exact: true })).toBeVisible();
   await expect(strikes.locator('tbody tr td:last-child')).toHaveText(['Normal', 'Empowered', 'Normal', 'Normal', '—']);
@@ -144,6 +153,17 @@ test('condition rows inspect full and partial payouts across sources', async ({ 
     });
   });
   const torment = page.getByRole('button', { name: 'Inspect Torment ticks', exact: true });
+  const utilityConditions = page.locator('.res-condition-group-utility');
+  await expect(utilityConditions.locator('.cond-hdr > span')).toHaveText(['Condition', 'Avg Stacks']);
+  await expect(utilityConditions.locator('.res-row > span')).toHaveText(['Crippled', '1.00']);
+  await expect(torment.locator('img')).toHaveAttribute('src', /Torment\.png$/);
+  await expect(page.locator('.res-row').filter({ hasText: 'Crippled' }).locator('img')).toHaveAttribute(
+    'src',
+    /Crippled\.png$/
+  );
+  expect(await torment.locator('.res-skill').evaluate((label) => getComputedStyle(label, '::before').content)).toBe(
+    'none'
+  );
   await torment.focus();
   await torment.press('Enter');
   await expect(torment).toHaveAttribute('aria-expanded', 'true');

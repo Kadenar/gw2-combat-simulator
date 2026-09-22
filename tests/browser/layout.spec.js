@@ -1002,7 +1002,7 @@ test('rotation comparison links scrolling in both directions across unequal view
 });
 
 test('damage and condition breakdowns split only when their container is wide', async ({ page }) => {
-  await page.setViewportSize({ width: 1400, height: 900 });
+  await page.setViewportSize({ width: 1500, height: 900 });
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(() => {
@@ -1014,12 +1014,12 @@ test('damage and condition breakdowns split only when their container is wide', 
     const section = document.createElement('section');
     section.className = 'res-breakdown-section';
     section.dataset.layoutFixture = 'result-breakdown';
-    section.style.width = '1200px';
+    section.style.width = '1360px';
     section.innerHTML = `<div class="res-breakdown">
       <div class="res-breakdown-part res-damage-breakdown">
         <div class="res-section-title">Damage Breakdown</div>
         <div class="res-hdr">
-          <span>Skill</span><span>Strike</span><span>Condition</span><span>Total</span><span>DPS</span>
+          <span>Skill</span><span>Strike</span><span>Condition</span><span>Total</span><span>% Damage</span><span>DPS</span>
           <span>Avg/Cast</span><span>DCT</span><span>Casts</span><span>Hits</span><span>Exp. Crit %</span>
         </div>
       </div>

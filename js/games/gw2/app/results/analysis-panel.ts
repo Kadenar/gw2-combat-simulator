@@ -6,9 +6,17 @@ import { escapeHtml } from '#ui/shared/html.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 import type { SkillBreakdownRow } from '#gw2/app/results/skill-breakdown.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
+import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 
 // Trusted static disclosure glyph (Lucide trend line).
 const DPS_SNAPSHOTS_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>`;
+
+// Runtime condition names differ from the build-control labels used by the shared artwork catalog.
+const CONDITION_ICON_LABELS: Readonly<Record<string, string>> = {
+  Blinded: 'Blindness',
+  Crippled: 'Cripple',
+  Immobilized: 'Immobilize'
+};
 
 const metricDetailsDismissalRoots = new WeakSet<Document>();
 
@@ -153,6 +161,7 @@ export const SKILL_COLS: readonly ResultColumn[] = [
   { key: 'strike', label: 'Strike', numeric: true },
   { key: 'condition', label: 'Condition', numeric: true, className: 'condi' },
   { key: 'total', label: 'Total', numeric: true, className: 'total' },
+  { key: 'damagePercent', label: '% Damage', numeric: true, format: (value) => `${Number(value).toFixed(2)}%` },
   { key: 'dps', label: 'DPS', numeric: true, className: 'dps' },
   { key: 'average', label: 'Avg/Cast', numeric: true },
   { key: 'dct', label: 'DCT', numeric: true },
@@ -419,7 +428,7 @@ function skillRowsHtml(
   const groupNames = [...grouped.keys()].sort(
     (left, right) => (preferredOrder.get(left) ?? 3) - (preferredOrder.get(right) ?? 3)
   );
-  const summaryColumns = new Set(['strike', 'condition', 'total', 'dps']);
+  const summaryColumns = new Set(['strike', 'condition', 'total', 'damagePercent', 'dps']);
   return groupNames
     .map((group) => {
       const groupRows = grouped.get(group) || [];
@@ -435,9 +444,10 @@ function skillRowsHtml(
           }
 
           const total = groupRows.reduce((sum, row) => sum + Number(row[column.key] || 0), 0);
+          const formatted = column.format ? String(column.format(total, { name: group })) : number(total);
           const label = column.label || column.key;
           const classAttr = column.className ? ` ${escapeHtml(column.className)}` : '';
-          return `<span class="res-skill-group-total${classAttr}" aria-label="${escapeHtml(`${group} ${label}: ${number(total)}`)}">${number(total)}</span>`;
+          return `<span class="res-skill-group-total${classAttr}" aria-label="${escapeHtml(`${group} ${label}: ${formatted}`)}">${escapeHtml(formatted)}</span>`;
         })
         .join('')}
     </div>${groupRows.map((row) => skillRowHtml(row, columns, options)).join('')}`;
@@ -578,13 +588,23 @@ export function mountRotationResults(
   const summaryPlaceholder = model.summaryPlaceholder === true;
   const showSummary = model.showSummary !== false;
   const breakpoints = model.breakpoints || [];
-  const skillRows = model.skillRows || [];
+  // Conditions already belong to skill totals; use one denominator across all damage sources without double counting.
+  const totalDamage = (model.skillRows || []).reduce((sum, row) => sum + Number(row.total || 0), 0);
+  const damagePercent = (damage: number): number => (totalDamage > 0 ? (damage / totalDamage) * 100 : 0);
+  const skillRows: ResultRow[] = (model.skillRows || []).map((row) => ({
+    ...row,
+    damagePercent: damagePercent(Number(row.total || 0))
+  }));
   const skillColumns = model.skillColumns || [];
   const conditions = model.conditions || [];
   // Keep damage-dealing conditions prominent while retaining utility-condition stack visibility.
   const conditionGroups = [
-    { label: 'Damaging Conditions', conditions: conditions.filter((condition) => condition.damage > 0) },
-    { label: 'Other Conditions', conditions: conditions.filter((condition) => condition.damage <= 0) }
+    {
+      label: 'Damaging Conditions',
+      damaging: true,
+      conditions: conditions.filter((condition) => condition.damage > 0)
+    },
+    { label: 'Other Conditions', damaging: false, conditions: conditions.filter((condition) => condition.damage <= 0) }
   ].filter((group) => group.conditions.length);
   const randomDistribution = model.randomDistribution || null;
   const randomDistributionRequested = model.randomDistributionRequested === true;
@@ -701,18 +721,25 @@ export function mountRotationResults(
       <div class="cond-breakdown">
         ${conditionGroups
           .map(
-            (group) => `<div class="res-condition-group">
+            (group) => `<div class="res-condition-group${group.damaging ? '' : ' res-condition-group-utility'}">
           <div class="res-condition-group-title">${group.label}</div>
           <div class="res-hdr cond-hdr">
-            <span>Condition</span><span>Damage</span><span>DPS</span><span>Avg Stacks</span>
+            <span>Condition</span>${group.damaging ? '<span>Damage</span><span>% Damage</span><span>DPS</span>' : ''}<span>Avg Stacks</span>
           </div>
           ${group.conditions
             .map((condition) => {
               const selectable = Boolean(chartSeries?.conditionDamage?.[condition.name]?.length);
+              // Reuse the effect icon while retaining the row's keyboard-accessible tick inspector.
+              const icon = MODIFIER_EFFECT_ICONS[CONDITION_ICON_LABELS[condition.name] || condition.name];
               return `<div class="res-row${selectable ? ' res-row-selectable' : ''}"${selectable ? ` role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" aria-label="Inspect ${escapeHtml(condition.name)} ticks" data-condition-name="${escapeHtml(condition.name)}"` : ''}>
-          <span class="res-skill condi">${escapeHtml(condition.name)}</span>
-          <span class="condi">${number(condition.damage)}</span>
-          <span class="dps">${number(condition.dps)}</span>
+          <span class="res-skill condi">${icon ? `<img src="${escapeHtml(icon)}" alt="" />` : ''}${escapeHtml(condition.name)}</span>
+          ${
+            group.damaging
+              ? `<span class="condi">${number(condition.damage)}</span>
+          <span>${damagePercent(condition.damage).toFixed(2)}%</span>
+          <span class="dps">${number(condition.dps)}</span>`
+              : ''
+          }
           <span>${Number(condition.averageStacks || 0).toFixed(2)}</span>
         </div>`;
             })
@@ -725,6 +752,7 @@ export function mountRotationResults(
             ? `<div class="res-row res-total">
           <span class="res-skill"><b>${escapeHtml(model.conditionTotal.label || 'Total Conditions')}</b></span>
           <span class="condi"><b>${number(model.conditionTotal.damage)}</b></span>
+          <span><b>${damagePercent(model.conditionTotal.damage).toFixed(2)}%</b></span>
           <span class="dps"><b>${number(model.conditionTotal.dps)}</b></span>
           <span></span>
         </div>`
@@ -932,7 +960,7 @@ export function mountRotationResults(
     showDialog(dialog);
     mountHitTimeline(timeline, chartSeries.conditionDamage?.[name] || [], {
       durationMs: chartSeries.durationMs,
-      color: options.chartOptions?.colors?.[name],
+      color: options.chartOptions?.skillDamageColor,
       label: `${name} damage · fight time`,
       timeLabel: 'fight time',
       inspectAllTicks: true

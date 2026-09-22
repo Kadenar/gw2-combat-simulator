@@ -68,6 +68,7 @@ export type ComboOutcome =
   | {
       readonly kind: 'life-steal';
       readonly name: string;
+      readonly icon?: string;
       readonly flatStrikeBase: number;
       readonly flatStrikePowerCoeff: number;
     }
@@ -115,10 +116,11 @@ const healing = (name: string, flatHealing: number, healingPowerCoefficient: num
     flatHealing,
     healingPowerCoefficient
   });
-const lifeSteal = (name: string, flatStrikeBase: number): ComboOutcome =>
+const lifeSteal = (name: string, flatStrikeBase: number, icon?: string): ComboOutcome =>
   Object.freeze({
     kind: 'life-steal',
     name,
+    icon,
     flatStrikeBase,
     flatStrikePowerCoeff: 0.03
   });
@@ -135,7 +137,12 @@ const definitions: readonly ComboDefinition[] = [
   {
     fieldType: 'Dark',
     finisherType: 'Whirl',
-    outcome: lifeSteal('Leeching Bolts', 170)
+    // Combat-log-only Leeching Bolts uses the healing artwork, as in Elite Insights.
+    outcome: lifeSteal(
+      'Leeching Bolts',
+      170,
+      'https://render.guildwars2.com/file/D4347C52157B040943051D7E09DEAD7AF63D4378/156662.png'
+    )
   },
   {
     fieldType: 'Ethereal',
@@ -457,6 +464,8 @@ export function materializeComboOutcome(combo: ComboEvent): readonly SimulationE
           ...base,
           type: 'damage',
           name: outcome.name,
+          // Explicit outcome artwork prevents result rows from inheriting the triggering finisher's icon.
+          icon: outcome.icon,
           // Siphon packets own their hits; keep the triggering finisher only as their parent.
           skillName: outcome.name,
           parentSkillName: combo.skillName || combo.parentSkillName,

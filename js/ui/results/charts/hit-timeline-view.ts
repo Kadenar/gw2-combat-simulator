@@ -100,14 +100,7 @@ export function drawHitTimeline(
   canvas: HTMLCanvasElement | null | undefined,
   hits: readonly SkillHit[],
   durationMs: number,
-  {
-    height = 92,
-    color = '#b57ce0',
-    label = '',
-    emptyText = '',
-    timeOffsetMs = 0,
-    groupHits = true
-  }: HitTimelineOptions = {}
+  { height = 92, color, label = '', emptyText = '', timeOffsetMs = 0, groupHits = true }: HitTimelineOptions = {}
 ): HitTimelineLayout | null {
   if (!canvas?.getContext) return null;
   const cssWidth = Math.max(
@@ -180,9 +173,14 @@ export function drawHitTimeline(
     : hits;
   const maxValue = Math.max(1, ...markers.map((hit) => Number(hit.v || 0)));
   const minMarker = Math.min(plotHeight, 8);
-  context.strokeStyle = color;
+  // Resolve the active profession accent for both overview markers and individual tick inspection.
+  const markerColor =
+    color ||
+    canvas.ownerDocument?.defaultView?.getComputedStyle(canvas).getPropertyValue('--accent').trim() ||
+    '#b57ce0';
+  context.strokeStyle = markerColor;
   context.lineWidth = 2;
-  context.fillStyle = color;
+  context.fillStyle = markerColor;
   context.textAlign = 'left';
   context.textBaseline = 'top';
   for (const hit of markers) {

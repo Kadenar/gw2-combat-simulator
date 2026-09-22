@@ -6,6 +6,7 @@ import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { createGw2ComboRuntimeState, registerComboField, resolveComboAttempt } from '#gw2/platform/combos/events.js';
 import { resolveTestGw2Stream } from '#tests/helpers/gw2-resolver.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 
 const query = {
   statsAt: () => ({
@@ -162,6 +163,21 @@ test('Dark projectile and whirl siphons own their hits without inflating the fin
     assert.equal(rows.find((row) => row.name === siphonName).hits, 1);
     assert.equal(rows.find((row) => row.name === siphonName).casts, 0);
   }
+});
+
+// Combo artwork must survive resolution and win over the finisher's inherited skill identity.
+test('Leeching Bolts carries its own icon into the damage breakdown', () => {
+  const result = resolve([
+    field('dark:icon', 'Dark'),
+    finisher('whirl:icon', { kind: 'field-id', fieldId: 'dark:icon' }, { finisherType: 'Whirl' })
+  ]);
+  const row = skillBreakdownRows(result).find((entry) => entry.name === 'Leeching Bolts');
+  const icon = 'https://render.guildwars2.com/file/D4347C52157B040943051D7E09DEAD7AF63D4378/156662.png';
+  assert.equal(row.icon, icon);
+  assert.equal(
+    resultSkillIcon({ results: result, skillById: new Map([['fixture.finisher', { icon: 'finisher.png' }]]) }, row),
+    icon
+  );
 });
 
 test('explicit bindings resolve one authoritative combo at effectAt', () => {
