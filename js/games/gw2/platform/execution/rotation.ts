@@ -87,6 +87,7 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
   const releaseAtCharges = candidate.releaseAtCharges;
   const doubleEdgeOutcome = candidate.doubleEdgeOutcome;
   const offTarget = candidate.offTarget;
+  const impactDelay = candidate.impactDelayMs == null ? 0 : finiteMilliseconds(candidate.impactDelayMs, 'Impact delay');
   if (doubleEdgeOutcome != null && doubleEdgeOutcome !== 'success' && doubleEdgeOutcome !== 'backfire') {
     throw new TypeError('Double Edge outcome must be either success or backfire.');
   }
@@ -95,10 +96,17 @@ export function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup 
     throw new TypeError('Off-target cast must be a boolean.');
   }
 
+  // An off-target cast never lands, so a landing delay on the same cast has no meaning.
+  if (offTarget === true && impactDelay > 0) {
+    throw new TypeError('Off-target cast cannot also have an impact delay.');
+  }
+
   return {
     type: 'cast',
     skillId: canonicalGw2SkillId(skillId),
     ...(offTarget === true ? { offTarget: true } : {}),
+    // A zero delay is an ordinary on-target cast, so only a positive delay is stored.
+    ...(impactDelay > 0 ? { impactDelayMs: impactDelay } : {}),
     ...(concurrent == null
       ? {}
       : {

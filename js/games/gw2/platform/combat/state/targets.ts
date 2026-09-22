@@ -4,14 +4,19 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
 const HOSTILE_TARGET_EVENT_TYPES = new Set(['damage', 'condition', 'condition_tick', 'control', 'blind', 'peitha']);
 
+/** Identifies enemy-facing packets, which targeting options may suppress or delay independently of self effects. */
+export function isHostileTargetEvent(event: { readonly type: string }): boolean {
+  return HOSTILE_TARGET_EVENT_TYPES.has(event.type);
+}
+
 /** Combat Start blocks target damage and conditions; control skill-use notifications can still trigger relic buffs. */
 export function isPrecombatTargetEffect(event: SimulationEvent): boolean {
-  return event.type !== 'control' && HOSTILE_TARGET_EVENT_TYPES.has(event.type);
+  return event.type !== 'control' && isHostileTargetEvent(event);
 }
 
 /** Suppresses enemy-facing packets from a cast aimed away while retaining its setup and self effects. */
 export function missesTarget(event: SimulationEvent): boolean {
-  return event.offTarget === true && HOSTILE_TARGET_EVENT_TYPES.has(event.type);
+  return event.offTarget === true && isHostileTargetEvent(event);
 }
 
 const CONDITION_ALIASES = Object.freeze({

@@ -707,7 +707,8 @@ function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, er
       ? validCanonicalOffset(candidate, 'concurrentOffsetMs')
       : validCanonicalMilliseconds(candidate, 'concurrentOffsetMs')) ||
     !validCanonicalMilliseconds(candidate, 'interruptAfterMs') ||
-    !validCanonicalMilliseconds(candidate, 'initialStateDurationMs')
+    !validCanonicalMilliseconds(candidate, 'initialStateDurationMs') ||
+    !validCanonicalMilliseconds(candidate, 'impactDelayMs')
   ) {
     errors.push('rotation timing fields must be finite; cast timing must be non-negative.');
   }
@@ -737,6 +738,15 @@ function validateRotationCommand(command: unknown, catalog: CanonicalCatalog, er
 
   if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'doubleEdgeOutcome')) {
     errors.push('only cast commands may contain doubleEdgeOutcome.');
+  }
+
+  if (candidate.type !== 'cast' && Object.hasOwn(candidate, 'impactDelayMs')) {
+    errors.push('only cast commands may contain impactDelayMs.');
+  }
+
+  // Off-target packets never land, so they cannot also be delayed.
+  if (candidate.offTarget === true && Number(candidate.impactDelayMs) > 0) {
+    errors.push('off-target casts cannot contain impactDelayMs.');
   }
 
   if (candidate.type === 'wait') {

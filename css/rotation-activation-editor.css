@@ -252,6 +252,62 @@
   white-space: pre-line;
 }
 
+/* Targeting is a separate decision from cast timing, so precasts get their own divided section. */
+.activation-editor-targeting {
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid var(--border-light, #3a3a4a);
+}
+
+.activation-editor-select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 5px 7px;
+  border: 1px solid var(--border-light, #3a3a4a);
+  border-radius: 4px;
+  outline: none;
+  background: var(--bg-panel-alt, #1a1a28);
+  color: var(--text-bright, #f0f0ff);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.activation-editor-select:focus {
+  border-color: var(--activation-editor-accent);
+  box-shadow: 0 0 0 1px rgba(157, 123, 208, 0.35);
+}
+
+.activation-editor-targeting .activation-editor-input-row {
+  margin: 8px 0 0;
+}
+
+.activation-editor-targeting .activation-editor-input {
+  width: 82px;
+}
+
+.activation-editor-impact-delay-row[hidden] {
+  display: none;
+}
+
+.activation-editor-targeting .activation-editor-target-impact {
+  margin: 8px 0 0;
+}
+
+.activation-editor-combat-relation {
+  margin: 3px 0 0 23px;
+  color: var(--text-dim, #888899);
+  font-size: 10px;
+}
+
+.activation-editor-targeting .activation-editor-combat-relation {
+  margin-left: 0;
+}
+
+.activation-editor-combat-relation.is-ignored {
+  color: #d9ad62;
+}
+
 .activation-editor-damage-commit {
   margin-top: 3px;
 }

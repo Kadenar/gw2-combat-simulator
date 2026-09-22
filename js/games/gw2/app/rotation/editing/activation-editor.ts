@@ -5,6 +5,13 @@ import { mountFloatingEditor, type FloatingEditorHandle } from '#ui/rotation/edi
 import type { DurationValidation } from '#ui/rotation/editing/duration-editor.js';
 
 const ACTIVATION_INTERRUPT_INTERVAL_MS = 20;
+const DEFAULT_IMPACT_DELAY_MS = 1000;
+
+/** How a precast's hostile packets reach the target: normally, later by a travel delay, or not at all. */
+export interface ActivationTargeting {
+  readonly offTarget: boolean;
+  readonly impactDelayMs: number | null;
+}
 
 export interface ActivationEditorOptions {
   readonly anchor: HTMLElement;
@@ -19,9 +26,14 @@ export interface ActivationEditorOptions {
   readonly minimumConcurrentOffsetMs?: number | null;
   readonly damageCommitMs?: number | null;
   readonly targetImpactDetails?: string;
-  readonly allowOffTarget?: boolean;
+  /** Scheduled cast-relative impact times, including any saved delay, so targeting edits can preview new landings. */
+  readonly impactOffsetsMs?: readonly number[] | null;
+  /** Milliseconds from this cast's start to Combat Start, for showing whether a precast lands after the marker. */
+  readonly combatStartAfterCastMs?: number | null;
+  readonly allowTargeting?: boolean;
   readonly offTarget?: boolean;
-  readonly onApply: (timingMs: number | null, offTarget: boolean) => void;
+  readonly impactDelayMs?: number | null;
+  readonly onApply: (timingMs: number | null, targeting: ActivationTargeting) => void;
 }
 
 /** Suggests the latest valid GW2 action tick before the cast completes. */
@@ -151,6 +163,47 @@ export function validateActivationConcurrentOffsetMs(
   return { valid: true, value: parsed };
 }
 
+/**
+ * Describes where a precast's hits land relative to Combat Start. Only hits before the marker are discarded, so the
+ * text counts them instead of implying the whole cast is lost when later pulses still land.
+ */
+export function activationCombatStartRelation(
+  impactOffsetsMs: readonly number[],
+  combatStartAfterCastMs: number
+): { readonly text: string; readonly missedHits: number } {
+  const totalHits = impactOffsetsMs.length;
+  const firstHitMs = impactOffsetsMs[0] ?? 0;
+  const missedHits = impactOffsetsMs.filter((offset) => offset < combatStartAfterCastMs).length;
+  if (missedHits === 0) {
+    return { text: `Lands ${firstHitMs - combatStartAfterCastMs} ms after Combat Start`, missedHits };
+  }
+
+  const earlyMs = combatStartAfterCastMs - firstHitMs;
+  if (missedHits === totalHits) {
+    const missed = totalHits === 1 ? 'its hit' : `all ${totalHits} hits`;
+    return { text: `Lands ${earlyMs} ms before Combat Start, so ${missed} will be missed`, missedHits };
+  }
+
+  return {
+    text: `First hit lands ${earlyMs} ms before Combat Start, so ${missedHits} of ${totalHits} hits will be missed`,
+    missedHits
+  };
+}
+
+/** Accepts any positive whole-millisecond travel delay; landing time is not bound to the action tick. */
+export function validateActivationImpactDelayMs(rawValue: string | number): DurationValidation {
+  const parsed = Number(rawValue);
+  if ((typeof rawValue === 'string' && rawValue.trim() === '') || !Number.isFinite(parsed) || parsed < 1) {
+    return { valid: false, error: 'Enter an impact delay of at least 1 ms.' };
+  }
+
+  if (!Number.isInteger(parsed)) {
+    return { valid: false, error: 'Enter a whole-millisecond impact delay.' };
+  }
+
+  return { valid: true, value: parsed };
+}
+
 export function openActivationEditor(options: ActivationEditorOptions): FloatingEditorHandle {
   // Instant casts edit their offset into the previous cast; cast-bar skills keep the interruption workflow.
   const behavior = options.behavior || 'interrupt';
@@ -181,6 +234,9 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   editor.setAttribute('role', 'dialog');
   editor.setAttribute('aria-label', `Edit ${options.skillName} activation`);
   editor.tabIndex = -1;
+  // Landing details describe the outcome of targeting, so precasts show them inside the Target section.
+  const impactMarkup = `<div class="activation-editor-target-impact"></div>
+    <div class="activation-editor-combat-relation" hidden></div>`;
   // Pair context and controls on shared rows so the compact editor scans left-to-right.
   editor.innerHTML = `
     <div class="activation-editor-header">
@@ -190,7 +246,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
         <span class="activation-editor-name"></span>
       </div>
     </div>
-    <div class="activation-editor-label">Cast behavior</div>
+    <div class="activation-editor-label">Cast timing</div>
     <label class="activation-editor-choice">
       <input type="radio" name="activation-editor-mode" value="normal" />
       <span>Normal cast</span>
@@ -207,15 +263,23 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
     </div>
     <div class="activation-editor-full-cast"></div>
     <div class="activation-editor-damage-commit"></div>
-    <div class="activation-editor-target-impact"></div>
     ${
-      options.allowOffTarget
-        ? `<div class="activation-editor-label">Targeting</div>
-    <label class="activation-editor-choice">
-      <input class="activation-editor-off-target" type="checkbox" />
-      <span>Cast away from target</span>
-    </label>`
-        : ''
+      options.allowTargeting
+        ? `<div class="activation-editor-targeting">
+      <div class="activation-editor-label">Target</div>
+      <select class="activation-editor-select activation-editor-targeting-mode" aria-label="Target">
+        <option value="on-target">Hits the target</option>
+        <option value="delayed">Hits the target after a delay</option>
+        <option value="off-target">Misses (cast away from target)</option>
+      </select>
+      <div class="activation-editor-input-row activation-editor-impact-delay-row">
+        <span>Delay</span>
+        <input class="activation-editor-input activation-editor-impact-delay" type="number" min="1" step="20" inputmode="numeric" aria-label="Impact delay in milliseconds" />
+        <span>ms</span>
+      </div>
+      ${impactMarkup}
+    </div>`
+        : impactMarkup
     }
     <div class="activation-editor-warning" aria-live="polite" hidden></div>
     <div class="activation-editor-error" aria-live="polite"></div>
@@ -235,7 +299,10 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   const fullCast = editor.querySelector<HTMLElement>('.activation-editor-full-cast');
   const damageCommit = editor.querySelector<HTMLElement>('.activation-editor-damage-commit');
   const targetImpact = editor.querySelector<HTMLElement>('.activation-editor-target-impact');
-  const offTarget = editor.querySelector<HTMLInputElement>('.activation-editor-off-target');
+  const combatRelation = editor.querySelector<HTMLElement>('.activation-editor-combat-relation');
+  const targetingMode = editor.querySelector<HTMLSelectElement>('.activation-editor-targeting-mode');
+  const impactDelayInput = editor.querySelector<HTMLInputElement>('.activation-editor-impact-delay');
+  const impactDelayRow = editor.querySelector<HTMLElement>('.activation-editor-impact-delay-row');
   const warning = editor.querySelector<HTMLElement>('.activation-editor-warning');
   const error = editor.querySelector<HTMLElement>('.activation-editor-error');
   const reset = editor.querySelector<HTMLButtonElement>('.activation-editor-reset');
@@ -252,7 +319,8 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
     !fullCast ||
     !damageCommit ||
     !targetImpact ||
-    (options.allowOffTarget && !offTarget) ||
+    !combatRelation ||
+    (options.allowTargeting && (!targetingMode || !impactDelayInput || !impactDelayRow)) ||
     !warning ||
     !error ||
     !reset ||
@@ -280,10 +348,84 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   fullCast.hidden = isConcurrentBehavior || fullCastMs <= 0;
   damageCommit.textContent = isConcurrentBehavior ? '' : activationDamageCommitLabel(options.damageCommitMs);
   damageCommit.hidden = !damageCommit.textContent;
-  // This describes the current simulated cast, independently of its interrupt commitment cutoff.
-  targetImpact.textContent = options.targetImpactDetails || '';
-  targetImpact.hidden = !targetImpact.textContent;
-  if (offTarget) offTarget.checked = options.offTarget === true;
+  // Off-target and delayed impact are exclusive: a cast either lands normally, lands late, or never lands.
+  const savedImpactDelayMs =
+    options.offTarget === true ? 0 : Math.max(0, Math.round(Number(options.impactDelayMs) || 0));
+  // The scheduled first hit already includes the saved delay; removing it lets the editor preview any new delay.
+  const baseImpactOffsetsMs = options.impactOffsetsMs?.length
+    ? options.impactOffsetsMs.map((offset) => Math.round(offset) - savedImpactDelayMs)
+    : null;
+  if (targetingMode && impactDelayInput) {
+    targetingMode.value = options.offTarget === true ? 'off-target' : savedImpactDelayMs > 0 ? 'delayed' : 'on-target';
+    impactDelayInput.value = String(savedImpactDelayMs > 0 ? savedImpactDelayMs : DEFAULT_IMPACT_DELAY_MS);
+  }
+
+  const selectedTargeting = (): string => targetingMode?.value ?? 'on-target';
+  const previewImpactDelayMs = (): number => {
+    if (selectedTargeting() !== 'delayed' || !impactDelayInput) return 0;
+    const validation = validateActivationImpactDelayMs(impactDelayInput.value);
+    return validation.valid ? validation.value : 0;
+  };
+
+  // Recompute the landing preview on every targeting edit; simulated results only refresh after Apply.
+  const updateImpactPreview = (): void => {
+    combatRelation.hidden = true;
+    combatRelation.classList.remove('is-ignored');
+    if (baseImpactOffsetsMs == null) {
+      targetImpact.textContent = options.targetImpactDetails || '';
+    } else if (selectedTargeting() === 'off-target') {
+      targetImpact.textContent = 'No hits reach the target.';
+    } else {
+      const delayMs = previewImpactDelayMs();
+      const impactOffsetsMs = baseImpactOffsetsMs.map((offset) => offset + delayMs);
+      targetImpact.textContent = `First hit: ${impactOffsetsMs[0]} ms`;
+      // Hits before Combat Start are discarded, so precasts show which side of the marker they land on.
+      if (options.combatStartAfterCastMs != null) {
+        const relation = activationCombatStartRelation(impactOffsetsMs, Math.round(options.combatStartAfterCastMs));
+        combatRelation.textContent = relation.text;
+        combatRelation.classList.toggle('is-ignored', relation.missedHits > 0);
+        combatRelation.hidden = false;
+      }
+    }
+
+    targetImpact.hidden = !targetImpact.textContent;
+  };
+
+  const updateTargeting = (): void => {
+    if (impactDelayRow) impactDelayRow.hidden = selectedTargeting() !== 'delayed';
+    error.textContent = '';
+    updateImpactPreview();
+  };
+
+  targetingMode?.addEventListener('change', () => {
+    updateTargeting();
+    if (selectedTargeting() === 'delayed') {
+      impactDelayInput?.focus();
+      impactDelayInput?.select();
+    }
+  });
+  impactDelayInput?.addEventListener('input', () => {
+    error.textContent = '';
+    updateImpactPreview();
+  });
+  updateTargeting();
+
+  // Returns null after reporting an invalid delay so the editor stays open for correction.
+  const readTargeting = (): ActivationTargeting | null => {
+    if (selectedTargeting() !== 'delayed' || !impactDelayInput) {
+      return { offTarget: selectedTargeting() === 'off-target', impactDelayMs: null };
+    }
+
+    const validation = validateActivationImpactDelayMs(impactDelayInput.value);
+    if (!validation.valid) {
+      error.textContent = validation.error;
+      impactDelayInput.focus();
+      impactDelayInput.select();
+      return null;
+    }
+
+    return { offTarget: false, impactDelayMs: validation.value };
+  };
 
   const updateDamageCommitWarning = (): void => {
     // Show interruption guidance only while the user is configuring an interruption.
@@ -321,9 +463,11 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   const handle = mountFloatingEditor(editor, options.anchor);
 
   const applyChanges = (): void => {
+    const targeting = readTargeting();
+    if (!targeting) return;
     if (normalRadio.checked) {
       handle.close();
-      options.onApply(null, offTarget?.checked === true);
+      options.onApply(null, targeting);
       return;
     }
 
@@ -338,7 +482,7 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
     }
 
     handle.close();
-    options.onApply(validation.value, offTarget?.checked === true);
+    options.onApply(validation.value, targeting);
   };
 
   reset.addEventListener('click', () => {
@@ -349,12 +493,14 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   });
   cancel.addEventListener('click', () => handle.close());
   apply.addEventListener('click', applyChanges);
-  input.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      applyChanges();
-    }
-  });
+  for (const field of [input, impactDelayInput]) {
+    field?.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        applyChanges();
+      }
+    });
+  }
 
   if (hasConfiguredTiming) {
     input.focus();

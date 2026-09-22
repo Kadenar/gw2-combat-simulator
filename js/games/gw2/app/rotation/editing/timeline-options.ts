@@ -13,7 +13,12 @@ import { insertRotationEntries, moveRotationEntry, updateRotationEntry } from '#
 import { resolvePaletteDrop } from '#gw2/app/rotation/palette/interactions.js';
 import { COMBAT_START_ICON, WAIT_ICON } from '#gw2/app/shared/icons.js';
 import type { TimelineInteractionOptions } from '#gw2/app/rotation/timeline/interactions.js';
-import { currentTimelineResults, timelineItem, timelineTargetImpactDetails } from '#gw2/app/rotation/timeline/model.js';
+import {
+  currentTimelineResults,
+  timelineImpactOffsets,
+  timelineItem,
+  timelineTargetImpactDetails
+} from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { SchedulerStep } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -106,7 +111,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
   const isCombatStart = item.type === 'combat-start';
-  // Away-from-target casts model precasts, so expose the option only before the authored combat marker.
+  // Away-from-target and delayed-impact casts model precasts, so expose them only before the authored combat marker.
   const combatStartIndex = app.build.rotation.findIndex((command) => command.type === 'combat-start');
   const isPrecast = item.type === 'cast' && combatStartIndex > index;
   if (!skill && !isCombatStart) return false;
@@ -122,6 +127,16 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   const targetImpact = impactStep?.activationId
     ? timelineTargetImpactDetails([impactStep], results?.events || []).get(impactStep.activationId)
     : undefined;
+  // Skill editors receive every impact time so targeting edits can preview landing and missed hits before Apply.
+  const impactOffsetsMs =
+    !isCombatStart && step?.activationId
+      ? (timelineImpactOffsets([step], results?.events || []).get(step.activationId) ?? null)
+      : null;
+  // Hits before the authored marker are discarded, so precasts also show where they land relative to it.
+  const combatStartAfterCastMs =
+    isPrecast && step && results?.hasExplicitCombatStart && Number.isFinite(Number(results.combatStartTime))
+      ? Math.round(Number(results.combatStartTime) * 1000 - Number(step.start))
+      : null;
   const catalogCastMs = Math.round(Number(skill?.castTimeMs) || 0);
   const fullCastMs = timelineFullCastMs(step, skill);
   // Combat Start has no cast bar, but its optional offset uses the same normal-versus-overlap
@@ -149,9 +164,12 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     suggestedInterruptMs: suggestedActivationInterruptMs(fullCastMs, catalogCastMs),
     damageCommitMs: activationDamageCommitMs(skill),
     targetImpactDetails: targetImpact && isCombatStart ? `${impactStep?.skill}\n${targetImpact}` : targetImpact,
-    allowOffTarget: isPrecast,
+    impactOffsetsMs,
+    combatStartAfterCastMs,
+    allowTargeting: isPrecast,
     offTarget: item.offTarget === true,
-    onApply(timingMs, offTarget) {
+    impactDelayMs: item.impactDelayMs ?? null,
+    onApply(timingMs, targeting) {
       const currentEntry = app.build.rotation[index];
       if (currentEntry !== entry) return;
       // Timing and targeting belong to the same cast command, so the pencil editor updates both together.
@@ -159,7 +177,12 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
         ...(behavior === 'concurrent'
           ? { concurrentOffsetMs: timingMs ?? undefined }
           : { interruptAfterMs: timingMs ?? undefined }),
-        ...(isPrecast ? { offTarget: offTarget ? true : undefined } : {})
+        ...(isPrecast
+          ? {
+              offTarget: targeting.offTarget ? true : undefined,
+              impactDelayMs: targeting.impactDelayMs ?? undefined
+            }
+          : {})
       });
       app.changed(false);
     }

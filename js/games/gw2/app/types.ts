@@ -61,6 +61,7 @@ export type ProfessionAppContract = Gw2ProfessionSource & {
 export interface RotationActionOptions {
   readonly skillId?: SkillId | null;
   readonly offTarget?: boolean | null;
+  readonly impactDelayMs?: number | null;
   readonly concurrentOffsetMs?: number | null;
   readonly interruptAfterMs?: number | null;
   readonly releaseAtCharges?: number | null;

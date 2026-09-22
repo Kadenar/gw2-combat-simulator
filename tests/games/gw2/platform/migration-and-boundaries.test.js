@@ -102,6 +102,26 @@ test('Mesmer build migrations produce validated schema version 3 data', () => {
   assert.throws(() => migrateMesmerBuild({ profession: 'guardian' }), /Cannot load guardian/);
 });
 
+// Saved impact delays belong to casts that land; waits and off-target casts cannot carry one.
+test('build validation limits impact delays to landing casts', () => {
+  const build = migrateMesmerBuild({ rotation: ['Mind Stab'] });
+  const skillId = mesmerCatalog.skillsByName.get('Mind Stab').id;
+  const validate = (command) => validateMesmerBuild({ ...build, rotation: [command] });
+
+  assert.equal(validate({ type: 'cast', skillId, impactDelayMs: 1500 }).valid, true);
+  assert.equal(validate({ type: 'cast', skillId, impactDelayMs: -1 }).valid, false);
+  assert.ok(
+    validate({ type: 'wait', durationMs: 100, impactDelayMs: 1500 }).errors.includes(
+      'only cast commands may contain impactDelayMs.'
+    )
+  );
+  assert.ok(
+    validate({ type: 'cast', skillId, offTarget: true, impactDelayMs: 1500 }).errors.includes(
+      'off-target casts cannot contain impactDelayMs.'
+    )
+  );
+});
+
 test('common weapon data includes Guardian weapon families', () => {
   const guardianWeapons = createProfessionWeaponData(guardianCatalog);
   const mesmerWeapons = createProfessionWeaponData(mesmerCatalog);

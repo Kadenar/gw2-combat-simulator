@@ -32,6 +32,7 @@ import { canonicalTime, isTimeInWindow, timeKey } from '#kernel/core/clock.js';
 import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { resolveSkillHandlerMode, SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
+import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import type {
   AmmoState,
   AvailabilityResult,
@@ -125,6 +126,8 @@ export function createScheduler<TProfessionState extends object = object>({
   // Off-target activations still schedule self/setup mechanics; tagging every descendant lets resolution skip only
   // hostile packets, including delayed pulses that land after Combat Start.
   const offTargetActivationIds = new Set<string>();
+  // Delayed-impact activations keep self/setup timing but land their own hostile packets later, in seconds.
+  const impactDelayByActivationId = new Map<string, number>();
   let activationOrder = 0;
   let previousCastStart = state.time;
   // serialReadyAt and latestBlockingEnd control the player's cast lane.
@@ -155,7 +158,15 @@ export function createScheduler<TProfessionState extends object = object>({
     prepareEvent(event) {
       const activationId = typeof event.activationId === 'string' ? event.activationId : null;
       const offTarget = event.offTarget === true || (activationId != null && offTargetActivationIds.has(activationId));
-      const targetedEvent = offTarget ? { ...event, offTarget: true } : event;
+      // Only the activation's own authored hostile packets travel. Derived reactions (procs, combos, trait hits)
+      // are timed from a cause that is already delayed or that happens at the caster, so shifting them would
+      // double-count or misplace the delay.
+      const impactDelay =
+        activationId != null && event.causalOrder == null && isHostileTargetEvent(event)
+          ? impactDelayByActivationId.get(activationId)
+          : undefined;
+      const delayedEvent = impactDelay ? { ...event, at: canonicalTime(Number(event.at) + impactDelay) } : event;
+      const targetedEvent = offTarget ? { ...delayedEvent, offTarget: true } : delayedEvent;
       const professionPrepared = activeProfession.prepareEvent(context, targetedEvent);
       const prepared = schedulerPolicy.prepareEvent?.(context, professionPrepared) ?? professionPrepared;
       return { ...prepared, ...(offTarget ? { offTarget: true } : {}) };
@@ -627,6 +638,10 @@ export function createScheduler<TProfessionState extends object = object>({
     const reservationId = reservation.id;
     const { rechargeReadyAt } = reservation;
     if (command.offTarget === true) offTargetActivationIds.add(reservationId);
+    if (Number(command.impactDelayMs) > 0) {
+      impactDelayByActivationId.set(reservationId, Number(command.impactDelayMs) / 1000);
+    }
+
     const action = context.emit({
       type: 'action',
       activationId: reservationId,

@@ -330,6 +330,8 @@ export interface CastCommand {
   readonly skillId: SkillId;
   /** Casts normally but prevents this activation's hostile packets from reaching the target. */
   readonly offTarget?: boolean;
+  /** Casts normally but lands this activation's hostile packets later, as when a precast travels from range. */
+  readonly impactDelayMs?: number;
   readonly concurrentOffsetMs?: number;
   readonly interruptAfterMs?: number;
   /** Exact remaining duration carried by a hidden combat-log initial-state action. */

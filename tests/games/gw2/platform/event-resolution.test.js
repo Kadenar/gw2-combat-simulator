@@ -325,6 +325,66 @@ test('off-target casts retain their activation while hostile packets miss the ta
   assert.equal(result.planningState.profession.controlEvents, 0);
 });
 
+test('delayed-impact casts land hostile packets later without moving the cast or derived reactions', () => {
+  // A reaction timed from the landed hit must follow the hit once, not receive the travel delay a second time.
+  const reactingProfession = {
+    ...testProfession,
+    resolveRuntime() {
+      return {
+        ...testProfession,
+        onEventScheduled(context, event) {
+          testProfession.onEventScheduled(context, event);
+          if (event.type !== 'damage' || event.name === 'Fixture Reaction') return;
+          context.emitDerived(event, {
+            type: 'damage',
+            at: event.at,
+            source: 'fixture',
+            sourceId: 'fixture.reaction',
+            actorType: 'effect',
+            name: 'Fixture Reaction',
+            skillName: 'Fixture Reaction',
+            coefficient: 0.1
+          });
+        }
+      };
+    }
+  };
+  const run = (impactDelayMs) =>
+    simulateGw2({
+      profession: reactingProfession,
+      // The trailing wait keeps the delayed landing inside the default rotation observation window.
+      rotation: [
+        { type: 'cast', skillId: 900001, ...(impactDelayMs ? { impactDelayMs } : {}) },
+        { type: 'wait', durationMs: 3000 }
+      ],
+      config: {
+        stats: { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 },
+        target: { armor: 2597 },
+        weaponStrength: 1000
+      }
+    });
+  const eventAt = (result, predicate) => result.events.find(predicate).at;
+  const isSlash = (event) => event.type === 'damage' && event.sourceId === 900001;
+  const isReaction = (event) => event.name === 'Fixture Reaction';
+  const isControl = (event) => event.type === 'control';
+  const base = run(0);
+  const delayed = run(1500);
+
+  assert.deepEqual(delayed.warnings, []);
+  assert.equal(delayed.steps[0].end, base.steps[0].end);
+  assert.equal(
+    eventAt(delayed, (event) => event.type === 'action'),
+    eventAt(base, (event) => event.type === 'action')
+  );
+  for (const predicate of [isSlash, isControl]) {
+    assert.equal(eventAt(delayed, predicate), eventAt(base, predicate) + 1.5);
+  }
+
+  assert.equal(eventAt(delayed, isReaction), eventAt(delayed, isSlash));
+  // The DPS window opens at the first landed hit, so the travel time before it is not counted.
+  assert.equal(delayed.dpsStartTime, base.dpsStartTime + 1.5);
+});
+
 test('test profession runs end to end without importing Mesmer', () => {
   const base = simulateGw2({
     profession: testProfession,

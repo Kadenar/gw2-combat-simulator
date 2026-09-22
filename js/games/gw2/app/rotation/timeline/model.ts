@@ -69,7 +69,24 @@ export function timelineTargetImpactDetails(
   steps: readonly SchedulerStep[],
   events: readonly SimulationEvent[]
 ): Map<string, string> {
-  const firstImpacts = new Map<string, SimulationEvent>();
+  const details = new Map<string, string>();
+  for (const [activationId, offsetsMs] of timelineImpactOffsets(steps, events)) {
+    // The editor only needs the cast-relative offset to position Combat Start.
+    details.set(activationId, `First hit: ${offsetsMs[0]} ms`);
+  }
+
+  return details;
+}
+
+/**
+ * Distinct cast-relative impact times in ascending milliseconds, keyed by activation. Packets sharing a timestamp
+ * (a strike and its condition) form one hit, so editors can count how many hits land before Combat Start.
+ */
+export function timelineImpactOffsets(
+  steps: readonly SchedulerStep[],
+  events: readonly SimulationEvent[]
+): Map<string, number[]> {
+  const impactTimes = new Map<string, Set<number>>();
   for (const event of events) {
     if (
       !event.activationId ||
@@ -78,22 +95,24 @@ export function timelineTargetImpactDetails(
       event.controlKind === 'initial-state'
     )
       continue;
-    const previous = firstImpacts.get(event.activationId);
-    if (!previous || event.at < previous.at) firstImpacts.set(event.activationId, event);
+    const times = impactTimes.get(event.activationId) ?? new Set<number>();
+    times.add(Math.round(event.at * 1000));
+    impactTimes.set(event.activationId, times);
   }
 
-  const details = new Map<string, string>();
+  const offsets = new Map<string, number[]>();
   for (const step of steps) {
     if (!step.activationId || step.invalid) continue;
-    const impact = firstImpacts.get(step.activationId);
-    if (!impact) continue;
-    const atMs = Math.round(impact.at * 1000);
-    const offsetMs = atMs - Math.round(step.start);
-    // The editor only needs the cast-relative offset to position Combat Start.
-    details.set(step.activationId, `First hit: ${offsetMs} ms`);
+    const times = impactTimes.get(step.activationId);
+    if (!times) continue;
+    const start = Math.round(step.start);
+    offsets.set(
+      step.activationId,
+      [...times].map((atMs) => atMs - start).sort((left, right) => left - right)
+    );
   }
 
-  return details;
+  return offsets;
 }
 
 const NON_SKILL_STEP_NAMES = new Set([
@@ -810,6 +829,7 @@ export type TimelineItem = {
   concurrentOffsetMs?: number;
   interruptAfterMs?: number;
   offTarget?: boolean;
+  impactDelayMs?: number;
   releaseAtCharges?: unknown;
   doubleEdgeOutcome?: unknown;
   durationMs?: number;
