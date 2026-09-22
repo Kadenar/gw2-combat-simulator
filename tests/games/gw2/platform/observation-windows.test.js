@@ -369,7 +369,7 @@ test('generic simulation starts combat at a delayed marker within a cast', () =>
     profession: testProfession,
     rotation: ['Fixture Slash', { name: '__combat_start', offset: 100 }, { type: 'wait', durationMs: 1000 }],
     config: {
-      attributes: {
+      stats: {
         power: 1000,
         precision: 1000,
         ferocity: 0,
@@ -393,7 +393,7 @@ test('generic simulation uses the first hit after a standalone combat marker', (
     profession: testProfession,
     rotation: ['__combat_start', 'Fixture Slash', { type: 'wait', durationMs: 1000 }],
     config: {
-      attributes: {
+      stats: {
         power: 1000,
         precision: 1000,
         ferocity: 0,

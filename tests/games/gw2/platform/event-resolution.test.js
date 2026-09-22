@@ -302,7 +302,7 @@ test('off-target casts retain their activation while hostile packets miss the ta
     profession: testProfession,
     rotation: [{ type: 'cast', skillId: 900001, offTarget: true }],
     config: {
-      attributes: { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 },
+      stats: { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0 },
       target: { armor: 2597 },
       weaponStrength: 1000
     }
@@ -334,7 +334,7 @@ test('test profession runs end to end without importing Mesmer', () => {
     ],
     config: {
       selectedTraitIds: ['fixture.power'],
-      attributes: {
+      stats: {
         power: 1000,
         precision: 1000,
         ferocity: 0,
@@ -348,7 +348,7 @@ test('test profession runs end to end without importing Mesmer', () => {
     profession: testProfession,
     rotation: [{ type: 'cast', skillId: 900001 }],
     config: {
-      attributes: {
+      stats: {
         power: 1000,
         precision: 1000,
         ferocity: 0,

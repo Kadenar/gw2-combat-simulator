@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { bleedingDuration } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
+import {
+  bleedingDuration,
+  expectedConditionDurationsMs
+} from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
 import {
   analyzeEngineerSerratedSteelObservation,
   analyzeEngineerShrapnelObservation
@@ -39,6 +42,19 @@ test('Bleeding duration lookup ignores unrelated effects and defaults missing du
       ]
     }),
     3
+  );
+});
+
+test('proc duration inference uses base stats with per-weapon-set overrides', () => {
+  // Expertise contributes one percent duration per 15 points; set overrides may explicitly remove that bonus.
+  const config = { stats: { expertise: 150 } };
+  assert.deepEqual(expectedConditionDurationsMs(6, 'Bleeding', config), [6600]);
+  assert.deepEqual(
+    expectedConditionDurationsMs(6, 'Bleeding', {
+      ...config,
+      weaponSetStats: [{ expertise: 0 }, { expertise: 300 }]
+    }),
+    [6000, 7200]
   );
 });
 

@@ -18,9 +18,9 @@ export interface Gw2Config {
   readonly patchId?: string;
   readonly procRateOverrides?: Readonly<Record<string, number>>;
   readonly transitionDelays?: Partial<TransitionDelays>;
+  /** Base simulation attributes; weapon-set values override these for the active set. */
   readonly stats?: Gw2Stats;
   readonly weaponSetStats?: readonly Gw2Stats[];
-  readonly attributes?: Gw2Stats;
   readonly boons?: Readonly<Record<string, boolean | number>>;
   readonly sharePlayerBoonsWithSummons?: boolean;
   readonly startingWeaponSet?: number;

@@ -46,7 +46,6 @@ function sharperImagesDurations(
   const bonus = balanceProfileValue(catalog.balanceProfilesById?.get(PROFILE.signetOfMidnight), 'expertiseBonus', 180);
   const rechargingDurations = expectedConditionDurationsMs(baseDuration, 'Bleeding', {
     ...config,
-    attributes: removeExpertiseBonus(config.attributes, bonus),
     stats: removeExpertiseBonus(config.stats, bonus),
     weaponSetStats: config.weaponSetStats?.map((stats) => removeExpertiseBonus(stats, bonus) || stats)
   });

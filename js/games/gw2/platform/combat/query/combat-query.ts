@@ -730,11 +730,10 @@ export function conditionApplicationDuration(
   return roundEffectDuration(duration);
 }
 
-/** Returns the configured attributes for a one-based weapon set. */
+/** Overlays one-based weapon-set attributes on the base simulation stats. */
 export function gw2StatsForWeaponSet(config: Gw2Config, weaponSet = config.startingWeaponSet): Gw2Stats {
   const index = Number(weaponSet) === 2 ? 1 : 0;
   return {
-    ...(config.attributes || {}),
     ...(config.stats || {}),
     ...(config.weaponSetStats?.[index] || {})
   };

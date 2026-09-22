@@ -59,7 +59,7 @@ export function selectedThiefTraits(config: ThiefConfig = {}): Set<string | numb
 }
 
 export function thiefBaseMaximumHealth(config: ThiefConfig = {}): number {
-  const vitality = Number(config.stats?.vitality ?? config.attributes?.vitality ?? 1000);
+  const vitality = Number(config.stats?.vitality ?? 1000);
   return THIEF_BASE_HEALTH + Math.max(0, vitality) * 10;
 }
 

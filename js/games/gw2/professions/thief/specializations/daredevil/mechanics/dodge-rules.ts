@@ -31,7 +31,7 @@ function initializeDaredevilRuntime(context: ThiefSchedulerContext): void {
   state.endurance = state.maximumEndurance;
   if (!professionStaticRulesApplied(context.config) && hasTrait(context.config, TRAIT.MARAUDERS_RESILIENCE)) {
     state.maximumHealth +=
-      Number(context.config.stats?.power ?? context.config.attributes?.power ?? 1000) *
+      Number(context.config.stats?.power ?? 1000) *
       balanceProfileNumberFromContext(context, TRAIT.MARAUDERS_RESILIENCE, 'attributeConversion') *
       10;
   }

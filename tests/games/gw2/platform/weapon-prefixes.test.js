@@ -7,7 +7,7 @@ import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js'
 import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { createGw2CombatQuery, gw2StatsForWeaponSet } from '#gw2/platform/combat/query/combat-query.js';
 
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
 const calculateAttributes = createCalculateAttributes(applyMesmerBuildAttributeRules);
@@ -51,6 +51,18 @@ test('attribute calculation uses the prefixes selected for each weapon set', () 
   assert.ok(second.Power.final < first.Power.final);
   assert.ok(second['Condition Damage'].final > first['Condition Damage'].final);
   assert.ok(second.Expertise.final > first.Expertise.final);
+});
+
+test('weapon-set overrides preserve base stats and explicit zero values', () => {
+  // Partial sets inherit unspecified stats, including when a caller starts on set two.
+  const config = {
+    stats: { power: 2000, expertise: 150 },
+    weaponSetStats: [{ power: 0 }, { expertise: 300 }],
+    startingWeaponSet: 2
+  };
+  assert.deepEqual(gw2StatsForWeaponSet(config, 1), { power: 0, expertise: 150 });
+  assert.deepEqual(gw2StatsForWeaponSet(config), { power: 2000, expertise: 300 });
+  assert.deepEqual(gw2StatsForWeaponSet({ stats: config.stats }), config.stats);
 });
 
 test('runtime stats follow chronological weapon-set swaps', () => {

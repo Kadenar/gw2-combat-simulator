@@ -109,7 +109,6 @@ export function expectedConditionDurationsMs(
           baseDurationSeconds,
           condition,
           {
-            ...(config.attributes || {}),
             ...(config.stats || {}),
             ...(config.weaponSetStats?.[index] || {})
           },

@@ -96,11 +96,11 @@ export function necromancerMaximumHealth(
     balanceProfile: (id: string | number) => NECROMANCER_CORE_BALANCE_PROFILES.find((profile) => profile.id === id)
   }
 ): number {
-  let vitality = Number(config.stats?.vitality ?? config.attributes?.vitality ?? 1000);
+  let vitality = Number(config.stats?.vitality ?? 1000);
   if (!professionStaticRulesApplied(config)) {
     if (hasTrait(traits, NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE)) {
       vitality +=
-        Number(config.stats?.power ?? config.attributes?.power ?? 1000) *
+        Number(config.stats?.power ?? 1000) *
         balanceProfileNumberFromContext(
           balanceContext,
           NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE,

@@ -13,7 +13,7 @@ const forbiddenHorizonField = ['extends', 'Resolution', 'Horizon'].join('');
 
 function fixtureConfig(overrides = {}) {
   return {
-    attributes: {
+    stats: {
       power: 1000,
       precision: 1000,
       ferocity: 0,
