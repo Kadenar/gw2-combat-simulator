@@ -301,12 +301,12 @@ export function renderGear(app: ProfessionAppState): void {
   requiredElement('infusion-info').innerHTML = `${sectionHeading('Infusions')}
             ${b.infusions
               .map(
-                // Keep counts directly editable while stat choices use the same icon picker as equipment.
+                // Keep the full infusion kind in picker IDs so wiki links resolve independently of display labels.
                 (infusion, index) => `<div class="infusion-row">
                   ${iconSelectRow(
                     `Infusion ${index + 1}`,
                     infusion.stat,
-                    `<select id="sel-inf-stat${index}" class="gear-select inf-stat" aria-label="Infusion ${index + 1} stat" data-index="${index}">
+                    `<select id="sel-infusion-stat${index}" class="gear-select inf-stat" aria-label="Infusion ${index + 1} stat" data-index="${index}">
                       ${INFUSION_STATS.map((stat) => option(stat, infusion.stat, `${stat} (+${INFUSION_BONUS} each)`)).join('')}
                     </select>`,
                     INFUSION_ICONS[infusion.stat]
