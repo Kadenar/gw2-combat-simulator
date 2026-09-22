@@ -64,7 +64,6 @@ function attunementControl(
 ): ProfessionStartControl {
   const value = configuredAttunement(context, key);
   return {
-    id: `elementalist-${key}`,
     label,
     buildKey: key,
     value,

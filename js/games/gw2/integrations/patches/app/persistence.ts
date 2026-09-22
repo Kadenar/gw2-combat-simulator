@@ -4,7 +4,6 @@ import type { AuthoringPayload } from '#gw2/integrations/patches/app/editor-stat
 export interface SavedAuthoringPayload {
   readonly preview: PatchPreview;
   readonly sourceFile?: string;
-  readonly rebuildRequired?: boolean;
 }
 
 /** Loads live registry metadata and the active preview from the local authoring API. */

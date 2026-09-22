@@ -102,7 +102,6 @@ function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotIt
 export const untamedUi: RangerUiSlice = Object.freeze({
   startControls: (context: RangerUiContext) => [
     {
-      id: 'ranger-untamed-start-state',
       label: 'Start unleashed',
       buildKey: 'initialUntamedState',
       value: initialUntamedState(context),

@@ -16,56 +16,47 @@ function finite(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
-function parseCast(value: unknown, playerIndex: number, groupIndex: number, castIndex: number): DpsReportCast {
+function parseCast(value: unknown): DpsReportCast {
   if (!record(value) || !finite(value.castTime) || !finite(value.duration)) {
-    throw new DpsReportError('INVALID_ROTATION_CAST', 'The Elite Insights report contains an invalid cast entry.', {
-      playerIndex,
-      groupIndex,
-      castIndex
-    });
+    throw new DpsReportError('INVALID_ROTATION_CAST', 'The Elite Insights report contains an invalid cast entry.');
   }
 
   return value as unknown as DpsReportCast;
 }
 
-function parseRotationGroup(value: unknown, playerIndex: number, groupIndex: number): DpsReportRotationGroup {
+function parseRotationGroup(value: unknown): DpsReportRotationGroup {
   if (!record(value) || !finite(value.id) || !Array.isArray(value.skills)) {
     throw new DpsReportError(
       'INVALID_ROTATION_GROUP',
-      'The Elite Insights report contains an invalid skill rotation group.',
-      { playerIndex, groupIndex }
+      'The Elite Insights report contains an invalid skill rotation group.'
     );
   }
 
   return {
     id: value.id,
-    skills: value.skills.map((cast, castIndex) => parseCast(cast, playerIndex, groupIndex, castIndex))
+    skills: value.skills.map(parseCast)
   };
 }
 
-function parsePlayer(value: unknown, playerIndex: number): DpsReportPlayer {
+function parsePlayer(value: unknown): DpsReportPlayer {
   if (
     !record(value) ||
     typeof value.name !== 'string' ||
     typeof value.profession !== 'string' ||
     !Array.isArray(value.rotation)
   ) {
-    throw new DpsReportError('INVALID_PLAYER', 'The Elite Insights report contains an invalid player entry.', {
-      playerIndex
-    });
+    throw new DpsReportError('INVALID_PLAYER', 'The Elite Insights report contains an invalid player entry.');
   }
 
   return {
     ...(value as unknown as DpsReportPlayer),
-    rotation: value.rotation.map((group, groupIndex) => parseRotationGroup(group, playerIndex, groupIndex))
+    rotation: value.rotation.map(parseRotationGroup)
   };
 }
 
-function parsePhase(value: unknown, phaseIndex: number): DpsReportPhase {
+function parsePhase(value: unknown): DpsReportPhase {
   if (!record(value) || !finite(value.start) || !finite(value.end) || typeof value.name !== 'string') {
-    throw new DpsReportError('INVALID_PHASE', 'The Elite Insights report contains an invalid phase entry.', {
-      phaseIndex
-    });
+    throw new DpsReportError('INVALID_PHASE', 'The Elite Insights report contains an invalid phase entry.');
   }
 
   return value as unknown as DpsReportPhase;
@@ -76,11 +67,9 @@ function parseSkillMap(value: unknown): Readonly<Record<string, DpsReportSkillMe
     throw new DpsReportError('INVALID_SKILL_MAP', 'The Elite Insights report has no skill metadata map.');
   }
 
-  for (const [key, metadata] of Object.entries(value)) {
+  for (const metadata of Object.values(value)) {
     if (!record(metadata) || typeof metadata.name !== 'string') {
-      throw new DpsReportError('INVALID_SKILL_METADATA', 'The Elite Insights report contains invalid skill metadata.', {
-        key
-      });
+      throw new DpsReportError('INVALID_SKILL_METADATA', 'The Elite Insights report contains invalid skill metadata.');
     }
   }
 

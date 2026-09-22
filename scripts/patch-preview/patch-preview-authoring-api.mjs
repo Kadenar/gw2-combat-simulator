@@ -200,8 +200,7 @@ export function createPatchPreviewAuthoringApi({ root, buildRoot, writeFile = wr
       savedPreview = validated;
       jsonResponse(response, 200, {
         preview: validated,
-        sourceFile: path.relative(root, sourceFile).replaceAll('\\', '/'),
-        rebuildRequired: true
+        sourceFile: path.relative(root, sourceFile).replaceAll('\\', '/')
       });
     } catch (error) {
       const clientError = error instanceof TypeError || error instanceof RangeError;

@@ -16,9 +16,7 @@ interface AutoattackChainCoreState {
 }
 
 export interface AutoattackChainContext {
-  readonly cast: CastLifecycleContext;
   readonly chainRootId: SkillId;
-  readonly expectedSkillId: SkillId;
   readonly interruptingSkill: Skill;
 }
 
@@ -85,18 +83,14 @@ function chainState(context: object): Record<string, SkillId> | null {
 }
 
 /** Clears all pending roots, or only the supplied roots, without replacing the shared state object. */
-export function resetAutoattackChains(context: object, chainRootIds?: readonly SkillId[]): readonly SkillId[] {
+export function resetAutoattackChains(context: object, chainRootIds?: readonly SkillId[]): void {
   const chains = chainState(context);
-  if (!chains) return Object.freeze([]);
+  if (!chains) return;
   const roots = chainRootIds == null ? Object.keys(chains).map(Number) : [...new Set(chainRootIds.map(Number))];
-  const reset: SkillId[] = [];
   for (const root of roots) {
     if (!Object.hasOwn(chains, root)) continue;
     delete chains[root];
-    reset.push(root);
   }
-
-  return Object.freeze(reset);
 }
 
 /** Restores a captured chain snapshot through the same mutation boundary used by live transitions. */
@@ -213,9 +207,7 @@ function transition(
   for (const [root, expected] of pending) {
     if (root === castChainRootId) continue;
     const overrideContext: AutoattackChainContext = {
-      cast: context,
       chainRootId: root,
-      expectedSkillId: expected,
       interruptingSkill: skill
     };
     const override = matchingOverride(options.overrides || [], overrideContext);

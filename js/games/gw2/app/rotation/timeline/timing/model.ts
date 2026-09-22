@@ -3,13 +3,11 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface SkillTimingOccurrence {
-  readonly rotationIndex: number;
   readonly startMs: number;
   readonly intervalMs: number | null;
 }
 
 export interface SkillTimingAnalysis {
-  readonly skillId: SkillId;
   readonly occurrences: readonly SkillTimingOccurrence[];
   readonly useCount: number;
   readonly averageIntervalMs: number | null;
@@ -108,7 +106,6 @@ export function skillTimingAnalyses(
         )
         .sort((left, right) => Number(left.start) - Number(right.start) || Number(left.ri) - Number(right.ri));
       const occurrences = matches.map((step, index): SkillTimingOccurrence => ({
-        rotationIndex: Number(step.ri),
         startMs: Number(step.start),
         intervalMs: index === 0 ? null : Number(step.start) - Number(matches[index - 1].start)
       }));
@@ -116,7 +113,6 @@ export function skillTimingAnalyses(
         .map((occurrence) => occurrence.intervalMs)
         .filter((interval): interval is number => interval != null);
       return {
-        skillId,
         occurrences,
         useCount: occurrences.length,
         averageIntervalMs: intervals.length

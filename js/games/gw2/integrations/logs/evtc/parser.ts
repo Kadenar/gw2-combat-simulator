@@ -78,9 +78,7 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
 
   const rawRevision = view.getUint8(12);
   if (rawRevision !== 0 && rawRevision !== 1) {
-    throw new EvtcError('UNSUPPORTED_REVISION', `EVTC combat-event revision ${rawRevision} is not supported.`, {
-      revision: rawRevision
-    });
+    throw new EvtcError('UNSUPPORTED_REVISION', `EVTC combat-event revision ${rawRevision} is not supported.`);
   }
 
   const revision: 0 | 1 = rawRevision;
@@ -91,9 +89,7 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
   const agentCount = view.getUint32(offset, true);
   offset += 4;
   if (agentCount > EVTC_PARSE_LIMITS.maximumAgents) {
-    throw new EvtcError('LIMIT_EXCEEDED', `The EVTC agent count (${agentCount}) exceeds the safety limit.`, {
-      agentCount
-    });
+    throw new EvtcError('LIMIT_EXCEEDED', `The EVTC agent count (${agentCount}) exceeds the safety limit.`);
   }
 
   ensureRange(bytes.byteLength, offset, agentCount * AGENT_SIZE, 'TRUNCATED_AGENTS', 'agent table');
@@ -121,9 +117,7 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
   const skillCount = view.getUint32(offset, true);
   offset += 4;
   if (skillCount > EVTC_PARSE_LIMITS.maximumSkills) {
-    throw new EvtcError('LIMIT_EXCEEDED', `The EVTC skill count (${skillCount}) exceeds the safety limit.`, {
-      skillCount
-    });
+    throw new EvtcError('LIMIT_EXCEEDED', `The EVTC skill count (${skillCount}) exceeds the safety limit.`);
   }
 
   ensureRange(bytes.byteLength, offset, skillCount * SKILL_SIZE, 'TRUNCATED_SKILLS', 'skill table');
@@ -144,16 +138,12 @@ export function parseEvtc(input: ArrayBuffer | Uint8Array): ParsedEvtc {
     ? remainingBytes - trailingBytes
     : remainingBytes;
   if (eventBytes % EVENT_SIZE !== 0) {
-    throw new EvtcError('TRUNCATED_EVENTS', 'The EVTC combat-event table ends with a truncated record.', {
-      trailingBytes
-    });
+    throw new EvtcError('TRUNCATED_EVENTS', 'The EVTC combat-event table ends with a truncated record.');
   }
 
   const eventCount = eventBytes / EVENT_SIZE;
   if (eventCount > EVTC_PARSE_LIMITS.maximumEvents) {
-    throw new EvtcError('LIMIT_EXCEEDED', `The EVTC combat-event count (${eventCount}) exceeds the safety limit.`, {
-      eventCount
-    });
+    throw new EvtcError('LIMIT_EXCEEDED', `The EVTC combat-event count (${eventCount}) exceeds the safety limit.`);
   }
 
   const events: ParsedEvtcEvent[] = [];

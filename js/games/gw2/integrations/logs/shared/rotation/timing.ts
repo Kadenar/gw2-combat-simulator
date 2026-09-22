@@ -37,20 +37,3 @@ export function strikePacketOffsets(
   const first = origin + (effect.atMs == null ? runtimeDurationMs - origin : Number(effect.atMs) * castScale);
   return Array.from({ length: hits }, () => first);
 }
-
-/** Returns the earliest catalog-modeled strike packet used by either combat-log source to verify commitment. */
-export function firstStrikePacketOffsetMs(
-  skill: Skill | null,
-  runtimeDurationMs = referenceCastTimeMs(skill),
-  options: { readonly explicitOnly?: boolean } = {}
-): number | null {
-  const offsets = (skill?.effects || []).flatMap((effect) => {
-    if (effect.type !== 'strike') return [];
-    if (options.explicitOnly === true && effect.atMs == null && !(Array.isArray(effect.ticks) && effect.ticks.length)) {
-      return [];
-    }
-
-    return strikePacketOffsets(skill!, effect, runtimeDurationMs);
-  });
-  return offsets.length ? Math.min(...offsets) : null;
-}

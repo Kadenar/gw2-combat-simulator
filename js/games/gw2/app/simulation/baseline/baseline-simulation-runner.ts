@@ -9,7 +9,6 @@ interface BaselineJob {
 
 interface BaselineWorkerMessage {
   readonly requestId: number;
-  readonly revision: number;
   readonly output?: BaselineSimulationOutput;
   readonly error?: unknown;
 }
@@ -97,16 +96,14 @@ export class BaselineSimulationRunner {
       // Tests and older browsers retain correctness; the timeout still separates mutation from calculation.
       setTimeout(() => {
         // Superseded fallback jobs must release the slot so the newest pending edit can run.
-        if (job.requestId !== this.requestId)
-          return this.finish(job, { requestId: job.requestId, revision: job.revision });
+        if (job.requestId !== this.requestId) return this.finish(job, { requestId: job.requestId });
         try {
           this.finish(job, {
             requestId: job.requestId,
-            revision: job.revision,
             output: this.app.adapter.calculateBaselineSimulation(job.request)
           });
         } catch (error) {
-          this.finish(job, { requestId: job.requestId, revision: job.revision, error });
+          this.finish(job, { requestId: job.requestId, error });
         }
       }, 0);
       return;
@@ -120,7 +117,7 @@ export class BaselineSimulationRunner {
     } catch (error) {
       worker?.terminate();
       if (this.worker === worker) this.worker = null;
-      this.finish(job, { requestId: job.requestId, revision: job.revision, error });
+      this.finish(job, { requestId: job.requestId, error });
     }
   }
 
@@ -138,8 +135,7 @@ export class BaselineSimulationRunner {
       const job = this.inFlight;
       worker.terminate();
       if (this.worker === worker) this.worker = null;
-      if (job)
-        this.finish(job, { requestId: job.requestId, revision: job.revision, error: event.error ?? event.message });
+      if (job) this.finish(job, { requestId: job.requestId, error: event.error ?? event.message });
     });
     this.worker = worker;
     return worker;

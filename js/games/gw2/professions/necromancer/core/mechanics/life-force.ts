@@ -84,7 +84,7 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
   }
 
   // Specialization callbacks run before shared exit traits and the visible weapon transition.
-  runNecromancerShroudExit(context, at, reason);
+  runNecromancerShroudExit(context);
   context.state.cooldowns.delete(ID.ISOLATE);
   setShroudRecharge(context, entryId, at);
   if (hasTrait(context, TRAIT.SOUL_BARBS)) {

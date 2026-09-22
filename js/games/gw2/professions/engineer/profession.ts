@@ -7,11 +7,7 @@ import {
 import { engineerNativeModules } from '#gw2/professions/engineer/catalog.js';
 import { engineerWeaponSkillMatchesSet } from '#gw2/professions/engineer/build/weapon-matching.js';
 
-export {
-  ENGINEER_GENERATED_SKILL_IDS,
-  engineerCatalog,
-  engineerNativeModules
-} from '#gw2/professions/engineer/catalog.js';
+export { engineerCatalog, engineerNativeModules } from '#gw2/professions/engineer/catalog.js';
 
 export const engineerProfession = defineNativeProfession({
   id: 'engineer',

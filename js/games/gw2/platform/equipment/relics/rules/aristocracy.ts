@@ -51,9 +51,9 @@ function isAristocracyApplication(event: SimulationEvent): boolean {
   );
 }
 
-function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent): AristocracyActivation | null {
+function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent): void {
   if (!isAristocracyApplication(event) || !isInternalCooldownReady(event.at, state.readyAt)) {
-    return null;
+    return;
   }
 
   if (event.at >= state.expiresAt) state.stacks = 0;
@@ -67,7 +67,6 @@ function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent
     event
   };
   state.activations.push(activation);
-  return activation;
 }
 
 function replayAristocracyTimeline(events: readonly SimulationEvent[], combatStartTime: number): AristocracyState {

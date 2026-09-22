@@ -191,7 +191,6 @@ export interface ProfessionAppFilenames {
 export interface ProfessionRuntimeConfigContext {
   readonly attributeData: ProfessionAttributeData;
   readonly specialization: string;
-  readonly activeTraits: readonly CatalogEntity[];
 }
 
 /** Runtime adapters return the configuration fields owned by their profession. */

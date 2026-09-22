@@ -47,9 +47,7 @@ export async function fetchDpsReport(
   }
 
   if (!response.ok) {
-    throw new DpsReportError('HTTP_ERROR', `dps.report returned HTTP ${response.status}.`, {
-      status: response.status
-    });
+    throw new DpsReportError('HTTP_ERROR', `dps.report returned HTTP ${response.status}.`);
   }
 
   let value: unknown;

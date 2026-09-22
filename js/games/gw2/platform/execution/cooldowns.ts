@@ -110,9 +110,9 @@ export function createCooldownController<TProfessionState extends object>({
   /**
    * Spends one charge and, when needed, starts the recharge timer.
    */
-  const spendAmmo = (skill: Skill, at: number, committedRechargeDuration?: number): AmmoState | false => {
+  const spendAmmo = (skill: Skill, at: number, committedRechargeDuration?: number): void => {
     const ammo = refreshAmmo(skill, at);
-    if (!ammo || ammo.charges <= 0) return false;
+    if (!ammo || ammo.charges <= 0) return;
     ammo.charges -= 1;
     if (ammo.nextRechargeAt == null) {
       // A cast carries its selected recharge through completion; direct resource spends still query at their anchor.
@@ -121,7 +121,6 @@ export function createCooldownController<TProfessionState extends object>({
     }
 
     syncAmmoCooldown(skill, ammo, at);
-    return ammo;
   };
 
   /** Restores charges without erasing lockouts; callers choose whether a full pool retains recharge progress. */
@@ -179,12 +178,11 @@ export function createCooldownController<TProfessionState extends object>({
   /**
    * Applies the short between-cast recharge independently from count recharge.
    */
-  const setAmmoLockout = (skill: Skill, readyAt: number, at = state.time): AmmoState | null => {
+  const setAmmoLockout = (skill: Skill, readyAt: number, at = state.time): void => {
     const ammo = ensureAmmo(skill, at);
-    if (!ammo) return null;
+    if (!ammo) return;
     ammo.lockoutReadyAt = Math.max(Number(ammo.lockoutReadyAt || 0), Number(readyAt || 0));
     syncAmmoCooldown(skill, ammo, at);
-    return ammo;
   };
 
   return Object.freeze({

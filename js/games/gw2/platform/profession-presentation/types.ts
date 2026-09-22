@@ -175,7 +175,6 @@ export interface ProfessionStartControlOption {
 }
 
 export interface ProfessionStartControl {
-  readonly id: string;
   readonly label: string;
   readonly buildKey: string;
   readonly value: string;

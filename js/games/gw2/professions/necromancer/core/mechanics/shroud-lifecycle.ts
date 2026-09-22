@@ -1,8 +1,8 @@
 import type { NecromancerSchedulerContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 interface NecromancerShroudLifecycle {
-  readonly onEnter?: (context: NecromancerSchedulerContext, skill: NecromancerSkill, at: number) => void;
-  readonly onExit?: (context: NecromancerSchedulerContext, at: number, reason: string) => void;
+  readonly onEnter?: (context: NecromancerSchedulerContext, skill: NecromancerSkill) => void;
+  readonly onExit?: (context: NecromancerSchedulerContext) => void;
 }
 
 type NecromancerResourceAdvance = (context: NecromancerSchedulerContext, start: number, end: number) => void;
@@ -26,20 +26,16 @@ export function registerNecromancerShroudLifecycle(
 }
 
 /** Notifies every registered module after Core has established the entered shroud state. */
-export function runNecromancerShroudEnter(
-  context: NecromancerSchedulerContext,
-  skill: NecromancerSkill,
-  at: number
-): void {
+export function runNecromancerShroudEnter(context: NecromancerSchedulerContext, skill: NecromancerSkill): void {
   for (const lifecycle of shroudLifecycles.get(context.state)?.values() || []) {
-    lifecycle.onEnter?.(context, skill, at);
+    lifecycle.onEnter?.(context, skill);
   }
 }
 
 /** Notifies every registered module when Core leaves shroud for the supplied reason. */
-export function runNecromancerShroudExit(context: NecromancerSchedulerContext, at: number, reason: string): void {
+export function runNecromancerShroudExit(context: NecromancerSchedulerContext): void {
   for (const lifecycle of shroudLifecycles.get(context.state)?.values() || []) {
-    lifecycle.onExit?.(context, at, reason);
+    lifecycle.onExit?.(context);
   }
 }
 

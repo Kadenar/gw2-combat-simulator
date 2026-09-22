@@ -96,8 +96,7 @@ export function selectPlayerAgent(
 
     throw new EvtcError(
       'PLAYER_SELECTION_REQUIRED',
-      'Multiple players have the same recorded action count; select one by address.',
-      { playerCount: players.length }
+      'Multiple players have the same recorded action count; select one by address.'
     );
   }
 

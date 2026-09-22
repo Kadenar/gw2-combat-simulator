@@ -1,13 +1,11 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import type { SchedulerRunResult } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ProfessionContract, Gw2SimulationPlanningState } from '#gw2/platform/simulation/types.js';
 
 /** Projects scheduler-owned state at its planning boundary without borrowing resolver state. */
 export function planningState(
   profession: Gw2ProfessionContract,
-  config: Gw2Config,
   scheduled: SchedulerRunResult
 ): Gw2SimulationPlanningState {
   // Planning describes the completed schedule, even when combat ended earlier.
@@ -32,7 +30,6 @@ export function planningState(
   );
   // Profession projections receive only scheduler-owned inputs.
   const projected = profession.projectPlanningState({
-    config,
     schedulerContext: scheduled.context,
     schedulerState: scheduled.state
   });

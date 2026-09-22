@@ -172,7 +172,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     // Extra-field descriptors apply the same bounds and enum vocabulary used
     // by validation before profession-specific migration or repair hooks run.
     migrated = normalizeExtraBuildFields(migrated, saved, defaults, extraFields);
-    migrated = normalizeExtra(migrated, { saved, defaults });
+    migrated = normalizeExtra(migrated, { saved });
     if (!migrated || typeof migrated !== 'object' || Array.isArray(migrated)) {
       throw new TypeError('normalizeExtra must return a build object.');
     }

@@ -381,8 +381,6 @@ export const willbenderVirtueHitReaction = scheduledReaction<
   GuardianSchedulerContext,
   SimulationEvent,
   {
-    readonly activationId: SimulationEvent['activationId'];
-    readonly sourceSkillId: SimulationEvent['skillId'];
     readonly sourceSkillName: SimulationEvent['skillName'];
   }
 >({
@@ -407,8 +405,6 @@ export const willbenderVirtueHitReaction = scheduledReaction<
       id: `guardian.willbender-virtue-hit:${String(event.eventOrder ?? event.at)}`,
       at: Number(event.at),
       payload: {
-        activationId: event.activationId,
-        sourceSkillId: event.skillId,
         sourceSkillName: event.skillName
       }
     };

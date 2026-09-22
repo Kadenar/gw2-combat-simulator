@@ -51,9 +51,9 @@ function emitLightAuraOperation(
   });
 }
 
-function detonateLightAura(context: GuardianResolverContext, event: GuardianResolverEvent): boolean {
+function detonateLightAura(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = luminaryState.from(context);
-  if (!lightAuraActive(state, event.at)) return false;
+  if (!lightAuraActive(state, event.at)) return;
   const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sovereignOfLight), 'strike');
   state.lightAuraUntil = 0;
   context.queue.enqueue(
@@ -80,7 +80,6 @@ function detonateLightAura(context: GuardianResolverContext, event: GuardianReso
     'Light aura detonated',
     guardianTraitIcon(GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT)
   );
-  return true;
 }
 
 /** Grants or refreshes Light Aura while limiting same-time Sovereign recovery to its Luminary source skill. */

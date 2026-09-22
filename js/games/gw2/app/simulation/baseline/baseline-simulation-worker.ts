@@ -21,7 +21,6 @@ interface BaselineWarmupMessage {
 
 // The worker owns the expensive simulation while the shared endpoint preserves job identity.
 createGameWorkerEndpoint<Gw2ProfessionSource, BaselineSimulationWorkerMessage | BaselineWarmupMessage>({
-  echo: ({ revision }) => ({ revision }),
   async loadDriver({ gameId, contentId }) {
     if (gameId !== 'gw2') return null;
     // Ordinary baselines need only the profession engine; authored previews retain their adapter composition.

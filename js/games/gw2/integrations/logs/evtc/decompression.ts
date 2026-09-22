@@ -100,7 +100,7 @@ async function expandZip(bytes: Uint8Array): Promise<Uint8Array> {
   }
 
   if (entryCount !== 1) {
-    throw new EvtcError('INVALID_ZIP', 'An EVTC ZIP must contain exactly one file entry.', { entryCount });
+    throw new EvtcError('INVALID_ZIP', 'An EVTC ZIP must contain exactly one file entry.');
   }
 
   if (centralOffset + centralSize > end || signature(view, centralOffset) !== ZIP_CENTRAL_HEADER) {
@@ -152,9 +152,7 @@ async function expandZip(bytes: Uint8Array): Promise<Uint8Array> {
     // The declared size already satisfies the global and ratio limits; enforce it while streaming to bound forged ZIPs.
     expanded = await inflateRaw(compressed, expandedSize);
   } else {
-    throw new EvtcError('UNSUPPORTED_COMPRESSION', `ZIP compression method ${compressionMethod} is not supported.`, {
-      compressionMethod
-    });
+    throw new EvtcError('UNSUPPORTED_COMPRESSION', `ZIP compression method ${compressionMethod} is not supported.`);
   }
 
   if (expanded.byteLength !== expandedSize) {

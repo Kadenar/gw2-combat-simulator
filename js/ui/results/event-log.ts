@@ -126,11 +126,8 @@ export function mountEventLog<TRow extends EventLogRow>(
   container: HTMLElement | null | undefined,
   rows: readonly TRow[],
   options: EventLogMountOptions<TRow> = {}
-): {
-  readonly activeFilters: Set<string>;
-  readonly render: () => void;
-} | null {
-  if (!container) return null;
+): void {
+  if (!container) return;
   const resolvedRows: readonly TRow[] = rows || [];
   const filters = options.filters || [];
   const previousDetails = container.querySelector<HTMLDetailsElement>('[data-role="event-log-details"]');
@@ -251,5 +248,4 @@ export function mountEventLog<TRow extends EventLogRow>(
   const download = container.querySelector<HTMLElement>('[data-role="event-log-download"]');
   // Export the complete log, independent of temporary display filters.
   if (download) download.onclick = () => downloadCsv(resolvedRows, filename);
-  return { activeFilters, render: () => renderLogLines(true) };
 }

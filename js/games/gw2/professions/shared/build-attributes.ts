@@ -35,7 +35,6 @@ export interface CreateBuildAttributeContextOptions<TTrait extends BuildAttribut
  */
 export interface BuildAttributeContext<TTrait extends BuildAttributeTrait> {
   readonly activeTraits: readonly TTrait[];
-  readonly selectedSkills: readonly Skill[];
   hasTrait(name: string): boolean;
   hasSelectedSkill(name: string): boolean;
   hasSelectedSkillId(id: SkillId): boolean;
@@ -72,7 +71,6 @@ export function createBuildAttributeContext<TTrait extends BuildAttributeTrait, 
 
   return {
     activeTraits,
-    selectedSkills: effectiveSelectedSkills,
     hasTrait,
     hasSelectedSkill,
     hasSelectedSkillId

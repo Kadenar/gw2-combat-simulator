@@ -78,13 +78,13 @@ export function activeElementalistBuffs(context: Gw2ResolverRuntime, kind: strin
   );
 }
 
-/** Rewrites every active application of a boon kind and returns the prior applications. */
+/** Rewrites active applications of a boon kind while preserving inactive applications. */
 export function refreshElementalistBuffs(
   context: Gw2ResolverRuntime,
   kind: string,
   at: number,
   expiresAt: (currentExpiresAt: number) => number
-) {
+): void {
   const normalized = kind.toLowerCase();
   const applications = context.boons.get(normalized) || [];
   const active = new Set(activeElementalistBuffs(context, normalized, at));
@@ -99,7 +99,6 @@ export function refreshElementalistBuffs(
         : application
     )
   );
-  return [...active];
 }
 
 /** Records a trait proc attributed to the skill whose event triggered it. */

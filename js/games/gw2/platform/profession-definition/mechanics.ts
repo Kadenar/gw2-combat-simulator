@@ -185,7 +185,7 @@ export interface ResolvedCriticalHitOptions<
 > {
   readonly id: string;
   readonly order?: number;
-  readonly chanceOnCriticalHit?: number | ((context: TContext, event: TEvent) => number);
+  readonly chanceOnCriticalHit?: number | ((context: TContext) => number);
   readonly actorTypes?: readonly ('player' | 'summon' | 'effect' | 'environment' | 'unknown')[];
   readonly sourceIds?: readonly SkillId[];
   readonly when?: (context: TContext, event: TEvent, details: TDetails) => boolean;
@@ -195,7 +195,7 @@ export interface ResolvedCriticalHitOptions<
     readonly set: (context: TContext, value: number) => void;
   };
   readonly internalCooldown?: {
-    readonly duration: number | ((context: TContext, event: TEvent, details: TDetails) => number);
+    readonly duration: number | ((context: TContext) => number);
     readonly readyAt: (context: TContext) => number;
     readonly setReadyAt: (context: TContext, readyAt: number) => void;
   };
@@ -246,13 +246,13 @@ export function onResolvedCriticalHit<
       // profiles and runtime predicates remain profession-owned.
       const chanceOnCriticalHit = Number(
         typeof options.chanceOnCriticalHit === 'function'
-          ? options.chanceOnCriticalHit(context, event)
+          ? options.chanceOnCriticalHit(context)
           : (options.chanceOnCriticalHit ?? 1)
       );
       const internalCooldownDuration = options.internalCooldown
         ? Number(
             typeof options.internalCooldown.duration === 'function'
-              ? options.internalCooldown.duration(context, event, details)
+              ? options.internalCooldown.duration(context)
               : options.internalCooldown.duration
           )
         : 0;

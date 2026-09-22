@@ -87,7 +87,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
       isTimeInWindow(at, application.appliedAt, application.expiresAt)
     );
   state.plagueSendingEntrySkillId = null;
-  runNecromancerShroudEnter(context, skill, at);
+  runNecromancerShroudEnter(context, skill);
   emitTransitionLockout(context, 'shroudEntryMs', at, skill);
 
   // Emit shared on-entry boons and trait attacks after specialization lifecycle effects.

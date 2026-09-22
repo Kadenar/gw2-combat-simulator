@@ -147,8 +147,8 @@ export interface CooldownController {
   reduceSkillRecharge(skill: Skill, reduction: number, at?: number): number;
   refreshAmmo(skill: Skill, at: number): AmmoState | null;
   restoreAmmo(skill: Skill, count: number, at: number, whenFull: 'retain' | 'reset'): number;
-  setAmmoLockout(skill: Skill, readyAt: number, at?: number): AmmoState | null;
-  spendAmmo(skill: Skill, at: number, committedRechargeDuration?: number): AmmoState | false;
+  setAmmoLockout(skill: Skill, readyAt: number, at?: number): void;
+  spendAmmo(skill: Skill, at: number, committedRechargeDuration?: number): void;
 }
 
 export interface SchedulerTaskAccess {
@@ -161,10 +161,7 @@ export interface SchedulerTaskAccess {
 export interface SchedulerPolicy<TProfessionState extends object = object> {
   /** Earliest next input after transition recovery, independent of each skill's cast lane. */
   readonly inputReadyAt?: (context: SchedulerContext<TProfessionState>, at: number) => number;
-  readonly initialWeaponSet?: (input: {
-    profession: NormalizedProfessionContract<TProfessionState>;
-    config: SchedulerConfig;
-  }) => number;
+  readonly initialWeaponSet?: () => number;
   readonly prepareEvent?: (
     context: SchedulerContext<TProfessionState>,
     event: SimulationEventBase

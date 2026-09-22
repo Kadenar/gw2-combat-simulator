@@ -14,8 +14,8 @@ export function mountRotationWarnings(
   container: HTMLElement | null | undefined,
   warnings: readonly (RotationWarning | string)[] = [],
   { open = false }: RotationWarningOptions = {}
-): HTMLDetailsElement | null {
-  if (!container) return null;
+): void {
+  if (!container) return;
   const items = warnings
     .filter((warning) => warning != null)
     .map((warning) =>
@@ -28,7 +28,7 @@ export function mountRotationWarnings(
     );
   if (!items.length) {
     container.innerHTML = '';
-    return null;
+    return;
   }
 
   container.innerHTML = `<details class="rotation-warnings-wrap"${open ? ' open' : ''}>
@@ -44,5 +44,4 @@ export function mountRotationWarnings(
         .join('')}
     </ul>
   </details>`;
-  return container.querySelector<HTMLDetailsElement>('.rotation-warnings-wrap');
 }

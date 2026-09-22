@@ -209,9 +209,8 @@ export interface Gw2CanonicalBuild extends Gw2Build {
   rotation: import('#gw2/platform/execution/types.js').RotationCommand[];
 }
 
-export interface Gw2BuildCodecContext<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
+export interface Gw2BuildCodecContext {
   readonly saved: UnvalidatedBuildRecord;
-  readonly defaults: TBuild;
 }
 
 export interface Gw2BuildExtraFieldBase {
@@ -267,7 +266,7 @@ export interface Gw2BuildCodecOptions<TBuild extends Gw2CanonicalBuild = Gw2Cano
   readonly createDefaults: () => TBuild;
   readonly migrations?: Readonly<Record<number, (saved: UnvalidatedBuildRecord) => UnvalidatedBuildRecord>>;
   readonly extraFields?: Gw2BuildExtraFieldDescriptors<TBuild>;
-  readonly normalizeExtra?: (build: TBuild, context: Gw2BuildCodecContext<TBuild>) => TBuild;
+  readonly normalizeExtra?: (build: TBuild, context: Gw2BuildCodecContext) => TBuild;
   readonly validateExtra?: (build: TBuild) => unknown[] | { readonly errors?: readonly unknown[] } | null | undefined;
   readonly slotLoadout?: Gw2SlotLoadout<TBuild> | null;
 }

@@ -106,11 +106,7 @@ export function createScheduler<TProfessionState extends object = object>({
   const activeProfession = resolveProfessionRuntime(profession, config);
   const activeCatalog = catalog ?? activeProfession.catalog;
   const normalizedObservationPolicy = normalizeObservationPolicy(observationPolicy);
-  const initialWeaponSet =
-    schedulerPolicy.initialWeaponSet?.({
-      profession: activeProfession,
-      config
-    }) ?? 1;
+  const initialWeaponSet = schedulerPolicy.initialWeaponSet?.() ?? 1;
   const state = createSchedulerState({
     profession: activeProfession,
     config,

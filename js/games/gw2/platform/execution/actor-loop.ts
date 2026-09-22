@@ -16,7 +16,7 @@ export function actorLoop<
 >(definition: {
   readonly id: string;
   readonly priority?: number;
-  readonly readyAt?: (context: TContext, at: number, state: TState) => number;
+  readonly readyAt?: (context: TContext, at: number) => number;
   readonly step: (
     context: TContext,
     at: number,
@@ -28,7 +28,7 @@ export function actorLoop<
     priority: definition.priority,
     effectsAt(context: TContext, at: number, captured: { state: TState; nextAt: number | null }) {
       // Compare recovery on the queue clock so rounding cannot create a zero-time wait.
-      const readyAt = canonicalTime(definition.readyAt?.(context, at, captured.state) ?? at);
+      const readyAt = canonicalTime(definition.readyAt?.(context, at) ?? at);
       if (readyAt > at) {
         captured.nextAt = readyAt;
         return;

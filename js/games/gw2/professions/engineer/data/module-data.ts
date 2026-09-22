@@ -67,8 +67,6 @@ const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL
 ]);
 
-const generatedIds = new Set<SkillId>(SKILLS.map((skill) => skill.id));
-
 const CORE_SWORD_SKILL_IDS = new Set<SkillId>([
   ID.SUN_EDGE_ID_70514,
   ID.SUN_RIPPER_ID_69906,
@@ -204,8 +202,6 @@ function normalizeMechanics(
     )
   );
 }
-
-export const ENGINEER_GENERATED_SKILL_IDS = Object.freeze([...generatedIds]);
 
 const createModuleData = createProfessionModuleDataFactory({
   generatedSkills: generated,

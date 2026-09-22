@@ -94,7 +94,7 @@ export function removeNecromancerSelfCondition(
   state: NecromancerCoreState,
   at: number,
   maximumConditionTypes = 1
-): number {
+): void {
   const active = purgeNecromancerSelfConditions(state, at);
   const selected = new Set<string>();
   for (const application of active) {
@@ -103,7 +103,6 @@ export function removeNecromancerSelfCondition(
   }
 
   state.selfConditions = active.filter((application) => !selected.has(application.condition));
-  return selected.size;
 }
 
 /** Records a duration-scaled self-condition and emits the canonical state event used by later transfers. */
@@ -114,10 +113,10 @@ export function applyNecromancerSelfCondition(
   stacks: number,
   duration: number,
   at = context.effectiveEnd
-): NecromancerSelfCondition | null {
+): void {
   const effectiveDuration =
     Math.max(0, Number(duration || 0)) * conditionDurationMultiplier(context, skill, condition, at);
-  if (!(effectiveDuration > 0) || !(Number(stacks) > 0)) return null;
+  if (!(effectiveDuration > 0) || !(Number(stacks) > 0)) return;
   const application: NecromancerSelfCondition = {
     condition,
     stacks: Number(stacks),
@@ -143,7 +142,6 @@ export function applyNecromancerSelfCondition(
     duration: effectiveDuration,
     expiresAt: application.expiresAt
   });
-  return application;
 }
 
 // Preserve the remaining duration and source attribution when converting a self-condition into a target packet.

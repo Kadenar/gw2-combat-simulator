@@ -74,9 +74,7 @@ export function detectDpsReportRotationPlayers(report: ParsedDpsReport): readonl
 function phaseFor(report: ParsedDpsReport, phaseIndex: number | undefined): { phase: DpsReportPhase; index: number } {
   const index = phaseIndex ?? 0;
   if (!Number.isInteger(index) || index < 0 || index >= report.phases.length) {
-    throw new DpsReportError('PHASE_NOT_FOUND', 'The requested phase is not present in the Elite Insights report.', {
-      phaseIndex: index
-    });
+    throw new DpsReportError('PHASE_NOT_FOUND', 'The requested phase is not present in the Elite Insights report.');
   }
 
   return { phase: report.phases[index], index };

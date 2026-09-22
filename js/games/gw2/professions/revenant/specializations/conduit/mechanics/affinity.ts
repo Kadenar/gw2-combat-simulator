@@ -23,9 +23,9 @@ interface ConduitAffinityTaskPayload {
 }
 
 /** Adds capped Conduit affinity and snapshots a real resource change. */
-export function gainConduitAffinity(context: RevenantMechanicContext, amount: number, reason: string): number {
+export function gainConduitAffinity(context: RevenantMechanicContext, amount: number, reason: string): void {
   // Affinity is combat-only, so explicit precasts may spend Energy or swap legends without building it.
-  if (context.config.specialization !== 'Conduit' || !revenantCombatActive(context)) return 0;
+  if (context.config.specialization !== 'Conduit' || !revenantCombatActive(context)) return;
   const state = conduitState.from(context);
   const coreState = professionCoreState(context);
   const affinityProfile = balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.affinity);
@@ -41,8 +41,6 @@ export function gainConduitAffinity(context: RevenantMechanicContext, amount: nu
   if (state.affinity !== previous) {
     emitRevenantStateSnapshot(context, context.start ?? context.state.time, reason);
   }
-
-  return state.affinity - previous;
 }
 
 /** Applies Mesmer-form costs to canonical skills; input aliases have already been resolved. */

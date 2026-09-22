@@ -5,7 +5,6 @@ const VIEWPORT_PADDING = 8;
 const ARROW_INSET = 18;
 
 export interface FloatingEditorHandle {
-  readonly element: HTMLElement;
   close(): void;
 }
 
@@ -39,7 +38,6 @@ export function mountFloatingEditor(editor: HTMLElement, anchor: HTMLElement): F
   editor.popover = 'auto';
   editor.dataset.floatingEditor = '';
   const handle: FloatingEditorHandle = {
-    element: editor,
     close(): void {
       if (editor.matches(':popover-open')) {
         editor.hidePopover();

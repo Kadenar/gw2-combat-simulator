@@ -184,7 +184,7 @@ export function createGw2HitResolution({
     ctx: Gw2ResolverRuntime,
     event: Gw2ResolverEvent,
     hitContext: Gw2HitResolutionContext
-  ): Gw2ResolverEvent {
+  ): void {
     const damage = hitContext.damage;
     // Copy already computed facts before health commits; diagnostics never query modifiers or consume RNG again.
     let damageCalculation: Gw2DamageCalculation | undefined;
@@ -240,7 +240,6 @@ export function createGw2HitResolution({
     } as Gw2ResolverEvent;
     // Reactions still receive the resolved hit, but score jobs do not retain a strike history.
     if (ctx.reporting) ctx.resolved.push(resolved);
-    return resolved;
   }
 
   return Object.freeze({
@@ -290,9 +289,5 @@ export interface Gw2HitResolutionContext {
 
 export interface Gw2HitResolution {
   buildHitResolutionContext(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): Gw2HitResolutionContext;
-  applyResolvedHit(
-    context: Gw2ResolverRuntime,
-    event: Gw2ResolverEvent,
-    hit: Gw2HitResolutionContext
-  ): Gw2ResolverEvent;
+  applyResolvedHit(context: Gw2ResolverRuntime, event: Gw2ResolverEvent, hit: Gw2HitResolutionContext): void;
 }

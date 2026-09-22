@@ -25,9 +25,9 @@ type PaletteDragEvent = DragEvent & {
 
 interface PaletteInteractionHandlers {
   readonly onActivate?: (name: string, event: PaletteMouseEvent) => unknown;
-  readonly onControlActivate?: (id: string, event: PaletteMouseEvent) => unknown;
+  readonly onControlActivate?: (id: string) => unknown;
   readonly onDragStart?: (name: string, event: PaletteDragEvent) => unknown;
-  readonly onDragEnd?: (name: string, event: PaletteDragEvent) => unknown;
+  readonly onDragEnd?: () => unknown;
 }
 
 export function bindPaletteInteractions(
@@ -56,8 +56,8 @@ export function bindPaletteInteractions(
   }
 
   for (const control of root.querySelectorAll<HTMLElement>('.pal-control[data-palette-control-id]')) {
-    control.onclick = (event) => {
-      handlers.onControlActivate?.(control.dataset.paletteControlId || '', event as unknown as PaletteMouseEvent);
+    control.onclick = () => {
+      handlers.onControlActivate?.(control.dataset.paletteControlId || '');
     };
   }
 
@@ -87,9 +87,9 @@ export function bindPaletteInteractions(
       if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy';
     };
 
-    icon.ondragend = (event) => {
+    icon.ondragend = () => {
       icon.classList.remove('dragging');
-      handlers.onDragEnd?.(name, event as PaletteDragEvent);
+      handlers.onDragEnd?.();
     };
   }
 }

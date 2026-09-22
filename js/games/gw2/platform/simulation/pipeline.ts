@@ -97,7 +97,7 @@ function simulateDeclarativeGw2Pass({
     steps: scheduled.steps,
     // Detailed results preserve the full rotation's input rate even when damage reporting uses another window.
     rotationApm: rotationApm(scheduled, rotation, runtimeProfession.catalog),
-    planningState: planningState(runtimeProfession, config, scheduled),
+    planningState: planningState(runtimeProfession, scheduled),
     schedulerState: scheduled.state,
     warnings
   };

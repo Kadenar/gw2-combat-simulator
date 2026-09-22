@@ -51,9 +51,7 @@ export async function fetchWingmanReport(
   }
 
   if (!response.ok) {
-    throw new WingmanError('HTTP_ERROR', `gw2wingman returned HTTP ${response.status}.`, {
-      status: response.status
-    });
+    throw new WingmanError('HTTP_ERROR', `gw2wingman returned HTTP ${response.status}.`);
   }
 
   let value: unknown;

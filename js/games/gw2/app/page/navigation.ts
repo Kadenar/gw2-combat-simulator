@@ -100,9 +100,9 @@ function updateActiveView(root: Document, view: SimulatorView): void {
   }
 
   // The app lazily materializes expensive Analysis content when this view becomes active.
-  const CustomEventConstructor = root.defaultView?.CustomEvent;
-  if (CustomEventConstructor) {
-    root.dispatchEvent(new CustomEventConstructor(SIMULATOR_VIEW_CHANGE_EVENT, { detail: { view } }));
+  const EventConstructor = root.defaultView?.Event;
+  if (EventConstructor) {
+    root.dispatchEvent(new EventConstructor(SIMULATOR_VIEW_CHANGE_EVENT));
   }
 }
 

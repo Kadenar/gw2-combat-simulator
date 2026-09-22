@@ -29,7 +29,6 @@ export interface Gw2ProfessionContract<TProfessionState extends object = object>
 > {
   readonly simulation: Gw2SimulationDefinition | null;
   readonly projectPlanningState: (options: {
-    readonly config: Gw2Config;
     readonly schedulerContext: SchedulerContext;
     /** Diagnostic scheduler state, with its own time in seconds at the planning boundary. */
     readonly schedulerState: SchedulerState;

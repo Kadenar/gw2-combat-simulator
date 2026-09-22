@@ -161,7 +161,7 @@ export function createProfessionRuntime({
     const attributeData = attributeDataByWeaponSet[Number(app.attributeWeaponSet) === 2 ? 1 : 0];
     const specialization = eliteSpecialization(app.build);
     const activeTraits = attributeData.activeTraits || [];
-    const runtimeContext = { attributeData, specialization, activeTraits };
+    const runtimeContext = { attributeData, specialization };
     const config = createGw2SimulationConfig({
       app,
       attributeData,

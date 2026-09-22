@@ -99,7 +99,6 @@ export const galeshotMissileReaction = scheduledReaction<
   SimulationEvent,
   {
     readonly skillName: SimulationEvent['skillName'];
-    readonly activationId?: string;
   }
 >({
   id: 'ranger.galeshot-missile-hit',
@@ -114,8 +113,7 @@ export const galeshotMissileReaction = scheduledReaction<
         at: event.at,
         priority: -40,
         payload: {
-          skillName: event.skillName,
-          activationId: event.activationId
+          skillName: event.skillName
         }
       };
     }
@@ -279,10 +277,7 @@ export const galeshotPetReaction = scheduledReaction<
 export const galeshotDisableReaction = scheduledReaction<
   RangerSchedulerContext,
   SimulationEvent,
-  {
-    readonly skillName: SimulationEvent['skillName'];
-    readonly activationId?: string;
-  }
+  Record<string, never>
 >({
   id: 'ranger.galeshot-disable',
   select(_context, event) {
@@ -290,7 +285,7 @@ export const galeshotDisableReaction = scheduledReaction<
       return {
         at: event.at,
         priority: -40,
-        payload: { skillName: event.skillName }
+        payload: {}
       };
     }
 

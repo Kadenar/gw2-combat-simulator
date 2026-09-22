@@ -68,12 +68,11 @@ export function purgeTimedState(state: NecromancerCoreState, at: number): void {
   syncNecromancerResources(state);
 }
 
-/** Adds as many timed carapace stacks as the 30-stack cap permits and returns the amount added. */
-export function addCarapace(state: NecromancerCoreState, stacks: number, at: number, duration: number): number {
+/** Adds timed carapace stacks up to the 30-stack cap. */
+export function addCarapace(state: NecromancerCoreState, stacks: number, at: number, duration: number): void {
   purgeTimedState(state, at);
   const grant = addTimedStacks(state.carapaceExpiries, stacks, at, duration, CARAPACE_MAXIMUM_STACKS);
   state.carapaceExpiries = grant.expiries;
-  return grant.added;
 }
 
 /** Refreshes existing Soul Shards, adds stacks up to six, and returns the amount added. */
@@ -94,14 +93,14 @@ export function consumeSoulShards(state: NecromancerCoreState, stacks: number, a
   return consumed;
 }
 
-/** Applies percentage-based life-force gain, including Gluttony and the pool cap, and returns the actual gain. */
+/** Applies percentage-based life-force gain, including Gluttony and the pool cap. */
 export function gainNecromancerLifeForce(
   context: NecromancerSchedulerContext,
   amount: number,
   at: number,
   reason = ''
-): number {
-  if (!(Number(amount) > 0)) return 0;
+): void {
+  if (!(Number(amount) > 0)) return;
   const state = professionCoreState(context);
   const multiplier = hasTrait(context, TRAIT.GLUTTONY)
     ? Number(balanceProfileFromContext(context, TRAIT.GLUTTONY)?.lifeForceGainMultiplier)
@@ -117,8 +116,6 @@ export function gainNecromancerLifeForce(
       dedupeAcrossSourceIds: true
     });
   }
-
-  return state.lifeForce - before;
 }
 
 type CreatureSummonReaction = (

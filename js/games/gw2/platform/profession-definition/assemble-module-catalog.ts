@@ -222,7 +222,7 @@ function composeNativeCatalog(
   const weaponHands = new Map<string, string>();
   const weaponHandOwners = new Map<string, string>();
   const additionalChains: Array<{ owner: string; chain: readonly SkillId[] }> = [];
-  const excludedChains: Array<{ owner: string; skillId: SkillId }> = [];
+  const excludedChains: SkillId[] = [];
 
   for (const module of modules) {
     for (const [skillId, mechanic] of Object.entries(module.data.skillMechanics || {})) {
@@ -282,7 +282,7 @@ function composeNativeCatalog(
     }
 
     for (const skillId of module.data.autoattackChains?.excludeSkillIds || []) {
-      excludedChains.push({ owner: module.id, skillId });
+      excludedChains.push(skillId);
     }
   }
 
@@ -299,7 +299,7 @@ function composeNativeCatalog(
     weaponHands,
     autoattackChains: {
       additional: additionalChains.map((entry) => entry.chain),
-      excludeSkillIds: excludedChains.map((entry) => entry.skillId)
+      excludeSkillIds: excludedChains
     },
     skillNameCollision: options?.skillNameCollision,
     skillNormalizer: normalizeGw2ComboCatalogSkill
@@ -387,7 +387,7 @@ function composeNativeCatalog(
     });
   }
 
-  for (const { skillId } of excludedChains) {
+  for (const skillId of excludedChains) {
     const owner = skillOwners.get(skillId);
     if (!owner) throw new TypeError(`Unknown excluded autoattack skill ${String(skillId)}.`);
     const current = chainContributions.get(owner)!;

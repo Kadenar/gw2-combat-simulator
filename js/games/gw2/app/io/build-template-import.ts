@@ -53,7 +53,6 @@ const BUILD_TEMPLATE_PROFESSIONS_BY_CODE = new Map(
 
 export class BuildTemplateProfessionMismatchError extends Error {
   readonly actualProfession: BuildTemplateProfession;
-  readonly currentProfession: BuildTemplateProfession;
 
   constructor(actualProfession: BuildTemplateProfession, currentProfession: BuildTemplateProfession) {
     super(
@@ -61,7 +60,6 @@ export class BuildTemplateProfessionMismatchError extends Error {
     );
     this.name = 'BuildTemplateProfessionMismatchError';
     this.actualProfession = actualProfession;
-    this.currentProfession = currentProfession;
   }
 }
 

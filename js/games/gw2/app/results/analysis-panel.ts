@@ -39,7 +39,7 @@ export interface ResultColumn {
   readonly label?: string;
   readonly numeric?: boolean;
   readonly className?: string;
-  readonly format?: (value: unknown, row: ResultRow) => unknown;
+  readonly format?: (value: unknown) => unknown;
   // Optional hover tooltip for the cell. Returns plain text (escaped by the
   // renderer); an empty string omits the title attribute.
   readonly title?: (value: unknown, row: ResultRow) => string;
@@ -353,7 +353,7 @@ function skillCellHtml(row: ResultRow, column: ResultColumn, options: RotationRe
   }
 
   const formatted = column.format
-    ? column.format(value, row)
+    ? column.format(value)
     : value == null
       ? '&mdash;'
       : column.numeric
@@ -418,7 +418,7 @@ function skillRowsHtml(
           }
 
           const total = groupRows.reduce((sum, row) => sum + Number(row[column.key] || 0), 0);
-          const formatted = column.format ? String(column.format(total, { name: group })) : number(total);
+          const formatted = column.format ? String(column.format(total)) : number(total);
           const label = column.label || column.key;
           const classAttr = column.className ? ` ${escapeHtml(column.className)}` : '';
           return `<span class="res-skill-group-total${classAttr}" aria-label="${escapeHtml(`${group} ${label}: ${formatted}`)}">${escapeHtml(formatted)}</span>`;
