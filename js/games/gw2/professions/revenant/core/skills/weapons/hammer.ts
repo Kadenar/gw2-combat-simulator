@@ -1,10 +1,10 @@
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 
 // Snap measured impact offsets to 40 ms action ticks instead of retaining EVTC timestamp jitter.
-export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FIELD_OF_THE_MISTS]: {
     // Measured Quickness animations include recovery time beyond the tooltip cast.
     castTimeMs: 600,

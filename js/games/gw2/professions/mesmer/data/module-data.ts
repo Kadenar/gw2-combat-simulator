@@ -14,7 +14,7 @@ import {
 } from '#gw2/professions/mesmer/data/duplicate-skill-names.js';
 import { TRAITS } from '#gw2/professions/mesmer/data/traits-data.js';
 import { prepareMesmerSkillForCatalog } from '#gw2/professions/mesmer/data/skill-preparation.js';
-import type { CatalogEntity, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NativeCatalogOptions } from '#gw2/platform/profession-definition/module-types.js';
 
 const allSkills: readonly Skill[] = [...SKILLS, ...MESMER_SUPPLEMENTAL_SKILLS];
@@ -73,10 +73,12 @@ export const MESMER_NATIVE_CATALOG_OPTIONS: NativeCatalogOptions = Object.freeze
 });
 
 interface MesmerModuleDataOptions extends ProfessionModuleDataOptions {
-  readonly supplementalSkillMechanics?: Readonly<Record<string, SkillFragment>>;
+  readonly supplementalSkillMechanics?: Readonly<Record<string, Partial<Skill>>>;
 }
 
-function prepareMechanics(mechanics: Readonly<Record<string, SkillFragment>>): Readonly<Record<string, SkillFragment>> {
+function prepareMechanics(
+  mechanics: Readonly<Record<string, Partial<Skill>>>
+): Readonly<Record<string, Partial<Skill>>> {
   return Object.freeze(
     Object.fromEntries(
       Object.entries(mechanics).map(([id, skill]) => [
@@ -114,7 +116,7 @@ export function createMesmerModuleData(
       })
   );
 
-  const skillOverrides: Readonly<Record<SkillId, SkillFragment>> = Object.freeze(
+  const skillOverrides: Readonly<Record<SkillId, Partial<Skill>>> = Object.freeze(
     Object.fromEntries(
       generated
         .filter((skill) => flipParentsWithAmmoChild.has(Number(skill.id)))

@@ -8,7 +8,6 @@ import type {
   BalanceProfile,
   CatalogEntity,
   Skill,
-  SkillFragment,
   SkillId
 } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/engine/profession/types.js';
@@ -25,8 +24,8 @@ export interface NativeModuleDataSelection {
   readonly id: string;
   readonly generatedSkills?: readonly Skill[];
   readonly sharedExtraSkills?: readonly Skill[];
-  readonly skillMechanics?: Readonly<Record<string, SkillFragment>>;
-  readonly skillOverrides?: Readonly<Record<string, SkillFragment>>;
+  readonly skillMechanics?: Readonly<Record<string, Partial<Skill>>>;
+  readonly skillOverrides?: Readonly<Record<string, Partial<Skill>>>;
   readonly extraSkills?: readonly Skill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
   readonly traits?: readonly CatalogEntity[];
@@ -212,9 +211,9 @@ function composeNativeCatalog(
     (module) => module.data.specializations || [],
     'specialization id'
   );
-  const mechanics: Record<string, SkillFragment> = {};
+  const mechanics: Record<string, Partial<Skill>> = {};
   const mechanicsOwners = new Map<string, string>();
-  const overrides: Record<string, SkillFragment> = {};
+  const overrides: Record<string, Partial<Skill>> = {};
   const overrideOwners = new Map<string, string>();
   const handlers = new Map<string, SkillHandlerStrategy<object>>();
   const handlerOwners = new Map<string, string>();

@@ -7,7 +7,7 @@
 
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Flamewall pulses on creation and each second through its eight-second duration, including the final boundary.
 const FLAMEWALL_TICK_OFFSETS_MS = [560, 1560, 2560, 3560, 4560, 5560, 6560, 7560, 8560] as const;
@@ -17,7 +17,7 @@ const FLAMEWALL_TICK_OFFSETS_MS = [560, 1560, 2560, 3560, 4560, 5560, 6560, 7560
  * Each entry declares the packet timeline the scheduler materializes for that skill.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Persistent fire field whose damage packets are tagged `field-tick`, letting Persisting Flames
   // recognize and extend both the field and its ticks.
   [ID.FLAMEWALL]: {

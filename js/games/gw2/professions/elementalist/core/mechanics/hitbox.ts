@@ -2,15 +2,15 @@
  * Core Elementalist prepareEvent hooks: last-chance rewrites applied to outgoing
  * packets before they join the canonical scheduler timeline.
  */
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 
 // Preserve packets excluded by the configured hitbox as cancelled markers so
 // timing and diagnostics remain visible without contributing combat effects.
 export function prepareElementalistHitboxEvent(
   context: ElementalistSchedulerContext,
-  event: SimulationEventInput
-): SimulationEventInput {
+  event: SimulationEventBase
+): SimulationEventBase {
   const preparedEvent = event;
   const professionAssumptions = context.config.professionAssumptions || {};
   const hitboxSize = String(professionAssumptions.hitboxSize || context.config.hitboxSize || 'small');

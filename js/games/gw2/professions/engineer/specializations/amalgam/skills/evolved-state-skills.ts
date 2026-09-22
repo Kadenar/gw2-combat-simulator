@@ -4,13 +4,13 @@
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 const PLASMATIC_STATE_CAST_TIME_MS = 480 + 480;
 const PLASMATIC_STATE_RECHARGE_OFFSET_MS = 480;
 
 /** Supplies Evolve and its state-dependent action identities to specialization composition. */
-export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
+export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
   [ID.SYMBIOTIC_SHIELDING]: {
     castTimeMs: 0,
     cooldown: 25,

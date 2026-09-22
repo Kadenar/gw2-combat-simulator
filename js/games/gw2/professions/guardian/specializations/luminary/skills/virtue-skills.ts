@@ -3,9 +3,9 @@
  * Persistent virtue state and behavior remain under Core and Luminary mechanics.
  */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RADIANT_COURAGE]: {
     castTimeMs: 0,
     // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.

@@ -1,12 +1,12 @@
 /** Owns Renegade Citadel order skill fragments. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Each impact applies strike damage and Burning at the same offset after cast completion.
 const BOMBARDMENT_IMPACT_MS = [640, 800, 920, 1000, 1040, 1160, 1240, 1400, 1480, 1720];
 
-export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.CITADEL_BOMBARDMENT]: {
     // Quantize the pooled Hibernus/Seatek impact estimates to 40 ms after cast completion; exclude incomplete volleys.
     castTimeMs: 600,

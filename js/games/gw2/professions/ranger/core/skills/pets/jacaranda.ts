@@ -4,12 +4,12 @@
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Snap each 1.5-second pulse independently so both conditions stay aligned without accumulating rounding drift.
 const EMBRACE_PULSE_TIMES_MS = [0, 1520, 3000, 4520, 6000];
 
-export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.JACARANDAS_EMBRACE]: {
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [

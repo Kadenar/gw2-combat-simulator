@@ -2,10 +2,10 @@
 
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.TWIN_STRIKE]: {
     name: 'Twin Strike',
     type: 'Weapon',

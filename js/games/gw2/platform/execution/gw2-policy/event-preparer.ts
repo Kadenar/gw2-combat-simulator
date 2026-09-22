@@ -8,14 +8,14 @@ import { prepareGw2ComboEvent } from '#gw2/platform/combos/events.js';
 import { weaponStrengthProfileIdForEvent } from '#gw2/platform/equipment/weapons/strength.js';
 
 import type { SchedulerContext } from '#gw2/platform/execution/types.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface Gw2EventPreparer {
-  prepare(context: SchedulerContext, event: SimulationEventInput): SimulationEventInput;
+  prepare(context: SchedulerContext, event: SimulationEventBase): SimulationEventBase;
 }
 
-function isCoefficientBasedDamage(event: SimulationEventInput): boolean {
+function isCoefficientBasedDamage(event: SimulationEventBase): boolean {
   return (
     event.type === 'damage' &&
     Number(event.coefficient) > 0 &&
@@ -33,7 +33,7 @@ function isCoefficientBasedDamage(event: SimulationEventInput): boolean {
 export function createGw2EventPreparer(): Readonly<Gw2EventPreparer> {
   const triggeredActivationIds = new Map<string, string>();
 
-  const prepare = (context: SchedulerContext, event: SimulationEventInput): SimulationEventInput => {
+  const prepare = (context: SchedulerContext, event: SimulationEventBase): SimulationEventBase => {
     // Legacy Ranger extension commands enter the same chronological path as shared extension events.
     if (event.type === 'ranger.boon-extension') event = { ...event, type: 'boon_extension' };
     event = prepareGw2ComboEvent(event);

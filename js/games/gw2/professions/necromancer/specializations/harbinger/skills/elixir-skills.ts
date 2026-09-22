@@ -5,10 +5,10 @@
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /** Supplies Harbinger elixir fragments to specialization composition. */
-export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ELIXIR_OF_BLISS]: {
     castTimeMs: 360,
     blightCost: 5,

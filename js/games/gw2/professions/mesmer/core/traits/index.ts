@@ -1,17 +1,14 @@
 /** Public dispatcher for imperative Core Mesmer trait behavior. */
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import {
-  triggerChaoticInterruption,
-  triggerIllusionaryMembrane,
-  type MesmerIllusionaryMembraneContext
-} from '#gw2/professions/mesmer/core/traits/chaos.js';
+import { triggerChaoticInterruption, triggerIllusionaryMembrane } from '#gw2/professions/mesmer/core/traits/chaos.js';
 import {
   triggerMasterFencer,
   triggerSharperImages,
   type MesmerDuelingCriticalContext
 } from '#gw2/professions/mesmer/core/traits/dueling.js';
-import { triggerMaimTheDisillusioned, type MesmerMaimContext } from '#gw2/professions/mesmer/core/traits/illusions.js';
+import { triggerMaimTheDisillusioned } from '#gw2/professions/mesmer/core/traits/illusions.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 export { scheduleBountifulBlades, triggerDazzling } from '#gw2/professions/mesmer/core/traits/domination.js';
 export {
@@ -30,8 +27,6 @@ export {
   triggerThePledge
 } from '#gw2/professions/mesmer/core/traits/illusions.js';
 
-type MesmerPostShatterTraitContext = MesmerIllusionaryMembraneContext & MesmerMaimContext;
-
 /** Preserves Master Fencer before Sharper Images for one critical observation. */
 export function triggerMesmerCriticalTraits(
   context: MesmerDuelingCriticalContext,
@@ -44,7 +39,7 @@ export function triggerMesmerCriticalTraits(
 
 /** Preserves Maim before Illusionary Membrane after shatter packet resolution. */
 export function triggerMesmerPostShatterTraits(
-  context: MesmerPostShatterTraitContext,
+  context: Readonly<Pick<MesmerRuntime, 'traits' | 'addEvent' | 'addCondition' | 'addTraitProc' | 'balanceProfile'>>,
   shatter: MesmerShatter | undefined,
   resolution: MesmerShatterResolution
 ): void {

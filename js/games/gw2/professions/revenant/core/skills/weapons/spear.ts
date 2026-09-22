@@ -1,10 +1,10 @@
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
-export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ABYSSAL_BLITZ]: {
     // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.
     handlerId: 'revenant.spear-recharge',

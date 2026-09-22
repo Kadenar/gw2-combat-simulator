@@ -1,4 +1,4 @@
-import type { BalanceProfile, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import {
   createNativeModuleData,
@@ -6,7 +6,7 @@ import {
 } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 
 export interface ProfessionModuleDataOptions<TSkill extends Skill = Skill> {
-  readonly skillMechanics: Readonly<Record<string, SkillFragment>>;
+  readonly skillMechanics: Readonly<Record<string, Partial<Skill>>>;
   readonly extraSkills?: readonly TSkill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
 }

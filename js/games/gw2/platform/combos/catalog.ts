@@ -4,7 +4,7 @@ import {
   normalizeComboFinisherType,
   normalizeComboFieldSelectionAnchor
 } from '#gw2/platform/combos/events.js';
-import type { SkillEffect, SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { SkillEffect, Skill } from '#gw2/platform/engine/skills/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 function positiveInteger(value: unknown, fallback: number, label: string): number {
@@ -128,7 +128,7 @@ function normalizeEffect(effect: SkillEffect, effectIndex: number): SkillEffect 
 }
 
 /** Normalizes explicit GW2 combo descriptors at native catalog assembly time. */
-export function normalizeGw2ComboCatalogSkill(skill: SkillFragment): SkillFragment {
+export function normalizeGw2ComboCatalogSkill(skill: Partial<Skill>): Partial<Skill> {
   const comboFields = skill.comboFields != null ? normalizeFieldDescriptors(skill.comboFields) : undefined;
   const comboFinishers =
     skill.comboFinishers != null ? normalizeFinisherDescriptors(skill.comboFinishers, 'skill') : undefined;

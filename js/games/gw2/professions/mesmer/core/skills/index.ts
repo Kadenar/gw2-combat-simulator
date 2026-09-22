@@ -2,7 +2,7 @@
  * Composes owner-local Core Mesmer skill catalogs without owning behavior.
  * Runtime execution lives in sibling controller files and persistent illusion state lives under `mechanics/`.
  */
-import type { SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 import { MESMER_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/slot-skills.js';
@@ -19,7 +19,7 @@ import { MESMER_WEAPONS_STAFF_SKILL_MECHANICS } from '#gw2/professions/mesmer/co
 import { MESMER_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/weapons/sword.js';
 import { MESMER_WEAPONS_TORCH_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/weapons/torch.js';
 
-export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
+export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Skill>>> = Object.freeze({
   ...MESMER_PROFESSION_SKILLS_SKILL_MECHANICS,
   ...MESMER_SLOT_SKILLS_SKILL_MECHANICS,
   ...MESMER_WEAPONS_AXE_SKILL_MECHANICS,

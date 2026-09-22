@@ -30,7 +30,7 @@ import type {
   EngineerRechargeContext,
   EngineerSchedulerContext
 } from '#gw2/professions/engineer/types.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
 /** Applies mech cast traits after the skill's effects have been emitted. */
@@ -44,7 +44,7 @@ export const mechanistAdvancedSchedulerHooks = Object.freeze({
   prepareEvent: {
     id: 'engineer.mech-boon-audience',
     order: 10,
-    handler: (context: EngineerSchedulerContext, event: SimulationEventInput) =>
+    handler: (context: EngineerSchedulerContext, event: SimulationEventBase) =>
       prepareGw2BuffCompanionCandidates(event, mechanistState.from(context).mech.active ? ['engineer.mech'] : [])
   },
   initialize: {

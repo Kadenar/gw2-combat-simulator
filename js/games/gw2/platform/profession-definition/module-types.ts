@@ -5,7 +5,6 @@ import type {
   BalanceProfile,
   CatalogEntity,
   Skill,
-  SkillFragment,
   SkillId
 } from '#gw2/platform/engine/skills/types.js';
 import type {
@@ -28,8 +27,8 @@ export type NativeSkillHandlerRegistry<TContext extends object> =
 
 export interface NativeModuleCatalogData {
   readonly generatedSkills?: readonly Skill[];
-  readonly skillMechanics?: Readonly<Record<string, SkillFragment>>;
-  readonly skillOverrides?: Readonly<Record<string, SkillFragment>>;
+  readonly skillMechanics?: Readonly<Record<string, Partial<Skill>>>;
+  readonly skillOverrides?: Readonly<Record<string, Partial<Skill>>>;
   readonly extraSkills?: readonly Skill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
   readonly traits?: readonly CatalogEntity[];

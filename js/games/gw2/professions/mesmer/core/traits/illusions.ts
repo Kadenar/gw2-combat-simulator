@@ -5,13 +5,7 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type {
-  MesmerAddCondition,
-  MesmerAddEvent,
-  MesmerAddTraitProc,
-  MesmerRuntime,
-  MesmerSchedulerContext
-} from '#gw2/professions/mesmer/types.js';
+import type { MesmerRuntime, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
@@ -73,20 +67,6 @@ export function triggerThePledge(context: MesmerSchedulerContext, event: Simulat
   });
 }
 
-interface MesmerCompoundingPowerContext {
-  readonly traits: ReadonlySet<number>;
-  readonly addEvent: MesmerAddEvent;
-  readonly addTraitProc: MesmerAddTraitProc;
-  readonly balanceProfile: MesmerRuntime['balanceProfile'];
-}
-
-export interface MesmerMaimContext {
-  readonly traits: ReadonlySet<number>;
-  readonly addCondition: MesmerAddCondition;
-  readonly addTraitProc: MesmerAddTraitProc;
-  readonly balanceProfile: MesmerRuntime['balanceProfile'];
-}
-
 /** Returns Cry of Pain's Confusion override before the owning shatter emits packets. */
 export function applyCryOfPain(
   context: CryOfPainContext,
@@ -103,7 +83,7 @@ export function applyCryOfPain(
 
 /** Emits Compounding Power stacks and its proc record at the owning lifecycle position. */
 export function triggerCompoundingPower(
-  context: MesmerCompoundingPowerContext,
+  context: Readonly<Pick<MesmerRuntime, 'traits' | 'addEvent' | 'addTraitProc' | 'balanceProfile'>>,
   at: number,
   count: number,
   sourceSkill: string,
@@ -126,7 +106,10 @@ export function triggerCompoundingPower(
 }
 
 /** Applies Maim the Disillusioned to the first-strike groups reported by the shatter resolver. */
-export function triggerMaimTheDisillusioned(context: MesmerMaimContext, resolution: MesmerShatterResolution): void {
+export function triggerMaimTheDisillusioned(
+  context: Readonly<Pick<MesmerRuntime, 'traits' | 'addCondition' | 'addTraitProc' | 'balanceProfile'>>,
+  resolution: MesmerShatterResolution
+): void {
   if (!resolution.traitHits.length || !context.traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) return;
   const effect = context
     .balanceProfile(TRAIT.MAIM_THE_DISILLUSIONED)

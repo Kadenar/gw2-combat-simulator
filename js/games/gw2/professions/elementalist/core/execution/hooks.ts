@@ -6,7 +6,7 @@ import {
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { freshAirReaction } from '#gw2/professions/elementalist/core/traits/air.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { resetElementalistAttunementCooldowns } from '#gw2/professions/elementalist/core/state.js';
 import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/hitbox.js';
@@ -34,7 +34,7 @@ export const elementalistCoreSchedulerHooks = Object.freeze({
       order: 5,
       // A live summoned elemental is an extra boon target, so it must be
       // offered through its final impact timestamp, before the expiry task removes it.
-      handler(context: ElementalistSchedulerContext, event: SimulationEventInput): SimulationEventInput {
+      handler(context: ElementalistSchedulerContext, event: SimulationEventBase): SimulationEventBase {
         const elemental = professionCoreState(context).summonedElemental;
         const active = elemental.element !== null && elemental.activeUntil >= Number(event.at ?? context.state.time);
         return prepareGw2BuffCompanionCandidates(

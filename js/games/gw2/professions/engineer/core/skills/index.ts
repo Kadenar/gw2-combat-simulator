@@ -4,7 +4,7 @@
  * Weapon skills remain Core-owned because Weaponmaster Training makes the
  * physical weapon families profession-wide.
  */
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { ENGINEER_MED_KIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/med-kit.js';
 import { ENGINEER_GRENADE_KIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/grenade-kit.js';
 import { ENGINEER_BOMB_KIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/bomb-kit.js';
@@ -25,7 +25,7 @@ import { ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS } from '#gw2/professions/enginee
 import { ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/weapons/sword.js';
 
 /** Composes kit fragments with physical weapons, utilities, toolbelt actions, and synthetic Core skills. */
-export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
+export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
   ...ENGINEER_TRAIT_SKILL_MECHANICS,
   ...ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS,
   ...ENGINEER_SLOT_SKILLS_SKILL_MECHANICS,

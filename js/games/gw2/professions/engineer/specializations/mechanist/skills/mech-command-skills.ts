@@ -4,12 +4,12 @@
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { MECHANIST_COMMAND_DURATIONS } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 
 // F1-F3 commands execute on the mech's own serial cast lane so their animations
 // can overlap the engineer without allowing non-instant mech commands to overlap.
-function mechCommand(fragment: SkillFragment): SkillFragment {
+function mechCommand(fragment: Partial<Skill>): Partial<Skill> {
   const instant = Number(fragment.castTimeMs || 0) === 0 && fragment.quicknessCastTimeMs == null;
   return {
     ...fragment,
@@ -21,7 +21,7 @@ function mechCommand(fragment: SkillFragment): SkillFragment {
 }
 
 /** Supplies command fragments and their independent cast-lane metadata. */
-export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
+export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
   [ID.JADE_MORTAR]: mechCommand({
     quicknessCastTimeMs: MECHANIST_COMMAND_DURATIONS[ID.JADE_MORTAR] * 1000,
     // Issuing the command starts recharge even though the mech remains busy

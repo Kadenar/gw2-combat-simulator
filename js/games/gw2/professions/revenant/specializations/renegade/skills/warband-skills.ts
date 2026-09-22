@@ -4,7 +4,7 @@
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
-import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 
 const BASE_RAZORCLAW_EFFECTS = Object.freeze([
@@ -48,7 +48,7 @@ const BASE_BREAKRAZOR_EFFECTS = Object.freeze([
 ] as const);
 
 // Quantize Icerazor impacts and their conditions together so each volley retains its 160 ms cadence.
-export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ICERAZORS_IRE]: {
     // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/mechanics/kalla-and-band-together.ts`.
     handlerId: 'revenant.band-together',

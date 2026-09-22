@@ -3,9 +3,9 @@
  * Stance runtime windows remain under `execution/` and specialization mechanics.
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.VULTURE_STANCE]: {
     castTimeMs: 0,
     effects: [],

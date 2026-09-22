@@ -1,14 +1,14 @@
 /** Explicit PvE skill mechanics owned by the Galeshot Ranger module. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Cyclone Bow entry and exit are state-selected variants of one F5 UI tile.
 const CYCLONE_BOW_PALETTE_TILE = 'galeshot-cyclone-bow';
 // Keen Shot flips to Hawkeye at full Wind Force without creating a second weapon tile.
 const CYCLONE_BOW_ONE_PALETTE_TILE = 'galeshot-cyclone-bow-one';
 
-export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.WHIRLWIND]: {
     evades: true,
     effects: [],

@@ -1,10 +1,10 @@
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Snap each intended packet independently so rounding a repeated interval cannot accumulate drift.
-export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SURGE_OF_THE_MISTS]: {
     // Reviewed timings are Quickness durations; Surge's coefficient is the total across nine hits.
     castTimeMs: 1720,

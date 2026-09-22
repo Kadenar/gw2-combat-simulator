@@ -4,9 +4,9 @@
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
-export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
+export const MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Skill>>> = Object.freeze({
   [ID.POWER_SPIKE]: {
     castTimeMs: 0,
     rechargeAnchor: 'castStart',

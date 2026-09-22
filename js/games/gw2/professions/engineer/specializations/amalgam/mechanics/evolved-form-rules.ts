@@ -20,11 +20,7 @@ import { amalgamCastAvailability } from '#gw2/professions/engineer/specializatio
 import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type {
-  EngineerEvolveAttributePool,
-  EngineerMaximumAmmoContext,
-  EngineerSchedulerContext
-} from '#gw2/professions/engineer/types.js';
+import type { EngineerMaximumAmmoContext, EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 const EVOLVE_SKILL_IDS = new Set([ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX]);
@@ -109,7 +105,7 @@ function modifyAmalgamAttributes(context: EngineerModifierContext, attributes: G
     const evolveFactor = hasTrait(context, TRAIT.DOUBLE_HELIX)
       ? balanceProfileValueFromContext(context, PROFILE.evolve, 'coefficientMultiplier', 1.2)
       : balanceProfileValueFromContext(context, PROFILE.evolve, 'damageMultiplier', 1.1);
-    const pool = context.config?.amalgamEvolveAttributePool as EngineerEvolveAttributePool | undefined;
+    const pool = context.config?.amalgamEvolveAttributePool;
     for (const [attribute, poolAttribute] of EVOLVE_ATTRIBUTES) {
       const eligible = Number(pool?.[poolAttribute] ?? modified[attribute] ?? 0);
       const bonus = eligible * (evolveFactor - 1);

@@ -1,13 +1,13 @@
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // The channel's strikes, Vulnerability applications, and whirl attempts share the same packet grid.
 const WHIRLING_DEFENSE_TICK_OFFSETS_MS = [200, 360, 600, 840, 1040, 1280, 1520, 1680, 1920, 2160, 2360, 2600] as const;
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
-export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RICOCHET]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     interruptCommitMs: 320,

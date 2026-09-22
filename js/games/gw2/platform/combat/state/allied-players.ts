@@ -4,7 +4,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 import type {
   EffectAudience,
   ResolvedEffectAudience,
-  SimulationEventInput
+  SimulationEventBase
 } from '#gw2/platform/engine/events/events.js';
 import { boundedInteger, boundedNumber, clamp } from '#kernel/core/numeric.js';
 
@@ -69,9 +69,9 @@ export function gw2AlliedPlayerAssumptions(config: Gw2AlliedPlayerConfig = {}): 
  * selection, including finishers whose generated Area boons resolve later.
  */
 export function prepareGw2BuffCompanionCandidates(
-  event: SimulationEventInput,
+  event: SimulationEventBase,
   companionIds: readonly unknown[]
-): SimulationEventInput {
+): SimulationEventBase {
   const candidates = [...new Set(companionIds.map(String).filter(Boolean))];
   if (event.type === 'combo_finisher') return { ...event, companionCandidates: candidates };
   if (event.type !== 'buff' || event.resolvedAudience || !event.audience) return event;

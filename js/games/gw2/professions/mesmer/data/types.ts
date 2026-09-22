@@ -4,10 +4,8 @@ import type {
   ConditionTick,
   Skill,
   SkillEffect,
-  SkillFragment,
   SkillId,
-  StrikeEffect,
-  StrikeTick
+  StrikeEffect
 } from '#gw2/platform/engine/skills/types.js';
 import type { EffectMetadata } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
@@ -105,7 +103,6 @@ export type MesmerTrackedHitDamage = Partial<MesmerStrikeEffect> & {
   readonly hitsRequired: number;
   readonly name: string;
   readonly skillId?: SkillId;
-  readonly ticks?: readonly StrikeTick[];
 };
 
 export interface MesmerSkill extends Skill {
@@ -132,6 +129,6 @@ export interface MesmerSkill extends Skill {
   readonly mesmerMechanic?: MesmerMechanic;
 }
 
-export type MesmerSkillCatalogFragment = SkillFragment & {
+export type MesmerSkillCatalogFragment = Partial<Skill> & {
   readonly id: number;
 };

@@ -17,7 +17,7 @@ import {
   updateLuminaryTraitCastState
 } from '#gw2/professions/guardian/specializations/luminary/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type {
   GuardianPrecastContext,
   GuardianSchedulerContext,
@@ -32,10 +32,7 @@ const GLARING_BURST_VARIANT_LABELS: Readonly<Record<string, string>> = Object.fr
 });
 
 /** Labels each Glaring Burst action with the runtime-selected weapon variant for timeline tooltips. */
-function prepareGlaringBurstAction(
-  context: GuardianSchedulerContext,
-  event: SimulationEventInput
-): SimulationEventInput {
+function prepareGlaringBurstAction(context: GuardianSchedulerContext, event: SimulationEventBase): SimulationEventBase {
   if (event.type !== 'action' || event.skillId !== GUARDIAN_SKILL_IDS.GLARING_BURST) return event;
   const state = luminaryState.from(context);
   const weapon = state.radiantWeapon;

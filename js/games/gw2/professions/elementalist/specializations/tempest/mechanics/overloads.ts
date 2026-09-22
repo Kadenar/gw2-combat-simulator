@@ -16,7 +16,7 @@ import {
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type {
@@ -300,7 +300,7 @@ function modifyRechargeDuration(context: ElementalistPrecastContext, duration: n
 }
 
 // Attribute every overload-sourced event to the profession mechanic rather than a held weapon.
-function prepareEvent(_context: ElementalistSchedulerContext, event: SimulationEventInput): SimulationEventInput {
+function prepareEvent(_context: ElementalistSchedulerContext, event: SimulationEventBase): SimulationEventBase {
   return Object.values(ELEMENTALIST_OVERLOAD_SKILL_IDS).includes(Number(event.skillId ?? event.sourceId))
     ? { ...event, skillWeapon: 'Profession mechanic' }
     : event;

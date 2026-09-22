@@ -1,7 +1,7 @@
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // The prepared field's five packets begin after the activation-to-damage delay observed in EVTC.
 const THOUSAND_NEEDLES_INITIAL_DELAY_MS = 280;
@@ -9,7 +9,7 @@ const PITFALL_PULSE_OFFSETS_MS = [1000, 2000, 3000];
 
 // EVTC-measured Quickness timings keep utility casts aligned with their observed cast-lane occupancy.
 // Share each impact's timing while preserving effect order and effect-local payloads.
-export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.WITHDRAW]: {
     castTimeMs: 0,
     cooldown: 18,

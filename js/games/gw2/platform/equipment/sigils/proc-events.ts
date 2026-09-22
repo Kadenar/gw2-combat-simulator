@@ -1,11 +1,11 @@
 import { timeKey } from '#kernel/core/clock.js';
-import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 
 export const GW2_SCHEDULER_SIGIL_PREDICTION = 'critical-sigil';
 
 /** Both adapters use the same supported packet kinds; unsupported authored effects cannot silently become conditions. */
-export function createCriticalSigilEvent(name: string, proc: Gw2SigilProc, sourceSkill: string): SimulationEventInput {
+export function createCriticalSigilEvent(name: string, proc: Gw2SigilProc, sourceSkill: string): SimulationEventBase {
   if (proc.effect === 'strike') return createSigilStrikeEvent(name, proc, sourceSkill);
   if (proc.effect === 'condition') return createSigilConditionEvent(name, proc, sourceSkill);
   throw new TypeError(`Unsupported critical sigil effect: ${name} (${proc.effect}).`);
@@ -24,7 +24,7 @@ export function isSchedulerSigilPrediction(event: SimulationEvent): boolean {
 function commonSigilEvent(
   name: string,
   sourceSkill: string
-): Pick<SimulationEventInput, 'name' | 'skillName' | 'source' | 'sourceId' | 'actorType' | 'ownerActorType'> & {
+): Pick<SimulationEventBase, 'name' | 'skillName' | 'source' | 'sourceId' | 'actorType' | 'ownerActorType'> & {
   readonly triggeredBy: string;
 } {
   return {
@@ -39,7 +39,7 @@ function commonSigilEvent(
 }
 
 /** Builds the canonical strike packet shared by scheduler and resolver sigils. */
-export function createSigilStrikeEvent(name: string, proc: Gw2SigilProc, sourceSkill: string): SimulationEventInput {
+export function createSigilStrikeEvent(name: string, proc: Gw2SigilProc, sourceSkill: string): SimulationEventBase {
   return {
     ...commonSigilEvent(name, sourceSkill),
     type: 'damage',
@@ -57,7 +57,7 @@ export function createSigilStrikeEvent(name: string, proc: Gw2SigilProc, sourceS
 }
 
 /** Builds the canonical condition packet shared by scheduler and resolver sigils. */
-export function createSigilConditionEvent(name: string, proc: Gw2SigilProc, sourceSkill: string): SimulationEventInput {
+export function createSigilConditionEvent(name: string, proc: Gw2SigilProc, sourceSkill: string): SimulationEventBase {
   return {
     ...commonSigilEvent(name, sourceSkill),
     type: 'condition',

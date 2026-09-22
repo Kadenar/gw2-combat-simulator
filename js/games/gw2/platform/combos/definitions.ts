@@ -1,4 +1,4 @@
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ComboEvent, ComboFieldType, ComboFinisherType } from '#gw2/platform/combos/types.js';
 
@@ -410,10 +410,10 @@ function inheritedComboFields(combo: ComboEvent): ComboOutcomeEventBase {
 }
 
 /** Converts one successful semantic combo into supported common events. */
-export function materializeComboOutcome(combo: ComboEvent): readonly SimulationEventInput[] {
+export function materializeComboOutcome(combo: ComboEvent): readonly SimulationEventBase[] {
   const outcome = comboDefinition(combo.fieldType, combo.finisherType).outcome;
   const base = inheritedComboFields(combo);
-  const one = (): SimulationEventInput | null => {
+  const one = (): SimulationEventBase | null => {
     switch (outcome.kind) {
       case 'aura':
         return {
@@ -494,6 +494,6 @@ export function materializeComboOutcome(combo: ComboEvent): readonly SimulationE
 
   const applications = Math.max(1, combo.applicationCount);
   return Object.freeze(
-    Array.from({ length: applications }, () => one()).filter((event): event is SimulationEventInput => event != null)
+    Array.from({ length: applications }, () => one()).filter((event): event is SimulationEventBase => event != null)
   );
 }

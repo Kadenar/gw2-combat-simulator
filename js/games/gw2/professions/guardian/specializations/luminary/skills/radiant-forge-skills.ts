@@ -4,7 +4,7 @@
  */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID = 25_518;
 export const LUMINARY_INITIAL_STATE_SKILL_IDS = Object.freeze({
@@ -53,7 +53,7 @@ export const LUMINARY_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   }))
 ]);
 
-export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID]: {
     simulatorExcluded: false,
     castTimeMs: 0,

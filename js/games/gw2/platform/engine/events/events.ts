@@ -364,7 +364,6 @@ export type CustomSimulationEvent = SimulationEventBase<CustomSimulationEventTyp
 export type SimulationEvent = DamageEvent | ConditionEvent | CommonSimulationEvent | CustomSimulationEvent;
 
 /** Input constructors share the envelope; runtime validation still owns external acceptance. */
-export type SimulationEventInput = SimulationEventBase;
 
 /** Detached formula facts captured only for requested detailed damage diagnostics. */
 export interface Gw2DamageCalculation {

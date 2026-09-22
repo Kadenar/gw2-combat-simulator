@@ -1,8 +1,8 @@
 /** Owns Legendary Centaur Stance skill fragments and their alternate identities. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.PROTECTIVE_SOLACE]: {
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',

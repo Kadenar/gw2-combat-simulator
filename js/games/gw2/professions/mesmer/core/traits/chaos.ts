@@ -9,7 +9,6 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 
 import type {
   MesmerAddDamage,
-  MesmerAddEvent,
   MesmerAddTraitProc,
   MesmerRuntime,
   MesmerRuntimeState,
@@ -19,13 +18,6 @@ import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatt
 
 import type { MesmerTraitDamage } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-
-export interface MesmerIllusionaryMembraneContext {
-  readonly traits: ReadonlySet<number>;
-  readonly addEvent: MesmerAddEvent;
-  readonly addTraitProc: MesmerAddTraitProc;
-  readonly balanceProfile: MesmerRuntime['balanceProfile'];
-}
 
 interface MethodOfMadnessContext {
   readonly state: SchedulerState<MesmerRuntimeState>;
@@ -90,7 +82,7 @@ export function triggerChaoticInterruption(
 
 /** Applies Illusionary Membrane after earlier post-resolution shatter traits. */
 export function triggerIllusionaryMembrane(
-  context: MesmerIllusionaryMembraneContext,
+  context: Readonly<Pick<MesmerRuntime, 'traits' | 'addEvent' | 'addTraitProc' | 'balanceProfile'>>,
   shatter: MesmerShatter | undefined,
   skillName: string,
   at: number

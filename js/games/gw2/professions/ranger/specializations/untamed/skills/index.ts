@@ -4,13 +4,13 @@
  */
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Both Unleash actions replace the same F5 tile as control passes between pet and ranger.
 const UNLEASH_PALETTE_TILE = 'ranger-untamed-unleash';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
-export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ENVELOPING_HAZE]: {
     castTimeMs: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.

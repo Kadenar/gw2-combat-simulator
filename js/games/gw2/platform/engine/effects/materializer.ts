@@ -4,7 +4,7 @@
  * applications, resolving per-tick timing against the cast start or end. Cast
  * interruption and actual event emission remain scheduler concerns.
  */
-import type { EffectMetadata, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { EffectMetadata, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { Skill, SkillEffect, SkillId, StrikeEffect, StrikeTick } from '#gw2/platform/engine/skills/types.js';
 
@@ -24,7 +24,7 @@ export interface EffectEventBase {
 
 export interface MaterializedEffectApplication {
   readonly at: number;
-  readonly event: SimulationEventInput;
+  readonly event: SimulationEventBase;
 }
 
 export interface MaterializeSkillEffectOptions {

@@ -1,12 +1,12 @@
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // EVTC-measured Quickness timings keep spear casts aligned with their observed cast-lane occupancy.
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.
-export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ENTANGLING_ASP]: {
     // Custom: Selects the spear follow-up chain and reacts to committed packets; see `core/mechanics/spear-chain.ts`.
     handlerId: 'thief.spear-chain',

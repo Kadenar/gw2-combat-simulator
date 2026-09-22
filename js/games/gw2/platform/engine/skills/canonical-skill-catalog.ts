@@ -16,7 +16,6 @@ import type {
   ConditionTick,
   Skill,
   SkillEffect,
-  SkillFragment,
   SkillId,
   SkillLockout,
   StrikeTick
@@ -31,8 +30,8 @@ export interface AutoattackChainOptions {
 
 interface CanonicalCatalogOptions {
   readonly generated?: readonly Skill[];
-  readonly mechanics?: Readonly<Record<string, SkillFragment>>;
-  readonly overrides?: Readonly<Record<string, SkillFragment>>;
+  readonly mechanics?: Readonly<Record<string, Partial<Skill>>>;
+  readonly overrides?: Readonly<Record<string, Partial<Skill>>>;
   readonly extraSkills?: readonly Skill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
   readonly autoattackChains?: AutoattackChainOptions;
@@ -42,7 +41,7 @@ interface CanonicalCatalogOptions {
   readonly weapons?: readonly string[];
   readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
   readonly skillNameCollision?: 'first' | 'last';
-  readonly skillNormalizer?: (skill: SkillFragment) => SkillFragment;
+  readonly skillNormalizer?: (skill: Partial<Skill>) => Partial<Skill>;
 }
 
 interface NormalizedAutoattackChains {

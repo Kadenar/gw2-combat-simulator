@@ -1,8 +1,8 @@
 /** Owns Conduit Cosmic Wisdom form and attack skills; Demon button aliases resolve to Core skills. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FORM_OF_THE_DERVISH_ATTACK]: {
     castTimeMs: 0,
     cooldown: 0,

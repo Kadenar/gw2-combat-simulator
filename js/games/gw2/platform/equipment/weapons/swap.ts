@@ -1,7 +1,7 @@
 import { replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 
@@ -15,7 +15,7 @@ interface Gw2WeaponSwapContext {
     readonly onWeaponSwap: (context: object, skill: Skill) => unknown;
   };
   readonly effectiveEnd: number;
-  emit(event: SimulationEventInput): unknown;
+  emit(event: SimulationEventBase): unknown;
 }
 
 /**

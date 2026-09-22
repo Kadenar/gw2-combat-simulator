@@ -6,7 +6,7 @@ import {
   emitSkillDamage
 } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 
-import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { ConditionTick, Skill, StrikeTick } from '#gw2/platform/engine/skills/types.js';
 import type {
@@ -20,7 +20,7 @@ import type { MesmerEventExtra, MesmerSummonKind } from '#gw2/professions/mesmer
 
 interface MesmerEventEmitterOptions {
   readonly context: MesmerSchedulerContext;
-  readonly emit: (event: SimulationEventInput) => SimulationEvent | null;
+  readonly emit: (event: SimulationEventBase) => SimulationEvent | null;
   readonly activePrimaryWeapon: () => string;
   readonly weaponStrength: Readonly<Record<string, number>>;
 }
@@ -59,7 +59,7 @@ export function createMesmerEventEmitters({
     const canonical = { ...event, source, sourceId, ...ownership(event.actorType, event.summonKind) };
     if (event.type === 'buff') return emitSkillBuff(emissionContext, canonical as never);
     if (event.type === 'control') return emitSkillControl(emissionContext, canonical as never);
-    return emit(canonical as SimulationEventInput);
+    return emit(canonical as SimulationEventBase);
   };
 
   const addTraitProc: MesmerAddTraitProc = (name, at, sourceSkill = '', detail = '') =>

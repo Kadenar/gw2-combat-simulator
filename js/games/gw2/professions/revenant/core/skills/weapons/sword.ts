@@ -1,10 +1,10 @@
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 
 // Snap each intended packet independently so rounding a repeated interval cannot accumulate drift.
-export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.UNRELENTING_ASSAULT]: {
     // Represent both activation phases with their reviewed total Quickness duration.
     castTimeMs: 840,

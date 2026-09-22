@@ -3,7 +3,7 @@
  * Facet runtime state remains under sibling `mechanics/` modules.
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 
 // Facet of Nature has one legend-dependent consume, but every variant occupies
@@ -11,7 +11,7 @@ import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 const FACET_OF_NATURE_PALETTE_TILE = 'revenant-herald-facet-of-nature';
 const TRUE_NATURE_SHARED_COOLDOWN = 20;
 
-export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FACET_OF_STRENGTH]: {
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     handlerId: 'revenant.upkeep',

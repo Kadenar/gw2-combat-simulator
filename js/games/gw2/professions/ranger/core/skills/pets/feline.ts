@@ -4,10 +4,10 @@
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
-export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.MIGHTY_ROAR]: {
     effects: [
       {

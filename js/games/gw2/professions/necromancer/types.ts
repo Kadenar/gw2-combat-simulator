@@ -110,7 +110,6 @@ export type NecromancerSimulationEvent = SimulationEvent & {
   readonly expiresAt?: number;
   readonly hitIndex?: number;
   readonly state?: Partial<NecromancerState>;
-  readonly summonKind?: string;
 };
 
 export type NecromancerResolverEvent = Gw2ResolverEvent & {
@@ -147,10 +146,6 @@ export type NecromancerResolverContext = Gw2ResolverRuntime & {
 
 export type NecromancerQueryRuntime = Gw2QueryRuntime & {
   readonly profession?: NecromancerRuntimeState | Partial<NecromancerState> | null;
-  readonly totals?: {
-    readonly strike?: number;
-    readonly condition?: number;
-  };
 };
 
 export interface NecromancerPlanningStateProjectionOptions {

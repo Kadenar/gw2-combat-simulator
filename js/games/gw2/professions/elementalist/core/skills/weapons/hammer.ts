@@ -8,7 +8,7 @@
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Hurricane of Pain uses canonical parallel timelines so every landed strike applies its matching Vulnerability.
 const HURRICANE_OF_PAIN_TICKS = [200, 360, 600, 840, 1080, 1320, 1560, 1800, 2040] as const;
@@ -21,7 +21,7 @@ const HAMMER_ORB_PACKET_OFFSETS_MS = Array.from({ length: 15 }, (_, index) => (i
  * Each entry declares the packet timeline the scheduler materializes for that skill.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SINGEING_STRIKE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Singeing Strike',

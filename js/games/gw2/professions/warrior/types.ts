@@ -88,7 +88,6 @@ export type WarriorResolverEvent = Gw2ResolverEvent & {
 };
 
 export type WarriorResolverContext = Gw2ResolverRuntime & {
-  config: Gw2Config;
   profession: WarriorRuntimeState;
 };
 

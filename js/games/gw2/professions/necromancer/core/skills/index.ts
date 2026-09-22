@@ -5,7 +5,7 @@
  * fragments. Weapon skills remain Core-owned because Weaponmaster Training
  * makes elite weapon families profession-wide.
  */
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/profession-skills.js';
 import { NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
 import {
@@ -24,7 +24,7 @@ import { NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/necr
 import { NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/weapons/torch.js';
 import { NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/weapons/warhorn.js';
 
-export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   ...NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS,
   ...NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS,
   ...NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS,

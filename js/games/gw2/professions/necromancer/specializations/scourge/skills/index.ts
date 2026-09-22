@@ -6,12 +6,12 @@
  * makes elite weapon families profession-wide.
  */
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Herald of Sorrow swaps Desert Shroud for Sandstorm Shroud; both are state-selected variants of one UI tile.
 const SCOURGE_SHROUD_PALETTE_TILE = 'scourge-desert-shroud';
 
-export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.NEFARIOUS_FAVOR]: {
     castTimeMs: 0,
     effects: [],

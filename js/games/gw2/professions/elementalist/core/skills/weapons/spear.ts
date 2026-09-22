@@ -13,14 +13,14 @@
 
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /**
  * Skill-id keyed fragments the catalog layers over the raw spear skill records so the
  * simulator knows each skill's cast timeline, emitted packets, and combo participation.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FLAME_SPEAR]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Flame Spear',

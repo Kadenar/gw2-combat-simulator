@@ -4,7 +4,7 @@
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /**
  * Simulator-owned skill definitions merged over the API catalog for Evoker.
@@ -15,7 +15,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
  * declared here.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.IGNITE]: {
     name: 'Ignite',
     type: 'Profession',

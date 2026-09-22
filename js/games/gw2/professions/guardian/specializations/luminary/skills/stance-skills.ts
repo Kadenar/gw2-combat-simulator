@@ -4,12 +4,12 @@
  */
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Cast-scaled impacts use the measured Quickness timeline as their source data.
 export const PIERCING_STANCE_IMPACT_MS = 160;
 
-export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RESOLUTE_STANCE]: {
     castTimeMs: 680,
     effects: []

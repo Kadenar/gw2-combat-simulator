@@ -4,11 +4,11 @@
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
-export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
+export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Skill>>> = Object.freeze({
   [ID.WELL_OF_PRECOGNITION]: {
     castTimeMs: 800,
     // Protect allies during the well's three-second lifetime, then refund endurance when it ends.
@@ -235,9 +235,8 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Skill
   }
 });
 
-export const MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze(
-  {}
-);
+export const MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Skill>>> =
+  Object.freeze({});
 
 export const MESMER_CHRONOMANCER_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   {

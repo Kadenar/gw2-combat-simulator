@@ -1,6 +1,6 @@
 /** Canonical Core elementalist skill fragments grouped by their GW2 owner. */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /**
  * Catalog fragments for the four attunement profession skills.
@@ -9,7 +9,7 @@ import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
  * here: swap behavior and attunement recharge belong to the attunement
  * mechanics rather than to this data.
  */
-export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FIRE_ATTUNEMENT]: {
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     name: 'Fire Attunement',

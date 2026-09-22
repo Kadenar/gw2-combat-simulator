@@ -5,7 +5,7 @@ import {
   balanceProfileValueFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -125,7 +125,7 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
     return gw2ActivePrimaryWeapon(config, weaponSet) || '';
   };
 
-  const emit = (event: SimulationEventInput): SimulationEvent | null => {
+  const emit = (event: SimulationEventBase): SimulationEvent | null => {
     const active = runtime.activeEmission;
     // Packets committed by a landed projectile remain scheduled after the player interrupts its cast animation.
     if (active && Number(event.at) > active.effectiveEnd + EPSILON && event.persistsAfterInterrupt !== true) {

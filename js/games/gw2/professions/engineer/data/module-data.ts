@@ -9,7 +9,7 @@ import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/engineer/data/engineer
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { TRAITS } from '#gw2/professions/engineer/data/traits-data.js';
-import type { CatalogEntity, Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 
 const ENGINEER_SKILL_ICON_OVERRIDES = new Map<string, string>([
@@ -166,8 +166,8 @@ interface EngineerModuleDataOptions extends ProfessionModuleDataOptions {
 
 /** Normalizes profession-specific handler ownership before mechanics enter the shared catalog. */
 function normalizeMechanics(
-  mechanics: Readonly<Record<string, SkillFragment>>
-): Readonly<Record<string, SkillFragment>> {
+  mechanics: Readonly<Record<string, Partial<Skill>>>
+): Readonly<Record<string, Partial<Skill>>> {
   return Object.freeze(
     Object.fromEntries(
       Object.entries(mechanics).map(([id, mechanic]) => {

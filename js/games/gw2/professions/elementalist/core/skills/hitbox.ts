@@ -2,7 +2,7 @@
  * Marks an Elementalist skill's chronological packets so the runtime can exclude
  * only the hits that do not fit on a small target.
  */
-import type { SkillEffect, SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { SkillEffect, Skill } from '#gw2/platform/engine/skills/types.js';
 
 function hitboxMetadata(hitIndex: number, smallHitboxCap: number) {
   return {
@@ -12,7 +12,7 @@ function hitboxMetadata(hitIndex: number, smallHitboxCap: number) {
 }
 
 /** Keeps each hitbox cap beside its skill while sharing the packet-indexing rules. */
-export function withSmallHitboxCap(skill: SkillFragment, smallHitboxCap: number): SkillFragment {
+export function withSmallHitboxCap(skill: Partial<Skill>, smallHitboxCap: number): Partial<Skill> {
   const effects = skill.effects || [];
   const chronologicalStrikeIndices = new Map<string, number>();
 

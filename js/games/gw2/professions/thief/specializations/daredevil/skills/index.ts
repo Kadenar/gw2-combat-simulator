@@ -1,8 +1,8 @@
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.IMPACT_STRIKE]: {
     castTimeMs: 360,
     cooldown: 25,

@@ -1,12 +1,12 @@
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Shadow Shroud entry and exit are state-selected variants of one UI tile.
 const SHADOW_SHROUD_PALETTE_TILE = 'specter-shadow-shroud';
 
 // Share each impact's timing while preserving effect order and effect-local payloads.
-export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SIPHON]: {
     stealTraitSkill: true,
     // Siphon adds Lead Attacks and Sleight of Hand reductions instead of multiplying them.

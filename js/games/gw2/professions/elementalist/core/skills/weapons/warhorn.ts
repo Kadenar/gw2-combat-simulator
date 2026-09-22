@@ -9,7 +9,7 @@
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 
 // Layers keep same-time Vulnerability behind its matching Lightning Orb strike while retaining multi-tick effects.
@@ -53,7 +53,7 @@ const DUST_STORM_TICK_OFFSETS_MS = [1560, 2640, 3560, 4640, 5560, 6640, 7560, 86
  * simulator knows each skill's cast timeline, emitted packets, and combo participation.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.HEAT_SYNC]: {
     name: 'Heat Sync',
     type: 'Weapon',

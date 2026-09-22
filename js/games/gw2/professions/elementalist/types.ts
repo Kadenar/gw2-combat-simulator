@@ -115,7 +115,6 @@ export type ElementalistSimulationEvent = SimulationEvent & {
   readonly coefficient?: number;
   readonly condition?: string;
   readonly fieldType?: string;
-  readonly sourceSkill?: string;
 };
 
 /** The resolver-phase counterpart of ElementalistSimulationEvent, seen when damage is computed. */

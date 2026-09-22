@@ -1,12 +1,12 @@
 /** Core Engineer Flamethrower skill mechanics. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 const NAPALM_TICK_OFFSETS_MS = [280, 440, 560, 680, 840, 960, 1080, 1240, 1360, 1480];
 
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Flamethrower. */
-export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
+export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
   [ID.FLAMETHROWER]: {
     // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.

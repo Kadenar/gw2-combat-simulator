@@ -13,14 +13,14 @@
 
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /**
  * The six spear dual attacks, keyed by skill id and merged into
  * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Fire+Water. The only spear dual that grants an aura: `aura: 'Fire|3'` is
   // read by the core cast hook as a three-second Fire Aura on cast end.
   [ID.FROSTFIRE_WARD]: {

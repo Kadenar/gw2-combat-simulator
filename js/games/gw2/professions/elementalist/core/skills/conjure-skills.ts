@@ -6,7 +6,7 @@
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 
 /**
@@ -14,7 +14,7 @@ import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hi
  * Entries are keyed by GW2 skill id and overlay the catalog entry of the same id.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // --- Frost Bow (conjure) ---------------------------------------------------
   // `skillWeapon` is the bundle gate: availability blocks these unless the matching conjure is
   // equipped, and blocks normal weapon skills while it is (see core/mechanics/availability.ts).

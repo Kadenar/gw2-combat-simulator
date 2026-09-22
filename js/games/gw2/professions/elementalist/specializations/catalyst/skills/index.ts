@@ -4,14 +4,14 @@
  */
 import { CATALYST_JADE_SPHERE_EFFECTS } from '#gw2/professions/elementalist/specializations/catalyst/skills/jade-sphere-effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /**
  * Catalyst skill fragments: the four attunement-gated Deploy Jade Sphere profession
  * skills, each placing a five-second combo field of its element, and the three
  * augments whose `mechanicTriggers` fire their Catalyst handler at cast end.
  */
-export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.DEPLOY_JADE_SPHERE_FIRE]: {
     name: 'Deploy Jade Sphere (Fire)',
     type: 'Profession',

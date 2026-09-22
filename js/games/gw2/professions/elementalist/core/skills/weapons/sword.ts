@@ -9,7 +9,7 @@
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Canonical Sword timelines keep condition applications aligned with their originating strike packets.
 const QUANTUM_STRIKE_TICKS = [
@@ -32,7 +32,7 @@ const RUST_FRENZY_TICKS = [360, 360, 600, 640, 840, 840, 1080, 1120] as const;
  * simulator knows each skill's cast timeline, emitted packets, and combo participation.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Fire autoattack chain opener; Fire Strike -> Fire Swipe -> Searing Slash -> back, with only
   // the finisher applying Burning. The Water, Air, and Earth chains below follow the same shape.
   [ID.FIRE_STRIKE]: {

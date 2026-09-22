@@ -12,7 +12,7 @@ import type {
   EffectAudience,
   EffectMetadata,
   SimulationEvent,
-  SimulationEventInput
+  SimulationEventBase
 } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { SchedulerContext } from '#gw2/platform/execution/types.js';
@@ -140,7 +140,7 @@ function skillEventArguments<TProfessionState extends object, TOptions extends S
 
 function emitProceduralEvent<TProfessionState extends object>(
   context: SchedulerContext<TProfessionState>,
-  event: SimulationEventInput,
+  event: SimulationEventBase,
   cause?: SimulationEvent
 ): SimulationEvent {
   return cause ? context.emitDerived(cause, event) : context.emit(event);
@@ -179,7 +179,7 @@ export function emitSkillDamage<TProfessionState extends object>(
   const emitted: SimulationEvent[] = [];
 
   for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
-    const event: SimulationEventInput = {
+    const event: SimulationEventBase = {
       ...fields,
       type: 'damage',
       at: options.at + (hitIndex - 1) * interval,
@@ -207,7 +207,7 @@ export function emitSkillCondition<TProfessionState extends object>(
   options: EmitSkillConditionOptions
 ): SimulationEvent {
   const skill = proceduralSkill(context, options);
-  const event: SimulationEventInput = {
+  const event: SimulationEventBase = {
     ...skillEventFields(context, skill, options, ['at', 'condition', 'stacks', 'duration']),
     type: 'condition',
     at: options.at,
@@ -246,7 +246,7 @@ export function emitSkillBuff<TProfessionState extends object>(
     options.maximumDuration == null ? adjustedDuration : Math.min(options.maximumDuration, adjustedDuration);
   const audience = normalizeEffectAudience(options.audience);
 
-  const event: SimulationEventInput = {
+  const event: SimulationEventBase = {
     ...skillEventFields(context, skill, options, [
       'at',
       'kind',
@@ -283,7 +283,7 @@ export function emitSkillControl<TProfessionState extends object>(
   maybeOptions?: EmitSkillControlOptions
 ): SimulationEvent {
   const { skill, options } = skillEventArguments(context, skillOrOptions, maybeOptions);
-  const event: SimulationEventInput = {
+  const event: SimulationEventBase = {
     ...skillEventFields(context, skill, options, ['at', 'controlKind']),
     type: 'control',
     at: options.at,

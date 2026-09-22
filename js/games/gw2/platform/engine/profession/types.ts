@@ -21,7 +21,7 @@ import type {
   RechargeContext,
   RechargeQueryDetails
 } from '#gw2/platform/execution/types.js';
-import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -178,8 +178,8 @@ export interface NormalizedProfessionContract<
   readonly eventReactions: TEventReactions;
   readonly prepareEvent: (
     context: SchedulerContext<TProfessionState>,
-    event: SimulationEventInput
-  ) => SimulationEventInput;
+    event: SimulationEventBase
+  ) => SimulationEventBase;
   readonly initialize: (context: SchedulerContext<TProfessionState>) => unknown;
   readonly availability: (context: CastContext<TProfessionState>, skill: Skill) => AvailabilityResult;
   readonly afterCast: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;

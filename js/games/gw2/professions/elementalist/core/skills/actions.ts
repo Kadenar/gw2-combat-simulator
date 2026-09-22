@@ -3,10 +3,10 @@
  * Bundle equip state and endurance spending remain with their persistent mechanics.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /** Dodge is a fixed-duration rotation action; execution spends endurance after its cast. */
-export const ELEMENTALIST_CORE_ACTION_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ELEMENTALIST_CORE_ACTION_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.DODGE]: {
     name: 'Dodge',
     type: 'Action',

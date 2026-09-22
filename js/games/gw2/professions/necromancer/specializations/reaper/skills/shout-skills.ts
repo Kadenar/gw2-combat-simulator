@@ -3,10 +3,10 @@
  * Reaper Shroud skill fragments live in `shroud-skills.ts`.
  */
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /** Supplies Reaper shout fragments to specialization composition. */
-export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.YOU_ARE_ALL_WEAKLINGS]: {
     castTimeMs: 0,
     effects: [

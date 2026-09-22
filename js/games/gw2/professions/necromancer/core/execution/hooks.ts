@@ -4,7 +4,7 @@ import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js'
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { observeNecromancerPlagueSendingEvent } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
 import {
@@ -51,7 +51,7 @@ export const necromancerSchedulerHooks = Object.freeze({
   prepareEvent: {
     id: 'necromancer.boon-companion-candidates',
     order: 5,
-    handler: (context: NecromancerSchedulerContext, event: SimulationEventInput) =>
+    handler: (context: NecromancerSchedulerContext, event: SimulationEventBase) =>
       prepareGw2BuffCompanionCandidates(event, necromancerActiveBoonCompanionIds(context))
   },
   advance: advanceNecromancerState,
@@ -63,7 +63,7 @@ export const necromancerSchedulerHooks = Object.freeze({
     {
       id: 'necromancer.allied-opportunities',
       order: 0,
-      handler: (context: NecromancerSchedulerContext, event: SimulationEventInput) => {
+      handler: (context: NecromancerSchedulerContext, event: SimulationEventBase) => {
         if (context.hasExplicitCombatStart && event.type === 'combat_start')
           startAlliedAttackOpportunities(context, event.at);
       }

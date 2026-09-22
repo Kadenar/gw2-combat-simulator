@@ -4,12 +4,12 @@
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerAmbushAttack } from '#gw2/professions/mesmer/types.js';
 
-export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze({
+export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Skill>>> = Object.freeze({
   [ID.FALSE_OASIS]: {
     // Use the observed Quickness cast as the timing reference.
     castTimeMs: 960,

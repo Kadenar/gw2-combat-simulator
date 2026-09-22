@@ -1,6 +1,6 @@
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { completeRangerHealingSkill } from '#gw2/professions/ranger/core/execution/index.js';
 
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -26,7 +26,7 @@ export const rangerCoreExecutionHooks = Object.freeze({
   prepareEvent: {
     id: 'ranger.boon-companion-candidates',
     order: 5,
-    handler: (context: RangerSchedulerContext, event: SimulationEventInput) =>
+    handler: (context: RangerSchedulerContext, event: SimulationEventBase) =>
       prepareRangerPetEvent(
         context,
         prepareGw2BuffCompanionCandidates(

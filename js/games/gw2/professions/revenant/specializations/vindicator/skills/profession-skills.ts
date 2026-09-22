@@ -1,8 +1,8 @@
 /** Owns Vindicator profession actions, stance identities, and legend-call fragments. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-export const VINDICATOR_PROFESSION_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const VINDICATOR_PROFESSION_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.LEGENDARY_ALLIANCE_STANCE_ID_62749]: {
     castTimeMs: 0,
     cooldown: 0,

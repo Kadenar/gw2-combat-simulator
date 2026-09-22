@@ -7,7 +7,7 @@ import type {
   SkillId,
   StrikeTick
 } from '#gw2/platform/engine/skills/types.js';
-import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -97,7 +97,7 @@ export interface MesmerPlanningState {
 }
 
 export interface MesmerSchedulerTaskPayloads {
-  readonly partyBuff: { readonly event: SimulationEventInput };
+  readonly partyBuff: { readonly event: SimulationEventBase };
   readonly resourceGain: MesmerPendingResource;
   readonly bladeSpend: {
     readonly reservationId: string;
@@ -131,7 +131,6 @@ export interface MesmerCanonicalBuild extends Gw2CanonicalBuild {
 export interface MesmerConfig extends Gw2Config {
   readonly specialization: string;
   readonly primaryWeapon: string;
-  readonly selectedTraitIds?: readonly SkillId[];
 }
 
 export type MesmerResolverContext = Gw2ResolverRuntime & {
@@ -332,7 +331,7 @@ export interface MesmerProfessionActionController {
   triggerShatterTraits(resolution: MesmerShatterResolution): void;
 }
 
-export type MesmerEmitDerivedEvent = (cause: SimulationEvent, event: SimulationEventInput) => unknown;
+export type MesmerEmitDerivedEvent = (cause: SimulationEvent, event: SimulationEventBase) => unknown;
 export type MesmerRefreshAmmo = (skill: MesmerSkill, at: number) => AmmoState | null;
 
 export interface MesmerRechargeContext {

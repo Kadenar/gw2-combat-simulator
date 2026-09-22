@@ -2,7 +2,7 @@
  * Composes the disjoint Soulbeast family and archetype Beast-skill catalogs.
  * Individual family fragments remain in the sibling files.
  */
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { SOULBEAST_FANGED_IBOGA_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/fanged-iboga.js';
 import { SOULBEAST_SMOKESCALE_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/smokescale.js';
 import { SOULBEAST_FELINE_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/feline.js';
@@ -34,7 +34,7 @@ import { SOULBEAST_ARCHETYPE_BEAST_SKILL_MECHANICS } from '#gw2/professions/rang
 import { SOULBEAST_WINGED_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/winged.js';
 import { SOULBEAST_SUPPLEMENTAL_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/supplemental.js';
 
-export const SOULBEAST_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const SOULBEAST_BEAST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   ...SOULBEAST_FANGED_IBOGA_BEAST_SKILL_MECHANICS,
   ...SOULBEAST_SMOKESCALE_BEAST_SKILL_MECHANICS,
   ...SOULBEAST_FELINE_BEAST_SKILL_MECHANICS,

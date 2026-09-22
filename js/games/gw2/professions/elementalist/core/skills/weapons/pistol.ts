@@ -9,7 +9,7 @@
 
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Frigid Flurry fires five shots at these offsets, each an independent Bleeding stack and Projectile finisher.
 const FRIGID_FLURRY_SHOT_OFFSETS_MS = [280, 440, 640, 800, 960];
@@ -19,7 +19,7 @@ const FRIGID_FLURRY_SHOT_OFFSETS_MS = [280, 440, 640, 800, 960];
  * Each entry declares the packet timeline the scheduler materializes for that skill.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SCORCHING_SHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Scorching Shot',

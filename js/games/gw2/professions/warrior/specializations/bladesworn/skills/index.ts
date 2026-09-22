@@ -2,9 +2,9 @@
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
-import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.UNSHEATHE_GUNSABER]: {
     // Gunsaber transitions use a five-second base recharge before recharge modifiers.
     cooldown: 5,

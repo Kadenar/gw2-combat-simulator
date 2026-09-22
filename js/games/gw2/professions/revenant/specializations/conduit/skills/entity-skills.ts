@@ -4,10 +4,10 @@
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Both API identities represent the same skill, so one fragment keeps their simulation behavior synchronized.
-const BEGUILING_HAZE_SKILL: SkillFragment = {
+const BEGUILING_HAZE_SKILL: Partial<Skill> = {
   // Custom: Selects initial/follow-up packets and charge state from affinity; see `execution/entities.ts`.
   handlerId: 'revenant.beguiling-haze',
   castTimeMs: 200,
@@ -30,7 +30,7 @@ const BEGUILING_HAZE_SKILL: SkillFragment = {
 };
 
 // Both API identities represent the same skill, so one fragment keeps their simulation behavior synchronized.
-const TWIN_MOON_SWEEP_SKILL: SkillFragment = {
+const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
   // Custom: Materializes affinity-dependent strikes and state changes; see `execution/entities.ts`.
   handlerId: 'revenant.twin-moon-sweep',
   castTimeMs: 920,
@@ -111,7 +111,7 @@ const TWIN_MOON_SWEEP_SKILL: SkillFragment = {
 };
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
-export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.BEGUILING_HAZE_ID_76805]: BEGUILING_HAZE_SKILL,
   [ID.TWIN_MOON_SWEEP]: TWIN_MOON_SWEEP_SKILL,
   [ID.TWIN_MOON_SWEEP_ID_77001]: TWIN_MOON_SWEEP_SKILL,

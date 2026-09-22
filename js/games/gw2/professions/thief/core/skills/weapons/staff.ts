@@ -1,11 +1,11 @@
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.
-export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.WEAKENING_WHIRL]: {
     interruptMode: 'per-packet',
     castTimeMs: 720,

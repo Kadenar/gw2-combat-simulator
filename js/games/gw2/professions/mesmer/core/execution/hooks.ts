@@ -1,7 +1,7 @@
 import { cloneActions } from '#gw2/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import {
   advanceMesmerScheduler,
   mesmerExpectedProcReaction,
@@ -22,7 +22,7 @@ export const mesmerCoreSchedulerHooks = Object.freeze({
     id: 'mesmer.boon-companion-candidates',
     order: 5,
     // Shared boon preparation snapshots active clones before player-first target selection.
-    handler: (context: MesmerSchedulerContext, event: SimulationEventInput) => {
+    handler: (context: MesmerSchedulerContext, event: SimulationEventBase) => {
       const prepared = prepareGw2BuffCompanionCandidates(
         event,
         professionCoreState(context).clones.map((clone) => `mesmer.clone:${clone.id}`)

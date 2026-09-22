@@ -1,9 +1,9 @@
 /** Explicit PvE skill mechanics owned by the Druid Ranger module. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.GLYPH_OF_REJUVENATION]: {
     effects: [],
     castTimeMs: 333

@@ -1,4 +1,4 @@
-import type { SimulationEventBase, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 
 type Assert<T extends true> = T;
@@ -8,6 +8,5 @@ type Equal<Left, Right> =
 // Every event requires canonical ownership; illusion subtypes belong in separate metadata.
 export type SimulationActorTypeAssertions = [
   Assert<Equal<SimulationActorType, 'player' | 'summon' | 'effect' | 'environment' | 'unknown'>>,
-  Assert<Equal<SimulationEventInput['actorType'], SimulationActorType>>,
   Assert<Equal<SimulationEventBase['actorType'], SimulationActorType>>
 ];

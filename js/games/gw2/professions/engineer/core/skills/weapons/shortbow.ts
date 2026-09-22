@@ -1,9 +1,9 @@
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /** Defines Engineer shortbow essence and detonation skill effects. */
-export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ESSENCE_OF_LIQUID_WRATH]: {
     castTimeMs: 520,
     cooldown: 20,

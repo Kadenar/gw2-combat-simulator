@@ -12,7 +12,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { ScheduledTask } from '#gw2/platform/execution/types.js';
-import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   RangerCastContext,
@@ -139,8 +139,8 @@ export function rangerPetCombatMetadata(context?: RangerSchedulerContext | Range
 /** Stamps pet-owned packets before shared scheduler consumers such as combo finishers derive child events. */
 export function prepareRangerPetEvent(
   context: RangerSchedulerContext,
-  event: SimulationEventInput
-): SimulationEventInput {
+  event: SimulationEventBase
+): SimulationEventBase {
   if (event.source !== 'ranger-pet' || event.actorType !== 'summon') return event;
   // Launched pet effects retain their original owner and attributes after a swap.
   if (event.summonOwner) return { ...event, independentConditionOwner: true };
@@ -156,7 +156,7 @@ interface PetAutoTaskPayload {
 }
 
 interface PetAutoEffectTaskPayload {
-  readonly event: SimulationEventInput;
+  readonly event: SimulationEventBase;
 }
 
 interface PetCommandStartTaskPayload extends PetAutoTaskPayload {

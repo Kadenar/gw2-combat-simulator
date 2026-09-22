@@ -2,7 +2,7 @@ import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.j
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
 
 export interface RangerCoreState {
@@ -25,7 +25,7 @@ export interface RangerCoreState {
   quickDrawReadyAt: number;
   quickDrawUntil: number;
   trapCrippleActivations: Record<string, boolean>;
-  pendingFrostTrapEvents: SimulationEventInput[];
+  pendingFrostTrapEvents: SimulationEventBase[];
   bloodThirst: ChargeGrant;
   rejuvenationReadyAt: number;
   childOfEarthReadyAt: number;

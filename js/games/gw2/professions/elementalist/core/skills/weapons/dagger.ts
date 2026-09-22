@@ -7,7 +7,7 @@
 
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Cast-scaled packet data is authored on the Quickness timeline and expands only for slower casts.
 const DRAKES_BREATH_TICK_OFFSETS_MS = [520, 760, 1000, 1240] as const;
@@ -20,7 +20,7 @@ const BURNING_SPEED_FIELD_TICK_OFFSETS_MS = [160, 1160, 2160, 3160, 4160] as con
  * Each entry declares the packet timeline the scheduler materializes for that skill.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Three claws are thrown together, so one packet time carries three independent strikes.
   [ID.DRAGONS_CLAW]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.

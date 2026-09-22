@@ -553,15 +553,13 @@ export function modifierContributionsHtml(model: RotationResultsModel): string {
   }`;
 }
 
+/** Mounts result rows and keeps sorting wired to the current view state. */
 export function mountRotationResults(
   container: HTMLElement | null | undefined,
   model: RotationResultsModel = {},
   options: RotationResultsOptions = {}
-): {
-  readonly getSortState: () => ResultSortState;
-  readonly renderSortedRows: () => void;
-} | null {
-  if (!container) return null;
+): void {
+  if (!container) return;
   bindResultMetricDetailsDismissal(container);
   const metrics = model.metrics || [];
   const summaryPlaceholder = model.summaryPlaceholder === true;
@@ -962,6 +960,4 @@ export function mountRotationResults(
       options.onRunRandomDistribution?.();
     };
   }
-
-  return { getSortState: () => ({ ...sortState }), renderSortedRows };
 }

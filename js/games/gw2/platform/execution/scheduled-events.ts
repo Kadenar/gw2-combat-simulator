@@ -1,8 +1,8 @@
 import { ACTION_SAFETY_LIMIT } from '#kernel/core/clock.js';
-import { createEvent, type SimulationEvent, type SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import { createEvent, type SimulationEvent, type SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 
 interface ScheduledEventOptions {
-  readonly prepareEvent: (event: SimulationEventInput) => SimulationEventInput;
+  readonly prepareEvent: (event: SimulationEventBase) => SimulationEventBase;
   readonly observeEvent: (event: SimulationEvent) => void;
   readonly onEventReplaced?: (event: SimulationEvent, replacement: SimulationEvent) => void;
 }
@@ -88,7 +88,7 @@ export function createScheduledEvents({ prepareEvent, observeEvent, onEventRepla
     eventByOrder(order: number) {
       return eventOrderIndex.get(Number(order));
     },
-    emit(event: SimulationEventInput) {
+    emit(event: SimulationEventBase) {
       const normalized = createEvent({
         ...prepareEvent(event),
         eventOrder: eventOrder++
@@ -118,7 +118,7 @@ export function createScheduledEvents({ prepareEvent, observeEvent, onEventRepla
 
       return normalized;
     },
-    replaceEvent(event: SimulationEvent, updates: Partial<SimulationEventInput>) {
+    replaceEvent(event: SimulationEvent, updates: Partial<SimulationEventBase>) {
       // Hooks may retain older references; always merge into the current version of this identity.
       const current = store.eventByOrder(Number(event.eventOrder));
       if (!current) throw new TypeError('Event replacement requires a scheduled event.');
@@ -141,7 +141,7 @@ export function createScheduledEvents({ prepareEvent, observeEvent, onEventRepla
       onEventReplaced?.(event, replacement);
       return replacement;
     },
-    emitDerived(cause: SimulationEvent, event: SimulationEventInput) {
+    emitDerived(cause: SimulationEvent, event: SimulationEventBase) {
       const rootOrder = Math.floor(Number(cause?.causalOrder ?? cause?.eventOrder));
       if (!Number.isFinite(rootOrder)) {
         throw new TypeError('Derived events require a scheduled cause.');

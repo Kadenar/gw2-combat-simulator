@@ -4,7 +4,7 @@
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { Skill, SkillFragment, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerInstrument } from '#gw2/professions/mesmer/types.js';
@@ -18,7 +18,7 @@ const TROUBADOUR_TALE_TRIGGERS = Object.freeze([
 ]);
 
 export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
-  Record<SkillId, SkillFragment & { readonly instrument?: MesmerInstrument }>
+  Record<SkillId, Partial<Skill> & { readonly instrument?: MesmerInstrument }>
 > = Object.freeze({
   [ID.TROUBADOUR_BLADECALL]: {
     resource: {
@@ -271,7 +271,7 @@ export const MESMER_TROUBADOUR_INSTRUMENTS: Readonly<Record<number, MesmerInstru
   )
 );
 
-export const MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, SkillFragment>> = Object.freeze(
+export const MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Skill>>> = Object.freeze(
   {}
 );
 

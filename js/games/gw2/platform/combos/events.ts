@@ -2,7 +2,7 @@ import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { EPSILON, canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
 
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type {
   ComboEvent,
@@ -141,7 +141,7 @@ export function normalizeComboFieldBinding(value: unknown): ComboFieldBinding {
 }
 
 /** Normalizes and validates GW2-owned semantic events before engine freezing. */
-export function prepareGw2ComboEvent(event: SimulationEventInput): SimulationEventInput {
+export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEventBase {
   if (event.type === 'combo_field') {
     const at = Number(event.at);
     const expiresAt = Number(event.expiresAt);

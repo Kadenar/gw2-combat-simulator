@@ -1,9 +1,9 @@
 /** Owns Vindicator dodge attack skill fragments. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_LANDING_MS } from '#gw2/professions/revenant/data/vindicator-jump.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Saint's Shield replaces dodge damage with a party alacrity application at the landing effect point.
   [ID.SAINTS_SHIELD]: {
     castTimeMs: VINDICATOR_LANDING_MS,

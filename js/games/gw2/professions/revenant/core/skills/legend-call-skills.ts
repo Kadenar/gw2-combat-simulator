@@ -1,8 +1,8 @@
 /** Owns Core legend-swap call skill fragments used by Song of the Mists. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const REVENANT_LEGEND_CALL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.CALL_OF_THE_DWARF]: {
     castTimeMs: 0,
     cooldown: 0,

@@ -23,7 +23,7 @@ import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/speciali
 import { EVOKER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/index.js';
 import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
-import type { CatalogEntity, Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { CatalogEntity, Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Catalog generation needs the complete module-owned declaration set, and the
 // duplicate check prevents one module from silently overwriting another.
@@ -39,7 +39,7 @@ if (new Set(elementalistMechanicsEntries.map(([skillId]) => skillId)).size !== e
   throw new TypeError('Duplicate Elementalist skill-mechanics ownership.');
 }
 
-const ELEMENTALIST_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze(
+const ELEMENTALIST_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze(
   Object.fromEntries(elementalistMechanicsEntries)
 );
 
@@ -191,8 +191,8 @@ const FINALIZED_SKILL_MECHANICS_BY_ID = new Map(
 // Returns the finished entries for exactly the ids a module declared, failing loudly if a
 // module claims an id that catalog generation never produced.
 function finalizedSkillMechanics(
-  declarations: Readonly<Record<string, SkillFragment>>
-): Readonly<Record<string, SkillFragment>> {
+  declarations: Readonly<Record<string, Partial<Skill>>>
+): Readonly<Record<string, Partial<Skill>>> {
   return Object.freeze(
     Object.fromEntries(
       Object.keys(declarations).map((id) => {

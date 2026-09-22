@@ -1,9 +1,9 @@
 /** Owns Core Revenant supplemental skill identities that have no narrower catalog family. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/greatsword.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-export const REVENANT_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const REVENANT_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.HEALING_ORB]: {
     castTimeMs: 0,
     cooldown: 0,

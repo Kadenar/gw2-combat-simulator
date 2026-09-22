@@ -5,7 +5,7 @@
  * derived so compatibility consumers cannot drift from the sampled ranges.
  */
 
-import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { isGw2NonWeaponEffectEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -165,7 +165,7 @@ interface WeaponStrengthProfileContext {
  * packet can observe a later weapon or transform state.
  */
 export function weaponStrengthProfileIdForEvent(
-  event: SimulationEventInput,
+  event: SimulationEventBase,
   { skill = null, state = null, config = {} }: WeaponStrengthProfileContext = {}
 ): string | null {
   if (event.weaponStrengthProfileId != null) {

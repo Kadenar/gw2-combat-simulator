@@ -79,8 +79,7 @@ function animatedCast(
     status,
     eventIndex,
     acceleration: roundEven(acceleration * 1000) / 1000,
-    savedDurationMs: savedDuration,
-    ...(start ? {} : { precast: true })
+    savedDurationMs: savedDuration
   };
 }
 

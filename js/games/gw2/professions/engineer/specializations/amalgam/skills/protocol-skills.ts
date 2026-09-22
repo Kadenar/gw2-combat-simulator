@@ -4,7 +4,7 @@
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 const DEMOLISH_CAST_TIME_MS = 1000 + 560;
 const DEMOLISH_RECHARGE_OFFSET_MS = 1000;
@@ -18,7 +18,7 @@ const DEMOLISH_SPIN_TICKS = Object.freeze([
 const DEMOLISH_SMASH_AT_MS = 1440;
 
 /** Supplies every slot-specific Amalgam protocol variant to specialization composition. */
-export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
+export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
   [ID.OFFENSIVE_PROTOCOL_SHRED]: {
     countsAsToolbeltSkill: true,
     castTimeMs: 760,

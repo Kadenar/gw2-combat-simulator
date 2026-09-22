@@ -2,7 +2,7 @@
  * Composes the disjoint Core Ranger pet-family catalogs.
  * Individual family fragments remain in the sibling files.
  */
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { RANGER_CORE_FELINE_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/feline.js';
 import { RANGER_CORE_PORCINE_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/porcine.js';
 import { RANGER_CORE_CANINE_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/canine.js';
@@ -31,7 +31,7 @@ import { RANGER_CORE_JANTHIRI_BEE_PET_SKILL_MECHANICS } from '#gw2/professions/r
 import { RANGER_CORE_RAPTOR_SWIFTWING_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/raptor-swiftwing.js';
 import { RANGER_CORE_RIVER_OTTER_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/river-otter.js';
 
-export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const RANGER_CORE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   ...RANGER_CORE_FELINE_PET_SKILL_MECHANICS,
   ...RANGER_CORE_PORCINE_PET_SKILL_MECHANICS,
   ...RANGER_CORE_CANINE_PET_SKILL_MECHANICS,

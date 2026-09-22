@@ -7,7 +7,7 @@ import type {
   SkillId,
   CanonicalCatalog
 } from '#gw2/platform/engine/skills/types.js';
-import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { ScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import type { NormalizedProfessionContract } from '#gw2/platform/engine/profession/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
@@ -176,8 +176,8 @@ export interface SchedulerPolicy<TProfessionState extends object = object> {
   }) => number;
   readonly prepareEvent?: (
     context: SchedulerContext<TProfessionState>,
-    event: SimulationEventInput
-  ) => SimulationEventInput | undefined;
+    event: SimulationEventBase
+  ) => SimulationEventBase | undefined;
   readonly initialize?: (context: SchedulerContext<TProfessionState>) => unknown;
   readonly availability?: (context: CastContext<TProfessionState>, skill: Skill) => AvailabilityResult;
   readonly castDuration?: (
@@ -258,10 +258,10 @@ export interface SchedulerContext<TProfessionState extends object = object> {
   advanceTo(at: number): void;
   eventsOfType(type: string): readonly SimulationEvent[];
   eventByOrder(order: number): SimulationEvent | undefined;
-  emit(event: SimulationEventInput): SimulationEvent;
+  emit(event: SimulationEventBase): SimulationEvent;
   /** Applies updates to the current version of a scheduled event, preserving its eventOrder identity. */
-  replaceEvent(event: SimulationEvent, updates: Partial<SimulationEventInput>): SimulationEvent;
-  emitDerived(cause: SimulationEvent, event: SimulationEventInput): SimulationEvent;
+  replaceEvent(event: SimulationEvent, updates: Partial<SimulationEventBase>): SimulationEvent;
+  emitDerived(cause: SimulationEvent, event: SimulationEventBase): SimulationEvent;
   buffStacks(kind: string, at?: number): number;
   hasBuff(kind: string, at?: number): boolean;
 }

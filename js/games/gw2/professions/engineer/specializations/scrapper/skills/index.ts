@@ -5,8 +5,8 @@
  * physical weapon families profession-wide.
  */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
-export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
   [ID.RECONSTRUCTION_FIELD]: {
     castTimeMs: 360,
     cooldown: 25,

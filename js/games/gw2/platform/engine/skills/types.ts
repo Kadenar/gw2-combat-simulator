@@ -279,8 +279,6 @@ export interface BalanceProfile extends CatalogEntity {
   readonly [field: string]: unknown;
 }
 
-export type SkillFragment = Partial<Skill>;
-
 export interface SkillLockout {
   readonly group: string;
   readonly durationMs: number;

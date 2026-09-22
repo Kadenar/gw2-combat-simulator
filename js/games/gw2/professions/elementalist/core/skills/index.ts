@@ -2,7 +2,7 @@
  * Composes owner-local Core Elementalist skill catalogs without owning behavior.
  * Runtime execution and persistent state live in `execution/` and `mechanics/` modules.
  */
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import {
   ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS,
   ELEMENTALIST_CORE_ACTION_SKILL_MECHANICS
@@ -28,7 +28,7 @@ import { ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/eleme
  * Keyed by skill id and handed to the catalog by the Core module, so every API
  * skill entry picks up the simulator-authored mechanics for its family.
  */
-export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   ...ELEMENTALIST_CONJURE_SKILL_MECHANICS,
   ...ELEMENTALIST_CORE_ACTION_SKILL_MECHANICS,
   ...ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS,

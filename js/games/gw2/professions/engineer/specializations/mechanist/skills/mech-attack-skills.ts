@@ -4,10 +4,10 @@
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /** Supplies mech attack fragments with both timing references so log replay retains the summon action-rate model. */
-export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, SkillFragment>> = Object.freeze({
+export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
   [ID.AERIAL_SUPPORT]: {
     castTimeMs: 0,
     cooldown: 0,

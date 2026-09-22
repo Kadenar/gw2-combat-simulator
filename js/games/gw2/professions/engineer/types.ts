@@ -18,7 +18,6 @@ import type {
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 import type { EngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import type { AmalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
@@ -38,15 +37,13 @@ export interface EngineerCanonicalBuild extends Gw2CanonicalBuild {
 }
 
 export interface EngineerConfig extends Gw2Config {
-  readonly amalgamEvolveAttributePool?: EngineerEvolveAttributePool;
+  readonly amalgamEvolveAttributePool?: Readonly<Gw2NumericAttributes>;
   readonly assumptions?: ProfessionBuildAssumptions;
   readonly inDamagingField?: boolean;
   readonly initialHeat?: number;
   readonly professionAssumptions?: ProfessionBuildAssumptions;
   readonly selectedMorphSkillIds?: readonly number[];
 }
-
-export type EngineerEvolveAttributePool = Readonly<Gw2NumericAttributes>;
 
 export interface EngineerState extends EngineerCoreState, ScrapperState, HolosmithState, MechanistState, AmalgamState {}
 
@@ -114,8 +111,6 @@ export interface EngineerPlanningStateProjectionOptions {
   readonly schedulerState: SchedulerState<EngineerRuntimeState>;
 }
 
-export type EngineerPlayerStats = Partial<Gw2Stats>;
-
 export type EngineerResolverEvent = Gw2ResolverEvent & {
   readonly application?: Gw2ResolverEvent;
   readonly charges?: number;
@@ -137,7 +132,7 @@ export type EngineerResolverContext = Gw2ResolverRuntime & {
 
 /** Engineer's finalized attributes also carry the pre-profession conversion pool Amalgam evolves from. */
 export interface EngineerFinalizedAttributeResult extends Gw2FinalizedAttributeResult {
-  readonly amalgamEvolveAttributePool?: EngineerEvolveAttributePool;
+  readonly amalgamEvolveAttributePool?: Readonly<Gw2NumericAttributes>;
 }
 
 /** Modifier context whose config is the Engineer's, so rules can read its build selections. */

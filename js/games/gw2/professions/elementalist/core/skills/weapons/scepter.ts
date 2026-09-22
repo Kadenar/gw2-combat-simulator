@@ -9,7 +9,7 @@
 
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // One Hurl input releases five rocks at fixed 200ms intervals.
 const HURL_PACKET_TIMES = [320, 520, 720, 920, 1120] as const;
@@ -19,7 +19,7 @@ const HURL_PACKET_TIMES = [320, 520, 720, 920, 1120] as const;
  * simulator knows each skill's cast timeline, emitted packets, and combo participation.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Two-stage autoattack: each strike packet carries its own Burning application.
   [ID.FLAMESTRIKE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.

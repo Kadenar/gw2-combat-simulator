@@ -19,7 +19,6 @@ import type { StableEventQueue } from '#kernel/events/queue.js';
 export type Gw2ResolverEvent = SimulationEvent &
   Gw2ConditionWork & {
     readonly damageBreakdownName?: string;
-    readonly skillId?: import('#gw2/platform/engine/skills/types.js').SkillId | null;
     readonly condition?: string;
     readonly fraction?: number;
     readonly fixedDuration?: boolean;

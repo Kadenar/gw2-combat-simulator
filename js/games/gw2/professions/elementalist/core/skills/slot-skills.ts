@@ -10,7 +10,7 @@
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 
 /**
@@ -18,7 +18,7 @@ import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hi
  * by GW2 skill id and overlay the catalog entry of the same id.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // --- Heals ------------------------------------------------------------------
   // Healing is not modelled, so the heal skills only carry their offensive/boon side effects
   // (Signet of Restoration is pure sustain and therefore has none).

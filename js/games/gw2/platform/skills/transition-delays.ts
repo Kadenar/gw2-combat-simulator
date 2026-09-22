@@ -1,4 +1,4 @@
-import type { SimulationEventInput, SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase, SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
@@ -29,7 +29,7 @@ export function emitTransitionLockout(
   context: {
     readonly config?: Gw2Config;
     readonly action?: SimulationEvent | null;
-    emit(event: SimulationEventInput): unknown;
+    emit(event: SimulationEventBase): unknown;
   },
   kind: TransitionDelayKind,
   at: number,

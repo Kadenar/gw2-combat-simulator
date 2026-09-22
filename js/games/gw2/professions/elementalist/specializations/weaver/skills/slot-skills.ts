@@ -4,12 +4,12 @@
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { PRIMORDIAL_STANCE_EFFECTS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 
 /** Shares stance timing while retaining independent effect arrays and stable patch selectors for each variant. */
-function primordialStance(attunement: ElementalistAttunement): SkillFragment {
+function primordialStance(attunement: ElementalistAttunement): Partial<Skill> {
   const offsets = [0, 1000, 2000, 3000, 4000, 5000];
   const { condition, stacks, duration } = PRIMORDIAL_STANCE_EFFECTS[attunement];
   return {
@@ -49,7 +49,7 @@ function primordialStance(attunement: ElementalistAttunement): SkillFragment {
 
 /** Declares Weaver-owned non-weapon skills for composition by `index.ts`. */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.AQUATIC_STANCE]: {
     name: 'Aquatic Stance',
     type: 'Heal',

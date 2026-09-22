@@ -1,9 +1,9 @@
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Both API IDs share the primary definition so future timing fixes cannot leave the alias behind.
-const METAL_LEGION_GUITAR_SKILL: SkillFragment = {
+const METAL_LEGION_GUITAR_SKILL: Partial<Skill> = {
   // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
   handlerId: 'thief.artifact',
   castTimeMs: 1920,
@@ -51,7 +51,7 @@ const METAL_LEGION_GUITAR_SKILL: SkillFragment = {
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.
-export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.METAL_LEGION_GUITAR]: METAL_LEGION_GUITAR_SKILL,
   [ID.METAL_LEGION_GUITAR_ID_76591]: METAL_LEGION_GUITAR_SKILL,
   [ID.FORGED_SURFER_DASH_ID_76633]: {

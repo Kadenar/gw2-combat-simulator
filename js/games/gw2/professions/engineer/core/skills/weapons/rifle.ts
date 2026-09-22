@@ -1,10 +1,10 @@
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 /** Defines Engineer rifle packet timing, projectile, movement, damage, and control behavior. */
-export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RIFLE_BURST]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     // Rifle Burst is a channel: interruption retains landed packets and cancels only its future packet.

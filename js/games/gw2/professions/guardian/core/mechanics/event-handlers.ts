@@ -1,4 +1,4 @@
-import type { DamageEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { DamageEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import type {
@@ -22,7 +22,7 @@ export function emitGuardianEvent(
     skillId: skill.id,
     skillName: skill.name,
     ...event
-  } as SimulationEventInput);
+  } as SimulationEventBase);
 }
 
 /** Retains Guardian defaults and caller overrides for strikes emitted in either phase. */

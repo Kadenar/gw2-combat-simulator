@@ -1,13 +1,13 @@
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Cleansing Burst isn't linked to Healing Turret by the GW2 API's own flip-chain data, so the heal
 // slot needs a shared UI-only tile to keep showing whichever of the three is currently armed.
 const HEALING_TURRET_PALETTE_TILE = 'engineer-healing-turret';
 
 /** Defines Core heal, utility, elite, turret, and palette-follow-up skill fragments. */
-export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.HEALING_TURRET]: {
     // Custom: Arms Detonate Healing Turret, fires the automatic Cleansing Burst pulse, and starts the
     // 10s overcharge window; see `core/mechanics/healing-turret.ts`.

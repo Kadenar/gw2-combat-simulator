@@ -1,10 +1,10 @@
 /** Core ranger spear mechanics; observed attacks separate contact offsets from their recovery windows. */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import type { Skill, SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
-export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
+export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.DRAKES_SWIPE]: {
     flipSkillId: null,
     // Separate contact from recovery; per-packet cancellation retains only contacts already reached.

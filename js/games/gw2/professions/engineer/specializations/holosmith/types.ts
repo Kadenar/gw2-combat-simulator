@@ -1,4 +1,4 @@
-import type { SkillFragment } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /**
@@ -12,5 +12,5 @@ export interface HolosmithSkill extends EngineerSkill {
 }
 
 /** Strongly types Holosmith-only fields while retaining the shared skill-fragment vocabulary. */
-export type HolosmithSkillFragment = SkillFragment &
+export type HolosmithSkillFragment = Partial<Skill> &
   Partial<Pick<HolosmithSkill, 'forgeSkill' | 'heatGain' | 'heatLoss'>>;

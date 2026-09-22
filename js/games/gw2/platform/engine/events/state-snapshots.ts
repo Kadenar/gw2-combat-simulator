@@ -1,7 +1,7 @@
 import type { SchedulerContext } from '#gw2/platform/execution/types.js';
-import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 
-export interface StateSnapshotEventInput extends SimulationEventInput {
+export interface StateSnapshotEventInput extends SimulationEventBase {
   readonly state: object;
 }
 
