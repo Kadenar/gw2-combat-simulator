@@ -158,16 +158,10 @@ export const empowerAllies = timedEffect<WarriorSchedulerContext, object>({
 export function modifyWarriorTacticsAttributes(
   context: Gw2ModifierContext,
   result: WarriorModifierAttributes,
-  staticRulesApplied: boolean,
-  gearPower: number
+  staticRulesApplied: boolean
 ): void {
   if (hasTrait(context, TRAIT.ROARING_REVEILLE) && !staticRulesApplied) {
     result.concentration += Number(balanceProfileFromContext(context, PROFILE.roaringReveille)?.attributeBonus ?? 120);
-  }
-
-  if (hasTrait(context, TRAIT.VIGOROUS_SHOUTS) && !staticRulesApplied) {
-    result.healingPower +=
-      gearPower * Number(balanceProfileFromContext(context, PROFILE.vigorousShouts)?.attributeConversion ?? 0.13);
   }
 }
 

@@ -37,7 +37,7 @@ function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
   const gearPower = Number(context.config?.stats?.power || 0);
   // Compose line-owned fragments against one mutable result so conversions keep their original source pools.
   modifyWarriorStrengthAttributes(context, result, staticRulesApplied, gearPower);
-  modifyWarriorTacticsAttributes(context, result, staticRulesApplied, gearPower);
+  modifyWarriorTacticsAttributes(context, result, staticRulesApplied);
   modifyWarriorArmsAttributes(context, result, staticRulesApplied);
 
   return result;

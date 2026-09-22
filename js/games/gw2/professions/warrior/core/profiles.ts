@@ -38,7 +38,6 @@ export const WARRIOR_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   axeMastery: TRAIT.AXE_MASTERY,
   roaringReveille: TRAIT.ROARING_REVEILLE,
   greatFortitude: TRAIT.GREAT_FORTITUDE,
-  vigorousShouts: TRAIT.VIGOROUS_SHOUTS,
   deepStrikes: TRAIT.DEEP_STRIKES,
   blademaster: TRAIT.BLADEMASTER,
   signetPassives: 'warrior.core.signet-passives',
@@ -251,9 +250,6 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.greatFortitude, 'Great Fortitude', {
     attributeConversion: 0.1
-  }),
-  trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.vigorousShouts, 'Vigorous Shouts', {
-    attributeConversion: 0.13
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.deepStrikes, 'Deep Strikes', {
     attributeBonus: 180

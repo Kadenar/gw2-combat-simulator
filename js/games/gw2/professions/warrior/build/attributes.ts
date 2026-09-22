@@ -92,16 +92,6 @@ export function applyWarriorBuildAttributeRules(
       enabled: hasTrait('Roaring Reveille')
     },
     {
-      kind: 'conversion',
-      source: 'Vigorous Shouts',
-      from: 'Power',
-      to: 'Healing Power',
-      multiplier: 0.1,
-      rounding: 'none',
-      input: 'eligible',
-      enabled: hasTrait('Vigorous Shouts')
-    },
-    {
       kind: 'flat',
       source: 'Deep Strikes',
       to: 'Condition Damage',
