@@ -77,7 +77,7 @@ function composeModuleAttributeRules(modules: readonly NamedModule<object>[]): P
 }
 
 function composeRuntimeDefinition<TProfessionState extends object, TBuild extends object>(
-  definition: ProfessionFamilyDefinition<TProfessionState, TBuild>,
+  definition: ProfessionFamilyDefinition<TBuild>,
   modules: readonly NamedModule[]
 ): ProfessionDefinition<TProfessionState, TBuild> {
   const genericModules = modules as readonly NamedModule<object>[];
@@ -130,7 +130,7 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
  * core-plus-one-specialization simulation resolver.
  */
 export function defineProfessionFamily<TProfessionState extends object = object, TBuild extends object = object>(
-  definition: ProfessionFamilyDefinition<TProfessionState, TBuild>
+  definition: ProfessionFamilyDefinition<TBuild>
 ): Readonly<
   ProfessionFamilyContract<
     TProfessionState,
@@ -204,7 +204,7 @@ export function defineProfessionFamily<TProfessionState extends object = object,
       modules.push({ name: specialization, module: specializationModule });
     }
 
-    const runtime = defineProfession(composeRuntimeDefinition(definition, modules));
+    const runtime = defineProfession(composeRuntimeDefinition<TProfessionState, TBuild>(definition, modules));
     cache.set(specialization, runtime);
     return runtime;
   };

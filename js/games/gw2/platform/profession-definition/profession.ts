@@ -359,7 +359,7 @@ export function defineNativeProfession<
   for (const module of modules) assertNativeModuleDefinition(module);
   const assembly = getNativeCatalogAssembly(modules, definition.catalog);
   const core = modules[0];
-  const engineDefinition: ProfessionFamilyDefinition<NativeProfessionRuntimeState<TModules>, TBuild> = {
+  const engineDefinition: ProfessionFamilyDefinition<TBuild> = {
     id: definition.id,
     name: definition.name,
     weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
@@ -380,7 +380,7 @@ export function defineNativeProfession<
     ui: definition.presentation as Partial<ProfessionUiContract> | undefined,
     simulation: definition.simulation
   };
-  const family = defineProfessionFamily(engineDefinition);
+  const family = defineProfessionFamily<NativeProfessionRuntimeState<TModules>, TBuild>(engineDefinition);
 
   // Retain lazy application getters while exposing the immutable native compilation input.
   return Object.freeze(

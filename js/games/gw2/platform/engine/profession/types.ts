@@ -142,7 +142,7 @@ export interface ProfessionModuleDefinition<TModuleState extends object = object
   readonly ui?: Partial<ProfessionUiContract>;
 }
 
-export interface ProfessionFamilyDefinition<_TProfessionState extends object = object, TBuild extends object = object> {
+export interface ProfessionFamilyDefinition<TBuild extends object = object> {
   /** One equipment eligibility policy used by simulation and application consumers. */
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   readonly id: string;

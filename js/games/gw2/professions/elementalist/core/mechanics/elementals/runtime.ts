@@ -93,9 +93,9 @@ function selectedElemental(context: ElementalistSchedulerContext): ElementalKind
   return selectedElementalFromSkills(selectedSkillNameSet(context.config.selectedSkills));
 }
 
-// Auto-summon is opt-out: on unless either config flag is explicitly false.
+// Auto-summon the selected glyph's elemental unless explicitly disabled.
 function automaticSummoningEnabled(context: ElementalistSchedulerContext): boolean {
-  return context.config.autoSummonElemental !== false && context.config.autoSummonFireElemental !== false;
+  return context.config.autoSummonElemental !== false;
 }
 
 // Maps a stable glyph skill ID to the elemental it summons; null for unrelated skills.
