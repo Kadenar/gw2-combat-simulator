@@ -175,7 +175,7 @@ export const rangerTooltips: ProfessionTooltips = {
       "Leave Beastmode, restore your pet's independent actions and command skills, and remove the merged archetype attributes. Trigger applicable Beastmode traits."
     ),
     'ranger.one-wolf-pack': skillTooltip(
-      'Qualifying player strikes trigger a delayed additional strike during the stance. The echo cannot trigger itself. Leader of the Pack extends the stance when selected.',
+      'Qualifying player strikes trigger a delayed additional strike during the stance. The echo cannot trigger itself. Leader of the Pack extends the stance and shares it with configured allies for 50% of your duration.',
       (balanceContext) => [
         profileFact(
           balanceContext,
@@ -189,7 +189,7 @@ export const rangerTooltips: ProfessionTooltips = {
       ]
     ),
     'ranger.vulture-stance': skillTooltip(
-      'Qualifying player strikes inflict poison and grant might during the stance, subject to its trigger interval. Leader of the Pack extends the stance when selected.',
+      'Qualifying player strikes inflict poison and grant might during the stance, subject to its trigger interval. Leader of the Pack extends the stance and shares it with configured allies for 50% of your duration.',
       (balanceContext) => [
         profileFact(
           balanceContext,
@@ -563,7 +563,7 @@ export const rangerTooltips: ProfessionTooltips = {
       'Swapping weapons in combat grants quickness and opens a brief window. The next non-autoattack weapon skill used in that window has reduced recharge.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Skill-use window', tooltipSeconds),
+        profileFact(balanceContext, id, 'durationMultiplier', 'Quick Draw', tooltipSeconds),
         profileFact(balanceContext, id, 'rechargeMultiplier', 'Next eligible skill recharge', tooltipFactorChange)
       ]
     ),
@@ -822,9 +822,14 @@ export const rangerTooltips: ProfessionTooltips = {
       'Poison applications trigger an additional strike that cannot critically strike.'
     ),
     [TRAIT.ETERNAL_BOND]: outsideScopeTooltip,
-    [TRAIT.LEADER_OF_THE_PACK]: traitTooltip('Stances last longer.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'durationMultiplier', 'Stance duration', tooltipFactorChange)
-    ]),
+    // Explain how the shared stance benefits allies as well as showing its reduced duration.
+    [TRAIT.LEADER_OF_THE_PACK]: traitTooltip(
+      'Stances last longer and grant their effects to nearby allies for 50% of your extended duration. Allied hits trigger One Wolf Pack follow-up strikes and Vulture Stance effects, with a separate trigger cooldown for each ally.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'durationMultiplier', 'Stance duration', tooltipFactorChange),
+        { name: 'Allied stance duration', detail: '50% of your extended duration' }
+      ]
+    ),
     [TRAIT.OPPRESSIVE_SUPERIORITY]: traitTooltip(
       'Gain strike damage and condition duration when the target has a lower health percentage than you. Player health remains full in combat.',
       (balanceContext) => [

@@ -172,6 +172,8 @@ export type EffectRecipientScope = 'self' | 'party' | 'summons';
 /** Selects the canonical recipient group for one positive effect. */
 export interface EffectAudience {
   readonly recipients: EffectRecipientScope;
+  /** Restricts party-player selection to this one-based ally instead of the first available players. */
+  readonly alliedPlayerIndex?: number;
   readonly affectsSelf?: boolean;
   readonly maximumRecipients?: number;
   readonly eligibleCompanionIds?: readonly string[];
@@ -182,6 +184,7 @@ export interface ResolvedEffectAudience {
   readonly includesSelf: boolean;
   readonly includesSummons: boolean;
   readonly alliedPlayerCount: number;
+  readonly alliedPlayerIndex?: number;
   readonly companionIds: readonly string[];
   readonly recipientCount: number;
 }

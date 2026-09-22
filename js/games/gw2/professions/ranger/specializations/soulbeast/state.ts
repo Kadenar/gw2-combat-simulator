@@ -15,6 +15,7 @@ export interface SoulbeastState {
   bestialRageReadyAt: number;
   essenceOfSpeedReadyAt: number;
   vultureStanceReadyAt: number;
+  alliedStanceReadyAt: Record<string, number>;
   beastAbilityActivations: Record<string, boolean>;
 }
 
@@ -39,6 +40,7 @@ export function createSoulbeastState(config: RangerConfig = {}): SoulbeastState 
     bestialRageReadyAt: 0,
     essenceOfSpeedReadyAt: 0,
     vultureStanceReadyAt: 0,
+    alliedStanceReadyAt: {},
     // Tracks per-activation-id whether the beast-ability first-hit proc already fired, preventing multi-hit skills from triggering trait effects more than once per cast.
     beastAbilityActivations: {}
   };

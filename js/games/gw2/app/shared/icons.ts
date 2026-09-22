@@ -33,6 +33,9 @@ export const RESULT_PROC_NAMES: Readonly<Record<string, string>> = {
 export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Strike damage': 'https://render.guildwars2.com/file/61AA4919C4A7990903241B680A69530121E994C7/156657.png',
   Recharge: 'https://render.guildwars2.com/file/D767B963D120F077C3B163A05DC05A7317D7DB70/156651.png',
+  // Skill recharge reductions and generic attribute bonuses use their dedicated in-game fact glyphs.
+  'Skill recharge': 'https://render.guildwars2.com/file/AAB7C5387A08367C2F023F19FEE70E1556AD4375/1770202.png',
+  'Attribute increase': 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
   'Energy cost': 'https://assets.gw2dat.com/156647.png',
   'Crushing Abyss': 'https://render.guildwars2.com/file/632F757C2309C12BCFE99FCCE4BB761FA59AECEE/3379187.png',
   'Battle Scars': 'https://render.guildwars2.com/file/12FFBBD82F3BB8C057E95AB7E907AD3EACFDF221/2261517.png',
@@ -40,6 +43,11 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   "Kalla's Fervor": 'https://render.guildwars2.com/file/4DDE151C71EDB6120E3454036C4C3504EADB02D8/1770161.png',
   // Razorclaw's party buff shares its originating skill's icon in both base and enhanced tooltips.
   "Razorclaw's Rage": 'https://render.guildwars2.com/file/2449F064B1D3427FF311D3B4C101009C52250A0C/1770606.png',
+  // Both personal and pet Lesser Sic Em duration facts use the command's icon.
+  'Lesser Sic Em': 'https://render.guildwars2.com/file/0D6B235E679346723414607E61DE052576097545/104025.png',
+  // These temporary Ranger buffs use their granting traits' icons.
+  'Quick Draw': 'https://render.guildwars2.com/file/CBCB2EC86BC85CC02DA7AAB25CBFB226B8956D1E/1012648.png',
+  'Light on your Feet': 'https://render.guildwars2.com/file/4D37A694088038DA9266F6107C9604AD9CBC2752/1012649.png',
   // Control facts use the game's distinct disable glyphs; unspecified controls use the defiance glyph.
   Daze: 'https://render.guildwars2.com/file/9AE125E930C92FEA0DD99E7EBAEDE4CF5EC556B6/433474.png',
   Stun: 'https://render.guildwars2.com/file/1999B9DB355005D2DD19F66DFFBAA6D466057508/522727.png',
@@ -113,12 +121,14 @@ const tooltipIconNames = Object.keys(MODIFIER_EFFECT_ICONS)
 /** Qualifiers change a fact's wording, not its icon; conversions use the destination attribute. */
 export function tooltipFactIcon(name: string): string | undefined {
   const label = name.toLowerCase().split('converted to ').at(-1)!;
+  if (/\bskills? recharge\b/.test(label)) return MODIFIER_EFFECT_ICONS['Skill recharge'];
   if (/\b(?:recharge|cooldown|icd)\b/.test(label)) return MODIFIER_EFFECT_ICONS.Recharge;
   if (/\bcritical(?:[- ]hit)? damage\b/.test(label)) return MODIFIER_EFFECT_ICONS.Ferocity;
   if (/\bcritical(?:[- ]strike)? chance\b/.test(label)) return MODIFIER_EFFECT_ICONS.Precision;
   if (/^damage\b|\bstrike(?: and condition)? damage\b/.test(label)) return MODIFIER_EFFECT_ICONS['Strike damage'];
   if (/\bcondition duration\b/.test(label)) return MODIFIER_EFFECT_ICONS.Expertise;
   if (/\bboon duration\b/.test(label)) return MODIFIER_EFFECT_ICONS.Concentration;
+  if (/\battributes?\b/.test(label)) return MODIFIER_EFFECT_ICONS['Attribute increase'];
   const match = tooltipIconNames.find(({ pattern }) => pattern.test(label));
   return (
     match?.icon ||

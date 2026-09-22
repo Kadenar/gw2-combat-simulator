@@ -2,7 +2,13 @@ import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { EffectAudience, EffectMetadata } from '#gw2/platform/engine/events/events.js';
 
 const RECIPIENT_SCOPES = new Set(['self', 'party', 'summons']);
-const AUDIENCE_FIELDS = new Set(['recipients', 'affectsSelf', 'maximumRecipients', 'eligibleCompanionIds']);
+const AUDIENCE_FIELDS = new Set([
+  'recipients',
+  'alliedPlayerIndex',
+  'affectsSelf',
+  'maximumRecipients',
+  'eligibleCompanionIds'
+]);
 const METADATA_VALUE_KINDS = Object.freeze({
   cloneId: 'number',
   blade: 'boolean',
@@ -57,6 +63,19 @@ export function normalizeEffectAudience(value: unknown): EffectAudience | undefi
     throw new TypeError('Effect audience affectsSelf must be a boolean.');
   }
 
+  // Named recipients must identify an actual party slot; other scopes cannot select allied players.
+  const alliedPlayerIndex = audience.alliedPlayerIndex;
+  if (
+    alliedPlayerIndex != null &&
+    (audience.recipients !== 'party' ||
+      typeof alliedPlayerIndex !== 'number' ||
+      !Number.isInteger(alliedPlayerIndex) ||
+      alliedPlayerIndex < 1 ||
+      alliedPlayerIndex > 4)
+  ) {
+    throw new TypeError('Effect audience alliedPlayerIndex must be a party-player index from 1 to 4.');
+  }
+
   const maximumRecipients = audience.maximumRecipients;
   if (
     maximumRecipients != null &&
@@ -75,6 +94,7 @@ export function normalizeEffectAudience(value: unknown): EffectAudience | undefi
 
   return Object.freeze({
     recipients: audience.recipients,
+    ...(alliedPlayerIndex == null ? {} : { alliedPlayerIndex }),
     ...(audience.affectsSelf == null ? {} : { affectsSelf: audience.affectsSelf }),
     ...(maximumRecipients == null ? {} : { maximumRecipients }),
     ...(audience.eligibleCompanionIds == null

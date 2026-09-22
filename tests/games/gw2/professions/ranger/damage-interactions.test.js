@@ -11,6 +11,8 @@ import {
   skillDamageIdentityKey
 } from '#gw2/app/results/skill-breakdown.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { buildBoonGeneration } from '#gw2/app/results/charts/boon-generation.js';
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 
 const simulate = createProfessionSimulator(rangerProfession, {
   primaryWeapon: 'Spear',
@@ -142,6 +144,120 @@ test('One Wolf Pack uses its own strength and accepts periodic hits at the recha
   assert.equal(echo.skillWeapon, 'Unequipped');
   assert.equal(echo.resolvedWeaponStrength, echoes[0].resolvedWeaponStrength);
   assert.equal(echo.damage, echoes[0].damage);
+});
+
+test('Leader of the Pack shares half the extended stance window with independent allied triggers', () => {
+  // An idle caster isolates allied triggers, duration boundaries, and each recipient's cooldown.
+  const config = {
+    selectedTraitIds: [TRAIT.LEADER_OF_THE_PACK],
+    allies: { count: 2, strikesPerSecond: 4 }
+  };
+  for (const skillId of [ID.ONE_WOLF_PACK, ID.VULTURE_STANCE]) {
+    const result = simulate('Soulbeast', [skillId, wait(8000)], config);
+    assert.deepEqual(result.warnings, []);
+    const applications = result.events.filter((event) => event.type === 'buff' && event.skillId === skillId);
+    const personal = applications.find((event) => event.resolvedAudience.includesSelf);
+    const shared = applications.find((event) => !event.resolvedAudience.includesSelf);
+    assert.ok(Math.abs(personal.duration - 7.2) < 1e-9);
+    assert.equal(shared.duration, personal.duration * 0.5);
+    assert.equal(shared.resolvedAudience.alliedPlayerCount, 2);
+    const procs = result.resolvedEvents.filter(
+      (event) =>
+        event.skillId === skillId &&
+        event.metadata?.triggeredByAlly &&
+        event.type === (skillId === ID.ONE_WOLF_PACK ? 'damage' : 'condition')
+    );
+    const interval = skillId === ID.ONE_WOLF_PACK ? 1 : 0.25;
+    const delay = skillId === ID.ONE_WOLF_PACK ? 0.28 : 0;
+    for (const allyIndex of [1, 2]) {
+      const times = procs
+        .filter((event) => event.metadata.triggeredByAlly === allyIndex)
+        .map((event) => Number((event.at - shared.at - delay).toFixed(6)));
+      const expected = Array.from({ length: Math.floor(shared.duration / interval) }, (_, i) => (i + 1) * interval);
+      assert.deepEqual(times, expected);
+    }
+
+    if (skillId === ID.VULTURE_STANCE) {
+      const might = result.resolvedEvents.filter((event) => event.kind === 'might' && event.metadata?.triggeredByAlly);
+      assert.ok(might.length > 0);
+      assert.ok(
+        might.every((event) => !event.resolvedAudience.includesSelf && event.resolvedAudience.alliedPlayerCount === 1)
+      );
+    }
+
+    for (const disabled of [
+      { ...config, selectedTraitIds: [] },
+      { ...config, allies: { count: 0, strikesPerSecond: 4 } },
+      { ...config, allies: { count: 2, strikesPerSecond: 0 } }
+    ]) {
+      const idle = simulate('Soulbeast', [skillId, wait(8000)], disabled);
+      assert.ok(!idle.resolvedEvents.some((event) => event.metadata?.triggeredByAlly));
+    }
+  }
+});
+
+test('shared Vulture might stays on each triggering ally through boon reporting', () => {
+  // Separate recipients must retain their own stacks rather than overflowing the first ally's cap.
+  const result = simulate('Soulbeast', [ID.VULTURE_STANCE, wait(8000)], {
+    selectedTraitIds: [TRAIT.LEADER_OF_THE_PACK],
+    allies: { count: 4, strikesPerSecond: 4 }
+  });
+  const might = result.resolvedEvents.filter((event) => event.kind === 'might' && event.metadata?.triggeredByAlly);
+  assert.ok(might.every((event) => event.resolvedAudience.alliedPlayerIndex === event.metadata.triggeredByAlly));
+  const generation = buildBoonGeneration(result.resolvedEvents, 0, 8);
+  assert.deepEqual(
+    generation.alliedApplications.map((history) => buffApplicationStacks(history.get('might') || [], 'might', 3.5, 25)),
+    [14, 14, 14, 14]
+  );
+});
+
+test('precast shared stances start allied attacks in combat without extending expiry', () => {
+  // Starting the attack clock at engagement prevents precombat procs from spending cooldowns or creating echoes.
+  const config = { selectedTraitIds: [TRAIT.LEADER_OF_THE_PACK], allies: { count: 1, strikesPerSecond: 4 } };
+  for (const skillId of [ID.ONE_WOLF_PACK, ID.VULTURE_STANCE]) {
+    const result = simulate('Soulbeast', [skillId, wait(840), { type: 'combat-start' }, wait(8000)], config);
+    const application = result.events.find(
+      (event) => event.type === 'buff' && event.resolvedAudience?.alliedPlayerCount === 1
+    );
+    const delay = skillId === ID.ONE_WOLF_PACK ? 0.28 : 0;
+    const interval = skillId === ID.ONE_WOLF_PACK ? 1 : 0.25;
+    const procs = result.resolvedEvents.filter(
+      (event) =>
+        event.metadata?.triggeredByAlly && event.type === (skillId === ID.ONE_WOLF_PACK ? 'damage' : 'condition')
+    );
+    assert.ok(procs.length > 0);
+    assert.ok(Math.abs(procs[0].at - delay - result.combatStartTime - interval) < 1e-9);
+    assert.ok(
+      procs.every(
+        (event) =>
+          event.at - delay >= result.combatStartTime && event.at - delay <= application.at + application.duration + 1e-9
+      )
+    );
+    const expired = simulate('Soulbeast', [skillId, wait(8000), { type: 'combat-start' }, wait(8000)], config);
+    assert.ok(!expired.resolvedEvents.some((event) => event.metadata?.triggeredByAlly));
+  }
+});
+
+test('shared One Wolf Pack preserves personal triggers and resolves echoes after the shared window expires', () => {
+  // The allied hit lands at shared expiry; its delayed echo must survive without consuming the player's ICD.
+  const config = { selectedTraitIds: [TRAIT.LEADER_OF_THE_PACK], allies: { count: 1, strikesPerSecond: 1 / 3.6 } };
+  const rotation = [ID.ONE_WOLF_PACK, ID.FROST_TRAP, wait(8000)];
+  const shared = simulate('Soulbeast', rotation, config);
+  const solo = simulate('Soulbeast', rotation, { ...config, allies: { count: 0 } });
+  const echoes = hits(shared, ID.ONE_WOLF_PACK);
+  assert.deepEqual(
+    echoes.filter((event) => !event.metadata?.triggeredByAlly).map((event) => event.at),
+    hits(solo, ID.ONE_WOLF_PACK).map((event) => event.at)
+  );
+  const application = shared.events.find(
+    (event) => event.kind === 'one-wolf-pack' && event.resolvedAudience?.alliedPlayerCount === 1
+  );
+  assert.deepEqual(
+    echoes
+      .filter((event) => event.metadata?.triggeredByAlly)
+      .map((event) => Number((event.at - application.at).toFixed(6))),
+    [3.88]
+  );
 });
 
 test('precast Frost Trap waits for combat and preserves its whole pulse train and field', () => {

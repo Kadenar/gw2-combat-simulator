@@ -9,6 +9,24 @@ import {
   prepareGw2BuffCompanionCandidates
 } from '#gw2/platform/combat/state/allied-players.js';
 
+test('targeted party audiences preserve ally identity and reject invalid indices', () => {
+  // A targeted grant must not move to an earlier slot when its intended recipient is absent.
+  const audience = { recipients: 'party', affectsSelf: false, maximumRecipients: 1, alliedPlayerIndex: 3 };
+  const selected = gw2AlliedEffectRecipients({ allies: { count: 4 } }, audience);
+  assert.equal(selected.alliedPlayerIndex, 3);
+  assert.equal(selected.alliedPlayerCount, 1);
+  assert.equal(selected.recipientCount, 1);
+  assert.equal(selected.includesSelf, false);
+  const absent = gw2AlliedEffectRecipients({ allies: { count: 2 } }, audience);
+  assert.equal(absent.recipientCount, 0);
+  assert.equal(absent.alliedPlayerIndex, undefined);
+  for (const alliedPlayerIndex of [0, 5, 1.5, NaN, '2']) {
+    assert.throws(() => gw2AlliedEffectRecipients({}, { ...audience, alliedPlayerIndex }), /alliedPlayerIndex/);
+  }
+
+  assert.throws(() => gw2AlliedEffectRecipients({}, { ...audience, recipients: 'self' }), /alliedPlayerIndex/);
+});
+
 test('buff preparation binds unique companion candidates inside the audience request', () => {
   const event = {
     type: 'buff',

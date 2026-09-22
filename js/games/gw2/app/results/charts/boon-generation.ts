@@ -81,10 +81,15 @@ export function buildBoonGeneration(
 
       if (event.type === 'buff') {
         const audience = event.resolvedAudience;
+        // Recipient-specific procs belong to the named ally, even when earlier party slots are available.
         if (
           !isStandardBoon(event.kind) ||
           !audience ||
-          !(index === 0 ? audience.includesSelf : index <= audience.alliedPlayerCount)
+          !(index === 0
+            ? audience.includesSelf
+            : audience.alliedPlayerIndex != null
+              ? index === audience.alliedPlayerIndex
+              : index <= audience.alliedPlayerCount)
         )
           continue;
         const kind = String(event.kind).toLowerCase();

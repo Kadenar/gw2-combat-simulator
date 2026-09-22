@@ -10,6 +10,7 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { defineProfessionApp } from '#gw2/app/create-adapter.js';
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
+import { tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -20,6 +21,22 @@ import { createProfessionSimulator } from '#tests/helpers/profession-simulation.
 import { necromancerCoreCastRules } from '#gw2/professions/necromancer/core/traits/modifiers.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
+
+// Qualified attribute and skill-recharge facts keep the game's distinct glyphs.
+test('attribute bonuses and skill recharge use dedicated CDN icons', async () => {
+  const { rangerProfession } = await import('#gw2/professions/ranger/profession.js');
+  const { rangerTooltips } = await import('#gw2/professions/ranger/app/tooltips.js');
+  const context = withPatchPreview(rangerProfession, null).balanceContextFor();
+  const trait = context.catalog.traits.find(({ name }) => name === 'Pack Alpha');
+  const tooltip = describeSimulationTrait(context, trait, rangerTooltips);
+  const attributes = tooltip.facts.filter(({ name }) => name.includes('attribute'));
+  assert.equal(attributes.length, 2);
+  for (const fact of attributes) assert.match(fact.icon, /\/156652\.png$/);
+  assert.match(tooltip.facts.find(({ name }) => name === 'Pet skill recharge').icon, /\/1770202\.png$/);
+  assert.match(tooltipFactIcon('Attribute increase per stack'), /\/156652\.png$/);
+  assert.match(tooltipFactIcon('Earth skill recharge'), /\/1770202\.png$/);
+  assert.match(tooltipFactIcon('Internal cooldown'), /\/156651\.png$/);
+});
 
 // A single sparse profile edit must reach the build panel, combat, and tooltip without duplicate tuning inputs.
 test('Radiant Power shares patched attribute and critical-chance values across consumers', async () => {

@@ -441,8 +441,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillFrag
     castTimeMs: 500
   },
   [ID.WE_HEAL_AS_ONE]: {
-    // Boons are copied from live recipients by the Core completion hook.
+    // The Core completion hook copies live recipient boons
     effects: [],
-    castTimeMs: 667
+    castTimeMs: 920
   }
 });

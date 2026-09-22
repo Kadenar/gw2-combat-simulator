@@ -99,7 +99,11 @@ export function gw2AlliedEffectRecipients(
   const shared = audience.recipients !== 'self';
   const limit = audience.maximumRecipients ?? (shared ? 5 : 1);
   const includesSelf = audience.affectsSelf !== false;
-  const alliedPlayerCount = audience.recipients === 'party' ? clamp(limit - Number(includesSelf), 0, party.count) : 0;
+  // A named ally occupies one slot only when that player exists in the configured party.
+  const eligiblePlayers =
+    audience.alliedPlayerIndex == null ? party.count : Number(audience.alliedPlayerIndex <= party.count);
+  const alliedPlayerCount =
+    audience.recipients === 'party' ? clamp(limit - Number(includesSelf), 0, eligiblePlayers) : 0;
   const remaining = limit - Number(includesSelf) - alliedPlayerCount;
   const summonsEligible =
     audience.recipients === 'summons' ||
@@ -111,6 +115,9 @@ export function gw2AlliedEffectRecipients(
     includesSelf,
     includesSummons: selectedCompanions.length > 0,
     alliedPlayerCount,
+    ...(alliedPlayerCount && audience.alliedPlayerIndex != null
+      ? { alliedPlayerIndex: audience.alliedPlayerIndex }
+      : {}),
     companionIds: Object.freeze(selectedCompanions),
     recipientCount: Number(includesSelf) + alliedPlayerCount + selectedCompanions.length
   });
@@ -135,8 +142,10 @@ export function gw2BoonApplicationRecipients(
   const shared = audience.recipients !== 'self';
   const limit = audience.maximumRecipients ?? (shared ? 5 : 1);
   const includesSelf = audience.recipients === 'party' && audience.affectsSelf !== false && limit > 1;
+  const eligiblePlayers =
+    audience.alliedPlayerIndex == null ? party.count : Number(audience.alliedPlayerIndex <= party.count);
   const alliedPlayerCount =
-    audience.recipients === 'party' ? clamp(limit - 1 - Number(includesSelf), 0, party.count) : 0;
+    audience.recipients === 'party' ? clamp(limit - 1 - Number(includesSelf), 0, eligiblePlayers) : 0;
   const remaining = limit - 1 - Number(includesSelf) - alliedPlayerCount;
   const casterId = String(event.summonOwner || '');
   const candidates = [...new Set((audience.eligibleCompanionIds || []).map(String).filter(Boolean))].filter(
@@ -150,6 +159,9 @@ export function gw2BoonApplicationRecipients(
     includesSelf,
     includesSummons: true,
     alliedPlayerCount,
+    ...(alliedPlayerCount && audience.alliedPlayerIndex != null
+      ? { alliedPlayerIndex: audience.alliedPlayerIndex }
+      : {}),
     companionIds: Object.freeze(casterId ? [casterId, ...selectedCompanions] : selectedCompanions),
     recipientCount: 1 + Number(includesSelf) + alliedPlayerCount + selectedCompanions.length
   });

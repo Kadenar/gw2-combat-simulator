@@ -5,6 +5,7 @@ import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/cha
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Soulbeast resolver-phase reactions and event handlers. */
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileEffectFromContext as profileEffect,
@@ -32,6 +33,7 @@ export function handleRangerBoonExtension(context: RangerResolverContext, event:
 }
 
 export const soulbeastEventHandlers = Object.freeze({
+  'ranger.shared-stance-hit': handleSharedStanceHit,
   'ranger.beastmode': handleSoulbeastModeEvent,
   'ranger.boon-extension': handleRangerBoonExtension
 });
@@ -70,7 +72,17 @@ export function queueSoulbeastBuff(
       kind,
       duration,
       stacks,
-      triggeredBy: event.skillName
+      triggeredBy: event.skillName,
+      audience: event.metadata?.triggeredByAlly
+        ? {
+            recipients: 'party',
+            alliedPlayerIndex: event.metadata.triggeredByAlly,
+            affectsSelf: false,
+            maximumRecipients: 1,
+            eligibleCompanionIds: []
+          }
+        : undefined,
+      metadata: event.metadata?.triggeredByAlly ? { triggeredByAlly: event.metadata.triggeredByAlly } : undefined
     })
   );
 }
@@ -109,7 +121,8 @@ function queueCondition(
       condition,
       duration,
       stacks,
-      triggeredBy: event.skillName
+      triggeredBy: event.skillName,
+      metadata: event.metadata?.triggeredByAlly ? { triggeredByAlly: event.metadata.triggeredByAlly } : undefined
     })
   );
 }
@@ -145,6 +158,72 @@ function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Gw
   );
 }
 
+/** Personal and allied echoes use the same delayed strike and source attributes. */
+function queueOneWolfPackStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const profile = balanceProfileFromContext(context, PROFILE.oneWolfPack);
+  const strike = balanceProfileEffect(profile, 'strike');
+  context.queue.enqueue(
+    buildResolverStrike({
+      at: event.at + Number(profile?.initialDelay ?? 0.28),
+      source: 'ranger',
+      sourceId: ID.ONE_WOLF_PACK_STRIKE,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillId: ID.ONE_WOLF_PACK,
+      skillName: 'One Wolf Pack',
+
+      coefficient: Number(strike?.coefficient ?? 0.95),
+      hits: Number(strike?.hits ?? 1),
+
+      totalHits: Number(strike?.hits ?? 1),
+      // Echoes use the stance's nonweapon strength, independent of the attack that triggered them.
+      skillWeapon: 'Unequipped',
+      canCrit: true,
+      triggeredBy: event.skillName,
+      metadata: event.metadata?.triggeredByAlly ? { triggeredByAlly: event.metadata.triggeredByAlly } : undefined
+    })
+  );
+}
+
+/** Vulture's poison is attributed to the stance source; might stays on the triggering recipient. */
+function queueVultureStanceEffects(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const profile = balanceProfileFromContext(context, PROFILE.vultureStance);
+  const poison = balanceProfileEffect(profile, 'condition');
+  const might = balanceProfileEffect(profile, 'boon');
+  queueCondition(
+    context,
+    event,
+    String(poison?.condition || 'Poisoned'),
+    Number(poison?.duration ?? 4),
+    ID.VULTURE_STANCE,
+    'Vulture Stance',
+    Number(poison?.stacks ?? 1)
+  );
+  queueSoulbeastBuff(
+    context,
+    event,
+    String(might?.boon || 'might'),
+    Number(might?.duration ?? 4),
+    Number(might?.stacks ?? 1),
+    'Vulture Stance',
+    ID.VULTURE_STANCE
+  );
+}
+
+/** Allied opportunities have independent stance cooldowns, including across overlapping applications. */
+function handleSharedStanceHit(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const allyIndex = event.metadata?.triggeredByAlly;
+  if (!allyIndex) return;
+  const key = `${event.kind}:${allyIndex}`;
+  const state = soulbeastState.from(context);
+  if (event.at + EPSILON < (state.alliedStanceReadyAt[key] ?? 0)) return;
+  const wolfPack = event.kind === 'one-wolf-pack';
+  const profile = balanceProfileFromContext(context, wolfPack ? PROFILE.oneWolfPack : PROFILE.vultureStance);
+  state.alliedStanceReadyAt[key] = event.at + Number(profile?.internalCooldown ?? (wolfPack ? 1 : 0.25));
+  if (wolfPack) queueOneWolfPackStrike(context, event);
+  else queueVultureStanceEffects(context, event);
+}
+
 export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
   const state = soulbeastState.from(context);
@@ -161,29 +240,9 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
     event.at + EPSILON >= state.oneWolfPackReadyAt
   ) {
     const profile = balanceProfileFromContext(context, PROFILE.oneWolfPack);
-    const strike = balanceProfileEffect(profile, 'strike');
     // 1-second ICD between echoes even within a single multi-hit skill.
     state.oneWolfPackReadyAt = event.at + Number(profile?.internalCooldown ?? 1);
-    context.queue.enqueue(
-      buildResolverStrike({
-        at: event.at + Number(profile?.initialDelay ?? 0.28),
-        source: 'ranger',
-        sourceId: ID.ONE_WOLF_PACK_STRIKE,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        skillId: ID.ONE_WOLF_PACK,
-        skillName: 'One Wolf Pack',
-
-        coefficient: Number(strike?.coefficient ?? 0.95),
-        hits: Number(strike?.hits ?? 1),
-
-        totalHits: Number(strike?.hits ?? 1),
-        // Echoes use the stance's nonweapon strength, independent of the attack that triggered them.
-        skillWeapon: 'Unequipped',
-        canCrit: true,
-        triggeredBy: event.skillName
-      })
-    );
+    queueOneWolfPackStrike(context, event);
   }
 
   // Vulture Stance procs per player hit with a 0.25 s ICD; effect-sourced hits (e.g. OWP echoes) are excluded.
@@ -193,27 +252,8 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
     isPlayerStrike(event)
   ) {
     const profile = balanceProfileFromContext(context, PROFILE.vultureStance);
-    const poison = balanceProfileEffect(profile, 'condition');
-    const might = balanceProfileEffect(profile, 'boon');
     state.vultureStanceReadyAt = event.at + Number(profile?.internalCooldown ?? 0.25);
-    queueCondition(
-      context,
-      event,
-      String(poison?.condition || 'Poisoned'),
-      Number(poison?.duration ?? 4),
-      ID.VULTURE_STANCE,
-      'Vulture Stance',
-      Number(poison?.stacks ?? 1)
-    );
-    queueSoulbeastBuff(
-      context,
-      event,
-      String(might?.boon || 'might'),
-      Number(might?.duration ?? 4),
-      Number(might?.stacks ?? 1),
-      'Vulture Stance',
-      ID.VULTURE_STANCE
-    );
+    queueVultureStanceEffects(context, event);
   }
 
   if (!firstBeastAbilityHit(context, event)) return;
@@ -400,6 +440,34 @@ export function essenceOfSpeedExtension(
 export function reactToSoulbeastBuff(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const extension = essenceOfSpeedExtension(context, event);
   if (extension) context.queue.enqueue(extension);
+
+  // Shared windows use the existing ally attack assumptions and end at half the personal duration.
+  if (event.kind !== 'one-wolf-pack' && event.kind !== 'vulture-stance') return;
+  const maximumAllies = event.resolvedAudience?.alliedPlayerCount ?? 0;
+  if (!maximumAllies) return;
+  const profile = balanceProfileFromContext(
+    context,
+    event.kind === 'one-wolf-pack' ? PROFILE.oneWolfPack : PROFILE.vultureStance
+  );
+  // Allies begin attacking in combat; waiting to engage never extends the shared stance's expiry.
+  const start = Math.max(event.at, context.combatStartTime ?? event.at);
+  for (const proc of gw2AlliedPlayerProcTimeline(context.config, {
+    start,
+    duration: Math.max(0, event.at + Number(event.duration || 0) - start),
+    maximumAllies,
+    internalCooldown: Number(profile?.internalCooldown ?? (event.kind === 'one-wolf-pack' ? 1 : 0.25))
+  })) {
+    context.queue.enqueue({
+      type: 'ranger.shared-stance-hit',
+      at: proc.at,
+      source: 'ranger',
+      sourceId: event.sourceId,
+      kind: event.kind,
+      actorType: 'effect',
+      skillName: `Allied Player ${proc.allyIndex} Attack`,
+      metadata: { triggeredByAlly: proc.allyIndex }
+    });
+  }
 }
 
 // Winter's Bite fires once per weapon skill hit via the ranger core flag; the flag is cleared here

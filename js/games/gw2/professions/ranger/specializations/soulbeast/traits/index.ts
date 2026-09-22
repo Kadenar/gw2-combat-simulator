@@ -33,8 +33,36 @@ export function applyUnstoppableUnion(context: RangerCastContext, skill: RangerS
   });
 }
 
-export function soulbeastStanceDuration(context: RangerCastContext, baseDuration: number): number {
-  return hasTrait(context, TRAIT.LEADER_OF_THE_PACK)
+/** Share half the player's extended stance window without shortening the personal application. */
+export function emitSoulbeastStance(
+  context: RangerCastContext,
+  skill: RangerSkill,
+  kind: string,
+  baseDuration: number
+): number {
+  const shared = hasTrait(context, TRAIT.LEADER_OF_THE_PACK);
+  const duration = shared
     ? baseDuration * balanceProfileValueFromContext(context, PROFILE.leaderOfThePack, 'durationMultiplier', 1.2)
     : baseDuration;
+  const application = {
+    at: context.start,
+    source: 'ranger',
+    sourceId: skill.id,
+    actorType: 'player' as const,
+    skillId: skill.id,
+    skillName: skill.name,
+    kind,
+    duration,
+    stacks: 1
+  };
+  emitSkillBuff(context, application);
+  if (shared) {
+    emitSkillBuff(context, {
+      ...application,
+      duration: duration * 0.5,
+      audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 4, eligibleCompanionIds: [] }
+    });
+  }
+
+  return duration;
 }

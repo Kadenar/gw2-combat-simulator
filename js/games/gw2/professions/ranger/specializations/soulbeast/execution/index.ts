@@ -1,11 +1,10 @@
 /** Registers scheduler-phase skill activations for this module. */
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { RangerCastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import {
   applyUnstoppableUnion,
-  soulbeastStanceDuration
+  emitSoulbeastStance
 } from '#gw2/professions/ranger/specializations/soulbeast/traits/index.js';
 
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
@@ -44,43 +43,25 @@ export const soulbeastSkillHandlers = Object.freeze({
   'ranger.one-wolf-pack': {
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
-      const duration = soulbeastStanceDuration(
+      const duration = emitSoulbeastStance(
         context,
+        skill,
+        'one-wolf-pack',
         balanceProfileValueFromContext(context, PROFILE.oneWolfPack, 'durationMultiplier', 6)
       );
-      // oneWolfPackUntil is written here so the resolver's per-hit ICD guard can cheaply
-      // skip the active-buff lookup when the stance has clearly expired.
+      // Keep the public stance timer aligned with the personal application.
       soulbeastState.from(context).oneWolfPackUntil = context.start + duration;
-      emitSkillBuff(context, {
-        at: context.start,
-        source: 'ranger',
-        sourceId: skill.id,
-        actorType: 'player',
-        skillId: skill.id,
-        skillName: skill.name,
-        kind: 'one-wolf-pack',
-        duration,
-        stacks: 1
-      });
     }
   },
   'ranger.vulture-stance': {
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
-      emitSkillBuff(context, {
-        at: context.start,
-        source: 'ranger',
-        sourceId: skill.id,
-        actorType: 'player',
-        skillId: skill.id,
-        skillName: skill.name,
-        kind: 'vulture-stance',
-        duration: soulbeastStanceDuration(
-          context,
-          balanceProfileValueFromContext(context, PROFILE.vultureStance, 'durationMultiplier', 6)
-        ),
-        stacks: 1
-      });
+      emitSoulbeastStance(
+        context,
+        skill,
+        'vulture-stance',
+        balanceProfileValueFromContext(context, PROFILE.vultureStance, 'durationMultiplier', 6)
+      );
     }
   }
 });
