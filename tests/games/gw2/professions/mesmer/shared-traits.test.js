@@ -8,10 +8,10 @@ import { mesmerExpectedProcReaction } from '#gw2/professions/mesmer/core/executi
 import { mesmerCoreModifierRules } from '#gw2/professions/mesmer/core/traits/modifiers.js';
 
 test('Mental Anguish uses explicit nested shatter eligibility', () => {
-  // Shatter identity alone must not grant a modifier reserved for eligible packets.
+  // Only explicitly eligible packets receive this modifier.
   const rule = mesmerCoreModifierRules.find(({ id }) => id === 'mesmer.mental-anguish');
   for (const eligible of [undefined, false, true]) {
-    const metadata = { shatter: true, ...(eligible === undefined ? {} : { shatterTraitEligible: eligible }) };
+    const metadata = eligible === undefined ? {} : { shatterTraitEligible: eligible };
     assert.equal(
       rule.when({ config: { selectedTraitIds: [TRAIT.MENTAL_ANGUISH] }, event: { metadata } }),
       eligible === true

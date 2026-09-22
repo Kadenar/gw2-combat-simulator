@@ -127,7 +127,7 @@ export function triggerMaimTheDisillusioned(
       { ...maim, stacks: maim.stacks * hit.count },
       'Player',
       `${resolution.skill.name} — Maim the Disillusioned`,
-      { metadata: { shatter: true, shatterTraitEligible: true } }
+      { metadata: { shatterTraitEligible: true } }
     );
   }
 

@@ -7,5 +7,3 @@
 /reference-repos/
 package-lock.json
 dist/
-build/
-coverage/

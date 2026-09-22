@@ -19,7 +19,6 @@
         "build": "data/gw2/builds/engineer/b-power-amalgam-hammer-symbiotic.json",
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-hammer-symbiotic-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-amalgam-hammer",
-        "dpsReportUrl": "https://dps.report/sVjd-poweramalgamsymbiotic_golem",
         "benchmarkDps": 41717,
         "upToDate": true
       },
@@ -28,7 +27,6 @@
         "build": "data/gw2/builds/engineer/b-power-amalgam-hammer-double-helix.json",
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-hammer-double-helix-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-amalgam-double-helix-hammer",
-        "dpsReportUrl": "https://dps.report/Pqrh-20260417-183507_golem",
         "benchmarkDps": 43237,
         "upToDate": true
       },
@@ -52,7 +50,6 @@
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-pistol-pistol-tools.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-pistol-pistol-tools-bench.json",
         "benchmarkDps": 37521,
-        "dpsReportUrl": "https://dps.report/h0tB-20260504-203415_golem",
         "upToDate": true
       },
       {
@@ -89,8 +86,7 @@
         "rotation": "data/gw2/rotations/engineer/r-power-holosmith-sword-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-holosmith-sword-pistol",
         "benchmarkDps": 41698,
-        "upToDate": true,
-        "dpsReportUrl": "https://dps.report/wmlz-powerholoswpbench_golem"
+        "upToDate": true
       }
     ]
   },
@@ -131,7 +127,6 @@
         "build": "data/gw2/builds/engineer/b-power-scrapper-hammer.json",
         "rotation": "data/gw2/rotations/engineer/r-power-scrapper-hammer-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-scrapper-hammer",
-        "dpsReportUrl": "https://dps.report/55xd-20260422-192633_golem",
         "benchmarkDps": 40902,
         "upToDate": true
       }

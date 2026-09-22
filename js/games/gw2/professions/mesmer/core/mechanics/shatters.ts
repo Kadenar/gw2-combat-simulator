@@ -31,7 +31,7 @@ export function resolveCloneShatter(
           source: 'Player',
           weaponStrengthProfileId: 'nonweapon.profession-mechanic'
         },
-        { metadata: { shatter: true, shatterTraitEligible: strikeIndex === 0 } }
+        { metadata: { shatterTraitEligible: strikeIndex === 0 } }
       );
     }
   };
@@ -49,7 +49,7 @@ export function resolveCloneShatter(
         source: 'Player',
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },
-      { metadata: { shatter: true, shatterTraitEligible: true } }
+      { metadata: { shatterTraitEligible: true } }
     );
 
     const baseConfusion = mesmerConditionFromProfile(context, shatter.balanceProfileId || skill.id, {
@@ -67,7 +67,7 @@ export function resolveCloneShatter(
       },
       'Player',
       '',
-      { metadata: { shatter: true, shatterTraitEligible: true } }
+      { metadata: { shatterTraitEligible: true } }
     );
 
     triggerBlindingDissipation(runtime, skill.name, at, sources);
@@ -83,7 +83,7 @@ export function resolveCloneShatter(
         source: 'Player',
         weaponStrengthProfileId: 'nonweapon.profession-mechanic'
       },
-      { metadata: { shatter: true, shatterTraitEligible: true } }
+      { metadata: { shatterTraitEligible: true } }
     );
   } else if (shatter.kind === 'control') {
     // The resolved spend supplies player plus clone applications; no cast-completion observation substitutes for them.

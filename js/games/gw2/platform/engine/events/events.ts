@@ -194,9 +194,7 @@ export interface EffectMetadata {
   // Combat annotations stay nested so profession reactions do not expand emitter controls.
   readonly cloneId?: number;
   readonly blade?: boolean;
-  readonly shatter?: boolean;
   readonly shatterTraitEligible?: boolean;
-  readonly instrument?: string;
   readonly triggeredByAlly?: number;
   readonly venomProcEffectIndex?: number;
   /** Proc activations represented by this one primary effect, independent of stacks and damage ticks. */

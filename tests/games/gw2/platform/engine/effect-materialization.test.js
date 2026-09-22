@@ -12,7 +12,7 @@ test('materialization retains base clone identity while effect and tick metadata
       condition: 'Bleeding',
       stacks: 1,
       duration: 2,
-      metadata: { shatter: true, blade: true },
+      metadata: { shatterTraitEligible: true, blade: true },
       ...(type === 'control'
         ? {}
         : {
@@ -33,9 +33,14 @@ test('materialization retains base clone identity while effect and tick metadata
       effect,
       start: 0,
       fullEnd: 1,
-      baseEvent: { source: 'Clone', sourceId: 1, actorType: 'summon', metadata: { cloneId: 0, shatter: false } }
+      baseEvent: {
+        source: 'Clone',
+        sourceId: 1,
+        actorType: 'summon',
+        metadata: { cloneId: 0, shatterTraitEligible: false }
+      }
     });
-    assert.deepEqual(application.event.metadata, { cloneId: 0, shatter: true, blade: type === 'control' });
+    assert.deepEqual(application.event.metadata, { cloneId: 0, shatterTraitEligible: true, blade: type === 'control' });
     assert.equal(Object.hasOwn(application.event, 'cloneId'), false);
   }
 });

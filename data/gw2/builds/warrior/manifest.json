@@ -32,7 +32,6 @@
         "label": "Power (Hammer + Axe/Mace)",
         "build": "data/gw2/builds/warrior/b-power-berserker-hammer-axe-mace.json",
         "rotation": "data/gw2/rotations/warrior/r-power-berserker-hammer-axe-mace-bench.json",
-        "dpsReportUrl": "https://dps.report/HQq4-20260716-224707_golem",
         "benchmarkDps": 42734,
         "upToDate": true
       },
@@ -66,7 +65,6 @@
         "label": "Power (Hammer + Dagger/Mace)",
         "build": "data/gw2/builds/warrior/b-power-spellbreaker-hammer-dagger-mace.json",
         "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-hammer-dagger-mace-bench.json",
-        "dpsReportUrl": "https://dps.report/dzrB-20260721-123458_golem",
         "benchmarkDps": 42908,
         "upToDate": true
       }

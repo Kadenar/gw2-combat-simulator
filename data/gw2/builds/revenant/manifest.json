@@ -8,8 +8,6 @@
         "rotation": "data/gw2/rotations/revenant/r-power-renegade-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-renegade-greatsword-sword-sword",
         "benchmarkDps": 43831,
-        "referenceDps": 43752,
-        "dpsReportUrl": "https://dps.report/IcMt-20260716-164954_golem",
         "upToDate": true
       },
       {
@@ -42,8 +40,6 @@
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-spear-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-spear-mace-axe",
         "benchmarkDps": 41475,
-        "referenceDps": 40839,
-        "dpsReportUrl": "https://dps.report/dH9G-20260717-231446_golem",
         "upToDate": true
       }
     ]
@@ -57,8 +53,6 @@
         "rotation": "data/gw2/rotations/revenant/r-power-quick-herald-greatsword-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-quickness-herald-greatsword-sword-sword",
         "benchmarkDps": 31922,
-        "referenceDps": 32073,
-        "dpsReportUrl": "https://dps.report/b5fG-20250214-121250_golem",
         "upToDate": true
       },
       {
@@ -100,8 +94,7 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-bench.json",
         "benchmarkDps": 42392,
-        "upToDate": true,
-        "referenceDps": 42999
+        "upToDate": true
       },
       {
         "label": "Condition (Spear - Mace/Axe) - Mistfire",

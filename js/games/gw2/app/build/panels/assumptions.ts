@@ -114,7 +114,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
   const professionAssumptionItem = (control: ProfessionAssumptionControl): string => {
     const value = a[control.key] ?? control.defaultValue;
     if (control.type === 'boolean') {
-      return `<label class="boon-control"><input data-assumption-key="${esc(control.key)}" data-assumption-type="boolean" type="checkbox"${value ? ' checked' : ''}> ${esc(control.label)}</label>`;
+      return `<label class="boon-control"><input data-assumption-key="${esc(control.key)}" type="checkbox"${value ? ' checked' : ''}> ${esc(control.label)}</label>`;
     }
 
     if (control.type === 'select') {
@@ -149,7 +149,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
       }
 
       return `<label class="boon-control">${esc(control.label)}
-                    <select class="gear-select" data-assumption-key="${esc(control.key)}" data-assumption-type="select">
+                    <select class="gear-select" data-assumption-key="${esc(control.key)}">
                         ${control.options
                           .map(
                             (option) =>
@@ -161,7 +161,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
     }
 
     return `<label class="boon-control">${esc(control.label)}
-                <input data-assumption-key="${esc(control.key)}" data-assumption-type="number" type="number"
+                <input data-assumption-key="${esc(control.key)}" type="number"
                     min="${control.minimum}" max="${control.maximum}" step="${control.step}" value="${Number(value)}">
             </label>`;
   };

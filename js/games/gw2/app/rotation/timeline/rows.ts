@@ -581,11 +581,9 @@ export function timelineRowsView(
     }
 
     const skills = rowItems.join('');
-    const finalSkill = row.skills.at(-1);
-    const insertAt = finalSkill ? finalSkill.index + 1 : 0;
     // Preserve state boundaries as separate lines without adding labels beside their skill icons.
     return `<div class="rot-row-line">
-            <div class="rot-row-skills" data-insert-idx="${insertAt}">${skills}</div>
+            <div class="rot-row-skills">${skills}</div>
         </div>`;
   });
 

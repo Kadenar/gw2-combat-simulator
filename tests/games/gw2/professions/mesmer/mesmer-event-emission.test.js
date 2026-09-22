@@ -64,7 +64,7 @@ function createFixture() {
 test('Mesmer wrappers merge application, tick, and explicit metadata without losing false or zero', () => {
   // Both procedural paths use packet overrides and keep unrelated annotations through validation.
   const { emitters } = createFixture();
-  const metadata = { cloneId: 1, blade: true, shatter: true };
+  const metadata = { cloneId: 1, blade: true };
   const tickMetadata = { cloneId: 2, blade: false, shatterTraitEligible: true };
   const extra = { metadata: { cloneId: 0, shatterTraitEligible: false } };
   const [condition] = emitters.addCondition(
@@ -91,7 +91,7 @@ test('Mesmer wrappers merge application, tick, and explicit metadata without los
   );
   for (const event of [condition, damage]) {
     assert.equal(event.at, 1.25);
-    assert.deepEqual(event.metadata, { cloneId: 0, blade: false, shatter: true, shatterTraitEligible: false });
+    assert.deepEqual(event.metadata, { cloneId: 0, blade: false, shatterTraitEligible: false });
     assert.ok(Object.isFrozen(event.metadata));
     for (const key of Object.keys(event.metadata)) assert.equal(Object.hasOwn(event, key), false);
   }

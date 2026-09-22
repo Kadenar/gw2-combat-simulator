@@ -12,9 +12,7 @@ const AUDIENCE_FIELDS = new Set([
 const METADATA_VALUE_KINDS = Object.freeze({
   cloneId: 'number',
   blade: 'boolean',
-  shatter: 'boolean',
   shatterTraitEligible: 'boolean',
-  instrument: 'string',
   triggeredByAlly: 'number',
   venomProcEffectIndex: 'number',
   procCount: 'number',

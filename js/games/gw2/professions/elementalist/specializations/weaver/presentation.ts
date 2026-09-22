@@ -338,11 +338,7 @@ function renderWeaverWeaponPalette(
   if (carriedAutoattack && !placedCarriedAutoattack) primarySkills.unshift(carriedAutoattack);
   const slotThreeSkills = active([...layout.sameAttunementSkills, ...layout.dualSkills]);
   const secondarySkills = active(layout.secondaryRows.flatMap((row) => row.skills));
-  const currentCluster = (
-    candidates: readonly Skill[],
-    slots: string,
-    badge = false
-  ): string => `<div class="weaver-current-cluster" data-slots="${slots}">
+  const currentCluster = (candidates: readonly Skill[], badge = false): string => `<div class="weaver-current-cluster">
       ${candidates
         .map((skill) =>
           skillCellHtml(skill, isAvailable, unavailableMessage, renderSkill, {
@@ -389,11 +385,11 @@ function renderWeaverWeaponPalette(
           <strong>${esc(`${primaryAttunement[0]}/${secondaryAttunement[0]}`)}</strong>
         </div>
         <div class="weaver-current-composition">
-          ${currentCluster(primarySkills, '1-2')}
+          ${currentCluster(primarySkills)}
           <span class="weaver-current-divider" aria-hidden="true"></span>
-          ${currentCluster(slotThreeSkills, '3', true)}
+          ${currentCluster(slotThreeSkills, true)}
           <span class="weaver-current-divider" aria-hidden="true"></span>
-          ${currentCluster(secondarySkills, '4-5')}
+          ${currentCluster(secondarySkills)}
         </div>
       </div>`,
     weaponGroupsHtml: [

@@ -173,9 +173,7 @@ export function renderSkills(app: ProfessionAppState): void {
   const selectedSkillsHtml = `<div class="skill-bar-selected">${selectedSkillBarHtml}</div>`;
   const professionSelectionsHtml = `<div class="skill-bar-inspection${
     inspectionLayout ? ` ${esc(inspectionLayout)}` : ''
-  }"${inspectionLayout ? ` data-layout="${esc(inspectionLayout)}"` : ''}>${inspectionGroups
-    .map((group) => multiSelectionInspectionGroupHtml(app, group))
-    .join('')}</div>`;
+  }">${inspectionGroups.map((group) => multiSelectionInspectionGroupHtml(app, group)).join('')}</div>`;
 
   // Keep build-changing profession selectors while omitting static mechanic previews.
   skillBar.innerHTML = `${selectedSkillsHtml}${

@@ -49,11 +49,8 @@ export default [
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
-      'coverage/**',
-      'build/**',
       'reference-repos/**',
       '.scratch/**',
-      '**/.analysis-inputs/**',
       '**/.claude/**',
       '**/.git/**',
       '**/.lavish/**'
