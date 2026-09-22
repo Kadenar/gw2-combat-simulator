@@ -55,7 +55,6 @@ export interface RandomDistributionDriver {
   readonly category: RandomDistributionMetricCategory;
   readonly unit: RandomDistributionMetricUnit;
   readonly lowAverage: number;
-  readonly overallAverage: number;
   readonly highAverage: number;
   readonly delta: number;
   readonly correlation: number;

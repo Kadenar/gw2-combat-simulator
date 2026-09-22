@@ -36,6 +36,9 @@ test('in-game build import replaces selections without discarding gear or rotati
   };
 
   const preview = previewBuildTemplateCode(app, ELEMENTALIST_CODE);
+  assert.ok(Object.isFrozen(preview));
+  assert.equal(app.build, current);
+  assert.equal(changedCalls, 0);
   const warnings = applyBuildTemplatePreview(app, preview);
 
   assert.deepEqual(app.build.specializations, [

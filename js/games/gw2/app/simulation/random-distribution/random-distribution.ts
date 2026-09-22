@@ -464,6 +464,7 @@ export function summarizeRandomDistributionOutcomes(
     if (!(delta > 1e-9)) continue;
     const { correlation, slope } = linearRelationship(values, dpsValues);
     if (correlation < MIN_EXPLANATION_CORRELATION) continue;
+    // Center the observations to measure spread for driver ranking.
     const valueMean = average(values);
     const deviation = Math.sqrt(average(values.map((value) => (value - valueMean) ** 2)));
     const effectSize = deviation > 0 ? Math.abs(delta) / deviation : 0;
@@ -476,7 +477,6 @@ export function summarizeRandomDistributionOutcomes(
         category: metric.category,
         unit: metric.unit,
         lowAverage,
-        overallAverage: valueMean,
         highAverage,
         delta,
         correlation,

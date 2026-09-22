@@ -722,7 +722,6 @@ test('shared results render summaries, totals, contributions, and icons', () => 
               category: 'critical',
               unit: 'count',
               lowAverage: 18.2,
-              overallAverage: 21.5,
               highAverage: 25.4,
               delta: 7.2,
               correlation: 0.84,

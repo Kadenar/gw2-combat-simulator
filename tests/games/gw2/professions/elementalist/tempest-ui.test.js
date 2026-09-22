@@ -173,5 +173,6 @@ test('Tempest overload palette shows its active cooldown after use', () => {
 
   assert.equal(view.disabled, true);
   assert.equal(view.cooldownLabel, '16.00s');
-  assert.match(view.title, /Remaining: 16\.00s/);
+  // Live cooldown text belongs to the tooltip's cast details.
+  assert.match(view.castDetails, /Remaining: 16\.00s/);
 });

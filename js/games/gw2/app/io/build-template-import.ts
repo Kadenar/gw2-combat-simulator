@@ -51,10 +51,6 @@ const BUILD_TEMPLATE_PROFESSIONS_BY_CODE = new Map(
   Object.values(BUILD_TEMPLATE_PROFESSIONS).map((profession) => [profession.code, profession])
 );
 
-export interface BuildTemplateImportPreview extends ResolvedGw2BuildTemplate {
-  readonly sourceCode: string;
-}
-
 export class BuildTemplateProfessionMismatchError extends Error {
   readonly actualProfession: BuildTemplateProfession;
   readonly currentProfession: BuildTemplateProfession;
@@ -78,8 +74,8 @@ function currentProfession(app: ProfessionAppState): BuildTemplateProfession {
   return profession;
 }
 
-/** Decodes a build into reviewable selections without changing application state. */
-export function previewBuildTemplateCode(app: ProfessionAppState, chatCode: string): BuildTemplateImportPreview {
+/** Returns the resolver's frozen selections for review without changing application state. */
+export function previewBuildTemplateCode(app: ProfessionAppState, chatCode: string): ResolvedGw2BuildTemplate {
   const current = app.build as ProfessionAppState['build'] & {
     readonly startAttunement?: string;
   };
@@ -90,20 +86,17 @@ export function previewBuildTemplateCode(app: ProfessionAppState, chatCode: stri
     throw new BuildTemplateProfessionMismatchError(actualProfession, expectedProfession);
   }
 
-  return Object.freeze({
-    ...resolveGw2BuildTemplate(decoded, {
-      catalog: app.activeCatalog,
-      expectedProfession,
-      preferredAttunement: String(current.startAttunement || 'Fire')
-    }),
-    sourceCode: String(chatCode).trim()
+  return resolveGw2BuildTemplate(decoded, {
+    catalog: app.activeCatalog,
+    expectedProfession,
+    preferredAttunement: String(current.startAttunement || 'Fire')
   });
 }
 
 /** Applies a previously reviewed preview while retaining gear stats and rotation. */
 export function applyBuildTemplatePreview(
   app: ProfessionAppState,
-  preview: BuildTemplateImportPreview,
+  preview: ResolvedGw2BuildTemplate,
   weapons: Gw2BuildTemplateWeaponSet | null = preview.weapons
 ): readonly string[] {
   const current = app.build;

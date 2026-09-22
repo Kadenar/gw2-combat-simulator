@@ -7,7 +7,7 @@ import {
 import { ensureDocumentStyles } from '#ui/shared/dom.js';
 import { errorMessage } from '#ui/shared/errors.js';
 
-import type { BuildTemplateImportPreview } from '#gw2/app/io/build-template-import.js';
+import type { ResolvedGw2BuildTemplate } from '#gw2/platform/builds/templates/codec.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 interface BuildTemplateDialogElements {
@@ -184,7 +184,7 @@ function previewItem(document: Document, label: string, detail: string, icon?: s
 function renderPreview(
   app: ProfessionAppState,
   elements: BuildTemplateDialogElements,
-  preview: BuildTemplateImportPreview
+  preview: ResolvedGw2BuildTemplate
 ): void {
   const document = elements.dialog.ownerDocument;
   elements.profession.textContent = preview.professionName;
@@ -233,7 +233,7 @@ function renderPreview(
 export function bindBuildTemplateImportDialog(app: ProfessionAppState, button: HTMLElement): void {
   button.setAttribute('aria-haspopup', 'dialog');
   const elements = createDialog(button.ownerDocument);
-  let activePreview: BuildTemplateImportPreview | null = null;
+  let activePreview: ResolvedGw2BuildTemplate | null = null;
 
   const clearResult = (): void => {
     activePreview = null;

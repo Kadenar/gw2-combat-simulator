@@ -1,4 +1,5 @@
 import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
+import type { RandomDistributionSummary } from '#gw2/app/simulation/random-distribution/types.js';
 import { mountTimeSeriesCharts, type ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
 import { mountHitTimeline } from '#ui/results/charts/hit-timeline-view.js';
 import { bindDialog, showDialog } from '#app/page/dialog.js';
@@ -91,33 +92,6 @@ export interface ResultContribution {
   readonly icon?: string;
 }
 
-export interface ResultRandomDistribution {
-  readonly trials: number;
-  readonly mean: number;
-  readonly p01: number;
-  readonly p10: number;
-  readonly p50: number;
-  readonly p90: number;
-  readonly p99: number;
-  readonly explanation?: {
-    readonly cohortPercent: number;
-    readonly lowDpsMean: number;
-    readonly highDpsMean: number;
-    readonly drivers: readonly {
-      readonly id: string;
-      readonly label: string;
-      readonly category: string;
-      readonly unit: 'count' | 'stacks' | 'value';
-      readonly lowAverage: number;
-      readonly overallAverage: number;
-      readonly highAverage: number;
-      readonly delta: number;
-      readonly correlation: number;
-      readonly estimatedDpsDelta: number;
-    }[];
-  };
-}
-
 export interface ResultRandomDistributionProgress {
   readonly completed?: number;
   readonly total?: number;
@@ -136,7 +110,7 @@ export interface RotationResultsModel {
   readonly contributions?: readonly ResultContribution[];
   readonly contributionsStale?: boolean;
   readonly contributionsError?: string;
-  readonly randomDistribution?: ResultRandomDistribution | null;
+  readonly randomDistribution?: RandomDistributionSummary | null;
   readonly randomDistributionRequested?: boolean;
   readonly randomDistributionStale?: boolean;
   readonly randomDistributionTrials?: number;
@@ -266,7 +240,7 @@ function randomDriverNumber(value: unknown, unit: 'count' | 'stacks' | 'value'):
 }
 
 /** Plots the existing percentiles on one DPS scale, with separate label lanes when values cluster. */
-function randomDistributionRangeHtml(distribution: ResultRandomDistribution): string {
+function randomDistributionRangeHtml(distribution: RandomDistributionSummary): string {
   const markers = [
     { label: '1st pct', value: distribution.p01, className: 'rng-tail' },
     { label: 'P10', value: distribution.p10, className: 'rng-likely' },
@@ -335,7 +309,7 @@ function randomDistributionRangeHtml(distribution: ResultRandomDistribution): st
 }
 
 /** Compares the outcome cohorts using relative impact bars without implying additive attribution. */
-function randomDistributionExplanationHtml(distribution: ResultRandomDistribution): string {
+function randomDistributionExplanationHtml(distribution: RandomDistributionSummary): string {
   const explanation = distribution.explanation;
   if (!explanation?.drivers?.length) return '';
   const cohort = Math.max(1, Math.round(explanation.cohortPercent || 10));
