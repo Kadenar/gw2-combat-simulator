@@ -67,7 +67,6 @@ export interface NecromancerSkill extends Skill {
   readonly lifeForceCost?: number;
   readonly lifeForceGain?: number;
   readonly shroud?: string;
-  readonly shroudDrainPercent?: number;
   readonly shroudEntry?: string;
   readonly shroudExit?: string;
   readonly shroudProfileId?: string;

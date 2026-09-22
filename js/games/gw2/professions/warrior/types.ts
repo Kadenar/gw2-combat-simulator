@@ -85,12 +85,10 @@ export type WarriorCastContext = CastLifecycleContext<WarriorRuntimeState> & {
 export type WarriorSimulationEvent = SimulationEvent & {
   readonly coefficient?: number;
   readonly condition?: string;
-  readonly resourceAmount?: number;
   readonly state?: Partial<WarriorState>;
 };
 
 export type WarriorResolverEvent = Gw2ResolverEvent & {
-  readonly resourceAmount?: number;
   readonly state?: Partial<WarriorState>;
 };
 

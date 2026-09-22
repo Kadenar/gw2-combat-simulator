@@ -103,13 +103,12 @@ export type ElementalistCastContext = CastLifecycleContext<ElementalistRuntimeSt
   elementalistAttunementHandled?: boolean;
 };
 
-/** Scheduled event enriched with the attunement, aura, and combo-field metadata Elementalist emits. */
+/** Scheduled event enriched with the aura and combo-field metadata Elementalist emits. */
 export type ElementalistSimulationEvent = SimulationEvent & {
   readonly application?: ElementalistSimulationEvent;
   readonly aura?: string;
   readonly coefficient?: number;
   readonly condition?: string;
-  readonly elementalistAttunement?: string;
   readonly fieldType?: string;
   readonly sourceSkill?: string;
 };
@@ -120,7 +119,6 @@ export type ElementalistResolverEvent = Gw2ResolverEvent & {
   readonly aura?: string;
   readonly coefficient?: number;
   readonly condition?: string;
-  readonly elementalistAttunement?: string;
   readonly fieldType?: string;
   readonly sourceSkill?: string;
 };

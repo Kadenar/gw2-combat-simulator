@@ -11,7 +11,6 @@ export interface MesmerShatter {
   readonly minimumResource?: number;
   readonly consumesResources?: boolean;
   readonly resetBySignetOfIllusions?: boolean;
-  readonly hitsPerSource?: number;
   readonly ticks?: readonly (readonly StrikeTick[])[];
   readonly rechargeReductionPerSource?: number;
   readonly resourceSpendProgress?: number;
