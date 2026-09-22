@@ -946,14 +946,23 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
   );
 });
 
+test('Paragon weapon bursts spend one of three adrenaline bars', () => {
+  const result = simulate('Paragon', ['Eviscerate'], { initialResource: 30 });
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.planningState.profession.maximumAdrenaline, 30);
+  // The burst spends ten, then its hit restores one adrenaline.
+  assert.equal(result.planningState.profession.adrenaline, 21);
+});
+
 test('Paragon chants consume adrenaline and start a refrain', () => {
   const result = simulate('Paragon', ['Chant of Action'], {
-    initialResource: 10
+    initialResource: 30
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.maximumAdrenaline, 10);
-  assert.equal(result.planningState.profession.adrenaline, 0);
+  assert.equal(result.planningState.profession.maximumAdrenaline, 30);
+  assert.equal(result.planningState.profession.adrenaline, 20);
   assert.equal(result.planningState.profession.motivation, 4);
   assert.equal(result.planningState.profession.activeRefrain, 'Chant of Action');
   const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.CHANT_OF_ACTION);

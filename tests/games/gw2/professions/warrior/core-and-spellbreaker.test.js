@@ -209,7 +209,7 @@ test('Warrior core and elite profession resources remain isolated', () => {
     ['Core', 30],
     ['Berserker', 30],
     ['Spellbreaker', 20],
-    ['Paragon', 10],
+    ['Paragon', 30],
     ['Bladesworn', 0]
   ]) {
     const state = simulate(specialization, [], { initialResource: 100 }).planningState.profession;
@@ -270,9 +270,8 @@ test('Warrior F keys follow the selected primary weapons', () => {
 
   const paragon = groups('Paragon', ['Staff', ''], ['Spear', '']);
 
-  assert.deepEqual(paragon.palette, [
-    ID.PATH_TO_VICTORY_ID_71932,
-    ID.HARRIERS_TOSS,
+  assert.deepEqual(paragon.palette, [ID.PATH_TO_VICTORY_ID_71932, ID.HARRIERS_TOSS]);
+  assert.deepEqual(paragon.paletteGroups.find((group) => group.id === 'paragon-chants').skillIds, [
     ID.CHANT_OF_ACTION,
     ID.CHANT_OF_RECUPERATION,
     ID.CHANT_OF_FREEDOM
@@ -464,16 +463,25 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
     coreResources.map((view) => view.id),
     ['adrenaline']
   );
-  assert.deepEqual(
-    warriorProfession.ui.resourceViews({ specialization: 'Bladesworn' }).map((view) => view.id),
-    ['flow']
+  const flow = warriorProfession.ui.resourceViews({ specialization: 'Bladesworn' })[0];
+  assert.equal(flow.id, 'flow');
+  assert.equal(flow.maximum, 100);
+  assert.equal(flow.displayMode, 'bar');
+  assert.equal(flow.pipStyle, 'compact-profession-resource-warrior-flow');
+  assert.equal(
+    warriorProfession.ui.paletteGroups({ specialization: 'Bladesworn' })[0].className,
+    'bladesworn-f-skills'
   );
   assert.equal(resource.displayMode, 'bar');
   assert.equal(resource.barSegments, 3);
+  assert.equal(
+    warriorProfession.ui.paletteGroups({ specialization: 'Core' })[0].className,
+    'compact-resource-palette warrior-f-skills'
+  );
 
   for (const [specialization, maximum, barSegments] of [
     ['Spellbreaker', 20, 2],
-    ['Paragon', 10, 1]
+    ['Paragon', 30, 3]
   ]) {
     const specializationResource = warriorProfession.ui
       .resourceViews({
@@ -483,7 +491,17 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
       .find((view) => view.id === 'adrenaline');
 
     assert.equal(specializationResource.barSegments, barSegments);
+    assert.equal(warriorProfession.ui.resourceViews({ specialization })[0].maximum, maximum);
   }
+
+  const berserk = simulate('Berserker', ['Berserk'], { initialResource: 30 });
+  assert.equal(
+    warriorProfession.ui.resourceViews({
+      specialization: 'Berserker',
+      professionState: berserk.planningState.profession
+    })[0].barSegments,
+    1
+  );
 
   const resourceHtml = activeResourceGroup({
     profession: warriorProfession,
@@ -492,7 +510,10 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
     results: result
   });
 
-  assert.equal([...resourceHtml.matchAll(/class="active-resource-bar warrior-adrenaline"/g)].length, 3);
+  assert.equal(
+    [...resourceHtml.matchAll(/class="active-resource-bar compact-profession-resource-warrior-adrenaline"/g)].length,
+    3
+  );
   assert.doesNotMatch(resourceHtml, /active-resource-pip/);
   assert.match(resourceHtml, /width:50%/);
 });

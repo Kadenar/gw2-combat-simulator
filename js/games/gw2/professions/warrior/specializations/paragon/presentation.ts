@@ -48,7 +48,22 @@ function paragonStateSnapshot(context: WarriorUiContext): RotationStateSnapshotI
 }
 
 export const paragonUi: WarriorUiSlice = Object.freeze({
-  paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, CHANTS),
+  // Put chants on their own F row so Motivation can sit beside them while adrenaline stays above weapon bursts.
+  paletteGroups: (context: WarriorUiContext) => {
+    const [bursts, ...otherGroups] = warriorPaletteGroups(context);
+    return [
+      { ...bursts, stackId: 'paragon-profession', className: `${bursts.className} paragon-f-skills` },
+      {
+        id: 'paragon-chants',
+        label: 'F',
+        skillIds: CHANTS,
+        color: '#d79b55',
+        stackId: 'paragon-profession',
+        className: 'paragon-chants'
+      },
+      ...otherGroups
+    ];
+  },
   rotationStateSnapshot: paragonStateSnapshot,
   resourceViews: resources,
   paletteSkillAvailability: (context: WarriorUiContext, skill: WarriorSkill) =>

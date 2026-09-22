@@ -22,8 +22,8 @@ import { necromancerCoreCastRules } from '#gw2/professions/necromancer/core/trai
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 
-// Qualified attribute and skill-recharge facts keep the game's distinct glyphs.
-test('attribute bonuses and skill recharge use dedicated CDN icons', async () => {
+// Qualified attribute, adrenaline, and skill-recharge facts keep the game's matching glyphs.
+test('attribute bonuses, adrenaline, and skill recharge use game CDN icons', async () => {
   const { rangerProfession } = await import('#gw2/professions/ranger/profession.js');
   const { rangerTooltips } = await import('#gw2/professions/ranger/app/tooltips.js');
   const context = withPatchPreview(rangerProfession, null).balanceContextFor();
@@ -34,6 +34,12 @@ test('attribute bonuses and skill recharge use dedicated CDN icons', async () =>
   for (const fact of attributes) assert.match(fact.icon, /\/156652\.png$/);
   assert.match(tooltip.facts.find(({ name }) => name === 'Pet skill recharge').icon, /\/1770202\.png$/);
   assert.match(tooltipFactIcon('Attribute increase per stack'), /\/156652\.png$/);
+  assert.match(tooltipFactIcon('Adrenaline gained'), /\/156652\.png$/);
+  assert.match(tooltipFactIcon('Minimum adrenaline'), /\/156652\.png$/);
+  assert.match(tooltipFactIcon('Motivation gained'), /\/156661\.png$/);
+  assert.match(tooltipFactIcon('Motivation required for tier two'), /\/156661\.png$/);
+  assert.match(tooltipFactIcon('Pulse interval'), /\/1770206\.png$/);
+  assert.match(tooltipFactIcon('Pulse intervals'), /\/1770206\.png$/);
   assert.match(tooltipFactIcon('Earth skill recharge'), /\/1770202\.png$/);
   assert.match(tooltipFactIcon('Internal cooldown'), /\/156651\.png$/);
 });
@@ -257,6 +263,20 @@ test('custom skill tooltips format their payload once', () => {
   });
   assert.match(model.facts[0].detail, /^1 coefficient/);
   assert.equal(reads, 1);
+});
+
+// Finisher chance is useful for projectiles; other finisher types always display just their type.
+test('combo finisher tooltips show chance only for projectiles', () => {
+  const skill = {
+    id: 'finisher-tooltip',
+    name: 'Finisher tooltip',
+    comboFinishers: ['Leap', 'Blast', 'Whirl', 'Projectile'].map((finisherType) => ({ finisherType, chance: 1 }))
+  };
+  const model = describeSimulationSkill({}, skill, { traits: {} });
+  assert.deepEqual(
+    model.facts.filter(({ name }) => name === 'Combo finisher').map(({ detail }) => detail),
+    ['Leap', 'Blast', 'Whirl', 'Projectile · 100% chance']
+  );
 });
 
 // Trait facts follow the same specialization overrides and selected patches as combat.

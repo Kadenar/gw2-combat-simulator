@@ -399,10 +399,11 @@ export function describeSimulationSkill(
         : [])
     ])
   ];
+  // Only projectile finishers expose a chance; other finisher types are guaranteed by their type.
   for (const finisher of new Map(comboFinishers.map((finisher) => [JSON.stringify(finisher), finisher])).values()) {
     facts.push({
       name: 'Combo finisher',
-      detail: `${String(finisher.finisherType)}${typeof finisher.chance === 'number' ? ` · ${tooltipDecimal(finisher.chance * 100)}% chance` : ''}`
+      detail: `${String(finisher.finisherType)}${finisher.finisherType === 'Projectile' && typeof finisher.chance === 'number' ? ` · ${tooltipDecimal(finisher.chance * 100)}% chance` : ''}`
     });
   }
 

@@ -35,7 +35,11 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   Recharge: 'https://render.guildwars2.com/file/D767B963D120F077C3B163A05DC05A7317D7DB70/156651.png',
   // Skill recharge reductions and generic attribute bonuses use their dedicated in-game fact glyphs.
   'Skill recharge': 'https://render.guildwars2.com/file/AAB7C5387A08367C2F023F19FEE70E1556AD4375/1770202.png',
+  // Pulse timing uses the game's Interval fact glyph.
+  Interval: 'https://render.guildwars2.com/file/B75E91EB22E0DFCC1D08030204055946506D56F6/1770206.png',
   'Attribute increase': 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
+  // Warrior adrenaline facts use the game's Number glyph, shared with attribute increases.
+  Adrenaline: 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
   'Energy cost': 'https://assets.gw2dat.com/156647.png',
   'Crushing Abyss': 'https://render.guildwars2.com/file/632F757C2309C12BCFE99FCCE4BB761FA59AECEE/3379187.png',
   'Battle Scars': 'https://render.guildwars2.com/file/12FFBBD82F3BB8C057E95AB7E907AD3EACFDF221/2261517.png',
@@ -66,6 +70,7 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   Affinity: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Energy: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Endurance: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
+  Motivation: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   'Maximum stacks': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   'Max stacks': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   'Life Force': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
@@ -123,6 +128,7 @@ export function tooltipFactIcon(name: string): string | undefined {
   const label = name.toLowerCase().split('converted to ').at(-1)!;
   if (/\bskills? recharge\b/.test(label)) return MODIFIER_EFFECT_ICONS['Skill recharge'];
   if (/\b(?:recharge|cooldown|icd)\b/.test(label)) return MODIFIER_EFFECT_ICONS.Recharge;
+  if (/\bintervals?\b/.test(label)) return MODIFIER_EFFECT_ICONS.Interval;
   if (/\bcritical(?:[- ]hit)? damage\b/.test(label)) return MODIFIER_EFFECT_ICONS.Ferocity;
   if (/\bcritical(?:[- ]strike)? chance\b/.test(label)) return MODIFIER_EFFECT_ICONS.Precision;
   if (/^damage\b|\bstrike(?: and condition)? damage\b/.test(label)) return MODIFIER_EFFECT_ICONS['Strike damage'];

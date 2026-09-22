@@ -10,8 +10,6 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { syncWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
 import type { WarriorSchedulerContext } from '#gw2/professions/warrior/types.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
@@ -27,12 +25,11 @@ import {
 export const paragonSchedulerHooks = Object.freeze({
   // Paragon adds its specialization trait without owning the base swap.
   onWeaponSwap: applyParagonWeaponSwapTraits,
+  // Keep Core's three-bar adrenaline pool; each chant or burst still spends one bar.
   initialize: (context: WarriorSchedulerContext) => {
     const state = paragonState.from(context);
     state.maximumMotivation = Number(balanceProfileFromContext(context, PROFILE.resources)?.maximumStacks ?? 10);
     state.motivation = Math.min(state.maximumMotivation, state.motivation);
-    professionCoreState(context).maximumAdrenaline = 10;
-    syncWarriorAdrenaline(context);
   },
   onCastStart: beginParagonCast,
   afterCast: {

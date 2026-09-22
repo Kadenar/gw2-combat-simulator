@@ -44,6 +44,8 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
       buildKey: 'initialResource',
       step: 1,
       displayMode: 'bar',
+      // Flow uses the compact Warrior bar styling beside the F skills while retaining its 100-point pool.
+      pipStyle: 'compact-profession-resource-warrior-flow',
       shortLabel: 'Flow',
       statusLabel: 'Current'
     }

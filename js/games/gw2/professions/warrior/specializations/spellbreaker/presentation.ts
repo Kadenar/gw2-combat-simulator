@@ -14,7 +14,7 @@ import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/profes
 const SKILLS = Object.freeze([ID.FULL_COUNTER]);
 export const spellbreakerUi: WarriorUiSlice = Object.freeze({
   paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, SKILLS),
-  resourceViews: warriorAdrenalineResourceViews,
+  resourceViews: (context: WarriorUiContext) => warriorAdrenalineResourceViews(context, 20),
   paletteSkillAvailability: (context: WarriorUiContext, skill: WarriorSkill) =>
     warriorBurstPaletteAvailability(context, skill),
   rotationStateSnapshot: (context: WarriorUiContext) => {

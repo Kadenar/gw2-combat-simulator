@@ -835,6 +835,49 @@
   grid-column: 1 / -1;
 }
 
+/* Keep adrenaline over weapon bursts, with chants and Motivation side by side below. */
+.profession-resource-stack:has(.paragon-f-skills) {
+  grid-template-columns: 12px max-content max-content 50px;
+  grid-template-rows: 12px auto auto;
+}
+
+.profession-resource-stack:has(.paragon-f-skills) .paragon-f-skills > .pal-label {
+  grid-row: 1 / 4;
+}
+
+.profession-resource-stack:has(.paragon-f-skills) .paragon-chants {
+  display: contents;
+}
+
+.profession-resource-stack:has(.paragon-f-skills) .paragon-chants > .pal-label {
+  display: none;
+}
+
+.profession-resource-stack:has(.paragon-f-skills) .paragon-chants > .pal-row {
+  grid-column: 2 / 4;
+  grid-row: 3;
+}
+
+/* The adrenaline meter spans both skill rows and the Motivation column. */
+.profession-resource-stack:has(.paragon-f-skills)
+  .active-resource-group:has([data-resource-id='adrenaline'])
+  > .active-resource {
+  grid-column: 2 / 5;
+}
+
+.profession-resource-stack:has(.paragon-f-skills)
+  .pal-group.active-resource-group:has([data-resource-id='motivation']) {
+  grid-column: 4;
+  grid-row: 3;
+  align-self: center;
+  padding: 0;
+  border: 0;
+}
+
+.profession-resource-stack:has(.paragon-f-skills) .active-resource[data-resource-id='motivation'] {
+  min-width: 0;
+}
+
 /* Keep spear shards in the shared Necromancer mechanic block, beside its F-skill row,
    while the life-force bar retains the compact row above those skills. */
 .necromancer-theme
@@ -865,6 +908,23 @@
 
 .active-resource-bar[class*='compact-profession-resource-'] > span {
   background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+}
+
+/* Stretch Warrior's tier segments across the F-skill row while preserving each ten-adrenaline boundary. */
+.active-resource:has(.compact-profession-resource-warrior-adrenaline) > .active-resource-bars {
+  width: 100%;
+}
+
+.active-resource-bar.compact-profession-resource-warrior-adrenaline,
+.active-resource-bar.compact-profession-resource-warrior-flow {
+  border-color: #a86837;
+  background: #241910;
+}
+
+.active-resource-bar.compact-profession-resource-warrior-adrenaline > span,
+.active-resource-bar.compact-profession-resource-warrior-flow > span {
+  background: linear-gradient(90deg, #b96831, #eab36a);
+  box-shadow: 0 0 6px rgba(234, 179, 106, 0.55);
 }
 
 .active-resource-bar.compact-profession-resource-catalyst-energy {
@@ -1017,24 +1077,28 @@
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9));
 }
 
+/* The Motivation crest carries its own count, as in the in-game mechanic row. */
+.active-resource-group:has([data-resource-id='motivation']) > .pal-label {
+  display: none;
+}
+
 .warrior-motivation span {
   position: relative;
   z-index: 1;
   display: grid;
-  width: 20px;
-  height: 28px;
-  color: #f8f3dc;
+  width: 50px;
+  height: 34px;
+  color: #fff;
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1;
-  place-items: center;
+  place-items: end center;
   text-shadow:
     -1px -1px 1px #111,
     1px -1px 1px #111,
     -1px 1px 1px #111,
     1px 1px 1px #111;
-  transform: translateY(-1px);
 }
 
 .active-resource-bar.endurance {

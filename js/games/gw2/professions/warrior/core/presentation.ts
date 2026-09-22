@@ -94,6 +94,8 @@ export function warriorPaletteGroups(
       label: 'F',
       skillIds,
       color: '#d79b55',
+      // Keep the shared adrenaline meter above the burst skills across Warrior specializations.
+      className: 'compact-resource-palette warrior-f-skills',
       resourceAnchor: true
     },
     {
@@ -105,23 +107,27 @@ export function warriorPaletteGroups(
   ];
 }
 
-/** Presents the shared adrenaline state with the cap selected by the active slice. */
-export function warriorAdrenalineResourceViews(context: WarriorUiContext): ProfessionResourceView[] {
+/** Presents projected adrenaline with the slice's starting cap until a runtime cap is available. */
+export function warriorAdrenalineResourceViews(
+  context: WarriorUiContext,
+  startingMaximum = 30
+): ProfessionResourceView[] {
   const state = warriorUiState(context);
+  const maximum = Number(state.maximumAdrenaline ?? startingMaximum);
   return [
     {
       id: 'adrenaline',
       singular: 'adrenaline',
       plural: 'adrenaline',
-      maximum: Number(state.maximumAdrenaline || 30),
+      maximum,
       value: Number(state.adrenaline ?? context.initialResource ?? 0),
-      startMaximum: Number(state.maximumAdrenaline || 30),
+      startMaximum: maximum,
       canStart: true,
       buildKey: 'initialResource',
       step: 1,
       displayMode: 'bar',
-      barSegments: Math.max(1, Number(state.maximumAdrenaline || 30) / 10),
-      pipStyle: 'warrior-adrenaline',
+      barSegments: Math.max(1, maximum / 10),
+      pipStyle: 'compact-profession-resource-warrior-adrenaline',
       shortLabel: 'Adr',
       statusLabel: 'Current'
     }
