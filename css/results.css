@@ -730,10 +730,10 @@
 }
 
 /* Reserve the full table plus a matching right inset before placing conditions beside it. */
-@container result-breakdown (min-width: 1200px) {
+@container result-breakdown (min-width: 1360px) {
   .res-breakdown:has(> .res-damage-breakdown):has(> .res-condition-breakdown) {
     display: grid;
-    grid-template-columns: minmax(844px, 2fr) minmax(324px, 1fr);
+    grid-template-columns: minmax(908px, 2fr) minmax(420px, 1fr);
     overflow-x: visible;
   }
 
@@ -756,7 +756,7 @@
    the breakdown panel's horizontal scroller. */
 .res-hdr {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) 72px 72px 72px 72px 72px 72px 72px 48px 56px;
+  grid-template-columns: minmax(180px, 1fr) 72px 72px 72px 60px 72px 72px 72px 72px 48px 56px;
   gap: 4px;
   padding: 2px 4px;
   font-size: 9px;
@@ -782,7 +782,7 @@
 
 .res-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) 72px 72px 72px 72px 72px 72px 72px 48px 56px;
+  grid-template-columns: minmax(180px, 1fr) 72px 72px 72px 60px 72px 72px 72px 72px 48px 56px;
   gap: 4px;
   padding: 3px 4px;
   font-size: 12px;
@@ -799,26 +799,18 @@
   cursor: pointer;
 }
 
-/* Mark condition rows as disclosures before the user selects one. */
-[data-condition-name] .res-skill::before {
-  content: '▸';
-}
-
-[data-condition-name][aria-expanded='true'] .res-skill::before {
-  transform: rotate(90deg);
-}
-
+/* Keep selected damage sources consistent with the active profession's tick markers. */
 .res-row-selected {
-  background: rgba(181, 124, 224, 0.16);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .res-row-selected:hover {
-  background: rgba(181, 124, 224, 0.22);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 .res-skill-group-heading {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) 72px 72px 72px 72px 72px 72px 72px 48px 56px;
+  grid-template-columns: minmax(180px, 1fr) 72px 72px 72px 60px 72px 72px 72px 72px 48px 56px;
   align-items: center;
   gap: 4px;
   padding: 7px 4px 4px;
@@ -865,14 +857,20 @@
 
 .cond-breakdown .cond-hdr,
 .cond-breakdown .res-row {
-  grid-template-columns: 1fr 90px 72px 90px;
+  grid-template-columns: minmax(120px, 1fr) 72px 60px 60px 72px;
+}
+
+/* Utility conditions only need their identity and observed stack count. */
+.res-condition-group-utility .cond-hdr,
+.res-condition-group-utility .res-row {
+  grid-template-columns: minmax(120px, 1fr) 72px;
 }
 
 .mesmer-skill-breakdown .res-hdr,
 .mesmer-skill-breakdown .res-row,
 .mesmer-skill-breakdown .res-skill-group-heading {
-  grid-template-columns: minmax(180px, 1fr) repeat(6, 72px) 48px 48px 56px;
-  min-width: 816px;
+  grid-template-columns: minmax(180px, 1fr) repeat(3, 72px) 60px repeat(3, 72px) 48px 48px 56px;
+  min-width: 880px;
 }
 
 .res-row.res-total {
@@ -1286,7 +1284,7 @@ span.hit-group {
 .hit-group:focus-visible,
 .hit-group[aria-expanded='true'] {
   outline: 1px solid var(--accent, #b57ce0);
-  background: rgba(181, 124, 224, 0.12);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .hit-timeline-detail {
@@ -1469,7 +1467,7 @@ span.hit-group {
 .res-skill-timeline {
   margin: 2px 0 6px;
   padding: 6px 4px 2px;
-  background: rgba(181, 124, 224, 0.08);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
   border-radius: 0 4px 4px 0;
 }
 
