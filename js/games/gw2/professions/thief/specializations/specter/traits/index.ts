@@ -129,6 +129,8 @@ export const larcenousTormentReaction = scheduledReaction<
     };
   },
   execute(context, taskAt, payload) {
+    // Eligibility is checked when Torment lands, since shroud may change after the cast.
+    if (specterState.from(context).shadowShroudActive) return;
     const stacks = Math.max(0, Number(payload.stacks || 0));
     if (!(stacks > 0)) return;
     const profile = balanceProfileFromContext(context, PROFILE.larcenousTorment);
@@ -245,6 +247,8 @@ export function applyLarcenousTorment(context: ThiefResolverContext, application
   }
 
   const state = specterState.from(context);
+  // Shroud suppresses the force gain, but the life siphons above still resolve.
+  if (state.shadowShroudActive) return;
   state.shadowClock.value = Math.min(
     state.shadowClock.maximum,
     state.shadowClock.value + stacks * Number(profile?.resourceGain ?? 0.5)

@@ -23,7 +23,6 @@ export const SPECTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     resourceGain: 1,
     lifeForceGain: 25,
     lifeForceDrain: 0.02,
-    attributeConversion: 0.69,
     effects: []
   },
   {
@@ -42,7 +41,7 @@ export const SPECTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     maximumTargets: 4,
     effects: [{ type: 'buff', kind: 'barrier', stacks: 1, duration: 5 }]
   },
-  trait(SPECTER_BALANCE_PROFILE_IDS.amplifiedSiphoning, 'Amplified Siphoning', { resourceGain: 27.5 }),
+  trait(SPECTER_BALANCE_PROFILE_IDS.amplifiedSiphoning, 'Amplified Siphoning', { resourceGain: 10 }),
   trait(SPECTER_BALANCE_PROFILE_IDS.shadeStep, 'Shadestep', {
     effects: [
       { type: 'boon', boon: 'alacrity', stacks: 1, duration: 5 },

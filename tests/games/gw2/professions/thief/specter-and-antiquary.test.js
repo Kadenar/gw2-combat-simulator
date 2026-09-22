@@ -260,22 +260,33 @@ test('manual Shadow Shroud exit cancels depletion and preserves remaining force'
   assert.equal(result.planningState.profession.shadowShroudActive, false);
 });
 
-test('Specter shadow force is 69% of health and drains 2% per second', () => {
-  const capacity = simulate('Specter', [], {
-    stats: { vitality: 1000 }
-  }).planningState.profession;
-  const drained = simulate(
-    'Specter',
-    ['Enter Shadow Shroud', { type: 'wait', durationMs: 1000 }, 'Exit Shadow Shroud'],
-    {
-      initialShadowForce: 100,
-      stats: { vitality: 1000 }
+test('Specter percentage drain is independent of vitality and observation boundaries', () => {
+  // Fractional waits must preserve the same 2%-per-second drain at any maximum health.
+  for (const vitality of [1000, 2000]) {
+    for (const waits of [[1000], [125, 375, 500]]) {
+      const result = simulate(
+        'Specter',
+        ['Enter Shadow Shroud', ...waits.map((durationMs) => ({ type: 'wait', durationMs })), 'Exit Shadow Shroud'],
+        { initialShadowForce: 100, stats: { vitality } }
+      );
+      assert.deepEqual(result.warnings, []);
+      assert.equal(result.planningState.profession.maximumShadowForce, 100);
+      assert.equal(result.planningState.profession.shadowForce, 98);
     }
-  ).planningState.profession;
+  }
+});
 
-  assert.equal(capacity.maximumHealth, 11645);
-  assert.equal(capacity.shadowForcePoolCapacity, 11645 * 0.69);
-  assert.equal(drained.shadowForce, 98);
+test('Specter force gains cap at 100 and do not drain outside shroud', () => {
+  // Both normal gain sources share the percentage cap and retain it while shroud is inactive.
+  for (const skill of ['Siphon', 'Shadow Sap']) {
+    const result = simulate('Specter', [skill, { type: 'wait', durationMs: 1000 }], {
+      initialShadowForce: 99,
+      primaryWeapon: 'Scepter',
+      secondaryWeapon: 'Dagger'
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.shadowForce, 100);
+  }
 });
 
 test('Dagger attacks restore endurance and trigger shadowstep effects', () => {
@@ -650,12 +661,17 @@ test('Specter wells preserve pulse spacing and effect order', () => {
 
 test('Specter traits amplify force gains and add their Siphon recharge reductions', () => {
   const baseline = simulate('Specter', ['Siphon']);
-  const amplified = simulate('Specter', ['Siphon'], {
-    selectedTraitIds: [TRAIT.AMPLIFIED_SIPHONING]
-  });
-
-  assert.equal(baseline.planningState.profession.shadowForce, 25);
-  assert.equal(amplified.planningState.profession.shadowForce, 27.5);
+  // Amplified adds ten percentage points; Improvisation doubles the resulting Siphon gain.
+  for (const [selectedTraitIds, expectedGain] of [
+    [[], 25],
+    [[TRAIT.AMPLIFIED_SIPHONING], 35],
+    [[TRAIT.IMPROVISATION], 50],
+    [[TRAIT.AMPLIFIED_SIPHONING, TRAIT.IMPROVISATION], 70]
+  ]) {
+    const result = simulate('Specter', ['Siphon'], { selectedTraitIds });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.shadowForce, expectedGain);
+  }
 
   const initiative = simulate('Specter', ['Shadow Sap'], {
     primaryWeapon: 'Scepter',
@@ -698,6 +714,36 @@ test('Specter traits amplify force gains and add their Siphon recharge reduction
     larcenous.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Larcenous Torment')
       .length,
     3
+  );
+});
+
+test('Improvisation and Prolific Plunderer each add one Skritt Swipe artifact use', () => {
+  // Both bonuses add to the same held-use pool rather than replacing each other.
+  for (const [selectedTraitIds, expectedUses] of [
+    [[], 1],
+    [[TRAIT.IMPROVISATION], 2],
+    [[TRAIT.PROLIFIC_PLUNDERER], 2],
+    [[TRAIT.IMPROVISATION, TRAIT.PROLIFIC_PLUNDERER], 3]
+  ]) {
+    const result = simulate('Antiquary', ['Skritt Swipe'], { selectedTraitIds });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession.artifactUsesRemaining, expectedUses);
+  }
+});
+
+test('Larcenous Torment keeps its life siphon but grants no force inside Shadow Shroud', () => {
+  // Compare identical casts so only the trait's resource eligibility can change the clock.
+  const rotation = ['Enter Shadow Shroud', 'Haunt Shot', { type: 'wait', durationMs: 1000 }];
+  const baseline = simulate('Specter', rotation, { initialShadowForce: 50 });
+  const larcenous = simulate('Specter', rotation, {
+    initialShadowForce: 50,
+    selectedTraitIds: [TRAIT.LARCENOUS_TORMENT]
+  });
+  assert.deepEqual(larcenous.warnings, []);
+  assert.equal(larcenous.planningState.profession.shadowForce, baseline.planningState.profession.shadowForce);
+  assert.equal(larcenous.combatState.profession.shadowClock.value, baseline.combatState.profession.shadowClock.value);
+  assert.ok(
+    larcenous.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === TRAIT.LARCENOUS_TORMENT)
   );
 });
 

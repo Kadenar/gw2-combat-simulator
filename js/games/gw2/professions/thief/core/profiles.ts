@@ -339,6 +339,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     maximumStacks: 2,
     internalCooldown: 15,
     rechargeMultiplier: 0.75,
-    resourceGain: 1
+    resourceGain: 1,
+    lifeForceGain: 1
   })
 ]);

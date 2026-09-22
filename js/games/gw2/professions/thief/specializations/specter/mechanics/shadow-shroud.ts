@@ -1,11 +1,7 @@
 import { resourceDepletion } from '#gw2/platform/profession-definition/mechanics.js';
 import { advanceResourceClock, setResourceRate } from '#gw2/platform/combat/resources/clock.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
-import {
-  balanceProfileFromContext,
-  balanceProfileEffect,
-  balanceProfileNumberFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -17,7 +13,7 @@ import { completeStealWithStoredSkills } from '#gw2/professions/thief/core/mecha
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import type { ThiefCastContext, ThiefSchedulerContext, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
 
 export const SHADOW_SHROUD_DEPLETION_TASK = 'thief.shadow-shroud-depleted';
 
@@ -50,12 +46,18 @@ export function completeSiphon(context: ThiefCastContext): void {
   // Cancellation preserves shadow force and stored-skill state.
   if (context.action?.cancelled === true) return;
   const resources = balanceProfileFromContext(context, PROFILE.resources);
-  gainShadowForce(
-    context,
-    hasTrait(context.config, TRAIT.AMPLIFIED_SIPHONING)
-      ? Number(balanceProfileFromContext(context, PROFILE.amplifiedSiphoning)?.resourceGain ?? 27.5)
-      : Number(resources?.lifeForceGain ?? 25)
-  );
+  // Amplified Siphoning adds percentage points of maximum force to Siphon's base gain.
+  let gain =
+    Number(resources?.lifeForceGain ?? 25) +
+    (hasTrait(context.config, TRAIT.AMPLIFIED_SIPHONING)
+      ? Number(balanceProfileFromContext(context, PROFILE.amplifiedSiphoning)?.resourceGain ?? 10)
+      : 0);
+  // Improvisation increases the full Siphon gain, including Amplified Siphoning's bonus.
+  if (hasTrait(context.config, TRAIT.IMPROVISATION)) {
+    gain *= 1 + Number(balanceProfileFromContext(context, CORE_PROFILE.improvisation)?.lifeForceGain ?? 1);
+  }
+
+  gainShadowForce(context, gain);
   // Siphon is a profession skill, not a steal; null clears any stored stolen skill.
   completeStealWithStoredSkills(context, []);
 }
@@ -131,9 +133,6 @@ export function advanceSpecterResources(context: ThiefSchedulerContext, target: 
   const state = specterState.from(context);
   const resources = balanceProfileFromContext(context, PROFILE.resources);
   state.shadowClock.maximum = Number(resources?.maximumStacks ?? 100);
-  state.shadowForcePoolCapacity =
-    Number(professionCoreState(context).maximumHealth || 0) *
-    balanceProfileNumberFromContext(context, PROFILE.resources, 'attributeConversion');
   state.shadowClock.value = Math.min(state.shadowClock.maximum, state.shadowClock.value);
   advanceResourceClock(state.shadowClock, target);
   emitThiefStateSnapshot(context, target, 'resources');
