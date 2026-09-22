@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { advanceDiscreteResource } from '#gw2/platform/combat/resources/clock.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -406,18 +407,19 @@ export function reactToAshesHit(
 
   // Ashes burns resolve at charge consumption so same-timestamp condition
   // reactions cannot be reordered behind later damage packets.
-  context.applyCondition({
-    type: 'condition',
-    at: event.at,
-    source: 'guardian',
-    sourceId: 'guardian.ashes-of-the-just',
-    actorType: 'player',
-    skillId: GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST,
-    skillName: 'Epilogue: Ashes of the Just',
-    name: 'Ashes of the Just — Burning',
-    condition: String(burn?.condition || 'Burning'),
-    stacks: Number(burn?.stacks ?? 1),
-    duration: state.ashesBurnDuration
-  });
+  context.applyCondition(
+    buildResolverCondition({
+      at: event.at,
+      source: 'guardian',
+      sourceId: 'guardian.ashes-of-the-just',
+      actorType: 'player',
+      skillId: GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST,
+      skillName: 'Epilogue: Ashes of the Just',
+      name: 'Ashes of the Just — Burning',
+      condition: String(burn?.condition || 'Burning'),
+      stacks: Number(burn?.stacks ?? 1),
+      duration: state.ashesBurnDuration
+    })
+  );
   context.recordProc('profession', 'Ashes of the Just', event.at, event.skillName);
 }

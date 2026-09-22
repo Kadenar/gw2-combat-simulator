@@ -1,3 +1,4 @@
+import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 /** Owns imperative Core Necromancer Blood Magic trait behavior for ordered dispatcher calls. */
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -31,27 +32,25 @@ function queueBloodMagicLifeSteal(
   event: NecromancerResolverEvent,
   { name, traitId, flatStrikeBase, flatStrikePowerCoeff, icon }: TraitDamageDefinition
 ): void {
-  context.queue.enqueue({
-    type: 'damage',
-    at: event.at,
-    name,
-    skillName: name,
-    coefficient: 0,
-    flatStrikeBase,
-    flatStrikePowerCoeff,
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
-    source: 'Trait',
-    sourceId: traitId,
-    actorType: 'effect',
-    skillWeapon: 'Unequipped',
-    noCrit: true,
-    damageKind: 'life-steal',
-    ...(icon ? { icon } : {}),
-    ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}),
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverStrike({
+      at: event.at,
+      skillName: name,
+      coefficient: 0,
+      flatStrikeBase,
+      flatStrikePowerCoeff,
+
+      source: 'Trait',
+      sourceId: traitId,
+      actorType: 'effect',
+      skillWeapon: 'Unequipped',
+      noCrit: true,
+      damageKind: 'life-steal',
+      ...(icon ? { icon } : {}),
+      ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}),
+      triggeredBy: event.skillName
+    })
+  );
   // Mirror the scheduled packet in result-level trait attribution.
   context.recordProc?.('trait', name, event.at, event.skillName, '', icon);
 }

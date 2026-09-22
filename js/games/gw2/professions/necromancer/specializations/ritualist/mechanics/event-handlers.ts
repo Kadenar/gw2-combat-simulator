@@ -1,3 +1,4 @@
+import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { resolverTimedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
@@ -41,25 +42,24 @@ export const painfulBondPulses = resolverTimedEffect<NecromancerResolverContext,
     const state = ritualistState.from(context);
     // Damage fires only while the debuff is still active; the final tick at expiry is suppressed
     if (at < Number(state.painfulBondUntil || 0)) {
-      context.queue.enqueue({
-        type: 'damage',
-        at: at,
-        name: 'Painful Bond',
-        skillName: 'Painful Bond',
-        coefficient: 0,
-        flatStrikeBase: Number(strike?.flatStrikeBase || 0),
-        flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff || 0),
-        hits: 1,
-        hitIndex: 1,
-        totalHits: 1,
-        source: 'Spirit',
-        sourceId: 'ritualist.painful-bond',
-        actorType: 'effect',
-        icon: String(definition?.icon || ''),
-        skillWeapon: 'Unequipped',
-        noCrit: true, // Painful Bond pulses cannot crit in-game regardless of stats
-        triggeredBy: event.triggeredBy || 'Anguish'
-      });
+      context.queue.enqueue(
+        buildResolverStrike({
+          at: at,
+
+          skillName: 'Painful Bond',
+          coefficient: 0,
+          flatStrikeBase: Number(strike?.flatStrikeBase || 0),
+          flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff || 0),
+
+          source: 'Spirit',
+          sourceId: 'ritualist.painful-bond',
+          actorType: 'effect',
+          icon: String(definition?.icon || ''),
+          skillWeapon: 'Unequipped',
+          noCrit: true, // Painful Bond pulses cannot crit in-game regardless of stats
+          triggeredBy: event.triggeredBy || 'Anguish'
+        })
+      );
     }
   }
 });

@@ -1,10 +1,11 @@
+import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 /** Owns imperative Core Necromancer Spite trait behavior for ordered dispatcher calls. */
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { queueTraitCoefficientDamage } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
@@ -31,19 +32,22 @@ export function applyReapersMight(
 ): void {
   if (!hasTrait(context, TRAIT.REAPERS_MIGHT) || !firstHit || !shroudSkillOne) return;
   const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.reapersMight), 'boon');
-  context.queue.enqueue({
-    type: 'buff',
-    at: event.at,
-    name: "Reaper's Might",
-    skillName: "Reaper's Might",
-    kind: String(effect?.boon || 'might'),
-    stacks: Number(effect?.stacks ?? 1),
-    duration: gw2ResolverBoonDuration(context, event, String(effect?.boon || 'might'), Number(effect?.duration ?? 15)),
-    source: 'Trait',
-    sourceId: TRAIT.REAPERS_MIGHT,
-    actorType: 'effect',
-    triggeredBy: event.skillName
-  });
+  queueResolverBoon(
+    context,
+    event,
+    buildResolverBuff({
+      at: event.at,
+
+      skillName: "Reaper's Might",
+      kind: String(effect?.boon || 'might'),
+      stacks: Number(effect?.stacks ?? 1),
+      duration: Number(effect?.duration ?? 15),
+      source: 'Trait',
+      sourceId: TRAIT.REAPERS_MIGHT,
+      actorType: 'effect',
+      triggeredBy: event.skillName
+    })
+  );
   context.recordProc?.('trait', "Reaper's Might", event.at, event.skillName);
 }
 
@@ -61,19 +65,22 @@ export function applySiphonedPower(context: NecromancerResolverContext, event: N
     )
   )
     return;
-  context.queue.enqueue({
-    type: 'buff',
-    at: event.at,
-    name: 'Siphoned Power',
-    skillName: 'Siphoned Power',
-    kind: String(effect?.boon || 'might'),
-    stacks: Number(effect?.stacks ?? 3),
-    duration: gw2ResolverBoonDuration(context, event, String(effect?.boon || 'might'), Number(effect?.duration ?? 8)),
-    source: 'Trait',
-    sourceId: TRAIT.SIPHONED_POWER,
-    actorType: 'effect',
-    triggeredBy: event.skillName
-  });
+  queueResolverBoon(
+    context,
+    event,
+    buildResolverBuff({
+      at: event.at,
+
+      skillName: 'Siphoned Power',
+      kind: String(effect?.boon || 'might'),
+      stacks: Number(effect?.stacks ?? 3),
+      duration: Number(effect?.duration ?? 8),
+      source: 'Trait',
+      sourceId: TRAIT.SIPHONED_POWER,
+      actorType: 'effect',
+      triggeredBy: event.skillName
+    })
+  );
   context.recordProc?.('trait', 'Siphoned Power', event.at, event.skillName);
 }
 
@@ -133,18 +140,19 @@ export function applyChillOfDeath(context: NecromancerResolverContext, event: Ne
 export function applyChillOfDeathCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.actorType !== 'effect' || event.sourceId !== TRAIT.CHILL_OF_DEATH) return;
   const profile = balanceProfileFromContext(context, PROFILE.chillOfDeath);
-  context.queue.enqueue({
-    type: 'condition',
-    condition: 'Chilled',
-    stacks: 1,
-    name: 'Lesser Spinal Shivers — Chilled',
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.CHILL_OF_DEATH,
-    actorType: 'effect',
-    skillName: 'Lesser Spinal Shivers',
-    duration: Number(balanceProfileEffect(profile, 'condition')?.duration ?? 5)
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      condition: 'Chilled',
+      stacks: 1,
+      name: 'Lesser Spinal Shivers — Chilled',
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.CHILL_OF_DEATH,
+      actorType: 'effect',
+      skillName: 'Lesser Spinal Shivers',
+      duration: Number(balanceProfileEffect(profile, 'condition')?.duration ?? 5)
+    })
+  );
 }
 
 export function applySignetsOfSuffering(context: NecromancerCastContext, skill: NecromancerSkill): void {

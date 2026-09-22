@@ -1,3 +1,5 @@
+import { buildResolverBuff, buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Soulbeast resolver-phase reactions and event handlers. */
@@ -48,6 +50,7 @@ export function activeSoulbeastBuff(context: RangerResolverContext, kind: string
   );
 }
 
+/** Fresh standard boons use live duration scaling; personal stance buffs retain their authored duration. */
 export function queueSoulbeastBuff(
   context: RangerResolverContext,
   event: RangerResolverEvent,
@@ -57,20 +60,22 @@ export function queueSoulbeastBuff(
   name: string,
   sourceId: number
 ): void {
-  context.queue.enqueue({
-    type: 'buff',
-    at: event.at,
-    source: 'Trait',
-    sourceId,
-    actorType: 'effect',
-    skillId: sourceId,
-    skillName: name,
-    name,
-    kind,
-    duration,
-    stacks,
-    triggeredBy: event.skillName
-  });
+  queueResolverBoon(
+    context,
+    event,
+    buildResolverBuff({
+      at: event.at,
+      source: 'Trait',
+      sourceId,
+      actorType: 'effect',
+      skillId: sourceId,
+      skillName: name,
+      kind,
+      duration,
+      stacks,
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 // Beast Ability is always the last skill in beastmodeSkillIds; traits like Live Fast and Go for the Eyes
@@ -93,20 +98,21 @@ function queueCondition(
   sourceId: number,
   name: string
 ): void {
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    source: 'Trait',
-    sourceId,
-    actorType: 'effect',
-    skillId: sourceId,
-    skillName: name,
-    name: `${name} — ${condition}`,
-    condition,
-    duration,
-    stacks: 1,
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      source: 'Trait',
+      sourceId,
+      actorType: 'effect',
+      skillId: sourceId,
+      skillName: name,
+
+      condition,
+      duration,
+      stacks: 1,
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 /** Consumes Poisonous Strikes from player hits only while Soulbeast replaces its pet in Beastmode. */
@@ -123,20 +129,21 @@ function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Ra
   }
 
   const poison = profileEffect(context, CORE_PROFILE.poisonousStrikes, 'condition');
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    source: 'ranger',
-    sourceId: ID.DOUBLE_ARC,
-    actorType: 'effect',
-    skillId: ID.DOUBLE_ARC,
-    skillName: 'Poisonous Strikes',
-    name: 'Poisonous Strikes - Poisoned',
-    condition: 'Poisoned',
-    duration: Number(poison?.duration ?? 6),
-    stacks: Number(poison?.stacks ?? 1),
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      source: 'ranger',
+      sourceId: ID.DOUBLE_ARC,
+      actorType: 'effect',
+      skillId: ID.DOUBLE_ARC,
+      skillName: 'Poisonous Strikes',
+      name: 'Poisonous Strikes - Poisoned',
+      condition: 'Poisoned',
+      duration: Number(poison?.duration ?? 6),
+      stacks: Number(poison?.stacks ?? 1),
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 export function reactToSoulbeastDamage(context: RangerResolverContext, event: RangerResolverEvent): void {
@@ -158,25 +165,26 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
     const strike = balanceProfileEffect(profile, 'strike');
     // 1-second ICD between echoes even within a single multi-hit skill.
     state.oneWolfPackReadyAt = event.at + Number(profile?.internalCooldown ?? 1);
-    context.queue.enqueue({
-      type: 'damage',
-      at: event.at + Number(profile?.initialDelay ?? 0.28),
-      source: 'ranger',
-      sourceId: ID.ONE_WOLF_PACK_STRIKE,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: ID.ONE_WOLF_PACK,
-      skillName: 'One Wolf Pack',
-      name: 'One Wolf Pack',
-      coefficient: Number(strike?.coefficient ?? 0.95),
-      hits: Number(strike?.hits ?? 1),
-      hitIndex: 1,
-      totalHits: Number(strike?.hits ?? 1),
-      // Echoes use the stance's nonweapon strength, independent of the attack that triggered them.
-      skillWeapon: 'Unequipped',
-      canCrit: true,
-      triggeredBy: event.skillName
-    });
+    context.queue.enqueue(
+      buildResolverStrike({
+        at: event.at + Number(profile?.initialDelay ?? 0.28),
+        source: 'ranger',
+        sourceId: ID.ONE_WOLF_PACK_STRIKE,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillId: ID.ONE_WOLF_PACK,
+        skillName: 'One Wolf Pack',
+
+        coefficient: Number(strike?.coefficient ?? 0.95),
+        hits: Number(strike?.hits ?? 1),
+
+        totalHits: Number(strike?.hits ?? 1),
+        // Echoes use the stance's nonweapon strength, independent of the attack that triggered them.
+        skillWeapon: 'Unequipped',
+        canCrit: true,
+        triggeredBy: event.skillName
+      })
+    );
   }
 
   // Vulture Stance procs per player hit with a 0.25 s ICD; effect-sourced hits (e.g. OWP echoes) are excluded.
@@ -336,23 +344,24 @@ export function reactToSoulbeastCondition(context: RangerResolverContext, event:
   }
 
   const strike = profileEffect(context, PROFILE.predatorsCunning, 'strike');
-  context.queue.enqueue({
-    type: 'damage',
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.PREDATORS_CUNNING,
-    actorType: 'effect',
-    skillId: TRAIT.PREDATORS_CUNNING,
-    skillName: "Predator's Cunning",
-    name: "Predator's Cunning",
-    coefficient: Number(strike?.coefficient ?? 0.006),
-    hits: Number(strike?.hits ?? 1),
-    hitIndex: 1,
-    totalHits: Number(strike?.hits ?? 1),
-    skillWeapon: 'Unequipped',
-    canCrit: false,
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverStrike({
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.PREDATORS_CUNNING,
+      actorType: 'effect',
+      skillId: TRAIT.PREDATORS_CUNNING,
+      skillName: "Predator's Cunning",
+
+      coefficient: Number(strike?.coefficient ?? 0.006),
+      hits: Number(strike?.hits ?? 1),
+
+      totalHits: Number(strike?.hits ?? 1),
+      skillWeapon: 'Unequipped',
+      canCrit: false,
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 // Essence of Speed reacts to each quickness application and extends all other boons by 2 s, with a 5 s ICD.

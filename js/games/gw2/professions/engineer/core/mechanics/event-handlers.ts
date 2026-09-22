@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
   applyEngineerDerivedCondition,
@@ -29,7 +30,27 @@ export function emitEngineerBarSwap(context: EngineerSchedulerContext, skill: En
 /** Air Blast's Burning missile exists only against a target still burning at impact; knockback resolves separately. */
 export function handleAirBlast(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   if (!context.query.targetHasCondition('Burning', event.at, context)) return;
-  context.applyCondition({ ...event, type: 'condition', name: 'Air Blast — Burning' });
+  // Materialize the deferred missile without importing unrelated proc or strike state from its trigger.
+  context.applyCondition(
+    buildResolverCondition({
+      at: event.at,
+      priority: event.priority,
+      source: event.source,
+      sourceId: event.sourceId,
+      actorType: event.actorType,
+      ownerActorType: event.ownerActorType,
+      skillId: event.skillId,
+      skillName: event.skillName,
+      name: 'Air Blast — Burning',
+      activationId: event.activationId,
+      condition: String(event.condition),
+      stacks: Number(event.stacks),
+      duration: Number(event.duration),
+      projectile: true,
+      applicationIndex: event.applicationIndex,
+      totalApplications: event.totalApplications
+    })
+  );
   applyAimAssistedRocket(context, event);
 }
 
@@ -64,18 +85,19 @@ export function handleConduitSurge(context: EngineerResolverContext, event: Engi
     name: 'Conduit Surge',
     coefficient: 1.2
   });
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    name: 'Conduit Surge — Burning',
-    skillName: 'Conduit Surge',
-    condition: 'Burning',
-    stacks: 1,
-    duration: 7,
-    source: 'engineer',
-    sourceId: event.skillId ?? event.sourceId,
-    actorType: 'player'
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      name: 'Conduit Surge — Burning',
+      skillName: 'Conduit Surge',
+      condition: 'Burning',
+      stacks: 1,
+      duration: 7,
+      source: 'engineer',
+      sourceId: event.skillId ?? event.sourceId,
+      actorType: 'player'
+    })
+  );
 }
 
 /** Resolves Electric Artillery using its stored charges and current Focused state. */
@@ -107,16 +129,17 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
     });
   }
 
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    name: 'Electric Artillery — Burning',
-    skillName: 'Electric Artillery',
-    condition: 'Burning',
-    stacks: 2,
-    duration: 3 + charges * (isFocused ? 0.5 : 0.25),
-    source: 'engineer',
-    sourceId: event.skillId ?? event.sourceId,
-    actorType: 'player'
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      name: 'Electric Artillery — Burning',
+      skillName: 'Electric Artillery',
+      condition: 'Burning',
+      stacks: 2,
+      duration: 3 + charges * (isFocused ? 0.5 : 0.25),
+      source: 'engineer',
+      sourceId: event.skillId ?? event.sourceId,
+      actorType: 'player'
+    })
+  );
 }

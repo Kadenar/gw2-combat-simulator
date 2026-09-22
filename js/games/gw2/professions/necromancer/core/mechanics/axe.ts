@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { DamageEvent } from '#gw2/platform/engine/events/events.js';
@@ -35,18 +36,19 @@ export function reactToNecromancerAxeDamage(
     ];
     if (!vulnerability || !('condition' in vulnerability)) return;
     // Duplicate only this hit's authored Vulnerability application below half health.
-    context.queue.enqueue({
-      type: 'condition',
-      at: event.at,
-      source: 'necromancer',
-      sourceId: skill.id,
-      skillId: skill.id,
-      skillName: skill.name,
-      actorType: 'player',
-      condition: vulnerability.condition,
-      stacks: vulnerability.stacks,
-      duration: vulnerability.duration
-    });
+    context.queue.enqueue(
+      buildResolverCondition({
+        at: event.at,
+        source: 'necromancer',
+        sourceId: skill.id,
+        skillId: skill.id,
+        skillName: skill.name,
+        actorType: 'player',
+        condition: vulnerability.condition,
+        stacks: vulnerability.stacks,
+        duration: vulnerability.duration
+      })
+    );
     return;
   }
 

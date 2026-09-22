@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -329,21 +330,22 @@ export function triggerTrappersExpertise(context: RangerResolverContext, event: 
   ) {
     const cripple = profileEffect(context, PROFILE.trappersExpertise, 'condition');
     state.trapCrippleActivations[event.activationId] = true;
-    context.queue.enqueue({
-      type: 'condition',
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.TRAPPERS_EXPERTISE,
-      actorType: 'effect',
-      skillId: TRAIT.TRAPPERS_EXPERTISE,
-      skillName: "Trapper's Expertise",
-      name: "Trapper's Expertise — Crippled",
-      condition: 'Crippled',
-      duration: Number(cripple?.duration ?? 3),
-      stacks: Number(cripple?.stacks ?? 1),
-      fixedDuration: true,
-      triggeredBy: event.skillName
-    });
+    context.queue.enqueue(
+      buildResolverCondition({
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.TRAPPERS_EXPERTISE,
+        actorType: 'effect',
+        skillId: TRAIT.TRAPPERS_EXPERTISE,
+        skillName: "Trapper's Expertise",
+        name: "Trapper's Expertise — Crippled",
+        condition: 'Crippled',
+        duration: Number(cripple?.duration ?? 3),
+        stacks: Number(cripple?.stacks ?? 1),
+        fixedDuration: true,
+        triggeredBy: event.skillName
+      })
+    );
   }
 }
 
@@ -361,20 +363,21 @@ export function triggerLightOnYourFeet(context: RangerResolverContext, event: Ra
       balanceProfileFromContext(context, PROFILE.lightOnYourFeet),
       'condition'
     );
-    context.queue.enqueue({
-      type: 'condition',
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
-      actorType: 'effect',
-      skillId: TRAIT.LIGHT_ON_YOUR_FEET,
-      skillName: 'Light on your Feet',
-      name: 'Light on your Feet — Vulnerability',
-      condition: String(vulnerability?.condition || 'Vulnerability'),
-      // The vulnerability upgrade is unconditional once the trait is selected.
-      duration: Number(vulnerability?.duration ?? 10),
-      stacks: Number(vulnerability?.stacks ?? 10),
-      triggeredBy: event.skillName
-    });
+    context.queue.enqueue(
+      buildResolverCondition({
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
+        actorType: 'effect',
+        skillId: TRAIT.LIGHT_ON_YOUR_FEET,
+        skillName: 'Light on your Feet',
+        name: 'Light on your Feet — Vulnerability',
+        condition: String(vulnerability?.condition || 'Vulnerability'),
+        // The vulnerability upgrade is unconditional once the trait is selected.
+        duration: Number(vulnerability?.duration ?? 10),
+        stacks: Number(vulnerability?.stacks ?? 10),
+        triggeredBy: event.skillName
+      })
+    );
   }
 }

@@ -1,3 +1,4 @@
+import { buildResolverStrike, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
@@ -42,47 +43,47 @@ function queueNightmareWeapon(
   const strike = balanceProfileEffect(definition, 'strike');
   const vulnerability = balanceProfileEffect(definition, 'condition');
   // Materialize both components at the triggering strike's timestamp before recording the combined proc.
-  context.queue.enqueue({
-    type: 'damage',
-    at: event.at,
-    name: 'Nightmare Weapon',
-    skillName: 'Nightmare Weapon',
-    coefficient: 0,
-    flatStrikeBase: Number(strike?.flatStrikeBase || 0),
-    flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff || 0),
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
-    source: 'Weapon Spell',
-    sourceId: ID.NIGHTMARE_WEAPON,
-    actorType: 'effect',
-    skillId: ID.NIGHTMARE_WEAPON,
-    skillWeapon: 'Unequipped',
-    noCrit: true,
-    damageKind: 'life-steal',
-    triggeredBy: event.skillName,
-    // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
-    ...(event.metadata?.triggeredByAlly == null
-      ? {}
-      : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
-  });
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    name: 'Nightmare Weapon',
-    skillName: 'Nightmare Weapon',
-    condition: 'Vulnerability',
-    stacks: Number(vulnerability?.stacks || 0),
-    duration: Number(vulnerability?.duration || 0),
-    source: 'Weapon Spell',
-    sourceId: ID.NIGHTMARE_WEAPON,
-    actorType: 'effect',
-    triggeredBy: event.skillName,
-    // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
-    ...(event.metadata?.triggeredByAlly == null
-      ? {}
-      : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
-  });
+  context.queue.enqueue(
+    buildResolverStrike({
+      at: event.at,
+
+      skillName: 'Nightmare Weapon',
+      coefficient: 0,
+      flatStrikeBase: Number(strike?.flatStrikeBase || 0),
+      flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff || 0),
+
+      source: 'Weapon Spell',
+      sourceId: ID.NIGHTMARE_WEAPON,
+      actorType: 'effect',
+      skillId: ID.NIGHTMARE_WEAPON,
+      skillWeapon: 'Unequipped',
+      noCrit: true,
+      damageKind: 'life-steal',
+      triggeredBy: event.skillName,
+      // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
+      ...(event.metadata?.triggeredByAlly == null
+        ? {}
+        : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
+    })
+  );
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      name: 'Nightmare Weapon',
+      skillName: 'Nightmare Weapon',
+      condition: 'Vulnerability',
+      stacks: Number(vulnerability?.stacks || 0),
+      duration: Number(vulnerability?.duration || 0),
+      source: 'Weapon Spell',
+      sourceId: ID.NIGHTMARE_WEAPON,
+      actorType: 'effect',
+      triggeredBy: event.skillName,
+      // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
+      ...(event.metadata?.triggeredByAlly == null
+        ? {}
+        : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
+    })
+  );
   context.recordProc?.(
     'skill',
     'Nightmare Weapon',
@@ -102,26 +103,25 @@ function queueSplinterWeapon(
 ): void {
   const strike = balanceProfileEffect(definition, 'strike');
   // Queue the derived strike first, then expose the same trigger through proc reporting.
-  context.queue.enqueue({
-    type: 'damage',
-    at: event.at,
-    name: 'Splinter Weapon',
-    skillName: 'Splinter Weapon',
-    coefficient: Number(strike?.coefficient || 0),
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
-    source: 'Weapon Spell',
-    sourceId: ID.SPLINTER_WEAPON,
-    actorType: 'effect',
-    skillId: ID.SPLINTER_WEAPON,
-    skillWeapon: 'Unequipped',
-    triggeredBy: event.skillName,
-    // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
-    ...(event.metadata?.triggeredByAlly == null
-      ? {}
-      : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
-  });
+  context.queue.enqueue(
+    buildResolverStrike({
+      at: event.at,
+
+      skillName: 'Splinter Weapon',
+      coefficient: Number(strike?.coefficient || 0),
+
+      source: 'Weapon Spell',
+      sourceId: ID.SPLINTER_WEAPON,
+      actorType: 'effect',
+      skillId: ID.SPLINTER_WEAPON,
+      skillWeapon: 'Unequipped',
+      triggeredBy: event.skillName,
+      // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
+      ...(event.metadata?.triggeredByAlly == null
+        ? {}
+        : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
+    })
+  );
   context.recordProc?.(
     'skill',
     'Splinter Weapon',

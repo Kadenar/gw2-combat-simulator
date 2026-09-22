@@ -1,10 +1,10 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
+import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   GuardianResolverContext,
-  GuardianResolverEvent,
   GuardianSchedulerContext,
   GuardianSkill
 } from '#gw2/professions/guardian/types.js';
@@ -106,17 +106,18 @@ export function queueGuardianResolverBuff(
     readonly priority?: number;
   }
 ): void {
-  const durationEvent = {
-    type: 'buff',
+  const durationEvent = buildResolverBuff({
     at,
     source: 'guardian',
     sourceId,
     actorType: 'player',
     skillId: sourceId,
     skillName,
+    // Keep boon attribution separate from the associated strike's display row.
+    name: undefined,
     kind,
     duration,
     stacks
-  } satisfies GuardianResolverEvent;
+  });
   queueResolverBoon(context, durationEvent, { ...durationEvent, priority });
 }

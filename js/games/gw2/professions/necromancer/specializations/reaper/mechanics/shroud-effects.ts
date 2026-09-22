@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
@@ -66,18 +67,19 @@ function reactToDamage(
   // The resolved Nova strike queues its condition after sibling strikes, preserving their pre-Chill state.
   if (event.actorType === 'effect' && event.sourceId === TRAIT.CHILLING_NOVA) {
     const chill = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.chillingNova), 'condition');
-    context.queue.enqueue({
-      type: 'condition',
-      condition: 'Chilled',
-      stacks: 1,
-      name: 'Chilling Nova — Chilled',
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.CHILLING_NOVA,
-      actorType: 'effect',
-      skillName: 'Chilling Nova',
-      duration: Number(chill?.duration ?? 2)
-    });
+    context.queue.enqueue(
+      buildResolverCondition({
+        condition: 'Chilled',
+        stacks: 1,
+        name: 'Chilling Nova — Chilled',
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.CHILLING_NOVA,
+        actorType: 'effect',
+        skillName: 'Chilling Nova',
+        duration: Number(chill?.duration ?? 2)
+      })
+    );
   }
 
   resolveSummonOwnedComboFinisher(context, event);
@@ -106,18 +108,19 @@ function reactToControl(context: NecromancerResolverContext, event: NecromancerR
   }
 
   const chill = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.shiversOfDread), 'condition');
-  context.queue.enqueue({
-    type: 'condition',
-    condition: 'Chilled',
-    stacks: 1,
-    name: 'Shivers of Dread — Chilled',
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.SHIVERS_OF_DREAD,
-    actorType: 'effect',
-    skillName: 'Shivers of Dread',
-    duration: Number(chill?.duration ?? 2)
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      condition: 'Chilled',
+      stacks: 1,
+      name: 'Shivers of Dread — Chilled',
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.SHIVERS_OF_DREAD,
+      actorType: 'effect',
+      skillName: 'Shivers of Dread',
+      duration: Number(chill?.duration ?? 2)
+    })
+  );
 }
 
 export const reaperResolverEventReactions = Object.freeze({

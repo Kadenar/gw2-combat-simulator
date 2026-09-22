@@ -1,3 +1,4 @@
+import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { gainShadowForce } from '#gw2/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
@@ -220,26 +221,27 @@ export function applyLarcenousTorment(context: ThiefResolverContext, application
   const profile = balanceProfileFromContext(context, PROFILE.larcenousTorment);
   const strike = balanceProfileEffect(profile, 'strike');
   for (let stack = 1; stack <= stacks; stack += 1) {
-    context.queue.enqueue({
-      type: 'damage',
-      at: application.at,
-      source: 'Trait',
-      sourceId: TRAIT.LARCENOUS_TORMENT,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: TRAIT.LARCENOUS_TORMENT,
-      skillName: 'Larcenous Torment',
-      name: 'Larcenous Torment - Life Siphon',
-      // Life steal scales directly with Power, bypassing armor and weapon-strike modifiers.
-      flatStrikeBase: Number(strike?.flatStrikeBase ?? 99),
-      flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff ?? 0.005),
-      hits: 1,
-      canCrit: false,
-      noCrit: true,
-      lifeSiphon: true,
-      triggeredBy: application.skillName,
-      stackIndex: stack
-    });
+    context.queue.enqueue(
+      buildResolverStrike({
+        at: application.at,
+        source: 'Trait',
+        sourceId: TRAIT.LARCENOUS_TORMENT,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillId: TRAIT.LARCENOUS_TORMENT,
+        skillName: 'Larcenous Torment',
+        name: 'Larcenous Torment - Life Siphon',
+        // Life steal scales directly with Power, bypassing armor and weapon-strike modifiers.
+        flatStrikeBase: Number(strike?.flatStrikeBase ?? 99),
+        flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff ?? 0.005),
+
+        canCrit: false,
+        noCrit: true,
+        lifeSiphon: true,
+        triggeredBy: application.skillName,
+        stackIndex: stack
+      })
+    );
   }
 
   const state = specterState.from(context);

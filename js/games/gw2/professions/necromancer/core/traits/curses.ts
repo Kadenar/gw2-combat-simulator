@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 /** Owns imperative Core Necromancer Curses trait behavior for ordered dispatcher calls. */
 import {
   balanceProfileEffect,
@@ -58,19 +59,20 @@ export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
 
 export function applyBitterChill(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.condition !== 'Chilled' || !hasTrait(context, TRAIT.BITTER_CHILL)) return;
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    name: 'Bitter Chill',
-    skillName: 'Bitter Chill',
-    condition: 'Vulnerability',
-    stacks: 3,
-    duration: 8,
-    source: 'Trait',
-    sourceId: TRAIT.BITTER_CHILL,
-    actorType: 'effect',
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      name: 'Bitter Chill',
+      skillName: 'Bitter Chill',
+      condition: 'Vulnerability',
+      stacks: 3,
+      duration: 8,
+      source: 'Trait',
+      sourceId: TRAIT.BITTER_CHILL,
+      actorType: 'effect',
+      triggeredBy: event.skillName
+    })
+  );
   context.recordProc?.('trait', 'Bitter Chill', event.at, event.skillName);
 }
 

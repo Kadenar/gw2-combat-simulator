@@ -1,3 +1,5 @@
+import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -23,6 +25,7 @@ export const untamedEventHandlers = Object.freeze({
   'ranger.untamed-state': handleUntamedState
 });
 
+/** Queue fresh boons with shared duration scaling while preserving the trait's recipient selection. */
 function queueTraitBuff(
   context: RangerResolverContext,
   event: RangerResolverEvent,
@@ -33,21 +36,24 @@ function queueTraitBuff(
   name: string,
   party = false
 ): void {
-  context.queue.enqueue({
-    type: 'buff',
-    at: event.at,
-    source: 'Trait',
-    sourceId,
-    actorType: 'effect',
-    skillId: sourceId,
-    skillName: name,
-    name: `${name} - ${kind}`,
-    kind,
-    duration,
-    stacks,
-    ...(party ? { audience: { recipients: 'party' as const, maximumRecipients: 5 } } : {}),
-    triggeredBy: event.skillName
-  });
+  queueResolverBoon(
+    context,
+    event,
+    buildResolverBuff({
+      at: event.at,
+      source: 'Trait',
+      sourceId,
+      actorType: 'effect',
+      skillId: sourceId,
+      skillName: name,
+      name: `${name} - ${kind}`,
+      kind,
+      duration,
+      stacks,
+      ...(party ? { audience: { recipients: 'party' as const, maximumRecipients: 5 } } : {}),
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 function queueTraitCondition(
@@ -59,21 +65,22 @@ function queueTraitCondition(
   sourceId: number,
   name: string
 ): void {
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    source: 'Trait',
-    sourceId,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    skillId: sourceId,
-    skillName: name,
-    name: `${name} - ${condition}`,
-    condition,
-    duration,
-    stacks,
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      source: 'Trait',
+      sourceId,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillId: sourceId,
+      skillName: name,
+      name: `${name} - ${condition}`,
+      condition,
+      duration,
+      stacks,
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 function triggerFerociousSymbiosis(context: RangerResolverContext, event: RangerResolverEvent): void {

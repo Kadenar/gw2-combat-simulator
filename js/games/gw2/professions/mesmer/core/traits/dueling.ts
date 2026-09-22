@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 /** Owns imperative Core Mesmer Dueling trait effects. */
 import {
   balanceProfileFromContext,
@@ -58,17 +59,19 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
   );
   // Resolve Ineptitude immediately so nested condition hooks observe the
   // confusion application during the originating blind/control reaction, with explicit player attribution.
-  context.applyCondition({
-    type: 'condition',
-    at: event.at,
-    name: `${event.skillName} — Ineptitude`,
-    skillName: event.skillName,
-    condition: String(effect?.condition || 'Confusion'),
-    duration: Number(effect?.duration ?? 5),
-    stacks: Number(effect?.stacks ?? 2) * count,
-    source: 'Player',
-    actorType: 'player'
-  });
+  context.applyCondition(
+    buildResolverCondition({
+      at: event.at,
+      name: `${event.skillName} — Ineptitude`,
+      skillName: event.skillName,
+      condition: String(effect?.condition || 'Confusion'),
+      duration: Number(effect?.duration ?? 5),
+      stacks: Number(effect?.stacks ?? 2) * count,
+      source: 'Player',
+      sourceId: TRAIT.INEPTITUDE,
+      actorType: 'player'
+    })
+  );
 }
 
 /** Applies the interrupt half of Ineptitude with its defiant-target interval. */

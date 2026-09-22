@@ -1,3 +1,4 @@
+import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /** Imperative Fire trait behavior; dispatch order remains centralized in the trait index. */
 import {
@@ -27,7 +28,6 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   applyElementalistDerivedCondition,
-  elementalistSourceSkill,
   queueElementalistBuff,
   recordElementalistTraitProc
 } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
@@ -300,6 +300,6 @@ export function grantPersistingFlames(context: Gw2ResolverRuntime, event: Gw2Res
     'Persisting Flames',
     1,
     balanceProfileValueFromContext(context, PROFILE.persistingFlames, 'durationMultiplier', 15),
-    elementalistSourceSkill(event)
+    resolverSourceSkill(event)
   );
 }

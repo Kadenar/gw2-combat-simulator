@@ -1,3 +1,4 @@
+import { resolverSourceSkill, buildResolverStrike, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 /**
  * Resolver-side Catalyst reactions.
  *
@@ -21,7 +22,6 @@ import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import type { ElementalistResolverContext } from '#gw2/professions/elementalist/types.js';
 import {
   activeElementalistBuffs,
-  elementalistSourceSkill,
   queueElementalistAura,
   queueElementalistBuff,
   recordElementalistTraitProc,
@@ -58,7 +58,7 @@ export function applyCatalystResolverAura(context: ElementalistResolverContext, 
     refreshElementalistBuffs(context, 'Empowering Auras', event.at, () => event.at + duration);
     const activeStacks = current.reduce((total, application) => total + Number(application.stacks || 1), 0);
     if (needsGrants && activeStacks < maximumStacks) {
-      queueElementalistBuff(context, event, 'Empowering Auras', 1, duration, elementalistSourceSkill(event));
+      queueElementalistBuff(context, event, 'Empowering Auras', 1, duration, resolverSourceSkill(event));
     }
 
     recordElementalistTraitProc(context, event, 'Empowering Auras');
@@ -79,7 +79,7 @@ export function applyCatalystResolverAura(context: ElementalistResolverContext, 
     'Elemental Empowerment',
     empowerment.stacks,
     empowerment.duration,
-    elementalistSourceSkill(event)
+    resolverSourceSkill(event)
   );
 }
 
@@ -242,30 +242,32 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
     event.at + balanceProfileValueFromContext(context, PROFILE.shatteringIce, 'internalCooldown', 1);
   const strike = balanceProfileEffectFromContext(context, PROFILE.shatteringIce, 'strike');
   const chilled = balanceProfileEffectFromContext(context, PROFILE.shatteringIce, 'condition');
-  context.queue.enqueue({
-    type: 'damage',
-    at: event.at,
-    source: 'Shattering Ice Proc',
-    sourceId: event.skillId ?? event.sourceId,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    skillName: 'Shattering Ice Proc',
-    coefficient: Number(strike?.coefficient ?? 0.6),
-    skillWeapon: 'Unequipped',
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverStrike({
+      at: event.at,
+      source: 'Shattering Ice Proc',
+      sourceId: event.skillId ?? event.sourceId,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillName: 'Shattering Ice Proc',
+      coefficient: Number(strike?.coefficient ?? 0.6),
+      skillWeapon: 'Unequipped',
+      triggeredBy: event.skillName
+    })
+  );
 
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    source: 'Shattering Ice Proc',
-    sourceId: event.skillId ?? event.sourceId,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    skillName: 'Shattering Ice Proc',
-    condition: String(chilled?.condition || 'Chilled'),
-    stacks: Number(chilled?.stacks ?? 1),
-    duration: Number(chilled?.duration ?? 1),
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      source: 'Shattering Ice Proc',
+      sourceId: event.skillId ?? event.sourceId,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillName: 'Shattering Ice Proc',
+      condition: String(chilled?.condition || 'Chilled'),
+      stacks: Number(chilled?.stacks ?? 1),
+      duration: Number(chilled?.duration ?? 1),
+      triggeredBy: event.skillName
+    })
+  );
 }

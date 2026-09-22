@@ -1,3 +1,4 @@
+import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 /** Resolver event classification and reaction registration for Core Elementalist behavior. */
 import {
@@ -33,14 +34,10 @@ import {
   elementalistAuraDuration,
   grantPersistingFlames
 } from '#gw2/professions/elementalist/core/traits/index.js';
-import {
-  applyElementalistDerivedCondition,
-  elementalistSourceSkill
-} from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
+import { applyElementalistDerivedCondition } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
 
 export {
   activeElementalistBuffs,
-  elementalistSourceSkill,
   queueElementalistBuff,
   recordElementalistTraitProc,
   refreshElementalistBuffs
@@ -90,7 +87,7 @@ export function queueElementalistAura(
 // Record each aura once, then dispatch Core aura traits before specialization reactions.
 export function applyElementalistResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (event.elementalistAuraReactionDispatched === true) return;
-  const skillName = elementalistSourceSkill(event);
+  const skillName = resolverSourceSkill(event);
   const duration = Math.max(0, Number(event.duration || 0));
   const auraState: ElementalistAuraState = {
     type: String(event.aura || ''),

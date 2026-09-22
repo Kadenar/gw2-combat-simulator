@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -150,22 +151,23 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
   if (!isInternalCooldownReady(event.at, state[cooldownKey])) return;
 
   state[cooldownKey] = event.at + Number(profile?.internalCooldown ?? 0.24);
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    priority: 5,
-    source: 'guardian',
-    sourceId: GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION,
-    actorType: 'player',
-    skillId: GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION,
-    skillName: 'Symbol of Ignition',
-    name: 'Symbol of Ignition — Ignition',
-    condition: String(burning?.condition || 'Burning'),
-    stacks: Number(burning?.stacks ?? 1),
-    duration: Number(burning?.duration ?? 1),
-    triggeredBy: event.skillName,
-    projectile
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      priority: 5,
+      source: 'guardian',
+      sourceId: GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION,
+      actorType: 'player',
+      skillId: GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION,
+      skillName: 'Symbol of Ignition',
+      name: 'Symbol of Ignition — Ignition',
+      condition: String(burning?.condition || 'Burning'),
+      stacks: Number(burning?.stacks ?? 1),
+      duration: Number(burning?.duration ?? 1),
+      triggeredBy: event.skillName,
+      projectile
+    })
+  );
 }
 
 // Normalize Resolution duration before it enters the queue, then decorate

@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { activeChargeGrants, consumeCharge, grantChargePool } from '#gw2/platform/combat/resources/charges.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -132,22 +133,23 @@ export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefRes
     const effects = conditionEffects(context, venom);
     for (let effectIndex = 0; effectIndex < effects.length; effectIndex += 1) {
       const effect = effects[effectIndex];
-      context.applyCondition({
-        type: 'condition',
-        at: event.at,
-        source: 'thief',
-        sourceId: venom.skillId,
-        actorType: 'player',
-        skillId: venom.skillId,
-        skillName: venom.skillName,
-        name: `${venom.skillName} — ${effect.condition}`,
-        condition: String(effect.condition),
-        stacks: Number(effect.stacks ?? 1),
-        duration: Number(effect.duration || 0),
-        activationId: event.activationId || `${event.skillId}:${event.at}`,
-        triggeredBy: event.skillName,
-        metadata: { venomProcEffectIndex: effectIndex }
-      });
+      context.applyCondition(
+        buildResolverCondition({
+          at: event.at,
+          source: 'thief',
+          sourceId: venom.skillId,
+          actorType: 'player',
+          skillId: venom.skillId,
+          skillName: venom.skillName,
+          name: `${venom.skillName} — ${effect.condition}`,
+          condition: String(effect.condition),
+          stacks: Number(effect.stacks ?? 1),
+          duration: Number(effect.duration || 0),
+          activationId: event.activationId || `${event.skillId}:${event.at}`,
+          triggeredBy: event.skillName,
+          metadata: { venomProcEffectIndex: effectIndex }
+        })
+      );
     }
   }
 

@@ -1,4 +1,5 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { applyActiveVenoms } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { applyFluidStrikes, applyHardToCatch } from '#gw2/professions/thief/core/traits/acrobatics.js';
@@ -99,15 +100,26 @@ function applyUnsuspectingStrikeBonus(context: ThiefResolverContext, application
   const maximum = Number(context.config?.target?.health || 0);
   const damage = targetHealthLoss(context.config, context);
   if (!(maximum > 0) || damage / maximum < 0.1) {
-    context.queue.enqueue({
-      ...application,
-      type: 'condition',
-      name: 'Unsuspecting Strike - Bonus Bleeding',
-      condition: application.condition,
-      duration: Number(application.duration || 0),
-      stacks: Number(application.bonusAboveNinetyStacks),
-      bonusAboveNinetyStacks: 0
-    });
+    // The bonus is a fresh application with the original skill identity, not a copy of resolved condition state.
+    context.queue.enqueue(
+      buildResolverCondition({
+        at: application.at,
+        priority: application.priority,
+        source: application.source,
+        sourceId: application.sourceId,
+        actorType: application.actorType,
+        ownerActorType: application.ownerActorType,
+        skillId: application.skillId,
+        skillName: application.skillName,
+        activationId: application.activationId,
+        triggeredBy: application.triggeredBy,
+        fixedDuration: application.fixedDuration,
+        name: 'Unsuspecting Strike - Bonus Bleeding',
+        condition: application.condition,
+        duration: Number(application.duration || 0),
+        stacks: Number(application.bonusAboveNinetyStacks)
+      })
+    );
   }
 }
 

@@ -1,7 +1,8 @@
+import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { onResolvedDamage, onResolvedControl } from '#gw2/platform/profession-definition/mechanics.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -34,21 +35,22 @@ function handleJusticePulse(context: GuardianResolverContext, event: GuardianRes
     return;
   }
 
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    source: 'guardian',
-    sourceId: ID.SPEAR_OF_JUSTICE,
-    actorType: 'player',
-    skillId: ID.SPEAR_OF_JUSTICE,
-    skillName: 'Spear of Justice',
-    name: 'Spear of Justice — Active Burning',
-    condition: String(burning?.condition || 'Burning'),
-    stacks: Number(burning?.stacks ?? 1),
-    duration: Number(burning?.duration ?? 2),
-    applicationIndex: event.applicationIndex,
-    totalApplications: event.totalApplications
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      source: 'guardian',
+      sourceId: ID.SPEAR_OF_JUSTICE,
+      actorType: 'player',
+      skillId: ID.SPEAR_OF_JUSTICE,
+      skillName: 'Spear of Justice',
+      name: 'Spear of Justice — Active Burning',
+      condition: String(burning?.condition || 'Burning'),
+      stacks: Number(burning?.stacks ?? 1),
+      duration: Number(burning?.duration ?? 2),
+      applicationIndex: event.applicationIndex,
+      totalApplications: event.totalApplications
+    })
+  );
 }
 
 export function reactToDragonhunterJusticeHit(
@@ -68,19 +70,20 @@ export function reactToDragonhunterJusticeHit(
   // i.e. a new passive Justice proc occurred on this hit (not an active proc).
   if (Number(core.justicePassiveBurns || 0) > passiveBefore) {
     const crippled = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.tether), 'condition', 1);
-    context.applyCondition({
-      type: 'condition',
-      at: event.at,
-      source: 'guardian',
-      sourceId: ID.SPEAR_OF_JUSTICE,
-      actorType: 'player',
-      skillId: ID.SPEAR_OF_JUSTICE,
-      skillName: 'Spear of Justice',
-      name: 'Spear of Justice — Passive Crippled',
-      condition: String(crippled?.condition || 'Crippled'),
-      stacks: Number(crippled?.stacks ?? 1),
-      duration: Number(crippled?.duration ?? 1.5)
-    });
+    context.applyCondition(
+      buildResolverCondition({
+        at: event.at,
+        source: 'guardian',
+        sourceId: ID.SPEAR_OF_JUSTICE,
+        actorType: 'player',
+        skillId: ID.SPEAR_OF_JUSTICE,
+        skillName: 'Spear of Justice',
+        name: 'Spear of Justice — Passive Crippled',
+        condition: String(crippled?.condition || 'Crippled'),
+        stacks: Number(crippled?.stacks ?? 1),
+        duration: Number(crippled?.duration ?? 1.5)
+      })
+    );
   }
 
   if (
@@ -95,20 +98,21 @@ export function reactToDragonhunterJusticeHit(
   // priority: 5 ensures this Vulnerability condition sorts after zero-priority damage
   // events at the same timestamp so modifiers can pick it up on the next resolve tick.
   const vulnerability = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.bigGameHunter), 'condition');
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    priority: 5,
-    source: 'guardian',
-    sourceId: GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER,
-    actorType: 'effect',
-    skillId: GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER,
-    skillName: 'Big Game Hunter',
-    condition: 'Vulnerability',
-    stacks: Number(vulnerability?.stacks ?? 1),
-    duration: Number(vulnerability?.duration ?? 10),
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      priority: 5,
+      source: 'guardian',
+      sourceId: GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER,
+      actorType: 'effect',
+      skillId: GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER,
+      skillName: 'Big Game Hunter',
+      condition: 'Vulnerability',
+      stacks: Number(vulnerability?.stacks ?? 1),
+      duration: Number(vulnerability?.duration ?? 10),
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 export function reactToDragonhunterControl(context: GuardianResolverContext, event: GuardianResolverEvent): void {
@@ -117,19 +121,20 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
     const crippled = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.dulledSenses), 'condition');
     // Control-triggered conditions resolve immediately so their reactions
     // share the originating control timestamp.
-    context.applyCondition({
-      type: 'condition',
-      at: event.at,
-      source: 'guardian',
-      sourceId: GUARDIAN_TRAIT_IDS.DULLED_SENSES,
-      actorType: 'effect',
-      skillId: GUARDIAN_TRAIT_IDS.DULLED_SENSES,
-      skillName: 'Dulled Senses',
-      name: 'Dulled Senses — Crippled',
-      condition: String(crippled?.condition || 'Crippled'),
-      stacks: Number(crippled?.stacks ?? 1),
-      duration: Number(crippled?.duration ?? 4)
-    });
+    context.applyCondition(
+      buildResolverCondition({
+        at: event.at,
+        source: 'guardian',
+        sourceId: GUARDIAN_TRAIT_IDS.DULLED_SENSES,
+        actorType: 'effect',
+        skillId: GUARDIAN_TRAIT_IDS.DULLED_SENSES,
+        skillName: 'Dulled Senses',
+        name: 'Dulled Senses — Crippled',
+        condition: String(crippled?.condition || 'Crippled'),
+        stacks: Number(crippled?.stacks ?? 1),
+        duration: Number(crippled?.duration ?? 4)
+      })
+    );
   }
 
   if (
@@ -143,19 +148,22 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
   const heavyLight = balanceProfileFromContext(context, PROFILE.heavyLight);
   const stability = balanceProfileEffect(heavyLight, 'boon');
   state.heavyLightReadyAt = event.at + Number(heavyLight?.internalCooldown ?? 1);
-  context.queue.enqueue({
-    type: 'buff',
-    at: event.at,
-    priority: 5,
-    source: 'guardian',
-    sourceId: GUARDIAN_TRAIT_IDS.HEAVY_LIGHT,
-    actorType: 'player',
-    skillId: GUARDIAN_TRAIT_IDS.HEAVY_LIGHT,
-    skillName: 'Heavy Light',
-    kind: 'stability',
-    stacks: Number(stability?.stacks ?? 1),
-    duration: gw2ResolverBoonDuration(context, event, 'stability', Number(stability?.duration ?? 6))
-  });
+  queueResolverBoon(
+    context,
+    event,
+    buildResolverBuff({
+      at: event.at,
+      priority: 5,
+      source: 'guardian',
+      sourceId: GUARDIAN_TRAIT_IDS.HEAVY_LIGHT,
+      actorType: 'player',
+      skillId: GUARDIAN_TRAIT_IDS.HEAVY_LIGHT,
+      skillName: 'Heavy Light',
+      kind: 'stability',
+      stacks: Number(stability?.stacks ?? 1),
+      duration: Number(stability?.duration ?? 6)
+    })
+  );
   context.recordProc(
     'trait',
     'Heavy Light',

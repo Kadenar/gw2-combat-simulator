@@ -1,3 +1,4 @@
+import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -52,24 +53,24 @@ function enqueueSiphon(
   coefficient: number,
   flatStrikeBase?: number
 ): void {
-  context.queue.enqueue({
-    type: 'damage',
-    at: event.at,
-    source: 'Trait',
-    sourceId,
-    actorType: 'effect',
-    skillId: sourceId,
-    skillName: name,
-    name,
-    coefficient,
-    // Flat life stealing bypasses armor, weapon strength, critical hits, and ordinary strike multipliers.
-    ...(flatStrikeBase == null ? {} : { flatStrikeBase, flatStrikePowerCoeff: coefficient }),
-    hits: 1,
-    canCrit: false,
-    noCrit: true,
-    lifeSiphon: true,
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverStrike({
+      at: event.at,
+      source: 'Trait',
+      sourceId,
+      actorType: 'effect',
+      skillId: sourceId,
+      skillName: name,
+      coefficient,
+      // Flat life stealing bypasses armor, weapon strength, critical hits, and ordinary strike multipliers.
+      ...(flatStrikeBase == null ? {} : { flatStrikeBase, flatStrikePowerCoeff: coefficient }),
+
+      canCrit: false,
+      noCrit: true,
+      lifeSiphon: true,
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 export function applyLeechingVenoms(context: ThiefResolverContext, event: ThiefResolverEvent): void {

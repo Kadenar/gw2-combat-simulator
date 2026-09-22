@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -49,23 +50,24 @@ function handleWillbenderVirtueTrigger(context: GuardianResolverContext, event: 
   else core.justicePassiveBurns += 1;
   // Burning is enqueued into the resolver's condition queue rather than emitted
   // directly so it respects the condition-application ordering alongside other burns.
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    priority: 5,
-    source: 'guardian',
-    sourceId: 'guardian.justice-passive',
-    actorType: 'player',
-    skillId: ID.WILLBENDER_JUSTICE,
-    skillName: 'Justice',
-    name: `Justice — ${active ? 'Active' : 'Passive'} Burning`,
-    icon: context.helpers.skillsById?.get(ID.RUSHING_JUSTICE)?.icon || '', // WILLBENDER_JUSTICE has no icon; Rushing Justice shares the same visual in-game
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      priority: 5,
+      source: 'guardian',
+      sourceId: 'guardian.justice-passive',
+      actorType: 'player',
+      skillId: ID.WILLBENDER_JUSTICE,
+      skillName: 'Justice',
+      name: `Justice — ${active ? 'Active' : 'Passive'} Burning`,
+      icon: context.helpers.skillsById?.get(ID.RUSHING_JUSTICE)?.icon || '', // WILLBENDER_JUSTICE has no icon; Rushing Justice shares the same visual in-game
 
-    condition: 'Burning',
-    stacks: 1,
-    duration: Number(event.burningDuration ?? 2),
-    triggeredBy: event.sourceSkill
-  });
+      condition: 'Burning',
+      stacks: 1,
+      duration: Number(event.burningDuration ?? 2),
+      triggeredBy: event.sourceSkill
+    })
+  );
 }
 
 export const willbenderEventHandlers = Object.freeze({

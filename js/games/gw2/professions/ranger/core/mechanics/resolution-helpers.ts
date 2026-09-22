@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { rangerPetCombatMetadata, rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
@@ -61,22 +62,24 @@ export function queueCondition(
 ): void {
   const petSource = isPetStrike(event);
   // Keep trait packets effect-sourced for proc gating while making non-pet ownership explicit.
-  context.queue.enqueue({
-    ...petDerivedConditionMetadata(context, event),
-    type: 'condition',
-    at: event.at,
-    source: petSource ? 'ranger-pet' : 'Trait',
-    sourceId,
-    actorType: petSource ? 'summon' : 'effect',
-    ownerActorType: petSource ? undefined : 'player',
-    skillId: sourceId,
-    skillName: name,
-    name: displayName,
-    condition,
-    duration,
-    stacks,
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      ...petDerivedConditionMetadata(context, event),
+
+      at: event.at,
+      source: petSource ? 'ranger-pet' : 'Trait',
+      sourceId,
+      actorType: petSource ? 'summon' : 'effect',
+      ownerActorType: petSource ? undefined : 'player',
+      skillId: sourceId,
+      skillName: name,
+      name: displayName,
+      condition,
+      duration,
+      stacks,
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 export function isPlayerStrike(event: RangerResolverEvent): boolean {

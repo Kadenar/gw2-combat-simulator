@@ -1,3 +1,4 @@
+import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -121,23 +122,24 @@ export function resolveNatureSiphon(context: RevenantResolverContext, event: Rev
   const strike = profile?.effects?.find((effect) => effect.type === 'strike');
   if (!profile || !strike) throw new Error('Missing Assassin Facet of Nature passive profile.');
   state.natureSiphonReadyAt = event.at + Number(profile.cooldown);
-  context.queue.enqueue({
-    type: 'damage',
-    at: event.at,
-    source: 'revenant',
-    sourceId: ID.FACET_OF_NATURE,
-    skillId: ID.FACET_OF_NATURE,
-    skillName: profile.name,
-    name: 'Facet of Nature — Life Siphon',
-    actorType: 'effect',
-    ownerActorType: 'player',
-    coefficient: 0,
-    hits: 1,
-    noCrit: true,
-    lifeSiphon: true,
-    flatStrikeBase: Number(strike.flatStrikeBase),
-    flatStrikePowerCoeff: Number(strike.flatStrikePowerCoeff),
-    skillWeapon: 'Unequipped',
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverStrike({
+      at: event.at,
+      source: 'revenant',
+      sourceId: ID.FACET_OF_NATURE,
+      skillId: ID.FACET_OF_NATURE,
+      skillName: profile.name,
+      name: 'Facet of Nature — Life Siphon',
+      actorType: 'effect',
+      ownerActorType: 'player',
+      coefficient: 0,
+
+      noCrit: true,
+      lifeSiphon: true,
+      flatStrikeBase: Number(strike.flatStrikeBase),
+      flatStrikePowerCoeff: Number(strike.flatStrikePowerCoeff),
+      skillWeapon: 'Unequipped',
+      triggeredBy: event.skillName
+    })
+  );
 }

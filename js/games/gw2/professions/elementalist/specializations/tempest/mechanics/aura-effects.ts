@@ -1,3 +1,4 @@
+import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
 /**
  * Owns Tempest resolver reactions to accepted Elementalist auras.
  * Core aura application and shared resolver helpers remain under Core mechanics.
@@ -9,7 +10,6 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { ElementalistResolverContext } from '#gw2/professions/elementalist/types.js';
 import {
   activeElementalistBuffs,
-  elementalistSourceSkill,
   queueElementalistBuff,
   recordElementalistTraitProc,
   refreshElementalistBuffs
@@ -33,7 +33,7 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
         expiresAt === current.expiresAt ? Math.min(event.at + maximum, expiresAt + extension) : expiresAt
       );
     } else {
-      queueElementalistBuff(context, event, 'Tempestuous Aria', 1, extension, elementalistSourceSkill(event));
+      queueElementalistBuff(context, event, 'Tempestuous Aria', 1, extension, resolverSourceSkill(event));
     }
 
     recordElementalistTraitProc(context, event, 'Tempestuous Aria');
@@ -45,7 +45,7 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
   for (const trait of ['Invigorating Torrents', 'Elemental Bastion'] as const) {
     if (!hasTrait(context, trait)) continue;
     for (const boon of tempestAuraBoons(context, trait)) {
-      queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, elementalistSourceSkill(event));
+      queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, resolverSourceSkill(event));
     }
 
     recordElementalistTraitProc(context, event, trait);

@@ -1,3 +1,4 @@
+import { buildResolverStrike, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
  * Handlers for necromancer events pulled off the scheduler/resolver queue.
@@ -74,43 +75,8 @@ export function materializeNecromancerSummonAttack(
   event: NecromancerResolverEvent
 ): void {
   // Materialize the strike first so same-timestamp secondary effects retain scheduler ordering.
-  context.queue.enqueue({
-    type: 'damage',
-    at: event.at,
-    source: event.source,
-    sourceId: event.sourceId,
-    actorType: 'summon',
-    skillId: event.skillId,
-    skillName: event.skillName,
-    parentSkillName: event.parentSkillName,
-    name: event.name,
-    icon: event.icon,
-    coefficient: Number(event.coefficient || 0),
-    comboFinishers: event.deferredComboFinishers,
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
-    skillWeapon: 'Unequipped',
-    weaponStrength: event.weaponStrength,
-    canCrit: true,
-    summonKind: event.summonKind,
-    summonCount: event.summonCount,
-    summonOwner: event.summonOwner,
-    summonOwnerBase: event.summonOwnerBase,
-    summonBasePower: event.summonBasePower,
-    summonDamagePerCoefficient: event.summonDamagePerCoefficient,
-    summonCriticalChance: event.summonCriticalChance,
-    summonCriticalDamage: event.summonCriticalDamage,
-    summonInheritsCriticalAttributes: event.summonInheritsCriticalAttributes,
-    summonStrikeMultiplier: event.summonStrikeMultiplier,
-    independentSummonStrike: event.independentSummonStrike,
-    metadata: event.metadata
-  });
-  // Follow the strike with its optional condition and control payloads.
-  if (Array.isArray(event.onHitCondition)) {
-    const [condition, stacks, duration] = event.onHitCondition;
-    context.queue.enqueue({
-      type: 'condition',
+  context.queue.enqueue(
+    buildResolverStrike({
       at: event.at,
       source: event.source,
       sourceId: event.sourceId,
@@ -118,11 +84,46 @@ export function materializeNecromancerSummonAttack(
       skillId: event.skillId,
       skillName: event.skillName,
       parentSkillName: event.parentSkillName,
-      name: `${event.skillName || event.name || 'Minion Attack'} — ${String(condition)}`,
-      condition: String(condition),
-      stacks: Number(stacks || 0),
-      duration: Number(duration || 0)
-    });
+      name: event.name,
+      icon: event.icon,
+      coefficient: Number(event.coefficient || 0),
+      comboFinishers: event.deferredComboFinishers,
+
+      skillWeapon: 'Unequipped',
+      weaponStrength: event.weaponStrength,
+      canCrit: true,
+      summonKind: event.summonKind,
+      summonCount: event.summonCount,
+      summonOwner: event.summonOwner,
+      summonOwnerBase: event.summonOwnerBase,
+      summonBasePower: event.summonBasePower,
+      summonDamagePerCoefficient: event.summonDamagePerCoefficient,
+      summonCriticalChance: event.summonCriticalChance,
+      summonCriticalDamage: event.summonCriticalDamage,
+      summonInheritsCriticalAttributes: event.summonInheritsCriticalAttributes,
+      summonStrikeMultiplier: event.summonStrikeMultiplier,
+      independentSummonStrike: event.independentSummonStrike,
+      metadata: event.metadata
+    })
+  );
+  // Follow the strike with its optional condition and control payloads.
+  if (Array.isArray(event.onHitCondition)) {
+    const [condition, stacks, duration] = event.onHitCondition;
+    context.queue.enqueue(
+      buildResolverCondition({
+        at: event.at,
+        source: event.source,
+        sourceId: event.sourceId,
+        actorType: 'summon',
+        skillId: event.skillId,
+        skillName: event.skillName,
+        parentSkillName: event.parentSkillName,
+        name: `${event.skillName || event.name || 'Minion Attack'} — ${String(condition)}`,
+        condition: String(condition),
+        stacks: Number(stacks || 0),
+        duration: Number(duration || 0)
+      })
+    );
   }
 
   if (event.controlKind) {

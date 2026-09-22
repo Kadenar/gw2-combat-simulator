@@ -1,7 +1,7 @@
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 /** Shares resolver-side Necromancer trait effects without coupling trait-line modules to the public dispatcher. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 interface TraitConditionDefinition {
@@ -35,8 +35,7 @@ export function applyTraitCondition(
   event: NecromancerResolverEvent,
   { name, traitId, condition, stacks = 1, duration, procCount }: TraitConditionDefinition
 ): void {
-  const application: Gw2EventDraft = {
-    type: 'condition',
+  const application = buildResolverCondition({
     at: event.at,
     name: `${name} - ${condition}`,
     skillName: name,
@@ -49,7 +48,7 @@ export function applyTraitCondition(
     ownerActorType: 'player',
     triggeredBy: event.skillName,
     ...(procCount == null ? {} : { metadata: { procCount } })
-  };
+  });
   // Resolver-derived trait conditions enter canonical state immediately so
   // chained condition reactions preserve their causal timestamp ordering.
   context.applyCondition(application);
@@ -63,25 +62,23 @@ export function queueTraitCoefficientDamage(
   event: NecromancerResolverEvent,
   { name, traitId, coefficient, noCrit = true, damageKind, icon }: TraitCoefficientDefinition
 ): void {
-  context.queue.enqueue({
-    type: 'damage',
-    at: event.at,
-    name,
-    skillName: name,
-    coefficient,
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
-    source: 'Trait',
-    sourceId: traitId,
-    actorType: 'effect',
-    skillWeapon: 'Unequipped',
-    noCrit,
-    ...(damageKind ? { damageKind } : {}),
-    ...(icon ? { icon } : {}),
-    ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}),
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverStrike({
+      at: event.at,
+      skillName: name,
+      coefficient,
+
+      source: 'Trait',
+      sourceId: traitId,
+      actorType: 'effect',
+      skillWeapon: 'Unequipped',
+      noCrit,
+      ...(damageKind ? { damageKind } : {}),
+      ...(icon ? { icon } : {}),
+      ...(event.summonOwner ? { summonOwner: event.summonOwner } : {}),
+      triggeredBy: event.skillName
+    })
+  );
   // Proc markers need the derived effect's artwork because their display name
   // does not necessarily match either the granting trait or triggering skill.
   context.recordProc?.('trait', name, event.at, event.skillName, '', icon);
@@ -93,19 +90,20 @@ export function applyTraitVulnerability(
   event: NecromancerResolverEvent,
   { name, traitId, stacks, duration }: TraitVulnerabilityDefinition
 ): void {
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    name,
-    skillName: name,
-    condition: 'Vulnerability',
-    stacks,
-    duration,
-    source: 'Trait',
-    sourceId: traitId,
-    actorType: 'effect',
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      name,
+      skillName: name,
+      condition: 'Vulnerability',
+      stacks,
+      duration,
+      source: 'Trait',
+      sourceId: traitId,
+      actorType: 'effect',
+      triggeredBy: event.skillName
+    })
+  );
   context.recordProc?.('trait', name, event.at, event.skillName);
 }
 

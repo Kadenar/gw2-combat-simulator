@@ -1,3 +1,5 @@
+import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 /** Owns imperative Arms trait effects while the public dispatcher preserves base-effect ordering. */
 import {
   balanceProfileFromContext,
@@ -11,7 +13,6 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -63,20 +64,23 @@ export function reactToWarriorDamage(context: WarriorResolverContext, event: War
     return;
   for (const effect of signetMastery?.effects || []) {
     const kind = String(effect.boon || effect.kind || '');
-    context.queue.enqueue({
-      type: 'buff',
-      at: event.at,
-      priority: 5,
-      source: 'Trait',
-      sourceId: TRAIT.SIGNET_MASTERY,
-      actorType: 'effect',
-      skillId: TRAIT.SIGNET_MASTERY,
-      skillName: 'Lesser Signet of Might',
-      name: 'Lesser Signet of Might',
-      kind,
-      stacks: Number(effect.stacks ?? 1),
-      duration: gw2ResolverBoonDuration(context, event, kind, Number(effect.duration || 0))
-    });
+    queueResolverBoon(
+      context,
+      event,
+      buildResolverBuff({
+        at: event.at,
+        priority: 5,
+        source: 'Trait',
+        sourceId: TRAIT.SIGNET_MASTERY,
+        actorType: 'effect',
+        skillId: TRAIT.SIGNET_MASTERY,
+        skillName: 'Lesser Signet of Might',
+
+        kind,
+        stacks: Number(effect.stacks ?? 1),
+        duration: Number(effect.duration || 0)
+      })
+    );
   }
 
   context.recordProc(

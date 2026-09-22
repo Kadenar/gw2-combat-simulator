@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -185,21 +186,22 @@ export function applyWeakeningStrike(context: ThiefResolverContext, event: Thief
     return;
   state.weakeningStrikeReady = false;
   const weakness = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.weakeningStrikes), 'condition');
-  context.applyCondition({
-    type: 'condition',
-    at: event.at,
-    source: 'Trait',
-    actorType: 'player',
-    skillId: TRAIT.WEAKENING_STRIKES,
-    skillName: 'Weakening Strikes',
-    activationId: event.activationId,
-    triggeredBy: event.skillName,
-    condition: String(weakness?.condition || 'Weakness'),
-    duration: Number(weakness?.duration ?? 3),
-    stacks: Number(weakness?.stacks ?? 1),
-    sourceId: TRAIT.WEAKENING_STRIKES,
-    name: 'Weakening Strikes — Weakness'
-  });
+  context.applyCondition(
+    buildResolverCondition({
+      at: event.at,
+      source: 'Trait',
+      actorType: 'player',
+      skillId: TRAIT.WEAKENING_STRIKES,
+      skillName: 'Weakening Strikes',
+      activationId: event.activationId,
+      triggeredBy: event.skillName,
+      condition: String(weakness?.condition || 'Weakness'),
+      duration: Number(weakness?.duration ?? 3),
+      stacks: Number(weakness?.stacks ?? 1),
+      sourceId: TRAIT.WEAKENING_STRIKES,
+      name: 'Weakening Strikes — Weakness'
+    })
+  );
 }
 
 export function beginDaredevilTraits(context: ThiefCastContext, skill: ThiefSkill): void {

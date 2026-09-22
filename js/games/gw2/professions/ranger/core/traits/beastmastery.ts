@@ -1,3 +1,5 @@
+import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 /** Owns Core Ranger Beastmastery command and companion-attack trait behavior. */
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -104,24 +106,27 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Ran
     `${duration}s, +40% pet strike damage`,
     context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon || context.helpers.skillsById?.get(ID.SIC_EM)?.icon || ''
   );
-  context.queue.enqueue({
-    type: 'buff',
-    at: event.at,
-    source: 'Trait',
-    sourceId: ID.LESSER_SIC_EM,
-    actorType: 'effect',
-    skillId: ID.LESSER_SIC_EM,
-    skillName: 'Lesser "Sic \'Em!"',
-    name: 'Lesser "Sic \'Em!"',
-    kind: String(lesserSicEm?.kind || 'lesser-sic-em-pet'),
-    duration,
-    stacks: Number(lesserSicEm?.stacks ?? 1),
-    audience: {
-      recipients: 'summons' as const,
-      affectsSelf: false,
-      maximumRecipients: 1,
-      eligibleCompanionIds: [rangerPetCompanionId(context)]
-    },
-    triggeredBy: event.skillName
-  });
+  queueResolverBoon(
+    context,
+    event,
+    buildResolverBuff({
+      at: event.at,
+      source: 'Trait',
+      sourceId: ID.LESSER_SIC_EM,
+      actorType: 'effect',
+      skillId: ID.LESSER_SIC_EM,
+      skillName: 'Lesser "Sic \'Em!"',
+
+      kind: String(lesserSicEm?.kind || 'lesser-sic-em-pet'),
+      duration,
+      stacks: Number(lesserSicEm?.stacks ?? 1),
+      audience: {
+        recipients: 'summons' as const,
+        affectsSelf: false,
+        maximumRecipients: 1,
+        eligibleCompanionIds: [rangerPetCompanionId(context)]
+      },
+      triggeredBy: event.skillName
+    })
+  );
 }

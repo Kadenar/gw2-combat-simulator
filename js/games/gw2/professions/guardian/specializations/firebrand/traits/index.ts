@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -328,21 +329,22 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
       internalCooldown: Number(ashes?.internalCooldown ?? 1)
     });
     if (proc) {
-      context.queue.enqueue({
-        type: 'condition',
-        at: proc.at,
-        priority: 5,
-        source: 'guardian',
-        sourceId: 'guardian.ashes-of-the-just',
-        actorType: 'player',
-        skillId: GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST,
-        skillName: 'Quickfire',
-        name: `Quickfire — Ally ${proc.allyIndex} Burning`,
-        condition: String(burn?.condition || 'Burning'),
-        stacks: Number(burn?.stacks ?? 1),
-        duration: Number(burn?.duration ?? 2),
-        metadata: { triggeredByAlly: proc.allyIndex }
-      });
+      context.queue.enqueue(
+        buildResolverCondition({
+          at: proc.at,
+          priority: 5,
+          source: 'guardian',
+          sourceId: 'guardian.ashes-of-the-just',
+          actorType: 'player',
+          skillId: GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST,
+          skillName: 'Quickfire',
+          name: `Quickfire — Ally ${proc.allyIndex} Burning`,
+          condition: String(burn?.condition || 'Burning'),
+          stacks: Number(burn?.stacks ?? 1),
+          duration: Number(burn?.duration ?? 2),
+          metadata: { triggeredByAlly: proc.allyIndex }
+        })
+      );
     }
   }
 

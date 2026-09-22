@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -182,19 +183,20 @@ export function reactToZealSymbolTraits(context: GuardianResolverContext, event:
     hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE)
   ) {
     // Lesser Symbol applies target Vulnerability directly so it shares condition duration and stacking rules.
-    context.queue.enqueue({
-      type: 'condition',
-      at: event.at,
-      source: 'guardian',
-      sourceId: GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
-      actorType: 'effect',
-      skillId: GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
-      skillName: 'Symbolic Exposure',
-      condition: 'Vulnerability',
-      duration: 5,
-      stacks: 2,
-      priority: 5
-    });
+    context.queue.enqueue(
+      buildResolverCondition({
+        at: event.at,
+        source: 'guardian',
+        sourceId: GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
+        actorType: 'effect',
+        skillId: GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
+        skillName: 'Symbolic Exposure',
+        condition: 'Vulnerability',
+        duration: 5,
+        stacks: 2,
+        priority: 5
+      })
+    );
   }
 }
 

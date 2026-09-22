@@ -1,14 +1,10 @@
+import { resolverSourceSkill, buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 /** Shared resolver-side state, attribution, boon, and condition helpers for Elementalist behavior. */
 import { isTimeInWindow } from '#kernel/core/clock.js';
-import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-
-/** Returns the best available display name for the skill behind a resolver event. */
-export function elementalistSourceSkill(event: Gw2ResolverEvent): string {
-  return String(event.skillName || event.name || event.source || '');
-}
 
 // Apply derived conditions immediately so same-timestamp reactions observe the canonical resolver state.
 export function applyElementalistDerivedCondition(
@@ -23,27 +19,26 @@ export function applyElementalistDerivedCondition(
     procCount
   }: {
     readonly source: string;
-    readonly sourceId?: Gw2EventDraft['sourceId'];
+    readonly sourceId?: SkillId;
     readonly condition: string;
     readonly stacks: number;
     readonly duration: number;
     readonly procCount?: number;
   }
 ): void {
-  const application: Gw2EventDraft = {
-    type: 'condition',
+  const application = buildResolverCondition({
     at: event.at,
     source,
     sourceId,
     actorType: 'player',
     skillName: source,
-    name: `${source} — ${condition}`,
+
     condition,
     stacks,
     duration,
-    triggeredBy: elementalistSourceSkill(event),
+    triggeredBy: resolverSourceSkill(event),
     ...(procCount == null ? {} : { metadata: { procCount } })
-  };
+  });
   context.applyCondition(application);
 }
 
@@ -57,20 +52,23 @@ export function queueElementalistBuff(
   source: string
 ): void {
   // The shared buff handler records the application when it actually resolves.
-  queueResolverBoon(context, event, {
-    type: 'buff',
-    at: event.at,
-    source,
-    sourceId: event.skillId ?? event.sourceId ?? source,
-    actorType: 'player',
-    skillName: source,
-    name: source,
-    kind: kind.toLowerCase(),
-    stacks,
-    duration,
-    triggeredBy: elementalistSourceSkill(event),
-    ...(Number(event.priority || 0) ? { priority: Number(event.priority) } : {})
-  });
+  queueResolverBoon(
+    context,
+    event,
+    buildResolverBuff({
+      at: event.at,
+      source,
+      sourceId: event.skillId ?? event.sourceId ?? source,
+      actorType: 'player',
+      skillName: source,
+
+      kind: kind.toLowerCase(),
+      stacks,
+      duration,
+      triggeredBy: resolverSourceSkill(event),
+      ...(Number(event.priority || 0) ? { priority: Number(event.priority) } : {})
+    })
+  );
 }
 
 /** Returns active resolver-side applications of one boon kind at a timestamp. */
@@ -106,5 +104,5 @@ export function refreshElementalistBuffs(
 
 /** Records a trait proc attributed to the skill whose event triggered it. */
 export function recordElementalistTraitProc(context: Gw2ResolverRuntime, event: Gw2ResolverEvent, name: string): void {
-  context.recordProc('trait', name, event.at, elementalistSourceSkill(event));
+  context.recordProc('trait', name, event.at, resolverSourceSkill(event));
 }

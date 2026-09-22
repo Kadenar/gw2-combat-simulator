@@ -1,3 +1,4 @@
+import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -215,21 +216,24 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
     // One invocation shares authored effects; each queued boon still samples live duration scaling.
     const { boon, duration, stacks } = criticalBoonDefinition(context, TRAIT.UNRELENTING_STRIKES);
     for (let proc = 0; proc < application.quantity; proc += 1) {
-      queueResolverBoon(context, event, {
-        type: 'buff',
-        at: event.at,
-        source: 'Trait',
-        sourceId: TRAIT.UNRELENTING_STRIKES,
-        actorType: 'effect',
-        skillId: TRAIT.UNRELENTING_STRIKES,
-        skillName: 'Unrelenting Strikes',
-        name: `Unrelenting Strikes - ${boon}`,
-        kind: boon.toLowerCase(),
-        duration,
-        stacks,
-        audience: { recipients: 'party' },
-        triggeredBy: event.skillName
-      });
+      queueResolverBoon(
+        context,
+        event,
+        buildResolverBuff({
+          at: event.at,
+          source: 'Trait',
+          sourceId: TRAIT.UNRELENTING_STRIKES,
+          actorType: 'effect',
+          skillId: TRAIT.UNRELENTING_STRIKES,
+          skillName: 'Unrelenting Strikes',
+          name: `Unrelenting Strikes - ${boon}`,
+          kind: boon.toLowerCase(),
+          duration,
+          stacks,
+          audience: { recipients: 'party' },
+          triggeredBy: event.skillName
+        })
+      );
     }
   }
 } satisfies ThiefCriticalHitDefinition);
@@ -286,19 +290,22 @@ export function applyAssassinsFury(context: ThiefResolverContext, event: ThiefRe
     return;
   // Keep the self boon attributed to this trait while shared queueing applies live duration scaling.
   const boon = String(might?.boon || 'Might');
-  queueResolverBoon(context, event, {
-    type: 'buff',
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.ASSASSINS_FURY,
-    actorType: 'effect',
-    skillId: TRAIT.ASSASSINS_FURY,
-    skillName: "Assassin's Fury",
-    name: `Assassin's Fury - ${boon}`,
-    kind: boon.toLowerCase(),
-    duration: Number(might?.duration ?? 8),
-    stacks: Number(might?.stacks ?? 3),
-    audience: { recipients: 'self' },
-    triggeredBy: event.skillName
-  });
+  queueResolverBoon(
+    context,
+    event,
+    buildResolverBuff({
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.ASSASSINS_FURY,
+      actorType: 'effect',
+      skillId: TRAIT.ASSASSINS_FURY,
+      skillName: "Assassin's Fury",
+      name: `Assassin's Fury - ${boon}`,
+      kind: boon.toLowerCase(),
+      duration: Number(might?.duration ?? 8),
+      stacks: Number(might?.stacks ?? 3),
+      audience: { recipients: 'self' },
+      triggeredBy: event.skillName
+    })
+  );
 }

@@ -1,3 +1,5 @@
+import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 /** Owns Core Ranger Marksmanship opening-strike and target-health trait behavior. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -7,7 +9,6 @@ import {
   balanceProfileEffectFromContext as profileEffect,
   balanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import {
   isPetStrike,
@@ -31,20 +32,21 @@ export function consumeOpeningStrike(context: RangerResolverContext, event: Rang
   if (player) state.playerOpeningStrikeReady = false;
   else state.petOpeningStrikeReady = false;
   const openingStrike = profileEffect(context, PROFILE.openingStrike, 'condition');
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.OPENING_STRIKE,
-    actorType: 'effect',
-    skillId: TRAIT.OPENING_STRIKE,
-    skillName: 'Opening Strike',
-    name: 'Opening Strike - Vulnerability',
-    condition: 'Vulnerability',
-    duration: Number(openingStrike?.duration ?? 5),
-    stacks: Number(openingStrike?.stacks ?? 5),
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.OPENING_STRIKE,
+      actorType: 'effect',
+      skillId: TRAIT.OPENING_STRIKE,
+      skillName: 'Opening Strike',
+      name: 'Opening Strike - Vulnerability',
+      condition: 'Vulnerability',
+      duration: Number(openingStrike?.duration ?? 5),
+      stacks: Number(openingStrike?.stacks ?? 5),
+      triggeredBy: event.skillName
+    })
+  );
   if (hasTrait(context, TRAIT.ALPHA_FOCUS)) {
     const alphaFocus = profileEffect(context, PROFILE.alphaFocus, 'condition');
     queueCondition(
@@ -87,20 +89,23 @@ export function triggerHuntersGaze(context: RangerResolverContext, event: Ranger
     `${stacks} might`,
     context.helpers.skillsById?.get(TRAIT.HUNTERS_GAZE)?.icon || ''
   );
-  context.queue.enqueue({
-    type: 'buff',
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.HUNTERS_GAZE,
-    actorType: 'effect',
-    skillId: TRAIT.HUNTERS_GAZE,
-    skillName: "Hunter's Gaze",
-    name: "Hunter's Gaze - Might",
-    kind: String(might?.boon || 'might'),
-    duration: gw2ResolverBoonDuration(context, event, String(might?.boon || 'might'), Number(might?.duration ?? 5)),
-    stacks,
-    triggeredBy: event.skillName
-  });
+  queueResolverBoon(
+    context,
+    event,
+    buildResolverBuff({
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.HUNTERS_GAZE,
+      actorType: 'effect',
+      skillId: TRAIT.HUNTERS_GAZE,
+      skillName: "Hunter's Gaze",
+      name: "Hunter's Gaze - Might",
+      kind: String(might?.boon || 'might'),
+      duration: Number(might?.duration ?? 5),
+      stacks,
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 export function reactToRangerCoreBuff(context: RangerResolverContext, event: RangerResolverEvent): void {

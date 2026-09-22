@@ -1,3 +1,5 @@
+import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -45,24 +47,27 @@ export function grantMaulAttackOfOpportunity(
   recipient: 'pet' | 'player'
 ): void {
   if (!isPlayerStrike(event) || (event.skillId !== ID.MAUL && event.skillId !== ID.MAUL_ID_46629)) return;
-  context.queue.enqueue({
-    type: 'buff',
-    at: event.at,
-    source: 'ranger',
-    sourceId: event.skillId,
-    actorType: 'player',
-    skillId: event.skillId,
-    skillName: 'Attack of Opportunity',
-    name: 'Attack of Opportunity',
-    kind: `attack-of-opportunity-${recipient}`,
-    duration: balanceProfileValueFromContext(context, PROFILE.attackOfOpportunity, 'durationMultiplier', 10),
-    stacks: 1,
-    audience:
-      recipient === 'pet'
-        ? { recipients: 'summons', eligibleCompanionIds: [rangerPetCompanionId(context)] }
-        : { recipients: 'self' },
-    triggeredBy: event.skillName
-  });
+  queueResolverBoon(
+    context,
+    event,
+    buildResolverBuff({
+      at: event.at,
+      source: 'ranger',
+      sourceId: event.skillId,
+      actorType: 'player',
+      skillId: event.skillId,
+      skillName: 'Attack of Opportunity',
+
+      kind: `attack-of-opportunity-${recipient}`,
+      duration: balanceProfileValueFromContext(context, PROFILE.attackOfOpportunity, 'durationMultiplier', 10),
+      stacks: 1,
+      audience:
+        recipient === 'pet'
+          ? { recipients: 'summons', eligibleCompanionIds: [rangerPetCompanionId(context)] }
+          : { recipients: 'self' },
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 /** Consume after damage calculation, then let Maul grant a fresh, non-stacking charge. */

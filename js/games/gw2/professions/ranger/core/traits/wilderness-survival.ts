@@ -1,3 +1,4 @@
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 /** Owns Core Ranger Wilderness Survival condition and control-triggered trait behavior. */
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -79,21 +80,22 @@ export function triggerPoisonMaster(context: RangerResolverContext, event: Range
 
   state.poisonMasterPetAttackReady = false;
   const poison = profileEffect(context, PROFILE.poisonMaster, 'condition');
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.POISON_MASTER,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    skillId: TRAIT.POISON_MASTER,
-    skillName: 'Poison Master',
-    name: 'Poison Master - Poisoned',
-    condition: 'Poisoned',
-    duration: Number(poison?.duration ?? 8),
-    stacks: Number(poison?.stacks ?? 2),
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.POISON_MASTER,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillId: TRAIT.POISON_MASTER,
+      skillName: 'Poison Master',
+      name: 'Poison Master - Poisoned',
+      condition: 'Poisoned',
+      duration: Number(poison?.duration ?? 8),
+      stacks: Number(poison?.stacks ?? 2),
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 export function triggerArachnophobia(context: RangerResolverContext, event: RangerResolverEvent): void {
@@ -136,22 +138,23 @@ export function reactToRangerCoreControl(context: RangerResolverContext, event: 
   const profile = balanceProfileFromContext(context, PROFILE.carnivore);
   const strike = balanceProfileEffect(profile, 'strike');
   state.carnivoreReadyAt = event.at + Number(profile?.internalCooldown ?? 0.25);
-  context.queue.enqueue({
-    type: 'damage',
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.CARNIVORE,
-    actorType: 'effect',
-    skillId: TRAIT.CARNIVORE,
-    skillName: 'Carnivore',
-    name: 'Carnivore',
-    coefficient: Number(strike?.coefficient ?? 0.05),
-    hits: Number(strike?.hits ?? 1),
-    hitIndex: 1,
-    totalHits: Number(strike?.hits ?? 1),
-    skillWeapon: 'Unequipped',
-    canCrit: false,
-    damageKind: 'life-steal',
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverStrike({
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.CARNIVORE,
+      actorType: 'effect',
+      skillId: TRAIT.CARNIVORE,
+      skillName: 'Carnivore',
+
+      coefficient: Number(strike?.coefficient ?? 0.05),
+      hits: Number(strike?.hits ?? 1),
+
+      totalHits: Number(strike?.hits ?? 1),
+      skillWeapon: 'Unequipped',
+      canCrit: false,
+      damageKind: 'life-steal',
+      triggeredBy: event.skillName
+    })
+  );
 }

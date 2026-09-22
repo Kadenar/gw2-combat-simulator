@@ -1,3 +1,4 @@
+import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -78,23 +79,24 @@ export function applyDeadlyAmbition(context: ThiefResolverContext, event: ThiefR
   state.traitProcProgress[activation] = 1;
   const profile = balanceProfileFromContext(context, PROFILE.deadlyAmbition);
   const poison = balanceProfileEffect(profile, 'condition');
-  context.applyCondition({
-    type: 'condition',
-    at: event.at,
-    source: 'Trait',
-    actorType: 'player',
-    skillId: TRAIT.DEADLY_AMBITION,
-    skillName: 'Deadly Ambition',
-    activationId: event.activationId,
-    triggeredBy: event.skillName,
-    condition: String(poison?.condition || 'Poisoned'),
-    duration: Number(poison?.duration ?? 3),
-    stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
-      ? Number(profile?.playerStacks ?? 2)
-      : Number(poison?.stacks ?? 1),
-    sourceId: TRAIT.DEADLY_AMBITION,
-    name: 'Deadly Ambition — Poison'
-  });
+  context.applyCondition(
+    buildResolverCondition({
+      at: event.at,
+      source: 'Trait',
+      actorType: 'player',
+      skillId: TRAIT.DEADLY_AMBITION,
+      skillName: 'Deadly Ambition',
+      activationId: event.activationId,
+      triggeredBy: event.skillName,
+      condition: String(poison?.condition || 'Poisoned'),
+      duration: Number(poison?.duration ?? 3),
+      stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
+        ? Number(profile?.playerStacks ?? 2)
+        : Number(poison?.stacks ?? 1),
+      sourceId: TRAIT.DEADLY_AMBITION,
+      name: 'Deadly Ambition — Poison'
+    })
+  );
 }
 
 /** Player-applied poison grants self Might and target Weakness once per shared ten-second cooldown. */
@@ -118,37 +120,41 @@ export function applyLotusPoison(context: ThiefResolverContext, event: ThiefReso
     return;
   const might = balanceProfileEffect(profile, 'boon');
   const boon = String(might?.boon || 'Might');
-  queueResolverBoon(context, event, {
-    type: 'buff',
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.LOTUS_POISON,
-    actorType: 'effect',
-    skillId: TRAIT.LOTUS_POISON,
-    skillName: 'Lotus Poison',
-    name: `Lotus Poison - ${boon}`,
-    kind: boon.toLowerCase(),
-    stacks: Number(might?.stacks ?? 3),
-    duration: Number(might?.duration ?? 10),
-    audience: { recipients: 'self' },
-    triggeredBy: event.skillName
-  });
+  queueResolverBoon(
+    context,
+    event,
+    buildResolverBuff({
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.LOTUS_POISON,
+      actorType: 'effect',
+      skillId: TRAIT.LOTUS_POISON,
+      skillName: 'Lotus Poison',
+      name: `Lotus Poison - ${boon}`,
+      kind: boon.toLowerCase(),
+      stacks: Number(might?.stacks ?? 3),
+      duration: Number(might?.duration ?? 10),
+      audience: { recipients: 'self' },
+      triggeredBy: event.skillName
+    })
+  );
   const weakness = balanceProfileEffect(profile, 'condition');
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.LOTUS_POISON,
-    actorType: 'player',
-    skillId: TRAIT.LOTUS_POISON,
-    skillName: 'Lotus Poison',
-    name: 'Lotus Poison - Weakness',
-    condition: String(weakness?.condition || 'Weakness'),
-    stacks: Number(weakness?.stacks ?? 1),
-    duration: Number(weakness?.duration ?? 4),
-    activationId: event.activationId,
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.LOTUS_POISON,
+      actorType: 'player',
+      skillId: TRAIT.LOTUS_POISON,
+      skillName: 'Lotus Poison',
+      name: 'Lotus Poison - Weakness',
+      condition: String(weakness?.condition || 'Weakness'),
+      stacks: Number(weakness?.stacks ?? 1),
+      duration: Number(weakness?.duration ?? 4),
+      activationId: event.activationId,
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 function targetConditionCount(context: ThiefResolverContext, at: number): number {
@@ -178,21 +184,22 @@ export function applyPanicStrike(context: ThiefResolverContext, event: ThiefReso
     )
   )
     return;
-  context.applyCondition({
-    type: 'condition',
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.PANIC_STRIKE,
-    actorType: 'player',
-    skillId: TRAIT.PANIC_STRIKE,
-    skillName: 'Panic Strike',
-    name: 'Panic Strike - Immobilized',
-    condition: String(immobilized?.condition || 'Immobilized'),
-    stacks: Number(immobilized?.stacks ?? 1),
-    duration: Number(immobilized?.duration ?? 2.5),
-    activationId: `panic-strike:${event.at}`,
-    triggeredBy: event.skillName
-  });
+  context.applyCondition(
+    buildResolverCondition({
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.PANIC_STRIKE,
+      actorType: 'player',
+      skillId: TRAIT.PANIC_STRIKE,
+      skillName: 'Panic Strike',
+      name: 'Panic Strike - Immobilized',
+      condition: String(immobilized?.condition || 'Immobilized'),
+      stacks: Number(immobilized?.stacks ?? 1),
+      duration: Number(immobilized?.duration ?? 2.5),
+      activationId: `panic-strike:${event.at}`,
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 export function applyPanicStrikePoison(context: ThiefResolverContext, application: ThiefResolverEvent): void {
@@ -204,21 +211,22 @@ export function applyPanicStrikePoison(context: ThiefResolverContext, applicatio
     return;
   const profile = balanceProfileFromContext(context, PROFILE.panicStrike);
   const poison = balanceProfileEffect(profile, 'condition', 1);
-  context.queue.enqueue({
-    type: 'condition',
-    at: application.at,
-    source: 'Trait',
-    sourceId: TRAIT.PANIC_STRIKE,
-    actorType: 'player',
-    skillId: TRAIT.PANIC_STRIKE,
-    skillName: 'Panic Strike',
-    name: 'Panic Strike - Poison',
-    condition: String(poison?.condition || 'Poisoned'),
-    stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
-      ? Number(profile?.playerStacks ?? 2)
-      : Number(poison?.stacks ?? 1),
-    duration: Number(poison?.duration ?? 4),
-    activationId: application.activationId || `panic-strike:${application.at}`,
-    triggeredBy: application.skillName
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: application.at,
+      source: 'Trait',
+      sourceId: TRAIT.PANIC_STRIKE,
+      actorType: 'player',
+      skillId: TRAIT.PANIC_STRIKE,
+      skillName: 'Panic Strike',
+      name: 'Panic Strike - Poison',
+      condition: String(poison?.condition || 'Poisoned'),
+      stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
+        ? Number(profile?.playerStacks ?? 2)
+        : Number(poison?.stacks ?? 1),
+      duration: Number(poison?.duration ?? 4),
+      activationId: application.activationId || `panic-strike:${application.at}`,
+      triggeredBy: application.skillName
+    })
+  );
 }

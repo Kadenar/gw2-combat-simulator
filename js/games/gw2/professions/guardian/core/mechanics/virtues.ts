@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -130,21 +131,22 @@ function applyJusticeBurn(
   const sourceId = active ? 'guardian.justice-active' : 'guardian.justice-passive';
   // Justice burns resolve immediately so passive/active counters and chained
   // condition reactions remain synchronized at the triggering hit timestamp.
-  context.applyCondition({
-    type: 'condition',
-    at: event.at,
-    source: 'guardian',
-    sourceId,
-    actorType: 'player',
-    skillId,
-    skillName,
-    name: `${skillName} — ${active ? 'Active' : 'Passive'} Burning`,
-    condition: String(burn?.condition || 'Burning'),
-    stacks: Number(burn?.stacks ?? 1),
-    duration: Number(
-      !active && passiveBurnDuration != null ? passiveBurnDuration : (burn?.duration ?? (active ? 2 : 1.2))
-    )
-  });
+  context.applyCondition(
+    buildResolverCondition({
+      at: event.at,
+      source: 'guardian',
+      sourceId,
+      actorType: 'player',
+      skillId,
+      skillName,
+      name: `${skillName} — ${active ? 'Active' : 'Passive'} Burning`,
+      condition: String(burn?.condition || 'Burning'),
+      stacks: Number(burn?.stacks ?? 1),
+      duration: Number(
+        !active && passiveBurnDuration != null ? passiveBurnDuration : (burn?.duration ?? (active ? 2 : 1.2))
+      )
+    })
+  );
   if (active) professionCoreState(context).justiceActiveBurns += 1;
   else professionCoreState(context).justicePassiveBurns += 1;
   // Proc rows use the owning virtue's artwork instead of the attack that triggered the burn.

@@ -1,7 +1,8 @@
+import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
 /** Owns Core Ranger skill-armed hit reactions that are not trait-line definitions. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { balanceProfileEffectFromContext as profileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -31,21 +32,23 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: R
   }
 
   const poison = profileEffect(context, PROFILE.poisonousStrikes, 'condition');
-  context.queue.enqueue({
-    ...petDerivedConditionMetadata(context, event),
-    type: 'condition',
-    at: event.at,
-    source: 'ranger-pet',
-    sourceId: ID.DOUBLE_ARC,
-    actorType: 'summon',
-    skillId: ID.DOUBLE_ARC,
-    skillName: 'Poisonous Strikes',
-    name: 'Poisonous Strikes - Poisoned',
-    condition: 'Poisoned',
-    duration: Number(poison?.duration ?? 6),
-    stacks: Number(poison?.stacks ?? 1),
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      ...petDerivedConditionMetadata(context, event),
+
+      at: event.at,
+      source: 'ranger-pet',
+      sourceId: ID.DOUBLE_ARC,
+      actorType: 'summon',
+      skillId: ID.DOUBLE_ARC,
+      skillName: 'Poisonous Strikes',
+      name: 'Poisonous Strikes - Poisoned',
+      condition: 'Poisoned',
+      duration: Number(poison?.duration ?? 6),
+      stacks: Number(poison?.stacks ?? 1),
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 export function triggerSharpeningStone(context: RangerResolverContext, event: RangerResolverEvent): void {
@@ -59,21 +62,22 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Ra
   state.sharpeningStoneExpirations = expiries;
   if (!consumed) return;
   const bleeding = profileEffect(context, PROFILE.sharpeningStone, 'condition');
-  context.queue.enqueue({
-    type: 'condition',
-    at: event.at,
-    source: 'ranger',
-    sourceId: ID.SHARPENING_STONE,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    skillId: ID.SHARPENING_STONE,
-    skillName: 'Sharpening Stone',
-    name: 'Sharpening Stone - Bleeding',
-    condition: 'Bleeding',
-    duration: Number(bleeding?.duration ?? 8),
-    stacks: Number(bleeding?.stacks ?? 1),
-    triggeredBy: event.skillName
-  });
+  context.queue.enqueue(
+    buildResolverCondition({
+      at: event.at,
+      source: 'ranger',
+      sourceId: ID.SHARPENING_STONE,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillId: ID.SHARPENING_STONE,
+      skillName: 'Sharpening Stone',
+      name: 'Sharpening Stone - Bleeding',
+      condition: 'Bleeding',
+      duration: Number(bleeding?.duration ?? 8),
+      stacks: Number(bleeding?.stacks ?? 1),
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 // Mirror the active Strength of the Pack proc between Ranger and companion hits
@@ -86,26 +90,29 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
   );
   if (!active) return;
   const might = profileEffect(context, PROFILE.strengthOfThePack, 'boon');
-  context.queue.enqueue({
-    type: 'buff',
-    at: event.at,
-    source: 'ranger',
-    sourceId: ID.STRENGTH_OF_THE_PACK,
-    actorType: 'effect',
-    skillId: ID.STRENGTH_OF_THE_PACK,
-    skillName: '"Strength of the Pack!"',
-    name: '"Strength of the Pack!" - Might',
-    kind: String(might?.boon || 'might'),
-    duration: gw2ResolverBoonDuration(context, event, String(might?.boon || 'might'), Number(might?.duration ?? 8)),
-    stacks: Number(might?.stacks ?? 1),
-    audience: {
-      recipients: 'summons' as const,
-      affectsSelf: false,
-      maximumRecipients: 5,
-      eligibleCompanionIds: [rangerPetCompanionId(context)]
-    },
-    triggeredBy: event.skillName
-  });
+  queueResolverBoon(
+    context,
+    event,
+    buildResolverBuff({
+      at: event.at,
+      source: 'ranger',
+      sourceId: ID.STRENGTH_OF_THE_PACK,
+      actorType: 'effect',
+      skillId: ID.STRENGTH_OF_THE_PACK,
+      skillName: '"Strength of the Pack!"',
+      name: '"Strength of the Pack!" - Might',
+      kind: String(might?.boon || 'might'),
+      duration: Number(might?.duration ?? 8),
+      stacks: Number(might?.stacks ?? 1),
+      audience: {
+        recipients: 'summons' as const,
+        affectsSelf: false,
+        maximumRecipients: 5,
+        eligibleCompanionIds: [rangerPetCompanionId(context)]
+      },
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 /** Add Stalker's Strike's bonus poison only against movement-impaired targets. */
@@ -113,20 +120,21 @@ export function triggerStalkersStrike(context: RangerResolverContext, event: Ran
   const skill = eventSkill(context, event);
   if (skill?.id === ID.STALKERS_STRIKE && stalkersStrikeTargetImpaired(context.config, event.at, context)) {
     // The base packet owns three stacks; movement impairment contributes the documented two more.
-    context.queue.enqueue({
-      type: 'condition',
-      at: event.at,
-      source: 'ranger',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      name: `${skill.name} — Poisoned`,
-      condition: 'Poisoned',
-      duration: 8,
-      stacks: 2,
-      activationId: event.activationId
-    });
+    context.queue.enqueue(
+      buildResolverCondition({
+        at: event.at,
+        source: 'ranger',
+        sourceId: skill.id,
+        actorType: 'player',
+        skillId: skill.id,
+        skillName: skill.name,
+        name: `${skill.name} — Poisoned`,
+        condition: 'Poisoned',
+        duration: 8,
+        stacks: 2,
+        activationId: event.activationId
+      })
+    );
   }
 }
 

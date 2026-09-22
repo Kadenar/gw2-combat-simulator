@@ -1,3 +1,4 @@
+import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
@@ -19,20 +20,21 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
   const state = antiquaryState.from(context);
   if (!consumeCharge(state.mistburn, event.at)) return;
   const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.mistburnProc), 'condition');
-  context.applyCondition({
-    type: 'condition',
-    at: event.at,
-    source: 'thief',
-    sourceId: ID.MISTBURN_MORTAR,
-    actorType: 'player',
-    skillId: ID.MISTBURN_MORTAR,
-    skillName: 'Mistburn Mortar',
-    name: 'Mistburn Mortar — Charged Strike',
-    condition: String(burning?.condition || 'Burning'),
-    stacks: Number(burning?.stacks ?? 1),
-    duration: Number(burning?.duration ?? 1),
-    triggeredBy: event.skillName
-  });
+  context.applyCondition(
+    buildResolverCondition({
+      at: event.at,
+      source: 'thief',
+      sourceId: ID.MISTBURN_MORTAR,
+      actorType: 'player',
+      skillId: ID.MISTBURN_MORTAR,
+      skillName: 'Mistburn Mortar',
+      name: 'Mistburn Mortar — Charged Strike',
+      condition: String(burning?.condition || 'Burning'),
+      stacks: Number(burning?.stacks ?? 1),
+      duration: Number(burning?.duration ?? 1),
+      triggeredBy: event.skillName
+    })
+  );
 }
 
 // Add Meticulous Custodian's Burning only to the Sun Crystal strike packet,
@@ -46,21 +48,22 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, event: ThiefRe
   )
     return;
   const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sunCrystalMeticulous), 'condition');
-  context.applyCondition({
-    type: 'condition',
-    at: event.at,
-    source: 'thief',
-    sourceId: ID.ZEPHYRITE_SUN_CRYSTAL,
-    actorType: 'player',
-    skillId: ID.ZEPHYRITE_SUN_CRYSTAL,
-    skillName: 'Zephyrite Sun Crystal',
-    name: 'Zephyrite Sun Crystal - Meticulous Burning',
-    // Preserve trait provenance so the already-enhanced duration is not multiplied again.
-    triggeredBy: event.skillName,
-    condition: String(burning?.condition || 'Burning'),
-    stacks: Number(burning?.stacks ?? 1),
-    duration: Number(burning?.duration ?? 5)
-  });
+  context.applyCondition(
+    buildResolverCondition({
+      at: event.at,
+      source: 'thief',
+      sourceId: ID.ZEPHYRITE_SUN_CRYSTAL,
+      actorType: 'player',
+      skillId: ID.ZEPHYRITE_SUN_CRYSTAL,
+      skillName: 'Zephyrite Sun Crystal',
+      name: 'Zephyrite Sun Crystal - Meticulous Burning',
+      // Preserve trait provenance so the already-enhanced duration is not multiplied again.
+      triggeredBy: event.skillName,
+      condition: String(burning?.condition || 'Burning'),
+      stacks: Number(burning?.stacks ?? 1),
+      duration: Number(burning?.duration ?? 5)
+    })
+  );
 }
 
 function applyAntiquaryDamageReactions(context: ThiefResolverContext, event: ThiefResolverEvent): void {
