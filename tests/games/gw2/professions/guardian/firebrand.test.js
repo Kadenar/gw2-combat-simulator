@@ -714,13 +714,8 @@ test('Firebrand tome transitions are weapon swaps and timeline row changes', () 
   });
 
   assert.deepEqual(
-    result.events.filter((event) => event.type === 'weapon_set').map((event) => [event.skillName, event.mechanicSwap]),
-    [
-      ['Tome of Justice', true],
-      ['Stow Tome', true],
-      ['Tome of Resolve', true],
-      ['Stow Tome', true]
-    ]
+    result.events.filter((event) => event.type === 'weapon_set').map((event) => event.skillName),
+    ['Tome of Justice', 'Stow Tome', 'Tome of Resolve', 'Stow Tome']
   );
 
   const transition = guardianProfession.ui.timelineWeaponLineTransition;
@@ -754,6 +749,40 @@ test('Firebrand tome transitions are weapon swaps and timeline row changes', () 
     rows.map((row) => row.skills.map((skill) => skill.index)),
     [[0], [1, 2], [3, 4], [5]]
   );
+});
+
+test('Firebrand tome swaps share sigil cooldowns and require combat', () => {
+  // Opening and stowing use the equipped sigil set; immediate follow-up transitions cannot bypass its cooldown.
+  for (const inCombat of [false, true]) {
+    const result = simulateGw2({
+      profession: guardianProfession,
+      rotation: [
+        ...(inCombat ? ['__combat_start'] : []),
+        'Tome of Justice',
+        { type: 'wait', durationMs: 10000 },
+        'Stow Tome',
+        'Tome of Resolve',
+        'Stow Tome'
+      ],
+      config: {
+        ...config,
+        specialization: 'Firebrand',
+        sigilSets: [{ names: ['Hydromancy'] }, { names: ['Geomancy'] }]
+      }
+    });
+    assert.deepEqual(result.warnings, []);
+    const procs = result.procSteps.filter((step) => step.type === 'sigil_proc');
+    assert.deepEqual(
+      procs.map((step) => [step.skill, step.sourceSkill]),
+      inCombat
+        ? [
+            ['Sigil of Hydromancy', 'Tome of Justice'],
+            ['Sigil of Hydromancy', 'Stow Tome']
+          ]
+        : []
+    );
+    assert.ok(result.events.filter((event) => event.type === 'weapon_set').every((event) => event.weaponSet === 1));
+  }
 });
 
 test('Feel My Wrath splits party and self quickness and triggers Quickfire', () => {

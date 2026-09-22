@@ -83,7 +83,6 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
     });
     emitGuardianEvent(context, skill, 'weapon_set', {
       weaponSet: context.state.activeWeaponSet,
-      mechanicSwap: true,
       weaponLine: skill.name
     });
     if (passiveWasReady) {

@@ -111,7 +111,6 @@ function stowTome(context: GuardianCastContext, skill: GuardianSkill): void {
   firebrandState.from(context).swiftScholarCount = 0;
   emitGuardianEvent(context, skill, 'weapon_set', {
     weaponSet: context.state.activeWeaponSet,
-    mechanicSwap: true,
     weaponLine: null
   });
   emitGuardianEvent(context, skill, 'guardian.tome-stowed', {

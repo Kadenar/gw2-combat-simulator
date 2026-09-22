@@ -87,7 +87,6 @@ export interface GuardianEventExtra {
   readonly applicationIndex?: number;
   readonly totalApplications?: number;
   readonly weaponSet?: number;
-  readonly mechanicSwap?: boolean;
   readonly weaponLine?: string | null;
   readonly activeTome?: string;
   readonly tome?: string;

@@ -47,6 +47,7 @@ function emitAvatarWeaponSwap(
   // CA enter/exit swaps the visual weapon bar without changing activeWeaponSet; clearing chains avoids
   // resuming a mid-chain auto-attack on the wrong bar after the transition
   resetAutoattackChains(context);
+  // Avatar transitions trigger the equipped set's swap sigils under the shared combat and cooldown rules.
   context.emit({
     type: 'sigil_swap',
     at,
@@ -55,9 +56,7 @@ function emitAvatarWeaponSwap(
     actorType: 'player',
     skillId: skill.id,
     skillName: skill.name,
-    weaponSet: context.state.activeWeaponSet,
-    // mechanicSwap prevents the sigil engine from treating this as a real weapon-set change
-    mechanicSwap: true
+    weaponSet: context.state.activeWeaponSet
   });
   applyRangerWeaponSwapTraits(context, skill, at);
 }

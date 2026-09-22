@@ -40,13 +40,10 @@ function emitForgeWeaponSwap(
   skill: GuardianSkill,
   event: GuardianEventExtra = {}
 ): void {
-  // sigil_swap (not weapon_set) so the sigil proc engine triggers on-swap
-  // sigil procs for the radiant weapon equip without changing the active
-  // weapon bar. mechanicSwap prevents the sigil engine from treating this as
-  // a genuine player-initiated weapon swap for ICD purposes.
+  // Radiant equips trigger the active set's swap sigils under their shared combat and cooldown rules.
+  // sigil_swap leaves the equipped weapon set and timeline weapon bar unchanged.
   emitGuardianEvent(context, skill, 'sigil_swap', {
     weaponSet: context.state.activeWeaponSet,
-    mechanicSwap: true,
     ...event
   });
 }
@@ -61,7 +58,6 @@ function emitForgeTransition(
 ): void {
   emitGuardianEvent(context, skill, 'weapon_set', {
     weaponSet: context.state.activeWeaponSet,
-    mechanicSwap: true,
     ...event
   });
 }
