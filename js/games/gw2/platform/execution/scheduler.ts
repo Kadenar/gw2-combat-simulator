@@ -691,7 +691,6 @@ export function createScheduler<TProfessionState extends object = object>({
       start: Math.round(start * 1000),
       end: Math.round(effectiveEnd * 1000),
       activationId: reservationId,
-      actualStart: Math.round(start * 1000),
       fullCastMs: Math.round((fullEnd - start) * 1000),
       interrupted,
       // Expose retained aftercast separately so UI accounting can treat the

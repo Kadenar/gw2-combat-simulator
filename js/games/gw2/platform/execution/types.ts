@@ -290,10 +290,10 @@ export interface SchedulerStep {
   readonly skill: string;
   /** Stable cast identity used by result analysis without relying on display names or bar positions. */
   readonly skillId?: SkillId;
+  /** Scheduled start in milliseconds, used to position this step on the timeline. */
   readonly start: number;
   readonly end: number;
   readonly activationId?: string;
-  readonly actualStart?: number;
   readonly fullCastMs?: number;
   readonly interrupted?: boolean;
   /** Millisecond timestamp through which this cast still reserves its execution lane after ending. */
