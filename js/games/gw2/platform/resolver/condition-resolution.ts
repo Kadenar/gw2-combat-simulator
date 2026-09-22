@@ -406,8 +406,7 @@ export function createGw2ConditionResolution({
       // Precombat packets are discarded; payout never resamples stats or invents a catch-up hit.
       if (!canDamage || fraction <= 0) continue;
       const stackSeconds = application.stacks * fraction;
-      const perStack = rawDamage / stackSeconds;
-      contributions.push({ application, fraction, perStack, stackSeconds, rawDamage, damage: Math.floor(rawDamage) });
+      contributions.push({ application, fraction, stackSeconds, rawDamage, damage: Math.floor(rawDamage) });
     }
 
     const damage = roundHalfToEven(contributions.reduce((total, contribution) => total + contribution.rawDamage, 0));
@@ -514,12 +513,12 @@ export interface Gw2ResolverConditionGroup {
   applications: Gw2ResolvedConditionApplication[];
 }
 
+/** Retains each application's exposure and damage for packet rounding and attribution. */
 export interface Gw2ConditionTickContribution {
   readonly application: Gw2ResolvedConditionApplication;
   readonly damage: number;
   readonly rawDamage: number;
   readonly fraction: number;
-  readonly perStack: number;
   readonly stackSeconds: number;
 }
 
