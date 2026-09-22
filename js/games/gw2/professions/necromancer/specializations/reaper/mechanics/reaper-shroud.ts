@@ -1,5 +1,9 @@
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileEffect,
+  balanceProfileFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { targetConditionStacks as configuredTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -99,7 +103,7 @@ export const reaperSchedulerHooks = Object.freeze({
 function modifyReaperAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = cloneNecromancerAttributes(attributes);
   if (hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) && necromancerActiveShroud(context) === 'reaper') {
-    result.ferocity += Number(balanceProfileFromContext(context, PROFILE.reapersOnslaught)?.attributeBonus ?? 300);
+    result.ferocity += balanceProfileNumberFromContext(context, PROFILE.reapersOnslaught, 'attributeBonus');
   }
 
   return result;
@@ -128,16 +132,16 @@ export const reaperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'add',
     // Each stack of Vulnerability adds 2% crit chance, capped at 25 stacks (50% max bonus).
     // Falls back to configured static stacks when a live query runtime isn't available.
-    parameters: { maximumStacks: 25, criticalChancePerStack: 0.02 } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) =>
+
+    amount: (context) =>
       Math.min(
-        parameters.maximumStacks,
+        balanceProfileNumberFromContext(context, TRAIT.DECIMATE_DEFENSES, 'maximumStacks'),
         Number(
           context.query?.targetConditionStacks
             ? context.query.targetConditionStacks('Vulnerability', context.time, context.runtime)
             : configuredTargetConditionStacks(context.config || {}, 'Vulnerability', context.time, context.runtime)
         )
-      ) * parameters.criticalChancePerStack,
+      ) * balanceProfileNumberFromContext(context, TRAIT.DECIMATE_DEFENSES, 'criticalChancePerStack'),
     when: (context) => hasTrait(context, TRAIT.DECIMATE_DEFENSES)
   },
   {

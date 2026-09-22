@@ -13,6 +13,7 @@ export const THIEF_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   fallingSpiderEmpowered: 'thief.core.falling-spider-empowered',
   distractingThrow: 'thief.core.distracting-throw',
   assassinsSignet: 'thief.core.assassins-signet',
+  signetOfAgility: 'thief.core.signet-of-agility',
   signetsOfPower: TRAIT.SIGNETS_OF_POWER,
   quickPockets: TRAIT.QUICK_POCKETS,
   uncatchable: TRAIT.UNCATCHABLE,
@@ -48,6 +49,15 @@ export const THIEF_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Both activation and passive stats follow the selected balance profile.
+  {
+    id: THIEF_CORE_BALANCE_PROFILE_IDS.signetOfAgility,
+    name: 'Signet of Agility',
+    profileKind: 'mechanic',
+    attributeBonus: 180,
+    resourceGain: 100,
+    effects: []
+  },
   {
     id: THIEF_CORE_BALANCE_PROFILE_IDS.resources,
     name: 'Thief Core Resources',
@@ -233,6 +243,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     resourceGain: 8
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.deadlyAmbition, 'Deadly Ambition', {
+    attributeBonus: 180,
     playerStacks: 2,
     effects: [{ type: 'condition', condition: 'Poisoned', stacks: 1, duration: 3 }]
   }),
@@ -286,15 +297,16 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     effects: [{ type: 'strike', coefficient: 0.04, hits: 1 }]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.potentPoison, 'Potent Poison', {
-    damageMultiplier: 1.33,
-    durationMultiplier: 1.33
+    conditionDurationBonus: 0.33,
+    damageMultiplier: 1.33
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.keenObserver, 'Keen Observer', {
-    procChance: 0.15
+    lowHealthCriticalChance: 0.1,
+    criticalChance: 0.15
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.hiddenKiller, 'Hidden Killer', {
-    procChance: 1,
-    durationMultiplier: 1
+    criticalChance: 1,
+    duration: 4
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.revealedTraining, 'Revealed Training', {
     attributeBonus: 80,
@@ -310,6 +322,19 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
       }
     ]
   }),
+  trait(TRAIT.FEROCIOUS_STRIKES, 'Ferocious Strikes', {
+    criticalDamage: 1.1
+  }),
+  trait(TRAIT.TWIN_FANGS, 'Twin Fangs', {
+    criticalDamage: 1.07,
+    lowHealthCriticalDamage: 1.05,
+    criticalChance: 0.07
+  }),
+  // Trait tuning is shared by build calculations, combat, and tooltips.
+  trait(TRAIT.SWINDLERS_EQUILIBRIUM, "Swindler's Equilibrium", { attributeBonus: 120, weaponAttributeBonus: 240 }),
+  trait(TRAIT.PREPAREDNESS, 'Preparedness', { attributeBonus: 150 }),
+  trait(TRAIT.PRACTICED_TOLERANCE, 'Practiced Tolerance', { attributeConversion: 0.1 }),
+  trait(TRAIT.DAGGER_TRAINING, 'Dagger Training', { attributeBonus: 80, weaponAttributeBonus: 160 }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.improvisation, 'Improvisation', {
     maximumStacks: 2,
     internalCooldown: 15,

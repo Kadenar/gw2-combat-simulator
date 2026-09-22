@@ -412,6 +412,46 @@ export const necromancerTooltips: ProfessionTooltips = {
     'necromancer.weapon-swap': skillTooltip('Swap to your other weapon set and trigger applicable weapon-swap effects.')
   },
   skills: {
+    // Passive signet packets have separate profile IDs and must accompany the active skill facts.
+    [ID.SIGNET_OF_SPITE]: skillTooltip(
+      'Passively grants power while its passive is available. Activate to inflict the listed conditions.',
+      (balanceContext) => [profileFact(balanceContext, PROFILE.signetOfSpite, 'attributeBonus', 'Passive power')]
+    ),
+    [ID.SIGNET_OF_UNDEATH]: skillTooltip(
+      'Periodically generates life force while its passive is available. Allied revival is outside combat simulation scope.',
+      (balanceContext) => [
+        profileFact(
+          balanceContext,
+          PROFILE.signetOfUndeathPassive,
+          'lifeForceGain',
+          'Passive life force per pulse',
+          lifeForce
+        ),
+        profileFact(
+          balanceContext,
+          PROFILE.signetOfUndeathPassive,
+          'pulseInterval',
+          'Passive pulse interval',
+          tooltipSeconds
+        )
+      ]
+    ),
+    [ID.SIGNET_OF_VAMPIRISM]: skillTooltip(
+      'Periodically siphons life while its passive is available. Activation triggers the listed active life-siphon attacks. Healing is outside combat simulation scope.',
+      (balanceContext) => [
+        ...simulationEffectFacts(
+          tooltipProfile(balanceContext, PROFILE.signetOfVampirismPassive).effects,
+          'per passive pulse'
+        ).facts,
+        profileFact(
+          balanceContext,
+          PROFILE.signetOfVampirismPassive,
+          'pulseInterval',
+          'Passive pulse interval',
+          tooltipSeconds
+        )
+      ]
+    ),
     [ID.RESILIENT_WEAPON]: skillTooltip(
       "Grant Resilient Weapon charges to yourself and eligible party recipients. Wielder's Boon grants allies your full charge count. Its defensive effects add no damage within simulation scope."
     ),
@@ -428,21 +468,27 @@ export const necromancerTooltips: ProfessionTooltips = {
       undefined,
       'on shroud skill 1'
     ),
-    [TRAIT.AWAKEN_THE_PAIN]: traitTooltip('Might grants additional power.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'attributePerStack', 'Power per stack of might')
-    ]),
+    // Shroud-entry boons and imperative procs are not included in the automatic trait-profile facts.
+    [TRAIT.AWAKEN_THE_PAIN]: traitTooltip(
+      'Might grants additional power. Entering shroud grants might.',
+      (balanceContext, id) => [profileFact(balanceContext, id, 'attributePerStack', 'Power per stack of might')]
+    ),
     [TRAIT.SIPHONED_POWER]: traitTooltip(
       'Striking a low-health target grants might.',
-      undefined,
+      (balanceContext, id) => [profileFact(balanceContext, id, 'cooldown', 'Internal cooldown', tooltipSeconds)],
       'against a low-health target'
     ),
     [TRAIT.SPITEFUL_TALISMAN]: traitTooltip('Increases strike damage.', (balanceContext) => [
       modifierFact(balanceContext, 'necromancer.spiteful-talisman', 'factor', 'Strike damage', tooltipFactorChange)
     ]),
-    [TRAIT.MALICIOUS_SWARM]: traitTooltip('Using a healing skill triggers a Lesser Signet of the Locust strike.'),
+    [TRAIT.MALICIOUS_SWARM]: traitTooltip(
+      'Using a healing skill triggers a Lesser Signet of the Locust strike.',
+      (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
+    ),
     [TRAIT.BITTER_CHILL]: traitTooltip('Applying chill also applies vulnerability.'),
     [TRAIT.CHILL_OF_DEATH]: traitTooltip(
-      'Striking a low-health target triggers Lesser Spinal Shivers. Its strike applies chill; target boon removal is not simulated.'
+      'Striking a low-health target triggers Lesser Spinal Shivers. Its strike applies chill; target boon removal is not simulated.',
+      (balanceContext, id) => [profileFact(balanceContext, id, 'cooldown', 'Internal cooldown', tooltipSeconds)]
     ),
     [TRAIT.SPITEFUL_FORTITUDE]: traitTooltip(
       'Gain vitality from power. Player strikes against a low-health target generate life force.',
@@ -465,17 +511,17 @@ export const necromancerTooltips: ProfessionTooltips = {
       'Eligible critical hits can inflict bleeding. Your bleeding lasts longer.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'criticalChance', 'Chance on critical hit', tooltipPercent),
-        modifierFact(
+        profileFact(
           balanceContext,
-          'necromancer.barbed-precision-duration',
-          'factor',
+          TRAIT.BARBED_PRECISION,
+          'conditionDurationMultiplier',
           'Bleeding duration',
           tooltipFactorChange
         )
       ],
       'on eligible critical hits'
     ),
-    [TRAIT.FURIOUS_DEMISE]: traitTooltip('Gain precision.', (balanceContext, id) => [
+    [TRAIT.FURIOUS_DEMISE]: traitTooltip('Gain precision. Entering shroud grants fury.', (balanceContext, id) => [
       profileFact(balanceContext, id, 'attributeBonus', 'Precision')
     ]),
     [TRAIT.TARGET_THE_WEAK]: traitTooltip(
@@ -488,25 +534,49 @@ export const necromancerTooltips: ProfessionTooltips = {
           'Precision converted to condition damage',
           tooltipPercent
         ),
-        modifierFact(
+        profileFact(
           balanceContext,
-          'necromancer.target-the-weak-critical-chance',
+          TRAIT.TARGET_THE_WEAK,
           'criticalChancePerCondition',
-          'Critical chance per target condition'
+          'Critical chance per target condition',
+          tooltipPercent
         )
       ]
     ),
     [TRAIT.INSIDIOUS_DISRUPTION]: traitTooltip('Applying a control effect inflicts torment.', undefined, 'on control'),
     [TRAIT.PLAGUE_SENDING]: traitTooltip(
-      'Entering shroud or using the supported shade trigger transfers your self-applied conditions to the target.'
+      'Entering shroud or using the supported shade trigger arms a transfer of self-applied conditions on the qualifying hit.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'maximumConditions', 'Maximum self-condition applications transferred')
+      ]
     ),
-    [TRAIT.CHILLING_DARKNESS]: traitTooltip('Applying blind also inflicts chill.', undefined, 'on blind'),
+    [TRAIT.CHILLING_DARKNESS]: traitTooltip(
+      'Applying blind also inflicts chill.',
+      (balanceContext, id) => [profileFact(balanceContext, id, 'cooldown', 'Internal cooldown', tooltipSeconds)],
+      'on blind'
+    ),
     [TRAIT.MASTER_OF_CORRUPTION]: traitTooltip(
-      'Corruption skills recharge faster and apply additional self-conditions that can be transferred.'
+      'Corruption skills recharge faster and apply additional self-conditions that can be transferred.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'rechargeMultiplier', 'Corruption recharge reduction', (value) =>
+          tooltipPercent(1 - value)
+        ),
+        ...Object.entries(NECROMANCER_CORRUPTION_PROFILE_IDS).flatMap(
+          ([skillId, profileId]) =>
+            simulationEffectFacts(
+              tooltipProfile(balanceContext, profileId).effects?.filter(
+                (effect) => effect.requiredTrait === TRAIT.MASTER_OF_CORRUPTION
+              ),
+              balanceContext.catalog.skillsById.get(Number(skillId))!.name
+            ).facts
+        )
+      ]
     ),
     [TRAIT.PATH_OF_CORRUPTION]: outsideScopeTooltip,
     [TRAIT.PARASITIC_CONTAGION]: outsideScopeTooltip,
-    [TRAIT.WEAKENING_SHROUD]: traitTooltip('Entering shroud inflicts bleeding and weakness with Lesser Enfeeble.'),
+    [TRAIT.WEAKENING_SHROUD]: traitTooltip(
+      'Entering shroud strikes and inflicts bleeding and weakness with Lesser Enfeeble.'
+    ),
     [TRAIT.TERROR]: traitTooltip("Fear applications also apply the simulator's damaging Fear condition."),
     [TRAIT.LINGERING_CURSE]: traitTooltip(
       'Gain condition damage, extend scepter conditions, and replace Feast of Corruption with Devouring Darkness.',
@@ -515,11 +585,16 @@ export const necromancerTooltips: ProfessionTooltips = {
         profileFact(balanceContext, id, 'durationMultiplier', 'Scepter condition duration', tooltipFactorChange)
       ]
     ),
-    [TRAIT.ARMORED_SHROUD]: traitTooltip(
-      'Gain toughness while in shroud. Incoming damage is outside simulation scope.'
-    ),
+    [TRAIT.ARMORED_SHROUD]: traitTooltip('Entering shroud grants carapace.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'resourceGain', 'Carapace on shroud entry'),
+      profileFact(balanceContext, id, 'duration', 'Carapace duration', tooltipSeconds)
+    ]),
     [TRAIT.SOUL_COMPREHENSION]: traitTooltip(
-      'Gain increased carapace generation from the modeled Death Magic interactions.'
+      'Entering shroud generates life force for each carapace stack already active before entry grants.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'lifeForcePerStack', 'Life force per current carapace stack', lifeForce),
+        profileFact(balanceContext, id, 'maximumStacks', 'Maximum carapace stacks counted')
+      ]
     ),
     [TRAIT.BEYOND_THE_VEIL]: outsideScopeTooltip,
     [TRAIT.FLESH_OF_THE_MASTER]: traitTooltip('Your minions grant carapace stacks.', (balanceContext, id) => [
@@ -530,7 +605,12 @@ export const necromancerTooltips: ProfessionTooltips = {
       modifierFact(balanceContext, 'necromancer.putrid-defense', 'factor', 'Poison damage', tooltipFactorChange)
     ]),
     [TRAIT.SHROUDED_REMOVAL]: traitTooltip(
-      'Shroud pulses grant carapace. Incoming conditions and their removal are outside simulation scope.'
+      'Entering shroud removes active self-condition applications. Successful removal grants carapace.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'resourceGain', 'Carapace per successful removal'),
+        profileFact(balanceContext, id, 'duration', 'Carapace duration', tooltipSeconds),
+        profileFact(balanceContext, id, 'maximumConditions', 'Maximum self-condition applications removed')
+      ]
     ),
     [TRAIT.NECROMANTIC_CORRUPTION]: traitTooltip('Your minions deal increased strike damage.', (balanceContext) => [
       modifierFact(
@@ -541,12 +621,25 @@ export const necromancerTooltips: ProfessionTooltips = {
         tooltipFactorChange
       )
     ]),
-    [TRAIT.DARK_DEFENSE]: traitTooltip('Using a healing skill grants carapace.'),
+    [TRAIT.DARK_DEFENSE]: traitTooltip(
+      'Using a healing skill grants carapace and protection.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'resourceGain', 'Carapace'),
+        profileFact(balanceContext, id, 'duration', 'Carapace duration', tooltipSeconds),
+        profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)
+      ]
+    ),
     [TRAIT.DEADLY_STRENGTH]: traitTooltip('Carapace grants power and condition damage.', (balanceContext, id) => [
       profileFact(balanceContext, id, 'attributePerStack', 'Power and condition damage per carapace')
     ]),
     [TRAIT.DEATH_NOVA]: outsideScopeTooltip,
-    [TRAIT.CORRUPTERS_FERVOR]: traitTooltip('Applying conditions grants carapace.'),
+    [TRAIT.CORRUPTERS_FERVOR]: traitTooltip(
+      'Qualifying non-summon condition applications grant carapace.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'resourceGain', 'Carapace per qualifying condition application'),
+        profileFact(balanceContext, id, 'duration', 'Carapace duration', tooltipSeconds)
+      ]
+    ),
     [TRAIT.UNHOLY_SANCTUARY]: outsideScopeTooltip,
     [TRAIT.MARK_OF_EVASION]: outsideScopeTooltip,
     [TRAIT.VAMPIRIC]: traitTooltip(
@@ -561,48 +654,75 @@ export const necromancerTooltips: ProfessionTooltips = {
     [TRAIT.LIFE_FROM_DEATH]: outsideScopeTooltip,
     [TRAIT.BANSHEES_WAIL]: outsideScopeTooltip,
     [TRAIT.VAMPIRIC_PRESENCE]: traitTooltip(
-      'Eligible player, creature, and configured allied hits trigger life-steal damage. The stronger payload applies in shroud.'
+      'Eligible player, creature, and configured allied hits trigger life-steal damage. The stronger payload applies in shroud.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'cooldown', 'Internal cooldown per recipient', tooltipSeconds)
+      ]
     ),
     [TRAIT.BLOOD_BANK]: outsideScopeTooltip,
     [TRAIT.UNHOLY_MARTYR]: outsideScopeTooltip,
     [TRAIT.TRANSFUSION]: traitTooltip(
       'Shroud skill 4 triggers Lesser Chilblains. Allied revival and healing are outside simulation scope.'
     ),
-    [TRAIT.GLUTTONY]: traitTooltip('Life force gains are increased.'),
+    [TRAIT.GLUTTONY]: traitTooltip('Life force gains are increased.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'lifeForceGainMultiplier', 'Life-force gains', tooltipFactorChange)
+    ]),
     [TRAIT.SINISTER_SHROUD]: traitTooltip('Shroud and shade skills recharge faster.', (balanceContext, id) => [
       profileFact(balanceContext, id, 'rechargeMultiplier', 'Shroud and shade recharge reduction', (value) =>
         tooltipPercent(1 - value)
       )
     ]),
-    [TRAIT.SOUL_BATTERY]: traitTooltip('Increases maximum life force.'),
+    [TRAIT.SOUL_BATTERY]: traitTooltip('Increases maximum life force.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'lifeForceCapacityMultiplier', 'Maximum life-force capacity', tooltipFactorChange)
+    ]),
     [TRAIT.UNYIELDING_BLAST]: traitTooltip(
       'The first hit of shroud skill 1 inflicts vulnerability.',
       undefined,
       'on shroud skill 1'
     ),
-    [TRAIT.SOUL_MARKS]: traitTooltip('Mark skills generate additional life force.'),
+    [TRAIT.SOUL_MARKS]: traitTooltip('Mark skills generate additional life force.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'lifeForceGain', 'Life force per completed mark', lifeForce)
+    ]),
     [TRAIT.SPEED_OF_SHADOWS]: traitTooltip('Entering shroud grants swiftness.'),
     [TRAIT.SOUL_BARBS]: traitTooltip(
       'Entering or leaving shroud briefly increases strike and condition damage.',
-      (balanceContext) => [
-        modifierFact(balanceContext, 'necromancer.soul-barbs', 'amount', 'Strike and condition damage')
+      (balanceContext, id) => [
+        modifierFact(balanceContext, 'necromancer.soul-barbs', 'amount', 'Strike and condition damage'),
+        profileFact(balanceContext, id, 'duration', 'Damage bonus duration', tooltipSeconds)
       ]
     ),
     [TRAIT.VITAL_PERSISTENCE]: traitTooltip('Gain vitality.', (balanceContext, id) => [
       profileFact(balanceContext, id, 'attributeBonus', 'Vitality')
     ]),
     [TRAIT.FEAR_OF_DEATH]: traitTooltip(
-      'Completing a fear-producing cast generates life force, subject to its internal cooldown.'
+      'Completing a fear-producing cast generates life force, subject to its internal cooldown.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'lifeForceGain', 'Life force gained', lifeForce),
+        profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)
+      ]
     ),
-    [TRAIT.ETERNAL_LIFE]: traitTooltip("Regenerate life force below the trait's threshold while outside shroud."),
+    [TRAIT.ETERNAL_LIFE]: traitTooltip(
+      "Regenerate life force below the trait's threshold while outside shroud. Entering shroud grants protection.",
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'lifeForceGain', 'Life force regenerated per pulse outside shroud', lifeForce),
+        profileFact(balanceContext, id, 'pulseInterval', 'Life-force pulse interval', tooltipSeconds),
+        profileFact(
+          balanceContext,
+          id,
+          'threshold',
+          'Life-force threshold (below)',
+          (value) => `${tooltipDecimal(value * 100)}%`
+        )
+      ]
+    ),
     [TRAIT.DEATH_PERCEPTION]: traitTooltip(
       'Gain critical-strike chance. Critical strikes deal more damage while in shroud.',
       (balanceContext) => [
-        modifierFact(balanceContext, 'necromancer.death-perception-critical-chance', 'amount', 'Critical chance'),
-        modifierFact(
+        profileFact(balanceContext, TRAIT.DEATH_PERCEPTION, 'criticalChance', 'Critical chance', tooltipPercent),
+        profileFact(
           balanceContext,
-          'necromancer.death-perception-critical-hit-damage',
-          'criticalHitFactor',
+          TRAIT.DEATH_PERCEPTION,
+          'criticalDamage',
           'Critical damage while in shroud',
           tooltipFactorChange
         )
@@ -654,7 +774,7 @@ export const necromancerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.CHILLING_NOVA]: traitTooltip(
       'Critical hits against chilled targets trigger an explosion and chill.',
-      undefined,
+      (balanceContext, id) => [profileFact(balanceContext, id, 'cooldown', 'Internal cooldown', tooltipSeconds)],
       'on eligible critical hit'
     ),
     [TRAIT.RELENTLESS_PURSUIT]: outsideScopeTooltip,
@@ -671,18 +791,20 @@ export const necromancerTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.CHILLING_VICTORY]: traitTooltip('Striking chilled targets generates life force.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'lifeForceGain', 'Life force gained', lifeForce)
+      profileFact(balanceContext, id, 'lifeForceGain', 'Life force gained', lifeForce),
+      profileFact(balanceContext, id, 'cooldown', 'Internal cooldown', tooltipSeconds)
     ]),
     [TRAIT.DECIMATE_DEFENSES]: traitTooltip(
       'Gain critical-strike chance for vulnerability on the target.',
       (balanceContext) => [
-        modifierFact(
+        profileFact(
           balanceContext,
-          'necromancer.decimate-defenses',
+          TRAIT.DECIMATE_DEFENSES,
           'criticalChancePerStack',
-          'Critical chance per vulnerability stack'
+          'Critical chance per vulnerability stack',
+          tooltipPercent
         ),
-        modifierFact(balanceContext, 'necromancer.decimate-defenses', 'maximumStacks', 'Maximum counted stacks', String)
+        profileFact(balanceContext, TRAIT.DECIMATE_DEFENSES, 'maximumStacks', 'Maximum counted stacks', String)
       ]
     ),
     [TRAIT.BLIGHTERS_BOON]: traitTooltip('Gaining boons generates life force.', (balanceContext, id) => [
@@ -716,7 +838,10 @@ export const necromancerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.NOURISHING_ASHES]: traitTooltip(
       'Condition applications generate life force, subject to an internal cooldown.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'lifeForceGain', 'Life force gained', lifeForce)]
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'lifeForceGain', 'Life force gained', lifeForce),
+        profileFact(balanceContext, id, 'cooldown', 'Internal cooldown', tooltipSeconds)
+      ]
     ),
     [TRAIT.FEED_FROM_CORRUPTION]: outsideScopeTooltip,
     [TRAIT.SADISTIC_SEARING]: traitTooltip(
@@ -732,7 +857,8 @@ export const necromancerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.DEMONIC_LORE]: traitTooltip(
       'Torment deals increased damage and can trigger burning.',
-      (balanceContext) => [
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'cooldown', 'Internal cooldown', tooltipSeconds),
         modifierFact(balanceContext, 'necromancer.demonic-lore', 'factor', 'Torment damage', tooltipFactorChange)
       ],
       'on torment'
@@ -760,10 +886,10 @@ export const necromancerTooltips: ProfessionTooltips = {
           'damagePerStack',
           'Strike damage per blight'
         ),
-        modifierFact(
+        profileFact(
           balanceContext,
-          'necromancer.wicked-corruption-critical-hit-damage',
-          'criticalHitFactor',
+          TRAIT.WICKED_CORRUPTION,
+          'criticalDamage',
           'Critical damage against tormented targets',
           tooltipFactorChange
         )

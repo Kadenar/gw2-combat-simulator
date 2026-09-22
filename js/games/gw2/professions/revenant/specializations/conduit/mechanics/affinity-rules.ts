@@ -1,3 +1,4 @@
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { handleMesmerReleaseConditions } from '#gw2/professions/revenant/specializations/conduit/execution/release-potential.js';
@@ -125,7 +126,8 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'revenant.yearning-empowerment-numinous-gift',
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
-    amount: 0.05,
+    amount: (context) =>
+      balanceProfileNumberFromContext(context, 'revenant.conduit.numinous-gift', 'conditionDurationBonus'),
     when: (context) =>
       isDamagingCondition(context.condition) &&
       hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) &&
@@ -142,9 +144,12 @@ function modifyConduitAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
   // Cosmic Wisdom doubles the Bolstered Bonds bonus; the build-time static pass already applied one copy,
   // so at runtime we add only the extra copies: 2 (active) - 1 (already in build stats) = 1 extra during form,
   // or 1 (inactive) - 1 (already in build stats) = 0 during non-form (effectively a no-op addition).
-  const cosmicMultiplier = Number(state.cosmicWisdomUntil || 0) > context.time ? 2 : 1;
+  const cosmicMultiplier =
+    Number(state.cosmicWisdomUntil || 0) > context.time
+      ? balanceProfileNumberFromContext(context, TRAIT.BOLSTERED_BONDS, 'attributeMultiplier')
+      : 1;
   const buildMultiplier = professionStaticRulesApplied(context.config) ? 1 : 0;
-  const bonuses = bolsteredBondsBonuses(coreState.selectedLegendIds, cosmicMultiplier - buildMultiplier);
+  const bonuses = bolsteredBondsBonuses(context, coreState.selectedLegendIds, cosmicMultiplier - buildMultiplier);
   for (const [attribute, bonus] of Object.entries(bonuses)) {
     modified[attribute] = Number(modified[attribute] || 0) + Number(bonus || 0);
   }

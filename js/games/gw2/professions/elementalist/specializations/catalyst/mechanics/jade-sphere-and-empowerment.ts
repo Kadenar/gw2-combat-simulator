@@ -15,7 +15,8 @@ import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   balanceProfileEffectFromContext,
-  balanceProfileValueFromContext
+  balanceProfileValueFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -107,9 +108,9 @@ function modifyCatalystAttributes(context: ElementalistModifierContext, attribut
   // paying the full conversion only once every stack is up.
   const multiplier = hasTrait(context, 'Empowered Empowerment')
     ? stacks === maximumStacks
-      ? balanceProfileValueFromContext(context, PROFILE.elementalEmpowerment, 'attributeConversion', 0.2)
+      ? balanceProfileNumberFromContext(context, PROFILE.elementalEmpowerment, 'attributeConversion')
       : stacks * balanceProfileValueFromContext(context, PROFILE.elementalEmpowerment, 'coefficientMultiplier', 0.015)
-    : stacks * balanceProfileValueFromContext(context, PROFILE.elementalEmpowerment, 'attributePerStack', 0.01);
+    : stacks * balanceProfileNumberFromContext(context, PROFILE.elementalEmpowerment, 'attributePerStack');
   // The build may pin the attribute pool the bonus is computed from; otherwise the
   // incoming resolved attributes are used.
   const pool = context.config?.catalystEmpowermentPool as Partial<CatalystEmpowermentPool> | undefined;

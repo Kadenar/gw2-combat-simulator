@@ -1,6 +1,9 @@
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -89,7 +92,7 @@ export const bladeswornSchedulerHooks = Object.freeze({
 function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = { ...attributes } as Gw2MutableStats & { ferocity: number };
   if (hasTrait(context, TRAIT.GUNS_AND_GLORY) && runtimeBuffActive(context, 'guns-and-glory')) {
-    result.ferocity += Number(balanceProfileFromContext(context, PROFILE.gunsAndGlory)?.attributeBonus ?? 250);
+    result.ferocity += balanceProfileNumberFromContext(context, PROFILE.gunsAndGlory, 'attributeBonus');
   }
 
   return result;

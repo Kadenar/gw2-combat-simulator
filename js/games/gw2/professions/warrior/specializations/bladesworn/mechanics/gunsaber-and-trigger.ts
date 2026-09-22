@@ -3,7 +3,11 @@ import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { recordBladeswornAmmoSpend } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/ammunition.js';
 import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileEffect,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
@@ -296,7 +300,7 @@ function dragonFlowRateSegments(
   const resources = balanceProfileFromContext(context, PROFILE.resources);
   const baseFlow = Number(resources?.energyRegenerationPerSecond ?? 2);
   const stabilizerBonus = Number(resources?.resourceGain ?? 4);
-  const positiveFlowBonus = Number(resources?.attributePerStack ?? 2);
+  const positiveFlowBonus = balanceProfileNumberFromContext(context, PROFILE.resources, 'attributePerStack');
   for (let index = 0; index < uniqueBoundaries.length - 1; index += 1) {
     const start = Number(uniqueBoundaries[index]);
     const end = Number(uniqueBoundaries[index + 1]);

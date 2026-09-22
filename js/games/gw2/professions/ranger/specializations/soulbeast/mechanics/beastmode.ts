@@ -1,8 +1,11 @@
 import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
-import { SOULBEAST_ARCHETYPE_ATTRIBUTES } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
+import { soulbeastArchetypeAttributes } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
 import { essenceOfSpeedExtension } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileValueFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import {
   professionCoreState,
@@ -24,7 +27,7 @@ import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats, Gw2NumericStatKey } from '#gw2/platform/combat/query/combat-query.js';
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
-import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
+
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 
 // Three-layer lookup: static config assumptions → timeline snapshot → live resolver boon map.
@@ -62,37 +65,6 @@ const PACK_ALPHA_RUNTIME_ATTRIBUTES = Object.freeze([
 
 // Resolve the merged pet archetype's live attribute contribution, including
 // trait adjustments, without mutating the shared base stats.
-function soulbeastArchetypeAttributes(
-  context: RangerModifierContext,
-  archetype: string
-): Readonly<Partial<Record<Gw2NumericStatKey, number>>> {
-  switch (archetype) {
-    case 'Stout':
-      return {
-        toughness: balanceProfileValueFromContext(context, PROFILE.stoutArchetype, 'attributeBonus', 200),
-        vitality: balanceProfileValueFromContext(context, PROFILE.stoutArchetype, 'weaponAttributeBonus', 100)
-      };
-    case 'Deadly':
-      return {
-        conditionDamage: balanceProfileValueFromContext(context, PROFILE.deadlyArchetype, 'attributeBonus', 150),
-        precision: balanceProfileValueFromContext(context, PROFILE.deadlyArchetype, 'weaponAttributeBonus', 100)
-      };
-    case 'Versatile':
-      return {
-        vitality: balanceProfileValueFromContext(context, PROFILE.versatileArchetype, 'attributeBonus', 200),
-        concentration: balanceProfileValueFromContext(context, PROFILE.versatileArchetype, 'weaponAttributeBonus', 225)
-      };
-    case 'Ferocious':
-      return {
-        power: balanceProfileValueFromContext(context, PROFILE.ferociousArchetype, 'attributeBonus', 150),
-        ferocity: balanceProfileValueFromContext(context, PROFILE.ferociousArchetype, 'weaponAttributeBonus', 100)
-      };
-    case 'Supportive':
-      return { vitality: balanceProfileValueFromContext(context, PROFILE.supportiveArchetype, 'attributeBonus', 100) };
-    default:
-      return {};
-  }
-}
 
 function petArchetype(context: RangerModifierContext, active: boolean): string {
   const configured = active
@@ -114,12 +86,12 @@ function modifySoulbeastAttributes(context: RangerModifierContext, attributes: G
   if (!staticRulesApplied && merged) {
     if (hasTrait(context, TRAIT.PACK_ALPHA)) {
       for (const attribute of PACK_ALPHA_RUNTIME_ATTRIBUTES) {
-        adjust(attribute, balanceProfileValueFromContext(context, CORE_PROFILE.packAlpha, 'attributeBonus', 150));
+        adjust(attribute, balanceProfileNumberFromContext(context, CORE_PROFILE.packAlpha, 'attributeBonus'));
       }
     }
 
     if (hasTrait(context, TRAIT.PETS_PROWESS)) {
-      adjust('ferocity', balanceProfileValueFromContext(context, CORE_PROFILE.petsProwess, 'attributeBonus', 300));
+      adjust('ferocity', balanceProfileNumberFromContext(context, CORE_PROFILE.petsProwess, 'attributeBonus'));
     }
 
     for (const [attribute, amount] of Object.entries(
@@ -129,13 +101,15 @@ function modifySoulbeastAttributes(context: RangerModifierContext, attributes: G
     }
   } else if (staticRulesApplied && !merged) {
     if (hasTrait(context, TRAIT.PACK_ALPHA)) {
-      for (const attribute of PACK_ALPHA_RUNTIME_ATTRIBUTES) adjust(attribute, -150);
+      for (const attribute of PACK_ALPHA_RUNTIME_ATTRIBUTES)
+        adjust(attribute, -balanceProfileNumberFromContext(context, CORE_PROFILE.packAlpha, 'attributeBonus'));
     }
 
-    if (hasTrait(context, TRAIT.PETS_PROWESS)) adjust('ferocity', -300);
+    if (hasTrait(context, TRAIT.PETS_PROWESS))
+      adjust('ferocity', -balanceProfileNumberFromContext(context, CORE_PROFILE.petsProwess, 'attributeBonus'));
 
     for (const [attribute, amount] of Object.entries(
-      SOULBEAST_ARCHETYPE_ATTRIBUTES[petArchetype(context, false)] || {}
+      soulbeastArchetypeAttributes(context, petArchetype(context, false))
     )) {
       adjust(attribute as Gw2NumericStatKey, -Number(amount));
     }
@@ -143,24 +117,12 @@ function modifySoulbeastAttributes(context: RangerModifierContext, attributes: G
     const configuredArchetype = petArchetype(context, false);
     const activeArchetype = petArchetype(context, true);
 
-    for (const [attribute, amount] of Object.entries(SOULBEAST_ARCHETYPE_ATTRIBUTES[configuredArchetype] || {})) {
+    for (const [attribute, amount] of Object.entries(soulbeastArchetypeAttributes(context, configuredArchetype))) {
       adjust(attribute as Gw2NumericStatKey, -Number(amount));
     }
 
     for (const [attribute, amount] of Object.entries(soulbeastArchetypeAttributes(context, activeArchetype))) {
       adjust(attribute as Gw2NumericStatKey, Number(amount));
-    }
-
-    if (hasTrait(context, TRAIT.PACK_ALPHA)) {
-      const bonus = balanceProfileValueFromContext(context, CORE_PROFILE.packAlpha, 'attributeBonus', 150);
-      for (const attribute of PACK_ALPHA_RUNTIME_ATTRIBUTES) adjust(attribute, bonus - 150);
-    }
-
-    if (hasTrait(context, TRAIT.PETS_PROWESS)) {
-      adjust(
-        'ferocity',
-        balanceProfileValueFromContext(context, CORE_PROFILE.petsProwess, 'attributeBonus', 300) - 300
-      );
     }
   }
 
@@ -257,7 +219,8 @@ export const soulbeastModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     id: 'ranger.oppressive-superiority-condition-duration',
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
-    amount: 0.1,
+    amount: (context) =>
+      balanceProfileNumberFromContext(context, TRAIT.OPPRESSIVE_SUPERIORITY, 'conditionDurationBonus'),
     when: oppressiveSuperiorityActive
   }
 ]);

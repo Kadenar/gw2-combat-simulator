@@ -193,10 +193,9 @@ test('Necromancer modules expose isolated balance-profile authoring', () => {
   assert.equal(blight.patchableFields.maximumStacks, 25);
   assert.equal(spirit.profile.effects[1].ticks.length, 7);
   assert.equal(reaper.patchableFields.lifeForceDrain, 4);
-  assert.deepEqual(
-    modules.get('Core').modifierRules.find((rule) => rule.id === 'necromancer.target-the-weak-critical-chance')
-      .parameters,
-    { criticalChancePerCondition: 0.02 }
+  assert.equal(
+    profile('Core', NECROMANCER_CORE_BALANCE_PROFILE_IDS.targetTheWeak).patchableFields.criticalChancePerCondition,
+    0.02
   );
   assert.deepEqual(
     modules.get('Ritualist').modifierRules.find((rule) => rule.id === 'necromancer.anguish-conditional-damage')

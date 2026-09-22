@@ -182,6 +182,7 @@ export const EVOKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     effects: [boon('Fire Familiar', 'might', 1, 6)]
   }),
   trait(EVOKER_BALANCE_PROFILE_IDS.enhancedPotency, 'Enhanced Potency', {
+    criticalChance: 0.15,
     attributeBonus: 75,
     attributePerStack: 5
   }),

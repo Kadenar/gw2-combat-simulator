@@ -116,7 +116,9 @@ export function dragonFlowPerInterval(context: DragonTriggerContext): number {
   const cost = Number(
     balanceProfileFromContext(context, PROFILE.dragonTrigger)?.resourceCost ?? DRAGON_FLOW_PER_INTERVAL
   );
-  return hasTrait(context, TRAIT.DARING_DRAGON) ? cost * 2 : cost;
+  return hasTrait(context, TRAIT.DARING_DRAGON)
+    ? cost * Number(balanceProfileFromContext(context, TRAIT.DARING_DRAGON)?.resourceCostMultiplier)
+    : cost;
 }
 
 export function requestedDragonCharges(context: WarriorCastContext, maximumCharges: number): number {

@@ -12,7 +12,8 @@ import {
   tooltipNumber,
   tooltipProfile,
   simulationEffectFacts,
-  type ProfessionTooltips
+  type ProfessionTooltips,
+  type SimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as CONDUIT } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
@@ -25,8 +26,8 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { VINDICATOR_DODGE_AUTO_ACTION } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
-/** Keep legend and trigger variants distinct; metadata provides identity, while these local labels provide prose. */
-function variantFacts(effects: readonly SkillEffect[] = [], context = '') {
+/** Put requirement-specific effects in tabs while shared effects stay visible with every selection. */
+function variantEffects(effects: readonly SkillEffect[] = [], context = '') {
   const labels: Readonly<Record<string, string>> = {
     LegendaryAssassin: 'Assassin',
     LegendaryDemon: 'Demon',
@@ -40,12 +41,21 @@ function variantFacts(effects: readonly SkillEffect[] = [], context = '') {
     'twin-moon-sweep': 'Twin Moon Sweep',
     'diabolic-inferno': 'requires Diabolic Inferno'
   };
-  return effects.flatMap((effect) => {
+  const facts: SimulationTooltip['facts'][number][] = [];
+  const tabs = new Map<string, SimulationTooltip['facts'][number][]>();
+  let incomplete = false;
+  for (const effect of effects) {
     const key = effect.metadata?.legendId ?? effect.metadata?.trigger;
     const qualifier = typeof key === 'string' ? labels[key] : '';
     if (key != null && !qualifier) throw new Error(`Unknown Revenant tooltip variant: ${String(key)}`);
-    return simulationEffectFacts([effect], [context, qualifier].filter(Boolean).join(' · ')).facts;
-  });
+    const shared = key == null || key === 'entity-skill';
+    const model = simulationEffectFacts([effect], [context, shared ? qualifier : ''].filter(Boolean).join(' · '));
+    incomplete ||= !!model.incomplete;
+    if (shared) facts.push(...model.facts);
+    else tabs.set(qualifier, [...(tabs.get(qualifier) || []), ...model.facts]);
+  }
+
+  return { facts, factTabs: [...tabs].map(([label, facts]) => ({ label, facts })), incomplete };
 }
 
 /** Local Revenant explanations reference the same trait and mechanic profiles used by legend and form handlers. */
@@ -93,16 +103,20 @@ export const revenantTooltips: ProfessionTooltips = {
         return simulationEffectFacts(landing.effects, `${landing.name}: alternative landing`).facts;
       })
     }),
-    'revenant.ancient-echo': (balanceContext, entity) => ({
-      description: 'Restore energy and apply only the package matching your active core legend.',
-      facts: [
-        ...variantFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects),
-        {
-          name: 'Energy restored',
-          detail: tooltipDecimal(tooltipNumber(balanceContext.catalog.skillsById.get(entity.id)!, 'resourceGain'))
-        }
-      ]
-    }),
+    'revenant.ancient-echo': (balanceContext, entity) => {
+      const effects = variantEffects(balanceContext.catalog.skillsById.get(entity.id)!.effects);
+      return {
+        ...effects,
+        description: 'Restore energy and apply only the package matching your active core legend.',
+        facts: [
+          ...effects.facts,
+          {
+            name: 'Energy restored',
+            detail: tooltipDecimal(tooltipNumber(balanceContext.catalog.skillsById.get(entity.id)!, 'resourceGain'))
+          }
+        ]
+      };
+    },
     'revenant.upkeep': (balanceContext, entity) => {
       const selected = balanceContext.catalog.skillsById.get(entity.id)! as RevenantSkill;
       const pulse = selected.upkeepPulse;
@@ -299,7 +313,7 @@ export const revenantTooltips: ProfessionTooltips = {
     'revenant.twin-moon-sweep': (balanceContext, entity) => ({
       description:
         'You and a fragment strike together, applying bleeding and might. Both attacks are player-owned. Equipped Assassin adds immobilization; equipped Demon adds later shatter and confusion packets. Gain affinity once from the main hit; Shared Wisdom adds might.',
-      facts: variantFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects)
+      ...variantEffects(balanceContext.catalog.skillsById.get(entity.id)!.effects)
     }),
     'revenant.cosmic-wisdom': skillTooltip(
       'Enter the form associated with your active legend. Swapping legends changes the form during the window. Assassin triggers lesser daggers; Dervish triggers scythe attacks from Entity skills; Mesmer changes Demon skill costs. Affinity and Conduit traits modify these effects.',
@@ -320,12 +334,14 @@ export const revenantTooltips: ProfessionTooltips = {
     ),
     'revenant.release-potential': (balanceContext, entity) => {
       const selected = balanceContext.catalog.skillsById.get(entity.id)!;
+      const effects = variantEffects(selected.effects, 'base values before affinity scaling');
       const conditions = selected.effects?.filter((effect) => effect.type === 'condition') || [];
       return {
+        ...effects,
         description:
           "Release the power of your current form. Affinity increases the listed enemy-condition durations and reduces Mesmer's self-torment duration. Dervish gains its legend-specific effects from an equipped matching legend or sufficient affinity. Kinetic Insight adds virtual affinity for these calculations without spending your actual affinity.",
         facts: [
-          ...variantFacts(selected.effects, 'base values before affinity scaling'),
+          ...effects.facts,
           ...conditions.flatMap((effect) => [
             ...(effect.durationPerAffinity == null
               ? []
@@ -502,24 +518,82 @@ export const revenantTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.GLARING_RESOLVE]: outsideScopeTooltip,
-    [TRAIT.SPIRIT_BOON]: (balanceContext, entity) => ({
-      description:
-        "Invoking a legend grants its corresponding boon. Entity invocation uses the paired core legend's boon.",
-      facts: [
-        ...variantFacts(tooltipProfile(balanceContext, entity.id).effects),
-        ...simulationEffectFacts(tooltipProfile(balanceContext, 'revenant.spirit-boon.dragon').effects, 'Dragon').facts,
-        ...simulationEffectFacts(tooltipProfile(balanceContext, RENEGADE.spiritBoon).effects, 'Renegade').facts,
-        ...simulationEffectFacts(tooltipProfile(balanceContext, 'revenant.spirit-boon.alliance').effects, 'Alliance')
-          .facts
-      ]
-    }),
+    [TRAIT.SPIRIT_BOON]: (balanceContext, entity) => {
+      const effects = variantEffects(tooltipProfile(balanceContext, entity.id).effects);
+      return {
+        ...effects,
+        description:
+          "Invoking a legend grants its corresponding boon. Entity invocation uses the paired core legend's boon.",
+        factTabs: [
+          ...effects.factTabs,
+          {
+            label: 'Dragon',
+            facts: simulationEffectFacts(tooltipProfile(balanceContext, 'revenant.spirit-boon.dragon').effects).facts
+          },
+          {
+            label: 'Renegade',
+            facts: simulationEffectFacts(tooltipProfile(balanceContext, RENEGADE.spiritBoon).effects).facts
+          },
+          {
+            label: 'Alliance',
+            facts: simulationEffectFacts(tooltipProfile(balanceContext, 'revenant.spirit-boon.alliance').effects).facts
+          }
+        ]
+      };
+    },
     [TRAIT.RAPID_FLOW]: outsideScopeTooltip,
     [TRAIT.INCENSED_RESPONSE]: traitTooltip('Receiving a player-owned fury application grants might.'),
-    [TRAIT.SONG_OF_THE_MISTS]: (balanceContext, entity) => ({
-      description:
-        "Invoking a core legend triggers its corresponding attack. Dragon invocation uses Call of the Dragon; Renegade invocation grants Kalla's Fervor. Entity invocation uses the paired core legend's effect.",
-      facts: variantFacts(tooltipProfile(balanceContext, entity.id).effects)
-    }),
+    [TRAIT.SONG_OF_THE_MISTS]: (balanceContext, entity) => {
+      const effects = variantEffects(tooltipProfile(balanceContext, entity.id).effects);
+      const alliance = balanceContext.catalog.skillsById.get(ID.CALL_OF_THE_ALLIANCE)!;
+      // Elite legends own separate invocation skills; include their resource grants as well as attack packets.
+      return {
+        ...effects,
+        description:
+          "Invoking a legend triggers its corresponding effect. Entity invocation uses the paired core legend's effect.",
+        factTabs: [
+          ...effects.factTabs,
+          {
+            label: 'Centaur',
+            facts: [{ name: 'Call of the Centaur', detail: 'Healing is outside simulation scope.' }]
+          },
+          {
+            label: 'Dragon',
+            facts: simulationEffectFacts(balanceContext.catalog.skillsById.get(ID.CALL_OF_THE_DRAGON)!.effects).facts
+          },
+          {
+            label: 'Alliance',
+            facts: [
+              ...simulationEffectFacts(alliance.effects).facts,
+              { name: 'Endurance gained', detail: tooltipDecimal(tooltipNumber(alliance, 'resourceGain')) }
+            ]
+          },
+          {
+            label: 'Renegade',
+            facts: [
+              ...simulationEffectFacts(balanceContext.catalog.skillsById.get(ID.CALL_OF_THE_RENEGADE)!.effects).facts,
+              // The invocation hook grants two stacks; their durations come from the selected Fervor profiles.
+              ...[RENEGADE.kallasFervor, RENEGADE.kallasFervorLastingLegacy].flatMap(
+                (id) =>
+                  simulationEffectFacts(
+                    tooltipProfile(balanceContext, id).effects?.map((effect) => ({ ...effect, stacks: 2 })),
+                    id === RENEGADE.kallasFervor ? 'base duration' : 'with Lasting Legacy instead'
+                  ).facts
+              )
+            ]
+          },
+          {
+            label: 'Entity',
+            facts: [
+              {
+                name: 'Paired legend',
+                detail: 'Uses the Assassin, Demon, Dwarf, or Centaur effect matching your other equipped legend.'
+              }
+            ]
+          }
+        ]
+      };
+    },
     [TRAIT.CHARGED_MISTS]: traitTooltip(
       'Swapping legends below the energy threshold resets energy to the increased starting amount.',
       (balanceContext, id) => [
@@ -528,8 +602,8 @@ export const revenantTooltips: ProfessionTooltips = {
       ]
     ),
     // Show the fixed bonuses applied by Revenant's runtime and build attribute rules.
-    [TRAIT.ROILING_MISTS]: traitTooltip('Fury grants additional critical-strike chance.', () => [
-      { name: 'Additional critical-strike chance with Fury', detail: tooltipPercent(0.25) }
+    [TRAIT.ROILING_MISTS]: traitTooltip('Fury grants additional critical-strike chance.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'criticalChance', 'Additional critical-strike chance with Fury', tooltipPercent)
     ]),
     [TRAIT.ENDURING_RECOVERY]: traitTooltip('Endurance regenerates faster.', (balanceContext, id) => [
       profileFact(balanceContext, id, 'enduranceRegenerationMultiplier', 'Endurance regeneration', tooltipFactorChange)
@@ -565,10 +639,27 @@ export const revenantTooltips: ProfessionTooltips = {
         profileFact(balanceContext, id, 'cooldown', 'Might cooldown', tooltipSeconds)
       ]
     ),
-    [TRAIT.VERSED_IN_STONE]: traitTooltip('Gain power from the common toughness attribute pool.'),
+    [TRAIT.VERSED_IN_STONE]: traitTooltip(
+      'Gain power from the common toughness attribute pool.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'attributeConversion', 'Toughness converted to power', tooltipPercent)
+      ]
+    ),
     [TRAIT.STEADFAST_REJUVENATION]: outsideScopeTooltip,
     [TRAIT.HEALERS_GIFT]: outsideScopeTooltip,
-    [TRAIT.LIFE_ATTUNEMENT]: traitTooltip('Gain healing power and convert eligible healing power to concentration.'),
+    [TRAIT.LIFE_ATTUNEMENT]: traitTooltip(
+      'Gain healing power and convert eligible healing power to concentration.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'attributeBonus', 'Healing power'),
+        profileFact(
+          balanceContext,
+          id,
+          'attributeConversion',
+          'Eligible healing power converted to concentration',
+          tooltipPercent
+        )
+      ]
+    ),
     // Show the supported skill-specific boons while explicitly excluding healing effectiveness.
     [TRAIT.SERENE_REJUVENATION]: (balanceContext, entity) => ({
       description:
@@ -592,14 +683,16 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.INVIGORATING_DISMISSAL]: outsideScopeTooltip,
     [TRAIT.INVOKING_TORMENT]: (balanceContext, entity) => ({
       description: 'Invoking a legend triggers Invoke Torment. Diabolic Inferno adds its separate condition packets.',
-      facts: variantFacts(tooltipProfile(balanceContext, entity.id).effects)
+      ...variantEffects(tooltipProfile(balanceContext, entity.id).effects)
     }),
-    [TRAIT.SEETHING_MALICE]: traitTooltip('Gain condition damage.', () => [
-      { name: 'Condition Damage', detail: '+120' }
+    [TRAIT.SEETHING_MALICE]: traitTooltip('Gain condition damage.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'attributeBonus', 'Condition Damage', (value) => '+' + tooltipDecimal(value))
     ]),
     [TRAIT.YEARNING_EMPOWERMENT]: traitTooltip(
       'Damaging conditions last longer. Numinous Gift strengthens this duration bonus.',
-      () => [{ name: 'Damaging-condition duration', detail: tooltipPercent(0.1) }]
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'conditionDurationBonus', 'Damaging-condition duration', tooltipPercent)
+      ]
     ),
     [TRAIT.ACOLYTE_OF_TORMENT]: traitTooltip('Player-owned torment deals increased damage.', (balanceContext) => [
       modifierFact(balanceContext, 'revenant.acolyte-of-torment', 'factor', 'Torment damage', tooltipFactorChange)
@@ -608,8 +701,8 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.REPLENISHING_DESPAIR]: outsideScopeTooltip,
     [TRAIT.ABYSSAL_CHILL]: traitTooltip('Applying chill also inflicts torment.'),
     [TRAIT.DEMONIC_RESISTANCE]: outsideScopeTooltip,
-    [TRAIT.PACT_OF_PAIN]: traitTooltip('Outgoing conditions last longer.', () => [
-      { name: 'Condition duration', detail: tooltipPercent(0.15) }
+    [TRAIT.PACT_OF_PAIN]: traitTooltip('Outgoing conditions last longer.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'conditionDurationBonus', 'Condition duration', tooltipPercent)
     ]),
     [TRAIT.DIABOLIC_INFERNO]: (balanceContext) => ({
       description: 'Invoke Torment applies additional conditions.',
@@ -649,11 +742,19 @@ export const revenantTooltips: ProfessionTooltips = {
       (balanceContext, id) => [profileFact(balanceContext, id, 'cooldown', 'Fury interval', tooltipSeconds)]
     ),
     [TRAIT.NOTORIETY]: traitTooltip(
-      'Legendary stance skills grant might. Your might grants more power and less condition damage.'
+      'Legendary stance skills grant might. Your might grants more power and less condition damage.',
+      (balanceContext, id) => [
+        profileFact(
+          balanceContext,
+          id,
+          'attributePerStack',
+          'Additional power and reduced condition damage per might stack'
+        )
+      ]
     ),
     [TRAIT.THRILL_OF_COMBAT]: traitTooltip(
       'Periodically gain Battle Scars during combat. Qualifying player strikes consume a scar to deal life-siphon damage.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'cooldown', 'Scar interval', tooltipSeconds)]
+      (balanceContext, id) => [profileFact(balanceContext, id, 'cooldown', 'ICD', tooltipSeconds)]
     ),
     [TRAIT.BRUTALITY]: traitTooltip('Completing a weapon swap grants quickness.', (balanceContext, id) => [
       profileFact(balanceContext, id, 'cooldown', 'Internal cooldown', tooltipSeconds)
@@ -671,8 +772,8 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.DRACONIC_FORTITUDE]: outsideScopeTooltip,
     [TRAIT.REINFORCED_POTENCY]: traitTooltip(
       'Gain concentration. Each different boon on you increases player strike damage.',
-      () => [
-        { name: 'Concentration', detail: '+240' },
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'attributeBonus', 'Concentration', (value) => '+' + tooltipDecimal(value)),
         { name: 'Strike damage per unique boon', detail: tooltipPercent(0.01) }
       ]
     ),
@@ -692,6 +793,7 @@ export const revenantTooltips: ProfessionTooltips = {
       'revenant.elevated-compassion',
       'Gain concentration from the common power attribute pool. Maintaining enough aggregate upkeep periodically grants party quickness.',
       (balanceContext, id) => [
+        profileFact(balanceContext, id, 'attributeConversion', 'Power converted to concentration', tooltipPercent),
         profileFact(balanceContext, id, 'threshold', 'Required aggregate upkeep'),
         profileFact(balanceContext, id, 'cooldown', 'Quickness interval', tooltipSeconds)
       ]
@@ -737,7 +839,17 @@ export const revenantTooltips: ProfessionTooltips = {
     [TRAIT.BRUTAL_MOMENTUM]: profileTooltip(
       RENEGADE.brutalMomentum,
       'Gain critical-strike chance. Receiving fury grants vigor.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'cooldown', 'Vigor cooldown', tooltipSeconds)]
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'criticalChance', 'Critical chance', tooltipPercent),
+        profileFact(
+          balanceContext,
+          id,
+          'fullEnduranceCriticalChance',
+          'Critical chance at full endurance',
+          tooltipPercent
+        ),
+        profileFact(balanceContext, id, 'cooldown', 'Vigor cooldown', tooltipSeconds)
+      ]
     ),
     [TRAIT.ASHEN_DEMEANOR]: profileTooltip(
       RENEGADE.ashenDemeanor,
@@ -752,7 +864,13 @@ export const revenantTooltips: ProfessionTooltips = {
       "Fury applications grant Kalla's Fervor. Bleeding lasts longer while you have fury.",
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'cooldown', 'Fervor cooldown', tooltipSeconds),
-        modifierFact(balanceContext, 'revenant.blood-fury-bleeding-duration', 'amount', 'Bleeding duration with fury')
+        profileFact(
+          balanceContext,
+          RENEGADE.bloodFury,
+          'conditionDurationBonus',
+          'Bleeding duration with fury',
+          tooltipPercent
+        )
       ]
     ),
     [TRAIT.WROUGHT_IRON_WILL]: outsideScopeTooltip,
@@ -812,9 +930,12 @@ export const revenantTooltips: ProfessionTooltips = {
     ),
     [TRAIT.TENACIOUS_RUIN]: traitTooltip('Replace the ordinary dodge with the selected Vindicator dodge attack.'),
     [TRAIT.BALANCE_IN_DISCORD]: outsideScopeTooltip,
-    [TRAIT.EMPIRE_DIVIDED]: traitTooltip('Gain power at the full player health used by combat simulations.', () => [
-      { name: 'Power', detail: '+240' }
-    ]),
+    [TRAIT.EMPIRE_DIVIDED]: traitTooltip(
+      'Gain power at the full player health used by combat simulations.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'attributeBonus', 'Power', (value) => '+' + tooltipDecimal(value))
+      ]
+    ),
     [TRAIT.LEVIATHAN_STRENGTH]: traitTooltip(
       'Player-owned strikes deal increased damage while endurance is below full.',
       (balanceContext) => [
@@ -860,42 +981,55 @@ export const revenantTooltips: ProfessionTooltips = {
       'Unlock Legendary Entity, affinity, Release Potential, and Cosmic Wisdom forms determined by the equipped legends.'
     ),
     [TRAIT.BOLSTERED_BONDS]: traitTooltip(
-      'Equipped legends grant attributes: Assassin grants power and ferocity; Demon grants condition damage and expertise; Dwarf grants toughness and vitality; Centaur grants healing power and concentration; Entity grants all supported primary attributes. Cosmic Wisdom doubles these bonuses.'
-    ),
-    [TRAIT.NUMINOUS_GIFT]: (balanceContext) => ({
-      description:
-        'Cosmic Wisdom grants might and boons determined by equipped legends. Targeted Destruction and Yearning Empowerment gain additional bonuses.',
-      facts: [
-        ...variantFacts(tooltipProfile(balanceContext, CONDUIT.numinousGift).effects),
-        // Each enhancement identifies the affected trait with its catalog icon.
-        {
-          ...modifierFact(
-            balanceContext,
-            'revenant.targeted-destruction-numinous-gift',
-            'bonus',
-            'Additional Targeted Destruction bonus'
-          ),
-          icon: String(
-            balanceContext.catalog.traits.find((trait) => trait.id === TRAIT.TARGETED_DESTRUCTION)?.icon || ''
-          )
-        },
-        {
-          ...modifierFact(
-            balanceContext,
-            'revenant.yearning-empowerment-numinous-gift',
-            'amount',
-            'Additional damaging-condition duration'
-          ),
-          icon: String(
-            balanceContext.catalog.traits.find((trait) => trait.id === TRAIT.YEARNING_EMPOWERMENT)?.icon || ''
-          )
-        }
+      'Equipped legends grant attributes. Cosmic Wisdom increases these bonuses.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'assassinAttributeBonus', 'Assassin: power and ferocity'),
+        profileFact(balanceContext, id, 'demonAttributeBonus', 'Demon: condition damage and expertise'),
+        profileFact(balanceContext, id, 'dwarfAttributeBonus', 'Dwarf: toughness and vitality'),
+        profileFact(balanceContext, id, 'centaurAttributeBonus', 'Centaur: healing power and concentration'),
+        profileFact(balanceContext, id, 'entityAttributeBonus', 'Entity: each supported attribute'),
+        profileFact(balanceContext, id, 'attributeMultiplier', 'Cosmic Wisdom attribute increase', tooltipFactorChange)
       ]
-    }),
+    ),
+    [TRAIT.NUMINOUS_GIFT]: (balanceContext) => {
+      const effects = variantEffects(tooltipProfile(balanceContext, CONDUIT.numinousGift).effects);
+      return {
+        ...effects,
+        description:
+          'Cosmic Wisdom grants might and boons determined by equipped legends. Targeted Destruction and Yearning Empowerment gain additional bonuses.',
+        facts: [
+          ...effects.facts,
+          // Each enhancement identifies the affected trait with its catalog icon.
+          {
+            ...modifierFact(
+              balanceContext,
+              'revenant.targeted-destruction-numinous-gift',
+              'bonus',
+              'Additional Targeted Destruction bonus'
+            ),
+            icon: String(
+              balanceContext.catalog.traits.find((trait) => trait.id === TRAIT.TARGETED_DESTRUCTION)?.icon || ''
+            )
+          },
+          {
+            ...profileFact(
+              balanceContext,
+              CONDUIT.numinousGift,
+              'conditionDurationBonus',
+              'Additional damaging-condition duration',
+              tooltipPercent
+            ),
+            icon: String(
+              balanceContext.catalog.traits.find((trait) => trait.id === TRAIT.YEARNING_EMPOWERMENT)?.icon || ''
+            )
+          }
+        ]
+      };
+    },
     [TRAIT.CONDUCTIVE_ARMAMENTS]: traitTooltip('Casting weapon skills also generates affinity.'),
     [TRAIT.SHARED_WISDOM]: (balanceContext) => ({
       description: 'Entity skills grant swiftness. Specific Entity skills grant additional boons.',
-      facts: variantFacts(tooltipProfile(balanceContext, CONDUIT.sharedWisdom).effects)
+      ...variantEffects(tooltipProfile(balanceContext, CONDUIT.sharedWisdom).effects)
     }),
     [TRAIT.LINGERING_DETERMINATION]: profileTooltip(
       CONDUIT.lingeringDetermination,
@@ -923,7 +1057,7 @@ export const revenantTooltips: ProfessionTooltips = {
     ),
     [TRAIT.FOUND_PURPOSE]: (balanceContext) => ({
       description: 'Swapping legends in combat shares the Numinous Gift boon package with nearby allies.',
-      facts: variantFacts(tooltipProfile(balanceContext, CONDUIT.numinousGift).effects)
+      ...variantEffects(tooltipProfile(balanceContext, CONDUIT.numinousGift).effects)
     })
   }
 };

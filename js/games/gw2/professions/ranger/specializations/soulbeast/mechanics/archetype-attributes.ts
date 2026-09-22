@@ -1,12 +1,35 @@
-import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-
-/** Historical build bonuses subtracted during runtime reconciliation, independent of balance overrides. */
-export const SOULBEAST_ARCHETYPE_ATTRIBUTES: Readonly<
-  Record<string, Readonly<Partial<Record<keyof Gw2ResolvedStats, number>>>>
-> = Object.freeze({
-  Stout: Object.freeze({ toughness: 200, vitality: 100 }),
-  Deadly: Object.freeze({ conditionDamage: 150, precision: 100 }),
-  Versatile: Object.freeze({ vitality: 200, concentration: 225 }),
-  Ferocious: Object.freeze({ power: 150, ferocity: 100 }),
-  Supportive: Object.freeze({ vitality: 100 })
-});
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
+import type { Gw2NumericStatKey } from '#gw2/platform/combat/query/combat-query.js';
+/** Build and runtime use the same patch values for the selected pet archetype. */
+export function soulbeastArchetypeAttributes(
+  context: unknown,
+  archetype: string
+): Readonly<Partial<Record<Gw2NumericStatKey, number>>> {
+  switch (archetype) {
+    case 'Stout':
+      return {
+        toughness: balanceProfileNumberFromContext(context, PROFILE.stoutArchetype, 'attributeBonus'),
+        vitality: balanceProfileNumberFromContext(context, PROFILE.stoutArchetype, 'weaponAttributeBonus')
+      };
+    case 'Deadly':
+      return {
+        conditionDamage: balanceProfileNumberFromContext(context, PROFILE.deadlyArchetype, 'attributeBonus'),
+        precision: balanceProfileNumberFromContext(context, PROFILE.deadlyArchetype, 'weaponAttributeBonus')
+      };
+    case 'Versatile':
+      return {
+        vitality: balanceProfileNumberFromContext(context, PROFILE.versatileArchetype, 'attributeBonus'),
+        concentration: balanceProfileNumberFromContext(context, PROFILE.versatileArchetype, 'weaponAttributeBonus')
+      };
+    case 'Ferocious':
+      return {
+        power: balanceProfileNumberFromContext(context, PROFILE.ferociousArchetype, 'attributeBonus'),
+        ferocity: balanceProfileNumberFromContext(context, PROFILE.ferociousArchetype, 'weaponAttributeBonus')
+      };
+    case 'Supportive':
+      return { vitality: balanceProfileNumberFromContext(context, PROFILE.supportiveArchetype, 'attributeBonus') };
+    default:
+      return {};
+  }
+}

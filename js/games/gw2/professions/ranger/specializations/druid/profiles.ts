@@ -29,6 +29,7 @@ export const DRUID_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
     resourceGain: 8
   }),
   trait(DRUID_BALANCE_PROFILE_IDS.naturalBalance, 'Natural Balance', {
+    conditionDurationBonus: 0.1,
     effects: [{ type: 'buff', kind: 'natural-balance', duration: 10, stacks: 1 }]
   }),
   trait(DRUID_BALANCE_PROFILE_IDS.graceOfTheLand, 'Grace of the Land', {

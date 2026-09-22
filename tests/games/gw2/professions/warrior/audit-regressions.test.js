@@ -1,7 +1,8 @@
+import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { warriorProfession, warriorCatalog } from '#gw2/professions/warrior/profession.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { createParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
@@ -22,6 +23,8 @@ import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build
 import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { modifyWarriorStrengthAttributes } from '#gw2/professions/warrior/core/traits/strength.js';
+import { warriorCoreAttributeRules } from '#gw2/professions/warrior/core/traits/modifiers.js';
+import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 
 const simulate = createProfessionSimulator(warriorProfession, {
   stats: { power: 2000, precision: 4000, ferocity: 0, conditionDamage: 0, expertise: 0, vitality: 1000 },
@@ -267,11 +270,11 @@ test('mixed Warrior weapon sets keep static bonuses and conversion inputs separa
     const withoutAxe = calculate(build, [], weaponSet, 'Axe Mastery').attributes;
     assert.equal(all.Power.final - withoutForceful.Power.final, power);
     assert.equal(all.Ferocity.final - withoutAxe.Ferocity.final, ferocity);
-    assert.equal(all['Healing Power'].final - withoutForceful['Healing Power'].final, 12);
     const attributes = { power: all.Power.final, vitality: 1000, ferocity: all.Ferocity.final };
     const before = { ...attributes };
     modifyWarriorStrengthAttributes(
       {
+        catalog: warriorCatalog,
         config: { primaryWeapon: 'Axe', weaponSet2Primary: 'Greatsword' },
         runtime: { activeWeaponSet: weaponSet },
         traits: new Set([TRAIT.FORCEFUL_GREATSWORD]),
@@ -282,6 +285,29 @@ test('mixed Warrior weapon sets keep static bonuses and conversion inputs separa
     );
     assert.deepEqual(attributes, before, 'static provenance avoids applying weapon bonuses twice');
   }
+});
+
+// A healing-only trait stays selectable but contributes no build stats, runtime conversion, or balance profile.
+test('Vigorous Shouts is outside combat simulation scope', () => {
+  const build = createWarriorBuildDefaults();
+  build.specializations = [{ name: 'Tactics', traits: '1-1-2' }];
+  const calculate = createCalculateAttributes(applyWarriorBuildAttributeRules);
+  assert.equal(
+    calculate(build).attributes['Healing Power'].final,
+    calculate(build, [], 1, 'Vigorous Shouts').attributes['Healing Power'].final
+  );
+  const attributes = warriorCoreAttributeRules.modifyAttributes(
+    { catalog: warriorCatalog, config: { stats: { power: 2000 } }, traits: new Set([TRAIT.VIGOROUS_SHOUTS]), time: 0 },
+    { power: 2000, healingPower: 50 }
+  );
+  assert.equal(attributes.healingPower, 50);
+  assert.equal(warriorCatalog.balanceProfilesById.has(TRAIT.VIGOROUS_SHOUTS), false);
+  const tooltip = warriorTooltips.traits[TRAIT.VIGOROUS_SHOUTS](
+    { catalog: warriorCatalog },
+    { id: TRAIT.VIGOROUS_SHOUTS, name: 'Vigorous Shouts' }
+  );
+  assert.match(tooltip.description, /outside the simulator's scope/);
+  assert.deepEqual(tooltip.facts, []);
 });
 
 // The same canonical Vigor history must produce the same resource and readiness for any wait partition.

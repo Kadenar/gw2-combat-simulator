@@ -301,6 +301,7 @@ test('control and Revenant buff facts use game icons with concise details', asyn
   for (const [index, iconId] of Object.values(controls).entries()) {
     await expect(rows.nth(index).locator('img')).toHaveAttribute('src', new RegExp(`/${iconId}\\.png$`));
   }
+
   await expect(panel).not.toContainText('disable duration');
   await page.getByRole('button', { name: 'Inspect Abyssal Raze', exact: true }).hover();
   await expect(
@@ -344,6 +345,115 @@ test('Devouring Darkness shows its condition threshold and per-condition life fo
 
   await expect(panel.locator('.wiki-tooltip-recharge')).toHaveAttribute('aria-label', 'Recharge: 10 seconds');
   await expect(panel).not.toContainText('Base recharge');
+});
+
+// Legend and trigger tabs isolate conditional facts while retaining shared effects and costs.
+test('Revenant requirement tabs group effects and wrap within the tooltip', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(async () => {
+    const { skillTooltipAttributes, traitTooltipAttributes } =
+      await import('/js/games/gw2/app/shared/tooltip-overlay.ts');
+    const { loadProfessionAppAdapter } = await import('/js/games/gw2/app/profession-registry.ts');
+    const adapter = await loadProfessionAppAdapter('revenant');
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = [
+      'Song of the Mists',
+      'Spirit Boon',
+      'Shared Wisdom',
+      'Numinous Gift',
+      'Ambush Commander',
+      'Lasting Legacy'
+    ]
+      .map((name) => {
+        const trait = adapter.profession.catalog.traits.find((entity) => entity.name === name);
+        return `<button ${traitTooltipAttributes(trait, adapter.traitTooltip(trait))}>Inspect ${name}</button>`;
+      })
+      .join('');
+    const skill = adapter.profession.catalog.skillsByName.get('Ancient Echo');
+    wrapper.innerHTML += `<button ${skillTooltipAttributes(skill, adapter.skillTooltip(skill))}>Inspect Ancient Echo</button>`;
+    document.body.append(wrapper);
+  });
+  const panel = page.locator('#wiki-tooltip');
+  const selectedEffects = panel.getByRole('tabpanel');
+  const inspect = async (name) => {
+    const trigger = page.getByRole('button', { name: `Inspect ${name}`, exact: true });
+    await trigger.focus();
+    await trigger.press('Tab');
+  };
+
+  await inspect('Song of the Mists');
+  await expect(panel.getByRole('tab')).toHaveText([
+    'Assassin',
+    'Dwarf',
+    'Demon',
+    'Centaur',
+    'Dragon',
+    'Alliance',
+    'Renegade',
+    'Entity'
+  ]);
+  await expect(selectedEffects).toContainText('Call of the Assassin');
+  await expect(selectedEffects).not.toContainText('Call of the Dwarf');
+  await panel.getByRole('tab', { name: 'Assassin', exact: true }).press('ArrowRight');
+  await expect(panel.getByRole('tab', { name: 'Dwarf', exact: true })).toBeFocused();
+  await expect(selectedEffects).toContainText('Call of the Dwarf');
+  await expect(selectedEffects).not.toContainText('Call of the Assassin');
+  await panel.getByRole('tab', { name: 'Demon', exact: true }).click();
+  await expect(selectedEffects).toContainText('Call of the Demon');
+  await panel.getByRole('tab', { name: 'Dragon', exact: true }).click();
+  await expect(selectedEffects).toContainText('Call of the Dragon');
+  await expect(selectedEffects).toContainText('Burning');
+  await panel.getByRole('tab', { name: 'Alliance', exact: true }).click();
+  await expect(selectedEffects).toContainText('Call of the Alliance');
+  await expect(selectedEffects).toContainText('Endurance gained');
+  await panel.getByRole('tab', { name: 'Renegade', exact: true }).click();
+  await expect(selectedEffects).toContainText('Call of the Renegade');
+  await expect(selectedEffects).toContainText('Bleeding');
+  await expect(selectedEffects).toContainText("Kalla's Fervor");
+  await panel.getByRole('tab', { name: 'Centaur', exact: true }).click();
+  await expect(selectedEffects).toContainText('Healing is outside simulation scope');
+  await panel.getByRole('tab', { name: 'Entity', exact: true }).click();
+  await expect(selectedEffects).toContainText('other equipped legend');
+
+  await inspect('Spirit Boon');
+  const bounds = await panel.boundingBox();
+  for (const tab of await panel.getByRole('tab').all()) {
+    const tabBounds = await tab.boundingBox();
+    // Long legend names stay on one line; wrapping happens between complete tabs.
+    await expect(tab).toHaveCSS('white-space', 'nowrap');
+    expect(tabBounds.x).toBeGreaterThanOrEqual(bounds.x);
+    expect(tabBounds.x + tabBounds.width).toBeLessThanOrEqual(bounds.x + bounds.width);
+    await tab.click();
+    await expect(selectedEffects.locator('.wiki-tooltip-fact')).not.toHaveCount(0);
+  }
+
+  expect(bounds.x + bounds.width).toBeLessThanOrEqual(390);
+
+  await inspect('Shared Wisdom');
+  const sharedSwiftness = panel.locator('.wiki-tooltip-effects > .wiki-tooltip-fact').filter({ hasText: 'Swiftness' });
+  await expect(sharedSwiftness).toBeVisible();
+  await panel.getByRole('tab', { name: 'Twin Moon Sweep', exact: true }).click();
+  await expect(selectedEffects).toContainText('Might');
+  await expect(sharedSwiftness).toBeVisible();
+
+  await inspect('Numinous Gift');
+  await panel.getByRole('tab', { name: 'Demon', exact: true }).click();
+  await expect(selectedEffects).toContainText('Resistance');
+  await expect(panel.locator('.wiki-tooltip-effects > .wiki-tooltip-fact').filter({ hasText: 'Might' })).toBeVisible();
+
+  await inspect('Ancient Echo');
+  await panel.getByRole('tab', { name: 'Demon', exact: true }).click();
+  await expect(
+    panel.locator('.wiki-tooltip-effects > .wiki-tooltip-fact').filter({ hasText: 'Energy restored' })
+  ).toBeVisible();
+  await expect(panel.locator('.wiki-tooltip-recharge')).toBeVisible();
+  // Both Fervor duration variants resolve the authored buff ID to the same named effect icon.
+  for (const name of ['Ambush Commander', 'Lasting Legacy']) {
+    await inspect(name);
+    await expect(
+      panel.locator('.wiki-tooltip-fact').filter({ hasText: "Kalla's Fervor:" }).locator('img')
+    ).toHaveAttribute('src', 'https://render.guildwars2.com/file/4DDE151C71EDB6120E3454036C4C3504EADB02D8/1770161.png');
+  }
 });
 
 // Blight alternatives remain exclusive, keyboard-accessible, and reset when inspecting another skill.

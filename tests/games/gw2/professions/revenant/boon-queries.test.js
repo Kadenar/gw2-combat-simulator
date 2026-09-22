@@ -1,3 +1,4 @@
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
@@ -31,7 +32,8 @@ test('Revenant and Renegade use live self boons, duration stacking, and timeline
   };
   const reprisal = revenantCoreModifierRules.find(({ id }) => id === 'revenant.vicious-reprisal');
   const bloodFury = renegadeModifierRules.find(({ id }) => id === 'revenant.blood-fury-bleeding-duration');
-  const criticalBonus = (value) => revenantCoreAttributeRules.modifyCriticalChance(value, 0);
+  const criticalBonus = (value) =>
+    revenantCoreAttributeRules.modifyCriticalChance({ catalog: revenantCatalog, ...value }, 0);
   assert.equal(revenantActiveBoonCount({ ...context, runtime: undefined }), 2);
   assert.equal(bloodFury.when({ ...context, runtime: undefined }), true);
   for (const kind of ['fury', 'resolution']) {
@@ -79,22 +81,34 @@ test('Notoriety converts configured and live self Might with explicit zero stack
     { at: 4, expiresAt: 10, stacks: 0, resolvedAudience: { includesSelf: true } }
   );
   const attributes = { power: 1000, conditionDamage: 1000 };
-  assert.deepEqual(revenantCoreAttributeRules.modifyAttributes(context, attributes), {
+  assert.deepEqual(revenantCoreAttributeRules.modifyAttributes({ catalog: revenantCatalog, ...context }, attributes), {
     power: 1070,
     conditionDamage: 930
   });
-  assert.deepEqual(revenantCoreAttributeRules.modifyAttributes({ ...context, time: 5 }, attributes), {
-    power: 1250,
-    conditionDamage: 750
-  });
-  assert.deepEqual(revenantCoreAttributeRules.modifyAttributes({ ...context, time: 10 }, attributes), {
-    power: 1040,
-    conditionDamage: 960
-  });
-  assert.deepEqual(revenantCoreAttributeRules.modifyAttributes({ ...context, runtime: undefined }, attributes), {
-    power: 1040,
-    conditionDamage: 960
-  });
+  assert.deepEqual(
+    revenantCoreAttributeRules.modifyAttributes({ catalog: revenantCatalog, ...context, time: 5 }, attributes),
+    {
+      power: 1250,
+      conditionDamage: 750
+    }
+  );
+  assert.deepEqual(
+    revenantCoreAttributeRules.modifyAttributes({ catalog: revenantCatalog, ...context, time: 10 }, attributes),
+    {
+      power: 1040,
+      conditionDamage: 960
+    }
+  );
+  assert.deepEqual(
+    revenantCoreAttributeRules.modifyAttributes(
+      { catalog: revenantCatalog, ...context, runtime: undefined },
+      attributes
+    ),
+    {
+      power: 1040,
+      conditionDamage: 960
+    }
+  );
   assert.deepEqual(attributes, { power: 1000, conditionDamage: 1000 });
 });
 

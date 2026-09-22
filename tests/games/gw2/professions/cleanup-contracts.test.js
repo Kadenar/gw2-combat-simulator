@@ -176,8 +176,8 @@ test('Soulbeast reconciles raw and precomputed archetypes across merge state and
   for (const precomputed of [false, true]) {
     for (const merged of [false, true]) {
       const input = {
-        power: precomputed ? 1150 : 1000,
-        ferocity: precomputed ? 100 : 0,
+        power: precomputed ? 1999 : 1000,
+        ferocity: precomputed ? 999 : 0,
         conditionDamage: 0,
         precision: 1000
       };
@@ -200,7 +200,7 @@ test('Soulbeast reconciles raw and precomputed archetypes across merge state and
         conditionDamage: merged ? 175 : 0,
         precision: merged ? 1125 : 1000
       });
-      assert.equal(input.power, precomputed ? 1150 : 1000);
+      assert.equal(input.power, precomputed ? 1999 : 1000);
     }
   }
 });

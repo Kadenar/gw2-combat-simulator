@@ -70,6 +70,12 @@ export function applyFearOfDeath(context: NecromancerCastContext, skill: Necroma
     !isInternalCooldownReady(context.effectiveEnd, Number(state.fearOfDeathReadyAt || 0))
   )
     return;
-  gainNecromancerLifeForce(context, 15, context.effectiveEnd, 'fear-of-death');
-  state.fearOfDeathReadyAt = context.effectiveEnd + 4;
+  gainNecromancerLifeForce(
+    context,
+    Number(balanceProfileFromContext(context, TRAIT.FEAR_OF_DEATH)?.lifeForceGain),
+    context.effectiveEnd,
+    'fear-of-death'
+  );
+  state.fearOfDeathReadyAt =
+    context.effectiveEnd + Number(balanceProfileFromContext(context, TRAIT.FEAR_OF_DEATH)?.internalCooldown);
 }

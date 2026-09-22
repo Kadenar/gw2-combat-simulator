@@ -1,3 +1,4 @@
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
@@ -13,7 +14,7 @@ import {
   validateRevenantBuild
 } from '#gw2/professions/revenant/build/build.js';
 import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/build/attributes.js';
-import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as SKILL,
@@ -35,10 +36,14 @@ const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuild
 
 const revenantAttributeRules = Object.freeze({
   modifyAttributes(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyAttributes(context, value);
+    return revenantProfession
+      .resolveRuntime(context?.config || {})
+      .modifyAttributes({ catalog: revenantCatalog, ...context }, value);
   },
   modifyCriticalChance(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyCriticalChance(context, value);
+    return revenantProfession
+      .resolveRuntime(context?.config || {})
+      .modifyCriticalChance({ catalog: revenantCatalog, ...context }, value);
   },
   modifyStrikeDamage(context, value) {
     return revenantProfession.resolveRuntime(context?.config || {}).modifyStrikeDamage(context, value);

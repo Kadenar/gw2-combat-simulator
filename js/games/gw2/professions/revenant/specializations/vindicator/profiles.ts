@@ -1,3 +1,4 @@
+import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 /** Owns patchable Vindicator dodge and legend-invocation balance profiles. */
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
@@ -63,6 +64,9 @@ export const VINDICATOR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     resourceGain: 25,
     effects: []
   },
+  trait(TRAIT.EMPIRE_DIVIDED, 'Empire Divided', {
+    attributeBonus: 240
+  }),
   {
     id: VINDICATOR_BALANCE_PROFILE_IDS.forerunnerOfDeath,
     name: 'Forerunner of Death',

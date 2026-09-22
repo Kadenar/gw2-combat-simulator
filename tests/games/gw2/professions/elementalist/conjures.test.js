@@ -1,7 +1,8 @@
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { applyElementalistResolverConjure } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { modifyElementalistAttributes } from '#gw2/professions/elementalist/core/traits/modifiers.js';
@@ -154,7 +155,7 @@ test('Lightning Hammer attributes follow the wielder through utility hits, drop,
   const baseline = modifyElementalistAttributes(context, attributes);
   // Feed the same equip/drop events the scheduler publishes to the real resolver handler.
   applyElementalistResolverConjure(runtime, { conjureEquipped: 'Lightning Hammer', conjureExpiresAt: 31 });
-  const held = modifyElementalistAttributes(context, attributes);
+  const held = modifyElementalistAttributes({ catalog: elementalistCatalog, ...context }, attributes);
   assert.equal(held.precision - baseline.precision, 180);
   assert.equal(held.ferocity - baseline.ferocity, 75);
   assert.deepEqual(modifyElementalistAttributes({ ...context, time: 31 }, attributes), baseline);

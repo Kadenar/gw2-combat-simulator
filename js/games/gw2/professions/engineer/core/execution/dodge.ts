@@ -1,4 +1,7 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileValueFromContext,
+  balanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { reduceMatchingCooldowns } from '#gw2/platform/execution/cooldowns.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
@@ -36,7 +39,7 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
     const reducedBy = reduceMatchingCooldowns(
       context,
       (candidate) => candidate.type === 'Elite' || candidate.slot === 'Elite',
-      3,
+      Number(balanceProfileFromContext(context, TRAIT.POWER_WRENCH)?.rechargeReduction),
       at
     );
     // only emit proc when something actually changed — suppresses no-op entries in the event log
@@ -57,7 +60,12 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
 
   // Adrenal Implant independently advances every active toolbelt recharge.
   if (hasTrait(context.config, TRAIT.ADRENAL_IMPLANT)) {
-    const reducedBy = reduceMatchingCooldowns(context, isEngineerToolbeltSkill, 1, at);
+    const reducedBy = reduceMatchingCooldowns(
+      context,
+      isEngineerToolbeltSkill,
+      Number(balanceProfileFromContext(context, TRAIT.ADRENAL_IMPLANT)?.rechargeReduction),
+      at
+    );
     if (reducedBy > 0) {
       context.emit({
         type: 'proc',

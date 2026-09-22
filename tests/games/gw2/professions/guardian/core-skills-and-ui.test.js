@@ -312,11 +312,7 @@ test('Guardian modules expose isolated balance-profile authoring', () => {
     modules.get('Core').modifierRules.find((rule) => rule.id === 'guardian.inspired-virtue').parameters,
     { damagePerBoon: 0.005 }
   );
-  assert.deepEqual(
-    modules.get('Firebrand').modifierRules.find((rule) => rule.id === 'guardian.firebrand.imbued-haste-attributes')
-      .parameters,
-    { attributeBonus: 250 }
-  );
+  assert.equal(profile('Firebrand', FIREBRAND_BALANCE_PROFILE_IDS.imbuedHaste).patchableFields.attributeBonus, 250);
 
   const preview = applyGuardianPatch({
     skills: {

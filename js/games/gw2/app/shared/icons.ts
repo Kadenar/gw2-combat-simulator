@@ -35,6 +35,9 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   Recharge: 'https://render.guildwars2.com/file/D767B963D120F077C3B163A05DC05A7317D7DB70/156651.png',
   'Energy cost': 'https://assets.gw2dat.com/156647.png',
   'Crushing Abyss': 'https://render.guildwars2.com/file/632F757C2309C12BCFE99FCCE4BB761FA59AECEE/3379187.png',
+  'Battle Scars': 'https://render.guildwars2.com/file/12FFBBD82F3BB8C057E95AB7E907AD3EACFDF221/2261517.png',
+  // Fervor facts use the effect's icon wherever its stack duration is displayed.
+  "Kalla's Fervor": 'https://render.guildwars2.com/file/4DDE151C71EDB6120E3454036C4C3504EADB02D8/1770161.png',
   // Control facts use the game's distinct disable glyphs; unspecified controls use the defiance glyph.
   Daze: 'https://render.guildwars2.com/file/9AE125E930C92FEA0DD99E7EBAEDE4CF5EC556B6/433474.png',
   Stun: 'https://render.guildwars2.com/file/1999B9DB355005D2DD19F66DFFBAA6D466057508/522727.png',
@@ -49,9 +52,12 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   Blind: 'https://render.guildwars2.com/file/09770136BB76FD0DBE1CC4267DEED54774CB20F6/102837.png',
   Ammunition: 'https://render.guildwars2.com/file/B4490FB81AA1E7C06F1B22056AE09A0F54CBE2C4/1770201.png',
   Combo: 'https://render.guildwars2.com/file/A513F3653D33FBA4220D2D307799F8A327A36A3B/156656.png',
-  // Generic numeric facts use the game's book icon, including affinity and endurance gains.
+  // Resource amounts and stack limits share the book icon; energy costs keep their own glyph.
   Affinity: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
+  Energy: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   Endurance: 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
+  'Maximum stacks': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
+  'Max stacks': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   'Life Force': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   'Condition Threshold': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   'Conditions Transferred': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
@@ -105,7 +111,7 @@ const tooltipIconNames = Object.keys(MODIFIER_EFFECT_ICONS)
 /** Qualifiers change a fact's wording, not its icon; conversions use the destination attribute. */
 export function tooltipFactIcon(name: string): string | undefined {
   const label = name.toLowerCase().split('converted to ').at(-1)!;
-  if (/\b(?:recharge|cooldown)\b/.test(label)) return MODIFIER_EFFECT_ICONS.Recharge;
+  if (/\b(?:recharge|cooldown|icd)\b/.test(label)) return MODIFIER_EFFECT_ICONS.Recharge;
   if (/\bcritical(?:[- ]hit)? damage\b/.test(label)) return MODIFIER_EFFECT_ICONS.Ferocity;
   if (/\bcritical(?:[- ]strike)? chance\b/.test(label)) return MODIFIER_EFFECT_ICONS.Precision;
   if (/^damage\b|\bstrike(?: and condition)? damage\b/.test(label)) return MODIFIER_EFFECT_ICONS['Strike damage'];

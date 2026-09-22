@@ -235,6 +235,7 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   trait(MESMER_CORE_BALANCE_PROFILE_IDS.masterOfMisdirection, 'Master of Misdirection', { rechargeMultiplier: 0.85 }),
   // Shared shatter improvements remain trait-owned across elite specializations.
   trait(MESMER_CORE_BALANCE_PROFILE_IDS.masterOfFragmentation, 'Master of Fragmentation', {
+    criticalChance: 0.25,
     durationMultiplier: 1,
     damageIncreasePerStack: 0.3,
     effects: [
@@ -278,6 +279,19 @@ export const MESMER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
         timingScale: 'fixed'
       }
     ]
+  }),
+
+  trait(TRAIT.PHANTASMAL_FURY, 'Phantasmal Fury', {
+    criticalChance: 0.25
+  }),
+  trait(TRAIT.CHAOTIC_INTERRUPTION, 'Chaotic Interruption', {
+    recharge: 5,
+    internalCooldown: 1
+  }),
+  trait(TRAIT.SUPERIORITY_COMPLEX, 'Superiority Complex', {
+    highHealthFactor: 1.15,
+    lowHealthOrDisabledFactor: 1.25,
+    threshold: 0.5
   }),
   trait(MESMER_CORE_BALANCE_PROFILE_IDS.thePledge, 'The Pledge', {
     effects: [{ type: 'condition', condition: 'Burning', duration: 3, stacks: 2 }]

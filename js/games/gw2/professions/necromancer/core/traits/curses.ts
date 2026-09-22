@@ -3,7 +3,8 @@ import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import {
   balanceProfileEffect,
   balanceProfileFromContext,
-  procChanceFromContext
+  procChanceFromContext,
+  balanceProfileEffectFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
@@ -59,14 +60,15 @@ export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
 
 export function applyBitterChill(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.condition !== 'Chilled' || !hasTrait(context, TRAIT.BITTER_CHILL)) return;
+  const vulnerability = balanceProfileEffectFromContext(context, TRAIT.BITTER_CHILL, 'condition', 0)!;
   context.queue.enqueue(
     buildResolverCondition({
       at: event.at,
       name: 'Bitter Chill',
       skillName: 'Bitter Chill',
       condition: 'Vulnerability',
-      stacks: 3,
-      duration: 8,
+      stacks: Number(vulnerability.stacks),
+      duration: Number(vulnerability.duration),
       source: 'Trait',
       sourceId: TRAIT.BITTER_CHILL,
       actorType: 'effect',

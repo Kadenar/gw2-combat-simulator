@@ -21,6 +21,107 @@ import { necromancerCoreCastRules } from '#gw2/professions/necromancer/core/trai
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 
+// A single sparse profile edit must reach the build panel, combat, and tooltip without duplicate tuning inputs.
+test('Radiant Power shares patched attribute and critical-chance values across consumers', async () => {
+  const { guardianProfession } = await import('#gw2/professions/guardian/profession.js');
+  const { guardianTooltips } = await import('#gw2/professions/guardian/app/tooltips.js');
+  const { GUARDIAN_TRAIT_IDS: traits } = await import('#gw2/professions/guardian/data/ids.js');
+  const { createGuardianBuildDefaults } = await import('#gw2/professions/guardian/build/build.js');
+  const { applyGuardianBuildAttributeRules } = await import('#gw2/professions/guardian/build/attributes.js');
+  const preview = withPatchPreview(guardianProfession, {
+    id: 'radiant-profile',
+    label: 'Radiant profile',
+    professions: {
+      guardian: {
+        balanceProfiles: { [traits.RADIANT_POWER]: { fields: { attributeBonus: 237, criticalChance: 0.17 } } }
+      }
+    }
+  }).balanceContextFor('radiant-profile');
+  const build = createGuardianBuildDefaults();
+  build.specializations = [{ name: 'Radiance', traits: '2-3-3' }];
+  const calculate = createCalculateAttributes(applyGuardianBuildAttributeRules);
+  const all = calculate(build, [], 1, null, null, preview).attributes;
+  const without = calculate(build, [], 1, 'Radiant Power', null, preview).attributes;
+  assert.equal(all.Ferocity.final - without.Ferocity.final, 237);
+  const context = { catalog: preview.catalog, config: { selectedTraitIds: [traits.RADIANT_POWER] }, time: 0 };
+  const ferocity = preview.modifierRulesById.get('guardian.radiant-power-ferocity');
+  assert.equal(ferocity.amount(context), 237);
+  assert.equal(
+    ferocity.amount({
+      ...context,
+      config: { ...context.config, attributeProvenance: { professionStaticRulesApplied: true } }
+    }),
+    0
+  );
+  assert.equal(preview.modifierRulesById.get('guardian.radiant-power-critical-chance').amount(context), 0.17);
+  const model = describeSimulationTrait(
+    preview,
+    preview.catalog.traits.find(({ id }) => id === traits.RADIANT_POWER),
+    guardianTooltips
+  );
+  assert.equal(model.facts.find(({ name }) => name === 'Ferocity').detail, '237');
+  assert.equal(model.facts.find(({ name }) => name === 'Critical chance against burning targets').detail, '+17%');
+});
+
+// Duration edits must reach both calculation routes without applying the bonus twice.
+test('Carbolic Composition shares one patched duration bonus across consumers', async () => {
+  const { engineerProfession } = await import('#gw2/professions/engineer/profession.js');
+  const { engineerTooltips } = await import('#gw2/professions/engineer/app/tooltips.js');
+  const { ENGINEER_TRAIT_IDS: traits } = await import('#gw2/professions/engineer/data/ids.js');
+  const { createEngineerBuildDefaults } = await import('#gw2/professions/engineer/build/build.js');
+  const { applyEngineerBuildAttributeRules } = await import('#gw2/professions/engineer/build/attributes.js');
+  const preview = withPatchPreview(engineerProfession, {
+    id: 'carbolic-profile',
+    label: 'Carbolic profile',
+    professions: {
+      engineer: { balanceProfiles: { [traits.CARBOLIC_COMPOSITION]: { fields: { conditionDurationBonus: 0.42 } } } }
+    }
+  }).balanceContextFor('carbolic-profile');
+  const build = createEngineerBuildDefaults();
+  build.specializations = [{ name: 'Amalgam', traits: '1-1-1' }];
+  const calculated = createCalculateAttributes(applyEngineerBuildAttributeRules)(build, [], 1, null, null, preview);
+  assert.equal(calculated.attributes['Poison Duration'].traits, 42);
+  const rule = preview.modifierRulesById.get('engineer.carbolic-composition-duration');
+  const context = {
+    catalog: preview.catalog,
+    config: { selectedTraitIds: [traits.CARBOLIC_COMPOSITION] },
+    condition: 'Poisoned'
+  };
+  assert.equal(rule.amount(context), 0.42);
+  assert.equal(rule.when(context), true);
+  assert.equal(
+    rule.when({
+      ...context,
+      config: { ...context.config, attributeProvenance: { professionStaticRulesApplied: true } }
+    }),
+    false
+  );
+  const model = describeSimulationTrait(preview, { id: traits.CARBOLIC_COMPOSITION }, engineerTooltips);
+  assert.equal(model.facts.find(({ name }) => name === 'Poison duration').detail, '+42%');
+});
+
+test('Pure Strike has one authored critical-damage multiplier shared by combat and tooltip', async () => {
+  const { warriorProfession } = await import('#gw2/professions/warrior/profession.js');
+  const { warriorTooltips } = await import('#gw2/professions/warrior/app/tooltips.js');
+  const { WARRIOR_TRAIT_IDS: traits } = await import('#gw2/professions/warrior/data/ids.js');
+  const preview = withPatchPreview(warriorProfession, {
+    id: 'pure-strike-profile',
+    label: 'Pure Strike profile',
+    professions: { warrior: { balanceProfiles: { [traits.PURE_STRIKE]: { fields: { criticalDamage: 1.35 } } } } }
+  }).balanceContextFor('pure-strike-profile');
+  const profile = preview.catalog.balanceProfilesById.get(traits.PURE_STRIKE);
+  assert.equal(Object.hasOwn(profile, 'coefficientMultiplier'), false);
+  assert.equal(Object.hasOwn(profile, 'damageMultiplier'), false);
+  const rule = preview.modifierRulesById.get('warrior.pure-strike');
+  assert.equal(rule.factor({ catalog: preview.catalog }), 1.35);
+  const model = describeSimulationTrait(
+    preview,
+    preview.catalog.traits.find(({ id }) => id === traits.PURE_STRIKE),
+    warriorTooltips
+  );
+  assert.equal(model.facts.find(({ name }) => name === 'Critical damage').detail, '+35%');
+});
+
 // Revenant trait facts expose the simulated bonuses and reuse the affected trait or standard resource icon.
 test('Revenant trait tooltips show bonuses, resource icons, and excluded traits', async () => {
   const { revenantProfession } = await import('#gw2/professions/revenant/profession.js');
@@ -247,10 +348,12 @@ test('selected balance context keeps trait tooltips and attribute bonuses on the
     professions: {
       necromancer: {
         modifierRules: {
-          'necromancer.death-perception-critical-chance': { amount: 0.2 },
           'necromancer.septic-corruption-blight': { parameters: { damagePerStack: 0.005 } }
         },
-        balanceProfiles: { 2185: { conditions: { Poisoned: { stacks: 2, duration: 4 } } } }
+        balanceProfiles: {
+          [TRAIT.DEATH_PERCEPTION]: { fields: { criticalChance: 0.2 } },
+          2185: { conditions: { Poisoned: { stacks: 2, duration: 4 } } }
+        }
       }
     }
   });
@@ -263,7 +366,7 @@ test('selected balance context keeps trait tooltips and attribute bonuses on the
   assert.equal(septic.facts.find((fact) => fact.name === 'Condition damage per blight').detail, '+0.5%');
   assert.match(septic.facts.find((fact) => fact.name === 'Poisoned').detail, /4s/);
   assert.equal(septic.facts.find((fact) => fact.name === 'Poisoned').stacks, 2);
-  assert.equal(live.modifierRulesById.get('necromancer.death-perception-critical-chance').amount, 0.15);
+  assert.equal(live.catalog.balanceProfilesById.get(TRAIT.DEATH_PERCEPTION).criticalChance, 0.15);
   assert.equal(profession.balanceContextFor('tooltip-check'), preview);
   assert.throws(() => profession.balanceContextFor('missing'), /Unknown/);
 

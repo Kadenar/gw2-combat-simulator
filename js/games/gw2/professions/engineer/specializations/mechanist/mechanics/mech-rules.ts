@@ -2,7 +2,8 @@ import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
 import { isEngineerMechEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
   balanceProfileFromContext,
-  balanceProfileValueFromContext
+  balanceProfileValueFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
@@ -106,18 +107,15 @@ export const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     id: 'engineer.mech-base-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.05,
+    amount: (context) => balanceProfileNumberFromContext(context, PROFILE.resources, 'criticalChance'),
     when: (context) => engineerMechEvent(context) && !hasTrait(context, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR)
   },
   {
     id: 'engineer.jade-cannons-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    parameters: {
-      criticalChance: 0.2
-    } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) =>
-      balanceProfileValueFromContext(context, PROFILE.jadeCannons, 'criticalChance', parameters.criticalChance),
+
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.MECH_ARMS_JADE_CANNONS, 'criticalChance'),
     when: (context) => engineerMechEvent(context) && hasTrait(context, TRAIT.MECH_ARMS_JADE_CANNONS)
   }
 ]);
@@ -138,7 +136,7 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Gw2S
       0,
       Number(modified.ferocity || 0) -
         (hasTrait(context, TRAIT.NO_SCOPE) && activeBoonStacks(context, 'fury', 1) > 0
-          ? balanceProfileValueFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.noScope, 'attributeBonus', 150)
+          ? balanceProfileNumberFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.noScope, 'attributeBonus')
           : 0)
     ),
     conditionDamage: Math.max(0, Number(modified.conditionDamage || 0) - mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK)

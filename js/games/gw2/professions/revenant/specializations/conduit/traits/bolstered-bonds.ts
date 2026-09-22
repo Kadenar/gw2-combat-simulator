@@ -1,3 +1,4 @@
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 /**
  * @fileoverview Shared Bolstered Bonds attribute formula for Revenant.
  *
@@ -11,7 +12,7 @@
  * avoiding duplication when build attributes are already present.
  */
 
-import { REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 // Legendary Entity grants every attribute represented by Bolstered Bonds.
 const ALL_ATTRIBUTES = Object.freeze([
@@ -36,6 +37,7 @@ const ALL_ATTRIBUTES = Object.freeze([
  * Bonuses keyed by runtime attribute name.
  */
 export function bolsteredBondsBonuses(
+  context: unknown,
   selectedLegendIds: readonly string[] = [],
   multiplier = 1
 ): Record<string, number> {
@@ -47,19 +49,20 @@ export function bolsteredBondsBonuses(
 
   for (const legendId of selectedLegendIds) {
     if (legendId === LEGEND.ASSASSIN) {
-      add('power', 75);
-      add('ferocity', 75);
+      add('power', balanceProfileNumberFromContext(context, TRAIT.BOLSTERED_BONDS, 'assassinAttributeBonus'));
+      add('ferocity', balanceProfileNumberFromContext(context, TRAIT.BOLSTERED_BONDS, 'assassinAttributeBonus'));
     } else if (legendId === LEGEND.CENTAUR) {
-      add('healingPower', 150);
-      add('concentration', 150);
+      add('healingPower', balanceProfileNumberFromContext(context, TRAIT.BOLSTERED_BONDS, 'centaurAttributeBonus'));
+      add('concentration', balanceProfileNumberFromContext(context, TRAIT.BOLSTERED_BONDS, 'centaurAttributeBonus'));
     } else if (legendId === LEGEND.DEMON) {
-      add('conditionDamage', 75);
-      add('expertise', 75);
+      add('conditionDamage', balanceProfileNumberFromContext(context, TRAIT.BOLSTERED_BONDS, 'demonAttributeBonus'));
+      add('expertise', balanceProfileNumberFromContext(context, TRAIT.BOLSTERED_BONDS, 'demonAttributeBonus'));
     } else if (legendId === LEGEND.DWARF) {
-      add('toughness', 150);
-      add('vitality', 150);
+      add('toughness', balanceProfileNumberFromContext(context, TRAIT.BOLSTERED_BONDS, 'dwarfAttributeBonus'));
+      add('vitality', balanceProfileNumberFromContext(context, TRAIT.BOLSTERED_BONDS, 'dwarfAttributeBonus'));
     } else if (legendId === LEGEND.ENTITY) {
-      for (const attribute of ALL_ATTRIBUTES) add(attribute, 75);
+      for (const attribute of ALL_ATTRIBUTES)
+        add(attribute, balanceProfileNumberFromContext(context, TRAIT.BOLSTERED_BONDS, 'entityAttributeBonus'));
     }
   }
 

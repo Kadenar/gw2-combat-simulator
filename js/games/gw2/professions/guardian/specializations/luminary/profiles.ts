@@ -128,6 +128,8 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     ]
   }),
   trait(LUMINARY_BALANCE_PROFILE_IDS.illuminatingInspiration, 'Illuminating Inspiration', { rechargeReduction: 4 }),
+  // Trait tuning is shared by build calculations, combat, and tooltips.
+  trait(TRAIT.LIGHTS_GIFT, "Light's Gift", { attributeBonus: 180 }),
   trait(LUMINARY_BALANCE_PROFILE_IDS.justiceIsBlind, 'Justice is Blind', {
     effects: [{ type: 'blind', duration: 3 }]
   })

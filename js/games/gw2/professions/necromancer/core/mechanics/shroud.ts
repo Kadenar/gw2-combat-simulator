@@ -1,6 +1,10 @@
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileEffect,
+  balanceProfileFromContext,
+  balanceProfileEffectFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -37,20 +41,34 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
     : 0;
   // Resolve entry-time carapace and life-force traits against the pre-transform state.
   if (hasTrait(context, TRAIT.SOUL_COMPREHENSION)) {
-    gainNecromancerLifeForce(context, Math.min(30, timedCarapace + minionCarapace) * 0.5, at);
+    gainNecromancerLifeForce(
+      context,
+      Math.min(
+        Number(balanceProfileFromContext(context, TRAIT.SOUL_COMPREHENSION)?.maximumStacks),
+        timedCarapace + minionCarapace
+      ) * Number(balanceProfileFromContext(context, TRAIT.SOUL_COMPREHENSION)?.lifeForcePerStack),
+      at
+    );
   }
 
   if (hasTrait(context, TRAIT.ARMORED_SHROUD)) {
-    addCarapace(state, 5, at);
+    addCarapace(
+      state,
+      Number(balanceProfileFromContext(context, TRAIT.ARMORED_SHROUD)?.resourceGain),
+      at,
+      Number(balanceProfileFromContext(context, TRAIT.ARMORED_SHROUD)?.duration)
+    );
   }
 
   if (hasTrait(context, TRAIT.SHROUDED_REMOVAL)) {
-    const activeCondition = (state.selfConditions || []).find((application) =>
-      isTimeInWindow(at, application.appliedAt, application.expiresAt)
-    );
-    if (activeCondition) {
-      state.selfConditions = state.selfConditions.filter((application) => application !== activeCondition);
-      addCarapace(state, 3, at);
+    // Remove only the patched number of active applications and reward each successful removal.
+    const profile = balanceProfileFromContext(context, TRAIT.SHROUDED_REMOVAL)!;
+    const removed = state.selfConditions
+      .filter((application) => isTimeInWindow(at, application.appliedAt, application.expiresAt))
+      .slice(0, Number(profile.maximumConditions));
+    if (removed.length) {
+      state.selfConditions = state.selfConditions.filter((application) => !removed.includes(application));
+      addCarapace(state, removed.length * Number(profile.resourceGain), at, Number(profile.duration));
     }
   }
 
@@ -74,33 +92,56 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
 
   // Emit shared on-entry boons and trait attacks after specialization lifecycle effects.
   if (hasTrait(context, TRAIT.SOUL_BARBS)) {
-    emitSkillBuff(context, skill, { at, kind: 'necromancer-soul-barbs', duration: 15, stacks: 1 });
+    emitSkillBuff(context, skill, {
+      at,
+      kind: 'necromancer-soul-barbs',
+      duration: Number(balanceProfileFromContext(context, TRAIT.SOUL_BARBS)?.duration),
+      stacks: 1
+    });
   }
 
   if (hasTrait(context, TRAIT.AWAKEN_THE_PAIN)) {
-    emitSkillBuff(context, skill, { at, kind: 'might', duration: 5, stacks: 5 });
+    const boon = balanceProfileEffectFromContext(context, TRAIT.AWAKEN_THE_PAIN, 'boon', 0)!;
+    emitSkillBuff(context, skill, { at, kind: 'might', duration: Number(boon.duration), stacks: Number(boon.stacks) });
   }
 
   if (hasTrait(context, TRAIT.FURIOUS_DEMISE)) {
-    emitSkillBuff(context, skill, { at, kind: 'fury', duration: 8, stacks: 1 });
+    const boon = balanceProfileEffectFromContext(context, TRAIT.FURIOUS_DEMISE, 'boon', 0)!;
+    emitSkillBuff(context, skill, { at, kind: 'fury', duration: Number(boon.duration), stacks: Number(boon.stacks) });
   }
 
   if (hasTrait(context, TRAIT.SPEED_OF_SHADOWS)) {
-    emitSkillBuff(context, skill, { at, kind: 'swiftness', duration: 10, stacks: 1 });
+    const boon = balanceProfileEffectFromContext(context, TRAIT.SPEED_OF_SHADOWS, 'boon', 0)!;
+    emitSkillBuff(context, skill, {
+      at,
+      kind: 'swiftness',
+      duration: Number(boon.duration),
+      stacks: Number(boon.stacks)
+    });
   }
 
   if (hasTrait(context, TRAIT.ETERNAL_LIFE)) {
-    emitSkillBuff(context, skill, { at, kind: 'protection', duration: 3, stacks: 1 });
+    const boon = balanceProfileEffectFromContext(context, TRAIT.ETERNAL_LIFE, 'boon', 0)!;
+    emitSkillBuff(context, skill, {
+      at,
+      kind: 'protection',
+      duration: Number(boon.duration),
+      stacks: Number(boon.stacks)
+    });
   }
 
   if (hasTrait(context, TRAIT.WEAKENING_SHROUD)) {
+    const profile = balanceProfileFromContext(context, TRAIT.WEAKENING_SHROUD);
+    const strike = balanceProfileEffect(profile, 'strike')!;
+    const bleeding = balanceProfileEffect(profile, 'condition', 0)!;
+    const weakness = balanceProfileEffect(profile, 'condition', 1)!;
     emitSkillDamage(context, skill, {
       at,
       name: 'Weakening Shroud',
       source: 'Trait',
       sourceId: TRAIT.WEAKENING_SHROUD,
       actorType: 'effect',
-      coefficient: 1.5,
+      coefficient: Number(strike.coefficient),
       skillWeapon: 'Unequipped'
     });
     emitSkillCondition(context, {
@@ -110,8 +151,8 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
       sourceId: TRAIT.WEAKENING_SHROUD,
       actorType: 'effect',
       condition: 'Bleeding',
-      stacks: 2,
-      duration: 10
+      stacks: Number(bleeding.stacks),
+      duration: Number(bleeding.duration)
     });
     emitSkillCondition(context, {
       skill,
@@ -120,8 +161,8 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
       sourceId: TRAIT.WEAKENING_SHROUD,
       actorType: 'effect',
       condition: 'Weakness',
-      stacks: 1,
-      duration: 6
+      stacks: Number(weakness.stacks),
+      duration: Number(weakness.duration)
     });
   }
 

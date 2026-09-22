@@ -1,6 +1,7 @@
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -78,7 +79,7 @@ export const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'mesmer.flow-of-time-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.15,
+    amount: (context) => balanceProfileNumberFromContext(context, MESMER_TRAIT_IDS.FLOW_OF_TIME, 'criticalChance'),
     when: (context) =>
       hasTrait(context, TRAIT.FLOW_OF_TIME) &&
       Boolean(context.config?.boons?.alacrity) &&
@@ -88,7 +89,7 @@ export const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'mesmer.danger-time',
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
-    factor: 1.05,
+    factor: (context) => 1 + balanceProfileNumberFromContext(context, MESMER_TRAIT_IDS.DANGER_TIME, 'criticalDamage'),
     when: (context) =>
       hasTrait(context, TRAIT.DANGER_TIME) &&
       ['player', 'summon'].includes(gw2EventActorType(context.event)) &&

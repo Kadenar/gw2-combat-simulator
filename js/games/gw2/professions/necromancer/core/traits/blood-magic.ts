@@ -316,6 +316,10 @@ export function applyOverflowingThirst(context: NecromancerCastContext, skill: N
 /** Applies Transfusion's Lesser Chilblains package after a shroud-slot-four cast. */
 export function applyTransfusion(context: NecromancerCastContext, skill: NecromancerSkill): void {
   if (skill.shroudSlot !== 4 || !hasTrait(context, TRAIT.TRANSFUSION)) return;
+  const profile = balanceProfileFromContext(context, TRAIT.TRANSFUSION);
+  const strike = balanceProfileEffect(profile, 'strike')!;
+  const poison = balanceProfileEffect(profile, 'condition', 0)!;
+  const chill = balanceProfileEffect(profile, 'condition', 1)!;
   const lesserChilblainsIcon = String(context.catalog.skillsById.get(ID.CHILLBLAINS)?.icon || '');
   emitSkillDamage(context, skill, {
     at: context.effectiveEnd,
@@ -327,7 +331,7 @@ export function applyTransfusion(context: NecromancerCastContext, skill: Necroma
     skillName: 'Lesser Chilblains',
     parentSkillName: skill.name,
     triggeredBy: skill.name,
-    coefficient: 1.8,
+    coefficient: Number(strike.coefficient),
     skillWeapon: 'Unequipped',
     icon: lesserChilblainsIcon
   });
@@ -343,8 +347,8 @@ export function applyTransfusion(context: NecromancerCastContext, skill: Necroma
     triggeredBy: skill.name,
     name: 'Lesser Chilblains - Poisoned',
     condition: 'Poisoned',
-    stacks: 2,
-    duration: 4,
+    stacks: Number(poison.stacks),
+    duration: Number(poison.duration),
     icon: lesserChilblainsIcon
   });
   // Queue unscaled Chill after the strike and poison so shared condition reactions own its application.
@@ -361,6 +365,6 @@ export function applyTransfusion(context: NecromancerCastContext, skill: Necroma
     skillName: 'Lesser Chilblains',
     parentSkillName: skill.name,
     triggeredBy: skill.name,
-    duration: 2
+    duration: Number(chill.duration)
   });
 }

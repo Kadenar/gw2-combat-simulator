@@ -86,7 +86,11 @@ export const WILLBENDER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
       }
     ]
   }),
+  // Trait tuning is shared by build calculations, combat, and tooltips.
+  trait(TRAIT.POWER_FOR_POWER, 'Power for Power', { attributeBonus: 120 }),
+  trait(TRAIT.CONCEITED_CURATE, 'Conceited Curate', { attributeBonus: 180 }),
   trait(WILLBENDER_BALANCE_PROFILE_IDS.searingPact, 'Searing Pact', {
+    attributeBonus: 120,
     effects: [{ type: 'condition', condition: 'Burning', stacks: 1, duration: 1 }]
   })
 ]);

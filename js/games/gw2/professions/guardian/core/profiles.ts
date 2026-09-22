@@ -286,15 +286,18 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     ])
   }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.righteousInstincts, 'Righteous Instincts', {
+    criticalChance: 0.25,
     pulseInterval: 1,
     effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 6 }]
   }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.zealousBlade, 'Zealous Blade', {
+    weaponAttributeBonus: 240,
     attributeBonus: 120,
     rechargeMultiplier: 0.8
   }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.rightHandStrength, 'Right-Hand Strength', { attributeBonus: 80 }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.radiantPower, 'Radiant Power', {
+    criticalChance: 0.1,
     attributeBonus: 150
   }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.powerOfTheVirtuous, 'Power of the Virtuous', {
@@ -307,10 +310,10 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     profileKind: 'skill-variant',
     parentId: ID.SIGNET_OF_WRATH,
     attributeBonus: 180,
-    damageMultiplier: 1.2,
     effects: []
   },
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.radiantFire, 'Radiant Fire', {
+    conditionDurationBonus: 0.2,
     rechargeMultiplier: 0.8,
     durationMultiplier: 1.5,
     maximumStacks: 2
@@ -321,6 +324,22 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.amplifiedWrath, 'Amplified Wrath', {
     durationMultiplier: 1.2
   }),
+  {
+    id: 'guardian.core.bane-signet-passive',
+    name: 'Bane Signet - Passive',
+    profileKind: 'skill-variant',
+    parentId: ID.BANE_SIGNET,
+    attributeBonus: 180,
+    effects: []
+  },
+  trait(TRAIT.PERFECT_INSCRIPTIONS, 'Perfect Inscriptions', {
+    attributeMultiplier: 1.2
+  }),
+  // Trait tuning is shared by build calculations, combat, and tooltips.
+  trait(TRAIT.FORCE_OF_WILL, 'Force of Will', { attributeBonus: 300 }),
+  trait(TRAIT.HONORABLE_STAFF, 'Honorable Staff', { attributeBonus: 120 }),
+  trait(TRAIT.STALWART_DEFENDER, 'Stalwart Defender', { attributeBonus: 240 }),
+  trait(TRAIT.KINDLED_ZEAL, 'Kindled Zeal', { attributeConversion: 0.1 }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.eternalArmory, 'Eternal Armory', {
     resourceGain: 1
   })

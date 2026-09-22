@@ -1,4 +1,7 @@
-import { SOULBEAST_ARCHETYPE_ATTRIBUTES } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { soulbeastArchetypeAttributes } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
 import { getActiveTraits } from '#gw2/professions/ranger/data/traits-data.js';
 import {
   createBuildAttributeContext,
@@ -29,7 +32,7 @@ const BUILD_ATTRIBUTE_NAMES: Readonly<Record<string, string>> = Object.freeze({
 // bonuses before finalizing the selected weapon set's build attributes.
 export function applyRangerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, selectedSkills = [], weaponSet = 1, disabledTrait = null }: Gw2BuildAttributeRuleContext
+  { build, selectedSkills = [], weaponSet = 1, disabledTrait = null, balanceContext }: Gw2BuildAttributeRuleContext
 ) {
   const rangerBuild = build as RangerBuild;
 
@@ -40,6 +43,8 @@ export function applyRangerBuildAttributeRules(
     getActiveTraits
   });
 
+  // Attribute amounts follow the selected patch while effect ordering and eligibility remain unchanged.
+  const profileContext = balanceContext ?? { catalog: rangerCatalog };
   const traitDurations: Record<string, number> = {};
   const weapons = weaponSet === 2 ? rangerBuild.alternateWeapons : rangerBuild.weapons;
 
@@ -50,7 +55,11 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: "Strider's Strength",
       to: 'Power',
-      amount: weapons?.includes('Sword') ? 240 : 120,
+      amount: balanceProfileNumberFromContext(
+        profileContext,
+        TRAIT.STRIDERS_STRENGTH,
+        weapons?.includes('Sword') ? 'weaponAttributeBonus' : 'attributeBonus'
+      ),
       feedsConversions: false,
       enabled: hasTrait("Strider's Strength")
     },
@@ -58,7 +67,11 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: 'Honed Axes',
       to: 'Ferocity',
-      amount: weapons?.includes('Axe') ? 240 : 120,
+      amount: balanceProfileNumberFromContext(
+        profileContext,
+        TRAIT.HONED_AXES,
+        weapons?.includes('Axe') ? 'weaponAttributeBonus' : 'attributeBonus'
+      ),
       feedsConversions: false,
       enabled: hasTrait('Honed Axes')
     }
@@ -70,7 +83,7 @@ export function applyRangerBuildAttributeRules(
         kind: 'flat',
         source: 'Pack Alpha',
         to: attribute,
-        amount: 150,
+        amount: balanceProfileNumberFromContext(profileContext, TRAIT.PACK_ALPHA, 'attributeBonus'),
         feedsConversions: false
       });
     }
@@ -83,7 +96,7 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: "Pet's Prowess",
       to: 'Ferocity',
-      amount: 300,
+      amount: balanceProfileNumberFromContext(profileContext, TRAIT.PETS_PROWESS, 'attributeBonus'),
       feedsConversions: false,
       enabled: soulbeast && hasTrait("Pet's Prowess")
     },
@@ -91,7 +104,11 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: 'Ambidexterity',
       to: 'Condition Damage',
-      amount: favoredWeapon ? 240 : 120,
+      amount: balanceProfileNumberFromContext(
+        profileContext,
+        TRAIT.AMBIDEXTERITY,
+        favoredWeapon ? 'weaponAttributeBonus' : 'attributeBonus'
+      ),
       feedsConversions: false,
       enabled: hasTrait('Ambidexterity')
     },
@@ -99,7 +116,7 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: 'Arachnophobia',
       to: 'Expertise',
-      amount: 150,
+      amount: balanceProfileNumberFromContext(profileContext, TRAIT.ARACHNOPHOBIA, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Arachnophobia')
     },
@@ -107,7 +124,7 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: 'Lingering Magic',
       to: 'Concentration',
-      amount: 240,
+      amount: balanceProfileNumberFromContext(profileContext, TRAIT.LINGERING_MAGIC, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Lingering Magic')
     },
@@ -115,7 +132,7 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: 'Natural Fortitude',
       to: 'Vitality',
-      amount: 240,
+      amount: balanceProfileNumberFromContext(profileContext, TRAIT.NATURAL_FORTITUDE, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Natural Fortitude')
     },
@@ -124,7 +141,7 @@ export function applyRangerBuildAttributeRules(
       source: 'Wellspring',
       from: 'Power',
       to: 'Healing Power',
-      multiplier: 0.07,
+      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.WELLSPRING, 'attributeConversion'),
       rounding: 'none',
       input: 'common',
       enabled: hasTrait('Wellspring')
@@ -133,7 +150,7 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: 'Vicious Quarry',
       to: 'Ferocity',
-      amount: 250,
+      amount: balanceProfileNumberFromContext(profileContext, TRAIT.VICIOUS_QUARRY, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Vicious Quarry') && rangerBuild.assumptions?.fury !== false
     },
@@ -141,7 +158,7 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: 'Signet of the Wild',
       to: 'Ferocity',
-      amount: 180,
+      amount: balanceProfileNumberFromContext(profileContext, 'ranger.core.signet-of-the-wild', 'attributeBonus'),
       feedsConversions: false,
       enabled: hasSelectedSkill('Signet of the Wild')
     }
@@ -150,7 +167,7 @@ export function applyRangerBuildAttributeRules(
   if (soulbeast) {
     const archetype = selectedRangerPet(rangerBuild)?.archetype || '';
 
-    for (const [attribute, amount] of Object.entries(SOULBEAST_ARCHETYPE_ATTRIBUTES[archetype] || {})) {
+    for (const [attribute, amount] of Object.entries(soulbeastArchetypeAttributes(profileContext, archetype))) {
       attributeEffects.push({
         kind: 'flat',
         source: `Soulbeast ${archetype}`,

@@ -1,5 +1,9 @@
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileValueFromContext,
+  balanceProfileFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -37,7 +41,7 @@ function modifyEngineerConditionBaseDuration(context: Gw2ModifierContext, multip
   }
 
   // Apply the skill-specific increase uniformly so every pistol condition keeps it beyond the global duration cap.
-  return multiplier * (4 / 3);
+  return multiplier * Number(balanceProfileFromContext(context, TRAIT.CHEMICAL_ROUNDS)?.conditionDurationMultiplier);
 }
 
 export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -132,14 +136,14 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'engineer.high-caliber',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.15,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.HIGH_CALIBER, 'criticalChance'),
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.HIGH_CALIBER)
   },
   {
     id: 'engineer.grand-entrance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.1,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.GRAND_ENTRANCE, 'criticalChance'),
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.GRAND_ENTRANCE) &&
@@ -149,30 +153,16 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'engineer.heavy-metal-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    parameters: {
-      lowerThreshold: 0.25,
-      middleThreshold: 0.5,
-      upperThreshold: 0.75,
-      lowerBonus: 0.15,
-      middleBonus: 0.1,
-      upperBonus: 0.05
-    } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) => heavyMetalBonus(context, parameters),
+
+    amount: (context) => heavyMetalBonus(context),
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.HEAVY_METAL)
   },
   {
     id: 'engineer.heavy-metal-critical-damage',
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
-    parameters: {
-      lowerThreshold: 0.25,
-      middleThreshold: 0.5,
-      upperThreshold: 0.75,
-      lowerBonus: 0.15,
-      middleBonus: 0.1,
-      upperBonus: 0.05
-    } as Readonly<Record<string, number>>,
-    factor: (context, _target, parameters) => 1 + heavyMetalBonus(context, parameters),
+
+    factor: (context) => 1 + heavyMetalBonus(context),
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.HEAVY_METAL)
   },
   {
@@ -180,7 +170,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'engineer.static-discharge-critical-damage',
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
-    factor: 2,
+    factor: (context) => balanceProfileNumberFromContext(context, TRAIT.STATIC_DISCHARGE, 'criticalDamage'),
     when: (context) => context.event?.staticDischarge === true
   },
   {
@@ -198,16 +188,8 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'engineer.serrated-steel-duration',
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
-    parameters: {
-      durationMultiplier: 0.33
-    } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) =>
-      balanceProfileValueFromContext(
-        context,
-        PROFILE.serratedSteel,
-        'durationMultiplier',
-        parameters.durationMultiplier
-      ),
+
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.SERRATED_STEEL, 'durationMultiplier'),
     // Panel-derived simulation stats already contain this static bonus; provenance keeps direct simulations compatible.
     when: (context) =>
       context.condition === 'Bleeding' &&
@@ -218,16 +200,8 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'engineer.incendiary-powder-duration',
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
-    parameters: {
-      durationMultiplier: 0.33
-    } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) =>
-      balanceProfileValueFromContext(
-        context,
-        PROFILE.incendiaryPowder,
-        'durationMultiplier',
-        parameters.durationMultiplier
-      ),
+
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.INCENDIARY_POWDER, 'durationMultiplier'),
     when: (context) =>
       context.condition === 'Burning' &&
       hasTrait(context, TRAIT.INCENDIARY_POWDER) &&
@@ -237,7 +211,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'engineer.hematic-focus',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.15,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.HEMATIC_FOCUS, 'criticalChance'),
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.HEMATIC_FOCUS) &&
@@ -253,13 +227,13 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: G
   if (hasTrait(context, TRAIT.CHEMICAL_ROUNDS) && !buildAttributesApplied) {
     modified.conditionDamage =
       Number(modified.conditionDamage || 0) +
-      balanceProfileValueFromContext(context, PROFILE.chemicalRounds, 'attributeBonus', 120);
+      balanceProfileNumberFromContext(context, PROFILE.chemicalRounds, 'attributeBonus');
   }
 
   if (hasTrait(context, TRAIT.THERMAL_VISION) && !buildAttributesApplied) {
     modified.expertise =
       Number(modified.expertise || 0) +
-      balanceProfileValueFromContext(context, PROFILE.thermalVision, 'attributeBonus', 150);
+      balanceProfileNumberFromContext(context, PROFILE.thermalVision, 'attributeBonus');
   }
 
   if (
@@ -268,7 +242,7 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: G
     // only skip if regen is a permanent assumption AND build attributes already account for it
     !(buildAttributesApplied && Boolean(context.config?.boons?.regeneration))
   ) {
-    const attributeBonus = balanceProfileValueFromContext(context, PROFILE.energyAmplifier, 'attributeBonus', 250);
+    const attributeBonus = balanceProfileNumberFromContext(context, PROFILE.energyAmplifier, 'attributeBonus');
     modified.power = Number(modified.power || 0) + attributeBonus;
     modified.healingPower = Number(modified.healingPower || 0) + attributeBonus;
   }
@@ -279,7 +253,7 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: G
     !(buildAttributesApplied && Boolean(context.config?.boons?.fury))
   ) {
     modified.ferocity =
-      Number(modified.ferocity || 0) + balanceProfileValueFromContext(context, PROFILE.noScope, 'attributeBonus', 150);
+      Number(modified.ferocity || 0) + balanceProfileNumberFromContext(context, PROFILE.noScope, 'attributeBonus');
   }
 
   if (hasTrait(context, TRAIT.EXPLOSIVE_TEMPER)) {
@@ -290,7 +264,7 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: G
         'explosive-temper',
         balanceProfileValueFromContext(context, PROFILE.explosiveTemper, 'maximumStacks', 10)
       ) *
-        balanceProfileValueFromContext(context, PROFILE.explosiveTemper, 'attributePerStack', 20);
+        balanceProfileNumberFromContext(context, PROFILE.explosiveTemper, 'attributePerStack');
   }
 
   applyEngineerSharpshooterConditionDamage(context, modified);
@@ -323,14 +297,14 @@ export function applyEngineerSharpshooterConditionDamage(
 function modifyEngineerCoreRechargeDuration(context: EngineerRechargeContext, duration: number): number {
   const skill = context.skill;
   if (isEngineerToolbeltSkill(skill) && hasTrait(context.config, TRAIT.MECHANIZED_DEPLOYMENT)) {
-    return duration * 0.85;
+    return duration * Number(balanceProfileFromContext(context, TRAIT.MECHANIZED_DEPLOYMENT)?.rechargeMultiplier);
   }
 
   if (
     skill?.categories?.some((category) => String(category).toLowerCase() === 'gadget') &&
     hasTrait(context.config, TRAIT.GADGETEER)
   ) {
-    return duration * 0.8;
+    return duration * Number(balanceProfileFromContext(context, TRAIT.GADGETEER)?.rechargeMultiplier);
   }
 
   return duration;

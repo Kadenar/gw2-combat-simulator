@@ -1,3 +1,5 @@
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import {
   activeBoonStacks,
@@ -42,11 +44,14 @@ export function eventSkill(context: Gw2ModifierContext): EngineerSkill | undefin
 }
 
 /** Selects Heavy Metal's critical bonus from the target's current health tier. */
-export function heavyMetalBonus(context: Gw2ModifierContext, parameters: Readonly<Record<string, number>>): number {
+export function heavyMetalBonus(context: Gw2ModifierContext): number {
   const fraction = targetHealthFraction(context);
-  if (fraction < parameters.lowerThreshold) return parameters.lowerBonus;
-  if (fraction < parameters.middleThreshold) return parameters.middleBonus;
-  if (fraction < parameters.upperThreshold) return parameters.upperBonus;
+  if (fraction < balanceProfileNumberFromContext(context, TRAIT.HEAVY_METAL, 'lowerThreshold'))
+    return balanceProfileNumberFromContext(context, TRAIT.HEAVY_METAL, 'lowerBonus');
+  if (fraction < balanceProfileNumberFromContext(context, TRAIT.HEAVY_METAL, 'middleThreshold'))
+    return balanceProfileNumberFromContext(context, TRAIT.HEAVY_METAL, 'middleBonus');
+  if (fraction < balanceProfileNumberFromContext(context, TRAIT.HEAVY_METAL, 'upperThreshold'))
+    return balanceProfileNumberFromContext(context, TRAIT.HEAVY_METAL, 'upperBonus');
   return 0;
 }
 

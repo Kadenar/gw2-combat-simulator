@@ -83,6 +83,10 @@ export const REAPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
   trait(REAPER_BALANCE_PROFILE_IDS.blightersBoon, "Blighter's Boon", {
     lifeForceGain: 1
   }),
+  trait(TRAIT.DECIMATE_DEFENSES, 'Decimate Defenses', {
+    maximumStacks: 25,
+    criticalChancePerStack: 0.02
+  }),
   trait(REAPER_BALANCE_PROFILE_IDS.reapersOnslaught, "Reaper's Onslaught", {
     attributeBonus: 300,
     rechargeReduction: 1

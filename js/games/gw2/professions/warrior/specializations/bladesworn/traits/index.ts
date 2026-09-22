@@ -1,4 +1,8 @@
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileEffect,
+  balanceProfileFromContext,
+  balanceProfileEffectFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { reduceMatchingCooldowns } from '#gw2/platform/execution/cooldowns.js';
 import {
   emitSkillBuff,
@@ -163,6 +167,7 @@ export function applyDragonSlashTraits(context: WarriorCastContext, skill: Warri
   }
 
   if (hasTrait(context, TRAIT.DARING_DRAGON)) {
+    const alacrity = balanceProfileEffectFromContext(context, TRAIT.DARING_DRAGON, 'boon', 0)!;
     emitSkillBuff(context, {
       at: context.effectiveEnd,
       source: 'Trait',
@@ -173,8 +178,8 @@ export function applyDragonSlashTraits(context: WarriorCastContext, skill: Warri
       name: 'Daring Dragon — Alacrity',
       kind: 'alacrity',
       boon: 'alacrity',
-      stacks: 1,
-      duration: gw2SchedulerBoonDuration(context, skill, 'alacrity', 10),
+      stacks: Number(alacrity.stacks),
+      duration: gw2SchedulerBoonDuration(context, skill, 'alacrity', Number(alacrity.duration)),
       audience: { recipients: 'party' as const }
     });
   }

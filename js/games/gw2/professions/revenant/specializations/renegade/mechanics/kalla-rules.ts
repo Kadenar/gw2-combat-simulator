@@ -1,3 +1,4 @@
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -103,7 +104,8 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'revenant.blood-fury-bleeding-duration',
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
-    amount: 0.25,
+    amount: (context) =>
+      balanceProfileNumberFromContext(context, RENEGADE_PROFILE_IDS.bloodFury, 'conditionDurationBonus'),
     // Blood Fury shares the chronological player-Fury query used by Core Revenant modifiers.
     when: (context) =>
       context.condition === 'Bleeding' && hasTrait(context, TRAIT.BLOOD_FURY) && boonActive(context, 'fury')
@@ -117,7 +119,14 @@ function modifyRenegadeCriticalChance(context: Gw2ModifierContext, chance: numbe
   // 1e-9 tolerance handles floating-point endurance values that should be exactly at cap
   const full = maximum > 0 && Number(state.endurance || 0) >= maximum - 1e-9;
   // At full endurance: +33% crit; below full: +10% crit
-  return chance + (full ? 0.33 : 0.1);
+  return (
+    chance +
+    balanceProfileNumberFromContext(
+      context,
+      RENEGADE_PROFILE_IDS.brutalMomentum,
+      full ? 'fullEnduranceCriticalChance' : 'criticalChance'
+    )
+  );
 }
 
 export const renegadeAttributeRules = Object.freeze({

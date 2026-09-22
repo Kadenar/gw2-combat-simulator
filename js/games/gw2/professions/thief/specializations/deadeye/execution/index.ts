@@ -1,7 +1,11 @@
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 /** Registers scheduler-phase skill activations for this module. */
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileEffect,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { augmentSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -160,7 +164,8 @@ function completeMercy(context: ThiefCastContext): void {
   const profile = balanceProfileFromContext(context, PROFILE.mercy);
   gainThiefInitiative(
     context,
-    Number(profile?.resourceGain ?? 3) + malice * Number(profile?.attributePerStack ?? 1),
+    Number(profile?.resourceGain ?? 3) +
+      malice * balanceProfileNumberFromContext(context, PROFILE.mercy, 'attributePerStack'),
     context.effectiveEnd,
     'mercy'
   );

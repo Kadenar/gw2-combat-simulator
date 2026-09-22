@@ -415,7 +415,7 @@ test('Signet of Midnight expertise is inactive while recharging', () => {
       secondaryWeapon: '',
       stats: {
         ...defaults.stats,
-        expertise: 180
+        expertise: 0
       },
       boons: {
         ...defaults.boons,
@@ -447,7 +447,7 @@ test('Continuum Shift restores Signet of Midnight passive expertise', () => {
       initialResource: 3,
       stats: {
         ...defaults.stats,
-        expertise: 180
+        expertise: 0
       },
       boons: {
         ...defaults.boons,

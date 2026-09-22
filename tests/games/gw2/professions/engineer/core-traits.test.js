@@ -1,8 +1,9 @@
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
@@ -626,17 +627,20 @@ test('Energy Amplifier adds Power and Healing Power during regeneration', () => 
     .resolveRuntime({
       specialization: 'Core'
     })
-    .modifyAttributes(context, {
-      power: 2000,
-      precision: 1000,
-      toughness: 1000,
-      vitality: 1000,
-      ferocity: 0,
-      conditionDamage: 0,
-      expertise: 0,
-      concentration: 0,
-      healingPower: 500
-    });
+    .modifyAttributes(
+      { catalog: engineerCatalog, ...context },
+      {
+        power: 2000,
+        precision: 1000,
+        toughness: 1000,
+        vitality: 1000,
+        ferocity: 0,
+        conditionDamage: 0,
+        expertise: 0,
+        concentration: 0,
+        healingPower: 500
+      }
+    );
 
   assert.equal(attributes.power, 2250);
   assert.equal(attributes.healingPower, 750);

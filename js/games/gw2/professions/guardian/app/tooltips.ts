@@ -231,9 +231,9 @@ export const guardianTooltips: ProfessionTooltips = {
     [ID.BANE_SIGNET]: skillTooltip(
       'Passively gain power while this signet is ready. Activate to knock down the target. Perfect Inscriptions strengthens the passive and keeps it active during recharge.',
       (balanceContext) => [
-        modifierFact(
+        profileFact(
           balanceContext,
-          'guardian.bane-signet-power',
+          'guardian.core.bane-signet-passive',
           'attributeBonus',
           'Base passive power',
           tooltipDecimal
@@ -243,9 +243,9 @@ export const guardianTooltips: ProfessionTooltips = {
     [ID.SIGNET_OF_WRATH]: skillTooltip(
       'Passively gain condition damage while this signet is ready. Activate to immobilize the target. Perfect Inscriptions strengthens the passive and keeps it active during recharge.',
       (balanceContext) => [
-        modifierFact(
+        profileFact(
           balanceContext,
-          'guardian.signet-of-wrath-condition-damage',
+          'guardian.core.signet-of-wrath-passive',
           'attributeBonus',
           'Base passive condition damage',
           tooltipDecimal
@@ -448,18 +448,27 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.ZEALOUS_BLADE]: traitTooltip(
       'Gain power, with an additional bonus while wielding a greatsword. Greatsword skills recharge faster.',
       (balanceContext, id) => [
-        modifierFact(balanceContext, 'guardian.zealous-blade-power', 'baseBonus', 'Power', tooltipDecimal),
-        modifierFact(
+        profileFact(balanceContext, TRAIT.ZEALOUS_BLADE, 'attributeBonus', 'Power', tooltipDecimal),
+        profileFact(
           balanceContext,
-          'guardian.zealous-blade-power',
-          'greatswordBonus',
-          'Additional greatsword power',
+          TRAIT.ZEALOUS_BLADE,
+          'weaponAttributeBonus',
+          'Power with a greatsword',
           tooltipDecimal
         ),
         profileFact(balanceContext, id, 'rechargeMultiplier', 'Greatsword recharge duration', tooltipFactorChange)
       ]
     ),
-    [TRAIT.KINDLED_ZEAL]: traitTooltip('Gain condition damage from eligible power.'),
+    // Attribute facts use the same patchable fields as the build calculator and runtime.
+    [TRAIT.KINDLED_ZEAL]: traitTooltip('Gain condition damage from eligible power.', (balanceContext, id) => [
+      profileFact(
+        balanceContext,
+        id,
+        'attributeConversion',
+        'Eligible power converted to condition damage',
+        tooltipPercent
+      )
+    ]),
     [TRAIT.ETERNAL_ARMORY]: traitTooltip('Spirit weapon skills gain additional ammunition.', (balanceContext, id) => [
       profileFact(balanceContext, id, 'resourceGain', 'Additional ammunition')
     ]),
@@ -478,12 +487,13 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.RADIANT_POWER]: traitTooltip(
       'Gain ferocity and additional critical-strike chance against burning targets.',
       (balanceContext) => [
-        modifierFact(balanceContext, 'guardian.radiant-power-ferocity', 'attributeBonus', 'Ferocity', tooltipDecimal),
-        modifierFact(
+        profileFact(balanceContext, TRAIT.RADIANT_POWER, 'attributeBonus', 'Ferocity', tooltipDecimal),
+        profileFact(
           balanceContext,
-          'guardian.radiant-power-critical-chance',
-          'amount',
-          'Critical chance against burning targets'
+          TRAIT.RADIANT_POWER,
+          'criticalChance',
+          'Critical chance against burning targets',
+          tooltipPercent
         )
       ]
     ),
@@ -491,16 +501,10 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.RIGHT_HAND_STRENGTH]: traitTooltip(
       'Gain precision and additional power with a one-handed main-hand weapon.',
       (balanceContext) => [
-        modifierFact(
+        profileFact(balanceContext, TRAIT.RIGHT_HAND_STRENGTH, 'attributeBonus', 'Precision', tooltipDecimal),
+        profileFact(
           balanceContext,
-          'guardian.right-hand-strength-precision',
-          'attributeBonus',
-          'Precision',
-          tooltipDecimal
-        ),
-        modifierFact(
-          balanceContext,
-          'guardian.right-hand-strength-power',
+          TRAIT.RIGHT_HAND_STRENGTH,
           'attributeBonus',
           'Power with a one-handed main hand',
           tooltipDecimal
@@ -514,7 +518,7 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.RADIANT_FIRE]: traitTooltip(
       "Burning lasts longer. Torch skills recharge faster; Zealot's Flame gains ammunition and its burning has an additional base-duration multiplier.",
       (balanceContext, id) => [
-        modifierFact(balanceContext, 'guardian.radiant-fire-duration', 'amount', 'Burning duration'),
+        profileFact(balanceContext, TRAIT.RADIANT_FIRE, 'conditionDurationBonus', 'Burning duration', tooltipPercent),
         profileFact(balanceContext, id, 'rechargeMultiplier', 'Torch recharge duration', tooltipFactorChange),
         profileFact(balanceContext, id, 'maximumStacks', "Zealot's Flame ammunition"),
         profileFact(
@@ -545,17 +549,17 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.PERFECT_INSCRIPTIONS]: traitTooltip(
       'Supported signet passives become stronger and remain active during recharge.',
       (balanceContext) => [
-        modifierFact(
+        profileFact(
           balanceContext,
-          'guardian.bane-signet-power',
-          'perfectInscriptionsMultiplier',
+          TRAIT.PERFECT_INSCRIPTIONS,
+          'attributeMultiplier',
           'Bane Signet passive bonus',
           tooltipFactorChange
         ),
-        modifierFact(
+        profileFact(
           balanceContext,
-          'guardian.signet-of-wrath-condition-damage',
-          'perfectInscriptionsMultiplier',
+          TRAIT.PERFECT_INSCRIPTIONS,
+          'attributeMultiplier',
           'Signet of Wrath passive bonus',
           tooltipFactorChange
         )
@@ -564,7 +568,13 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.RIGHTEOUS_INSTINCTS]: traitTooltip(
       'Resolution grants critical-strike chance and periodically grants might while active.',
       (balanceContext, id) => [
-        modifierFact(balanceContext, 'guardian.righteous-instincts', 'amount', 'Critical chance with resolution'),
+        profileFact(
+          balanceContext,
+          TRAIT.RIGHTEOUS_INSTINCTS,
+          'criticalChance',
+          'Critical chance with resolution',
+          tooltipPercent
+        ),
         profileFact(balanceContext, id, 'pulseInterval', 'Might interval', tooltipSeconds)
       ]
     ),
@@ -576,7 +586,10 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.FOCUS_MASTERY]: traitTooltip('Focus skills recharge faster.', (balanceContext, id) => [
       profileFact(balanceContext, id, 'rechargeMultiplier', 'Focus recharge duration', tooltipFactorChange)
     ]),
-    [TRAIT.STALWART_DEFENDER]: traitTooltip('Gain toughness while wielding an off-hand shield.'),
+    [TRAIT.STALWART_DEFENDER]: traitTooltip(
+      'Gain toughness while wielding an off-hand shield.',
+      (balanceContext, id) => [profileFact(balanceContext, id, 'attributeBonus', 'Toughness with an off-hand shield')]
+    ),
     [TRAIT.REDEMPTION]: outsideScopeTooltip,
     [TRAIT.COMMUNAL_DEFENSES]: outsideScopeTooltip,
     [TRAIT.ALTRUISTIC_HEALING]: outsideScopeTooltip,
@@ -605,7 +618,9 @@ export const guardianTooltips: ProfessionTooltips = {
         ]
       };
     },
-    [TRAIT.HONORABLE_STAFF]: traitTooltip('Gain concentration.'),
+    [TRAIT.HONORABLE_STAFF]: traitTooltip('Gain concentration.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'attributeBonus', 'Concentration')
+    ]),
     [TRAIT.PURE_OF_HEART]: outsideScopeTooltip,
     [TRAIT.EMPOWERING_MIGHT]: outsideScopeTooltip,
     [TRAIT.PURE_OF_VOICE]: outsideScopeTooltip,
@@ -626,7 +641,9 @@ export const guardianTooltips: ProfessionTooltips = {
         ]
       };
     },
-    [TRAIT.FORCE_OF_WILL]: traitTooltip('Gain vitality.'),
+    [TRAIT.FORCE_OF_WILL]: traitTooltip('Gain vitality.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'attributeBonus', 'Vitality')
+    ]),
     [TRAIT.INSPIRED_VIRTUE]: (balanceContext, entity) => {
       const tooltip = virtueBoons(
         'Activating a virtue grants the corresponding boon to the party. Deal increased strike damage for each different boon on you.'
@@ -648,10 +665,10 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.POWER_OF_THE_VIRTUOUS]: traitTooltip(
       'Gain condition damage from vitality. Virtues recharge faster; Firebrand tome dormancy is also shortened.',
       (balanceContext, id) => [
-        modifierFact(
+        profileFact(
           balanceContext,
-          'guardian.power-of-the-virtuous-condition-damage',
-          'vitalityConversion',
+          TRAIT.POWER_OF_THE_VIRTUOUS,
+          'attributeConversion',
           'Vitality converted to condition damage'
         ),
         profileFact(balanceContext, id, 'rechargeMultiplier', 'Virtue recharge duration', tooltipFactorChange)
@@ -677,8 +694,10 @@ export const guardianTooltips: ProfessionTooltips = {
     ),
     [TRAIT.RESOLUTE_SUBCONSCIOUS]: outsideScopeTooltip,
     [TRAIT.MASTER_OF_CONSECRATIONS]: traitTooltip(
-      'Purging Flames gains additional strike and burning pulses.',
-      undefined,
+      'Purging Flames gains additional strike and burning pulses and a longer fire field.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'durationMultiplier', 'Purging Flames fire field duration', tooltipFactorChange)
+      ],
       'additional Purging Flames effects'
     ),
     [TRAIT.INSPIRING_VIRTUE]: traitTooltip(
@@ -703,7 +722,9 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.VIRTUOUS_ACTION]: traitTooltip(
       'Replace the core virtues with Spear of Justice, Wings of Resolve, and Shield of Courage.'
     ),
-    [TRAIT.DEFENDERS_DOGMA]: traitTooltip('Gain vitality.'),
+    [TRAIT.DEFENDERS_DOGMA]: traitTooltip('Gain vitality.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'attributeBonus', 'Vitality')
+    ]),
     [TRAIT.PURE_OF_SIGHT]: traitTooltip(
       "Deal increased strike damage within the simulator's fixed positioning assumptions.",
       (balanceContext) => [
@@ -770,9 +791,9 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.IMBUED_HASTE]: traitTooltip(
       'Quickness grants condition damage, healing power, and vitality.',
       (balanceContext) => [
-        modifierFact(
+        profileFact(
           balanceContext,
-          'guardian.firebrand.imbued-haste-attributes',
+          TRAIT.IMBUED_HASTE,
           'attributeBonus',
           'Each attribute with quickness',
           tooltipDecimal
@@ -828,10 +849,14 @@ export const guardianTooltips: ProfessionTooltips = {
         )
       ]
     ),
-    [TRAIT.SEARING_PACT]: traitTooltip('Gain condition damage. Willbender flames also inflict burning.'),
+    [TRAIT.SEARING_PACT]: traitTooltip(
+      'Gain condition damage. Willbender flames also inflict burning.',
+      (balanceContext, id) => [profileFact(balanceContext, id, 'attributeBonus', 'Condition damage')]
+    ),
     [TRAIT.POWER_FOR_POWER]: traitTooltip(
       'Gain power. Willbender flame strikes deal increased damage.',
-      (balanceContext) => [
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'attributeBonus', 'Power'),
         modifierFact(
           balanceContext,
           'guardian.willbender.power-for-power',
@@ -841,7 +866,9 @@ export const guardianTooltips: ProfessionTooltips = {
         )
       ]
     ),
-    [TRAIT.CONCEITED_CURATE]: traitTooltip('Gain vitality.'),
+    [TRAIT.CONCEITED_CURATE]: traitTooltip('Gain vitality.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'attributeBonus', 'Vitality')
+    ]),
     [TRAIT.RESTORATIVE_VIRTUES]: traitTooltip(
       'Activating Resolve grants vigor. Completed virtue triggers reduce active-weapon cooldowns.',
       (balanceContext, id) => [
@@ -874,7 +901,9 @@ export const guardianTooltips: ProfessionTooltips = {
     ),
     [TRAIT.DEATHLESS_COURAGE]: outsideScopeTooltip,
     [TRAIT.LUMINARY]: traitTooltip('Unlock Radiant Forge, radiant weapons, and radiant virtues.'),
-    [TRAIT.LIGHTS_GIFT]: traitTooltip('Gain vitality.'),
+    [TRAIT.LIGHTS_GIFT]: traitTooltip('Gain vitality.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'attributeBonus', 'Vitality')
+    ]),
     [TRAIT.RADIANT_ARMAMENTS]: traitTooltip(
       'Equipping a radiant hammer temporarily increases strike damage. Equipping another radiant weapon removes the hammer bonus.',
       (balanceContext) => [

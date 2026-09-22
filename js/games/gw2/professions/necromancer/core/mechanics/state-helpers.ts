@@ -1,3 +1,4 @@
+import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
@@ -68,7 +69,7 @@ export function purgeTimedState(state: NecromancerCoreState, at: number): void {
 }
 
 /** Adds as many timed carapace stacks as the 30-stack cap permits and returns the amount added. */
-export function addCarapace(state: NecromancerCoreState, stacks: number, at: number, duration = 10): number {
+export function addCarapace(state: NecromancerCoreState, stacks: number, at: number, duration: number): number {
   purgeTimedState(state, at);
   const grant = addTimedStacks(state.carapaceExpiries, stacks, at, duration, CARAPACE_MAXIMUM_STACKS);
   state.carapaceExpiries = grant.expiries;
@@ -102,7 +103,9 @@ export function gainNecromancerLifeForce(
 ): number {
   if (!(Number(amount) > 0)) return 0;
   const state = professionCoreState(context);
-  const multiplier = hasTrait(context, TRAIT.GLUTTONY) ? 1.1 : 1;
+  const multiplier = hasTrait(context, TRAIT.GLUTTONY)
+    ? Number(balanceProfileFromContext(context, TRAIT.GLUTTONY)?.lifeForceGainMultiplier)
+    : 1;
   const before = state.lifeForce;
   state.lifeForce = Math.min(
     state.maximumLifeForce,

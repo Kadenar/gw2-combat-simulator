@@ -23,6 +23,7 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     id: MECHANIST_BALANCE_PROFILE_IDS.resources,
     name: 'Jade Mech Attribute Inheritance',
     profileKind: 'mechanic',
+    criticalChance: 0.05,
     baseAttribute: 1000,
     inheritanceRatio: 0.5,
     secondaryAttributeCap: 750,
@@ -67,6 +68,15 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       { type: 'condition', condition: 'Burning', stacks: 1, duration: 5 },
       { type: 'control' }
     ]
+  }),
+  // Trait tuning is shared by build calculations, combat, and tooltips.
+  trait(TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, 'Mech Arms: High-Impact Drivers', {
+    internalCooldown: 1,
+    effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 10, packetLabel: 'on qualifying mech strikes' }]
+  }),
+  trait(TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, 'Mech Arms: Single-Edge Cutters', {
+    internalCooldown: 1,
+    effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3, actorType: 'summon' }]
   }),
   trait(MECHANIST_BALANCE_PROFILE_IDS.jadeDynamo, 'Jade Dynamo', {
     rechargeMultiplier: 0.8,

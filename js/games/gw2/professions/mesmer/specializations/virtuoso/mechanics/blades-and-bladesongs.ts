@@ -1,5 +1,10 @@
+import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileValueFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -47,14 +52,17 @@ export const virtuosoCastRules = Object.freeze({
   }
 });
 
-/** Applies Virtuoso-only attribute deltas that override shared trait baselines. */
+/** Apply conversions once and reconcile assumed Fury with the live boon state. */
 function applyVirtuosoAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
-  const quietIntensityDelta = hasTrait(context, TRAIT.QUIET_INTENSITY)
-    ? Number(attributes.vitality || 0) *
-      (balanceProfileValueFromContext(context, PROFILE.quietIntensity, 'vitalityConversion', 0.1) - 0.1)
-    : 0;
+  const staticApplied = professionStaticRulesApplied(context.config);
+  const quietIntensityDelta =
+    hasTrait(context, TRAIT.QUIET_INTENSITY) && !staticApplied
+      ? Number(context.config?.stats?.vitality || 0) *
+        balanceProfileNumberFromContext(context, PROFILE.quietIntensity, 'vitalityConversion')
+      : 0;
   const sharpeningSorrowDelta = hasTrait(context, PROFILE.sharpeningSorrow)
-    ? balanceProfileValueFromContext(context, PROFILE.sharpeningSorrow, 'expertiseBonus', 150) - 150
+    ? balanceProfileNumberFromContext(context, PROFILE.sharpeningSorrow, 'expertiseBonus') *
+      (Number(boonActive(context, 'fury')) - Number(staticApplied && Boolean(context.config?.boons?.fury)))
     : 0;
   if (quietIntensityDelta === 0 && sharpeningSorrowDelta === 0) return attributes;
   return {
@@ -69,14 +77,14 @@ export const virtuosoModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'mesmer.virtuoso.phantasmal-fury-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.15,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.QUIET_INTENSITY, 'phantasmCriticalChance'),
     when: (context) => context.event?.summonKind === 'phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FURY)
   },
   {
     id: 'mesmer.quiet-intensity-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.15,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.QUIET_INTENSITY, 'criticalChance'),
     when: (context) =>
       !illusionSource(context) &&
       hasTrait(context, TRAIT.QUIET_INTENSITY) &&

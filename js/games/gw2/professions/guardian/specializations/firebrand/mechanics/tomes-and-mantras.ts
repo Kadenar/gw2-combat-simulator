@@ -1,3 +1,4 @@
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -34,12 +35,14 @@ export const firebrandModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       MODIFIER_TARGET.ATTRIBUTE_VITALITY
     ],
     operation: 'add',
-    parameters: { attributeBonus: 250 } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) => {
+    amount: (context) => {
       const staticApplied = attributeProvenance(context.config).professionStaticRulesApplied;
       const runtimeActive = guardianBoonActive(context, 'quickness');
       const staticallyActive = staticApplied && Boolean(context.config?.boons?.quickness);
-      return (Number(runtimeActive) - Number(staticallyActive)) * parameters.attributeBonus;
+      return (
+        (Number(runtimeActive) - Number(staticallyActive)) *
+        balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.IMBUED_HASTE, 'attributeBonus')
+      );
     },
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.IMBUED_HASTE)
   }

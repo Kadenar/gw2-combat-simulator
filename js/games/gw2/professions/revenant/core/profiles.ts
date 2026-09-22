@@ -1,3 +1,4 @@
+import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 /**
  * Owns Core Revenant balance profiles shared by skills, mechanics, and traits.
  * Skill catalogs live in sibling `skills/` modules.
@@ -268,6 +269,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     ]
   },
   {
+    attributePerStack: 10,
     id: REVENANT_CORE_BALANCE_PROFILE_IDS.notoriety,
     name: 'Notoriety',
     profileKind: 'trait',
@@ -402,6 +404,25 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
       }
     ]
   },
+  trait(TRAIT.SEETHING_MALICE, 'Seething Malice', {
+    attributeBonus: 120
+  }),
+  trait(TRAIT.LIFE_ATTUNEMENT, 'Life Attunement', {
+    attributeConversion: 0.07,
+    attributeBonus: 120
+  }),
+  trait(TRAIT.VERSED_IN_STONE, 'Versed in Stone', {
+    attributeConversion: 0.13
+  }),
+  trait(TRAIT.YEARNING_EMPOWERMENT, 'Yearning Empowerment', {
+    conditionDurationBonus: 0.1
+  }),
+  trait(TRAIT.ROILING_MISTS, 'Roiling Mists', {
+    criticalChance: 0.25
+  }),
+  trait(TRAIT.PACT_OF_PAIN, 'Pact of Pain', {
+    conditionDurationBonus: 0.15
+  }),
   {
     id: REVENANT_CORE_BALANCE_PROFILE_IDS.invokingTorment,
     // Keep the invocation strike and its conditions together on the nearest action tick.

@@ -20,6 +20,7 @@ export const SCRAPPER_BALANCE_PROFILE_IDS = Object.freeze({
 // and cast-time trait effects aligned under balance overrides.
 export const SCRAPPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   trait(SCRAPPER_BALANCE_PROFILE_IDS.kineticAccelerators, 'Kinetic Accelerators', {
+    attributeConversion: 0.13,
     internalCooldown: 3,
     effects: [
       { type: 'boon', boon: 'quickness', stacks: 1, duration: 3 },
@@ -44,6 +45,8 @@ export const SCRAPPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
   trait(SCRAPPER_BALANCE_PROFILE_IDS.systemShocker, 'System Shocker', {
     effects: [{ type: 'control' }]
   }),
+  // Trait tuning is shared by build calculations, combat, and tooltips.
+  trait(TRAIT.EX_MACHINA, 'Ex Machina', { maximumAmmo: 2 }),
   trait(SCRAPPER_BALANCE_PROFILE_IDS.appliedForce, 'Applied Force', {
     maximumStacks: 25,
     threshold: 10,

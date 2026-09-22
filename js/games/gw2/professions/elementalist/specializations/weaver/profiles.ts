@@ -145,6 +145,7 @@ export const WEAVER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     attributeBonus: 200
   }),
   trait(WEAVER_BALANCE_PROFILE_IDS.superiorElements, 'Superior Elements', {
+    criticalChance: 0.2,
     internalCooldown: 4,
     effects: [
       {

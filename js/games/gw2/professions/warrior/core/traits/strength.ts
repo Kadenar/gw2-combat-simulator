@@ -1,6 +1,10 @@
 /** Owns imperative Strength trait effects while the public dispatcher preserves cross-line ordering. */
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileEffect,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
@@ -318,22 +322,21 @@ export function modifyWarriorStrengthAttributes(
   gearPower: number
 ): void {
   if (hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)) {
-    const profile = balanceProfileFromContext(context, PROFILE.pinnacleOfStrength);
     result.power +=
       Number(context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) *
-      Number(profile?.attributeBonus ?? 10);
+      balanceProfileNumberFromContext(context, PROFILE.pinnacleOfStrength, 'attributeBonus');
   }
 
   if (hasTrait(context, TRAIT.FORCEFUL_GREATSWORD) && !staticRulesApplied) {
-    const profile = balanceProfileFromContext(context, PROFILE.forcefulGreatsword);
     result.power +=
-      Number(profile?.attributeBonus ?? 120) +
-      Number(warriorWieldingWeapon(context, 'Greatsword')) * Number(profile?.weaponAttributeBonus ?? 120);
+      balanceProfileNumberFromContext(context, PROFILE.forcefulGreatsword, 'attributeBonus') +
+      Number(warriorWieldingWeapon(context, 'Greatsword')) *
+        balanceProfileNumberFromContext(context, PROFILE.forcefulGreatsword, 'weaponAttributeBonus');
   }
 
   if (hasTrait(context, TRAIT.GREAT_FORTITUDE) && !staticRulesApplied) {
     // Static builds already bake this gear-only conversion; live Might and signets must not feed it.
-    const conversion = Number(balanceProfileFromContext(context, PROFILE.greatFortitude)?.attributeConversion ?? 0.1);
+    const conversion = balanceProfileNumberFromContext(context, PROFILE.greatFortitude, 'attributeConversion');
     result.vitality += gearPower * conversion;
     result.ferocity += gearPower * conversion;
   }
@@ -344,7 +347,7 @@ export const warriorStrengthModifierRules: readonly Gw2ModifierRule[] = Object.f
     id: 'warrior.pinnacle-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.05,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.PINNACLE_OF_STRENGTH, 'criticalChance'),
     when: (context) => hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)
   },
   {

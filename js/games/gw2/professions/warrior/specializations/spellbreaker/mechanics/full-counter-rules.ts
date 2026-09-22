@@ -1,5 +1,8 @@
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
@@ -54,8 +57,7 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw
     ferocity: number;
   };
   const bonus =
-    insightStacks(context) *
-    Number(balanceProfileFromContext(context, PROFILE.attackersInsight)?.attributePerStack ?? 50);
+    insightStacks(context) * balanceProfileNumberFromContext(context, PROFILE.attackersInsight, 'attributePerStack');
   result.power += bonus;
   result.precision += bonus;
   result.ferocity += bonus;
@@ -68,7 +70,7 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
     // The target never has boons, so the full bonus always applies.
-    factor: 1.1,
+    factor: (context) => balanceProfileNumberFromContext(context, TRAIT.PURE_STRIKE, 'criticalDamage'),
     when: (context) => hasTrait(context, TRAIT.PURE_STRIKE)
   },
   {

@@ -115,6 +115,7 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     effects: [{ type: 'boon', boon: 'vigor', stacks: 1, duration: 4 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.staticDischarge, 'Static Discharge', {
+    criticalDamage: 2,
     effects: [{ type: 'strike', coefficient: 0.33, hits: 1 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.kineticBattery, 'Kinetic Battery', {
@@ -212,15 +213,46 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 4 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.hematicFocus, 'Hematic Focus', {
+    criticalChance: 0.15,
     internalCooldown: 8,
     effects: [{ type: 'boon', boon: 'fury', stacks: 1, duration: 8 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.chemicalRounds, 'Chemical Rounds', {
+    conditionDurationMultiplier: 4 / 3,
     attributeBonus: 120
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.energyAmplifier, 'Energy Amplifier', {
     attributeBonus: 250
   }),
+  trait(TRAIT.HIGH_CALIBER, 'High Caliber', {
+    criticalChance: 0.15
+  }),
+  trait(TRAIT.GRAND_ENTRANCE, 'Grand Entrance', {
+    criticalChance: 0.1
+  }),
+  trait(TRAIT.HEAVY_METAL, 'Heavy Metal', {
+    lowerThreshold: 0.25,
+    middleThreshold: 0.5,
+    upperThreshold: 0.75,
+    lowerBonus: 0.15,
+    middleBonus: 0.1,
+    upperBonus: 0.05
+  }),
+  // Trait tuning is shared by build calculations, combat, and tooltips.
+  trait(TRAIT.HGH, 'HGH', {
+    durationMultiplier: 1.2,
+    effects: [
+      { type: 'boon', boon: 'might', stacks: 2, duration: 12 },
+      { type: 'boon', boon: 'fury', stacks: 1, duration: 4 },
+      { type: 'strike', coefficient: 0.85, hits: 1, packetLabel: 'additional Acid Bomb strike' }
+    ]
+  }),
+  trait(TRAIT.ADRENAL_IMPLANT, 'Adrenal Implant', { rechargeReduction: 1 }),
+  trait(TRAIT.POWER_WRENCH, 'Power Wrench', { rechargeReduction: 3 }),
+  trait(TRAIT.GADGETEER, 'Gadgeteer', { rechargeMultiplier: 0.8 }),
+  trait(TRAIT.MECHANIZED_DEPLOYMENT, 'Mechanized Deployment', { rechargeMultiplier: 0.85 }),
+  trait(TRAIT.COMPOUNDING_CHEMICALS, 'Compounding Chemicals', { attributeBonus: 240 }),
+  trait(TRAIT.BLAST_SHIELD, 'Blast Shield', { attributeConversion: 0.1 }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.sharpshooter, 'Sharpshooter', {
     coefficientMultiplier: 2 / 3
   })

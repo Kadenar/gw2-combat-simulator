@@ -1,6 +1,10 @@
 /** Owns imperative Defense trait effects while the public dispatcher preserves cross-line ordering. */
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileEffect,
+  balanceProfileEffectFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -26,6 +30,7 @@ import type {
 // Apply Thick Skin before any other cast-start trait logic.
 export function applyThickSkinCastStart(context: WarriorCastContext, skill: WarriorSkill): void {
   if (skill.type !== 'Heal' || !hasTrait(context, TRAIT.THICK_SKIN)) return;
+  const protection = balanceProfileEffectFromContext(context, TRAIT.THICK_SKIN, 'boon', 0)!;
   emitSkillBuff(context, {
     at: context.start,
     source: 'Trait',
@@ -36,8 +41,8 @@ export function applyThickSkinCastStart(context: WarriorCastContext, skill: Warr
     name: 'Thick Skin',
     kind: 'protection',
     boon: 'protection',
-    stacks: 1,
-    duration: gw2SchedulerBoonDuration(context, skill, 'protection', 3)
+    stacks: Number(protection.stacks),
+    duration: gw2SchedulerBoonDuration(context, skill, 'protection', Number(protection.duration))
   });
 }
 

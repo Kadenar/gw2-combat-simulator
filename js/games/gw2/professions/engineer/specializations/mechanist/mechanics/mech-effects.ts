@@ -3,7 +3,8 @@ import {
   balanceProfileEffectFromContext,
   balanceProfileValue,
   balanceProfileValueFromContext,
-  procChanceFromContext
+  procChanceFromContext,
+  balanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -133,12 +134,14 @@ function reactToMechanistDamage(
   ) {
     // 1-second ICD: store next-eligible timestamp so rapid mech hits don't
     // trigger the trait on every packet.
-    state.singleEdgeCutters = event.at + 1;
+    state.singleEdgeCutters =
+      event.at + Number(balanceProfileFromContext(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS)?.internalCooldown);
+    const packet = balanceProfileEffectFromContext(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, 'condition', 0)!;
     applyEngineerDerivedCondition(context, event, {
       name: 'Mech Arms: Single-Edge Cutters',
       condition: 'Bleeding',
-      stacks: 1,
-      duration: 3,
+      stacks: Number(packet.stacks),
+      duration: Number(packet.duration),
       sourceId: TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
       actorType: 'summon',
       metadata: { engineerMech: true }
@@ -151,12 +154,14 @@ function reactToMechanistDamage(
     isInternalCooldownReady(event.at, Number(state.highImpactDrivers || 0))
   ) {
     // Same 1-second ICD pattern as Single-Edge Cutters above.
-    state.highImpactDrivers = event.at + 1;
+    state.highImpactDrivers =
+      event.at + Number(balanceProfileFromContext(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS)?.internalCooldown);
+    const packet = balanceProfileEffectFromContext(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, 'boon', 0)!;
     queueBuff(context, event, {
       name: 'Mech Arms: High-Impact Drivers',
       kind: 'might',
-      stacks: 1,
-      duration: 10,
+      stacks: Number(packet.stacks),
+      duration: Number(packet.duration),
       sourceId: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
       actorType: 'effect'
     });

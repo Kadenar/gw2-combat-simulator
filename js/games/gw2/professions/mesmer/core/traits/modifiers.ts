@@ -1,9 +1,12 @@
 /** Applies Core Mesmer trait and equipment modifiers at the shared modifier boundary. */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileValueFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -31,17 +34,17 @@ function prepareCoreAttributeFacts(context: Gw2ModifierContext) {
   return {
     midnightSelected: selectedSkills.has('Signet of Midnight'),
     dominationSelected: selectedSkills.has('Signet of Domination'),
-    midnightBonus: balanceProfileValueFromContext(context, PROFILE.signetOfMidnight, 'expertiseBonus', 180),
-    dominationBonus: balanceProfileValueFromContext(context, PROFILE.signetOfDomination, 'conditionDamageBonus', 180),
-    chaoticExpertiseDelta: chaoticPersistence
-      ? balanceProfileValueFromContext(context, PROFILE.chaoticPersistence, 'expertiseBonus', 100) - 100
+    midnightBonus: balanceProfileNumberFromContext(context, PROFILE.signetOfMidnight, 'expertiseBonus'),
+    dominationBonus: balanceProfileNumberFromContext(context, PROFILE.signetOfDomination, 'conditionDamageBonus'),
+    chaoticExpertiseBonus: chaoticPersistence
+      ? balanceProfileNumberFromContext(context, PROFILE.chaoticPersistence, 'expertiseBonus')
       : 0,
-    chaoticConcentrationDelta: chaoticPersistence
-      ? balanceProfileValueFromContext(context, PROFILE.chaoticPersistence, 'concentrationBonus', 250) - 250
+    chaoticConcentrationBonus: chaoticPersistence
+      ? balanceProfileNumberFromContext(context, PROFILE.chaoticPersistence, 'concentrationBonus')
       : 0,
     fencerDuration: balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'durationMultiplier', 6),
     fencerMaximum: balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'maximumStacks', 10),
-    fencerPerStack: balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'attributePerStack', 15)
+    fencerPerStack: balanceProfileNumberFromContext(context, PROFILE.fencersFinesse, 'attributePerStack')
   };
 }
 
@@ -58,7 +61,10 @@ export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attribute
     if (context.query) coreAttributeFacts.set(context.query, facts);
   }
 
-  const { midnightSelected, midnightBonus, dominationSelected, dominationBonus, chaoticExpertiseDelta } = facts;
+  const { midnightSelected, midnightBonus, dominationSelected, dominationBonus, chaoticExpertiseBonus } = facts;
+  const staticApplied = professionStaticRulesApplied(context.config);
+  const regenerationDelta =
+    Number(boonActive(context, 'regeneration')) - Number(staticApplied && Boolean(context.config?.boons?.regeneration));
   const midnight = midnightSelected && context.timeline?.skillOnCooldownAt(10234, context.time) ? midnightBonus : 0;
   const domination =
     dominationSelected && context.timeline?.skillOnCooldownAt(10232, context.time) ? dominationBonus : 0;
@@ -70,13 +76,15 @@ export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attribute
       Number(attributes.ferocity || 0) +
       timedStacks(context, 'fencer', facts.fencerDuration, facts.fencerMaximum) * facts.fencerPerStack,
     conditionDamage:
-      Number(attributes.conditionDamage || 0) + (dominationSelected ? dominationBonus - 180 : 0) - domination,
+      Number(attributes.conditionDamage || 0) +
+      (dominationSelected && !staticApplied ? dominationBonus : 0) -
+      domination,
     expertise:
       Number(attributes.expertise || 0) +
-      chaoticExpertiseDelta +
-      (midnightSelected ? midnightBonus - 180 : 0) -
+      regenerationDelta * chaoticExpertiseBonus +
+      (midnightSelected && !staticApplied ? midnightBonus : 0) -
       midnight,
-    concentration: Number(attributes.concentration || 0) + facts.chaoticConcentrationDelta
+    concentration: Number(attributes.concentration || 0) + regenerationDelta * facts.chaoticConcentrationBonus
   };
 }
 
@@ -86,11 +94,7 @@ function superiorityComplexTargetControlled(context: Gw2ModifierContext): boolea
   return ['Fear', 'Taunt'].some((condition) => targetConditionActive(context, condition));
 }
 
-function superiorityComplexFactor(
-  context: Gw2ModifierContext,
-  _target: string,
-  parameters: Readonly<Record<string, number>>
-): number {
+function superiorityComplexFactor(context: Gw2ModifierContext): number {
   const targetHealth = Number(context.config?.target?.health || 0);
   const totalDamage = targetHealthLoss(context.config, context.runtime);
   const target = context.config?.target;
@@ -98,9 +102,10 @@ function superiorityComplexFactor(
   // or Taunt remains an explicit control condition on defiant targets.
   return (target?.disabled && !target.defiant) ||
     superiorityComplexTargetControlled(context) ||
-    (targetHealth > 0 && totalDamage >= targetHealth * parameters.threshold)
-    ? parameters.lowHealthOrDisabledFactor
-    : parameters.highHealthFactor;
+    (targetHealth > 0 &&
+      totalDamage >= targetHealth * balanceProfileNumberFromContext(context, TRAIT.SUPERIORITY_COMPLEX, 'threshold'))
+    ? balanceProfileNumberFromContext(context, TRAIT.SUPERIORITY_COMPLEX, 'lowHealthOrDisabledFactor')
+    : balanceProfileNumberFromContext(context, TRAIT.SUPERIORITY_COMPLEX, 'highHealthFactor');
 }
 
 export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -108,7 +113,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     id: 'mesmer.master-of-fragmentation-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.25,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION, 'criticalChance'),
     // Improve every native F1 strike, including repeats, without affecting trait procs or afterimages.
     when: (context) =>
       hasTrait(context, TRAIT.MASTER_OF_FRAGMENTATION) &&
@@ -122,18 +127,14 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     id: 'mesmer.phantasmal-fury-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.25,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.PHANTASMAL_FURY, 'criticalChance'),
     when: (context) => context.event?.summonKind === 'phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FURY)
   },
   {
     id: 'mesmer.superiority-complex',
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
-    parameters: modifierParameters({
-      highHealthFactor: 1.15,
-      lowHealthOrDisabledFactor: 1.25,
-      threshold: 0.5
-    }),
+
     factor: superiorityComplexFactor,
     when: (context) => hasTrait(context, TRAIT.SUPERIORITY_COMPLEX) && !illusionSource(context)
   },
@@ -254,7 +255,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
     id: 'mesmer.malicious-sorcery',
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
-    amount: 0.25,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.MALICIOUS_SORCERY, 'durationMultiplier'),
     // Panel-derived simulation stats already contain this static bonus; provenance keeps direct simulations compatible.
     when: (context) =>
       context.condition === 'Confusion' &&

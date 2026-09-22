@@ -25,6 +25,7 @@ export const AMALGAM_BALANCE_PROFILE_IDS = Object.freeze({
 export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   // Resolver procs use these authored packets and cooldowns, including explicit zero edits.
   trait(AMALGAM_BALANCE_PROFILE_IDS.carbolicComposition, 'Carbolic Composition', {
+    conditionDurationBonus: 0.33,
     effects: [{ type: 'condition', condition: 'Poisoned', stacks: 1, duration: 3 }]
   }),
   {
@@ -134,6 +135,8 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     minimumStacks: 2.5,
     maximumStacks: 4
   }),
+  // Trait tuning is shared by build calculations, combat, and tooltips.
+  trait(TRAIT.HYBRID_VIGOR, 'Hybrid Vigor', { attributeBonus: 240 }),
   trait(AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies, 'Mercurial Tendencies', {
     internalCooldown: 0.24,
     rechargeReduction: 2.5

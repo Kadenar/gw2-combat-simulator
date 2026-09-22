@@ -1,4 +1,7 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileValueFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -58,124 +61,74 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
     result[attribute] = Number(result[attribute] || 0) + amount;
   };
 
-  if (!staticRulesApplied) {
-    if (hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
-      const bonus = balanceProfileValueFromContext(context, PROFILE.stridersStrength, 'attributeBonus', 120);
-      adjust(
+  // Subtract only the contribution already calculated for this patch, weapon set, and assumed boon state.
+  const activeSet = Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1;
+  if (!rangerPetEvent(context)) {
+    for (const [trait, attribute, active, calculated] of [
+      [
+        TRAIT.STRIDERS_STRENGTH,
         'power',
-        bonus +
-          (gw2PrimaryWeapon(context.config, Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1) === 'Sword'
-            ? bonus
-            : 0)
-      );
-    }
-
-    if (hasTrait(context, TRAIT.HONED_AXES)) {
-      const bonus = balanceProfileValueFromContext(context, PROFILE.honedAxes, 'attributeBonus', 120);
-      adjust(
+        gw2PrimaryWeapon(context.config, activeSet) === 'Sword',
+        calculatedWeapon === 'Sword'
+      ],
+      [
+        TRAIT.HONED_AXES,
         'ferocity',
-        bonus + (weaponSetIncludes(context, Number(context.runtime?.activeWeaponSet), ['Axe']) ? bonus : 0)
-      );
-    }
-
-    if (hasTrait(context, TRAIT.VICIOUS_QUARRY) && rangerBoonActive(context, 'fury')) {
-      adjust('ferocity', balanceProfileValueFromContext(context, PROFILE.viciousQuarry, 'attributeBonus', 250));
-    }
-
-    if (hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
-      adjust('expertise', balanceProfileValueFromContext(context, PROFILE.arachnophobia, 'attributeBonus', 150));
-    }
-
-    if (hasTrait(context, TRAIT.LINGERING_MAGIC)) {
-      adjust('concentration', balanceProfileValueFromContext(context, PROFILE.lingeringMagic, 'attributeBonus', 240));
-    }
-
-    if (hasTrait(context, TRAIT.AMBIDEXTERITY)) {
-      const bonus = balanceProfileValueFromContext(context, PROFILE.ambidexterity, 'attributeBonus', 120);
-      adjust(
+        weaponSetIncludes(context, activeSet, ['Axe']),
+        weaponSetIncludes(context, calculatedWeaponSet, ['Axe'])
+      ],
+      [
+        TRAIT.AMBIDEXTERITY,
         'conditionDamage',
-        weaponSetIncludes(context, Number(context.runtime?.activeWeaponSet), ['Dagger', 'Mace', 'Torch'])
-          ? bonus * 2
-          : bonus
+        weaponSetIncludes(context, activeSet, ['Dagger', 'Mace', 'Torch']),
+        weaponSetIncludes(context, calculatedWeaponSet, ['Dagger', 'Mace', 'Torch'])
+      ]
+    ] as const) {
+      if (!hasTrait(context, trait)) continue;
+      const current = balanceProfileNumberFromContext(
+        context,
+        trait,
+        active ? 'weaponAttributeBonus' : 'attributeBonus'
       );
+      const baseline = staticRulesApplied
+        ? balanceProfileNumberFromContext(context, trait, calculated ? 'weaponAttributeBonus' : 'attributeBonus')
+        : 0;
+      adjust(attribute, current - baseline);
     }
 
-    if (hasTrait(context, TRAIT.WELLSPRING) && !rangerPetEvent(context)) {
-      // Convert gear-only power (config.stats), not the live power
-      // that already includes might and Strider's Strength.
-      adjust(
-        'healingPower',
-        Number(context.config?.stats?.power || 0) *
-          balanceProfileValueFromContext(context, PROFILE.wellspring, 'attributeConversion', 0.07)
-      );
-    }
-  }
-
-  if (staticRulesApplied && !rangerPetEvent(context) && hasTrait(context, TRAIT.HONED_AXES)) {
-    const bonus = balanceProfileValueFromContext(context, PROFILE.honedAxes, 'attributeBonus', 120);
-    const activeHasAxe = weaponSetIncludes(context, Number(context.runtime?.activeWeaponSet), ['Axe']);
-    const calculatedHasAxe = weaponSetIncludes(context, calculatedWeaponSet, ['Axe']);
-    adjust('ferocity', bonus * (1 + Number(activeHasAxe)) - 120 * (1 + Number(calculatedHasAxe)));
-  }
-
-  if (staticRulesApplied && !rangerPetEvent(context) && hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
-    const bonus = balanceProfileValueFromContext(context, PROFILE.stridersStrength, 'attributeBonus', 120);
-    adjust(
-      'power',
-      bonus *
-        (1 +
-          Number(
-            gw2PrimaryWeapon(context.config, Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1) === 'Sword'
-          )) -
-        120 * (1 + Number(calculatedWeapon === 'Sword'))
-    );
-  }
-
-  if (staticRulesApplied && !rangerPetEvent(context) && hasTrait(context, TRAIT.AMBIDEXTERITY)) {
-    const bonus = balanceProfileValueFromContext(context, PROFILE.ambidexterity, 'attributeBonus', 120);
-    const favored = ['Dagger', 'Mace', 'Torch'];
-    const active = weaponSetIncludes(context, Number(context.runtime?.activeWeaponSet), favored);
-    const calculated = weaponSetIncludes(context, calculatedWeaponSet, favored);
-    adjust('conditionDamage', bonus * (1 + Number(active)) - 120 * (1 + Number(calculated)));
-  }
-
-  if (staticRulesApplied && !rangerPetEvent(context)) {
-    if (hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
-      adjust('expertise', balanceProfileValueFromContext(context, PROFILE.arachnophobia, 'attributeBonus', 150) - 150);
-    }
-
-    if (hasTrait(context, TRAIT.LINGERING_MAGIC)) {
-      adjust(
-        'concentration',
-        balanceProfileValueFromContext(context, PROFILE.lingeringMagic, 'attributeBonus', 240) - 240
-      );
-    }
-
-    if (hasTrait(context, TRAIT.WELLSPRING)) {
-      adjust(
-        'healingPower',
-        Number(context.config?.stats?.power || 0) *
-          (balanceProfileValueFromContext(context, PROFILE.wellspring, 'attributeConversion', 0.07) - 0.07)
-      );
+    if (!staticRulesApplied) {
+      if (hasTrait(context, TRAIT.WELLSPRING))
+        adjust(
+          'healingPower',
+          Number(context.config?.stats?.power || 0) *
+            balanceProfileNumberFromContext(context, TRAIT.WELLSPRING, 'attributeConversion')
+        );
     }
 
     if (hasTrait(context, TRAIT.VICIOUS_QUARRY)) {
-      const configuredFury = Boolean(context.config?.boons?.fury);
-      const activeFury = rangerBoonActive(context, 'fury');
       adjust(
         'ferocity',
-        Number(activeFury) * balanceProfileValueFromContext(context, PROFILE.viciousQuarry, 'attributeBonus', 250) -
-          Number(configuredFury) * 250
+        (Number(rangerBoonActive(context, 'fury')) -
+          Number(staticRulesApplied && Boolean(context.config?.boons?.fury))) *
+          balanceProfileNumberFromContext(context, TRAIT.VICIOUS_QUARRY, 'attributeBonus')
       );
     }
+  }
+
+  // Shared base bonuses also apply to pet queries before their family-specific bonuses.
+  if (!staticRulesApplied) {
+    if (hasTrait(context, TRAIT.ARACHNOPHOBIA))
+      adjust('expertise', balanceProfileNumberFromContext(context, TRAIT.ARACHNOPHOBIA, 'attributeBonus'));
+    if (hasTrait(context, TRAIT.LINGERING_MAGIC))
+      adjust('concentration', balanceProfileNumberFromContext(context, TRAIT.LINGERING_MAGIC, 'attributeBonus'));
   }
 
   modifyRangerPetAttributes(context, result, staticRulesApplied);
 
   if (hasSelectedSkill(context, 'Signet of the Wild')) {
     const active = !context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_THE_WILD, context.time);
-    const bonus = balanceProfileValueFromContext(context, PROFILE.signetOfTheWild, 'attributeBonus', 180);
-    if (staticRulesApplied) adjust('ferocity', active ? bonus - 180 : -180);
+    const bonus = balanceProfileNumberFromContext(context, PROFILE.signetOfTheWild, 'attributeBonus');
+    if (staticRulesApplied) adjust('ferocity', active ? 0 : -bonus);
     if (!staticRulesApplied && active) adjust('ferocity', bonus);
   }
 
@@ -241,7 +194,7 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     id: 'ranger.hunters-tactics-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.1,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.HUNTERS_TACTICS, 'criticalChance'),
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) && positional(context) && hasTrait(context, TRAIT.HUNTERS_TACTICS)
   },
@@ -259,7 +212,7 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     id: 'ranger.light-on-your-feet-condition-duration',
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
-    amount: 0.1,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET, 'conditionDurationBonus'),
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
@@ -269,7 +222,7 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     id: 'ranger.vicious-quarry-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.15,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.VICIOUS_QUARRY, 'criticalChance'),
     when: (context) => hasTrait(context, TRAIT.VICIOUS_QUARRY) && rangerBoonActive(context, 'fury')
   },
   {
@@ -310,7 +263,7 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     id: 'ranger.precise-strike',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 1,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.PRECISE_STRIKE, 'criticalChance'),
     when: (context) => openingStrikeReady(context) && hasTrait(context, TRAIT.PRECISE_STRIKE)
   },
   {

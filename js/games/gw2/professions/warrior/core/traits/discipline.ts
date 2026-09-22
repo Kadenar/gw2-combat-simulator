@@ -74,7 +74,8 @@ export function applyBurstMastery(
 
 // Grant Versatile Rage adrenaline between Martial Cadence reset and Furious Burst.
 export function applyVersatileRage(context: WarriorCastContext): void {
-  if (hasTrait(context, TRAIT.VERSATILE_RAGE)) gainWarriorAdrenaline(context, 5);
+  if (hasTrait(context, TRAIT.VERSATILE_RAGE))
+    gainWarriorAdrenaline(context, Number(balanceProfileFromContext(context, TRAIT.VERSATILE_RAGE)?.resourceGain));
 }
 
 export const warriorDisciplineModifierRules: readonly Gw2ModifierRule[] = Object.freeze([

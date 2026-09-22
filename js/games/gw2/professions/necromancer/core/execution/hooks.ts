@@ -1,3 +1,9 @@
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { necromancerMaximumHealth } from '#gw2/professions/necromancer/core/state.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SimulationEventInput } from '#gw2/platform/engine/events/events.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { observeNecromancerPlagueSendingEvent } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
@@ -21,6 +27,25 @@ import type { NecromancerSchedulerContext } from '#gw2/professions/necromancer/t
 /** Registers ordered Core Necromancer hooks while behavior remains with its resource, condition, weapon, or trait owner. */
 export const necromancerSchedulerHooks = Object.freeze({
   initialize: (context: NecromancerSchedulerContext) => {
+    // Resource capacity must use the same patched vitality traits as the attribute calculator.
+    const core = professionCoreState(context);
+    const maximumHealth = necromancerMaximumHealth(
+      context.config,
+      normalizeSelectedTraitIds(context.config.selectedTraitIds),
+      context
+    );
+    core.lifeForcePoolCapacity *= maximumHealth / core.maximumHealth;
+    core.maximumHealth = maximumHealth;
+    // Preserve the configured starting percentage when a patch changes the life-force capacity.
+    if (hasTrait(context, TRAIT.SOUL_BATTERY)) {
+      const state = professionCoreState(context);
+      const maximum = 100 * Number(balanceProfileFromContext(context, TRAIT.SOUL_BATTERY)?.lifeForceCapacityMultiplier);
+      const ratio = maximum / state.maximumLifeForce;
+      state.lifeForce *= ratio;
+      state.lifeForcePoolCapacity *= ratio;
+      state.maximumLifeForce = maximum;
+    }
+
     if (!context.hasExplicitCombatStart) startAlliedAttackOpportunities(context, 0);
   },
   prepareEvent: {

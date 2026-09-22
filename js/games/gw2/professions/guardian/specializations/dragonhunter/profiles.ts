@@ -81,6 +81,8 @@ export const DRAGONHUNTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
       }
     ]
   }),
+  // Trait tuning is shared by build calculations, combat, and tooltips.
+  trait(TRAIT.DEFENDERS_DOGMA, "Defender's Dogma", { attributeBonus: 180 }),
   trait(DRAGONHUNTER_BALANCE_PROFILE_IDS.heavyLight, 'Heavy Light', {
     internalCooldown: 1,
     effects: [{ type: 'boon', boon: 'stability', stacks: 1, duration: 6 }]

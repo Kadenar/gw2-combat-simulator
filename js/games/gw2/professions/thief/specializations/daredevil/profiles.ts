@@ -57,11 +57,15 @@ export const DAREDEVIL_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     resourceGain: 50
   }),
   trait(DAREDEVIL_BALANCE_PROFILE_IDS.staffMaster, 'Staff Master', {
+    attributeBonus: 120,
+    weaponAttributeBonus: 240,
     resourceGain: 2
   }),
   trait(DAREDEVIL_BALANCE_PROFILE_IDS.brawlersTenacity, "Brawler's Tenacity", {
     resourceGain: 15
   }),
+  // Trait tuning is shared by build calculations, combat, and tooltips.
+  trait(TRAIT.MARAUDERS_RESILIENCE, "Marauder's Resilience", { attributeConversion: 0.07 }),
   trait(DAREDEVIL_BALANCE_PROFILE_IDS.weakeningStrikes, 'Weakening Strikes', {
     durationMultiplier: 4,
     effects: [{ type: 'condition', condition: 'Weakness', stacks: 1, duration: 3 }]

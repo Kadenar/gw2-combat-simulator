@@ -1,3 +1,4 @@
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -274,12 +275,13 @@ test('Superiority Complex accepts Fear or Taunt while generic disabled requires 
     }
   });
 
-  assertClose(mesmerRules('Core').modifyCriticalDamage(defiant, 2), 2 * 1.15);
-  assertClose(mesmerRules('Core').modifyCriticalDamage(nonDefiant, 2), 2 * 1.25);
+  assertClose(mesmerRules('Core').modifyCriticalDamage({ catalog: mesmerCatalog, ...defiant }, 2), 2 * 1.15);
+  assertClose(mesmerRules('Core').modifyCriticalDamage({ catalog: mesmerCatalog, ...nonDefiant }, 2), 2 * 1.25);
   for (const condition of ['Fear', 'Taunt']) {
     assertClose(
       mesmerRules('Core').modifyCriticalDamage(
         {
+          catalog: mesmerCatalog,
           ...defiant,
           config: {
             ...defiant.config,
@@ -298,6 +300,7 @@ test('Superiority Complex accepts Fear or Taunt while generic disabled requires 
   assertClose(
     mesmerRules('Core').modifyCriticalDamage(
       {
+        catalog: mesmerCatalog,
         ...defiant,
         runtime: {
           ...defiant.runtime,
@@ -386,7 +389,7 @@ test('Mesmer instrument checks skip other specializations and index events once'
     events: irrelevant.events
   });
 
-  mesmerRules('Virtuoso').modifyAttributes(virtuoso, { power: 100 });
+  mesmerRules('Virtuoso').modifyAttributes({ catalog: mesmerCatalog, ...virtuoso }, { power: 100 });
   mesmerRules('Virtuoso').modifyStrikeDamage(virtuoso, 1);
   assert.equal(irrelevant.reads(), 0);
 
@@ -396,17 +399,20 @@ test('Mesmer instrument checks skip other specializations and index events once'
     config: { specialization: 'Troubadour' },
     events: relevant.events
   });
-  const attributes = mesmerRules('Troubadour').modifyAttributes(troubadour, {
-    power: 100,
-    precision: 100,
-    toughness: 100,
-    vitality: 100,
-    ferocity: 100,
-    conditionDamage: 100,
-    expertise: 100,
-    concentration: 100,
-    healingPower: 100
-  });
+  const attributes = mesmerRules('Troubadour').modifyAttributes(
+    { catalog: mesmerCatalog, ...troubadour },
+    {
+      power: 100,
+      precision: 100,
+      toughness: 100,
+      vitality: 100,
+      ferocity: 100,
+      conditionDamage: 100,
+      expertise: 100,
+      concentration: 100,
+      healingPower: 100
+    }
+  );
   const first = mesmerRules('Troubadour').modifyStrikeDamage(troubadour, 1);
   const second = mesmerRules('Troubadour').modifyStrikeDamage(troubadour, 1);
 

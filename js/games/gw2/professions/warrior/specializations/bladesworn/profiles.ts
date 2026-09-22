@@ -124,6 +124,20 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
   trait(BLADESWORN_BALANCE_PROFILE_IDS.lushForest, 'Lush Forest', {
     rechargeReduction: 0.75
   }),
+  // Trait tuning is shared by build calculations, combat, and tooltips.
+  trait(TRAIT.DARING_DRAGON, 'Daring Dragon', {
+    resourceCostMultiplier: 2,
+    effects: [
+      {
+        type: 'boon',
+        boon: 'alacrity',
+        stacks: 1,
+        duration: 10,
+        audience: { recipients: 'party' },
+        packetLabel: 'on Dragon Slash release'
+      }
+    ]
+  }),
   trait(BLADESWORN_BALANCE_PROFILE_IDS.gunsAndGlory, 'Guns and Glory', {
     attributeBonus: 250,
     maximumStacks: 12,

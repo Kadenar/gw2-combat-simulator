@@ -1,3 +1,4 @@
+import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
 /**
@@ -7,7 +8,7 @@ import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
  * bonuses that must land on ferocity and condition damage before those
  * attributes feed into scaling.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -57,7 +58,8 @@ export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'elementalist.enhanced-potency-air',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.15,
+    amount: (context) =>
+      balanceProfileNumberFromContext(context, ELEMENTALIST_TRAIT_IDS.ENHANCED_POTENCY, 'criticalChance'),
     when: (context: ElementalistModifierContext) =>
       context.config?.evokerElement === 'Air' &&
       hasTrait(context, 'Enhanced Potency') &&
@@ -86,7 +88,7 @@ export function modifyEvokerAttributes(context: ElementalistModifierContext, att
   ) {
     modified.ferocity =
       Number(modified.ferocity || 0) +
-      balanceProfileValueFromContext(context, PROFILE.enhancedPotency, 'attributeBonus', 75);
+      balanceProfileNumberFromContext(context, PROFILE.enhancedPotency, 'attributeBonus');
   }
 
   if (context.config?.evokerElement === 'Fire' && hasTrait(context, 'Enhanced Potency')) {
@@ -94,7 +96,7 @@ export function modifyEvokerAttributes(context: ElementalistModifierContext, att
     modified.conditionDamage =
       Number(modified.conditionDamage || 0) +
       elementalistMightStacks(context) *
-        balanceProfileValueFromContext(context, PROFILE.enhancedPotency, 'attributePerStack', 5);
+        balanceProfileNumberFromContext(context, PROFILE.enhancedPotency, 'attributePerStack');
   }
 
   return modified;

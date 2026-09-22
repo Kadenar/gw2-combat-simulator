@@ -101,6 +101,16 @@ export function balanceProfileValueFromContext(context: unknown, id: SkillId, fi
   return balanceProfileValue(balanceProfileFromContext(context, id), field, fallback);
 }
 
+/** Required balance inputs fail visibly instead of silently using unpatched values or producing NaN. */
+export function balanceProfileNumberFromContext(context: unknown, id: SkillId, field: string): number {
+  const value = balanceProfileFromContext(context, id)?.[field];
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new Error(`Missing numeric balance profile field: ${id}.${field}`);
+  }
+
+  return value;
+}
+
 /** Read one opt-in proc chance for scheduler and resolver paths while retaining profession-owned eligibility and ICDs. */
 export function procChanceFromContext(
   context: { readonly config?: { readonly procRateOverrides?: Readonly<Record<string, number>> } },

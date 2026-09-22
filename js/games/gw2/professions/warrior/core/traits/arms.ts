@@ -4,7 +4,8 @@ import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import {
   balanceProfileFromContext,
   balanceProfileEffect,
-  procChanceFromContext
+  procChanceFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -326,7 +327,7 @@ export function modifyWarriorArmsAttributes(
   const furious = balanceProfileFromContext(context, PROFILE.furious);
   const signetStacks = warriorActiveBuffStacks(context, 'signet-mastery', Number(signetMastery?.maximumStacks ?? 5));
   if (hasTrait(context, TRAIT.SIGNET_MASTERY)) {
-    result.ferocity += signetStacks * Number(signetMastery?.attributeBonus ?? 100);
+    result.ferocity += signetStacks * balanceProfileNumberFromContext(context, PROFILE.signetMastery, 'attributeBonus');
   }
 
   if (
@@ -334,22 +335,22 @@ export function modifyWarriorArmsAttributes(
     warriorBoonActive(context, 'fury') &&
     !(staticRulesApplied && Boolean(context.config?.boons?.fury))
   ) {
-    result.conditionDamage += Number(balanceProfileFromContext(context, PROFILE.deepStrikes)?.attributeBonus ?? 180);
+    result.conditionDamage += balanceProfileNumberFromContext(context, PROFILE.deepStrikes, 'attributeBonus');
   }
 
   if (hasTrait(context, TRAIT.BLADEMASTER) && warriorWieldingWeapon(context, 'Sword')) {
-    result.conditionDamage += Number(balanceProfileFromContext(context, PROFILE.blademaster)?.attributeBonus ?? 120);
+    result.conditionDamage += balanceProfileNumberFromContext(context, PROFILE.blademaster, 'attributeBonus');
   }
 
   result.conditionDamage +=
     warriorActiveBuffStacks(context, 'furious-surge', Number(furious?.maximumStacks ?? 25)) *
-    Number(furious?.attributeBonus ?? 15);
+    balanceProfileNumberFromContext(context, PROFILE.furious, 'attributeBonus');
   if (hasTrait(context, TRAIT.BURST_PRECISION) && warriorActiveBuffStacks(context, 'burst-precision', 1) > 0) {
-    result.ferocity += Number(balanceProfileFromContext(context, PROFILE.burstPrecision)?.attributeBonus ?? 250);
+    result.ferocity += balanceProfileNumberFromContext(context, PROFILE.burstPrecision, 'attributeBonus');
   }
 
   if (warriorActiveBuffStacks(context, 'signet-of-fury-active', 1) > 0) {
-    const bonus = Number(balanceProfileFromContext(context, PROFILE.signetOfFuryActive)?.attributeBonus ?? 360);
+    const bonus = balanceProfileNumberFromContext(context, PROFILE.signetOfFuryActive, 'attributeBonus');
     result.precision += bonus;
     result.ferocity += bonus;
   }
@@ -361,7 +362,7 @@ export function modifyWarriorArmsAttributes(
     if (!hasSelectedSkill(context, name)) continue;
     const onCooldown = Boolean(context.timeline?.skillOnCooldownAt(id, context.time));
     if (staticRulesApplied ? onCooldown : !onCooldown) {
-      const passiveBonus = Number(balanceProfileFromContext(context, PROFILE.signetPassives)?.attributeBonus ?? 180);
+      const passiveBonus = balanceProfileNumberFromContext(context, PROFILE.signetPassives, 'attributeBonus');
       result[attribute] += (staticRulesApplied ? -1 : 1) * passiveBonus;
     }
   }
@@ -372,28 +373,28 @@ export const warriorArmsModifierRules: readonly Gw2ModifierRule[] = Object.freez
     id: 'warrior.furious-burst-fury-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.05,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.FURIOUS_BURST, 'criticalChance'),
     when: (context) => hasTrait(context, TRAIT.FURIOUS_BURST) && warriorBoonActive(context, 'fury')
   },
   {
     id: 'warrior.deep-strikes',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.05,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.DEEP_STRIKES, 'criticalChance'),
     when: (context) => hasTrait(context, TRAIT.DEEP_STRIKES) && targetConditionActive(context, 'Bleeding')
   },
   {
     id: 'warrior.unsuspecting-foe',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.25,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.UNSUSPECTING_FOE, 'criticalChance'),
     when: (context) => hasTrait(context, TRAIT.UNSUSPECTING_FOE) && warriorTargetControlled(context)
   },
   {
     id: 'warrior.burst-precision',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 1,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.BURST_PRECISION, 'criticalChance'),
     when: (context) =>
       hasTrait(context, TRAIT.BURST_PRECISION) &&
       (Boolean(warriorEventSkill(context)?.burst) || warriorActiveBuffStacks(context, 'burst-precision', 1) > 0)

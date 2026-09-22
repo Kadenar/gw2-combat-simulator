@@ -1,4 +1,7 @@
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
@@ -76,14 +79,17 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     label: 'Zealous Blade',
     target: MODIFIER_TARGET.ATTRIBUTE_POWER,
     operation: 'add',
-    parameters: { baseBonus: 120, greatswordBonus: 120 } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) => {
+    amount: (context) => {
       const provenance = attributeProvenance(context.config);
       const currentWeapon = activeWeapon(context);
       return provenance.professionStaticRulesApplied
         ? (Number(currentWeapon === 'Greatsword') - Number(provenance.calculatedPrimaryWeapon === 'Greatsword')) *
-            parameters.greatswordBonus
-        : parameters.baseBonus + Number(currentWeapon === 'Greatsword') * parameters.greatswordBonus;
+            (balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE, 'weaponAttributeBonus') -
+              balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE, 'attributeBonus'))
+        : balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE, 'attributeBonus') +
+            Number(currentWeapon === 'Greatsword') *
+              (balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE, 'weaponAttributeBonus') -
+                balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE, 'attributeBonus'));
     },
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE)
   },
@@ -92,9 +98,10 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     label: 'Right-Hand Strength',
     target: MODIFIER_TARGET.ATTRIBUTE_PRECISION,
     operation: 'add',
-    parameters: { attributeBonus: 80 } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) =>
-      attributeProvenance(context.config).professionStaticRulesApplied ? 0 : parameters.attributeBonus,
+    amount: (context) =>
+      attributeProvenance(context.config).professionStaticRulesApplied
+        ? 0
+        : balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH, 'attributeBonus'),
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH)
   },
   {
@@ -102,14 +109,14 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     label: 'Right-Hand Strength',
     target: MODIFIER_TARGET.ATTRIBUTE_POWER,
     operation: 'add',
-    parameters: { attributeBonus: 80 } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) => {
+    amount: (context) => {
       const provenance = attributeProvenance(context.config);
       const currentWeapon = activeWeapon(context);
       return provenance.professionStaticRulesApplied
         ? (Number(isOneHandedWeapon(currentWeapon)) - Number(isOneHandedWeapon(provenance.calculatedPrimaryWeapon))) *
-            parameters.attributeBonus
-        : Number(isOneHandedWeapon(currentWeapon)) * parameters.attributeBonus;
+            balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH, 'attributeBonus')
+        : Number(isOneHandedWeapon(currentWeapon)) *
+            balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH, 'attributeBonus');
     },
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH)
   },
@@ -118,9 +125,10 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     label: 'Radiant Power',
     target: MODIFIER_TARGET.ATTRIBUTE_FEROCITY,
     operation: 'add',
-    parameters: { attributeBonus: 150 } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) =>
-      attributeProvenance(context.config).professionStaticRulesApplied ? 0 : parameters.attributeBonus,
+    amount: (context) =>
+      attributeProvenance(context.config).professionStaticRulesApplied
+        ? 0
+        : balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER, 'attributeBonus'),
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER)
   },
   {
@@ -128,11 +136,11 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     label: 'Power of the Virtuous',
     target: MODIFIER_TARGET.ATTRIBUTE_CONDITION_DAMAGE,
     operation: 'add',
-    parameters: { vitalityConversion: 0.07 } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) =>
+    amount: (context) =>
       attributeProvenance(context.config).professionStaticRulesApplied
         ? 0
-        : Number(context.config?.stats?.vitality || 0) * parameters.vitalityConversion,
+        : Number(context.config?.stats?.vitality || 0) *
+          balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS, 'attributeConversion'),
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
   },
   {
@@ -140,13 +148,16 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     label: 'Bane Signet',
     target: MODIFIER_TARGET.ATTRIBUTE_POWER,
     operation: 'add',
-    parameters: { attributeBonus: 180, perfectInscriptionsMultiplier: 1.2 } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) => {
+    amount: (context) => {
       // Remove a precomputed passive during recharge, or add it while ready for raw supplied attributes.
       const perfectInscriptions = hasTrait(context, GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS);
       const passiveActive =
         perfectInscriptions || !context.timeline?.skillOnCooldownAt(GUARDIAN_SKILL_IDS.BANE_SIGNET, context.time);
-      const amount = parameters.attributeBonus * (perfectInscriptions ? parameters.perfectInscriptionsMultiplier : 1);
+      const amount =
+        balanceProfileNumberFromContext(context, 'guardian.core.bane-signet-passive', 'attributeBonus') *
+        (perfectInscriptions
+          ? balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS, 'attributeMultiplier')
+          : 1);
       return (
         (Number(passiveActive) - Number(attributeProvenance(context.config).professionStaticRulesApplied)) * amount
       );
@@ -158,15 +169,15 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     label: 'Signet of Wrath',
     target: MODIFIER_TARGET.ATTRIBUTE_CONDITION_DAMAGE,
     operation: 'add',
-    parameters: {
-      attributeBonus: 180,
-      perfectInscriptionsMultiplier: 1.2
-    } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) => {
+    amount: (context) => {
       const perfectInscriptions = hasTrait(context, GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS);
       const passiveActive =
         perfectInscriptions || !context.timeline?.skillOnCooldownAt(GUARDIAN_SKILL_IDS.SIGNET_OF_WRATH, context.time);
-      const amount = parameters.attributeBonus * (perfectInscriptions ? parameters.perfectInscriptionsMultiplier : 1);
+      const amount =
+        balanceProfileNumberFromContext(context, 'guardian.core.signet-of-wrath-passive', 'attributeBonus') *
+        (perfectInscriptions
+          ? balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS, 'attributeMultiplier')
+          : 1);
       return attributeProvenance(context.config).professionStaticRulesApplied
         ? passiveActive
           ? 0
@@ -215,14 +226,15 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'guardian.radiant-power-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.1,
+    amount: (context) => balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER, 'criticalChance'),
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER) && targetConditionActive(context, 'Burning')
   },
   {
     id: 'guardian.righteous-instincts',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.25,
+    amount: (context) =>
+      balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS, 'criticalChance'),
     when: (context) =>
       hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS) && guardianBoonActive(context, 'resolution')
   },
@@ -285,7 +297,8 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'guardian.radiant-fire-duration',
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
-    amount: 0.2,
+    amount: (context) =>
+      balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE, 'conditionDurationBonus'),
     // Specific condition-duration bonuses add to Expertise and are skipped when panel stats already include them.
     when: (context) =>
       context.condition === 'Burning' &&

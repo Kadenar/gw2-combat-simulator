@@ -1,3 +1,4 @@
+import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { StableEventQueue } from '#kernel/events/queue.js';
@@ -48,12 +49,18 @@ test('Firebrand Imbued Haste follows the live duration pool and its expiry', () 
   const event = buff('quickness');
   const context = { time: 4, timeline: createGw2TimelineIndex({ events: [event] }), runtime: { boons: new Map() } };
   const rule = firebrandModifierRules.find(({ id }) => id === 'guardian.firebrand.imbued-haste-attributes');
-  assert.equal(rule.amount(context, 'attributeConditionDamage', rule.parameters), 0);
+  assert.equal(rule.amount({ catalog: guardianCatalog, ...context }, 'attributeConditionDamage', rule.parameters), 0);
   recordBuffApplication(context.runtime.boons, event);
   recordBuffApplication(context.runtime.boons, event);
   // Two overlapping two-second applications last four seconds, beyond either individual expiry.
-  assert.equal(rule.amount({ ...context, time: 6 }, 'attributeConditionDamage', rule.parameters), 250);
-  assert.equal(rule.amount({ ...context, time: 8 }, 'attributeConditionDamage', rule.parameters), 0);
+  assert.equal(
+    rule.amount({ catalog: guardianCatalog, ...context, time: 6 }, 'attributeConditionDamage', rule.parameters),
+    250
+  );
+  assert.equal(
+    rule.amount({ catalog: guardianCatalog, ...context, time: 8 }, 'attributeConditionDamage', rule.parameters),
+    0
+  );
 });
 
 test('Righteous Instincts preserves stacked self Resolution without accepting other recipients', () => {

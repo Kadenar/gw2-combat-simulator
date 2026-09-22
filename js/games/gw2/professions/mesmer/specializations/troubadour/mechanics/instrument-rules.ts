@@ -1,5 +1,9 @@
 import { observeSyncopateEvent } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileValueFromContext,
+  balanceProfileFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -62,7 +66,7 @@ function hasLute(context: Gw2ModifierContext): boolean {
 export function applyTroubadourAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const instrumentCount = hasTrait(context, TRAIT.FORTISSIMO) ? activeInstrumentCount(context) : 0;
   const fortissimo = instrumentCount
-    ? 1 + instrumentCount * balanceProfileValueFromContext(context, TRAIT.FORTISSIMO, 'attributeConversion', 0.04)
+    ? 1 + instrumentCount * balanceProfileNumberFromContext(context, TRAIT.FORTISSIMO, 'attributeConversion')
     : 1;
   if (fortissimo === 1) return attributes;
   return {
@@ -139,7 +143,10 @@ function modifyTroubadourRecharge(context: MesmerRechargeContext, sharedDuration
   if (context.ammoCastLockout || context.skill.id !== ID.DODGE_TROUBADOUR) return sharedDuration;
   const runtime = mesmerRuntimeFor(context);
   const flutePlaying = troubadourState.from(runtime.context).instruments.Flute > runtime.context.state.time;
-  return Number(context.skill.cooldown || 0) / (flutePlaying ? 1.25 : 1);
+  return (
+    Number(context.skill.cooldown || 0) /
+    (flutePlaying ? Number(balanceProfileFromContext(context, TRAIT.SYMPHONIC_RESONANCE)?.dodgeRechargeSpeed) : 1)
+  );
 }
 
 export const troubadourCastRules = Object.freeze({

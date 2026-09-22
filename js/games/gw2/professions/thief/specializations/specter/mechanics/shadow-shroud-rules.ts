@@ -1,5 +1,5 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -64,19 +64,21 @@ function modifySpecterAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   const gearConditionDamage = Number(context.config?.stats?.conditionDamage || 0);
   const gearVitality = Number(context.config?.stats?.vitality || 0);
   if (hasTrait(context, TRAIT.SECOND_OPINION)) {
-    const profile = balanceProfileFromContext(context, PROFILE.secondOpinion);
     result.healingPower =
-      Number(result.healingPower || 0) + gearConditionDamage * Number(profile?.attributeConversion ?? 0.07);
+      Number(result.healingPower || 0) +
+      gearConditionDamage * balanceProfileNumberFromContext(context, PROFILE.secondOpinion, 'attributeConversion');
     result.conditionDamage =
       Number(result.conditionDamage || 0) +
-      Number(profile?.attributeBonus ?? 90) +
-      (wieldingScepter(context) ? Number(profile?.attributePerStack ?? 90) : 0);
+      balanceProfileNumberFromContext(context, PROFILE.secondOpinion, 'attributeBonus') +
+      (wieldingScepter(context)
+        ? balanceProfileNumberFromContext(context, PROFILE.secondOpinion, 'attributePerStack')
+        : 0);
   }
 
   if (hasTrait(context, TRAIT.STRENGTH_OF_SHADOWS)) {
     result.expertise =
       Number(result.expertise || 0) +
-      gearVitality * Number(balanceProfileFromContext(context, PROFILE.strengthOfShadows)?.attributeConversion ?? 0.13);
+      gearVitality * balanceProfileNumberFromContext(context, PROFILE.strengthOfShadows, 'attributeConversion');
   }
 
   return result;

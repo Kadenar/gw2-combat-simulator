@@ -1,3 +1,4 @@
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { revenantCastAvailability } from '#gw2/professions/revenant/core/mechanics/availability.js';
 import { modifyRevenantRechargeDuration } from '#gw2/professions/revenant/core/traits/index.js';
@@ -171,7 +172,9 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
 ]);
 
 function modifyCoreCriticalChance(context: RevenantModifierContext, chance: number): number {
-  return hasTrait(context, TRAIT.ROILING_MISTS) && boonActive(context, 'fury') ? chance + 0.25 : chance;
+  return hasTrait(context, TRAIT.ROILING_MISTS) && boonActive(context, 'fury')
+    ? chance + balanceProfileNumberFromContext(context, TRAIT.ROILING_MISTS, 'criticalChance')
+    : chance;
 }
 
 // Apply Revenant's condition- and skill-specific base duration modifiers before
@@ -179,7 +182,7 @@ function modifyCoreCriticalChance(context: RevenantModifierContext, chance: numb
 function modifyCoreConditionDuration(context: RevenantModifierContext, duration: number): number {
   let modified = duration;
   if (hasTrait(context, TRAIT.PACT_OF_PAIN) && !professionStaticRulesApplied(context.config)) {
-    modified += 0.15;
+    modified += balanceProfileNumberFromContext(context, TRAIT.PACT_OF_PAIN, 'conditionDurationBonus');
   }
 
   if (
@@ -187,7 +190,7 @@ function modifyCoreConditionDuration(context: RevenantModifierContext, duration:
     hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) &&
     !professionStaticRulesApplied(context.config)
   ) {
-    modified += 0.1;
+    modified += balanceProfileNumberFromContext(context, TRAIT.YEARNING_EMPOWERMENT, 'conditionDurationBonus');
   }
 
   return modified;
@@ -210,8 +213,12 @@ function modifyCoreAttributes(context: RevenantModifierContext, attributes: Gw2S
       25 - baseMight
     );
     const might = baseMight + dynamicMight;
-    modified.power = Number(modified.power || 0) + might * 10;
-    modified.conditionDamage = Number(modified.conditionDamage || 0) - might * 10;
+    modified.power =
+      Number(modified.power || 0) +
+      might * balanceProfileNumberFromContext(context, TRAIT.NOTORIETY, 'attributePerStack');
+    modified.conditionDamage =
+      Number(modified.conditionDamage || 0) -
+      might * balanceProfileNumberFromContext(context, TRAIT.NOTORIETY, 'attributePerStack');
   }
 
   return modified;

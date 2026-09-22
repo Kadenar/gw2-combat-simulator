@@ -1,3 +1,5 @@
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -145,13 +147,12 @@ test('shared attribute provenance applies profession static rules once', () => {
   };
 
   const engineerDirect = engineerCoreRules.modifyAttributes(
-    {
-      config: { selectedTraitIds: [ENGINEER_TRAIT_IDS.CHEMICAL_ROUNDS] }
-    },
+    { catalog: engineerCatalog, config: { selectedTraitIds: [ENGINEER_TRAIT_IDS.CHEMICAL_ROUNDS] } },
     { conditionDamage: 1000 }
   );
   const engineerBrowser = engineerCoreRules.modifyAttributes(
     {
+      catalog: engineerProfession.catalog,
       config: {
         ...applied,
         selectedTraitIds: [ENGINEER_TRAIT_IDS.CHEMICAL_ROUNDS]
@@ -163,25 +164,22 @@ test('shared attribute provenance applies profession static rules once', () => {
   assert.equal(engineerDirect.conditionDamage, 1120);
   assert.equal(engineerBrowser.conditionDamage, engineerDirect.conditionDamage);
 
-  for (const [rules, traitId, condition, staticBonus] of [
-    [engineerCoreRules, ENGINEER_TRAIT_IDS.SERRATED_STEEL, 'Bleeding', 0.33],
-    [engineerCoreRules, ENGINEER_TRAIT_IDS.INCENDIARY_POWDER, 'Burning', 0.33],
-    [engineerAmalgamRules, ENGINEER_TRAIT_IDS.CARBOLIC_COMPOSITION, 'Poisoned', 0.33],
-    [mesmerCoreRules, MESMER_TRAIT_IDS.MALICIOUS_SORCERY, 'Confusion', 0.25],
-    [guardianCoreRules, GUARDIAN_TRAIT_IDS.RADIANT_FIRE, 'Burning', 0.2],
-    [thiefCoreRules, THIEF_TRAIT_IDS.POTENT_POISON, 'Poisoned', 0.33]
+  for (const [rules, traitId, condition, staticBonus, catalog] of [
+    [engineerCoreRules, ENGINEER_TRAIT_IDS.SERRATED_STEEL, 'Bleeding', 0.33, engineerProfession.catalog],
+    [engineerCoreRules, ENGINEER_TRAIT_IDS.INCENDIARY_POWDER, 'Burning', 0.33, engineerProfession.catalog],
+    [engineerAmalgamRules, ENGINEER_TRAIT_IDS.CARBOLIC_COMPOSITION, 'Poisoned', 0.33, engineerProfession.catalog],
+    [mesmerCoreRules, MESMER_TRAIT_IDS.MALICIOUS_SORCERY, 'Confusion', 0.25, mesmerProfession.catalog],
+    [guardianCoreRules, GUARDIAN_TRAIT_IDS.RADIANT_FIRE, 'Burning', 0.2, guardianProfession.catalog],
+    [thiefCoreRules, THIEF_TRAIT_IDS.POTENT_POISON, 'Poisoned', 0.33, thiefProfession.catalog]
   ]) {
     const baseDuration = 1.1;
     const directDuration = rules.modifyConditionDuration(
-      {
-        config: { selectedTraitIds: [traitId] },
-        condition,
-        event: { condition }
-      },
+      { catalog: catalog, config: { selectedTraitIds: [traitId] }, condition, event: { condition } },
       baseDuration
     );
     const browserDuration = rules.modifyConditionDuration(
       {
+        catalog: catalog,
         config: {
           ...applied,
           selectedTraitIds: [traitId]
@@ -199,6 +197,7 @@ test('shared attribute provenance applies profession static rules once', () => {
   // Zealous Blade reads the equipped weapon at impact time when applying its Greatsword bonus.
   const guardianDirect = guardianCoreRules.modifyAttributes(
     {
+      catalog: guardianProfession.catalog,
       config: { primaryWeapon: 'Greatsword', selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE] },
       event: { skillWeapon: 'Greatsword' }
     },
@@ -206,6 +205,7 @@ test('shared attribute provenance applies profession static rules once', () => {
   );
   const guardianBrowser = guardianCoreRules.modifyAttributes(
     {
+      catalog: guardianProfession.catalog,
       config: {
         ...applied,
         primaryWeapon: 'Greatsword',
@@ -220,13 +220,12 @@ test('shared attribute provenance applies profession static rules once', () => {
   assert.equal(guardianBrowser.power, guardianDirect.power);
 
   const necromancerDirect = necromancerCoreRules.modifyAttributes(
-    {
-      config: { selectedTraitIds: [NECROMANCER_TRAIT_IDS.FURIOUS_DEMISE] }
-    },
+    { catalog: necromancerProfession.catalog, config: { selectedTraitIds: [NECROMANCER_TRAIT_IDS.FURIOUS_DEMISE] } },
     { precision: 1000 }
   );
   const necromancerBrowser = necromancerCoreRules.modifyAttributes(
     {
+      catalog: necromancerProfession.catalog,
       config: {
         ...applied,
         selectedTraitIds: [NECROMANCER_TRAIT_IDS.FURIOUS_DEMISE]
@@ -251,14 +250,12 @@ test('shared attribute provenance applies profession static rules once', () => {
   assert.equal(necromancerBrowserState.maximumHealth, necromancerDirectState.maximumHealth);
 
   const revenantDirect = revenantCoreRules.modifyConditionDuration(
-    {
-      config: { selectedTraitIds: [TRAIT.PACT_OF_PAIN] },
-      condition: 'Torment'
-    },
+    { catalog: revenantProfession.catalog, config: { selectedTraitIds: [TRAIT.PACT_OF_PAIN] }, condition: 'Torment' },
     1
   );
   const revenantBrowser = revenantCoreRules.modifyConditionDuration(
     {
+      catalog: revenantProfession.catalog,
       config: {
         ...applied,
         selectedTraitIds: [TRAIT.PACT_OF_PAIN]
@@ -366,7 +363,7 @@ test('Engineer omits conditional and obsolete attribute effects', () => {
   assert.equal(withSignets['Condition Damage'].final, withoutSignets['Condition Damage'].final);
 });
 
-test("only Forceful Greatsword's base Power feeds conversions", () => {
+test('Forceful Greatsword grants base Power and its weapon bonus', () => {
   const build = createWarriorBuildDefaults();
 
   build.food = '';
@@ -394,7 +391,6 @@ test("only Forceful Greatsword's base Power feeds conversions", () => {
     const withoutForceful = calculateWarriorAttributes(build, [], 1, 'Forceful Greatsword').attributes;
 
     assert.equal(all.Power.final - withoutForceful.Power.final, power);
-    assert.equal(all['Healing Power'].final - withoutForceful['Healing Power'].final, 12);
   }
 });
 
@@ -601,7 +597,7 @@ test('Bolstered Bonds runtime only adds the temporary Cosmic Wisdom copy', () =>
   assert.deepEqual(revenantConduitRules.modifyAttributes(context, attributes), attributes);
 
   context.runtime.profession.specialization.state.cosmicWisdomUntil = 5;
-  const cosmic = revenantConduitRules.modifyAttributes(context, attributes);
+  const cosmic = revenantConduitRules.modifyAttributes({ catalog: revenantCatalog, ...context }, attributes);
 
   assert.equal(cosmic.power, 1300);
   assert.equal(cosmic.precision, 1150);
@@ -663,6 +659,7 @@ test('Brutal Momentum exposes its unconditional critical chance', () => {
 
   const runtime = revenantRenegadeRules.modifyCriticalChance(
     {
+      catalog: revenantCatalog,
       config: {
         specialization: 'Renegade',
         attributeProvenance: {

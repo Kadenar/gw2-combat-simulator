@@ -1,3 +1,4 @@
+import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -95,6 +96,7 @@ const PLAYER_MODIFIER_PREDICATES = Object.freeze([
     (event) =>
       modifyNecromancerCoreAttributes(
         {
+          catalog: necromancerCatalog,
           time: 1,
           event: event ?? {},
           actorType: event?.actorType,
@@ -178,7 +180,10 @@ test('actual-player skill modifiers do not follow modifier ownership', () => {
     false
   );
   assert.equal(
-    modifyNecromancerCoreAttributes({ time: 1, config: { selectedSkills: ['Signet of Spite'] } }, { power: 0 }).power,
+    modifyNecromancerCoreAttributes(
+      { catalog: necromancerCatalog, time: 1, config: { selectedSkills: ['Signet of Spite'] } },
+      { power: 0 }
+    ).power,
     180,
     'eventless player attribute query'
   );

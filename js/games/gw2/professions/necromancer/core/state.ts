@@ -1,3 +1,5 @@
+import { NECROMANCER_CORE_BALANCE_PROFILES } from '#gw2/professions/necromancer/core/profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -87,15 +89,31 @@ export const NECROMANCER_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
 export const NECROMANCER_BASE_HEALTH = 9212;
 
 /** Calculates maximum health after Core vitality traits that were not already applied by the build layer. */
-function necromancerMaximumHealth(config: NecromancerConfig, traits: ReadonlySet<string | number>): number {
+export function necromancerMaximumHealth(
+  config: NecromancerConfig,
+  traits: ReadonlySet<string | number>,
+  balanceContext: unknown = {
+    balanceProfile: (id: string | number) => NECROMANCER_CORE_BALANCE_PROFILES.find((profile) => profile.id === id)
+  }
+): number {
   let vitality = Number(config.stats?.vitality ?? config.attributes?.vitality ?? 1000);
   if (!professionStaticRulesApplied(config)) {
     if (hasTrait(traits, NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE)) {
-      vitality += Number(config.stats?.power ?? config.attributes?.power ?? 1000) * 0.1;
+      vitality +=
+        Number(config.stats?.power ?? config.attributes?.power ?? 1000) *
+        balanceProfileNumberFromContext(
+          balanceContext,
+          NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE,
+          'attributeConversion'
+        );
     }
 
     if (hasTrait(traits, NECROMANCER_TRAIT_IDS.VITAL_PERSISTENCE)) {
-      vitality += 180;
+      vitality += balanceProfileNumberFromContext(
+        balanceContext,
+        NECROMANCER_TRAIT_IDS.VITAL_PERSISTENCE,
+        'attributeBonus'
+      );
     }
   }
 
@@ -129,9 +147,15 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
   // Normalize canonical selected IDs once for all initial state calculations.
   const traits = normalizeSelectedTraitIds(config.selectedTraitIds);
   const soulBattery = hasTrait(traits, NECROMANCER_TRAIT_IDS.SOUL_BATTERY);
-  const maximumLifeForce = soulBattery ? 120 : 100;
+  const capacityMultiplier = soulBattery
+    ? Number(
+        NECROMANCER_CORE_BALANCE_PROFILES.find((profile) => profile.id === NECROMANCER_TRAIT_IDS.SOUL_BATTERY)!
+          .lifeForceCapacityMultiplier
+      )
+    : 1;
+  const maximumLifeForce = 100 * capacityMultiplier;
   const maximumHealth = necromancerMaximumHealth(config, traits);
-  const lifeForcePoolCapacity = maximumHealth * 0.69 * (soulBattery ? 1.2 : 1);
+  const lifeForcePoolCapacity = maximumHealth * 0.69 * capacityMultiplier;
   const configuredLifeForce = Number(config.initialResource ?? 100);
   const lifeForce = (maximumLifeForce * clamp(configuredLifeForce, 0, 100)) / 100;
   // Seed every mutable subsystem independently and bound the initial life-force value.

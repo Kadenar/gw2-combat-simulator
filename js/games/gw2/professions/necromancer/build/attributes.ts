@@ -1,5 +1,8 @@
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
-import { necromancerCoreModifierRules } from '#gw2/professions/necromancer/core/traits/modifiers.js';
+
 import {
   createBuildAttributeContext,
   finalizeProfessionBuildAttributes
@@ -25,24 +28,17 @@ export function applyNecromancerBuildAttributeRules(
     getActiveTraits
   });
 
+  // Attribute amounts follow the selected patch while effect ordering and eligibility remain unchanged.
+  const profileContext = balanceContext ?? { catalog: necromancerCatalog };
   const traitDurations: Gw2NumericAttributes = {};
 
-  // Read the same critical-chance declaration as simulation; a selected patch must never fall back to live values.
-  const deathPerception = balanceContext
-    ? balanceContext.modifierRulesById.get('necromancer.death-perception-critical-chance')
-    : necromancerCoreModifierRules.find((rule) => rule.id === 'necromancer.death-perception-critical-chance');
-  if (typeof deathPerception?.amount !== 'number' || !Number.isFinite(deathPerception.amount)) {
-    throw new Error('Death Perception requires a numeric critical-chance declaration.');
-  }
-
-  // Keep static bonuses declarative so shared provenance and conversion ordering remain consistent.
   const attributeEffects: readonly Gw2AttributeEffect[] = [
     {
       kind: 'conversion',
       source: 'Spiteful Fortitude',
       from: 'Power',
       to: 'Vitality',
-      multiplier: 0.1,
+      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.SPITEFUL_FORTITUDE, 'attributeConversion'),
       rounding: 'none',
       input: 'common',
       enabled: hasTrait('Spiteful Fortitude')
@@ -51,7 +47,7 @@ export function applyNecromancerBuildAttributeRules(
       kind: 'flat',
       source: 'Furious Demise',
       to: 'Precision',
-      amount: 180,
+      amount: balanceProfileNumberFromContext(profileContext, TRAIT.FURIOUS_DEMISE, 'attributeBonus'),
       feedsConversions: true,
       enabled: hasTrait('Furious Demise')
     },
@@ -59,7 +55,7 @@ export function applyNecromancerBuildAttributeRules(
       kind: 'flat',
       source: 'Lingering Curse',
       to: 'Condition Damage',
-      amount: 200,
+      amount: balanceProfileNumberFromContext(profileContext, TRAIT.LINGERING_CURSE, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Lingering Curse')
     },
@@ -67,7 +63,7 @@ export function applyNecromancerBuildAttributeRules(
       kind: 'flat',
       source: 'Vital Persistence',
       to: 'Vitality',
-      amount: 180,
+      amount: balanceProfileNumberFromContext(profileContext, TRAIT.VITAL_PERSISTENCE, 'attributeBonus'),
       feedsConversions: true,
       enabled: hasTrait('Vital Persistence')
     },
@@ -75,7 +71,7 @@ export function applyNecromancerBuildAttributeRules(
       kind: 'flat',
       source: 'Alchemic Vigor',
       to: 'Vitality',
-      amount: 240,
+      amount: balanceProfileNumberFromContext(profileContext, TRAIT.ALCHEMIC_VIGOR, 'attributeBonus'),
       feedsConversions: true,
       enabled: hasTrait('Alchemic Vigor')
     },
@@ -84,7 +80,7 @@ export function applyNecromancerBuildAttributeRules(
       source: 'Implacable Foe',
       from: 'Vitality',
       to: 'Ferocity',
-      multiplier: 0.13,
+      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.IMPLACABLE_FOE, 'attributeConversion'),
       rounding: 'none',
       input: 'eligible',
       enabled: hasTrait('Implacable Foe')
@@ -94,7 +90,7 @@ export function applyNecromancerBuildAttributeRules(
       source: 'Twisted Medicine',
       from: 'Vitality',
       to: 'Concentration',
-      multiplier: 0.13,
+      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.TWISTED_MEDICINE, 'attributeConversion'),
       rounding: 'none',
       input: 'eligible',
       enabled: hasTrait('Twisted Medicine')
@@ -104,7 +100,7 @@ export function applyNecromancerBuildAttributeRules(
       source: 'Dark Gunslinger',
       from: 'Vitality',
       to: 'Expertise',
-      multiplier: 0.1,
+      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.DARK_GUNSLINGER, 'attributeConversion'),
       rounding: 'round',
       input: 'eligible',
       enabled: hasTrait('Dark Gunslinger')
@@ -113,7 +109,7 @@ export function applyNecromancerBuildAttributeRules(
       kind: 'flat',
       source: 'Boon of Creation',
       to: 'Concentration',
-      amount: 180,
+      amount: balanceProfileNumberFromContext(profileContext, TRAIT.BOON_OF_CREATION, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Boon of Creation')
     },
@@ -122,7 +118,7 @@ export function applyNecromancerBuildAttributeRules(
       source: 'Target the Weak',
       from: 'Precision',
       to: 'Condition Damage',
-      multiplier: 0.13,
+      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.TARGET_THE_WEAK, 'attributeConversion'),
       rounding: 'floor',
       input: 'eligible',
       enabled: hasTrait('Target the Weak')
@@ -132,7 +128,7 @@ export function applyNecromancerBuildAttributeRules(
       source: 'Fell Beacon',
       from: 'Condition Damage',
       to: 'Expertise',
-      multiplier: 0.07,
+      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.FELL_BEACON, 'attributeConversion'),
       rounding: 'none',
       input: 'eligible',
       enabled: hasTrait('Fell Beacon')
@@ -141,14 +137,20 @@ export function applyNecromancerBuildAttributeRules(
       kind: 'flat',
       source: 'Signet of Spite',
       to: 'Power',
-      amount: 180,
+      amount: balanceProfileNumberFromContext(
+        profileContext,
+        'necromancer.core.signet-of-spite-passive',
+        'attributeBonus'
+      ),
       feedsConversions: false,
       enabled: hasSelectedSkill('Signet of Spite')
     }
   ];
 
   if (hasTrait('Barbed Precision')) {
-    traitDurations['Bleeding Duration'] = 20;
+    traitDurations['Bleeding Duration'] =
+      balanceProfileNumberFromContext(profileContext, TRAIT.BARBED_PRECISION, 'conditionDurationMultiplier') * 100 -
+      100;
   }
 
   // Finalization merges profession effects with the common equipment-derived attribute result.
@@ -156,6 +158,8 @@ export function applyNecromancerBuildAttributeRules(
     activeTraits,
     attributeEffects,
     traitDurations,
-    traitCriticalChance: hasTrait('Death Perception') ? deathPerception.amount * 100 : 0
+    traitCriticalChance: hasTrait('Death Perception')
+      ? balanceProfileNumberFromContext(profileContext, TRAIT.DEATH_PERCEPTION, 'criticalChance') * 100
+      : 0
   });
 }

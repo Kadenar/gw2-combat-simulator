@@ -156,6 +156,9 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   trait(HARBINGER_BALANCE_PROFILE_IDS.twistedMedicine, 'Twisted Medicine', {
     attributeConversion: 0.13
   }),
+  trait(TRAIT.WICKED_CORRUPTION, 'Wicked Corruption', {
+    criticalDamage: 1.1
+  }),
   trait(HARBINGER_BALANCE_PROFILE_IDS.darkGunslinger, 'Dark Gunslinger', {
     attributeConversion: 0.1,
     rechargeMultiplier: 0.8

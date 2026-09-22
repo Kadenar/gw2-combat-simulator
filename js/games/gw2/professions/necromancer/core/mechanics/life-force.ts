@@ -94,7 +94,7 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
       sourceId: TRAIT.SOUL_BARBS,
       actorType: 'player',
       kind: 'necromancer-soul-barbs',
-      duration: 15,
+      duration: Number(balanceProfileFromContext(context, TRAIT.SOUL_BARBS)?.duration),
       stacks: 1
     });
   }
@@ -181,6 +181,8 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
   const undeathInterval = Number(undeath?.pulseInterval ?? 3);
   const vampirismInterval = Number(vampirism?.pulseInterval ?? 3);
   const eternalLife = hasTrait(context, TRAIT.ETERNAL_LIFE);
+  const regeneration = balanceProfileFromContext(context, TRAIT.ETERNAL_LIFE)!;
+  const regenerationInterval = Number(regeneration.pulseInterval);
   const feedback = context.config._schedulerFeedback as NecromancerSchedulerFeedback | undefined;
   const gains = feedback?.lifeForceGains || [];
   // The resolver supplies gains in time order. Keep our position across advances so overlapping or repeated
@@ -212,7 +214,10 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
     // Infinity excludes inactive clocks from Math.min; nonpositive pulse intervals disable recurring pulses.
     const nextUndeath = undeath && undeathInterval > 0 ? state.signetNextLifeForceAt : Infinity;
     const nextVampirism = vampirism && vampirismInterval > 0 ? state.vampirismNextAt : Infinity;
-    const nextRegeneration = eternalLife && !state.activeShroud ? Math.floor(at + EPSILON) + 1 : Infinity;
+    const nextRegeneration =
+      eternalLife && !state.activeShroud && regenerationInterval > 0
+        ? (Math.floor((at + EPSILON) / regenerationInterval) + 1) * regenerationInterval
+        : Infinity;
     // Stop at the earliest event or the requested end, including the exact instant drain would exhaust life force.
     // Math.max prevents a stale pulse cursor from moving time backward; its branch below advances that cursor.
     const next = Math.max(
@@ -247,10 +252,13 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
     }
 
     if (nextRegeneration <= next + EPSILON) {
-      const threshold = state.maximumLifeForce * 0.66;
+      const threshold = state.maximumLifeForce * Number(regeneration.threshold);
       // Eternal Life fills only below its threshold; resources earned elsewhere remain intact.
       if (state.lifeForce < threshold) {
-        state.lifeForce = Math.min(threshold, state.lifeForce + state.maximumLifeForce * 0.03);
+        state.lifeForce = Math.min(
+          threshold,
+          state.lifeForce + (state.maximumLifeForce * Number(regeneration.lifeForceGain)) / 100
+        );
       }
     }
 
@@ -312,7 +320,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
 export function applySkillLifeForceGain(context: NecromancerCastContext, skill: NecromancerSkill): void {
   let amount = Number(skill.lifeForceGain || 0);
   if (skill.categories?.includes('Mark') && hasTrait(context, TRAIT.SOUL_MARKS)) {
-    amount += 3;
+    amount += Number(balanceProfileFromContext(context, TRAIT.SOUL_MARKS)?.lifeForceGain);
   }
 
   // Read the same per-condition gain and cap that the selected skill exposes in its tooltip.

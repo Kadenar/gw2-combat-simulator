@@ -60,6 +60,7 @@ export const BERSERKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     ]
   }),
   trait(BERSERKER_BALANCE_PROFILE_IDS.kingOfFires, 'King of Fires', {
+    durationMultiplier: 0.33,
     internalCooldown: 15,
     effects: [
       { type: 'buff', kind: 'fire-aura', stacks: 1, duration: 5 },

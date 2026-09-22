@@ -1,5 +1,8 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -87,7 +90,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     id: 'thief.ferocious-strikes',
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
-    factor: 1.1,
+    factor: (context) => balanceProfileNumberFromContext(context, TRAIT.FEROCIOUS_STRIKES, 'criticalDamage'),
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.FEROCIOUS_STRIKES) &&
@@ -98,14 +101,19 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
     // Preserve low-health stat previews; simulation queries always return full player health.
-    factor: (context) => (playerHealthFraction(context) > 0.5 ? 1.07 : 1.05),
+    factor: (context) =>
+      balanceProfileNumberFromContext(
+        context,
+        TRAIT.TWIN_FANGS,
+        playerHealthFraction(context) > 0.5 ? 'criticalDamage' : 'lowHealthCriticalDamage'
+      ),
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TWIN_FANGS)
   },
   {
     id: 'thief.twin-fangs-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.07,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.TWIN_FANGS, 'criticalChance'),
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.TWIN_FANGS) &&
@@ -194,7 +202,7 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     id: 'thief.potent-poison-duration',
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
-    amount: 0.33,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.POTENT_POISON, 'conditionDurationBonus'),
     // Specific condition-duration bonuses add to Expertise and are skipped when panel stats already include them.
     when: (context) =>
       context.event?.condition === 'Poisoned' &&
@@ -206,14 +214,17 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     // Preserve low-health stat previews; simulation queries always return full player health.
-    amount: (context) => (playerHealthFraction(context) > 0.5 ? 0.15 : 0.1),
+    amount: (context) =>
+      playerHealthFraction(context) > 0.5
+        ? balanceProfileNumberFromContext(context, TRAIT.KEEN_OBSERVER, 'criticalChance')
+        : balanceProfileNumberFromContext(context, TRAIT.KEEN_OBSERVER, 'lowHealthCriticalChance'),
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.KEEN_OBSERVER)
   },
   {
     id: 'thief.hidden-killer',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 1,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.HIDDEN_KILLER, 'criticalChance'),
     when: (context) => {
       const state = thiefRuntimeState(context);
       return (
@@ -235,30 +246,29 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   if (hasSelectedSkill(context, 'Signet of Agility')) {
     // Reconcile panel precision with recharge so the passive disappears only while the signet is unavailable.
+    const passiveBonus = balanceProfileNumberFromContext(context, PROFILE.signetOfAgility, 'attributeBonus');
     const passiveDisabled = context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_AGILITY, context.time);
-    if (staticRulesApplied && passiveDisabled) result.precision -= 180;
-    if (!staticRulesApplied && !passiveDisabled) result.precision += 180;
+    if (staticRulesApplied && passiveDisabled) result.precision -= passiveBonus;
+    if (!staticRulesApplied && !passiveDisabled) result.precision += passiveBonus;
   }
 
   if (hasSelectedSkill(context, "Assassin's Signet")) {
-    const profile = balanceProfileFromContext(context, PROFILE.assassinsSignet);
-    const passive = Number(profile?.attributeBonus ?? 180);
+    const passive = balanceProfileNumberFromContext(context, PROFILE.assassinsSignet, 'attributeBonus');
     const passiveDisabled = Number(state.assassinsSignetPassiveDisabledUntil || 0) > context.time;
     if (staticRulesApplied && passiveDisabled) result.power -= passive;
     if (!staticRulesApplied && !passiveDisabled) result.power += passive;
     if (Number(state.assassinsSignetActiveUntil || 0) > context.time) {
-      result.power += Number(profile?.attributePerStack ?? 540);
+      result.power += balanceProfileNumberFromContext(context, PROFILE.assassinsSignet, 'attributePerStack');
     }
   }
 
   if (hasTrait(context, TRAIT.REVEALED_TRAINING)) {
-    const profile = balanceProfileFromContext(context, PROFILE.revealedTraining);
     if (!staticRulesApplied) {
-      result.power += Number(profile?.attributeBonus ?? 80);
+      result.power += balanceProfileNumberFromContext(context, PROFILE.revealedTraining, 'attributeBonus');
     }
 
     if (Number(state.revealedUntil || 0) > context.time && !eventSkill(context)?.stealthAttack) {
-      result.power += Number(profile?.attributePerStack ?? 120);
+      result.power += balanceProfileNumberFromContext(context, PROFILE.revealedTraining, 'attributePerStack');
     }
   }
 
@@ -267,7 +277,7 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
     context.query?.furyActiveAt(context.time, context.runtime, context.event) &&
     !(staticRulesApplied && Boolean((context.config?.boons as Record<string, unknown>)?.fury))
   ) {
-    result.ferocity += Number(balanceProfileFromContext(context, PROFILE.noQuarter)?.attributeBonus ?? 250);
+    result.ferocity += balanceProfileNumberFromContext(context, PROFILE.noQuarter, 'attributeBonus');
   }
 
   return result;

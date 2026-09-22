@@ -1,3 +1,4 @@
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -11,7 +12,7 @@ import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
-import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { druidAttributeRules } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
@@ -523,7 +524,10 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
 
   const baseAttributes = { power: 0, precision: 0, conditionDamage: 0, toughness: 0, vitality: 1000, ferocity: 0 };
   const druidContext = { config: {}, traits: new Set([TRAIT.NATURAL_FORTITUDE]) };
-  const druidAttributes = druidAttributeRules.modifyAttributes(druidContext, baseAttributes);
+  const druidAttributes = druidAttributeRules.modifyAttributes(
+    { catalog: rangerCatalog, ...druidContext },
+    baseAttributes
+  );
   const coreAttributes = rangerCoreAttributeRules.modifyAttributes(druidContext, baseAttributes);
 
   assert.equal(druidAttributes.vitality, 1240);
@@ -531,6 +535,7 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
 
   const soulbeastAttributes = soulbeastAttributeRules.modifyAttributes(
     {
+      catalog: rangerCatalog,
       config: { selectedPet: 'Pig' },
       traits: new Set([TRAIT.PACK_ALPHA, TRAIT.PETS_PROWESS]),
       runtime: {
@@ -1020,17 +1025,20 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
     runtime: { activeWeaponSet: 1 },
     query: { mightStacksAt: () => 0 }
   };
-  const petAttributes = rangerCoreAttributeRules.modifyAttributes(petTraitContext, {
-    power: 2000,
-    precision: 1000,
-    toughness: 1000,
-    vitality: 1000,
-    ferocity: 0,
-    conditionDamage: 1000,
-    expertise: 0,
-    concentration: 0,
-    healingPower: 0
-  });
+  const petAttributes = rangerCoreAttributeRules.modifyAttributes(
+    { catalog: rangerCatalog, ...petTraitContext },
+    {
+      power: 2000,
+      precision: 1000,
+      toughness: 1000,
+      vitality: 1000,
+      ferocity: 0,
+      conditionDamage: 1000,
+      expertise: 0,
+      concentration: 0,
+      healingPower: 0
+    }
+  );
 
   assert.equal(petAttributes.expertise, 375);
   assert.equal(petAttributes.concentration, 240);

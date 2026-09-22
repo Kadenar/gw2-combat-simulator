@@ -1,6 +1,10 @@
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 /** Owns imperative Tactics trait effects while the public dispatcher preserves cross-line ordering. */
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileEffect,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -161,7 +165,7 @@ export function modifyWarriorTacticsAttributes(
   staticRulesApplied: boolean
 ): void {
   if (hasTrait(context, TRAIT.ROARING_REVEILLE) && !staticRulesApplied) {
-    result.concentration += Number(balanceProfileFromContext(context, PROFILE.roaringReveille)?.attributeBonus ?? 120);
+    result.concentration += balanceProfileNumberFromContext(context, PROFILE.roaringReveille, 'attributeBonus');
   }
 }
 

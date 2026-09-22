@@ -40,8 +40,8 @@ export const SPELLBREAKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     effects: [{ type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1 }]
   }),
   trait(SPELLBREAKER_BALANCE_PROFILE_IDS.pureStrike, 'Pure Strike', {
-    damageMultiplier: 1.05,
-    coefficientMultiplier: 1.1
+    // Targets have no boons, so the supported bonus is a single critical-damage multiplier.
+    criticalDamage: 1.1
   }),
   trait(SPELLBREAKER_BALANCE_PROFILE_IDS.sunAndMoonStyle, 'Sun and Moon Style', {
     damageMultiplier: 1.1

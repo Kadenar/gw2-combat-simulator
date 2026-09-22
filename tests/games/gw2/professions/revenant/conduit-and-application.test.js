@@ -1,10 +1,11 @@
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as SKILL,
@@ -15,7 +16,9 @@ import { createProfessionSimulator } from '#tests/helpers/profession-simulation.
 
 const revenantAttributeRules = Object.freeze({
   modifyAttributes(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyAttributes(context, value);
+    return revenantProfession
+      .resolveRuntime(context?.config || {})
+      .modifyAttributes({ catalog: revenantCatalog, ...context }, value);
   },
   modifyCriticalChance(context, value) {
     return revenantProfession.resolveRuntime(context?.config || {}).modifyCriticalChance(context, value);

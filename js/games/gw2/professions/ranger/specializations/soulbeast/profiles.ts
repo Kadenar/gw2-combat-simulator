@@ -99,6 +99,9 @@ export const SOULBEAST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   trait(SOULBEAST_BALANCE_PROFILE_IDS.predatorsCunning, "Predator's Cunning", {
     effects: [{ type: 'strike', coefficient: 0.006, hits: 1 }]
   }),
+  trait(TRAIT.OPPRESSIVE_SUPERIORITY, 'Oppressive Superiority', {
+    conditionDurationBonus: 0.1
+  }),
   trait(SOULBEAST_BALANCE_PROFILE_IDS.essenceOfSpeed, 'Essence of Speed', {
     internalCooldown: 5,
     durationMultiplier: 2

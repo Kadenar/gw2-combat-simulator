@@ -1,7 +1,11 @@
 import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 /** Owns imperative Core Necromancer Spite trait behavior for ordered dispatcher calls. */
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileEffect,
+  balanceProfileFromContext,
+  balanceProfileEffectFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
@@ -152,7 +156,9 @@ export function applySignetsOfSuffering(context: NecromancerCastContext, skill: 
     actorType: 'effect',
     coefficient: 0,
     skillWeapon: 'Unequipped',
-    flatStrikeBase: 1413,
+    flatStrikeBase: Number(
+      balanceProfileEffectFromContext(context, TRAIT.SIGNETS_OF_SUFFERING, 'strike', 0)!.flatStrikeBase
+    ),
     noCrit: true,
     damageKind: 'life-steal'
   });
@@ -162,14 +168,22 @@ export function applyMaliciousSwarm(context: NecromancerCastContext, skill: Necr
   const state = professionCoreState(context);
   if (skill.type !== 'Heal' || !hasTrait(context, TRAIT.MALICIOUS_SWARM)) return;
   // Claim only after local eligibility, before conditions, resources or queued strikes.
-  if (!tryConsumeProcCooldown(state.traitProcReadyAt, 'maliciousSwarm', context.effectiveEnd, 15)) return;
+  if (
+    !tryConsumeProcCooldown(
+      state.traitProcReadyAt,
+      'maliciousSwarm',
+      context.effectiveEnd,
+      Number(balanceProfileFromContext(context, TRAIT.MALICIOUS_SWARM)?.internalCooldown)
+    )
+  )
+    return;
   emitSkillDamage(context, skill, {
     at: context.effectiveEnd,
     name: 'Lesser Signet of the Locust',
     source: 'Trait',
     sourceId: TRAIT.MALICIOUS_SWARM,
     actorType: 'effect',
-    coefficient: 1,
+    coefficient: Number(balanceProfileEffectFromContext(context, TRAIT.MALICIOUS_SWARM, 'strike', 0)!.coefficient),
     skillWeapon: 'Unequipped'
   });
 }

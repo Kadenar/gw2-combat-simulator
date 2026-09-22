@@ -1,5 +1,8 @@
 import type { Gw2Stats, Gw2MutableStats } from '#gw2/platform/combat/types.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -112,7 +115,7 @@ export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, att
   const gearPower = Number(context.config?.stats?.power || 0);
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   if (hasSelectedSkill(context, 'Signet of Spite')) {
-    const signetPower = Number(balanceProfileFromContext(context, PROFILE.signetOfSpite)?.attributeBonus ?? 180);
+    const signetPower = balanceProfileNumberFromContext(context, PROFILE.signetOfSpite, 'attributeBonus');
     const passiveActive = playerModifierContext(context) && signetOfSpitePassiveActive(context);
     if (staticRulesApplied) {
       if (!passiveActive) result.power -= signetPower;
@@ -136,42 +139,39 @@ export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, att
     timedCarapace + minionCarapace
   );
   if (hasTrait(context, TRAIT.DEADLY_STRENGTH) && carapace > 0) {
-    const perStack = Number(balanceProfileFromContext(context, PROFILE.deadlyStrength)?.attributePerStack ?? 10);
+    const perStack = balanceProfileNumberFromContext(context, PROFILE.deadlyStrength, 'attributePerStack');
     result.power += carapace * perStack;
     result.conditionDamage += carapace * perStack;
   }
 
   if (hasTrait(context, TRAIT.AWAKEN_THE_PAIN)) {
-    const perStack = Number(balanceProfileFromContext(context, PROFILE.awakenThePain)?.attributePerStack ?? 10);
+    const perStack = balanceProfileNumberFromContext(context, PROFILE.awakenThePain, 'attributePerStack');
     result.power += Number(context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) * perStack;
   }
 
   if (!staticRulesApplied) {
     if (hasTrait(context, TRAIT.SPITEFUL_FORTITUDE)) {
       result.vitality +=
-        gearPower * Number(balanceProfileFromContext(context, PROFILE.spitefulFortitude)?.attributeConversion ?? 0.1);
+        gearPower * balanceProfileNumberFromContext(context, PROFILE.spitefulFortitude, 'attributeConversion');
     }
 
     if (hasTrait(context, TRAIT.FURIOUS_DEMISE)) {
-      result.precision += Number(balanceProfileFromContext(context, PROFILE.furiousDemise)?.attributeBonus ?? 180);
+      result.precision += balanceProfileNumberFromContext(context, PROFILE.furiousDemise, 'attributeBonus');
     }
 
     if (hasTrait(context, TRAIT.TARGET_THE_WEAK)) {
       // Flat Precision from Furious Demise is present before the conversion.
       result.conditionDamage += Math.floor(
-        result.precision *
-          Number(balanceProfileFromContext(context, PROFILE.targetTheWeak)?.attributeConversion ?? 0.13)
+        result.precision * balanceProfileNumberFromContext(context, PROFILE.targetTheWeak, 'attributeConversion')
       );
     }
 
     if (hasTrait(context, TRAIT.LINGERING_CURSE)) {
-      result.conditionDamage += Number(
-        balanceProfileFromContext(context, PROFILE.lingeringCurse)?.attributeBonus ?? 200
-      );
+      result.conditionDamage += balanceProfileNumberFromContext(context, PROFILE.lingeringCurse, 'attributeBonus');
     }
 
     if (hasTrait(context, TRAIT.VITAL_PERSISTENCE)) {
-      result.vitality += Number(balanceProfileFromContext(context, PROFILE.vitalPersistence)?.attributeBonus ?? 180);
+      result.vitality += balanceProfileNumberFromContext(context, PROFILE.vitalPersistence, 'attributeBonus');
     }
   }
 
@@ -193,8 +193,10 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
     label: 'Target the Weak',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    parameters: { criticalChancePerCondition: 0.02 } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) => targetConditionCount(context) * parameters.criticalChancePerCondition,
+
+    amount: (context) =>
+      targetConditionCount(context) *
+      balanceProfileNumberFromContext(context, TRAIT.TARGET_THE_WEAK, 'criticalChancePerCondition'),
     when: (context) => hasTrait(context, TRAIT.TARGET_THE_WEAK)
   },
   {
@@ -202,7 +204,7 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
     label: 'Death Perception',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: 0.15,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.DEATH_PERCEPTION, 'criticalChance'),
     when: (context) => hasTrait(context, TRAIT.DEATH_PERCEPTION)
   },
   {
@@ -228,8 +230,8 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
     // Apply critical-only bonuses at their source so previews and expected strike damage agree.
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
-    parameters: { criticalHitFactor: 1.1 } as Readonly<Record<string, number>>,
-    factor: (_context, _target, parameters) => parameters.criticalHitFactor,
+
+    factor: (context) => balanceProfileNumberFromContext(context, TRAIT.DEATH_PERCEPTION, 'criticalDamage'),
     order: 100,
     when: (context) => hasTrait(context, TRAIT.DEATH_PERCEPTION) && Boolean(necromancerActiveShroud(context))
   },
@@ -279,7 +281,8 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
     id: 'necromancer.barbed-precision-duration',
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'multiply',
-    factor: 1.2,
+    factor: (context) =>
+      balanceProfileNumberFromContext(context, TRAIT.BARBED_PRECISION, 'conditionDurationMultiplier'),
     when: (context) =>
       context.condition === 'Bleeding' &&
       hasTrait(context, TRAIT.BARBED_PRECISION) &&
@@ -293,7 +296,7 @@ function modifyNecromancerCoreRechargeDuration(context: NecromancerRechargeModif
   const skill = context.skill;
   if (skill?.rechargeOnMinionDeath && !context.minionDeathRecharge) return 0;
   if (skill?.categories?.includes('Corruption') && hasTrait(context, TRAIT.MASTER_OF_CORRUPTION)) {
-    result *= 0.67;
+    result *= Number(balanceProfileFromContext(context, TRAIT.MASTER_OF_CORRUPTION)?.rechargeMultiplier);
   }
 
   if ((skill?.shroud || skill?.handlerId === 'necromancer.shade') && hasTrait(context, TRAIT.SINISTER_SHROUD)) {

@@ -154,7 +154,12 @@ export function completeThiefCoreResources(context: ThiefCastContext, skill: Thi
 
   // Agility restores a fixed 100 endurance on activation, capped by the specialization's endurance pool.
   if (skill.id === ID.SIGNET_OF_AGILITY) {
-    gainThiefEndurance(context, 100, context.effectiveEnd, 'signet-of-agility');
+    gainThiefEndurance(
+      context,
+      Number(balanceProfileFromContext(context, PROFILE.signetOfAgility)?.resourceGain),
+      context.effectiveEnd,
+      'signet-of-agility'
+    );
     return;
   }
 

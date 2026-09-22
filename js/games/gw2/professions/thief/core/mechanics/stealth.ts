@@ -64,7 +64,7 @@ function breakThiefStealth(
   state.stealthStartedAt = at;
   state.stealthUntil = at;
   // Only a real stealth exit starts the linger; bonus attack charges do not.
-  state.hiddenKillerUntil = at + 4;
+  state.hiddenKillerUntil = at + Number(balanceProfileFromContext(context, TRAIT.HIDDEN_KILLER)?.duration);
   if (!skill.preservesStealth) state.revealedUntil = at + 3;
   const snapshot = emitThiefStateSnapshot(context, at, reason);
   if (snapshot && snapshotPriority != null) context.replaceEvent(snapshot, { priority: snapshotPriority });

@@ -1,3 +1,5 @@
+import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 /** Owns patchable Herald trait and legend-invocation balance profiles. */
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 
@@ -46,6 +48,7 @@ export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     ]
   },
   {
+    attributeConversion: 0.13,
     id: HERALD_ELEVATED_COMPASSION_PROFILE_ID,
     name: 'Elevated Compassion',
     profileKind: 'trait',
@@ -63,6 +66,9 @@ export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
       }
     ]
   },
+  trait(TRAIT.REINFORCED_POTENCY, 'Reinforced Potency', {
+    attributeBonus: 240
+  }),
   {
     id: HERALD_SPIRIT_BOON_PROFILE_ID,
     name: 'Spirit Boon (Dragon)',

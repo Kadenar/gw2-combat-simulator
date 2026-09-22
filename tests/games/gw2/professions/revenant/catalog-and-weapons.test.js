@@ -567,7 +567,8 @@ test('Renegade mechanics use authorable skills and modifier parameters', () => {
     improvedDamagePerStack: 0.05
   });
   assert.equal(
-    renegade.modifierRules.find((rule) => rule.id === 'revenant.blood-fury-bleeding-duration').amount.value,
+    renegade.balanceProfiles.find((entry) => entry.id === 'revenant.renegade.blood-fury').patchableFields
+      .conditionDurationBonus,
     0.25
   );
 

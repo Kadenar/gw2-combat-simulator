@@ -38,6 +38,8 @@ function renegadeBalanceProfile(profile: {
 export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   // Fury reception grants this boon independently of Brutal Momentum's critical-chance bonus.
   renegadeBalanceProfile({
+    criticalChance: 0.1,
+    fullEnduranceCriticalChance: 0.33,
     id: RENEGADE_PROFILE_IDS.brutalMomentum,
     name: 'Brutal Momentum',
     profileKind: 'trait',
@@ -191,6 +193,7 @@ export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     ]
   }),
   renegadeBalanceProfile({
+    conditionDurationBonus: 0.25,
     id: RENEGADE_PROFILE_IDS.bloodFury,
     name: 'Blood Fury',
     profileKind: 'trait',

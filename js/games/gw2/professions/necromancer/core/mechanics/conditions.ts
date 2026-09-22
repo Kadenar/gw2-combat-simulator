@@ -24,7 +24,7 @@ import {
   NECROMANCER_CORRUPTION_PROFILE_IDS
 } from '#gw2/professions/necromancer/core/profiles.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type {
   NecromancerCastContext,
@@ -377,7 +377,13 @@ export function observeNecromancerPlagueSendingEvent(
     return;
   const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
   if (!skill || Number(state.plagueSendingEntrySkillId) === Number(event.skillId)) return;
-  const transferred = transferNecromancerSelfConditions(context, skill, 2, event.at, { latestApplications: true });
+  const transferred = transferNecromancerSelfConditions(
+    context,
+    skill,
+    Number(balanceProfileFromContext(context, TRAIT.PLAGUE_SENDING)?.maximumConditions),
+    event.at,
+    { latestApplications: true }
+  );
   if (!transferred) return;
   state.plagueSendingArmed = false;
   state.plagueSendingEntrySkillId = null;

@@ -255,6 +255,8 @@ export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     threshold: 3,
     initialDelay: 1.5
   }),
+  // Trait tuning is shared by build calculations, combat, and tooltips.
+  trait(TRAIT.SYMPHONIC_RESONANCE, 'Symphonic Resonance', { dodgeRechargeSpeed: 1.25 }),
   trait(TROUBADOUR_BALANCE_PROFILE_IDS.alteredChord, 'Altered Chord', {
     rechargeReduction: 2,
     durationMultiplier: 10,

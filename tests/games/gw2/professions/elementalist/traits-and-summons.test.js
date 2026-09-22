@@ -1,3 +1,4 @@
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
@@ -7,7 +8,7 @@ import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { paletteActionSkills } from '#gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { applyElementalistBuildAttributeRules } from '#gw2/professions/elementalist/build/attributes.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { elementalistCoreModifierRules } from '#gw2/professions/elementalist/core/traits/modifiers.js';
 import { weaverModifierRules } from '#gw2/professions/elementalist/specializations/weaver/traits/modifiers.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
@@ -192,8 +193,8 @@ test('core damage traits expose their exact resolver modifiers', () => {
   assert.equal(rules.get('elementalist.flow-like-water').factor, 1.1);
   assert.equal(rules.get('elementalist.bolt-to-the-heart').factor, 1.2);
   assert.equal(rules.get('elementalist.bountiful-power').amount, 0.2);
-  assert.equal(rules.get('elementalist.zephyrs-speed-critical-chance').amount, 0.05);
-  assert.equal(rules.get('elementalist.superior-elements').amount, 0.2);
+  assert.equal(rules.get('elementalist.zephyrs-speed-critical-chance').amount({ catalog: elementalistCatalog }), 0.05);
+  assert.equal(rules.get('elementalist.superior-elements').amount({ catalog: elementalistCatalog }), 0.2);
   assert.equal(rules.get('elementalist.weave-self-fire').amount, 0.2);
   assert.equal(rules.get('elementalist.weave-self-fire').operation, 'damage-additive');
   assert.equal(rules.get('elementalist.weave-self-air').amount, 0.1);

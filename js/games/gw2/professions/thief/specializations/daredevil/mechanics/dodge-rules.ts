@@ -1,4 +1,7 @@
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -27,7 +30,10 @@ function initializeDaredevilRuntime(context: ThiefSchedulerContext): void {
   );
   state.endurance = state.maximumEndurance;
   if (!professionStaticRulesApplied(context.config) && hasTrait(context.config, TRAIT.MARAUDERS_RESILIENCE)) {
-    state.maximumHealth += Number(context.config.stats?.power ?? context.config.attributes?.power ?? 1000) * 0.7;
+    state.maximumHealth +=
+      Number(context.config.stats?.power ?? context.config.attributes?.power ?? 1000) *
+      balanceProfileNumberFromContext(context, TRAIT.MARAUDERS_RESILIENCE, 'attributeConversion') *
+      10;
   }
 }
 

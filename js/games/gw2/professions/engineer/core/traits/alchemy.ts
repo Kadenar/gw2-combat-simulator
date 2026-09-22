@@ -1,3 +1,4 @@
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 /** Owns HGH's elixir cast effects and scheduled-event duration extension. */
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -14,7 +15,11 @@ function isElixirSkill(skill: EngineerSkill | undefined): boolean {
 export function applyHgh(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.HGH) || !isElixirSkill(skill) || castWasInterrupted(context)) return;
 
-  // HGH grants fixed-duration boons and extends Acid Bomb far enough for one additional pulse.
+  // The same patched packets drive elixir boons, the extra strike, and their tooltips.
+  const profile = balanceProfileFromContext(context, TRAIT.HGH);
+  const might = balanceProfileEffect(profile, 'boon', 0)!;
+  const fury = balanceProfileEffect(profile, 'boon', 1)!;
+  const strike = balanceProfileEffect(profile, 'strike')!;
   emitSkillBuff(context, skill, {
     at,
     source: 'Trait',
@@ -22,8 +27,8 @@ export function applyHgh(context: EngineerCastContext, skill: EngineerSkill, at:
     actorType: 'player',
     name: 'HGH — might',
     kind: 'might',
-    duration: 12,
-    stacks: 2
+    duration: Number(might.duration),
+    stacks: Number(might.stacks)
   });
   emitSkillBuff(context, skill, {
     at,
@@ -32,15 +37,15 @@ export function applyHgh(context: EngineerCastContext, skill: EngineerSkill, at:
     actorType: 'player',
     name: 'HGH — fury',
     kind: 'fury',
-    duration: 4,
-    stacks: 1
+    duration: Number(fury.duration),
+    stacks: Number(fury.stacks)
   });
   if (skill.id === ID.ACID_BOMB) {
     emitSkillDamage(context, skill, {
       at: context.fullEnd + 6,
       activationId: context.action.activationId,
-      coefficient: 0.85,
-      hits: 1,
+      coefficient: Number(strike.coefficient),
+      hits: Number(strike.hits),
       name: 'Acid Bomb',
       actorType: 'player'
     });
@@ -52,11 +57,12 @@ export function observeEngineerHghEvent(context: EngineerSchedulerContext, event
   if (!hasTrait(context.config, TRAIT.HGH) || event.sourceId === TRAIT.HGH) return;
   const skill = context.catalog.skillsById.get(event.skillId ?? event.sourceId) as EngineerSkill | undefined;
   if (!isElixirSkill(skill)) return;
+  const durationMultiplier = Number(balanceProfileFromContext(context, TRAIT.HGH)?.durationMultiplier);
 
   if (event.type === 'combo_field') {
     const duration = Number(event.expiresAt) - event.at;
-    if (duration > 0) context.replaceEvent(event, { expiresAt: event.at + duration * 1.2 });
+    if (duration > 0) context.replaceEvent(event, { expiresAt: event.at + duration * durationMultiplier });
   } else if ((event.type === 'buff' || event.type === 'condition') && Number(event.duration) > 0) {
-    context.replaceEvent(event, { duration: Number(event.duration) * 1.2 });
+    context.replaceEvent(event, { duration: Number(event.duration) * durationMultiplier });
   }
 }

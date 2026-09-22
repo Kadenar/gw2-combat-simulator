@@ -1,5 +1,8 @@
 import type { EngineerModifierContext } from '#gw2/professions/engineer/types.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileValueFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -90,7 +93,7 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'engineer.carbolic-composition-duration',
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
-    amount: 0.33,
+    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.CARBOLIC_COMPOSITION, 'conditionDurationBonus'),
     // Panel-derived simulation stats already contain this static bonus; provenance keeps direct simulations compatible.
     when: (context) =>
       context.condition === 'Poisoned' &&
@@ -121,7 +124,7 @@ function modifyAmalgamAttributes(context: EngineerModifierContext, attributes: G
     // of the standard 30 power per stack that's already in the base attributes.
     const improvedMight =
       activeBoonStacks(context, 'might') *
-      balanceProfileValueFromContext(context, PROFILE.strains, 'attributePerStack', 5);
+      balanceProfileNumberFromContext(context, PROFILE.strains, 'attributePerStack');
     modified.power += improvedMight;
     modified.conditionDamage += improvedMight;
   }

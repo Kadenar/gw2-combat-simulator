@@ -258,6 +258,23 @@ export const warriorTooltips: ProfessionTooltips = {
     'warrior.weapon-swap': skillTooltip('Swap to your other weapon set and trigger applicable weapon-swap effects.')
   },
   skills: {
+    // Signet attributes live in mechanic profiles, separate from the active skill packets.
+    [ID.SIGNET_OF_MIGHT]: skillTooltip(
+      'Passively grants power while ready. Activation grants might.',
+      (balanceContext) => [profileFact(balanceContext, CORE.signetPassives, 'attributeBonus', 'Passive power')]
+    ),
+    [ID.SIGNET_OF_FURY]: skillTooltip(
+      'Passively grants precision while ready. Activation grants adrenaline and temporarily increases precision and ferocity.',
+      (balanceContext) => [
+        profileFact(balanceContext, CORE.signetPassives, 'attributeBonus', 'Passive precision'),
+        profileFact(
+          balanceContext,
+          CORE.signetOfFuryActive,
+          'attributeBonus',
+          'Precision and ferocity during the active buff'
+        )
+      ]
+    ),
     [ID.RIFLE_BUTT]: skillTooltip(
       'Strike and knock back your target. Restore ammunition to your other rifle skills and reset Kill Shot and Gun Flame.'
     ),
@@ -347,7 +364,7 @@ export const warriorTooltips: ProfessionTooltips = {
       'Might grants additional power. Gain critical-strike chance.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'attributeBonus', 'Power per might stack'),
-        modifierFact(balanceContext, 'warrior.pinnacle-critical-chance', 'amount', 'Critical chance')
+        profileFact(balanceContext, TRAIT.PINNACLE_OF_STRENGTH, 'criticalChance', 'Critical chance', tooltipPercent)
       ]
     ),
     [TRAIT.BRAVE_STRIDE]: traitTooltip(
@@ -436,9 +453,8 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.MARTIAL_CADENCE]: traitTooltip(
       "Soldier's Focus grants stability to the party. Weapon swaps make Soldier's Focus ready again."
     ),
-    [TRAIT.VIGOROUS_SHOUTS]: traitTooltip(
-      'Gain healing power from eligible power. Healing does not affect the fixed-health combat simulation.'
-    ),
+    // Healing-only traits have no build or runtime effects in combat simulation.
+    [TRAIT.VIGOROUS_SHOUTS]: outsideScopeTooltip,
     [TRAIT.PHALANX_STRENGTH]: outsideScopeTooltip,
     [TRAIT.THICK_SKIN]: traitTooltip('Starting a healing skill grants protection.'),
     [TRAIT.ADRENAL_HEALTH]: outsideScopeTooltip,
@@ -491,11 +507,12 @@ export const warriorTooltips: ProfessionTooltips = {
       'Weapon swapping grants fury. Fury grants additional critical-strike chance.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds),
-        modifierFact(
+        profileFact(
           balanceContext,
-          'warrior.furious-burst-fury-critical-chance',
-          'amount',
-          'Additional critical chance with fury'
+          TRAIT.FURIOUS_BURST,
+          'criticalChance',
+          'Additional critical chance with fury',
+          tooltipPercent
         )
       ]
     ),
@@ -503,14 +520,28 @@ export const warriorTooltips: ProfessionTooltips = {
       'Gain condition damage while you have fury and critical-strike chance against bleeding targets.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'attributeBonus', 'Condition damage with fury'),
-        modifierFact(balanceContext, 'warrior.deep-strikes', 'amount', 'Critical chance against bleeding targets')
+        profileFact(
+          balanceContext,
+          TRAIT.DEEP_STRIKES,
+          'criticalChance',
+          'Critical chance against bleeding targets',
+          tooltipPercent
+        )
       ]
     ),
     [TRAIT.BLOODLUST]: traitTooltip(
       'Eligible critical hits can inflict bleeding. Bleeding lasts longer.',
       (balanceContext, id) => [profileFact(balanceContext, id, 'procChance', 'Chance on critical hit', tooltipPercent)]
     ),
-    [TRAIT.WOUNDING_PRECISION]: traitTooltip('Gain expertise from eligible precision.'),
+    [TRAIT.WOUNDING_PRECISION]: traitTooltip('Gain expertise from eligible precision.', (balanceContext, id) => [
+      profileFact(
+        balanceContext,
+        id,
+        'attributeConversion',
+        'Eligible precision converted to expertise',
+        tooltipPercent
+      )
+    ]),
     [TRAIT.SIGNET_MASTERY]: traitTooltip(
       "Activating signets grants stacking ferocity. A qualifying strike below the target's half-health threshold triggers Lesser Signet of Might.",
       (balanceContext, id) => [
@@ -528,7 +559,9 @@ export const warriorTooltips: ProfessionTooltips = {
     ),
     [TRAIT.UNSUSPECTING_FOE]: traitTooltip(
       'Gain critical-strike chance against controlled or defiant targets.',
-      (balanceContext) => [modifierFact(balanceContext, 'warrior.unsuspecting-foe', 'amount', 'Critical chance')]
+      (balanceContext) => [
+        profileFact(balanceContext, TRAIT.UNSUSPECTING_FOE, 'criticalChance', 'Critical chance', tooltipPercent)
+      ]
     ),
     [TRAIT.SUNDERING_BURST]: (balanceContext, entity) => {
       const profile = tooltipProfile(balanceContext, entity.id);
@@ -550,7 +583,7 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.BURST_PRECISION]: traitTooltip(
       'Burst hits gain critical-strike chance and open a temporary critical-chance and ferocity window. The highest adrenaline tier grants the longer window.',
       (balanceContext, id) => [
-        modifierFact(balanceContext, 'warrior.burst-precision', 'amount', 'Critical chance'),
+        profileFact(balanceContext, TRAIT.BURST_PRECISION, 'criticalChance', 'Critical chance', tooltipPercent),
         profileFact(balanceContext, id, 'attributeBonus', 'Ferocity during the window'),
         profileFact(balanceContext, id, 'minimumStacks', 'Base window', tooltipSeconds),
         profileFact(balanceContext, id, 'maximumStacks', 'Highest-tier window', tooltipSeconds)
@@ -567,9 +600,15 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.DUAL_WIELDING]: traitTooltip(
       'Eligible skills cast faster when dual wielding. The simulator uses measured skill timings where supplied; weapon and skill exclusions still apply.'
     ),
-    [TRAIT.VERSATILE_RAGE]: traitTooltip('Weapon swapping grants adrenaline.'),
+    [TRAIT.VERSATILE_RAGE]: traitTooltip('Weapon swapping grants adrenaline.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'resourceGain', 'Adrenaline per weapon swap')
+    ]),
     [TRAIT.FAST_HANDS]: outsideScopeTooltip,
-    [TRAIT.VERSATILE_POWER]: traitTooltip('Burst skills recharge faster.'),
+    [TRAIT.VERSATILE_POWER]: traitTooltip('Burst skills recharge faster.', (balanceContext, id) => [
+      profileFact(balanceContext, id, 'rechargeMultiplier', 'Burst recharge reduction', (value) =>
+        tooltipPercent(1 - value)
+      )
+    ]),
     [TRAIT.CRACK_SHOT]: outsideScopeTooltip,
     [TRAIT.WARRIORS_SPRINT]: traitTooltip(
       'Deal increased strike damage while you have swiftness.',
@@ -583,7 +622,14 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.BRAWLERS_RECOVERY]: outsideScopeTooltip,
     [TRAIT.AXE_MASTERY]: traitTooltip(
       'Gain ferocity, with an additional bonus while wielding an axe. Eligible axe critical hits grant adrenaline.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'resourceGain', 'Adrenaline per axe critical hit')]
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'attributeBonus', 'Ferocity'),
+        profileFact(balanceContext, id, 'weaponAttributeBonus', 'Total ferocity while wielding an axe'),
+        profileFact(balanceContext, id, 'rechargeMultiplier', 'Axe recharge reduction', (value) =>
+          tooltipPercent(1 - value)
+        ),
+        profileFact(balanceContext, id, 'resourceGain', 'Adrenaline per axe critical hit')
+      ]
     ),
     [TRAIT.HEIGHTENED_FOCUS]: outsideScopeTooltip,
     [TRAIT.BURST_MASTERY]: traitTooltip(
@@ -604,11 +650,12 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.SMASH_BRAWLER]: traitTooltip(
       'Gain critical-strike chance during Berserk. Completing primal bursts extends Berserk; Decapitate uses a shorter extension.',
       (balanceContext, id) => [
-        modifierFact(
+        profileFact(
           balanceContext,
-          'warrior.smash-brawler-critical-chance',
-          'amount',
-          'Critical chance during Berserk'
+          TRAIT.SMASH_BRAWLER,
+          'criticalChance',
+          'Critical chance during Berserk',
+          tooltipPercent
         ),
         profileFact(balanceContext, id, 'resourceGain', 'Primal-burst extension', tooltipSeconds),
         profileFact(balanceContext, id, 'minimumStacks', 'Decapitate extension', tooltipSeconds)
@@ -656,7 +703,8 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.KING_OF_FIRES]: traitTooltip(
       'Burning lasts longer. Eligible critical hits grant a fire aura; completing a Berserker skill detonates an active aura to strike and burn the target.',
       (balanceContext, id) => [
-        profileFact(balanceContext, id, 'internalCooldown', 'Aura-grant cooldown', tooltipSeconds)
+        profileFact(balanceContext, id, 'internalCooldown', 'Aura-grant cooldown', tooltipSeconds),
+        profileFact(balanceContext, id, 'durationMultiplier', 'Burning duration', tooltipPercent)
       ]
     ),
     [TRAIT.ETERNAL_CHAMPION]: outsideScopeTooltip,
@@ -672,7 +720,7 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.PURE_STRIKE]: traitTooltip(
       'Critical strikes deal increased damage. Target boons are absent in this simulation.',
       (balanceContext) => [
-        modifierFact(balanceContext, 'warrior.pure-strike', 'factor', 'Critical damage', tooltipFactorChange)
+        profileFact(balanceContext, TRAIT.PURE_STRIKE, 'criticalDamage', 'Critical damage', tooltipFactorChange)
       ]
     ),
     [TRAIT.GUARD_COUNTER]: outsideScopeTooltip,
@@ -754,7 +802,28 @@ export const warriorTooltips: ProfessionTooltips = {
       'Dragon Slash applies a stun control event, triggering supported control-dependent traits.'
     ),
     [TRAIT.DARING_DRAGON]: traitTooltip(
-      'Dragon Trigger charges with fewer bullets and spends more flow per bullet. Releasing Dragon Slash grants alacrity to the party.'
+      'Dragon Trigger charges with fewer bullets and spends more flow per bullet. Releasing Dragon Slash grants alacrity to the party.',
+      (balanceContext, id) => [
+        profileFact(
+          balanceContext,
+          BLADESWORN.dragonTrigger,
+          'minimumStacks',
+          'Maximum Dragon Trigger charges with Daring Dragon'
+        ),
+        profileFact(
+          balanceContext,
+          BLADESWORN.dragonTrigger,
+          'maximumStacks',
+          'Maximum Dragon Trigger charges without Daring Dragon'
+        ),
+        profileFact(
+          balanceContext,
+          id,
+          'resourceCostMultiplier',
+          'Flow cost per charge multiplier',
+          (value) => `${tooltipDecimal(value)}×`
+        )
+      ]
     ),
     [TRAIT.RALLY_THE_VALIANT]: traitTooltip(
       'Starting a non-chant burst while a refrain is active grants motivation.',

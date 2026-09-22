@@ -1,7 +1,11 @@
 import { resourceDepletion } from '#gw2/platform/profession-definition/mechanics.js';
 import { advanceResourceClock, setResourceRate } from '#gw2/platform/combat/resources/clock.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileEffect,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -128,7 +132,8 @@ export function advanceSpecterResources(context: ThiefSchedulerContext, target: 
   const resources = balanceProfileFromContext(context, PROFILE.resources);
   state.shadowClock.maximum = Number(resources?.maximumStacks ?? 100);
   state.shadowForcePoolCapacity =
-    Number(professionCoreState(context).maximumHealth || 0) * Number(resources?.attributeConversion ?? 0.69);
+    Number(professionCoreState(context).maximumHealth || 0) *
+    balanceProfileNumberFromContext(context, PROFILE.resources, 'attributeConversion');
   state.shadowClock.value = Math.min(state.shadowClock.maximum, state.shadowClock.value);
   advanceResourceClock(state.shadowClock, target);
   emitThiefStateSnapshot(context, target, 'resources');

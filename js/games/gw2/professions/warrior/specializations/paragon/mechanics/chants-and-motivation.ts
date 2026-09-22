@@ -1,5 +1,8 @@
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -130,7 +133,7 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw
     ...attributes,
     concentration:
       Number(attributes.concentration || 0) +
-      Number(balanceProfileFromContext(context, PROFILE.inspiringImplements)?.attributeBonus ?? 180)
+      balanceProfileNumberFromContext(context, PROFILE.inspiringImplements, 'attributeBonus')
   };
 }
 

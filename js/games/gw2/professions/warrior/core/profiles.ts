@@ -120,6 +120,7 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     ]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.burstPrecision, 'Burst Precision', {
+    criticalChance: 1,
     minimumStacks: 2,
     maximumStacks: 4,
     attributeBonus: 250
@@ -149,6 +150,7 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     effects: [{ type: 'buff', kind: 'peak-performance', stacks: 1, duration: 6 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.bloodlust, 'Bloodlust', {
+    conditionDurationBonus: 0.33,
     procRate: {
       id: 'warrior.bloodlust',
       traitId: TRAIT.BLOODLUST,
@@ -229,10 +231,12 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     effects: [{ type: 'boon', boon: 'might', stacks: 5, duration: 10 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.furiousBurst, 'Furious Burst', {
+    criticalChance: 0.05,
     internalCooldown: 4,
     effects: [{ type: 'boon', boon: 'fury', stacks: 1, duration: 2.5 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.pinnacleOfStrength, 'Pinnacle of Strength', {
+    criticalChance: 0.05,
     attributeBonus: 10
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.forcefulGreatsword, 'Forceful Greatsword', {
@@ -243,6 +247,9 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 5 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.axeMastery, 'Axe Mastery', {
+    attributeBonus: 120,
+    weaponAttributeBonus: 240,
+    rechargeMultiplier: 0.8,
     resourceGain: 2
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.roaringReveille, 'Roaring Reveille', {
@@ -252,8 +259,17 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     attributeConversion: 0.1
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.deepStrikes, 'Deep Strikes', {
+    criticalChance: 0.05,
     attributeBonus: 180
   }),
+  trait(TRAIT.UNSUSPECTING_FOE, 'Unsuspecting Foe', {
+    criticalChance: 0.25
+  }),
+  // Trait tuning is shared by build calculations, combat, and tooltips.
+  trait(TRAIT.VERSATILE_POWER, 'Versatile Power', { rechargeMultiplier: 0.85 }),
+  trait(TRAIT.VERSATILE_RAGE, 'Versatile Rage', { resourceGain: 5 }),
+  trait(TRAIT.THICK_SKIN, 'Thick Skin', { effects: [{ type: 'boon', boon: 'protection', stacks: 1, duration: 3 }] }),
+  trait(TRAIT.WOUNDING_PRECISION, 'Wounding Precision', { attributeConversion: 0.07 }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.blademaster, 'Blademaster', {
     attributeBonus: 120
   }),

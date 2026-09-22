@@ -1,3 +1,4 @@
+import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -15,7 +16,7 @@ import {
   migrateWarriorBuild,
   validateWarriorBuild
 } from '#gw2/professions/warrior/build/build.js';
-import { warriorCatalog, warriorNativeModules, warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { warriorNativeModules, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { warriorCoreModule } from '#gw2/professions/warrior/core/module.js';
 import { WARRIOR_WEAPON_STOW } from '#gw2/professions/warrior/core/skills/actions.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
@@ -635,6 +636,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
 
   const attributes = berserkerAttributeRules.modifyAttributes(
     {
+      catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.BLOOD_REACTION] },
       runtime: {
         profession: {
@@ -657,6 +659,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
 
   const bloodReactionOutsideBerserk = berserkerAttributeRules.modifyAttributes(
     {
+      catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.BLOOD_REACTION] },
       runtime: {
         profession: {
@@ -679,6 +682,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
 
   const greatFortitude = berserkerAttributeRules.modifyAttributes(
     {
+      catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.GREAT_FORTITUDE] },
       runtime: {
         profession: {
@@ -1317,6 +1321,7 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
 
   const attributes = spellbreakerAttributeRules.modifyAttributes(
     {
+      catalog: warriorCatalog,
       time: 10,
       runtime: {
         profession: {

@@ -332,6 +332,7 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
   }),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.ferociousWinds, 'Ferocious Winds', { attributeConversion: 0.07 }),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.electricDischarge, 'Electric Discharge', {
+    criticalDamage: 2,
     effects: [
       {
         type: 'strike',
@@ -462,6 +463,7 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
       namedBoon('Arcane Echo', 'quickness', 1, 4)
     ]
   }),
+
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.bountifulPower, 'Bountiful Power', {
     threshold: 5,
     effects: [

@@ -401,7 +401,13 @@ export const rangerTooltips: ProfessionTooltips = {
     [TRAIT.PRECISE_STRIKE]: traitTooltip(
       'Opening Strike gains critical-strike chance for you and your pet.',
       (balanceContext) => [
-        modifierFact(balanceContext, 'ranger.precise-strike', 'amount', 'Opening Strike critical chance')
+        profileFact(
+          balanceContext,
+          TRAIT.PRECISE_STRIKE,
+          'criticalChance',
+          'Opening Strike critical chance',
+          tooltipPercent
+        )
       ]
     ),
     [TRAIT.STONEFORM]: outsideScopeTooltip,
@@ -519,7 +525,7 @@ export const rangerTooltips: ProfessionTooltips = {
       'Gain personal strike damage and critical-strike chance when flanking. The simulator treats defiant targets as flanked.',
       (balanceContext) => [
         modifierFact(balanceContext, 'ranger.hunters-tactics-damage', 'factor', 'Strike damage', tooltipFactorChange),
-        modifierFact(balanceContext, 'ranger.hunters-tactics-critical-chance', 'amount', 'Critical chance')
+        profileFact(balanceContext, TRAIT.HUNTERS_TACTICS, 'criticalChance', 'Critical chance', tooltipPercent)
       ]
     ),
     [TRAIT.SHARPENED_EDGES]: traitTooltip(
@@ -544,8 +550,11 @@ export const rangerTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.STRIDERS_STRENGTH]: traitTooltip(
-      'You and your pet gain power. Wielding a sword grants you an additional equal bonus.',
-      (balanceContext, id) => [profileFact(balanceContext, id, 'attributeBonus', 'Power per bonus')]
+      'You and your pet gain power. Wielding a sword increases your bonus.',
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'attributeBonus', 'Base power'),
+        profileFact(balanceContext, id, 'weaponAttributeBonus', 'Power while wielding a sword')
+      ]
     ),
     [TRAIT.HIDDEN_BARBS]: traitTooltip('Bleeding deals increased damage.', (balanceContext) => [
       modifierFact(balanceContext, 'ranger.hidden-barbs', 'factor', 'Bleeding damage', tooltipFactorChange)
@@ -568,11 +577,12 @@ export const rangerTooltips: ProfessionTooltips = {
           'Strike damage during bonus',
           tooltipFactorChange
         ),
-        modifierFact(
+        profileFact(
           balanceContext,
-          'ranger.light-on-your-feet-condition-duration',
-          'amount',
-          'Condition duration during bonus'
+          TRAIT.LIGHT_ON_YOUR_FEET,
+          'conditionDurationBonus',
+          'Condition duration during bonus',
+          tooltipPercent
         ),
         profileFact(balanceContext, id, 'rechargeMultiplier', 'Shortbow recharge', tooltipFactorChange),
         profileFact(
@@ -589,11 +599,12 @@ export const rangerTooltips: ProfessionTooltips = {
       'Gain ferocity and additional critical-strike chance while fury is active.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'attributeBonus', 'Ferocity'),
-        modifierFact(
+        profileFact(
           balanceContext,
-          'ranger.vicious-quarry-critical-chance',
-          'amount',
-          'Additional critical chance with fury'
+          TRAIT.VICIOUS_QUARRY,
+          'criticalChance',
+          'Additional critical chance with fury',
+          tooltipPercent
         )
       ]
     ),
@@ -639,9 +650,10 @@ export const rangerTooltips: ProfessionTooltips = {
       (balanceContext, id) => [profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)]
     ),
     [TRAIT.HONED_AXES]: traitTooltip(
-      'You and your pet gain ferocity. Wielding an axe grants you an additional equal bonus. Axe skills recharge faster.',
+      'You and your pet gain ferocity. Wielding an axe increases your bonus. Axe skills recharge faster.',
       (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeBonus', 'Ferocity per bonus'),
+        profileFact(balanceContext, id, 'attributeBonus', 'Base ferocity'),
+        profileFact(balanceContext, id, 'weaponAttributeBonus', 'Ferocity while wielding an axe'),
         profileFact(balanceContext, id, 'rechargeMultiplier', 'Axe recharge', tooltipFactorChange)
       ]
     ),
@@ -697,9 +709,10 @@ export const rangerTooltips: ProfessionTooltips = {
       'Spit; Twin Darts divides duration per projectile'
     ),
     [TRAIT.AMBIDEXTERITY]: traitTooltip(
-      'Gain condition damage, doubled while wielding a dagger, mace, or torch. Dagger and torch skills recharge faster.',
+      'Gain condition damage, increased while wielding a dagger, mace, or torch. Dagger and torch skills recharge faster.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'attributeBonus', 'Base condition damage'),
+        profileFact(balanceContext, id, 'weaponAttributeBonus', 'Condition damage with a dagger, mace, or torch'),
         profileFact(balanceContext, id, 'rechargeMultiplier', 'Dagger / torch recharge', tooltipFactorChange)
       ]
     ),
@@ -743,7 +756,13 @@ export const rangerTooltips: ProfessionTooltips = {
       'Entering or leaving Celestial Avatar temporarily increases your condition damage and condition duration.',
       (balanceContext) => [
         modifierFact(balanceContext, 'ranger.natural-balance-condition-damage', 'amount', 'Condition damage'),
-        modifierFact(balanceContext, 'ranger.natural-balance-condition-duration', 'amount', 'Condition duration')
+        profileFact(
+          balanceContext,
+          TRAIT.NATURAL_BALANCE,
+          'conditionDurationBonus',
+          'Condition duration',
+          tooltipPercent
+        )
       ]
     ),
     [TRAIT.CULTIVATED_SYNERGY]: outsideScopeTooltip,
@@ -810,7 +829,13 @@ export const rangerTooltips: ProfessionTooltips = {
       'Gain strike damage and condition duration when the target has a lower health percentage than you. Player health remains full in combat.',
       (balanceContext) => [
         modifierFact(balanceContext, 'ranger.oppressive-superiority', 'factor', 'Strike damage', tooltipFactorChange),
-        modifierFact(balanceContext, 'ranger.oppressive-superiority-condition-duration', 'amount', 'Condition duration')
+        profileFact(
+          balanceContext,
+          TRAIT.OPPRESSIVE_SUPERIORITY,
+          'conditionDurationBonus',
+          'Condition duration',
+          tooltipPercent
+        )
       ]
     ),
     [TRAIT.UNLEASHED_POWER]: traitTooltip(

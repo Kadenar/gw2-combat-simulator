@@ -1,3 +1,4 @@
+import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -36,7 +37,7 @@ test('Warrior Fury modifiers and boon counts survive individual packet expiry', 
   assert.equal(warriorActiveBoonCount(context), 2);
   assert.equal(rule.when(context), true);
   const attributes = { conditionDamage: 0, ferocity: 0 };
-  modifyWarriorArmsAttributes(context, attributes, false);
+  modifyWarriorArmsAttributes({ catalog: warriorCatalog, ...context }, attributes, false);
   assert.equal(attributes.conditionDamage, 180);
   assert.equal(warriorActiveBoonCount({ ...context, time: 10 }), 0);
   assert.equal(warriorBoonActive({ ...context, runtime: undefined }, 'fury'), false);

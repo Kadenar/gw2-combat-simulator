@@ -886,15 +886,15 @@ export const elementalistTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.ZEPHYRS_SPEED]: traitTooltip('Gain personal critical-strike chance.', (balanceContext) => [
-      modifierFact(balanceContext, 'elementalist.zephyrs-speed-critical-chance', 'amount', 'Critical chance')
+      profileFact(balanceContext, TRAIT.ZEPHYRS_SPEED, 'criticalChance', 'Critical chance', tooltipPercent)
     ]),
     [TRAIT.ELECTRIC_DISCHARGE]: traitTooltip(
       'Entering Air in combat, or beginning an Air overload, strikes the target and inflicts vulnerability. Electric Discharge has increased critical damage.',
       (balanceContext) => [
-        modifierFact(
+        profileFact(
           balanceContext,
-          'elementalist.electric-discharge-critical-damage',
-          'factor',
+          TRAIT.ELECTRIC_DISCHARGE,
+          'criticalDamage',
           'Electric Discharge critical damage',
           tooltipFactorChange
         )
@@ -996,11 +996,12 @@ export const elementalistTooltips: ProfessionTooltips = {
       'Completing an eligible dual attack inflicts weakness. Gain personal critical-strike chance against weakened targets.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'internalCooldown', 'Weakness cooldown', tooltipSeconds),
-        modifierFact(
+        profileFact(
           balanceContext,
-          'elementalist.superior-elements',
-          'amount',
-          'Critical chance against weakened targets'
+          TRAIT.SUPERIOR_ELEMENTS,
+          'criticalChance',
+          'Critical chance against weakened targets',
+          tooltipPercent
         )
       ]
     ),
@@ -1109,6 +1110,14 @@ export const elementalistTooltips: ProfessionTooltips = {
     [TRAIT.EVOCATION]: traitTooltip(
       'Unlock Evoker, familiars, meditations, and familiar charges. Choose a familiar element; with Fire selected, burning applications grant might.',
       (balanceContext) => [
+        // Entry traits share Evocation's cooldown policy, separate from fire-familiar might.
+        profileFact(
+          balanceContext,
+          EVOKER.evocation,
+          'internalCooldown',
+          "Attunement-entry trait cooldown (Sunspot, Pyromancer's Puissance, Earthen Blast, Rock Solid)",
+          tooltipSeconds
+        ),
         profileFact(balanceContext, EVOKER.ignite, 'pulseInterval', 'Fire-familiar might cooldown', tooltipSeconds)
       ]
     ),
@@ -1116,11 +1125,12 @@ export const elementalistTooltips: ProfessionTooltips = {
       'With Air selected, fury grants ferocity and additional critical chance. With Fire selected, might grants additional condition damage.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'attributeBonus', 'Air ferocity with fury'),
-        modifierFact(
+        profileFact(
           balanceContext,
-          'elementalist.enhanced-potency-air',
-          'amount',
-          'Air additional critical chance with fury'
+          TRAIT.ENHANCED_POTENCY,
+          'criticalChance',
+          'Air additional critical chance with fury',
+          tooltipPercent
         ),
         profileFact(balanceContext, id, 'attributePerStack', 'Fire condition damage per might')
       ]

@@ -1,3 +1,4 @@
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -6,7 +7,7 @@ import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { migrateRangerBuild } from '#gw2/professions/ranger/build/build.js';
-import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerCoreCriticalReactions } from '#gw2/professions/ranger/core/mechanics/reactions.js';
@@ -232,7 +233,7 @@ test('Light on Your Feet and Natural Balance add condition duration', () => {
   for (const rule of [lightOnYourFeet, naturalBalance]) {
     assert.equal(rule.target, 'conditionDuration');
     assert.equal(rule.operation, 'add');
-    assert.equal(rule.amount, 0.1);
+    assert.equal(rule.amount({ catalog: rangerCatalog }), 0.1);
   }
 
   const result = simulate(['Dodge', 'Celestial Avatar', 'Release Celestial Avatar', 'Crippling Talon'], {

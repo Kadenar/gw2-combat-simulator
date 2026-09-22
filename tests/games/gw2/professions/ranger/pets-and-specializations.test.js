@@ -1,3 +1,4 @@
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import assert from 'node:assert/strict';
@@ -19,7 +20,7 @@ import {
   migrateRangerBuild,
   validateRangerBuild
 } from '#gw2/professions/ranger/build/build.js';
-import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/core/profiles.js';
@@ -719,6 +720,7 @@ test('Pack Alpha excludes unleashed-pet and Beastmode skill recharges', () => {
 
 test("Pack Alpha improves only the Pig's five documented attributes", () => {
   const metadata = rangerPetCombatMetadata({
+    catalog: rangerCatalog,
     config: { selectedTraitIds: [TRAIT.PACK_ALPHA] },
     state: {
       cooldowns: new Map(),
@@ -754,6 +756,7 @@ test("Pack Alpha improves only the Pig's five documented attributes", () => {
 
 test('Tiger uses its documented attributes and nominal Bite recharge', () => {
   const metadata = rangerPetCombatMetadata({
+    catalog: rangerCatalog,
     config: {
       selectedTraitIds: [TRAIT.PACK_ALPHA],
       selectedSkills: ['Signet of the Wild']

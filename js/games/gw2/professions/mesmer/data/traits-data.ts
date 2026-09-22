@@ -8,13 +8,8 @@ const MINOR_TIERS = ['Minor Adept', 'Minor Master', 'Minor Grandmaster'];
 
 const MAJOR_TIERS = ['Major Adept', 'Major Master', 'Major Grandmaster'];
 
-const STAT_ANNOTATIONS: Record<string, Record<string, number>> = {
-  'Malicious Sorcery': {
-    confusionDuration: 25
-  }
-};
-
 export interface MesmerTraitRecord {
+  readonly [key: string]: unknown;
   readonly id: number | string;
   readonly tier: string;
   readonly name: string;
@@ -22,7 +17,6 @@ export interface MesmerTraitRecord {
   readonly position: number;
   readonly description: string;
   readonly icon: string;
-  readonly [annotation: string]: number | string;
 }
 
 export const {
@@ -42,8 +36,7 @@ export const {
       specialization,
       position,
       description: trait.description,
-      icon: trait.icon,
-      ...(STAT_ANNOTATIONS[trait.name] || {})
+      icon: trait.icon
     };
   }
 });

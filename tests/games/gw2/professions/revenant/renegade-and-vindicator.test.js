@@ -1,3 +1,4 @@
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import assert from 'node:assert/strict';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { describe, test } from 'node:test';
@@ -11,7 +12,7 @@ import {
 import { resolvePaletteDropItem } from '#gw2/app/rotation/palette/interactions.js';
 import { insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import {
   VINDICATOR_DODGE_AUTO_ACTION,
   vindicatorDodgeAutoRotationEntries
@@ -35,7 +36,9 @@ const revenantAttributeRules = Object.freeze({
     return revenantProfession.resolveRuntime(context?.config || {}).modifyAttributes(context, value);
   },
   modifyCriticalChance(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyCriticalChance(context, value);
+    return revenantProfession
+      .resolveRuntime(context?.config || {})
+      .modifyCriticalChance({ catalog: revenantCatalog, ...context }, value);
   },
   modifyStrikeDamage(context, value) {
     return revenantProfession.resolveRuntime(context?.config || {}).modifyStrikeDamage(context, value);
@@ -44,7 +47,9 @@ const revenantAttributeRules = Object.freeze({
     return revenantProfession.resolveRuntime(context?.config || {}).modifyConditionDamage(context, value);
   },
   modifyConditionDuration(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyConditionDuration(context, value);
+    return revenantProfession
+      .resolveRuntime(context?.config || {})
+      .modifyConditionDuration({ catalog: revenantCatalog, ...context }, value);
   }
 });
 

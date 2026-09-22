@@ -1,5 +1,6 @@
+import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 /** Owns patchable Conduit mechanic, trait, and skill-variant balance profiles. */
-import { REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 
 export const CONDUIT_BALANCE_PROFILE_IDS = Object.freeze({
@@ -129,6 +130,7 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     ]
   },
   {
+    conditionDurationBonus: 0.05,
     id: CONDUIT_BALANCE_PROFILE_IDS.numinousGift,
     name: 'Numinous Gift',
     profileKind: 'trait',
@@ -171,6 +173,15 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
       }
     ]
   },
+
+  trait(TRAIT.BOLSTERED_BONDS, 'Bolstered Bonds', {
+    assassinAttributeBonus: 75,
+    centaurAttributeBonus: 150,
+    demonAttributeBonus: 75,
+    dwarfAttributeBonus: 150,
+    entityAttributeBonus: 75,
+    attributeMultiplier: 2
+  }),
   {
     id: CONDUIT_BALANCE_PROFILE_IDS.mistfire,
     name: 'Mistfire',

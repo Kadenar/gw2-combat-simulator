@@ -579,14 +579,14 @@ test('Bladesworn preserves partial charge time across fragmented advancement', (
   };
 
   for (const target of [0.05, 0.1, 0.15, 0.2]) {
-    advanceBladesworn(context, target);
+    advanceBladesworn({ catalog: warriorCatalog, ...context }, target);
   }
 
   assert.equal(state.dragonCharges, 0);
-  advanceBladesworn(context, 0.24);
+  advanceBladesworn({ catalog: warriorCatalog, ...context }, 0.24);
   assert.equal(state.dragonCharges, 1);
   for (const target of [0.48, 0.76, 1, 1.24, 1.48, 1.72, 2, 2.24, 2.48]) {
-    advanceBladesworn(context, target);
+    advanceBladesworn({ catalog: warriorCatalog, ...context }, target);
   }
 
   assert.equal(state.dragonCharges, 10);

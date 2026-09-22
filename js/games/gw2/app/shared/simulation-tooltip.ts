@@ -10,6 +10,7 @@ import type { ProfessionBalanceContext } from '#gw2/platform/profession-presenta
 import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 export interface SimulationTooltip {
   readonly description: string;
@@ -35,6 +36,9 @@ export interface ProfessionTooltips {
 }
 
 const effectNames = new Map(Object.keys(MODIFIER_EFFECT_ICONS).map((name) => [name.toLowerCase(), name]));
+// Resolve authored buff IDs to display names so their facts receive the matching effect icons.
+effectNames.set('kallas-fervor', "Kalla's Fervor");
+effectNames.set('battle-scars', 'Battle Scars');
 // All ordinary descriptions use the same locale, so reuse its formatter across skills.
 const effectListFormat = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' });
 
@@ -117,7 +121,7 @@ export function profileFact(
   name: string,
   format: (value: number) => string = tooltipDecimal
 ): TooltipFact {
-  return { name, detail: format(tooltipNumber(tooltipProfile(context, id), field)) };
+  return { name, detail: format(balanceProfileNumberFromContext(context, id, field)) };
 }
 
 /** Scalar rules and their named parameters remain the sole owners of patchable modifier inputs. */

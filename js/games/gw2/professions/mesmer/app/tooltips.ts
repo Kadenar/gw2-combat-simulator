@@ -505,12 +505,19 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.PHANTASMAL_FURY]: traitTooltip(
       'Phantasms gain critical-strike chance. Virtuoso grants an additional phantasm critical-chance bonus.',
       (balanceContext) => [
-        modifierFact(balanceContext, 'mesmer.phantasmal-fury-critical-chance', 'amount', 'Phantasm critical chance'),
-        modifierFact(
+        profileFact(
           balanceContext,
-          'mesmer.virtuoso.phantasmal-fury-critical-chance',
-          'amount',
-          'Additional phantasm critical chance as Virtuoso'
+          TRAIT.PHANTASMAL_FURY,
+          'criticalChance',
+          'Phantasm critical chance',
+          tooltipPercent
+        ),
+        profileFact(
+          balanceContext,
+          TRAIT.QUIET_INTENSITY,
+          'phantasmCriticalChance',
+          'Additional phantasm critical chance as Virtuoso',
+          tooltipPercent
         )
       ]
     ),
@@ -532,23 +539,23 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.SUPERIORITY_COMPLEX]: traitTooltip(
       'Your critical strikes deal increased damage. Use the larger bonus against low-health or eligible controlled targets; defiance alone does not activate it.',
       (balanceContext) => [
-        modifierFact(
+        profileFact(
           balanceContext,
-          'mesmer.superiority-complex',
+          TRAIT.SUPERIORITY_COMPLEX,
           'highHealthFactor',
           'Base critical damage',
           tooltipFactorChange
         ),
-        modifierFact(
+        profileFact(
           balanceContext,
-          'mesmer.superiority-complex',
+          TRAIT.SUPERIORITY_COMPLEX,
           'lowHealthOrDisabledFactor',
           'Enhanced critical damage',
           tooltipFactorChange
         ),
-        modifierFact(
+        profileFact(
           balanceContext,
-          'mesmer.superiority-complex',
+          TRAIT.SUPERIORITY_COMPLEX,
           'threshold',
           'Target health threshold',
           (value) => `${tooltipDecimal(value * 100)}%`
@@ -583,7 +590,12 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.AUSPICIOUS_ANGUISH]: outsideScopeTooltip,
     [TRAIT.CHAOTIC_TRANSFERENCE]: outsideScopeTooltip,
     [TRAIT.CHAOTIC_INTERRUPTION]: traitTooltip(
-      "Interrupting a target that is activating a skill reduces the active weapon set's phantasm recharge. Repeated triggers against a defiant target are cooldown-limited."
+      "Interrupting a target that is activating a skill reduces the active weapon set's phantasm recharge. Repeated triggers against a defiant target are cooldown-limited.",
+      // Use the same patchable recharge and proc interval as the interrupt handler.
+      (balanceContext, id) => [
+        profileFact(balanceContext, id, 'recharge', 'Phantasm recharge reduction', tooltipSeconds),
+        profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown against defiant targets', tooltipSeconds)
+      ]
     ),
     [TRAIT.SHAPER_OF_CHAOS]: outsideScopeTooltip,
     [TRAIT.PRISMATIC_UNDERSTANDING]: outsideScopeTooltip,
@@ -650,11 +662,12 @@ export const mesmerTooltips: ProfessionTooltips = {
       description:
         "Improve native first-shatter critical chance, add cripple to supported second-shatter hits and weakness to Deafening Drum, extend supported defensive shatters, and improve Crescendo's scaling per active instrument.",
       facts: [
-        modifierFact(
+        profileFact(
           balanceContext,
-          'mesmer.master-of-fragmentation-critical-chance',
-          'amount',
-          'First-shatter critical chance'
+          TRAIT.MASTER_OF_FRAGMENTATION,
+          'criticalChance',
+          'First-shatter critical chance',
+          tooltipPercent
         ),
         profileFact(
           balanceContext,
@@ -677,7 +690,7 @@ export const mesmerTooltips: ProfessionTooltips = {
       ]
     }),
     [TRAIT.MALICIOUS_SORCERY]: traitTooltip('Confusion lasts longer.', (balanceContext) => [
-      modifierFact(balanceContext, 'mesmer.malicious-sorcery', 'amount', 'Confusion duration')
+      profileFact(balanceContext, TRAIT.MALICIOUS_SORCERY, 'durationMultiplier', 'Confusion duration')
     ]),
     [TRAIT.TIME_SPLITTER]: traitTooltip(
       'Unlock Chronomancer, shield, wells, and its shatters. Continuum Split temporarily records cooldowns and illusion resources for restoration.'
@@ -685,7 +698,13 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.FLOW_OF_TIME]: traitTooltip(
       'Gain critical-strike chance while alacrity is active, including for illusions.',
       (balanceContext) => [
-        modifierFact(balanceContext, 'mesmer.flow-of-time-critical-chance', 'amount', 'Critical chance with alacrity')
+        profileFact(
+          balanceContext,
+          TRAIT.FLOW_OF_TIME,
+          'criticalChance',
+          'Critical chance with alacrity',
+          tooltipPercent
+        )
       ]
     ),
     [TRAIT.TIME_MARCHES_ON]: outsideScopeTooltip,
@@ -702,7 +721,7 @@ export const mesmerTooltips: ProfessionTooltips = {
     [TRAIT.DANGER_TIME]: traitTooltip(
       'Time Sink control effects temporarily increase critical damage for you and your illusions. Delayed Reactions allows other control effects to activate the bonus.',
       (balanceContext, id) => [
-        modifierFact(balanceContext, 'mesmer.danger-time', 'factor', 'Critical damage', tooltipFactorChange),
+        profileFact(balanceContext, TRAIT.DANGER_TIME, 'criticalDamage', 'Critical damage', tooltipPercent),
         profileFact(balanceContext, id, 'durationMultiplier', 'Bonus duration', tooltipSeconds)
       ]
     ),
@@ -814,11 +833,12 @@ export const mesmerTooltips: ProfessionTooltips = {
       'Gain ferocity from vitality and additional personal critical-strike chance while fury is active.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'vitalityConversion', 'Vitality converted to ferocity', tooltipPercent),
-        modifierFact(
+        profileFact(
           balanceContext,
-          'mesmer.quiet-intensity-critical-chance',
-          'amount',
-          'Additional critical chance with fury'
+          TRAIT.QUIET_INTENSITY,
+          'criticalChance',
+          'Additional critical chance with fury',
+          tooltipPercent
         )
       ]
     ),
@@ -860,7 +880,11 @@ export const mesmerTooltips: ProfessionTooltips = {
       'Unlock Troubadour, tales, notes, and instruments. Instruments replace shatters and consume notes to extend their playing time.'
     ),
     [TRAIT.SYMPHONIC_RESONANCE]: traitTooltip(
-      'Active instruments grant their corresponding passive bonuses. Lute increases personal damage; Flute speeds dodge recharge.'
+      'Active instruments grant their corresponding passive bonuses. Lute increases personal damage; Flute speeds dodge recharge.',
+      (balanceContext, id) => [
+        modifierFact(balanceContext, 'mesmer.lute', 'amount', 'Personal strike and condition damage with Lute'),
+        profileFact(balanceContext, id, 'dodgeRechargeSpeed', 'Dodge recharge speed with Flute', tooltipFactorChange)
+      ]
     ),
     [TRAIT.HARMONIZE]: traitTooltip('Successfully summoning a phantasm grants a note.', (balanceContext, id) => [
       profileFact(balanceContext, id, 'resourceGain', 'Notes gained')

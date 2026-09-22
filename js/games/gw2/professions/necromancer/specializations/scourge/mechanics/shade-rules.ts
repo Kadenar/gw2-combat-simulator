@@ -1,5 +1,8 @@
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -36,7 +39,7 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
     // stacks and trait bonuses like Lingering Curse are already folded in there
     result.expertise +=
       Number(context.config?.stats?.conditionDamage || 0) *
-      Number(balanceProfileFromContext(context, PROFILE.fellBeacon)?.attributeConversion ?? 0.07);
+      balanceProfileNumberFromContext(context, PROFILE.fellBeacon, 'attributeConversion');
   }
 
   if (
@@ -46,7 +49,7 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
       (expiresAt: number) => expiresAt > context.time
     )
   ) {
-    const bonus = Number(balanceProfileFromContext(context, PROFILE.sandSage)?.attributeBonus ?? 225);
+    const bonus = balanceProfileNumberFromContext(context, PROFILE.sandSage, 'attributeBonus');
     // Dynamic attribute queries may begin from sparse scheduler stats, so normalize
     // absent duration attributes before applying Sand Sage's active-shade bonus.
     result.concentration = Number(result.concentration || 0) + bonus;

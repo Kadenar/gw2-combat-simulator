@@ -1,3 +1,4 @@
+import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -9,7 +10,7 @@ import {
 } from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
 import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
-import { thiefProfession, thiefCatalog } from '#gw2/professions/thief/profession.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefCoreAttributeRules, thiefCoreModifierRules } from '#gw2/professions/thief/core/traits/modifiers.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
@@ -144,8 +145,10 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
         const config = { selectedSkills, attributeProvenance: { professionStaticRulesApplied } };
         const attributes = { ...baseConfig.stats, precision: professionStaticRulesApplied ? 1180 : 1000 };
         assert.equal(
-          thiefCoreAttributeRules.modifyAttributes({ config, timeline: createGw2TimelineIndex(), time: 0 }, attributes)
-            .precision,
+          thiefCoreAttributeRules.modifyAttributes(
+            { catalog: thiefCatalog, config, timeline: createGw2TimelineIndex(), time: 0 },
+            attributes
+          ).precision,
           1180
         );
         for (const [time, expected] of [
@@ -154,7 +157,8 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
           [30, 1180]
         ]) {
           assert.equal(
-            thiefCoreAttributeRules.modifyAttributes({ config, timeline, time }, attributes).precision,
+            thiefCoreAttributeRules.modifyAttributes({ catalog: thiefCatalog, config, timeline, time }, attributes)
+              .precision,
             expected
           );
         }
@@ -178,8 +182,10 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
   assert.deepEqual(reset.warnings, []);
   const timeline = createGw2TimelineIndex({ events: reset.events });
   assert.equal(
-    thiefCoreAttributeRules.modifyAttributes({ config: { selectedSkills }, timeline, time: 2 }, baseConfig.stats)
-      .precision,
+    thiefCoreAttributeRules.modifyAttributes(
+      { catalog: thiefCatalog, config: { selectedSkills }, timeline, time: 2 },
+      baseConfig.stats
+    ).precision,
     1180
   );
 });

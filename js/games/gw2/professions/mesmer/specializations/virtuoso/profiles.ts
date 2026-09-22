@@ -76,6 +76,7 @@ export const VIRTUOSO_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     ]
   }),
   trait(VIRTUOSO_BALANCE_PROFILE_IDS.quietIntensity, 'Quiet Intensity', {
+    phantasmCriticalChance: 0.15,
     criticalChance: 0.15,
     vitalityConversion: 0.1
   }),

@@ -91,6 +91,7 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     attributeBonus: 180
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.lightOnYourFeet, 'Light on Your Feet', {
+    conditionDurationBonus: 0.1,
     durationPerTier: 2,
     minimumStacks: 1,
     rechargeMultiplier: 0.8,
@@ -253,13 +254,16 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     weaponAttributeBonus: 450
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.stridersStrength, "Strider's Strength", {
+    weaponAttributeBonus: 240,
     attributeBonus: 120
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.honedAxes, 'Honed Axes', {
+    weaponAttributeBonus: 240,
     attributeBonus: 120,
     rechargeMultiplier: 0.8
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.viciousQuarry, 'Vicious Quarry', {
+    criticalChance: 0.15,
     attributeBonus: 250
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.packAlpha, 'Pack Alpha', {
@@ -273,7 +277,16 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.lingeringMagic, 'Lingering Magic', {
     attributeBonus: 240
   }),
+
+  trait(TRAIT.HUNTERS_TACTICS, "Hunter's Tactics", {
+    criticalChance: 0.1
+  }),
+
+  trait(TRAIT.PRECISE_STRIKE, 'Precise Strike', {
+    criticalChance: 1
+  }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.ambidexterity, 'Ambidexterity', {
+    weaponAttributeBonus: 240,
     attributeBonus: 120,
     rechargeMultiplier: 0.8
   })
