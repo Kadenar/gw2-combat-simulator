@@ -78,7 +78,6 @@ export interface ElementalistSkill extends Skill {
   readonly chainRoot?: SkillId;
   readonly overload?: boolean;
   readonly skillFamily?: string;
-  readonly skillWeapon?: string;
 }
 
 /** Scheduler-phase context narrowed to the Elementalist catalog, config, and runtime state. */

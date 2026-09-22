@@ -24,9 +24,6 @@ import type { ScourgeState } from '#gw2/professions/necromancer/specializations/
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 export interface NecromancerBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
-  initialResource?: number;
-  initialBlight?: number;
-  initialCascadingCorruptionStacks?: number;
   selectedSkills?: Record<string, string>;
 }
 
@@ -37,8 +34,6 @@ export interface NecromancerCanonicalBuild extends Gw2CanonicalBuild {
 }
 
 export interface NecromancerConfig extends Gw2Config {
-  readonly specialization?: string;
-  readonly initialResource?: number;
   readonly initialBlight?: number;
   readonly initialCascadingCorruptionStacks?: number;
   readonly duration?: number;

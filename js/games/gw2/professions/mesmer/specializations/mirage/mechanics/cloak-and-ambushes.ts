@@ -25,13 +25,12 @@ import type {
   MesmerMirageController
 } from '#gw2/professions/mesmer/specializations/mirage/types.js';
 import type {
-  MesmerAttackStatus,
   MesmerClone,
   MesmerCloneAttack,
   MesmerQueueResources
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerConditionApplication, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 
 interface MirageActionControllerOptions {
@@ -75,7 +74,10 @@ export function createMirageActionController({
   const profileValue = balanceProfileValueFromContext.bind(null, balanceProfile);
   const profileEffect = balanceProfileEffectFromContext.bind(null, balanceProfile);
 
-  const statusFromEffect = (effect: SkillEffect | undefined, fallback: MesmerAttackStatus): MesmerAttackStatus => ({
+  const statusFromEffect = (
+    effect: SkillEffect | undefined,
+    fallback: MesmerConditionApplication
+  ): MesmerConditionApplication => ({
     name: String(effect?.condition || effect?.boon || fallback.name),
     duration: Number(effect?.duration ?? fallback.duration),
     stacks: Number(effect?.stacks ?? fallback.stacks ?? 1)
@@ -96,7 +98,7 @@ export function createMirageActionController({
   // Adds a boon to the event log at the specified time, with the given source skill and actor type, optionally for party recipients.
   const addBoon = (
     at: number,
-    boon: MesmerAttackStatus,
+    boon: MesmerConditionApplication,
     sourceSkill: string,
     actorType: 'player' | 'summon' = 'player',
     recipients: 'self' | 'party' = 'self'

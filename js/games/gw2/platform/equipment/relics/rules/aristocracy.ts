@@ -28,8 +28,6 @@ interface AristocracyState extends Gw2RelicState {
   stacks: number;
   expiresAt: number;
   activations: AristocracyActivation[];
-  timelineEvents?: readonly SimulationEvent[];
-  timelineLength?: number;
 }
 
 function createAristocracyState(): AristocracyState {

@@ -7,12 +7,7 @@ import type {
   SchedulerContext
 } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type {
-  Gw2ApplicationBuild,
-  Gw2Build,
-  Gw2CanonicalBuild,
-  ProfessionBuildAssumptions
-} from '#gw2/platform/builds/types.js';
+import type { Gw2ApplicationBuild, Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -47,11 +42,7 @@ export interface RevenantSkill extends Skill {
 }
 
 export interface RevenantBuild extends Gw2Build {
-  assumptions?: ProfessionBuildAssumptions;
   specializations?: ProfessionTraitSelection[];
-  selectedLegends?: string[];
-  startingLegend?: string;
-  initialEnergy?: number;
 }
 
 export interface RevenantCanonicalBuild extends Gw2CanonicalBuild {
@@ -67,7 +58,6 @@ export interface RevenantApplicationBuild extends Gw2ApplicationBuild {
 }
 
 export interface RevenantConfig extends Gw2Config {
-  readonly specialization?: string;
   readonly selectedLegends?: readonly string[];
   readonly startingLegend?: string;
   readonly initialEnergy?: number;

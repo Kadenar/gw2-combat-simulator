@@ -35,11 +35,9 @@ export interface GuardianApplicationBuild extends Gw2ApplicationBuild {
 }
 
 export interface GuardianConfig extends Gw2Config {
-  readonly selectedTraitIds?: readonly (string | number)[];
   readonly maximumTomePages?: number;
   readonly initialTomePages?: number;
   readonly initialEndurance?: number;
-  readonly specialization?: string;
   readonly specializations?: readonly (string | { readonly name?: string })[];
 }
 

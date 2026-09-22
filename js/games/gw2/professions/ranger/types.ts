@@ -21,10 +21,6 @@ import type { RangerInitialUntamedState, UntamedState } from '#gw2/professions/r
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 export interface RangerBuild extends Gw2Build {
   specializations?: ProfessionTraitSelection[];
-  assumptions?: ProfessionBuildAssumptions;
-  selectedPet?: string;
-  selectedPet2?: string;
-  selectedHammerSkillIds?: number[];
   initialUntamedState?: RangerInitialUntamedState;
 }
 
@@ -47,9 +43,7 @@ export interface RangerApplicationBuild extends Gw2ApplicationBuild {
 }
 
 export interface RangerConfig extends Gw2Config {
-  readonly specialization?: string;
   readonly specializations?: readonly (string | { readonly name?: string })[];
-  readonly selectedTraitIds?: readonly (string | number)[];
   readonly initialAstralForce?: number;
   readonly initialArrows?: number;
   readonly selectedPet?: string;

@@ -2,7 +2,7 @@ import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
 } from '#gw2/platform/engine/profession/state.js';
-import type { WarriorConfig } from '#gw2/professions/warrior/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface BladeswornState {
@@ -54,7 +54,7 @@ export const BLADESWORN_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   overchargedCartridgeWindows: []
 } satisfies Partial<BladeswornState>);
 
-export function createBladeswornState(config: WarriorConfig = {}): BladeswornState {
+export function createBladeswornState(config: Gw2Config = {}): BladeswornState {
   return {
     flow: boundedNumber(config.initialResource ?? 0, 0, 0, 100),
     maximumFlow: 100,

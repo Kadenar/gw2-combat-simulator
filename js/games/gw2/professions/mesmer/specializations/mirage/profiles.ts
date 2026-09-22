@@ -8,7 +8,7 @@ import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 
-import type { MesmerAttackStatus } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerAmbushAttack, MesmerAmbushStrike } from '#gw2/professions/mesmer/types.js';
 
 export const MIRAGE_BALANCE_PROFILE_IDS = Object.freeze({
@@ -43,7 +43,7 @@ export const MIRAGE_AMBUSH_PROFILE_IDS: Readonly<Record<string, string>> = Objec
   Sword: MIRAGE_BALANCE_PROFILE_IDS.mirageThrust
 });
 
-function attackStatusEffect(status: MesmerAttackStatus, source: 'Player' | 'Clone'): SkillEffect {
+function attackStatusEffect(status: MesmerConditionApplication, source: 'Player' | 'Clone'): SkillEffect {
   return {
     type: 'condition',
     source,
@@ -53,7 +53,7 @@ function attackStatusEffect(status: MesmerAttackStatus, source: 'Player' | 'Clon
   };
 }
 
-function boonStatusEffect(status: MesmerAttackStatus, source: 'Player' | 'Clone'): SkillEffect {
+function boonStatusEffect(status: MesmerConditionApplication, source: 'Player' | 'Clone'): SkillEffect {
   return {
     type: 'boon',
     source,
@@ -119,7 +119,7 @@ function profileStatuses(
   profile: BalanceProfile | undefined,
   type: 'condition' | 'boon',
   source: 'Player' | 'Clone'
-): MesmerAttackStatus[] {
+): MesmerConditionApplication[] {
   return (profile?.effects || [])
     .filter((effect) => effect.type === type && effect.source === source)
     .map((effect) => ({

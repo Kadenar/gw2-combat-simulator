@@ -63,7 +63,6 @@ export interface Gw2SimulationResult extends Gw2ResolverResult {
   readonly steps: readonly SchedulerStep[];
   readonly planningState: Gw2SimulationPlanningState;
   readonly schedulerState: SchedulerState;
-  readonly warnings: string[];
 }
 
 export interface Gw2DeclarativeSimulationOptions {

@@ -32,9 +32,6 @@ import type { ScrapperState } from '#gw2/professions/engineer/specializations/sc
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 export interface EngineerBuild extends Gw2Build {
   specializations?: ProfessionTraitSelection[];
-  assumptions?: ProfessionBuildAssumptions;
-  initialHeat?: number;
-  selectedMorphSkillIds?: number[];
   selectedSkills?: readonly string[] | Record<string, string>;
 }
 
@@ -52,7 +49,6 @@ export interface EngineerConfig extends Gw2Config {
   readonly amalgamEvolveAttributePool?: EngineerEvolveAttributePool;
   readonly assumptions?: ProfessionBuildAssumptions;
   readonly inDamagingField?: boolean;
-  readonly specialization?: string;
   readonly initialHeat?: number;
   readonly professionAssumptions?: ProfessionBuildAssumptions;
   readonly selectedMorphSkillIds?: readonly number[];

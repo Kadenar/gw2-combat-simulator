@@ -16,16 +16,11 @@ import type { ParagonState } from '#gw2/professions/warrior/specializations/para
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 export interface WarriorBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];
-  initialResource?: number;
   selectedSkills?: Record<string, string>;
 }
 
 export interface WarriorCanonicalBuild extends Gw2CanonicalBuild {
   initialResource: number;
-}
-
-export interface WarriorConfig extends Gw2Config {
-  readonly specialization?: string;
 }
 
 export interface WarriorState
@@ -72,14 +67,14 @@ export interface WarriorSkill extends Skill {
 
 export type WarriorSchedulerContext = SchedulerContext<WarriorRuntimeState> & {
   readonly catalog: CanonicalCatalog<WarriorSkill>;
-  readonly config: WarriorConfig;
+  readonly config: Gw2Config;
   /** Lets trait initialization request GW2 critical facts when the policy provides them. */
   readonly schedulerPolicy: Partial<Pick<Gw2SchedulerPolicy, 'requireCriticalFacts'>>;
 };
 
 export type WarriorCastContext = CastLifecycleContext<WarriorRuntimeState> & {
   readonly catalog: CanonicalCatalog<WarriorSkill>;
-  readonly config: WarriorConfig;
+  readonly config: Gw2Config;
 };
 
 export type WarriorSimulationEvent = SimulationEvent & {
@@ -93,7 +88,7 @@ export type WarriorResolverEvent = Gw2ResolverEvent & {
 };
 
 export type WarriorResolverContext = Gw2ResolverRuntime & {
-  config: WarriorConfig;
+  config: Gw2Config;
   profession: WarriorRuntimeState;
 };
 
@@ -106,7 +101,7 @@ export interface WarriorUiContext extends Omit<
   ProfessionUiCallbackContext<WarriorRuntimeState | Partial<WarriorState>>,
   'build'
 > {
-  readonly config?: WarriorConfig;
+  readonly config?: Gw2Config;
   readonly build?: WarriorBuild | null;
   readonly state?: {
     readonly profession?: WarriorRuntimeState | Partial<WarriorState>;

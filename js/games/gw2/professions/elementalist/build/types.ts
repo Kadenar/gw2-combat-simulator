@@ -27,7 +27,6 @@ export interface ElementalistCanonicalBuild extends Gw2CanonicalBuild {
 }
 
 export interface ElementalistConfig extends Gw2Config {
-  readonly specialization?: string;
   readonly startAttunement?: string;
   readonly secondaryAttunement?: string;
   readonly initialCatalystEnergy?: number;

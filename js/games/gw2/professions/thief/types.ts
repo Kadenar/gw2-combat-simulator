@@ -30,12 +30,9 @@ import type { SpecterState } from '#gw2/professions/thief/specializations/specte
 export type ThiefDodge = 'Dodge' | 'Lotus Training' | 'Bounding Dodger' | 'Unhindered Combatant';
 
 export interface ThiefBuild extends Gw2Build {
-  assumptions?: ProfessionBuildAssumptions;
   specializations?: Gw2BuildSpecialization[];
   selectedSkills?: Record<string, string>;
   selectedDodge?: ThiefDodge;
-  initialInitiative?: number;
-  initialShadowForce?: number;
 }
 
 export interface ThiefCanonicalBuild extends Gw2CanonicalBuild {
@@ -55,7 +52,6 @@ export type ThiefDeterministicChoices = {
 };
 
 export interface ThiefConfig extends Gw2Config {
-  readonly specialization?: string;
   readonly assumptions?: ProfessionBuildAssumptions;
   readonly professionAssumptions?: ProfessionBuildAssumptions;
   readonly selectedDodge?: ThiefDodge;
@@ -225,5 +221,4 @@ export interface ThiefWeaponMatcherContext extends Gw2WeaponMatcherContext {
   readonly state?: {
     readonly profession?: ThiefRuntimeState | Partial<ThiefState>;
   };
-  readonly specialization?: string;
 }

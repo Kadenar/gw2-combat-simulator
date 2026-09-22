@@ -80,10 +80,6 @@ export interface MesmerExpectedProcTracker {
   process(event: SimulationEvent): void;
 }
 
-export interface MesmerAttackStatus extends MesmerConditionApplication {
-  readonly stacks?: number;
-}
-
 export interface MesmerCloneAttackStep {
   readonly id?: SkillId;
   readonly name?: string;
@@ -94,7 +90,7 @@ export interface MesmerCloneAttackStep {
   readonly damageAtMs?: number;
   readonly ticks?: readonly StrikeTick[];
   readonly interval: number;
-  readonly conditions?: readonly MesmerAttackStatus[];
+  readonly conditions?: readonly MesmerConditionApplication[];
 }
 
 export interface MesmerCloneAttackBase {

@@ -27,7 +27,6 @@ import type { MesmerTroubadourState } from '#gw2/professions/mesmer/specializati
 import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import type { MesmerProjectedInstrument } from '#gw2/professions/mesmer/specializations/troubadour/types.js';
 import type {
-  MesmerAttackStatus,
   MesmerCloneAttack,
   MesmerCloneAttackScheduler,
   MesmerDestroyClone,
@@ -122,7 +121,6 @@ export interface MesmerSpecializationSelection {
 
 export interface MesmerBuild extends Gw2Build {
   specializations?: MesmerSpecializationSelection[];
-  initialResource?: number;
 }
 
 export interface MesmerCanonicalBuild extends Gw2CanonicalBuild {
@@ -137,9 +135,6 @@ export interface MesmerApplicationBuild extends Gw2ApplicationBuild {
 export interface MesmerConfig extends Gw2Config {
   readonly specialization: string;
   readonly primaryWeapon: string;
-  readonly weaponSet2Primary?: string;
-  readonly weaponSet2Secondary?: string;
-  readonly initialResource?: number;
   readonly selectedTraitIds?: readonly SkillId[];
 }
 
@@ -249,8 +244,8 @@ export interface MesmerAmbushStrike {
   readonly castTimeMs?: number;
   readonly damageAtMs?: number;
   readonly ticks?: readonly StrikeTick[];
-  readonly conditions?: readonly MesmerAttackStatus[];
-  readonly boons?: readonly MesmerAttackStatus[];
+  readonly conditions?: readonly MesmerConditionApplication[];
+  readonly boons?: readonly MesmerConditionApplication[];
 }
 
 /** A catalog skill also supplies the player and clone variants used by the Mirage controller. */
@@ -275,7 +270,7 @@ export interface MesmerInstrument {
   /** Launched performance packets can outlive an interruption after the skill's commit point. */
   readonly persistsAfterInterrupt?: boolean;
   readonly ticks?: readonly StrikeTick[];
-  readonly conditions?: readonly MesmerAttackStatus[];
+  readonly conditions?: readonly MesmerConditionApplication[];
 }
 
 export type MesmerShatterResolver = (
