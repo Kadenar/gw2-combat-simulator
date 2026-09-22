@@ -8,7 +8,7 @@ import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/buil
 import { toApplicationBuild } from '#gw2/professions/guardian/build/build.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
-import type { GuardianApplicationBuild } from '#gw2/professions/guardian/types.js';
+import type { GuardianCanonicalBuild } from '#gw2/professions/guardian/types.js';
 
 // Exposes Guardian only through the shared browser application contract.
 export const guardianAppAdapter = definePatchedProfessionApp({
@@ -19,7 +19,7 @@ export const guardianAppAdapter = definePatchedProfessionApp({
   specializationFallback: 'Zeal',
   runtime: {
     buildConfigExtras: (app) => {
-      const build = app.build as GuardianApplicationBuild;
+      const build = app.build as GuardianCanonicalBuild;
       return { initialTomePages: build.initialTomePages };
     }
   },

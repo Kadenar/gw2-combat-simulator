@@ -40,7 +40,7 @@ import type {
   RotationActionOptions
 } from '#gw2/app/types.js';
 import type { BaselineSimulationOutput } from '#gw2/app/simulation/baseline/types.js';
-import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
 
 const NOOP_FEATURE: ProfessionFeatureRunner = Object.freeze({
@@ -49,7 +49,7 @@ const NOOP_FEATURE: ProfessionFeatureRunner = Object.freeze({
   run() {}
 });
 
-export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2ApplicationBuild, ProfessionAppResult> {
+export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2CanonicalBuild, ProfessionAppResult> {
   readonly workspace: BuildWorkspace;
   readonly gameId: string;
   readonly contentId: string;
@@ -58,7 +58,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
   activeCatalog: ProfessionAppState['activeCatalog'];
   patchId: string;
   patchComparison: ProfessionAppState['patchComparison'];
-  build: Gw2ApplicationBuild;
+  build: Gw2CanonicalBuild;
   simulationSettings: SimulationSettings;
   skills: ProfessionAppState['skills'];
   skillByName: ProfessionAppState['skillByName'];
@@ -85,7 +85,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
   templatePresets: BuildTemplatePreset[];
   templateContainer: HTMLElement | null;
   currentTemplate: BuildTemplateSelection | null;
-  templateUndoBuild: Gw2ApplicationBuild | null;
+  templateUndoBuild: Gw2CanonicalBuild | null;
   readonly modifierContributionRunner: ProfessionFeatureRunner;
   readonly randomDistributionRunner: ProfessionFeatureRunner;
   readonly gearOptimizerRunner: GearOptimizerRunner;
@@ -151,7 +151,7 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     this.deferredRotationRenderRevision = null;
   }
 
-  get input(): Gw2ApplicationBuild {
+  get input(): Gw2CanonicalBuild {
     return this.build;
   }
 

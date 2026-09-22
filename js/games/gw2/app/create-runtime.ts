@@ -29,7 +29,7 @@ import type {
 import type { RelicComparisonJobRequest } from '#gw2/app/simulation/relic-comparison/types.js';
 import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
 import type { ProfessionAttributeData, ProfessionSlotLoadout } from '#gw2/app/build/types.js';
-import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 /**
@@ -73,7 +73,7 @@ export function createProfessionRuntime({
       .map((specialization) => specialization.name)
   );
 
-  function eliteSpecialization(build: Gw2ApplicationBuild): string {
+  function eliteSpecialization(build: Gw2CanonicalBuild): string {
     return build.specializations.find((specialization) => eliteNames.has(specialization.name))?.name || 'Core';
   }
 
@@ -130,7 +130,7 @@ export function createProfessionRuntime({
     }
 
     // Attribute-backed modifiers must be removed before recalculation; config filtering only removes runtime effects.
-    let build: Gw2ApplicationBuild = app.build;
+    let build: Gw2CanonicalBuild = app.build;
     if (disabled?.type === 'Boon') {
       const key = disabled.name.toLowerCase();
       build = {

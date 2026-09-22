@@ -226,7 +226,7 @@ test('Guardian slot skills require selection before casts can produce effects', 
     }
   }
 
-  for (const selectedSkills of [undefined, ['Effulgent Stance'], { Utility1: { name: 'Effulgent Stance' } }]) {
+  for (const selectedSkills of [undefined, ['Effulgent Stance'], { Utility1: 'Effulgent Stance' }]) {
     const result = simulateGw2({
       profession: guardianProfession,
       rotation: ['Effulgent Stance', { type: 'wait', durationMs: 5000 }],

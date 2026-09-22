@@ -9,7 +9,7 @@ import { canEquipWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import type { Gw2AppAdapter, ProfessionAppState } from '#gw2/app/types.js';
-import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
@@ -46,7 +46,7 @@ export interface GearOptimizerRequest {
   readonly gameId: 'gw2';
   readonly contentId: string;
   readonly revision: number;
-  readonly build: Gw2ApplicationBuild;
+  readonly build: Gw2CanonicalBuild;
   readonly simulationSettings?: SimulationSettings;
   readonly patchId: string;
   readonly observationPolicy: ObservationPolicy;
@@ -56,13 +56,13 @@ export interface GearOptimizerRequest {
 }
 
 export type OptimizerEquipment = Pick<
-  Gw2ApplicationBuild,
+  Gw2CanonicalBuild,
   'gear' | 'alternateWeaponPrefixes' | 'weaponSigils' | 'rune' | 'relic' | 'food' | 'utility' | 'infusions'
 >;
 
 export interface OptimizerDimension {
   readonly key: string;
-  readonly choices: readonly (string | string[] | Gw2ApplicationBuild['infusions'])[];
+  readonly choices: readonly (string | string[] | Gw2CanonicalBuild['infusions'])[];
 }
 
 export interface OptimizerSpace {
@@ -147,14 +147,14 @@ function choices(value: string[] | undefined, current: string, names: readonly s
 }
 
 /** Retain usable equipped sets; kit and Gunsaber builds use their starting normal weapon set. */
-export function optimizerWeaponSets(build: Gw2ApplicationBuild, adapter: Gw2AppAdapter): number[] {
+export function optimizerWeaponSets(build: Gw2CanonicalBuild, adapter: Gw2AppAdapter): number[] {
   if (adapter.profession.ui.weaponSwapChangesSet === false || adapter.eliteSpecialization(build) === 'Bladesworn')
     return [build.startingWeaponSet === 2 ? 1 : 0];
   return build.alternateWeapons[0] ? [0, 1] : [0];
 }
 
 /** Model actual weapon stat budgets; two-handed weapons have one prefix and two sigils. */
-export function optimizerSlots(build: Gw2ApplicationBuild, adapter: Gw2AppAdapter): string[] {
+export function optimizerSlots(build: Gw2CanonicalBuild, adapter: Gw2AppAdapter): string[] {
   const slots = GEAR_SLOTS.filter((slot) => !slot.startsWith('Weapon'));
   for (const set of optimizerWeaponSets(build, adapter)) {
     const weapons = set === 0 ? build.weapons : build.alternateWeapons;
@@ -323,7 +323,7 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Gw2
   if (!Array.isArray(stats) || stats.some((stat) => !INFUSION_STATS.includes(stat)) || new Set(stats).size > 2)
     throw new TypeError('Select up to two known infusion stats.');
   const selectedStats = [...new Set(stats)].sort();
-  let splits: Gw2ApplicationBuild['infusions'][];
+  let splits: Gw2CanonicalBuild['infusions'][];
   if (locks.includes('infusions') || !selectedStats.length) {
     if (!locks.includes('infusions') && count !== currentCount)
       throw new TypeError('Select infusion stats to change the total count.');
@@ -350,7 +350,7 @@ export function optimizerCardinality(counts: readonly bigint[]): bigint {
 }
 
 /** Copy only equipment so Apply cannot overwrite rotation, traits, assumptions, or weapon types. */
-export function optimizerEquipment(build: Gw2ApplicationBuild): OptimizerEquipment {
+export function optimizerEquipment(build: Gw2CanonicalBuild): OptimizerEquipment {
   return structuredClone({
     gear: build.gear,
     alternateWeaponPrefixes: build.alternateWeaponPrefixes,
@@ -368,7 +368,7 @@ export function assignOptimizerChoice(
   key: string,
   value: OptimizerDimension['choices'][number]
 ): void {
-  if (key === 'infusions') equipment.infusions = structuredClone(value as Gw2ApplicationBuild['infusions']);
+  if (key === 'infusions') equipment.infusions = structuredClone(value as Gw2CanonicalBuild['infusions']);
   else if (key.startsWith('sigils')) equipment.weaponSigils[Number(key.at(-1)) - 1] = [...(value as string[])];
   else if (key.startsWith('Alternate')) equipment.alternateWeaponPrefixes[Number(key.at(-1)) - 1] = value as string;
   else if (['rune', 'relic', 'food', 'utility'].includes(key)) equipment[key as 'rune'] = value as string;

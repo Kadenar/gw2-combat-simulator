@@ -9,7 +9,7 @@ import type {
 } from '#gw2/platform/execution/types.js';
 import type { EffectMetadata } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
-import type { Gw2ApplicationBuild, Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -27,10 +27,6 @@ export interface GuardianBuild extends Gw2Build {
 }
 
 export interface GuardianCanonicalBuild extends Gw2CanonicalBuild {
-  initialTomePages: number;
-}
-
-export interface GuardianApplicationBuild extends Gw2ApplicationBuild {
   initialTomePages: number;
 }
 

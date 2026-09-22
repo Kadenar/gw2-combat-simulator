@@ -8,7 +8,7 @@ import { applyEngineerBuildAttributeRules } from '#gw2/professions/engineer/buil
 import { toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
-import type { EngineerApplicationBuild, EngineerFinalizedAttributeResult } from '#gw2/professions/engineer/types.js';
+import type { EngineerCanonicalBuild, EngineerFinalizedAttributeResult } from '#gw2/professions/engineer/types.js';
 
 // Exposes Engineer only through the shared browser application contract.
 export const engineerAppAdapter = definePatchedProfessionApp({
@@ -20,11 +20,11 @@ export const engineerAppAdapter = definePatchedProfessionApp({
   runtime: {
     // Map persisted Heat to the shared initial-resource runtime input.
     buildConfigInputs: (app) => ({
-      initialResource: (app.build as EngineerApplicationBuild).initialHeat
+      initialResource: (app.build as EngineerCanonicalBuild).initialHeat
     }),
     // Supply specialization-only runtime fields without leaking inactive state into other builds.
     buildConfigExtras: (app, { attributeData }) => {
-      const build = app.build as EngineerApplicationBuild;
+      const build = app.build as EngineerCanonicalBuild;
       const evolveAttributePool = (attributeData as EngineerFinalizedAttributeResult).amalgamEvolveAttributePool;
       const amalgam = build.specializations?.some((specialization) => specialization.name === 'Amalgam');
       return {

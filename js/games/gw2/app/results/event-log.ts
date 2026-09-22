@@ -8,7 +8,7 @@ import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.j
 import { professionPlanningState } from '#gw2/app/rotation/context.js';
 import { effectName } from '#gw2/app/results/model.js';
 import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
-import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
 type Gw2EventLogRow = EventLogRow & { readonly phantasmClone?: boolean };
 type OrderedEventLogRow = Gw2EventLogRow & { readonly order: number; readonly activationOrder: number };
@@ -49,7 +49,7 @@ function minionAttackerLabel(event: SimulationEvent): string {
 
 export function simulationEventLogRows(
   result: Gw2SimulationResult | null | undefined,
-  build: Gw2ApplicationBuild | null = null,
+  build: Gw2CanonicalBuild | null = null,
   profession: ProfessionAppContract | null = null
 ): Gw2EventLogRow[] {
   const rows: OrderedEventLogRow[] = [];

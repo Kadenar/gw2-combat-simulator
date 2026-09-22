@@ -5,7 +5,7 @@ import { replaceBuild, replaceBuildConfiguration, replaceBuildRotation } from '#
 
 import type { BuildTemplatePreset, BuildTemplateSection } from '#gw2/app/build/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
 import {
   addBuildTab,
@@ -341,7 +341,7 @@ function loadMyBuildEntry(app: ProfessionAppState, entry: MyBuild): void {
   renderBuildTabs(app);
 }
 
-function buildSignature(build: Gw2ApplicationBuild): string {
+function buildSignature(build: Gw2CanonicalBuild): string {
   return JSON.stringify(build);
 }
 
@@ -358,7 +358,7 @@ function loadedMessage(preset: BuildTemplatePreset, action: TemplateLoadAction):
   return `Loaded the ${name} template.`;
 }
 
-function showTemplateUndo(app: ProfessionAppState, message: string, previousBuild: Gw2ApplicationBuild): void {
+function showTemplateUndo(app: ProfessionAppState, message: string, previousBuild: Gw2CanonicalBuild): void {
   app.templateUndoBuild = previousBuild;
   app.templateUndoMessage = message;
   const toast = app.templateContainer?.querySelector<HTMLElement>('.template-toast');

@@ -2,11 +2,7 @@
 import type { SkillId, Skill, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type { RotationCommand, SchedulerConfig } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type {
-  Gw2ApplicationBuild,
-  Gw2BuildResources,
-  ProfessionAssumptionControl
-} from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild, Gw2BuildResources, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 
 export interface ProfessionEventLogDescriptor {
@@ -231,7 +227,7 @@ export interface ProfessionUiContext<TProfessionState = unknown> {
   readonly specialization?: string;
   /** Simulation config selection, used when a resolved runtime's UI is queried outside the application. */
   readonly config?: SchedulerConfig;
-  readonly build?: Gw2ApplicationBuild | null;
+  readonly build?: Gw2CanonicalBuild | null;
   readonly catalog?: CanonicalCatalog | null;
   readonly professionState?: TProfessionState;
 }

@@ -7,10 +7,7 @@ import { elementalistProfession } from '#gw2/professions/elementalist/profession
 
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAttributeData, ProfessionSkillAvailabilityContext } from '#gw2/app/build/types.js';
-import type {
-  CatalystEmpowermentPool,
-  ElementalistApplicationBuild
-} from '#gw2/professions/elementalist/build/types.js';
+import type { CatalystEmpowermentPool, ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
 
 // Elemental Empowerment scales these six attributes, and only from the build's own
 // sources - buffs applied during the fight must not compound into the bonus.
@@ -39,8 +36,8 @@ function catalystEmpowermentPool(attributeData: ProfessionAttributeData): Cataly
   ) as unknown as CatalystEmpowermentPool;
 }
 
-function build(app: { build: unknown }): ElementalistApplicationBuild {
-  return app.build as ElementalistApplicationBuild;
+function build(app: { build: unknown }): ElementalistCanonicalBuild {
+  return app.build as ElementalistCanonicalBuild;
 }
 
 // Dual-attunement weapon skills share the catalog with the single-attunement ones, so

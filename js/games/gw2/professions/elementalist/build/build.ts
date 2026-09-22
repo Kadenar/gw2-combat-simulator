@@ -11,12 +11,9 @@ import { createCommonBuildDefaults } from '#gw2/professions/shared/build-default
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import type { Gw2ApplicationBuild, UnvalidatedBuildRecord } from '#gw2/platform/builds/types.js';
+import type { UnvalidatedBuildRecord } from '#gw2/platform/builds/types.js';
 
-import type {
-  ElementalistApplicationBuild,
-  ElementalistCanonicalBuild
-} from '#gw2/professions/elementalist/build/types.js';
+import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
 
 /** Bumped whenever the persisted build shape changes, so older saves are migrated on load. */
 export const ELEMENTALIST_BUILD_SCHEMA_VERSION = 4;
@@ -171,6 +168,4 @@ export function migrateElementalistBuild(candidate?: unknown): ElementalistCanon
 export const validateElementalistBuild = elementalistBuildCodec.validateBuild;
 
 /** Migrates and adapts a build into the shape the browser application shell consumes. */
-export function toApplicationBuild(candidate: unknown): ElementalistApplicationBuild {
-  return elementalistBuildCodec.toApplicationBuild(candidate) as Gw2ApplicationBuild as ElementalistApplicationBuild;
-}
+export const toApplicationBuild = elementalistBuildCodec.toApplicationBuild;

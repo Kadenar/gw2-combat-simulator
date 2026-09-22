@@ -195,8 +195,14 @@ function updatePaletteControl(context: ElementalistUiContext, controlId: string)
   const build = context.build;
   if (!build) return false;
   const configured = configuredPistolBullets(context);
-  build.pistolBullets = configured;
-  configured[element] = !Boolean(configured[element]);
+  // Complete sparse preview input before storing an edit so the build keeps all four canonical flags.
+  build.pistolBullets = {
+    Fire: Boolean(configured.Fire),
+    Water: Boolean(configured.Water),
+    Air: Boolean(configured.Air),
+    Earth: Boolean(configured.Earth),
+    [element]: !Boolean(configured[element])
+  };
   return true;
 }
 

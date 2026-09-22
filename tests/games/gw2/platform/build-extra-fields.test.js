@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   createElementalistBuildDefaults,
   migrateElementalistBuild,
+  toApplicationBuild,
   validateElementalistBuild
 } from '#gw2/professions/elementalist/build/build.js';
 import {
@@ -18,6 +19,27 @@ import {
 } from '#gw2/professions/warrior/build/build.js';
 
 // These focused cases prove profession descriptors own normalization and validation together.
+test('application normalization retains profession fields and applies Quickness without changing migration policy', () => {
+  const saved = {
+    ...createElementalistBuildDefaults(),
+    assumptions: { quickness: false },
+    startAttunement: 'Water',
+    pistolBullets: { Fire: true }
+  };
+  const before = structuredClone(saved);
+  const migrated = migrateElementalistBuild(saved);
+  const application = toApplicationBuild(saved);
+
+  assert.equal(migrated.assumptions.quickness, false);
+  assert.deepEqual(application, { ...migrated, assumptions: { ...migrated.assumptions, quickness: true } });
+  assert.equal(application.profession, 'elementalist');
+  assert.equal(application.startAttunement, 'Water');
+  assert.deepEqual(application.pistolBullets, { Fire: true, Water: false, Air: false, Earth: false });
+  assert.equal(validateElementalistBuild(saved).valid, false);
+  assert.equal(validateElementalistBuild(application).valid, true);
+  assert.deepEqual(saved, before);
+});
+
 test('bounded-number build fields use canonical defaults and inclusive bounds', () => {
   const defaults = createWarriorBuildDefaults();
 

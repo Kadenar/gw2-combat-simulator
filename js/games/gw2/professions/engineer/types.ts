@@ -10,9 +10,8 @@ import type {
 } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
-  Gw2ApplicationBuild,
-  Gw2Build,
   Gw2CanonicalBuild,
+  Gw2Build,
   Gw2FinalizedAttributeResult,
   Gw2NumericAttributes,
   ProfessionBuildAssumptions
@@ -36,11 +35,6 @@ export interface EngineerBuild extends Gw2Build {
 }
 
 export interface EngineerCanonicalBuild extends Gw2CanonicalBuild {
-  initialHeat: number;
-  selectedMorphSkillIds: number[];
-}
-
-export interface EngineerApplicationBuild extends Gw2ApplicationBuild {
   initialHeat: number;
   selectedMorphSkillIds: number[];
 }

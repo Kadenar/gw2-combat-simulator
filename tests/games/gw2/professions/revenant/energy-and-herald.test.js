@@ -1133,8 +1133,14 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
     revenantProfession.ui.paletteSkillAvailability(lowEnergyContext, phase).message,
     'Requires 30 Energy; currently 4'
   );
-  assert.match(paletteSkillView({ adapter: revenantAppAdapter, results: null }, phase).title, /Energy cost: 30/);
-  assert.match(paletteSkillView({ adapter: revenantAppAdapter, results: null }, relinquish).title, /Energy cost: 0/);
+  // The rich tooltip's energy badge reads the structured base-cost fact.
+  for (const [skill, cost] of [
+    [phase, '30'],
+    [relinquish, '0']
+  ]) {
+    const view = paletteSkillView({ adapter: revenantAppAdapter, results: null }, skill);
+    assert.equal(view.tooltip.facts.find((fact) => fact.name === 'Base energy cost').detail, cost);
+  }
 });
 
 test('Herald palette replaces active facets with their consume skills', () => {

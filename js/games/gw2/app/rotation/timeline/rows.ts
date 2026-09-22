@@ -50,7 +50,7 @@ import {
 import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import { weaponSetActiveSegments, weaponSetDurationTotals } from '#gw2/app/rotation/timeline/timing/model.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
-import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { RotationCommand, SchedulerStep } from '#gw2/platform/execution/types.js';
 import { rotationInsertionGapHtml, rotationTimelineEntryHtml } from '#ui/rotation/insertion-cursor.js';
 
@@ -80,7 +80,7 @@ function timelineCommandKey(command: RotationCommand): number {
  */
 export function timelineRowsView(
   app: ProfessionAppState,
-  build: Gw2ApplicationBuild,
+  build: Gw2CanonicalBuild,
   results: ProfessionAppResult | null,
   readOnly: boolean,
   procVisibility: ReadonlySet<string>,

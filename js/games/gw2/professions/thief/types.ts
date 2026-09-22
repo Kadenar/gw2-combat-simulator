@@ -9,10 +9,9 @@ import type {
 } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
-  Gw2ApplicationBuild,
+  Gw2CanonicalBuild,
   Gw2Build,
   Gw2BuildSpecialization,
-  Gw2CanonicalBuild,
   ProfessionBuildAssumptions
 } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -36,12 +35,6 @@ export interface ThiefBuild extends Gw2Build {
 }
 
 export interface ThiefCanonicalBuild extends Gw2CanonicalBuild {
-  selectedDodge: ThiefDodge;
-  initialInitiative: number;
-  initialShadowForce: number;
-}
-
-export interface ThiefApplicationBuild extends Gw2ApplicationBuild {
   selectedDodge: ThiefDodge;
   initialInitiative: number;
   initialShadowForce: number;

@@ -17,7 +17,7 @@ import type {
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { ElementalistApplicationBuild, ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
+import type { ElementalistCanonicalBuild, ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type { TempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
@@ -62,7 +62,13 @@ export interface ElementalistUiContext extends Omit<
   ProfessionUiCallbackContext<Partial<ElementalistState>>,
   'build' | 'config'
 > {
-  readonly build?: Partial<ElementalistApplicationBuild> | null;
+  /** Shared callbacks accept a broad profession identity and sparse previews, while persisted builds stay strict. */
+  readonly build?:
+    | (Partial<Omit<ElementalistCanonicalBuild, 'profession' | 'pistolBullets'>> & {
+        profession?: string;
+        pistolBullets?: ElementalistPistolBullets;
+      })
+    | null;
   readonly config?: ElementalistConfig;
   /** Live scheduler state when a palette is inspected mid-rotation. */
   readonly state?: { readonly profession?: Partial<ElementalistState> };

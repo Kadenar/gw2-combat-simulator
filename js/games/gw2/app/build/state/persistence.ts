@@ -1,5 +1,5 @@
 import type { Gw2AppAdapter } from '#gw2/app/types.js';
-import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
 /**
  * Validates and returns an application state adapter.
@@ -26,7 +26,7 @@ function resolveAdapter(adapter: unknown): Gw2AppAdapter {
  * Default application build.
  * @throws {TypeError} When the adapter is invalid.
  */
-export function createDefaultBuild(adapter: Gw2AppAdapter): Gw2ApplicationBuild {
+export function createDefaultBuild(adapter: Gw2AppAdapter): Gw2CanonicalBuild {
   const resolved = resolveAdapter(adapter);
   return resolved.toApplicationBuild(resolved.profession.createBuildDefaults());
 }
@@ -40,7 +40,7 @@ export function createDefaultBuild(adapter: Gw2AppAdapter): Gw2ApplicationBuild 
  * Restored or default application build.
  * @throws {TypeError} When the adapter is invalid.
  */
-export function loadBuild(adapter: Gw2AppAdapter): Gw2ApplicationBuild {
+export function loadBuild(adapter: Gw2AppAdapter): Gw2CanonicalBuild {
   const resolved = resolveAdapter(adapter);
   try {
     const saved = JSON.parse(localStorage.getItem(resolved.storageKey) || 'null');
@@ -56,7 +56,7 @@ export function loadBuild(adapter: Gw2AppAdapter): Gw2ApplicationBuild {
  * Converted application build.
  * @throws {TypeError} When the adapter is invalid.
  */
-export function replaceBuild(saved: unknown, adapter: Gw2AppAdapter): Gw2ApplicationBuild {
+export function replaceBuild(saved: unknown, adapter: Gw2AppAdapter): Gw2CanonicalBuild {
   const resolved = resolveAdapter(adapter);
   return resolved.toApplicationBuild(saved);
 }
@@ -73,9 +73,9 @@ export function replaceBuild(saved: unknown, adapter: Gw2AppAdapter): Gw2Applica
  */
 export function replaceBuildConfiguration(
   saved: unknown,
-  currentBuild: Gw2ApplicationBuild | null | undefined,
+  currentBuild: Gw2CanonicalBuild | null | undefined,
   adapter: Gw2AppAdapter
-): Gw2ApplicationBuild {
+): Gw2CanonicalBuild {
   const build = replaceBuild(saved, adapter);
   build.rotation = Array.isArray(currentBuild?.rotation) ? currentBuild.rotation : [];
   return build;
@@ -92,9 +92,9 @@ export function replaceBuildConfiguration(
  */
 export function replaceBuildRotation(
   rotation: readonly unknown[],
-  currentBuild: Gw2ApplicationBuild,
+  currentBuild: Gw2CanonicalBuild,
   adapter: Gw2AppAdapter
-): Gw2ApplicationBuild {
+): Gw2CanonicalBuild {
   return replaceBuild(
     {
       ...currentBuild,

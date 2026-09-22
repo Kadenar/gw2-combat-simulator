@@ -5,7 +5,7 @@ import { manifestRotationMatchesBuild } from '#gw2/app/io/rotation-import-dialog
 import { replaceBuild, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
 export const BUILD_FILE_IMPORT_ACCEPT = '.json,application/json';
 
@@ -16,7 +16,7 @@ const BUILD_FIELDS = ['profession', 'specializations', 'selectedSkills', 'weapon
 export interface BuildFileImportPreview {
   readonly fileName: string;
   /** Imported build with any rotation normalized against its own specializations; null for rotation-only files. */
-  readonly build: Gw2ApplicationBuild | null;
+  readonly build: Gw2CanonicalBuild | null;
   /** Rotation items as saved; null when the file has no non-empty rotation. */
   readonly rotation: readonly unknown[] | null;
   readonly warnings: readonly string[];

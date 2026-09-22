@@ -109,6 +109,28 @@ test('Elementalist pistol palette toggles the selected starting bullet', () => {
   assert.equal(changeCount(), 1);
 });
 
+// Editing sparse preview input must leave a complete saved-build bullet record.
+test('Elementalist bullet edits complete missing stock and preserve other elements', () => {
+  for (const pistolBullets of [undefined, {}, { Fire: true }]) {
+    const build = { pistolBullets };
+    const toggle = (element) =>
+      elementalistProfession.ui.updatePaletteControl({ build }, `elementalist-pistol-bullet:${element}`);
+
+    assert.equal(toggle('Water'), true);
+    assert.deepEqual(build.pistolBullets, {
+      Fire: Boolean(pistolBullets?.Fire),
+      Water: true,
+      Air: false,
+      Earth: false
+    });
+    assert.equal(toggle('Water'), true);
+    assert.equal(build.pistolBullets.Water, false);
+    const beforeInvalid = structuredClone(build);
+    assert.equal(toggle('Void'), false);
+    assert.deepEqual(build, beforeInvalid);
+  }
+});
+
 test('Elemental Explosion replaces the active pistol autoattack at full stock', () => {
   const { app } = createPistolApp();
 

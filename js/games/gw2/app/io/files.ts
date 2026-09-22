@@ -2,7 +2,7 @@
 
 import { bindDialog, showDialog } from '#app/page/dialog.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
-import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
 interface FetchJsonAssetOptions {
   readonly optional?: boolean;
@@ -172,7 +172,7 @@ export function getRotationItems(payload: unknown): unknown[] | undefined {
  * Shallow copy of the
  * build without the `rotation` property.
  */
-export function getBuildExportPayload(build: Gw2ApplicationBuild): Omit<Gw2ApplicationBuild, 'rotation'> {
+export function getBuildExportPayload(build: Gw2CanonicalBuild): Omit<Gw2CanonicalBuild, 'rotation'> {
   const { rotation: _rotation, ...payload } = build;
   return payload;
 }
@@ -183,7 +183,7 @@ export function getBuildExportPayload(build: Gw2ApplicationBuild): Omit<Gw2Appli
  * The flat shape stays readable by both importers: build import reads the build fields and the rotation
  * import reads the `rotation` array.
  */
-export function getBuildWithRotationExportPayload(build: Gw2ApplicationBuild): Gw2ApplicationBuild {
+export function getBuildWithRotationExportPayload(build: Gw2CanonicalBuild): Gw2CanonicalBuild {
   return { ...build, rotation: [...build.rotation] };
 }
 

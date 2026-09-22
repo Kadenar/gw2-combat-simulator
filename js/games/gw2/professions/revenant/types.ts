@@ -7,7 +7,7 @@ import type {
   SchedulerContext
 } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { Gw2ApplicationBuild, Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -49,12 +49,6 @@ export interface RevenantCanonicalBuild extends Gw2CanonicalBuild {
   selectedLegends: string[];
   startingLegend: string;
   initialEnergy: number;
-}
-
-export interface RevenantApplicationBuild extends Gw2ApplicationBuild {
-  initialEnergy: number;
-  selectedLegends: string[];
-  startingLegend: string;
 }
 
 export interface RevenantConfig extends Gw2Config {

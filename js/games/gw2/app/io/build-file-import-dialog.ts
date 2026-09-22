@@ -18,7 +18,7 @@ import { errorMessage } from '#ui/shared/errors.js';
 
 import type { BuildFileImportPreview, BuildFileImportSelection } from '#gw2/app/io/build-file-import.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
 interface BuildFileImportDialogElements {
   readonly dialog: HTMLDialogElement;
@@ -107,7 +107,7 @@ function createDialog(document: Document): BuildFileImportDialogElements {
 }
 
 /** Summarizes the fields a player recognizes a build by, skipping any that are empty. */
-function buildSummary(document: Document, build: Gw2ApplicationBuild): HTMLElement {
+function buildSummary(document: Document, build: Gw2CanonicalBuild): HTMLElement {
   const weaponSet = (weapons: readonly string[]): string => weapons.filter(Boolean).join(' + ');
   const rows: [string, string][] = [
     [

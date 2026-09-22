@@ -1,4 +1,4 @@
-import type { Gw2ApplicationBuild, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface ElementalistBuildSpecialization {
@@ -38,15 +38,4 @@ export interface ElementalistConfig extends Gw2Config {
   readonly autoSummonElemental?: boolean;
   /** Catalyst's configured Empowerment attribute pool. */
   readonly catalystEmpowermentPool?: CatalystEmpowermentPool;
-}
-
-export interface ElementalistApplicationBuild extends Gw2ApplicationBuild {
-  startAttunement: string;
-  secondaryAttunement: string;
-  initialCatalystEnergy: number;
-  evokerElement: string;
-  initialEvokerCharges: number;
-  initialEvokerEmpowered: number;
-  /** Starting bullet stock; the palette toggles elements individually, so absent elements mean unstocked. */
-  pistolBullets: Partial<Record<'Fire' | 'Water' | 'Air' | 'Earth', boolean>>;
 }

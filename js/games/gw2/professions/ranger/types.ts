@@ -2,12 +2,7 @@ import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/pla
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { CastLifecycleContext, SchedulerContext, SchedulerState } from '#gw2/platform/execution/types.js';
-import type {
-  Gw2ApplicationBuild,
-  Gw2Build,
-  Gw2CanonicalBuild,
-  ProfessionBuildAssumptions
-} from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild, Gw2Build, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -25,15 +20,6 @@ export interface RangerBuild extends Gw2Build {
 }
 
 export interface RangerCanonicalBuild extends Gw2CanonicalBuild {
-  initialAstralForce: number;
-  initialArrows: number;
-  selectedPet: string;
-  selectedPet2: string;
-  selectedHammerSkillIds: number[];
-  initialUntamedState: RangerInitialUntamedState;
-}
-
-export interface RangerApplicationBuild extends Gw2ApplicationBuild {
   initialAstralForce: number;
   initialArrows: number;
   selectedPet: string;

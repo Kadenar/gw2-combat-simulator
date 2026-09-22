@@ -1,6 +1,6 @@
 import { createDefaultBuild, loadBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
 import type { Gw2AppAdapter, ProfessionAppState } from '#gw2/app/types.js';
-import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
 /** Only build-specific editing state travels with a tab; display preferences remain shared. */
 export function emptyBuildTabSession() {
@@ -30,9 +30,9 @@ type BuildTabSession = Pick<ProfessionAppState, keyof ReturnType<typeof emptyBui
 export interface BuildTab {
   id: string;
   name: string;
-  build: Gw2ApplicationBuild;
-  templateBuild?: Gw2ApplicationBuild;
-  templateUndoResetBuild?: Gw2ApplicationBuild;
+  build: Gw2CanonicalBuild;
+  templateBuild?: Gw2CanonicalBuild;
+  templateUndoResetBuild?: Gw2CanonicalBuild;
   patchId: string;
   session: BuildTabSession;
   resultsFresh: boolean;
@@ -48,10 +48,10 @@ export interface MyBuild {
   id: string;
   name: string;
   category?: string;
-  build: Gw2ApplicationBuild;
+  build: Gw2CanonicalBuild;
 }
 
-export function createBuildTab(build: Gw2ApplicationBuild, name = 'New build', patchId = 'current'): BuildTab {
+export function createBuildTab(build: Gw2CanonicalBuild, name = 'New build', patchId = 'current'): BuildTab {
   return {
     id: crypto.randomUUID(),
     name: name.trim().slice(0, 80) || 'New build',
@@ -254,7 +254,7 @@ export function addBuildTab(
   build = createDefaultBuild(app.adapter),
   name = 'New build',
   patchId = app.patchId,
-  templateBuild?: Gw2ApplicationBuild
+  templateBuild?: Gw2CanonicalBuild
 ): BuildTab | undefined {
   if (!app.workspace || !app.activateBuildTab) return;
   const tab = createBuildTab(structuredClone(build), name, patchId);

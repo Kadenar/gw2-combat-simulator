@@ -1759,7 +1759,8 @@ test('Deathstrike weapon palette keeps the primary skill timing on cooldown', ()
 
   assert.equal(deathstrike.id, SKILL.DEATHSTRIKE);
   assert.equal(deathstrike.castTimeMs, revenantCatalog.skillsById.get(SKILL.DEATHSTRIKE).castTimeMs);
-  assert.doesNotMatch(paletteSkillView(app, deathstrike).title, /Instant cast/);
+  // Rich tooltips expose cast timing through castDetails rather than the native title.
+  assert.match(paletteSkillView(app, deathstrike).castDetails, /^Cast time: \d+\.\d{2}s\n/);
 });
 
 // Restoring scheduler resources must preserve resolver-owned clocks in both active state slices.

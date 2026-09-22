@@ -32,7 +32,7 @@ import type {
 } from '#gw2/app/simulation/random-distribution/types.js';
 import type { RelicComparisonJobRequest } from '#gw2/app/simulation/relic-comparison/types.js';
 import type {
-  Gw2ApplicationBuild,
+  Gw2CanonicalBuild,
   Gw2CalculateAttributes,
   ProfessionAssumptionControl,
   Gw2ApplyBuildAttributeRules
@@ -86,7 +86,7 @@ export interface ProfessionAppState {
   activeCatalog: Readonly<CanonicalCatalog>;
   patchId: string;
   patchComparison: PatchComparison | null;
-  build: Gw2ApplicationBuild;
+  build: Gw2CanonicalBuild;
   simulationSettings?: import('#gw2/app/simulation/settings.js').SimulationSettings;
   skills: Skill[];
   skillByName: ReadonlyMap<string, Skill>;
@@ -126,7 +126,7 @@ export interface ProfessionAppState {
   templatePresets: BuildTemplatePreset[];
   templateContainer: HTMLElement | null;
   currentTemplate: BuildTemplateSelection | null;
-  templateUndoBuild: Gw2ApplicationBuild | null;
+  templateUndoBuild: Gw2CanonicalBuild | null;
   templateUndoMessage?: string;
   modifierContributionRunner: ProfessionFeatureRunner;
   randomDistributionRunner: ProfessionFeatureRunner;
@@ -225,7 +225,7 @@ export interface ProfessionRuntimeApi {
     config: Gw2Config,
     observationPolicy?: ObservationPolicy
   ): Gw2SimulationResult;
-  eliteSpecialization(build: Gw2ApplicationBuild): string;
+  eliteSpecialization(build: Gw2CanonicalBuild): string;
   recalculate(app: ProfessionAppState, disabledTrait?: string | null): void;
   simulationConfig(app: ProfessionAppState, disabled?: ProfessionModifier | null): Gw2Config;
   modifierContributionRequest(app: ProfessionAppState): ModifierContributionRequest;
@@ -274,7 +274,7 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
   readonly resetPrompt: string;
   readonly specializationFallback: string;
   readonly createDefaultTargetConditions: () => Record<string, number | boolean>;
-  readonly toApplicationBuild: (build: unknown) => Gw2ApplicationBuild;
+  readonly toApplicationBuild: (build: unknown) => Gw2CanonicalBuild;
   readonly isSkillAvailable: ProfessionIsSkillAvailable;
   readonly defaultOffhand: ProfessionDefaultOffhand;
   readonly specializations: CanonicalCatalog['specializations'];
@@ -294,7 +294,7 @@ export interface DefineProfessionAppOptions {
   readonly profession: ProfessionAppContract;
   readonly applyBuildAttributeRules: Gw2ApplyBuildAttributeRules;
   readonly createDefaultTargetConditions?: () => Record<string, number | boolean>;
-  readonly toApplicationBuild: (build: unknown) => Gw2ApplicationBuild;
+  readonly toApplicationBuild: (build: unknown) => Gw2CanonicalBuild;
   readonly specializationFallback: string;
   readonly storageVersion?: number;
   readonly storageKey?: string;

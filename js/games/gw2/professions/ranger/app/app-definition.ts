@@ -6,7 +6,7 @@ import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/at
 import { toApplicationBuild } from '#gw2/professions/ranger/build/build.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import type { RangerApplicationBuild } from '#gw2/professions/ranger/types.js';
+import type { RangerCanonicalBuild } from '#gw2/professions/ranger/types.js';
 
 // Exposes Ranger only through the shared browser application contract.
 export const rangerAppAdapter = definePatchedProfessionApp({
@@ -18,7 +18,7 @@ export const rangerAppAdapter = definePatchedProfessionApp({
   resetPrompt: 'Reset the Ranger build, pet, assumptions, and rotation?',
   runtime: {
     buildConfigExtras: (app) => {
-      const build = app.build as RangerApplicationBuild;
+      const build = app.build as RangerCanonicalBuild;
       return {
         initialAstralForce: build.initialAstralForce,
         initialArrows: build.initialArrows,

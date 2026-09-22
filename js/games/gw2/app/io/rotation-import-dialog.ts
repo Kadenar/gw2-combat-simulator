@@ -24,7 +24,7 @@ import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationImportObservation } from '#gw2/app/io/types.js';
-import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
 export const ROTATION_IMPORT_ACCEPT = '.json,.evtc,.evtc.zip,.zevtc,application/json,application/zip';
 type RotationImportDestination = 'current' | 'reference';
@@ -196,7 +196,7 @@ function selectedSkillNames(build: unknown): string[] | null {
 }
 
 /** Keeps manifest references compatible with the active profession and selected skill loadout. */
-export function manifestRotationMatchesBuild(build: unknown, currentBuild: Gw2ApplicationBuild): boolean {
+export function manifestRotationMatchesBuild(build: unknown, currentBuild: Gw2CanonicalBuild): boolean {
   if (!build || typeof build !== 'object' || Array.isArray(build)) return false;
   const candidate = build as { profession?: unknown };
   const candidateSkills = selectedSkillNames(build);

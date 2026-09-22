@@ -1,9 +1,12 @@
 /** Compile-time checks for closed build shapes and codec results across profession composition. */
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { toApplicationBuild as engineerApplicationBuild } from '#gw2/professions/engineer/build/build.js';
+import { toApplicationBuild as elementalistApplicationBuild } from '#gw2/professions/elementalist/build/build.js';
+import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-contract.js';
 import { composeHookContainer } from '#gw2/platform/engine/profession/module.js';
-import type { Gw2Build, Gw2CanonicalBuild, Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type {
   ProfessionAttributeRuleDefinition,
   ProfessionCastRuleDefinition
@@ -23,7 +26,8 @@ const fixture = normalizeProfessionBuild('build-contract', {
 export type BuildContractAssertions = [
   Assert<Equal<string extends keyof Gw2Build ? true : false, false>>,
   Assert<Equal<string extends keyof Gw2CanonicalBuild ? true : false, false>>,
-  Assert<Equal<string extends keyof Gw2ApplicationBuild ? true : false, false>>,
+  Assert<Equal<ReturnType<typeof engineerApplicationBuild>, EngineerCanonicalBuild>>,
+  Assert<Equal<ReturnType<typeof elementalistApplicationBuild>, ElementalistCanonicalBuild>>,
   Assert<Equal<ReturnType<typeof engineerProfession.createBuildDefaults>, EngineerCanonicalBuild>>,
   Assert<Equal<ReturnType<typeof engineerProfession.migrateBuild>, EngineerCanonicalBuild>>,
   Assert<

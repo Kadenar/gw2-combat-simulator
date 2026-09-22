@@ -12,7 +12,7 @@ import { canEquipWeaponSigil, normalizeWeaponSigils } from '#gw2/platform/equipm
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 import type {
-  Gw2ApplicationBuild,
+  Gw2CanonicalBuild,
   Gw2BuildCodec,
   Gw2BuildCodecOptions,
   Gw2BuildExtraFieldDescriptor,
@@ -20,7 +20,6 @@ import type {
   Gw2BuildInfusion,
   Gw2BuildSpecialization,
   Gw2BuildValidationOptions,
-  Gw2CanonicalBuild,
   UnvalidatedBuildRecord
 } from '#gw2/platform/builds/types.js';
 import type { BuildValidationResult } from '#gw2/platform/builds/types.js';
@@ -222,7 +221,7 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
     return { valid: errors.length === 0, errors };
   }
 
-  function toApplicationBuild(build: unknown): Gw2ApplicationBuild {
+  function toApplicationBuild(build: unknown): TBuild {
     const migrated = migrateBuild(build);
     // Application timings assume permanent Quickness, including when restoring older builds.
     migrated.assumptions.quickness = true;

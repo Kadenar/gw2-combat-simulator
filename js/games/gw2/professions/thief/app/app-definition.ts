@@ -7,7 +7,7 @@ import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
 import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/thief/build/build.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import type { ThiefApplicationBuild } from '#gw2/professions/thief/types.js';
+import type { ThiefCanonicalBuild } from '#gw2/professions/thief/types.js';
 
 // Exposes Thief only through the shared browser application contract.
 export const thiefAppAdapter = definePatchedProfessionApp({
@@ -19,12 +19,12 @@ export const thiefAppAdapter = definePatchedProfessionApp({
   resetPrompt: 'Reset the Thief build, assumptions, and rotation?',
   runtime: {
     buildConfigInputs: (app) => ({
-      initialResource: (app.build as ThiefApplicationBuild).initialInitiative
+      initialResource: (app.build as ThiefCanonicalBuild).initialInitiative
     }),
     buildConfigExtras: (app) => ({
-      initialInitiative: (app.build as ThiefApplicationBuild).initialInitiative,
-      initialShadowForce: (app.build as ThiefApplicationBuild).initialShadowForce,
-      selectedDodge: (app.build as ThiefApplicationBuild).selectedDodge
+      initialInitiative: (app.build as ThiefCanonicalBuild).initialInitiative,
+      initialShadowForce: (app.build as ThiefCanonicalBuild).initialShadowForce,
+      selectedDodge: (app.build as ThiefCanonicalBuild).selectedDodge
     })
   },
   defaultOffhand({ mainHand, offHands = [] } = {}) {

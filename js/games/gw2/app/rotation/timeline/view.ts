@@ -8,7 +8,7 @@ import { currentTimelineResults, procFilterKey } from '#gw2/app/rotation/timelin
 import { timelineRowsView, type TimelineRowRender } from '#gw2/app/rotation/timeline/rows.js';
 import { renderTimingAnalysis } from '#gw2/app/rotation/timeline/timing/view.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
-import type { Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 import { closeFloatingEditor } from '#ui/rotation/editing/floating-editor.js';
 import { mountRotationInsertionCursor } from '#ui/rotation/insertion-cursor.js';
@@ -110,7 +110,7 @@ export function syncProcVisibility(app: ProfessionAppState, procSteps: readonly 
 export interface TimelineRenderOptions {
   readonly root?: HTMLElement | null;
   readonly procRoot?: HTMLElement | null;
-  readonly build?: Gw2ApplicationBuild;
+  readonly build?: Gw2CanonicalBuild;
   readonly result?: ProfessionAppResult | null;
   readonly readOnly?: boolean;
   readonly previewTimeMs?: number | null;

@@ -1,5 +1,5 @@
 /** Defines build presets, loadout views, and selection contracts shared by the build editor and professions. */
-import type { Gw2FinalizedAttributeResult, Gw2ApplicationBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2FinalizedAttributeResult, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { CatalogEntity, CanonicalCatalog, SkillId, Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionPaletteGroup } from '#gw2/platform/profession-presentation/types.js';
 
@@ -43,16 +43,16 @@ export interface ProfessionSlotLoadout {
   readonly startingKey: 'startingLegend';
   readonly palettePlacement?: string;
   normalizeBuild(
-    build: Gw2ApplicationBuild,
+    build: Gw2CanonicalBuild,
     context: {
-      readonly build: Gw2ApplicationBuild;
+      readonly build: Gw2CanonicalBuild;
       readonly specialization: string;
       readonly professionState?: unknown;
       readonly catalog: CanonicalCatalog;
     }
-  ): Partial<Gw2ApplicationBuild>;
+  ): Partial<Gw2CanonicalBuild>;
   selectedSkillIds(context: {
-    readonly build: Gw2ApplicationBuild;
+    readonly build: Gw2CanonicalBuild;
     readonly specialization: string;
     readonly professionState?: unknown;
     readonly catalog: CanonicalCatalog;
@@ -62,15 +62,15 @@ export interface ProfessionSlotLoadout {
   unavailableReason(skill: Skill, context: ProfessionSlotLoadoutContext): string;
   view(context: ProfessionSlotLoadoutContext): ProfessionSlotLoadoutView;
   updateBuild(
-    build: Gw2ApplicationBuild,
+    build: Gw2CanonicalBuild,
     selectorKey: string,
     value: string,
     context: ProfessionSlotLoadoutContext
-  ): Gw2ApplicationBuild;
+  ): Gw2CanonicalBuild;
 }
 
 export interface ProfessionSlotLoadoutContext {
-  readonly build: Gw2ApplicationBuild;
+  readonly build: Gw2CanonicalBuild;
   readonly specialization: string;
   readonly professionState?: unknown;
   readonly catalog: CanonicalCatalog;
@@ -108,7 +108,7 @@ export interface ProfessionSlotLoadoutView {
 }
 
 export interface ProfessionSkillAvailabilityContext {
-  readonly build?: Gw2ApplicationBuild;
+  readonly build?: Gw2CanonicalBuild;
   readonly specialization?: string;
   readonly professionState?: unknown;
 }

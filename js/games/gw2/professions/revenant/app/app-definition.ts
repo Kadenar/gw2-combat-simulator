@@ -8,7 +8,7 @@ import { applyRevenantBuildAttributeRules } from '#gw2/professions/revenant/buil
 import { toApplicationBuild } from '#gw2/professions/revenant/build/build.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { revenantTooltips } from '#gw2/professions/revenant/app/tooltips.js';
-import type { RevenantApplicationBuild } from '#gw2/professions/revenant/types.js';
+import type { RevenantCanonicalBuild } from '#gw2/professions/revenant/types.js';
 
 // Exposes Revenant only through the shared browser application contract.
 export const revenantAppAdapter = definePatchedProfessionApp({
@@ -20,12 +20,12 @@ export const revenantAppAdapter = definePatchedProfessionApp({
   resetPrompt: 'Reset the Revenant build, legends, and rotation?',
   runtime: {
     buildConfigInputs: (app) => ({
-      initialResource: (app.build as RevenantApplicationBuild).initialEnergy
+      initialResource: (app.build as RevenantCanonicalBuild).initialEnergy
     }),
     buildConfigExtras: (app) => ({
-      initialEnergy: (app.build as RevenantApplicationBuild).initialEnergy,
-      selectedLegends: [...(app.build as RevenantApplicationBuild).selectedLegends],
-      startingLegend: (app.build as RevenantApplicationBuild).startingLegend
+      initialEnergy: (app.build as RevenantCanonicalBuild).initialEnergy,
+      selectedLegends: [...(app.build as RevenantCanonicalBuild).selectedLegends],
+      startingLegend: (app.build as RevenantCanonicalBuild).startingLegend
     })
   },
   defaultOffhand: preferOffhand('Sword')

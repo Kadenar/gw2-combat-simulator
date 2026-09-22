@@ -7,7 +7,7 @@ import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/mesmer/build/build.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import type { MesmerApplicationBuild } from '#gw2/professions/mesmer/types.js';
+import type { MesmerCanonicalBuild } from '#gw2/professions/mesmer/types.js';
 
 // Exposes Mesmer only through the shared browser application contract.
 export const mesmerAppAdapter = definePatchedProfessionApp({
@@ -19,7 +19,7 @@ export const mesmerAppAdapter = definePatchedProfessionApp({
   storageVersion: 2,
   runtime: {
     buildConfigInputs(app, { specialization }) {
-      const build = app.build as MesmerApplicationBuild;
+      const build = app.build as MesmerCanonicalBuild;
       const startsWithClones = mesmerProfession.ui.resourceViews({ specialization })[0]?.singular === 'clone';
       return { initialResource: startsWithClones ? 0 : build.initialResource };
     }

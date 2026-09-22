@@ -183,6 +183,7 @@ export interface Gw2BuildInfusion {
   count: number;
 }
 
+/** Normalized build shape shared by persistence and the editor; validation remains a separate operation. */
 export interface Gw2CanonicalBuild extends Gw2Build {
   precastRelics?: string[];
   schemaVersion: number;
@@ -272,35 +273,10 @@ export interface Gw2BuildCodecOptions<TBuild extends Gw2CanonicalBuild = Gw2Cano
   readonly slotLoadout?: Gw2SlotLoadout<TBuild> | null;
 }
 
-export interface Gw2ApplicationBuild extends Gw2Build {
-  precastRelics?: string[];
-  schemaVersion: number;
-  profession: string;
-  gear: Record<string, string>;
-  alternateWeaponPrefixes: string[];
-  weapons: string[];
-  alternateWeapons: string[];
-  rune: string;
-  weaponSigils: string[][];
-  relic: string;
-  food: string;
-  utility: string;
-  jadeBotCore: boolean;
-  specializations: Gw2BuildSpecialization[];
-  selectedSkills: Record<string, string>;
-  assumptions: ProfessionBuildAssumptions;
-  infusions: Gw2BuildInfusion[];
-  startingWeaponSet: number;
-  targetHealth: number;
-  targetStartingHealthPercent: number;
-  targetArmor: number;
-  rotation: import('#gw2/platform/execution/types.js').RotationCommand[];
-}
-
 export interface Gw2BuildCodec<TBuild extends Gw2CanonicalBuild = Gw2CanonicalBuild> {
   migrateBuild(candidate: unknown): TBuild;
   validateBuild(build: unknown): BuildValidationResult;
-  toApplicationBuild(candidate: unknown): Gw2ApplicationBuild;
+  toApplicationBuild(candidate: unknown): TBuild;
 }
 
 export interface Gw2BuildValidationOptions {
