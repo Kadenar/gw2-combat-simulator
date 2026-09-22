@@ -14,6 +14,8 @@ import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-stat
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { activeStackCount, addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { EngineerCastContext, EngineerSchedulerContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 
 const LIGHTNING_ROD_FIRST_PULSE_DELAY_SECONDS = 0.16;
 const LIGHTNING_ROD_PULSE_INTERVAL_SECONDS = 0.5;
@@ -67,7 +69,10 @@ export function scheduleLightningRod(context: EngineerCastContext, skill: Engine
 export function scheduleConduitSurge(context: EngineerCastContext, skill: EngineerSkill): void {
   const at = context.effectiveEnd;
   // update focusedUntil in scheduler state for subsequent availability/damage checks
-  professionCoreState(context).focusedUntil = Math.max(professionCoreState(context).focusedUntil, at + 10);
+  professionCoreState(context).focusedUntil = Math.max(
+    professionCoreState(context).focusedUntil,
+    at + Number(balanceProfileFromContext(context, PROFILE.conduitSurge)!.durationMultiplier)
+  );
   // also emit a state event so the resolver's Focused window is synchronized
   emitEngineerStateSnapshot(context, at, 'conduit-surge');
   emitSpearEvent(context, skill, at, 'engineer.conduit-surge');
@@ -164,8 +169,13 @@ export function scheduleDevastatorFollowup(context: EngineerCastContext, _skill:
   const impactAt = context.fullEnd;
   if (professionCoreState(context).focusedUntil <= impactAt) return;
   const activationId = `${context.reservationId}:focused-devastation`;
-  for (let index = 0; index < 6; index += 1) {
-    const at = impactAt + 0.16 * (index + 1);
+  // The triggered catalog skill owns aggregate strike damage and per-packet burning for this follow-up.
+  const followup = context.catalog.skillsById.get(ID.FOCUSED_DEVASTATION)!;
+  const strike = followup.effects!.find((effect) => effect.type === 'strike')!;
+  const burning = followup.effects!.find((effect) => effect.type === 'condition')!;
+  const hits = strike.ticks!.length;
+  for (let index = 0; index < hits; index += 1) {
+    const at = impactAt + strike.ticks![index].atMs / 1000;
     emitSkillDamage(context, {
       at,
       source: 'engineer',
@@ -175,10 +185,10 @@ export function scheduleDevastatorFollowup(context: EngineerCastContext, _skill:
       skillId: ID.FOCUSED_DEVASTATION,
       skillName: 'Focused Devastation',
       name: 'Focused Devastation',
-      coefficient: 0.2,
+      coefficient: strike.ticks![index].coefficient,
       hits: 1,
       hitIndex: index + 1,
-      totalHits: 6,
+      totalHits: hits,
       skillWeapon: 'Spear',
       weaponStrengthProfileId: 'nonweapon.unequipped',
       // projectile already in flight — events persist even if the cast is interrupted
@@ -191,8 +201,8 @@ export function scheduleDevastatorFollowup(context: EngineerCastContext, _skill:
       skillName: 'Focused Devastation',
       name: 'Focused Devastation — Burning',
       condition: 'Burning',
-      stacks: 1,
-      duration: 2,
+      stacks: Number(burning.stacks),
+      duration: Number(burning.duration),
       persistsAfterInterrupt: true
     });
   }

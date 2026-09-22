@@ -7,10 +7,12 @@ import { definePatchedProfessionApp } from '#gw2/app/create-patched-adapter.js';
 import { applyEngineerBuildAttributeRules } from '#gw2/professions/engineer/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import type { EngineerApplicationBuild, EngineerFinalizedAttributeResult } from '#gw2/professions/engineer/types.js';
 
 // Exposes Engineer only through the shared browser application contract.
 export const engineerAppAdapter = definePatchedProfessionApp({
+  tooltips: engineerTooltips,
   profession: engineerProfession,
   applyBuildAttributeRules: applyEngineerBuildAttributeRules,
   toApplicationBuild,

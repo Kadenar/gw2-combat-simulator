@@ -2,7 +2,6 @@ import { bindDropdownSearch } from '#ui/shared/dropdown-search.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { equipmentTooltipAttributes } from '#gw2/app/build/equipment-option-labels.js';
-import { bindWikiTooltips } from '#gw2/app/shared/wiki-tooltip.js';
 
 /** Searchable selects add visible removable choices without requiring Ctrl-click. */
 export function candidatePicker(
@@ -100,9 +99,24 @@ function splitOptionLabel(label: string): { name: string; details: string } {
     : { name: label.slice(0, separatorIndex), details: label.slice(separatorIndex + separator.length) };
 }
 
+/** Replace tooltip metadata together so changing or clearing equipment cannot leave stale bonuses behind. */
+export function setEquipmentTooltip(element: HTMLElement, attributes: string): void {
+  element.removeAttribute('title');
+  for (const key of Object.keys(element.dataset)) {
+    if (key.startsWith('wiki')) delete element.dataset[key];
+  }
+
+  const template = document.createElement('template');
+  template.innerHTML = `<span ${attributes}></span>`;
+  Object.assign(element.dataset, (template.content.firstElementChild as HTMLElement).dataset);
+}
+
 // Upgrade detailed native selects into styled popovers while preserving their existing change handlers and values.
-export function enhanceDetailedSelect(select: HTMLSelectElement, index: number | string): void {
-  bindWikiTooltips();
+export function enhanceDetailedSelect(
+  select: HTMLSelectElement,
+  index: number | string,
+  describeEquipment?: (name: string) => string
+): void {
   // Native weapon and infusion selects can use the same menu as the existing icon controls.
   if (!select.parentElement?.classList.contains('gear-select-display')) {
     const wrapper = document.createElement('div');
@@ -139,13 +153,15 @@ export function enhanceDetailedSelect(select: HTMLSelectElement, index: number |
   select.setAttribute('aria-hidden', 'true');
 
   const describe = (element: HTMLElement, option: HTMLOptionElement | undefined) => {
-    element.removeAttribute('title');
-    for (const key of ['wikiName', 'wikiDescription', 'wikiPage']) delete element.dataset[key];
-    if (!option?.value) return;
-    const { name, details } = splitOptionLabel(option.textContent);
-    const attributes = document.createElement('span');
-    attributes.innerHTML = `<span ${equipmentTooltipAttributes(select.id, name, details)}></span>`;
-    Object.assign(element.dataset, (attributes.firstElementChild as HTMLElement).dataset);
+    const { name, details } = splitOptionLabel(option?.textContent || '');
+    setEquipmentTooltip(
+      element,
+      option?.value
+        ? describeEquipment
+          ? describeEquipment(name)
+          : equipmentTooltipAttributes(select.id, name, details)
+        : ''
+    );
   };
 
   describe(trigger, select.selectedOptions[0]);

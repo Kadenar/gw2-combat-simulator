@@ -25,7 +25,7 @@ function projectionApp(
       rotation: build.rotation || [],
       startingWeaponSet: build.startingWeaponSet || 1
     },
-    adapter: { eliteSpecialization: () => specialization },
+    adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => specialization },
     profession: useProfessionUi ? profession : { catalog: profession.catalog, ui: {} },
     activeCatalog: profession.catalog,
     skills: profession.catalog.skills,

@@ -36,6 +36,8 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillFragment
   },
   [ID.SUFFER]: {
     castTimeMs: 0,
+    // The handler and tooltip share the maximum number of distinct self-condition types transferred.
+    conditionsTransferred: 2,
     effects: [
       { type: 'strike', coefficient: 1.5, hits: 1 },
       { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3 }

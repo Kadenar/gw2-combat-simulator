@@ -9,10 +9,12 @@ import { toApplicationBuild } from '#gw2/professions/necromancer/build/build.js'
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.js';
 
 // Exposes Necromancer only through the shared browser application contract.
 export const necromancerAppAdapter = definePatchedProfessionApp({
   profession: necromancerProfession,
+  tooltips: necromancerTooltips,
   applyBuildAttributeRules: applyNecromancerBuildAttributeRules,
   toApplicationBuild,
   specializationFallback: 'Spite',

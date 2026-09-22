@@ -1,3 +1,4 @@
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { onResolvedDamage, skillAvailability } from '#gw2/platform/profession-definition/mechanics.js';
 import type { NativeProfessionRuntimeState } from '#gw2/platform/profession-definition/module-types.js';
@@ -46,6 +47,8 @@ const profession = defineNativeProfession({
   modules: [core, elite]
 });
 
+const applicationProfession = withPatchPreview(profession, null);
+
 type Modules = readonly [typeof core, typeof elite];
 type RuntimeState = NativeProfessionRuntimeState<Modules>;
 type NativeAuthoringAssertions = [
@@ -53,7 +56,7 @@ type NativeAuthoringAssertions = [
   Assert<Equal<RuntimeState['core']['coreValue'], number>>,
   Assert<Equal<RuntimeState['specialization']['kind'], 'Core' | 'Elite'>>,
   Assert<Equal<Extract<RuntimeState['specialization'], { kind: 'Elite' }>['state']['eliteValue'], 'active'>>,
-  Assert<typeof profession extends ProfessionAppContract ? true : false>,
+  Assert<typeof applicationProfession extends ProfessionAppContract ? true : false>,
   Assert<typeof profession extends Gw2ProfessionSource ? true : false>,
   Assert<ReturnType<typeof profession.resolveRuntime>['eventHandlers'] extends Gw2ResolverEventHandlers ? true : false>,
   Assert<ReturnType<typeof profession.resolveRuntime>['eventReactions'] extends Gw2ResolverReactions ? true : false>

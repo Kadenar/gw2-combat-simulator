@@ -12,7 +12,25 @@ import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necro
 export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> = Object.freeze({
   [ID.INNERVATE_PRESERVATION]: {
     castTimeMs: 0,
-    effects: [],
+    // The Innervate handler owns when these party grants and the resource gain commit.
+    innervateLifeForceGain: 10,
+    effects: [
+      { type: 'boon', boon: 'aegis', duration: 3, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } },
+      {
+        type: 'boon',
+        boon: 'resistance',
+        duration: 4,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      },
+      {
+        type: 'boon',
+        boon: 'stability',
+        duration: 5,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
+    ],
     usableInShroud: true,
     // Custom: Emits party Aegis, Resistance, and Stability, then restores life force; see `ritualist/mechanics/spirits.ts`.
     handlerId: 'necromancer.innervate'
@@ -30,7 +48,17 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   },
   [ID.PRESERVATION]: {
     castTimeMs: 480,
-    effects: [],
+    // Summoning grants these boons before the spirit's autonomous attack loop starts.
+    effects: [
+      {
+        type: 'boon',
+        boon: 'protection',
+        duration: 4,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      },
+      { type: 'boon', boon: 'vigor', duration: 4, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } }
+    ],
     type: 'Profession',
     slot: 'Weapon_4',
     shroud: 'ritualist',
@@ -41,7 +69,8 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   },
   [ID.INNERVATE_WANDERLUST]: {
     castTimeMs: 0,
-    effects: [],
+    innervateLifeForceGain: 10,
+    effects: [{ type: 'control', controlKind: 'fear' }],
     usableInShroud: true,
     // Custom: Emits Wanderlust's Fear, then restores life force; see `ritualist/mechanics/spirits.ts`.
     handlerId: 'necromancer.innervate'
@@ -110,10 +139,11 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragme
   },
   [ID.INNERVATE_ANGUISH]: {
     castTimeMs: 0,
+    innervateLifeForceGain: 10,
     effects: [
       { type: 'strike', coefficient: 1.3, hits: 1 },
-      { type: 'boon', boon: 'might', duration: 10, stacks: 8 },
-      { type: 'boon', boon: 'fury', duration: 5, stacks: 1 }
+      { type: 'boon', boon: 'might', duration: 10, stacks: 8, audience: { recipients: 'party', maximumRecipients: 5 } },
+      { type: 'boon', boon: 'fury', duration: 5, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } }
     ],
     usableInShroud: true,
     // Custom: Emits Anguish's strike and party Might/Fury, then restores life force; see `ritualist/mechanics/spirits.ts`.

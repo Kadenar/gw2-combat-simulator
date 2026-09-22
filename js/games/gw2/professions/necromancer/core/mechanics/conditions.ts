@@ -18,8 +18,13 @@ import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
 import { createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
 import { effectFirstAtMs } from '#gw2/platform/engine/effects/authoring.js';
+import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
+  NECROMANCER_CORRUPTION_PROFILE_IDS
+} from '#gw2/professions/necromancer/core/profiles.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type {
   NecromancerCastContext,
@@ -30,25 +35,6 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import type { NecromancerCoreState, NecromancerSelfCondition } from '#gw2/professions/necromancer/core/state.js';
-
-const CORRUPTION_SELF_CONDITIONS = Object.freeze({
-  [ID.CONSUME_CONDITIONS]: Object.freeze({
-    base: Object.freeze([['Vulnerability', 5, 4]]),
-    master: Object.freeze([['Vulnerability', 5, 4]])
-  }),
-  [ID.BLOOD_IS_POWER]: Object.freeze({
-    base: Object.freeze([['Bleeding', 2, 10]]),
-    master: Object.freeze([['Torment', 2, 10]])
-  }),
-  [ID.CORROSIVE_POISON_CLOUD]: Object.freeze({
-    base: Object.freeze([['Weakness', 1, 6]]),
-    master: Object.freeze([['Crippled', 1, 2]])
-  }),
-  [ID.PLAGUELANDS]: Object.freeze({
-    base: Object.freeze([['Bleeding', 1, 10]]),
-    master: Object.freeze([['Poisoned', 1, 4]])
-  })
-});
 
 // Rebuild the combat query at the application timestamp so relic and trait duration effects use historical state.
 function conditionDurationMultiplier(
@@ -249,39 +235,21 @@ function corruption(context: NecromancerCastContext, skill: NecromancerSkill): b
     if (Math.round((context.effectiveEnd - context.start) * 1000) < Math.round(strikeAtMs)) return false;
   }
 
-  const mechanics = (
-    CORRUPTION_SELF_CONDITIONS as Readonly<
-      Record<
-        string | number,
-        {
-          readonly base: readonly (readonly (string | number)[])[];
-          readonly master: readonly (readonly (string | number)[])[];
-        }
-      >
-    >
-  )[skill.id];
-  if (!mechanics) return false;
+  const profileId = NECROMANCER_CORRUPTION_PROFILE_IDS[skill.id];
+  if (!profileId) return false;
+  const mechanics = balanceProfileFromContext(context, profileId);
+  if (!mechanics) throw new Error(`Missing corruption profile: ${profileId}`);
   // Base corruptions always land before Master of Corruption additions so transfer order stays deterministic.
-  for (const application of mechanics.base) {
+  for (const application of mechanics.effects || []) {
+    if (application.type !== 'condition') continue;
+    if (application.requiredTrait != null && !hasTrait(context, Number(application.requiredTrait))) continue;
     applyNecromancerSelfCondition(
       context,
       skill,
-      String(application[0]),
-      Number(application[1]),
-      Number(application[2])
+      String(application.condition),
+      Number(application.stacks),
+      Number(application.duration)
     );
-  }
-
-  if (hasTrait(context, TRAIT.MASTER_OF_CORRUPTION)) {
-    for (const application of mechanics.master) {
-      applyNecromancerSelfCondition(
-        context,
-        skill,
-        String(application[0]),
-        Number(application[1]),
-        Number(application[2])
-      );
-    }
   }
 
   // An armed shroud transfer consumes the newest corruption applications from this cast first.
@@ -295,31 +263,24 @@ function corruption(context: NecromancerCastContext, skill: NecromancerSkill): b
     }
   }
 
-  if (skill.id === ID.BLOOD_IS_POWER) {
+  for (const effect of mechanics.effects || []) {
+    if (effect.type !== 'boon') continue;
+    if (!effect.boon) throw new Error(`Missing corruption boon: ${profileId}`);
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
-      kind: 'might',
-      duration: 20,
-      stacks: 5,
-      audience: { recipients: 'party' as const, maximumRecipients: 5 }
+      kind: effect.boon,
+      duration: effect.duration,
+      stacks: effect.stacks,
+      audience: effect.audience
     });
   }
 
   return false;
 }
 
-// Route each transfer skill to its distinct-condition limit.
+// Use the selected skill's distinct-condition limit for both combat and tooltip presentation.
 function transfer(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
-  const maximum = (
-    {
-      [ID.PLAGUE_SIGNET]: 5,
-      [ID.DEATHLY_SWARM]: 2,
-      [ID.PUTRID_MARK]: 3,
-      [ID.SUFFER]: 2
-    } as Readonly<Record<string | number, number>>
-  )[skill.id];
-  if (!maximum) return false;
-  transferNecromancerSelfConditions(context, skill, maximum);
+  transferNecromancerSelfConditions(context, skill, Number(skill.conditionsTransferred));
   return false;
 }
 
@@ -330,7 +291,7 @@ function lifeSiphonSelfBleed(
   event: NecromancerSimulationEvent
 ): void {
   if (event?.type !== 'damage' || Number(event.hitIndex || 1) !== 1) return;
-  applyNecromancerSelfCondition(context, skill, 'Bleeding', 1, 8, event.at);
+  applyFirstHitConditions(context, skill, PROFILE.lifeSiphonOnHit, event.at);
 }
 
 // Apply Dark Pact's self-bleed and immobilize only after its first strike confirms a hit.
@@ -340,29 +301,61 @@ function darkPactOnHit(
   event: NecromancerSimulationEvent
 ): void {
   if (event?.type !== 'damage' || Number(event.hitIndex || 1) !== 1) return;
-  applyNecromancerSelfCondition(context, skill, 'Bleeding', 2, 10, event.at);
-  emitSkillCondition(context, {
-    skill,
-    at: event.at,
-    condition: 'Immobilized',
-    stacks: 1,
-    duration: 6
-  });
+  applyFirstHitConditions(context, skill, PROFILE.darkPactOnHit, event.at);
+}
+
+/** Keep first-hit eligibility in execution while reading its condition payload from selected balance data. */
+function applyFirstHitConditions(
+  context: NecromancerCastContext,
+  skill: NecromancerSkill,
+  profileId: string,
+  at: number
+): void {
+  const profile = balanceProfileFromContext(context, profileId);
+  if (!profile) throw new Error(`Missing first-hit profile: ${profileId}`);
+  for (const effect of profile.effects || []) {
+    if (effect.type !== 'condition') continue;
+    if (!effect.condition || effect.stacks == null || effect.duration == null)
+      throw new Error(`Invalid first-hit condition: ${profileId}`);
+    if (effect.target === 'self') {
+      applyNecromancerSelfCondition(
+        context,
+        skill,
+        String(effect.condition),
+        Number(effect.stacks),
+        Number(effect.duration),
+        at
+      );
+    } else {
+      emitSkillCondition(context, {
+        skill,
+        at,
+        condition: effect.condition,
+        stacks: effect.stacks,
+        duration: effect.duration
+      });
+    }
+  }
 }
 
 // Sample live conditions before this impact adds its own Torment, capped at five.
 function devouringDarkness(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   const impactAt = context.start + (context.fullEnd - context.start) * 0.8;
   if (impactAt > context.effectiveEnd + EPSILON) return true;
-  const count = Math.min(5, observeTargetConditionCount(context, impactAt, 5));
-  emitSkillDamage(context, skill, { at: impactAt, coefficient: 1.16 });
+  const strike = balanceProfileEffect(skill, 'strike');
+  const torment = balanceProfileEffect(skill, 'condition');
+  if (strike?.coefficient == null || !torment?.condition || torment.stacks == null || torment.duration == null)
+    throw new Error('Devouring Darkness requires its strike and condition payloads');
+  const maximum = Number(skill.maximumConditions);
+  const count = Math.min(maximum, observeTargetConditionCount(context, impactAt, maximum));
+  emitSkillDamage(context, skill, { at: impactAt, coefficient: strike.coefficient });
   if (count > 0) {
     emitSkillCondition(context, {
       skill,
       at: impactAt,
-      condition: 'Torment',
-      stacks: count,
-      duration: 4
+      condition: torment.condition,
+      stacks: count * Number(torment.stacks),
+      duration: torment.duration
     });
   }
 

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 // Only the selected effect's activations appear, even when it triggers another proc at the same time.
-test('skill details group proc counts by trigger and disclose only that skill’s times', async ({ page }) => {
+test("skill details group proc counts by trigger and disclose only that skill's times", async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {

@@ -11,6 +11,8 @@ export type SkillInterruptMode = 'commit' | 'per-packet';
 
 export interface StrikeTick {
   readonly atMs: number;
+  /** A packet can override the enclosing effect's combo finisher metadata. */
+  readonly comboFinishers?: readonly Readonly<Record<string, unknown>>[];
   readonly projectile?: boolean;
   readonly coefficient: number;
   readonly name?: string;
@@ -25,6 +27,7 @@ export interface StrikeTick {
 
 export interface ConditionTick {
   readonly atMs: number;
+  readonly comboFinishers?: readonly Readonly<Record<string, unknown>>[];
   readonly condition: string;
   readonly stacks: number;
   readonly duration: number;
@@ -129,6 +132,17 @@ export interface CustomEffect extends SkillEffectBase {
 }
 
 export type SkillEffect = StrikeEffect | ConditionEffect | ControlEffect | BlindEffect | StatusEffect | CustomEffect;
+
+/** Formatted simulator facts retain semantic icons and application counts without importing external tooltip content. */
+export interface TooltipFact {
+  readonly name: string;
+  readonly detail: string;
+  readonly icon?: string;
+  readonly applications?: number;
+  /** Intensity counts appear on the effect icon instead of in the detail text. */
+  readonly stacks?: number;
+  readonly prefix?: { readonly name: string; readonly icon: string };
+}
 
 export interface Skill extends CatalogEntity {
   /** Explicit classification when absent from the chain index, or when a manual follow-up reuses that index. */

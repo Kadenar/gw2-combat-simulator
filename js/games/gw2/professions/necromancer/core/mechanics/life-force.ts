@@ -315,8 +315,12 @@ export function applySkillLifeForceGain(context: NecromancerCastContext, skill: 
     amount += 3;
   }
 
-  if (new Set<string | number>([ID.FEAST_OF_CORRUPTION, ID.DEVOURING_DARKNESS]).has(skill.id)) {
-    amount += Math.min(5, observeTargetConditionCount(context, context.effectiveEnd, 5));
+  // Read the same per-condition gain and cap that the selected skill exposes in its tooltip.
+  if (Number(skill.lifeForcePerCondition) > 0) {
+    const maximum = Number(skill.maximumConditions);
+    amount +=
+      Math.min(maximum, observeTargetConditionCount(context, context.effectiveEnd, maximum)) *
+      Number(skill.lifeForcePerCondition);
   }
 
   if (amount > 0) {

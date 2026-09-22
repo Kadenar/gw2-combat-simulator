@@ -3,6 +3,7 @@
 // the engine contract exported by ../definition.js.
 
 import { definePatchedProfessionApp } from '#gw2/app/create-patched-adapter.js';
+import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/mesmer/build/build.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -10,6 +11,7 @@ import type { MesmerApplicationBuild } from '#gw2/professions/mesmer/types.js';
 
 // Exposes Mesmer only through the shared browser application contract.
 export const mesmerAppAdapter = definePatchedProfessionApp({
+  tooltips: mesmerTooltips,
   profession: mesmerProfession,
   applyBuildAttributeRules: applyMesmerBuildAttributeRules,
   toApplicationBuild,

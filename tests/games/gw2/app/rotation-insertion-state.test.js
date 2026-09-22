@@ -41,6 +41,7 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
     rotationInsertionIndex: 1,
     results: { planningState: finalState },
     adapter: {
+      skillTooltip: () => ({ description: '', facts: [] }),
       rotationPlanningStateAt(_app, index) {
         previewCount += 1;
         assert.equal(index, 1);

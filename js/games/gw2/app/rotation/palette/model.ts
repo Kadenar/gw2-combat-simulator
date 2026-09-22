@@ -1,5 +1,5 @@
 import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
-import { gw2ApiText } from '#gw2/app/shared/html.js';
+import type { SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   rotationHotkeyActionForSkillName,
   rotationHotkeyActionForSkillSlot,
@@ -616,6 +616,7 @@ export function paletteSkillIsInstant(
 }
 
 export interface PaletteSkillView {
+  readonly tooltip?: SimulationTooltip;
   readonly skill?: Skill;
   readonly name?: string;
   readonly skillId?: SkillId | null;
@@ -753,14 +754,14 @@ export function paletteSkillView(
               // Show absolute scheduler deadlines on the combat-relative rotation clock.
               readyAt - resultCombatReferenceMs(app.results)
             )}`
-          : 'Available now',
-    gw2ApiText(skill.description)
+          : 'Available now'
   ]
     .filter(Boolean)
     .join('\n');
   return {
     name: skill.name,
     skill,
+    tooltip: app.adapter.skillTooltip(skill, app.patchId),
     skillId: skill.id,
     hotkeyAction:
       String(skill.hotkeyAction || '') ||

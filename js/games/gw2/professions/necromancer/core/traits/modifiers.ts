@@ -297,7 +297,7 @@ function modifyNecromancerCoreRechargeDuration(context: NecromancerRechargeModif
   }
 
   if ((skill?.shroud || skill?.handlerId === 'necromancer.shade') && hasTrait(context, TRAIT.SINISTER_SHROUD)) {
-    result *= 0.85;
+    result *= Number(balanceProfileFromContext(context, PROFILE.sinisterShroud)!.rechargeMultiplier);
   }
 
   return result;

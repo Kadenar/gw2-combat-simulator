@@ -7,6 +7,7 @@ export const BLADESWORN_BALANCE_PROFILE_IDS = Object.freeze({
   burstMastery: 'warrior.bladesworn.burst-mastery',
   dragonTrigger: 'warrior.bladesworn.dragon-trigger',
   artillerySlash: 'warrior.bladesworn.artillery-slash',
+  sharpArtillerySlash: 'warrior.bladesworn.sharp-artillery-slash',
   overchargedCartridges: 'warrior.bladesworn.overcharged-cartridges',
   unseenSword: TRAIT.UNSEEN_SWORD,
   sharpAsTheWind: TRAIT.SHARP_AS_THE_WIND,
@@ -18,6 +19,18 @@ export const BLADESWORN_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Sharp as the Wind uses one strike value and a Bleeding alternative selected by ammunition spent.
+  {
+    id: BLADESWORN_BALANCE_PROFILE_IDS.sharpArtillerySlash,
+    name: 'Artillery Slash — Sharp as the Wind',
+    profileKind: 'skill-variant',
+    parentId: ID.SHARP_ARTILLERY_SLASH,
+    effects: [
+      { type: 'strike', coefficient: 2 },
+      { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 6, packetLabel: 'one round spent' },
+      { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 7, packetLabel: 'two rounds spent' }
+    ]
+  },
   {
     id: BLADESWORN_BALANCE_PROFILE_IDS.resources,
     name: 'Bladesworn Flow',

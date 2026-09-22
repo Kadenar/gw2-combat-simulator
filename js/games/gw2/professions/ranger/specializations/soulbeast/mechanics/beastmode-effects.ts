@@ -90,13 +90,15 @@ function firstBeastAbilityHit(context: RangerResolverContext, event: RangerResol
   return true;
 }
 
+/** Preserve the selected profile's condition stack count as well as its duration. */
 function queueCondition(
   context: RangerResolverContext,
   event: RangerResolverEvent,
   condition: string,
   duration: number,
   sourceId: number,
-  name: string
+  name: string,
+  stacks: number
 ): void {
   context.queue.enqueue(
     buildResolverCondition({
@@ -109,7 +111,7 @@ function queueCondition(
 
       condition,
       duration,
-      stacks: 1,
+      stacks,
       triggeredBy: event.skillName
     })
   );
@@ -203,7 +205,8 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
       String(poison?.condition || 'Poisoned'),
       Number(poison?.duration ?? 4),
       ID.VULTURE_STANCE,
-      'Vulture Stance'
+      'Vulture Stance',
+      Number(poison?.stacks ?? 1)
     );
     queueSoulbeastBuff(
       context,
@@ -248,7 +251,8 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Ra
       String(weakness?.condition || 'Weakness'),
       Number(weakness?.duration ?? 4),
       TRAIT.WILTING_STRIKE,
-      'Wilting Strike'
+      'Wilting Strike',
+      Number(weakness?.stacks ?? 1)
     );
   }
 
@@ -422,6 +426,7 @@ export function reactToRangerWinterBite(context: RangerResolverContext, event: R
     String(weakness?.condition || 'Weakness'),
     Number(weakness?.duration ?? 10),
     ID.WINTERS_BITE,
-    "Winter's Bite"
+    "Winter's Bite",
+    Number(weakness?.stacks ?? 1)
   );
 }

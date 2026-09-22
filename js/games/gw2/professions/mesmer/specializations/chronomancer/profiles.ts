@@ -29,8 +29,8 @@ export const CHRONOMANCER_SHATTER_PROFILE_IDS: Readonly<Record<number, string>> 
 });
 
 export const CHRONOMANCER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
-  ...Object.entries(MESMER_CHRONOMANCER_SHATTERS).map(([skillId, shatter]) =>
-    mesmerShatterProfile(
+  ...Object.entries(MESMER_CHRONOMANCER_SHATTERS).map(([skillId, shatter]) => ({
+    ...mesmerShatterProfile(
       CHRONOMANCER_SHATTER_PROFILE_IDS[Number(skillId)],
       Number(skillId),
       {
@@ -50,8 +50,10 @@ export const CHRONOMANCER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
             }
           ]
         : []
-    )
-  ),
+    ),
+    // The existing Continuum controller reads this duration per player or clone shatter source.
+    ...(Number(skillId) === ID.CONTINUUM_SPLIT ? { durationPerTier: 1.5 } : {})
+  })),
   trait(CHRONOMANCER_BALANCE_PROFILE_IDS.flowOfTime, 'Flow of Time', {
     criticalChance: 0.15
   }),

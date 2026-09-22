@@ -36,6 +36,9 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     name: 'Sand Shade',
     profileKind: 'mechanic',
     maximumStacks: 3,
+    // Shade-triggered Dhuumfire uses these overrides in combat and trait tooltips.
+    dhuumfireDuration: 2,
+    dhuumfireInterval: 1,
     effects: [
       {
         type: 'strike',

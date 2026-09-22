@@ -1,4 +1,5 @@
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
+import { necromancerCoreModifierRules } from '#gw2/professions/necromancer/core/traits/modifiers.js';
 import {
   createBuildAttributeContext,
   finalizeProfessionBuildAttributes
@@ -15,7 +16,7 @@ import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-dat
 /** Applies Necromancer flat bonuses, ordered conversions, durations, and critical chance at build time. */
 export function applyNecromancerBuildAttributeRules(
   common: Gw2CommonAttributeResult,
-  { build, selectedSkills = [], disabledTrait = null }: Gw2BuildAttributeRuleContext
+  { build, selectedSkills = [], disabledTrait = null, balanceContext }: Gw2BuildAttributeRuleContext
 ): Gw2FinalizedAttributeResult {
   const { activeTraits, hasTrait, hasSelectedSkill } = createBuildAttributeContext({
     specializations: (build.specializations || []) as ProfessionTraitSelection[],
@@ -25,6 +26,14 @@ export function applyNecromancerBuildAttributeRules(
   });
 
   const traitDurations: Gw2NumericAttributes = {};
+
+  // Read the same critical-chance declaration as simulation; a selected patch must never fall back to live values.
+  const deathPerception = balanceContext
+    ? balanceContext.modifierRulesById.get('necromancer.death-perception-critical-chance')
+    : necromancerCoreModifierRules.find((rule) => rule.id === 'necromancer.death-perception-critical-chance');
+  if (typeof deathPerception?.amount !== 'number' || !Number.isFinite(deathPerception.amount)) {
+    throw new Error('Death Perception requires a numeric critical-chance declaration.');
+  }
 
   // Keep static bonuses declarative so shared provenance and conversion ordering remain consistent.
   const attributeEffects: readonly Gw2AttributeEffect[] = [
@@ -147,6 +156,6 @@ export function applyNecromancerBuildAttributeRules(
     activeTraits,
     attributeEffects,
     traitDurations,
-    traitCriticalChance: hasTrait('Death Perception') ? 15 : 0
+    traitCriticalChance: hasTrait('Death Perception') ? deathPerception.amount * 100 : 0
   });
 }

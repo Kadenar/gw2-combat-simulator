@@ -8,6 +8,7 @@ import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { shatterResourceSpends } from '#gw2/app/rotation/timeline/model.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
@@ -234,6 +235,8 @@ test('Shatter Storm gives Lively Lute a second charge without a full cooldown', 
   const shatterStormBeforeUse = simulateMesmer([], config([TRAIT.SHATTER_STORM]));
   const livelyLute = mesmerCatalog.skillsById.get(ID.LIVELY_LUTE);
   const paletteApp = (results) => ({
+    // Palette models now resolve tooltip presentation through the profession adapter.
+    adapter: mesmerAppAdapter,
     build: { rotation: [] },
     results
   });

@@ -57,6 +57,7 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
 
   // Stacks, durations, targeting, and proc gates.
   'maximumStacks',
+  'conditionsTransferred',
   'minimumStacks',
   'playerStacks',
   'allyStacks',
@@ -69,6 +70,8 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'internalCooldown',
   'maximumTargets',
   'procChance',
+  // Specialization-specific Dhuumfire burning duration, shared by skill and shade profile overrides.
+  'dhuumfireDuration',
 
   // Recurring and spawned effects.
   'pulseInterval',
@@ -91,6 +94,7 @@ export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   'bladeswornResourceGain',
   'lifeForceDrain',
   'lifeForceGain',
+  'lifeForcePerCondition',
   'lifeForceOnHit',
   'heatLoss',
   'windForceApplyMs',
@@ -123,6 +127,8 @@ const AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS = new Set([
 /** Profiles also expose named summon inheritance values without widening castable skill fields. */
 export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   ...PATCHABLE_SKILL_NUMERIC_FIELDS,
+  // Shade strikes gate Dhuumfire independently of other shade-triggered traits.
+  'dhuumfireInterval',
   'baseAttribute',
   'inheritanceRatio',
   'secondaryAttributeCap',

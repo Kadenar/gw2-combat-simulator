@@ -31,6 +31,7 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     id: AMALGAM_BALANCE_PROFILE_IDS.rapaciousStrain,
     name: 'Rapacious Strain',
     profileKind: 'mechanic',
+    durationMultiplier: 8,
     internalCooldown: 0.48,
     effects: [{ type: 'strike', coefficient: 0.3, hits: 1 }]
   },
@@ -47,10 +48,67 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     id: AMALGAM_BALANCE_PROFILE_IDS.strains,
     name: 'Amalgam Strains',
     profileKind: 'mechanic',
-    durationMultiplier: 8,
-    maximumStacks: 10,
     attributePerStack: 5,
-    effects: []
+    // Protocol identity selects the same immediate packets for combat and tooltip presentation.
+    effects: [
+      {
+        type: 'boon',
+        boon: 'resistance',
+        duration: 8,
+        sourceId: 'engineer.resiliant-strain',
+        name: 'Resiliant Strain',
+        metadata: { trigger: 'protect' }
+      },
+      {
+        type: 'boon',
+        boon: 'alacrity',
+        duration: 8,
+        sourceId: 'engineer.replicating-strain',
+        name: 'Replicating Strain',
+        metadata: { trigger: 'cleanse' }
+      },
+      {
+        type: 'control',
+        controlKind: 'stun',
+        sourceId: 'engineer.volatile-strain',
+        name: 'Volatile Strain',
+        metadata: { trigger: 'pierce' }
+      },
+      {
+        type: 'boon',
+        boon: 'might',
+        duration: 8,
+        stacks: 10,
+        sourceId: 'engineer.titanic-strain',
+        name: 'Titanic Strain',
+        metadata: { trigger: 'obliterate' }
+      },
+      {
+        type: 'boon',
+        boon: 'quickness',
+        duration: 8,
+        sourceId: 'engineer.predator-strain',
+        name: 'Predator Strain',
+        metadata: { trigger: 'shred' }
+      },
+      {
+        type: 'buff',
+        kind: 'superspeed',
+        duration: 8,
+        sourceId: 'engineer.predator-strain',
+        name: 'Predator Strain',
+        metadata: { trigger: 'shred' }
+      },
+      {
+        type: 'boon',
+        boon: 'stability',
+        duration: 8,
+        stacks: 5,
+        sourceId: 'engineer.berserker-strain',
+        name: 'Berserker Strain',
+        metadata: { trigger: 'demolish' }
+      }
+    ]
   },
   {
     id: AMALGAM_BALANCE_PROFILE_IDS.evolve,

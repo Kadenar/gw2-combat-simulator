@@ -1,8 +1,13 @@
 import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
+import {
+  defineTraitProfile as trait,
+  defineSkillVariantProfile as variant
+} from '#gw2/platform/profession-definition/balance-profiles.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 export const NECROMANCER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
+  darkPactOnHit: 'necromancer.core.dark-pact-on-hit',
+  lifeSiphonOnHit: 'necromancer.core.life-siphon-on-hit',
   soulShards: 'necromancer.core.soul-shards',
   shroud: 'necromancer.core.death-shroud',
   signetOfVampirismPassive: 'necromancer.core.signet-of-vampirism-passive',
@@ -33,7 +38,16 @@ export const NECROMANCER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   targetTheWeak: TRAIT.TARGET_THE_WEAK,
   lingeringCurse: TRAIT.LINGERING_CURSE,
   vitalPersistence: TRAIT.VITAL_PERSISTENCE,
+  sinisterShroud: TRAIT.SINISTER_SHROUD,
   spitefulSpirit: TRAIT.SPITEFUL_SPIRIT
+});
+
+/** Corruption handlers and presentation resolve the same patchable self-condition profiles. */
+export const NECROMANCER_CORRUPTION_PROFILE_IDS: Readonly<Record<string, string>> = Object.freeze({
+  [ID.CONSUME_CONDITIONS]: 'necromancer.core.consume-conditions-corruption',
+  [ID.BLOOD_IS_POWER]: 'necromancer.core.blood-is-power-corruption',
+  [ID.CORROSIVE_POISON_CLOUD]: 'necromancer.core.corrosive-poison-cloud-corruption',
+  [ID.PLAGUELANDS]: 'necromancer.core.plaguelands-corruption'
 });
 
 // Stamp the shared summon profile shape onto each minion's declarative balance fields and effects.
@@ -59,6 +73,82 @@ const MINION_PROJECTILE_FINISHER = Object.freeze({
 });
 
 export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  variant(
+    NECROMANCER_CORRUPTION_PROFILE_IDS[ID.CONSUME_CONDITIONS],
+    ID.CONSUME_CONDITIONS,
+    'Consume Conditions — Corruption',
+    {
+      effects: [
+        { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 4, target: 'self' },
+        {
+          type: 'condition',
+          condition: 'Vulnerability',
+          stacks: 5,
+          duration: 4,
+          target: 'self',
+          requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
+          packetLabel: 'additional with Master of Corruption'
+        }
+      ]
+    }
+  ),
+  variant(NECROMANCER_CORRUPTION_PROFILE_IDS[ID.BLOOD_IS_POWER], ID.BLOOD_IS_POWER, 'Blood Is Power — Corruption', {
+    effects: [
+      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10, target: 'self' },
+      {
+        type: 'condition',
+        condition: 'Torment',
+        stacks: 2,
+        duration: 10,
+        target: 'self',
+        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
+        packetLabel: 'additional with Master of Corruption'
+      },
+      { type: 'boon', boon: 'might', stacks: 5, duration: 20, audience: { recipients: 'party', maximumRecipients: 5 } }
+    ]
+  }),
+  variant(
+    NECROMANCER_CORRUPTION_PROFILE_IDS[ID.CORROSIVE_POISON_CLOUD],
+    ID.CORROSIVE_POISON_CLOUD,
+    'Corrosive Poison Cloud — Corruption',
+    {
+      effects: [
+        { type: 'condition', condition: 'Weakness', stacks: 1, duration: 6, target: 'self' },
+        {
+          type: 'condition',
+          condition: 'Crippled',
+          stacks: 1,
+          duration: 2,
+          target: 'self',
+          requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
+          packetLabel: 'additional with Master of Corruption'
+        }
+      ]
+    }
+  ),
+  variant(NECROMANCER_CORRUPTION_PROFILE_IDS[ID.PLAGUELANDS], ID.PLAGUELANDS, 'Plaguelands — Corruption', {
+    effects: [
+      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 10, target: 'self' },
+      {
+        type: 'condition',
+        condition: 'Poisoned',
+        stacks: 1,
+        duration: 4,
+        target: 'self',
+        requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
+        packetLabel: 'additional with Master of Corruption'
+      }
+    ]
+  }),
+  variant(NECROMANCER_CORE_BALANCE_PROFILE_IDS.darkPactOnHit, ID.DARK_PACT, 'Dark Pact — First Hit', {
+    effects: [
+      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10, target: 'self' },
+      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 6 }
+    ]
+  }),
+  variant(NECROMANCER_CORE_BALANCE_PROFILE_IDS.lifeSiphonOnHit, ID.LIFE_SIPHON, 'Life Siphon — First Hit', {
+    effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8, target: 'self' }]
+  }),
   {
     id: NECROMANCER_CORE_BALANCE_PROFILE_IDS.soulShards,
     name: 'Soul Shards - Detonation',
@@ -331,6 +421,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
     durationMultiplier: 1.5
   }),
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.vitalPersistence, 'Vital Persistence', { attributeBonus: 180 }),
+  // Recharge handling and tooltip facts share the selected trait's multiplier.
+  trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.sinisterShroud, 'Sinister Shroud', { rechargeMultiplier: 0.85 }),
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.spitefulSpirit, 'Spiteful Spirit', {
     effects: [
       {

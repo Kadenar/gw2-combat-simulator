@@ -28,7 +28,7 @@ export function reconstructRenegadeDpsReportActions(
             normalized(action.rawName) === normalized(identity.name)
         );
         if (!warband) return action;
-        // Keep the base player input, but never charge its normal cast duration against an enhanced summon’s idle gaps.
+        // Keep the base player input, but never charge its normal cast duration against an enhanced summon's idle gaps.
         const enhanced = action.rawSkillId === RENEGADE_ENHANCED_SKILL_BY_ID[warband.skillId];
         return {
           ...action,

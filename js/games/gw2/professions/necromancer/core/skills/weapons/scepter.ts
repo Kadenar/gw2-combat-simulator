@@ -63,12 +63,21 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
       }
     ],
     lifeForceGain: 8,
+    // Share condition-based resource inputs with the tooltip and cast-completion calculation.
+    lifeForcePerCondition: 1,
+    maximumConditions: 5,
     flipSkillId: null
   },
   [ID.DEVOURING_DARKNESS]: {
     castTimeMs: 600,
-    effects: [],
+    // The replacement handler scales this per-condition payload using the live target state.
+    maximumConditions: 5,
+    effects: [
+      { type: 'strike', coefficient: 1.16 },
+      { type: 'condition', condition: 'Torment', stacks: 1, duration: 4 }
+    ],
     lifeForceGain: 8,
+    lifeForcePerCondition: 1,
     // Custom: Scales Torment stacks from the target's active condition count; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.devouring-darkness',
     flipParentId: null

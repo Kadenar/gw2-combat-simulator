@@ -103,6 +103,8 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.COALESCENCE_OF_RUIN]: {
     castTimeMs: 720,
+    interruptCommitMs: 600,
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 4,
     energyCost: 5,
     effects: [
@@ -114,6 +116,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         metadata: {}
       },
       {
@@ -124,6 +127,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         metadata: { largeHitboxOnly: true }
       }
     ]

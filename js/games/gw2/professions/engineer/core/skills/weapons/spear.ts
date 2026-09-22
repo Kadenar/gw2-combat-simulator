@@ -118,16 +118,17 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        coefficient: 1.2,
-        hits: 6,
-        atMs: 0,
+        ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: 160 * (index + 1), coefficient: 0.2 })),
         name: 'Focused Devastation',
         actorType: 'player'
       },
       {
         type: 'condition',
         condition: 'Burning',
-        stacks: 6,
+        // Each delayed follow-up strike applies one separate burning packet.
+        stacks: 1,
+        applications: 6,
+        intervalMs: 160,
         duration: 2,
         actorType: 'player'
       }

@@ -1,6 +1,6 @@
 import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
 import { bindDropdownSearch } from '#ui/shared/dropdown-search.js';
-import { bindWikiTooltips, skillTooltipAttributes, wikiTooltipAttributes } from '#gw2/app/shared/wiki-tooltip.js';
+import { skillTooltipAttributes, wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 
@@ -78,7 +78,6 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
             value: String(skill.id),
             label: skill.name,
             icon: skill.icon,
-            description: skill.description,
             skillId: skill.id
           }));
       const selectedEntry = selection.optionEntries?.find(
@@ -88,15 +87,14 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
       const display = selectedEntry
         ? {
             name: selectedEntry.label,
-            icon: selectedEntry.icon,
-            description: selectedEntry.description
+            icon: selectedEntry.icon
           }
         : selectedSkill;
       if (!display || !options.length) return '';
       return `<div class="skill-bar-inspection-slot selectable"
           data-selection-key="${esc(selection.selectionKey)}"
           data-selection-index="${selection.selectionIndex}">
-          <button type="button" class="sbar-icon" aria-label="Change ${esc(group.label)} ${selection.selectionIndex + 1}" ${!selectedEntry && selectedSkill ? skillTooltipAttributes(selectedSkill) : wikiTooltipAttributes(display.name, display.description)}>
+          <button type="button" class="sbar-icon" aria-label="Change ${esc(group.label)} ${selection.selectionIndex + 1}" ${selectedSkill ? skillTooltipAttributes(selectedSkill, app.adapter.skillTooltip(selectedSkill, app.patchId)) : wikiTooltipAttributes(display.name)}>
               <img src="${esc(display.icon || '')}" alt="">
           </button>
           <div class="sbar-arrow">&#9660;</div>
@@ -105,7 +103,7 @@ function multiSelectionInspectionGroupHtml(app: ProfessionAppState, group: Profe
               (option) =>
                 `<button type="button" class="dd-item" data-selection-value="${esc(option.value)}"${
                   option.skillId == null ? '' : ` data-skill-id="${esc(option.skillId)}"`
-                } ${option.skillId != null && app.skillById.has(Number(option.skillId)) ? skillTooltipAttributes(app.skillById.get(Number(option.skillId))!) : wikiTooltipAttributes(option.label, option.description)}>
+                } ${option.skillId != null && app.skillById.has(Number(option.skillId)) ? skillTooltipAttributes(app.skillById.get(Number(option.skillId))!, app.adapter.skillTooltip(app.skillById.get(Number(option.skillId))!, app.patchId)) : wikiTooltipAttributes(option.label)}>
                   <img src="${esc(option.icon || '')}" alt="">
                   <span>${esc(option.label)}</span>
               </button>`
@@ -159,12 +157,12 @@ export function renderSkills(app: ProfessionAppState): void {
       const current = app.skillByName.get(app.build.selectedSkills[key]);
       const display = skillBarDisplaySkill(app, current);
       return `<div class="skill-bar-slot ${type === 'Elite' ? 'elite-border' : ''}" data-key="${key}">
-                <button type="button" class="sbar-icon" aria-label="Change ${key.replace(/(\d)$/, ' $1').toLowerCase()} skill" ${display ? skillTooltipAttributes(display) : ''}><img src="${esc(display?.icon || '')}" alt=""><span class="sbar-icon-arrow" aria-hidden="true">▼</span></button>
+                <button type="button" class="sbar-icon" aria-label="Change ${key.replace(/(\d)$/, ' $1').toLowerCase()} skill" ${display ? skillTooltipAttributes(display, app.adapter.skillTooltip(display, app.patchId)) : ''}><img src="${esc(display?.icon || '')}" alt=""><span class="sbar-icon-arrow" aria-hidden="true">▼</span></button>
                 <div class="sbar-arrow">▼</div>
                 <div class="sbar-dropdown">${availableSlotSkills(app, type)
                   .map(
                     (skill) =>
-                      `<button type="button" class="dd-item" data-name="${esc(skill.name)}" aria-pressed="${skill.name === current?.name}" ${skillTooltipAttributes(skill)}><img src="${esc(skill.icon)}" alt=""><span>${esc(skill.displayName || skill.name)}</span></button>`
+                      `<button type="button" class="dd-item" data-name="${esc(skill.name)}" aria-pressed="${skill.name === current?.name}" ${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patchId))}><img src="${esc(skill.icon)}" alt=""><span>${esc(skill.displayName || skill.name)}</span></button>`
                   )
                   .join('')}</div>
             </div>`;
@@ -276,7 +274,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
     return `<div class="skill-bar-slot fixed-loadout-skill${
       child ? ' child-skill' : ''
     }${!child && index === 4 ? ' elite-border' : ''}">
-        <div class="sbar-icon" tabindex="0" aria-label="${esc(skill.name)}" ${skillTooltipAttributes(skill)}><img src="${esc(skill.icon || '')}" alt=""></div>
+        <div class="sbar-icon" tabindex="0" aria-label="${esc(skill.name)}" ${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patchId))}><img src="${esc(skill.icon || '')}" alt=""></div>
     </div>`;
   };
 
@@ -403,7 +401,6 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
 
 /** Every editable skill, pet and legend menu uses the same search and keyboard behavior. */
 function bindSkillDropdowns(root: HTMLElement): void {
-  bindWikiTooltips();
   root.querySelectorAll<HTMLElement>('.sbar-dropdown').forEach((menu) => {
     const trigger = menu.parentElement!.querySelector<HTMLElement>('.sbar-icon')!;
     trigger.setAttribute('aria-expanded', 'false');

@@ -1,5 +1,5 @@
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
-import { wikiTooltipAttributes } from '#gw2/app/shared/wiki-tooltip.js';
+import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import {
   UTILITY_CONVERSION_RATES,
   UTILITY_DATA,
@@ -11,11 +11,15 @@ import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment-icons.js';
+import { escapeHtml } from '#ui/shared/html.js';
+import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
+import type { TooltipFact } from '#gw2/platform/engine/skills/types.js';
 
 type NumericValues = Readonly<Record<string, number>>;
 
-/** Expand abbreviated equipment names to their wiki articles while reusing the existing stat descriptions. */
-export function equipmentTooltipAttributes(kind: string, name: string, description = ''): string {
+/** Expand abbreviated equipment names to their canonical wiki articles and card headings. */
+function equipmentWikiName(kind: string, name: string): string {
   let wikiName = name;
   if (/rune/i.test(kind)) {
     const noArticle = [
@@ -31,10 +35,8 @@ export function equipmentTooltipAttributes(kind: string, name: string, descripti
       'Divinity'
     ];
     wikiName = `Superior Rune of ${noArticle.includes(name) ? '' : 'the '}${name}`;
-    description ||= runeOptionLabel(name);
   } else if (/sig/i.test(kind)) {
     wikiName = `Superior Sigil of ${['Night', 'Stars'].includes(name) ? 'the ' : ''}${name}`;
-    description ||= sigilOptionLabel(name);
   } else if (/relic/i.test(kind)) {
     const article = [
       'Director',
@@ -55,16 +57,107 @@ export function equipmentTooltipAttributes(kind: string, name: string, descripti
       'Warrior'
     ];
     wikiName = `Relic of ${article.includes(name) ? 'the ' : ''}${name}`;
-    description ||= relicOptionLabel(name);
   } else if (/infusion/i.test(kind)) {
     wikiName = 'Infusion';
-  } else if (/food/i.test(kind)) {
-    description ||= foodOptionLabel(name);
-  } else if (/utility/i.test(kind)) {
-    description ||= utilityOptionLabel(name);
   }
 
+  return wikiName;
+}
+
+/** Equipment cards share the skill overlay, with item artwork and a separate block for attached upgrades. */
+function equipmentCardAttributes(
+  name: string,
+  description: string,
+  wikiName: string,
+  icon = '',
+  facts: TooltipFact[] = [],
+  upgrades: TooltipFact[] = []
+): string {
+  return `${wikiTooltipAttributes(name, description, wikiName, facts)} data-wiki-equipment="true" data-wiki-icon="${escapeHtml(icon)}" data-wiki-upgrades="${escapeHtml(JSON.stringify(upgrades))}"`;
+}
+
+function attributeFacts(values: NumericValues = {}, percent = false): TooltipFact[] {
+  return Object.entries(values).map(([name, value]) => ({ name, detail: `+${value}${percent ? '%' : ''}` }));
+}
+
+function upgradeDetails(name: string, label: string): string {
+  return label.startsWith(`${name} — `) ? label.slice(name.length + 3) : '';
+}
+
+/** Use catalog bonuses for rune sets and local trigger descriptions for sigils and relics in every picker. */
+export function equipmentTooltipAttributes(kind: string, name: string, description = ''): string {
+  if (!name || name === 'None') return '';
+  const wikiName = equipmentWikiName(kind, name);
+  if (/rune/i.test(kind)) {
+    const rune = runeData[name];
+    return equipmentCardAttributes(`${wikiName} (6/6)`, 'Six-piece set bonuses', wikiName, EQUIPMENT_ICONS[name], [
+      ...attributeFacts(rune?.stats),
+      ...attributeFacts(rune?.durations, true)
+    ]);
+  }
+
+  if (/sig/i.test(kind)) {
+    return equipmentCardAttributes(
+      wikiName,
+      upgradeDetails(name, sigilOptionLabel(name)),
+      wikiName,
+      SIGIL_DATA[name]?.icon
+    );
+  }
+
+  if (/relic/i.test(kind)) {
+    const relic = relicData[name];
+    return equipmentCardAttributes(
+      wikiName,
+      String(relic?.trigger || ''),
+      wikiName,
+      String(relic?.icon || ''),
+      relic?.cooldown ? [{ name: 'Internal cooldown', detail: `${relic.cooldown}s` }] : []
+    );
+  }
+
+  if (/food/i.test(kind)) description ||= foodOptionLabel(name);
+  if (/utility/i.test(kind)) description ||= utilityOptionLabel(name);
   return wikiTooltipAttributes(name, description, wikiName);
+}
+
+/** Show only the selected slot's attributes; runes are set totals and infusions have no assigned item socket. */
+export function gearTooltipAttributes({
+  name,
+  prefix,
+  slot,
+  icon,
+  rune = '',
+  sigils = []
+}: {
+  name: string;
+  prefix: string;
+  slot: string;
+  icon: string;
+  rune?: string;
+  sigils?: readonly string[];
+}): string {
+  if (!name) return '';
+  const facts = attributeFacts(gearStats[prefix]?.[slot]);
+  const strength = slot.startsWith('Weapon') ? weaponStrengthProfileForName(name) : null;
+  if (strength) facts.unshift({ name: 'Weapon Strength', detail: `${strength.min} – ${strength.max}` });
+  const upgrades: TooltipFact[] = [];
+  if (rune && runeData[rune])
+    upgrades.push({
+      name: `${equipmentWikiName('rune', rune)} (6/6)`,
+      detail: `Six-piece set bonuses\n${upgradeDetails(rune, runeOptionLabel(rune)).replaceAll(', ', '\n')}`,
+      icon: EQUIPMENT_ICONS[rune]
+    });
+  for (const sigil of sigils) {
+    if (SIGIL_DATA[sigil])
+      upgrades.push({
+        name: equipmentWikiName('sigil', sigil),
+        detail: upgradeDetails(sigil, sigilOptionLabel(sigil)),
+        icon: SIGIL_DATA[sigil].icon
+      });
+  }
+
+  return equipmentCardAttributes(`${prefix} ${name}`, '', strength ? name : prefix, icon, facts, upgrades);
 }
 
 type UnknownValues = Readonly<Record<string, unknown>>;

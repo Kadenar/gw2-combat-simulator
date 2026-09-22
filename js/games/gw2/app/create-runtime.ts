@@ -104,7 +104,9 @@ export function createProfessionRuntime({
       app.build,
       selectedSkills(app),
       app.attributeWeaponSet || 1,
-      disabledTrait
+      disabledTrait,
+      null,
+      profession.balanceContextFor(app.patchId)
     ) as ProfessionAttributeData;
   }
 
@@ -147,7 +149,8 @@ export function createProfessionRuntime({
       selectedSkills(app),
       weaponSet,
       disabled?.type === 'Trait' ? disabled.name : null,
-      disabled?.type === 'Sigil' ? disabled.name : null
+      disabled?.type === 'Sigil' ? disabled.name : null,
+      profession.balanceContextFor(app.patchId)
     ) as ProfessionAttributeData;
   }
 

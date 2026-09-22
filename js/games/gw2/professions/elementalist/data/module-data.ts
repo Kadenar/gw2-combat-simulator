@@ -163,6 +163,7 @@ const generated: readonly Skill[] = Object.freeze(
             description: metadata.description
           }
         : {}),
+      // Internal attunement projections retain the source skill's presentation facts.
       ...(skill.name === 'Glyph of Elementals'
         ? {
             displayName: 'Glyph of Elementals (Fire)',

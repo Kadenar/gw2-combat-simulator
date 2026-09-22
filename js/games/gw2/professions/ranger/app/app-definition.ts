@@ -1,5 +1,6 @@
 import { preferOffhand } from '#gw2/app/create-adapter.js';
 import { definePatchedProfessionApp } from '#gw2/app/create-patched-adapter.js';
+import { rangerTooltips } from '#gw2/professions/ranger/app/tooltips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/ranger/build/build.js';
@@ -9,6 +10,7 @@ import type { RangerApplicationBuild } from '#gw2/professions/ranger/types.js';
 
 // Exposes Ranger only through the shared browser application contract.
 export const rangerAppAdapter = definePatchedProfessionApp({
+  tooltips: rangerTooltips,
   profession: rangerProfession,
   applyBuildAttributeRules: applyRangerBuildAttributeRules,
   toApplicationBuild,

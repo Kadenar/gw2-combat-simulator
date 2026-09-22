@@ -1,5 +1,6 @@
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
+import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
@@ -1082,8 +1083,8 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
     revenantProfession.ui.paletteSkillAvailability(lowEnergyContext, phase).message,
     'Requires 30 Energy; currently 4'
   );
-  assert.match(paletteSkillView({ results: null }, phase).title, /Energy cost: 30/);
-  assert.match(paletteSkillView({ results: null }, relinquish).title, /Energy cost: 0/);
+  assert.match(paletteSkillView({ adapter: revenantAppAdapter, results: null }, phase).title, /Energy cost: 30/);
+  assert.match(paletteSkillView({ adapter: revenantAppAdapter, results: null }, relinquish).title, /Energy cost: 0/);
 });
 
 test('Herald palette replaces active facets with their consume skills', () => {

@@ -30,7 +30,7 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
       [2, packetSkill],
       [3, buffSkill]
     ]),
-    adapter: { eliteSpecialization: () => '' },
+    adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => '' },
     profession: { ui: { timelineWeaponLineTransition: () => null } }
   };
   const steps = [
@@ -102,7 +102,7 @@ test('timeline labels the executed skill variant while preserving the saved comm
       [base.id, base],
       [traited.id, traited]
     ]),
-    adapter: { eliteSpecialization: () => 'Amalgam' },
+    adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => 'Amalgam' },
     profession: { ui: { timelineWeaponLineTransition: () => null } }
   };
   const build = {

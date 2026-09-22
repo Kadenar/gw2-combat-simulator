@@ -7,6 +7,9 @@ export const LUMINARY_BALANCE_PROFILE_IDS = Object.freeze({
   forge: 'guardian.luminary.radiant-forge',
   glaringBurstHammer: 'guardian.luminary.glaring-burst.hammer',
   glaringBurstBlade: 'guardian.luminary.glaring-burst.blade',
+  glaringBurstStaff: 'guardian.luminary.glaring-burst.staff',
+  glaringBurstBulwark: 'guardian.luminary.glaring-burst.bulwark',
+  glaringBurstVulnerability: 'guardian.luminary.glaring-burst.vulnerability',
   radiantJusticeImpact: 'guardian.luminary.radiant-justice-impact',
   effulgentStance: 'guardian.luminary.effulgent-stance-detonation',
   lightAura: 'guardian.luminary.light-aura',
@@ -19,6 +22,28 @@ export const LUMINARY_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Support weapons replace the strike with a party boon; every weapon applies the shared vulnerability afterward.
+  {
+    id: LUMINARY_BALANCE_PROFILE_IDS.glaringBurstStaff,
+    name: 'Glaring Burst — Radiant Staff',
+    profileKind: 'skill-variant',
+    parentId: ID.GLARING_BURST,
+    effects: [{ type: 'boon', boon: 'regeneration', duration: 2, audience: { recipients: 'party' } }]
+  },
+  {
+    id: LUMINARY_BALANCE_PROFILE_IDS.glaringBurstBulwark,
+    name: 'Glaring Burst — Radiant Bulwark',
+    profileKind: 'skill-variant',
+    parentId: ID.GLARING_BURST,
+    effects: [{ type: 'boon', boon: 'resolution', duration: 1.5, audience: { recipients: 'party' } }]
+  },
+  {
+    id: LUMINARY_BALANCE_PROFILE_IDS.glaringBurstVulnerability,
+    name: 'Glaring Burst — Shared Vulnerability',
+    profileKind: 'skill-variant',
+    parentId: ID.GLARING_BURST,
+    effects: [{ type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8 }]
+  },
   {
     id: LUMINARY_BALANCE_PROFILE_IDS.forge,
     name: 'Radiant Forge',

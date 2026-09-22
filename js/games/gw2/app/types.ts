@@ -1,4 +1,6 @@
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
+import type { ProfessionTooltips, SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
 import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
@@ -53,6 +55,7 @@ import type { BuildEditor, SimulationPresentation } from '#app/shell/types.js';
 export type ProfessionAppContract = Gw2ProfessionSource & {
   readonly preview?: PatchPreview | null;
   readonly catalogFor?: (patchId?: string) => Readonly<CanonicalCatalog>;
+  readonly balanceContextFor: (patchId?: string) => ProfessionBalanceContext;
 };
 
 export interface RotationActionOptions {
@@ -258,6 +261,8 @@ export interface Gw2AppCapabilities {
 }
 
 export interface Gw2AppAdapter extends ProfessionRuntimeApi {
+  readonly skillTooltip: (skill: Skill, patchId: string) => SimulationTooltip;
+  readonly traitTooltip: (trait: CatalogEntity, patchId: string, specialization: string) => SimulationTooltip;
   readonly gameId: 'gw2';
   readonly contentId: string;
   readonly id: string;
@@ -285,6 +290,7 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
 }
 
 export interface DefineProfessionAppOptions {
+  readonly tooltips: ProfessionTooltips;
   readonly profession: ProfessionAppContract;
   readonly applyBuildAttributeRules: Gw2ApplyBuildAttributeRules;
   readonly createDefaultTargetConditions?: () => Record<string, number | boolean>;

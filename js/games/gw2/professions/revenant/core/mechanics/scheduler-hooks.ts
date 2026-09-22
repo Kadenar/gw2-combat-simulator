@@ -1,5 +1,8 @@
 /** Coordinates Core scheduler reactions in their established trait, equipment, and skill order. */
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { emitLegendInvocationProfile } from '#gw2/professions/revenant/core/traits/invocation-effects.js';
 import { revenantCombatActive } from '#gw2/professions/revenant/core/traits/index.js';
 import { applyIncensedResponse } from '#gw2/professions/revenant/core/traits/invocation.js';
 import { applyAbyssalChill } from '#gw2/professions/revenant/core/traits/corruption.js';
@@ -27,6 +30,22 @@ import type {
 export function afterRevenantCast(context: RevenantCastContext, skill: RevenantSkill): void {
   applyBattleScarred(context, skill);
   if (revenantCombatActive(context, context.effectiveEnd)) applyNotoriety(context, skill);
+
+  // Grant only the boon belonging to the committed Centaur skill; toggling off the shield grants nothing.
+  if (!hasTrait(context, TRAIT.SERENE_REJUVENATION) || context.action.cancelled) return;
+  const skillId = skill.id === ID.PROTECTIVE_SOLACE_ID_29310 ? ID.PROTECTIVE_SOLACE : skill.id;
+  if (
+    skillId === ID.PROTECTIVE_SOLACE &&
+    !professionCoreState(context).activeUpkeeps.some((upkeep) => upkeep.skillId === skill.id)
+  )
+    return;
+  emitLegendInvocationProfile(
+    context,
+    TRAIT.SERENE_REJUVENATION,
+    context.effectiveEnd,
+    TRAIT.SERENE_REJUVENATION,
+    (effect) => effect.metadata?.trigger === String(skillId)
+  );
 }
 
 /** Observes each scheduler event once and preserves mixed trait, relic, and base-skill ordering. */

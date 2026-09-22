@@ -2,6 +2,7 @@ import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics
 import { reduceMatchingCooldowns } from '#gw2/platform/execution/cooldowns.js';
 import {
   balanceProfileEffectFromContext,
+  balanceProfileFromContext,
   balanceProfileValue,
   balanceProfileValueFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -57,85 +58,57 @@ function selectedMorphKinds(context: EngineerSchedulerContext): Set<AmalgamMorph
  */
 function applyAmalgamStrain(context: EngineerSchedulerContext, morphKind: AmalgamMorphKind, at: number): void {
   const state = amalgamState.from(context);
-  const strainDuration = balanceProfileValueFromContext(context, PROFILE.strains, 'durationMultiplier', 8);
-  const buffs: AmalgamBuff[] = [];
-  if (morphKind === 'protect') {
-    buffs.push({
-      kind: 'resistance',
-      duration: strainDuration,
-      sourceId: 'engineer.resiliant-strain',
-      name: 'Resiliant Strain'
-    });
-  } else if (morphKind === 'cleanse') {
-    buffs.push({
-      kind: 'alacrity',
-      duration: strainDuration,
-      sourceId: 'engineer.replicating-strain',
-      name: 'Replicating Strain'
-    });
-  } else if (morphKind === 'thorns') {
-    state.rapaciousUntil = Math.max(Number(state.rapaciousUntil || 0), at + strainDuration);
-  } else if (morphKind === 'pierce') {
-    emitSkillControl(context, {
-      at,
-      source: 'engineer',
-      sourceId: 'engineer.volatile-strain',
-      actorType: 'player',
-      skillName: 'Volatile Strain',
-      name: 'Volatile Strain',
-      controlKind: 'stun'
-    });
-  } else if (morphKind === 'obliterate') {
-    state.titanicUntil = Math.max(Number(state.titanicUntil || 0), at + strainDuration);
-    buffs.push({
-      kind: 'might',
-      duration: strainDuration,
-      stacks: balanceProfileValueFromContext(context, PROFILE.strains, 'maximumStacks', 10),
-      sourceId: 'engineer.titanic-strain',
-      name: 'Titanic Strain'
-    });
-  } else if (morphKind === 'shred') {
-    state.predatorUntil = Math.max(Number(state.predatorUntil || 0), at + strainDuration);
-    buffs.push({
-      kind: 'quickness',
-      duration: strainDuration,
-      sourceId: 'engineer.predator-strain',
-      name: 'Predator Strain'
-    });
-    buffs.push({
-      kind: 'superspeed',
-      duration: strainDuration,
-      sourceId: 'engineer.predator-strain',
-      name: 'Predator Strain'
-    });
-  } else if (morphKind === 'demolish') {
-    state.berserkerUntil = Math.max(Number(state.berserkerUntil || 0), at + strainDuration);
-    buffs.push({
-      kind: 'stability',
-      duration: strainDuration,
-      stacks: 5,
-      sourceId: 'engineer.berserker-strain',
-      name: 'Berserker Strain'
-    });
+  const profile = balanceProfileFromContext(context, PROFILE.strains);
+  if (!profile) throw new Error('Missing Amalgam strain profile');
+  if (morphKind === 'thorns') {
+    const duration = balanceProfileFromContext(context, PROFILE.rapaciousStrain)?.durationMultiplier;
+    if (typeof duration !== 'number') throw new Error('Missing Rapacious Strain duration');
+    state.rapaciousUntil = Math.max(Number(state.rapaciousUntil || 0), at + duration);
   }
 
-  // Resolve each strain's catalog identity before direct canonical status emission.
-  for (const buff of buffs) {
+  // The selected packet owns its effect and duration; state windows follow their associated boon.
+  for (const effect of profile.effects || []) {
+    if (effect.metadata?.trigger !== morphKind) continue;
+    if (!effect.sourceId || !effect.name) throw new Error('Missing Amalgam strain identity');
+    if (effect.type === 'control') {
+      emitSkillControl(context, {
+        at,
+        source: 'engineer',
+        sourceId: effect.sourceId,
+        actorType: 'player',
+        skillName: effect.name,
+        name: effect.name,
+        controlKind: effect.controlKind
+      });
+      continue;
+    }
+
+    if (effect.type !== 'boon' && effect.type !== 'buff') continue;
+    if (effect.type === 'boon') {
+      if (morphKind === 'obliterate')
+        state.titanicUntil = Math.max(Number(state.titanicUntil || 0), at + effect.duration);
+      else if (morphKind === 'shred')
+        state.predatorUntil = Math.max(Number(state.predatorUntil || 0), at + effect.duration);
+      else if (morphKind === 'demolish')
+        state.berserkerUntil = Math.max(Number(state.berserkerUntil || 0), at + effect.duration);
+    }
+
+    // Resolve each strain's catalog identity before direct canonical status emission.
     const sourceSkill =
-      context.catalog.skillsById.get(buff.sourceId) ||
-      context.catalog.skillsByName.get(buff.name) ||
-      ({ id: buff.sourceId, name: buff.name } as EngineerSkill);
+      context.catalog.skillsById.get(effect.sourceId) ||
+      context.catalog.skillsByName.get(effect.name) ||
+      ({ id: effect.sourceId, name: effect.name } as EngineerSkill);
     emitSkillBuff(context, {
       skill: sourceSkill,
       at,
       source: 'engineer',
-      sourceId: buff.sourceId,
+      sourceId: effect.sourceId,
       actorType: 'player',
-      skillName: buff.name,
-      name: buff.name,
-      kind: buff.kind,
-      duration: buff.duration,
-      stacks: buff.stacks ?? 1
+      skillName: effect.name,
+      name: effect.name,
+      kind: String(effect.boon || effect.kind),
+      duration: effect.duration,
+      stacks: effect.stacks ?? 1
     });
   }
 }

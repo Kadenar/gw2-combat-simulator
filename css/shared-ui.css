@@ -44,9 +44,62 @@
   letter-spacing: 0.3px;
 }
 
-.wiki-tooltip-recharge {
+/* Keep energy and recharge together at the right edge even when the skill name wraps. */
+.wiki-tooltip-costs {
+  display: flex;
+  gap: 8px;
   flex-shrink: 0;
+  white-space: nowrap;
   color: #c0ba91;
+}
+
+/* Item cards separate green equipment attributes from blue socket upgrades without implying infusion placement. */
+.wiki-tooltip-equipment .wiki-tooltip-heading {
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+}
+
+.wiki-tooltip-item-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border: 1px solid #b8aa6c80;
+}
+
+.wiki-tooltip-equipment strong {
+  color: #e887cf;
+}
+
+.wiki-tooltip-equipment .wiki-tooltip-effects {
+  color: #8fed73;
+  margin-top: 6px;
+}
+
+.wiki-tooltip-upgrades {
+  margin-top: 10px;
+  padding-top: 7px;
+  border-top: 1px solid #b8aa6c30;
+  color: #7dc3ff;
+  white-space: pre-line;
+}
+
+.wiki-tooltip-upgrades .wiki-tooltip-fact {
+  align-items: flex-start;
+  margin-top: 6px;
+}
+
+.wiki-tooltip-upgrade-detail {
+  display: block;
+  margin-top: 3px;
+}
+
+/* Keep the game's cost glyphs aligned with their compact numeric badges. */
+.wiki-tooltip-costs img {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
 }
 
 .wiki-tooltip-highlight {
@@ -64,29 +117,79 @@
   font-size: 11px;
 }
 
+/* Alternative payload tabs retain the tooltip's compact style and visible keyboard focus. */
+.wiki-tooltip-tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  border-bottom: 1px solid #b8aa6c30;
+}
+
+.wiki-tooltip-tabs button {
+  flex: 1;
+  padding: 5px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.wiki-tooltip-tabs button[aria-selected='true'] {
+  border-bottom-color: #d9bc64;
+  color: #ffd12c;
+}
+
+.wiki-tooltip :is([role='tab'], [role='tabpanel']):focus-visible {
+  outline: 2px solid #d9bc64;
+  outline-offset: -2px;
+}
+
 .wiki-tooltip-fact {
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 30px;
+  min-height: 20px;
   margin-top: 2px;
 }
 
 .wiki-tooltip-fact-icon {
+  position: relative;
   display: grid;
   place-items: center;
-  flex: 0 0 28px;
-  height: 28px;
-  border: 1px solid #62554b;
-  background: radial-gradient(#e2d3be, #78685e 60%, #3d3835);
+  flex: 0 0 18px;
+  height: 18px;
   color: #fff9eb;
-  font-size: 25px;
+  font-size: 16px;
 }
 
 .wiki-tooltip-fact-icon img {
-  width: 26px;
-  height: 26px;
-  object-fit: cover;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+/* Overlay intensity counts at the icon corner, keeping duration text easy to scan. */
+.wiki-tooltip-fact-stacks {
+  position: absolute;
+  right: -2px;
+  bottom: -3px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow:
+    0 1px 2px #000,
+    1px 0 2px #000,
+    -1px 0 2px #000;
+}
+
+/* Prefix labels distinguish trait effects that apply to different skills. */
+.wiki-tooltip-fact-source {
+  display: block;
+  color: #c0ba91;
+  font-size: 11px;
 }
 
 .wiki-tooltip a {

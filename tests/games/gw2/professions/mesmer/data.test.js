@@ -504,7 +504,7 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
   }
 });
 
-test('Counterspell is cataloged as Illusionary Counter’s clone-generating flip skill', () => {
+test("Counterspell is cataloged as Illusionary Counter's clone-generating flip skill", () => {
   const counterspell = mesmerCatalog.skillsById.get(ID.COUNTERSPELL);
 
   assert.equal(counterspell.id, 10314);

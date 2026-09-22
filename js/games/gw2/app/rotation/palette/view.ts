@@ -1,6 +1,6 @@
 /** Composes palette markup from projected state and binds the current rendered controls. */
 import { escapeHtml as esc } from '#ui/shared/html.js';
-import { bindWikiTooltips, skillTooltipAttributes } from '#gw2/app/shared/wiki-tooltip.js';
+import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { bindAppPaletteInteractions } from '#gw2/app/rotation/palette/interactions.js';
 import {
   createPaletteContext,
@@ -72,7 +72,7 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
   return `<div class="${classes}" data-skill="${esc(view.name)}"
     ${skillId ? `data-skill-id="${esc(skillId)}"` : ''}
     ${hotkeyAction ? `data-hotkey-action="${esc(hotkeyAction)}"` : ''}
-    ${view.skill ? `${skillTooltipAttributes(view.skill, view.title?.split('\n').slice(1).join('\n'))} data-wiki-delay="700" tabindex="0"` : `title="${esc(view.title || view.name)}"`} draggable="${draggable ? 'true' : 'false'}"
+    ${view.skill && view.tooltip ? `${skillTooltipAttributes(view.skill, view.tooltip, view.title?.split('\n').slice(1).join('\n'))} data-wiki-delay="700" tabindex="0"` : `title="${esc(view.title || view.name)}"`} draggable="${draggable ? 'true' : 'false'}"
     ${ariaLabel ? `aria-label="${esc(ariaLabel)}"` : ''}
     style="--att-border:${esc(view.color || '#a88be8')}">
     <img src="${esc(view.icon || PLACEHOLDER_ICON)}" alt="" />
@@ -475,5 +475,4 @@ export function renderPalette(app: ProfessionAppState): void {
   element.innerHTML = paletteHtml(app, paletteContext);
 
   bindAppPaletteInteractions(app, element, paletteContext);
-  bindWikiTooltips();
 }

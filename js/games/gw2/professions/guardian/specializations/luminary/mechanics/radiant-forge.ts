@@ -298,11 +298,20 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
   const impactAt = context.start + impactMs / 1000;
   // Support variants grant their weapon-specific boon at the burst's impact.
   if (radiantWeapon === 'staff' || radiantWeapon === 'bulwark') {
+    const boon = balanceProfileEffect(
+      balanceProfileFromContext(
+        context,
+        radiantWeapon === 'staff' ? PROFILE.glaringBurstStaff : PROFILE.glaringBurstBulwark
+      ),
+      'boon'
+    );
+    if (!boon?.boon) throw new Error('Missing Glaring Burst support profile');
     emitSkillBuff(context, skill, {
       at: impactAt,
-      kind: radiantWeapon === 'staff' ? 'regeneration' : 'resolution',
-      duration: radiantWeapon === 'staff' ? 2 : 1.5,
-      audience: { recipients: 'party' }
+      kind: boon.boon,
+      duration: boon.duration,
+      stacks: boon.stacks,
+      audience: boon.audience
     });
   }
 
@@ -322,12 +331,18 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
   }
 
   // Apply vulnerability after the simultaneous strike so it affects later attacks, not its own packet.
+  const vulnerability = balanceProfileEffect(
+    balanceProfileFromContext(context, PROFILE.glaringBurstVulnerability),
+    'condition'
+  );
+  if (!vulnerability?.condition || vulnerability.stacks == null || vulnerability.duration == null)
+    throw new Error('Missing Glaring Burst vulnerability profile');
   emitSkillCondition(context, {
     skill,
     at: impactAt,
-    condition: 'Vulnerability',
-    stacks: 1,
-    duration: 8
+    condition: vulnerability.condition,
+    stacks: vulnerability.stacks,
+    duration: vulnerability.duration
   });
 }
 

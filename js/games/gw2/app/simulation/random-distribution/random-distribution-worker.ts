@@ -3,7 +3,7 @@ import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-re
 import { calculateRandomDistribution } from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import type { ProfessionAppContract } from '#gw2/app/types.js';
+import type { Gw2ProfessionSource } from '#gw2/platform/simulation/types.js';
 import type { RandomDistributionJobRequest } from '#gw2/app/simulation/random-distribution/types.js';
 
 /**
@@ -23,7 +23,7 @@ interface RandomDistributionWorkerMessage {
  * Progress responses have `{ requestId, progress }`. The terminal response has
  * the same request ID and either `distribution` or a string `error`.
  */
-createGameWorkerEndpoint<ProfessionAppContract, RandomDistributionWorkerMessage>({
+createGameWorkerEndpoint<Gw2ProfessionSource, RandomDistributionWorkerMessage>({
   async loadDriver({ gameId, contentId }) {
     if (gameId !== 'gw2') return null;
     // Ordinary RNG jobs need only the engine; authored previews retain their adapter composition.

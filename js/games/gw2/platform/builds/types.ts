@@ -1,5 +1,6 @@
 /** Owns the builds/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/weapons/types.js';
 
 export type Gw2NumericAttributes = Record<string, number>;
@@ -401,6 +402,8 @@ export interface Gw2AttributeData {
 }
 
 export interface Gw2BuildAttributeRuleContext {
+  /** The selected patch's declarations; omitted only for a base-data attribute calculation. */
+  readonly balanceContext?: ProfessionBalanceContext;
   readonly build: Gw2Build;
   readonly selectedSkills: readonly Skill[];
   readonly weaponSet: number;
@@ -417,7 +420,8 @@ export type Gw2CalculateAttributes = (
   selectedSkills?: readonly Skill[],
   weaponSet?: number,
   disabledTrait?: string | null,
-  disabledSigil?: string | null
+  disabledSigil?: string | null,
+  balanceContext?: ProfessionBalanceContext
 ) => Gw2FinalizedAttributeResult;
 
 export interface BuildValidationResult {

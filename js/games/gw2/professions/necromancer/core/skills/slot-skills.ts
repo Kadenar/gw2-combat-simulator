@@ -210,6 +210,8 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.PLAGUE_SIGNET]: {
     castTimeMs: 0,
+    // The handler and tooltip share the maximum number of distinct self-condition types transferred.
+    conditionsTransferred: 5,
     effects: [],
     // Custom: Moves a skill-specific number of active self-conditions to the target; see `core/mechanics/conditions.ts`.
     handlerId: 'necromancer.condition-transfer'

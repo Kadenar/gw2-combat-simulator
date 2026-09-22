@@ -3,7 +3,6 @@
 // Simulator mechanics are maintained under mesmer/core/ and mesmer/specializations/.
 
 import type { Gw2ApiSpecialization } from '#gw2/platform/profession-definition/api-metadata-types.js';
-
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = [

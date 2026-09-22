@@ -2,7 +2,11 @@
  * Owns Core Revenant balance profiles shared by skills, mechanics, and traits.
  * Skill catalogs live in sibling `skills/` modules.
  */
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import {
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_TRAIT_IDS as TRAIT,
+  REVENANT_SKILL_IDS as ID
+} from '#gw2/professions/revenant/data/ids.js';
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 
@@ -28,6 +32,46 @@ export const REVENANT_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Serene Rejuvenation supports Centaur boon applications; outgoing healing remains outside scope.
+  {
+    id: TRAIT.SERENE_REJUVENATION,
+    name: 'Serene Rejuvenation',
+    profileKind: 'trait',
+    effects: [
+      {
+        type: 'boon',
+        boon: 'vigor',
+        duration: 2,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 },
+        metadata: { trigger: String(ID.NATURAL_HARMONY) }
+      },
+      {
+        type: 'boon',
+        boon: 'regeneration',
+        duration: 3,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 },
+        metadata: { trigger: String(ID.PURIFYING_ESSENCE) }
+      },
+      {
+        type: 'boon',
+        boon: 'swiftness',
+        duration: 5,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 },
+        metadata: { trigger: String(ID.PROTECTIVE_SOLACE) }
+      },
+      {
+        type: 'boon',
+        boon: 'resistance',
+        duration: 4,
+        stacks: 1,
+        audience: { recipients: 'party', maximumRecipients: 5 },
+        metadata: { trigger: String(ID.ENERGY_EXPULSION) }
+      }
+    ]
+  },
   // Keep the missing Invocation boons and Retribution resource bonus patchable with their owning traits.
   {
     id: REVENANT_CORE_BALANCE_PROFILE_IDS.invokersRage,

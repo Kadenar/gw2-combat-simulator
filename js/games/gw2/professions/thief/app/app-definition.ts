@@ -3,6 +3,7 @@
 // the engine contract exported by ../profession.js.
 
 import { definePatchedProfessionApp } from '#gw2/app/create-patched-adapter.js';
+import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
 import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/thief/build/build.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -10,6 +11,7 @@ import type { ThiefApplicationBuild } from '#gw2/professions/thief/types.js';
 
 // Exposes Thief only through the shared browser application contract.
 export const thiefAppAdapter = definePatchedProfessionApp({
+  tooltips: thiefTooltips,
   profession: thiefProfession,
   applyBuildAttributeRules: applyThiefBuildAttributeRules,
   toApplicationBuild,

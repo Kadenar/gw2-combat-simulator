@@ -4,6 +4,11 @@ import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.
 
 export const ENGINEER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'engineer.core.resources',
+  lightningRod: 'engineer.core.lightning-rod',
+  focusedLightningRod: 'engineer.core.focused-lightning-rod',
+  conduitSurge: 'engineer.core.conduit-surge',
+  electricArtillery: 'engineer.core.electric-artillery',
+  focusedElectricArtillery: 'engineer.core.focused-electric-artillery',
   grenadier: TRAIT.GRENADIER,
   streamlinedKits: TRAIT.STREAMLINED_KITS,
   optimizedActivation: TRAIT.OPTIMIZED_ACTIVATION,
@@ -27,6 +32,63 @@ export const ENGINEER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Resolver-owned spear packets share their selected declarations with presentation.
+  {
+    id: ENGINEER_CORE_BALANCE_PROFILE_IDS.lightningRod,
+    name: 'Lightning Rod Pulse',
+    profileKind: 'skill-variant',
+    effects: [
+      { type: 'strike', coefficient: 0.17, hits: 1 },
+      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8 }
+    ]
+  },
+  {
+    id: ENGINEER_CORE_BALANCE_PROFILE_IDS.focusedLightningRod,
+    name: 'Focused Lightning Rod Pulse',
+    profileKind: 'skill-variant',
+    effects: [
+      { type: 'strike', coefficient: 0.3, hits: 1 },
+      { type: 'condition', condition: 'Vulnerability', stacks: 2, duration: 8 }
+    ]
+  },
+  {
+    id: ENGINEER_CORE_BALANCE_PROFILE_IDS.conduitSurge,
+    name: 'Conduit Surge',
+    profileKind: 'skill-variant',
+    durationMultiplier: 10,
+    effects: [
+      { type: 'strike', coefficient: 1.2, hits: 1 },
+      { type: 'condition', condition: 'Burning', stacks: 1, duration: 7 }
+    ]
+  },
+  {
+    id: ENGINEER_CORE_BALANCE_PROFILE_IDS.electricArtillery,
+    name: 'Electric Artillery',
+    profileKind: 'skill-variant',
+    maximumStacks: 12,
+    chargesPerVulnerability: 2,
+    burningDurationPerCharge: 0.25,
+    effects: [
+      { type: 'strike', coefficient: 1, hits: 1 },
+      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 },
+      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8 },
+      { type: 'condition', condition: 'Burning', stacks: 2, duration: 3 }
+    ]
+  },
+  {
+    id: ENGINEER_CORE_BALANCE_PROFILE_IDS.focusedElectricArtillery,
+    name: 'Focused Electric Artillery',
+    profileKind: 'skill-variant',
+    maximumStacks: 12,
+    chargesPerVulnerability: 1,
+    burningDurationPerCharge: 0.5,
+    effects: [
+      { type: 'strike', coefficient: 1.5, hits: 1 },
+      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 },
+      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8 },
+      { type: 'condition', condition: 'Burning', stacks: 2, duration: 3 }
+    ]
+  },
   {
     id: ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
     name: 'Engineer Endurance',

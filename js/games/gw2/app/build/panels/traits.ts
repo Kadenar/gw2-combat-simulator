@@ -1,4 +1,4 @@
-import { bindWikiTooltips, wikiTooltipAttributes } from '#gw2/app/shared/wiki-tooltip.js';
+import { traitTooltipAttributes, wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -63,6 +63,8 @@ export function renderTraits(app: ProfessionAppState): void {
   if (!container) throw new Error('Required traits panel is missing.');
   const specializations = app.specializations as unknown as readonly ProfessionSpecialization[];
   const selectedNames = app.build.specializations.map((spec) => spec.name);
+  // Trait payloads follow the build's elite specialization, including unselected traits being inspected.
+  const eliteSpecialization = app.adapter.eliteSpecialization(app.build);
   container.innerHTML = app.build.specializations
     .map((selection, lineIndex) => {
       const spec = specializations.find((candidate) => candidate.name === selection.name) || specializations[0];
@@ -120,14 +122,14 @@ export function renderTraits(app: ProfessionAppState): void {
                                     <button type="button" class="spec-trait-minor ${selection.disabledMinorTraits?.includes(tier) ? 'dim' : 'sel'}"
                                       data-line="${lineIndex}" data-tier="${tier}" data-pick="0"
                                       aria-pressed="${!selection.disabledMinorTraits?.includes(tier)}" aria-label="${esc(minor.name)}"
-                                      ${wikiTooltipAttributes(minor.name, minor.description)}><img src="${esc(minor.icon)}" alt=""></button>
+                                      ${traitTooltipAttributes(minor, app.adapter.traitTooltip(minor, app.patchId, eliteSpecialization))}><img src="${esc(minor.icon)}" alt=""></button>
                                     <div class="spec-trait-majors">${spec.majorTraits[tier]
                                       .map(
                                         (trait, position) =>
                                           `<button type="button" class="spec-trait-major ${picks[tier] === position + 1 ? 'sel' : 'dim'}"
                                             data-line="${lineIndex}" data-tier="${tier}" data-pick="${position + 1}"
                                             aria-pressed="${picks[tier] === position + 1}" aria-label="${esc(trait.name)}"
-                                            ${wikiTooltipAttributes(trait.name, trait.description)}><img src="${esc(trait.icon)}" alt=""></button>`
+                                            ${traitTooltipAttributes(trait, app.adapter.traitTooltip(trait, app.patchId, eliteSpecialization))}><img src="${esc(trait.icon)}" alt=""></button>`
                                       )
                                       .join('')}</div>
                                 </div>`;
@@ -137,7 +139,6 @@ export function renderTraits(app: ProfessionAppState): void {
                 </div></div>`;
     })
     .join('');
-  bindWikiTooltips();
   container.querySelectorAll('.spec-picker-option').forEach((button) => {
     if (!(button instanceof HTMLButtonElement)) return;
     button.addEventListener('click', () => {

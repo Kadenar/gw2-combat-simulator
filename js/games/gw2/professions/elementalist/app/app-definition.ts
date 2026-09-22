@@ -1,5 +1,6 @@
 import { preferOffhand } from '#gw2/app/create-adapter.js';
 import { definePatchedProfessionApp } from '#gw2/app/create-patched-adapter.js';
+import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import { applyElementalistBuildAttributeRules } from '#gw2/professions/elementalist/build/attributes.js';
 import { toApplicationBuild } from '#gw2/professions/elementalist/build/build.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
@@ -59,6 +60,7 @@ function isElementalistSkillAvailable(skill: Skill, context: ProfessionSkillAvai
  */
 // Exposes Elementalist only through the shared browser application contract.
 export const elementalistAppAdapter = definePatchedProfessionApp({
+  tooltips: elementalistTooltips,
   profession: elementalistProfession,
   applyBuildAttributeRules: applyElementalistBuildAttributeRules,
   toApplicationBuild,

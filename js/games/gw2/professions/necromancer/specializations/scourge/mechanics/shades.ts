@@ -72,6 +72,7 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
   const impactAt =
     skill.id === ID.MANIFEST_SAND_SHADE ? context.start + (context.fullEnd - context.start) * (11 / 12) : at;
   const shadeProfile = balanceProfileFromContext(context, PROFILE.shade);
+  if (!shadeProfile) throw new Error('Missing Scourge shade balance profile');
   if (skill.id === ID.MANIFEST_SAND_SHADE) {
     const profile = hasTrait(context, TRAIT.SAND_SAVANT)
       ? balanceProfileFromContext(context, PROFILE.sandSavant)
@@ -134,7 +135,12 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     skillWeapon: 'Unequipped',
     skillName: shadeStrikeName,
     parentSkillName: skill.name,
-    metadata: { necromancerShroudSkillOne: true, dhuumfireDuration: 2, dhuumfireInterval: 1 }
+    // Read the selected shade profile so patches also update Dhuumfire's duration and ICD.
+    metadata: {
+      necromancerShroudSkillOne: true,
+      dhuumfireDuration: Number(shadeProfile.dhuumfireDuration),
+      dhuumfireInterval: Number(shadeProfile.dhuumfireInterval)
+    }
   });
   const shadeCondition = balanceProfileEffect(shadeProfile, 'condition');
   emitSkillCondition(context, {

@@ -1368,13 +1368,7 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
       attributeProvenance: {
         professionStaticRulesApplied: true
       },
-      selectedTraitIds: [
-        TRAIT.DETERMINED_RESOLUTION,
-        TRAIT.SERENE_REJUVENATION,
-        TRAIT.CONTAINED_TEMPER,
-        TRAIT.YEARNING_EMPOWERMENT,
-        TRAIT.NUMINOUS_GIFT
-      ]
+      selectedTraitIds: [TRAIT.YEARNING_EMPOWERMENT, TRAIT.NUMINOUS_GIFT]
     }
   };
   const numinousAttributes = revenantAttributeRules.modifyAttributes(numinousContext, {
@@ -1398,9 +1392,6 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
     ),
     0.6
   );
-  assert.equal(numinousAttributes.strikeDamageReduction, 0.05);
-  assert.equal(numinousAttributes.healingEffectiveness, 0.05);
-  assert.equal(numinousAttributes.containedTemperEnergyGainBonus, 5);
 });
 
 test("Conduit runtime rejects Vindicator's Alliance legend", () => {

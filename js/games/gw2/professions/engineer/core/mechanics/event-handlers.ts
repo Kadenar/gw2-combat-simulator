@@ -12,6 +12,8 @@ import type {
   EngineerSkill
 } from '#gw2/professions/engineer/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 
 /** Emits kit transitions as sigil swaps so shared equipment reactions observe the bar change. */
 export function emitEngineerBarSwap(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
@@ -62,28 +64,32 @@ function focused(context: EngineerResolverContext, at: number): boolean {
 /** Each Lightning Rod pulse applies Vulnerability, with stronger strikes and stacks against Focused targets. */
 export function handleLightningRodPulse(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const isFocused = focused(context, event.at);
+  const profile = balanceProfileFromContext(context, isFocused ? PROFILE.focusedLightningRod : PROFILE.lightningRod)!;
+  const condition = balanceProfileEffect(profile, 'condition')!;
   queueDamage(context, event, {
     name: 'Lightning Rod',
-    coefficient: isFocused ? 0.3 : 0.17
+    coefficient: Number(balanceProfileEffect(profile, 'strike')!.coefficient)
   });
   applyEngineerDerivedCondition(context, event, {
     name: 'Lightning Rod',
     condition: 'Vulnerability',
-    stacks: isFocused ? 2 : 1,
-    duration: 8
+    stacks: Number(condition.stacks),
+    duration: Number(condition.duration)
   });
 }
 
 /** Opens the Focused target window and resolves Conduit Surge's strike and burning packets. */
 export function handleConduitSurge(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+  const profile = balanceProfileFromContext(context, PROFILE.conduitSurge)!;
+  const burning = balanceProfileEffect(profile, 'condition')!;
   // Math.max preserves a longer existing Focused window; Conduit Surge must not shorten it
   professionCoreState(context).focusedUntil = Math.max(
     Number(professionCoreState(context).focusedUntil || 0),
-    event.at + 10
+    event.at + Number(profile.durationMultiplier)
   );
   queueDamage(context, event, {
     name: 'Conduit Surge',
-    coefficient: 1.2
+    coefficient: Number(balanceProfileEffect(profile, 'strike')!.coefficient)
   });
   context.queue.enqueue(
     buildResolverCondition({
@@ -91,8 +97,8 @@ export function handleConduitSurge(context: EngineerResolverContext, event: Engi
       name: 'Conduit Surge — Burning',
       skillName: 'Conduit Surge',
       condition: 'Burning',
-      stacks: 1,
-      duration: 7,
+      stacks: Number(burning.stacks),
+      duration: Number(burning.duration),
       source: 'engineer',
       sourceId: event.skillId ?? event.sourceId,
       actorType: 'player'
@@ -103,27 +109,35 @@ export function handleConduitSurge(context: EngineerResolverContext, event: Engi
 /** Resolves Electric Artillery using its stored charges and current Focused state. */
 export function handleElectricArtillery(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const isFocused = focused(context, event.at);
+  const profile = balanceProfileFromContext(
+    context,
+    isFocused ? PROFILE.focusedElectricArtillery : PROFILE.electricArtillery
+  )!;
+  const immobilize = balanceProfileEffect(profile, 'condition', 0)!;
+  const vulnerability = balanceProfileEffect(profile, 'condition', 1)!;
+  const burning = balanceProfileEffect(profile, 'condition', 2)!;
   // charges accumulate from Lightning Rod hits (max 12); Math.trunc discards partial charges
-  const charges = boundedInteger(event.charges || 0, 0, 0, 12);
+  const charges = boundedInteger(event.charges || 0, 0, 0, Number(profile.maximumStacks));
   queueDamage(context, event, {
     name: 'Electric Artillery',
-    coefficient: isFocused ? 1.5 : 1,
+    coefficient: Number(balanceProfileEffect(profile, 'strike')!.coefficient),
     explosion: true
   });
   applyEngineerDerivedCondition(context, event, {
     name: 'Electric Artillery',
     condition: 'Immobilized',
-    stacks: 1,
-    duration: 2
+    stacks: Number(immobilize.stacks),
+    duration: Number(immobilize.duration)
   });
   // The tooltip specifies charges required per stack: one when Focused, otherwise two.
-  const vulnerabilityStacks = Math.floor(charges / (isFocused ? 1 : 2));
+  const vulnerabilityStacks =
+    Math.floor(charges / Number(profile.chargesPerVulnerability)) * Number(vulnerability.stacks);
   if (vulnerabilityStacks > 0) {
     applyEngineerDerivedCondition(context, event, {
       name: 'Electric Artillery',
       condition: 'Vulnerability',
       stacks: vulnerabilityStacks,
-      duration: 8,
+      duration: Number(vulnerability.duration),
       // Artillery's Vulnerability does not scale with condition duration.
       metadata: { fixedDuration: true }
     });
@@ -135,8 +149,8 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
       name: 'Electric Artillery — Burning',
       skillName: 'Electric Artillery',
       condition: 'Burning',
-      stacks: 2,
-      duration: 3 + charges * (isFocused ? 0.5 : 0.25),
+      stacks: Number(burning.stacks),
+      duration: Number(burning.duration) + charges * Number(profile.burningDurationPerCharge),
       source: 'engineer',
       sourceId: event.skillId ?? event.sourceId,
       actorType: 'player'

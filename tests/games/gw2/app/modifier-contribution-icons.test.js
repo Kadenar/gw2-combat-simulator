@@ -45,25 +45,19 @@ test('every configurable boon and condition has a canonical icon', () => {
     SIMULATION_EFFECTS.filter((name) => !MODIFIER_EFFECT_ICONS[name]),
     []
   );
-  assert.match(MODIFIER_EFFECT_ICONS.Blindness, /Blinded\.png$/);
-  assert.match(MODIFIER_EFFECT_ICONS.Immobilize, /Immobile\.png$/);
+  assert.match(MODIFIER_EFFECT_ICONS.Blindness, /102837\.png$/);
+  assert.match(MODIFIER_EFFECT_ICONS.Immobilize, /102844\.png$/);
 });
 
 test('common modifier contributions use their canonical icons', () => {
-  assert.equal(
-    resultSkillIcon(app, { id: 'Boon:Might', name: 'Might' }),
-    'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Might.png'
-  );
-  assert.equal(
-    resultSkillIcon(app, { id: 'Boon:Fury', name: 'Fury' }),
-    'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fury.png'
-  );
+  assert.equal(resultSkillIcon(app, { id: 'Boon:Might', name: 'Might' }), MODIFIER_EFFECT_ICONS.Might);
+  assert.equal(resultSkillIcon(app, { id: 'Boon:Fury', name: 'Fury' }), MODIFIER_EFFECT_ICONS.Fury);
   assert.equal(
     resultSkillIcon(app, {
       id: 'Target:Vulnerability',
       name: 'Vulnerability'
     }),
-    'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Vulnerability.png'
+    MODIFIER_EFFECT_ICONS.Vulnerability
   );
   assert.equal(resultSkillIcon(app, { id: 'Sigil:Force', name: 'Sigil of Force' }), SIGIL_DATA.Force.icon);
   assert.equal(

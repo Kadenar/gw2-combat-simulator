@@ -450,9 +450,7 @@ function summonSpirit(
   } else if (spirit.key === 'wanderlust') {
     emitWanderlustInitial(context, skill, spirit, at);
   } else if (spirit.key === 'preservation') {
-    const boonOptions = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
-    emitSkillBuff(context, skill, { at, kind: 'protection', duration: 4, stacks: 1, ...boonOptions });
-    emitSkillBuff(context, skill, { at, kind: 'vigor', duration: 4, stacks: 1, ...boonOptions });
+    emitSpiritBoons(context, skill, at);
   }
 
   startSpiritActions(context, skill, spirit, at);
@@ -550,7 +548,6 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
   const at = context.effectiveEnd;
   if (skill.id === ID.INNERVATE_ANGUISH) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
-    const boons = skill.effects?.filter((effect) => effect.type === 'boon') || [];
     emitSkillDamage(context, skill, {
       at,
       source: 'Spirit',
@@ -561,16 +558,7 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
       summonOwner: 'spirit:anguish',
       metadata: { spirit: 'anguish', spiritAttackType: 'innervate' }
     });
-    const boonOptions = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
-    for (const boon of boons) {
-      emitSkillBuff(context, skill, {
-        at,
-        kind: String(boon.boon || ''),
-        duration: Number(boon.duration || 0),
-        stacks: Number(boon.stacks ?? 1),
-        ...boonOptions
-      });
-    }
+    emitSpiritBoons(context, skill, at);
   } else if (skill.id === ID.INNERVATE_WANDERLUST) {
     emitSkillControl(context, {
       at,
@@ -579,24 +567,35 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
       actorType: 'player',
       skillId: skill.id,
       skillName: skill.name,
-      controlKind: 'fear',
+      controlKind: String(balanceProfileEffect(skill, 'control')?.controlKind),
       ...spiritEventFields(context, 'wanderlust', 'innervate')
     });
   } else if (skill.id === ID.INNERVATE_PRESERVATION) {
-    const boonOptions = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
-    emitSkillBuff(context, skill, { at, kind: 'aegis', duration: 3, stacks: 1, ...boonOptions });
-    emitSkillBuff(context, skill, { at, kind: 'resistance', duration: 4, stacks: 1, ...boonOptions });
-    emitSkillBuff(context, skill, { at, kind: 'stability', duration: 5, stacks: 1, ...boonOptions });
+    emitSpiritBoons(context, skill, at);
   } else {
     return false;
   }
 
   // Every recognized Innervate restores the same life force and publishes the resulting state.
-  gainNecromancerLifeForce(context, 10, at);
+  gainNecromancerLifeForce(context, Number(skill.innervateLifeForceGain), at);
   emitNecromancerStateSnapshot(context, at, 'innervate', {
     dedupeAcrossSourceIds: true
   });
   return true;
+}
+
+/** Spirit grants retain their cast timing while sharing canonical boon values and recipients with presentation. */
+function emitSpiritBoons(context: NecromancerCastContext, skill: NecromancerSkill, at: number): void {
+  for (const effect of skill.effects || []) {
+    if (effect.type !== 'boon' || !effect.boon) continue;
+    emitSkillBuff(context, skill, {
+      at,
+      kind: effect.boon,
+      duration: effect.duration,
+      stacks: effect.stacks,
+      audience: effect.audience
+    });
+  }
 }
 
 /** Exposes Ritualist profession-skill and Innervate casts through the shared skill-handler contract. */

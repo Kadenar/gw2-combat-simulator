@@ -12,7 +12,8 @@ import {
   GW2_SKILL_ID_ALIASES,
   isTerrestrialSkill,
   serializeProfessionSnapshot,
-  skillSnapshot
+  skillSnapshot,
+  traitSnapshot
 } from '../../scripts/data/lib/gw2-profession-snapshot.mjs';
 import { updateProfessionApiData } from '../../scripts/data/update-profession-api-data.mjs';
 
@@ -20,6 +21,22 @@ import { updateProfessionApiData } from '../../scripts/data/update-profession-ap
 const apiFixture = JSON.parse(
   await readFile(new URL('../fixtures/gw2-api/profession-snapshot.json', import.meta.url), 'utf8')
 );
+
+// API refreshes retain identity while excluding external descriptions of simulated effects.
+test('profession snapshots discard external tooltip facts', () => {
+  const entity = {
+    id: 1,
+    name: 'Example',
+    facts: [{ type: 'Percent', percent: 999 }],
+    traited_facts: [{ type: 'Damage', dmg_multiplier: 999 }]
+  };
+  for (const snapshot of [skillSnapshot(entity), traitSnapshot(entity, 'Example')]) {
+    assert.equal(Object.hasOwn(snapshot, 'tooltipFacts'), false);
+    assert.equal(Object.hasOwn(snapshot, 'facts'), false);
+    assert.equal(Object.hasOwn(snapshot, 'traited_facts'), false);
+    assert.equal(snapshot.name, entity.name);
+  }
+});
 
 function createFixtureFetch(requests = [], fixture = apiFixture) {
   return async (requestUrl) => {

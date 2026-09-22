@@ -1,4 +1,5 @@
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/engine/profession/types.js';
@@ -278,6 +279,23 @@ export function withPatchPreview<
     return validatedPreviewCatalog();
   };
 
+  // Reuse the selected declarations used by runtime compilation so tooltip and attribute values cannot mix patches.
+  const balanceContexts = new Map<string, ProfessionBalanceContext>();
+  const balanceContextFor = (patchId = CURRENT_PATCH_ID): ProfessionBalanceContext => {
+    const catalog = catalogFor(patchId);
+    let context = balanceContexts.get(patchId);
+    if (!context) {
+      const selectedRules =
+        patchId === CURRENT_PATCH_ID || !previewModifierRules.targets.length
+          ? modifierRules
+          : [...previewModifierRules.byModule.values()].flat();
+      context = Object.freeze({ catalog, modifierRulesById: new Map(selectedRules.map((rule) => [rule.id, rule])) });
+      balanceContexts.set(patchId, context);
+    }
+
+    return context;
+  };
+
   const validatePatch = (candidate: ProfessionPatchPreview | null | undefined): true => {
     if (!candidate) return true;
     assertProfessionPatchShape(definition.id, candidate);
@@ -316,6 +334,7 @@ export function withPatchPreview<
     ...family,
     preview,
     catalogFor,
+    balanceContextFor,
     patchAuthoring,
     validatePatch,
     resolveRuntime,

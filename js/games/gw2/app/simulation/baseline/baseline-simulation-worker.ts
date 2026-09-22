@@ -3,7 +3,7 @@ import { calculateBaselineSimulation } from '#gw2/app/simulation/baseline/baseli
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import type { BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
-import type { ProfessionAppContract } from '#gw2/app/types.js';
+import type { Gw2ProfessionSource } from '#gw2/platform/simulation/types.js';
 
 interface BaselineSimulationWorkerMessage {
   readonly requestId: number;
@@ -20,7 +20,7 @@ interface BaselineWarmupMessage {
 }
 
 // The worker owns the expensive simulation while the shared endpoint preserves job identity.
-createGameWorkerEndpoint<ProfessionAppContract, BaselineSimulationWorkerMessage | BaselineWarmupMessage>({
+createGameWorkerEndpoint<Gw2ProfessionSource, BaselineSimulationWorkerMessage | BaselineWarmupMessage>({
   echo: ({ revision }) => ({ revision }),
   async loadDriver({ gameId, contentId }) {
     if (gameId !== 'gw2') return null;

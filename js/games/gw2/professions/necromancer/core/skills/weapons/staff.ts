@@ -63,6 +63,8 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.PUTRID_MARK]: {
     castTimeMs: 480,
+    // The handler and tooltip share the maximum number of distinct self-condition types transferred.
+    conditionsTransferred: 3,
     effects: [
       {
         type: 'strike',

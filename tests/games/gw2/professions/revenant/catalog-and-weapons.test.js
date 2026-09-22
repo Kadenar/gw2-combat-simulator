@@ -700,6 +700,7 @@ test('legend palette shows only the destination legend with the shared swap cool
   assert.equal(
     paletteSkillView(
       {
+        adapter: revenantAppAdapter,
         results: {
           planningState: {
             atSeconds: 1,

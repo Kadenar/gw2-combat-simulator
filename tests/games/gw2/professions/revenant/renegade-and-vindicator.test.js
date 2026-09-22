@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { describe, test } from 'node:test';
 import {
   currentAutoattackSkill,
@@ -1550,6 +1551,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
       rotation: []
     },
     adapter: {
+      skillTooltip: revenantAppAdapter.skillTooltip,
       eliteSpecialization: () => 'Vindicator',
       isSkillAvailable: () => true
     },
@@ -1743,6 +1745,7 @@ test('Deathstrike weapon palette keeps the primary skill timing on cooldown', ()
       alternateWeapons: ['', '']
     },
     adapter: {
+      skillTooltip: revenantAppAdapter.skillTooltip,
       eliteSpecialization: () => 'Conduit',
       isSkillAvailable: () => true
     }

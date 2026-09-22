@@ -51,6 +51,8 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.DEATHLY_SWARM]: {
     castTimeMs: 480,
+    // The handler and tooltip share the maximum number of distinct self-condition types transferred.
+    conditionsTransferred: 2,
     effects: [
       {
         type: 'strike',

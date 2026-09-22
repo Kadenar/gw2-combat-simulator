@@ -12,6 +12,7 @@ import {
   updatePicker,
   bindCandidatePickers,
   enhanceDetailedSelect,
+  setEquipmentTooltip,
   positionGearPopover
 } from '#gw2/app/build/equipment-picker.js';
 import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';
@@ -20,10 +21,11 @@ import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js
 import { canEquipWeaponSigil, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
 import { groupedOptions, option } from '#gw2/app/shared/html.js';
 import { escapeHtml } from '#ui/shared/html.js';
-import { wikiTooltipAttributes } from '#gw2/app/shared/wiki-tooltip.js';
+import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { requiredElement, requiredSelect } from '#ui/shared/dom.js';
 import {
   foodOptionLabel,
+  gearTooltipAttributes,
   prefixOptionLabel,
   relicOptionLabel,
   runeOptionLabel,
@@ -42,6 +44,10 @@ function equipmentIcon(source?: string): string {
 // Short section headings separate related controls without repeating what each select already communicates.
 function sectionHeading(label: string): string {
   return `<div class="gear-section-heading">${label}</div>`;
+}
+
+function gearSlotLabel(slot: string): string {
+  return slot === 'Leggins' ? 'Leggings' : slot === 'Back' ? 'Back item' : slot.replace(/(\d)$/, ' $1');
 }
 
 // The native select remains the state source while the visible trigger keeps the closed control compact.
@@ -77,6 +83,21 @@ export function renderGear(app: ProfessionAppState): void {
   const b = app.build;
   const openWeaponEditor = document.querySelector('.weapon-editor:popover-open')?.id;
   const entry = getProfessionEntry(app.adapter.id);
+  const slotIcon = (slot: string): string =>
+    ARMOR_ICONS[entry?.armorWeight || 'light']?.[slot] || GEAR_ICONS[slot.replace(/\d$/, '')] || '';
+  // Both weapon sets resolve their own prefix and sockets; two-handed items own both sigils.
+  const weaponTooltip = (setNumber: number, slot: number, prefix: string): string => {
+    const weapons = setNumber === 1 ? b.weapons : b.alternateWeapons;
+    const twoHanded = app.weaponData[weapons[0]]?.wielding === '2h';
+    return gearTooltipAttributes({
+      name: weapons[slot],
+      prefix,
+      slot: twoHanded && slot === 0 ? 'Weapon2H' : `Weapon${slot + 1}`,
+      icon: GEAR_ICONS[weapons[slot]] || '',
+      sigils: twoHanded ? b.weaponSigils[setNumber - 1] : [b.weaponSigils[setNumber - 1][slot]]
+    });
+  };
+
   // Follow the active build's elite artwork, falling back to its core profession behind the equipment controls.
   const artwork = entry?.specializationArtwork;
   const conceptArt =
@@ -85,12 +106,12 @@ export function renderGear(app: ProfessionAppState): void {
     .querySelector<HTMLElement>('.gear-loadout')
     ?.style.setProperty('--gear-artwork', conceptArt ? `url("${conceptArt}")` : 'none');
   const gearPrefixRow = (slot: string): string => {
-    const label = slot === 'Leggins' ? 'Leggings' : slot === 'Back' ? 'Back item' : slot.replace(/(\d)$/, ' $1');
+    const label = gearSlotLabel(slot);
     return iconSelectRow(
       label,
       b.gear[slot],
       `<select class="gear-select gear-prefix" data-slot="${slot}" aria-label="${label} stats">${groupedOptions(PREFIX_GROUPS, b.gear[slot], (name) => prefixOptionLabel(name, slot))}</select>`,
-      ARMOR_ICONS[entry?.armorWeight || 'light']?.[slot] || GEAR_ICONS[slot.replace(/\d$/, '')] || ''
+      slotIcon(slot)
     );
   };
 
@@ -172,7 +193,7 @@ export function renderGear(app: ProfessionAppState): void {
           const statSlot = twoHanded && slot === 0 ? 'Weapon2H' : `Weapon${slot + 1}`;
           return `<div class="weapon-slot"${hidden ? ' hidden' : ''}>
           <div class="gear-row gear-icon-row weapon-row">
-            <button type="button" class="gear-select-trigger gear-icon-trigger weapon-icon-trigger" popovertarget="weapon-editor-${setNumber}-${slot}" aria-haspopup="dialog" aria-expanded="false" aria-label="Edit weapon set ${setNumber} ${label.toLowerCase()}" ${wikiTooltipAttributes(weapons[slot], prefixOptionLabel(prefixes[slot], statSlot))}>${equipmentIcon(GEAR_ICONS[weapons[slot]])}</button>
+            <button type="button" class="gear-select-trigger gear-icon-trigger weapon-icon-trigger" popovertarget="weapon-editor-${setNumber}-${slot}" aria-haspopup="dialog" aria-expanded="false" aria-label="Edit weapon set ${setNumber} ${label.toLowerCase()}" ${weaponTooltip(setNumber, slot, prefixes[slot])}>${equipmentIcon(GEAR_ICONS[weapons[slot]])}</button>
             <span class="gear-item-caption"><span class="gear-label">${label} &middot; ${escapeHtml(weapons[slot] || 'None')}</span><span class="gear-equipped-name">${unequipped ? 'Unequipped' : escapeHtml(prefixes[slot])}</span></span>
             <div id="weapon-editor-${setNumber}-${slot}" class="weapon-editor gear-select-menu" popover="auto" role="dialog" aria-label="Weapon set ${setNumber} ${label.toLowerCase()}">
               <div class="weapon-editor-heading"><strong>${label} &middot; Set ${setNumber}</strong><button type="button" class="btn btn-io" popovertarget="weapon-editor-${setNumber}-${slot}" popovertargetaction="hide" aria-label="Close weapon picker">&times;</button></div>
@@ -217,6 +238,8 @@ export function renderGear(app: ProfessionAppState): void {
 
       const caption = select.closest('.weapon-row')?.querySelector('.gear-equipped-name');
       if (caption) caption.textContent = select.value;
+      const trigger = select.closest('.weapon-row')?.querySelector<HTMLElement>('.weapon-icon-trigger');
+      if (trigger) setEquipmentTooltip(trigger, weaponTooltip(setNumber, slot, select.value));
       app.changed(true, false);
     });
   });
@@ -351,7 +374,23 @@ export function renderGear(app: ProfessionAppState): void {
   document
     .querySelectorAll('.gear-panel select.gear-select, .gear-select-display > select')
     .forEach((select, index) => {
-      if (select instanceof HTMLSelectElement) enhanceDetailedSelect(select, index);
+      if (!(select instanceof HTMLSelectElement)) return;
+      // Prefix choices preview the actual slot and refresh in place when native selection changes.
+      const slot = select.dataset.slot;
+      const describe =
+        select.matches('.gear-prefix') && slot
+          ? (prefix: string) =>
+              gearTooltipAttributes({
+                name: gearSlotLabel(slot),
+                prefix,
+                slot,
+                icon: slotIcon(slot),
+                rune: GEAR_SLOTS.slice(0, 6).includes(slot) ? b.rune : ''
+              })
+          : select.matches('.weapon-prefix')
+            ? (prefix: string) => weaponTooltip(Number(select.dataset.set), Number(slot), prefix)
+            : undefined;
+      enhanceDetailedSelect(select, index, describe);
     });
   document.querySelectorAll<HTMLButtonElement>('.weapon-icon-trigger').forEach((trigger) => {
     const menu = document.getElementById(trigger.getAttribute('popovertarget')!)!;

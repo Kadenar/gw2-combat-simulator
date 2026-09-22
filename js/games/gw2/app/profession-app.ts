@@ -1,4 +1,5 @@
 import { bindPageControls } from '#gw2/app/build/page-controls.js';
+import { bindWikiTooltips } from '#gw2/app/shared/tooltip-overlay.js';
 import { normalizeSelectedSkills } from '#gw2/app/build/state/skill-selection.js';
 import { normalizeInfusions } from '#gw2/platform/builds/codec.js';
 import {
@@ -174,6 +175,8 @@ export class ProfessionApp implements ProfessionAppState, ShellSession<Gw2Applic
     await this.adapter.capabilities.patchPreview?.mount(this);
     this.baselineSimulationRunner.warmup();
     bindPageControls(this);
+    // Delegated tooltip listeners and the mutation observer cover every subsequent panel render.
+    bindWikiTooltips();
     document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => {
       // Analysis owns modifier work; navigation away cancels it without discarding completed results.
       if (document.body?.dataset.simulatorView === 'analysis') this.modifierContributionRunner.schedule();

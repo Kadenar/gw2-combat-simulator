@@ -108,6 +108,7 @@ test('Electric Artillery converts whole charges into Focused-sensitive Vulnerabi
       const conditions = [];
       handleElectricArtillery(
         {
+          catalog: engineerCatalog,
           profession: { core: { focusedUntil } },
           queue: { enqueue: (event) => event },
           applyCondition: (event) => conditions.push(event)

@@ -347,7 +347,7 @@ export function serializeProfessionSnapshot({ professionName, snapshotDate, spec
     `// Simulator mechanics are maintained under ${id}/core/ and ${id}/specializations/.`,
     '',
     `import type { Gw2ApiSpecialization } from "#gw2/platform/profession-definition/api-metadata-types.js";`,
-    `import type { ${professionName}Skill } from "#gw2/professions/${id}/types.js";`,
+    `import type { ${professionName}Skill } from "#gw2/professions/${id}/${id === 'mesmer' ? 'data/' : ''}types.js";`,
     '',
     `export const SPECIALIZATIONS: readonly Gw2ApiSpecialization[] = ${JSON.stringify(specializations, null, 2)};`,
     `export const SKILLS: readonly ${professionName}Skill[] = ${JSON.stringify(skills, null, 2)};`,

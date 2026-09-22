@@ -191,9 +191,7 @@ function applyTemplateFilter(
   if (specializationValue) specializationValue.textContent = specialization || 'Any';
 
   let visibleTemplates = 0;
-  container
-    .querySelectorAll<HTMLElement>('[data-library-panel="templates"] .template-preset')
-    .forEach((preset) => {
+  container.querySelectorAll<HTMLElement>('[data-library-panel="templates"] .template-preset').forEach((preset) => {
     const matchesDamageType = filter === 'all' || preset.dataset.templateCategory === filter;
     const matchesBoon = boonFilter === 'all' || preset.dataset.templateBoon === boonFilter;
     const matchesSpecialization = specialization === null || preset.dataset.templateSpecialization === specialization;
@@ -201,7 +199,7 @@ function applyTemplateFilter(
     const visible = matchesDamageType && matchesBoon && matchesSpecialization && matchesSearch;
     preset.hidden = !visible;
     if (visible) visibleTemplates += 1;
-    });
+  });
 
   container.querySelectorAll<HTMLElement>('.template-subgroup, .presets-group').forEach((group) => {
     group.hidden = !group.querySelector('.template-preset:not([hidden])');
@@ -296,7 +294,7 @@ function renderMyBuilds(container: HTMLElement, builds: readonly MyBuild[], sear
         <span>Try a different search.</span>`
       : `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a2 2 0 0 1 2 2v14l-7.5-4L3 20V6a2 2 0 0 1 2-2Z"></path><path d="M8 9h5M10.5 6.5v5"></path></svg>
         <strong>No saved builds yet</strong>
-        <span>Use “Save to My Builds” from a build tab’s menu to add one.</span>`;
+        <span>Use “Save to My Builds” from a build tab's menu to add one.</span>`;
     empty.hidden = visible > 0;
   }
 }
@@ -542,8 +540,9 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
         event.preventDefault();
         try {
           myBuilds = saveMyBuild(app, name.value, target.value || undefined, category.value);
-          const search = container.querySelector<HTMLInputElement>('.build-library-search input')!.value
-            .trim()
+          const search = container
+            .querySelector<HTMLInputElement>('.build-library-search input')!
+            .value.trim()
             .toLowerCase();
           renderMyBuilds(container, myBuilds, search);
           saveDialog.close();

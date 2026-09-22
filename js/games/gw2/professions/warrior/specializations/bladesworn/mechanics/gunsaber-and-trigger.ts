@@ -214,8 +214,12 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
   context.replaceEvent(context.action, {
     rechargeReadyAt: context.rechargeStart + Math.max(context.rechargeDuration, context.ammoLockoutDuration)
   });
-  const profile = balanceProfileFromContext(context, PROFILE.artillerySlash);
-  const strike = balanceProfileEffect(profile, 'strike', charges >= 2 ? 1 : 0);
+  const profile = balanceProfileFromContext(
+    context,
+    sharpAsTheWind ? PROFILE.sharpArtillerySlash : PROFILE.artillerySlash
+  );
+  const strike = balanceProfileEffect(profile, 'strike', !sharpAsTheWind && charges >= 2 ? 1 : 0);
+  if (strike?.coefficient == null) throw new Error('Missing Artillery Slash strike profile');
   emitSkillDamage(context, {
     at: context.effectiveEnd,
     skillId: skill.id,
@@ -223,7 +227,7 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
     skillName: skill.name,
     source: 'Warrior',
     actorType: 'player',
-    coefficient: sharpAsTheWind ? 2 : Number(strike?.coefficient ?? (charges >= 2 ? 3 : 2)),
+    coefficient: strike.coefficient,
     skillWeapon: 'Gunsaber',
     damageKind: 'explosion',
     projectile: sharpAsTheWind,
@@ -241,13 +245,16 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
   });
   if (sharpAsTheWind) {
     // The condition variant spends the same ammo pool while scaling its Bleeding payload by rounds consumed.
+    const bleeding = balanceProfileEffect(profile, 'condition', charges >= 2 ? 1 : 0);
+    if (!bleeding?.condition || bleeding.stacks == null || bleeding.duration == null)
+      throw new Error('Missing Artillery Slash Bleeding profile');
     emitSkillCondition(context, {
       skill,
       at: context.effectiveEnd,
       source: 'Warrior',
-      condition: 'Bleeding',
-      stacks: charges >= 2 ? 4 : 3,
-      duration: charges >= 2 ? 7 : 6
+      condition: bleeding.condition,
+      stacks: bleeding.stacks,
+      duration: bleeding.duration
     });
   }
 

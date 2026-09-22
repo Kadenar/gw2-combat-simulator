@@ -600,7 +600,7 @@ test('damage contribution percentages share a denominator and handle empty damag
   assert.match(container.innerHTML, /Environment % Damage: 10\.00%/);
   assert.match(
     container.innerHTML,
-    /Burning\.png" alt="" \/>Burning<\/span>\s*<span class="condi">30<\/span>\s*<span>30\.00%<\/span>/
+    /102849\.png" alt="" \/>Burning<\/span>\s*<span class="condi">30<\/span>\s*<span>30\.00%<\/span>/
   );
   assert.match(container.innerHTML, /<b>30\.00%<\/b>/);
   assert.equal(skillRows[0].damagePercent, undefined);

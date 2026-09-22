@@ -3,7 +3,7 @@ import { mountTimeSeriesCharts, type ChartOptions } from '#gw2/app/results/chart
 import { mountHitTimeline } from '#ui/results/charts/hit-timeline-view.js';
 import { bindDialog, showDialog } from '#app/page/dialog.js';
 import { escapeHtml } from '#ui/shared/html.js';
-import { wikiTooltipAttributes } from '#gw2/app/shared/wiki-tooltip.js';
+import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { equipmentTooltipAttributes } from '#gw2/app/build/equipment-option-labels.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 import type { SkillBreakdownRow } from '#gw2/app/results/skill-breakdown.js';

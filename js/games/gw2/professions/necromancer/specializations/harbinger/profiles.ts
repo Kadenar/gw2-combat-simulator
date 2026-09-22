@@ -8,6 +8,7 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 
 export const HARBINGER_BALANCE_PROFILE_IDS = Object.freeze({
   resources: 'necromancer.harbinger.resources',
+  darkBarrageDoomApproaches: 'necromancer.harbinger.dark-barrage-doom-approaches',
   cascadingCorruption: TRAIT.CASCADING_CORRUPTION,
   septicCorruption: TRAIT.SEPTIC_CORRUPTION,
   doomApproaches: TRAIT.DOOM_APPROACHES,
@@ -29,6 +30,15 @@ export const HARBINGER_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Doom Approaches replaces the ordinary channel with this independently interruptible volley.
+  variant(HARBINGER_BALANCE_PROFILE_IDS.darkBarrageDoomApproaches, ID.DARK_BARRAGE, 'Dark Barrage — Doom Approaches', {
+    pulseCount: 8,
+    pulseInterval: 0.75 / 8,
+    effects: [
+      { type: 'strike', coefficient: 0.6 },
+      { type: 'condition', condition: 'Torment', stacks: 1, duration: 3 }
+    ]
+  }),
   {
     id: HARBINGER_BALANCE_PROFILE_IDS.resources,
     name: 'Harbinger Blight',

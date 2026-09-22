@@ -149,18 +149,6 @@ function modifyConduitAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
     modified[attribute] = Number(modified[attribute] || 0) + Number(bonus || 0);
   }
 
-  if (hasTrait(context, TRAIT.DETERMINED_RESOLUTION)) {
-    modified.strikeDamageReduction = Number(modified.strikeDamageReduction || 0) + 0.05;
-  }
-
-  if (hasTrait(context, TRAIT.SERENE_REJUVENATION)) {
-    modified.healingEffectiveness = Number(modified.healingEffectiveness || 0) + 0.05;
-  }
-
-  if (hasTrait(context, TRAIT.CONTAINED_TEMPER)) {
-    modified.containedTemperEnergyGainBonus = Number(modified.containedTemperEnergyGainBonus || 0) + 5;
-  }
-
   return modified;
 }
 

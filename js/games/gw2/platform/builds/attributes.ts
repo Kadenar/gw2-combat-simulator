@@ -502,7 +502,8 @@ export function createCalculateAttributes(
     selectedSkills: readonly Skill[] = [],
     weaponSet = 1,
     disabledTrait: string | null = null,
-    disabledSigil: string | null = null
+    disabledSigil: string | null = null,
+    balanceContext?: import('#gw2/platform/profession-presentation/balance-context.js').ProfessionBalanceContext
   ) {
     // Modifier comparisons omit the named sigil here so attribute and runtime effects use the same effective loadout.
     const sigilNames = disabledSigil
@@ -513,7 +514,8 @@ export function createCalculateAttributes(
       build,
       selectedSkills,
       weaponSet,
-      disabledTrait
+      disabledTrait,
+      balanceContext
     });
   };
 }

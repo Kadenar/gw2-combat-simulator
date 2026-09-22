@@ -7,12 +7,11 @@
  * shared profession app adapter.
  */
 
-import type { Gw2AppAdapter, ProfessionAppContract } from '#gw2/app/types.js';
+import type { Gw2AppAdapter } from '#gw2/app/types.js';
 import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
 
 // Preserve native composition metadata so engine consumers can apply previews without loading an app adapter.
-type RegisteredProfession = ProfessionAppContract &
-  NativeProfessionContract<readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]]>;
+type RegisteredProfession = NativeProfessionContract<readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]]>;
 
 /** Armor classes, ordered as navigation surfaces group professions. */
 export const ARMOR_WEIGHTS = ['light', 'medium', 'heavy'] as const;

@@ -1,4 +1,5 @@
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 import type {
   BalanceProfile,
   CanonicalCatalog,
@@ -75,6 +76,7 @@ export type NativePatchAuthoringContract<
 > = NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild> & {
   readonly preview: PatchPreview | null;
   readonly catalogFor: (patchId?: string) => Readonly<CanonicalCatalog>;
+  readonly balanceContextFor: (patchId?: string) => ProfessionBalanceContext;
   /** Serializable live metadata consumed by the local patch authoring UI. */
   readonly patchAuthoring: NativePatchAuthoringMetadata;
   /** Validates one profession's authored edits against live declarations. */

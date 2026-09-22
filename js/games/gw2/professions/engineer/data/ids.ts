@@ -4,7 +4,7 @@ import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/eng
 function constantName(value: unknown): string {
   return String(value || '')
     .normalize('NFKD')
-    .replace(/['’]/g, '')
+    .replace(/['\u2019]/g, '')
     .replace(/[^a-z0-9]+/gi, '_')
     .replace(/^_+|_+$/g, '')
     .toUpperCase();

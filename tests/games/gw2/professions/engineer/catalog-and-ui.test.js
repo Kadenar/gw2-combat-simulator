@@ -864,7 +864,7 @@ test('Photon Forge kit lockout renders as a queueable palette cooldown', async (
   };
   const availability = engineerProfession.ui.paletteSkillAvailability(context, kit);
   const view = paletteSkillView(
-    { results: result },
+    { results: result, adapter: await loadProfessionAppAdapter('engineer') },
     kit,
     availability.available,
     availability.message,
