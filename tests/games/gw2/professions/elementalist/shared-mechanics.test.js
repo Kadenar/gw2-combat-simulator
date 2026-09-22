@@ -10,6 +10,7 @@ import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/a
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { applyPistolState } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { availability as evokerAvailability } from '#gw2/professions/elementalist/specializations/evoker/mechanics/availability.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { weaverCastRules } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
@@ -62,6 +63,30 @@ test('attunement recharge resumes after an explicit combat marker or the first h
     assert.deepEqual(result.warnings, []);
     assert.equal(swaps[1].start, swaps[0].start);
     assert.equal(swaps[3].start - swaps[2].start, 10000);
+  }
+});
+
+test('attunement entry damage traits require combat already active', () => {
+  // Both an explicit marker and a landed hit should enable only subsequent entry traits.
+  for (const combatStart of [['__combat_start'], ['Fireball', { type: 'wait', durationMs: 2000 }]]) {
+    const result = simulateGw2({
+      profession: elementalistProfession,
+      rotation: ['Air Attunement', 'Fire Attunement', ...combatStart, 'Air Attunement', 'Fire Attunement'],
+      config: {
+        specialization: 'Core',
+        startAttunement: 'Fire',
+        primaryWeapon: 'Staff',
+        selectedTraitIds: [TRAIT.ELECTRIC_DISCHARGE, TRAIT.SUNSPOT]
+      }
+    });
+    const procs = result.events.filter(
+      (event) => event.type === 'damage' && ['Electric Discharge', 'Sunspot'].includes(event.skillName)
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(
+      procs.map((event) => event.skillName),
+      ['Electric Discharge', 'Sunspot']
+    );
   }
 });
 
@@ -496,7 +521,7 @@ test('Sunspot uses its own icon in the damage breakdown', () => {
 // Both entry paths must retain trigger attribution through strike and Burning resolution.
 for (const [specialization, startAttunement, rotation, trigger] of [
   ['Arcane', 'Air', ['Lightning Strike', 'Fire Attunement', 5000], 'Fire Attunement'],
-  ['Tempest', 'Fire', [6000, 'Overload Fire', 5000], 'Overload Fire']
+  ['Tempest', 'Fire', [{ type: 'combat-start' }, 6000, 'Overload Fire', 5000], 'Overload Fire']
 ]) {
   test(`Sunspot attributes its strike and Burning to ${trigger}`, () => {
     const result = runNative({
@@ -522,7 +547,7 @@ for (const [specialization, startAttunement, rotation, trigger] of [
 // Attunement and overload activations must retain both the effect icon and the actual damage trigger.
 for (const [specialization, startAttunement, rotation, trigger] of [
   ['Arcane', 'Air', ['Lightning Strike', 'Earth Attunement'], 'Earth Attunement'],
-  ['Tempest', 'Earth', [6000, 'Overload Earth'], 'Overload Earth']
+  ['Tempest', 'Earth', [{ type: 'combat-start' }, 6000, 'Overload Earth'], 'Overload Earth']
 ]) {
   test(`Earthen Blast preserves its icon and attributes damage to ${trigger}`, () => {
     const result = runNative({

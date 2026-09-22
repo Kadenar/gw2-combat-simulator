@@ -11,6 +11,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
+import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
 import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
@@ -31,9 +32,12 @@ export function activeAura(state: ElementalistCoreState, aura: string, at: numbe
   return state.activeAuras.find((candidate) => candidate.type === aura && candidate.expiresAt > at) || null;
 }
 
-/** Reports whether `at` lies inside the configured combat window; gates trait effects that only fire in combat. */
+/** Gates combat-only traits on combat already observed, including runs without an explicit start marker. */
 export function combatStarted(context: ElementalistSchedulerContext, at: number): boolean {
-  return !context.hasExplicitCombatStart || (context.combatStartTime != null && at >= context.combatStartTime);
+  return (
+    (context.schedulerPolicy as Gw2SchedulerPolicy).isCombatActive() &&
+    (!context.hasExplicitCombatStart || (context.combatStartTime != null && at >= context.combatStartTime))
+  );
 }
 
 // Resolve procedural sources through the catalog so canonical emitters can

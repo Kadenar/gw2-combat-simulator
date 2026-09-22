@@ -152,9 +152,10 @@ export async function readEvtcRotationFile(file: File, app: ProfessionAppState):
       }
     ).initialTomePages
   });
+  // EVTC casts carry exact skill ids, so only build config is forwarded; selected ids disambiguate dps.report names.
   const result = rotationModule.reconstructEvtcRotation(log, app.activeCatalog, {
     playerAddress: selected.address,
-    ...reconstructionOptions
+    professionConfig: reconstructionOptions.professionConfig
   });
   const playerAddress = BigInt(selected.address);
   const observations: RotationImportObservation[] = [];

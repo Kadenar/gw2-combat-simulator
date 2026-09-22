@@ -17,7 +17,8 @@ function canonicalRotation(rotation) {
 
 // Run the smallest Core rotation that reaches a migrated trait through the public dispatcher.
 function simulate(rotation, { traits, startAttunement = 'Fire', selectedSkills = {}, stats, ...buildOptions }) {
-  const commands = canonicalRotation(rotation);
+  // Trait reachability scenarios begin in combat so entry-only effects are eligible.
+  const commands = [{ type: 'combat-start' }, ...canonicalRotation(rotation)];
   const defaults = elementalistProfession.createBuildDefaults();
   const build = elementalistAppAdapter.toApplicationBuild({
     ...defaults,

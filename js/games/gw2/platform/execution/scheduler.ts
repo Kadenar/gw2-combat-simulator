@@ -671,18 +671,8 @@ export function createScheduler<TProfessionState extends object = object>({
     const handlerState = handler?.beforeEffects?.(lifecycleContext, skill);
     // Replacing handlers own emission; all other casts retain their declarative effects.
     if (handlerMode !== SKILL_HANDLER_MODES.REPLACE) {
-      scheduleDeclarativeEffects(
-        context,
-        skill,
-        reservationId,
-        start,
-        fullEnd,
-        effectiveEnd,
-        (event, effect, effectIndex) =>
-          handler?.afterEffect?.(lifecycleContext, skill, event, handlerState, {
-            effect,
-            effectIndex
-          })
+      scheduleDeclarativeEffects(context, skill, reservationId, start, fullEnd, effectiveEnd, (event) =>
+        handler?.afterEffect?.(lifecycleContext, skill, event, handlerState)
       );
     }
 

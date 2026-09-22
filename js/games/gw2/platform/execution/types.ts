@@ -33,16 +33,7 @@ export interface SkillHandlerStrategy<TContext extends object = object> {
   readonly mode: SkillHandlerMode;
   readonly resolveMode?: (context: TContext, skill: Skill) => SkillHandlerMode;
   readonly beforeEffects?: SkillHandlerPhase<TContext>;
-  readonly afterEffect?: (
-    context: TContext,
-    skill: Skill,
-    event: SimulationEvent,
-    handlerState: unknown,
-    details: {
-      readonly effect: SkillEffect;
-      readonly effectIndex: number;
-    }
-  ) => unknown;
+  readonly afterEffect?: (context: TContext, skill: Skill, event: SimulationEvent, handlerState: unknown) => unknown;
   readonly afterEffects?: (context: TContext, skill: Skill, handlerState: unknown) => unknown;
 }
 

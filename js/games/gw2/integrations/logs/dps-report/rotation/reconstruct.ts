@@ -318,8 +318,6 @@ export function reconstructDpsReportWithProfile(
     profile,
     catalog,
     recordedActions: recorded,
-    selectedSkillNames: options.selectedSkillNames,
-    selectedSkillIds: options.selectedSkillIds,
     professionConfig: options.professionConfig
   });
   const resolved = applyCastInterrupts(

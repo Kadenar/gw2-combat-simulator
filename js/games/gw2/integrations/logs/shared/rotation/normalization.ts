@@ -38,8 +38,6 @@ export interface LogActionNormalizationContext {
   readonly profile: RotationProfessionProfile;
   readonly catalog: RotationCatalog | null;
   readonly recordedActions: readonly RecordedLogAction[];
-  readonly selectedSkillNames?: readonly string[];
-  readonly selectedSkillIds?: readonly number[];
   readonly professionConfig?: Readonly<Record<string, unknown>>;
 }
 

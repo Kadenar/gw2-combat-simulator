@@ -38,8 +38,5 @@ export interface EvtcProfessionReconstructionContext {
   readonly profile: RotationProfessionProfile;
   readonly catalog: RotationCatalog | null;
   readonly recordedActions: readonly EvtcRecordedRotationAction[];
-  readonly selectedSkillNames?: readonly string[];
-  readonly selectedSkillIds?: readonly number[];
   readonly professionConfig?: Readonly<Record<string, unknown>>;
-  readonly timelineOriginMs: number;
 }

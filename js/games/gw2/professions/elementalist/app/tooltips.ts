@@ -149,7 +149,7 @@ export const elementalistTooltips: ProfessionTooltips = {
       Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS).map((id) => [
         id,
         skillTooltip(
-          'Change attunement and your available weapon skills, triggering applicable attunement effects. Weaver moves the previous primary attunement to the secondary hand; Unravel keeps both hands together. Evoker also changes the available familiar.'
+          'Change attunement and your available weapon skills, triggering applicable attunement effects.'
         )
       ])
     ),

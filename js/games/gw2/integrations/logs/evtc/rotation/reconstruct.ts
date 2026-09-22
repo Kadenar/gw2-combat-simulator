@@ -52,8 +52,6 @@ const TIMING_TOLERANCE_MS = 50;
 export interface EvtcRotationOptions {
   readonly playerAddress?: bigint | string;
   readonly includeCombatStart?: boolean;
-  readonly selectedSkillNames?: readonly string[];
-  readonly selectedSkillIds?: readonly number[];
   readonly professionConfig?: Readonly<Record<string, unknown>>;
 }
 
@@ -327,10 +325,7 @@ export function reconstructWithProfile(
     profile,
     catalog,
     recordedActions: genericActions,
-    selectedSkillNames: options.selectedSkillNames,
-    selectedSkillIds: options.selectedSkillIds,
-    professionConfig: options.professionConfig,
-    timelineOriginMs: Math.min(...genericActions.filter(inEncounter).map((a) => a.start), combatStart ?? Infinity)
+    professionConfig: options.professionConfig
   };
   const sourceActions = [
     ...genericActions,

@@ -501,9 +501,7 @@ test('reconstructs a simulator-valid Virtuoso rotation with timestamped instant 
     },
     8000
   );
-  const reconstruction = reconstructDpsReportRotation(report, mesmerCatalog, {
-    selectedSkillNames: ['Mantra of Pain', 'Rain of Swords']
-  });
+  const reconstruction = reconstructDpsReportRotation(report, mesmerCatalog);
   const powerSpikes = reconstruction.rotation.filter((command) => command.name === 'Power Spike');
   const simulation = simulateMesmer(
     reconstruction.rotation,

@@ -12,7 +12,6 @@ interface AppRotationPlayer {
 }
 
 export interface AppLogReconstructionOptions {
-  readonly selectedSkillNames: readonly string[];
   readonly selectedSkillIds: readonly number[];
   /** Build-derived profession config the reconstruction replays with; profession fields included. */
   readonly professionConfig: Readonly<Gw2Config>;
@@ -24,7 +23,6 @@ export function appLogReconstructionOptions(
   fallbackProfessionConfig: Gw2Config = {}
 ): AppLogReconstructionOptions {
   return {
-    selectedSkillNames: Object.values(app.build.selectedSkills || {}),
     selectedSkillIds: [...((app.build as { selectedMorphSkillIds?: readonly number[] }).selectedMorphSkillIds || [])],
     professionConfig: app.adapter.simulationConfig?.(app) || fallbackProfessionConfig
   };

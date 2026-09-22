@@ -29,6 +29,7 @@ function contextFor(kind = 'Core', specialization = {}) {
   const context = {
     catalog: elementalistCatalog,
     config: {},
+    schedulerPolicy: { isCombatActive: () => true },
     traits: new Set(),
     profession,
     state: { time: 1, activeWeaponSet: 1, cooldowns: new Map(), profession },

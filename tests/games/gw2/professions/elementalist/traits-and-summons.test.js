@@ -264,7 +264,13 @@ test('core damage traits expose their exact resolver modifiers', () => {
 test('core attunement and aura traits emit named boon and damage payloads', () => {
   const fire = runNative({
     lines: [['Fire', '2-2-2'], ['Air'], ['Arcane', '1-2-2']],
-    rotation: ['Conjure Frost Bow', '__drop_bundle', 'Fire Attunement', 'Glyph of Elemental Harmony'],
+    rotation: [
+      { type: 'combat-start' },
+      'Conjure Frost Bow',
+      '__drop_bundle',
+      'Fire Attunement',
+      'Glyph of Elemental Harmony'
+    ],
     startAttunement: 'Air',
     selectedSkills: {
       Heal: 'Glyph of Elemental Harmony',
@@ -297,7 +303,7 @@ test('core attunement and aura traits emit named boon and damage payloads', () =
 
   const earth = runNative({
     lines: [['Earth', '1-2-2'], ['Water'], ['Air']],
-    rotation: ['Glyph of Elemental Harmony', 'Earth Attunement', 'Signet of Earth'],
+    rotation: [{ type: 'combat-start' }, 'Glyph of Elemental Harmony', 'Earth Attunement', 'Signet of Earth'],
     startAttunement: 'Water',
     selectedSkills: {
       Heal: 'Glyph of Elemental Harmony',

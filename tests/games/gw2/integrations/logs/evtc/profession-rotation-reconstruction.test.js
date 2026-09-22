@@ -27,8 +27,7 @@ function context(profession, specialization, events, agents = log().agents) {
     playerAddress: PLAYER,
     log: log({ events, agents }),
     catalog: null,
-    recordedActions: [],
-    timelineOriginMs: 0
+    recordedActions: []
   };
 }
 

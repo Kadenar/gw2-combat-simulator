@@ -1086,7 +1086,7 @@ test('Ride the Lightning receives its on-hit cooldown reduction', () => {
 test('Fresh Air grants ferocity when entering Air, not when resetting it', () => {
   const result = runNative({
     lines: [['Fire'], ['Air', '1-1-2'], ['Arcane']],
-    rotation: ['Air Attunement', 6000],
+    rotation: [{ type: 'combat-start' }, 'Air Attunement', 6000],
     startAttunement: 'Fire'
   });
   const freshAir = result.events.filter((event) => event.type === 'buff' && event.kind === 'fresh air');
@@ -1118,7 +1118,14 @@ test('Weaver attunements use the shared four-second recharge', () => {
 test('Unravel resets the current Weaver recharge, fully attunes for five seconds, and preserves future swap recharge', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Weaver', '1-1-1']],
-    rotation: ['Air Attunement', 'Unravel', 'Fire Attunement', 'Earth Attunement', 'Air Attunement'],
+    rotation: [
+      { type: 'combat-start' },
+      'Air Attunement',
+      'Unravel',
+      'Fire Attunement',
+      'Earth Attunement',
+      'Air Attunement'
+    ],
     startAttunement: 'Fire',
     secondaryAttunement: 'Fire',
     assumptions: {
