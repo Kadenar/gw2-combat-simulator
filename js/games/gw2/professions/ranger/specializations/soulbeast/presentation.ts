@@ -16,7 +16,7 @@ import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professio
 // Populated lazily at bind time from the catalog; can't be a const because the catalog isn't available at module load.
 let beastmodeSkillIds = new Set<SkillId>();
 const BEASTMODE_TOGGLE_IDS = new Set<SkillId>([ID.BEASTMODE, ID.LEAVE_BEASTMODE]);
-const SOULBEAST_HIDDEN_EVENT_TYPES = new Set(['ranger.beastmode', 'ranger.boon-extension']);
+const SOULBEAST_HIDDEN_EVENT_TYPES = new Set(['ranger.beastmode', 'ranger.boon-extension', 'ranger.shared-stance-hit']);
 
 function beastmodeActive(context: RangerUiContext): boolean {
   // Treat missing state as active: initial state starts in Beastmode, so undefined means merged.
