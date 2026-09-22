@@ -9,14 +9,13 @@ import { mesmerCoreRifleSkillMechanicHandlers } from '#gw2/professions/mesmer/co
 import { scheduleChaosStormPoison } from '#gw2/professions/mesmer/core/mechanics/chaos-storm.js';
 import { mesmerCoreAttributeRules } from '#gw2/professions/mesmer/core/traits/modifiers.js';
 import { createMesmerCoreResolverState, createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
-import { projectMesmerPlanningState, snapshotMesmerState } from '#gw2/professions/mesmer/family-state.js';
+import { projectMesmerPlanningState } from '#gw2/professions/mesmer/family-state.js';
 import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
 import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/professions/mesmer/core/skills/actions.js';
 import { MESMER_CORE_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_CORE_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/supplemental-skills.js';
 import { mesmerCoreSkillHandlers } from '#gw2/professions/mesmer/core/execution/index.js';
 import { MESMER_CORE_BALANCE_PROFILES } from '#gw2/professions/mesmer/core/profiles.js';
-import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import { mesmerCoreSchedulerHooks } from '#gw2/professions/mesmer/core/execution/hooks.js';
 
 export const mesmerCoreModule = defineNativeModule({
@@ -52,10 +51,7 @@ export const mesmerCoreModule = defineNativeModule({
         ...mesmerCoreRifleSkillMechanicHandlers,
         'mesmer.core.chaos-storm-poison': scheduleChaosStormPoison
       },
-      hooks: {
-        ...mesmerCoreSchedulerHooks,
-        snapshot: (context: MesmerSchedulerContext) => snapshotMesmerState(context.state.profession)
-      }
+      hooks: mesmerCoreSchedulerHooks
     },
     resolution: {
       reactions: [

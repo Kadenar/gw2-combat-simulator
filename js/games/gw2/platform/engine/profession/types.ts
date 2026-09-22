@@ -85,7 +85,6 @@ export interface ProfessionSchedulerHookDefinition {
   readonly initialize?: unknown;
   readonly afterCast?: unknown;
   readonly advance?: unknown;
-  readonly snapshot?: unknown;
   readonly onCastStart?: unknown;
   readonly onCastComplete?: unknown;
   readonly onCooldownReset?: unknown;
@@ -187,7 +186,6 @@ export interface NormalizedProfessionContract<
   readonly availability: (context: CastContext<TProfessionState>, skill: Skill) => AvailabilityResult;
   readonly afterCast: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;
   readonly advance: (context: SchedulerContext<TProfessionState>, at: number) => unknown;
-  readonly snapshot: (context: SchedulerContext<TProfessionState>) => unknown;
   readonly projectPlanningState: (...args: never[]) => unknown;
   readonly onCastStart: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;
   readonly onCastComplete: (context: CastLifecycleContext<TProfessionState>, skill: Skill) => unknown;

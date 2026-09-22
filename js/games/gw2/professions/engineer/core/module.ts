@@ -1,4 +1,3 @@
-import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -16,7 +15,6 @@ import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js
 import { projectEngineerPlanningState } from '#gw2/professions/engineer/family-state.js';
 import { ENGINEER_CORE_BALANCE_PROFILES } from '#gw2/professions/engineer/core/profiles.js';
 import { bindEngineerCoreUi } from '#gw2/professions/engineer/core/presentation.js';
-import type { EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
 import { engineerCoreSchedulerHooks } from '#gw2/professions/engineer/core/execution/hooks.js';
 
 export const engineerCoreModule = defineNativeModule({
@@ -39,11 +37,7 @@ export const engineerCoreModule = defineNativeModule({
     execution: {
       skillHandlers: engineerCoreSkillHandlers,
       castRules: engineerCoreCastRules,
-      hooks: {
-        ...engineerCoreSchedulerHooks,
-        // Detach the owned runtime before the scheduler publishes a snapshot.
-        snapshot: (context: EngineerSchedulerContext) => snapshotProfessionState(context.state.profession)
-      }
+      hooks: engineerCoreSchedulerHooks
     },
     resolution: {
       reactions: engineerCoreResolverEventReactions,

@@ -9,10 +9,7 @@ import {
   necromancerCoreResolverEventReactions
 } from '#gw2/professions/necromancer/core/mechanics/reactions.js';
 import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import {
-  projectNecromancerPlanningState,
-  snapshotNecromancerState
-} from '#gw2/professions/necromancer/family-state.js';
+import { projectNecromancerPlanningState } from '#gw2/professions/necromancer/family-state.js';
 import { bindNecromancerCoreUi } from '#gw2/professions/necromancer/core/presentation.js';
 import {
   NECROMANCER_CORE_BASE_SKILL_MECHANICS,
@@ -21,7 +18,6 @@ import {
 import { necromancerCoreSkillHandlers } from '#gw2/professions/necromancer/core/execution/index.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILES } from '#gw2/professions/necromancer/core/profiles.js';
-import type { NecromancerSchedulerContext } from '#gw2/professions/necromancer/types.js';
 import { necromancerGreatswordSkillMechanicHandlers } from '#gw2/professions/necromancer/core/execution/greatsword.js';
 import { necromancerSchedulerHooks } from '#gw2/professions/necromancer/core/execution/hooks.js';
 
@@ -47,10 +43,7 @@ export const necromancerCoreModule = defineNativeModule({
       skillHandlers: necromancerCoreSkillHandlers,
       castRules: necromancerCoreCastRules,
       skillMechanicHandlers: necromancerGreatswordSkillMechanicHandlers,
-      hooks: {
-        ...necromancerSchedulerHooks,
-        snapshot: (context: NecromancerSchedulerContext) => snapshotNecromancerState(context.state.profession)
-      }
+      hooks: necromancerSchedulerHooks
     },
     resolution: {
       hooks: { eventHandlers: necromancerCoreResolverEventHandlers },

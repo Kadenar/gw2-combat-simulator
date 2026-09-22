@@ -8,10 +8,8 @@ import type {
   MesmerPlanningState,
   MesmerProfessionState,
   MesmerRuntimeState,
-  MesmerSchedulerContext,
-  MesmerStateSnapshot
+  MesmerSchedulerContext
 } from '#gw2/professions/mesmer/types.js';
-import type { MesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 
 /** Selects the active specialization's public resource contract at the family boundary. */
@@ -41,43 +39,6 @@ export function mesmerNumericResourceState(state: SchedulerState<MesmerRuntimeSt
   }
 
   return active as MesmerNumericResourceState;
-}
-
-/** Aggregates Core and active-specialization state into the stable scheduler snapshot contract. */
-export function snapshotMesmerState(stateInput: unknown): MesmerStateSnapshot {
-  const state = flattenProfessionState(stateInput);
-  const clones = Array.isArray(state.clones) ? state.clones : [];
-  const instruments =
-    state.instruments && typeof state.instruments === 'object' ? (state.instruments as Record<string, number>) : {};
-  const availableFlips =
-    state.availableFlips && typeof state.availableFlips === 'object'
-      ? (state.availableFlips as MesmerCoreState['availableFlips'])
-      : {};
-  const autoattackChains =
-    state.autoattackChains && typeof state.autoattackChains === 'object'
-      ? (state.autoattackChains as MesmerCoreState['autoattackChains'])
-      : {};
-  return {
-    cloneCount: clones.length,
-    numericResource: Number(state.numericResource || 0),
-    instruments: Object.entries(instruments),
-    continuumActive: Boolean(state.continuum),
-    availableFlips: Object.entries(availableFlips),
-    autoattackChains: Object.entries(autoattackChains),
-    bloodsongProgress: Number(state.bloodsongProgress || 0),
-    sharperImagesProgress: Number(state.sharperImagesProgress || 0),
-    masterFencerProgress: Number(state.masterFencerProgress || 0),
-    chaosStormCasts: Number(state.chaosStormCasts || 0),
-    ineptitudeReadyAt: Number(state.ineptitudeReadyAt || 0),
-    clarityUntil: Number(state.clarityUntil || 0),
-    ambushUntil: Number(state.ambushUntil || 0),
-    ...(state.endurance == null
-      ? {}
-      : { endurance: Number(state.endurance), maximumEndurance: Number(state.maximumEndurance) }),
-    mirrors: Array.isArray(state.mirrors) ? [...state.mirrors] : [],
-    riddleOfSandReady: Boolean(state.riddleOfSandReady),
-    timeBombUntil: Number(state.timeBombUntil || 0)
-  };
 }
 
 /** Projects the family aggregate while exposing only the active specialization's optional fields. */

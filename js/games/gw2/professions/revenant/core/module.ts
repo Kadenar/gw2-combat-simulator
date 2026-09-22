@@ -1,4 +1,3 @@
-import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { onResolvingDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
@@ -17,7 +16,6 @@ import {
 } from '#gw2/professions/revenant/core/skills/index.js';
 import { REVENANT_CORE_BALANCE_PROFILES } from '#gw2/professions/revenant/core/profiles.js';
 import { revenantCoreSkillHandlers } from '#gw2/professions/revenant/core/execution/index.js';
-import type { RevenantSchedulerContext } from '#gw2/professions/revenant/types.js';
 import { revenantSchedulerHooks } from '#gw2/professions/revenant/core/execution/hooks.js';
 
 export const revenantCoreModule = defineNativeModule({
@@ -37,10 +35,7 @@ export const revenantCoreModule = defineNativeModule({
     execution: {
       skillHandlers: revenantCoreSkillHandlers,
       castRules: revenantCastRules,
-      hooks: {
-        ...revenantSchedulerHooks,
-        snapshot: (context: RevenantSchedulerContext) => snapshotProfessionState(context.state.profession)
-      }
+      hooks: revenantSchedulerHooks
     },
     resolution: {
       reactions: [onResolvingDamage({ id: 'revenant.life-siphon', handler: modifyRevenantLifeSiphon })],

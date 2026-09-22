@@ -1,4 +1,3 @@
-import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent, SimulationEventInput } from '#gw2/platform/engine/events/events.js';
@@ -59,7 +58,6 @@ export const rangerCoreExecutionHooks = Object.freeze({
     }
   },
   taskHandlers: { ...rangerPetTaskHandlers, ...rangerStealthReaction.taskHandlers },
-  snapshot: (context: RangerSchedulerContext) => snapshotProfessionState(context.state.profession),
   afterCast: {
     id: 'ranger.weapon-state',
     order: 10,

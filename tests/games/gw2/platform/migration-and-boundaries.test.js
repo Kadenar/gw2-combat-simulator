@@ -12,7 +12,6 @@ import { BUILD_SCHEMA_VERSION, migrateMesmerBuild, validateMesmerBuild } from '#
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { createDefaultConfig, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { snapshotMesmerState } from '#gw2/professions/mesmer/family-state.js';
 
 async function relativeStaticModuleGraph(entryFiles) {
   const visited = new Set();
@@ -117,23 +116,20 @@ test('common weapon data includes Guardian weapon families', () => {
   assert.equal(WEAPON_DATA.Shortbow.wielding, '2h');
 });
 
-test('Mesmer state creation and snapshots are profession owned', () => {
+test('Mesmer state creation and planning projections are profession owned', () => {
   const virtuosoRuntime = mesmerProfession.resolveRuntime({
     specialization: 'Virtuoso'
   });
-  const state = virtuosoRuntime.createProfessionState({
-    specialization: 'Virtuoso'
-  });
+  // The public planning projection reports the active specialization's scheduler-owned resource.
+  const result = simulateMesmer([], { specialization: 'Virtuoso', initialResource: 3 });
+  const state = result.schedulerState.profession;
+  const projected = result.planningState.profession;
 
-  state.specialization.state.numericResource = 3;
-  state.core.clones.push({ id: 1 });
-  const snapshot = snapshotMesmerState(state);
-
-  // Recurring task timing is excluded from both specialization state and public snapshots.
   assert.equal(Object.hasOwn(state.specialization.state, 'nextForgeAt'), false);
-  assert.equal(Object.hasOwn(snapshot, 'nextForgeAt'), false);
-  assert.equal(snapshot.numericResource, 3);
-  assert.equal(snapshot.cloneCount, 1);
+  assert.equal(Object.hasOwn(projected, 'nextForgeAt'), false);
+  assert.equal(state.specialization.state.numericResource, 3);
+  assert.equal(projected.resource, 3);
+  assert.equal(projected.resourceDefinition.singular, 'blade');
   assert.equal(mesmerProfession.id, 'mesmer');
   assert.equal(Object.hasOwn(virtuosoRuntime.eventReactions, 'damage.resolved'), false);
   assert.equal(typeof virtuosoRuntime.eventReactions['control.resolved'], 'function');

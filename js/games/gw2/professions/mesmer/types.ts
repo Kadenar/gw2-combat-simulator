@@ -1,4 +1,4 @@
-import { type SkillFlipWindow, type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type {
   BalanceProfile,
@@ -22,7 +22,7 @@ import type {
 } from '#gw2/platform/execution/types.js';
 import type { MesmerCoreState, MesmerResolverState } from '#gw2/professions/mesmer/core/state.js';
 import type { MesmerChronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
-import type { MesmerMirageMirror, MesmerMirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
+import type { MesmerMirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerTroubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import type { MesmerProjectedInstrument } from '#gw2/professions/mesmer/specializations/troubadour/types.js';
@@ -75,27 +75,6 @@ export interface MesmerRuntimeState {
     | { kind: 'Mirage'; state: MesmerMirageState }
     | { kind: 'Virtuoso'; state: MesmerVirtuosoState }
     | { kind: 'Troubadour'; state: MesmerTroubadourState };
-}
-
-export interface MesmerStateSnapshot {
-  endurance?: number;
-  maximumEndurance?: number;
-  cloneCount: number;
-  numericResource: number;
-  instruments: [string, number][];
-  continuumActive: boolean;
-  availableFlips: [string, SkillFlipWindow][];
-  autoattackChains: [string, SkillId][];
-  bloodsongProgress: number;
-  sharperImagesProgress: number;
-  masterFencerProgress: number;
-  chaosStormCasts: number;
-  ineptitudeReadyAt: number;
-  clarityUntil: number;
-  ambushUntil: number;
-  mirrors: MesmerMirageMirror[];
-  riddleOfSandReady: boolean;
-  timeBombUntil: number;
 }
 
 export interface MesmerPlanningState {

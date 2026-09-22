@@ -312,7 +312,6 @@ export interface SchedulerRunResult<TProfessionState extends object = object> {
   readonly events: readonly SimulationEvent[];
   readonly steps: readonly SchedulerStep[];
   readonly warnings: readonly string[];
-  readonly snapshot: unknown;
   readonly stream: ScheduledEventStream;
 }
 

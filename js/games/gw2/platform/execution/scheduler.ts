@@ -847,14 +847,13 @@ export function createScheduler<TProfessionState extends object = object>({
     steps.sort((left, right) => left.ri - right.ri);
     // Emit the scheduler's completed history in the same order used by resolver queues.
     events.sort(compareQueuedEvents);
-    const snapshot = activeProfession.snapshot(context) ?? structuredClone(state.profession);
+    // Return scheduler-owned state; the reporting boundary owns public planning projections.
     return {
       context,
       state,
       events,
       steps,
       warnings,
-      snapshot,
       stream: buildScheduledEventStream({
         events,
         rotationEndTime: normalizedRotationEnd,
