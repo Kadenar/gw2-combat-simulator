@@ -84,12 +84,11 @@ if (buildPath) {
 
 const profession = await loadProfession(selected.professionId);
 const phaseIndex = requestedPhase == null ? 0 : Number(requestedPhase);
-// Feed active-build selections into generic name/ID resolution so polymorphic
+// Feed active-build selections into generic ID resolution so polymorphic
 // skills (such as Amalgam protocols) use the simulator's selected variant.
 const result = reconstructDpsReportRotation(report, profession?.catalog || null, {
   playerIndex: selected.index,
   phaseIndex,
-  selectedSkillNames: Object.values(build.selectedSkills || {}),
   selectedSkillIds: build.selectedMorphSkillIds || [],
   // Profession recovery uses active state such as Revenant's starting legend;
   // passing the build keeps inference evidence-based across different reports.

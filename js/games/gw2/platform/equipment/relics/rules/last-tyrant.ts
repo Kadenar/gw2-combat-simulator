@@ -3,14 +3,15 @@ import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
 const LAST_TYRANT_STACKS_NEEDED = 5;
-const LAST_TYRANT_STACK_INTERNAL_COOLDOWN = 0.28;
+const LAST_TYRANT_STACK_INTERNAL_COOLDOWN = 0.25;
 const LAST_TYRANT_INTERNAL_COOLDOWN = 12;
 const LAST_TYRANT_EXPLOSION_COEFFICIENT = 3;
 
 export const lastTyrant = defineRelic({
-  createState: () => ({ readyAt: 0, stacks: 0 }),
+  createState: () => ({ readyAt: 0, stackReadyAt: 0, stacks: 0 }),
   condition(ctx, state, application, { applyCondition }) {
     // The explosion's own burning cannot feed Tyrant's Fury.
     if (
@@ -26,13 +27,15 @@ export const lastTyrant = defineRelic({
       return;
     }
 
-    // Stack gains and the sixth application's explosion share a 280ms gate; explosions extend it to 12s.
+    // The explosion's 12s cooldown blocks a new Fury cycle.
     if (!isInternalCooldownReady(application.at, state.readyAt)) return;
 
     const stacks = Number(state.stacks || 0);
     if (stacks < LAST_TYRANT_STACKS_NEEDED) {
+      // Fury's 250ms marker expires on the next 40ms tick; an application at expiry can grant a stack.
+      if (application.at < Number(state.stackReadyAt || 0)) return;
       state.stacks = stacks + 1;
-      state.readyAt = application.at + LAST_TYRANT_STACK_INTERNAL_COOLDOWN;
+      state.stackReadyAt = gw2EffectExpiresAt(application.at, LAST_TYRANT_STACK_INTERNAL_COOLDOWN);
       ctx.recordProc(
         'relic',
         'Relic of the Last Tyrant',
@@ -47,7 +50,7 @@ export const lastTyrant = defineRelic({
       return;
     }
 
-    // At max stacks of Tyrant's Fury, the next burning application explodes.
+    // At max Fury stacks, the next burning application explodes even while the short marker is active.
     state.stacks = 0;
     state.readyAt = application.at + LAST_TYRANT_INTERNAL_COOLDOWN;
     ctx.recordProc('relic', 'Relic of the Last Tyrant', application.at, application.skillName, 'explosion');

@@ -33,6 +33,7 @@ export interface Gw2RelicState {
     readonly event: SimulationEvent;
   }[];
   readyAt?: number;
+  stackReadyAt?: number;
   buffUntil?: number;
   stacks?: number;
   expiresAt?: number;
