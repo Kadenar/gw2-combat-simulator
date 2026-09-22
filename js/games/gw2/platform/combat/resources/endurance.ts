@@ -2,6 +2,9 @@ import { EPSILON } from '#kernel/core/clock.js';
 /** The shared endurance fields read by, and returned from, standard GW2 endurance arithmetic. */
 
 import { cappedResource, grantCapped } from '#gw2/platform/combat/resources/pool.js';
+import { selfBoonIntervals } from '#gw2/platform/combat/boons.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface Gw2EnduranceState {
   readonly endurance: number;
@@ -13,6 +16,18 @@ export interface Gw2EnduranceInterval {
   readonly start: number;
   readonly end: number;
   readonly rate: number;
+}
+
+/** Shares self-Vigor history for recovery and readiness while professions retain their rate policy. */
+export function* vigorEnduranceIntervals(
+  context: { readonly events: readonly SimulationEvent[]; readonly config: Pick<Gw2Config, 'boons'> },
+  start: number,
+  end: number,
+  rateAt: (vigor: boolean, at: number) => number
+): Generator<Gw2EnduranceInterval> {
+  for (const interval of selfBoonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
+    yield { start: interval.start, end: interval.end, rate: rateAt(interval.active, interval.start) };
+  }
 }
 
 /** Advances capped endurance without allowing an older scheduler timestamp to regenerate or rewind state. */

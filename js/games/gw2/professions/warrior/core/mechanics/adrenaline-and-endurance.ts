@@ -3,9 +3,9 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
   advanceEnduranceIntervals,
   enduranceIntervalsReadyAt,
+  vigorEnduranceIntervals,
   grantEndurance
 } from '#gw2/platform/combat/resources/endurance.js';
-import { selfBoonIntervals } from '#gw2/platform/combat/boons.js';
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
@@ -18,14 +18,8 @@ function warriorEnduranceRegenerationRate(context: WarriorSchedulerContext, vigo
 }
 
 /** Maps pooled Vigor windows to Warrior rates while shared traversal owns capped recovery and readiness. */
-function* enduranceIntervals(context: WarriorSchedulerContext, start: number, end: number) {
-  for (const interval of selfBoonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
-    yield {
-      start: interval.start,
-      end: interval.end,
-      rate: warriorEnduranceRegenerationRate(context, interval.active)
-    };
-  }
+function enduranceIntervals(context: WarriorSchedulerContext, start: number, end: number) {
+  return vigorEnduranceIntervals(context, start, end, (vigor) => warriorEnduranceRegenerationRate(context, vigor));
 }
 
 export function advanceWarriorResources(context: WarriorSchedulerContext, target: number): void {

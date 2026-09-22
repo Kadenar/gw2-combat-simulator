@@ -1,14 +1,60 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 
 import {
   advanceEndurance,
   advanceEnduranceIntervals,
   enduranceReadyAt,
   enduranceIntervalsReadyAt,
+  vigorEnduranceIntervals,
   grantEndurance,
   spendEndurance
 } from '#gw2/platform/combat/resources/endurance.js';
+
+test('Vigor endurance windows share self-only recovery and readiness with profession rate policy', () => {
+  // A cancelled or companion-only grant cannot fund a player dodge; permanent Vigor bypasses history.
+  const vigor = {
+    type: 'buff',
+    source: 'Fixture',
+    actorType: 'player',
+    kind: 'vigor',
+    at: 1,
+    duration: 2,
+    stacks: 1,
+    audience: { recipients: 'self' }
+  };
+  const context = {
+    config: {},
+    events: [
+      { ...vigor, at: 0, duration: 20, cancelled: true },
+      { ...vigor, at: 0, duration: 20, audience: { recipients: 'summons', affectsSelf: false } },
+      vigor
+    ].map((event) => ({ ...event, resolvedAudience: gw2BoonApplicationRecipients({}, event) }))
+  };
+  const observed = [];
+  const rateAt = (active, at) => {
+    observed.push([active, at]);
+    return active ? 10 : 5;
+  };
+
+  const state = { endurance: 0, enduranceUpdatedAt: 0 };
+  assert.deepEqual(advanceEnduranceIntervals(state, vigorEnduranceIntervals(context, 0, 4, rateAt), 100), {
+    endurance: 30,
+    enduranceUpdatedAt: 4
+  });
+  assert.deepEqual(observed, [
+    [false, 0],
+    [true, 1],
+    [false, 3]
+  ]);
+  assert.equal(enduranceIntervalsReadyAt(state, 30, vigorEnduranceIntervals(context, 0, Infinity, rateAt), 100), 4);
+  const permanent = {
+    config: { boons: { vigor: true } },
+    events: new Proxy([], { get: () => assert.fail('Permanent Vigor must not read event history') })
+  };
+  assert.equal(enduranceIntervalsReadyAt(state, 30, vigorEnduranceIntervals(permanent, 0, Infinity, rateAt), 100), 3);
+});
 
 test('endurance advancement caps regeneration and does not mutate or rewind its input', () => {
   const state = Object.freeze({ endurance: 40, enduranceUpdatedAt: 2 });

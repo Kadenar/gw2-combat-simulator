@@ -5,8 +5,11 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { advanceEnduranceIntervals, enduranceIntervalsReadyAt } from '#gw2/platform/combat/resources/endurance.js';
-import { selfBoonIntervals } from '#gw2/platform/combat/boons.js';
+import {
+  advanceEnduranceIntervals,
+  enduranceIntervalsReadyAt,
+  vigorEnduranceIntervals
+} from '#gw2/platform/combat/resources/endurance.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerCastContext, RangerSchedulerContext } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
@@ -26,11 +29,9 @@ function rangerEnduranceRegenerationRates(context: RangerSchedulerContext) {
 }
 
 /** Maps shared Vigor windows to invocation-local Ranger rates for both advancement and readiness. */
-function* enduranceIntervals(context: RangerSchedulerContext, start: number, end: number) {
+function enduranceIntervals(context: RangerSchedulerContext, start: number, end: number) {
   const rates = rangerEnduranceRegenerationRates(context);
-  for (const interval of selfBoonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
-    yield { start: interval.start, end: interval.end, rate: interval.active ? rates.vigor : rates.base };
-  }
+  return vigorEnduranceIntervals(context, start, end, (vigor) => (vigor ? rates.vigor : rates.base));
 }
 
 export function advanceRangerResources(context: RangerSchedulerContext, target: number): void {

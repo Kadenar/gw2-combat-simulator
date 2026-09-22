@@ -1,12 +1,5 @@
 /** Shares Ranger modifier queries across player and pet rule collections. */
-import {
-  buffMatchesAudience,
-  durationStackingBoonCapSeconds,
-  GW2_STANDARD_BOONS,
-  isDurationStackingBoon,
-  isStandardBoon,
-  remainingDurationStackSeconds
-} from '#gw2/platform/combat/boons.js';
+import { buffApplicationStacks, GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { GW2_EVENT_ACTOR_TYPES } from '#gw2/platform/engine/events/actors.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -33,16 +26,13 @@ function rangerPetBoonActive(context: Gw2ModifierContext, boon: string): boolean
     return Boolean(context.timeline?.buffStacksAt(boon, context.time, 0, 25, 'summon', companionId));
   }
 
-  const applications = (context.runtime.boons?.get(boon) || []).filter((application) =>
-    buffMatchesAudience(application, 'summon', companionId)
+  // Live queries use only resolved applications; the shared helper owns recipient filtering and stacking.
+  return (
+    buffApplicationStacks(context.runtime.boons?.get(boon) || [], boon, context.time, 1, {
+      audience: 'summon',
+      companionId
+    }) > 0
   );
-  if (isDurationStackingBoon(boon)) {
-    return (
-      remainingDurationStackSeconds(applications, context.time, { maximum: durationStackingBoonCapSeconds(boon) }) > 0
-    );
-  }
-
-  return applications.some((application) => application.at <= context.time && application.expiresAt > context.time);
 }
 
 export function rangerActiveBoonCount(context: Gw2ModifierContext, audience: 'player' | 'pet'): number {

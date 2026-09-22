@@ -6,8 +6,11 @@ import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.
 import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
-import { advanceEnduranceIntervals, enduranceIntervalsReadyAt } from '#gw2/platform/combat/resources/endurance.js';
-import { selfBoonIntervals } from '#gw2/platform/combat/boons.js';
+import {
+  advanceEnduranceIntervals,
+  enduranceIntervalsReadyAt,
+  vigorEnduranceIntervals
+} from '#gw2/platform/combat/resources/endurance.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefEndurance, gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
@@ -65,18 +68,10 @@ export function thiefEnduranceRegenerationRate(
 }
 
 /** Maps shared Vigor windows to Thief's capped rate for both recovery and dodge readiness. */
-function* enduranceIntervals(context: ThiefSchedulerContext, start: number, end: number) {
-  for (const interval of selfBoonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
-    yield {
-      start: interval.start,
-      end: interval.end,
-      rate: thiefEnduranceRegenerationRate(
-        context,
-        interval.start,
-        Boolean(context.config.boons?.vigor || interval.active)
-      )
-    };
-  }
+function enduranceIntervals(context: ThiefSchedulerContext, start: number, end: number) {
+  return vigorEnduranceIntervals(context, start, end, (vigor, at) =>
+    thiefEnduranceRegenerationRate(context, at, vigor)
+  );
 }
 
 export function thiefEnduranceReadyAt(context: ThiefPrecastContext, cost: number): number | null {

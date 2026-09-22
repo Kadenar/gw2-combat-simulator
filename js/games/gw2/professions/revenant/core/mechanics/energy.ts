@@ -3,8 +3,11 @@ import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { clearRevenantLegendFlips } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
-import { advanceEnduranceIntervals, enduranceIntervalsReadyAt } from '#gw2/platform/combat/resources/endurance.js';
-import { selfBoonIntervals } from '#gw2/platform/combat/boons.js';
+import {
+  advanceEnduranceIntervals,
+  enduranceIntervalsReadyAt,
+  vigorEnduranceIntervals
+} from '#gw2/platform/combat/resources/endurance.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/skills/timing.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -72,17 +75,10 @@ export function revenantEnduranceRegenerationRate(
 }
 
 /** Share actual Vigor windows between accrual and resource-funded dodge scheduling. */
-function* enduranceIntervals(context: RevenantSchedulerContext, start: number, end: number) {
-  for (const interval of selfBoonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
-    yield {
-      ...interval,
-      rate: revenantEnduranceRegenerationRate(
-        context,
-        interval.start,
-        Boolean(context.config.boons?.vigor || interval.active)
-      )
-    };
-  }
+function enduranceIntervals(context: RevenantSchedulerContext, start: number, end: number) {
+  return vigorEnduranceIntervals(context, start, end, (vigor, at) =>
+    revenantEnduranceRegenerationRate(context, at, vigor)
+  );
 }
 
 export function revenantEnduranceReadyAt(context: RevenantPrecastContext, cost: number): number | null {

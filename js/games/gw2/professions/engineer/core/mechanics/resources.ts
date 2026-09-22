@@ -3,8 +3,11 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { advanceEnduranceIntervals, enduranceIntervalsReadyAt } from '#gw2/platform/combat/resources/endurance.js';
-import { selfBoonIntervals } from '#gw2/platform/combat/boons.js';
+import {
+  advanceEnduranceIntervals,
+  enduranceIntervalsReadyAt,
+  vigorEnduranceIntervals
+} from '#gw2/platform/combat/resources/endurance.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 import type { EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
 
@@ -39,12 +42,10 @@ export function engineerEnduranceRegenerationRate(context: EngineerSchedulerCont
 }
 
 /** Maps shared, cancellation-aware self-Vigor windows to local rates for both recovery and dodge readiness. */
-function* enduranceIntervals(context: EngineerSchedulerContext, start: number, end: number) {
+function enduranceIntervals(context: EngineerSchedulerContext, start: number, end: number) {
   const baseRate = engineerEnduranceRegenerationRate(context, false);
   const vigorRate = engineerEnduranceRegenerationRate(context, true);
-  for (const interval of selfBoonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
-    yield { start: interval.start, end: interval.end, rate: interval.active ? vigorRate : baseRate };
-  }
+  return vigorEnduranceIntervals(context, start, end, (vigor) => (vigor ? vigorRate : baseRate));
 }
 
 /** Predicts the first affordable dodge across known Vigor windows, including recovery after expiry. */

@@ -7,8 +7,11 @@ import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ENDURANCE_PER_SECOND } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-import { advanceEnduranceIntervals, enduranceIntervalsReadyAt } from '#gw2/platform/combat/resources/endurance.js';
-import { selfBoonIntervals } from '#gw2/platform/combat/boons.js';
+import {
+  advanceEnduranceIntervals,
+  enduranceIntervalsReadyAt,
+  vigorEnduranceIntervals
+} from '#gw2/platform/combat/resources/endurance.js';
 
 /** Resolves Elementalist's profile-aware endurance rate while leaving shared arithmetic to the GW2 primitive. */
 export function elementalistEnduranceRegenerationRate(context: ElementalistSchedulerContext, vigor: boolean): number {
@@ -28,12 +31,10 @@ export function elementalistEnduranceRegenerationRate(context: ElementalistSched
 }
 
 /** Maps shared, cancellation-aware self-Vigor windows to local rates for both recovery and dodge readiness. */
-function* enduranceIntervals(context: ElementalistSchedulerContext, start: number, end: number) {
+function enduranceIntervals(context: ElementalistSchedulerContext, start: number, end: number) {
   const baseRate = elementalistEnduranceRegenerationRate(context, false);
   const vigorRate = elementalistEnduranceRegenerationRate(context, true);
-  for (const interval of selfBoonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
-    yield { start: interval.start, end: interval.end, rate: interval.active ? vigorRate : baseRate };
-  }
+  return vigorEnduranceIntervals(context, start, end, (vigor) => (vigor ? vigorRate : baseRate));
 }
 
 /** Advances capped endurance across each rate interval without rewinding an already settled timestamp. */
