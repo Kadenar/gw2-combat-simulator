@@ -120,8 +120,8 @@ export function createResourceController({
       addTraitProc(cause.traitName || reason, at, reason, `+${gained} ${resourceDefinition.singular}`);
     }
 
-    // Reactions see only committed gains, including the exact clone entities created by this transaction.
-    for (const handler of gainHandlers) handler({ at, gained, reason, cause, createdClones });
+    // Reactions use the committed gain's time, cause, and created clones to apply specialization effects.
+    for (const handler of gainHandlers) handler({ at, cause, createdClones });
   };
 
   const queueResources = (

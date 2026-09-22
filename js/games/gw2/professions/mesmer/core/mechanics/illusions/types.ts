@@ -53,8 +53,6 @@ export type MesmerQueueResources = (
 
 export interface MesmerResourceGain {
   readonly at: number;
-  readonly gained: number;
-  readonly reason: string;
   readonly cause: MesmerResourceCause;
   readonly createdClones: readonly MesmerClone[];
 }
