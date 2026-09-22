@@ -75,25 +75,37 @@ test('Last Tyrant explodes on the burning after five Fury stacks and respects it
   assert.equal(conditions.length, 2);
 });
 
-test('Last Tyrant gates each Fury stack and the sixth application explosion with a 280ms ICD', () => {
+test('Last Tyrant rounds its 250ms stack marker to 40ms ticks and lets the sixth application explode immediately', () => {
   const { relic, ctx, helpers, conditions, queued } = relicHarness('Last Tyrant');
-  const apply = (at) => relic.rules.condition(ctx, relic.state, burning(at, { stacks: 3 }), helpers);
+  const apply = (at, sourceId = 'skill-a') =>
+    relic.rules.condition(ctx, relic.state, burning(at, { sourceId, stacks: 3 }), helpers);
 
   // Each eligible application grants one Fury stack, regardless of its Burning stack count.
-  for (const [index, at] of [0, 0.3, 0.6, 0.9, 1.2].entries()) {
+  for (const [index, at] of [0, 0.28, 0.56, 0.84].entries()) {
     apply(at);
     assert.equal(relic.state.stacks, index + 1);
-    // Repeated applications cannot gain stacks or explode through the ICD boundary.
-    for (const blockedAt of [at, at + 0.279, at + 0.28]) apply(blockedAt);
+    // Other sources remain blocked before expiry, even if 250ms has elapsed.
+    apply(at + 0.279, 'skill-b');
     assert.equal(relic.state.stacks, index + 1);
     assert.equal(conditions.length, 0);
     assert.equal(queued.length, 0);
   }
 
-  apply(1.481);
+  apply(1.12);
+  assert.equal(relic.state.stacks, 5);
+  apply(1.121);
   assert.equal(relic.state.stacks, 0);
   assert.equal(conditions.length, 1);
   assert.equal(queued.length, 1);
+
+  // Tick rounding is absolute: a marker started at 41ms expires at 320ms.
+  const second = relicHarness('Last Tyrant');
+  const applySecond = (at) => second.relic.rules.condition(second.ctx, second.relic.state, burning(at), second.helpers);
+  applySecond(0.041);
+  applySecond(0.319);
+  assert.equal(second.relic.state.stacks, 1);
+  applySecond(0.32);
+  assert.equal(second.relic.state.stacks, 2);
 });
 
 test('Last Tyrant ignores non-burning and non-player applications', () => {

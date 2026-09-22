@@ -42,8 +42,8 @@
         "label": "Condition (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-weaver-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-scepter.json",
-        "dpsReportUrl": "https://dps.report/qcqm-20260813-042826_golem",
-        "benchmarkDps": 43216,
+        "dpsReportUrl": "https://dps.report/ZL82-20260917-194220_golem",
+        "benchmarkDps": 44015,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-scepter-warhorn"
       }

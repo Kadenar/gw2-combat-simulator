@@ -22,10 +22,10 @@
   "alternateWeapons": ["", ""],
   "rune": "Trapper",
   "weaponSigils": [
-    ["Malice", "Earth"],
+    ["Malice", "Bursting"],
     ["Malice", "Earth"]
   ],
-  "relic": "Fractal",
+  "relic": "Last Tyrant",
   "food": "Salsa-Topped Veggie Flatbread",
   "utility": "Toxic Tuning Crystal",
   "jadeBotCore": true,
@@ -36,14 +36,6 @@
     },
     {
       "stat": "Precision",
-      "count": 0
-    },
-    {
-      "stat": "Power",
-      "count": 0
-    },
-    {
-      "stat": "Condition Damage",
       "count": 0
     }
   ],
@@ -70,7 +62,7 @@
   },
   "assumptions": {
     "simulationMode": "deterministic",
-    "hitboxSize": "small",
+    "permanentComboField": "none",
     "might": 25,
     "fury": true,
     "quickness": true,
@@ -93,12 +85,13 @@
       "Slow": true,
       "Weakness": true,
       "Vulnerability": 25
-    }
+    },
+    "hitboxSize": "small"
   },
   "startingWeaponSet": 1,
   "targetHealth": 4000000,
+  "targetStartingHealthPercent": 100,
   "targetArmor": 2597,
-  "rotation": [],
   "startAttunement": "Earth",
   "secondaryAttunement": "Air",
   "initialCatalystEnergy": 30,
@@ -110,5 +103,6 @@
     "Water": false,
     "Air": false,
     "Earth": false
-  }
+  },
+  "precastRelics": []
 }
