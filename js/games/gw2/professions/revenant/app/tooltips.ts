@@ -185,9 +185,6 @@ export const revenantTooltips: ProfessionTooltips = {
             ? ' Razorclaw grants finite bleeding charges to you and the assumed attacking allies.'
             : ''),
         facts: [
-          ...simulationEffectFacts(selected.effects, 'ordinary cast').facts,
-          ...simulationEffectFacts(enhanced.effects, 'enhanced cast instead').facts,
-          ...simulationEffectFacts(tooltipProfile(balanceContext, RENEGADE.bandTogether).effects).facts,
           ...(selected.id === ID.RAZORCLAWS_RAGE
             ? [
                 ...simulationEffectFacts(
@@ -202,6 +199,17 @@ export const revenantTooltips: ProfessionTooltips = {
                 }
               ]
             : [])
+        ],
+        // Enhanced casts replace the base payload; only ordinary casts prime another Band Together window.
+        factTabs: [
+          {
+            label: 'Base effects',
+            facts: [
+              ...simulationEffectFacts(selected.effects).facts,
+              ...simulationEffectFacts(tooltipProfile(balanceContext, RENEGADE.bandTogether).effects).facts
+            ]
+          },
+          { label: 'Enhanced effects', facts: simulationEffectFacts(enhanced.effects).facts }
         ]
       };
     },
