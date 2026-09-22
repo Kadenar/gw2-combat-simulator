@@ -308,7 +308,7 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
 
   assert.equal(skill.name, 'Rock Barrier');
   assert.equal(view.cooldownLabel, '8.00s');
-  assert.match(view.title, /Remaining: 8\.00s/);
+  assert.match(view.castDetails, /Remaining: 8\.00s/);
   assert.equal(view.disabled, true);
 });
 
@@ -323,7 +323,7 @@ test('cooldown tooltip reports availability relative to combat start', async () 
   });
   app.results.events = [{ type: 'combat_start', at: 10 }];
 
-  assert.match(paletteSkillView(app, skill).title, /Remaining: 8\.16s · available at 13s/);
+  assert.match(paletteSkillView(app, skill).castDetails, /Remaining: 8\.16s\nAvailable at: 13s/);
 });
 
 test('ammo tile shows its cast lockout before the next charge timer', async () => {
@@ -356,10 +356,10 @@ test('ammo tile shows its cast lockout before the next charge timer', async () =
 
   assert.equal(locked.cooldownLabel, '1.25s');
   assert.equal(locked.disabled, true);
-  assert.match(locked.title, /1\/2 ammo · available in 1\.25s/);
+  assert.match(locked.castDetails, /Ammunition: 1\/2\nAvailable in: 1\.25s/);
   assert.equal(available.cooldownLabel, '1.75s');
   assert.equal(available.disabled, false);
-  assert.match(available.title, /1\/2 ammo · next charge in 1\.75s/);
+  assert.match(available.castDetails, /Ammunition: 1\/2\nNext charge in: 1\.75s/);
 });
 
 test('Holosmith Photon Forge autos are catalog autoattack chains', async () => {

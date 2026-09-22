@@ -72,7 +72,7 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
   return `<div class="${classes}" data-skill="${esc(view.name)}"
     ${skillId ? `data-skill-id="${esc(skillId)}"` : ''}
     ${hotkeyAction ? `data-hotkey-action="${esc(hotkeyAction)}"` : ''}
-    ${view.skill && view.tooltip ? `${skillTooltipAttributes(view.skill, view.tooltip, view.title?.split('\n').slice(1).join('\n'))} data-wiki-delay="700" tabindex="0"` : `title="${esc(view.title || view.name)}"`} draggable="${draggable ? 'true' : 'false'}"
+    ${view.skill && view.tooltip ? `${skillTooltipAttributes(view.skill, view.tooltip, { details: view.castDetails, detailsTitle: 'Cast details', notice: view.notice })} data-wiki-delay="700" tabindex="0"` : `title="${esc(view.title || view.name)}"`} draggable="${draggable ? 'true' : 'false'}"
     ${ariaLabel ? `aria-label="${esc(ariaLabel)}"` : ''}
     style="--att-border:${esc(view.color || '#a88be8')}">
     <img src="${esc(view.icon || PLACEHOLDER_ICON)}" alt="" />

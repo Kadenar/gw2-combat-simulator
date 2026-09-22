@@ -80,6 +80,19 @@ export function revenantCorePaletteSkillAvailability(
 ): PaletteSkillAvailability {
   const state = revenantUiState(context);
   const activeLegend = activeRevenantLegend(context);
+  // Flip descendants must obey legend ownership even when they are absent from the fixed loadout bar.
+  if (skill.legendId && skill.legendId !== activeLegend) {
+    return { available: false, message: 'Invoke the matching legend first' };
+  }
+
+  // A free release is selectable only while armed, so low Energy cannot flip an inactive upkeep's tile.
+  if (
+    skill.handlerId === 'revenant.upkeep-release' &&
+    !skillFlipReady(state.availableFlips?.[skill.id], Number(context.time || 0))
+  ) {
+    return { available: false, message: 'Activate the matching upkeep skill first' };
+  }
+
   // Check if the skill's paletteLegendId matches the active legend
   if (skill.paletteLegendId === activeLegend) {
     return {

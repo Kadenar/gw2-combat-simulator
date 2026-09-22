@@ -204,8 +204,11 @@ test('adapter caches skill tooltips per balance context without retaining stale 
   assert.equal(adapter.skillTooltip(skill, 'tooltip-cache'), patched);
   assert.equal(adapter.skillTooltip(skill, 'current'), live);
   assert.equal(descriptions, 2);
-  assert.match(skillTooltipAttributes(skill, live, 'Available now'), /Available now/);
-  const pending = skillTooltipAttributes(skill, live, 'Available at 5s');
+  assert.match(
+    skillTooltipAttributes(skill, live, { details: 'Available now', detailsTitle: 'Cast details' }),
+    /Available now/
+  );
+  const pending = skillTooltipAttributes(skill, live, { details: 'Available at 5s', detailsTitle: 'Cast details' });
   assert.match(pending, /Available at 5s/);
   assert.doesNotMatch(pending, /Available now/);
 

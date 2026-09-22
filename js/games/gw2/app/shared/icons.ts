@@ -38,6 +38,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Battle Scars': 'https://render.guildwars2.com/file/12FFBBD82F3BB8C057E95AB7E907AD3EACFDF221/2261517.png',
   // Fervor facts use the effect's icon wherever its stack duration is displayed.
   "Kalla's Fervor": 'https://render.guildwars2.com/file/4DDE151C71EDB6120E3454036C4C3504EADB02D8/1770161.png',
+  // Razorclaw's party buff shares its originating skill's icon in both base and enhanced tooltips.
+  "Razorclaw's Rage": 'https://render.guildwars2.com/file/2449F064B1D3427FF311D3B4C101009C52250A0C/1770606.png',
   // Control facts use the game's distinct disable glyphs; unspecified controls use the defiance glyph.
   Daze: 'https://render.guildwars2.com/file/9AE125E930C92FEA0DD99E7EBAEDE4CF5EC556B6/433474.png',
   Stun: 'https://render.guildwars2.com/file/1999B9DB355005D2DD19F66DFFBAA6D466057508/522727.png',

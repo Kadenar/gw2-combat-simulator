@@ -20,20 +20,21 @@ export function wikiTooltipAttributes(
 export function skillTooltipAttributes(
   skill: Skill,
   tooltip: SimulationTooltip,
-  contextDescription = '',
-  rotationDetails = ''
+  { details = '', detailsTitle = '', notice = '' }: { details?: string; detailsTitle?: string; notice?: string } = {}
 ): string {
-  const description = [
-    tooltip.description,
-    contextDescription,
-    tooltip.incomplete ? 'Some simulation details are not yet described.' : ''
-  ]
+  const description = [tooltip.description, tooltip.incomplete ? 'Some simulation details are not yet described.' : '']
     .filter(Boolean)
     .join('\n');
   const recharge = tooltip.facts.find(
     (fact) => fact.name === 'Base recharge' || fact.name === 'Base ammunition recharge'
   );
   const energy = tooltip.facts.find((fact) => fact.name === 'Base energy cost');
+  // Builder upkeep belongs beside cast timing; the skill effect list describes what the skill does.
+  const upkeep =
+    detailsTitle === 'Cast details'
+      ? tooltip.facts.find((fact) => fact.name === 'Energy upkeep per second')
+      : undefined;
+  const detailLines = [details.trim(), upkeep ? `Energy upkeep: ${upkeep.detail}/s` : ''].filter(Boolean).join('\n');
   // The heading badge reads the selected model, so it cannot retain an obsolete catalog cooldown after a patch switch.
   return (
     wikiTooltipAttributes(
@@ -41,12 +42,13 @@ export function skillTooltipAttributes(
       description,
       skill.displayName || skill.name,
       // Heading costs use the selected model and appear only once, beside the skill name.
-      tooltip.facts.filter((fact) => fact !== recharge && fact !== energy),
+      tooltip.facts.filter((fact) => fact !== recharge && fact !== energy && fact !== upkeep),
       tooltip.factTabs
     ) +
     (energy && Number(energy.detail) > 0 ? ` data-wiki-energy="${esc(energy.detail)}"` : '') +
     (recharge ? ` data-wiki-recharge="${esc(recharge.detail.replace(/s$/, ''))}"` : '') +
-    (rotationDetails.trim() ? ` data-wiki-rotation="${esc(rotationDetails.trim())}"` : '')
+    (detailLines ? ` data-wiki-details="${esc(detailLines)}" data-wiki-details-title="${esc(detailsTitle)}"` : '') +
+    (notice ? ` data-wiki-notice="${esc(notice)}"` : '')
   );
 }
 
@@ -75,11 +77,12 @@ export function bindWikiTooltips(): void {
   panel.setAttribute('role', 'dialog');
   panel.setAttribute('aria-labelledby', 'wiki-tooltip-name');
   panel.innerHTML = `<div class="wiki-tooltip-heading"><img class="wiki-tooltip-item-icon" alt="" hidden><strong id="wiki-tooltip-name"></strong><span class="wiki-tooltip-costs"><span class="wiki-tooltip-energy"></span><span class="wiki-tooltip-recharge"></span></span></div>
+    <div class="wiki-tooltip-notice" hidden></div>
     <div id="wiki-tooltip-description" class="wiki-tooltip-description"></div>
     <div class="wiki-tooltip-effects"></div>
     <div class="wiki-tooltip-upgrades"></div>
-    <section class="wiki-tooltip-rotation" aria-labelledby="wiki-tooltip-rotation-title" hidden>
-      <h3 id="wiki-tooltip-rotation-title">Rotation details</h3>
+    <section class="wiki-tooltip-details" aria-labelledby="wiki-tooltip-details-title" hidden>
+      <h3 id="wiki-tooltip-details-title"></h3>
       <dl></dl>
     </section>
     <a target="_blank" rel="noopener noreferrer" aria-label="Open on wiki (opens in a new tab)">Open on wiki <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4 12 12 4M4 4h8v8" /></svg></a>`;
@@ -92,7 +95,8 @@ export function bindWikiTooltips(): void {
   const effects = panel.querySelector<HTMLElement>('.wiki-tooltip-effects')!;
   const itemIcon = panel.querySelector<HTMLImageElement>('.wiki-tooltip-item-icon')!;
   const upgrades = panel.querySelector<HTMLElement>('.wiki-tooltip-upgrades')!;
-  const rotation = panel.querySelector<HTMLElement>('.wiki-tooltip-rotation')!;
+  const details = panel.querySelector<HTMLElement>('.wiki-tooltip-details')!;
+  const notice = panel.querySelector<HTMLElement>('.wiki-tooltip-notice')!;
   let trigger: HTMLElement | null = null;
   let returnFocus: HTMLElement | null = null;
   let closeTimer: ReturnType<typeof setTimeout> | undefined;
@@ -213,13 +217,16 @@ export function bindWikiTooltips(): void {
     );
     description.hidden = !description.textContent;
     // Keep labeled cast details below the skill effects, and clear them when inspecting another kind of item.
-    const rotationLines = (element.dataset.wikiRotation || '').split('\n').filter(Boolean);
-    rotation.hidden = !rotationLines.length;
-    rotation.querySelector('dl')!.innerHTML = rotationLines
+    notice.textContent = element.dataset.wikiNotice || '';
+    notice.hidden = !notice.textContent;
+    const detailLines = (element.dataset.wikiDetails || '').split('\n').filter(Boolean);
+    details.hidden = !detailLines.length;
+    details.querySelector('h3')!.textContent = element.dataset.wikiDetailsTitle || '';
+    details.querySelector('dl')!.innerHTML = detailLines
       .map((line) => {
         const separator = line.indexOf(':');
         return separator < 0
-          ? `<div class="wiki-tooltip-rotation-note"><dt>Note</dt><dd>${esc(line)}</dd></div>`
+          ? `<div class="wiki-tooltip-details-note"><dt>Note</dt><dd>${esc(line)}</dd></div>`
           : `<div><dt>${esc(line.slice(0, separator))}</dt><dd>${esc(line.slice(separator + 1).trim())}</dd></div>`;
       })
       .join('');

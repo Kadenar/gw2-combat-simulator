@@ -196,6 +196,51 @@ test('profession palette deduplicates actions and shows only active Conduit rele
   }
 });
 
+test('Revenant upkeep releases require an armed flip in the active legend', () => {
+  // Free releases must not replace unaffordable upkeeps or bypass their legend's cast gate.
+  for (const release of revenantCatalog.skills.filter((skill) => skill.handlerId === 'revenant.upkeep-release')) {
+    const context = {
+      specialization: release.specialization || 'Core',
+      professionState: { activeLegendId: release.legendId, energy: 0, availableFlips: {} }
+    };
+    const available = () => revenantProfession.ui.paletteSkillAvailability(context, release).available;
+    assert.equal(available(), false, release.name);
+    armSkillFlip(context.professionState.availableFlips, release.id, 0);
+    assert.equal(available(), true, release.name);
+    if (release.legendId) {
+      context.professionState.activeLegendId = LEGEND.ENTITY;
+      assert.equal(available(), false, release.name);
+    }
+  }
+});
+
+test('Soulcleave stays on its parent tile at zero Energy until its release is armed', () => {
+  const parent = revenantCatalog.skillsById.get(SKILL.SOULCLEAVES_SUMMIT);
+  const release = revenantCatalog.skillsById.get(SKILL.DISMISS_LIEUTENANT_SOULCLEAVE);
+  for (const activeLegendId of [LEGEND.ASSASSIN, LEGEND.RENEGADE]) {
+    for (const energy of [0, 4, 5]) {
+      const professionState = { activeLegendId, energy, availableFlips: {} };
+      const app = {
+        profession: revenantProfession,
+        skills: revenantCatalog.skills,
+        results: { planningState: { profession: professionState, atSeconds: 0 } }
+      };
+      const context = { specialization: 'Renegade', professionState };
+      assert.equal(displayedSkillTiles(app, [parent], context)[0].id, parent.id);
+      assert.equal(revenantProfession.ui.paletteSkillAvailability(context, release).available, false);
+      assert.equal(
+        revenantProfession.ui.paletteSkillAvailability(context, parent).available,
+        activeLegendId === LEGEND.RENEGADE && energy >= 5
+      );
+      if (activeLegendId === LEGEND.RENEGADE) {
+        armSkillFlip(professionState.availableFlips, release.id, 0);
+        assert.equal(displayedSkillTiles(app, [parent], context)[0].id, release.id);
+        assert.equal(revenantProfession.ui.paletteSkillAvailability(context, release).available, true);
+      }
+    }
+  }
+});
+
 test('energy accumulates fractionally with elapsed time and skills pay their explicit costs', () => {
   const result = simulate('Core', ['Phase Traversal', { type: 'wait', durationMs: 1000 }]);
 

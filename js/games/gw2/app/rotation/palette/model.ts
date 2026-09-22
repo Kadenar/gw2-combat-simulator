@@ -622,6 +622,8 @@ export interface PaletteSkillView {
   readonly skillId?: SkillId | null;
   readonly hotkeyAction?: string;
   readonly title?: string;
+  readonly castDetails?: string;
+  readonly notice?: string;
   readonly icon?: string;
   readonly variantBadge?: string;
   readonly color?: string;
@@ -710,7 +712,6 @@ export function paletteSkillView(
   contextMessage = '',
   contextRetryAt: number | null = null
 ): PaletteSkillView {
-  const displayName = skill.displayName || skill.name;
   const cd = currentCooldown(app, skill.name);
   const endTime = Number(palettePlanningState(app)?.atSeconds || 0) * 1000;
   const contextReadyAt = Number(contextRetryAt) * 1000;
@@ -725,8 +726,6 @@ export function paletteSkillView(
   const readyAt = contextRemaining > Number(cd.remaining || 0) ? contextReadyAt : cd.readyAt;
   const ammo = currentAmmo(app, skill);
   const maximumAmmo = ammo?.maximum ?? Number(skill.ammo || 0);
-  const recharge =
-    maximumAmmo && Number(skill.ammoRecharge || 0) > 0 ? Number(skill.ammoRecharge) : Number(skill.cooldown || 0);
   const ammoDisplay = ammoDisplayView(ammo?.charges ?? maximumAmmo, maximumAmmo);
   // Show the cast lockout while disabled, then the next charge timer once usable; the tooltip reuses this precision.
   const displayedRemaining = remaining || Number(ammo?.remaining || 0);
@@ -734,27 +733,23 @@ export function paletteSkillView(
   const unavailable = remaining > 0 || !contextAvailable;
   const highlighted = (Boolean(skill.ambush) || Boolean(skill.stealthAttack)) && !unavailable;
   const castTimeSeconds = Number(skill.castTimeMs || 0) / 1000;
-  const hasEnergyCost = skill.energyCost != null;
-  const energyCost = Number(skill.energyCost || 0);
-  const title = [
-    displayName,
-    castTimeSeconds ? `Cast: ${castTimeSeconds.toFixed(2)}s` : 'Instant cast',
-    hasEnergyCost ? `Energy cost: ${energyCost}` : '',
-    recharge ? `${maximumAmmo ? 'Count recharge' : 'Cooldown'}: ${recharge}s` : '',
+  // Give each live cast detail its own label so availability and recharge values align without prose wrapping.
+  const castDetails = [
+    `Cast time: ${castTimeSeconds ? `${castTimeSeconds.toFixed(2)}s` : 'Instant'}`,
     !contextAvailable
-      ? [contextMessage || 'Unavailable in the current state', remaining ? `Remaining: ${cooldownLabel}` : '']
-          .filter(Boolean)
-          .join(' · ')
+      ? remaining
+        ? `Remaining: ${cooldownLabel}`
+        : ''
       : ammoDisplay
-        ? `${ammoDisplay.label}${
-            displayedRemaining ? ` · ${remaining ? 'available' : 'next charge'} in ${cooldownLabel}` : ''
+        ? `Ammunition: ${ammoDisplay.current}/${ammoDisplay.maximum}${
+            displayedRemaining ? `\n${remaining ? 'Available in' : 'Next charge in'}: ${cooldownLabel}` : ''
           }`
         : remaining
-          ? `Remaining: ${cooldownLabel} · available at ${seconds(
+          ? `Remaining: ${cooldownLabel}\nAvailable at: ${seconds(
               // Show absolute scheduler deadlines on the combat-relative rotation clock.
               readyAt - resultCombatReferenceMs(app.results)
             )}`
-          : 'Available now'
+          : 'Status: Available now'
   ]
     .filter(Boolean)
     .join('\n');
@@ -769,7 +764,13 @@ export function paletteSkillView(
       rotationHotkeyActionForSkillName(skill.name),
     icon: skill.icon || ACTION_ICONS[skill.name] || PLACEHOLDER_ICON,
     variantBadge: String(skill.variantBadge || ''),
-    title,
+    castDetails,
+    notice: contextAvailable
+      ? ''
+      : (contextMessage || 'Unavailable in the current state').replace(
+          /^Swap to (.+) to use this skill$/,
+          'Requires $1'
+        ),
     color: unavailable ? '#625a73' : highlighted ? '#f0c766' : '#a88be8',
     disabled: unavailable,
     contextDisabled: !contextAvailable && !retryableContext,

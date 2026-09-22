@@ -38,6 +38,7 @@ export interface ProfessionTooltips {
 const effectNames = new Map(Object.keys(MODIFIER_EFFECT_ICONS).map((name) => [name.toLowerCase(), name]));
 // Resolve authored buff IDs to display names so their facts receive the matching effect icons.
 effectNames.set('kallas-fervor', "Kalla's Fervor");
+effectNames.set('razorclaws-rage', "Razorclaw's Rage");
 effectNames.set('battle-scars', 'Battle Scars');
 // All ordinary descriptions use the same locale, so reuse its formatter across skills.
 const effectListFormat = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' });
