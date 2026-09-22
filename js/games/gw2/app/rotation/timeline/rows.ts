@@ -504,7 +504,7 @@ export function timelineRowsView(
       const combatTimeAttribute = step && !invalid ? ` data-combat-time-ms="${step.start - combatReferenceMs}"` : '';
       // Escape the complete title once so imported diagnostic and resource text cannot become HTML attributes.
       const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${chargeMismatch ? ' rot-charge-mismatch' : ''}${cancelledWithoutDamage ? ' rot-cancelled' : ''}"${readOnly ? '' : ' draggable="true"'}
-                    data-idx="${index}"${combatTimeAttribute} data-skill-highlight-key="${esc(highlightKey)}" ${skill ? `${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patchId), skillTooltip + titleSuffix + resourceTitle)} data-wiki-delay="700" tabindex="0"` : `title="${esc(skillTooltip + titleSuffix + resourceTitle)}"`} style="--att-border:${cancelledWithoutDamage ? '#ff3b45' : '#9d7bd0'}">
+                    data-idx="${index}"${combatTimeAttribute} data-skill-highlight-key="${esc(highlightKey)}" ${skill ? `${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patchId), '', (skillTooltip === display ? '' : skillTooltip) + titleSuffix + resourceTitle)} data-wiki-delay="700" tabindex="0"` : `title="${esc(skillTooltip + titleSuffix + resourceTitle)}"`} style="--att-border:${cancelledWithoutDamage ? '#ff3b45' : '#9d7bd0'}">
                     <img src="${esc(icon)}" alt="" />
                     ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ''}
                     ${

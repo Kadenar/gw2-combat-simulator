@@ -345,10 +345,12 @@ export function formatTimelineSkillTooltip(
 ): string {
   if (!step || step.invalid || !ordinal) return String(name || '');
   const duration = Math.max(0, Math.round(Number(step.end || 0) - Number(step.start || 0)));
+  // Compact labels separate this activation's timing and ordinals from the skill's own description.
   return [
-    `${name} at ${formatTime(step.start)} for ${duration}ms`,
-    `${name} cast ${ordinal.matchingIndex} of ${ordinal.matchingTotal}`,
-    `Skill cast ${ordinal.skillIndex} of ${ordinal.skillTotal}`,
+    `Start: ${formatTime(step.start)}`,
+    `Cast time: ${duration}ms`,
+    `Skill use: ${ordinal.matchingIndex} of ${ordinal.matchingTotal}`,
+    `Rotation action: ${ordinal.skillIndex} of ${ordinal.skillTotal}`,
     ...details
   ].join('\n');
 }

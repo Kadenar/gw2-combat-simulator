@@ -258,7 +258,7 @@ test('timeline skill tooltips include matching and global cast ordinals', () => 
   });
   assert.equal(
     formatTimelineSkillTooltip('Well of Darkness', steps[4], ordinals.get(4), (time) => `${(time / 1000).toFixed(3)}s`),
-    'Well of Darkness at 2.500s for 481ms\n' + 'Well of Darkness cast 2 of 3\n' + 'Skill cast 3 of 4'
+    'Start: 2.500s\nCast time: 481ms\nSkill use: 2 of 3\nRotation action: 3 of 4'
   );
   assert.match(
     formatTimelineSkillTooltip(

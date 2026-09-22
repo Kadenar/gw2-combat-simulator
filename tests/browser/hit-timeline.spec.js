@@ -156,10 +156,11 @@ test('condition rows inspect full and partial payouts across sources', async ({ 
   const utilityConditions = page.locator('.res-condition-group-utility');
   await expect(utilityConditions.locator('.cond-hdr > span')).toHaveText(['Condition', 'Avg Stacks']);
   await expect(utilityConditions.locator('.res-row > span')).toHaveText(['Crippled', '1.00']);
-  await expect(torment.locator('img')).toHaveAttribute('src', /Torment\.png$/);
+  // Verify each condition's catalog asset ID; render-service icons use numeric filenames.
+  await expect(torment.locator('img')).toHaveAttribute('src', /\/598887\.png$/);
   await expect(page.locator('.res-row').filter({ hasText: 'Crippled' }).locator('img')).toHaveAttribute(
     'src',
-    /Crippled\.png$/
+    /\/102838\.png$/
   );
   expect(await torment.locator('.res-skill').evaluate((label) => getComputedStyle(label, '::before').content)).toBe(
     'none'

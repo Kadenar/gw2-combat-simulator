@@ -17,7 +17,12 @@ export function wikiTooltipAttributes(
 }
 
 /** Renders a locally described model; the selected simulation definitions own every numeric fact. */
-export function skillTooltipAttributes(skill: Skill, tooltip: SimulationTooltip, contextDescription = ''): string {
+export function skillTooltipAttributes(
+  skill: Skill,
+  tooltip: SimulationTooltip,
+  contextDescription = '',
+  rotationDetails = ''
+): string {
   const description = [
     tooltip.description,
     contextDescription,
@@ -40,7 +45,8 @@ export function skillTooltipAttributes(skill: Skill, tooltip: SimulationTooltip,
       tooltip.factTabs
     ) +
     (energy && Number(energy.detail) > 0 ? ` data-wiki-energy="${esc(energy.detail)}"` : '') +
-    (recharge ? ` data-wiki-recharge="${esc(recharge.detail.replace(/s$/, ''))}"` : '')
+    (recharge ? ` data-wiki-recharge="${esc(recharge.detail.replace(/s$/, ''))}"` : '') +
+    (rotationDetails.trim() ? ` data-wiki-rotation="${esc(rotationDetails.trim())}"` : '')
   );
 }
 
@@ -72,6 +78,10 @@ export function bindWikiTooltips(): void {
     <div id="wiki-tooltip-description" class="wiki-tooltip-description"></div>
     <div class="wiki-tooltip-effects"></div>
     <div class="wiki-tooltip-upgrades"></div>
+    <section class="wiki-tooltip-rotation" aria-labelledby="wiki-tooltip-rotation-title" hidden>
+      <h3 id="wiki-tooltip-rotation-title">Rotation details</h3>
+      <dl></dl>
+    </section>
     <a target="_blank" rel="noopener noreferrer" aria-label="Open on wiki (opens in a new tab)">Open on wiki <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4 12 12 4M4 4h8v8" /></svg></a>`;
   document.body.append(panel);
   const heading = panel.querySelector('strong')!;
@@ -82,6 +92,7 @@ export function bindWikiTooltips(): void {
   const effects = panel.querySelector<HTMLElement>('.wiki-tooltip-effects')!;
   const itemIcon = panel.querySelector<HTMLImageElement>('.wiki-tooltip-item-icon')!;
   const upgrades = panel.querySelector<HTMLElement>('.wiki-tooltip-upgrades')!;
+  const rotation = panel.querySelector<HTMLElement>('.wiki-tooltip-rotation')!;
   let trigger: HTMLElement | null = null;
   let returnFocus: HTMLElement | null = null;
   let closeTimer: ReturnType<typeof setTimeout> | undefined;
@@ -201,6 +212,17 @@ export function bindWikiTooltips(): void {
       '<span class="wiki-tooltip-highlight">$1</span>'
     );
     description.hidden = !description.textContent;
+    // Keep labeled cast details below the skill effects, and clear them when inspecting another kind of item.
+    const rotationLines = (element.dataset.wikiRotation || '').split('\n').filter(Boolean);
+    rotation.hidden = !rotationLines.length;
+    rotation.querySelector('dl')!.innerHTML = rotationLines
+      .map((line) => {
+        const separator = line.indexOf(':');
+        return separator < 0
+          ? `<div class="wiki-tooltip-rotation-note"><dt>Note</dt><dd>${esc(line)}</dd></div>`
+          : `<div><dt>${esc(line.slice(0, separator))}</dt><dd>${esc(line.slice(separator + 1).trim())}</dd></div>`;
+      })
+      .join('');
     // Clear the shared badge when the next skill has no positive energy cost.
     energy.innerHTML = element.dataset.wikiEnergy
       ? `${esc(element.dataset.wikiEnergy)} <img src="${esc(MODIFIER_EFFECT_ICONS['Energy cost'])}" alt="">`

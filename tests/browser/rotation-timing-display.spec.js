@@ -20,7 +20,7 @@ test('skill and Combat Start editors expose the scheduled target impact', async 
     return `First hit: ${Math.round(impact.at * 1000) - step.start} ms`;
   });
   const skill = page.locator('#rotation-timeline .rot-skill[data-idx="0"]');
-  await expect(skill).toHaveAttribute('data-wiki-description', new RegExp(impactLabel));
+  await expect(skill).toHaveAttribute('data-wiki-rotation', new RegExp(impactLabel));
   await skill.hover();
   await skill.locator('.rot-edit-activation').click();
   const editor = page.locator('.rotation-activation-editor:visible');
