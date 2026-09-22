@@ -38,7 +38,6 @@ export interface RevenantSkill extends Skill {
   readonly triggerIntervalMs?: number;
   readonly upkeepCost?: number;
   readonly upkeepConsumeByLegendId?: Readonly<Record<string, SkillId>>;
-  readonly upkeepConsumeId?: SkillId;
   readonly upkeepPulse?: {
     readonly kind: string;
     readonly duration: number;

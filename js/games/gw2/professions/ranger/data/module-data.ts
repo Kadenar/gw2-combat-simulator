@@ -73,8 +73,6 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
 // Normalize generated Ranger skill metadata and handler defaults before the
 // catalog freezes specialization module data.
 function normalize(skill: RangerSkill): RangerSkill {
-  const specialization = String(skill.specialization || '');
-
   const petSkill = petSkillIds.has(skill.id);
 
   const beastmodeSkill = SOULBEAST_PROFESSION_SKILLS.includes(skill.id);
@@ -93,9 +91,7 @@ function normalize(skill: RangerSkill): RangerSkill {
     rechargeBuffAudience: petSkill ? 'summon' : skill.rechargeBuffAudience,
     beastmodeSkill,
     unleashedPetSkill,
-    unleashedAmbushSkill,
-    unleashedHammerSkill:
-      specialization === 'Untamed' && skill.weapon === 'Hammer' && skill.name.startsWith('Unleashed ')
+    unleashedAmbushSkill
   };
 }
 

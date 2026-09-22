@@ -19,8 +19,6 @@ const DUAL_FOLLOWUP_BY_PARENT: Readonly<Record<number, SkillId>> = Object.freeze
   63267: 63128
 });
 
-const DUAL_FOLLOWUP_IDS = new Set<SkillId>(Object.values(DUAL_FOLLOWUP_BY_PARENT));
-
 const WEAPON_FLIP_BY_PARENT: Readonly<Record<number, SkillId>> = Object.freeze({
   ...DUAL_FOLLOWUP_BY_PARENT,
   [ID.INFILTRATORS_STRIKE]: ID.INFILTRATORS_RETURN,
@@ -170,7 +168,6 @@ const normalize = (skill: ThiefSkill): ThiefSkill => ({
       }),
   flipParentId: flipParentById.get(skill.id) ?? null,
   dualWieldOpener: Object.hasOwn(DUAL_FOLLOWUP_BY_PARENT, skill.id),
-  dualWieldFollowup: DUAL_FOLLOWUP_IDS.has(skill.id),
   flipDuration: WEAPON_FLIP_DURATION_BY_PARENT[Number(skill.id)] ?? skill.flipDuration,
   ...(Number(skill.initiativeCost || 0) > 0
     ? {

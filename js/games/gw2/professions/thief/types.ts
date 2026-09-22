@@ -126,8 +126,6 @@ export interface ThiefSummonAttack {
 export interface ThiefSkill extends Skill {
   readonly artifactKind?: ThiefArtifactKind;
   readonly backfire?: boolean;
-  readonly doubleEdge?: boolean;
-  readonly dualWieldFollowup?: boolean;
   readonly dualWieldOpener?: boolean;
   readonly initiativeCost?: number;
   readonly kneelSkill?: boolean;

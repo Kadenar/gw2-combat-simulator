@@ -203,8 +203,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
           actorType: 'player'
         }
       ])
-    ],
-    doubleEdge: true
+    ]
   },
   [ID.ZEPHYRITE_SUN_CRYSTAL_ID_76733]: {
     movementSkill: true,
@@ -265,8 +264,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     castTimeMs: 520,
     cooldown: 10,
     initiativeCost: 0,
-    effects: [],
-    doubleEdge: true
+    effects: []
   },
   [ID.ZEPHYRITE_SUN_CRYSTAL]: {
     movementSkill: true,
@@ -450,8 +448,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
     castTimeMs: 0,
     cooldown: 15,
     initiativeCost: 0,
-    effects: [],
-    doubleEdge: true
+    effects: []
   },
   [ID.SKRITT_SCUFFLE]: {
     // Custom: Replaces the cast with the delayed Skritt Scuffle sequence; see `antiquary/mechanics/artifacts.ts`.
@@ -473,8 +470,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>> 
         actorType: 'player',
         controlKind: 'launch'
       }
-    ],
-    doubleEdge: true
+    ]
   },
   [ID.MISTBURN_MORTAR]: {
     // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.

@@ -137,7 +137,6 @@ export interface RangerSkill extends Skill {
   readonly beastmodeSkill?: boolean;
   readonly unleashedPetSkill?: boolean;
   readonly unleashedAmbushSkill?: boolean;
-  readonly unleashedHammerSkill?: boolean;
   readonly cycloneBowSkill?: boolean;
   readonly arrowCost?: number;
   readonly arrowsRestored?: number;

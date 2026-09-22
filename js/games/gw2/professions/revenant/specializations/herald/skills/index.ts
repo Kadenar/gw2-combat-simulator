@@ -23,8 +23,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
-    upkeepPulse: { kind: 'might', duration: 12, stacks: 1 },
-    upkeepConsumeId: ID.BURST_OF_STRENGTH
+    upkeepPulse: { kind: 'might', duration: 12, stacks: 1 }
   },
   [ID.FACET_OF_ELEMENTS]: {
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
@@ -37,8 +36,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
-    upkeepPulse: { kind: 'swiftness', duration: 3, stacks: 1 },
-    upkeepConsumeId: ID.ELEMENTAL_BLAST
+    upkeepPulse: { kind: 'swiftness', duration: 3, stacks: 1 }
   },
   [ID.GAZE_OF_DARKNESS]: {
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
@@ -139,8 +137,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
-    upkeepPulse: { kind: 'regeneration', duration: 4, stacks: 1 },
-    upkeepConsumeId: ID.INFUSE_LIGHT
+    upkeepPulse: { kind: 'regeneration', duration: 4, stacks: 1 }
   },
   [ID.INFUSE_LIGHT]: {
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
@@ -163,8 +160,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
-    upkeepPulse: { kind: 'protection', duration: 3, stacks: 1 },
-    upkeepConsumeId: ID.CHAOTIC_RELEASE
+    upkeepPulse: { kind: 'protection', duration: 3, stacks: 1 }
   },
   [ID.CHAOTIC_RELEASE]: {
     // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/mechanics/facet-upkeep.ts`.
@@ -232,8 +228,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillFragment>
     legendId: 'LegendaryDragon',
     facet: true,
     pulseInterval: 3,
-    upkeepPulse: { kind: 'fury', duration: 3, stacks: 1 },
-    upkeepConsumeId: ID.GAZE_OF_DARKNESS
+    upkeepPulse: { kind: 'fury', duration: 3, stacks: 1 }
   },
   [ID.FACET_OF_NATURE]: {
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
