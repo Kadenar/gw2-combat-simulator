@@ -348,7 +348,7 @@ test('Thief public projection keeps inactive compatibility fields', () => {
   });
 
   assert.equal(result.planningState.profession.malice, 0);
-  assert.equal(result.planningState.profession.shadowForce, 0);
+  assert.equal(result.planningState.profession.shadowClock, undefined);
   assert.deepEqual(result.planningState.profession.artifactSlots, []);
   assert.equal(result.planningState.profession.artifactUsesRemaining, 0);
   assert.deepEqual(result.planningState.profession.holoUtilityCooldownReductionExpirations, []);

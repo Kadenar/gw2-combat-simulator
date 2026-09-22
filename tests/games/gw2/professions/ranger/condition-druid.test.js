@@ -647,14 +647,14 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
     ]
   );
   assert.equal(result.planningState.profession.celestialAvatarActive, false);
-  assert.equal(result.planningState.profession.astralForce > 0, true);
+  assert.equal(result.planningState.profession.astralClock.value > 0, true);
 
   const naturalMender = simulate([{ type: 'wait', durationMs: 6000 }], {
     initialAstralForce: 0,
     selectedTraitIds: [TRAIT.NATURAL_MENDER]
   });
 
-  assert.equal(naturalMender.planningState.profession.astralForce, 16);
+  assert.equal(naturalMender.planningState.profession.astralClock.value, 16);
 
   const convergence = simulate(
     ['Celestial Avatar', 'Natural Convergence', 'Release Celestial Avatar', { type: 'wait', durationMs: 8000 }],
@@ -784,7 +784,7 @@ test('legacy healing-rate assumptions no longer generate Astral Force', () => {
     professionAssumptions: { astralForceHealingEventsPerSecond: 2 }
   });
 
-  assert.equal(result.planningState.profession.astralForce, 16);
+  assert.equal(result.planningState.profession.astralClock.value, 16);
   assert.equal(
     Object.hasOwn(
       migrateRangerBuild({
@@ -824,7 +824,10 @@ test('Astral Force follows landed direct damage and excludes pet damage', () => 
     { selectedTraitIds: [TRAIT.ECLIPSE] }
   );
 
-  assert.equal(withEclipse.planningState.profession.astralForce, withoutEclipse.planningState.profession.astralForce);
+  assert.equal(
+    withEclipse.planningState.profession.astralClock.value,
+    withoutEclipse.planningState.profession.astralClock.value
+  );
 
   const eclipseDamage = simulate(["Viper's Nest", 'Celestial Avatar'], {
     initialAstralForce: 97,

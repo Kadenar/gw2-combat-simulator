@@ -40,7 +40,7 @@ test('cooldown reset refills Specter shadow force and clears skill recharge', ()
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.shadowForce, result.planningState.profession.maximumShadowForce);
+  assert.equal(result.planningState.profession.shadowClock.value, 100);
   assert.equal(result.planningState.cooldowns.Siphon, undefined);
 });
 

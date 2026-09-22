@@ -329,7 +329,7 @@ test('THF-003: cancelled activations preserve persistent state while successful 
     ['Core', 'Mantis Sting', { primaryWeapon: 'Spear', secondaryWeapon: '' }, (state) => state.spearChainStage === 1],
     ['Daredevil', 'Fist Flurry', {}, (state) => state.availableFlips[ID.PALM_STRIKE]?.expiresAt > 0],
     ['Deadeye', 'Shadow Flare', {}, (state) => state.availableFlips[ID.SHADOW_SWAP]?.expiresAt > 0],
-    ['Specter', 'Siphon', {}, (state) => state.shadowForce > 0],
+    ['Specter', 'Siphon', {}, (state) => state.shadowClock.value > 0],
     ['Antiquary', 'Skritt Scuffle', {}, (state) => state.artifactUsesRemaining > 0]
   ];
   for (const [specialization, name, config, committed] of cases) {

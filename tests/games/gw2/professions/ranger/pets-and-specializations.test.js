@@ -91,7 +91,7 @@ test('Ranger scheduler snapshots expose flat profession state', () => {
 
 test('Ranger public state is composed from Core and specialization-owned manifests', () => {
   assert.equal(RANGER_CORE_PUBLIC_END_STATE_KEYS.includes('beastmodeActive'), false);
-  assert.equal(RANGER_CORE_PUBLIC_END_STATE_KEYS.includes('astralForce'), false);
+  assert.equal(RANGER_CORE_PUBLIC_END_STATE_KEYS.includes('astralClock'), false);
   assert.deepEqual(RANGER_PUBLIC_END_STATE_KEYS, [
     ...RANGER_CORE_PUBLIC_END_STATE_KEYS,
     ...DRUID_PUBLIC_STATE_PROJECTION.keys,
@@ -109,7 +109,7 @@ test('Ranger Core source stays specialization-agnostic', async () => {
 
   assert.doesNotMatch(coreSource, /specializations\//);
   assert.doesNotMatch(coreSource, /\b(?:Druid|Soulbeast|Untamed|Galeshot|Beastmode)\b/);
-  assert.doesNotMatch(coreSource, /\b(?:beastmodeActive|astralForce|rangerUnleashed|cycloneBowActive)\b/);
+  assert.doesNotMatch(coreSource, /\b(?:beastmodeActive|astralClock|rangerUnleashed|cycloneBowActive)\b/);
 });
 
 test('Ranger catalog preserves runtime references and handlers', () => {
@@ -907,13 +907,13 @@ test('Druid gates, drains, and releases Celestial Avatar', () => {
   const entered = simulate('Druid', ['Celestial Avatar']);
 
   assert.deepEqual(entered.warnings, []);
-  assert.equal(entered.planningState.profession.astralForce, 100);
+  assert.equal(entered.planningState.profession.astralClock.value, 100);
   assert.equal(entered.planningState.profession.celestialAvatarActive, true);
   assert.equal(entered.planningState.profession.availableFlips[ID.RELEASE_CELESTIAL_AVATAR]?.expiresAt, 15);
 
   const draining = simulate('Druid', ['Celestial Avatar', { type: 'wait', durationMs: 5000 }]);
 
-  assert.equal(draining.planningState.profession.astralForce, 100 * (10 / 15));
+  assert.equal(draining.planningState.profession.astralClock.value, 100 * (10 / 15));
   assert.equal(draining.planningState.profession.celestialAvatarActive, true);
   assert.equal(
     rangerProfession.ui.paletteSkillAvailability(
@@ -931,7 +931,8 @@ test('Druid gates, drains, and releases Celestial Avatar', () => {
 
   assert.deepEqual(result.warnings, []);
   assert.ok(
-    Math.abs(result.planningState.profession.astralForce - 100 * ((15 - naturalConvergenceDuration) / 15) * 0.5) < 0.01
+    Math.abs(result.planningState.profession.astralClock.value - 100 * ((15 - naturalConvergenceDuration) / 15) * 0.5) <
+      0.01
   );
   assert.equal(result.planningState.profession.celestialAvatarActive, false);
   assert.equal(Object.hasOwn(result.planningState.profession.availableFlips, ID.RELEASE_CELESTIAL_AVATAR), false);

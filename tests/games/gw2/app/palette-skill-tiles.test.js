@@ -218,16 +218,28 @@ test('stateful transforms select one live tile across professions', async () => 
     [
       'thief',
       'Specter',
-      { shadowForce: 100, shadowShroudActive: false },
+      { shadowClock: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }, shadowShroudActive: false },
       ['Enter Shadow Shroud'],
       'Enter Shadow Shroud'
     ],
-    ['thief', 'Specter', { shadowForce: 100, shadowShroudActive: true }, ['Enter Shadow Shroud'], 'Exit Shadow Shroud'],
-    ['ranger', 'Druid', { astralForce: 100, celestialAvatarActive: false }, ['Celestial Avatar'], 'Celestial Avatar'],
+    [
+      'thief',
+      'Specter',
+      { shadowClock: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }, shadowShroudActive: true },
+      ['Enter Shadow Shroud'],
+      'Exit Shadow Shroud'
+    ],
     [
       'ranger',
       'Druid',
-      { astralForce: 100, celestialAvatarActive: true },
+      { astralClock: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }, celestialAvatarActive: false },
+      ['Celestial Avatar'],
+      'Celestial Avatar'
+    ],
+    [
+      'ranger',
+      'Druid',
+      { astralClock: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }, celestialAvatarActive: true },
       ['Celestial Avatar'],
       'Release Celestial Avatar'
     ],

@@ -14,11 +14,11 @@ import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
-test('force clocks own runtime resources while planning projections retain public values and defaults', () => {
-  // Snapshot replay and both palette input paths must work without resource accessors on live state.
-  for (const [profession, specialization, clockKey, valueKey, maximumKey, project] of [
-    [rangerProfession, 'Druid', 'astralClock', 'astralForce', 'maximumAstralForce', projectRangerPlanningState],
-    [thiefProfession, 'Specter', 'shadowClock', 'shadowForce', 'maximumShadowForce', projectThiefPlanningState]
+test('force clocks are detached in snapshots and planning projections and absent for inactive specializations', () => {
+  // Replay and presentation share one clock shape without sharing mutable resource state.
+  for (const [profession, specialization, clockKey, project] of [
+    [rangerProfession, 'Druid', 'astralClock', projectRangerPlanningState],
+    [thiefProfession, 'Specter', 'shadowClock', projectThiefPlanningState]
   ]) {
     const config = { specialization };
     const runtime = profession.resolveRuntime(config);
@@ -30,16 +30,11 @@ test('force clocks own runtime resources while planning projections retain publi
     restoreFlatProfessionState(restored.core, restored.specialization.state, detached);
     assert.deepEqual(restored.specialization.state[clockKey], clock);
     assert.notEqual(restored.specialization.state[clockKey], clock);
-    for (const field of [valueKey, maximumKey, `${valueKey}UpdatedAt`]) {
-      for (const input of [state.specialization.state, detached, restored.specialization.state]) {
-        assert.equal(Object.hasOwn(input, field), false, `${specialization}:${field}`);
-      }
-    }
-
     const projected = project({ schedulerState: { profession: state, time: 2 } });
-    assert.equal(projected[valueKey], 37);
-    assert.equal(projected[maximumKey], 90);
-    assert.equal(Object.hasOwn(projected, clockKey), false);
+    assert.deepEqual(projected[clockKey], clock);
+    assert.notEqual(projected[clockKey], clock);
+    // Projection must leave the live resource and its capacity untouched.
+    assert.deepEqual(clock, { value: 37, maximum: 90, updatedAt: 2, rate: 0 });
     for (const professionState of [state, detached, projected]) {
       const resources = profession.ui.resourceViews({ specialization, professionState });
       assert.equal(
@@ -50,14 +45,27 @@ test('force clocks own runtime resources while planning projections retain publi
 
     clock.value = 12;
     assert.equal(detached[clockKey].value, 37);
-    assert.equal(projected[valueKey], 37);
+    assert.equal(projected[clockKey].value, 37);
+    // Palette entry gates must consume the projected clock, including an explicit zero.
+    const entrySkill = profession.catalog.skillsByName.get(
+      specialization === 'Druid' ? 'Celestial Avatar' : 'Enter Shadow Shroud'
+    );
+    for (const value of [0, 100]) {
+      projected[clockKey].value = value;
+      assert.equal(
+        profession.ui.paletteSkillAvailability({ specialization, professionState: projected }, entrySkill).available,
+        value === 100
+      );
+    }
+
+    assert.equal(clock.value, 12);
+    assert.equal(detached[clockKey].value, 37);
 
     const core = profession
       .resolveRuntime({ specialization: 'Core' })
       .createProfessionState({ specialization: 'Core' });
     const inactive = project({ schedulerState: { profession: core, time: 0 } });
-    assert.equal(inactive[valueKey], 0);
-    assert.equal(inactive[maximumKey], 100);
+    assert.equal(inactive[clockKey], undefined);
   }
 });
 

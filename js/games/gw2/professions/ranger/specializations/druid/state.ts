@@ -15,8 +15,7 @@ export interface DruidState {
 
 // Druid owns its public Celestial Avatar resource projection.
 export const DRUID_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  astralForce: 0,
-  maximumAstralForce: 100,
+  astralClock: undefined,
   celestialAvatarActive: false,
   celestialAvatarEndsAt: 0
 } satisfies Partial<RangerState>);

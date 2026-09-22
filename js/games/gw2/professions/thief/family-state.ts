@@ -51,16 +51,11 @@ export function emitThiefStateSnapshot(
   return emitStateSnapshot(context, 'thief', at, reason, snapshotProfessionState(context.state.profession), options);
 }
 
+/** Publish detached clocks and grants so presentation cannot mutate live resource state. */
 export function projectThiefPlanningState({
   schedulerState
 }: ThiefPlanningStateProjectionOptions): Record<string, unknown> {
   const state = snapshotProfessionState<ThiefState>(schedulerState.profession);
-  // Derive display values on the detached projection, never as aliases on live state.
-  if (state.shadowClock) {
-    state.shadowForce = state.shadowClock.value;
-    state.maximumShadowForce = state.shadowClock.maximum;
-  }
-
   // Expire the detached grant for display without advancing the live scheduler state.
   if (state.mistburn) expireCharges(state.mistburn, schedulerState.time);
   state.combatHighExpirations = purgeExpiredStacks(state.combatHighExpirations || [], schedulerState.time);

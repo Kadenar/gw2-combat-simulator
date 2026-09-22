@@ -29,10 +29,9 @@ export function createSpecterState(config: ThiefConfig = {}): SpecterState {
   };
 }
 
-// Inactive public fallbacks stay separate from Specter's configured live resource capacity.
+// Only active Specter state contributes a resource clock to public projections.
 export const SPECTER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  shadowForce: 0,
-  maximumShadowForce: 100,
+  shadowClock: undefined,
   shadowShroudExitReadyAt: 0,
   shadowShroudActive: false
 } satisfies Partial<ThiefState>);

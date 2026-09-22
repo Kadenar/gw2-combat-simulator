@@ -116,7 +116,7 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
   const inactiveGroups = thiefProfession.ui.paletteGroups({
     specialization: 'Specter',
     professionState: {
-      shadowForce: 0,
+      shadowClock: { value: 0, maximum: 100, updatedAt: 0, rate: 0 },
       shadowShroudActive: false
     }
   });
@@ -139,7 +139,7 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
       {
         specialization: 'Specter',
         professionState: {
-          shadowForce: 0,
+          shadowClock: { value: 0, maximum: 100, updatedAt: 0, rate: 0 },
           shadowShroudActive: false
         }
       },
@@ -156,7 +156,7 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
   assert.equal(result.warnings.length, 0);
   assert.equal(result.planningState.profession.shadowShroudActive, false);
   assert.equal(result.planningState.profession.storedStolenSkillId, null);
-  assert.ok(result.planningState.profession.shadowForce > 0);
+  assert.ok(result.planningState.profession.shadowClock.value > 0);
   assert.equal(result.events.filter((event) => event.type === 'sigil_swap').length, 0);
   assert.equal(result.events.filter((event) => event.type === 'weapon_set' && event.shroudSwap).length, 2);
 });
@@ -171,7 +171,7 @@ test('Specter can use its shroud autoattack while stealth is active', () => {
     professionState: {
       stealthUntil: 4,
       revealedUntil: 0,
-      shadowForce: 100,
+      shadowClock: { value: 100, maximum: 100, updatedAt: 0, rate: 0 },
       shadowShroudActive: true
     }
   };
@@ -192,7 +192,7 @@ test('Specter automatically leaves Shadow Shroud when shadow force depletes', ()
   });
 
   assert.equal(result.planningState.profession.shadowShroudActive, false);
-  assert.equal(result.planningState.profession.shadowForce, 0);
+  assert.equal(result.planningState.profession.shadowClock.value, 0);
   assert.equal(result.events.filter((event) => event.type === 'weapon_set' && event.shroudSwap).length, 2);
   assert.deepEqual(result.warnings, []);
   const depleted = result.events.filter((event) => event.sourceId === 'thief.shadow-shroud-depleted');
@@ -256,7 +256,7 @@ test('manual Shadow Shroud exit cancels depletion and preserves remaining force'
     result.events.some((event) => event.reason === 'shadow-shroud-depleted'),
     false
   );
-  assert.equal(result.planningState.profession.shadowForce, 1);
+  assert.equal(result.planningState.profession.shadowClock.value, 1);
   assert.equal(result.planningState.profession.shadowShroudActive, false);
 });
 
@@ -270,8 +270,7 @@ test('Specter percentage drain is independent of vitality and observation bounda
         { initialShadowForce: 100, stats: { vitality } }
       );
       assert.deepEqual(result.warnings, []);
-      assert.equal(result.planningState.profession.maximumShadowForce, 100);
-      assert.equal(result.planningState.profession.shadowForce, 98);
+      assert.equal(result.planningState.profession.shadowClock.value, 98);
     }
   }
 });
@@ -285,7 +284,7 @@ test('Specter force gains cap at 100 and do not drain outside shroud', () => {
       secondaryWeapon: 'Dagger'
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.shadowForce, 100);
+    assert.equal(result.planningState.profession.shadowClock.value, 100);
   }
 });
 
@@ -533,7 +532,7 @@ test('committed Siphon preserves Slow and shadow force without retaining the cas
     const next = result.events.find((event) => event.type === 'action' && event.skillId === ID.SHADOW_BOLT);
     const slow = result.events.find((event) => event.type === 'condition' && event.skillId === ID.SIPHON);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.shadowForce, committed ? 25 : 0);
+    assert.equal(result.planningState.profession.shadowClock.value, committed ? 25 : 0);
     assert.equal(Boolean(slow), committed);
     assert.equal(next.at, siphon.endsAt);
     if (committed) assert.ok(slow.at > next.at);
@@ -670,7 +669,7 @@ test('Specter traits amplify force gains and add their Siphon recharge reduction
   ]) {
     const result = simulate('Specter', ['Siphon'], { selectedTraitIds });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.shadowForce, expectedGain);
+    assert.equal(result.planningState.profession.shadowClock.value, expectedGain);
   }
 
   const initiative = simulate('Specter', ['Shadow Sap'], {
@@ -678,7 +677,7 @@ test('Specter traits amplify force gains and add their Siphon recharge reduction
     secondaryWeapon: 'Dagger'
   });
 
-  assert.equal(initiative.planningState.profession.shadowForce, 4);
+  assert.equal(initiative.planningState.profession.shadowClock.value, 4);
 
   const reduced = simulate('Specter', ['Siphon'], {
     selectedTraitIds: [TRAIT.LEAD_ATTACKS, TRAIT.SLEIGHT_OF_HAND]
@@ -740,7 +739,10 @@ test('Larcenous Torment keeps its life siphon but grants no force inside Shadow 
     selectedTraitIds: [TRAIT.LARCENOUS_TORMENT]
   });
   assert.deepEqual(larcenous.warnings, []);
-  assert.equal(larcenous.planningState.profession.shadowForce, baseline.planningState.profession.shadowForce);
+  assert.equal(
+    larcenous.planningState.profession.shadowClock.value,
+    baseline.planningState.profession.shadowClock.value
+  );
   assert.equal(larcenous.combatState.profession.shadowClock.value, baseline.combatState.profession.shadowClock.value);
   assert.ok(
     larcenous.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === TRAIT.LARCENOUS_TORMENT)

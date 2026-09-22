@@ -21,17 +21,11 @@ const RANGER_PUBLIC_STATE_PROJECTION = composePublicStateProjections([
 
 export const RANGER_PUBLIC_END_STATE_KEYS = RANGER_PUBLIC_STATE_PROJECTION.keys;
 
-/** Projects the family aggregate while preserving the existing public shape. */
+/** Publish detached state, including Druid's clock, so UI reads cannot mutate runtime resources. */
 export function projectRangerPlanningState({
   schedulerState
 }: RangerPlanningStateProjectionOptions): Record<string, unknown> {
   const state = snapshotProfessionState<RangerState>(schedulerState.profession);
-  // Derive display values on the detached projection, never as aliases on live state.
-  if (state.astralClock) {
-    state.astralForce = state.astralClock.value;
-    state.maximumAstralForce = state.astralClock.maximum;
-  }
-
   // Landed-hit consumption belongs only to the separately observed combat state.
   return projectPublicProfessionState(state, RANGER_PUBLIC_END_STATE_KEYS, RANGER_PUBLIC_STATE_PROJECTION.defaults);
 }
