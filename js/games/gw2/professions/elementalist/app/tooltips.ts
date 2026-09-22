@@ -148,9 +148,7 @@ export const elementalistTooltips: ProfessionTooltips = {
     ...Object.fromEntries(
       Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS).map((id) => [
         id,
-        skillTooltip(
-          'Change attunement and your available weapon skills, triggering applicable attunement effects.'
-        )
+        skillTooltip('Change attunement and your available weapon skills, triggering applicable attunement effects.')
       ])
     ),
     ...Object.fromEntries(
