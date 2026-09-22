@@ -411,8 +411,7 @@ export function timelineRowsView(
           rotation,
           build,
           catalog: app.activeCatalog,
-          skill,
-          defaultIcon
+          skill
         }) || defaultIcon;
       const time = step && !invalid ? formatTime(step.start) : '';
       const resourceSpend = resourceSpends.get(index);

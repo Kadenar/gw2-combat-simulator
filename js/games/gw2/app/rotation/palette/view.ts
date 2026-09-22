@@ -357,8 +357,7 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
       .map((row) => ({
         ...row,
         skills: paletteWeaponSkills(row.skills, {
-          weaponSet: row.weaponSet,
-          weaponRow: row
+          weaponSet: row.weaponSet
         })
       }))
       .filter((row) => row.skills.length);

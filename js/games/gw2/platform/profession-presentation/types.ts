@@ -242,14 +242,6 @@ export interface ProfessionPaletteContext<TProfessionState = unknown> extends Pr
   /** Active trait ids and names, so trait-gated replacements appear only when selected. */
   readonly traits?: ReadonlySet<SkillId | string>;
   readonly weaponSet?: number;
-  /** The rendered weapon row when projecting one row's skills. */
-  readonly weaponRow?: {
-    readonly id: string;
-    readonly label: string;
-    readonly weaponSet: number;
-    readonly active: boolean;
-    readonly skills: readonly Skill[];
-  };
 }
 
 /** Resource meters and their starting-value controls. */
@@ -270,12 +262,10 @@ export interface ProfessionResultUiContext<TProfessionState = unknown> extends P
   readonly profession?: object | null;
 }
 
-/** Event-log rows; `eventLogState` is scratch state the owning presenter keeps for one log render. */
+/** Event-log rows; the caller owns time/resource formatting, while `eventLogState` tracks presenter changes per render. */
 export interface ProfessionEventLogContext<
   TProfessionState = unknown
 > extends ProfessionResultUiContext<TProfessionState> {
-  readonly displayReferenceSeconds?: number;
-  readonly maximumResource?: number;
   readonly eventLogState?: Map<string, unknown>;
 }
 
@@ -303,7 +293,7 @@ export interface ProfessionWeaponLineContext<TProfessionState = unknown> extends
   readonly weaponLine?: string | null;
 }
 
-/** Timeline icon for one rotation entry. */
+/** Profession icon override for one rotation entry; the timeline owns the fallback icon. */
 export interface ProfessionTimelineIconContext<
   TProfessionState = unknown
 > extends ProfessionUiContext<TProfessionState> {
@@ -311,7 +301,6 @@ export interface ProfessionTimelineIconContext<
   readonly index?: number;
   readonly rotation?: readonly RotationCommand[];
   readonly skill?: Skill;
-  readonly defaultIcon?: string;
 }
 
 /** One build-selection edit emitted by a skill-bar selector. */

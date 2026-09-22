@@ -125,8 +125,6 @@ export function simulationEventLogRows(
           build,
           profession,
           specialization,
-          displayReferenceSeconds,
-          maximumResource,
           eventLogState: professionLogState
         },
         event
