@@ -199,6 +199,35 @@ test('dps.report omits the synthetic Dual attunement tied to Unravel', () => {
   );
 });
 
+test('dps.report omits the Unravel Dual attunement recorded a millisecond before the cast', () => {
+  // EI can log Unravel's generated transition just ahead of the Unravel cast; it is not a separate attunement input.
+  const result = reconstructDpsReportRotation(
+    {
+      players: [
+        {
+          name: 'Fixture',
+          profession: 'Weaver',
+          rotation: [
+            { id: 41166, skills: [{ castTime: 999, duration: 0 }] },
+            { id: 80231, skills: [{ castTime: 1000, duration: 0 }] }
+          ]
+        }
+      ],
+      phases: [{ start: 999, end: 2000, name: 'Full Fight' }],
+      skillMap: {
+        s41166: { name: 'Dual Water Attunement', isSwap: true },
+        s80231: { name: 'Unravel' }
+      }
+    },
+    elementalistCatalog
+  );
+
+  assert.deepEqual(
+    result.actions.map(({ name }) => name),
+    ['Unravel']
+  );
+});
+
 test('both importers order tied legend swaps before weapon swaps without reversing distinct timestamps', () => {
   // Report skill-group order and EVTC record order cannot decide which weapon owns a tied legend-swap proc.
   for (const legendOffset of [0, 1]) {
