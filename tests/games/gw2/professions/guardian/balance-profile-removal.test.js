@@ -30,6 +30,7 @@ function run(balanceProfiles, specialization, rotation, selectedTraitIds = [], e
   assert.deepEqual(result.warnings, []);
   return result;
 }
+
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const has = (result, type, field, value) =>
   result.events.some((event) => event.type === type && event[field] === value);
@@ -74,6 +75,7 @@ test('Lethal Tempo removal suppresses scheduler and resolver stacks without remo
     assert.equal(state.lethalTempoStacks, 0);
     assert.equal(state.lethalTempoUntil, 0);
   }
+
   assert.equal(has(result, 'buff', 'kind', 'lethal-tempo'), false);
   assert.equal(has(result, 'proc', 'name', 'Lethal Tempo'), false);
   assert.ok(has(result, 'buff', 'kind', 'willbender-justice'));
@@ -215,6 +217,7 @@ test('Radiant Forge removal leaves no active form, expiry, or exit flip', () => 
     assert.equal(state.radiantForge, false);
     assert.equal(state.radiantForgeEndsAt, 0);
   }
+
   assert.equal(has(result, 'guardian.radiant-forge-entered', 'radiantForge', true), false);
 });
 
@@ -264,6 +267,7 @@ test('required profile fields fail contextually and selected catalogs cannot fal
     };
     assert.throws(() => lethalTempoParameters({ catalog }), /profession=guardian patch=malformed.*maximumStacks/);
   }
+
   assert.throws(
     () =>
       lethalTempoParameters({ catalog: { balanceProfilesById: new Map() }, profession: { catalog: guardianCatalog } }),

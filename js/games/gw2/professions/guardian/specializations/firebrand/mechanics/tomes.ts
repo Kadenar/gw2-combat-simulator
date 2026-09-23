@@ -233,6 +233,7 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
         audience: { recipients: 'party' as const }
       });
     }
+
     if (!ashesBuff || !burn) return;
     const ashesDuration = effectNumber(ashesProfile, ashesBuff, 'duration');
     // Self and allied charges share the same authored burn packet.

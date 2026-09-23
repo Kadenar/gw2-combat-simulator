@@ -162,6 +162,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
         duration: effectNumber(weightyTermsProfile, slow, 'duration')
       });
     }
+
     emitGuardianProc(context, {
       name: 'Weighty Terms',
       at,

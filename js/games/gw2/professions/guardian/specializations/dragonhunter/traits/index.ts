@@ -34,6 +34,7 @@ export function applySoaringDevastation(context: GuardianCastContext, skill: Gua
       })
     );
   }
+
   if (immobilized) {
     emitSkillCondition(context, {
       skill,

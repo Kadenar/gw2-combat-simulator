@@ -115,6 +115,7 @@ function useResourceSkill(context: WarriorCastContext, skill: WarriorSkill): voi
       effect.type === 'strike' ? (values ? [{ ...effect, ...values }] : []) : [effect]
     );
   }
+
   scheduleDeclarativeEffects(
     context,
     { ...skill, effects },

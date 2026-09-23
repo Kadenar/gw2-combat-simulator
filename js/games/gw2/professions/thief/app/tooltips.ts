@@ -498,6 +498,7 @@ export const thiefTooltips: ProfessionTooltips = {
         const boon = requireEffect(profile, 'boon', boonName);
         if (boon) facts.push(...simulationEffectFacts([boon], 'party; requires Shadestep and a completed cast').facts);
       }
+
       if (entity.id === ID.DAWNS_REPOSE) {
         const profile = tooltipProfile(balanceContext, SPECTER.dawnsReposeBarrier);
         facts.push(

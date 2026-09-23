@@ -166,6 +166,7 @@ export function handleEffulgentDetonate(context: GuardianResolverContext, event:
       })
     );
   }
+
   if (control && stacks === maximumStacks) {
     context.queue.enqueue({
       type: 'control',

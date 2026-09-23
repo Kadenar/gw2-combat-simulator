@@ -59,6 +59,7 @@ test('resolved owners preserve strict effect reads without another catalog looku
       /profession=fixture patch=preview balance-profile=1 effect=condition\/Second field=duration expected=finite number/
     );
   }
+
   assert.equal(lookups, 1);
 
   // Skill records use the same checks and label diagnostics from their own source metadata.

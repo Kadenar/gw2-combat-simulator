@@ -98,6 +98,7 @@ export function handleLightAuraGrant(context: GuardianResolverContext, event: Gu
     if (!aura) return;
     duration = effectNumber(lightAuraProfile, aura, 'duration');
   }
+
   const state = luminaryState.from(context);
   const sourceSkill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
   if (

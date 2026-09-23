@@ -158,6 +158,7 @@ export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill
       });
     }
   }
+
   emitThiefStateSnapshot(context, context.effectiveEnd, 'daredevil-dodge');
   if (!profile) return;
   for (const effect of profile.effects || []) {

@@ -158,6 +158,7 @@ export function applyLotusPoison(context: ThiefResolverContext, event: ThiefReso
       })
     );
   }
+
   const weakness = requireEffect(lotusPoisonProfile, 'condition', 'Weakness');
   if (weakness)
     context.queue.enqueue(

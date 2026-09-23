@@ -79,6 +79,7 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
       }
     }
   }
+
   // Dawn's Repose grants barrier to the tethered ally and nearby allies, not the caster.
   // Dark Sentry is a mandatory Specter minor trait.
   if (skill.id === ID.DAWNS_REPOSE) {
@@ -223,6 +224,7 @@ export function handleDarkSentry(
       }
     }
   }
+
   emitThiefStateSnapshot(context, task.at, 'dark-sentry');
 }
 
@@ -267,6 +269,7 @@ export function applyLarcenousTorment(context: ThiefResolverContext, application
       );
     }
   }
+
   const state = specterState.from(context);
   // Shroud suppresses the force gain, but the life siphons above still resolve.
   if (state.shadowShroudActive) return;

@@ -434,6 +434,7 @@ function emitCannonSuccess(context: ThiefCastContext): void {
       });
     }
   }
+
   if (burning) {
     const applications = effectNumber(cannonSuccessProfile, burning, 'applications');
     const initial = effectNumber(cannonSuccessProfile, burning, 'atMs');

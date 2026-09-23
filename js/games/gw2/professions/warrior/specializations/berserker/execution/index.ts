@@ -29,6 +29,7 @@ function enterBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
     applyBerserkEntryTraits(context, skill);
     return;
   }
+
   const core = professionCoreState(context);
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   // Berserk mode collapses the three adrenaline bars into one slot of ten.

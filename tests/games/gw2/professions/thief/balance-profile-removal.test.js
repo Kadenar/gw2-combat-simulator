@@ -343,6 +343,7 @@ test('required Thief tuning fails contextually and accepts a real zero', () => {
       /profession=thief patch=invalid-thief balance-profile=.*effect=strike\/Mug/
     );
   }
+
   catalog.balanceProfilesById.set(CORE.resources, {
     ...thiefCatalog.balanceProfilesById.get(CORE.resources),
     resourceGain: 0

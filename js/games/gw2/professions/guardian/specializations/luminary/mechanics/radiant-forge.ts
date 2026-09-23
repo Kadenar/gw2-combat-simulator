@@ -262,6 +262,7 @@ export function handleRadiantHammerImpact(
       })
     );
   }
+
   if (vulnerability) {
     emitSkillCondition(context, {
       skill,

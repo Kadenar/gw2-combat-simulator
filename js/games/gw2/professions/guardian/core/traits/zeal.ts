@@ -153,6 +153,7 @@ function queueLesserSymbolOfResolution(
       })
     );
   }
+
   if (resolution) {
     // Resolve the surviving boon's cadence once for all symbol pulses.
     const applications = effectNumber(zealotsResolutionProfile, resolution, 'applications');
@@ -171,6 +172,7 @@ function queueLesserSymbolOfResolution(
       });
     }
   }
+
   return true;
 }
 

@@ -136,6 +136,7 @@ export function applyWillbenderVirtueActivationTraits(
       duration: tempo.duration
     });
   }
+
   if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)) {
     const restorativeVirtuesProfile = requireBalanceProfileFromContext(context, PROFILE.restorativeVirtues);
     const vigor = requireEffect(restorativeVirtuesProfile, 'boon', 'vigor');

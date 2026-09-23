@@ -358,6 +358,7 @@ test('Warrior handlers reject missing profiles and invalid required scalars cont
       /profession=warrior patch=broken.*field=internalCooldown/
     );
   }
+
   profiles.set(CORE.marchingOrders, { ...original, internalCooldown: 0 });
   assert.equal(applyMarchingOrders(context, { at: 1 }), true);
   assert.equal(context.state.profession.core.soldierFocusReadyAt, 1);
