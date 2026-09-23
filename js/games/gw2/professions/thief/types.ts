@@ -103,7 +103,6 @@ export interface ThiefSummonAttack {
   readonly criticalChance: number;
   readonly criticalDamage: number;
   readonly duration: number;
-  readonly fallbackAttacks?: readonly ThiefSummonStrike[];
   readonly summons: readonly ThiefSummonDefinition[];
 }
 

@@ -23,11 +23,20 @@ import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/rev
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
+import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuildAttributeRules);
+
+test('Beguiling Haze requires authored timing for both cast variants', () => {
+  const main = { id: 'main', castTimeMs: 0 };
+  const followUp = { id: 'follow-up', castTimeMs: 500 };
+  assert.equal(beguilingHazeCastDuration(1, false, followUp, main), 1);
+  assert.equal(beguilingHazeCastDuration(1, true, followUp, main), 0.5);
+  assert.throws(() => beguilingHazeCastDuration(1, true, { id: 'follow-up' }, main), /field=castTimeMs/);
+});
 
 const baseConfig = Object.freeze({
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],

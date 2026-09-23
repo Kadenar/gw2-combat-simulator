@@ -7,6 +7,7 @@ import {
 import { referenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
+import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 /** Combines Haze's launch and teleport and budgets the simulator's full main/follow-up cast without duplicate waits. */
 export function normalizeConduitHazeActions<Action extends CompositeAction>(
@@ -29,9 +30,13 @@ export function normalizeConduitHazeActions<Action extends CompositeAction>(
     }
   );
   const skill = catalogSkillById(catalog, 77141);
-  const followUp = catalog?.balanceProfilesById?.get(CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
-  const extension = catalog?.balanceProfilesById?.get(CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension);
-  if (!skill || !followUp || !extension) return merged;
+  if (!skill || !merged.some((action) => action.rawSkillId === 77141 || action.rawSkillId === 77047)) return merged;
+  // A discovered Haze skill requires both selected timing profiles for replay duration.
+  const followUp = requireBalanceProfileFromContext({ catalog }, CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
+  const extension = requireBalanceProfileFromContext(
+    { catalog },
+    CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension
+  );
 
   return merged.map((action) =>
     [77141, 77047].includes(action.rawSkillId)

@@ -4,11 +4,9 @@ import test from 'node:test';
 import { defineSkillVariantProfile, defineTraitProfile } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
-  balanceProfileEffect,
-  balanceProfileEffectFromContext,
   balanceProfileFromContext,
-  balanceProfileValue,
-  balanceProfileValueFromContext
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 test('balance-profile authoring helpers attach canonical trait and variant metadata', () => {
@@ -78,46 +76,8 @@ test('balance-profile lookup supports every runtime context shape and preserves 
   assert.equal(balanceProfileFromContext({ balanceProfile: (id) => map(runtime).get(id) }, 101), runtime);
 });
 
-test('balance-profile effect lookup preserves order and supports optional name filtering', () => {
-  const profile = defineTraitProfile(101, 'Effects', {
-    effects: [
-      { type: 'strike', name: 'First', coefficient: 1, hits: 1 },
-      { type: 'boon', name: 'Middle', boon: 'might', stacks: 1, duration: 5 },
-      { type: 'strike', name: 'Second', coefficient: 2, hits: 1 },
-      { type: 'strike', name: 'Second', coefficient: 3, hits: 1 }
-    ]
-  });
-
-  assert.equal(balanceProfileEffect(profile, 'strike')?.name, 'First');
-  assert.equal(balanceProfileEffect(profile, 'strike', 1)?.name, 'Second');
-  assert.equal(balanceProfileEffect(profile, 'strike', 0, 'Second')?.coefficient, 2);
-  assert.equal(balanceProfileEffect(profile, 'condition'), undefined);
-  // Matching ordinals preserve the authored object and apply after both filters.
-  assert.equal(balanceProfileEffect(profile, 'strike'), profile.effects[0]);
-  assert.equal(balanceProfileEffect(profile, 'strike', 1, 'Second'), profile.effects[3]);
-  assert.equal(balanceProfileEffect(profile, 'strike', 0, 'Missing'), undefined);
-  for (const index of [-1, 0.5, NaN, Infinity, 3]) {
-    assert.equal(balanceProfileEffect(profile, 'strike', index), undefined);
-  }
-
-  for (const missing of [null, undefined, {}]) assert.equal(balanceProfileEffect(missing, 'strike'), undefined);
-  assert.equal(
-    balanceProfileEffectFromContext({ catalog: { balanceProfilesById: new Map([[101, profile]]) } }, 101, 'strike', 1)
-      ?.name,
-    'Second'
-  );
-});
-
-test('balance-profile effect lookup stops at the requested match', () => {
-  // Selecting a first effect must not allocate a filtered list or inspect later entries.
-  const first = { type: 'boon', boon: 'might', duration: 2 };
-  const effects = [first];
-  Object.defineProperty(effects, 1, { get: () => assert.fail('Read past the selected effect') });
-  assert.equal(balanceProfileEffect({ effects }, 'boon'), first);
-});
-
-test('balance-profile numeric lookup returns patched values and explicit fallbacks', () => {
-  const profile = defineTraitProfile(101, 'Patchable', { threshold: 3, numericText: '4' });
+test('balance-profile numeric lookup returns patched values and rejects invalid fields', () => {
+  const profile = defineTraitProfile(101, 'Patchable', { threshold: 3 });
   const catalog = {
     balanceProfiles: [profile],
     balanceProfilesById: new Map([[101, profile]]),
@@ -126,11 +86,9 @@ test('balance-profile numeric lookup returns patched values and explicit fallbac
   const patched = applyBalanceProfilePatch(catalog, {
     balanceProfiles: { 101: { fields: { threshold: 7 } } }
   });
-  const resolved = balanceProfileFromContext({ catalog: patched }, 101);
+  const resolved = requireBalanceProfileFromContext({ catalog: patched }, 101);
 
-  assert.equal(balanceProfileValue(resolved, 'threshold', 0), 7);
-  assert.equal(balanceProfileValue(resolved, 'numericText', 0), 4);
-  assert.equal(balanceProfileValue(resolved, 'missing', 9), 9);
-  assert.equal(balanceProfileValue({ invalid: Number.NaN }, 'invalid', 8), 8);
-  assert.equal(balanceProfileValueFromContext({ catalog: patched }, 101, 'threshold', 0), 7);
+  assert.equal(balanceProfileNumber(resolved, 'threshold'), 7);
+  assert.throws(() => balanceProfileNumber(resolved, 'missing'), /profile=101 field=missing/);
+  assert.throws(() => requireBalanceProfileFromContext({ catalog: patched }, 102), /profile=102/);
 });

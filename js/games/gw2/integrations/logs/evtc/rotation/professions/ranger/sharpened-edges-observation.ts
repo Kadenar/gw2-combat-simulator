@@ -1,4 +1,8 @@
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -65,9 +69,13 @@ function ownedPets(log: ParsedEvtc, playerAddress: bigint): readonly { address: 
 
 function petExpertise(catalog: Readonly<CanonicalCatalog>, config: Gw2Config, pet: RangerPetDefinition): number {
   if (!hasSelectedTrait(config, TRAIT.ARACHNOPHOBIA)) return 0;
-  const profile = traitBalanceProfile(catalog, TRAIT.ARACHNOPHOBIA, 'Arachnophobia');
-  const expertise = Number(profile?.attributeBonus ?? 150);
-  return expertise + (['spider', 'devourer'].includes(pet.family) ? Number(profile?.weaponAttributeBonus ?? 225) : 0);
+  // Once selected, Arachnophobia's pet bonuses are required balance data.
+  const profile = requireBalanceProfileFromContext({ catalog }, TRAIT.ARACHNOPHOBIA);
+  const expertise = balanceProfileNumber(profile, 'attributeBonus');
+  return (
+    expertise +
+    (['spider', 'devourer'].includes(pet.family) ? balanceProfileNumber(profile, 'weaponAttributeBonus') : 0)
+  );
 }
 
 /** Separates player and owned-pet Sharpened Edges evidence so each Bleeding duration uses its applying actor's stats. */
@@ -81,7 +89,10 @@ export function analyzeRangerSharpenedEdgesObservation(
   const profile = traitBalanceProfile(catalog, TRAIT.SHARPENED_EDGES, 'Sharpened Edges');
   if (!profile) return null;
   const baseDuration = bleedingDuration(profile);
-  const expectedProcChance = Number(profile.criticalChance || profile.procChance || 0);
+  const expectedProcChance = balanceProfileNumber(
+    profile,
+    profile.criticalChance !== undefined ? 'criticalChance' : 'procChance'
+  );
   if (!(baseDuration > 0) || !(expectedProcChance > 0)) return null;
 
   const owned = ownedPets(log, playerAddress);

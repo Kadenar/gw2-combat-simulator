@@ -53,7 +53,8 @@ function activateThievesGuild(context: ThiefSchedulerContext, at: number): void 
     (condition) => permanentTargetConditionStacks(context.config, condition) > 0
   );
   for (const [summonIndex, summon] of thievesGuildSummons(context, profile).entries()) {
-    const attacks = summon.attacks?.length ? summon.attacks : profile.fallbackAttacks || [];
+    // An empty summon list intentionally schedules no autonomous attack stream.
+    const attacks = summon.attacks || [];
     for (const [attackIndex, attack] of attacks.entries()) {
       const attackAt = at + Number(attack.initialDelay || 0);
       if (attackAt >= active.expiresAt) continue;

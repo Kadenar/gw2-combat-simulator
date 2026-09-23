@@ -1,5 +1,8 @@
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
@@ -169,11 +172,9 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
   assert.equal(preview.balanceProfilesById.get(CATALYST_BALANCE_PROFILE_IDS.resources).maximumStacks, 40);
   assert.equal(preview.balanceProfilesById.get(EVOKER_BALANCE_PROFILE_IDS.resources).maximumStacks, 8);
   assert.equal(
-    balanceProfileValueFromContext(
-      { catalog: preview },
-      ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental,
-      'durationMultiplier',
-      120
+    balanceProfileNumber(
+      requireBalanceProfileFromContext({ catalog: preview }, ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.summonedElemental),
+      'durationMultiplier'
     ),
     100
   );

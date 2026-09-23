@@ -569,6 +569,36 @@ test('THF-012: manual shroud exit waits for entry lockout while forced depletion
   assert.equal(depleted.planningState.profession.shadowShroudActive, false);
 });
 
+test('guild summons with empty attacks stay inactive after combat starts', () => {
+  const tasks = createTaskQueue({ handlers: thievesGuildTaskHandlers });
+  const events = [];
+  const original = thiefCatalog.skillsById.get(ID.THIEVES_GUILD);
+  const skill = {
+    ...original,
+    summonAttack: {
+      ...original.summonAttack,
+      summons: [{ name: 'Silent thief', weapon: 'Dagger', attacks: [] }]
+    }
+  };
+  const context = {
+    ...scheduler().context,
+    tasks,
+    events,
+    emit: (event) => events.push(event),
+    catalog: { ...thiefCatalog, skillsById: new Map([[skill.id, skill]]) },
+    start: 0,
+    effectiveEnd: 0,
+    combatStartTime: 0
+  };
+  summonThievesGuild(context, skill);
+  observeThievesGuildCombatEvent(context, { type: 'combat_start', at: 0 });
+  tasks.drainThrough(2, context);
+  assert.equal(
+    events.some((event) => event.type === 'damage'),
+    false
+  );
+});
+
 // Two small authored streams isolate cadence and deferred replacement from the production summon profiles.
 test('guild combat activation starts parallel streams once and replacement retires every old stream', () => {
   const tasks = createTaskQueue({ handlers: thievesGuildTaskHandlers });

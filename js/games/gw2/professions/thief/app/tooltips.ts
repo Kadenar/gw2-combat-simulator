@@ -303,7 +303,7 @@ export const thiefTooltips: ProfessionTooltips = {
           { name: 'Companion critical chance', detail: tooltipPercent(profile.criticalChance) },
           { name: 'Companion critical damage', detail: `${tooltipDecimal(profile.criticalDamage * 100)}%` },
           ...profile.summons.flatMap((summon) =>
-            (summon.attacks || profile.fallbackAttacks || []).flatMap(
+            (summon.attacks || []).flatMap(
               (attack) =>
                 simulationEffectFacts(
                   [

@@ -1,4 +1,5 @@
 import type { BalanceProfile, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import { balanceProfileNumber, effectNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2ConditionDurationMultiplier } from '#gw2/platform/combat/formulas.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
@@ -38,12 +39,12 @@ export function traitBalanceProfile(
   return catalog.balanceProfilesById?.get(traitId) || catalog.balanceProfilesByName?.get(traitName) || null;
 }
 
-/** Reads the first Bleeding condition's base duration for proc matching, or zero when the profile has none. */
+/** Missing Bleeding is optional discovery; a present packet must carry its authored duration. */
 export function bleedingDuration(profile: BalanceProfile): number {
-  return Number(
-    profile.effects?.find((effect) => effect.type === 'condition' && effect.condition?.toLowerCase() === 'bleeding')
-      ?.duration || 0
+  const bleeding = profile.effects?.find(
+    (effect) => effect.type === 'condition' && effect.condition?.toLowerCase() === 'bleeding'
   );
+  return bleeding ? effectNumber(profile, bleeding, 'duration') : 0;
 }
 
 export function isOutgoingStrike(event: ParsedEvtcEvent, sourceAddress: bigint): boolean {
@@ -160,7 +161,11 @@ export function analyzeCriticalBleedingProcObservation(
   const profile = traitBalanceProfile(catalog, traitId, traitName);
   if (!profile) return null;
 
-  const expectedProcChance = Number(profile.criticalChance || profile.procChance || 0);
+  // An available supported profile must supply its proc chance, including a valid zero.
+  const expectedProcChance = balanceProfileNumber(
+    profile,
+    profile.criticalChance !== undefined ? 'criticalChance' : 'procChance'
+  );
   const baseDurationSeconds = bleedingDuration(profile);
   const matchedDurationsMs = expectedConditionDurationsMs(baseDurationSeconds, 'Bleeding', config);
   if (!(expectedProcChance > 0) || !matchedDurationsMs.length) return null;

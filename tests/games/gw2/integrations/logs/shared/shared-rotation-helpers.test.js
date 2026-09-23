@@ -3,6 +3,17 @@ import test from 'node:test';
 
 import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { normalizeConduitHazeActions } from '#gw2/integrations/logs/shared/rotation/rules/conduit.js';
+
+test('Conduit import requires Haze timing only for discovered Haze actions', () => {
+  const catalog = { skills: [{ id: 77141, name: 'Beguiling Haze', castTimeMs: 1000 }] };
+  const action = { start: 0, end: 1000, eventIndex: 0, rawSkillId: 1, status: 'completed' };
+  assert.deepEqual(normalizeConduitHazeActions([action], catalog), [action]);
+  assert.throws(
+    () => normalizeConduitHazeActions([{ ...action, rawSkillId: 77141 }], catalog),
+    /missing required profile/
+  );
+});
 
 test('encounter end is the earliest target death or combat exit', () => {
   const target = 0x100n;

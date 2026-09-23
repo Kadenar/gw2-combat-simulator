@@ -190,15 +190,6 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
       criticalChance: 0.2,
       criticalDamage: 1.5,
       duration: 24,
-      fallbackAttacks: [
-        {
-          name: 'Basic Attack',
-          coefficientPerHit: 1.2,
-          hits: 1,
-          initialDelay: 1,
-          interval: 1
-        }
-      ],
       summons: [
         {
           name: 'Male Dual-Pistol Thief',
@@ -279,7 +270,9 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
           displayName: 'Thief',
           variant: 'Core Thief',
           weapon: 'Sword',
-          weaponStrengthProfileId: 'weapon.sword'
+          weaponStrengthProfileId: 'weapon.sword',
+          // The core summon owns its basic attack, so an empty list can disable it.
+          attacks: [{ name: 'Basic Attack', coefficientPerHit: 1.2, hits: 1, initialDelay: 1, interval: 1 }]
         }
       ]
     }

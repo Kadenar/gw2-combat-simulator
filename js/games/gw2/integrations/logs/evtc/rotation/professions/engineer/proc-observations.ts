@@ -1,4 +1,5 @@
 import type { BalanceProfile, CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import { balanceProfileNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
@@ -76,7 +77,8 @@ function explosionSkillIds(log: ParsedEvtc, catalog: Readonly<CanonicalCatalog>)
 }
 
 function expectedChance(profile: BalanceProfile): number | null {
-  const chance = Number(profile.procChance || 0);
+  // A discovered Shrapnel profile must define the chance used by this observation.
+  const chance = balanceProfileNumber(profile, 'procChance');
   return chance > 0 ? chance : null;
 }
 

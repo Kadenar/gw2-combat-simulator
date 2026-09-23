@@ -121,48 +121,6 @@ export function effectNumber(owner: Skill | BalanceProfile, effect: SkillEffect,
   );
 }
 
-/** Returns the requested matching effect in declaration order without allocating or scanning past it. */
-export function balanceProfileEffect<TType extends SkillEffect['type']>(
-  profile: { readonly effects?: readonly SkillEffect[] } | null | undefined,
-  type: TType,
-  index = 0,
-  name?: string
-): SkillEffectByType<TType> | undefined {
-  if (!Number.isInteger(index) || index < 0) return undefined;
-  for (const effect of profile?.effects || []) {
-    if (effect.type !== type || (name != null && effect.name !== name)) continue;
-    if (index-- === 0) return effect as SkillEffectByType<TType>;
-  }
-
-  return undefined;
-}
-
-/** Resolves a profile and selects one authored effect without profession-local lookup wrappers. */
-export function balanceProfileEffectFromContext<TType extends SkillEffect['type']>(
-  context: unknown,
-  id: SkillId,
-  type: TType,
-  index = 0,
-  name?: string
-): SkillEffectByType<TType> | undefined {
-  return balanceProfileEffect(balanceProfileFromContext(context, id), type, index, name);
-}
-
-/** Reads a finite numeric profile field and otherwise returns the caller's domain-specific fallback. */
-export function balanceProfileValue(
-  profile: Readonly<Record<string, unknown>> | null | undefined,
-  field: string,
-  fallback: number
-): number {
-  const value = profile?.[field];
-  return Number.isFinite(Number(value)) ? Number(value) : fallback;
-}
-
-/** Resolves a profile and reads one numeric field without profession-local lookup wrappers. */
-export function balanceProfileValueFromContext(context: unknown, id: SkillId, field: string, fallback: number): number {
-  return balanceProfileValue(balanceProfileFromContext(context, id), field, fallback);
-}
-
 /** Required balance inputs fail visibly instead of silently using unpatched values or producing NaN. */
 export function balanceProfileNumber(profile: BalanceProfile, field: string): number {
   return requireBalanceNumber(profile[field], ownerDataLabel(profile, `profile=${profile.id} field=${field}`));

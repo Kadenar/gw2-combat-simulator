@@ -1,4 +1,7 @@
-import { balanceProfileValue } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -99,24 +102,28 @@ export function attributeEffectControls(app: ProfessionAppState): AttributeEffec
     ['Furious', 'furious', 'furious-surge', 25, 'Condition Damage'],
     ['Burst Precision', 'burstPrecision', 'burst-precision', 1, 'Critical Chance / Ferocity']
   ] as const) {
+    if (!has(name)) continue;
+    // A selected trait owns its stack cap; unrelated professions never require its profile.
     const max =
       maximum > 1
-        ? balanceProfileValue(catalog.balanceProfilesById.get(traits.get(name)?.id!), 'maximumStacks', maximum)
+        ? balanceProfileNumber(requireBalanceProfileFromContext({ catalog }, traits.get(name)!.id), 'maximumStacks')
         : undefined;
-    trait(name, { key, kind: 'buff', field, max, description });
+    add({ key, label: name, group: 'Trait conditionals', kind: 'buff', field, max, description });
   }
 
-  trait('Elemental Empowerment', {
-    key: 'elementalEmpowerment',
-    kind: 'specStacks',
-    field: 'elementalEmpowermentExpiries',
-    max: balanceProfileValue(
-      catalog.balanceProfilesById.get(traits.get('Elemental Empowerment')?.id!),
-      'maximumStacks',
-      10
-    ),
-    description: 'stacks; includes Empowered Empowerment'
-  });
+  if (has('Elemental Empowerment'))
+    add({
+      key: 'elementalEmpowerment',
+      label: 'Elemental Empowerment',
+      group: 'Trait conditionals',
+      kind: 'specStacks',
+      field: 'elementalEmpowermentExpiries',
+      max: balanceProfileNumber(
+        requireBalanceProfileFromContext({ catalog }, traits.get('Elemental Empowerment')!.id),
+        'maximumStacks'
+      ),
+      description: 'stacks; includes Empowered Empowerment'
+    });
   trait('Deadly Strength', {
     key: 'carapace',
     kind: 'coreStacks',

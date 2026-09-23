@@ -14,6 +14,7 @@ import { analyzeNecromancerBarbedPrecisionObservation } from '#gw2/integrations/
 import { analyzeRangerSharpenedEdgesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
 import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/mesmer/core/profiles.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { RANGER_TRAIT_IDS as RANGER_TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
@@ -26,18 +27,18 @@ const SPIDER = 0x6000n;
 const EXPLOSION_SKILL_ID = 1_000;
 const STRIKE_SKILL_ID = 2_000;
 
-// Proc duration lookup uses the first Bleeding condition and tolerates absent profile effects.
-test('Bleeding duration lookup ignores unrelated effects and defaults missing durations to zero', () => {
+// Proc discovery permits absent Bleeding, while a present packet needs its duration.
+test('Bleeding duration lookup ignores unrelated effects and requires present duration', () => {
   assert.equal(bleedingDuration({}), 0);
   assert.equal(bleedingDuration({ effects: [] }), 0);
   assert.equal(bleedingDuration({ effects: [{ type: 'condition', condition: 'Burning', duration: 8 }] }), 0);
-  assert.equal(bleedingDuration({ effects: [{ type: 'condition', condition: 'Bleeding' }] }), 0);
+  assert.throws(() => bleedingDuration({ effects: [{ type: 'condition', condition: 'Bleeding' }] }), /field=duration/);
   assert.equal(
     bleedingDuration({
       effects: [
         { type: 'strike', condition: 'Bleeding', duration: 9 },
         { type: 'condition', condition: 'Burning', duration: 8 },
-        { type: 'condition', condition: 'bLeEdInG', duration: '3' },
+        { type: 'condition', condition: 'bLeEdInG', duration: 3 },
         { type: 'condition', condition: 'Bleeding', duration: 5 }
       ]
     }),
@@ -351,7 +352,16 @@ test('pairs player-attributed Sharper Images applications across Signet of Midni
       ]
     ),
     PLAYER,
-    catalog([sharperImagesProfile]),
+    catalog([
+      sharperImagesProfile,
+      {
+        id: MESMER_CORE_BALANCE_PROFILE_IDS.signetOfMidnight,
+        name: 'Signet of Midnight - Passive',
+        profileKind: 'skill-variant',
+        expertiseBonus: 180,
+        effects: []
+      }
+    ]),
     {
       selectedTraitIds: [MESMER_TRAIT.SHARPER_IMAGES],
       selectedSkills: ['Signet of Midnight'],

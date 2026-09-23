@@ -6,5 +6,7 @@ export const DEADEYE_THIEVES_GUILD_SUMMON: ThiefSummonDefinition = Object.freeze
   displayName: 'Deadeye',
   variant: 'Deadeye',
   weapon: 'Rifle',
-  weaponStrengthProfileId: 'weapon.rifle'
+  weaponStrengthProfileId: 'weapon.rifle',
+  // Authored basic attack preserves this summon while allowing an explicit empty list.
+  attacks: [{ name: 'Basic Attack', coefficientPerHit: 1.2, hits: 1, initialDelay: 1, interval: 1 }]
 });

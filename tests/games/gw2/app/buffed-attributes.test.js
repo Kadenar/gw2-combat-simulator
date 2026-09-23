@@ -61,6 +61,21 @@ function previewApp(name, traitNames = [], specialization = null) {
 const stats = (app, input = {}) => calculateBuffedAttributes(app, input).attributes;
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, actual + ' != ' + expected);
 
+test('attribute controls require selected trait stack caps from the active catalog', () => {
+  const app = previewApp('mesmer', ["Fencer's Finesse"]);
+  const traitId = app.attributeData.activeTraits.find((trait) => trait.name === "Fencer's Finesse").id;
+  const profiles = new Map(app.activeCatalog.balanceProfilesById);
+  app.activeCatalog = { ...app.activeCatalog, balanceProfilesById: profiles };
+  profiles.set(traitId, { ...profiles.get(traitId), maximumStacks: 7 });
+  assert.equal(attributeEffectControls(app).find((control) => control.key === 'fencer').max, 7);
+  profiles.delete(traitId);
+  assert.throws(() => attributeEffectControls(app), /missing required profile/);
+  assert.equal(
+    attributeEffectControls(previewApp('guardian')).some((control) => control.key === 'fencer'),
+    false
+  );
+});
+
 // Relic stacks affect duration only while equipped, and preview state never leaks into the build.
 test('Aristocracy previews bounded condition duration stacks for every profession', () => {
   for (const profession of Object.keys(adapters)) {
