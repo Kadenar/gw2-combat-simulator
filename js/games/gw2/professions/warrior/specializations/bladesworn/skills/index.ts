@@ -341,6 +341,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     gunsaberSkill: true,
     dragonTriggerSkill: true,
     shadowstepSkill: true,
+    peithaImpactDelayMs: 40,
     skillWeapon: 'Gunsaber'
   },
   [ID.TRIGGERGUARD]: {

@@ -6,6 +6,9 @@ import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 // Snap each intended packet independently so rounding a repeated interval cannot accumulate drift.
 export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.UNRELENTING_ASSAULT]: {
+    // The opening shadowstep triggers one relic attack; impact follows the first strike (260 ms) by 680 ms.
+    shadowstepSkill: true,
+    peithaImpactDelayMs: 940,
     // Represent both activation phases with their reviewed total Quickness duration.
     castTimeMs: 840,
     cooldown: 12,
@@ -32,6 +35,9 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.DEATHSTRIKE]: {
+    // Relic of Peitha impacts 240 ms after the initial strike (320 ms).
+    shadowstepSkill: true,
+    peithaImpactDelayMs: 560,
     castTimeMs: 720,
     cooldown: 15,
     rechargeAnchor: 'castStart',

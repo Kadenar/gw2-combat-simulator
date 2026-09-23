@@ -277,10 +277,9 @@ test('Thrill of Combat catches up on its original cadence while capped grants re
   assert.equal(core.nextThrillOfCombatAt, 13);
 });
 
-test('Core strike dispatch preserves upkeep, relic, trait, and dagger order with the original cause', () => {
+test('Core strike dispatch preserves upkeep, trait, and dagger order with the original cause', () => {
   // One strike exercises the mixed dispatcher while queued upkeep remains separate from immediate reactions.
   const context = contextFor('Renegade', [TRAIT.VICIOUS_REPRISAL, TRAIT.EXPOSE_DEFENSES]);
-  context.config.relic = 'Peitha';
   context.hasBuff = (kind) => kind === 'resolution';
   const core = context.state.profession.core;
   core.battleScars = [10];
@@ -293,7 +292,7 @@ test('Core strike dispatch preserves upkeep, relic, trait, and dagger order with
   };
 
   context.emit = (event) => {
-    order.push(event.type === 'peitha' ? 'peitha' : event.sourceId);
+    order.push(event.sourceId);
     context.events.push(event);
     return event;
   };
@@ -314,7 +313,6 @@ test('Core strike dispatch preserves upkeep, relic, trait, and dagger order with
 
   assert.deepEqual(order, [
     'revenant.impossible-odds-strike',
-    'peitha',
     'revenant.battle-scars',
     TRAIT.VICIOUS_REPRISAL,
     TRAIT.EXPOSE_DEFENSES,

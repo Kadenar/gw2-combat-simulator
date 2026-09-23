@@ -190,19 +190,6 @@ export function updateThiefWeaponState(context: ThiefCastContext, skill: ThiefSk
     gainThiefEndurance(context, Number(skill.resourceGain), at, skill.name);
   }
 
-  if (skill.shadowstepSkill && context.config.relic === 'Peitha' && completed) {
-    context.emit({
-      type: 'peitha',
-      at,
-      source: 'thief',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      name: 'Relic of Peitha'
-    });
-  }
-
   updateSpearChainState(context, skill, at);
   // All axe recall variants consume the shared ground pool only when the cast completes.
   if (completed && [ID.HARROWING_STORM, ID.ORCHESTRATED_ASSAULT, ID.RECALL_AXES].some((id) => id === skill.id)) {

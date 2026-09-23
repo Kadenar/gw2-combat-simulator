@@ -912,25 +912,16 @@ test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
   assert.equal(swappedBeforeImpact.planningState.profession.affinity, 2);
 });
 
+// Impact delays are measured from activation and preserve the observed delay after each skill's opening strike.
 test('Revenant Peitha triggers resolve at the observed projectile impact', () => {
-  for (const {
-    specialization,
-    rotation,
-    selectedLegends,
-    startingLegend,
-    sourceSkill,
-    sourceName,
-    delay,
-    weapons = {}
-  } of [
+  for (const { specialization, rotation, selectedLegends, startingLegend, sourceSkill, delay, weapons = {} } of [
     {
       specialization: 'Conduit',
       rotation: ['Deathstrike', { name: '__wait', waitMs: 1000 }],
       selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
       startingLegend: LEGEND.ASSASSIN,
       sourceSkill: 'Deathstrike',
-      sourceName: 'Deathstrike',
-      delay: 0.24
+      delay: 0.56
     },
     {
       specialization: 'Conduit',
@@ -938,21 +929,7 @@ test('Revenant Peitha triggers resolve at the observed projectile impact', () =>
       selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
       startingLegend: LEGEND.ENTITY,
       sourceSkill: 'Beguiling Haze',
-      sourceName: 'Beguiling Haze',
-      delay: 0.32
-    },
-    {
-      specialization: 'Vindicator',
-      rotation: ["Phantom's Onslaught", { name: '__wait', waitMs: 1000 }],
-      selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.ALLIANCE,
-      sourceSkill: "Phantom's Onslaught",
-      sourceName: "Phantom's Onslaught",
-      delay: 0.68,
-      weapons: {
-        primaryWeapon: 'Greatsword',
-        secondaryWeapon: ''
-      }
+      delay: 0.84
     },
     {
       specialization: 'Renegade',
@@ -960,8 +937,7 @@ test('Revenant Peitha triggers resolve at the observed projectile impact', () =>
       selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
       startingLegend: LEGEND.RENEGADE,
       sourceSkill: 'Phase Smash',
-      sourceName: 'Phase Smash',
-      delay: 0,
+      delay: 0.84,
       weapons: {
         primaryWeapon: 'Hammer',
         secondaryWeapon: ''
@@ -975,19 +951,17 @@ test('Revenant Peitha triggers resolve at the observed projectile impact', () =>
       initialEnergy: 100,
       ...weapons
     });
-    const source = result.events.find(
-      (event) => event.type === 'damage' && event.skillName === sourceSkill && event.name === sourceName
-    );
+    const cast = result.events.find((event) => event.type === 'action' && event.skillName === sourceSkill);
     const peitha = result.events.find((event) => event.type === 'peitha' && event.skillName === sourceSkill);
     const torment = result.resolvedEvents.find(
       (event) => event.type === 'condition' && event.skillName === 'Relic of Peitha'
     );
 
-    assert.ok(source, `${sourceSkill} source`);
+    assert.ok(cast, `${sourceSkill} cast`);
     assert.ok(peitha, `${sourceSkill} Peitha event`);
     assert.ok(torment, `${sourceSkill} Peitha torment`);
-    assert.ok(Math.abs(peitha.at - source.at - delay) < 1e-9, `${sourceSkill} impact delay`);
-    assert.equal(torment.at, peitha.at, `${sourceSkill} torment timing`);
+    assert.equal(peitha.at, cast.at, `${sourceSkill} trigger timing`);
+    assert.ok(Math.abs(torment.at - cast.at - delay) < 1e-9, `${sourceSkill} impact delay`);
   }
 });
 

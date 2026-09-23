@@ -25,7 +25,7 @@ import { restoreArrow } from '#gw2/professions/ranger/specializations/galeshot/m
 import { GALESHOT_BALANCE_PROFILE_IDS as GALE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { conduitModifierRules } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity-rules.js';
-import { observeConduitTraits } from '#gw2/professions/revenant/specializations/conduit/traits/index.js';
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { REVENANT_SKILL_IDS as R, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as W, WARRIOR_TRAIT_IDS as WT } from '#gw2/professions/warrior/data/ids.js';
@@ -258,13 +258,9 @@ test('Conduit modifiers and Peitha follow all supported button IDs after renamin
     assert.equal(rule.when({ ...context, event: { skillId: 999999, skillName: 'Beguiling Haze' } }), false);
   }
 
+  // Peitha eligibility is catalog skill data, so both Beguiling Haze button IDs trigger it and Twin Moon Sweep does not.
   for (const skillId of [R.BEGUILING_HAZE, R.BEGUILING_HAZE_ID_76805, R.TWIN_MOON_SWEEP]) {
-    const events = [];
-    observeConduitTraits(
-      { config: { relic: 'Peitha' }, emitDerived: (_cause, event) => events.push(event) },
-      { type: 'damage', at: 1, skillId, skillName: 'Renamed' }
-    );
-    assert.equal(events.length, skillId === R.TWIN_MOON_SWEEP ? 0 : 1);
+    assert.equal(revenantCatalog.skillsById.get(skillId).shadowstepSkill === true, skillId !== R.TWIN_MOON_SWEEP);
   }
 });
 

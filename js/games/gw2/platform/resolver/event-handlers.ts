@@ -126,13 +126,6 @@ export function createGw2ResolverEventHandlers({
       });
     },
 
-    // Movement is a fact even when the associated attack misses; the relic selects qualifying player shadowsteps.
-    shadowstep(ctx, event) {
-      if (event.actorType === 'player') {
-        reactions.dispatch('peitha.resolved', ctx, event, { activeConditionStackCount });
-      }
-    },
-
     weapon_set(ctx, event) {
       // Invalid/missing values normalize to set one so later sigil and weapon
       // queries always have a valid one-based set number.

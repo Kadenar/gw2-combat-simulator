@@ -53,7 +53,6 @@ export interface WarriorSkill extends Skill {
   readonly primalBurst?: boolean;
   readonly gunsaberSkill?: boolean;
   readonly dragonTriggerSkill?: boolean;
-  readonly shadowstepSkill?: boolean;
   readonly movementSkill?: boolean;
   readonly dragonSlash?: boolean;
   readonly dragonSlashMinimumCoefficient?: number;

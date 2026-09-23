@@ -47,6 +47,8 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.PHASE_SMASH]: {
+    shadowstepSkill: true,
+    peithaImpactDelayMs: 840,
     castTimeMs: 840,
     cooldown: 8,
     energyCost: 5,

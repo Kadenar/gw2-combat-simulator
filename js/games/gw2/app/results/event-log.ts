@@ -222,7 +222,13 @@ export function simulationEventLogRows(
         break;
       case 'peitha':
         if (!build || build.relic === 'Peitha') {
-          push(event, 'trigger', `PEITHA TRIGGER ${event.skillName}`, 'trigger');
+          // Show the skill-authored travel so the trigger row explains when its Torment lands.
+          push(
+            event,
+            'trigger',
+            `PEITHA TRIGGER ${event.skillName} (impact +${Number(event.peithaImpactDelayMs)}ms)`,
+            'trigger'
+          );
         }
 
         break;

@@ -108,24 +108,11 @@ export function applyWarriorBurstSpendTraits(
   applyBurstMastery(context, skill, adrenalineSpent, options);
 }
 
-// Preserve cast completion order: Signet Mastery, Peitha, then Brave Stride.
+// Preserve cast completion order: Signet Mastery, then Brave Stride.
 export function completeWarriorSkill(context: WarriorCastContext, skill: WarriorSkill): void {
   // Lifecycle hooks still run for cleanup; completion rewards require commitment.
   if (context.action.cancelled) return;
   applySignetMasteryCastComplete(context, skill);
-  if (skill.shadowstepSkill && context.config.relic === 'Peitha') {
-    context.emit({
-      type: 'peitha',
-      at: context.effectiveEnd,
-      source: 'Warrior',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      name: 'Relic of Peitha'
-    });
-  }
-
   applyBraveStrideCastComplete(context, skill);
 }
 

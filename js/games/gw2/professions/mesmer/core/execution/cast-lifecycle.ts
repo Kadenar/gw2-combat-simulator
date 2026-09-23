@@ -10,7 +10,6 @@ import { scheduleBountifulBlades } from '#gw2/professions/mesmer/core/traits/ind
 import { detonateInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { scheduleDeclarativeEffects } from '#gw2/platform/execution/effect-adapter.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 /** Notifies the active specialization after Core has committed a shatter's exact resource spend. */
@@ -195,21 +194,6 @@ export function completeMesmerCast(context: MesmerCastContext, skill: MesmerSkil
  */
 export function startMesmerCast(context: MesmerCastContext, skill: MesmerSkill): void {
   const runtime = mesmerRuntimeFor(context);
-  // Shadowstep activation precedes the attack animation's end; only accepted casts emit the movement fact.
-  if (skill.shadowstepSkill && !context.action.cancelled) {
-    scheduleDeclarativeEffects(
-      context,
-      {
-        ...skill,
-        effects: [{ type: 'custom', eventType: 'shadowstep', event: {}, atMs: 0, timingAnchor: 'castStart' }]
-      },
-      context.reservationId,
-      context.start,
-      context.fullEnd,
-      context.effectiveEnd
-    );
-  }
-
   if (skill.id === ID.ABSTRACTION && !context.action.cancelled) detonateInspiringImagery(context);
 
   withMesmerCastEmission(context, skill, () => scheduleBountifulBlades(context, skill));

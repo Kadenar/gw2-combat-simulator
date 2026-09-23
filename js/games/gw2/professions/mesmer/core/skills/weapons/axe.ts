@@ -33,7 +33,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
   },
   [ID.AXES_OF_SYMMETRY]: {
     shadowstepSkill: true,
-    peithaProjectileDelay: 0.52,
+    peithaImpactDelayMs: 520,
     // Both weapon variants are shadowsteps and use the same movement-relic projectile timing.
     effects: [
       {
@@ -186,7 +186,7 @@ export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial
   [ID.VIRTUOSO_TROUBADOUR_AXES_OF_SYMMETRY]: {
     // The shared weapon variant retains the same shadowstep and relic response timing.
     shadowstepSkill: true,
-    peithaProjectileDelay: 0.52,
+    peithaImpactDelayMs: 520,
     comboFinishers: [
       {
         ownerId: 'mesmer',

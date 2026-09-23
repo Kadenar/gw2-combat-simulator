@@ -799,13 +799,13 @@ test('Relic of Thorns uses the deterministic incoming-hit assumption', () => {
 // Activation and projectile impact are separate: the log shows Peitha arriving before cast completion.
 test('Mesmer Peitha follows actual shadowsteps or successful Deception use', () => {
   const cases = [
-    ['Phase Retreat', ID.PHASE_RETREAT, 'Staff', true, 0.84],
-    ['Crystal Sands', ID.CRYSTAL_SANDS, 'Axe', false, 0.24],
-    ['Jaunt', ID.JAUNT, 'Axe', true, 0.24],
-    ['Axes of Symmetry', ID.AXES_OF_SYMMETRY, 'Axe', true, 0.52],
-    ['Mental Collapse', ID.MENTAL_COLLAPSE, 'Spear', true, 0.8]
+    ['Phase Retreat', ID.PHASE_RETREAT, 'Staff', 0.84],
+    ['Crystal Sands', ID.CRYSTAL_SANDS, 'Axe', 0.24],
+    ['Jaunt', ID.JAUNT, 'Axe', 0.24],
+    ['Axes of Symmetry', ID.AXES_OF_SYMMETRY, 'Axe', 0.52],
+    ['Mental Collapse', ID.MENTAL_COLLAPSE, 'Spear', 0.8]
   ];
-  for (const [skillName, skillId, primaryWeapon, shadowsteps, responseDelay] of cases) {
+  for (const [skillName, skillId, primaryWeapon, responseDelay] of cases) {
     const result = simulateMesmer(
       [
         { name: skillName, skillId },
@@ -821,12 +821,12 @@ test('Mesmer Peitha follows actual shadowsteps or successful Deception use', () 
       })
     );
     const cast = result.events.find((event) => event.type === 'action' && event.skillId === skillId);
-    const movement = result.events.filter((event) => event.type === 'shadowstep' && event.skillId === skillId);
+    const triggers = result.events.filter((event) => event.type === 'peitha' && event.skillId === skillId);
     const torment = result.resolvedEvents.filter(
       (event) => event.type === 'condition' && event.skillName === 'Relic of Peitha'
     );
-    assert.equal(movement.length, shadowsteps ? 1 : 0, skillName);
-    if (shadowsteps) assert.equal(movement[0].at, cast.at);
+    assert.equal(triggers.length, 1, skillName);
+    assert.equal(triggers[0].at, cast.at);
     assert.equal(torment.length, 1, skillName);
     assert.ok(Math.abs(torment[0].at - cast.at - responseDelay) < 1e-9, skillName);
     if (['Crystal Sands', 'Axes of Symmetry'].includes(skillName)) assert.ok(torment[0].at < cast.endsAt);

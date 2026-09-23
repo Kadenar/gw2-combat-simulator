@@ -121,7 +121,7 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
   },
   [ID.PHASE_RETREAT]: {
     shadowstepSkill: true,
-    peithaProjectileDelay: 0.84,
+    peithaImpactDelayMs: 840,
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     resource: {

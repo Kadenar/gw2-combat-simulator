@@ -2,7 +2,8 @@
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
-const HOSTILE_TARGET_EVENT_TYPES = new Set(['damage', 'condition', 'condition_tick', 'control', 'blind', 'peitha']);
+
+const HOSTILE_TARGET_EVENT_TYPES = new Set(['damage', 'condition', 'condition_tick', 'control', 'blind']);
 
 /** Identifies enemy-facing packets, which targeting options may suppress or delay independently of self effects. */
 export function isHostileTargetEvent(event: { readonly type: string }): boolean {

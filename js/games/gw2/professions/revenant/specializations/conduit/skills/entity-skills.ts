@@ -10,6 +10,10 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 const BEGUILING_HAZE_SKILL: Partial<Skill> = {
   // Custom: Selects initial/follow-up packets and charge state from affinity; see `execution/entities.ts`.
   handlerId: 'revenant.beguiling-haze',
+  // Relic of Peitha impacts 320 ms after the strike, which lands 40 ms before either variant's cast end.
+  shadowstepSkill: true,
+  peithaImpactAnchor: 'castEnd',
+  peithaImpactDelayMs: 280,
   castTimeMs: 200,
   cooldown: 10,
   recharge: 0,

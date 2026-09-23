@@ -5,6 +5,7 @@ import type { ScheduledTask, SchedulerContext } from '#gw2/platform/execution/ty
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
 import { isPrecombatTargetEffect, missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
@@ -28,11 +29,12 @@ interface CreateGw2TriggerMaterializerOptions {
   readonly traits?: ReadonlySet<string | number> | null;
 }
 
-type MaterializerCapability = 'combatTracking' | 'buffFacts' | 'swapSigils' | 'weaponFacts';
+type MaterializerCapability = 'combatTracking' | 'buffFacts' | 'swapSigils' | 'weaponFacts' | 'relicActions';
 
 // This is the single source of truth for which canonical event types the
 // materializer observes and why each one matters.
 const EVENT_REQUIRED_CAPABILITY: Readonly<Record<string, MaterializerCapability>> = Object.freeze({
+  action: 'relicActions',
   combat_start: 'combatTracking',
   damage: 'combatTracking',
   condition: 'combatTracking',
@@ -74,7 +76,8 @@ export function createGw2TriggerMaterializer(
     combatTracking: () => true,
     buffFacts: () => state.criticalFactsRequired || typeof state.relic.rules.materializeBoon === 'function',
     swapSigils: () => sigilSupport.swap,
-    weaponFacts: () => true
+    weaponFacts: () => true,
+    relicActions: () => typeof state.relic.rules.materializeAction === 'function'
   });
 
   const processEvent = (context: SchedulerContext, event: SimulationEvent): void => {
@@ -96,6 +99,9 @@ export function createGw2TriggerMaterializer(
     observer.observe(context, event);
 
     switch (event.type) {
+      case 'action':
+        materializeActionRelics(context, state.relic, event);
+        break;
       case 'buff':
         // Generic buffs share the timed-status event without counting as boons
         // for relic triggers.
@@ -218,6 +224,13 @@ function materializeBoonRelics(ctx: Gw2RelicMaterializerContext, relic: Gw2Relic
   const handler = relic.rules.materializeBoon;
   if (typeof handler !== 'function') return;
   handler(ctx, relic.state, event);
+}
+
+/** Materializes activation-triggered facts created by the selected relic from the activation's catalog skill. */
+function materializeActionRelics(context: SchedulerContext, relic: Gw2RelicRuntime, event: SimulationEvent): void {
+  const handler = relic.rules.materializeAction;
+  if (typeof handler !== 'function') return;
+  handler(context, relic.state, event, skillForEvent(context.catalog, event));
 }
 
 /** Materializes condition-triggered effects created by the selected relic. */

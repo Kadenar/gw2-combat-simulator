@@ -1,41 +1,43 @@
 /** Peitha relic rules. */
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
+import { clamp } from '#kernel/core/numeric.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { defineRelic, timedStrikeBuff } from '#gw2/platform/equipment/relics/rules/shared.js';
 
+/** Activation-to-impact delay for qualifying skills without a measured `peithaImpactDelayMs`. */
+export const PEITHA_DEFAULT_IMPACT_DELAY_MS = 240;
+
 export const peitha = defineRelic({
   createState: () => ({ readyAt: 0, buffFrom: 0, buffUntil: 0 }),
-  timeline(ctx, _state, events, rotationEndTime) {
-    // Accepted Deceptions trigger on activation, before their attack animation finishes.
-    if (!ctx.helpers) return;
-    for (const event of events) {
-      if (event.type !== 'action' || event.cancelled || !isGw2PlayerActorEvent(event)) continue;
-      const skill = skillForEvent(ctx.helpers, event);
-      if (!skill?.categories?.includes('Deception')) continue;
-      if (skill.shadowstepSkill) continue;
-      const at = event.at;
-      if (at > rotationEndTime + EPSILON) continue;
-      ctx.queue.enqueue({ ...event, type: 'peitha', at, offTarget: false, projectileDelay: 0.24 });
-    }
+  // Every profession shares one trigger: a committed player activation of a shadowstep or Deception skill.
+  // The trigger stays at activation so the internal cooldown gates on use; the skill supplies the impact delay.
+  materializeAction(ctx, _state, event, skill) {
+    if (!isGw2PlayerActorEvent(event)) return;
+    if (!skill?.shadowstepSkill && !skill?.categories?.includes('Deception')) return;
+    // Cast-end anchors follow variants whose cast length changes per activation; the event stores the total from activation.
+    const anchorOffsetMs =
+      skill.peithaImpactAnchor === 'castEnd' ? (Number(event.fullEndsAt ?? event.at) - event.at) * 1000 : 0;
+    ctx.emitDerived(event, {
+      type: 'peitha',
+      at: event.at,
+      source: event.source,
+      sourceId: skill.id,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: 'Relic of Peitha',
+      peithaImpactDelayMs: anchorOffsetMs + (skill.peithaImpactDelayMs ?? PEITHA_DEFAULT_IMPACT_DELAY_MS)
+    });
   },
   peitha(ctx, state, event, applyCondition) {
     const triggerAt = event.at;
     if (!isInternalCooldownReady(triggerAt, state.readyAt)) return;
     state.readyAt = triggerAt + 4;
     const combatStart = Number(ctx.combatStartTime ?? -Infinity);
-    const skill = ctx.helpers ? skillForEvent(ctx.helpers, event) : null;
-    // Authored movement delays include launch latency and travel; legacy events already denote projectile impact.
-    // Clamp pre-combat impacts so their conditions cannot preload before combat.
-    const impactAt =
-      triggerAt < combatStart
-        ? combatStart
-        : triggerAt +
-          Math.max(
-            0,
-            Number(event.projectileDelay ?? (event.type === 'shadowstep' ? (skill?.peithaProjectileDelay ?? 0.24) : 0))
-          );
+    // The trigger carries its skill's launch latency and travel; only impacts that would still land before
+    // combat clamp to combat start, so their conditions cannot preload.
+    const impactAt = clamp(triggerAt + Math.max(0, Number(event.peithaImpactDelayMs)) / 1000, combatStart, Infinity);
     state.buffFrom = impactAt;
     state.buffUntil = gw2EffectExpiresAt(impactAt, 4);
     ctx.recordProc('relic', 'Relic of Peitha', impactAt, event.skillName, '', '', null, Number(state.buffUntil));

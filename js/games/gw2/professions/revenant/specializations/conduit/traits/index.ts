@@ -32,7 +32,7 @@ import type {
 // Twin Moon Sweep exists under two different skill IDs in the catalog; both must be excluded from Mistfire.
 export const TWIN_MOON_SKILL_IDS = new Set<SkillId>([ID.TWIN_MOON_SWEEP, ID.TWIN_MOON_SWEEP_ID_77001]);
 
-// Both API button identities share main/follow-up resonance and Peitha eligibility.
+// Both API button identities share main/follow-up resonance.
 export const BEGUILING_HAZE_SKILL_IDS = new Set<SkillId>([ID.BEGUILING_HAZE, ID.BEGUILING_HAZE_ID_76805]);
 
 export function modifyConduitCastDuration(context: RevenantPrecastContext, duration: number): number {
@@ -120,24 +120,6 @@ export function afterConduitTraitCast(context: RevenantCastContext, skill: Reven
 
 export function observeConduitTraits(context: RevenantSchedulerContext, event: SimulationEvent): void {
   conduitAffinityReaction.onEventScheduled.handler(context, event);
-
-  if (
-    context.config.relic === 'Peitha' &&
-    event.type === 'damage' &&
-    BEGUILING_HAZE_SKILL_IDS.has(Number(event.skillId))
-  ) {
-    // 0.32 s matches the observed Relic of Peitha proc delay after Beguiling Haze lands.
-    context.emitDerived(event, {
-      type: 'peitha',
-      at: event.at + 0.32,
-      source: 'revenant',
-      sourceId: event.skillId ?? event.sourceId,
-      actorType: 'player',
-      skillId: event.skillId,
-      skillName: event.skillName,
-      name: 'Relic of Peitha'
-    });
-  }
 
   if (
     event.type !== 'control' ||

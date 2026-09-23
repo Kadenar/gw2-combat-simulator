@@ -121,6 +121,8 @@ export type Gw2EventDraft = {
   readonly stacks?: number;
   readonly condition?: string;
   readonly fixedDuration?: boolean;
+  /** Relic of Peitha trigger: fixed milliseconds from activation to projectile impact. */
+  readonly peithaImpactDelayMs?: number;
 };
 
 export type Gw2ApplyCondition = (context: Gw2RelicContext, event: Gw2EventDraft) => unknown;
@@ -141,6 +143,13 @@ export interface Gw2RelicRule {
     context: Gw2RelicMaterializerContext,
     state: Gw2RelicState,
     event: SimulationEvent
+  ) => unknown;
+  /** Observes committed activations with their catalog skill so skill classifications can trigger relic facts. */
+  readonly materializeAction?: (
+    context: Gw2RelicMaterializerContext,
+    state: Gw2RelicState,
+    event: SimulationEvent,
+    skill: Skill | undefined
   ) => unknown;
   readonly control?: (
     context: Gw2RelicContext,

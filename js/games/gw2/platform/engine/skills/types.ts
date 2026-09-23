@@ -219,6 +219,15 @@ export interface Skill extends CatalogEntity {
   readonly stunbreak?: boolean;
   /** The skill itself grants an evade window to its actor. */
   readonly evades?: boolean;
+  /** Activation shadowsteps its actor; shared equipment such as Relic of Peitha reacts to committed activations. */
+  readonly shadowstepSkill?: boolean;
+  /**
+   * Fixed milliseconds from `peithaImpactAnchor` to the Relic of Peitha projectile impact, including launch latency
+   * and travel. Skills without a measured value use the relic's default impact delay.
+   */
+  readonly peithaImpactDelayMs?: number;
+  /** Measures the Peitha impact delay from activation (default) or from the activation's cast end. */
+  readonly peithaImpactAnchor?: 'castStart' | 'castEnd';
   readonly ammo?: number;
   readonly ammoRecharge?: number;
   /** Minimum delay between consecutive casts of an ammo skill, in seconds. */

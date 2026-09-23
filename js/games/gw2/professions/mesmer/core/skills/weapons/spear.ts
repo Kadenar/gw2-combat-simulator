@@ -58,7 +58,7 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
   },
   [ID.MENTAL_COLLAPSE]: {
     shadowstepSkill: true,
-    peithaProjectileDelay: 0.8,
+    peithaImpactDelayMs: 800,
     handlerId: 'mesmer.mental-collapse',
     // Only the initial impact stuns when this activation consumed Clarity.
     clarityEffects: [

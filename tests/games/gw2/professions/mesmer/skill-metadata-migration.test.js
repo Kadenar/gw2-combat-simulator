@@ -35,7 +35,6 @@ test('Mirage Advance applies one blind and disable at impact, with no invented i
     assert.equal(blind.length, offTarget ? 0 : 1);
     assert.equal(procs(result, 'Ineptitude').length, offTarget ? 0 : 1);
     assert.equal(procs(result, 'Relic of Aristocracy').length, offTarget ? 0 : 1);
-    assert.equal(result.events.filter((event) => event.type === 'shadowstep').length, 1);
     if (offTarget) continue;
     assert.equal(blind[0].duration, 5);
     assert.equal(blind[0].stacks, 1);
@@ -56,10 +55,7 @@ test('cancelled Mirage casts create neither hostile effects nor movement procs',
   for (const name of ['Mirage Advance', 'Crystal Sands']) {
     const result = simulateMesmer([{ name, interruptMs: 100 }, wait(1500)], config({ relic: 'Peitha' }));
     assert.ok(result.events.find((event) => event.type === 'action').cancelled);
-    assert.equal(
-      result.events.filter((event) => ['shadowstep', 'control', 'condition'].includes(event.type)).length,
-      0
-    );
+    assert.equal(result.events.filter((event) => ['peitha', 'control', 'condition'].includes(event.type)).length, 0);
     assert.equal(procs(result, 'Relic of Peitha').length, 0);
   }
 });
@@ -68,7 +64,6 @@ test('mirror creation and pickup have separate state and effect requirements', (
   const settings = config({ relic: 'Aristocracy' });
   const created = simulateMesmer(['Crystal Sands', wait(1500)], settings);
   const picked = simulateMesmer(['Crystal Sands', 'Pick Up Mirage Mirror', wait(500)], settings);
-  assert.equal(created.events.filter((event) => event.type === 'shadowstep').length, 0);
   assert.equal(created.events.filter((event) => event.condition === 'Weakness').length, 0);
   assert.equal(procs(created, 'Relic of Aristocracy').length, 0);
   const weakness = picked.events.filter((event) => event.condition === 'Weakness');

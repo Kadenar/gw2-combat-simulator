@@ -114,7 +114,6 @@ export interface ThiefSkill extends Skill {
   readonly kneelSkill?: boolean;
   readonly malicious?: boolean;
   readonly movementSkill?: boolean;
-  readonly shadowstepSkill?: boolean;
   readonly preservesStealth?: boolean;
   readonly shadowShroudSkill?: boolean;
   readonly spearStealthAttack?: boolean;

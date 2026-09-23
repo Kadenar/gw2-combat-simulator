@@ -49,30 +49,6 @@ export function observeRevenantEvent(context: RevenantSchedulerContext, event: S
   if (event.type === 'combat_start') scheduleAssassinsPresence(context, event.at);
   if (revenantCombatActive(context, event.at)) applyIncensedResponse(context, event);
   scheduleImpossibleOddsStrike(context, event);
-
-  if (
-    context.config.relic === 'Peitha' &&
-    event.type === 'damage' &&
-    // Use the initial strike's identity so display labels cannot change shadowstep procs.
-    ((event.skillId === ID.DEATHSTRIKE && event.sourceId === ID.DEATHSTRIKE) ||
-      event.skillName === "Phantom's Onslaught" ||
-      // Unrelenting Assault's opening shadowstep triggers one relic attack, not one per strike.
-      (event.skillId === ID.UNRELENTING_ASSAULT && event.hitIndex === 1) ||
-      event.skillId === ID.PHASE_SMASH)
-  ) {
-    const delay = event.skillId === ID.PHASE_SMASH ? 0 : event.skillName === 'Deathstrike' ? 0.24 : 0.68;
-    context.emitDerived(event, {
-      type: 'peitha',
-      at: event.at + delay,
-      source: 'revenant',
-      sourceId: event.skillId ?? event.sourceId,
-      actorType: 'player',
-      skillId: event.skillId,
-      skillName: event.skillName,
-      name: 'Relic of Peitha'
-    });
-  }
-
   applyBrutality(context, event);
   applyDwarvenBattleTraining(context, event);
   if (event.type === 'condition') {
