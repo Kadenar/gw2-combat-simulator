@@ -68,6 +68,49 @@ test('Necromancer snapshot candidates normalize resources without mutating live 
   assert.equal(event.state.blightExpiries.length, 25);
 });
 
+test('restoration retains unchanged detached flat values but repairs mutations and shared references', (t) => {
+  // Compare live values rather than the prior snapshot: resolver mutations must still be overwritten.
+  const snapshot = { list: [NaN, -0, null], record: { count: 2, until: Infinity } };
+  const state = structuredClone(snapshot);
+  const retained = { ...state };
+  const clone = t.mock.method(globalThis, 'structuredClone');
+  restoreNecromancerStateSlice(state, snapshot);
+  assert.equal(clone.mock.callCount(), 0);
+  assert.equal(state.list, retained.list);
+  assert.equal(state.record, retained.record);
+  state.list[1] = 0;
+  state.record.count = 3;
+  restoreNecromancerStateSlice(state, snapshot);
+  assert.deepEqual(state, snapshot);
+  assert.equal(clone.mock.callCount(), 2);
+  state.list.push(4);
+  state.record.count = 5;
+  assert.deepEqual(snapshot.list, [NaN, -0, null]);
+  assert.equal(snapshot.record.count, 2);
+
+  // Even equal inputs must detach when the root or a nested child aliases the snapshot.
+  const shared = { values: [1] };
+  const aliased = { root: snapshot.record, nested: { child: shared }, map: new Map([['a', 1]]) };
+  const source = { root: snapshot.record, nested: { child: shared }, map: new Map([['a', 1]]) };
+  restoreNecromancerStateSlice(aliased, source);
+  aliased.root.count = 9;
+  aliased.nested.child.values.push(2);
+  aliased.map.set('b', 2);
+  assert.equal(source.root.count, 2);
+  assert.deepEqual(shared.values, [1]);
+  assert.deepEqual(source.map, new Map([['a', 1]]));
+  for (const invalid of [Symbol('invalid'), () => {}]) {
+    assert.throws(() => restoreNecromancerStateSlice({ value: { invalid } }, { value: { invalid } }), {
+      name: 'DataCloneError'
+    });
+  }
+
+  const sparse = { value: [undefined, undefined] };
+  restoreNecromancerStateSlice(sparse, { value: Array(2) });
+  assert.equal(sparse.value.length, 2);
+  assert.equal(Object.hasOwn(sparse.value, 0), false);
+});
+
 test('Core and Reaper snapshots retain resolver clocks and carapace multiplicities', () => {
   // Scheduler snapshots update resources and Victory while leaving Nova progress and resolver effects intact.
   const core = createNecromancerCoreState();
