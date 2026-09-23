@@ -11,9 +11,11 @@ import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/pol
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import {
-  requireRevenantBalanceProfile as balanceProfile,
-  requireRevenantEffect as profileEffect
-} from '#gw2/professions/revenant/core/traits/profile-access.js';
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -33,9 +35,16 @@ function grantBattleScars(
   context: RevenantSchedulerContext,
   { at, stacks, sourceId, sourceName, duration: durationOverride, cause = null }: BattleScarGrant
 ): void {
-  const profile = balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
-  const buff = profileEffect(profile, 'buff');
-  const duration = Math.max(0, Number(durationOverride ?? buff.duration ?? 0));
+  const profile = requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
+  // Grants without their own duration inherit the core buff's; removing that buff leaves them nothing to grant.
+  let authoredDuration = durationOverride;
+  if (authoredDuration === undefined) {
+    const buff = requireEffect(profile, 'buff', 'battle-scars');
+    if (!buff) return;
+    authoredDuration = effectNumber(profile, buff, 'duration');
+  }
+
+  const duration = Math.max(0, authoredDuration);
   const state = professionCoreState(context);
   // Expiry timestamps retain grant order, so newest-first spending needs no per-stack metadata.
   const { expiries, added: count } = addTimedStacks(
@@ -43,7 +52,7 @@ function grantBattleScars(
     stacks,
     at,
     duration,
-    Number(profile.maximumStacks || 0)
+    balanceProfileNumber(profile, 'maximumStacks')
   );
   state.battleScars = expiries;
   if (!count) return;
@@ -73,27 +82,31 @@ function isLegendaryStanceSkill(skill: RevenantSkill): boolean {
 /** Grants Battle Scars after a selected heal skill completes. */
 export function applyBattleScarred(context: RevenantCastContext, skill: RevenantSkill): void {
   if (skill?.slot !== 'Heal' || !hasTrait(context.config, TRAIT.BATTLE_SCARRED)) return;
-  const buff = profileEffect(balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScarred), 'buff');
+  const profile = requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScarred);
+  const buff = requireEffect(profile, 'buff', 'battle-scars');
+  if (!buff) return;
   grantBattleScars(context, {
     at: context.effectiveEnd,
-    stacks: Number(buff.stacks || 0),
+    stacks: effectNumber(profile, buff, 'stacks'),
     sourceId: TRAIT.BATTLE_SCARRED,
     sourceName: 'Battle Scarred',
-    duration: Number(buff.duration || 0)
+    duration: effectNumber(profile, buff, 'duration')
   });
 }
 
 /** Grants Notoriety Might after an in-combat legendary stance skill. */
 export function applyNotoriety(context: RevenantCastContext, skill: RevenantSkill): void {
   if (!isLegendaryStanceSkill(skill) || !hasTrait(context.config, TRAIT.NOTORIETY)) return;
-  const boon = profileEffect(balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.notoriety), 'boon');
+  const profile = requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.notoriety);
+  const boon = requireEffect(profile, 'boon', 'might');
+  if (!boon) return;
   emitSkillBuff(context, skill, {
     at: context.effectiveEnd,
     sourceId: TRAIT.NOTORIETY,
     name: 'Notoriety — might',
-    kind: String(boon.boon || 'might'),
-    duration: Number(boon.duration || 0),
-    stacks: Number(boon.stacks || 0)
+    kind: String(boon.boon),
+    duration: effectNumber(profile, boon, 'duration'),
+    stacks: effectNumber(profile, boon, 'stacks')
   });
 }
 
@@ -109,13 +122,16 @@ export function applyBrutality(context: RevenantSchedulerContext, event: Simulat
     return;
   }
 
-  const profile = balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.brutality);
-  const boon = profileEffect(profile, 'boon');
+  const profile = requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.brutality);
+  const boon = requireEffect(profile, 'boon', 'quickness');
+  // The cooldown gates only quickness, so a removed boon leaves it ready.
+  if (!boon) return;
   const sourceSkill =
     context.catalog.skillsById.get(event.skillId ?? '') ||
     ({ id: TRAIT.BRUTALITY, name: 'Brutality' } as RevenantSkill);
   // Arm the scheduler-owned claim before its boon can trigger another reaction.
-  if (!tryConsumeProcCooldown(state.traitProcReadyAt, 'brutality', at, Number(profile.cooldown || 0))) return;
+  if (!tryConsumeProcCooldown(state.traitProcReadyAt, 'brutality', at, balanceProfileNumber(profile, 'cooldown')))
+    return;
   emitSkillBuff(context, {
     cause: event,
     at,
@@ -125,14 +141,14 @@ export function applyBrutality(context: RevenantSchedulerContext, event: Simulat
     skillId: TRAIT.BRUTALITY,
     skillName: 'Brutality',
     name: 'Brutality — quickness',
-    kind: String(boon.boon || 'quickness'),
+    kind: String(boon.boon),
     duration: gw2SchedulerBoonDuration(
       context,
       sourceSkill,
-      String(boon.boon || 'quickness'),
-      Number(boon.duration || 0)
+      String(boon.boon),
+      effectNumber(profile, boon, 'duration')
     ),
-    stacks: Number(boon.stacks || 0)
+    stacks: effectNumber(profile, boon, 'stacks')
   });
 }
 
@@ -153,11 +169,14 @@ export function applyDanceOfDeath(context: RevenantSchedulerContext, event: Simu
 export function applyThrillOfCombat(context: RevenantSchedulerContext, event: SimulationEvent): void {
   if (!hasTrait(context.config, TRAIT.THRILL_OF_COMBAT)) return;
   const state = professionCoreState(context);
-  const battleScars = balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
-  const profile = balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.thrillOfCombat);
-  const buff = profileEffect(profile, 'buff');
-  const interval = Math.max(EPSILON, Number(profile.cooldown || 0));
-  const duration = Math.max(0, Number(buff.duration || 0));
+  const battleScars = requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
+  const profile = requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.thrillOfCombat);
+  const buff = requireEffect(profile, 'buff', 'battle-scars');
+  // The cadence exists only to grant this buff, so a removed buff neither grants nor advances it.
+  if (!buff) return;
+  const interval = Math.max(EPSILON, balanceProfileNumber(profile, 'cooldown'));
+  const duration = Math.max(0, effectNumber(profile, buff, 'duration'));
+  const maximumStacks = balanceProfileNumber(battleScars, 'maximumStacks');
   if (state.nextThrillOfCombatAt == null) {
     state.nextThrillOfCombatAt = Number(state.combatBeganAt ?? event.at) + interval;
   }
@@ -170,13 +189,7 @@ export function applyThrillOfCombat(context: RevenantSchedulerContext, event: Si
   let activeGrants = 0;
   for (let index = firstActiveIndex; index < elapsedGrants; index += 1) {
     const grantedAt = next + index * interval;
-    const { expiries, added } = addTimedStacks(
-      state.battleScars,
-      1,
-      grantedAt,
-      duration,
-      Number(battleScars.maximumStacks || 0)
-    );
+    const { expiries, added } = addTimedStacks(state.battleScars, 1, grantedAt, duration, maximumStacks);
     state.battleScars = expiries;
     activeGrants += added;
   }
@@ -200,8 +213,10 @@ export function applyThrillOfCombat(context: RevenantSchedulerContext, event: Si
 
 /** Consumes one active Battle Scar on a qualifying player strike. */
 export function consumeBattleScar(context: RevenantSchedulerContext, event: SimulationEvent): void {
-  const profile = balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
-  const strike = profileEffect(profile, 'strike');
+  const profile = requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
+  const strike = requireEffect(profile, 'strike', 'Battle Scars — Life Siphon');
+  // Scars are spent only to deliver the siphon, so a removed strike leaves them in place.
+  if (!strike) return;
   const state = professionCoreState(context);
   const { expiries, consumed } = consumeNewestStacks(state.battleScars, 1, event.at);
   state.battleScars = expiries;
@@ -216,8 +231,8 @@ export function consumeBattleScar(context: RevenantSchedulerContext, event: Simu
     skillName: 'Battle Scars',
     name: 'Battle Scars — Life Siphon',
     coefficient: 0,
-    flatStrikeBase: Number(strike.flatStrikeBase || 0),
-    flatStrikePowerCoeff: Number(strike.flatStrikePowerCoeff || 0),
+    flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
+    flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
     noCrit: true,
     hits: 1,
     hitIndex: 1,
@@ -236,16 +251,24 @@ export function scheduleAssassinsPresence(context: RevenantSchedulerContext, at 
 export const assassinsPresence = timedEffect<RevenantSchedulerContext, object>({
   id: 'revenant.assassins-presence',
   interval: (context) =>
-    Math.max(EPSILON, Number(balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.assassinsPresence).cooldown)),
+    Math.max(
+      EPSILON,
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.assassinsPresence),
+        'cooldown'
+      )
+    ),
   effectsAt(context, at) {
     if (!hasTrait(context, TRAIT.ASSASSINS_PRESENCE) || !revenantCombatActive(context, at)) return false;
-    const profile = balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.assassinsPresence);
-    const boon = profileEffect(profile, 'boon');
+    const profile = requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.assassinsPresence);
+    const boon = requireEffect(profile, 'boon', 'fury');
+    // The pulse cadence is trait-owned and continues; only the removed Fury packet is skipped.
+    if (!boon) return;
     emitSkillBuff(context, { id: TRAIT.ASSASSINS_PRESENCE, name: profile.name } as RevenantSkill, {
       at: at,
-      kind: String(boon.boon || 'fury'),
-      duration: Number(boon.duration),
-      stacks: Number(boon.stacks),
+      kind: String(boon.boon),
+      duration: effectNumber(profile, boon, 'duration'),
+      stacks: effectNumber(profile, boon, 'stacks'),
       audience: { recipients: 'party', maximumRecipients: 5 }
     });
   }
@@ -255,12 +278,12 @@ export const assassinsPresence = timedEffect<RevenantSchedulerContext, object>({
 export function applyExposeDefenses(context: RevenantSchedulerContext, event: SimulationEvent): void {
   const state = professionCoreState(context);
   if (state.exposeDefensesUsed || !hasTrait(context.config, TRAIT.EXPOSE_DEFENSES)) return;
-  const condition = profileEffect(
-    balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.exposeDefenses),
-    'condition'
-  );
+  const profile = requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.exposeDefenses);
+  const condition = requireEffect(profile, 'condition', 'Vulnerability');
+  // The one-use opener belongs to its packet, so a removed packet leaves it unspent.
+  if (!condition) return;
   state.exposeDefensesUsed = true;
-  const conditionName = String(condition.condition || 'Vulnerability');
+  const conditionName = String(condition.condition);
   emitSkillCondition(context, {
     cause: event,
     at: event.at,
@@ -268,7 +291,7 @@ export function applyExposeDefenses(context: RevenantSchedulerContext, event: Si
     skillName: 'Expose Defenses',
     name: `Expose Defenses — ${conditionName}`,
     condition: conditionName,
-    stacks: Number(condition.stacks || 0),
-    duration: Number(condition.duration || 0)
+    stacks: effectNumber(profile, condition, 'stacks'),
+    duration: effectNumber(profile, condition, 'duration')
   });
 }

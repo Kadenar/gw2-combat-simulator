@@ -1,3 +1,9 @@
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON } from '#kernel/core/clock.js';
@@ -25,13 +31,11 @@ export const HERALD_ELEVATED_COMPASSION_TASK = 'revenant.herald-elevated-compass
 const ELEVATED_COMPASSION_TASK_OWNER = 'revenant.herald-elevated-compassion';
 
 function elevatedCompassionProfile(context: RevenantSchedulerContext) {
-  const profile = context.catalog.balanceProfilesById.get(HERALD_ELEVATED_COMPASSION_PROFILE_ID);
-  if (!profile) throw new Error('Missing Elevated Compassion balance profile.');
-  return profile;
+  return requireBalanceProfileFromContext(context, HERALD_ELEVATED_COMPASSION_PROFILE_ID);
 }
 
 function elevatedCompassionIsActive(context: RevenantSchedulerContext): boolean {
-  const threshold = Math.max(0, Number(elevatedCompassionProfile(context).threshold || 0));
+  const threshold = Math.max(0, balanceProfileNumber(elevatedCompassionProfile(context), 'threshold'));
   const upkeep = professionCoreState(context).activeUpkeeps.reduce(
     (total, active) => total + Math.max(0, Number(active.upkeepCost || 0)),
     0
@@ -41,11 +45,12 @@ function elevatedCompassionIsActive(context: RevenantSchedulerContext): boolean 
 
 function grantElevatedCompassionQuickness(context: RevenantSchedulerContext, at: number): void {
   const profile = elevatedCompassionProfile(context);
-  const effect = profile.effects?.find((candidate) => candidate.type === 'boon');
-  if (!effect) throw new Error('Elevated Compassion is missing its quickness effect.');
-  const baseDuration = Math.max(0, Number(effect.duration || 0));
+  const effect = requireEffect(profile, 'boon', 'quickness');
+  // The cooldown gates only quickness, so a removed boon leaves the pulse ready.
+  if (!effect) return;
+  const baseDuration = Math.max(0, effectNumber(profile, effect, 'duration'));
   const skill = { id: TRAIT.ELEVATED_COMPASSION, name: 'Elevated Compassion' } as RevenantSkill;
-  const duration = gw2SchedulerBoonDuration(context, skill, String(effect.boon || 'quickness'), baseDuration);
+  const duration = gw2SchedulerBoonDuration(context, skill, String(effect.boon), baseDuration);
 
   // Emit one self-affecting party boon and reserve the next legal pulse so threshold re-entry cannot bypass the ICD.
   emitSkillBuff(context, {
@@ -56,13 +61,13 @@ function grantElevatedCompassionQuickness(context: RevenantSchedulerContext, at:
     skillId: TRAIT.ELEVATED_COMPASSION,
     skillName: 'Elevated Compassion',
     name: 'Elevated Compassion - quickness',
-    kind: String(effect.boon || 'quickness'),
+    kind: String(effect.boon),
     duration,
-    stacks: Math.max(1, Number(effect.stacks ?? 1)),
+    stacks: Math.max(1, effectNumber(profile, effect, 'stacks')),
     audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
   });
 
-  const cooldown = Math.max(EPSILON, Number(profile.cooldown || 0));
+  const cooldown = Math.max(EPSILON, balanceProfileNumber(profile, 'cooldown'));
   heraldState.from(context).elevatedCompassionReadyAt = at + cooldown;
 }
 
@@ -129,9 +134,8 @@ export function consumeRevenantFacet(context: RevenantCastContext, skill: Revena
     context.tasks.cancelOwner(`revenant.upkeep:${facet.id}`);
     if (wasActive && hasTrait(context.config, TRAIT.DRACONIC_ECHO)) {
       const passive = heraldState.from(context);
-      const profile = context.catalog.balanceProfilesById.get(HERALD_DRACONIC_ECHO_PROFILE_ID);
-      if (!profile) throw new Error('Missing Draconic Echo balance profile.');
-      const expiresAt = at + Number(profile.duration);
+      const profile = requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID);
+      const expiresAt = at + balanceProfileNumber(profile, 'duration');
       // Retention preserves the pulse phase, but never keeps an Energy-draining upkeep alive.
       passive.lingeringFacets[facet.id] = { startsAt: at, expiresAt, legendId: state.activeLegendId };
       const ownerId = `revenant.echo:${facet.id}`;

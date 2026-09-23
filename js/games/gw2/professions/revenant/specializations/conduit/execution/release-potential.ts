@@ -13,7 +13,10 @@ import {
 } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
-import { balanceProfileFromContext as balanceProfileById } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -68,9 +71,9 @@ export function handleMesmerReleaseConditions(
 function effectiveAffinity(context: RevenantSchedulerContext): number {
   // Kinetic Insight contributes a virtual +2 to affinity for scaling calculations without mutating actual state.
   const bonus = hasTrait(context, TRAIT.KINETIC_INSIGHT) ? 2 : 0;
-  const affinityProfile = balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.affinity);
+  const affinityProfile = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.affinity);
   return Math.min(
-    Math.max(1, Number(affinityProfile?.maximumStacks ?? 1)),
+    Math.max(1, balanceProfileNumber(affinityProfile, 'maximumStacks')),
     Number(conduitState.from(context).affinity || 0) + bonus
   );
 }
@@ -81,8 +84,8 @@ export function castReleasePotential(context: RevenantCastContext, skill: Revena
   if (context.action.cancelled === true) return;
   const affinity = effectiveAffinity(context);
   // At affinity ≥ 3 the skill gains effects from all equipped legends even if they are not currently active.
-  const affinityProfile = balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.affinity);
-  const allLegendEffects = affinity >= Math.max(0, Number(affinityProfile?.minimumStacks || 0));
+  const affinityProfile = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.affinity);
+  const allLegendEffects = affinity >= Math.max(0, balanceProfileNumber(affinityProfile, 'minimumStacks'));
   const strike = (skill.effects || []).find((effect) => effect.type === 'strike');
   const conditions = (skill.effects || []).filter((effect) => effect.type === 'condition');
   const boons = (skill.effects || []).filter((effect) => effect.type === 'boon');

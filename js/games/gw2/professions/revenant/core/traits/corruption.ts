@@ -6,9 +6,10 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import { emitLegendInvocationProfile } from '#gw2/professions/revenant/core/traits/invocation-effects.js';
 import {
-  requireRevenantBalanceProfile as balanceProfile,
-  requireRevenantEffect as profileEffect
-} from '#gw2/professions/revenant/core/traits/profile-access.js';
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { RevenantCastContext, RevenantSchedulerContext } from '#gw2/professions/revenant/types.js';
 
 /** Applies Invoking Torment and its nested Diabolic Inferno packet at invocation time. */
@@ -27,8 +28,10 @@ export function applyInvokingTorment(context: RevenantCastContext, at: number): 
 /** Converts each observed Chilled stack into the configured Abyssal Chill Torment packet. */
 export function applyAbyssalChill(context: RevenantSchedulerContext, event: SimulationEvent): void {
   if (event.condition !== 'Chilled' || !hasTrait(context.config, TRAIT.ABYSSAL_CHILL)) return;
-  const condition = profileEffect(balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.abyssalChill), 'condition');
-  const conditionName = String(condition.condition || 'Torment');
+  const profile = requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.abyssalChill);
+  const condition = requireEffect(profile, 'condition', 'Torment');
+  if (!condition) return;
+  const conditionName = String(condition.condition);
   emitSkillCondition(context, {
     cause: event,
     at: event.at,
@@ -36,7 +39,7 @@ export function applyAbyssalChill(context: RevenantSchedulerContext, event: Simu
     skillName: 'Abyssal Chill',
     name: `Abyssal Chill — ${conditionName}`,
     condition: conditionName,
-    stacks: Math.max(0, Number(condition.stacks || 0)) * Math.max(1, Number(event.stacks ?? 1)),
-    duration: Number(condition.duration || 0)
+    stacks: Math.max(0, effectNumber(profile, condition, 'stacks')) * Math.max(1, Number(event.stacks ?? 1)),
+    duration: effectNumber(profile, condition, 'duration')
   });
 }

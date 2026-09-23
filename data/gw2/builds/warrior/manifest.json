@@ -51,7 +51,7 @@
         "label": "Power (Dagger/Mace + Sword/Axe)",
         "build": "data/gw2/builds/warrior/b-power-spellbreaker-dagger-mace-sword-axe.json",
         "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-dagger-mace-sword-axe-bench.json",
-        "benchmarkDps": 42838,
+        "benchmarkDps": 42862,
         "upToDate": true
       },
       {

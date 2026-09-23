@@ -11,6 +11,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
     energyCost: 5,
     effects: [
       {
+        name: 'enchanted-daggers',
         type: 'buff',
         kind: 'enchanted-daggers',
         duration: 15,

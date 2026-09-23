@@ -4,7 +4,7 @@ import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { EPSILON, canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { runtimeRevenantEnergyCost, emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
-import { requireRevenantEffect as effectByType } from '#gw2/professions/revenant/core/traits/profile-access.js';
+import { requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -229,8 +229,9 @@ export function handleImpossibleOddsStrike(
     return;
   }
 
-  const strike = effectByType(impossible, 'strike');
-  if (strike?.type !== 'strike') return;
+  const strike = requireEffect(impossible, 'strike', 'Impossible Odds');
+  // The trigger interval gates only this strike, so a removed strike leaves it ready.
+  if (!strike) return;
   state.traitProcReadyAt.impossibleOdds = canonicalTime(task.at + Number(impossible.triggerIntervalMs || 0) / 1000);
   emitSkillDamage(context, {
     cause,

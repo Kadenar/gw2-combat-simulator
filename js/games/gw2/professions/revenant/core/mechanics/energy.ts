@@ -1,3 +1,7 @@
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { resourceValueAt, resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -32,9 +36,7 @@ function roundedResourceValue(value: number): number {
 }
 
 function resourceProfile(context: RevenantSchedulerContext) {
-  const profile = context.catalog?.balanceProfilesById.get(REVENANT_CORE_BALANCE_PROFILE_IDS.resources);
-  if (!profile) throw new Error('Missing Revenant resource balance profile.');
-  return profile;
+  return requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.resources);
 }
 
 function syncRevenantCombatState(context: RevenantSchedulerContext, state: RevenantCoreState): void {
@@ -61,16 +63,16 @@ export function revenantEnduranceRegenerationRate(
 ): number {
   const profile = resourceProfile(context);
   const enduringRecovery = hasTrait(context, TRAIT.ENDURING_RECOVERY)
-    ? Number(
-        context.catalog?.balanceProfilesById.get(REVENANT_CORE_BALANCE_PROFILE_IDS.enduringRecovery)
-          ?.enduranceRegenerationMultiplier ?? 1
+    ? balanceProfileNumber(
+        requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.enduringRecovery),
+        'enduranceRegenerationMultiplier'
       ) - 1
     : 0;
   // PvE regeneration bonuses add together; Vindicator shares the 25% trait bonus and the ten-per-second cap.
   return Math.min(
     10,
-    Number(profile.enduranceRegenerationPerSecond || 0) *
-      ((vigorActive ? Number(profile.vigorRegenerationMultiplier ?? 1) : 1) + enduringRecovery)
+    balanceProfileNumber(profile, 'enduranceRegenerationPerSecond') *
+      ((vigorActive ? balanceProfileNumber(profile, 'vigorRegenerationMultiplier') : 1) + enduringRecovery)
   );
 }
 
@@ -95,7 +97,7 @@ export function revenantEnduranceReadyAt(context: RevenantPrecastContext, cost: 
 /** Keeps regeneration-funded casts on the absolute 40 ms grid without rounding the stored Energy. */
 export function revenantEnergyReadyAt(context: RevenantPrecastContext, cost: number): number | null {
   const state = professionCoreState(context);
-  const regeneration = Number(resourceProfile(context).energyRegenerationPerSecond || 0);
+  const regeneration = balanceProfileNumber(resourceProfile(context), 'energyRegenerationPerSecond');
   const rate = regeneration - activeUpkeepCost(state, context.start);
   const accrual = state.energyAccrual;
   const enough = state.energy + EPSILON >= cost;
@@ -165,8 +167,7 @@ function advanceRevenantEnergyInterval(
  * Advances Energy, endurance, upkeep drain, and starvation.
  */
 export function advanceRevenantEnergy(context: RevenantSchedulerContext, target: number): void {
-  const resource = resourceProfile(context);
-  const regeneration = Number(resource.energyRegenerationPerSecond || 0);
+  const regeneration = balanceProfileNumber(resourceProfile(context), 'energyRegenerationPerSecond');
   const state = professionCoreState(context);
   syncRevenantCombatState(context, state);
   const from = Number(state.energyUpdatedAt || 0);

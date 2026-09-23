@@ -1,6 +1,10 @@
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
@@ -28,14 +32,18 @@ export function gainConduitAffinity(context: RevenantMechanicContext, amount: nu
   if (context.config.specialization !== 'Conduit' || !revenantCombatActive(context)) return;
   const state = conduitState.from(context);
   const coreState = professionCoreState(context);
-  const affinityProfile = balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.affinity);
-  const maximum = Math.max(1, Number(affinityProfile?.maximumStacks ?? 1));
+  const affinityProfile = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.affinity);
+  const maximum = Math.max(1, balanceProfileNumber(affinityProfile, 'maximumStacks'));
   state.affinityMaximum = maximum;
   const previous = Number(state.affinity || 0);
   state.affinity = grantCapped(previous, amount, maximum);
   if (previous < maximum && state.affinity === maximum && hasTrait(context, TRAIT.EXPANDED_CONSCIOUSNESS)) {
-    const expanded = balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.expandedConsciousness);
-    coreState.energy = grantCapped(coreState.energy, Number(expanded?.resourceGain || 0), coreState.maximumEnergy);
+    const expanded = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.expandedConsciousness);
+    coreState.energy = grantCapped(
+      coreState.energy,
+      balanceProfileNumber(expanded, 'resourceGain'),
+      coreState.maximumEnergy
+    );
   }
 
   if (state.affinity !== previous) {
@@ -52,23 +60,29 @@ export function syncConduitEnergyCostOverrides(context: RevenantSchedulerContext
   }
 
   state.energyCostOverrides = {
-    [ID.EMPOWERING_MISERY]: Number(
-      balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerEmpoweringMisery)?.energyCost || 0
+    [ID.EMPOWERING_MISERY]: balanceProfileNumber(
+      requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerEmpoweringMisery),
+      'energyCost'
     ),
-    [ID.PAIN_ABSORPTION]: Number(
-      balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerPainAbsorption)?.energyCost || 0
+    [ID.PAIN_ABSORPTION]: balanceProfileNumber(
+      requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerPainAbsorption),
+      'energyCost'
     ),
-    [ID.BANISH_ENCHANTMENT]: Number(
-      balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerBanishEnchantment)?.energyCost || 0
+    [ID.BANISH_ENCHANTMENT]: balanceProfileNumber(
+      requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerBanishEnchantment),
+      'energyCost'
     ),
-    [ID.CALL_TO_ANGUISH]: Number(
-      balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerCallToAnguish)?.energyCost || 0
+    [ID.CALL_TO_ANGUISH]: balanceProfileNumber(
+      requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerCallToAnguish),
+      'energyCost'
     ),
-    [ID.UNYIELDING_IMPACT]: Number(
-      balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerUnyieldingImpact)?.energyCost || 0
+    [ID.UNYIELDING_IMPACT]: balanceProfileNumber(
+      requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerUnyieldingImpact),
+      'energyCost'
     ),
-    [ID.EMBRACE_THE_DARKNESS]: Number(
-      balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerEmbraceTheDarkness)?.energyCost || 0
+    [ID.EMBRACE_THE_DARKNESS]: balanceProfileNumber(
+      requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mesmerEmbraceTheDarkness),
+      'energyCost'
     )
   };
 }
@@ -107,10 +121,11 @@ export function emitNuminousGift(
   options: { readonly allies?: boolean } = {}
 ): void {
   if (context.config.specialization !== 'Conduit') return;
-  const profile = balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.numinousGift);
+  const profile = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.numinousGift);
   const audience = { recipients: options.allies ? ('party' as const) : ('self' as const) };
   const selectedLegends = professionCoreState(context).selectedLegendIds;
-  for (const effect of profile?.effects || []) {
+  // Every surviving boon is emitted by iteration, so removing one legend's boon leaves the others intact.
+  for (const effect of profile.effects ?? []) {
     if (effect.type !== 'boon' || !effect.boon) continue;
     const legendId = String(effect.metadata?.legendId || '');
     if (legendId && !selectedLegends.includes(legendId)) continue;
@@ -118,8 +133,8 @@ export function emitNuminousGift(
       at: context.effectiveEnd ?? context.state.time,
       name: `${skill.name} — ${effect.boon}`,
       kind: effect.boon,
-      duration: Number(effect.duration || 0),
-      stacks: Number(effect.stacks ?? 1),
+      duration: effectNumber(profile, effect, 'duration'),
+      stacks: effectNumber(profile, effect, 'stacks'),
       audience
     });
   }

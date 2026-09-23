@@ -1,14 +1,9 @@
 import { emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { conduitState, revenantConduitFormIsActive } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
-
-function strikeCoefficient(effect: SkillEffect | undefined): number {
-  return effect?.type === 'strike' ? strikeEffectCoefficient(effect) : 0;
-}
 
 /** Emits Form of the Dervish's normal or elite triggered attack. */
 export function emitDervishFormAttack(
@@ -24,9 +19,15 @@ export function emitDervishFormAttack(
   )
     return;
   const skillId = elite ? ID.FORM_OF_THE_DERVISH_ATTACK_ELITE : ID.FORM_OF_THE_DERVISH_ATTACK;
-  const attack =
-    context.catalog.skillsById.get(skillId) ||
-    ({ id: skillId, name: 'Form of the Dervish', type: 'Profession' } as RevenantSkill);
+  const attack = context.catalog.skillsById.get(skillId);
+  if (!attack) throw new Error(`Missing Form of the Dervish attack skill ${skillId}.`);
+  const strike = requireEffect(
+    attack,
+    'strike',
+    elite ? 'Form of the Dervish (Attack - Elite)' : 'Form of the Dervish (Attack)'
+  );
+  // A removed scythe strike leaves no attack to emit.
+  if (!strike) return;
   emitSkillDamage(context, attack, {
     // Defense triggers its scythe with the instant stunbreak; other Entity skills trigger on completion.
     at: skill.handlerId === 'revenant.gladiators-defense' ? context.start : context.effectiveEnd,
@@ -35,7 +36,7 @@ export function emitDervishFormAttack(
     ownerActorType: 'player',
     skillName: 'Form of the Dervish',
     name: elite ? 'Form of the Dervish (Attack - Elite)' : 'Form of the Dervish (Attack)',
-    coefficient: strikeCoefficient(balanceProfileEffect(attack, 'strike')),
+    coefficient: strikeEffectCoefficient(strike),
     skillWeapon: 'Unequipped',
     canCrit: null,
     triggeredBy: skill.name,
@@ -51,7 +52,9 @@ export function emitLesserEnchantedDaggers(
 ): void {
   if (!revenantConduitFormIsActive(conduitState.from(context), 'Assassin', at)) return;
   const skill = context.catalog.skillsById.get(ID.LESSER_ENCHANTED_DAGGERS);
-  if (!skill) return;
+  if (!skill) throw new Error('Missing Lesser Enchanted Daggers skill declaration.');
+  const strike = requireEffect(skill, 'strike', 'Lesser Enchanted Daggers');
+  if (!strike) return;
   emitSkillDamage(context, skill, {
     at,
     source: 'revenant',
@@ -59,7 +62,7 @@ export function emitLesserEnchantedDaggers(
     actorType: 'effect',
     ownerActorType: 'player',
     name: 'Lesser Enchanted Daggers',
-    coefficient: strikeCoefficient(balanceProfileEffect(skill, 'strike')),
+    coefficient: strikeEffectCoefficient(strike),
     skillWeapon: 'Unequipped',
     canCrit: null,
     triggeredBy: sourceSkill.name,

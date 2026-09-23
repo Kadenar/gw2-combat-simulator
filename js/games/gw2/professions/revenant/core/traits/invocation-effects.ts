@@ -1,3 +1,4 @@
+import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 /** Materializes shared legend-invocation profiles for Core and elite trait callers. */
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
@@ -54,8 +55,7 @@ export function emitLegendInvocationProfile(
   sourceId: SkillId,
   effectPredicate: (effect: SkillEffect) => boolean = () => true
 ): void {
-  const profile = context.catalog.balanceProfilesById.get(profileId);
-  if (!profile) return;
+  const profile = requireBalanceProfileFromContext(context, profileId);
   const activationId = context.createActivationId('legend-invocation');
   const materializerProfile = profile as BalanceProfile & Skill;
   for (const effect of profile.effects || []) {

@@ -333,6 +333,7 @@ export const RENEGADE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 0,
     effects: [
       {
+        name: 'Bleeding',
         type: 'condition',
         condition: 'Bleeding',
         stacks: 1,

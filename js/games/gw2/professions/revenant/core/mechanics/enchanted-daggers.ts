@@ -3,7 +3,7 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { requireRevenantEffect as effectByType } from '#gw2/professions/revenant/core/traits/profile-access.js';
+import { requireEffect, effectNumber } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
@@ -13,10 +13,11 @@ import type { RevenantCastContext, RevenantSkill, RevenantSchedulerContext } fro
 export function activateEnchantedDaggers(context: RevenantCastContext, skill: RevenantSkill): void {
   // An aborted activation must not arm charges for later attacks.
   if (context.action.cancelled) return;
-  const buff = skill.effects?.find((effect) => effect.type === 'buff' && effect.kind === 'enchanted-daggers');
-  if (!buff) throw new Error('Enchanted Daggers is missing its buff effect.');
-  const charges = Math.max(0, Number(buff.stacks || 0));
-  const duration = Math.max(0, Number(buff.duration || 0));
+  const buff = requireEffect(skill, 'buff', 'enchanted-daggers');
+  // Charges are the buff's stacks, so a removed buff arms nothing.
+  if (!buff) return;
+  const charges = Math.max(0, effectNumber(skill, buff, 'stacks'));
+  const duration = Math.max(0, effectNumber(skill, buff, 'duration'));
   const at = context.effectiveEnd;
   professionCoreState(context).enchantedDaggers = {
     ...grantCharges(charges, at + duration),
@@ -47,8 +48,11 @@ export function triggerEnchantedDaggers(context: RevenantSchedulerContext, event
   ) {
     const enchantedDaggers = context.catalog.skillsById.get(ID.ENCHANTED_DAGGERS);
     if (!enchantedDaggers) throw new Error('Missing Enchanted Daggers skill declaration.');
-    const strike = effectByType(enchantedDaggers, 'strike');
-    const buff = effectByType(enchantedDaggers, 'buff');
+    const strike = requireEffect(enchantedDaggers, 'strike', 'Enchanted Daggers — Siphon Damage');
+    const buff = requireEffect(enchantedDaggers, 'buff', 'enchanted-daggers');
+    // Charges exist only to deliver the siphon, so a removed strike leaves them unspent.
+    if (!strike || !buff) return;
+    const totalHits = effectNumber(enchantedDaggers, buff, 'stacks');
     const delay = Number(strike.atMs || 0) / 1000;
     if (!consumeCharge(daggers, event.at, delay)) return;
     // Preserve strict same-timestamp gating even when a patched strike has no delay.
@@ -64,12 +68,12 @@ export function triggerEnchantedDaggers(context: RevenantSchedulerContext, event
       skillName: 'Enchanted Daggers',
       name: 'Enchanted Daggers — Siphon Damage',
       coefficient: 0,
-      flatStrikeBase: Number(strike.flatStrikeBase || 0),
-      flatStrikePowerCoeff: Number(strike.flatStrikePowerCoeff || 0),
+      flatStrikeBase: effectNumber(enchantedDaggers, strike, 'flatStrikeBase'),
+      flatStrikePowerCoeff: effectNumber(enchantedDaggers, strike, 'flatStrikePowerCoeff'),
       noCrit: true,
       hits: 1,
-      hitIndex: Number(buff.stacks || 0) - daggers.charges,
-      totalHits: Number(buff.stacks || 0)
+      hitIndex: totalHits - daggers.charges,
+      totalHits
     });
   }
 }

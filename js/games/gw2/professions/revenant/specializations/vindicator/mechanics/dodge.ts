@@ -12,7 +12,12 @@ import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-stat
  */
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { balanceProfileFromContext as balanceProfileById } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import {
@@ -40,20 +45,21 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
   const state = vindicatorState.from(context);
   const coreState = professionCoreState(context);
   const at = context.effectiveEnd;
-  const songOfArboreum = hasTrait(context.config, TRAIT.SONG_OF_ARBOREUM);
-  const enduranceProfile = songOfArboreum
-    ? balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.songOfArboreum)
-    : skill;
+  const songOfArboreum = hasTrait(context.config, TRAIT.SONG_OF_ARBOREUM)
+    ? requireBalanceProfileFromContext(context, VINDICATOR_BALANCE_PROFILE_IDS.songOfArboreum)
+    : undefined;
   // Song of Arboreum is mutually exclusive with the base endurance amount.
-  Object.assign(
-    coreState,
-    grantEndurance(coreState, Number(enduranceProfile?.resourceGain), at, coreState.maximumEndurance)
-  );
+  const enduranceGain = songOfArboreum
+    ? balanceProfileNumber(songOfArboreum, 'resourceGain')
+    : Number(skill.resourceGain);
+  Object.assign(coreState, grantEndurance(coreState, enduranceGain, at, coreState.maximumEndurance));
   if (hasTrait(context.config, TRAIT.REAVERS_CURSE)) {
-    const reaversCurse = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse);
-    const effect = reaversCurse?.effects?.find((candidate) => candidate.type === 'buff');
-    // Casting Energy Meld arms Reaver's Curse; the next dodge will consume and zero this timestamp.
-    state.reaversCurseUntil = gw2EffectExpiresAt(at, Math.max(0, Number(effect?.duration)));
+    const reaversCurse = requireBalanceProfileFromContext(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse);
+    const effect = requireEffect(reaversCurse, 'buff', 'reavers-curse');
+    // Casting Energy Meld arms Reaver's Curse; the next dodge will consume and zero this timestamp. The armed window
+    // is the buff, so a removed buff arms nothing.
+    if (effect)
+      state.reaversCurseUntil = gw2EffectExpiresAt(at, Math.max(0, effectNumber(reaversCurse, effect, 'duration')));
   }
 
   if (
@@ -61,26 +67,24 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
     // Angsiyah's Trust energy is gated by combat; pre-combat Energy Meld does not refund energy.
     revenantCombatActive(context, at)
   ) {
-    const angsiyansTrust = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.angsiyansTrust);
+    const angsiyansTrust = requireBalanceProfileFromContext(context, VINDICATOR_BALANCE_PROFILE_IDS.angsiyansTrust);
     coreState.energy = Math.min(
       coreState.maximumEnergy,
-      coreState.energy + Math.max(0, Number(angsiyansTrust?.resourceGain))
+      coreState.energy + Math.max(0, balanceProfileNumber(angsiyansTrust, 'resourceGain'))
     );
   }
 
-  if (songOfArboreum) {
-    const vigor = enduranceProfile?.effects?.find((candidate) => candidate.type === 'boon');
-    if (vigor) {
-      const kind = String(vigor.boon || 'vigor');
-      emitSkillBuff(context, skill, {
-        at,
-        sourceId: TRAIT.SONG_OF_ARBOREUM,
-        name: `${skill.name} — ${kind}`,
-        kind,
-        duration: Number(vigor.duration || 0),
-        stacks: Number(vigor.stacks ?? 1)
-      });
-    }
+  const vigor = songOfArboreum && requireEffect(songOfArboreum, 'boon', 'vigor');
+  if (songOfArboreum && vigor) {
+    const kind = String(vigor.boon);
+    emitSkillBuff(context, skill, {
+      at,
+      sourceId: TRAIT.SONG_OF_ARBOREUM,
+      name: `${skill.name} — ${kind}`,
+      kind,
+      duration: effectNumber(songOfArboreum, vigor, 'duration'),
+      stacks: effectNumber(songOfArboreum, vigor, 'stacks')
+    });
   }
 
   // State snapshot carries endurance value to the resolver; must come after all mutations above.
@@ -107,7 +111,6 @@ export function completeVindicatorDodge(
   if (reaversCurse) state.reaversCurseUntil = 0;
   // Strike scaling and Forerunner ordering stay local; support landings continue to their boon package.
   if (effect.type === 'strike' && strikeEffectCoefficient(effect) > 0) {
-    const reaversCurseProfile = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse);
     // Capture forerunner state before the Death Drop below may extend it for this same hit.
     const previousForerunnerUntil = Number(state.forerunnerOfDeathUntil || 0);
     emitSkillDamage(context, {
@@ -120,7 +123,15 @@ export function completeVindicatorDodge(
       name: profile.name,
       coefficient:
         strikeEffectCoefficient(effect) *
-        (reaversCurse ? Math.max(0, Number(reaversCurseProfile?.damageMultiplier ?? 1)) : 1),
+        (reaversCurse
+          ? Math.max(
+              0,
+              balanceProfileNumber(
+                requireBalanceProfileFromContext(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse),
+                'damageMultiplier'
+              )
+            )
+          : 1),
       hits: strikeEffectTicks(effect).length,
       hitIndex: 1,
       totalHits: 1,
@@ -129,23 +140,25 @@ export function completeVindicatorDodge(
       forerunnerOfDeathActive: previousForerunnerUntil > at
     });
     if (profile.id === ID.DEATH_DROP && hasTrait(context.config, TRAIT.FORERUNNER_OF_DEATH)) {
-      const forerunner = balanceProfileById(context, VINDICATOR_BALANCE_PROFILE_IDS.forerunnerOfDeath);
-      const forerunnerEffect = forerunner?.effects?.find((candidate) => candidate.type === 'buff');
-      const duration = Math.max(0, Number(forerunnerEffect?.duration));
+      const forerunner = requireBalanceProfileFromContext(context, VINDICATOR_BALANCE_PROFILE_IDS.forerunnerOfDeath);
+      const forerunnerEffect = requireEffect(forerunner, 'buff', 'forerunner-of-death');
+      // The damage window is the buff, so a removed buff opens no window.
+      const duration = forerunnerEffect ? Math.max(0, effectNumber(forerunner, forerunnerEffect, 'duration')) : 0;
       // Forerunner window is set after the damage event is emitted; the current hit benefits from the old window.
-      state.forerunnerOfDeathUntil = at + duration;
-      emitSkillBuff(context, {
-        at,
-        source: 'revenant',
-        sourceId: TRAIT.FORERUNNER_OF_DEATH,
-        actorType: 'player',
-        skillId: TRAIT.FORERUNNER_OF_DEATH,
-        skillName: 'Forerunner of Death',
-        name: 'Forerunner of Death',
-        kind: String(forerunnerEffect?.kind || 'forerunner-of-death'),
-        duration,
-        stacks: Number(forerunnerEffect?.stacks ?? 1)
-      });
+      if (forerunnerEffect) state.forerunnerOfDeathUntil = at + duration;
+      if (forerunnerEffect)
+        emitSkillBuff(context, {
+          at,
+          source: 'revenant',
+          sourceId: TRAIT.FORERUNNER_OF_DEATH,
+          actorType: 'player',
+          skillId: TRAIT.FORERUNNER_OF_DEATH,
+          skillName: 'Forerunner of Death',
+          name: 'Forerunner of Death',
+          kind: String(forerunnerEffect.kind),
+          duration,
+          stacks: effectNumber(forerunner, forerunnerEffect, 'stacks')
+        });
     }
   }
 

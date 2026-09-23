@@ -28,7 +28,16 @@ export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     name: 'Facet of Nature — Assassin',
     profileKind: 'mechanic',
     cooldown: 0.52,
-    effects: [{ type: 'strike', coefficient: 0, flatStrikeBase: 53, flatStrikePowerCoeff: 0.0666, actorType: 'effect' }]
+    effects: [
+      {
+        name: 'Life Siphon',
+        type: 'strike',
+        coefficient: 0,
+        flatStrikeBase: 53,
+        flatStrikePowerCoeff: 0.0666,
+        actorType: 'effect'
+      }
+    ]
   },
   {
     id: HERALD_SHARED_EMPOWERMENT_PROFILE_ID,
@@ -38,6 +47,7 @@ export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     cooldown: 1,
     effects: [
       {
+        name: 'might',
         type: 'boon',
         boon: 'might',
         duration: 8,
@@ -57,6 +67,7 @@ export const HERALD_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     threshold: 6,
     effects: [
       {
+        name: 'quickness',
         type: 'boon',
         boon: 'quickness',
         duration: 1.25,

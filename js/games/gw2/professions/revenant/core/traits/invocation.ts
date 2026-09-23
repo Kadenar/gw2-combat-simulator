@@ -6,9 +6,10 @@ import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import {
-  requireRevenantBalanceProfile,
-  requireRevenantEffect
-} from '#gw2/professions/revenant/core/traits/profile-access.js';
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import {
   emitLegendInvocationProfile,
@@ -30,14 +31,15 @@ export function applyIncensedResponse(context: RevenantSchedulerContext, event: 
     !gw2BoonApplicationRecipients(context.config, event).includesSelf
   )
     return;
-  const profile = requireRevenantBalanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.incensedResponse);
-  const effect = requireRevenantEffect(profile, 'boon');
+  const profile = requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.incensedResponse);
+  const effect = requireEffect(profile, 'boon', 'might');
+  if (!effect) return;
   emitSkillBuff(context, profile as RevenantSkill, {
     cause: event,
     at: event.at,
     kind: String(effect.boon),
-    duration: Number(effect.duration),
-    stacks: Number(effect.stacks)
+    duration: effectNumber(profile, effect, 'duration'),
+    stacks: effectNumber(profile, effect, 'stacks')
   });
 }
 

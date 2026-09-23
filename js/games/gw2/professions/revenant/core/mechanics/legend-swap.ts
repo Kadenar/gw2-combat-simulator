@@ -1,3 +1,7 @@
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { clearRevenantLegendFlips } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
@@ -26,11 +30,12 @@ export function swapRevenantLegend(context: RevenantCastContext, skill: Revenant
   state.activeLegendId = other || state.activeLegendId;
   state.activeLoadoutId = state.activeLegendId;
   state.legendSwapReadyAt = at + Math.max(0, Number(context.rechargeDuration ?? 10));
-  const chargedMists = context.catalog.balanceProfilesById.get(REVENANT_CORE_BALANCE_PROFILE_IDS.chargedMists);
-  if (!chargedMists) throw new Error('Missing Charged Mists balance profile.');
+  const chargedMists = hasTrait(context.config, TRAIT.CHARGED_MISTS)
+    ? requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.chargedMists)
+    : undefined;
   state.energy =
-    Math.floor(previousEnergy) <= Number(chargedMists.threshold || 0) && hasTrait(context.config, TRAIT.CHARGED_MISTS)
-      ? Number(chargedMists.resourceGain || 0)
+    chargedMists && Math.floor(previousEnergy) <= balanceProfileNumber(chargedMists, 'threshold')
+      ? balanceProfileNumber(chargedMists, 'resourceGain')
       : Number(skill.resourceGain || 0);
   state.energyUpdatedAt = at;
   clearRevenantLegendFlips(context);

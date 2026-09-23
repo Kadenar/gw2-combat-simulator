@@ -85,7 +85,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     id: REVENANT_CORE_BALANCE_PROFILE_IDS.incensedResponse,
     name: 'Incensed Response',
     profileKind: 'trait',
-    effects: [{ type: 'boon', boon: 'might', duration: 8, stacks: 5 }]
+    effects: [{ name: 'might', type: 'boon', boon: 'might', duration: 8, stacks: 5 }]
   },
   {
     id: REVENANT_CORE_BALANCE_PROFILE_IDS.enduringRecovery,
@@ -120,6 +120,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     maximumStacks: 25,
     effects: [
       {
+        name: 'battle-scars',
         type: 'buff',
         kind: 'battle-scars',
         duration: 10,
@@ -145,6 +146,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     skillFamily: 'Trait',
     effects: [
       {
+        name: 'battle-scars',
         type: 'buff',
         kind: 'battle-scars',
         duration: 10,
@@ -162,6 +164,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     cooldown: 1,
     effects: [
       {
+        name: 'battle-scars',
         type: 'buff',
         kind: 'battle-scars',
         duration: 10,
@@ -178,6 +181,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     skillFamily: 'Trait',
     effects: [
       {
+        name: 'Torment',
         type: 'condition',
         condition: 'Torment',
         stacks: 1,
@@ -195,6 +199,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     cooldown: 10,
     effects: [
       {
+        name: 'fury',
         type: 'boon',
         boon: 'fury',
         duration: 3,
@@ -212,6 +217,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     cooldown: 9,
     effects: [
       {
+        name: 'quickness',
         type: 'boon',
         boon: 'quickness',
         duration: 3,
@@ -228,6 +234,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     skillFamily: 'Trait',
     effects: [
       {
+        name: 'Weakness',
         type: 'condition',
         condition: 'Weakness',
         stacks: 1,
@@ -244,6 +251,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     skillFamily: 'Trait',
     effects: [
       {
+        name: 'Vulnerability',
         type: 'condition',
         condition: 'Vulnerability',
         stacks: 5,
@@ -261,6 +269,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     cooldown: 1,
     effects: [
       {
+        name: 'might',
         type: 'boon',
         boon: 'might',
         duration: 10,
@@ -278,6 +287,7 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     skillFamily: 'Trait',
     effects: [
       {
+        name: 'might',
         type: 'boon',
         boon: 'might',
         duration: 10,

@@ -25,6 +25,7 @@ import {
 import { activateEnchantedDaggers } from '#gw2/professions/revenant/core/mechanics/enchanted-daggers.js';
 import { completeBandTogether } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   revenantEnduranceRegenerationRate,
   revenantEnduranceReadyAt,
@@ -221,18 +222,23 @@ for (const [name, skillId, cooldown] of [
   });
 }
 
-test('Razorclaw validates its proc profile before spending a charge', () => {
+test('Razorclaw rejects a missing proc and keeps charges when its bleed is removed', () => {
+  // A missing declaration is invalid content, while an explicit removal leaves the charge for no packet to spend.
   const context = contextFor();
   const grant = { charges: 2, expiresAt: 10, readyAt: 0 };
   context.state.profession.specialization.state.razorclawsRage = grant;
   context.eventByOrder = () => ({ at: 1, eventOrder: 7 });
+  const run = () => razorclawReaction.taskHandlers['revenant.razorclaw-proc'](context, { payload: { eventOrder: 7 } });
   context.catalog = { ...revenantCatalog, skillsById: new Map(revenantCatalog.skillsById) };
-  for (const profile of [undefined, { effects: [] }]) {
-    context.catalog.skillsById.set(RENEGADE_PROFILE_IDS.razorclawsRageProc, profile);
-    razorclawReaction.taskHandlers['revenant.razorclaw-proc'](context, { payload: { eventOrder: 7 } });
-    assert.deepEqual(grant, { charges: 2, expiresAt: 10, readyAt: 0 });
-    assert.deepEqual(context.events, []);
-  }
+  context.catalog.skillsById.delete(RENEGADE_PROFILE_IDS.razorclawsRageProc);
+  assert.throws(run, /Missing Razorclaw's Rage proc declaration/);
+
+  context.catalog = applySkillPatch(revenantCatalog, {
+    skills: { [RENEGADE_PROFILE_IDS.razorclawsRageProc]: { removeEffects: [{ type: 'condition', name: 'Bleeding' }] } }
+  });
+  run();
+  assert.deepEqual(grant, { charges: 2, expiresAt: 10, readyAt: 0 });
+  assert.deepEqual(context.events, []);
 });
 
 test('Battle Scars rejects overflow and consumes newest before longest-lived', () => {

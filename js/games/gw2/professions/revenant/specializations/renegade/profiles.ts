@@ -44,7 +44,7 @@ export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     name: 'Brutal Momentum',
     profileKind: 'trait',
     cooldown: 8,
-    effects: [{ type: 'boon', boon: 'vigor', duration: 6, stacks: 1 }]
+    effects: [{ name: 'vigor', type: 'boon', boon: 'vigor', duration: 6, stacks: 1 }]
   }),
   renegadeBalanceProfile({
     id: RENEGADE_PROFILE_IDS.spiritBoon,
@@ -70,6 +70,7 @@ export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     description: 'After using a Legendary Renegade skill, the next one is instant and enhanced.',
     effects: [
       {
+        name: 'band-together',
         type: 'buff',
         kind: 'band-together',
         duration: 4,
@@ -85,6 +86,7 @@ export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     lifeSiphonDamagePerStack: 0.02,
     effects: [
       {
+        name: 'kallas-fervor',
         type: 'buff',
         kind: 'kallas-fervor',
         duration: 8,
@@ -102,6 +104,7 @@ export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     lifeSiphonDamagePerStack: 0.03,
     effects: [
       {
+        name: 'kallas-fervor',
         type: 'buff',
         kind: 'kallas-fervor',
         duration: 12,
@@ -117,6 +120,7 @@ export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     variantBadge: 'Lasting Legacy',
     effects: [
       {
+        name: 'might',
         type: 'boon',
         boon: 'might',
         duration: 8,
@@ -183,6 +187,7 @@ export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     cooldown: 8,
     effects: [
       {
+        name: 'fury',
         type: 'boon',
         boon: 'fury',
         duration: 4,
@@ -221,6 +226,7 @@ export const RENEGADE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     skillFamily: 'Trait',
     effects: [
       {
+        name: 'daze',
         type: 'control',
         actorType: 'player',
         controlKind: 'daze'

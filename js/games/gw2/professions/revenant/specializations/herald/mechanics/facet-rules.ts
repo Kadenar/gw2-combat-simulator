@@ -1,3 +1,9 @@
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
@@ -136,15 +142,16 @@ export const sharedEmpowermentReaction = eventReaction<RevenantSchedulerContext,
   },
   execute(context, cause, at) {
     if (!isInternalCooldownReady(at, heraldState.from(context).sharedEmpowermentReadyAt)) return;
-    const profile = context.catalog.balanceProfilesById.get(HERALD_SHARED_EMPOWERMENT_PROFILE_ID);
-    const effect = profile?.effects?.find((candidate) => candidate.type === 'boon');
-    if (!profile || !effect) throw new Error('Missing Shared Empowerment balance profile.');
+    const profile = requireBalanceProfileFromContext(context, HERALD_SHARED_EMPOWERMENT_PROFILE_ID);
+    const effect = requireEffect(profile, 'boon', 'might');
+    // The cooldown gates only might, so a removed boon leaves it ready.
+    if (!effect) return;
 
     const skill = { id: TRAIT.SHARED_EMPOWERMENT, name: 'Shared Empowerment' } as RevenantSkill;
-    const baseDuration = Math.max(0, Number(effect.duration || 0));
-    const duration = gw2SchedulerBoonDuration(context, skill, String(effect.boon || 'might'), baseDuration);
+    const baseDuration = Math.max(0, effectNumber(profile, effect, 'duration'));
+    const duration = gw2SchedulerBoonDuration(context, skill, String(effect.boon), baseDuration);
     // Reserve the ICD before emitting Might so the derived boon cannot recursively trigger the trait.
-    heraldState.from(context).sharedEmpowermentReadyAt = at + Math.max(0, Number(profile.cooldown || 0));
+    heraldState.from(context).sharedEmpowermentReadyAt = at + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
     emitSkillBuff(context, {
       cause: cause,
 
@@ -155,9 +162,9 @@ export const sharedEmpowermentReaction = eventReaction<RevenantSchedulerContext,
       skillId: TRAIT.SHARED_EMPOWERMENT,
       skillName: 'Shared Empowerment',
       name: 'Shared Empowerment — might',
-      kind: String(effect.boon || 'might'),
+      kind: String(effect.boon),
       duration,
-      stacks: Math.max(1, Number(effect.stacks ?? 1)),
+      stacks: Math.max(1, effectNumber(profile, effect, 'stacks')),
       audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
     });
   }

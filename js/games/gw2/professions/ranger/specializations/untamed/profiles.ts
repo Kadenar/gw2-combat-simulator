@@ -30,24 +30,24 @@ export const UNTAMED_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     parentId: ID.EXPLODING_SPORES,
     name: 'Exploding Spores - Ranger Unleashed',
     profileKind: 'skill-variant',
-    effects: [{ type: 'boon', boon: 'might', duration: 10, stacks: 8 }]
+    effects: [{ name: 'might', type: 'boon', boon: 'might', duration: 10, stacks: 8 }]
   },
   {
     id: UNTAMED_BALANCE_PROFILE_IDS.explodingSporesPet,
     parentId: ID.EXPLODING_SPORES,
     name: 'Exploding Spores - Pet Unleashed',
     profileKind: 'skill-variant',
-    effects: [{ type: 'boon', boon: 'protection', duration: 4, stacks: 1 }]
+    effects: [{ name: 'protection', type: 'boon', boon: 'protection', duration: 4, stacks: 1 }]
   },
   trait(UNTAMED_BALANCE_PROFILE_IDS.letLoose, 'Let Loose', {
     internalCooldown: 9,
     effects: [
-      { type: 'boon', boon: 'quickness', duration: 5, stacks: 1 },
-      { type: 'boon', boon: 'might', duration: 10, stacks: 5 }
+      { name: 'quickness', type: 'boon', boon: 'quickness', duration: 5, stacks: 1 },
+      { name: 'might', type: 'boon', boon: 'might', duration: 10, stacks: 5 }
     ]
   }),
   trait(UNTAMED_BALANCE_PROFILE_IDS.blindingOutburst, 'Blinding Outburst', {
-    effects: [{ type: 'condition', condition: 'Blindness', duration: 2, stacks: 1 }]
+    effects: [{ name: 'Blindness', type: 'condition', condition: 'Blindness', duration: 2, stacks: 1 }]
   }),
   trait(UNTAMED_BALANCE_PROFILE_IDS.ferociousSymbiosis, 'Ferocious Symbiosis', {
     maximumStacks: 5,
@@ -57,15 +57,15 @@ export const UNTAMED_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
   trait(UNTAMED_BALANCE_PROFILE_IDS.debilitatingBlows, 'Debilitating Blows', {
     internalCooldown: 1,
     effects: [
-      { type: 'condition', condition: 'Poisoned', duration: 5, stacks: 2 },
-      { type: 'condition', condition: 'Slow', duration: 2, stacks: 2 }
+      { name: 'Poisoned', type: 'condition', condition: 'Poisoned', duration: 5, stacks: 2 },
+      { name: 'Slow', type: 'condition', condition: 'Slow', duration: 2, stacks: 2 }
     ]
   }),
   trait(UNTAMED_BALANCE_PROFILE_IDS.enhancingImpact, 'Enhancing Impact', {
     internalCooldown: 1,
     effects: [
-      { type: 'boon', boon: 'quickness', duration: 3, stacks: 1 },
-      { type: 'boon', boon: 'stability', duration: 3, stacks: 1 }
+      { name: 'quickness', type: 'boon', boon: 'quickness', duration: 3, stacks: 1 },
+      { name: 'stability', type: 'boon', boon: 'stability', duration: 3, stacks: 1 }
     ]
   })
 ]);

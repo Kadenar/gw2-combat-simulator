@@ -1,5 +1,8 @@
 /** Owns Beguiling Haze's cross-cast follow-up charges and main-cast recharge restoration. */
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
@@ -24,8 +27,11 @@ export function completeBeguilingHaze(context: RevenantCastContext, skill: Reven
   if (index >= 0) state.beguilingHazeMainReservations.splice(index, 1);
   if (context.action.cancelled) return;
   if (index >= 0) {
-    const followUpProfile = balanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
-    state.beguilingHazeCharges = Math.max(0, Number(followUpProfile?.maximumStacks || 0));
+    const followUpProfile = requireBalanceProfileFromContext(
+      context,
+      CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp
+    );
+    state.beguilingHazeCharges = Math.max(0, balanceProfileNumber(followUpProfile, 'maximumStacks'));
     state.beguilingHazeReadyAt = Number(
       context.state.cooldowns.get(skill.id) ?? context.state.ammo.get(skill.id)?.nextRechargeAt ?? context.effectiveEnd
     );

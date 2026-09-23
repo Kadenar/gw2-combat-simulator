@@ -41,6 +41,7 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     energyCost: 10,
     effects: [
       {
+        name: 'might',
         type: 'boon',
         boon: 'might',
         duration: 8,

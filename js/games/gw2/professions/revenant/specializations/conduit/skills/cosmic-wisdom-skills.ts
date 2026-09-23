@@ -46,6 +46,7 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Part
     energyCost: 0,
     effects: [
       {
+        name: 'cosmic-wisdom',
         type: 'buff',
         kind: 'cosmic-wisdom',
         duration: 7,

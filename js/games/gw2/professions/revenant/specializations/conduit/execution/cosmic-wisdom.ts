@@ -9,8 +9,9 @@ import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2
 import { REVENANT_CONDUIT_FORM_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
-  balanceProfileEffect as effectByType,
-  balanceProfileFromContext as balanceProfileById
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
@@ -18,10 +19,7 @@ import {
   emitNuminousGift,
   syncConduitEnergyCostOverrides
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
-import {
-  conduitFirstConditionTick as firstConditionTick,
-  conduitStrikeCoefficient as strikeCoefficient
-} from '#gw2/professions/revenant/specializations/conduit/execution/helpers.js';
+import { strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
 import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Starts Cosmic Wisdom and selects the current legend-derived form. */
@@ -32,37 +30,38 @@ export function activateCosmicWisdom(context: RevenantCastContext): void {
   // doubled Bolstered Bonds attributes become active.
   // It is emitted directly here rather than via observeConduitTraits because Cosmic Wisdom has no control event.
   if (hasTrait(context, TRAIT.MISTFIRE)) {
-    const profile = balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.mistfire);
-    const strike = effectByType(profile, 'strike');
-    const burning = effectByType(profile, 'condition');
-    const burningTick = firstConditionTick(burning, 'Burning');
+    const profile = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mistfire);
+    // The activation strike and Burning are independent packets; either survives the other's removal.
+    const strike = requireEffect(profile, 'strike', 'Mistfire');
+    const burning = requireEffect(profile, 'condition', 'Burning');
     const mistfireSkill = { id: TRAIT.MISTFIRE, name: 'Mistfire' } as RevenantSkill;
-    emitSkillDamage(context, mistfireSkill, {
-      at,
-      source: 'revenant',
-      actorType: 'effect',
-      ownerActorType: 'player',
-      name: 'Mistfire',
-      coefficient: strikeCoefficient(strike),
-      skillWeapon: 'Unequipped',
-      canCrit: null
-    });
-    emitSkillCondition(context, {
-      skill: mistfireSkill,
-      at,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      name: 'Mistfire — Burning',
-      condition: String(burningTick?.condition || 'Burning'),
-      stacks: Number(burningTick?.stacks ?? 1),
-      duration: Number(burningTick?.duration || 0)
-    });
+    if (strike)
+      emitSkillDamage(context, mistfireSkill, {
+        at,
+        source: 'revenant',
+        actorType: 'effect',
+        ownerActorType: 'player',
+        name: 'Mistfire',
+        coefficient: strikeEffectCoefficient(strike),
+        skillWeapon: 'Unequipped',
+        canCrit: null
+      });
+    if (burning)
+      emitSkillCondition(context, {
+        skill: mistfireSkill,
+        at,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        name: 'Mistfire — Burning',
+        condition: String(burning.condition),
+        stacks: effectNumber(profile, burning, 'stacks'),
+        duration: effectNumber(profile, burning, 'duration')
+      });
   }
 
-  const cosmicWisdom = (context.skill.effects || []).find(
-    (effect) => effect.type === 'buff' && effect.kind === 'cosmic-wisdom'
-  );
-  state.cosmicWisdomUntil = at + Number(cosmicWisdom?.duration || 0);
+  const cosmicWisdom = requireEffect(context.skill, 'buff', 'cosmic-wisdom');
+  // A removed window buff leaves Cosmic Wisdom's form and gift active for no duration.
+  state.cosmicWisdomUntil = at + (cosmicWisdom ? effectNumber(context.skill, cosmicWisdom, 'duration') : 0);
   // Select the mechanic form directly from legend identity, independent of display labels.
   state.conduitForm = REVENANT_CONDUIT_FORM_BY_LEGEND[professionCoreState(context).activeLegendId] || '';
   // Energy overrides must be applied immediately so the very next skill cast sees the correct cost.

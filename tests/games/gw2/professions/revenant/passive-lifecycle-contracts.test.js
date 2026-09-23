@@ -170,6 +170,7 @@ test('Draconic Echo bonuses apply to active and retained facets only while selec
   const state = createHeraldState();
   const context = {
     config: { ...base, selectedTraitIds: [TRAIT.DRACONIC_ECHO] },
+    catalog: revenantCatalog,
     time: 2,
     event: { actorType: 'player' },
     runtime: { profession: { core, specialization: { kind: 'Herald', state } } }

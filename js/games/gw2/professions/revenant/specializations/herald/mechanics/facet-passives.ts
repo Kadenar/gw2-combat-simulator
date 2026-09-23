@@ -3,8 +3,10 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import {
-  balanceProfileFromContext,
-  balanceProfileValueFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -62,7 +64,8 @@ export const heraldPassiveModifierRules: readonly Gw2ModifierRule[] = [
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: (context) =>
-      1 + balanceProfileValueFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID, 'damageBonus', 0.1),
+      1 +
+      balanceProfileNumber(requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID), 'damageBonus'),
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && draconicEchoActive(context, ID.FACET_OF_STRENGTH)
   },
   {
@@ -70,7 +73,8 @@ export const heraldPassiveModifierRules: readonly Gw2ModifierRule[] = [
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: 'multiply',
     factor: (context) =>
-      1 + balanceProfileValueFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID, 'damageBonus', 0.1),
+      1 +
+      balanceProfileNumber(requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID), 'damageBonus'),
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && draconicEchoActive(context, ID.FACET_OF_ELEMENTS)
   },
   {
@@ -78,7 +82,10 @@ export const heraldPassiveModifierRules: readonly Gw2ModifierRule[] = [
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: (context) =>
-      balanceProfileValueFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID, 'criticalChanceBonus', 0.1),
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
+        'criticalChanceBonus'
+      ),
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && draconicEchoActive(context, ID.FACET_OF_DARKNESS)
   }
 ];
@@ -98,7 +105,10 @@ export function modifyHeraldPassiveAttributes(context: Gw2ModifierContext, attri
     boonDurationBonus:
       Number(attributes.boonDurationBonus || 0) +
       (hasTrait(context, TRAIT.DRACONIC_ECHO)
-        ? balanceProfileValueFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID, 'boonDurationBonus', 10)
+        ? balanceProfileNumber(
+            requireBalanceProfileFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID),
+            'boonDurationBonus'
+          )
         : 0)
   };
 }
@@ -118,10 +128,11 @@ export function resolveNatureSiphon(context: RevenantResolverContext, event: Rev
     !isInternalCooldownReady(event.at, state.natureSiphonReadyAt)
   )
     return;
-  const profile = balanceProfileFromContext(context, HERALD_NATURE_ASSASSIN_PROFILE_ID);
-  const strike = profile?.effects?.find((effect) => effect.type === 'strike');
-  if (!profile || !strike) throw new Error('Missing Assassin Facet of Nature passive profile.');
-  state.natureSiphonReadyAt = event.at + Number(profile.cooldown);
+  const profile = requireBalanceProfileFromContext(context, HERALD_NATURE_ASSASSIN_PROFILE_ID);
+  const strike = requireEffect(profile, 'strike', 'Life Siphon');
+  // The cooldown gates only the siphon, so a removed strike leaves it ready.
+  if (!strike) return;
+  state.natureSiphonReadyAt = event.at + balanceProfileNumber(profile, 'cooldown');
   context.queue.enqueue(
     buildResolverStrike({
       at: event.at,
@@ -136,8 +147,8 @@ export function resolveNatureSiphon(context: RevenantResolverContext, event: Rev
 
       noCrit: true,
       lifeSiphon: true,
-      flatStrikeBase: Number(strike.flatStrikeBase),
-      flatStrikePowerCoeff: Number(strike.flatStrikePowerCoeff),
+      flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
+      flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
       skillWeapon: 'Unequipped',
       triggeredBy: event.skillName
     })

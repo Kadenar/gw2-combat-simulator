@@ -1,6 +1,8 @@
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import {
   requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
@@ -324,14 +326,18 @@ function observeConduitEvent(context: RevenantSchedulerContext, event: Simulatio
   state.affinity = 0;
   if (revenantCombatActive(context, event.at) && hasTrait(context.config, TRAIT.LINGERING_DETERMINATION)) {
     // Lingering Determination immediately restores 2 affinity after the reset; out-of-combat swaps do not proc it.
-    const lingering = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.lingeringDetermination);
-    gainConduitAffinity(context, Math.max(0, Number(lingering?.resourceGain || 0)), 'lingering-determination');
+    const lingering = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.lingeringDetermination);
+    gainConduitAffinity(
+      context,
+      Math.max(0, balanceProfileNumber(lingering, 'resourceGain')),
+      'lingering-determination'
+    );
   }
 
   if (cosmicWisdomActive && hasTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)) {
-    const enhanced = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment);
-    const extension = enhanced?.effects?.find((effect) => effect.type === 'buff');
-    state.cosmicWisdomUntil += Math.max(0, Number(extension?.duration || 0));
+    const enhanced = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment);
+    const extension = requireEffect(enhanced, 'buff', 'cosmic-wisdom-extension');
+    if (extension) state.cosmicWisdomUntil += Math.max(0, effectNumber(enhanced, extension, 'duration'));
   }
 
   if (cosmicWisdomActive) {

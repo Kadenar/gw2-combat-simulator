@@ -68,6 +68,7 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     rechargeMultiplier: 0.6,
     effects: [
       {
+        name: 'cosmic-wisdom-extension',
         type: 'buff',
         kind: 'cosmic-wisdom-extension',
         duration: 1,
@@ -88,6 +89,7 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     profileKind: 'trait',
     effects: [
       {
+        name: 'entity-skill',
         type: 'boon',
         boon: 'swiftness',
         duration: 5,
@@ -95,6 +97,7 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         metadata: { trigger: 'entity-skill' }
       },
       {
+        name: 'beguiling-haze',
         type: 'boon',
         boon: 'fury',
         duration: 5,
@@ -102,6 +105,7 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         metadata: { trigger: 'beguiling-haze' }
       },
       {
+        name: 'hex-eater-vortex',
         type: 'boon',
         boon: 'resolution',
         duration: 3,
@@ -109,6 +113,7 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         metadata: { trigger: 'hex-eater-vortex' }
       },
       {
+        name: 'gladiators-defense',
         type: 'boon',
         boon: 'stability',
         duration: 3,
@@ -116,6 +121,7 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         metadata: { trigger: 'gladiators-defense' }
       },
       {
+        name: 'twin-moon-sweep',
         type: 'boon',
         boon: 'might',
         duration: 10,
@@ -196,6 +202,7 @@ export const CONDUIT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         actorType: 'effect'
       },
       {
+        name: 'Burning',
         type: 'condition',
         condition: 'Burning',
         stacks: 1,

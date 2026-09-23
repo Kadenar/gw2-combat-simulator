@@ -33,6 +33,7 @@ export const VINDICATOR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     resourceGain: 40,
     effects: [
       {
+        name: 'vigor',
         type: 'boon',
         boon: 'vigor',
         duration: 9,
@@ -49,6 +50,7 @@ export const VINDICATOR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     damageMultiplier: 2,
     effects: [
       {
+        name: 'reavers-curse',
         type: 'buff',
         kind: 'reavers-curse',
         duration: 6,
@@ -73,6 +75,7 @@ export const VINDICATOR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     profileKind: 'trait',
     effects: [
       {
+        name: 'forerunner-of-death',
         type: 'buff',
         kind: 'forerunner-of-death',
         duration: 10,

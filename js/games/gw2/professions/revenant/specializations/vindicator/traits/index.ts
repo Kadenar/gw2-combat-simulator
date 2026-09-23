@@ -1,3 +1,7 @@
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedDodgeSkill } from '#gw2/professions/revenant/specializations/vindicator/mechanics/dodge.js';
@@ -12,10 +16,16 @@ export function modifyVindicatorCastDuration(context: RevenantPrecastContext, du
 }
 
 export function modifyVindicatorRechargeDuration(context: RevenantRechargeContext, duration: number): number {
-  const reaversCurse = context.catalog.balanceProfilesById.get(VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse);
   // Energy Meld has two skill IDs in the catalog (62757 and 72058) representing the same button in different weapon configurations; both must be matched or one variant silently skips the reduction.
   return ([ID.ENERGY_MELD, ID.ENERGY_MELD_ID_72058] as readonly number[]).includes(Number(context.skill?.id)) &&
     hasTrait(context.config, TRAIT.REAVERS_CURSE)
-    ? duration * Math.max(0, Number(reaversCurse?.rechargeMultiplier ?? 1))
+    ? duration *
+        Math.max(
+          0,
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse),
+            'rechargeMultiplier'
+          )
+        )
     : duration;
 }

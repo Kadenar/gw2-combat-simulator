@@ -534,6 +534,7 @@ test('Renegade mechanics use authorable skills and modifier parameters', () => {
   );
   assert.equal(bombardment.skill.effects[0].ticks.length, 10);
   assert.deepEqual(heroic.skill.effects[0], {
+    name: 'might',
     type: 'boon',
     boon: 'might',
     duration: 8,

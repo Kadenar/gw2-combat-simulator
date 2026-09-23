@@ -1,3 +1,9 @@
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import {
@@ -64,11 +70,12 @@ function applyCriticalTraits(context: RevenantSchedulerContext, event: Simulatio
     return;
   }
 
-  const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.endlessEnmity);
-  const effect = profile?.effects?.find((candidate) => candidate.type === 'boon');
-  if (!profile || !effect) return;
+  const profile = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.endlessEnmity);
+  const effect = requireEffect(profile, 'boon', 'fury');
+  // The cooldown gates only fury, so a removed boon leaves it ready.
+  if (!effect) return;
   const sourceSkill = { id: TRAIT.ENDLESS_ENMITY, name: 'Endless Enmity' } as RevenantSkill;
-  state.endlessEnmityReadyAt = event.at + Math.max(0, Number(profile.cooldown || 0));
+  state.endlessEnmityReadyAt = event.at + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
   emitSkillBuff(context, {
     cause: event,
 
@@ -79,14 +86,14 @@ function applyCriticalTraits(context: RevenantSchedulerContext, event: Simulatio
     skillId: TRAIT.ENDLESS_ENMITY,
     skillName: 'Endless Enmity',
     name: 'Endless Enmity — fury',
-    kind: 'fury',
+    kind: String(effect.boon),
     duration: gw2SchedulerBoonDuration(
       context,
       sourceSkill,
-      String(effect.boon || effect.kind || 'fury'),
-      Number(effect.duration || 0)
+      String(effect.boon),
+      effectNumber(profile, effect, 'duration')
     ),
-    stacks: Number(effect.stacks ?? 1),
+    stacks: effectNumber(profile, effect, 'stacks'),
     audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
   });
 }
@@ -101,9 +108,9 @@ function applyVindication(context: RevenantSchedulerContext, event: SimulationEv
     return;
   }
 
-  const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.vindication);
-  const effect = profile?.effects?.find((candidate) => candidate.type === 'control');
-  if (!profile || !effect) return;
+  const profile = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.vindication);
+  const effect = requireEffect(profile, 'control', 'daze');
+  if (!effect) return;
   emitSkillControl(context, {
     cause: event,
 
@@ -115,17 +122,21 @@ function applyVindication(context: RevenantSchedulerContext, event: SimulationEv
     skillName: 'Vindication',
     name: 'Vindication — Daze',
     metadata: effect.metadata,
-    controlKind: String(effect.controlKind || 'daze')
+    controlKind: String(effect.controlKind)
   });
 }
 
 export function initializeRenegadeTraits(context: RevenantSchedulerContext): void {
-  const fervorProfile = context.catalog.balanceProfilesById.get(
+  const fervorProfile = requireBalanceProfileFromContext(
+    context,
     hasTrait(context.config, TRAIT.LASTING_LEGACY)
       ? RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy
       : RENEGADE_PROFILE_IDS.kallasFervor
   );
-  renegadeState.from(context).kallasFervorMaximumStacks = Math.max(1, Number(fervorProfile?.maximumStacks ?? 1));
+  renegadeState.from(context).kallasFervorMaximumStacks = Math.max(
+    1,
+    balanceProfileNumber(fervorProfile, 'maximumStacks')
+  );
   if (hasTrait(context.config, TRAIT.AMBUSH_COMMANDER) || hasTrait(context.config, TRAIT.ENDLESS_ENMITY)) {
     // Tells the materializer to sample and record didCrit on every damage event so that the deferred critical-traits task can read a concrete boolean in stochastic mode
     context.schedulerPolicy.requireCriticalFacts?.();
@@ -153,8 +164,10 @@ function applyRazorclawProc(context: RevenantSchedulerContext, event: Simulation
   if (!isInternalCooldownReady(event.at, razorclaw.readyAt)) return;
 
   const profile = context.catalog.skillsById.get(RENEGADE_PROFILE_IDS.razorclawsRageProc);
-  const effect = profile?.effects?.find((candidate) => candidate.type === 'condition');
-  if (!profile || !effect) return;
+  if (!profile) throw new Error("Missing Razorclaw's Rage proc declaration.");
+  const effect = requireEffect(profile, 'condition', 'Bleeding');
+  // Charges exist only to deliver the bleed, so a removed packet leaves them unspent.
+  if (!effect) return;
   const cooldown = Math.max(0, Number(profile.cooldown || 0));
   if (!consumeCharge(razorclaw, event.at, cooldown)) return;
   if (cooldown === 0) razorclaw.readyAt = event.at;
@@ -164,9 +177,9 @@ function applyRazorclawProc(context: RevenantSchedulerContext, event: Simulation
     skillId: ID.RAZORCLAWS_RAGE,
     skillName: "Razorclaw's Rage",
     name: "Razorclaw's Rage — Bleeding",
-    condition: String(effect.condition || 'Bleeding'),
-    stacks: Number(effect.stacks ?? 1),
-    duration: Number(effect.duration || 0)
+    condition: String(effect.condition),
+    stacks: effectNumber(profile, effect, 'stacks'),
+    duration: effectNumber(profile, effect, 'duration')
   });
 }
 
@@ -195,7 +208,6 @@ export function modifyRenegadeCastDuration(context: RevenantPrecastContext, dura
 
 export function modifyRenegadeRechargeDuration(context: RevenantRechargeContext, duration: number): number {
   // Cast preparation queries recharge while Band Together is still ready; beforeEffects consumes the window afterward.
-  const allForOne = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.allForOne);
   return context.skill?.handlerId === 'revenant.band-together' &&
     isBandTogetherReady(
       renegadeState.from(context),
@@ -203,27 +215,34 @@ export function modifyRenegadeRechargeDuration(context: RevenantRechargeContext,
       Number(context.start ?? context.at)
     ) &&
     hasTrait(context.config, TRAIT.ALL_FOR_ONE)
-    ? duration * Math.max(0, Number(allForOne?.rechargeMultiplier ?? 1))
+    ? duration *
+        Math.max(
+          0,
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.allForOne),
+            'rechargeMultiplier'
+          )
+        )
     : duration;
 }
 
 /** Grants Ashen Demeanor's self boons and Fervor once per healing-skill ICD. */
 export function applyAshenDemeanor(context: RevenantCastContext, skill: RevenantSkill): void {
   if (skill.slot !== 'Heal' || !hasTrait(context.config, TRAIT.ASHEN_DEMEANOR)) return;
-  const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.ashenDemeanor);
+  const profile = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.ashenDemeanor);
   if (
-    !profile ||
     !tryConsumeProcCooldown(
       professionCoreState(context).traitProcReadyAt,
       'ashenDemeanor',
       context.effectiveEnd,
-      Number(profile.cooldown || 0)
+      balanceProfileNumber(profile, 'cooldown')
     )
   ) {
     return;
   }
 
-  for (let stack = 0; stack < Math.max(0, Number(profile.fervorStacks || 0)); stack += 1) {
+  const fervorStacks = Math.max(0, balanceProfileNumber(profile, 'fervorStacks'));
+  for (let stack = 0; stack < fervorStacks; stack += 1) {
     grantKallasFervor(context, context.action, {
       at: context.effectiveEnd,
       sourceId: TRAIT.ASHEN_DEMEANOR,
@@ -240,8 +259,8 @@ export function applyAshenDemeanor(context: RevenantCastContext, skill: Revenant
       skillName: profile.name,
       name: `${profile.name} — ${String(effect.boon)}`,
       kind: String(effect.boon),
-      duration: Number(effect.duration),
-      stacks: Number(effect.stacks ?? 1),
+      duration: effectNumber(profile, effect, 'duration'),
+      stacks: effectNumber(profile, effect, 'stacks'),
       audience: effect.audience ?? { recipients: 'self' }
     });
   }
@@ -257,17 +276,18 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
     gw2BoonApplicationRecipients(context.config, event).includesSelf &&
     isInternalCooldownReady(event.at, state.brutalMomentumReadyAt)
   ) {
-    const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.brutalMomentum);
-    const effect = profile?.effects?.find((candidate) => candidate.type === 'boon');
-    if (profile && effect) {
-      state.brutalMomentumReadyAt = event.at + Math.max(0, Number(profile.cooldown || 0));
+    const profile = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.brutalMomentum);
+    const effect = requireEffect(profile, 'boon', 'vigor');
+    // The cooldown gates only vigor, so a removed boon leaves it ready.
+    if (effect) {
+      state.brutalMomentumReadyAt = event.at + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
       emitSkillBuff(context, profile as RevenantSkill, {
         cause: event,
         sourceId: TRAIT.BRUTAL_MOMENTUM,
         at: event.at,
         kind: String(effect.boon),
-        duration: Number(effect.duration),
-        stacks: Number(effect.stacks)
+        duration: effectNumber(profile, effect, 'duration'),
+        stacks: effectNumber(profile, effect, 'stacks')
       });
     }
   }
@@ -278,8 +298,8 @@ export function observeRenegadeTraits(context: RevenantSchedulerContext, event: 
     hasTrait(context.config, TRAIT.BLOOD_FURY) &&
     isInternalCooldownReady(event.at, Number(state.bloodFuryReadyAt || 0))
   ) {
-    const profile = context.catalog.balanceProfilesById.get(RENEGADE_PROFILE_IDS.bloodFury);
-    state.bloodFuryReadyAt = event.at + Math.max(0, Number(profile?.cooldown || 0));
+    const profile = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.bloodFury);
+    state.bloodFuryReadyAt = event.at + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
     grantKallasFervor(context, event, {
       sourceId: TRAIT.BLOOD_FURY,
       sourceName: 'Blood Fury'

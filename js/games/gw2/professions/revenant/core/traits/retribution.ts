@@ -8,19 +8,20 @@ import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/pol
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import {
-  requireRevenantBalanceProfile as balanceProfile,
-  requireRevenantEffect as profileEffect
-} from '#gw2/professions/revenant/core/traits/profile-access.js';
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Applies Dwarven Battle Training Weakness to each observed control event. */
 export function applyDwarvenBattleTraining(context: RevenantSchedulerContext, event: SimulationEvent): void {
   if (event.type !== 'control' || !hasTrait(context.config, TRAIT.DWARVEN_BATTLE_TRAINING)) return;
-  const condition = profileEffect(
-    balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.dwarvenBattleTraining),
-    'condition'
-  );
-  const conditionName = String(condition.condition || 'Weakness');
+  const profile = requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.dwarvenBattleTraining);
+  const condition = requireEffect(profile, 'condition', 'Weakness');
+  if (!condition) return;
+  const conditionName = String(condition.condition);
   emitSkillCondition(context, {
     cause: event,
     at: event.at,
@@ -28,8 +29,8 @@ export function applyDwarvenBattleTraining(context: RevenantSchedulerContext, ev
     skillName: 'Dwarven Battle Training',
     name: `Dwarven Battle Training — ${conditionName}`,
     condition: conditionName,
-    stacks: Number(condition.stacks || 0),
-    duration: Number(condition.duration || 0)
+    stacks: effectNumber(profile, condition, 'stacks'),
+    duration: effectNumber(profile, condition, 'duration')
   });
 }
 
@@ -40,13 +41,22 @@ export function applyViciousReprisal(context: RevenantSchedulerContext, event: S
     return;
   }
 
-  const profile = balanceProfile(context, REVENANT_CORE_BALANCE_PROFILE_IDS.viciousReprisal);
-  const boon = profileEffect(profile, 'boon');
+  const profile = requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.viciousReprisal);
+  const boon = requireEffect(profile, 'boon', 'might');
+  // The cooldown gates only might, so a removed boon leaves it ready.
+  if (!boon) return;
   const sourceSkill =
     context.catalog.skillsById.get(event.skillId ?? '') ||
     ({ id: TRAIT.VICIOUS_REPRISAL, name: 'Vicious Reprisal' } as RevenantSkill);
   // Arm the scheduler-owned claim before its boon can trigger another reaction.
-  if (!tryConsumeProcCooldown(state.traitProcReadyAt, 'viciousReprisal', event.at, Number(profile.cooldown || 0)))
+  if (
+    !tryConsumeProcCooldown(
+      state.traitProcReadyAt,
+      'viciousReprisal',
+      event.at,
+      balanceProfileNumber(profile, 'cooldown')
+    )
+  )
     return;
   emitSkillBuff(context, {
     cause: event,
@@ -57,8 +67,13 @@ export function applyViciousReprisal(context: RevenantSchedulerContext, event: S
     skillId: TRAIT.VICIOUS_REPRISAL,
     skillName: 'Vicious Reprisal',
     name: 'Vicious Reprisal — might',
-    kind: String(boon.boon || 'might'),
-    duration: gw2SchedulerBoonDuration(context, sourceSkill, String(boon.boon || 'might'), Number(boon.duration || 0)),
-    stacks: Number(boon.stacks || 0)
+    kind: String(boon.boon),
+    duration: gw2SchedulerBoonDuration(
+      context,
+      sourceSkill,
+      String(boon.boon),
+      effectNumber(profile, boon, 'duration')
+    ),
+    stacks: effectNumber(profile, boon, 'stacks')
   });
 }

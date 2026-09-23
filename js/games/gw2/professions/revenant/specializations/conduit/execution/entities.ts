@@ -12,8 +12,9 @@ import {
   strikeEffectTicks
 } from '#gw2/platform/engine/effects/authoring.js';
 import {
-  balanceProfileEffect as effectByType,
-  balanceProfileFromContext as balanceProfileById
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
@@ -25,28 +26,22 @@ import {
   conduitSkillWeapon,
   conduitStrikeCoefficient as strikeCoefficient
 } from '#gw2/professions/revenant/specializations/conduit/execution/helpers.js';
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
-import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
-
-function sharedWisdomEffect(context: RevenantSchedulerContext, trigger: string): SkillEffect | undefined {
-  return balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.sharedWisdom)?.effects?.find(
-    (effect) => effect.metadata?.trigger === trigger
-  );
-}
+import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Grants one entity-specific Shared Wisdom boon at cast completion; Twin Moon retains its per-hit grants. */
 function emitCompletionSharedWisdom(context: RevenantCastContext, skill: RevenantSkill, trigger: string): void {
   if (!hasTrait(context, TRAIT.SHARED_WISDOM)) return;
-  const shared = sharedWisdomEffect(context, trigger);
-  if (shared?.type === 'boon' && shared.boon) {
-    emitSkillBuff(context, skill, {
-      at: context.effectiveEnd,
-      name: `${skill.name} — ${shared.boon}`,
-      kind: shared.boon,
-      duration: Number(shared.duration || 0),
-      stacks: Number(shared.stacks ?? 1)
-    });
-  }
+  const profile = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.sharedWisdom);
+  // Each boon is keyed by its triggering entity, so removing one never rebinds another entity's grant.
+  const shared = requireEffect(profile, 'boon', trigger);
+  if (!shared) return;
+  emitSkillBuff(context, skill, {
+    at: context.effectiveEnd,
+    name: `${skill.name} — ${shared.boon}`,
+    kind: String(shared.boon),
+    duration: effectNumber(profile, shared, 'duration'),
+    stacks: effectNumber(profile, shared, 'stacks')
+  });
 }
 
 /** Emits Beguiling Haze or consumes one of its follow-up charges. */
@@ -54,17 +49,20 @@ export function castBeguilingHaze(context: RevenantCastContext, skill: RevenantS
   // Cancellation must not consume follow-ups or arm a new main-cast reservation.
   if (context.action.cancelled) return;
   const followUp = beginBeguilingHaze(context);
-  const profile = followUp ? balanceProfileById(context, CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp) : skill;
-  const strike = effectByType(profile, 'strike');
-  const tick = strike?.type === 'strike' ? strikeEffectTicks(strike)[0] : undefined;
-  const at = context.start + Math.max(0, Number(tick?.atMs || 0)) / 1000;
-  emitSkillDamage(context, skill, {
-    at,
-    coefficient: Number(tick?.coefficient || 0),
-    name: followUp ? 'Beguiling Haze — Follow-Up' : 'Beguiling Haze',
-    skillWeapon: conduitSkillWeapon(context, skill),
-    canCrit: null
-  });
+  const owner = followUp
+    ? requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp)
+    : skill;
+  const strike = requireEffect(owner, 'strike', followUp ? 'Beguiling Haze — Follow-Up' : 'Beguiling Haze');
+  // A removed strike emits no hit, while the follow-up charge and Shared Wisdom keep their own behavior.
+  const tick = strike ? strikeEffectTicks(strike)[0] : undefined;
+  if (tick)
+    emitSkillDamage(context, skill, {
+      at: context.start + Math.max(0, Number(tick.atMs || 0)) / 1000,
+      coefficient: Number(tick.coefficient),
+      name: followUp ? 'Beguiling Haze — Follow-Up' : 'Beguiling Haze',
+      skillWeapon: conduitSkillWeapon(context, skill),
+      canCrit: null
+    });
 
   emitCompletionSharedWisdom(context, skill, 'beguiling-haze');
 }
@@ -265,15 +263,16 @@ export function castTwinMoonSweep(context: RevenantCastContext, skill: RevenantS
   }
 
   if (hasTrait(context, TRAIT.SHARED_WISDOM)) {
-    const shared = sharedWisdomEffect(context, 'twin-moon-sweep');
-    const applications = Math.max(0, Number(shared?.applications || 0));
-    for (let index = 0; index < applications; index += 1) {
+    const profile = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.sharedWisdom);
+    const shared = requireEffect(profile, 'boon', 'twin-moon-sweep');
+    const applications = shared ? Math.max(0, effectNumber(profile, shared, 'applications')) : 0;
+    for (let index = 0; shared && index < applications; index += 1) {
       emitSkillBuff(context, skill, {
         at,
         name: `Shared Wisdom — Might ${index + 1}`,
-        kind: String(shared?.boon || 'might'),
-        duration: Number(shared?.duration || 0),
-        stacks: Number(shared?.stacks ?? 1)
+        kind: String(shared.boon),
+        duration: effectNumber(profile, shared, 'duration'),
+        stacks: effectNumber(profile, shared, 'stacks')
       });
     }
   }

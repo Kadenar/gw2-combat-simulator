@@ -1,3 +1,9 @@
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { conduitAffinityReaction } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
@@ -31,13 +37,11 @@ export const BEGUILING_HAZE_SKILL_IDS = new Set<SkillId>([ID.BEGUILING_HAZE, ID.
 
 export function modifyConduitCastDuration(context: RevenantPrecastContext, duration: number): number {
   if (context.skill?.handlerId !== 'revenant.beguiling-haze') return duration;
-  const followUpProfile = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
-  const mainExtensionProfile = context.catalog.balanceProfilesById.get(
+  const followUpProfile = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp);
+  const mainExtensionProfile = requireBalanceProfileFromContext(
+    context,
     CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeMainCastExtension
   );
-  if (!followUpProfile || !mainExtensionProfile) {
-    throw new Error('Missing Beguiling Haze cast-duration profiles.');
-  }
 
   return beguilingHazeCastDuration(
     duration,
@@ -56,12 +60,12 @@ export function modifyConduitRechargeDuration(context: RevenantRechargeContext, 
     revenantCombatActive(context, context.at) &&
     hasTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)
   ) {
-    const profile = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment);
+    const profile = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment);
     // Enhanced Embodiment reduces the legend swap cooldown to 60%; read from skill data, not the incoming duration,
     // because the duration may already have been modified by alacrity at this point.
     return (
       Math.max(0, Number(skill.cooldown ?? skill.recharge ?? duration)) *
-      Math.max(0, Number(profile?.rechargeMultiplier ?? 1))
+      Math.max(0, balanceProfileNumber(profile, 'rechargeMultiplier'))
     );
   }
 
@@ -81,8 +85,10 @@ export function modifyConduitRechargeDuration(context: RevenantRechargeContext, 
     )
   ) {
     // Mesmer form gives these Demon utilities a recharge; alacrity still applies to the new base.
-    const profile = context.catalog.balanceProfilesById.get(mesmerRechargeProfile);
-    const base = Math.max(0, Number(profile?.cooldown || 0));
+    const base = Math.max(
+      0,
+      balanceProfileNumber(requireBalanceProfileFromContext(context, mesmerRechargeProfile), 'cooldown')
+    );
     const rate = context.hasBuff?.('alacrity', context.at) ? Number(context.config.alacrityRechargeRate || 1.25) : 1;
     return base / rate;
   }
@@ -98,16 +104,15 @@ export function afterConduitTraitCast(context: RevenantCastContext, skill: Reven
   applyCosmicWisdomAfterCast(context, skill);
   // Shared Wisdom swiftness is only granted for Entity legend skills, not for all Conduit skills.
   if (skill.legendId === LEGEND.ENTITY && hasTrait(context.config, TRAIT.SHARED_WISDOM)) {
-    const shared = context.catalog.balanceProfilesById
-      .get(CONDUIT_BALANCE_PROFILE_IDS.sharedWisdom)
-      ?.effects?.find((effect) => effect.metadata?.trigger === 'entity-skill');
-    if (shared?.type === 'boon' && shared.boon) {
+    const profile = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.sharedWisdom);
+    const shared = requireEffect(profile, 'boon', 'entity-skill');
+    if (shared) {
       emitSkillBuff(context, skill, {
         at: context.effectiveEnd,
         name: `${skill.name} — ${shared.boon}`,
-        kind: shared.boon,
-        duration: Number(shared.duration || 0),
-        stacks: Number(shared.stacks ?? 1)
+        kind: String(shared.boon),
+        duration: effectNumber(profile, shared, 'duration'),
+        stacks: effectNumber(profile, shared, 'stacks')
       });
     }
   }
@@ -144,12 +149,13 @@ export function observeConduitTraits(context: RevenantSchedulerContext, event: S
   }
 
   const state = conduitState.from(context);
-  const profile = context.catalog.balanceProfilesById.get(CONDUIT_BALANCE_PROFILE_IDS.mistfire);
-  const burning = profile?.effects?.find((effect) => effect.type === 'condition');
+  const profile = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.mistfire);
+  const burning = requireEffect(profile, 'condition', 'Burning');
   const readyAt = Number(state.mistfireReadyAt || 0);
-  // Mistfire follows the shared strict ICD boundary used by other event-driven procs.
-  if (!isInternalCooldownReady(event.at, readyAt)) return;
-  state.mistfireReadyAt = event.at + Math.max(0, Number(profile?.cooldown || 0));
+  // Mistfire follows the shared strict ICD boundary used by other event-driven procs; the cooldown gates only
+  // Burning here, so a removed packet leaves it ready.
+  if (!burning || !isInternalCooldownReady(event.at, readyAt)) return;
+  state.mistfireReadyAt = event.at + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
   emitSkillCondition(context, {
     cause: event,
     at: event.at,
@@ -158,8 +164,8 @@ export function observeConduitTraits(context: RevenantSchedulerContext, event: S
     skillId: TRAIT.MISTFIRE,
     skillName: 'Mistfire',
     name: 'Mistfire — Burning',
-    condition: String(burning?.condition || 'Burning'),
-    stacks: Number(burning?.stacks ?? 1),
-    duration: Number(burning?.duration || 0)
+    condition: String(burning.condition),
+    stacks: effectNumber(profile, burning, 'stacks'),
+    duration: effectNumber(profile, burning, 'duration')
   });
 }

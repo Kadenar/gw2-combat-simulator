@@ -8,8 +8,10 @@ import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-p
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
-  balanceProfileEffect as effectByType,
-  balanceProfileFromContext as balanceProfileById
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -31,8 +33,8 @@ function skillById(context: RevenantSchedulerContext, skillId: SkillId): Revenan
   return context.catalog.skillsById.get(skillId);
 }
 
-function kallasFervorProfile(context: RevenantSchedulerContext): BalanceProfile | undefined {
-  return balanceProfileById(
+function kallasFervorProfile(context: RevenantSchedulerContext): BalanceProfile {
+  return requireBalanceProfileFromContext(
     context,
     hasTrait(context, TRAIT.LASTING_LEGACY)
       ? RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy
@@ -130,9 +132,10 @@ export function grantKallasFervor(
 ): boolean {
   const state = renegadeState.from(context);
   const profile = kallasFervorProfile(context);
-  const effect = effectByType(profile, 'buff');
-  if (!profile || !effect) return false;
-  const maximumStacks = Math.max(1, Number(profile.maximumStacks ?? 1));
+  const effect = requireEffect(profile, 'buff', 'kallas-fervor');
+  // Fervor stacks are the buff, so a removed buff grants nothing.
+  if (!effect) return false;
+  const maximumStacks = Math.max(1, balanceProfileNumber(profile, 'maximumStacks'));
   state.kallasFervorMaximumStacks = maximumStacks;
   pruneKallasFervor(state, at);
   if (activeKallasFervorStacks(state, at, maximumStacks) >= maximumStacks) {
@@ -140,7 +143,7 @@ export function grantKallasFervor(
     state.kallasFervor.sort((left, right) => left.expiresAt - right.expiresAt).shift();
   }
 
-  const duration = Math.max(0, Number(effect.duration || 0));
+  const duration = Math.max(0, effectNumber(profile, effect, 'duration'));
   state.kallasFervor.push({ at, expiresAt: at + duration });
   emitSkillBuff(context, {
     cause: cause,
@@ -152,9 +155,9 @@ export function grantKallasFervor(
     skillId: sourceId,
     skillName: sourceName,
     name: `${sourceName} — Kalla's Fervor`,
-    kind: String(effect.kind || 'kallas-fervor'),
+    kind: String(effect.kind),
     duration,
-    stacks: Number(effect.stacks ?? 1)
+    stacks: effectNumber(profile, effect, 'stacks')
   });
   emitRevenantStateSnapshot(context, at, 'kallas-fervor');
   return true;
@@ -165,11 +168,12 @@ export function grantKallasFervor(
 function refreshKallasFervor(context: RevenantSchedulerContext, at: number): number {
   const state = renegadeState.from(context);
   const profile = kallasFervorProfile(context);
-  const effect = effectByType(profile, 'buff');
-  if (!profile || !effect) return 0;
-  state.kallasFervorMaximumStacks = Math.max(1, Number(profile.maximumStacks ?? 1));
+  const effect = requireEffect(profile, 'buff', 'kallas-fervor');
+  if (!effect) return 0;
+  const maximumStacks = Math.max(1, balanceProfileNumber(profile, 'maximumStacks'));
+  state.kallasFervorMaximumStacks = maximumStacks;
   pruneKallasFervor(state, at);
-  const duration = Math.max(0, Number(effect.duration || 0));
+  const duration = Math.max(0, effectNumber(profile, effect, 'duration'));
   for (const application of state.kallasFervor) {
     if (Number(application.at || 0) <= at) {
       application.expiresAt = at + duration;
@@ -180,7 +184,7 @@ function refreshKallasFervor(context: RevenantSchedulerContext, at: number): num
     emitRevenantStateSnapshot(context, at, 'kallas-fervor-refreshed');
   }
 
-  return activeKallasFervorStacks(state, at, Math.max(1, Number(profile.maximumStacks ?? 1)));
+  return activeKallasFervorStacks(state, at, maximumStacks);
 }
 
 /** Refreshes current Fervor and materializes Heroic Command's selected profile. */
@@ -189,25 +193,28 @@ export function castHeroicCommand(context: RevenantCastContext, skill: RevenantS
   const stacks = refreshKallasFervor(context, context.effectiveEnd);
   if (!stacks) return;
   const profile = hasTrait(context, TRAIT.LASTING_LEGACY)
-    ? balanceProfileById(context, RENEGADE_PROFILE_IDS.heroicCommandLastingLegacy)
+    ? requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.heroicCommandLastingLegacy)
     : skill;
-  const effect = effectByType(profile, 'boon');
-  if (!profile || !effect) return;
+  const effect = requireEffect(profile, 'boon', 'might');
+  if (!effect) return;
   emitProfileEffects(context, skill, profile, [
-    { ...effect, stacks: Math.max(1, Number(effect.stacks ?? 1)) * stacks }
+    { ...effect, stacks: Math.max(1, effectNumber(profile, effect, 'stacks')) * stacks }
   ]);
 }
 
 /** Materializes the normal or Righteous Rebel Orders from Above profile. */
 export function castOrdersFromAbove(context: RevenantCastContext, skill: RevenantSkill): void {
   const profile = hasTrait(context, TRAIT.RIGHTEOUS_REBEL)
-    ? balanceProfileById(context, RENEGADE_PROFILE_IDS.ordersFromAboveRighteousRebel)
+    ? requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.ordersFromAboveRighteousRebel)
     : skill;
-  if (profile) emitProfileEffects(context, skill, profile);
+  emitProfileEffects(context, skill, profile);
   // Bold Reversal adds Protection to each pulse only for the Righteous Rebel extension.
   if (hasTrait(context, TRAIT.BOLD_REVERSAL) && hasTrait(context, TRAIT.RIGHTEOUS_REBEL)) {
-    const protection = balanceProfileById(context, RENEGADE_PROFILE_IDS.boldReversalRighteousRebel);
-    if (protection) emitProfileEffects(context, skill, protection);
+    emitProfileEffects(
+      context,
+      skill,
+      requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.boldReversalRighteousRebel)
+    );
   }
 }
 
@@ -221,9 +228,9 @@ export function beginBandTogether(context: RevenantCastContext, skill: RevenantS
   state.bandTogetherReady = false;
   state.bandTogetherExpiresAt = 0;
   if (enhanced && hasTrait(context, TRAIT.ALL_FOR_ONE)) {
-    const allForOne = balanceProfileById(context, RENEGADE_PROFILE_IDS.allForOne);
+    const allForOne = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.allForOne);
     const core = professionCoreState(context);
-    core.energy = grantCapped(core.energy, Number(allForOne?.resourceGain || 0), core.maximumEnergy);
+    core.energy = grantCapped(core.energy, balanceProfileNumber(allForOne, 'resourceGain'), core.maximumEnergy);
     emitRevenantStateSnapshot(context, context.start, 'all-for-one');
   }
 
@@ -236,11 +243,13 @@ export function beginBandTogether(context: RevenantCastContext, skill: RevenantS
 function grantRazorclawsRage(context: RevenantCastContext, skill: RevenantSkill, profile: RevenantSkill): void {
   const buff = profile.effects?.find((effect) => effect.type === 'buff' && effect.kind === 'razorclaws-rage');
   const proc = skillById(context, RENEGADE_PROFILE_IDS.razorclawsRageProc);
-  const bleed = effectByType(proc, 'condition');
-  if (!buff || !proc || !bleed) return;
+  if (!proc) throw new Error("Missing Razorclaw's Rage proc declaration.");
+  const bleed = requireEffect(proc, 'condition', 'Bleeding');
+  // Charges exist only to deliver the empowered bleed, so either removal arms nothing.
+  if (!buff || !bleed) return;
   const at = context.effectiveEnd;
-  const duration = Math.max(0, Number(buff.duration || 0));
-  const charges = Math.max(0, Math.trunc(Number(buff.stacks || 0)));
+  const duration = Math.max(0, effectNumber(profile, buff, 'duration'));
+  const charges = Math.max(0, Math.trunc(effectNumber(profile, buff, 'stacks')));
   renegadeState.from(context).razorclawsRage = {
     ...grantCharges(charges, at + duration),
     readyAt: at
@@ -257,9 +266,9 @@ function grantRazorclawsRage(context: RevenantCastContext, skill: RevenantSkill,
       at: alliedProc.at,
       actorType: bleed.actorType || 'player',
       name: `${skill.name} — Ally ${alliedProc.allyIndex} Bleeding`,
-      condition: String(bleed.condition || ''),
-      stacks: Number(bleed.stacks || 0),
-      duration: Number(bleed.duration || 0),
+      condition: String(bleed.condition),
+      stacks: effectNumber(proc, bleed, 'stacks'),
+      duration: effectNumber(proc, bleed, 'duration'),
       metadata: { triggeredByAlly: alliedProc.allyIndex }
     });
   }
@@ -279,12 +288,13 @@ export function completeBandTogether(
   }
 
   if (state.enhanced) return;
-  const bandTogether = balanceProfileById(context, RENEGADE_PROFILE_IDS.bandTogether);
-  const effect = effectByType(bandTogether, 'buff');
-  if (!bandTogether || !effect) return;
+  const bandTogether = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.bandTogether);
+  const effect = requireEffect(bandTogether, 'buff', 'band-together');
+  // The enhancement window is the buff, so a removed buff arms no enhancement.
+  if (!effect) return;
   const profession = renegadeState.from(context);
   profession.bandTogetherReady = true;
-  profession.bandTogetherExpiresAt = context.effectiveEnd + Math.max(0, Number(effect.duration || 0));
+  profession.bandTogetherExpiresAt = context.effectiveEnd + Math.max(0, effectNumber(bandTogether, effect, 'duration'));
   emitProfileEffects(context, bandTogether, bandTogether);
   emitRevenantStateSnapshot(context, context.effectiveEnd, 'band-together');
 }
