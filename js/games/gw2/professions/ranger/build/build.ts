@@ -1,6 +1,9 @@
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createProfessionBuildCodec, normalizeProfessionBuildAssumptions } from '#gw2/professions/shared/build-codec.js';
+import {
+  createProfessionBuildCodec,
+  normalizeProfessionBuildAssumptions
+} from '#gw2/professions/shared/build-codec.js';
 import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/professions/ranger/build/assumptions.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
