@@ -129,13 +129,17 @@ export function runtimeRevenantEnergyCost(context: RevenantSchedulerContext, ski
   );
 }
 
-/** Pays a cast's composed family Energy cost after all specialization policies have run. */
-export function spendRevenantEnergy(context: RevenantPrecastContext, skill: RevenantSkill): void {
+/** Pays a cast's composed Energy cost at its normal start or at a specified completion time. */
+export function spendRevenantEnergy(
+  context: RevenantPrecastContext,
+  skill: RevenantSkill,
+  cost = runtimeRevenantEnergyCost(context, skill),
+  at = context.start
+): void {
   if (([ID.SWAP_LEGENDS, ID.DODGE] as readonly number[]).includes(Number(skill.id))) return;
   const state = professionCoreState(context);
-  const cost = runtimeRevenantEnergyCost(context, skill);
   state.energy = Math.max(0, state.energy - cost);
   if (cost > 0) {
-    emitRevenantStateSnapshot(context, context.start, 'energy-spent');
+    emitRevenantStateSnapshot(context, at, 'energy-spent');
   }
 }

@@ -21,25 +21,38 @@ import {
   handleImpossibleOddsStrike
 } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { prepareRevenantHitboxEvent } from '#gw2/professions/revenant/core/mechanics/hitbox.js';
-import { emitRevenantStateSnapshot, spendRevenantEnergy } from '#gw2/professions/revenant/family-state.js';
+import {
+  emitRevenantStateSnapshot,
+  runtimeRevenantEnergyCost,
+  spendRevenantEnergy
+} from '#gw2/professions/revenant/family-state.js';
 import { advanceRevenantEnergy } from '#gw2/professions/revenant/core/mechanics/energy.js';
 import { blossomingAura } from '#gw2/professions/revenant/core/execution/scepter.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { revenantCombatActive } from '#gw2/professions/revenant/core/traits/index.js';
 import { scheduleAssassinsPresence, assassinsPresence } from '#gw2/professions/revenant/core/traits/devastation.js';
 
-/**
- * Pays the skill's Energy cost and captures weapon state at cast start.
- */
+const castEnergyCosts = new WeakMap<SimulationEvent, number>();
+
+/** Defers upkeep activation costs while their separate sustained drain remains active out of combat. */
 function onCastStart(context: RevenantCastContext, skill: RevenantSkill): void {
-  spendRevenantEnergy(context, skill);
+  if (skill.handlerId === 'revenant.upkeep') {
+    castEnergyCosts.set(context.action, runtimeRevenantEnergyCost(context, skill));
+  } else {
+    spendRevenantEnergy(context, skill);
+  }
+
   beginRevenantWeaponCast(context, skill);
 }
 
-/**
- * Commits completion-gated Core weapon mechanics.
- */
+/** Commits an upkeep's deferred activation cost and Core weapon mechanics after cast completion. */
 function onCastComplete(context: RevenantCastContext, skill: RevenantSkill): void {
+  if (skill.handlerId === 'revenant.upkeep') {
+    const cost = castEnergyCosts.get(context.action) ?? 0;
+    castEnergyCosts.delete(context.action);
+    if (!context.action.cancelled) spendRevenantEnergy(context, skill, cost, context.effectiveEnd);
+  }
+
   // Call to Anguish exposes a persistent follow-up until Unyielding Impact consumes it.
   const flips = professionCoreState(context).availableFlips;
   if (skill.id === ID.CALL_TO_ANGUISH) {

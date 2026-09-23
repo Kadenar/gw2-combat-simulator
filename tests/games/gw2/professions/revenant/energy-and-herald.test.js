@@ -1047,6 +1047,43 @@ test('upkeep Energy drain begins when its cast completes', () => {
   assert.equal(result.planningState.profession.activeUpkeeps[0].startsAt, completion);
 });
 
+test('Soulcleave spends Energy at activation completion after out-of-combat regeneration caps', () => {
+  const config = {
+    selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.RENEGADE
+  };
+  const result = simulate('Renegade', ["Soulcleave's Summit"], config);
+  const sustained = simulate('Renegade', ["Soulcleave's Summit", { type: 'wait', durationMs: 2000 }], config);
+  const cancelled = simulate('Renegade', [{ name: "Soulcleave's Summit", interruptAfterMs: 100 }], config);
+
+  // The full bar stays at 50 through the windup; the committed activation then pays five Energy.
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.planningState.profession.energy, 45);
+  assert.deepEqual(
+    result.events
+      .filter((event) => event.type === 'revenant.state' && event.reason === 'energy-spent')
+      .map((event) => event.at),
+    [result.steps[0].end / 1000]
+  );
+  // Five Energy per second of upkeep offsets the five-per-second regeneration even out of combat.
+  assert.equal(sustained.planningState.profession.combatBeganAt, null);
+  assert.equal(sustained.planningState.profession.energy, 45);
+  assert.equal(sustained.planningState.profession.activeUpkeeps.length, 1);
+  assert.equal(cancelled.planningState.profession.energy, 50);
+});
+
+test('out-of-combat upkeep drain continues after activation', () => {
+  const result = simulate('Core', ['Protective Solace', { type: 'wait', durationMs: 2000 }], {
+    selectedLegends: [LEGEND.CENTAUR, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.CENTAUR
+  });
+
+  // The 5-Energy activation leaves 45; upkeep then drains eight per second against five regeneration.
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.planningState.profession.combatBeganAt, null);
+  assert.equal(result.planningState.profession.energy, 39);
+});
+
 test('upkeep release settles the old drain rate before resuming regeneration', () => {
   // 1.1 after activation, minus 0.15 drain, then plus 0.5 regeneration after release.
   const result = simulate(
