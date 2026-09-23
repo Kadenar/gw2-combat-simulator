@@ -1,6 +1,10 @@
 /** Owns immediate Core Thief action callbacks; persistent summon behavior lives in mechanics. */
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileNumberFromContext,
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
@@ -23,9 +27,14 @@ export function applyThiefWeaponSwapEffects(context: ThiefCastContext): void {
     hasTrait(context.config, TRAIT.QUICK_POCKETS) &&
     isInternalCooldownReady(at, Number(state.quickPocketsReadyAt || 0))
   ) {
-    const profile = balanceProfileFromContext(context, PROFILE.quickPockets);
-    state.quickPocketsReadyAt = at + Number(profile?.internalCooldown ?? 8);
-    gainThiefInitiative(context, Number(profile?.resourceGain ?? 3), at, 'quick-pockets');
+    const quickPocketsProfile = requireBalanceProfileFromContext(context, PROFILE.quickPockets);
+    state.quickPocketsReadyAt = at + balanceProfileNumber(quickPocketsProfile, 'internalCooldown', context);
+    gainThiefInitiative(
+      context,
+      balanceProfileNumber(quickPocketsProfile, 'resourceGain', context),
+      at,
+      'quick-pockets'
+    );
   }
 }
 
@@ -46,7 +55,7 @@ export function activateAssassinsSignet(context: ThiefCastContext): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   state.assassinsSignetActiveUntil =
-    at + Number(balanceProfileFromContext(context, PROFILE.assassinsSignet)?.durationMultiplier ?? 5);
+    at + balanceProfileNumberFromContext(context, PROFILE.assassinsSignet, 'durationMultiplier');
   state.assassinsSignetPassiveDisabledUntil = Number(
     context.rechargeReadyAt || context.state.cooldowns.get(ID.ASSASSINS_SIGNET) || at
   );

@@ -63,10 +63,10 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     pulseInterval: 3,
     maximumStacks: 5,
     effects: [
-      { type: 'strike', coefficient: 2.4, hits: 1 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 6 },
-      { type: 'strike', coefficient: 1.2, hits: 1 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 3.5 }
+      { type: 'strike', name: 'Dash', coefficient: 2.4, hits: 1 },
+      { type: 'condition', name: 'Dash', condition: 'Burning', stacks: 1, duration: 6 },
+      { type: 'strike', name: 'Bomb', coefficient: 1.2, hits: 1 },
+      { type: 'condition', name: 'Bomb', condition: 'Burning', stacks: 1, duration: 3.5 }
     ]
   },
   {
@@ -75,10 +75,10 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     profileKind: 'skill-variant',
     parentId: ID.FORGED_SURFER_DASH_ID_76633,
     effects: [
-      { type: 'strike', coefficient: 2.8, hits: 1 },
-      { type: 'condition', condition: 'Burning', stacks: 2, duration: 12 },
-      { type: 'strike', coefficient: 1.4, hits: 1 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 4.5 }
+      { type: 'strike', name: 'Dash', coefficient: 2.8, hits: 1 },
+      { type: 'condition', name: 'Dash', condition: 'Burning', stacks: 2, duration: 12 },
+      { type: 'strike', name: 'Bomb', coefficient: 1.4, hits: 1 },
+      { type: 'condition', name: 'Bomb', condition: 'Burning', stacks: 1, duration: 4.5 }
     ]
   },
   {
@@ -89,13 +89,26 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     effects: [
       {
         type: 'strike',
+        name: 'Stone Summit Cannon - Success',
         ticks: [
           { atMs: 440, coefficient: 1 },
           { atMs: 720, coefficient: 1 },
           { atMs: 1000, coefficient: 1 }
         ]
       },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 3 }
+      // Burning owns its application timing so deleting the strike does not delete this packet.
+      {
+        type: 'condition',
+        name: 'Burning',
+        condition: 'Burning',
+        stacks: 1,
+        duration: 3,
+        applications: 3,
+        atMs: 440,
+        intervalMs: 280,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
+      }
     ]
   },
   {
@@ -105,8 +118,8 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     parentId: ID.STONE_SUMMIT_CANNON,
     initialDelay: 2,
     effects: [
-      { type: 'strike', coefficient: 3, hits: 1 },
-      { type: 'condition', condition: 'Burning', stacks: 3, duration: 4 }
+      { type: 'strike', name: 'Stone Summit Cannon - Backfire', coefficient: 3, hits: 1 },
+      { type: 'condition', name: 'Burning', condition: 'Burning', stacks: 3, duration: 4 }
     ]
   },
   {
@@ -114,14 +127,14 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Mistburn Mortar - Charged Strike',
     profileKind: 'skill-variant',
     parentId: ID.MISTBURN_MORTAR,
-    effects: [{ type: 'condition', condition: 'Burning', stacks: 1, duration: 1 }]
+    effects: [{ type: 'condition', name: 'Burning', condition: 'Burning', stacks: 1, duration: 1 }]
   },
   {
     id: ANTIQUARY_BALANCE_PROFILE_IDS.sunCrystalMeticulous,
     name: 'Zephyrite Sun Crystal - Meticulous',
     profileKind: 'skill-variant',
     parentId: ID.ZEPHYRITE_SUN_CRYSTAL,
-    effects: [{ type: 'condition', condition: 'Burning', stacks: 1, duration: 5 }]
+    effects: [{ type: 'condition', name: 'Burning', condition: 'Burning', stacks: 1, duration: 5 }]
   },
   trait(ANTIQUARY_BALANCE_PROFILE_IDS.repeatRansacker, 'Repeat Ransacker', {
     rechargeReduction: 2
@@ -146,12 +159,12 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   }),
   trait(ANTIQUARY_BALANCE_PROFILE_IDS.possessiveHoarder, 'Possessive Hoarder', {
     effects: [
-      { type: 'boon', boon: 'might', stacks: 10, duration: 12 },
-      { type: 'boon', boon: 'protection', stacks: 1, duration: 5 },
-      { type: 'boon', boon: 'alacrity', stacks: 1, duration: 5 }
+      { type: 'boon', name: 'might', boon: 'might', stacks: 10, duration: 12 },
+      { type: 'boon', name: 'protection', boon: 'protection', stacks: 1, duration: 5 },
+      { type: 'boon', name: 'alacrity', boon: 'alacrity', stacks: 1, duration: 5 }
     ]
   }),
   trait(ANTIQUARY_BALANCE_PROFILE_IDS.meticulousCustodian, 'Meticulous Custodian', {
-    effects: [{ type: 'strike', coefficient: 0.3, hits: 1 }]
+    effects: [{ type: 'strike', name: 'Meticulous Custodian', coefficient: 0.3, hits: 1 }]
   })
 ]);

@@ -3,7 +3,11 @@ import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileNumberFromContext,
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import {
@@ -48,11 +52,12 @@ export const infiltratorsSignetPassive = timedEffect<ThiefSchedulerContext, obje
   }
 });
 
-export function thiefInitiativeRegenerationRate(state: Pick<ThiefCoreState, 'kneeling'>, context?: unknown): number {
-  const resources = balanceProfileFromContext(context, PROFILE.resources);
+/** Both readiness and regeneration use required tuning from the selected catalog. */
+export function thiefInitiativeRegenerationRate(state: Pick<ThiefCoreState, 'kneeling'>, context: unknown): number {
+  const profile = requireBalanceProfileFromContext(context, PROFILE.resources);
   return (
-    Number(resources?.resourceGain ?? 1) +
-    (state.kneeling ? Number(resources?.kneelingInitiativeRegenerationBonus ?? 1 / 3) : 0)
+    balanceProfileNumber(profile, 'resourceGain', context) +
+    (state.kneeling ? balanceProfileNumber(profile, 'kneelingInitiativeRegenerationBonus', context) : 0)
   );
 }
 
@@ -61,10 +66,13 @@ export function thiefEnduranceRegenerationRate(
   at = Number(context.start ?? context.state?.time ?? 0),
   vigorActive = Boolean(context.config?.boons?.vigor || context.hasBuff?.('vigor', at))
 ): number {
-  const resources = balanceProfileFromContext(context, PROFILE.resources);
-  const base = Number(resources?.enduranceRegenerationPerSecond ?? 5);
-  const vigorMultiplier = Number(resources?.vigorRegenerationMultiplier ?? 1.5);
-  return Math.min(Number(resources?.threshold ?? 10), base * (vigorActive ? vigorMultiplier : 1));
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const base = balanceProfileNumber(resourcesProfile, 'enduranceRegenerationPerSecond', context);
+  const vigorMultiplier = balanceProfileNumber(resourcesProfile, 'vigorRegenerationMultiplier', context);
+  return Math.min(
+    balanceProfileNumber(resourcesProfile, 'threshold', context),
+    base * (vigorActive ? vigorMultiplier : 1)
+  );
 }
 
 /** Maps shared Vigor windows to Thief's capped rate for both recovery and dodge readiness. */
@@ -88,10 +96,10 @@ export function thiefEnduranceReadyAt(context: ThiefPrecastContext, cost: number
 // Attacks, venom, guild summon, and flip state at the same target timestamp.
 export function advanceThiefCoreResources(context: ThiefSchedulerContext, target: number): void {
   const state = professionCoreState(context);
-  const resources = balanceProfileFromContext(context, PROFILE.resources);
+
   state.maximumInitiative = hasTrait(context.config, TRAIT.PREPAREDNESS)
-    ? Number(resources?.minimumStacks ?? 15)
-    : Number(resources?.maximumStacks ?? 12);
+    ? balanceProfileNumberFromContext(context, PROFILE.resources, 'minimumStacks')
+    : balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
   state.leadAttackExpirations = purgeExpiredStacks(state.leadAttackExpirations || [], target);
   state.leadAttacksStacks = state.leadAttackExpirations.length;
   // Ground axes expire independently, including while waiting or using another weapon.
@@ -139,7 +147,7 @@ export function spendThiefCoreResources(context: ThiefPrecastContext, skill: Thi
   ) {
     gainThiefInitiative(
       context,
-      Number(balanceProfileFromContext(context, PROFILE.signetsOfPower)?.resourceGain ?? 3),
+      balanceProfileNumberFromContext(context, PROFILE.signetsOfPower, 'resourceGain'),
       context.start,
       'signets-of-power'
     );
@@ -156,7 +164,7 @@ export function completeThiefCoreResources(context: ThiefCastContext, skill: Thi
   if (skill.id === ID.SIGNET_OF_AGILITY) {
     gainThiefEndurance(
       context,
-      Number(balanceProfileFromContext(context, PROFILE.signetOfAgility)?.resourceGain),
+      balanceProfileNumberFromContext(context, PROFILE.signetOfAgility, 'resourceGain'),
       context.effectiveEnd,
       'signet-of-agility'
     );
@@ -176,7 +184,7 @@ export function completeThiefCoreResources(context: ThiefCastContext, skill: Thi
   if (context.effectiveEnd + EPSILON < finalBulletAt) return;
   gainThiefInitiative(
     context,
-    Number(balanceProfileFromContext(context, PROFILE.unloadRefund)?.resourceGain ?? 2),
+    balanceProfileNumberFromContext(context, PROFILE.unloadRefund, 'resourceGain'),
     context.effectiveEnd,
     'unload-refund'
   );

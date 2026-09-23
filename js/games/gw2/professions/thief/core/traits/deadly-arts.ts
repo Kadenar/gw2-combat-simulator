@@ -1,6 +1,11 @@
 import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
@@ -14,26 +19,32 @@ import type { ThiefCastContext, ThiefResolverContext, ThiefResolverEvent } from 
 /** Attribute on-steal poison to Serpent's Touch while retaining the triggering skill. */
 export function applySerpentsTouch(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.SERPENTS_TOUCH)) return;
-  const profile = balanceProfileFromContext(context, PROFILE.serpentsTouch);
-  const poison = balanceProfileEffect(profile, 'condition');
+
+  const serpentsTouchProfile = requireBalanceProfileFromContext(context, PROFILE.serpentsTouch);
+  const poison = requireEffect(serpentsTouchProfile, 'condition', 'Poisoned', context);
+  // Explicit removal suppresses this packet without restoring baseline tuning.
+  if (!poison) return;
   emitSkillCondition(context, {
     at,
     source: 'Trait',
     skillId: TRAIT.SERPENTS_TOUCH,
     skillName: "Serpent's Touch",
     triggeredBy: context.skill?.name,
-    condition: String(poison?.condition || 'Poisoned'),
-    duration: Number(poison?.duration ?? 10),
+    condition: String(poison.condition),
+    duration: effectNumber(serpentsTouchProfile, poison, 'duration', context),
     stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
-      ? Number(profile?.playerStacks ?? 3)
-      : Number(poison?.stacks ?? 2),
+      ? balanceProfileNumber(serpentsTouchProfile, 'playerStacks', context)
+      : effectNumber(serpentsTouchProfile, poison, 'stacks', context),
     name: "Serpent's Touch — Poison"
   });
 }
 
 export function applyMug(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.MUG)) return;
-  const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.mug), 'strike');
+  const mugProfile = requireBalanceProfileFromContext(context, PROFILE.mug);
+  const strike = requireEffect(mugProfile, 'strike', 'Mug', context);
+  // Explicit removal suppresses this packet without restoring baseline tuning.
+  if (!strike) return;
   emitSkillDamage(context, {
     at,
     source: 'Trait',
@@ -42,23 +53,26 @@ export function applyMug(context: ThiefCastContext, at: number): void {
     skillId: context.skill?.id,
     skillName: context.skill?.name,
     name: 'Mug',
-    coefficient: Number(strike?.coefficient ?? 1.5),
-    hits: Number(strike?.hits ?? 1),
+    coefficient: effectNumber(mugProfile, strike, 'coefficient', context),
+    hits: effectNumber(mugProfile, strike, 'hits', context),
     canCrit: false
   });
 }
 
 export function applyEvenTheOdds(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.EVEN_THE_ODDS)) return;
-  const vulnerability = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.evenTheOdds), 'condition');
+  const evenTheOddsProfile = requireBalanceProfileFromContext(context, PROFILE.evenTheOdds);
+  const vulnerability = requireEffect(evenTheOddsProfile, 'condition', 'Vulnerability', context);
+  // Explicit removal suppresses this packet without restoring baseline tuning.
+  if (!vulnerability) return;
   emitSkillCondition(context, {
     at,
     source: 'Trait',
     skillId: context.skill?.id ?? null,
     skillName: context.skill?.name ?? null,
-    condition: String(vulnerability?.condition || 'Vulnerability'),
-    duration: Number(vulnerability?.duration ?? 10),
-    stacks: Number(vulnerability?.stacks ?? 10),
+    condition: String(vulnerability.condition),
+    duration: effectNumber(evenTheOddsProfile, vulnerability, 'duration', context),
+    stacks: effectNumber(evenTheOddsProfile, vulnerability, 'stacks', context),
     sourceId: TRAIT.EVEN_THE_ODDS,
     name: 'Even the Odds — Vulnerability'
   });
@@ -76,9 +90,12 @@ export function applyDeadlyAmbition(context: ThiefResolverContext, event: ThiefR
   const state = professionCoreState(context);
   const activation = `deadly-ambition:${event.activationId || `${skill.id}:${event.at}`}`;
   if (state.traitProcProgress[activation]) return;
+
+  const deadlyAmbitionProfile = requireBalanceProfileFromContext(context, PROFILE.deadlyAmbition);
+  const poison = requireEffect(deadlyAmbitionProfile, 'condition', 'Poisoned', context);
+  // Explicit removal suppresses this packet without restoring baseline tuning.
+  if (!poison) return;
   state.traitProcProgress[activation] = 1;
-  const profile = balanceProfileFromContext(context, PROFILE.deadlyAmbition);
-  const poison = balanceProfileEffect(profile, 'condition');
   context.applyCondition(
     buildResolverCondition({
       at: event.at,
@@ -88,11 +105,11 @@ export function applyDeadlyAmbition(context: ThiefResolverContext, event: ThiefR
       skillName: 'Deadly Ambition',
       activationId: event.activationId,
       triggeredBy: event.skillName,
-      condition: String(poison?.condition || 'Poisoned'),
-      duration: Number(poison?.duration ?? 3),
+      condition: String(poison.condition),
+      duration: effectNumber(deadlyAmbitionProfile, poison, 'duration', context),
       stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
-        ? Number(profile?.playerStacks ?? 2)
-        : Number(poison?.stacks ?? 1),
+        ? balanceProfileNumber(deadlyAmbitionProfile, 'playerStacks', context)
+        : effectNumber(deadlyAmbitionProfile, poison, 'stacks', context),
       sourceId: TRAIT.DEADLY_AMBITION,
       name: 'Deadly Ambition — Poison'
     })
@@ -108,53 +125,57 @@ export function applyLotusPoison(context: ThiefResolverContext, event: ThiefReso
     !hasTrait(context.config, TRAIT.LOTUS_POISON)
   )
     return;
-  const profile = balanceProfileFromContext(context, PROFILE.lotusPoison);
+
+  const lotusPoisonProfile = requireBalanceProfileFromContext(context, PROFILE.lotusPoison);
   if (
     !tryConsumeProcCooldown(
       professionCoreState(context).traitProcReadyAt,
       TRAIT.LOTUS_POISON,
       event.at,
-      Number(profile?.internalCooldown ?? 10)
+      balanceProfileNumber(lotusPoisonProfile, 'internalCooldown', context)
     )
   )
     return;
-  const might = balanceProfileEffect(profile, 'boon');
-  const boon = String(might?.boon || 'Might');
-  queueResolverBoon(
-    context,
-    event,
-    buildResolverBuff({
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.LOTUS_POISON,
-      actorType: 'effect',
-      skillId: TRAIT.LOTUS_POISON,
-      skillName: 'Lotus Poison',
-      name: `Lotus Poison - ${boon}`,
-      kind: boon.toLowerCase(),
-      stacks: Number(might?.stacks ?? 3),
-      duration: Number(might?.duration ?? 10),
-      audience: { recipients: 'self' },
-      triggeredBy: event.skillName
-    })
-  );
-  const weakness = balanceProfileEffect(profile, 'condition');
-  context.queue.enqueue(
-    buildResolverCondition({
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.LOTUS_POISON,
-      actorType: 'player',
-      skillId: TRAIT.LOTUS_POISON,
-      skillName: 'Lotus Poison',
-      name: 'Lotus Poison - Weakness',
-      condition: String(weakness?.condition || 'Weakness'),
-      stacks: Number(weakness?.stacks ?? 1),
-      duration: Number(weakness?.duration ?? 4),
-      activationId: event.activationId,
-      triggeredBy: event.skillName
-    })
-  );
+  const might = requireEffect(lotusPoisonProfile, 'boon', 'Might', context);
+  if (might) {
+    const boon = String(might.boon);
+    queueResolverBoon(
+      context,
+      event,
+      buildResolverBuff({
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.LOTUS_POISON,
+        actorType: 'effect',
+        skillId: TRAIT.LOTUS_POISON,
+        skillName: 'Lotus Poison',
+        name: `Lotus Poison - ${boon}`,
+        kind: boon.toLowerCase(),
+        stacks: effectNumber(lotusPoisonProfile, might, 'stacks', context),
+        duration: effectNumber(lotusPoisonProfile, might, 'duration', context),
+        audience: { recipients: 'self' },
+        triggeredBy: event.skillName
+      })
+    );
+  }
+  const weakness = requireEffect(lotusPoisonProfile, 'condition', 'Weakness', context);
+  if (weakness)
+    context.queue.enqueue(
+      buildResolverCondition({
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.LOTUS_POISON,
+        actorType: 'player',
+        skillId: TRAIT.LOTUS_POISON,
+        skillName: 'Lotus Poison',
+        name: 'Lotus Poison - Weakness',
+        condition: String(weakness.condition),
+        stacks: effectNumber(lotusPoisonProfile, weakness, 'stacks', context),
+        duration: effectNumber(lotusPoisonProfile, weakness, 'duration', context),
+        activationId: event.activationId,
+        triggeredBy: event.skillName
+      })
+    );
 }
 
 function targetConditionCount(context: ThiefResolverContext, at: number): number {
@@ -163,24 +184,22 @@ function targetConditionCount(context: ThiefResolverContext, at: number): number
 }
 
 export function applyPanicStrike(context: ThiefResolverContext, event: ThiefResolverEvent): void {
-  if (
-    event.actorType !== 'player' ||
-    !(Number(event.coefficient) > 0) ||
-    !hasTrait(context.config, TRAIT.PANIC_STRIKE) ||
-    targetConditionCount(context, event.at) <
-      Number(balanceProfileFromContext(context, PROFILE.panicStrike)?.threshold ?? 3)
-  )
+  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || !hasTrait(context.config, TRAIT.PANIC_STRIKE))
     return;
   const state = professionCoreState(context);
-  const profile = balanceProfileFromContext(context, PROFILE.panicStrike);
-  const immobilized = balanceProfileEffect(profile, 'condition', 0);
+
+  const panicStrikeProfile = requireBalanceProfileFromContext(context, PROFILE.panicStrike);
+  if (targetConditionCount(context, event.at) < balanceProfileNumber(panicStrikeProfile, 'threshold', context)) return;
+  const immobilized = requireEffect(panicStrikeProfile, 'condition', 'Immobilized', context);
+  // Explicit removal suppresses this packet without restoring baseline tuning.
+  if (!immobilized) return;
   // Claim this owner's ICD before effects or resource snapshots can re-enter the trait.
   if (
     !tryConsumeProcCooldown(
       state.traitProcReadyAt,
       TRAIT.PANIC_STRIKE,
       event.at,
-      Number(profile?.internalCooldown ?? 20)
+      balanceProfileNumber(panicStrikeProfile, 'internalCooldown', context)
     )
   )
     return;
@@ -193,9 +212,9 @@ export function applyPanicStrike(context: ThiefResolverContext, event: ThiefReso
       skillId: TRAIT.PANIC_STRIKE,
       skillName: 'Panic Strike',
       name: 'Panic Strike - Immobilized',
-      condition: String(immobilized?.condition || 'Immobilized'),
-      stacks: Number(immobilized?.stacks ?? 1),
-      duration: Number(immobilized?.duration ?? 2.5),
+      condition: String(immobilized.condition),
+      stacks: effectNumber(panicStrikeProfile, immobilized, 'stacks', context),
+      duration: effectNumber(panicStrikeProfile, immobilized, 'duration', context),
       activationId: `panic-strike:${event.at}`,
       triggeredBy: event.skillName
     })
@@ -209,8 +228,11 @@ export function applyPanicStrikePoison(context: ThiefResolverContext, applicatio
     !hasTrait(context.config, TRAIT.PANIC_STRIKE)
   )
     return;
-  const profile = balanceProfileFromContext(context, PROFILE.panicStrike);
-  const poison = balanceProfileEffect(profile, 'condition', 1);
+
+  const panicStrikeProfile = requireBalanceProfileFromContext(context, PROFILE.panicStrike);
+  const poison = requireEffect(panicStrikeProfile, 'condition', 'Poisoned', context);
+  // Explicit removal suppresses this packet without restoring baseline tuning.
+  if (!poison) return;
   context.queue.enqueue(
     buildResolverCondition({
       at: application.at,
@@ -220,11 +242,11 @@ export function applyPanicStrikePoison(context: ThiefResolverContext, applicatio
       skillId: TRAIT.PANIC_STRIKE,
       skillName: 'Panic Strike',
       name: 'Panic Strike - Poison',
-      condition: String(poison?.condition || 'Poisoned'),
+      condition: String(poison.condition),
       stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
-        ? Number(profile?.playerStacks ?? 2)
-        : Number(poison?.stacks ?? 1),
-      duration: Number(poison?.duration ?? 4),
+        ? balanceProfileNumber(panicStrikeProfile, 'playerStacks', context)
+        : effectNumber(panicStrikeProfile, poison, 'stacks', context),
+      duration: effectNumber(panicStrikeProfile, poison, 'duration', context),
       activationId: application.activationId || `panic-strike:${application.at}`,
       triggeredBy: application.skillName
     })

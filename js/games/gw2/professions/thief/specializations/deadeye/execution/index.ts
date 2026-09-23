@@ -1,10 +1,14 @@
+import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 /** Registers scheduler-phase skill activations for this module. */
 import {
-  balanceProfileFromContext,
-  balanceProfileEffect,
-  balanceProfileNumberFromContext
+  balanceProfileNumberFromContext,
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { augmentSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
@@ -41,7 +45,7 @@ function completeDeadeyesMark(context: ThiefCastContext): void {
   // Re-marking an already-marked target adds to existing malice rather than resetting it
   const remarkingTarget = state.markedTargetId === 'primary-target' && state.markExpiresAt > at;
   state.markedTargetId = 'primary-target';
-  state.markExpiresAt = at + Number(balanceProfileFromContext(context, PROFILE.resources)?.durationMultiplier ?? 30);
+  state.markExpiresAt = at + balanceProfileNumberFromContext(context, PROFILE.resources, 'durationMultiplier');
   state.markGeneration += 1;
   state.malice = remarkingTarget
     ? Math.min(state.maximumMalice, state.malice + initialDeadeyeMalice(context))
@@ -105,19 +109,26 @@ function observeDeadeyeStealthEffect(
       deadeyeMaliceSnapshot: Number(prepared.malice || 0)
     });
   }
+}
 
-  if (skill.id === ID.MALICIOUS_SNEAK_ATTACK && event.type === 'condition' && event.condition === 'Torment') {
-    // Malicious Sneak Attack scales Torment duration by malice: base 1s + 2s per stack
-    context.replaceEvent(event, {
-      duration:
-        Number(
-          balanceProfileEffect(balanceProfileFromContext(context, PROFILE.maliciousSneakAttack), 'condition')
-            ?.duration ?? 1
-        ) +
-        Number(prepared.malice || 0) *
-          Number(balanceProfileFromContext(context, PROFILE.maliciousSneakAttack)?.durationMultiplier ?? 2)
-    });
-  }
+/** The scaling profile owns Torment; removing it preserves the skill's strikes and Bleeding. */
+function completeDeadeyeStealthAttack(context: ThiefCastContext, skill: ThiefSkill, handlerState: unknown): void {
+  completeStealthAttack(context, skill);
+  if (skill.id !== ID.MALICIOUS_SNEAK_ATTACK || castWasInterrupted(context)) return;
+  const maliciousSneakAttackProfile = requireBalanceProfileFromContext(context, PROFILE.maliciousSneakAttack);
+  const torment = requireEffect(maliciousSneakAttackProfile, 'condition', 'Torment', context);
+  if (!torment) return;
+  const prepared = (handlerState || {}) as DeadeyeHandlerState;
+  emitSkillCondition(context, {
+    at: context.effectiveEnd,
+    skillId: skill.id,
+    skillName: skill.name,
+    condition: String(torment.condition),
+    duration:
+      effectNumber(maliciousSneakAttackProfile, torment, 'duration', context) +
+      Number(prepared.malice || 0) * balanceProfileNumber(maliciousSneakAttackProfile, 'durationMultiplier', context),
+    stacks: effectNumber(maliciousSneakAttackProfile, torment, 'stacks', context)
+  });
 }
 
 function prepareDeadeyeStolenSkill(context: ThiefCastContext): DeadeyeHandlerState {
@@ -161,11 +172,12 @@ function completeMercy(context: ThiefCastContext): void {
   // Mercy resets Deadeye's Mark cooldown so the player can re-mark immediately
   context.state.cooldowns.delete(ID.DEADEYES_MARK);
   // Initiative refund is 3 base + 1 per malice stack consumed
-  const profile = balanceProfileFromContext(context, PROFILE.mercy);
+
+  const mercyProfile = requireBalanceProfileFromContext(context, PROFILE.mercy);
   gainThiefInitiative(
     context,
-    Number(profile?.resourceGain ?? 3) +
-      malice * balanceProfileNumberFromContext(context, PROFILE.mercy, 'attributePerStack'),
+    balanceProfileNumber(mercyProfile, 'resourceGain', context) +
+      malice * balanceProfileNumber(mercyProfile, 'attributePerStack', context),
     context.effectiveEnd,
     'mercy'
   );
@@ -181,7 +193,7 @@ function completeShadowFlare(context: ThiefCastContext): void {
     core.availableFlips,
     ID.SHADOW_SWAP,
     context.effectiveEnd,
-    context.effectiveEnd + Number(balanceProfileFromContext(context, PROFILE.shadowFlare)?.durationMultiplier ?? 4)
+    context.effectiveEnd + balanceProfileNumberFromContext(context, PROFILE.shadowFlare, 'durationMultiplier')
   );
   emitThiefStateSnapshot(context, context.effectiveEnd, 'shadow-flare');
 }
@@ -220,7 +232,7 @@ function observeDeadeyeSpearStealthEffect(
         Number(event.coefficient || 0) *
         (1 +
           Number(prepared.malice || 0) *
-            Number(balanceProfileFromContext(context, PROFILE.maliciousAshenAssault)?.coefficientMultiplier ?? 0.02))
+            balanceProfileNumberFromContext(context, PROFILE.maliciousAshenAssault, 'coefficientMultiplier'))
     });
   }
 }
@@ -228,8 +240,13 @@ function observeDeadeyeSpearStealthEffect(
 function completeDeadeyeSpearStealthAttack(context: ThiefCastContext, skill: ThiefSkill, handlerState: unknown): void {
   const prepared = (handlerState || {}) as DeadeyeHandlerState;
   const at = context.effectiveEnd;
-  const profile = balanceProfileFromContext(context, PROFILE.maliciousAshenAssault);
-  gainThiefInitiative(context, Number(profile?.resourceGain ?? 4), at, 'ashen-assault-refund');
+
+  gainThiefInitiative(
+    context,
+    balanceProfileNumberFromContext(context, PROFILE.maliciousAshenAssault, 'resourceGain'),
+    at,
+    'ashen-assault-refund'
+  );
   // Torment duration scales with the pre-cast malice snapshot.
   applyMaliciousAshenAssaultCondition(context, skill, at, Number(prepared.malice || 0));
 
@@ -246,7 +263,7 @@ export const deadeyeSkillHandlers = Object.freeze({
   }),
   'thief.deadeye-stealth-attack': augmentSkillHandler(prepareDeadeyeStealthAttack, {
     afterEffect: observeDeadeyeStealthEffect,
-    afterEffects: completeStealthAttack
+    afterEffects: completeDeadeyeStealthAttack
   }),
   'thief.deadeye-stolen-skill': augmentSkillHandler(prepareDeadeyeStolenSkill, {
     afterEffect: observeDeadeyeStolenEffect,

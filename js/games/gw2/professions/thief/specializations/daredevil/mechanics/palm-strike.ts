@@ -1,7 +1,7 @@
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefCastContext, ThiefSkill } from '#gw2/professions/thief/types.js';
 
@@ -18,7 +18,7 @@ export function updatePalmStrikeWindow(context: ThiefCastContext, skill: ThiefSk
       flips,
       ID.PALM_STRIKE,
       context.effectiveEnd,
-      context.effectiveEnd + Number(balanceProfileFromContext(context, PROFILE.palmStrike)?.durationMultiplier ?? 5)
+      context.effectiveEnd + balanceProfileNumberFromContext(context, PROFILE.palmStrike, 'durationMultiplier')
     );
     emitThiefStateSnapshot(context, context.effectiveEnd, 'palm-strike-ready');
   } else if (skill.id === ID.PALM_STRIKE) {

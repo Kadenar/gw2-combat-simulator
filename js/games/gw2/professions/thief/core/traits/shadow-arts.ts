@@ -1,5 +1,10 @@
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
@@ -15,34 +20,44 @@ const VENOM_SKILL_IDS = new Set<number>([ID.SPIDER_VENOM, ID.SKALE_VENOM, ID.DEV
 export function applyHiddenThief(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.HIDDEN_THIEF)) return;
   const state = professionCoreState(context);
-  const profile = balanceProfileFromContext(context, PROFILE.hiddenThief);
-  const blindness = balanceProfileEffect(profile, 'condition', 0);
-  const weakness = balanceProfileEffect(profile, 'condition', 1);
+
+  const hiddenThiefProfile = requireBalanceProfileFromContext(context, PROFILE.hiddenThief);
+  const blindness = requireEffect(hiddenThiefProfile, 'condition', 'Blindness', context);
+  const weakness = requireEffect(hiddenThiefProfile, 'condition', 'Weakness', context);
   // Claim this owner's ICD before effects or resource snapshots can re-enter the trait.
-  if (!tryConsumeProcCooldown(state.traitProcReadyAt, TRAIT.HIDDEN_THIEF, at, Number(profile?.internalCooldown ?? 2)))
+  if (
+    !tryConsumeProcCooldown(
+      state.traitProcReadyAt,
+      TRAIT.HIDDEN_THIEF,
+      at,
+      balanceProfileNumber(hiddenThiefProfile, 'internalCooldown', context)
+    )
+  )
     return;
-  emitSkillCondition(context, {
-    at,
-    source: 'Trait',
-    skillId: context.skill?.id ?? null,
-    skillName: context.skill?.name ?? null,
-    condition: 'Blindness',
-    duration: Number(blindness?.duration ?? 3),
-    stacks: Number(blindness?.stacks ?? 1),
-    sourceId: TRAIT.HIDDEN_THIEF,
-    name: 'Hidden Thief - Blindness'
-  });
-  emitSkillCondition(context, {
-    at,
-    source: 'Trait',
-    skillId: context.skill?.id ?? null,
-    skillName: context.skill?.name ?? null,
-    condition: 'Weakness',
-    duration: Number(weakness?.duration ?? 3),
-    stacks: Number(weakness?.stacks ?? 1),
-    sourceId: TRAIT.HIDDEN_THIEF,
-    name: 'Hidden Thief - Weakness'
-  });
+  if (blindness)
+    emitSkillCondition(context, {
+      at,
+      source: 'Trait',
+      skillId: context.skill?.id ?? null,
+      skillName: context.skill?.name ?? null,
+      condition: 'Blindness',
+      duration: effectNumber(hiddenThiefProfile, blindness, 'duration', context),
+      stacks: effectNumber(hiddenThiefProfile, blindness, 'stacks', context),
+      sourceId: TRAIT.HIDDEN_THIEF,
+      name: 'Hidden Thief - Blindness'
+    });
+  if (weakness)
+    emitSkillCondition(context, {
+      at,
+      source: 'Trait',
+      skillId: context.skill?.id ?? null,
+      skillName: context.skill?.name ?? null,
+      condition: 'Weakness',
+      duration: effectNumber(hiddenThiefProfile, weakness, 'duration', context),
+      stacks: effectNumber(hiddenThiefProfile, weakness, 'stacks', context),
+      sourceId: TRAIT.HIDDEN_THIEF,
+      name: 'Hidden Thief - Weakness'
+    });
 }
 
 function enqueueSiphon(
@@ -75,14 +90,17 @@ function enqueueSiphon(
 
 export function applyLeechingVenoms(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (!hasTrait(context.config, TRAIT.LEECHING_VENOMS)) return;
-  const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.leechingVenoms), 'strike');
+  const leechingVenomsProfile = requireBalanceProfileFromContext(context, PROFILE.leechingVenoms);
+  const strike = requireEffect(leechingVenomsProfile, 'strike', 'Leeching Venoms', context);
+  // Explicit removal suppresses this packet without restoring baseline tuning.
+  if (!strike) return;
   enqueueSiphon(
     context,
     event,
     TRAIT.LEECHING_VENOMS,
     'Leeching Venoms',
-    Number(strike?.flatStrikePowerCoeff ?? 0.033),
-    Number(strike?.flatStrikeBase ?? 320)
+    effectNumber(leechingVenomsProfile, strike, 'flatStrikePowerCoeff', context),
+    effectNumber(leechingVenomsProfile, strike, 'flatStrikeBase', context)
   );
 }
 
@@ -108,13 +126,16 @@ export function applyShadowSiphoning(context: ThiefResolverContext, event: Thief
   const namedSkill = event.skillName == null ? undefined : context.helpers.skillsByName?.get(event.skillName);
   if (!(skill || namedSkill)?.stealthAttack) return;
   const state = professionCoreState(context);
-  const profile = balanceProfileFromContext(context, PROFILE.shadowSiphoning);
+  // Removing the siphon leaves no packet to claim its proc cooldown.
+  const shadowSiphoningProfile = requireBalanceProfileFromContext(context, PROFILE.shadowSiphoning);
+  const strike = requireEffect(shadowSiphoningProfile, 'strike', 'Shadow Siphoning', context);
+  if (!strike) return;
   if (
     !tryConsumeProcCooldown(
       state.traitProcReadyAt,
       TRAIT.SHADOW_SIPHONING,
       event.at,
-      Number(profile?.internalCooldown ?? 1)
+      balanceProfileNumber(shadowSiphoningProfile, 'internalCooldown', context)
     )
   )
     return;
@@ -123,18 +144,21 @@ export function applyShadowSiphoning(context: ThiefResolverContext, event: Thief
     event,
     TRAIT.SHADOW_SIPHONING,
     'Shadow Siphoning',
-    Number(balanceProfileEffect(profile, 'strike')?.coefficient ?? 0.1)
+    effectNumber(shadowSiphoningProfile, strike, 'coefficient', context)
   );
 }
 
 export function applyCloakedInShadow(context: ThiefResolverContext, application: ThiefResolverEvent): void {
   if (application.condition !== 'Blindness' || !hasTrait(context.config, TRAIT.CLOAKED_IN_SHADOW)) return;
-  const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.cloakedInShadow), 'strike');
+  const cloakedInShadowProfile = requireBalanceProfileFromContext(context, PROFILE.cloakedInShadow);
+  const strike = requireEffect(cloakedInShadowProfile, 'strike', 'Cloaked in Shadow', context);
+  // Explicit removal suppresses this packet without restoring baseline tuning.
+  if (!strike) return;
   enqueueSiphon(
     context,
     application,
     TRAIT.CLOAKED_IN_SHADOW,
     'Cloaked in Shadow',
-    Number(strike?.coefficient ?? 0.04)
+    effectNumber(cloakedInShadowProfile, strike, 'coefficient', context)
   );
 }

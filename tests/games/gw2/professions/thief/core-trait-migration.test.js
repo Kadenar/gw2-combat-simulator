@@ -473,7 +473,10 @@ test('Thief critical proc batches reread patched effects and retain live boon sc
     const profiles = new Map();
     context.catalog = { balanceProfilesById: profiles };
     for (const duration of [2, 3]) {
-      profiles.set(id, { effects: [{ type: 'boon', boon: 'Fury', duration, stacks: 1 }] });
+      profiles.set(id, {
+        ...thiefCatalog.balanceProfilesById.get(id),
+        effects: [{ type: 'boon', name: 'Fury', boon: 'Fury', duration, stacks: 1 }]
+      });
       context.boons.set('fury', [{ at: 0, expiresAt: 5, resolvedAudience: { includesSelf: true } }]);
       let statReads = 0;
       context.query.statsAt = () => ({ concentration: 1500 * statReads++ });

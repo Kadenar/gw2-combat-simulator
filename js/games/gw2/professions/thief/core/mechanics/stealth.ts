@@ -1,6 +1,12 @@
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileNumberFromContext,
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -43,28 +49,28 @@ function breakThiefStealth(
   if (hasTrait(context.config, TRAIT.SHADOWS_REJUVENATION)) {
     gainThiefInitiative(
       context,
-      Number(balanceProfileFromContext(context, PROFILE.shadowsRejuvenation)?.resourceGain ?? 1),
+      balanceProfileNumberFromContext(context, PROFILE.shadowsRejuvenation, 'resourceGain'),
       at,
       'leave-stealth'
     );
   }
 
   if (hasTrait(context.config, TRAIT.LEECHING_VENOMS)) {
-    const profile = balanceProfileFromContext(context, PROFILE.leechingVenoms);
+    const leechingVenomsProfile = requireBalanceProfileFromContext(context, PROFILE.leechingVenoms);
     addVenomCharges(
       state,
       ID.SPIDER_VENOM,
       at,
-      Number(profile?.resourceGain ?? 3),
-      Number(profile?.durationMultiplier ?? 24),
-      Number(profile?.maximumStacks ?? 6)
+      balanceProfileNumber(leechingVenomsProfile, 'resourceGain', context),
+      balanceProfileNumber(leechingVenomsProfile, 'durationMultiplier', context),
+      balanceProfileNumber(leechingVenomsProfile, 'maximumStacks', context)
     );
   }
 
   state.stealthStartedAt = at;
   state.stealthUntil = at;
   // Only a real stealth exit starts the linger; bonus attack charges do not.
-  state.hiddenKillerUntil = at + Number(balanceProfileFromContext(context, TRAIT.HIDDEN_KILLER)?.duration);
+  state.hiddenKillerUntil = at + balanceProfileNumberFromContext(context, TRAIT.HIDDEN_KILLER, 'duration');
   if (!skill.preservesStealth) state.revealedUntil = at + 3;
   const snapshot = emitThiefStateSnapshot(context, at, reason);
   if (snapshot && snapshotPriority != null) context.replaceEvent(snapshot, { priority: snapshotPriority });
@@ -131,15 +137,18 @@ export function beginStealthAttack(context: ThiefPrecastContext, skill: ThiefSki
 export function completeStealthAttack(context: ThiefCastContext, _skill: ThiefSkill): void {
   const at = context.effectiveEnd;
   if (hasTrait(context.config, TRAIT.SUNDERING_SHADE)) {
-    const vulnerability = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sunderingShade), 'condition');
+    const sunderingShadeProfile = requireBalanceProfileFromContext(context, PROFILE.sunderingShade);
+    const vulnerability = requireEffect(sunderingShadeProfile, 'condition', 'Vulnerability', context);
+    // Explicit removal suppresses this packet without restoring baseline tuning.
+    if (!vulnerability) return;
     emitSkillCondition(context, {
       at,
       source: 'Trait',
       skillId: context.skill?.id ?? null,
       skillName: context.skill?.name ?? null,
-      condition: String(vulnerability?.condition || 'Vulnerability'),
-      duration: Number(vulnerability?.duration ?? 5),
-      stacks: Number(vulnerability?.stacks ?? 10),
+      condition: String(vulnerability.condition),
+      duration: effectNumber(sunderingShadeProfile, vulnerability, 'duration', context),
+      stacks: effectNumber(sunderingShadeProfile, vulnerability, 'stacks', context),
       sourceId: TRAIT.SUNDERING_SHADE,
       name: 'Sundering Shade — Vulnerability'
     });

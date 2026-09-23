@@ -1,7 +1,13 @@
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileNumberFromContext,
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
@@ -35,31 +41,29 @@ const CRITICAL_BOONS = [
     traitId: TRAIT.UNRELENTING_STRIKES,
     profileId: PROFILE.unrelentingStrikes,
     id: 'thief.unrelenting-strikes',
-    name: 'Unrelenting Strikes',
-    duration: 4,
-    internalCooldown: 8
+    name: 'Unrelenting Strikes'
   },
   {
     traitId: TRAIT.NO_QUARTER,
     profileId: PROFILE.noQuarter,
     id: 'thief.no-quarter',
-    name: 'No Quarter',
-    duration: 2,
-    internalCooldown: 2
+    name: 'No Quarter'
   }
 ] as const;
 
-/** Both phases read the same patched effects and defaults, while each applies its own boon duration. */
+/** Both phases omit removed boons and read surviving tuning from the selected profile. */
 function criticalBoonDefinition(context: unknown, traitId: SkillId) {
   const rule = CRITICAL_BOONS.find((rule) => rule.traitId === traitId)!;
-  const profile = balanceProfileFromContext(context, rule.profileId);
-  const effect = balanceProfileEffect(profile, 'boon');
+
+  const selectedProfile = requireBalanceProfileFromContext(context, rule.profileId);
+  const effect = requireEffect(selectedProfile, 'boon', 'Fury', context);
+  if (!effect) return null;
   return {
     ...rule,
-    boon: String(effect?.boon || 'Fury'),
-    duration: Number(effect?.duration ?? rule.duration),
-    stacks: Number(effect?.stacks ?? 1),
-    internalCooldown: Number(profile?.internalCooldown ?? rule.internalCooldown)
+    boon: String(effect.boon),
+    duration: effectNumber(selectedProfile, effect, 'duration', context),
+    stacks: effectNumber(selectedProfile, effect, 'stacks', context),
+    internalCooldown: balanceProfileNumber(selectedProfile, 'internalCooldown', context)
   };
 }
 
@@ -82,6 +86,7 @@ function criticalBoonEligible(
     !Number.isFinite(event.flatStrikeBase) &&
     !Number.isFinite(event.flatStrikePowerCoeff) &&
     hasTrait(context.config, traitId) &&
+    criticalBoonDefinition(context, traitId) !== null &&
     (traitId !== TRAIT.NO_QUARTER || hadFury)
   );
 }
@@ -145,7 +150,9 @@ export const thiefCriticalBoonReaction = eventReaction<ThiefSchedulerContext, Th
         .furyActive === true;
     for (const { traitId } of CRITICAL_BOONS) {
       if (!criticalBoonEligible(context, event, traitId, hadFury)) continue;
-      const { id, name, boon, duration, stacks, internalCooldown } = criticalBoonDefinition(context, traitId);
+      const definition = criticalBoonDefinition(context, traitId);
+      if (!definition) continue;
+      const { id, name, boon, duration, stacks, internalCooldown } = definition;
       const tracker = {
         progress: Number(state.traitProcProgress[traitId] || 0),
         readyAt: Number(state.traitProcReadyAt[traitId] || 0)
@@ -198,7 +205,7 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
   },
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
-      criticalBoonDefinition(context, TRAIT.UNRELENTING_STRIKES).internalCooldown,
+      balanceProfileNumberFromContext(context, TRAIT.UNRELENTING_STRIKES, 'internalCooldown'),
     readyAt: (context: ThiefResolverContext) =>
       Number(professionCoreState(context).traitProcReadyAt[TRAIT.UNRELENTING_STRIKES] || 0),
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
@@ -211,7 +218,9 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
   },
   handler: (context, event, _details, application) => {
     // One invocation shares authored effects; each queued boon still samples live duration scaling.
-    const { boon, duration, stacks } = criticalBoonDefinition(context, TRAIT.UNRELENTING_STRIKES);
+    const definition = criticalBoonDefinition(context, TRAIT.UNRELENTING_STRIKES);
+    if (!definition) return;
+    const { boon, duration, stacks } = definition;
     for (let proc = 0; proc < application.quantity; proc += 1) {
       queueResolverBoon(
         context,
@@ -248,7 +257,8 @@ export const noQuarterCriticalReaction = Object.freeze({
     set: (context: ThiefResolverContext, value: number) => setTraitCriticalProgress(context, TRAIT.NO_QUARTER, value)
   },
   internalCooldown: {
-    duration: (context: ThiefResolverContext) => criticalBoonDefinition(context, TRAIT.NO_QUARTER).internalCooldown,
+    duration: (context: ThiefResolverContext) =>
+      balanceProfileNumberFromContext(context, TRAIT.NO_QUARTER, 'internalCooldown'),
     readyAt: (context: ThiefResolverContext) =>
       Number(professionCoreState(context).traitProcReadyAt[TRAIT.NO_QUARTER] || 0),
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
@@ -258,7 +268,9 @@ export const noQuarterCriticalReaction = Object.freeze({
   attribution: { kind: 'trait' as const, id: TRAIT.NO_QUARTER },
   handler: (context, event, _details, application) => {
     // Reuse authored duration within this batch while extending the live pool for each proc.
-    const { duration } = criticalBoonDefinition(context, TRAIT.NO_QUARTER);
+    const definition = criticalBoonDefinition(context, TRAIT.NO_QUARTER);
+    if (!definition) return;
+    const { duration } = definition;
     for (let proc = 0; proc < application.quantity; proc += 1) {
       extendActiveFury(context, event, duration);
     }
@@ -273,20 +285,23 @@ export function applyAssassinsFury(context: ThiefResolverContext, event: ThiefRe
   )
     return;
   const state = professionCoreState(context);
-  const profile = balanceProfileFromContext(context, PROFILE.assassinsFury);
-  const might = balanceProfileEffect(profile, 'boon');
+
+  const assassinsFuryProfile = requireBalanceProfileFromContext(context, PROFILE.assassinsFury);
+  const might = requireEffect(assassinsFuryProfile, 'boon', 'Might', context);
+  // Explicit removal suppresses this packet without restoring baseline tuning.
+  if (!might) return;
   // Claim this owner's ICD before effects or resource snapshots can re-enter the trait.
   if (
     !tryConsumeProcCooldown(
       state.traitProcReadyAt,
       TRAIT.ASSASSINS_FURY,
       event.at,
-      Number(profile?.internalCooldown ?? 2)
+      balanceProfileNumber(assassinsFuryProfile, 'internalCooldown', context)
     )
   )
     return;
   // Keep the self boon attributed to this trait while shared queueing applies live duration scaling.
-  const boon = String(might?.boon || 'Might');
+  const boon = String(might.boon);
   queueResolverBoon(
     context,
     event,
@@ -299,8 +314,8 @@ export function applyAssassinsFury(context: ThiefResolverContext, event: ThiefRe
       skillName: "Assassin's Fury",
       name: `Assassin's Fury - ${boon}`,
       kind: boon.toLowerCase(),
-      duration: Number(might?.duration ?? 8),
-      stacks: Number(might?.stacks ?? 3),
+      duration: effectNumber(assassinsFuryProfile, might, 'duration', context),
+      stacks: effectNumber(assassinsFuryProfile, might, 'stacks', context),
       audience: { recipients: 'self' },
       triggeredBy: event.skillName
     })

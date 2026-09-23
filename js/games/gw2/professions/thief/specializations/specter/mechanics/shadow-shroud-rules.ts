@@ -1,5 +1,9 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileNumberFromContext,
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -64,15 +68,14 @@ function modifySpecterAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   const gearConditionDamage = Number(context.config?.stats?.conditionDamage || 0);
   const gearVitality = Number(context.config?.stats?.vitality || 0);
   if (hasTrait(context, TRAIT.SECOND_OPINION)) {
+    const secondOpinionProfile = requireBalanceProfileFromContext(context, PROFILE.secondOpinion);
     result.healingPower =
       Number(result.healingPower || 0) +
-      gearConditionDamage * balanceProfileNumberFromContext(context, PROFILE.secondOpinion, 'attributeConversion');
+      gearConditionDamage * balanceProfileNumber(secondOpinionProfile, 'attributeConversion', context);
     result.conditionDamage =
       Number(result.conditionDamage || 0) +
-      balanceProfileNumberFromContext(context, PROFILE.secondOpinion, 'attributeBonus') +
-      (wieldingScepter(context)
-        ? balanceProfileNumberFromContext(context, PROFILE.secondOpinion, 'attributePerStack')
-        : 0);
+      balanceProfileNumber(secondOpinionProfile, 'attributeBonus', context) +
+      (wieldingScepter(context) ? balanceProfileNumber(secondOpinionProfile, 'attributePerStack', context) : 0);
   }
 
   if (hasTrait(context, TRAIT.STRENGTH_OF_SHADOWS)) {

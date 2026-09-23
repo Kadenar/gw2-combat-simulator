@@ -1,4 +1,4 @@
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { activeStackCount, consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { antiquaryState, type AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -158,7 +158,7 @@ export const antiquaryAttributeRules = Object.freeze({
 function commitAntiquaryRechargeDuration(context: ThiefPrecastContext, duration: number): number {
   if (context.skill.type !== 'Utility') return duration;
   const state = antiquaryState.from(context);
-  const multiplier = Number(balanceProfileFromContext(context, PROFILE.artifactWindows)?.rechargeMultiplier ?? 0.2);
+  const multiplier = balanceProfileNumberFromContext(context, PROFILE.artifactWindows, 'rechargeMultiplier');
   // Consume the oldest grant, even when a newer charge expires sooner.
   const { expiries, consumed } = consumeOldestStacks(state.holoUtilityCooldownReductionExpirations, 1, context.start);
   state.holoUtilityCooldownReductionExpirations = expiries;

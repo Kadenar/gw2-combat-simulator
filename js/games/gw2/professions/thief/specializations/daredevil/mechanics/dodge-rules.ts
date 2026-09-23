@@ -1,7 +1,4 @@
-import {
-  balanceProfileFromContext,
-  balanceProfileNumberFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -25,9 +22,7 @@ function initializeDaredevilRuntime(context: ThiefSchedulerContext): void {
   const state = professionCoreState(context);
   context.onThiefStealComplete = applyEnduranceThief;
   // Daredevil owns both its third dodge and the dynamic health conversion from Marauder's Resilience.
-  state.maximumEndurance = Number(
-    balanceProfileFromContext(context, 'thief.daredevil.resources')?.maximumStacks ?? 150
-  );
+  state.maximumEndurance = balanceProfileNumberFromContext(context, 'thief.daredevil.resources', 'maximumStacks');
   state.endurance = state.maximumEndurance;
   if (!professionStaticRulesApplied(context.config) && hasTrait(context.config, TRAIT.MARAUDERS_RESILIENCE)) {
     state.maximumHealth +=

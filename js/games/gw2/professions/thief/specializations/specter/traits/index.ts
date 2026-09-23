@@ -2,7 +2,13 @@ import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { gainShadowForce } from '#gw2/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileNumberFromContext,
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2AlliedPlayerAssumptions, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
@@ -38,51 +44,53 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
   // Shadow shroud skills suppressed mid-cast should not grant their trait effects.
   if (castWasInterrupted(context)) return;
   if (hasTrait(context.config, TRAIT.SHADESTEP)) {
-    const profile = balanceProfileFromContext(context, PROFILE.shadeStep);
-    const authoredBoon =
+    // Skill identity binds each boon even after an earlier packet is removed.
+    const boonName =
       skill.id === ID.GRASPING_SHADOWS
-        ? { index: 0, fallback: 'alacrity', duration: 5 }
+        ? 'alacrity'
         : skill.id === ID.DAWNS_REPOSE
-          ? { index: 1, fallback: 'protection', duration: 5 }
+          ? 'protection'
           : skill.id === ID.MIND_SHOCK
-            ? { index: 2, fallback: 'aegis', duration: 4 }
+            ? 'aegis'
             : null;
-    if (authoredBoon) {
-      // Resolve the selected Shade Step packet once, then emit it through the canonical boon path.
-      const effect = balanceProfileEffect(profile, 'boon', authoredBoon.index);
-      const boon = String(effect?.boon || authoredBoon.fallback);
-      emitSkillBuff(context, {
-        at: context.effectiveEnd,
-        source: 'Trait',
-        sourceId: TRAIT.SHADESTEP,
-        actorType: 'player',
-        skillId: context.skill.id,
-        skillName: context.skill.name,
-        name: `Shade Step - ${boon}`,
-        kind: boon,
-        boon,
-        duration: gw2SchedulerBoonDuration(
-          context,
-          context.skill,
+    if (boonName) {
+      const shadeStepProfile = requireBalanceProfileFromContext(context, PROFILE.shadeStep);
+      const effect = requireEffect(shadeStepProfile, 'boon', boonName, context);
+      if (effect) {
+        const boon = String(effect.boon);
+        emitSkillBuff(context, {
+          at: context.effectiveEnd,
+          source: 'Trait',
+          sourceId: TRAIT.SHADESTEP,
+          actorType: 'player',
+          skillId: context.skill.id,
+          skillName: context.skill.name,
+          name: `Shade Step - ${boon}`,
+          kind: boon,
           boon,
-          Number(effect?.duration ?? authoredBoon.duration)
-        ),
-        stacks: 1,
-        audience: { recipients: 'party' as const }
-      });
+          duration: gw2SchedulerBoonDuration(
+            context,
+            context.skill,
+            boon,
+            effectNumber(shadeStepProfile, effect, 'duration', context)
+          ),
+          stacks: effectNumber(shadeStepProfile, effect, 'stacks', context),
+          audience: { recipients: 'party' as const }
+        });
+      }
     }
   }
-
   // Dawn's Repose grants barrier to the tethered ally and nearby allies, not the caster.
   // Dark Sentry is a mandatory Specter minor trait.
   if (skill.id === ID.DAWNS_REPOSE) {
-    const profile = balanceProfileFromContext(context, PROFILE.dawnsReposeBarrier);
-    const barrier = balanceProfileEffect(profile, 'buff');
+    const dawnsReposeBarrierProfile = requireBalanceProfileFromContext(context, PROFILE.dawnsReposeBarrier);
+    const barrier = requireEffect(dawnsReposeBarrierProfile, 'buff', 'barrier', context);
     const alliedRecipients = Math.min(
-      Number(profile?.maximumTargets ?? 4),
+      balanceProfileNumber(dawnsReposeBarrierProfile, 'maximumTargets', context),
       gw2AlliedPlayerAssumptions(context.config).count
     );
-    if (!alliedRecipients) return;
+    // Barrier removal also suppresses the barrier-triggered Dark Sentry reaction.
+    if (!barrier || !alliedRecipients) return;
     const allyIndices = Array.from({ length: alliedRecipients }, (_, index) => index + 1);
     emitSkillBuff(context, {
       at: context.effectiveEnd,
@@ -93,8 +101,8 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
       skillName: skill.name,
       name: "Dawn's Repose - Barrier",
       kind: 'barrier',
-      duration: Number(barrier?.duration ?? 5),
-      stacks: Number(barrier?.stacks ?? 1),
+      duration: effectNumber(dawnsReposeBarrierProfile, barrier, 'duration', context),
+      stacks: effectNumber(dawnsReposeBarrierProfile, barrier, 'stacks', context),
       audience: { recipients: 'party' as const, affectsSelf: false, maximumRecipients: alliedRecipients }
     });
     context.tasks.schedule({
@@ -133,8 +141,11 @@ export const larcenousTormentReaction = scheduledReaction<
     if (specterState.from(context).shadowShroudActive) return;
     const stacks = Math.max(0, Number(payload.stacks || 0));
     if (!(stacks > 0)) return;
-    const profile = balanceProfileFromContext(context, PROFILE.larcenousTorment);
-    gainShadowForce(context, stacks * Number(profile?.resourceGain ?? 0.5));
+
+    gainShadowForce(
+      context,
+      stacks * balanceProfileNumberFromContext(context, PROFILE.larcenousTorment, 'resourceGain')
+    );
     emitThiefStateSnapshot(context, taskAt, 'larcenous-torment');
   }
 });
@@ -163,11 +174,16 @@ export function handleDarkSentry(
   );
   const recipientCount = eligibleAllies.length;
   if (!recipientCount) return;
-  const profile = balanceProfileFromContext(context, PROFILE.darkSentry);
-  const venom = balanceProfileEffect(profile, 'buff');
-  const torment = balanceProfileEffect(profile, 'condition');
+
+  const darkSentryProfile = requireBalanceProfileFromContext(context, PROFILE.darkSentry);
+  const venom = requireEffect(darkSentryProfile, 'buff', 'rot-wallow-venom', context);
+  if (!venom) return;
+  const torment = requireEffect(darkSentryProfile, 'condition', 'Torment', context);
+  // Reuse immutable tuning across every recipient and queued proc in this grant.
+  const readyAt = task.at + balanceProfileNumber(darkSentryProfile, 'internalCooldown', context);
+  const venomDuration = effectNumber(darkSentryProfile, venom, 'duration', context);
   for (const allyIndex of eligibleAllies) {
-    state.darkSentryReadyAtByAlly[String(allyIndex)] = task.at + Number(profile?.internalCooldown ?? 1);
+    state.darkSentryReadyAtByAlly[String(allyIndex)] = readyAt;
   }
 
   emitSkillBuff(context, {
@@ -180,33 +196,36 @@ export function handleDarkSentry(
     name: 'Rot Wallow Venom',
     icon: ROT_WALLOW_VENOM_ICON,
     kind: 'rot-wallow-venom',
-    duration: Number(venom?.duration ?? 10),
-    stacks: Number(venom?.stacks ?? 1),
+    duration: venomDuration,
+    stacks: effectNumber(darkSentryProfile, venom, 'stacks', context),
     audience: { recipients: 'party' as const, affectsSelf: false, maximumRecipients: recipientCount }
   });
   // The next allied strike must fit the grant, including the shared allied expiry boundary.
-  for (const proc of gw2AlliedPlayerProcTimeline(context.config, {
-    start: task.at,
-    duration: Number(venom?.duration ?? 10),
-    maximumPerAlly: 1
-  })) {
-    if (eligibleAllies.includes(proc.allyIndex)) {
-      const allyIndex = proc.allyIndex;
-      emitSkillCondition(context, {
-        at: proc.at,
-        source: 'Trait',
-        skillId: TRAIT.DARK_SENTRY,
-        skillName: 'Rot Wallow Venom',
-        name: `Rot Wallow Venom - Ally ${allyIndex} Torment`,
-        icon: ROT_WALLOW_VENOM_ICON,
-        condition: String(torment?.condition || 'Torment'),
-        stacks: Number(torment?.stacks ?? 1),
-        duration: Number(torment?.duration ?? 2),
-        metadata: { triggeredByAlly: allyIndex }
-      });
+  if (torment) {
+    const tormentStacks = effectNumber(darkSentryProfile, torment, 'stacks', context);
+    const tormentDuration = effectNumber(darkSentryProfile, torment, 'duration', context);
+    for (const proc of gw2AlliedPlayerProcTimeline(context.config, {
+      start: task.at,
+      duration: venomDuration,
+      maximumPerAlly: 1
+    })) {
+      if (eligibleAllies.includes(proc.allyIndex)) {
+        const allyIndex = proc.allyIndex;
+        emitSkillCondition(context, {
+          at: proc.at,
+          source: 'Trait',
+          skillId: TRAIT.DARK_SENTRY,
+          skillName: 'Rot Wallow Venom',
+          name: `Rot Wallow Venom - Ally ${allyIndex} Torment`,
+          icon: ROT_WALLOW_VENOM_ICON,
+          condition: String(torment.condition),
+          stacks: tormentStacks,
+          duration: tormentDuration,
+          metadata: { triggeredByAlly: allyIndex }
+        });
+      }
     }
   }
-
   emitThiefStateSnapshot(context, task.at, 'dark-sentry');
 }
 
@@ -220,37 +239,42 @@ export function applyLarcenousTorment(context: ThiefResolverContext, application
     return;
   // One life-siphon event per stack so each stack shows as a separate hit in the log.
   const stacks = Math.max(0, Math.trunc(Number(application.stacks || 0)));
-  const profile = balanceProfileFromContext(context, PROFILE.larcenousTorment);
-  const strike = balanceProfileEffect(profile, 'strike');
-  for (let stack = 1; stack <= stacks; stack += 1) {
-    context.queue.enqueue(
-      buildResolverStrike({
-        at: application.at,
-        source: 'Trait',
-        sourceId: TRAIT.LARCENOUS_TORMENT,
-        actorType: 'effect',
-        ownerActorType: 'player',
-        skillId: TRAIT.LARCENOUS_TORMENT,
-        skillName: 'Larcenous Torment',
-        name: 'Larcenous Torment - Life Siphon',
-        // Life steal scales directly with Power, bypassing armor and weapon-strike modifiers.
-        flatStrikeBase: Number(strike?.flatStrikeBase ?? 99),
-        flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff ?? 0.005),
 
-        canCrit: false,
-        noCrit: true,
-        lifeSiphon: true,
-        triggeredBy: application.skillName,
-        stackIndex: stack
-      })
-    );
+  const larcenousTormentProfile = requireBalanceProfileFromContext(context, PROFILE.larcenousTorment);
+  const strike = requireEffect(larcenousTormentProfile, 'strike', 'Larcenous Torment', context);
+  // Force gain is independent of the removable life-siphon packet.
+  if (strike) {
+    const flatStrikeBase = effectNumber(larcenousTormentProfile, strike, 'flatStrikeBase', context);
+    const flatStrikePowerCoeff = effectNumber(larcenousTormentProfile, strike, 'flatStrikePowerCoeff', context);
+    for (let stack = 1; stack <= stacks; stack += 1) {
+      context.queue.enqueue(
+        buildResolverStrike({
+          at: application.at,
+          source: 'Trait',
+          sourceId: TRAIT.LARCENOUS_TORMENT,
+          actorType: 'effect',
+          ownerActorType: 'player',
+          skillId: TRAIT.LARCENOUS_TORMENT,
+          skillName: 'Larcenous Torment',
+          name: 'Larcenous Torment - Life Siphon',
+          // Life steal scales directly with Power, bypassing armor and weapon-strike modifiers.
+          flatStrikeBase,
+          flatStrikePowerCoeff,
+
+          canCrit: false,
+          noCrit: true,
+          lifeSiphon: true,
+          triggeredBy: application.skillName,
+          stackIndex: stack
+        })
+      );
+    }
   }
-
   const state = specterState.from(context);
   // Shroud suppresses the force gain, but the life siphons above still resolve.
   if (state.shadowShroudActive) return;
   state.shadowClock.value = Math.min(
     state.shadowClock.maximum,
-    state.shadowClock.value + stacks * Number(profile?.resourceGain ?? 0.5)
+    state.shadowClock.value + stacks * balanceProfileNumber(larcenousTormentProfile, 'resourceGain', context)
   );
 }

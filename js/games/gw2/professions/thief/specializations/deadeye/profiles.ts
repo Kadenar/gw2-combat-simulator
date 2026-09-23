@@ -34,7 +34,7 @@ export const DEADEYE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     profileKind: 'skill-variant',
     parentId: ID.MALICIOUS_SNEAK_ATTACK,
     durationMultiplier: 2,
-    effects: [{ type: 'condition', condition: 'Torment', stacks: 1, duration: 1 }]
+    effects: [{ type: 'condition', name: 'Torment', condition: 'Torment', stacks: 1, duration: 1 }]
   },
   {
     id: DEADEYE_BALANCE_PROFILE_IDS.maliciousAshenAssault,
@@ -44,7 +44,7 @@ export const DEADEYE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     coefficientMultiplier: 0.02,
     durationMultiplier: 0.5,
     resourceGain: 4,
-    effects: [{ type: 'condition', condition: 'Torment', stacks: 1, duration: 0.5 }]
+    effects: [{ type: 'condition', name: 'Torment', condition: 'Torment', stacks: 1, duration: 0.5 }]
   },
   {
     id: DEADEYE_BALANCE_PROFILE_IDS.mercy,
@@ -70,22 +70,22 @@ export const DEADEYE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     maximumStacks: 7,
     resourceGain: 7,
     effects: [
-      { type: 'boon', boon: 'Might', stacks: 10, duration: 10 },
-      { type: 'boon', boon: 'Fury', stacks: 1, duration: 10 },
-      { type: 'boon', boon: 'Protection', stacks: 1, duration: 5 },
-      { type: 'boon', boon: 'Regeneration', stacks: 1, duration: 10 },
-      { type: 'boon', boon: 'Swiftness', stacks: 1, duration: 10 },
-      { type: 'boon', boon: 'Vigor', stacks: 1, duration: 10 }
+      { type: 'boon', name: 'Might', boon: 'Might', stacks: 10, duration: 10 },
+      { type: 'boon', name: 'Fury', boon: 'Fury', stacks: 1, duration: 10 },
+      { type: 'boon', name: 'Protection', boon: 'Protection', stacks: 1, duration: 5 },
+      { type: 'boon', name: 'Regeneration', boon: 'Regeneration', stacks: 1, duration: 10 },
+      { type: 'boon', name: 'Swiftness', boon: 'Swiftness', stacks: 1, duration: 10 },
+      { type: 'boon', name: 'Vigor', boon: 'Vigor', stacks: 1, duration: 10 }
     ]
   }),
   trait(DEADEYE_BALANCE_PROFILE_IDS.beQuickOrBeKilled, 'Be Quick or Be Killed', {
     attributeBonus: 200,
-    effects: [{ type: 'boon', boon: 'Quickness', stacks: 1, duration: 4 }]
+    effects: [{ type: 'boon', name: 'Quickness', boon: 'Quickness', stacks: 1, duration: 4 }]
   }),
   trait(DEADEYE_BALANCE_PROFILE_IDS.fireForEffect, 'Fire for Effect', {
     effects: [
-      { type: 'boon', boon: 'Might', stacks: 8, duration: 12 },
-      { type: 'boon', boon: 'Fury', stacks: 1, duration: 12 }
+      { type: 'boon', name: 'Might', boon: 'Might', stacks: 8, duration: 12 },
+      { type: 'boon', name: 'Fury', boon: 'Fury', stacks: 1, duration: 12 }
     ]
   }),
   trait(DEADEYE_BALANCE_PROFILE_IDS.silentScope, 'Silent Scope', {

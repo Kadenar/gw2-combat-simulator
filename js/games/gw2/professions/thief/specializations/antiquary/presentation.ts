@@ -6,7 +6,7 @@ import {
 } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { getActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
@@ -23,7 +23,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     hasTrait(context, TRAIT.PRODIGIOUS_PINCHER) ||
     getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.PRODIGIOUS_PINCHER)
   ) {
-    const threshold = balanceProfileValueFromContext(context, PROFILE.prodigiousPincher, 'threshold', 15);
+    const threshold = balanceProfileNumberFromContext(context, PROFILE.prodigiousPincher, 'threshold');
     const spent = Math.max(0, Number(state.initiativeSpentSincePilfer || 0));
     items.push({
       id: 'antiquary-prodigious-pincher',
@@ -45,7 +45,7 @@ function antiquaryStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
 
   const combatHigh = purgeExpiredStacks(state.combatHighExpirations || [], at);
   if (combatHigh.length > 0) {
-    const maximum = balanceProfileValueFromContext(context, PROFILE.combatHigh, 'maximumStacks', 10);
+    const maximum = balanceProfileNumberFromContext(context, PROFILE.combatHigh, 'maximumStacks');
     const remaining = Math.max(...combatHigh) - at;
     items.push({
       id: 'antiquary-combat-high',

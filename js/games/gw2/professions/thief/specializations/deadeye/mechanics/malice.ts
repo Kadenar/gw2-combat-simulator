@@ -1,6 +1,10 @@
 import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileNumberFromContext,
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { storeStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
@@ -56,11 +60,10 @@ function markedAt(context: ThiefSchedulerContext, at: number): boolean {
 }
 
 export function initializeDeadeyeMalice(context: ThiefSchedulerContext): void {
-  const resources = balanceProfileFromContext(context, PROFILE.resources);
   const state = deadeyeState.from(context);
   state.maximumMalice = hasTrait(context.config, TRAIT.MALEFICENT_SEVEN)
-    ? Number(resources?.minimumStacks ?? 7)
-    : Number(resources?.maximumStacks ?? 5);
+    ? balanceProfileNumberFromContext(context, PROFILE.resources, 'minimumStacks')
+    : balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
   state.malice = Math.min(state.malice, state.maximumMalice);
   // Malice gains a bonus stack on a critical hit (deterministic path), so the scheduler must know crit probability up front
   (context.schedulerPolicy as Gw2SchedulerPolicy).requireCriticalFacts();
@@ -115,15 +118,18 @@ export const deadeyeMaliceReaction = eventReaction<ThiefSchedulerContext, ThiefS
 
 function gainInitiativeAttackMalice(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
   const state = deadeyeState.from(context);
-  const resources = balanceProfileFromContext(context, PROFILE.resources);
+
   const tracker = { progress: state.maliceCriticalProgress, readyAt: 0 };
   const criticalApplication = advanceScheduledCriticalProc(context, event, { id: 'thief.deadeye.malice' }, tracker);
   state.maliceCriticalProgress = tracker.progress;
   const criticalMalice = criticalApplication?.quantity || 0;
 
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   state.malice = Math.min(
     state.maximumMalice,
-    state.malice + Number(resources?.resourceGain ?? 1) + criticalMalice * Number(resources?.playerStacks ?? 1)
+    state.malice +
+      balanceProfileNumber(resourcesProfile, 'resourceGain', context) +
+      criticalMalice * balanceProfileNumber(resourcesProfile, 'playerStacks', context)
   );
   applyMaleficentSeven(context, event.at);
   emitThiefStateSnapshot(context, event.at, 'malice');
@@ -144,7 +150,7 @@ function consumeMaliciousAttackMalice(context: ThiefSchedulerContext, event: Thi
   if (hasTrait(context.config, TRAIT.MALICIOUS_INTENT)) {
     state.malice = Math.min(
       state.maximumMalice,
-      state.malice + Number(balanceProfileFromContext(context, PROFILE.maliciousIntent)?.resourceGain ?? 2)
+      state.malice + balanceProfileNumberFromContext(context, PROFILE.maliciousIntent, 'resourceGain')
     );
     applyMaleficentSeven(context, event.at);
     emitThiefStateSnapshot(context, event.at, 'malicious-intent');
@@ -153,18 +159,14 @@ function consumeMaliciousAttackMalice(context: ThiefSchedulerContext, event: Thi
 
 function updateSilentScope(context: ThiefCastContext, skill: ThiefSkill): void {
   const state = deadeyeState.from(context);
-  if (
-    skill.id !== ID.DODGE ||
-    !hasTrait(context.config, TRAIT.SILENT_SCOPE) ||
-    state.malice <= Number(balanceProfileFromContext(context, PROFILE.silentScope)?.threshold ?? 3)
-  ) {
-    return;
-  }
+  if (skill.id !== ID.DODGE || !hasTrait(context.config, TRAIT.SILENT_SCOPE)) return;
+  const silentScopeProfile = requireBalanceProfileFromContext(context, PROFILE.silentScope);
+  if (state.malice <= balanceProfileNumber(silentScopeProfile, 'threshold', context)) return;
 
   // Silent Scope grants one out-of-stealth stealth-attack charge, expiring 3s after the dodge ends
   state.stealthAttackCharges = 1;
   state.stealthAttackExpiresAt =
-    context.effectiveEnd + Number(balanceProfileFromContext(context, PROFILE.silentScope)?.durationMultiplier ?? 3);
+    context.effectiveEnd + balanceProfileNumber(silentScopeProfile, 'durationMultiplier', context);
   emitThiefStateSnapshot(context, context.effectiveEnd, 'silent-scope');
 }
 

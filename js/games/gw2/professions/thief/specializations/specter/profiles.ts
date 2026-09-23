@@ -31,7 +31,7 @@ export const SPECTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     profileKind: 'skill-variant',
     parentId: ID.ENTER_SHADOW_SHROUD,
     maximumTargets: 1,
-    effects: [{ type: 'buff', kind: 'barrier', stacks: 1, duration: 5 }]
+    effects: [{ type: 'buff', name: 'barrier', kind: 'barrier', stacks: 1, duration: 5 }]
   },
   {
     id: SPECTER_BALANCE_PROFILE_IDS.dawnsReposeBarrier,
@@ -39,30 +39,31 @@ export const SPECTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     profileKind: 'skill-variant',
     parentId: ID.DAWNS_REPOSE,
     maximumTargets: 4,
-    effects: [{ type: 'buff', kind: 'barrier', stacks: 1, duration: 5 }]
+    effects: [{ type: 'buff', name: 'barrier', kind: 'barrier', stacks: 1, duration: 5 }]
   },
   trait(SPECTER_BALANCE_PROFILE_IDS.amplifiedSiphoning, 'Amplified Siphoning', { resourceGain: 10 }),
   trait(SPECTER_BALANCE_PROFILE_IDS.shadeStep, 'Shadestep', {
     effects: [
-      { type: 'boon', boon: 'alacrity', stacks: 1, duration: 5 },
-      { type: 'boon', boon: 'protection', stacks: 1, duration: 5 },
-      { type: 'boon', boon: 'aegis', stacks: 1, duration: 4 }
+      { type: 'boon', name: 'alacrity', boon: 'alacrity', stacks: 1, duration: 5 },
+      { type: 'boon', name: 'protection', boon: 'protection', stacks: 1, duration: 5 },
+      { type: 'boon', name: 'aegis', boon: 'aegis', stacks: 1, duration: 4 }
     ]
   }),
   trait(SPECTER_BALANCE_PROFILE_IDS.larcenousTorment, 'Larcenous Torment', {
     resourceGain: 0.5,
-    effects: [{ type: 'strike', flatStrikeBase: 99, flatStrikePowerCoeff: 0.005, hits: 1 }]
+    effects: [{ type: 'strike', name: 'Larcenous Torment', flatStrikeBase: 99, flatStrikePowerCoeff: 0.005, hits: 1 }]
   }),
   trait(SPECTER_BALANCE_PROFILE_IDS.darkSentry, 'Dark Sentry', {
     internalCooldown: 1,
     effects: [
       {
         type: 'buff',
+        name: 'rot-wallow-venom',
         kind: 'rot-wallow-venom',
         stacks: 1,
         duration: 10
       },
-      { type: 'condition', condition: 'Torment', stacks: 1, duration: 2 }
+      { type: 'condition', name: 'Torment', condition: 'Torment', stacks: 1, duration: 2 }
     ]
   }),
   trait(SPECTER_BALANCE_PROFILE_IDS.secondOpinion, 'Second Opinion', {

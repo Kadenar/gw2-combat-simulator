@@ -24,6 +24,7 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { SkillEffect, TooltipFact } from '#gw2/platform/engine/skills/types.js';
+import { requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 /** Malice changes individual packets; display their base values and name the affected packet explicitly. */
 const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity) => {
@@ -63,11 +64,8 @@ const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity) => {
 
   if (selected.id === ID.MALICIOUS_SNEAK_ATTACK) {
     const profile = tooltipProfile(balanceContext, DE.maliciousSneakAttack);
-    effects = effects.map((effect) =>
-      effect.type === 'condition' && effect.condition === 'Torment'
-        ? { ...effect, duration: profile.effects?.find((entry) => entry.type === 'condition')?.duration }
-        : effect
-    );
+    // The selected scaling profile owns the independent Torment packet.
+    effects = [...effects, ...(profile.effects || [])];
     facts.push(
       profileFact(
         balanceContext,
@@ -486,14 +484,20 @@ export const thiefTooltips: ProfessionTooltips = {
     ),
     'thief.shadow-shroud-skill': (balanceContext, entity) => {
       const facts = [...simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects).facts];
-      const boonIndex = [ID.GRASPING_SHADOWS, ID.DAWNS_REPOSE, ID.MIND_SHOCK].findIndex((id) => id === entity.id);
-      if (boonIndex >= 0)
-        facts.push(
-          ...simulationEffectFacts(
-            [tooltipProfile(balanceContext, SPECTER.shadeStep).effects![boonIndex]],
-            'party; requires Shadestep and a completed cast'
-          ).facts
-        );
+      // Tooltips retain the same skill-to-boon identity as execution after a packet is removed.
+      const boonName =
+        entity.id === ID.GRASPING_SHADOWS
+          ? 'alacrity'
+          : entity.id === ID.DAWNS_REPOSE
+            ? 'protection'
+            : entity.id === ID.MIND_SHOCK
+              ? 'aegis'
+              : null;
+      if (boonName) {
+        const profile = tooltipProfile(balanceContext, SPECTER.shadeStep);
+        const boon = requireEffect(profile, 'boon', boonName, balanceContext);
+        if (boon) facts.push(...simulationEffectFacts([boon], 'party; requires Shadestep and a completed cast').facts);
+      }
       if (entity.id === ID.DAWNS_REPOSE) {
         const profile = tooltipProfile(balanceContext, SPECTER.dawnsReposeBarrier);
         facts.push(
@@ -550,10 +554,10 @@ export const thiefTooltips: ProfessionTooltips = {
         profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'maximumStacks', 'Maximum bomb hits'),
         ...[ANTIQUARY.forgedSurfer, ANTIQUARY.forgedSurferMeticulous].flatMap((id) =>
           tooltipProfile(balanceContext, id).effects!.flatMap(
-            (effect, index) =>
+            (effect) =>
               simulationEffectFacts(
                 [effect],
-                `${id === ANTIQUARY.forgedSurfer ? 'base' : 'with Meticulous Custodian'} · ${index < 2 ? 'dash' : 'per bomb'}`
+                `${id === ANTIQUARY.forgedSurfer ? 'base' : 'with Meticulous Custodian'} · ${effect.name === 'Dash' ? 'dash' : 'per bomb'}`
               ).facts
           )
         )
@@ -564,16 +568,10 @@ export const thiefTooltips: ProfessionTooltips = {
         "Succeeds when ready. Reusing during recharge takes the configured success or backfire outcome; Scoundrel's Luck guarantees a risky success and consumes its charge. Backfire locks further reuse until recharge ends.";
       if (entity.id === ID.STONE_SUMMIT_CANNON) {
         const success = tooltipProfile(balanceContext, ANTIQUARY.cannonSuccess);
-        const hits = success.effects?.find((effect) => effect.type === 'strike')?.ticks?.length ?? 1;
         return {
           description,
           facts: [
-            ...simulationEffectFacts(
-              success.effects?.map((effect) =>
-                effect.type === 'condition' ? { ...effect, applications: hits } : effect
-              ),
-              'success'
-            ).facts,
+            ...simulationEffectFacts(success.effects, 'success').facts,
             ...simulationEffectFacts(tooltipProfile(balanceContext, ANTIQUARY.cannonBackfire).effects, 'backfire')
               .facts,
             profileFact(balanceContext, ANTIQUARY.cannonBackfire, 'initialDelay', 'Backfire delay', tooltipSeconds)

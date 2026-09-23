@@ -351,14 +351,8 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
           stacks: 5,
           duration: 5,
           actorType: 'player'
-        },
-        {
-          type: 'condition',
-          condition: 'Torment',
-          stacks: 1,
-          duration: 1,
-          actorType: 'player'
         }
+        // Malice-scaled Torment is emitted from its removable balance profile at completion.
       ])
     ],
     requiredMainHand: 'Pistol',

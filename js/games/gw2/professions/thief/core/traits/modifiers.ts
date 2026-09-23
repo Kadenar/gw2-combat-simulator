@@ -1,7 +1,8 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import {
-  balanceProfileFromContext,
-  balanceProfileNumberFromContext
+  balanceProfileNumberFromContext,
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
@@ -37,12 +38,17 @@ export function modifyThiefLifeSiphon(context: ThiefResolverContext, event: Thie
     !hasTrait(context.config, TRAIT.LEAD_ATTACKS)
   )
     return;
-  const profile = balanceProfileFromContext(context, PROFILE.leadAttacks);
+
   const state = readProfessionCoreState<ThiefCoreState>(context.profession);
-  const stacks = Math.min(Number(profile?.maximumStacks ?? 15), Number(state.leadAttacksStacks || 0));
+  const leadAttacksProfile = requireBalanceProfileFromContext(context, PROFILE.leadAttacks);
+  const stacks = Math.min(
+    balanceProfileNumber(leadAttacksProfile, 'maximumStacks', context),
+    Number(state.leadAttacksStacks || 0)
+  );
   return {
     flatStrikeMultiplier:
-      Number(event.flatStrikeMultiplier ?? 1) * (1 + stacks * Number(profile?.damageIncreasePerStack ?? 0.01))
+      Number(event.flatStrikeMultiplier ?? 1) *
+      (1 + stacks * balanceProfileNumber(leadAttacksProfile, 'damageIncreasePerStack', context))
   };
 }
 
@@ -253,12 +259,13 @@ function modifyThiefCoreAttributes(context: Gw2ModifierContext, attributes: Gw2R
   }
 
   if (hasSelectedSkill(context, "Assassin's Signet")) {
-    const passive = balanceProfileNumberFromContext(context, PROFILE.assassinsSignet, 'attributeBonus');
+    const assassinsSignetProfile = requireBalanceProfileFromContext(context, PROFILE.assassinsSignet);
+    const passive = balanceProfileNumber(assassinsSignetProfile, 'attributeBonus', context);
     const passiveDisabled = Number(state.assassinsSignetPassiveDisabledUntil || 0) > context.time;
     if (staticRulesApplied && passiveDisabled) result.power -= passive;
     if (!staticRulesApplied && !passiveDisabled) result.power += passive;
     if (Number(state.assassinsSignetActiveUntil || 0) > context.time) {
-      result.power += balanceProfileNumberFromContext(context, PROFILE.assassinsSignet, 'attributePerStack');
+      result.power += balanceProfileNumber(assassinsSignetProfile, 'attributePerStack', context);
     }
   }
 
@@ -300,10 +307,8 @@ function modifyThiefCoreRechargeDuration(context: ThiefPrecastContext, duration:
   if (skill.stealTraitSkill) {
     const leadAttacks = hasTrait(context.config, TRAIT.LEAD_ATTACKS);
     const sleightOfHand = hasTrait(context.config, TRAIT.SLEIGHT_OF_HAND);
-    const leadMultiplier = Number(balanceProfileFromContext(context, PROFILE.leadAttacks)?.rechargeMultiplier ?? 0.85);
-    const sleightMultiplier = Number(
-      balanceProfileFromContext(context, PROFILE.sleightOfHand)?.rechargeMultiplier ?? 0.8
-    );
+    const leadMultiplier = balanceProfileNumberFromContext(context, PROFILE.leadAttacks, 'rechargeMultiplier');
+    const sleightMultiplier = balanceProfileNumberFromContext(context, PROFILE.sleightOfHand, 'rechargeMultiplier');
     if (skill.stealRechargeMode === 'additive') {
       // Skills can own an additive exception while the base traits remain shared.
       result *= 1 - Number(leadAttacks) * (1 - leadMultiplier) - Number(sleightOfHand) * (1 - sleightMultiplier);

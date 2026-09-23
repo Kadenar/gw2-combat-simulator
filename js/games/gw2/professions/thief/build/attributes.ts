@@ -1,7 +1,11 @@
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileNumberFromContext,
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { getActiveTraits } from '#gw2/professions/thief/data/traits-data.js';
 import {
   createBuildAttributeContext,
@@ -40,6 +44,7 @@ export function applyThiefBuildAttributeRules(
 
   const traitDurations: Gw2NumericAttributes = {};
 
+  const secondOpinionProfile = requireBalanceProfileFromContext(profileContext, TRAIT.SECOND_OPINION);
   const attributeEffects: readonly Gw2AttributeEffect[] = [
     {
       kind: 'flat',
@@ -130,9 +135,9 @@ export function applyThiefBuildAttributeRules(
       source: 'Second Opinion',
       to: 'Condition Damage',
       amount:
-        balanceProfileNumberFromContext(profileContext, TRAIT.SECOND_OPINION, 'attributeBonus') +
+        balanceProfileNumber(secondOpinionProfile, 'attributeBonus', profileContext) +
         (wields(thiefBuild, 'Scepter', weaponSet)
-          ? balanceProfileNumberFromContext(profileContext, TRAIT.SECOND_OPINION, 'attributePerStack')
+          ? balanceProfileNumber(secondOpinionProfile, 'attributePerStack', profileContext)
           : 0),
       feedsConversions: true,
       enabled: hasTrait('Second Opinion')
@@ -162,7 +167,7 @@ export function applyThiefBuildAttributeRules(
       source: 'Second Opinion',
       from: 'Condition Damage',
       to: 'Healing Power',
-      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.SECOND_OPINION, 'attributeConversion'),
+      multiplier: balanceProfileNumber(secondOpinionProfile, 'attributeConversion', profileContext),
       rounding: 'round',
       input: 'eligible',
       enabled: hasTrait('Second Opinion')

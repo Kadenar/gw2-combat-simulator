@@ -1,7 +1,13 @@
 import { resourceDepletion } from '#gw2/platform/profession-definition/mechanics.js';
 import { advanceResourceClock, setResourceRate } from '#gw2/platform/combat/resources/clock.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileNumberFromContext,
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -45,16 +51,16 @@ export function gainShadowForce(context: ThiefSchedulerContext, amount: number):
 export function completeSiphon(context: ThiefCastContext): void {
   // Cancellation preserves shadow force and stored-skill state.
   if (context.action?.cancelled === true) return;
-  const resources = balanceProfileFromContext(context, PROFILE.resources);
+
   // Amplified Siphoning adds percentage points of maximum force to Siphon's base gain.
   let gain =
-    Number(resources?.lifeForceGain ?? 25) +
+    balanceProfileNumberFromContext(context, PROFILE.resources, 'lifeForceGain') +
     (hasTrait(context.config, TRAIT.AMPLIFIED_SIPHONING)
-      ? Number(balanceProfileFromContext(context, PROFILE.amplifiedSiphoning)?.resourceGain ?? 10)
+      ? balanceProfileNumberFromContext(context, PROFILE.amplifiedSiphoning, 'resourceGain')
       : 0);
   // Improvisation increases the full Siphon gain, including Amplified Siphoning's bonus.
   if (hasTrait(context.config, TRAIT.IMPROVISATION)) {
-    gain *= 1 + Number(balanceProfileFromContext(context, CORE_PROFILE.improvisation)?.lifeForceGain ?? 1);
+    gain *= 1 + balanceProfileNumberFromContext(context, CORE_PROFILE.improvisation, 'lifeForceGain');
   }
 
   gainShadowForce(context, gain);
@@ -66,8 +72,9 @@ export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill):
   emitTransitionLockout(context, 'shroudEntryMs', context.effectiveEnd, skill);
   const state = specterState.from(context);
   const at = context.effectiveEnd;
-  const profile = balanceProfileFromContext(context, PROFILE.enterShadowShroud);
-  const barrier = balanceProfileEffect(profile, 'buff');
+
+  const enterShadowShroudProfile = requireBalanceProfileFromContext(context, PROFILE.enterShadowShroud);
+  const barrier = requireEffect(enterShadowShroudProfile, 'buff', 'barrier', context);
   state.shadowShroudActive = true;
   // Manual exit waits half a second; depletion continues to force an immediate exit.
   state.shadowShroudExitReadyAt = at + 0.5;
@@ -75,15 +82,16 @@ export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill):
   setResourceRate(
     state.shadowClock,
     at,
-    -state.shadowClock.maximum * Number(balanceProfileFromContext(context, PROFILE.resources)?.lifeForceDrain ?? 0.02)
+    -state.shadowClock.maximum * balanceProfileNumberFromContext(context, PROFILE.resources, 'lifeForceDrain')
   );
   shadowDepletion.refresh(context);
   // Enter Shadow Shroud barriers one tethered ally, not the caster or whole party.
   const alliedRecipients = Math.min(
-    Number(profile?.maximumTargets ?? 1),
+    balanceProfileNumber(enterShadowShroudProfile, 'maximumTargets', context),
     gw2AlliedPlayerAssumptions(context.config).count
   );
-  if (alliedRecipients > 0) {
+  // Removing barrier suppresses its reaction while shroud entry and drain still occur.
+  if (barrier && alliedRecipients > 0) {
     emitSkillBuff(context, {
       at,
       source: 'thief',
@@ -93,8 +101,8 @@ export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill):
       skillName: skill.name,
       name: 'Enter Shadow Shroud - Barrier',
       kind: 'barrier',
-      duration: Number(barrier?.duration ?? 5),
-      stacks: Number(barrier?.stacks ?? 1),
+      duration: effectNumber(enterShadowShroudProfile, barrier, 'duration', context),
+      stacks: effectNumber(enterShadowShroudProfile, barrier, 'stacks', context),
       audience: { recipients: 'party' as const, affectsSelf: false, maximumRecipients: alliedRecipients }
     });
     context.tasks.schedule({
@@ -123,16 +131,16 @@ export function exitShadowShroud(context: ThiefCastContext, skill: ThiefSkill): 
 export function spendSpecterResources(context: ThiefCastContext, skill: ThiefSkill): void {
   const cost = Number(skill.initiativeCost || 0);
   if (!(cost > 0)) return;
-  const resources = balanceProfileFromContext(context, PROFILE.resources);
-  gainShadowForce(context, cost * Number(resources?.resourceGain ?? 1));
+
+  gainShadowForce(context, cost * balanceProfileNumberFromContext(context, PROFILE.resources, 'resourceGain'));
   // Emit at cast start so the resource timeline reflects the gain immediately.
   emitThiefStateSnapshot(context, context.start, 'shadow-force');
 }
 
 export function advanceSpecterResources(context: ThiefSchedulerContext, target: number): void {
   const state = specterState.from(context);
-  const resources = balanceProfileFromContext(context, PROFILE.resources);
-  state.shadowClock.maximum = Number(resources?.maximumStacks ?? 100);
+
+  state.shadowClock.maximum = balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
   state.shadowClock.value = Math.min(state.shadowClock.maximum, state.shadowClock.value);
   advanceResourceClock(state.shadowClock, target);
   emitThiefStateSnapshot(context, target, 'resources');

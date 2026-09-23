@@ -95,7 +95,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     parentId: ID.SPIDER_VENOM,
     maximumStacks: 6,
     durationMultiplier: 24,
-    effects: [{ type: 'condition', condition: 'Poisoned', stacks: 1, duration: 3 }]
+    effects: [{ type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 1, duration: 3 }]
   },
   {
     id: THIEF_CORE_BALANCE_PROFILE_IDS.skaleVenomProc,
@@ -105,8 +105,8 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     maximumStacks: 4,
     durationMultiplier: 24,
     effects: [
-      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 10 },
-      { type: 'condition', condition: 'Torment', stacks: 1, duration: 3 }
+      { type: 'condition', name: 'Vulnerability', condition: 'Vulnerability', stacks: 1, duration: 10 },
+      { type: 'condition', name: 'Torment', condition: 'Torment', stacks: 1, duration: 3 }
     ]
   },
   {
@@ -116,7 +116,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     parentId: ID.DEVOURER_VENOM,
     maximumStacks: 2,
     durationMultiplier: 24,
-    effects: [{ type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1 }]
+    effects: [{ type: 'condition', name: 'Immobilized', condition: 'Immobilized', stacks: 1, duration: 1 }]
   },
   {
     id: THIEF_CORE_BALANCE_PROFILE_IDS.fallingSpiderEmpowered,
@@ -160,6 +160,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'condition',
+        name: 'Bleeding',
         condition: 'Bleeding',
         stacks: 1,
         duration: 5,
@@ -169,6 +170,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
       },
       {
         type: 'condition',
+        name: 'Crippled',
         condition: 'Crippled',
         stacks: 1,
         duration: 1,
@@ -184,15 +186,16 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.serpentsTouch, "Serpent's Touch", {
     playerStacks: 3,
-    effects: [{ type: 'condition', condition: 'Poisoned', stacks: 2, duration: 10 }]
+    effects: [{ type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 2, duration: 10 }]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.mug, 'Mug', {
-    effects: [{ type: 'strike', coefficient: 1.5, hits: 1 }]
+    effects: [{ type: 'strike', name: 'Mug', coefficient: 1.5, hits: 1 }]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.evenTheOdds, 'Even the Odds', {
     effects: [
       {
         type: 'condition',
+        name: 'Vulnerability',
         condition: 'Vulnerability',
         stacks: 10,
         duration: 10
@@ -200,30 +203,30 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     ]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.deadlyAmbush, 'Deadly Ambush', {
-    effects: [{ type: 'condition', condition: 'Bleeding', stacks: 3, duration: 10 }]
+    effects: [{ type: 'condition', name: 'Bleeding', condition: 'Bleeding', stacks: 3, duration: 10 }]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.thrillOfTheCrime, 'Thrill of the Crime', {
     effects: [
-      { type: 'boon', boon: 'Fury', stacks: 1, duration: 10 },
-      { type: 'boon', boon: 'Might', stacks: 5, duration: 10 },
-      { type: 'boon', boon: 'Swiftness', stacks: 1, duration: 10 }
+      { type: 'boon', name: 'Fury', boon: 'Fury', stacks: 1, duration: 10 },
+      { type: 'boon', name: 'Might', boon: 'Might', stacks: 5, duration: 10 },
+      { type: 'boon', name: 'Swiftness', boon: 'Swiftness', stacks: 1, duration: 10 }
     ]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.bountifulTheft, 'Bountiful Theft', {
     effects: [
-      { type: 'boon', boon: 'Vigor', stacks: 1, duration: 10 },
-      { type: 'boon', boon: 'Might', stacks: 5, duration: 10 }
+      { type: 'boon', name: 'Vigor', boon: 'Vigor', stacks: 1, duration: 10 },
+      { type: 'boon', name: 'Might', boon: 'Might', stacks: 5, duration: 10 }
     ]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.sleightOfHand, 'Sleight of Hand', {
     rechargeMultiplier: 0.8,
-    effects: [{ type: 'control', kind: 'daze' }]
+    effects: [{ type: 'control', name: 'daze', kind: 'daze' }]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.hiddenThief, 'Hidden Thief', {
     internalCooldown: 2,
     effects: [
-      { type: 'condition', condition: 'Blindness', stacks: 1, duration: 3 },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3 }
+      { type: 'condition', name: 'Blindness', condition: 'Blindness', stacks: 1, duration: 3 },
+      { type: 'condition', name: 'Weakness', condition: 'Weakness', stacks: 1, duration: 3 }
     ]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.kleptomaniac, 'Kleptomaniac', {
@@ -245,39 +248,39 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.deadlyAmbition, 'Deadly Ambition', {
     attributeBonus: 180,
     playerStacks: 2,
-    effects: [{ type: 'condition', condition: 'Poisoned', stacks: 1, duration: 3 }]
+    effects: [{ type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 1, duration: 3 }]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.lotusPoison, 'Lotus Poison', {
     internalCooldown: 10,
     effects: [
-      { type: 'boon', boon: 'Might', stacks: 3, duration: 10, audience: { recipients: 'self' } },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 4 }
+      { type: 'boon', name: 'Might', boon: 'Might', stacks: 3, duration: 10, audience: { recipients: 'self' } },
+      { type: 'condition', name: 'Weakness', condition: 'Weakness', stacks: 1, duration: 4 }
     ]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.unrelentingStrikes, 'Unrelenting Strikes', {
     internalCooldown: 8,
-    effects: [{ type: 'boon', boon: 'Fury', stacks: 1, duration: 4 }]
+    effects: [{ type: 'boon', name: 'Fury', boon: 'Fury', stacks: 1, duration: 4 }]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.noQuarter, 'No Quarter', {
     internalCooldown: 2,
     attributeBonus: 250,
-    effects: [{ type: 'boon', boon: 'Fury', stacks: 1, duration: 2 }]
+    effects: [{ type: 'boon', name: 'Fury', boon: 'Fury', stacks: 1, duration: 2 }]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.assassinsFury, "Assassin's Fury", {
     internalCooldown: 2,
-    effects: [{ type: 'boon', boon: 'Might', stacks: 3, duration: 8 }]
+    effects: [{ type: 'boon', name: 'Might', boon: 'Might', stacks: 3, duration: 8 }]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.leechingVenoms, 'Leeching Venoms', {
     maximumStacks: 6,
     resourceGain: 3,
     durationMultiplier: 24,
     // Leeching Venoms owns a flat life-steal formula, independent of weapon damage.
-    effects: [{ type: 'strike', flatStrikeBase: 320, flatStrikePowerCoeff: 0.033, hits: 1 }]
+    effects: [{ type: 'strike', name: 'Leeching Venoms', flatStrikeBase: 320, flatStrikePowerCoeff: 0.033, hits: 1 }]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.shadowsRejuvenation, "Shadow's Rejuvenation", { resourceGain: 1 }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.shadowSiphoning, 'Shadow Siphoning', {
     internalCooldown: 1,
-    effects: [{ type: 'strike', coefficient: 0.1, hits: 1 }]
+    effects: [{ type: 'strike', name: 'Shadow Siphoning', coefficient: 0.1, hits: 1 }]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.panicStrike, 'Panic Strike', {
     threshold: 3,
@@ -286,15 +289,16 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     effects: [
       {
         type: 'condition',
+        name: 'Immobilized',
         condition: 'Immobilized',
         stacks: 1,
         duration: 2.5
       },
-      { type: 'condition', condition: 'Poisoned', stacks: 1, duration: 4 }
+      { type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 1, duration: 4 }
     ]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.cloakedInShadow, 'Cloaked in Shadow', {
-    effects: [{ type: 'strike', coefficient: 0.04, hits: 1 }]
+    effects: [{ type: 'strike', name: 'Cloaked in Shadow', coefficient: 0.04, hits: 1 }]
   }),
   trait(THIEF_CORE_BALANCE_PROFILE_IDS.potentPoison, 'Potent Poison', {
     conditionDurationBonus: 0.33,
@@ -316,6 +320,7 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     effects: [
       {
         type: 'condition',
+        name: 'Vulnerability',
         condition: 'Vulnerability',
         stacks: 10,
         duration: 5

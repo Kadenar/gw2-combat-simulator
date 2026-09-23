@@ -1,13 +1,17 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { activeChargeGrants, consumeCharge, grantChargePool } from '#gw2/platform/combat/resources/charges.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import type { ConditionEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile, ConditionEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ThiefCastContext,
   ThiefResolverContext,
@@ -48,10 +52,8 @@ function venomForSkill(skillId: SkillId): VenomDefinition | undefined {
   return VENOMS.find((venom) => venom.skillId === skillId);
 }
 
-function conditionEffects(context: unknown, venom: VenomDefinition): readonly ConditionEffect[] {
-  return (balanceProfileFromContext(context, venom.profileId)?.effects || []).filter(
-    (effect): effect is ConditionEffect => effect.type === 'condition'
-  );
+function conditionEffects(profile: BalanceProfile): readonly ConditionEffect[] {
+  return (profile.effects || []).filter((effect): effect is ConditionEffect => effect.type === 'condition');
 }
 
 /** Keep each grant's expiry and spend older charges before newer applications. */
@@ -84,11 +86,12 @@ export function activateVenom(context: ThiefCastContext, skill: ThiefSkill): voi
   if (!venom) return;
   const state = professionCoreState(context) as ThiefCoreState;
   const at = context.effectiveEnd;
-  const profile = balanceProfileFromContext(context, venom.profileId);
-  const maximumStacks = Number(profile?.maximumStacks || 0);
-  const duration = Number(profile?.durationMultiplier ?? 24);
+
+  const profile = requireBalanceProfileFromContext(context, venom.profileId);
+  const maximumStacks = balanceProfileNumber(profile, 'maximumStacks', context);
+  const duration = balanceProfileNumber(profile, 'durationMultiplier', context);
   addVenomCharges(state, skill.id, at, maximumStacks, duration);
-  const effects = conditionEffects(context, venom);
+  const effects = conditionEffects(profile);
   // Recasts queue behind remaining ally charges, keeping one proc per assumed strike.
   const alliedStart = Math.max(at, state.venomAllyLastProcAt[String(skill.id)] ?? at);
   const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {
@@ -100,17 +103,23 @@ export function activateVenom(context: ThiefCastContext, skill: ThiefSkill): voi
     state.venomAllyLastProcAt[String(skill.id)] = Math.max(...alliedProcs.map((proc) => proc.at));
   }
 
+  // Keep proc ordering while validating each condition once for the whole allied grant.
+  const packets = effects.map((effect) => ({
+    effect,
+    stacks: effectNumber(profile, effect, 'stacks', context),
+    duration: effectNumber(profile, effect, 'duration', context)
+  }));
   for (const proc of alliedProcs) {
-    for (let effectIndex = 0; effectIndex < effects.length; effectIndex += 1) {
-      const effect = effects[effectIndex];
+    for (let effectIndex = 0; effectIndex < packets.length; effectIndex += 1) {
+      const { effect, stacks, duration } = packets[effectIndex];
       emitSkillCondition(context, {
         at: proc.at,
         skillId: venom.skillId,
         skillName: venom.skillName,
         name: `${venom.skillName} — Ally ${proc.allyIndex} ${effect.condition}`,
         condition: String(effect.condition),
-        stacks: Number(effect.stacks ?? 1),
-        duration: Number(effect.duration || 0),
+        stacks,
+        duration,
         activationId: `${context.reservationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
         metadata: { triggeredByAlly: proc.allyIndex, venomProcEffectIndex: effectIndex }
       });
@@ -130,7 +139,8 @@ export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefRes
     const batch = state.venomChargeBatches[String(venom.skillId)]?.find((entry) => entry.charges > 0);
     if (!consumeCharge(batch, event.at)) continue;
     procCount += 1;
-    const effects = conditionEffects(context, venom);
+    const profile = requireBalanceProfileFromContext(context, venom.profileId);
+    const effects = conditionEffects(profile);
     for (let effectIndex = 0; effectIndex < effects.length; effectIndex += 1) {
       const effect = effects[effectIndex];
       context.applyCondition(
@@ -143,8 +153,8 @@ export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefRes
           skillName: venom.skillName,
           name: `${venom.skillName} — ${effect.condition}`,
           condition: String(effect.condition),
-          stacks: Number(effect.stacks ?? 1),
-          duration: Number(effect.duration || 0),
+          stacks: effectNumber(profile, effect, 'stacks', context),
+          duration: effectNumber(profile, effect, 'duration', context),
           activationId: event.activationId || `${event.skillId}:${event.at}`,
           triggeredBy: event.skillName,
           metadata: { venomProcEffectIndex: effectIndex }

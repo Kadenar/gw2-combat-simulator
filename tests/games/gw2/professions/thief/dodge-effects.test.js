@@ -118,7 +118,12 @@ test('Daredevil emits only current profile effects, including patched condition 
           specialization: { kind: 'Daredevil', state: createDaredevilState(config) }
         }
       },
-      catalog: { ...thiefCatalog, balanceProfilesById: new Map([[TRAIT.LOTUS_TRAINING, { effects }]]) },
+      catalog: {
+        ...thiefCatalog,
+        balanceProfilesById: new Map([
+          [TRAIT.LOTUS_TRAINING, { ...thiefCatalog.balanceProfilesById.get(TRAIT.LOTUS_TRAINING), effects }]
+        ])
+      },
       emit: (event) => {
         events.push(event);
         return event;

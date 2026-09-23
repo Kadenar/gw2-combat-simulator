@@ -1,6 +1,10 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -19,7 +23,10 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
     return;
   const state = antiquaryState.from(context);
   if (!consumeCharge(state.mistburn, event.at)) return;
-  const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.mistburnProc), 'condition');
+  const mistburnProcProfile = requireBalanceProfileFromContext(context, PROFILE.mistburnProc);
+  const burning = requireEffect(mistburnProcProfile, 'condition', 'Burning', context);
+  // Explicit removal suppresses this packet without restoring baseline tuning.
+  if (!burning) return;
   context.applyCondition(
     buildResolverCondition({
       at: event.at,
@@ -29,9 +36,9 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
       skillId: ID.MISTBURN_MORTAR,
       skillName: 'Mistburn Mortar',
       name: 'Mistburn Mortar — Charged Strike',
-      condition: String(burning?.condition || 'Burning'),
-      stacks: Number(burning?.stacks ?? 1),
-      duration: Number(burning?.duration ?? 1),
+      condition: String(burning.condition),
+      stacks: effectNumber(mistburnProcProfile, burning, 'stacks', context),
+      duration: effectNumber(mistburnProcProfile, burning, 'duration', context),
       triggeredBy: event.skillName
     })
   );
@@ -47,7 +54,10 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, event: ThiefRe
     !hasTrait(context.config, TRAIT.METICULOUS_CUSTODIAN)
   )
     return;
-  const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sunCrystalMeticulous), 'condition');
+  const sunCrystalMeticulousProfile = requireBalanceProfileFromContext(context, PROFILE.sunCrystalMeticulous);
+  const burning = requireEffect(sunCrystalMeticulousProfile, 'condition', 'Burning', context);
+  // Explicit removal suppresses this packet without restoring baseline tuning.
+  if (!burning) return;
   context.applyCondition(
     buildResolverCondition({
       at: event.at,
@@ -59,9 +69,9 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, event: ThiefRe
       name: 'Zephyrite Sun Crystal - Meticulous Burning',
       // Preserve trait provenance so the already-enhanced duration is not multiplied again.
       triggeredBy: event.skillName,
-      condition: String(burning?.condition || 'Burning'),
-      stacks: Number(burning?.stacks ?? 1),
-      duration: Number(burning?.duration ?? 5)
+      condition: String(burning.condition),
+      stacks: effectNumber(sunCrystalMeticulousProfile, burning, 'stacks', context),
+      duration: effectNumber(sunCrystalMeticulousProfile, burning, 'duration', context)
     })
   );
 }

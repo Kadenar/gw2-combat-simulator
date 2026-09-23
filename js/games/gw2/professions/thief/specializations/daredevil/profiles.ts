@@ -31,13 +31,14 @@ export const DAREDEVIL_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   },
   trait(DAREDEVIL_BALANCE_PROFILE_IDS.boundingDodger, 'Bounding Dodger', {
     durationMultiplier: 6,
-    effects: [{ type: 'strike', coefficient: 3.5, hits: 1 }]
+    effects: [{ type: 'strike', name: 'Bounding Dodger', coefficient: 3.5, hits: 1 }]
   }),
   trait(DAREDEVIL_BALANCE_PROFILE_IDS.lotusTraining, 'Lotus Training', {
     durationMultiplier: 6,
     effects: [
       {
         type: 'strike',
+        name: 'Lotus Training',
         ticks: [
           { atMs: 200, coefficient: 0.1875 },
           { atMs: 360, coefficient: 0.1875 },
@@ -45,13 +46,13 @@ export const DAREDEVIL_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         ]
       },
       // Lotus conditions follow their individual projectiles from dodge start.
-      { type: 'condition', atMs: 200, condition: 'Bleeding', stacks: 2, duration: 4 },
-      { type: 'condition', atMs: 360, condition: 'Torment', stacks: 2, duration: 4 },
-      { type: 'condition', atMs: 520, condition: 'Crippled', stacks: 1, duration: 3 }
+      { type: 'condition', name: 'Bleeding', atMs: 200, condition: 'Bleeding', stacks: 2, duration: 4 },
+      { type: 'condition', name: 'Torment', atMs: 360, condition: 'Torment', stacks: 2, duration: 4 },
+      { type: 'condition', name: 'Crippled', atMs: 520, condition: 'Crippled', stacks: 1, duration: 3 }
     ]
   }),
   trait(DAREDEVIL_BALANCE_PROFILE_IDS.unhinderedCombatant, 'Unhindered Combatant', {
-    effects: [{ type: 'boon', boon: 'Swiftness', stacks: 1, duration: 8 }]
+    effects: [{ type: 'boon', name: 'Swiftness', boon: 'Swiftness', stacks: 1, duration: 8 }]
   }),
   trait(DAREDEVIL_BALANCE_PROFILE_IDS.enduranceThief, 'Endurance Thief', {
     resourceGain: 50
@@ -68,6 +69,6 @@ export const DAREDEVIL_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   trait(TRAIT.MARAUDERS_RESILIENCE, "Marauder's Resilience", { attributeConversion: 0.07 }),
   trait(DAREDEVIL_BALANCE_PROFILE_IDS.weakeningStrikes, 'Weakening Strikes', {
     durationMultiplier: 4,
-    effects: [{ type: 'condition', condition: 'Weakness', stacks: 1, duration: 3 }]
+    effects: [{ type: 'condition', name: 'Weakness', condition: 'Weakness', stacks: 1, duration: 3 }]
   })
 ]);
