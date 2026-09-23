@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createProfessionPassSimulator, createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
-const simulate = createProfessionSimulator(necromancerProfession, {
+const baseConfig = {
   primaryWeapon: 'Axe',
   secondaryWeapon: 'Focus',
   selectedTraitIds: [],
@@ -13,7 +13,9 @@ const simulate = createProfessionSimulator(necromancerProfession, {
   boons: { quickness: false, alacrity: false },
   stats: { power: 2000, precision: 1000, expertise: 0, vitality: 1000 },
   target: { armor: 2597, health: 1000000000, conditions: {} }
-});
+};
+const simulate = createProfessionSimulator(necromancerProfession, baseConfig);
+const simulateWithPasses = createProfessionPassSimulator(necromancerProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // Resource feedback follows reached packets and cannot refund the skipped remainder of an interrupted channel.
@@ -37,6 +39,14 @@ test('Ghastly Claws grants life force on each landed packet and preserves partia
     assert.ok(gains.every((event) => event.amount === 1.5));
     assert.deepEqual(result.warnings, []);
   }
+});
+
+// Unconditional per-packet gains are predicted while scheduling, so resolution confirms them without a second pass.
+test('Ghastly Claws life force converges in its scheduling pass', () => {
+  const { result, passes } = simulateWithPasses('Core', ['Ghastly Claws']);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(passes, 1);
+  assert.equal(result.planningState.profession.lifeForce, 12);
 });
 
 // Compare one isolated packet so ordinary Vulnerability and the skill-specific bonus must multiply.

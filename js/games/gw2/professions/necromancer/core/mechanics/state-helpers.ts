@@ -2,6 +2,7 @@ import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-p
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { EPSILON } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 /**
  * Shared primitives for every necromancer skill handler.
@@ -93,14 +94,60 @@ export function consumeSoulShards(state: NecromancerCoreState, stacks: number, a
   return consumed;
 }
 
-/** Applies percentage-based life-force gain, including Gluttony and the pool cap. */
-export function gainNecromancerLifeForce(
+interface PendingLifeForceGain {
+  readonly at: number;
+  readonly amount: number;
+}
+
+interface LifeForceGainTimeline {
+  readonly gains: PendingLifeForceGain[];
+  cursor: number;
+}
+
+// Each scheduler run owns one time-ordered queue of future gains; the resource clock consumes each entry once.
+const lifeForceGainTimelines = new WeakMap<object, LifeForceGainTimeline>();
+
+function lifeForceGainTimeline(context: NecromancerSchedulerContext): LifeForceGainTimeline {
+  let timeline = lifeForceGainTimelines.get(context.state);
+  if (!timeline) {
+    timeline = { gains: [], cursor: 0 };
+    lifeForceGainTimelines.set(context.state, timeline);
+  }
+
+  return timeline;
+}
+
+/** Queues a gain for the resource clock, keeping timestamp order among the gains it has not consumed yet. */
+export function scheduleNecromancerLifeForceGain(
   context: NecromancerSchedulerContext,
-  amount: number,
   at: number,
-  reason = ''
+  amount: number
 ): void {
   if (!(Number(amount) > 0)) return;
+  const timeline = lifeForceGainTimeline(context);
+  let index = timeline.gains.length;
+  // Most gains arrive in order, so scan back from the end; overdue gains stay at the cursor and apply next.
+  while (index > timeline.cursor && timeline.gains[index - 1].at > at) index -= 1;
+  timeline.gains.splice(index, 0, { at: Number(at), amount: Number(amount) });
+}
+
+/** Reports the earliest queued gain so the resource clock can stop and apply it at its own timestamp. */
+export function nextNecromancerLifeForceGainAt(context: NecromancerSchedulerContext): number {
+  const timeline = lifeForceGainTimelines.get(context.state);
+  return timeline?.gains[timeline.cursor]?.at ?? Number.POSITIVE_INFINITY;
+}
+
+/** Applies every queued gain due by the resource clock's current boundary, without publishing intermediate state. */
+export function applyDueNecromancerLifeForceGains(context: NecromancerSchedulerContext, at: number): void {
+  const timeline = lifeForceGainTimelines.get(context.state);
+  if (!timeline) return;
+  while (timeline.cursor < timeline.gains.length && timeline.gains[timeline.cursor].at <= at + EPSILON) {
+    addNecromancerLifeForce(context, timeline.gains[timeline.cursor++].amount);
+  }
+}
+
+// Percentage gains scale to the current pool, apply Gluttony once, and stop at the cap.
+function addNecromancerLifeForce(context: NecromancerSchedulerContext, amount: number): boolean {
   const state = professionCoreState(context);
   const multiplier = hasTrait(context, TRAIT.GLUTTONY)
     ? Number(balanceProfileFromContext(context, TRAIT.GLUTTONY)?.lifeForceGainMultiplier)
@@ -111,7 +158,31 @@ export function gainNecromancerLifeForce(
     state.lifeForce + ((Number(amount) * Number(state.maximumLifeForce || 100)) / 100) * multiplier
   );
   syncNecromancerResources(state);
-  if (state.lifeForce !== before && reason) {
+  return state.lifeForce !== before;
+}
+
+/**
+ * Grants a strike's life force at the strike's timestamp. A strike ahead of the resource clock waits for it, so drain,
+ * depletion, and the cap see the gain in order. The clock can already be past the strike because cast completion
+ * advances it at cast start; such a gain applies immediately.
+ */
+export function gainNecromancerLifeForceOnHit(context: NecromancerSchedulerContext, at: number, amount: number): void {
+  if (Number(at) > Number(professionCoreState(context).lastResourceAt || 0) + EPSILON) {
+    scheduleNecromancerLifeForceGain(context, at, amount);
+  } else if (Number(amount) > 0) {
+    addNecromancerLifeForce(context, amount);
+  }
+}
+
+/** Applies percentage-based life-force gain, including Gluttony and the pool cap. */
+export function gainNecromancerLifeForce(
+  context: NecromancerSchedulerContext,
+  amount: number,
+  at: number,
+  reason = ''
+): void {
+  if (!(Number(amount) > 0)) return;
+  if (addNecromancerLifeForce(context, amount) && reason) {
     emitNecromancerStateSnapshot(context, at, reason, {
       dedupeAcrossSourceIds: true
     });

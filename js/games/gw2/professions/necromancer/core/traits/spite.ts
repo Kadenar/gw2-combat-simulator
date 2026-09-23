@@ -14,10 +14,18 @@ import { emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { queueTraitCoefficientDamage } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
+import {
+  predictNecromancerLifeForceGain,
+  type NecromancerSchedulerFeedback
+} from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
+import { isSchedulerComboPrediction } from '#gw2/platform/combos/events.js';
+import { isSchedulerSigilPrediction } from '#gw2/platform/equipment/sigils/proc-events.js';
 import type {
   NecromancerCastContext,
   NecromancerResolverContext,
   NecromancerResolverEvent,
+  NecromancerSchedulerContext,
+  NecromancerSimulationEvent,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 
@@ -88,20 +96,60 @@ export function applySiphonedPower(context: NecromancerResolverContext, event: N
   context.recordProc?.('trait', 'Siphoned Power', event.at, event.skillName);
 }
 
+// Scheduler predictions and resolver observations must agree on the raw percentage each strike grants.
+function spitefulFortitudeLifeForceGain(context: NecromancerSchedulerContext | NecromancerResolverContext): number {
+  return Number(balanceProfileFromContext(context, PROFILE.spitefulFortitude)?.lifeForceGain ?? 1);
+}
+
 export function applySpitefulFortitude(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (!hasTrait(context, TRAIT.SPITEFUL_FORTITUDE) || event.actorType !== 'player' || !targetBelowHalfHealth(context)) {
     return;
   }
 
-  // Replay raw percentage gains at the strike timestamp; the scheduler owns normalization, Gluttony, and capping.
+  // Record raw percentage gains at the strike timestamp so refinement can verify the scheduler's prediction.
   context.resolved.push({
     type: 'necromancer.life-force-gain',
     at: event.at,
     source: 'Trait',
     sourceId: TRAIT.SPITEFUL_FORTITUDE,
     actorType: 'effect',
-    amount: Number(balanceProfileFromContext(context, PROFILE.spitefulFortitude)?.lifeForceGain ?? 1)
+    amount: spitefulFortitudeLifeForceGain(context)
   });
+}
+
+// Spiteful Fortitude grants this scheduler pass has already made at the half-health crossing timestamp.
+const boundaryGrantCounts = new WeakMap<object, number>();
+
+/**
+ * Predicts Spiteful Fortitude from scheduled strikes once feedback knows when the target falls below half health.
+ * Granting in the same pass removes a whole refinement pass that would only replay the previous pass's gains.
+ */
+export function predictSpitefulFortitude(
+  context: NecromancerSchedulerContext,
+  event: NecromancerSimulationEvent
+): void {
+  // Mirror the resolver: only positive-coefficient player strikes that reach the target can qualify.
+  if (
+    event.type !== 'damage' ||
+    event.actorType !== 'player' ||
+    !(Number(event.coefficient) > 0) ||
+    event.offTarget === true ||
+    isSchedulerComboPrediction(event) ||
+    isSchedulerSigilPrediction(event) ||
+    !hasTrait(context, TRAIT.SPITEFUL_FORTITUDE)
+  )
+    return;
+  const feedback = context.config._schedulerFeedback as NecromancerSchedulerFeedback | undefined;
+  const boundary = feedback?.targetBelowHalfAt;
+  if (boundary == null || event.at < boundary) return;
+  if (event.at === boundary) {
+    // Same-time strikes resolved before the crossing strike were still above half, so grant only the resolver's count.
+    const claimed = boundaryGrantCounts.get(context.state) || 0;
+    if (claimed >= Number(feedback?.boundaryLifeForceGains || 0)) return;
+    boundaryGrantCounts.set(context.state, claimed + 1);
+  }
+
+  predictNecromancerLifeForceGain(context, event.at, spitefulFortitudeLifeForceGain(context));
 }
 
 export function applyChillOfDeath(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {

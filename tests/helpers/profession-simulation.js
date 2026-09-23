@@ -11,3 +11,20 @@ export function createProfessionSimulator(profession, baseConfig) {
       observationPolicy
     });
 }
+
+/** Creates the same runner but also counts scheduling passes, exposing when scheduler feedback converges. */
+export function createProfessionPassSimulator(profession, baseConfig) {
+  return (specialization, rotation, config = {}, observationPolicy = undefined) => {
+    let passes = 0;
+    const result = simulateGw2({
+      profession,
+      rotation,
+      config: { ...prepareSimulationConfig(baseConfig, config), specialization },
+      observationPolicy,
+      onPhase: (phase) => {
+        if (phase === 'scheduling') passes += 1;
+      }
+    });
+    return { result, passes };
+  };
+}

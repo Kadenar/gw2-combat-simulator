@@ -3,7 +3,7 @@ import test from 'node:test';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { advanceNecromancerState } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createProfessionPassSimulator, createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import {
   addBlight,
   consumeBlight,
@@ -13,10 +13,12 @@ import {
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { harbingerUi } from '#gw2/professions/necromancer/specializations/harbinger/presentation.js';
 
-const simulate = createProfessionSimulator(necromancerProfession, {
+const baseConfig = {
   stats: { power: 2000, precision: 1000, conditionDamage: 1000, vitality: 1000 },
   target: { armor: 2597, conditions: {} }
-});
+};
+const simulate = createProfessionSimulator(necromancerProfession, baseConfig);
+const simulateWithPasses = createProfessionPassSimulator(necromancerProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // Cap refreshes keep their positions, and expiry must preserve the order used by later spends.
@@ -286,6 +288,101 @@ test('NEC-007 resource gains preserve Harbinger damage observations before the B
   assert.deepEqual(strikes(feedback), strikes(baseline));
   assert.equal(feedback.planningState.profession.blight, baseline.planningState.profession.blight);
   assert.ok(feedback.planningState.profession.lifeForce > baseline.planningState.profession.lifeForce);
+});
+
+const spitefulFortitude = (config) => ({ initialResource: 0, selectedTraitIds: [TRAIT.SPITEFUL_FORTITUDE], ...config });
+
+// The first pass only discovers the half-health boundary; the second grants and verifies the same strike gains.
+test('Spiteful Fortitude life force is predicted in the pass that refinement verifies', () => {
+  const { result, passes } = simulateWithPasses(
+    'Core',
+    ['Rending Claws', 'Death Shroud'],
+    spitefulFortitude({
+      initialResource: 9,
+      primaryWeapon: 'Axe',
+      target: { health: 1000000, startingHealthFraction: 0.4 }
+    })
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(passes, 2);
+  assert.equal(result.planningState.profession.activeShroud, 'death');
+});
+
+// Same-time strikes resolved before the crossing strike are still above half health and must not be predicted.
+test('Spiteful Fortitude predictions start at the strike that crosses half health', () => {
+  const health = 1000000;
+  const config = (startingHealthFraction) =>
+    spitefulFortitude({ primaryWeapon: 'Dagger', target: { health, startingHealthFraction } });
+  const [first, second] = simulate('Core', ['Necrotic Slash'], config(1)).resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillId === ID.NECROTIC_SLASH
+  );
+  assert.equal(first.at, second.at);
+  const { result, passes } = simulateWithPasses(
+    'Core',
+    ['Necrotic Slash'],
+    config(0.5 + (first.damage + second.damage / 2) / health)
+  );
+  assert.equal(result.resolvedEvents.filter((event) => event.type === 'necromancer.life-force-gain').length, 1);
+  assert.equal(passes, 2);
+  assert.equal(result.planningState.profession.lifeForce, 1);
+});
+
+// Delayed packets land after the observation end, where neither the resolver nor the resource clock reaches them.
+test('hit life force beyond the observation end does not force a replay pass', () => {
+  const { result, passes } = simulateWithPasses(
+    'Core',
+    ['Rending Claws', { name: 'Ghastly Claws', impactDelayMs: 5000 }],
+    spitefulFortitude({ primaryWeapon: 'Axe', target: { health: 1000000, startingHealthFraction: 0.4 } })
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(passes, 2);
+  assert.equal(result.planningState.profession.lifeForce, 2);
+});
+
+// The resolver observes no strike after target death, so predictions stop there instead of forcing a replay.
+test('Spiteful Fortitude predictions stop at target death', () => {
+  const config = (health) =>
+    spitefulFortitude({ primaryWeapon: 'Axe', target: { health, startingHealthFraction: 0.4 } });
+  // A surviving target shows both strikes qualify; the lethal first strike leaves the second unresolved.
+  assert.equal(simulate('Core', ['Rending Claws'], config(1000000)).planningState.profession.lifeForce, 2);
+  const { result, passes } = simulateWithPasses('Core', ['Rending Claws'], config(1000));
+  const strikes = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillId === ID.RENDING_CLAWS
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(strikes.length, 1);
+  assert.equal(result.deathTime, strikes[0].at);
+  assert.equal(passes, 2);
+  assert.equal(result.planningState.profession.lifeForce, 1);
+});
+
+// Gravedigger's reset moves every later strike; predicting from the new schedule avoids replaying the old timestamps.
+test('Spiteful Fortitude converges in two passes when Gravedigger resets reshape the schedule', () => {
+  const duskStrike = simulate('Reaper', ['Dusk Strike'], {
+    primaryWeapon: 'Greatsword',
+    target: { health: 0, conditions: {} }
+  }).totalDamage;
+  const health = 1000000;
+  const { result, passes } = simulateWithPasses(
+    'Reaper',
+    ['Dusk Strike', 'Gravedigger', 'Gravedigger', 'Dusk Strike'],
+    spitefulFortitude({
+      primaryWeapon: 'Greatsword',
+      target: { health, startingHealthFraction: 0.5 + duskStrike / (2 * health), conditions: {} }
+    })
+  );
+  const gravediggers = result.steps.filter((step) => step.skill === 'Gravedigger');
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.deathTime, null);
+  assert.equal(gravediggers[1].start, gravediggers[0].end);
+  assert.equal(passes, 2);
+  // The opening strike crosses half health, so every player strike from it onward grants life force.
+  assert.deepEqual(
+    result.resolvedEvents.filter((event) => event.type === 'necromancer.life-force-gain').map((event) => event.at),
+    result.resolvedEvents
+      .filter((event) => event.type === 'damage' && event.actorType === 'player' && event.coefficient > 0)
+      .map((event) => event.at)
+  );
 });
 
 test('NEC-009 interrupted minion summons commit no creature, command, or attacks', () => {

@@ -22,7 +22,7 @@
         "label": "Condition (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-weaver-pistol.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-pistol.json",
-        "benchmarkDps": 45489,
+        "benchmarkDps": 45916,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-pistol-warhorn"
       },

@@ -13,6 +13,9 @@ import {
   startAlliedAttackOpportunities,
   resetNecromancerResources
 } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import { replayNecromancerLifeForceGains } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
+import { predictGhastlyClawsLifeForce } from '#gw2/professions/necromancer/core/mechanics/axe.js';
+import { predictSpitefulFortitude } from '#gw2/professions/necromancer/core/traits/spite.js';
 import { necromancerMinionTaskHandlers } from '#gw2/professions/necromancer/core/mechanics/minions.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { necromancerSpearTaskHandlers } from '#gw2/professions/necromancer/core/execution/spear.js';
@@ -47,6 +50,7 @@ export const necromancerSchedulerHooks = Object.freeze({
     }
 
     if (!context.hasExplicitCombatStart) startAlliedAttackOpportunities(context, 0);
+    replayNecromancerLifeForceGains(context);
   },
   prepareEvent: {
     id: 'necromancer.boon-companion-candidates',
@@ -60,6 +64,9 @@ export const necromancerSchedulerHooks = Object.freeze({
   onCooldownReset: resetNecromancerResources,
   onEventScheduled: [
     { id: 'necromancer.plague-sending', order: 0, handler: observeNecromancerPlagueSendingEvent },
+    // Hit-timed life force is granted in the scheduling pass; refinement verifies it against resolved hits.
+    { id: 'necromancer.spiteful-fortitude', order: 0, handler: predictSpitefulFortitude },
+    { id: 'necromancer.ghastly-claws-life-force', order: 0, handler: predictGhastlyClawsLifeForce },
     {
       id: 'necromancer.allied-opportunities',
       order: 0,

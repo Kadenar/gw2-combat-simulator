@@ -22,7 +22,9 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import { syncNecromancerResources } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import {
+  applyDueNecromancerLifeForceGains,
   gainNecromancerLifeForce,
+  nextNecromancerLifeForceGainAt,
   purgeTimedState
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import {
@@ -36,14 +38,8 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 
-import {
-  observeTargetConditionCount,
-  type NecromancerSchedulerFeedback
-} from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
+import { observeTargetConditionCount } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
-
-// Each scheduler run consumes observed strike gains exactly once, including gains at time zero.
-const resourceFeedbackCursors = new WeakMap<object, number>();
 
 function alacrityRecharge(context: NecromancerSchedulerContext, duration: number, at: number): number {
   return duration / (context.hasBuff?.('alacrity', at) ? 1.25 : 1);
@@ -183,25 +179,17 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
   const eternalLife = hasTrait(context, TRAIT.ETERNAL_LIFE);
   const regeneration = balanceProfileFromContext(context, TRAIT.ETERNAL_LIFE)!;
   const regenerationInterval = Number(regeneration.pulseInterval);
-  const feedback = context.config._schedulerFeedback as NecromancerSchedulerFeedback | undefined;
-  const gains = feedback?.lifeForceGains || [];
-  // The resolver supplies gains in time order. Keep our position across advances so overlapping or repeated
-  // requests cannot grant the same strike's life force twice.
-  let gainIndex = resourceFeedbackCursors.get(context.state) || 0;
   let at = start;
 
   // Drain before each discrete gain, expiry, or depletion so wait partitioning cannot change capped resources.
   // Example: 100 LF, 3 LF/sec drain, and +4 LF at t=3 gives 91 + 4 = 95 at t=3, then 92 at t=4.
   // Adding the pulse before draining the whole four seconds would discard it at the cap and incorrectly give 88.
   while (true) {
-    // The previous iteration drained up to `at`; apply all strike gains due there before choosing another boundary.
-    // This also handles gains at the initial timestamp, when no time needs to elapse.
-    while (gainIndex < gains.length && gains[gainIndex].at <= at + EPSILON) {
-      const gain = gains[gainIndex++];
-      // Apply gains at their timestamps, but publish state at the advance boundary: specialization clocks may already
-      // hold cast-end state, which must not leak into earlier hits through a backdated full snapshot.
-      gainNecromancerLifeForce(context, gain.amount, at);
-    }
+    // The previous iteration drained up to `at`; apply all queued strike gains due there before choosing another
+    // boundary. This also handles gains at the initial timestamp, when no time needs to elapse. Apply gains at their
+    // timestamps, but publish state at the advance boundary: specialization clocks may already hold cast-end state,
+    // which must not leak into earlier hits through a backdated full snapshot.
+    applyDueNecromancerLifeForceGains(context, at);
 
     // Check AFTER gains so a gain exactly at `end` still applies. This is the exit from while (true).
     if (at >= end) break;
@@ -229,7 +217,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
         nextRegeneration,
         state.activeShroud === 'lich' ? state.lichEndsAt : Infinity,
         rate > 0 ? at + state.lifeForce / rate : Infinity,
-        gains[gainIndex]?.at ?? Infinity
+        nextNecromancerLifeForceGainAt(context)
       )
     );
 
@@ -305,8 +293,6 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
     // otherwise time advances toward `end`. Strike gains at `next` are applied at the top of the loop.
     at = next;
   }
-
-  resourceFeedbackCursors.set(context.state, gainIndex);
 
   // Save both cursors and publish the complete state at the requested time, ready for the next scheduler decision.
   state.lastResourceAt = end;

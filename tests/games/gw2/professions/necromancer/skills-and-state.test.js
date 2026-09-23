@@ -958,6 +958,30 @@ test('target-health scheduler refinement only reruns rotations that cast Gravedi
   assert.equal(refinement._schedulerFeedback.targetBelowHalfAt, 1);
 });
 
+// Resolver-only rules can disprove a prediction; stable feedback then switches to replaying the observed gains.
+test('life-force refinement replays resolved gains that scheduler prediction missed', () => {
+  const refine = necromancerProfession.simulation.refineSchedulerConfig;
+  const feedback = { targetBelowHalfAt: 1, boundaryLifeForceGains: 1, conditionCounts: {} };
+  const config = { target: { health: 100 }, _schedulerFeedback: feedback };
+  const result = {
+    events: [],
+    observationEndTime: 2,
+    resolvedEvents: [
+      { type: 'damage', at: 1, damage: 60 },
+      { type: 'necromancer.life-force-gain', at: 1, amount: 1, sourceId: TRAIT.SPITEFUL_FORTITUDE }
+    ]
+  };
+
+  const replay = refine(config, result);
+  assert.deepEqual(replay._schedulerFeedback.lifeForceGains, [{ at: 1, amount: 1 }]);
+  assert.equal(refine(replay, result), null);
+
+  // A moved death time explains the disagreement, so the next pass predicts again with the new death boundary.
+  const retried = refine(config, { ...result, deathTime: 1 });
+  assert.equal(retried._schedulerFeedback.targetDeathAt, 1);
+  assert.equal(retried._schedulerFeedback.lifeForceGains, undefined);
+});
+
 test('Reaper and Harbinger shroud transitions emit the current weapon set', () => {
   for (const [specialization, enter, exit] of [
     ['Reaper', "Reaper's Shroud", "Exit Reaper's Shroud"],

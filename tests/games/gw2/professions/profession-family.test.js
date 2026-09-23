@@ -1045,6 +1045,7 @@ test('Mesmer presentation and ammo output expose only the active specialization 
     const runtime = mesmerProfession.resolveRuntime(config);
     const state = runtime.createProfessionState(config);
     const resources = mesmerProfession.ui.resourceViews({
+      catalog: runtime.catalog,
       config,
       state: { profession: state }
     });
