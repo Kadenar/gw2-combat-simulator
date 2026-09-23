@@ -104,5 +104,6 @@ export function emitStateSnapshot(
     return null;
   }
 
-  return context.emit(event);
+  // Compare live candidates first; only retained checkpoints need an isolated copy of mutable state.
+  return context.emit({ ...event, state: structuredClone(event.state) });
 }

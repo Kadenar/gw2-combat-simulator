@@ -2,6 +2,7 @@ import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.j
 import { expireCharges, replayChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import {
   composePublicStateProjections,
+  flattenProfessionState,
   professionCoreState,
   projectPublicProfessionState,
   restoreFlatProfessionState
@@ -48,7 +49,7 @@ export function emitThiefStateSnapshot(
   reason: string,
   options?: StateSnapshotEmissionOptions
 ): SimulationEvent | null {
-  return emitStateSnapshot(context, 'thief', at, reason, snapshotProfessionState(context.state.profession), options);
+  return emitStateSnapshot(context, 'thief', at, reason, flattenProfessionState(context.state.profession), options);
 }
 
 /** Publish detached clocks and grants so presentation cannot mutate live resource state. */

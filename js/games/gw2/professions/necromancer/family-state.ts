@@ -1,7 +1,7 @@
 import {
   composePublicStateProjections,
-  projectPublicProfessionState,
-  snapshotProfessionState
+  flattenProfessionState,
+  projectPublicProfessionState
 } from '#gw2/platform/engine/profession/state.js';
 import { emitStateSnapshot } from '#gw2/platform/engine/events/state-snapshots.js';
 import type {
@@ -24,9 +24,9 @@ import type {
   NecromancerState
 } from '#gw2/professions/necromancer/types.js';
 
-/** Builds the stable flattened state boundary shared by scheduler snapshots and result projection. */
-export function snapshotNecromancerState(state: unknown): NecromancerState {
-  const flattened = snapshotProfessionState<NecromancerState>(state);
+/** Normalize a shallow candidate; emission and public projection detach only the state they retain. */
+function flattenNecromancerState(state: unknown): NecromancerState {
+  const flattened = flattenProfessionState<NecromancerState>(state);
   syncNecromancerResources(flattened);
   if (Object.hasOwn(flattened, 'blightExpiries')) syncHarbingerState(flattened);
   return flattened;
@@ -44,7 +44,7 @@ export function emitNecromancerStateSnapshot(
     'necromancer',
     at,
     reason,
-    snapshotNecromancerState(context.state.profession),
+    flattenNecromancerState(context.state.profession),
     options
   );
 }
@@ -63,7 +63,7 @@ export const NECROMANCER_PUBLIC_END_STATE_KEYS = NECROMANCER_PUBLIC_STATE_PROJEC
 export function projectNecromancerPlanningState({
   schedulerState
 }: NecromancerPlanningStateProjectionOptions): Record<string, unknown> {
-  const state = snapshotNecromancerState(schedulerState.profession);
+  const state = flattenNecromancerState(schedulerState.profession);
   return projectPublicProfessionState(
     state,
     NECROMANCER_PUBLIC_END_STATE_KEYS,

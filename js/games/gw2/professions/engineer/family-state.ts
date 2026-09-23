@@ -1,5 +1,6 @@
 import {
   composePublicStateProjections,
+  flattenProfessionState,
   professionCoreState,
   projectPublicProfessionState,
   restoreFlatProfessionState,
@@ -39,7 +40,7 @@ export function emitEngineerStateSnapshot(
     'engineer',
     at,
     reason,
-    snapshotProfessionState<EngineerState>(context.state.profession),
+    flattenProfessionState<EngineerState>(context.state.profession),
     options
   );
 }

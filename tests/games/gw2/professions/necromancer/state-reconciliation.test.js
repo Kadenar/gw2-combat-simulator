@@ -11,6 +11,62 @@ import {
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/event-handlers.js';
 import { ritualistResolverEventReactions } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
+import { restoreNecromancerStateSlice } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
+import {
+  emitNecromancerStateSnapshot,
+  projectNecromancerPlanningState
+} from '#gw2/professions/necromancer/family-state.js';
+import { createHarbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
+
+test('state restoration copies primitives directly while detaching objects and rejecting uncloneable values', (t) => {
+  // Preserve exact primitive values without clone calls, including undefined keys and signed zero.
+  const clone = t.mock.method(globalThis, 'structuredClone');
+  const snapshot = { number: NaN, zero: -0, text: 'state', flag: false, empty: null, unset: undefined, big: 1n };
+  const state = Object.fromEntries(Object.keys(snapshot).map((key) => [key, 'old']));
+  restoreNecromancerStateSlice(state, snapshot);
+  assert.deepEqual(state, snapshot);
+  assert.equal(clone.mock.callCount(), 0);
+  state.nested = {};
+  snapshot.nested = { values: [1] };
+  restoreNecromancerStateSlice(state, snapshot);
+  assert.equal(clone.mock.callCount(), 1);
+  state.nested.values.push(2);
+  assert.deepEqual(snapshot.nested.values, [1]);
+  for (const value of [Symbol('invalid'), () => {}]) {
+    assert.throws(() => restoreNecromancerStateSlice({ value: null }, { value }), { name: 'DataCloneError' });
+  }
+});
+
+test('Necromancer snapshot candidates normalize resources without mutating live state', () => {
+  // Harbinger normalization must remain local even when emission no longer clones its input in advance.
+  const core = createNecromancerCoreState();
+  const harbinger = createHarbingerState();
+  core.lifeForce = 150;
+  harbinger.blightExpiries = Array.from({ length: 27 }, (_, index) => index);
+  const profession = { core, specialization: { kind: 'Harbinger', state: harbinger } };
+  const events = [];
+  const context = {
+    state: { profession },
+    events,
+    emit: (event) => {
+      events.push(event);
+      return event;
+    }
+  };
+  const event = emitNecromancerStateSnapshot(context, 0, 'update');
+  assert.equal(event.state.lifeForce, 100);
+  assert.equal(event.state.blight, 25);
+  assert.deepEqual(event.state.blightExpiries, harbinger.blightExpiries.slice(-25));
+  assert.equal(emitNecromancerStateSnapshot(context, 0, 'update'), null);
+  const planning = projectNecromancerPlanningState({ schedulerState: { profession } });
+  planning.blightExpiries.push(99);
+  core.activeMinions.fixture = 1;
+  assert.deepEqual(event.state.activeMinions, {});
+  assert.equal(core.lifeForce, 150);
+  assert.equal(harbinger.blight, 0);
+  assert.equal(harbinger.blightExpiries.length, 27);
+  assert.equal(event.state.blightExpiries.length, 25);
+});
 
 test('Core and Reaper snapshots retain resolver clocks and carapace multiplicities', () => {
   // Scheduler snapshots update resources and Victory while leaving Nova progress and resolver effects intact.

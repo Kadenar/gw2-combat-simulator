@@ -14,7 +14,13 @@ export function restoreNecromancerStateSlice(state: object, snapshot: Record<str
   const preserved = resolverFields.get(state);
   for (const key of Object.keys(mutable)) {
     if (preserved?.has(key)) continue;
-    if (Object.hasOwn(snapshot, key)) mutable[key] = structuredClone(snapshot[key]);
-    else delete mutable[key];
+    if (Object.hasOwn(snapshot, key)) {
+      const value = snapshot[key];
+      // Primitives are immutable; keep object isolation and structuredClone's rejection of functions and symbols.
+      mutable[key] =
+        value !== null && (typeof value === 'object' || typeof value === 'function' || typeof value === 'symbol')
+          ? structuredClone(value)
+          : value;
+    } else delete mutable[key];
   }
 }

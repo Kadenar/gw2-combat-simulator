@@ -267,3 +267,29 @@ test('state snapshot emission removes only matching adjacent synchronization che
   );
   assert.equal(events.length, 4);
 });
+
+test('snapshot emission clones only retained checkpoints and isolates their nested state', (t) => {
+  // Same-time duplicates avoid copying; later mutations and timestamps still produce independent checkpoints.
+  const clone = t.mock.method(globalThis, 'structuredClone');
+  const events = [];
+  const context = {
+    events,
+    emit(event) {
+      const emitted = createEvent(event);
+      events.push(emitted);
+      return emitted;
+    }
+  };
+  const state = { nested: { values: [NaN, -0] } };
+  const first = emitStateSnapshot(context, 'fixture', 1, 'update', state);
+  assert.equal(emitStateSnapshot(context, 'fixture', 1, 'update', state), null);
+  assert.equal(clone.mock.callCount(), 1);
+  state.nested.values[1] = 0;
+  assert.ok(emitStateSnapshot(context, 'fixture', 1, 'update', state));
+  assert.deepEqual(first.state.nested.values, [NaN, -0]);
+  assert.ok(emitStateSnapshot(context, 'fixture', 2, 'update', state));
+  assert.equal(clone.mock.callCount(), 3);
+  events[1].state.nested.values.push(7);
+  assert.deepEqual(state.nested.values, [NaN, 0]);
+  assert.deepEqual(events[2].state.nested.values, [NaN, 0]);
+});
