@@ -97,6 +97,8 @@ export function resolveGw2Timeline({
     query,
     helpers: helpers ?? {
       conditionName: canonicalTargetConditionName,
+      // Preserve selected-patch diagnostics alongside the same catalog's lookup maps.
+      balanceDataContext: profession.catalog?.balanceDataContext,
       skillsById: profession.catalog?.skillsById || new Map(),
       skillsByName: profession.catalog?.skillsByName || new Map(),
       balanceProfilesById: profession.catalog?.balanceProfilesById || new Map()

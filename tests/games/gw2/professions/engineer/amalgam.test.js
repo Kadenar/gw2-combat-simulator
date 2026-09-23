@@ -36,11 +36,11 @@ const simulate = createProfessionSimulator(engineerProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
-test('Amalgam resolver procs honor authored poison and strike edits, including zero', () => {
+test('Amalgam resolver procs honor positive poison fields and zero strike coefficients', () => {
   // Minimal resolver inputs isolate the authoring contract without a full morph rotation.
   for (const [coefficient, duration, stacks] of [
     [0.9, 7, 3],
-    [0, 0, 0]
+    [0, 1, 1]
   ]) {
     const catalog = applyBalanceProfilePatch(engineerCatalog, {
       balanceProfiles: {

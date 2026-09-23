@@ -1,3 +1,4 @@
+// Give same-type condition packets distinct names so patch deletion cannot select a sibling.
 import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
 /**
  * Owns Core Revenant balance profiles shared by skills, mechanics, and traits.
@@ -389,7 +390,8 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         condition: 'Slow',
         stacks: 1,
         duration: 3,
-        name: 'Call of the Demon',
+        name: 'Call of the Demon - Slow',
+        skillName: 'Call of the Demon',
         actorType: 'player',
         metadata: { legendId: LEGEND.DEMON }
       },
@@ -398,7 +400,8 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         condition: 'Torment',
         stacks: 2,
         duration: 8,
-        name: 'Call of the Demon',
+        name: 'Call of the Demon - Torment',
+        skillName: 'Call of the Demon',
         actorType: 'player',
         metadata: { legendId: LEGEND.DEMON }
       }
@@ -444,7 +447,8 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         condition: 'Torment',
         stacks: 1,
         duration: 10,
-        name: 'Invoke Torment',
+        name: 'Invoke Torment - Torment',
+        skillName: 'Invoke Torment',
         actorType: 'player'
       },
       {
@@ -452,7 +456,8 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         condition: 'Poisoned',
         stacks: 1,
         duration: 10,
-        name: 'Invoke Torment',
+        name: 'Invoke Torment - Poisoned',
+        skillName: 'Invoke Torment',
         actorType: 'player',
         metadata: { trigger: 'diabolic-inferno' }
       },
@@ -461,7 +466,8 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         condition: 'Burning',
         stacks: 1,
         duration: 4,
-        name: 'Invoke Torment',
+        name: 'Invoke Torment - Burning',
+        skillName: 'Invoke Torment',
         actorType: 'player',
         metadata: { trigger: 'diabolic-inferno' }
       }

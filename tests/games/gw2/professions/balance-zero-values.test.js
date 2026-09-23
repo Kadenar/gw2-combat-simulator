@@ -69,22 +69,24 @@ test('Guardian zero recharge multiplier makes the trait-adjusted skill immediate
   assert.equal(result.steps[1].start, result.steps[0].end);
 });
 
-test('Mesmer zero Illusionary Membrane duration remains zero after the shatter', () => {
-  const result = run(
-    mesmerProfession,
-    {
-      [MESMER_TRAIT.ILLUSIONARY_MEMBRANE]: { effects: [{ type: 'buff', duration: 0 }] }
-    },
-    'Core',
-    ['Cry of Frustration', { type: 'wait', durationMs: 1 }],
-    {
-      initialResource: 1,
-      selectedTraitIds: [MESMER_TRAIT.ILLUSIONARY_MEMBRANE]
-    }
+test('Mesmer rejects zero status duration at the patch boundary', () => {
+  // Statuses retain their positive-duration contract; removing a packet uses removeEffects instead.
+  assert.throws(
+    () =>
+      run(
+        mesmerProfession,
+        {
+          [MESMER_TRAIT.ILLUSIONARY_MEMBRANE]: { effects: [{ type: 'buff', duration: 0 }] }
+        },
+        'Core',
+        ['Cry of Frustration', { type: 'wait', durationMs: 1 }],
+        {
+          initialResource: 1,
+          selectedTraitIds: [MESMER_TRAIT.ILLUSIONARY_MEMBRANE]
+        }
+      ),
+    /positive duration/
   );
-  const membrane = result.events.find((event) => event.type === 'buff' && event.kind === 'illusionary-membrane');
-  assert.ok(membrane);
-  assert.equal(membrane.duration, 0);
 });
 
 test('Harbinger zero Meltdown coefficient emits no strike damage', () => {

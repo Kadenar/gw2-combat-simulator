@@ -20,7 +20,7 @@ import { runNative } from '#tests/helpers/elementalist-simulation.js';
 
 test('real and synthetic Air entry honor trait gates and patched buff versus boon durations', () => {
   // Superspeed must read its buff profile without concentration scaling; Resistance scales once.
-  for (const duration of [9, 0]) {
+  for (const duration of [9, 1]) {
     const catalog = applyBalanceProfilePatch(elementalistCatalog, {
       balanceProfiles: {
         [CORE.oneWithAir]: { effects: [{ type: 'buff', name: 'Superspeed', duration }] },

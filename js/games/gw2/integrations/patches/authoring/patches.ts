@@ -4,6 +4,11 @@ import {
   PATCHABLE_EFFECT_NUMERIC_FIELDS
 } from '#gw2/integrations/patches/authoring/fields.js';
 import { deepFreeze } from '#gw2/integrations/patches/authoring/immutable.js';
+import {
+  normalizeSkillEffects,
+  requireBalanceNumber,
+  skillEffectKey
+} from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import type { NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
 import type {
   BalanceProfile,
@@ -143,6 +148,36 @@ const EFFECT_NUMERIC_FIELDS = PATCHABLE_EFFECT_NUMERIC_FIELDS;
 
 type MutableRecord = Record<string, unknown>;
 
+/** Retain only removed identities, so callbacks and successive catalog overlays cannot resurrect deleted packets. */
+function patchEffects(owner: Skill | BalanceProfile, edit: SkillPatchEdit, label: string) {
+  const effects = [...(owner.effects || [])];
+  for (const effectPatch of shorthandEffects(edit)) {
+    for (const { index } of selectedEffects(effects, effectPatch, label)) {
+      effects[index] = patchEffect(effects[index], effectPatch, `${label}.effects[${index}]`);
+    }
+  }
+
+  const removedIndexes = new Set<number>();
+  const removedKeys = new Set(owner.removedEffectKeys);
+  for (const selector of edit.removeEffects || []) {
+    for (const { index, effect } of selectedEffects(effects, selector, `${label} removal`)) {
+      removedIndexes.add(index);
+      if (effect.name !== undefined) removedKeys.add(skillEffectKey(effect.type, effect.name));
+    }
+  }
+
+  // Removed packets need no fields; retained and replacement packets must pass the canonical validator.
+  const retained = normalizeSkillEffects(
+    [...effects.filter((_, index) => !removedIndexes.has(index)), ...structuredClone(edit.addEffects || [])],
+    label
+  );
+  for (const effect of retained) {
+    if (effect.name !== undefined) removedKeys.delete(skillEffectKey(effect.type, effect.name));
+  }
+
+  return { effects: retained, removedEffectKeys: Object.freeze([...removedKeys]) };
+}
+
 /** Applies one numeric edit at a validated direct or dotted path on a cloned catalog record. */
 function patchSkillNumericField(skill: MutableRecord, field: string, edit: NumEdit, skillName: string): void {
   const segments = field.split('.');
@@ -161,17 +196,20 @@ function patchSkillNumericField(skill: MutableRecord, field: string, edit: NumEd
     throw new TypeError(`Skill ${skillName} does not expose ${field}.`);
   }
 
-  owner[key] = applyNumEdit(Number(owner[key]), edit, `${skillName}.${field}`);
+  owner[key] = applyNumEdit(
+    requireBalanceNumber(owner[key], `${skillName} field=${field}`),
+    edit,
+    `${skillName}.${field}`
+  );
 }
 
-/** Coerces a value to a finite number so invalid authored math fails at its boundary. */
+/** Reject malformed authored math before arithmetic can coerce its operands. */
 function numericValue(value: unknown, label: string): number {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
     throw new TypeError(`${label} must be a finite number.`);
   }
 
-  return numeric;
+  return value;
 }
 
 /** Applies a validated replacement, guarded replacement, multiplier, or additive numeric edit. */
@@ -189,9 +227,9 @@ export function applyNumEdit(current: number, edit: NumEdit, label = 'Patched va
 
     result = edit.to;
   } else if ('multiply' in edit) {
-    result = value * edit.multiply;
+    result = value * numericValue(edit.multiply, `${label} multiply`);
   } else {
-    result = value + edit.add;
+    result = value + numericValue(edit.add, `${label} add`);
   }
 
   return numericValue(result, `${label} result`);
@@ -362,7 +400,11 @@ function patchNumericFields(target: MutableRecord, patch: EffectPatch, label: st
       throw new TypeError(`${label} does not expose ${field}.`);
     }
 
-    target[field] = applyNumEdit(Number(target[field]), edit, `${label}.${field}`);
+    target[field] = applyNumEdit(
+      requireBalanceNumber(target[field], `${label} field=${field}`),
+      edit,
+      `${label}.${field}`
+    );
   }
 }
 
@@ -510,7 +552,8 @@ export function normalizeAuthoringSkillEdit(source: Skill | BalanceProfile, edit
 }
 
 /** Produces an immutable patched skill without mutating the live catalog record. */
-function patchSkill(skill: Skill, edit: SkillPatchEdit): Skill {
+function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
+  const ownerLabel = `${label} skill=${skill.id} (${skill.name})`;
   const clone = structuredClone(skill) as Skill;
   const mutable = clone as unknown as MutableRecord;
   const fields: Record<string, NumEdit> = {
@@ -519,35 +562,13 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit): Skill {
   };
   for (const [field, numericEdit] of Object.entries(fields)) {
     if (!SKILL_NUMERIC_FIELDS.has(field)) {
-      throw new TypeError(`Skill ${skill.name} has unsupported patch field ${field}.`);
+      throw new TypeError(`${ownerLabel} has unsupported patch field ${field}.`);
     }
 
-    patchSkillNumericField(mutable, field, numericEdit, skill.name);
+    patchSkillNumericField(mutable, field, numericEdit, ownerLabel);
   }
 
-  const effects = [...(clone.effects || [])];
-  for (const effectPatch of shorthandEffects(edit)) {
-    for (const { index } of selectedEffects(effects, effectPatch, `Skill ${skill.name}`)) {
-      effects[index] = patchEffect(effects[index], effectPatch, `${skill.name}.effects[${index}]`);
-    }
-  }
-
-  const removedIndexes = new Set<number>();
-  for (const selector of edit.removeEffects || []) {
-    for (const { index } of selectedEffects(effects, selector, `Skill ${skill.name} removal`)) {
-      removedIndexes.add(index);
-    }
-  }
-
-  const retainedEffects = effects.filter((_, index) => !removedIndexes.has(index));
-  const addedEffects = (edit.addEffects || []).map((effect, index) => {
-    if (!effect || typeof effect !== 'object' || !String(effect.type || '')) {
-      throw new TypeError(`Skill ${skill.name} added effect ${index} must declare a type.`);
-    }
-
-    return structuredClone(effect);
-  });
-  mutable.effects = [...retainedEffects, ...addedEffects];
+  Object.assign(mutable, patchEffects(clone, edit, ownerLabel));
   return deepFreeze(clone);
 }
 
@@ -589,7 +610,8 @@ function migrateBalanceProfileFields(key: string, edit: SkillPatchEdit): SkillPa
 }
 
 /** Produces an immutable patched balance profile using the shared sparse patch grammar. */
-function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit): BalanceProfile {
+function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit, label: string): BalanceProfile {
+  const ownerLabel = `${label} profile=${profile.id} (${profile.name})`;
   const clone = structuredClone(profile) as BalanceProfile;
   const mutable = clone as unknown as MutableRecord;
   const fields: Record<string, NumEdit> = {
@@ -598,34 +620,13 @@ function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit): Bal
   };
   for (const [field, numericEdit] of Object.entries(fields)) {
     if (!BALANCE_PROFILE_NUMERIC_FIELDS.has(field)) {
-      throw new TypeError(`Balance profile ${profile.name} has unsupported patch field ${field}.`);
+      throw new TypeError(`${ownerLabel} has unsupported patch field ${field}.`);
     }
 
-    patchSkillNumericField(mutable, field, numericEdit, profile.name);
+    patchSkillNumericField(mutable, field, numericEdit, ownerLabel);
   }
 
-  const effects = [...(clone.effects || [])];
-  for (const effectPatch of shorthandEffects(edit)) {
-    for (const { index } of selectedEffects(effects, effectPatch, `Balance profile ${profile.name}`)) {
-      effects[index] = patchEffect(effects[index], effectPatch, `${profile.name}.effects[${index}]`);
-    }
-  }
-
-  const removedIndexes = new Set<number>();
-  for (const selector of edit.removeEffects || []) {
-    for (const { index } of selectedEffects(effects, selector, `Balance profile ${profile.name} removal`)) {
-      removedIndexes.add(index);
-    }
-  }
-
-  const addedEffects = (edit.addEffects || []).map((effect, index) => {
-    if (!effect || typeof effect !== 'object' || !String(effect.type || '')) {
-      throw new TypeError(`Balance profile ${profile.name} added effect ${index} must declare a type.`);
-    }
-
-    return structuredClone(effect);
-  });
-  mutable.effects = [...effects.filter((_, index) => !removedIndexes.has(index)), ...addedEffects];
+  Object.assign(mutable, patchEffects(clone, edit, ownerLabel));
   return deepFreeze(clone);
 }
 
@@ -642,6 +643,10 @@ export interface ApplySkillPatchOptions {
   readonly unknownSkills?: 'error' | 'ignore';
 }
 
+function catalogPatchLabel(catalog: Readonly<CanonicalCatalog>): string {
+  return `profession=${catalog.balanceDataContext?.professionId ?? '<unknown>'} patch=${catalog.balanceDataContext?.patchId ?? '<overlay>'}`;
+}
+
 /** Applies profession skill edits while preserving catalog indexes and object identity. */
 export function applySkillPatch(
   catalog: Readonly<CanonicalCatalog>,
@@ -655,14 +660,14 @@ export function applySkillPatch(
     const skill = findSkill(catalog, key);
     if (!skill) {
       if (options.unknownSkills === 'ignore') continue;
-      throw new TypeError(`Patch references unknown skill ${key}.`);
+      throw new TypeError(`${catalogPatchLabel(catalog)} Patch references unknown skill ${key}.`);
     }
 
     if (replacements.has(skill)) {
       throw new TypeError(`Patch edits skill ${skill.name} more than once.`);
     }
 
-    replacements.set(skill, patchSkill(skill, edit));
+    replacements.set(skill, patchSkill(skill, edit, catalogPatchLabel(catalog)));
   }
 
   if (!replacements.size) return catalog;
@@ -684,6 +689,27 @@ export function applyBalanceProfilePatch(
   patch: ProfessionPatchPreview | null | undefined,
   options: { readonly unknownProfiles?: 'error' | 'ignore' } = {}
 ): Readonly<CanonicalCatalog> {
+  // Callbacks must identify the latest overlay even for profiles with no balance edits; never mutate the base.
+  const balanceDataContext = catalog.balanceDataContext;
+  if (
+    balanceDataContext &&
+    catalog.balanceProfiles.some((profile) => profile.balanceDataContext !== balanceDataContext)
+  ) {
+    const profiles = new Map(
+      catalog.balanceProfiles.map((profile) => [profile, Object.freeze({ ...profile, balanceDataContext })])
+    );
+    catalog = Object.freeze({
+      ...catalog,
+      balanceProfiles: Object.freeze(catalog.balanceProfiles.map((profile) => profiles.get(profile)!)),
+      balanceProfilesById: new Map(
+        [...catalog.balanceProfilesById].map(([id, profile]) => [id, profiles.get(profile)!])
+      ),
+      balanceProfilesByName: new Map(
+        [...catalog.balanceProfilesByName].map(([name, profile]) => [name, profiles.get(profile)!])
+      )
+    });
+  }
+
   const edits = Object.entries(patch?.balanceProfiles || {});
   if (!edits.length) return catalog;
   const replacements = new Map<BalanceProfile, BalanceProfile>();
@@ -695,14 +721,17 @@ export function applyBalanceProfilePatch(
       catalog.balanceProfilesByName.get(key);
     if (!profile) {
       if (options.unknownProfiles === 'ignore') continue;
-      throw new TypeError(`Patch references unknown balance profile ${key}.`);
+      throw new TypeError(`${catalogPatchLabel(catalog)} Patch references unknown balance profile ${key}.`);
     }
 
     if (replacements.has(profile)) {
       throw new TypeError(`Patch edits balance profile ${profile.name} more than once.`);
     }
 
-    replacements.set(profile, patchBalanceProfile(profile, migrateBalanceProfileFields(String(profile.id), edit)));
+    replacements.set(
+      profile,
+      patchBalanceProfile(profile, migrateBalanceProfileFields(String(profile.id), edit), catalogPatchLabel(catalog))
+    );
   }
 
   if (!replacements.size) return catalog;

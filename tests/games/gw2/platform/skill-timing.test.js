@@ -107,7 +107,7 @@ test('shared impacts retain canonical catalog validation', () => {
       generated: [{ id: 1, name: 'Invalid impact', effects: impactEffects(timing, [effect]) }]
     });
   for (const atMs of [NaN, Infinity, -1]) {
-    assert.throws(() => load({ atMs, timingAnchor: 'castStart' }), /Effect atMs must be finite/);
+    assert.throws(() => load({ atMs, timingAnchor: 'castStart' }), /atMs.*finite/);
   }
 
   assert.throws(() => load({ atMs: 1, timingAnchor: 'invalid' }), /timingAnchor/);

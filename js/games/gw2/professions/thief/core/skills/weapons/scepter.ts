@@ -1,3 +1,4 @@
+// Name packets independently for patch deletion while preserving their shared attribution.
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -79,19 +80,19 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
       {
         type: 'strike',
         ticks: [{ atMs: 320, coefficient: 0.45 }],
-        name: 'Triple Bolt',
+        name: 'Triple Bolt - First Bolt',
         actorType: 'player'
       },
       {
         type: 'strike',
         ticks: [{ atMs: 640, coefficient: 0.45 }],
-        name: 'Triple Bolt',
+        name: 'Triple Bolt - Second Bolt',
         actorType: 'player'
       },
       {
         type: 'strike',
         ticks: [{ atMs: 1040, coefficient: 0.45 }],
-        name: 'Triple Bolt',
+        name: 'Triple Bolt - Third Bolt',
         actorType: 'player'
       },
       {
@@ -135,13 +136,13 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
       {
         type: 'strike',
         ticks: [{ atMs: 320, coefficient: 0.375 }],
-        name: 'Double Bolt',
+        name: 'Double Bolt - First Bolt',
         actorType: 'player'
       },
       {
         type: 'strike',
         ticks: [{ atMs: 600, coefficient: 0.375 }],
-        name: 'Double Bolt',
+        name: 'Double Bolt - Second Bolt',
         actorType: 'player'
       },
       {

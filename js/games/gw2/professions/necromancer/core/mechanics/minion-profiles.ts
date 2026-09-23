@@ -57,7 +57,8 @@ export interface MinionCommandDefinition {
 
 function minionAttackFromEffect(effect: SkillEffect, fallbackName: string): MinionAttack {
   return {
-    name: String(effect.name || fallbackName),
+    // Packet keys may differ while their summon attack attribution remains shared.
+    name: String(effect.skillName || effect.name || fallbackName),
     coefficient: Number(effect.coefficient || 0),
     offset: Number(effect.atMs || 0) / 1000,
     castTimeMs: Number(effect.castTimeMs || 0),

@@ -257,8 +257,17 @@ export function withPatchPreview<
   };
 
   let previewCatalog: Readonly<CanonicalCatalog> | null = null;
+  // Both full previews and selected runtimes carry the same patch identity through validation and lookups.
+  const previewCatalogSource = (catalog: Readonly<CanonicalCatalog>): Readonly<CanonicalCatalog> =>
+    Object.freeze({
+      ...catalog,
+      balanceDataContext: Object.freeze({ professionId: definition.id, patchId: preview?.id ?? '<validation>' })
+    });
   const validatedPreviewCatalog = (): Readonly<CanonicalCatalog> => {
-    previewCatalog ||= applyBalanceProfilePatch(applySkillPatch(family.catalog, professionPatch), professionPatch);
+    previewCatalog ||= applyBalanceProfilePatch(
+      applySkillPatch(previewCatalogSource(family.catalog), professionPatch),
+      professionPatch
+    );
     return previewCatalog;
   };
 
@@ -299,8 +308,9 @@ export function withPatchPreview<
   const validatePatch = (candidate: ProfessionPatchPreview | null | undefined): true => {
     if (!candidate) return true;
     assertProfessionPatchShape(definition.id, candidate);
-    applySkillPatch(family.catalog, candidate);
-    applyBalanceProfilePatch(family.catalog, candidate);
+    const catalog = previewCatalogSource(family.catalog);
+    applySkillPatch(catalog, candidate);
+    applyBalanceProfilePatch(catalog, candidate);
     applyModifierRulePatch(modifierRules, candidate.modifierRules);
     return true;
   };
@@ -317,7 +327,7 @@ export function withPatchPreview<
     const catalog =
       cached ||
       applyBalanceProfilePatch(
-        applySkillPatch(runtime.catalog, professionPatch, {
+        applySkillPatch(previewCatalogSource(runtime.catalog), professionPatch, {
           unknownSkills: 'ignore'
         }),
         professionPatch,

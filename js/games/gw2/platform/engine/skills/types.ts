@@ -145,6 +145,8 @@ export interface TooltipFact {
 }
 
 export interface Skill extends CatalogEntity {
+  /** Identity-only tombstones scoped to this skill in its selected catalog. */
+  readonly removedEffectKeys?: readonly string[];
   /** Explicit classification when absent from the chain index, or when a manual follow-up reuses that index. */
   readonly autoattack?: boolean;
   /** Imported state reconstruction executes for playback but never represents a player input. */
@@ -256,6 +258,10 @@ export interface Skill extends CatalogEntity {
  * catalog while retaining the same declarative effect vocabulary.
  */
 export interface BalanceProfile extends CatalogEntity {
+  /** Keep the selected source identifiable when a runtime passes only a profile lookup callback. */
+  readonly balanceDataContext?: CanonicalCatalog['balanceDataContext'];
+  /** Identity-only tombstones scoped to this profile; callbacks retain removal provenance. */
+  readonly removedEffectKeys?: readonly string[];
   readonly profileKind: 'trait' | 'mechanic' | 'skill-variant';
   /** Opts this profession-owned proc into shared build overrides without changing its trigger or effects. */
   readonly procRate?: {
@@ -302,6 +308,8 @@ export interface AutoattackChainPosition {
 }
 
 export interface CanonicalCatalog<TSkill extends Skill = Skill, TContext extends object = object> {
+  /** Selected patch metadata used by shared validation diagnostics. */
+  readonly balanceDataContext?: { readonly professionId: string; readonly patchId: string };
   readonly skills: readonly TSkill[];
   readonly skillsById: ReadonlyMap<SkillId, TSkill>;
   readonly skillsByName: ReadonlyMap<string, TSkill>;

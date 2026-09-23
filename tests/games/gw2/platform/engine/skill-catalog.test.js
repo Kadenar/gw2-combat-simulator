@@ -42,7 +42,7 @@ test('summon strike animation metadata validates duration and ownership', () => 
     { actorType: 'player' },
     { type: 'blind' }
   ]) {
-    assert.throws(() => load(patch), /Effect castTimeMs requires/);
+    assert.throws(() => load(patch), /castTimeMs/);
   }
 });
 

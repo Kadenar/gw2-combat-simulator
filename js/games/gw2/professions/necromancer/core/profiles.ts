@@ -1,3 +1,4 @@
+// Name packets independently for patch deletion while preserving their shared attribution.
 import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import {
   defineTraitProfile as trait,
@@ -544,7 +545,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         timingScale: 'fixed',
         actorType: 'summon',
         sourceId: 3633,
-        name: 'Bone Shard',
+        name: 'Bone Shard - First Projectile',
+        skillName: 'Bone Shard',
         comboFinishers: [MINION_PROJECTILE_FINISHER]
       },
       {
@@ -556,7 +558,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         timingScale: 'fixed',
         actorType: 'summon',
         sourceId: 3633,
-        name: 'Bone Shard',
+        name: 'Bone Shard - Second Projectile',
+        skillName: 'Bone Shard',
         comboFinishers: [MINION_PROJECTILE_FINISHER]
       },
       {
@@ -568,7 +571,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         timingScale: 'fixed',
         actorType: 'summon',
         sourceId: 3644,
-        name: 'Bone Shard - Crippling Volley',
+        name: 'Bone Shard - Crippling Volley - First Projectile',
+        skillName: 'Bone Shard - Crippling Volley',
         packetLabel: 'alternate',
         comboFinishers: [MINION_PROJECTILE_FINISHER]
       },
@@ -581,7 +585,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         timingScale: 'fixed',
         actorType: 'summon',
         sourceId: 3644,
-        name: 'Bone Shard - Crippling Volley',
+        name: 'Bone Shard - Crippling Volley - Second Projectile',
+        skillName: 'Bone Shard - Crippling Volley',
         packetLabel: 'alternate',
         comboFinishers: [MINION_PROJECTILE_FINISHER]
       },
@@ -677,7 +682,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         sourceId: 3653,
         // Both Slashes accelerate; Fist's animation and the chain's idle gaps remain fixed.
         castTimeMs: 1200,
-        name: 'Slash',
+        name: 'First Slash',
+        skillName: 'Slash',
         icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png'
       },
       {
@@ -690,7 +696,8 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         actorType: 'summon',
         sourceId: 3654,
         castTimeMs: 1200,
-        name: 'Slash',
+        name: 'Second Slash',
+        skillName: 'Slash',
         icon: 'https://wiki.guildwars2.com/wiki/Special:FilePath/Fist.png'
       },
       {

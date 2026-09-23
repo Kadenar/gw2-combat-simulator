@@ -125,6 +125,78 @@ const EFFECT_FIELDS = new Set([
   'comboFinishers'
 ]);
 
+/** Names identify procedural packets independently of their position after patch deletion. */
+export function skillEffectKey(type: SkillEffect['type'], name: string): string {
+  if (typeof name !== 'string' || !name.trim()) throw new TypeError('Effect keys require a non-empty name.');
+  return JSON.stringify([type, name]);
+}
+
+/** Required numeric data must be authored as finite numbers, never coerced from missing or textual values. */
+export function requireBalanceNumber(value: unknown, label: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new TypeError(
+      `Invalid balance data: ${label} expected=finite number received=${String(value)} (${typeof value})`
+    );
+  }
+
+  return value;
+}
+
+/** Validate optional numeric fields on both aggregate packets and per-tick overrides. */
+function validateEffectNumbers(candidate: UnvalidatedFields, label: string): void {
+  if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
+    throw new TypeError(`${label} expected=effect object received=${String(candidate)}`);
+  }
+
+  // Optional fields stay optional, but a supplied numeric field must have its actual numeric type.
+  for (const field of [
+    'coefficient',
+    'hits',
+    'applications',
+    'allyStacks',
+    'stacks',
+    'duration',
+    'durationPerAffinity',
+    'durationReductionPerAffinity',
+    'damageIncreasePerStack',
+    'damagePerCoefficient',
+    'atMs',
+    'intervalMs',
+    'castProgress',
+    'castTimeMs',
+    'phantasmEntityIndex',
+    'weaponStrength',
+    'flatDamage',
+    'flatStrikeBase',
+    'flatStrikePowerCoeff',
+    'flatStrikeMultiplier',
+    'flatStrikeHealthThreshold',
+    'flatStrikeThresholdMultiplier',
+    'interruptCommitMs'
+  ]) {
+    if (candidate[field] !== undefined) requireBalanceNumber(candidate[field], `${label} field=${field}`);
+  }
+}
+
+/** Validate complete surviving lists at both catalog assembly and patch boundaries. */
+export function normalizeSkillEffects(effects: readonly SkillEffect[], label: string): readonly SkillEffect[] {
+  if (!Array.isArray(effects)) throw new TypeError(`${label} effects must be an array.`);
+  const keys = new Set<string>();
+  return Object.freeze(
+    effects.map((effect) => {
+      const effectLabel = `${label} effect=${effect?.type}/${effect?.name ?? '<unnamed>'}`;
+      const normalized = normalizeEffect(effect, effectLabel);
+      if (effect?.name !== undefined) {
+        const key = skillEffectKey(effect.type, effect.name);
+        if (keys.has(key)) throw new TypeError(`Invalid balance data: ${effectLabel} duplicate effect key`);
+        keys.add(key);
+      }
+
+      return normalized;
+    })
+  );
+}
+
 /**
  * Normalizes handler maps so catalog lookup is always string-keyed regardless
  * of whether the source used a plain object or Map.
@@ -195,8 +267,9 @@ function normalizeStrikeTicks(value: unknown): readonly StrikeTick[] {
   let previousAtMs = -Infinity;
   return Object.freeze(
     ticks.map((tick, index) => {
-      const atMs = Number(tick?.atMs);
-      const coefficient = Number(tick?.coefficient);
+      validateEffectNumbers(tick, `tick=${index}`);
+      const atMs = requireBalanceNumber(tick?.atMs, `tick=${index} field=atMs`);
+      const coefficient = requireBalanceNumber(tick?.coefficient, `tick=${index} field=coefficient`);
       if (!(atMs >= 0) || !Number.isFinite(atMs)) {
         throw new TypeError(`Strike tick ${index + 1} requires a valid atMs.`);
       }
@@ -233,10 +306,11 @@ function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
   let previousAtMs = -Infinity;
   return Object.freeze(
     ticks.map((tick, index) => {
-      const atMs = Number(tick?.atMs);
-      const condition = String(tick?.condition || '');
-      const stacks = Number(tick?.stacks);
-      const duration = Number(tick?.duration);
+      validateEffectNumbers(tick, `tick=${index}`);
+      const atMs = requireBalanceNumber(tick?.atMs, `tick=${index} field=atMs`);
+      const condition = tick?.condition;
+      const stacks = requireBalanceNumber(tick?.stacks, `tick=${index} field=stacks`);
+      const duration = requireBalanceNumber(tick?.duration, `tick=${index} field=duration`);
       if (!(atMs >= 0) || !Number.isFinite(atMs)) {
         throw new TypeError(`Condition application ${index + 1} requires a valid atMs.`);
       }
@@ -245,7 +319,7 @@ function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
         throw new TypeError('Condition tick timelines must be chronological.');
       }
 
-      if (!condition) {
+      if (typeof condition !== 'string' || !condition.trim()) {
         throw new TypeError(`Condition application ${index + 1} requires a condition id.`);
       }
 
@@ -274,7 +348,15 @@ function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
 /**
  * Validates one declarative effect and normalizes any embedded timelines.
  */
-function normalizeEffect(effect: unknown): SkillEffect {
+export function normalizeEffect(effect: unknown, label = 'Skill effect'): SkillEffect {
+  try {
+    return normalizeEffectFields(effect, label);
+  } catch (error) {
+    throw new TypeError(`${label}: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
+  }
+}
+
+function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   const candidate =
     effect && typeof effect === 'object' && !Array.isArray(effect) ? (effect as UnvalidatedFields) : null;
   if (!candidate || typeof candidate.type !== 'string' || !EFFECT_TYPES.has(candidate.type)) {
@@ -282,6 +364,37 @@ function normalizeEffect(effect: unknown): SkillEffect {
   }
 
   const normalizedEffect = candidate as unknown as SkillEffect;
+  validateEffectNumbers(candidate, label);
+
+  // Custom packets must declare their dispatch type and payload before they can enter the event queue.
+  if (normalizedEffect.type === 'custom') {
+    if (typeof normalizedEffect.eventType !== 'string' || !normalizedEffect.eventType.trim()) {
+      throw new TypeError(`field=eventType expected=non-empty string received=${String(normalizedEffect.eventType)}`);
+    }
+
+    if (
+      !normalizedEffect.event ||
+      typeof normalizedEffect.event !== 'object' ||
+      Array.isArray(normalizedEffect.event)
+    ) {
+      throw new TypeError(`field=event expected=object received=${String(normalizedEffect.event)}`);
+    }
+  }
+
+  for (const field of ['name', 'condition', 'boon', 'kind']) {
+    if (candidate[field] !== undefined && (typeof candidate[field] !== 'string' || !candidate[field].trim())) {
+      throw new TypeError(`field=${field} expected=non-empty string received=${String(candidate[field])}`);
+    }
+  }
+
+  if (
+    normalizedEffect.type === 'strike' &&
+    normalizedEffect.coefficient !== undefined &&
+    normalizedEffect.coefficient < 0
+  ) {
+    throw new TypeError('field=coefficient expected=non-negative number');
+  }
+
   const unknownFields = Object.keys(candidate).filter((field) => !EFFECT_FIELDS.has(field));
   if (unknownFields.length) {
     throw new TypeError(
@@ -398,6 +511,8 @@ function normalizeEffect(effect: unknown): SkillEffect {
 
     coefficientModifiers = Object.freeze(
       normalizedEffect.coefficientModifiers.map((modifier, index) => {
+        requireBalanceNumber(modifier?.threshold, `modifier=${index} field=threshold`);
+        requireBalanceNumber(modifier?.multiplier, `modifier=${index} field=multiplier`);
         if (
           !modifier ||
           modifier.kind !== 'target-health-below' ||
@@ -513,6 +628,11 @@ function normalizeEffect(effect: unknown): SkillEffect {
   }
 
   if (normalizedEffect.type === 'condition') {
+    if (!conditionTicks) {
+      requireBalanceNumber(normalizedEffect.stacks, 'field=stacks');
+      requireBalanceNumber(normalizedEffect.duration, 'field=duration');
+    }
+
     if (!conditionTicks && !String(normalizedEffect.condition || '')) {
       throw new TypeError('Condition effects require a condition id.');
     }
@@ -523,6 +643,11 @@ function normalizeEffect(effect: unknown): SkillEffect {
   }
 
   if (normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff') {
+    requireBalanceNumber(normalizedEffect.duration, 'field=duration');
+    if (normalizedEffect.stacks !== undefined && !(normalizedEffect.stacks > 0)) {
+      throw new TypeError('Boon and buff statuses require positive stacks.');
+    }
+
     if (!String(normalizedEffect.boon || normalizedEffect.kind || normalizedEffect.name || '')) {
       throw new TypeError('Boon and buff statuses require a name.');
     }
@@ -535,6 +660,10 @@ function normalizeEffect(effect: unknown): SkillEffect {
   // Spread normalized numeric fields on top so runtime consumers always get typed values.
   return Object.freeze({
     ...normalizedEffect,
+    ...(normalizedEffect.type === 'strike' && !strikeTicks ? { hits: normalizedEffect.hits ?? 1 } : {}),
+    ...(normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff'
+      ? { stacks: normalizedEffect.stacks ?? 1 }
+      : {}),
     ...(hasAtMs ? { atMs: Number(normalizedEffect.atMs) } : {}),
     ...(hasInterval ? { intervalMs: Number(normalizedEffect.intervalMs) } : {}),
     ...(interruptCommitMs == null ? {} : { interruptCommitMs }),
@@ -659,7 +788,7 @@ export function createCanonicalCatalog({
       throw new TypeError(`Skill ${id} has invalid interruptMode "${interruptMode}".`);
     }
 
-    const effects = Object.freeze((merged.effects || []).map(normalizeEffect));
+    const effects = normalizeSkillEffects(merged.effects || [], `skill=${id}`);
     // Every persistent effect needs an explicit launch cutoff, either on itself
     // or inherited from the skill, before future packets may survive an interrupt.
     if (
@@ -725,7 +854,7 @@ export function createCanonicalCatalog({
   const profiles: readonly BalanceProfile[] = balanceProfiles.map((profile) =>
     Object.freeze({
       ...profile,
-      effects: Object.freeze((profile.effects || []).map(normalizeEffect))
+      effects: normalizeSkillEffects(profile.effects || [], `profile=${profile.id}`)
     })
   );
   const profileIds = new Set<SkillId>();

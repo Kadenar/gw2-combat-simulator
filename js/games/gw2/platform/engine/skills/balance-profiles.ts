@@ -5,10 +5,16 @@ import type {
   ControlEffect,
   CustomEffect,
   SkillEffect,
+  Skill,
   SkillId,
   StatusEffect,
   StrikeEffect
 } from '#gw2/platform/engine/skills/types.js';
+import {
+  normalizeEffect,
+  requireBalanceNumber,
+  skillEffectKey
+} from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 
 export type SkillEffectByType<TType extends SkillEffect['type']> = TType extends StrikeEffect['type']
   ? StrikeEffect
@@ -26,15 +32,19 @@ export type SkillEffectByType<TType extends SkillEffect['type']> = TType extends
 
 interface BalanceProfileCatalogLike {
   readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
+  readonly skillsById?: ReadonlyMap<SkillId, Skill>;
+  readonly balanceDataContext?: { readonly professionId: string; readonly patchId: string };
 }
 
 type BalanceProfileLookup = (id: SkillId) => BalanceProfile | undefined;
 
 export interface BalanceProfileLookupContext {
+  readonly config?: { readonly patchId?: string; readonly profession?: string };
   readonly balanceProfile?: BalanceProfileLookup;
   readonly catalog?: BalanceProfileCatalogLike;
   readonly helpers?: BalanceProfileCatalogLike;
   readonly profession?: {
+    readonly id?: string;
     readonly catalog?: BalanceProfileCatalogLike;
   };
   readonly runtime?: {
@@ -44,18 +54,81 @@ export interface BalanceProfileLookupContext {
   };
 }
 
+/** Select the authoritative source before looking up IDs; a miss must never search another patch. */
+function catalogFromContext(context: unknown): BalanceProfileCatalogLike | undefined {
+  if (!context || typeof context !== 'object') return undefined;
+  const source = context as BalanceProfileLookupContext;
+  return source.catalog ?? source.helpers ?? source.profession?.catalog ?? source.runtime?.profession?.catalog;
+}
+
+function balanceDataLabel(context: unknown, owner: string, profile?: BalanceProfile): string {
+  const source = context as BalanceProfileLookupContext | null | undefined;
+  // Callbacks retain source metadata on their profile; an opaque source must never be called the current patch.
+  const metadata = catalogFromContext(context)?.balanceDataContext ?? profile?.balanceDataContext;
+  return `profession=${metadata?.professionId ?? source?.profession?.id ?? source?.config?.profession ?? '<unknown>'} patch=${metadata?.patchId ?? source?.config?.patchId ?? '<unknown>'} ${owner}`;
+}
+
 /** Resolves patched balance data across scheduler, resolver, profession, and application context shapes. */
 export function balanceProfileFromContext(context: unknown, id: SkillId): BalanceProfile | undefined {
   if (typeof context === 'function') return (context as BalanceProfileLookup)(id);
   if (!context || typeof context !== 'object') return undefined;
 
   const source = context as BalanceProfileLookupContext;
-  return (
-    source.catalog?.balanceProfilesById?.get(id) ||
-    source.helpers?.balanceProfilesById?.get(id) ||
-    source.profession?.catalog?.balanceProfilesById?.get(id) ||
-    source.runtime?.profession?.catalog?.balanceProfilesById?.get(id) ||
-    source.balanceProfile?.(id)
+  const catalog = catalogFromContext(context);
+  return catalog ? catalog.balanceProfilesById?.get(id) : source.balanceProfile?.(id);
+}
+
+/** Required profiles fail in the selected source; optional discovery continues to use balanceProfileFromContext. */
+export function requireBalanceProfileFromContext(context: unknown, id: SkillId): BalanceProfile {
+  const profile = balanceProfileFromContext(context, id);
+  if (!profile)
+    throw new Error(
+      `Invalid balance data: ${balanceDataLabel(context, `profile=${id}`)} missing required profile/catalog`
+    );
+  return profile;
+}
+
+/** Semantic emission lookup returns absence only for a recorded removal, never for a typo or ambiguous key. */
+export function requireEffectFromContext<TType extends SkillEffect['type']>(
+  context: unknown,
+  ownerKind: 'skill' | 'balance-profile',
+  id: SkillId,
+  type: TType,
+  name: string
+): SkillEffectByType<TType> | undefined {
+  const key = skillEffectKey(type, name);
+  const owner =
+    ownerKind === 'balance-profile'
+      ? requireBalanceProfileFromContext(context, id)
+      : catalogFromContext(context)?.skillsById?.get(id);
+  const label = balanceDataLabel(
+    context,
+    `${ownerKind}=${id} effect=${type}/${name}`,
+    ownerKind === 'balance-profile' ? (owner as BalanceProfile) : undefined
+  );
+  if (!owner) throw new Error(`Invalid balance data: ${label} missing required skill/catalog`);
+  const matches = (owner.effects || []).filter((effect) => effect.type === type && effect.name === name);
+  if (matches.length > 1) throw new Error(`Invalid balance data: ${label} duplicate effect key`);
+  if (matches.length === 1) return normalizeEffect(matches[0], label) as SkillEffectByType<TType>;
+  if (owner.removedEffectKeys?.includes(key)) return undefined;
+  throw new Error(`Invalid balance data: ${label} unknown effect key`);
+}
+
+/** Read a required field only after resolving a surviving effect, retaining owner and patch diagnostics. */
+export function effectNumberFromContext(
+  context: unknown,
+  ownerKind: 'skill' | 'balance-profile',
+  id: SkillId,
+  effect: SkillEffect,
+  field: string
+): number {
+  return requireBalanceNumber(
+    effect[field],
+    balanceDataLabel(
+      context,
+      `${ownerKind}=${id} effect=${effect.type}/${effect.name ?? '<unnamed>'} field=${field}`,
+      ownerKind === 'balance-profile' ? balanceProfileFromContext(context, id) : undefined
+    )
   );
 }
 
@@ -103,12 +176,8 @@ export function balanceProfileValueFromContext(context: unknown, id: SkillId, fi
 
 /** Required balance inputs fail visibly instead of silently using unpatched values or producing NaN. */
 export function balanceProfileNumberFromContext(context: unknown, id: SkillId, field: string): number {
-  const value = balanceProfileFromContext(context, id)?.[field];
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    throw new Error(`Missing numeric balance profile field: ${id}.${field}`);
-  }
-
-  return value;
+  const profile = requireBalanceProfileFromContext(context, id);
+  return requireBalanceNumber(profile[field], balanceDataLabel(context, `profile=${id} field=${field}`, profile));
 }
 
 /** Read one opt-in proc chance for scheduler and resolver paths while retaining profession-owned eligibility and ICDs. */

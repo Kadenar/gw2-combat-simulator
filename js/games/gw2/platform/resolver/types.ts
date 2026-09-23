@@ -100,6 +100,7 @@ export interface Gw2ProcStep {
 }
 
 export interface Gw2ResolverHelpers {
+  readonly balanceDataContext?: { readonly professionId: string; readonly patchId: string };
   conditionName(value: unknown): string;
   readonly skillsById?: ReadonlyMap<import('#gw2/platform/engine/skills/types.js').SkillId, Skill>;
   readonly skillsByName?: ReadonlyMap<string, Skill>;

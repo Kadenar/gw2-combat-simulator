@@ -1,5 +1,5 @@
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
-import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
+import { impactEffects, strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -145,11 +145,9 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.GRIM_SPECTER]: {
     castTimeMs: 520,
-    // Align delayed siphons to 40 ms while preserving their one-second cadence.
+    // Keep the cast-scaled opening siphon separate from the fixed delayed pulse timeline.
     effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 520, coefficient: 0 }],
+      strikeTimeline([{ atMs: 520, coefficient: 0 }], {
         name: 'Grim Specter — Life Steal',
         flatStrikeBase: 778,
         flatStrikePowerCoeff: 0.2,
@@ -157,51 +155,19 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         damageKind: 'life-steal',
         timingAnchor: 'castStart',
         timingScale: 'cast'
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 1760, coefficient: 0 }],
-        name: 'Grim Specter — Life Steal',
-        flatStrikeBase: 778,
-        flatStrikePowerCoeff: 0.2,
-        noCrit: true,
-        damageKind: 'life-steal',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 2760, coefficient: 0 }],
-        name: 'Grim Specter — Life Steal',
-        flatStrikeBase: 778,
-        flatStrikePowerCoeff: 0.2,
-        noCrit: true,
-        damageKind: 'life-steal',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 3760, coefficient: 0 }],
-        name: 'Grim Specter — Life Steal',
-        flatStrikeBase: 778,
-        flatStrikePowerCoeff: 0.2,
-        noCrit: true,
-        damageKind: 'life-steal',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 4760, coefficient: 0 }],
-        name: 'Grim Specter — Life Steal',
-        flatStrikeBase: 778,
-        flatStrikePowerCoeff: 0.2,
-        noCrit: true,
-        damageKind: 'life-steal',
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
+      }),
+      strikeTimeline(
+        [1760, 2760, 3760, 4760].map((atMs) => ({ atMs, coefficient: 0 })),
+        {
+          name: 'Grim Specter — Delayed Life Steal',
+          flatStrikeBase: 778,
+          flatStrikePowerCoeff: 0.2,
+          noCrit: true,
+          damageKind: 'life-steal',
+          timingAnchor: 'castStart',
+          timingScale: 'fixed'
+        }
+      )
     ]
   },
   [ID.RIPPLE_OF_HORROR]: {

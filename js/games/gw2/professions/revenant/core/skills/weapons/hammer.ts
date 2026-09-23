@@ -1,3 +1,4 @@
+// Name packets independently for patch deletion while preserving their shared attribution.
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -112,7 +113,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         // Each cascade region uses the same 2.3 PvE coefficient, including repeat hits on large targets.
         ticks: [{ atMs: 560, coefficient: 2.3 }],
-        name: 'Coalescence of Ruin',
+        name: 'Coalescence of Ruin - First Cascade',
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -123,7 +124,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
         // Large targets intersect a second cascade region about 0.96 seconds after the first impact.
         type: 'strike',
         ticks: [{ atMs: 1520, coefficient: 2.3 }],
-        name: 'Coalescence of Ruin',
+        name: 'Coalescence of Ruin - Second Cascade',
         actorType: 'player',
         timingAnchor: 'castStart',
         timingScale: 'fixed',

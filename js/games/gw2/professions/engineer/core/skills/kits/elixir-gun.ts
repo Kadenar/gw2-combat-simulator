@@ -1,3 +1,4 @@
+// Name packets independently for patch deletion while preserving their shared attribution.
 /** Core Engineer Elixir Gun skill mechanics. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -102,7 +103,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         type: 'strike',
         coefficient: 1.35,
         hits: 1,
-        name: 'Acid Bomb',
+        name: 'Acid Bomb - Impact',
         actorType: 'player',
         comboFinishers: [
           {
@@ -117,7 +118,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partia
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 4.25 / 5 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        name: 'Acid Bomb',
+        name: 'Acid Bomb - Pulses',
         actorType: 'player'
       }
     ],
