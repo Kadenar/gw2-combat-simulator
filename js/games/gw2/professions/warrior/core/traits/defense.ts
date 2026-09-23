@@ -1,10 +1,14 @@
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+
 /** Owns imperative Defense trait effects while the public dispatcher preserves cross-line ordering. */
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
-import {
-  balanceProfileFromContext,
-  balanceProfileEffect,
-  balanceProfileEffectFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -30,65 +34,71 @@ import type {
 // Apply Thick Skin before any other cast-start trait logic.
 export function applyThickSkinCastStart(context: WarriorCastContext, skill: WarriorSkill): void {
   if (skill.type !== 'Heal' || !hasTrait(context, TRAIT.THICK_SKIN)) return;
-  const protection = balanceProfileEffectFromContext(context, TRAIT.THICK_SKIN, 'boon', 0)!;
-  emitSkillBuff(context, {
-    at: context.start,
-    source: 'Trait',
-    sourceId: TRAIT.THICK_SKIN,
-    actorType: 'effect',
-    skillId: skill.id,
-    skillName: skill.name,
-    name: 'Thick Skin',
-    kind: 'protection',
-    boon: 'protection',
-    stacks: Number(protection.stacks),
-    duration: gw2SchedulerBoonDuration(context, skill, 'protection', Number(protection.duration))
-  });
+  const thickSkinProfile = requireBalanceProfileFromContext(context, TRAIT.THICK_SKIN);
+  const protection = requireEffect(thickSkinProfile, 'boon', 'protection', context);
+  if (protection)
+    emitSkillBuff(context, {
+      at: context.start,
+      source: 'Trait',
+      sourceId: TRAIT.THICK_SKIN,
+      actorType: 'effect',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: 'Thick Skin',
+      kind: 'protection',
+      boon: 'protection',
+      stacks: effectNumber(thickSkinProfile, protection, 'stacks', context),
+      duration: gw2SchedulerBoonDuration(
+        context,
+        skill,
+        'protection',
+        effectNumber(thickSkinProfile, protection, 'duration', context)
+      )
+    });
 }
 
 // Grant Merciless Hammer adrenaline after target-control state is updated.
 export function applyMercilessHammer(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (event.type !== 'control' || event.actorType !== 'player' || !hasTrait(context, TRAIT.MERCILESS_HAMMER)) return;
-  gainWarriorAdrenaline(
-    context,
-    Number(balanceProfileFromContext(context, PROFILE.mercilessHammer)?.resourceGain ?? 7)
-  );
+  gainWarriorAdrenaline(context, balanceProfileNumberFromContext(context, PROFILE.mercilessHammer, 'resourceGain'));
 }
 
 // Grant Stalwart Strength stability once per internal-cooldown window.
 export function applyStalwartStrength(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (event.type !== 'control' || event.actorType !== 'player' || !hasTrait(context, TRAIT.STALWART_STRENGTH)) return;
   const state = professionCoreState(context);
-  const profile = balanceProfileFromContext(context, PROFILE.stalwartStrength);
-  const stability = balanceProfileEffect(profile, 'boon');
+
+  const stalwartStrengthProfile = requireBalanceProfileFromContext(context, PROFILE.stalwartStrength);
+  const stability = requireEffect(stalwartStrengthProfile, 'boon', 'stability', context);
   // Reserve this trait's own deadline before emitting its effects.
   if (
     !tryConsumeProcCooldown(
       state.traitProcReadyAt,
       'stalwartStrength',
       event.at,
-      Number(profile?.internalCooldown ?? 0.32)
+      balanceProfileNumber(stalwartStrengthProfile, 'internalCooldown', context)
     )
   )
     return;
-  emitSkillBuff(context, {
-    skill:
-      context.catalog.skillsById.get(event.skillId ?? '') ||
-      ({ id: TRAIT.STALWART_STRENGTH, name: 'Stalwart Strength' } as WarriorSkill),
-    cause: event,
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.STALWART_STRENGTH,
-    actorType: 'effect',
-    skillId: event.skillId,
-    skillName: event.skillName,
-    name: 'Stalwart Strength',
-    kind: 'stability',
-    boon: 'stability',
-    duration: Number(stability?.duration ?? 5),
-    stacks: Number(stability?.stacks ?? 1),
-    audience: { recipients: 'self' as const }
-  });
+  if (stability)
+    emitSkillBuff(context, {
+      skill:
+        context.catalog.skillsById.get(event.skillId ?? '') ||
+        ({ id: TRAIT.STALWART_STRENGTH, name: 'Stalwart Strength' } as WarriorSkill),
+      cause: event,
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.STALWART_STRENGTH,
+      actorType: 'effect',
+      skillId: event.skillId,
+      skillName: event.skillName,
+      name: 'Stalwart Strength',
+      kind: 'stability',
+      boon: 'stability',
+      duration: effectNumber(stalwartStrengthProfile, stability, 'duration', context),
+      stacks: effectNumber(stalwartStrengthProfile, stability, 'stacks', context),
+      audience: { recipients: 'self' as const }
+    });
 }
 
 // Apply Cull the Weak only once per burst activation and ICD window.

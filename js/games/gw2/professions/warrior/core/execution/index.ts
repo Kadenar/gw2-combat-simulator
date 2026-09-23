@@ -1,6 +1,15 @@
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { scheduleDeclarativeEffects } from '#gw2/platform/execution/effect-adapter.js';
+
 import { consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 /** Registers scheduler-phase skill activations for this module. */
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
@@ -17,8 +26,12 @@ import type { WarriorCastContext, WarriorSimulationEvent, WarriorSkill } from '#
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 
 function burstTier(context: WarriorCastContext, spent: number): number {
-  const tiers = balanceProfileFromContext(context, PROFILE.burstTiers);
-  return spent >= Number(tiers?.maximumStacks ?? 30) ? 3 : spent >= Number(tiers?.threshold ?? 20) ? 2 : 1;
+  const burstTiersProfile = requireBalanceProfileFromContext(context, PROFILE.burstTiers);
+  return spent >= balanceProfileNumber(burstTiersProfile, 'maximumStacks', context)
+    ? 3
+    : spent >= balanceProfileNumber(burstTiersProfile, 'threshold', context)
+      ? 2
+      : 1;
 }
 
 function afterResourceSkill(
@@ -49,19 +62,6 @@ function adjustResourceSkillEffect(
     state.berserkersPowerGranted = true;
   }
 
-  if (skill.id === ID.BLOODTHIRSTER && event.type === 'condition' && event.condition === 'Bleeding') {
-    const tier = burstTier(context, spent);
-    const bleeding = balanceProfileEffect(
-      balanceProfileFromContext(context, PROFILE.bloodthirsterTiers),
-      'condition',
-      tier - 1
-    );
-    context.replaceEvent(event, {
-      stacks: Number(bleeding?.stacks ?? tier * 3),
-      duration: Number(bleeding?.duration ?? event.duration)
-    });
-  }
-
   if (skill.id === ID.ARCING_SLICE && event.type === 'buff' && event.kind === 'fury') {
     context.replaceEvent(event, { duration: Number(event.duration) * [1, 1.5, 2][burstTier(context, spent) - 1] });
   }
@@ -79,14 +79,52 @@ function adjustResourceSkillEffect(
     });
     return;
   }
+}
 
-  if (skill.id !== ID.EVISCERATE) return;
-  const variantId = [PROFILE.eviscerateTier1, PROFILE.eviscerateTier2, PROFILE.eviscerateTier3][tier - 1];
-  const strike = balanceProfileEffect(balanceProfileFromContext(context, variantId), 'strike');
-  context.replaceEvent(event, {
-    coefficient: Number(strike?.coefficient ?? [2, 2.5, 3][tier - 1]),
-    name: `Eviscerate — Level ${tier} Damage`
-  });
+// Resolve tier replacements before emission so removed packets cannot create hits or trigger traits.
+function useResourceSkill(context: WarriorCastContext, skill: WarriorSkill): void {
+  const state = afterResourceSkill(context, skill);
+  const tier = burstTier(context, state.spent);
+  let effects = skill.effects || [];
+  // Read each selected tier once, then reuse its values for all matching skill packets.
+  if (
+    skill.id === ID.BLOODTHIRSTER &&
+    effects.some((effect) => effect.type === 'condition' && effect.condition === 'Bleeding')
+  ) {
+    const profile = requireBalanceProfileFromContext(context, PROFILE.bloodthirsterTiers);
+    const bleeding = requireEffect(profile, 'condition', `Tier ${tier}`, context);
+    const values = bleeding && {
+      stacks: effectNumber(profile, bleeding, 'stacks', context),
+      duration: effectNumber(profile, bleeding, 'duration', context)
+    };
+    effects = effects.flatMap<(typeof effects)[number]>((effect) =>
+      effect.type === 'condition' && effect.condition === 'Bleeding'
+        ? values
+          ? [{ ...effect, ...values }]
+          : []
+        : [effect]
+    );
+  } else if (skill.id === ID.EVISCERATE && effects.some((effect) => effect.type === 'strike')) {
+    const variantId = [PROFILE.eviscerateTier1, PROFILE.eviscerateTier2, PROFILE.eviscerateTier3][tier - 1];
+    const profile = requireBalanceProfileFromContext(context, variantId);
+    const strike = requireEffect(profile, 'strike', 'Strike', context);
+    const values = strike && {
+      coefficient: effectNumber(profile, strike, 'coefficient', context),
+      name: `Eviscerate — Level ${tier} Damage`
+    };
+    effects = effects.flatMap<(typeof effects)[number]>((effect) =>
+      effect.type === 'strike' ? (values ? [{ ...effect, ...values }] : []) : [effect]
+    );
+  }
+  scheduleDeclarativeEffects(
+    context,
+    { ...skill, effects },
+    context.reservationId,
+    context.start,
+    context.fullEnd,
+    context.effectiveEnd,
+    (event) => adjustResourceSkillEffect(context, skill, event, state)
+  );
 }
 
 // Spend burst resources, scale the fire field and pulse count by burst tier, and
@@ -95,52 +133,61 @@ function useCombustiveShot(context: WarriorCastContext, skill: WarriorSkill): vo
   const resource = afterResourceSkill(context, skill);
   const tier = burstTier(context, resource.spent);
   const pulses = tier + 1;
-  const profile = balanceProfileFromContext(context, PROFILE.combustiveShot);
-  const strike = balanceProfileEffect(profile, 'strike');
-  const burning = balanceProfileEffect(profile, 'condition');
-  const interval = Number(profile?.pulseInterval ?? 3);
-  const durationPerTier = Number(profile?.durationPerTier ?? 3);
+
+  const combustiveShotProfile = requireBalanceProfileFromContext(context, PROFILE.combustiveShot);
+  const strike = requireEffect(combustiveShotProfile, 'strike', 'Strike', context);
+  const burning = requireEffect(combustiveShotProfile, 'condition', 'Burning', context);
+  const interval = balanceProfileNumber(combustiveShotProfile, 'pulseInterval', context);
+  const durationPerTier = balanceProfileNumber(combustiveShotProfile, 'durationPerTier', context);
+  // Pulses share one validated packet snapshot; removed components remain absent.
+  const coefficient = strike && effectNumber(combustiveShotProfile, strike, 'coefficient', context);
+  const burningValues = burning && {
+    stacks: effectNumber(combustiveShotProfile, burning, 'stacks', context),
+    duration: effectNumber(combustiveShotProfile, burning, 'duration', context)
+  };
   const ownedField = skill.comboFields?.find((field) => field.ownerId === 'warrior');
   context.replaceEvent(context.action, {
     burstTier: tier,
     ...(ownedField ? { comboFields: [{ ...ownedField, duration: tier * durationPerTier }] } : {})
   });
-  for (let pulse = 0; pulse < pulses; pulse += 1) {
+  for (let pulse = 0; pulse < (interval > 0 ? pulses : 1); pulse += 1) {
     const at = context.fullEnd + pulse * interval;
-    const damage = emitSkillDamage(context, {
-      at,
-      source: 'Warrior',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      name: `${skill.name} - Level ${tier} Damage`,
-      coefficient: Number(strike?.coefficient ?? 0.5),
-      hits: 1,
-      hitIndex: pulse + 1,
-      totalHits: pulses,
-      skillWeapon: skill.weapon || 'Longbow',
-      persistsAfterInterrupt: true
-    })[0];
-    if (
-      !resource.berserkersPowerGranted &&
-      grantBerserkersPowerOnFirstHit(context, skill, damage as WarriorSimulationEvent, resource.spent)
-    ) {
-      resource.berserkersPowerGranted = true;
+    if (coefficient !== undefined) {
+      const damage = emitSkillDamage(context, {
+        at,
+        source: 'Warrior',
+        sourceId: skill.id,
+        actorType: 'player',
+        skillId: skill.id,
+        skillName: skill.name,
+        name: `${skill.name} - Level ${tier} Damage`,
+        coefficient,
+        hits: 1,
+        hitIndex: pulse + 1,
+        totalHits: pulses,
+        skillWeapon: skill.weapon || 'Longbow',
+        persistsAfterInterrupt: true
+      })[0];
+      if (
+        !resource.berserkersPowerGranted &&
+        grantBerserkersPowerOnFirstHit(context, skill, damage as WarriorSimulationEvent, resource.spent)
+      ) {
+        resource.berserkersPowerGranted = true;
+      }
     }
 
-    emitSkillCondition(context, {
-      skill,
-      at,
-      source: 'Warrior',
-      name: `${skill.name} - Burning`,
-      condition: String(burning?.condition || 'Burning'),
-      stacks: Number(burning?.stacks ?? 1),
-      duration: Number(burning?.duration ?? 5),
-      applicationIndex: pulse + 1,
-      totalApplications: pulses,
-      persistsAfterInterrupt: true
-    });
+    if (burning && burningValues)
+      emitSkillCondition(context, {
+        skill,
+        at,
+        source: 'Warrior',
+        name: `${skill.name} - Burning`,
+        condition: String(burning.condition),
+        ...burningValues,
+        applicationIndex: pulse + 1,
+        totalApplications: pulses,
+        persistsAfterInterrupt: true
+      });
   }
 }
 
@@ -186,17 +233,22 @@ function adjustFierceBlowDamage(
 // count without disturbing count-recharge progress.
 function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill): void {
   const bullets = Math.max(1, Number(context.ammo?.charges || 1));
-  const profile = balanceProfileFromContext(context, PROFILE.dragonsRoar);
-  const strike = balanceProfileEffect(profile, 'strike');
+
+  const dragonsRoarProfile = requireBalanceProfileFromContext(context, PROFILE.dragonsRoar);
+  const strike = requireEffect(dragonsRoarProfile, 'strike', 'Strike', context);
   const castDuration = Math.max(0, context.effectiveEnd - context.start);
-  const firstBulletAt = context.start + castDuration * Number(profile?.firstPacketRatio ?? 6 / 7);
-  const bulletInterval = castDuration * Number(profile?.packetIntervalRatio ?? 2 / 7);
+  const firstBulletAt =
+    context.start + castDuration * balanceProfileNumber(dragonsRoarProfile, 'firstPacketRatio', context);
+  const bulletInterval = castDuration * balanceProfileNumber(dragonsRoarProfile, 'packetIntervalRatio', context);
   recordWarriorAmmoSpend(context, bullets, bullets >= Number(context.ammo?.maximum || skill.ammo || 0));
 
   if (context.ammo && context.ammo.charges > 1) context.ammo.charges = 1;
   context.replaceEvent(context.action, {
     rechargeReadyAt: context.rechargeStart + Math.max(context.rechargeDuration, context.ammoLockoutDuration)
   });
+  if (!strike) return;
+  // Ammunition changes the packet count, not the coefficient read from this profile.
+  const coefficient = effectNumber(dragonsRoarProfile, strike, 'coefficient', context);
   for (let hitIndex = 1; hitIndex <= bullets; hitIndex += 1) {
     emitSkillDamage(context, {
       at: firstBulletAt + (hitIndex - 1) * bulletInterval,
@@ -206,7 +258,7 @@ function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill)
       skillId: skill.id,
       skillName: skill.name,
       name: "Dragon's Roar — Damage per Bullet",
-      coefficient: Number(strike?.coefficient ?? 0.75),
+      coefficient,
       hits: 1,
       hitIndex,
       totalHits: bullets,
@@ -218,7 +270,7 @@ function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill)
 
 function performWarriorDodge(context: WarriorCastContext, skill: WarriorSkill): boolean {
   const state = professionCoreState(context);
-  const cost = Number(balanceProfileFromContext(context, PROFILE.resources)?.resourceCost ?? 50);
+  const cost = balanceProfileNumberFromContext(context, PROFILE.resources, 'resourceCost');
   Object.assign(state, spendEndurance(state, cost, context.start, state.maximumEndurance));
   applyRecklessDodge(context, skill);
   return true;
@@ -231,9 +283,7 @@ export const warriorCoreSkillHandlers = Object.freeze({
       armSkillFlip(professionCoreState(context).availableFlips, ID.TACTICAL_BLOW, context.start, context.fullEnd);
     }
   }),
-  'warrior.resource': augmentSkillHandler(afterResourceSkill, {
-    afterEffect: adjustResourceSkillEffect
-  }),
+  'warrior.resource': replaceSkillHandler(useResourceSkill),
   'warrior.combustive-shot': replaceSkillHandler(useCombustiveShot),
   'warrior.mighty-throw': augmentSkillHandler(null, {
     afterEffect: adjustMightyThrowTarget

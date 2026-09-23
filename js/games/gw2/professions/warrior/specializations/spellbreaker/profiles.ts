@@ -24,20 +24,20 @@ export const SPELLBREAKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     id: SPELLBREAKER_BALANCE_PROFILE_IDS.fullCounter,
     name: 'Full Counter Window',
     profileKind: 'mechanic',
-    effects: [{ type: 'buff', kind: 'full-counter', stacks: 1, duration: 1 }]
+    effects: [{ name: 'full-counter', type: 'buff', kind: 'full-counter', stacks: 1, duration: 1 }]
   },
   trait(SPELLBREAKER_BALANCE_PROFILE_IDS.attackersInsight, "Attacker's Insight", {
     maximumStacks: 5,
     attributePerStack: 50,
-    effects: [{ type: 'buff', kind: 'attackers-insight', stacks: 1, duration: 15 }]
+    effects: [{ name: 'attackers-insight', type: 'buff', kind: 'attackers-insight', stacks: 1, duration: 15 }]
   }),
   trait(SPELLBREAKER_BALANCE_PROFILE_IDS.magebaneTether, 'Magebane Tether', {
     cooldown: 12,
     damageMultiplier: 1.15,
-    effects: [{ type: 'buff', kind: 'magebane-tether', stacks: 1, duration: 8 }]
+    effects: [{ name: 'magebane-tether', type: 'buff', kind: 'magebane-tether', stacks: 1, duration: 8 }]
   }),
   trait(SPELLBREAKER_BALANCE_PROFILE_IDS.noEscape, 'No Escape', {
-    effects: [{ type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1 }]
+    effects: [{ name: 'Immobilized', type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1 }]
   }),
   trait(SPELLBREAKER_BALANCE_PROFILE_IDS.pureStrike, 'Pure Strike', {
     // Targets have no boons, so the supported bonus is a single critical-damage multiplier.

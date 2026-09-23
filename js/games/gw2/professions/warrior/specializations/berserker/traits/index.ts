@@ -1,5 +1,13 @@
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
@@ -20,16 +28,17 @@ import { castCompleted, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.j
 
 const FIRE_AURA_ICON = 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Fire_Aura.png';
 
-export function berserkEntryDuration(context: WarriorCastContext): number {
-  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.resources), 'buff');
-  return Number(effect?.duration ?? 20);
+export function berserkEntryDuration(context: WarriorCastContext): number | undefined {
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const effect = requireEffect(resourcesProfile, 'buff', 'berserk', context);
+  return effect ? effectNumber(resourcesProfile, effect, 'duration', context) : undefined;
 }
 
 // Emit Berserk's baseline Burst of Aggression boons and the optional Bloody Roar
 // Resistance from their selected balance profiles.
 export function applyBerserkEntryTraits(context: WarriorCastContext, skill: WarriorSkill): void {
-  const burstOfAggression = balanceProfileFromContext(context, PROFILE.burstOfAggression);
-  for (const effect of burstOfAggression?.effects || []) {
+  const burstOfAggression = requireBalanceProfileFromContext(context, PROFILE.burstOfAggression);
+  for (const effect of burstOfAggression.effects || []) {
     if (effect.type !== 'boon') continue;
     const boon = String(effect.boon || effect.kind || '');
     emitSkillBuff(context, {
@@ -42,27 +51,40 @@ export function applyBerserkEntryTraits(context: WarriorCastContext, skill: Warr
       name: 'Burst of Aggression',
       kind: boon,
       boon,
-      duration: gw2SchedulerBoonDuration(context, skill, boon, Number(effect.duration || 0)),
-      stacks: Number(effect.stacks ?? 1)
+      duration: gw2SchedulerBoonDuration(
+        context,
+        skill,
+        boon,
+        effectNumber(burstOfAggression, effect, 'duration', context)
+      ),
+      stacks: effectNumber(burstOfAggression, effect, 'stacks', context)
     });
   }
 
   if (hasTrait(context, TRAIT.BLOODY_ROAR)) {
-    const resistance = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.bloodyRoar), 'boon');
-    const boon = String(resistance?.boon || resistance?.kind || 'resistance');
-    emitSkillBuff(context, {
-      at: context.effectiveEnd,
-      source: 'Trait',
-      sourceId: TRAIT.BLOODY_ROAR,
-      actorType: 'effect',
-      skillId: skill.id,
-      skillName: skill.name,
-      name: 'Bloody Roar',
-      kind: boon,
-      boon,
-      duration: gw2SchedulerBoonDuration(context, skill, boon, Number(resistance?.duration ?? 3.5)),
-      stacks: Number(resistance?.stacks ?? 1)
-    });
+    const bloodyRoarProfile = requireBalanceProfileFromContext(context, PROFILE.bloodyRoar);
+    const resistance = requireEffect(bloodyRoarProfile, 'boon', 'resistance', context);
+    if (!resistance) return;
+    const boon = String(resistance.boon);
+    if (resistance)
+      emitSkillBuff(context, {
+        at: context.effectiveEnd,
+        source: 'Trait',
+        sourceId: TRAIT.BLOODY_ROAR,
+        actorType: 'effect',
+        skillId: skill.id,
+        skillName: skill.name,
+        name: 'Bloody Roar',
+        kind: boon,
+        boon,
+        duration: gw2SchedulerBoonDuration(
+          context,
+          skill,
+          boon,
+          effectNumber(bloodyRoarProfile, resistance, 'duration', context)
+        ),
+        stacks: effectNumber(bloodyRoarProfile, resistance, 'stacks', context)
+      });
   }
 }
 
@@ -76,21 +98,20 @@ function isComplete(context: WarriorCastContext): boolean {
  * unlisted rage skills use the shared default.
  */
 function rageBerserkExtension(context: WarriorCastContext, skill: WarriorSkill): number {
-  const profile = balanceProfileFromContext(context, PROFILE.rageExtensions);
+  if (skill.id === ID.BERSERK) return 0;
+  const rageExtensionsProfile = requireBalanceProfileFromContext(context, PROFILE.rageExtensions);
   switch (skill.id) {
-    case ID.BERSERK:
-      return 0;
     case ID.WILD_BLOW:
-      return Number(profile?.maximumStacks ?? 5);
+      return balanceProfileNumber(rageExtensionsProfile, 'maximumStacks', context);
     case ID.OUTRAGE:
       // The simulator always has a nearby target, so Outrage uses its
       // increased three-second extension instead of the one-second base.
-      return Number(profile?.threshold ?? 3);
+      return balanceProfileNumber(rageExtensionsProfile, 'threshold', context);
     case ID.SUNDERING_LEAP:
     case ID.SHATTERING_BLOW:
-      return Number(profile?.threshold ?? 3);
+      return balanceProfileNumber(rageExtensionsProfile, 'threshold', context);
     default:
-      return Number(profile?.minimumStacks ?? 2);
+      return balanceProfileNumber(rageExtensionsProfile, 'minimumStacks', context);
   }
 }
 
@@ -101,16 +122,18 @@ function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
   if (!state.berserkActive || !isComplete(context)) return;
   const previousUntil = state.berserkUntil;
   if (skill.primalBurst && hasTrait(context, TRAIT.SMASH_BRAWLER)) {
-    const profile = balanceProfileFromContext(context, PROFILE.smashBrawler);
+    const smashBrawlerProfile = requireBalanceProfileFromContext(context, PROFILE.smashBrawler);
     state.berserkUntil +=
-      skill.id === ID.DECAPITATE ? Number(profile?.minimumStacks ?? 1) : Number(profile?.resourceGain ?? 2);
+      skill.id === ID.DECAPITATE
+        ? balanceProfileNumber(smashBrawlerProfile, 'minimumStacks', context)
+        : balanceProfileNumber(smashBrawlerProfile, 'resourceGain', context);
   }
 
   if (skill.categories?.includes('Rage') && skill.id !== ID.BERSERK) {
     state.berserkUntil +=
       rageBerserkExtension(context, skill) +
       (skill.id !== ID.OUTRAGE && hasTrait(context, TRAIT.LAST_BLAZE)
-        ? Number(balanceProfileFromContext(context, PROFILE.lastBlaze)?.durationMultiplier ?? 1)
+        ? balanceProfileNumberFromContext(context, PROFILE.lastBlaze, 'durationMultiplier')
         : 0);
   }
 
@@ -136,49 +159,41 @@ function extendBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
 function applyBerserkerTraits(context: WarriorCastContext, skill: WarriorSkill): void {
   if (!isComplete(context)) return;
   if (skill.categories?.includes('Rage') && hasTrait(context, TRAIT.LAST_BLAZE)) {
-    const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.lastBlaze), 'condition');
-    emitSkillCondition(context, {
-      skill,
-      at: context.effectiveEnd,
-      source: 'Trait',
-      sourceId: TRAIT.LAST_BLAZE,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      name: 'Last Blaze — Burning',
-      condition: 'Burning',
-      stacks: Number(burning?.stacks ?? 1),
-      duration: Number(burning?.duration ?? 4)
-    });
+    const lastBlazeProfile = requireBalanceProfileFromContext(context, PROFILE.lastBlaze);
+    const burning = requireEffect(lastBlazeProfile, 'condition', 'Burning', context);
+    if (burning)
+      emitSkillCondition(context, {
+        skill,
+        at: context.effectiveEnd,
+        source: 'Trait',
+        sourceId: TRAIT.LAST_BLAZE,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        name: 'Last Blaze — Burning',
+        condition: 'Burning',
+        stacks: effectNumber(lastBlazeProfile, burning, 'stacks', context),
+        duration: effectNumber(lastBlazeProfile, burning, 'duration', context)
+      });
   }
 
   if (skill.primalBurst && hasTrait(context, TRAIT.HEAT_THE_SOUL)) {
-    const profile = balanceProfileFromContext(context, PROFILE.heatTheSoul);
-    const quickness = balanceProfileEffect(profile, 'boon', 0);
-    const fury = balanceProfileEffect(profile, 'boon', 1);
-    const might = balanceProfileEffect(profile, 'boon', 2);
-    const boons = [
-      {
-        name: 'Heat the Soul — Quickness',
-        kind: 'quickness',
-        duration:
-          skill.id === ID.DECAPITATE
-            ? Number(balanceProfileFromContext(context, PROFILE.smashBrawler)?.resourceGain ?? 2)
-            : Number(quickness?.duration ?? 5),
-        stacks: Number(quickness?.stacks ?? 1)
-      },
-      {
-        name: 'Heat the Soul — Fury',
-        kind: 'fury',
-        duration: Number(fury?.duration ?? 5),
-        stacks: Number(fury?.stacks ?? 1)
-      },
-      {
-        name: 'Heat the Soul — Might',
-        kind: 'might',
-        duration: Number(might?.duration ?? 5),
-        stacks: Number(might?.stacks ?? 3)
-      }
-    ];
+    // Resolve each boon independently so removing one cannot shift or suppress its siblings.
+    const heatTheSoulProfile = requireBalanceProfileFromContext(context, PROFILE.heatTheSoul);
+    const boons = ['quickness', 'fury', 'might'].flatMap((kind) => {
+      const effect = requireEffect(heatTheSoulProfile, 'boon', kind, context);
+      if (!effect) return [];
+      return [
+        {
+          name: 'Heat the Soul — ' + kind,
+          kind,
+          duration:
+            kind === 'quickness' && skill.id === ID.DECAPITATE
+              ? balanceProfileNumberFromContext(context, PROFILE.smashBrawler, 'resourceGain')
+              : effectNumber(heatTheSoulProfile, effect, 'duration', context),
+          stacks: effectNumber(heatTheSoulProfile, effect, 'stacks', context)
+        }
+      ];
+    });
     for (const boon of boons) {
       emitSkillBuff(context, {
         at: context.effectiveEnd,
@@ -208,10 +223,13 @@ function emitFireAura(
   context: WarriorSchedulerContext,
   event: WarriorSimulationEvent,
   source: 'Combo' | 'Trait'
-): void {
+): boolean {
   const fromTrait = source === 'Trait';
-  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.kingOfFires), 'buff');
-  const duration = Number(effect?.duration ?? 5);
+  const kingOfFiresProfile = requireBalanceProfileFromContext(context, PROFILE.kingOfFires);
+  const effect = requireEffect(kingOfFiresProfile, 'buff', 'fire-aura', context);
+  // Removed packets do not open their associated state or schedule follow-ups.
+  if (!effect) return false;
+  const duration = effectNumber(kingOfFiresProfile, effect, 'duration', context);
   // Trait and combo auras use the same absolute effect clock as their visible buffs.
   berserkerState.from(context).fireAuraUntil = gw2EffectExpiresAt(event.at, duration);
   const common = {
@@ -222,15 +240,16 @@ function emitFireAura(
     skillId: event.skillId,
     skillName: event.skillName
   } as const;
-  emitSkillBuff(context, {
-    cause: event,
-    ...common,
+  if (effect)
+    emitSkillBuff(context, {
+      cause: event,
+      ...common,
 
-    name: fromTrait ? 'King of Fires — Fire Aura' : 'Fire Aura — Leap Combo',
-    kind: 'fire-aura',
-    stacks: Number(effect?.stacks ?? 1),
-    duration
-  });
+      name: fromTrait ? 'King of Fires — Fire Aura' : 'Fire Aura — Leap Combo',
+      kind: 'fire-aura',
+      stacks: effectNumber(kingOfFiresProfile, effect, 'stacks', context),
+      duration
+    });
   context.emitDerived(event, {
     ...common,
     type: 'proc',
@@ -240,6 +259,7 @@ function emitFireAura(
     detail: fromTrait ? 'Granted by King of Fires' : 'Granted by leap combo',
     icon: FIRE_AURA_ICON
   });
+  return true;
 }
 
 function criticalCount(context: WarriorSchedulerContext, event: WarriorSimulationEvent): number {
@@ -291,9 +311,9 @@ export const kingOfFiresReaction = eventReaction<WarriorSchedulerContext, Warrio
       return;
     }
 
-    const profile = balanceProfileFromContext(context, PROFILE.kingOfFires);
-    state.kingOfFiresReadyAt = event.at + Number(profile?.internalCooldown ?? 15);
-    emitFireAura(context, event, 'Trait');
+    state.kingOfFiresReadyAt =
+      event.at + balanceProfileNumberFromContext(context, PROFILE.kingOfFires, 'internalCooldown');
+    if (!emitFireAura(context, event, 'Trait')) return;
     const skill = event.skillId == null ? null : context.catalog.skillsById.get(event.skillId);
     const action = context.events.find(
       (candidate) => candidate.type === 'action' && candidate.activationId === event.activationId
@@ -325,9 +345,10 @@ export function handleKingOfFiresDetonationTask(context: WarriorSchedulerContext
   const state = berserkerState.from(context);
   // The aura is consumed only inside its half-open lifetime, without rejecting its final microseconds.
   if (state.fireAuraUntil <= task.at) return;
-  const profile = balanceProfileFromContext(context, PROFILE.kingOfFires);
-  const strike = balanceProfileEffect(profile, 'strike');
-  const burning = balanceProfileEffect(profile, 'condition');
+
+  const kingOfFiresProfile = requireBalanceProfileFromContext(context, PROFILE.kingOfFires);
+  const strike = requireEffect(kingOfFiresProfile, 'strike', 'Strike', context);
+  const burning = requireEffect(kingOfFiresProfile, 'condition', 'Burning', context);
 
   state.fireAuraUntil = 0;
   const common = {
@@ -348,15 +369,18 @@ export function handleKingOfFiresDetonationTask(context: WarriorSchedulerContext
     sourceSkill: skill.name,
     detail: 'Fire Aura detonated'
   });
-  emitSkillDamage(context, {
-    ...common,
+  if (strike)
+    emitSkillDamage(context, {
+      ...common,
 
-    name: 'King of Fires — Fire Aura Detonation',
-    coefficient: Number(strike?.coefficient ?? 0.7),
-    canTriggerCriticalTraits: true
-  });
+      name: 'King of Fires — Fire Aura Detonation',
+      coefficient: effectNumber(kingOfFiresProfile, strike, 'coefficient', context),
+      canTriggerCriticalTraits: true
+    });
   // Separate Burning applications preserve the total, including any fractional final stack.
-  const stacks = Number(burning?.stacks ?? 3);
+  if (!burning) return;
+  const stacks = effectNumber(kingOfFiresProfile, burning, 'stacks', context);
+  const duration = effectNumber(kingOfFiresProfile, burning, 'duration', context);
   for (let index = 0; index < Math.ceil(stacks); index += 1) {
     emitSkillCondition(context, {
       ...common,
@@ -364,7 +388,7 @@ export function handleKingOfFiresDetonationTask(context: WarriorSchedulerContext
       name: 'King of Fires — Burning',
       condition: 'Burning',
       stacks: Math.min(1, stacks - index),
-      duration: Number(burning?.duration ?? 3)
+      duration
     });
   }
 }

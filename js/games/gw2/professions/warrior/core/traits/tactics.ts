@@ -1,10 +1,14 @@
-import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
-/** Owns imperative Tactics trait effects while the public dispatcher preserves cross-line ordering. */
 import {
-  balanceProfileFromContext,
-  balanceProfileEffect,
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber,
   balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
+/** Owns imperative Tactics trait effects while the public dispatcher preserves cross-line ordering. */
+
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -33,20 +37,22 @@ export function applyMartialCadenceWeaponSwap(context: WarriorCastContext, at: n
 // Convert Crippled into Immobilized after the ordered control reactions.
 export function applyLegSpecialist(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (event.type !== 'condition' || event.condition !== 'Crippled' || !hasTrait(context, TRAIT.LEG_SPECIALIST)) return;
-  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.legSpecialist), 'condition');
-  emitSkillCondition(context, {
-    cause: event,
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.LEG_SPECIALIST,
-    actorType: 'effect',
-    skillId: event.skillId,
-    skillName: event.skillName,
-    name: 'Leg Specialist — Immobilized',
-    condition: 'Immobilized',
-    stacks: Number(effect?.stacks ?? 1),
-    duration: Number(effect?.duration ?? 1)
-  });
+  const legSpecialistProfile = requireBalanceProfileFromContext(context, PROFILE.legSpecialist);
+  const effect = requireEffect(legSpecialistProfile, 'condition', 'Immobilized', context);
+  if (effect)
+    emitSkillCondition(context, {
+      cause: event,
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.LEG_SPECIALIST,
+      actorType: 'effect',
+      skillId: event.skillId,
+      skillName: event.skillName,
+      name: 'Leg Specialist — Immobilized',
+      condition: 'Immobilized',
+      stacks: effectNumber(legSpecialistProfile, effect, 'stacks', context),
+      duration: effectNumber(legSpecialistProfile, effect, 'duration', context)
+    });
 }
 
 // Start Soldier's Focus and emit its base Might packet on the first eligible burst hit.
@@ -56,81 +62,86 @@ export function applyMarchingOrders(context: WarriorSchedulerContext, event: War
     return false;
   }
 
-  const marchingOrders = balanceProfileFromContext(context, PROFILE.marchingOrders);
-  const might = balanceProfileEffect(marchingOrders, 'boon');
-  state.soldierFocusReadyAt = event.at + Number(marchingOrders?.internalCooldown ?? 10);
-  emitSkillBuff(context, {
-    skill:
-      context.catalog.skillsById.get(event.skillId ?? '') ||
-      ({ id: TRAIT.MARCHING_ORDERS, name: "Soldier's Focus — Might" } as WarriorSkill),
-    cause: event,
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.MARCHING_ORDERS,
-    actorType: 'effect',
-    skillId: event.skillId,
-    skillName: event.skillName,
-    name: "Soldier's Focus — Might",
-    kind: 'might',
-    boon: 'might',
-    duration: Number(might?.duration ?? 15),
-    stacks: Number(might?.stacks ?? 3),
-    audience: { recipients: 'party' as const }
-  });
+  const marchingOrdersProfile = requireBalanceProfileFromContext(context, PROFILE.marchingOrders);
+  const might = requireEffect(marchingOrdersProfile, 'boon', 'might', context);
+  state.soldierFocusReadyAt = event.at + balanceProfileNumber(marchingOrdersProfile, 'internalCooldown', context);
+  if (might)
+    emitSkillBuff(context, {
+      skill:
+        context.catalog.skillsById.get(event.skillId ?? '') ||
+        ({ id: TRAIT.MARCHING_ORDERS, name: "Soldier's Focus — Might" } as WarriorSkill),
+      cause: event,
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.MARCHING_ORDERS,
+      actorType: 'effect',
+      skillId: event.skillId,
+      skillName: event.skillName,
+      name: "Soldier's Focus — Might",
+      kind: 'might',
+      boon: 'might',
+      duration: effectNumber(marchingOrdersProfile, might, 'duration', context),
+      stacks: effectNumber(marchingOrdersProfile, might, 'stacks', context),
+      audience: { recipients: 'party' as const }
+    });
   return true;
 }
 
 export function applySoldiersComfort(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (!hasTrait(context, TRAIT.SOLDIERS_COMFORT)) return;
-  const protection = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.soldiersComfort), 'boon');
-  emitSkillBuff(context, {
-    skill:
-      context.catalog.skillsById.get(event.skillId ?? '') ||
-      ({ id: TRAIT.SOLDIERS_COMFORT, name: "Soldier's Comfort" } as WarriorSkill),
-    cause: event,
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.SOLDIERS_COMFORT,
-    actorType: 'effect',
-    skillId: event.skillId,
-    skillName: event.skillName,
-    name: "Soldier's Comfort",
-    kind: 'protection',
-    boon: 'protection',
-    duration: Number(protection?.duration ?? 4),
-    stacks: Number(protection?.stacks ?? 1),
-    audience: { recipients: 'party' as const }
-  });
+  const soldiersComfortProfile = requireBalanceProfileFromContext(context, PROFILE.soldiersComfort);
+  const protection = requireEffect(soldiersComfortProfile, 'boon', 'protection', context);
+  if (protection)
+    emitSkillBuff(context, {
+      skill:
+        context.catalog.skillsById.get(event.skillId ?? '') ||
+        ({ id: TRAIT.SOLDIERS_COMFORT, name: "Soldier's Comfort" } as WarriorSkill),
+      cause: event,
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.SOLDIERS_COMFORT,
+      actorType: 'effect',
+      skillId: event.skillId,
+      skillName: event.skillName,
+      name: "Soldier's Comfort",
+      kind: 'protection',
+      boon: 'protection',
+      duration: effectNumber(soldiersComfortProfile, protection, 'duration', context),
+      stacks: effectNumber(soldiersComfortProfile, protection, 'stacks', context),
+      audience: { recipients: 'party' as const }
+    });
 }
 
 export function applyMartialCadence(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (!hasTrait(context, TRAIT.MARTIAL_CADENCE)) return;
-  const stability = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.martialCadence), 'boon');
-  emitSkillBuff(context, {
-    skill:
-      context.catalog.skillsById.get(event.skillId ?? '') ||
-      ({ id: TRAIT.MARTIAL_CADENCE, name: 'Martial Cadence' } as WarriorSkill),
-    cause: event,
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.MARTIAL_CADENCE,
-    actorType: 'effect',
-    skillId: event.skillId,
-    skillName: event.skillName,
-    name: 'Martial Cadence',
-    kind: 'stability',
-    boon: 'stability',
-    duration: Number(stability?.duration ?? 3),
-    stacks: Number(stability?.stacks ?? 1),
-    audience: { recipients: 'party' as const }
-  });
+  const martialCadenceProfile = requireBalanceProfileFromContext(context, PROFILE.martialCadence);
+  const stability = requireEffect(martialCadenceProfile, 'boon', 'stability', context);
+  if (stability)
+    emitSkillBuff(context, {
+      skill:
+        context.catalog.skillsById.get(event.skillId ?? '') ||
+        ({ id: TRAIT.MARTIAL_CADENCE, name: 'Martial Cadence' } as WarriorSkill),
+      cause: event,
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.MARTIAL_CADENCE,
+      actorType: 'effect',
+      skillId: event.skillId,
+      skillName: event.skillName,
+      name: 'Martial Cadence',
+      kind: 'stability',
+      boon: 'stability',
+      duration: effectNumber(martialCadenceProfile, stability, 'duration', context),
+      stacks: effectNumber(martialCadenceProfile, stability, 'stacks', context),
+      audience: { recipients: 'party' as const }
+    });
 }
 
 // Keep party Might on its authored cadence, after same-time Signet of Rage gains.
 export function initializeEmpowerAllies(context: WarriorSchedulerContext): void {
   if (
     hasTrait(context, TRAIT.EMPOWER_ALLIES) &&
-    Number(balanceProfileFromContext(context, PROFILE.empowerAllies)?.pulseInterval ?? 10) > 0
+    balanceProfileNumberFromContext(context, PROFILE.empowerAllies, 'pulseInterval') > 0
   )
     empowerAllies.start(context, { at: 0, captured: {} });
 }
@@ -138,23 +149,31 @@ export function initializeEmpowerAllies(context: WarriorSchedulerContext): void 
 export const empowerAllies = timedEffect<WarriorSchedulerContext, object>({
   id: 'warrior.empower-allies',
   priority: -210,
-  interval: (context) => Number(balanceProfileFromContext(context, PROFILE.empowerAllies)?.pulseInterval ?? 10),
+  interval: (context) => balanceProfileNumberFromContext(context, PROFILE.empowerAllies, 'pulseInterval'),
   effectsAt(context, at) {
     if (!hasTrait(context, TRAIT.EMPOWER_ALLIES)) return false;
-    const might = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.empowerAllies), 'boon');
+    const empowerAlliesProfile = requireBalanceProfileFromContext(context, PROFILE.empowerAllies);
+    const might = requireEffect(empowerAlliesProfile, 'boon', 'might', context);
+    if (!might) return false;
     const sourceSkill = { id: TRAIT.EMPOWER_ALLIES, name: 'Empower Allies' } as WarriorSkill;
-    emitSkillBuff(context, {
-      at,
-      source: 'Trait',
-      sourceId: TRAIT.EMPOWER_ALLIES,
-      actorType: 'effect',
-      name: 'Empower Allies',
-      kind: 'might',
-      boon: 'might',
-      stacks: Number(might?.stacks ?? 5),
-      duration: gw2SchedulerBoonDuration(context, sourceSkill, 'might', Number(might?.duration ?? 10)),
-      audience: { recipients: 'party' as const }
-    });
+    if (might)
+      emitSkillBuff(context, {
+        at,
+        source: 'Trait',
+        sourceId: TRAIT.EMPOWER_ALLIES,
+        actorType: 'effect',
+        name: 'Empower Allies',
+        kind: 'might',
+        boon: 'might',
+        stacks: effectNumber(empowerAlliesProfile, might, 'stacks', context),
+        duration: gw2SchedulerBoonDuration(
+          context,
+          sourceSkill,
+          'might',
+          effectNumber(empowerAlliesProfile, might, 'duration', context)
+        ),
+        audience: { recipients: 'party' as const }
+      });
   }
 });
 

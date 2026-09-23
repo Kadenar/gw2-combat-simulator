@@ -1,9 +1,12 @@
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
-  balanceProfileFromContext,
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
   balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -16,7 +19,6 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
 import {
-  DRAGON_TRIGGER_FLOW_COST,
   maximumDragonCharges,
   requestedDragonCharges
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
@@ -66,7 +68,7 @@ function resolveSharpAsTheWindSkillId(context: WarriorSchedulerContext, skillId:
 export const bladeswornSchedulerHooks = Object.freeze({
   initialize: (context: WarriorSchedulerContext) => {
     const state = bladeswornState.from(context);
-    state.maximumFlow = Number(balanceProfileFromContext(context, PROFILE.resources)?.maximumStacks ?? 100);
+    state.maximumFlow = balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
     state.flow = Math.min(state.maximumFlow, state.flow);
     professionCoreState(context).maximumAdrenaline = 0;
     syncWarriorAdrenaline(context);
@@ -256,20 +258,17 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
     };
   }
 
-  if (
-    skill.id === ID.DRAGON_TRIGGER &&
-    state.flow + EPSILON <
-      Number(balanceProfileFromContext(context, PROFILE.dragonTrigger)?.threshold ?? DRAGON_TRIGGER_FLOW_COST)
-  ) {
-    const flowCost = Number(
-      balanceProfileFromContext(context, PROFILE.dragonTrigger)?.threshold ?? DRAGON_TRIGGER_FLOW_COST
-    );
-    return {
-      ready: false,
-      retryAt: null,
-      code: 'warrior.flow',
-      reason: `Dragon Trigger requires at least ${flowCost} flow.`
-    };
+  if (skill.id === ID.DRAGON_TRIGGER) {
+    const dragonTriggerProfile = requireBalanceProfileFromContext(context, PROFILE.dragonTrigger);
+    const flowCost = balanceProfileNumber(dragonTriggerProfile, 'threshold', context);
+    if (state.flow + EPSILON < flowCost) {
+      return {
+        ready: false,
+        retryAt: null,
+        code: 'warrior.flow',
+        reason: `Dragon Trigger requires at least ${flowCost} flow.`
+      };
+    }
   }
 
   return { ready: true };

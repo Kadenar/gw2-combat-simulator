@@ -69,7 +69,9 @@ export const warriorTooltips: ProfessionTooltips = {
       const action = entity.id === ID.CHANT_OF_ACTION;
       const recovery = entity.id === ID.CHANT_OF_RECUPERATION;
       const effects = tooltipProfile(balanceContext, PARAGON.chants).effects || [];
-      const opening = action ? effects.slice(0, 2) : effects.slice(recovery ? 2 : 3, recovery ? 3 : 4);
+      // Match runtime packet identities even when an earlier boon was removed.
+      const names = action ? ['might', 'fury'] : recovery ? ['vigor'] : ['stability'];
+      const opening = effects.filter((effect) => effect.type === 'boon' && names.includes(String(effect.name)));
       return {
         description:
           'Spend adrenaline, gain Motivation, and replace the active refrain. The refrain pulses until Motivation runs out; each pulse uses the Motivation tier before spending its cost. ' +
@@ -105,10 +107,10 @@ export const warriorTooltips: ProfessionTooltips = {
         facts: sharp
           ? simulationEffectFacts(profile.effects).facts
           : (profile.effects || []).flatMap(
-              (effect, index) =>
+              (effect) =>
                 simulationEffectFacts(
                   [effect],
-                  effect.type === 'strike' ? (index === 0 ? 'one round spent' : 'two rounds spent') : ''
+                  effect.type === 'strike' ? (effect.name === 'One round' ? 'one round spent' : 'two rounds spent') : ''
                 ).facts
             )
       };
@@ -240,8 +242,18 @@ export const warriorTooltips: ProfessionTooltips = {
         description:
           'Empower your explosions and add Burning to qualifying player explosions. Casting again during the ordinary window replaces it with Supercharged Cartridges. Further casts while supercharged spend ammunition without extending the window.',
         facts: [
-          ...simulationEffectFacts(profile.effects?.slice(0, 2), 'ordinary cartridges; Burning per explosion').facts,
-          ...simulationEffectFacts(profile.effects?.slice(2, 4), 'supercharged; replaces ordinary cartridges').facts,
+          ...simulationEffectFacts(
+            profile.effects?.filter((effect) =>
+              ['overcharged-cartridges', 'Overcharged Burning'].includes(String(effect.name))
+            ),
+            'ordinary cartridges; Burning per explosion'
+          ).facts,
+          ...simulationEffectFacts(
+            profile.effects?.filter((effect) =>
+              ['supercharged-cartridges', 'Supercharged Burning'].includes(String(effect.name))
+            ),
+            'supercharged; replaces ordinary cartridges'
+          ).facts,
           ...(profile.effects
             ?.filter((effect) => effect.type === 'buff')
             .map((effect) => ({

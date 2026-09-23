@@ -1,4 +1,5 @@
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -124,11 +125,11 @@ function modifyRechargeDuration(context: WarriorSchedulerContext & { skill?: War
   if (skill?.id === ID.SWAP_WEAPONS) return duration > 0 ? Math.min(5, duration) : 0;
   let result = duration;
   if (skill?.burst && hasTrait(context, TRAIT.VERSATILE_POWER))
-    result *= Number(balanceProfileFromContext(context, TRAIT.VERSATILE_POWER)?.rechargeMultiplier);
+    result *= balanceProfileNumberFromContext(context, TRAIT.VERSATILE_POWER, 'rechargeMultiplier');
   if (skill?.weapon === 'Greatsword' && hasTrait(context, TRAIT.FORCEFUL_GREATSWORD)) result *= 0.8;
   if (skill?.weapon === 'Sword' && hasTrait(context, TRAIT.BLADEMASTER)) result *= 0.8;
   if (skill?.weapon === 'Axe' && hasTrait(context, TRAIT.AXE_MASTERY))
-    result *= Number(balanceProfileFromContext(context, TRAIT.AXE_MASTERY)?.rechargeMultiplier);
+    result *= balanceProfileNumberFromContext(context, TRAIT.AXE_MASTERY, 'rechargeMultiplier');
   return result;
 }
 

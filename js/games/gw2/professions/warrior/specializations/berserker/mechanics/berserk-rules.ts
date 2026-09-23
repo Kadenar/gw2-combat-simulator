@@ -1,8 +1,11 @@
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
-  balanceProfileFromContext,
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
   balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+
+import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -71,9 +74,10 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw
     conditionDamage: number;
   };
   if (active(context)) {
-    const powerBonus = balanceProfileNumberFromContext(context, PROFILE.resources, 'attributeBonus');
+    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+    const powerBonus = balanceProfileNumber(resourcesProfile, 'attributeBonus', context);
     result.power += powerBonus;
-    result.conditionDamage += balanceProfileNumberFromContext(context, PROFILE.resources, 'attributePerStack');
+    result.conditionDamage += balanceProfileNumber(resourcesProfile, 'attributePerStack', context);
     if (hasTrait(context, TRAIT.GREAT_FORTITUDE)) {
       const conversion = balanceProfileNumberFromContext(context, CORE_PROFILE.greatFortitude, 'attributeConversion');
       result.vitality = Number(result.vitality || 0) + powerBonus * conversion;
@@ -82,10 +86,10 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw
   }
 
   if (hasTrait(context, TRAIT.BLOOD_REACTION)) {
-    const profile = balanceProfileFromContext(context, PROFILE.bloodReaction);
+    const bloodReactionProfile = requireBalanceProfileFromContext(context, PROFILE.bloodReaction);
     const conversion = active(context)
-      ? Number(profile?.coefficientMultiplier ?? 0.24)
-      : balanceProfileNumberFromContext(context, PROFILE.bloodReaction, 'attributeConversion');
+      ? balanceProfileNumber(bloodReactionProfile, 'coefficientMultiplier', context)
+      : balanceProfileNumber(bloodReactionProfile, 'attributeConversion', context);
     result.ferocity += conversionPrecision * conversion;
     result.conditionDamage += conversionPower * conversion;
   }

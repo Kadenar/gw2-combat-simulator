@@ -1,13 +1,19 @@
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber,
+  balanceProfileNumberFromContext,
+  requireEffectFromContext,
+  effectNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { recordBladeswornAmmoSpend } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/ammunition.js';
 import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
-import {
-  balanceProfileFromContext,
-  balanceProfileEffect,
-  balanceProfileNumberFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import {
   emitSkillBuff,
   emitSkillCondition,
@@ -18,7 +24,6 @@ import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
 import {
   DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
-  DRAGON_TRIGGER_DURATION_SECONDS,
   DRAGON_TRIGGER_TICK_RESOURCE_REASON,
   dragonChargesToAdrenalineSpent,
   dragonSlashCoefficient,
@@ -114,9 +119,9 @@ export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSk
   state.flowUpdatedAt = context.effectiveEnd;
   state.dragonTriggerActive = true;
   state.dragonTriggerStartedAt = context.effectiveEnd;
-  const dragonTrigger = balanceProfileFromContext(context, PROFILE.dragonTrigger);
+
   state.dragonTriggerChargeDeadline = canonicalTime(
-    context.effectiveEnd + Number(dragonTrigger?.cooldown ?? DRAGON_TRIGGER_DURATION_SECONDS)
+    context.effectiveEnd + balanceProfileNumberFromContext(context, PROFILE.dragonTrigger, 'cooldown')
   );
   state.dragonCharges = 0;
   // Tactical Reload doubles charge gain per tick. It is consumed immediately
@@ -152,7 +157,7 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
   const adrenalineSpent = dragonChargesToAdrenalineSpent(charges);
   applyWarriorBurstSpendTraits(context, skill, adrenalineSpent, {
     resourceSpent: state.dragonTriggerFlowSpent,
-    resourceRefundRate: Number(balanceProfileFromContext(context, PROFILE.burstMastery)?.resourceGain ?? 0.2)
+    resourceRefundRate: balanceProfileNumberFromContext(context, PROFILE.burstMastery, 'resourceGain')
   });
   state.dragonAdrenalineSpentByActivation[context.reservationId] = adrenalineSpent;
   context.emit({
@@ -194,6 +199,7 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
     // Sharp as the Wind converts charge into both Burning intensity and duration on one linear scale.
     // Separate Burning applications preserve the total, including any fractional final stack.
     const stacks = dragonSlashCoefficient(1, 20, charges, maximumCharges);
+    const duration = dragonSlashCoefficient(minimumBurningDuration, maximumBurningDuration, charges, maximumCharges);
     for (let index = 0; index < Math.ceil(stacks); index += 1) {
       emitSkillCondition(context, {
         skill,
@@ -201,7 +207,7 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
         source: 'Warrior',
         condition: 'Burning',
         stacks: Math.min(1, stacks - index),
-        duration: dragonSlashCoefficient(minimumBurningDuration, maximumBurningDuration, charges, maximumCharges)
+        duration
       });
     }
   }
@@ -222,59 +228,69 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
   context.replaceEvent(context.action, {
     rechargeReadyAt: context.rechargeStart + Math.max(context.rechargeDuration, context.ammoLockoutDuration)
   });
-  const profile = balanceProfileFromContext(
+
+  const artilleryProfile = requireBalanceProfileFromContext(
     context,
     sharpAsTheWind ? PROFILE.sharpArtillerySlash : PROFILE.artillerySlash
   );
-  const strike = balanceProfileEffect(profile, 'strike', !sharpAsTheWind && charges >= 2 ? 1 : 0);
-  if (strike?.coefficient == null) throw new Error('Missing Artillery Slash strike profile');
-  emitSkillDamage(context, {
-    at: context.effectiveEnd,
-    skillId: skill.id,
-    sourceId: skill.id,
-    skillName: skill.name,
-    source: 'Warrior',
-    actorType: 'player',
-    coefficient: strike.coefficient,
-    skillWeapon: 'Gunsaber',
-    damageKind: 'explosion',
-    projectile: sharpAsTheWind,
-    ...(sharpAsTheWind
-      ? {
-          comboFinishers: [
-            {
-              ownerId: 'warrior',
-              finisherType: 'Projectile',
-              ambiguousFieldSelection: 'oldest'
-            }
-          ]
-        }
-      : {})
-  });
+  const strike = requireEffect(
+    artilleryProfile,
+    'strike',
+    sharpAsTheWind ? 'Strike' : charges >= 2 ? 'Two rounds' : 'One round',
+    context
+  );
+
+  if (strike)
+    emitSkillDamage(context, {
+      at: context.effectiveEnd,
+      skillId: skill.id,
+      sourceId: skill.id,
+      skillName: skill.name,
+      source: 'Warrior',
+      actorType: 'player',
+      coefficient: effectNumber(artilleryProfile, strike, 'coefficient', context),
+      skillWeapon: 'Gunsaber',
+      damageKind: 'explosion',
+      projectile: sharpAsTheWind,
+      ...(sharpAsTheWind
+        ? {
+            comboFinishers: [
+              {
+                ownerId: 'warrior',
+                finisherType: 'Projectile',
+                ambiguousFieldSelection: 'oldest'
+              }
+            ]
+          }
+        : {})
+    });
   if (sharpAsTheWind) {
     // The condition variant spends the same ammo pool while scaling its Bleeding payload by rounds consumed.
-    const bleeding = balanceProfileEffect(profile, 'condition', charges >= 2 ? 1 : 0);
-    if (!bleeding?.condition || bleeding.stacks == null || bleeding.duration == null)
-      throw new Error('Missing Artillery Slash Bleeding profile');
-    emitSkillCondition(context, {
-      skill,
-      at: context.effectiveEnd,
-      source: 'Warrior',
-      condition: bleeding.condition,
-      stacks: bleeding.stacks,
-      duration: bleeding.duration
-    });
+    const bleeding = requireEffect(artilleryProfile, 'condition', charges >= 2 ? 'Two rounds' : 'One round', context);
+
+    if (bleeding)
+      emitSkillCondition(context, {
+        skill,
+        at: context.effectiveEnd,
+        source: 'Warrior',
+        condition: String(bleeding.condition),
+        stacks: effectNumber(artilleryProfile, bleeding, 'stacks', context),
+        duration: effectNumber(artilleryProfile, bleeding, 'duration', context)
+      });
   }
 
-  emitSkillControl(context, {
-    at: context.effectiveEnd,
-    skillId: skill.id,
-    sourceId: skill.id,
-    skillName: skill.name,
-    source: 'Warrior',
-    actorType: 'player',
-    controlKind: sharpAsTheWind && charges >= 2 ? 'stun' : 'daze'
-  });
+  // Control is a sibling packet, not an unconditional consequence of spending ammunition.
+  const control = requireEffect(artilleryProfile, 'control', 'Control', context);
+  if (control)
+    emitSkillControl(context, {
+      at: context.effectiveEnd,
+      skillId: skill.id,
+      sourceId: skill.id,
+      skillName: skill.name,
+      source: 'Warrior',
+      actorType: 'player',
+      controlKind: sharpAsTheWind && charges >= 2 ? 'stun' : 'daze'
+    });
 }
 
 // Split a time range at every Flow modifier boundary so Dragon Trigger projection
@@ -301,10 +317,11 @@ function dragonFlowRateSegments(
     .sort((left, right) => left - right);
   const uniqueBoundaries = [...new Set(boundaries)];
   const segments: DragonFlowRateSegment[] = [];
-  const resources = balanceProfileFromContext(context, PROFILE.resources);
-  const baseFlow = Number(resources?.energyRegenerationPerSecond ?? 2);
-  const stabilizerBonus = Number(resources?.resourceGain ?? 4);
-  const positiveFlowBonus = balanceProfileNumberFromContext(context, PROFILE.resources, 'attributePerStack');
+
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const baseFlow = balanceProfileNumber(resourcesProfile, 'energyRegenerationPerSecond', context);
+  const stabilizerBonus = balanceProfileNumber(resourcesProfile, 'resourceGain', context);
+  const positiveFlowBonus = balanceProfileNumber(resourcesProfile, 'attributePerStack', context);
   for (let index = 0; index < uniqueBoundaries.length - 1; index += 1) {
     const start = Number(uniqueBoundaries[index]);
     const end = Number(uniqueBoundaries[index + 1]);
@@ -488,29 +505,43 @@ function activateOverchargedCartridges(context: WarriorCastContext, at: number):
   if (active?.supercharged) return;
   if (active) active.expiresAt = at;
   const supercharged = Boolean(active);
-  const profile = balanceProfileFromContext(context, PROFILE.overchargedCartridges);
-  const buff = balanceProfileEffect(profile, 'buff', supercharged ? 1 : 0);
-  const burning = balanceProfileEffect(profile, 'condition', supercharged ? 1 : 0);
-  const duration = Number(buff?.duration ?? 8);
+
+  const overchargedCartridgesProfile = requireBalanceProfileFromContext(context, PROFILE.overchargedCartridges);
+  const buff = requireEffect(
+    overchargedCartridgesProfile,
+    'buff',
+    supercharged ? 'supercharged-cartridges' : 'overcharged-cartridges',
+    context
+  );
+  // The selected cartridge buff owns its window; removed Burning leaves the strike bonus intact.
+  if (!buff) return;
+  const burning = requireEffect(
+    overchargedCartridgesProfile,
+    'condition',
+    supercharged ? 'Supercharged Burning' : 'Overcharged Burning',
+    context
+  );
+  const duration = effectNumber(overchargedCartridgesProfile, buff, 'duration', context);
   state.overchargedCartridgeWindows.push({
     startedAt: at,
     expiresAt: at + duration,
-    damageBonus: Number(buff?.damageIncreasePerStack ?? (supercharged ? 0.2 : 0.15)),
-    burningDuration: Number(burning?.duration ?? (supercharged ? 5 : 3)),
+    damageBonus: effectNumber(overchargedCartridgesProfile, buff, 'damageIncreasePerStack', context),
+    burningDuration: burning ? effectNumber(overchargedCartridgesProfile, burning, 'duration', context) : 0,
     supercharged
   });
-  emitSkillBuff(context, {
-    at,
-    source: 'Warrior',
-    sourceId: ID.OVERCHARGED_CARTRIDGES,
-    actorType: 'player',
-    skillId: ID.OVERCHARGED_CARTRIDGES,
-    skillName: 'Overcharged Cartridges',
-    name: supercharged ? 'Supercharged Cartridges' : 'Overcharged Cartridges',
-    kind: supercharged ? 'supercharged-cartridges' : 'overcharged-cartridges',
-    stacks: Number(buff?.stacks ?? 1),
-    duration
-  });
+  if (buff)
+    emitSkillBuff(context, {
+      at,
+      source: 'Warrior',
+      sourceId: ID.OVERCHARGED_CARTRIDGES,
+      actorType: 'player',
+      skillId: ID.OVERCHARGED_CARTRIDGES,
+      skillName: 'Overcharged Cartridges',
+      name: supercharged ? 'Supercharged Cartridges' : 'Overcharged Cartridges',
+      kind: supercharged ? 'supercharged-cartridges' : 'overcharged-cartridges',
+      stacks: effectNumber(overchargedCartridgesProfile, buff, 'stacks', context),
+      duration
+    });
 }
 
 export function useOverchargedCartridges(context: WarriorCastContext, _skill: WarriorSkill): void {
@@ -577,8 +608,16 @@ export const bladeswornSkillMechanicHandlers = Object.freeze({
       state.flow = Math.min(state.maximumFlow, state.flow + 15);
     }
 
-    // Passive Flow integration uses the same tick-rounded lifetime as the emitted Positive Flow buff.
-    state.flowStabilizerWindows.push({ startedAt: at, expiresAt: gw2EffectExpiresAt(at, 8) });
+    // A removed Positive Flow packet cannot open a regeneration window; the conditional instant gain is independent.
+    const flow = requireEffectFromContext(context, 'skill', ID.FLOW_STABILIZER, 'buff', 'Positive Flow');
+    if (flow)
+      state.flowStabilizerWindows.push({
+        startedAt: at,
+        expiresAt: gw2EffectExpiresAt(
+          at,
+          effectNumberFromContext(context, 'skill', ID.FLOW_STABILIZER, flow, 'duration')
+        )
+      });
     refreshDragonTriggerEntryProjection(context);
   },
   'warrior.bladesworn.tactical-reload': ({
@@ -638,25 +677,28 @@ export function observeBladeswornEvent(context: WarriorSchedulerContext, event: 
 
   const cartridges = activeCartridgeWindow(state, event.at);
   if (cartridges) {
-    const burning = balanceProfileEffect(
-      balanceProfileFromContext(context, PROFILE.overchargedCartridges),
+    const overchargedCartridgesProfile = requireBalanceProfileFromContext(context, PROFILE.overchargedCartridges);
+    const burning = requireEffect(
+      overchargedCartridgesProfile,
       'condition',
-      cartridges.supercharged ? 1 : 0
+      cartridges.supercharged ? 'Supercharged Burning' : 'Overcharged Burning',
+      context
     );
-    emitSkillCondition(context, {
-      cause: event,
+    if (burning)
+      emitSkillCondition(context, {
+        cause: event,
 
-      at: event.at,
-      source: 'Warrior',
-      sourceId: ID.OVERCHARGED_CARTRIDGES,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: event.skillId,
-      skillName: event.skillName,
-      name: 'Overcharged Cartridges — Burning',
-      condition: 'Burning',
-      stacks: Number(burning?.stacks ?? 1),
-      duration: cartridges.burningDuration
-    });
+        at: event.at,
+        source: 'Warrior',
+        sourceId: ID.OVERCHARGED_CARTRIDGES,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillId: event.skillId,
+        skillName: event.skillName,
+        name: 'Overcharged Cartridges — Burning',
+        condition: 'Burning',
+        stacks: effectNumber(overchargedCartridgesProfile, burning, 'stacks', context),
+        duration: cartridges.burningDuration
+      });
   }
 }

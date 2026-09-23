@@ -1,5 +1,13 @@
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+
 /** Owns imperative Discipline trait effects while the public dispatcher preserves cross-line ordering. */
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -36,7 +44,7 @@ export function applyAxeMastery(context: WarriorSchedulerContext, event: Warrior
   if (application)
     gainWarriorAdrenaline(
       context,
-      application.quantity * Number(balanceProfileFromContext(context, PROFILE.axeMastery)?.resourceGain ?? 2)
+      application.quantity * balanceProfileNumberFromContext(context, PROFILE.axeMastery, 'resourceGain')
     );
 }
 
@@ -51,31 +59,40 @@ export function applyBurstMastery(
   } = {}
 ): void {
   if (!skill.burst || adrenalineSpent <= 0 || !hasTrait(context, TRAIT.BURST_MASTERY)) return;
-  const profile = balanceProfileFromContext(context, PROFILE.burstMastery);
-  const swiftness = balanceProfileEffect(profile, 'boon');
+
+  const burstMasteryProfile = requireBalanceProfileFromContext(context, PROFILE.burstMastery);
+  const swiftness = requireEffect(burstMasteryProfile, 'boon', 'swiftness', context);
   const resourceSpent = Number(options.resourceSpent ?? adrenalineSpent);
-  const resourceRefundRate = Number(options.resourceRefundRate ?? profile?.resourceGain ?? 0.33);
+  const resourceRefundRate = Number(
+    options.resourceRefundRate ?? balanceProfileNumber(burstMasteryProfile, 'resourceGain', context)
+  );
   gainWarriorAdrenaline(context, Math.max(0, resourceSpent) * resourceRefundRate);
-  emitSkillBuff(context, {
-    at: context.effectiveEnd,
-    priority: 5,
-    source: 'Trait',
-    sourceId: TRAIT.BURST_MASTERY,
-    actorType: 'effect',
-    skillId: skill.id,
-    skillName: skill.name,
-    name: 'Burst Mastery — Swiftness',
-    kind: 'swiftness',
-    boon: 'swiftness',
-    stacks: Number(swiftness?.stacks ?? 1),
-    duration: gw2SchedulerBoonDuration(context, skill, 'swiftness', Number(swiftness?.duration ?? 3))
-  });
+  if (swiftness)
+    emitSkillBuff(context, {
+      at: context.effectiveEnd,
+      priority: 5,
+      source: 'Trait',
+      sourceId: TRAIT.BURST_MASTERY,
+      actorType: 'effect',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: 'Burst Mastery — Swiftness',
+      kind: 'swiftness',
+      boon: 'swiftness',
+      stacks: effectNumber(burstMasteryProfile, swiftness, 'stacks', context),
+      duration: gw2SchedulerBoonDuration(
+        context,
+        skill,
+        'swiftness',
+        effectNumber(burstMasteryProfile, swiftness, 'duration', context)
+      )
+    });
 }
 
 // Grant Versatile Rage adrenaline between Martial Cadence reset and Furious Burst.
 export function applyVersatileRage(context: WarriorCastContext): void {
   if (hasTrait(context, TRAIT.VERSATILE_RAGE))
-    gainWarriorAdrenaline(context, Number(balanceProfileFromContext(context, TRAIT.VERSATILE_RAGE)?.resourceGain));
+    gainWarriorAdrenaline(context, balanceProfileNumberFromContext(context, TRAIT.VERSATILE_RAGE, 'resourceGain'));
 }
 
 export const warriorDisciplineModifierRules: readonly Gw2ModifierRule[] = Object.freeze([

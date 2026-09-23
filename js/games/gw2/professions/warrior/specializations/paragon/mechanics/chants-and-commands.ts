@@ -1,8 +1,16 @@
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+
 /**
  * Owns chant activation, Motivation, refrain pulses, and command echoes.
  * Integrated trait additions stay beside these transitions so their timing and resource effects remain ordered.
  */
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -48,8 +56,12 @@ function gainMotivation(context: WarriorSchedulerContext, amount: number): void 
 }
 
 function motivationLevel(context: WarriorSchedulerContext, motivation: number): 1 | 2 | 3 {
-  const profile = balanceProfileFromContext(context, PROFILE.resources);
-  return motivation >= Number(profile?.threshold ?? 7) ? 3 : motivation >= Number(profile?.minimumStacks ?? 4) ? 2 : 1;
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  return motivation >= balanceProfileNumber(resourcesProfile, 'threshold', context)
+    ? 3
+    : motivation >= balanceProfileNumber(resourcesProfile, 'minimumStacks', context)
+      ? 2
+      : 1;
 }
 
 // Spend chant resources, replace the active refrain, grant its opening boons and
@@ -60,36 +72,37 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
   if (context.action.cancelled) return;
   const at = context.effectiveEnd;
   const state = paragonState.from(context);
-  const chants = balanceProfileFromContext(context, PROFILE.chants);
+
   state.activeRefrainId = skill.id;
   startRefrain(context, at);
+  const chantsProfile = requireBalanceProfileFromContext(context, PROFILE.chants);
   gainMotivation(
     context,
-    Number(chants?.resourceGain ?? 4) +
+    balanceProfileNumber(chantsProfile, 'resourceGain', context) +
       (hasTrait(context, TRAIT.ENDURING_REFRAIN)
-        ? Number(balanceProfileFromContext(context, PROFILE.enduringRefrain)?.resourceGain ?? 1)
+        ? balanceProfileNumberFromContext(context, PROFILE.enduringRefrain, 'resourceGain')
         : 0)
   );
 
-  const openingBoons: Array<{ kind: string; duration: number; stacks: number }> = [];
-  if (skill.id === ID.CHANT_OF_ACTION) {
-    const might = balanceProfileEffect(chants, 'boon', 0);
-    const fury = balanceProfileEffect(chants, 'boon', 1);
-    openingBoons.push(
-      { kind: 'might', duration: Number(might?.duration ?? 8), stacks: Number(might?.stacks ?? 5) },
-      { kind: 'fury', duration: Number(fury?.duration ?? 5), stacks: Number(fury?.stacks ?? 1) }
-    );
-  } else if (skill.id === ID.CHANT_OF_RECUPERATION) {
-    const vigor = balanceProfileEffect(chants, 'boon', 2);
-    openingBoons.push({ kind: 'vigor', duration: Number(vigor?.duration ?? 5), stacks: Number(vigor?.stacks ?? 1) });
-  } else if (skill.id === ID.CHANT_OF_FREEDOM) {
-    const stability = balanceProfileEffect(chants, 'boon', 3);
-    openingBoons.push({
-      kind: 'stability',
-      duration: Number(stability?.duration ?? 3),
-      stacks: Number(stability?.stacks ?? 1)
-    });
-  }
+  // Each chant selects its own named packets; removal preserves Motivation and the refrain.
+  const boonNames =
+    skill.id === ID.CHANT_OF_ACTION
+      ? ['might', 'fury']
+      : skill.id === ID.CHANT_OF_RECUPERATION
+        ? ['vigor']
+        : ['stability'];
+  const openingBoons = boonNames.flatMap((kind) => {
+    const effect = requireEffect(chantsProfile, 'boon', kind, context);
+    return effect
+      ? [
+          {
+            kind,
+            duration: effectNumber(chantsProfile, effect, 'duration', context),
+            stacks: effectNumber(chantsProfile, effect, 'stacks', context)
+          }
+        ]
+      : [];
+  });
 
   // Opening boons include the caster and party, matching the chant's initial effects.
   for (const boon of openingBoons) {
@@ -111,29 +124,32 @@ export function activateChant(context: WarriorCastContext, skill: WarriorSkill):
   }
 
   if (hasTrait(context, TRAIT.FEVERISH_PULSE)) {
-    const profile = balanceProfileFromContext(context, PROFILE.feverishPulse);
-    const alacrity = balanceProfileEffect(profile, 'boon');
+    const feverishPulseProfile = requireBalanceProfileFromContext(context, PROFILE.feverishPulse);
+    const alacrity = requireEffect(feverishPulseProfile, 'boon', 'alacrity', context);
+    // Every other chant receives the same authored recharge reduction.
+    const rechargeReduction = balanceProfileNumber(feverishPulseProfile, 'rechargeReduction', context);
     for (const chantId of CHANT_IDS) {
       if (chantId === skill.id) continue;
       const chant = context.catalog.skillsById.get(chantId);
-      if (chant) context.cooldownController.reduceSkillRecharge(chant, Number(profile?.rechargeReduction ?? 2), at);
+      if (chant) context.cooldownController.reduceSkillRecharge(chant, rechargeReduction, at);
     }
 
-    emitSkillBuff(context, {
-      skill,
-      at,
-      source: 'Paragon',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      name: `${skill.name} — alacrity`,
-      kind: 'alacrity',
-      boon: 'alacrity',
-      duration: Number(alacrity?.duration ?? 6),
-      stacks: Number(alacrity?.stacks ?? 1),
-      audience: { recipients: 'party' as const }
-    });
+    if (alacrity)
+      emitSkillBuff(context, {
+        skill,
+        at,
+        source: 'Paragon',
+        sourceId: skill.id,
+        actorType: 'player',
+        skillId: skill.id,
+        skillName: skill.name,
+        name: `${skill.name} — alacrity`,
+        kind: 'alacrity',
+        boon: 'alacrity',
+        duration: effectNumber(feverishPulseProfile, alacrity, 'duration', context),
+        stacks: effectNumber(feverishPulseProfile, alacrity, 'stacks', context),
+        audience: { recipients: 'party' as const }
+      });
   }
 
   emitParagonState(context, at, 'chant');
@@ -194,7 +210,7 @@ export const commandEchoes = timedEffect({
   id: 'warrior.paragon-command-echo',
   priority: -20,
   interval: (context: WarriorSchedulerContext) =>
-    Number(balanceProfileFromContext(context, PROFILE.commands)?.pulseInterval ?? 3),
+    balanceProfileNumberFromContext(context, PROFILE.commands, 'pulseInterval'),
   effectsAt: (context: WarriorSchedulerContext, at: number, captured: { readonly skillId: WarriorSkill['id'] }) =>
     executeCommandEcho(context, Number(captured.skillId), at)
 });
@@ -204,12 +220,14 @@ export function activateCommand(context: WarriorCastContext, skill: WarriorSkill
   if (context.action.cancelled) return;
   if (skill.id === ID.FIND_THEIR_WEAKNESS) gainWarriorAdrenaline(context, 3);
 
-  const commands = balanceProfileFromContext(context, PROFILE.commands);
+  const commandsProfile = requireBalanceProfileFromContext(context, PROFILE.commands);
+  const interval = balanceProfileNumber(commandsProfile, 'pulseInterval', context);
+  if (interval <= 0) return;
   commandEchoes.start(context, {
     captured: { skillId: skill.id },
-    at: context.effectiveEnd + Number(commands?.pulseInterval ?? 3),
+    at: context.effectiveEnd + interval,
     count: hasTrait(context, TRAIT.REVERBERATION)
-      ? Number(balanceProfileFromContext(context, PROFILE.reverberation)?.maximumStacks ?? commands?.maximumStacks ?? 2)
+      ? balanceProfileNumberFromContext(context, PROFILE.reverberation, 'maximumStacks')
       : 1
   });
 }
@@ -271,8 +289,11 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
   state.motivation = Math.max(0, motivation - cost);
   // Invigorating Tempo rewards actual Motivation spent, including a final partial drain.
   if (hasTrait(context, TRAIT.INVIGORATING_TEMPO)) {
-    const profile = balanceProfileFromContext(context, PROFILE.invigoratingTempo);
-    gainWarriorAdrenaline(context, (motivation - state.motivation) * Number(profile?.resourceGain ?? 1));
+    gainWarriorAdrenaline(
+      context,
+      (motivation - state.motivation) *
+        balanceProfileNumberFromContext(context, PROFILE.invigoratingTempo, 'resourceGain')
+    );
   }
 
   if (state.motivation <= 0) state.activeRefrainId = null;
@@ -284,7 +305,7 @@ function pulseRefrain(context: WarriorSchedulerContext, at: number): void {
 export const refrains = timedEffect<WarriorSchedulerContext, object>({
   id: 'warrior.paragon-refrain',
   priority: -200,
-  interval: (context) => Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 3),
+  interval: (context) => balanceProfileNumberFromContext(context, PROFILE.resources, 'pulseInterval'),
   effectsAt(context, at) {
     const state = paragonState.from(context);
     if (!state.activeRefrainId || state.motivation <= 0) return false;
@@ -294,9 +315,12 @@ export const refrains = timedEffect<WarriorSchedulerContext, object>({
 });
 
 function startRefrain(context: WarriorSchedulerContext, at: number): void {
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const interval = balanceProfileNumber(resourcesProfile, 'pulseInterval', context);
+  if (interval <= 0) return;
   refrains.start(context, {
     key: 'refrain',
-    at: at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 3),
+    at: at + interval,
     captured: {}
   });
 }
@@ -308,7 +332,7 @@ export function observeParagonEvent(context: WarriorSchedulerContext, event: War
   }
 
   state.callToActionActivated = true;
-  gainMotivation(context, Number(balanceProfileFromContext(context, PROFILE.callToAction)?.resourceGain ?? 4));
+  gainMotivation(context, balanceProfileNumberFromContext(context, PROFILE.callToAction, 'resourceGain'));
   if (!state.activeRefrainId) {
     state.activeRefrainId = ID.CHANT_OF_ACTION;
     startRefrain(context, event.at);
@@ -330,10 +354,11 @@ export function applyParagonWeaponSwapTraits(context: WarriorCastContext): void 
     hasTrait(context, TRAIT.INSPIRING_IMPLEMENTS) &&
     isInternalCooldownReady(context.effectiveEnd, state.inspiringImplementsReadyAt)
   ) {
-    const profile = balanceProfileFromContext(context, PROFILE.inspiringImplements);
-    state.inspiringImplementsReadyAt = context.effectiveEnd + Number(profile?.internalCooldown ?? 4);
-    gainWarriorAdrenaline(context, Number(profile?.resourceGain ?? 5));
-    gainMotivation(context, Number(profile?.minimumStacks ?? 2));
+    const inspiringImplementsProfile = requireBalanceProfileFromContext(context, PROFILE.inspiringImplements);
+    state.inspiringImplementsReadyAt =
+      context.effectiveEnd + balanceProfileNumber(inspiringImplementsProfile, 'internalCooldown', context);
+    gainWarriorAdrenaline(context, balanceProfileNumber(inspiringImplementsProfile, 'resourceGain', context));
+    gainMotivation(context, balanceProfileNumber(inspiringImplementsProfile, 'minimumStacks', context));
     emitParagonState(context, context.effectiveEnd, 'implements');
   }
 }
@@ -352,6 +377,6 @@ export function beginParagonCast(context: WarriorCastContext, skill: WarriorSkil
     return;
   }
 
-  gainMotivation(context, Number(balanceProfileFromContext(context, PROFILE.rallyTheValiant)?.resourceGain ?? 4));
+  gainMotivation(context, balanceProfileNumberFromContext(context, PROFILE.rallyTheValiant, 'resourceGain'));
   emitParagonState(context, context.start, 'rally');
 }

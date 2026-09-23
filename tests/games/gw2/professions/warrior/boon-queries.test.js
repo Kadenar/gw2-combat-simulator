@@ -58,6 +58,8 @@ test('Flow Stabilizer reads accumulated pre-cast Fury and excludes its own activ
   }));
   const state = createBladeswornState();
   const context = {
+    // Window state now reads the same selected skill packet as the status emitter.
+    catalog: warriorCatalog,
     config: {},
     events,
     state: { profession: { core: {}, specialization: { kind: 'Bladesworn', state } } }
@@ -92,6 +94,7 @@ test('Flow Stabilizer uses exact Fury application and expiry boundaries', () => 
     const state = createBladeswornState();
     bladeswornSkillMechanicHandlers['warrior.bladesworn.flow-stabilizer']({
       context: {
+        catalog: warriorCatalog,
         config: {},
         events: [
           {

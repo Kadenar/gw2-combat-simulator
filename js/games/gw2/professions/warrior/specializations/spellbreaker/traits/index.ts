@@ -1,4 +1,10 @@
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -24,14 +30,16 @@ function gainAttackersInsight(
   at: number,
   applications = 1
 ): void {
-  const profile = balanceProfileFromContext(context, PROFILE.attackersInsight);
-  const effect = balanceProfileEffect(profile, 'buff');
+  const attackersInsightProfile = requireBalanceProfileFromContext(context, PROFILE.attackersInsight);
+  const effect = requireEffect(attackersInsightProfile, 'buff', 'attackers-insight', context);
+  // Removed packets do not open their associated state or schedule follow-ups.
+  if (!effect) return;
   // Keep the newest grants; a disabled cap or expired grant cannot add live stacks.
   state.attackerInsightExpiries = grantTimedStacks(state.attackerInsightExpiries, {
     at,
-    expiresAt: at + Number(effect?.duration ?? 15),
+    expiresAt: at + effectNumber(attackersInsightProfile, effect, 'duration', context),
     count: Math.max(1, Math.trunc(applications)),
-    maximumStacks: Number(profile?.maximumStacks ?? 5),
+    maximumStacks: balanceProfileNumber(attackersInsightProfile, 'maximumStacks', context),
     retain: 'newest-grant'
   });
 }
@@ -54,11 +62,15 @@ function triggerMagebaneTether(
   at: number
 ): boolean {
   if (!isInternalCooldownReady(at, state.magebaneTetherReadyAt)) return false;
-  const profile = balanceProfileFromContext(context, PROFILE.magebaneTether);
-  const effect = balanceProfileEffect(profile, 'buff');
-  state.magebaneTetherUntil = at + Number(effect?.duration ?? 8);
+
+  const magebaneTetherProfile = requireBalanceProfileFromContext(context, PROFILE.magebaneTether);
+  const effect = requireEffect(magebaneTetherProfile, 'buff', 'magebane-tether', context);
+  // A removed tether must not activate its damage window.
+  if (!effect) return false;
+  state.magebaneTetherUntil = at + effectNumber(magebaneTetherProfile, effect, 'duration', context);
   // Divide by recharge rate so alacrity reduces the internal cooldown.
-  state.magebaneTetherReadyAt = at + Number(profile?.cooldown ?? 12) / gw2RechargeRate(context.config);
+  state.magebaneTetherReadyAt =
+    at + balanceProfileNumber(magebaneTetherProfile, 'cooldown', context) / gw2RechargeRate(context.config);
   return true;
 }
 
@@ -80,21 +92,23 @@ export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event
       hasTrait(context, TRAIT.NO_ESCAPE) &&
       ['daze', 'stun'].includes(String(event.controlKind || '').toLowerCase())
     ) {
-      const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.noEscape), 'condition');
-      emitSkillCondition(context, {
-        cause: event,
+      const noEscapeProfile = requireBalanceProfileFromContext(context, PROFILE.noEscape);
+      const effect = requireEffect(noEscapeProfile, 'condition', 'Immobilized', context);
+      if (effect)
+        emitSkillCondition(context, {
+          cause: event,
 
-        at: event.at,
-        source: 'Trait',
-        sourceId: TRAIT.NO_ESCAPE,
-        actorType: 'effect',
-        skillId: event.skillId,
-        skillName: event.skillName,
-        name: 'No Escape - Immobilized',
-        condition: 'Immobilized',
-        stacks: Number(effect?.stacks ?? 1),
-        duration: Number(effect?.duration ?? 1)
-      });
+          at: event.at,
+          source: 'Trait',
+          sourceId: TRAIT.NO_ESCAPE,
+          actorType: 'effect',
+          skillId: event.skillId,
+          skillName: event.skillName,
+          name: 'No Escape - Immobilized',
+          condition: 'Immobilized',
+          stacks: effectNumber(noEscapeProfile, effect, 'stacks', context),
+          duration: effectNumber(noEscapeProfile, effect, 'duration', context)
+        });
     }
 
     return;

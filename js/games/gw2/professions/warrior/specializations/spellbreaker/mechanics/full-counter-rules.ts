@@ -1,8 +1,6 @@
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import {
-  balanceProfileFromContext,
-  balanceProfileNumberFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
@@ -19,8 +17,10 @@ import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 export const spellbreakerSchedulerHooks = Object.freeze({
   initialize: (context: WarriorSchedulerContext) => {
-    professionCoreState(context).maximumAdrenaline = Number(
-      balanceProfileFromContext(context, PROFILE.resources)?.maximumStacks ?? 20
+    professionCoreState(context).maximumAdrenaline = balanceProfileNumberFromContext(
+      context,
+      PROFILE.resources,
+      'maximumStacks'
     );
     syncWarriorAdrenaline(context);
   },

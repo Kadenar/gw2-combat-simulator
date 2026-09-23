@@ -924,16 +924,24 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
 test('Warrior execution follows stable skill and packet IDs after display labels change', () => {
   const replacements = [];
   const context = {
+    // Tier packets resolve before emission, using the normal activation and resource context.
+    catalog: warriorCatalog,
+    profession: warriorProfession,
     config: { selectedTraitIds: [] },
+    state: {
+      profession: { core: createWarriorCoreState({ initialResource: 30 }), specialization: { kind: 'Core', state: {} } }
+    },
+    action: {},
+    schedulerPolicy: {},
+    reservationId: 'renamed-burst',
+    start: 0,
+    fullEnd: 1,
+    effectiveEnd: 1,
+    emit: (event) => event,
     replaceEvent: (_event, replacement) => replacements.push(replacement)
   };
   const killShot = { ...warriorCatalog.skillsById.get(ID.KILL_SHOT), name: 'Renamed burst skill' };
-  warriorCoreSkillHandlers['warrior.resource'].afterEffect(
-    context,
-    killShot,
-    { type: 'damage', coefficient: 2.25, at: 0, name: 'Renamed burst packet' },
-    { spent: 30, berserkersPowerGranted: false }
-  );
+  warriorCoreSkillHandlers['warrior.resource'].beforeEffects(context, killShot);
   assert.equal(replacements.at(-1).coefficient, 3.25);
 
   const mightyThrow = { ...warriorCatalog.skillsById.get(ID.MIGHTY_THROW), name: 'Renamed spear skill' };

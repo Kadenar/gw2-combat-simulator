@@ -76,7 +76,7 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     name: `Eviscerate - Level ${index + 1}`,
     profileKind: 'skill-variant' as const,
     parentId: ID.EVISCERATE,
-    effects: [{ type: 'strike' as const, coefficient, hits: 1 }]
+    effects: [{ name: 'Strike', type: 'strike' as const, coefficient, hits: 1 }]
   })),
   {
     id: WARRIOR_CORE_BALANCE_PROFILE_IDS.bloodthirsterTiers,
@@ -84,9 +84,9 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     profileKind: 'skill-variant',
     parentId: ID.BLOODTHIRSTER,
     effects: [
-      { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 6 },
-      { type: 'condition', condition: 'Bleeding', stacks: 6, duration: 6 },
-      { type: 'condition', condition: 'Bleeding', stacks: 9, duration: 6 }
+      { name: 'Tier 1', type: 'condition', condition: 'Bleeding', stacks: 3, duration: 6 },
+      { name: 'Tier 2', type: 'condition', condition: 'Bleeding', stacks: 6, duration: 6 },
+      { name: 'Tier 3', type: 'condition', condition: 'Bleeding', stacks: 9, duration: 6 }
     ]
   },
   {
@@ -97,8 +97,8 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     pulseInterval: 3,
     durationPerTier: 3,
     effects: [
-      { type: 'strike', coefficient: 0.5, hits: 1 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 5 }
+      { name: 'Strike', type: 'strike', coefficient: 0.5, hits: 1 },
+      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 5 }
     ]
   },
   {
@@ -108,15 +108,15 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     parentId: ID.DRAGONS_ROAR,
     firstPacketRatio: 6 / 7,
     packetIntervalRatio: 2 / 7,
-    effects: [{ type: 'strike', coefficient: 0.75, hits: 1 }]
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.75, hits: 1 }]
   },
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.signetMastery, 'Signet Mastery', {
     internalCooldown: 20,
     maximumStacks: 5,
     attributeBonus: 100,
     effects: [
-      { type: 'boon', boon: 'might', stacks: 10, duration: 6 },
-      { type: 'buff', kind: 'signet-mastery', stacks: 1, duration: 60 }
+      { name: 'might', type: 'boon', boon: 'might', stacks: 10, duration: 6 },
+      { name: 'signet-mastery', type: 'buff', kind: 'signet-mastery', stacks: 1, duration: 60 }
     ]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.burstPrecision, 'Burst Precision', {
@@ -127,27 +127,27 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.burstMastery, 'Burst Mastery', {
     resourceGain: 0.33,
-    effects: [{ type: 'boon', boon: 'swiftness', stacks: 1, duration: 3 }]
+    effects: [{ name: 'swiftness', type: 'boon', boon: 'swiftness', stacks: 1, duration: 3 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.berserkersPower, "Berserker's Power", {
     maximumStacks: 4,
     damageIncreasePerStack: 0.0375,
-    effects: [{ type: 'buff', kind: 'berserkers-power', stacks: 1, duration: 15 }]
+    effects: [{ name: 'berserkers-power', type: 'buff', kind: 'berserkers-power', stacks: 1, duration: 15 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.recklessDodge, 'Reckless Dodge', {
     effects: [
-      { type: 'strike', coefficient: 1.5, hits: 1 },
-      { type: 'boon', boon: 'might', stacks: 2, duration: 5 }
+      { name: 'Strike', type: 'strike', coefficient: 1.5, hits: 1 },
+      { name: 'might', type: 'boon', boon: 'might', stacks: 2, duration: 5 }
     ]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.braveStride, 'Brave Stride', {
     resourceGain: 5,
-    effects: [{ type: 'boon', boon: 'stability', stacks: 1, duration: 5 }]
+    effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 5 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.peakPerformance, 'Peak Performance', {
     damageIncrease: 0.05,
     activeDamageIncrease: 0.1,
-    effects: [{ type: 'buff', kind: 'peak-performance', stacks: 1, duration: 6 }]
+    effects: [{ name: 'peak-performance', type: 'buff', kind: 'peak-performance', stacks: 1, duration: 6 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.bloodlust, 'Bloodlust', {
     conditionDurationBonus: 0.33,
@@ -158,82 +158,67 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
       opportunity: 'eligible critical hit'
     },
     procChance: 0.33,
-    effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }]
+    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.furious, 'Furious', {
     resourceGain: 1,
     maximumStacks: 25,
     attributeBonus: 15,
-    effects: [{ type: 'buff', kind: 'furious-surge', stacks: 1, duration: 10 }]
+    effects: [{ name: 'furious-surge', type: 'buff', kind: 'furious-surge', stacks: 1, duration: 10 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.sunderingBurst, 'Sundering Burst', {
     internalCooldown: 5,
     effects: [
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 5,
-        duration: 8
-      },
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 10,
-        duration: 8
-      }
+      { name: 'Burst', type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 },
+      { name: 'Critical burst', type: 'condition', condition: 'Vulnerability', stacks: 10, duration: 8 }
     ]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.opportunist, 'Opportunist', {
     internalCooldown: 1,
     resourceGain: 5,
-    effects: [{ type: 'boon', boon: 'fury', stacks: 1, duration: 3 }]
+    effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 3 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.mercilessHammer, 'Merciless Hammer', {
     resourceGain: 7
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.stalwartStrength, 'Stalwart Strength', {
     internalCooldown: 0.32,
-    effects: [{ type: 'boon', boon: 'stability', stacks: 1, duration: 5 }]
+    effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 5 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.bodyBlow, 'Body Blow', {
     effects: [
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 3 },
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 6
-      }
+      { name: 'Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 3 },
+      { name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6 }
     ]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.aggressiveOnslaught, 'Aggressive Onslaught', {
     internalCooldown: 0.32,
-    effects: [{ type: 'boon', boon: 'quickness', stacks: 1, duration: 3 }]
+    effects: [{ name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 3 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.legSpecialist, 'Leg Specialist', {
-    effects: [{ type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1 }]
+    effects: [{ name: 'Immobilized', type: 'condition', condition: 'Immobilized', stacks: 1, duration: 1 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.marchingOrders, 'Marching Orders', {
     internalCooldown: 10,
-    effects: [{ type: 'boon', boon: 'might', stacks: 3, duration: 15 }]
+    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 3, duration: 15 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.soldiersComfort, "Soldier's Comfort", {
-    effects: [{ type: 'boon', boon: 'protection', stacks: 1, duration: 4 }]
+    effects: [{ name: 'protection', type: 'boon', boon: 'protection', stacks: 1, duration: 4 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.martialCadence, 'Martial Cadence', {
-    effects: [{ type: 'boon', boon: 'stability', stacks: 1, duration: 3 }]
+    effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 3 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.buildingMomentum, 'Building Momentum', {
     resourceGain: 15
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.empowerAllies, 'Empower Allies', {
     pulseInterval: 10,
-    effects: [{ type: 'boon', boon: 'might', stacks: 5, duration: 10 }]
+    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 5, duration: 10 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.furiousBurst, 'Furious Burst', {
     criticalChance: 0.05,
     internalCooldown: 4,
-    effects: [{ type: 'boon', boon: 'fury', stacks: 1, duration: 2.5 }]
+    effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 2.5 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.pinnacleOfStrength, 'Pinnacle of Strength', {
     criticalChance: 0.05,
@@ -244,7 +229,7 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     weaponAttributeBonus: 120,
     // Critical Might has twice the proc chance while wielding a greatsword.
     procChance: 0.5,
-    effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 5 }]
+    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 1, duration: 5 }]
   }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.axeMastery, 'Axe Mastery', {
     attributeBonus: 120,
@@ -268,7 +253,9 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
   // Trait tuning is shared by build calculations, combat, and tooltips.
   trait(TRAIT.VERSATILE_POWER, 'Versatile Power', { rechargeMultiplier: 0.85 }),
   trait(TRAIT.VERSATILE_RAGE, 'Versatile Rage', { resourceGain: 5 }),
-  trait(TRAIT.THICK_SKIN, 'Thick Skin', { effects: [{ type: 'boon', boon: 'protection', stacks: 1, duration: 3 }] }),
+  trait(TRAIT.THICK_SKIN, 'Thick Skin', {
+    effects: [{ name: 'protection', type: 'boon', boon: 'protection', stacks: 1, duration: 3 }]
+  }),
   trait(TRAIT.WOUNDING_PRECISION, 'Wounding Precision', { attributeConversion: 0.07 }),
   trait(WARRIOR_CORE_BALANCE_PROFILE_IDS.blademaster, 'Blademaster', {
     attributeBonus: 120

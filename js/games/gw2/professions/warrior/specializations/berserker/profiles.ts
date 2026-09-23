@@ -22,7 +22,7 @@ export const BERSERKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     maximumStacks: 10,
     attributeBonus: 300,
     attributePerStack: 150,
-    effects: [{ type: 'buff', kind: 'berserk', stacks: 1, duration: 20 }]
+    effects: [{ name: 'berserk', type: 'buff', kind: 'berserk', stacks: 1, duration: 20 }]
   },
   {
     id: BERSERKER_BALANCE_PROFILE_IDS.rageExtensions,
@@ -35,17 +35,17 @@ export const BERSERKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   },
   trait(BERSERKER_BALANCE_PROFILE_IDS.burstOfAggression, 'Burst of Aggression', {
     effects: [
-      { type: 'boon', boon: 'quickness', stacks: 1, duration: 3 },
-      { type: 'boon', boon: 'fury', stacks: 1, duration: 8 }
+      { name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 3 },
+      { name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 8 }
     ]
   }),
   trait(BERSERKER_BALANCE_PROFILE_IDS.bloodyRoar, 'Bloody Roar', {
     damageMultiplier: 1.1,
-    effects: [{ type: 'boon', boon: 'resistance', stacks: 1, duration: 3.5 }]
+    effects: [{ name: 'resistance', type: 'boon', boon: 'resistance', stacks: 1, duration: 3.5 }]
   }),
   trait(BERSERKER_BALANCE_PROFILE_IDS.lastBlaze, 'Last Blaze', {
     durationMultiplier: 1,
-    effects: [{ type: 'condition', condition: 'Burning', stacks: 1, duration: 4 }]
+    effects: [{ name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 4 }]
   }),
   trait(BERSERKER_BALANCE_PROFILE_IDS.smashBrawler, 'Smash Brawler', {
     criticalChance: 0.15,
@@ -54,18 +54,18 @@ export const BERSERKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   }),
   trait(BERSERKER_BALANCE_PROFILE_IDS.heatTheSoul, 'Heat the Soul', {
     effects: [
-      { type: 'boon', boon: 'quickness', stacks: 1, duration: 5 },
-      { type: 'boon', boon: 'fury', stacks: 1, duration: 5 },
-      { type: 'boon', boon: 'might', stacks: 3, duration: 5 }
+      { name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 5 },
+      { name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 5 },
+      { name: 'might', type: 'boon', boon: 'might', stacks: 3, duration: 5 }
     ]
   }),
   trait(BERSERKER_BALANCE_PROFILE_IDS.kingOfFires, 'King of Fires', {
     durationMultiplier: 0.33,
     internalCooldown: 15,
     effects: [
-      { type: 'buff', kind: 'fire-aura', stacks: 1, duration: 5 },
-      { type: 'strike', coefficient: 0.7, hits: 1 },
-      { type: 'condition', condition: 'Burning', stacks: 3, duration: 3 }
+      { name: 'fire-aura', type: 'buff', kind: 'fire-aura', stacks: 1, duration: 5 },
+      { name: 'Strike', type: 'strike', coefficient: 0.7, hits: 1 },
+      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 3, duration: 3 }
     ]
   }),
   trait(BERSERKER_BALANCE_PROFILE_IDS.bloodReaction, 'Blood Reaction', {

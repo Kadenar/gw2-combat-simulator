@@ -1,8 +1,6 @@
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import {
-  balanceProfileFromContext,
-  balanceProfileNumberFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -28,7 +26,7 @@ export const paragonSchedulerHooks = Object.freeze({
   // Keep Core's three-bar adrenaline pool; each chant or burst still spends one bar.
   initialize: (context: WarriorSchedulerContext) => {
     const state = paragonState.from(context);
-    state.maximumMotivation = Number(balanceProfileFromContext(context, PROFILE.resources)?.maximumStacks ?? 10);
+    state.maximumMotivation = balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
     state.motivation = Math.min(state.maximumMotivation, state.motivation);
   },
   onCastStart: beginParagonCast,

@@ -1,4 +1,8 @@
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
   advanceEnduranceIntervals,
@@ -11,9 +15,9 @@ import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/wa
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 function warriorEnduranceRegenerationRate(context: WarriorSchedulerContext, vigor: boolean): number {
-  const resources = balanceProfileFromContext(context, PROFILE.resources);
-  const base = Number(resources?.enduranceRegenerationPerSecond ?? 5);
-  const vigorMultiplier = Number(resources?.vigorRegenerationMultiplier ?? 1.5);
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const base = balanceProfileNumber(resourcesProfile, 'enduranceRegenerationPerSecond', context);
+  const vigorMultiplier = balanceProfileNumber(resourcesProfile, 'vigorRegenerationMultiplier', context);
   return base * (vigor ? vigorMultiplier : 1);
 }
 

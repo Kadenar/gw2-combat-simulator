@@ -26,9 +26,25 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     profileKind: 'skill-variant',
     parentId: ID.SHARP_ARTILLERY_SLASH,
     effects: [
-      { type: 'strike', coefficient: 2 },
-      { type: 'condition', condition: 'Bleeding', stacks: 3, duration: 6, packetLabel: 'one round spent' },
-      { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 7, packetLabel: 'two rounds spent' }
+      { name: 'Strike', type: 'strike', coefficient: 2 },
+      {
+        name: 'One round',
+        type: 'condition',
+        condition: 'Bleeding',
+        stacks: 3,
+        duration: 6,
+        packetLabel: 'one round spent'
+      },
+      {
+        name: 'Two rounds',
+        type: 'condition',
+        condition: 'Bleeding',
+        stacks: 4,
+        duration: 7,
+        packetLabel: 'two rounds spent'
+      },
+      // The charge-dependent control packet can be removed independently of strike and Bleeding.
+      { name: 'Control', type: 'control' }
     ]
   },
   {
@@ -66,9 +82,9 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     profileKind: 'skill-variant',
     parentId: ID.ARTILLERY_SLASH,
     effects: [
-      { type: 'strike', coefficient: 2, hits: 1 },
-      { type: 'strike', coefficient: 3, hits: 1 },
-      { type: 'control' }
+      { name: 'One round', type: 'strike', coefficient: 2, hits: 1 },
+      { name: 'Two rounds', type: 'strike', coefficient: 3, hits: 1 },
+      { name: 'Control', type: 'control' }
     ]
   },
   {
@@ -78,48 +94,54 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     parentId: ID.OVERCHARGED_CARTRIDGES,
     effects: [
       {
+        name: 'overcharged-cartridges',
         type: 'buff',
         kind: 'overcharged-cartridges',
         stacks: 1,
         duration: 8,
         damageIncreasePerStack: 0.15
       },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 3 },
+      { name: 'Overcharged Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 3 },
       {
+        name: 'supercharged-cartridges',
         type: 'buff',
         kind: 'supercharged-cartridges',
         stacks: 1,
         duration: 8,
         damageIncreasePerStack: 0.2
       },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 5 }
+      { name: 'Supercharged Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 5 }
     ]
   },
   trait(BLADESWORN_BALANCE_PROFILE_IDS.unseenSword, 'Unseen Sword', {
     internalCooldown: 4,
-    effects: [{ type: 'strike', coefficient: 1.2, hits: 1 }]
+    // Entry traits declare their own flow window so patches can remove it independently.
+    effects: [
+      { name: 'Strike', type: 'strike', coefficient: 1.2, hits: 1 },
+      { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 1, duration: 5 }
+    ]
   }),
   trait(BLADESWORN_BALANCE_PROFILE_IDS.sharpAsTheWind, 'Sharp as the Wind', {
     internalCooldown: 4,
     effects: [
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 3 },
-      { type: 'buff', kind: 'positive-flow', stacks: 2, duration: 5 }
+      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 3 },
+      { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 2, duration: 5 }
     ]
   }),
   trait(BLADESWORN_BALANCE_PROFILE_IDS.riversFlow, "River's Flow", {
     internalCooldown: 4,
     effects: [
-      { type: 'boon', boon: 'might', stacks: 2, duration: 8 },
-      { type: 'buff', kind: 'positive-flow', stacks: 1, duration: 5 }
+      { name: 'might', type: 'boon', boon: 'might', stacks: 2, duration: 8 },
+      { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 1, duration: 5 }
     ]
   }),
   trait(BLADESWORN_BALANCE_PROFILE_IDS.dragonscaleDefense, 'Dragonscale Defense', {
-    effects: [{ type: 'boon', boon: 'stability', stacks: 1, duration: 3 }]
+    effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 3 }]
   }),
   trait(BLADESWORN_BALANCE_PROFILE_IDS.fierceAsFire, 'Fierce as Fire', {
     maximumStacks: 10,
     damageIncreasePerStack: 0.01,
-    effects: [{ type: 'buff', kind: 'fierce-as-fire', stacks: 1, duration: 15 }]
+    effects: [{ name: 'fierce-as-fire', type: 'buff', kind: 'fierce-as-fire', stacks: 1, duration: 15 }]
   }),
   trait(BLADESWORN_BALANCE_PROFILE_IDS.lushForest, 'Lush Forest', {
     rechargeReduction: 0.75
@@ -129,6 +151,7 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     resourceCostMultiplier: 2,
     effects: [
       {
+        name: 'alacrity',
         type: 'boon',
         boon: 'alacrity',
         stacks: 1,

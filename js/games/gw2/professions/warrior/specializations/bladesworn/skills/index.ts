@@ -97,6 +97,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       },
       {
         type: 'buff',
+        name: 'Positive Flow',
         kind: 'positive-flow',
         duration: 8,
         stacks: 2

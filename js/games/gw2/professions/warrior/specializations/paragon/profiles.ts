@@ -34,10 +34,10 @@ export const PARAGON_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     profileKind: 'mechanic',
     resourceGain: 4,
     effects: [
-      { type: 'boon', boon: 'might', stacks: 5, duration: 8 },
-      { type: 'boon', boon: 'fury', stacks: 1, duration: 5 },
-      { type: 'boon', boon: 'vigor', stacks: 1, duration: 5 },
-      { type: 'boon', boon: 'stability', stacks: 1, duration: 3 }
+      { name: 'might', type: 'boon', boon: 'might', stacks: 5, duration: 8 },
+      { name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 5 },
+      { name: 'vigor', type: 'boon', boon: 'vigor', stacks: 1, duration: 5 },
+      { name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 3 }
     ]
   },
   {
@@ -73,7 +73,7 @@ export const PARAGON_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
   }),
   trait(PARAGON_BALANCE_PROFILE_IDS.feverishPulse, 'Feverish Pulse', {
     rechargeReduction: 2,
-    effects: [{ type: 'boon', boon: 'alacrity', stacks: 1, duration: 6 }]
+    effects: [{ name: 'alacrity', type: 'boon', boon: 'alacrity', stacks: 1, duration: 6 }]
   }),
   trait(PARAGON_BALANCE_PROFILE_IDS.callToAction, 'Call to Action', {
     resourceGain: 4

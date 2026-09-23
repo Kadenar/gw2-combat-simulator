@@ -1,5 +1,6 @@
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 /** Registers scheduler-phase skill activations for this module. */
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import { augmentSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -19,13 +20,19 @@ function enterBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
   applyWarriorSkillResource(context, skill);
   // Only committed activations open Berserk; resource spending is handled separately.
   if (context.action.cancelled) return;
+  const duration = berserkEntryDuration(context);
+  // Entry boons survive removal of the Berserk window; its resource cap and active state do not.
+  if (duration === undefined) {
+    applyBerserkEntryTraits(context, skill);
+    return;
+  }
   const core = professionCoreState(context);
   // Berserk mode collapses the three adrenaline bars into one slot of ten.
-  core.maximumAdrenaline = Number(balanceProfileFromContext(context, PROFILE.resources)?.maximumStacks ?? 10);
+  core.maximumAdrenaline = balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
   syncWarriorAdrenaline(context);
   const state = berserkerState.from(context);
   state.berserkActive = true;
-  state.berserkUntil = context.effectiveEnd + berserkEntryDuration(context);
+  state.berserkUntil = context.effectiveEnd + duration;
   // Publish the newly opened Berserk window directly through the canonical status emitter.
   emitSkillBuff(context, {
     at: context.effectiveEnd,

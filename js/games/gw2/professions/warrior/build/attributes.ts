@@ -1,10 +1,13 @@
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/warrior/core/profiles.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import {
-  balanceProfileFromContext,
-  balanceProfileNumberFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+
 import { getActiveTraits } from '#gw2/professions/warrior/data/traits-data.js';
 import {
   createBuildAttributeContext,
@@ -40,12 +43,15 @@ export function applyWarriorBuildAttributeRules(
 
   const traitDurations: Gw2NumericAttributes = {};
 
+  const greatFortitudeProfile = requireBalanceProfileFromContext(profileContext, TRAIT.GREAT_FORTITUDE);
+  const forcefulGreatswordProfile = requireBalanceProfileFromContext(profileContext, TRAIT.FORCEFUL_GREATSWORD);
+  const signetPassivesProfile = requireBalanceProfileFromContext(profileContext, CORE.signetPassives);
   const attributeEffects: readonly Gw2AttributeEffect[] = [
     {
       kind: 'flat',
       source: 'Signet of Might',
       to: 'Power',
-      amount: balanceProfileNumberFromContext(profileContext, CORE.signetPassives, 'attributeBonus'),
+      amount: balanceProfileNumber(signetPassivesProfile, 'attributeBonus', profileContext),
       feedsConversions: false,
       enabled: hasSelectedSkill('Signet of Might')
     },
@@ -53,7 +59,7 @@ export function applyWarriorBuildAttributeRules(
       kind: 'flat',
       source: 'Signet of Fury',
       to: 'Precision',
-      amount: balanceProfileNumberFromContext(profileContext, CORE.signetPassives, 'attributeBonus'),
+      amount: balanceProfileNumber(signetPassivesProfile, 'attributeBonus', profileContext),
       feedsConversions: false,
       enabled: hasSelectedSkill('Signet of Fury')
     },
@@ -61,7 +67,7 @@ export function applyWarriorBuildAttributeRules(
       kind: 'flat',
       source: 'Forceful Greatsword',
       to: 'Power',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.FORCEFUL_GREATSWORD, 'attributeBonus'),
+      amount: balanceProfileNumber(forcefulGreatswordProfile, 'attributeBonus', profileContext),
       feedsConversions: true,
       enabled: hasTrait('Forceful Greatsword')
     },
@@ -69,7 +75,7 @@ export function applyWarriorBuildAttributeRules(
       kind: 'flat',
       source: 'Forceful Greatsword',
       to: 'Power',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.FORCEFUL_GREATSWORD, 'weaponAttributeBonus'),
+      amount: balanceProfileNumber(forcefulGreatswordProfile, 'weaponAttributeBonus', profileContext),
       feedsConversions: false,
       enabled: hasTrait('Forceful Greatsword') && weapons.includes('Greatsword')
     },
@@ -78,7 +84,7 @@ export function applyWarriorBuildAttributeRules(
       source: 'Great Fortitude',
       from: 'Power',
       to: 'Vitality',
-      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.GREAT_FORTITUDE, 'attributeConversion'),
+      multiplier: balanceProfileNumber(greatFortitudeProfile, 'attributeConversion', profileContext),
       rounding: 'none',
       input: 'eligible',
       enabled: hasTrait('Great Fortitude')
@@ -88,7 +94,7 @@ export function applyWarriorBuildAttributeRules(
       source: 'Great Fortitude',
       from: 'Power',
       to: 'Ferocity',
-      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.GREAT_FORTITUDE, 'attributeConversion'),
+      multiplier: balanceProfileNumber(greatFortitudeProfile, 'attributeConversion', profileContext),
       rounding: 'none',
       input: 'eligible',
       enabled: hasTrait('Great Fortitude')
@@ -156,7 +162,7 @@ export function applyWarriorBuildAttributeRules(
 
   if (hasTrait('King of Fires')) {
     traitDurations['Burning Duration'] =
-      Number(balanceProfileFromContext(profileContext, TRAIT.KING_OF_FIRES)?.durationMultiplier) * 100;
+      balanceProfileNumberFromContext(profileContext, TRAIT.KING_OF_FIRES, 'durationMultiplier') * 100;
   }
 
   return finalizeProfessionBuildAttributes(common, {
