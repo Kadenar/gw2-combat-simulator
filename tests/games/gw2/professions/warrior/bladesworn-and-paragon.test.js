@@ -1140,7 +1140,30 @@ test('Burst Precision duration follows the adrenaline stage', () => {
 });
 
 test('Bladesworn swap and Dragon Trigger traits use supplied behavior', () => {
-  const swap = simulate('Bladesworn', ['Unsheathe Gunsaber', { type: 'wait', durationMs: 5000 }], {
+  // Without an explicit marker, combat begins at the first hit; an earlier unsheathe is out of combat.
+  const outOfCombat = simulate('Bladesworn', ['Unsheathe Gunsaber', { type: 'wait', durationMs: 5000 }], {
+    initialResource: 0,
+    selectedTraitIds: [TRAIT.UNSEEN_SWORD]
+  });
+
+  assert.equal(
+    outOfCombat.events.some((event) => event.name === 'Unseen Sword' || event.kind === 'positive-flow'),
+    false
+  );
+
+  const afterFirstHit = simulate('Bladesworn', ['Chop', 'Unsheathe Gunsaber'], {
+    initialResource: 0,
+    primaryWeapon: 'Axe',
+    secondaryWeapon: 'Axe',
+    selectedTraitIds: [TRAIT.UNSEEN_SWORD]
+  });
+  const firstChopHit = afterFirstHit.events.find((event) => event.type === 'damage' && event.skillId === ID.CHOP);
+  const unseenSword = afterFirstHit.events.filter((event) => event.name === 'Unseen Sword');
+
+  assert.equal(unseenSword.length, 1);
+  assert.ok(unseenSword[0].at >= firstChopHit.at);
+
+  const swap = simulate('Bladesworn', ['__combat_start', 'Unsheathe Gunsaber', { type: 'wait', durationMs: 5000 }], {
     initialResource: 0,
     selectedTraitIds: [TRAIT.UNSEEN_SWORD]
   });

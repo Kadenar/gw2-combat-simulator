@@ -72,6 +72,8 @@ export type WarriorSchedulerContext = SchedulerContext<WarriorRuntimeState> & {
 export type WarriorCastContext = CastLifecycleContext<WarriorRuntimeState> & {
   readonly catalog: CanonicalCatalog<WarriorSkill>;
   readonly config: Gw2Config;
+  /** Exposes observed combat start so in-combat-only traits can gate runs without an explicit marker. */
+  readonly schedulerPolicy: Partial<Pick<Gw2SchedulerPolicy, 'combatBeganAt'>>;
 };
 
 export type WarriorSimulationEvent = SimulationEvent & {

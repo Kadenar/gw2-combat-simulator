@@ -58,6 +58,12 @@ export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number
   // Select the entry trait once so its packet, cooldown, and flow window share the same profile.
   const traitId = [TRAIT.UNSEEN_SWORD, TRAIT.SHARP_AS_THE_WIND, TRAIT.RIVERS_FLOW].find((id) => hasTrait(context, id));
   if (traitId == null) return;
+  // Unseen Sword only strikes in combat: without an explicit marker, combat begins at the first observed hit,
+  // so earlier swaps neither strike nor spend the internal cooldown.
+  if (traitId === TRAIT.UNSEEN_SWORD && !context.hasExplicitCombatStart) {
+    const combatBeganAt = context.schedulerPolicy.combatBeganAt?.();
+    if (combatBeganAt == null || at + EPSILON < combatBeganAt) return;
+  }
 
   const traitProfile = requireBalanceProfileFromContext(context, traitId);
   if (traitId === TRAIT.UNSEEN_SWORD) {

@@ -44,6 +44,8 @@ function contextFor(specialization, selectedTraitIds, balanceProfiles) {
     catalog: applyBalanceProfilePatch(profession.catalog, { balanceProfiles }),
     state: { profession: profession.createProfessionState(config), time: 0 },
     events,
+    // Direct trait calls model a context already in combat so combat-only traits can proc.
+    schedulerPolicy: { combatBeganAt: () => 0 },
     skill: profession.catalog.skillsById.get(ID.UNSHEATHE_GUNSABER),
     emit(event) {
       events.push(event);
