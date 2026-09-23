@@ -30,8 +30,8 @@ export const GALESHOT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     profileKind: 'skill-variant',
     durationMultiplier: 6,
     effects: [
-      { type: 'strike', coefficient: 0.3, hits: 1 },
-      { type: 'condition', condition: 'Chilled', duration: 1, stacks: 1 }
+      { name: 'Strike', type: 'strike', coefficient: 0.3, hits: 1 },
+      { name: 'Chilled', type: 'condition', condition: 'Chilled', duration: 1, stacks: 1 }
     ]
   },
   trait(GALESHOT_BALANCE_PROFILE_IDS.shrike, 'Shrike', {
@@ -39,6 +39,7 @@ export const GALESHOT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     resourceGain: 1,
     effects: [
       {
+        name: 'Strike',
         type: 'strike',
         coefficient: 0.8,
         hits: 3,
@@ -47,7 +48,7 @@ export const GALESHOT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     ]
   }),
   trait(GALESHOT_BALANCE_PROFILE_IDS.wutheringWind, 'Wuthering Wind', {
-    effects: [{ type: 'strike', coefficient: 2, hits: 1 }]
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 2, hits: 1 }]
   }),
   trait(GALESHOT_BALANCE_PROFILE_IDS.thrillOfTheCatch, 'Thrill of the Catch', {
     internalCooldown: 0.25,
@@ -55,17 +56,17 @@ export const GALESHOT_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
   }),
   trait(GALESHOT_BALANCE_PROFILE_IDS.flockTogether, 'Flock Together', {
     internalCooldown: 20,
-    effects: [{ type: 'boon', boon: 'quickness', duration: 5, stacks: 1 }]
+    effects: [{ name: 'quickness', type: 'boon', boon: 'quickness', duration: 5, stacks: 1 }]
   }),
   trait(GALESHOT_BALANCE_PROFILE_IDS.cloudburst, 'Cloudburst', {
     effects: [
-      { type: 'boon', boon: 'quickness', duration: 4, stacks: 1 },
-      { type: 'boon', boon: 'might', duration: 10, stacks: 4 },
-      { type: 'boon', boon: 'quickness', duration: 8, stacks: 1 },
-      { type: 'boon', boon: 'might', duration: 10, stacks: 8 }
+      { name: 'quickness', type: 'boon', boon: 'quickness', duration: 4, stacks: 1 },
+      { name: 'might', type: 'boon', boon: 'might', duration: 10, stacks: 4 },
+      { name: 'Hawkeye quickness', type: 'boon', boon: 'quickness', duration: 8, stacks: 1 },
+      { name: 'Hawkeye might', type: 'boon', boon: 'might', duration: 10, stacks: 8 }
     ]
   }),
   trait(GALESHOT_BALANCE_PROFILE_IDS.galeForce, 'Gale Force', {
-    effects: [{ type: 'buff', kind: 'gale-force', duration: 10, stacks: 1 }]
+    effects: [{ name: 'gale-force', type: 'buff', kind: 'gale-force', duration: 10, stacks: 1 }]
   })
 ]);

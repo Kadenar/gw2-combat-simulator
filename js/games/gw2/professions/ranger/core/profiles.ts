@@ -12,6 +12,7 @@ export const RANGER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   sharpeningStone: 'ranger.core.sharpening-stone',
   sunSpirit: 'ranger.core.sun-spirit',
   sicEm: 'ranger.core.sic-em',
+  stalkersStrikeImpaired: 'ranger.core.stalkers-strike-impaired',
   bloodThirst: 'ranger.core.blood-thirst',
   signetOfTheWild: 'ranger.core.signet-of-the-wild',
   lightOnYourFeet: TRAIT.LIGHT_ON_YOUR_FEET,
@@ -64,7 +65,7 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   variant(RANGER_CORE_BALANCE_PROFILE_IDS.poisonousStrikes, ID.DOUBLE_ARC, 'Poisonous Strikes', {
     playerStacks: 2,
     durationMultiplier: 7,
-    effects: [{ type: 'condition', condition: 'Poisoned', stacks: 1, duration: 6 }]
+    effects: [{ name: 'Poisoned', type: 'condition', condition: 'Poisoned', stacks: 1, duration: 6 }]
   }),
   variant(
     RANGER_CORE_BALANCE_PROFILE_IDS.sharpeningStone,
@@ -73,19 +74,29 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     {
       playerStacks: 10,
       durationMultiplier: 30,
-      effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8 }]
+      effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8 }]
     }
   ),
   variant(RANGER_CORE_BALANCE_PROFILE_IDS.sunSpirit, ID.SUN_SPIRIT, 'Sun Spirit - Solar Flare', {
-    effects: [{ type: 'condition', condition: 'Burning', stacks: 3, duration: 6 }]
+    effects: [{ name: 'Burning', type: 'condition', condition: 'Burning', stacks: 3, duration: 6 }]
   }),
+  // Movement-impaired targets double the strike and receive extra Poison on top of the skill's own packet.
+  variant(
+    RANGER_CORE_BALANCE_PROFILE_IDS.stalkersStrikeImpaired,
+    ID.STALKERS_STRIKE,
+    "Stalker's Strike - Movement-Impaired Target",
+    {
+      damageMultiplier: 2,
+      effects: [{ name: 'Poisoned', type: 'condition', condition: 'Poisoned', stacks: 2, duration: 8 }]
+    }
+  ),
   variant(RANGER_CORE_BALANCE_PROFILE_IDS.sicEm, ID.SIC_EM, '"Sic \'Em!"', {
     durationMultiplier: 10
   }),
   variant(RANGER_CORE_BALANCE_PROFILE_IDS.bloodThirst, ID.CRIPPLING_SHOT, 'Blood Thirst', {
     playerStacks: 3,
     durationMultiplier: 12,
-    effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 12 }]
+    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 12 }]
   }),
   variant(RANGER_CORE_BALANCE_PROFILE_IDS.signetOfTheWild, ID.SIGNET_OF_THE_WILD, 'Signet of the Wild - Passive', {
     attributeBonus: 180
@@ -96,8 +107,9 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     minimumStacks: 1,
     rechargeMultiplier: 0.8,
     effects: [
-      { type: 'buff', kind: 'light-on-your-feet', duration: 6, stacks: 1 },
+      { name: 'light-on-your-feet', type: 'buff', kind: 'light-on-your-feet', duration: 6, stacks: 1 },
       {
+        name: 'Vulnerability',
         type: 'condition',
         condition: 'Vulnerability',
         duration: 10,
@@ -111,32 +123,34 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     maximumStacks: 5,
     effects: [
       {
+        name: 'Immobilized',
         type: 'condition',
         condition: 'Immobilized',
         duration: 1,
         stacks: 1
       },
-      { type: 'condition', condition: 'Crippled', duration: 2, stacks: 1 },
-      { type: 'condition', condition: 'Slow', duration: 1, stacks: 1 }
+      { name: 'Crippled', type: 'condition', condition: 'Crippled', duration: 2, stacks: 1 },
+      { name: 'Slow', type: 'condition', condition: 'Slow', duration: 1, stacks: 1 }
     ]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.wellspring, 'Wellspring', {
     attributeConversion: 0.07,
-    effects: [{ type: 'boon', boon: 'regeneration', duration: 6, stacks: 1 }]
+    effects: [{ name: 'regeneration', type: 'boon', boon: 'regeneration', duration: 6, stacks: 1 }]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.windborneNotes, 'Windborne Notes', {
-    effects: [{ type: 'boon', boon: 'regeneration', duration: 6, stacks: 1 }]
+    effects: [{ name: 'regeneration', type: 'boon', boon: 'regeneration', duration: 6, stacks: 1 }]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.rejuvenation, 'Rejuvenation', {
     internalCooldown: 20,
-    effects: [{ type: 'boon', boon: 'regeneration', duration: 10, stacks: 1 }]
+    effects: [{ name: 'regeneration', type: 'boon', boon: 'regeneration', duration: 10, stacks: 1 }]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.poisonMaster, 'Poison Master', {
-    effects: [{ type: 'condition', condition: 'Poisoned', duration: 8, stacks: 2 }]
+    effects: [{ name: 'Poisoned', type: 'condition', condition: 'Poisoned', duration: 8, stacks: 2 }]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.wolfsong, 'Wolfsong', {
     effects: [
       {
+        name: 'Vulnerability',
         type: 'condition',
         condition: 'Vulnerability',
         duration: 6,
@@ -146,31 +160,31 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.tailWind, 'Tail Wind', {
     internalCooldown: 9,
-    effects: [{ type: 'boon', boon: 'swiftness', duration: 9, stacks: 1 }]
+    effects: [{ name: 'swiftness', type: 'boon', boon: 'swiftness', duration: 9, stacks: 1 }]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.quickDraw, 'Quick Draw', {
     internalCooldown: 9,
     durationMultiplier: 5,
     rechargeMultiplier: 0.34,
-    effects: [{ type: 'boon', boon: 'quickness', duration: 3, stacks: 1 }]
+    effects: [{ name: 'quickness', type: 'boon', boon: 'quickness', duration: 3, stacks: 1 }]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.furiousGrip, 'Furious Grip', {
     internalCooldown: 9,
-    effects: [{ type: 'boon', boon: 'fury', duration: 5, stacks: 1 }]
+    effects: [{ name: 'fury', type: 'boon', boon: 'fury', duration: 5, stacks: 1 }]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.spiritedArrival, 'Spirited Arrival', {
     effects: [
-      { type: 'boon', boon: 'might', duration: 12, stacks: 6 },
-      { type: 'boon', boon: 'fury', duration: 8, stacks: 1 }
+      { name: 'might', type: 'boon', boon: 'might', duration: 12, stacks: 6 },
+      { name: 'fury', type: 'boon', boon: 'fury', duration: 8, stacks: 1 }
     ]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.clarionBond, 'Clarion Bond', {
     internalCooldown: 15,
     effects: [
-      { type: 'boon', boon: 'fury', duration: 5, stacks: 1 },
-      { type: 'boon', boon: 'might', duration: 5, stacks: 6 },
-      { type: 'boon', boon: 'swiftness', duration: 5, stacks: 1 },
-      { type: 'condition', condition: 'Weakness', duration: 5, stacks: 1 }
+      { name: 'fury', type: 'boon', boon: 'fury', duration: 5, stacks: 1 },
+      { name: 'might', type: 'boon', boon: 'might', duration: 5, stacks: 6 },
+      { name: 'swiftness', type: 'boon', boon: 'swiftness', duration: 5, stacks: 1 },
+      { name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 5, stacks: 1 }
     ]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.resoundingTimbre, 'Resounding Timbre', {
@@ -179,6 +193,7 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.openingStrike, 'Opening Strike', {
     effects: [
       {
+        name: 'Vulnerability',
         type: 'condition',
         condition: 'Vulnerability',
         duration: 5,
@@ -187,54 +202,56 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     ]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.alphaFocus, 'Alpha Focus', {
-    effects: [{ type: 'condition', condition: 'Crippled', duration: 2, stacks: 1 }]
+    effects: [{ name: 'Crippled', type: 'condition', condition: 'Crippled', duration: 2, stacks: 1 }]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.huntersGaze, "Hunter's Gaze", {
     internalCooldown: 1,
     maximumStacks: 3,
-    effects: [{ type: 'boon', boon: 'might', duration: 5, stacks: 1 }]
+    effects: [{ name: 'might', type: 'boon', boon: 'might', duration: 5, stacks: 1 }]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.leadTheWind, 'Lead the Wind', {
     rechargeMultiplier: 0.8,
     effects: [
-      { type: 'boon', boon: 'swiftness', duration: 10, stacks: 1 },
-      { type: 'boon', boon: 'quickness', duration: 5, stacks: 1 }
+      { name: 'swiftness', type: 'boon', boon: 'swiftness', duration: 10, stacks: 1 },
+      { name: 'quickness', type: 'boon', boon: 'quickness', duration: 5, stacks: 1 }
     ]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.arachnophobia, 'Arachnophobia', {
     attributeBonus: 150,
     weaponAttributeBonus: 225,
-    effects: [{ type: 'condition', condition: 'Torment', duration: 3, stacks: 1 }]
+    effects: [{ name: 'Torment', type: 'condition', condition: 'Torment', duration: 3, stacks: 1 }]
   }),
   variant(
     RANGER_CORE_BALANCE_PROFILE_IDS.strengthOfThePack,
     ID.STRENGTH_OF_THE_PACK,
     '"Strength of the Pack!" - Triggered Might',
     {
-      effects: [{ type: 'boon', boon: 'might', duration: 8, stacks: 1 }]
+      effects: [{ name: 'might', type: 'boon', boon: 'might', duration: 8, stacks: 1 }]
     }
   ),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.goForTheThroat, 'Go for the Throat', {
     internalCooldown: 10,
     effects: [
       {
+        name: 'lesser-sic-em-pet',
         type: 'buff',
         kind: 'lesser-sic-em-pet',
         duration: 8,
         stacks: 1
       },
-      { type: 'buff', kind: 'lesser-sic-em', duration: 5, stacks: 1 }
+      { name: 'lesser-sic-em', type: 'buff', kind: 'lesser-sic-em', duration: 5, stacks: 1 }
     ]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.sharpenedEdges, 'Sharpened Edges', {
     criticalChance: 0.33,
-    effects: [{ type: 'condition', condition: 'Bleeding', duration: 3, stacks: 1 }]
+    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration: 3, stacks: 1 }]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.trappersExpertise, "Trapper's Expertise", {
     durationMultiplier: 1.6,
     coefficientMultiplier: 1.66,
     effects: [
       {
+        name: 'Crippled',
         type: 'condition',
         condition: 'Crippled',
         duration: 3,
@@ -244,7 +261,7 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.carnivore, 'Carnivore', {
     internalCooldown: 0.25,
-    effects: [{ type: 'strike', coefficient: 0.05, hits: 1 }]
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.05, hits: 1 }]
   }),
   trait(RANGER_CORE_BALANCE_PROFILE_IDS.naturalVigor, 'Natural Vigor', {
     vigorRegenerationMultiplier: 0.25

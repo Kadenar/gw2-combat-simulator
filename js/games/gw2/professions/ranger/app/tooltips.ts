@@ -362,13 +362,14 @@ export const rangerTooltips: ProfessionTooltips = {
     [ID.STALKERS_STRIKE]: skillTooltip(
       'Strike and poison your target. Against a movement-impaired target, the strike deals increased damage and adds further poison.',
       (balanceContext) => [
-        modifierFact(
+        profileFact(
           balanceContext,
-          'ranger.stalkers-strike-movement-impaired',
-          'factor',
+          CORE.stalkersStrikeImpaired,
+          'damageMultiplier',
           'Strike damage against movement-impaired targets',
           tooltipFactorChange
-        )
+        ),
+        ...simulationEffectFacts(tooltipProfile(balanceContext, CORE.stalkersStrikeImpaired).effects).facts
       ]
     ),
     [ID.FROST_TRAP]: skillTooltip(
@@ -755,7 +756,13 @@ export const rangerTooltips: ProfessionTooltips = {
     [TRAIT.NATURAL_BALANCE]: traitTooltip(
       'Entering or leaving Celestial Avatar temporarily increases your condition damage and condition duration.',
       (balanceContext) => [
-        modifierFact(balanceContext, 'ranger.natural-balance-condition-damage', 'amount', 'Condition damage'),
+        profileFact(
+          balanceContext,
+          TRAIT.NATURAL_BALANCE,
+          'conditionDamageIncrease',
+          'Condition damage',
+          tooltipPercent
+        ),
         profileFact(
           balanceContext,
           TRAIT.NATURAL_BALANCE,

@@ -2,7 +2,12 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 /** Owns Core Ranger Beastmastery command and companion-attack trait behavior. */
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -90,10 +95,12 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2
     return;
   }
 
-  const profile = balanceProfileFromContext(context, PROFILE.goForTheThroat);
-  const lesserSicEm = balanceProfileEffect(profile, 'buff', 0);
-  state.goForTheThroatPetReadyAt = event.at + Number(profile?.internalCooldown ?? 10);
-  const duration = Number(lesserSicEm?.duration ?? 8);
+  const profile = requireBalanceProfileFromContext(context, PROFILE.goForTheThroat);
+  const lesserSicEm = requireEffect(profile, 'buff', 'lesser-sic-em-pet');
+  // The pet cooldown gates only the pet buff, so a removed buff leaves it ready.
+  if (!lesserSicEm) return;
+  state.goForTheThroatPetReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+  const duration = effectNumber(profile, lesserSicEm, 'duration');
   context.recordProc(
     'trait',
     'Lesser "Sic \'Em!"',
@@ -113,9 +120,9 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2
       skillId: ID.LESSER_SIC_EM,
       skillName: 'Lesser "Sic \'Em!"',
 
-      kind: String(lesserSicEm?.kind || 'lesser-sic-em-pet'),
+      kind: String(lesserSicEm.kind),
       duration,
-      stacks: Number(lesserSicEm?.stacks ?? 1),
+      stacks: effectNumber(profile, lesserSicEm, 'stacks'),
       audience: {
         recipients: 'summons' as const,
         affectsSelf: false,

@@ -1,8 +1,9 @@
 import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 import {
-  balanceProfileFromContext,
-  balanceProfileEffect,
-  balanceProfileValueFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
@@ -34,10 +35,12 @@ import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger
 function emitCloudburstBoons(context: RangerCastContext, skill: RangerSkill): void {
   if (!hasTrait(context, TRAIT.CLOUDBURST)) return;
   const hawkeye = skill.id === ID.HAWKEYE;
-  const profile = balanceProfileFromContext(context, PROFILE.cloudburst);
-  for (let boonIndex = 0; boonIndex < 2; boonIndex += 1) {
-    const effect = balanceProfileEffect(profile, 'boon', (hawkeye ? 2 : 0) + boonIndex);
-    const kind = String(effect?.boon || ['quickness', 'might'][boonIndex]);
+  const profile = requireBalanceProfileFromContext(context, PROFILE.cloudburst);
+  // Hawkeye owns separately named, stronger packets so removing one tier never borrows the other's values.
+  for (const name of hawkeye ? ['Hawkeye quickness', 'Hawkeye might'] : ['quickness', 'might']) {
+    const effect = requireEffect(profile, 'boon', name);
+    if (!effect) continue;
+    const kind = String(effect.boon);
     emitSkillBuff(context, {
       at: context.effectiveEnd,
       source: 'Trait',
@@ -48,13 +51,8 @@ function emitCloudburstBoons(context: RangerCastContext, skill: RangerSkill): vo
       name: `Cloudburst - ${kind}`,
       kind,
       boon: kind,
-      duration: gw2SchedulerBoonDuration(
-        context,
-        skill,
-        kind,
-        Number(effect?.duration ?? (boonIndex === 0 ? (hawkeye ? 8 : 4) : 10))
-      ),
-      stacks: Number(effect?.stacks ?? (boonIndex === 0 ? 1 : hawkeye ? 8 : 4)),
+      duration: gw2SchedulerBoonDuration(context, skill, kind, effectNumber(profile, effect, 'duration')),
+      stacks: effectNumber(profile, effect, 'stacks'),
       audience: { recipients: 'party' as const, maximumRecipients: 5 },
       triggeredBy: skill.name
     });
@@ -65,22 +63,26 @@ export function applyGaleshotCycloneBowTraits(context: RangerCastContext, skill:
   const state = galeshotState.from(context);
   if (skill.id === ID.HAWKEYE) {
     if (hasTrait(context, TRAIT.GALE_FORCE)) {
-      const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.galeForce), 'buff');
-      const duration = Number(effect?.duration ?? 10);
-      // galeForceUntil is a timestamp, not a duration; compare against context.time in modifiers.
-      state.galeForceUntil = context.effectiveEnd + duration;
-      emitSkillBuff(context, {
-        at: context.effectiveEnd,
-        source: 'Trait',
-        sourceId: TRAIT.GALE_FORCE,
-        actorType: 'effect',
-        skillId: TRAIT.GALE_FORCE,
-        skillName: 'Gale Force',
-        kind: String(effect?.kind || 'gale-force'),
-        duration,
-        stacks: Number(effect?.stacks ?? 1),
-        triggeredBy: skill.name
-      });
+      const profile = requireBalanceProfileFromContext(context, PROFILE.galeForce);
+      const effect = requireEffect(profile, 'buff', 'gale-force');
+      // The damage window belongs to the buff, so a removed buff opens no window.
+      if (effect) {
+        const duration = effectNumber(profile, effect, 'duration');
+        // galeForceUntil is a timestamp, not a duration; compare against context.time in modifiers.
+        state.galeForceUntil = context.effectiveEnd + duration;
+        emitSkillBuff(context, {
+          at: context.effectiveEnd,
+          source: 'Trait',
+          sourceId: TRAIT.GALE_FORCE,
+          actorType: 'effect',
+          skillId: TRAIT.GALE_FORCE,
+          skillName: 'Gale Force',
+          kind: String(effect.kind),
+          duration,
+          stacks: effectNumber(profile, effect, 'stacks'),
+          triggeredBy: skill.name
+        });
+      }
     }
 
     emitCloudburstBoons(context, skill);
@@ -147,7 +149,10 @@ export function galeshotCastAvailability(context: RangerCastContext, skill: Rang
     return deny(skill, 'ranger.arrows', `requires ${skill.arrowCost} arrows.`);
   }
 
-  const maximumWindForce = balanceProfileValueFromContext(context, PROFILE.resources, 'minimumStacks', 5);
+  const maximumWindForce = balanceProfileNumber(
+    requireBalanceProfileFromContext(context, PROFILE.resources),
+    'minimumStacks'
+  );
   if (skill.id === ID.HAWKEYE && state.windForce < maximumWindForce) {
     return deny(skill, 'ranger.wind-force', `requires ${maximumWindForce} Wind Force.`);
   }

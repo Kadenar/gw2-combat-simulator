@@ -588,7 +588,9 @@ test('Sharpened Edges rereads patched effects between proc batches', () => {
   const context = { catalog: { balanceProfilesById: profiles }, queue: { enqueue: (event) => queued.push(event) } };
   const hit = { type: 'damage', at: 1, actorType: 'player', skillName: 'Test' };
   for (const duration of [3, 6]) {
-    profiles.set(TRAIT.SHARPENED_EDGES, { effects: [{ type: 'condition', duration, stacks: 2 }] });
+    profiles.set(TRAIT.SHARPENED_EDGES, {
+      effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration, stacks: 2 }]
+    });
     rangerCoreCriticalReactions.handler(context, hit, {}, { quantity: 2 });
     assert.equal(queued.length, 2);
     assert.ok(queued.every((event) => event.duration === duration && event.stacks === 2));

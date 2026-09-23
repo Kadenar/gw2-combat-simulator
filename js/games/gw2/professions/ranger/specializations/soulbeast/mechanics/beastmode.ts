@@ -3,7 +3,6 @@ import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 import { soulbeastArchetypeAttributes } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
 import { essenceOfSpeedExtension } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import {
-  balanceProfileValueFromContext,
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -266,7 +265,10 @@ function emitMergedCommandEffects(context: RangerCastContext, skill: RangerSkill
       kind: 'sic-em',
       // Apply the instant command before simultaneous merged strikes query its modifier.
       priority: -20,
-      duration: balanceProfileValueFromContext(context, CORE_PROFILE.sicEm, 'durationMultiplier', 10),
+      duration: balanceProfileNumber(
+        requireBalanceProfileFromContext(context, CORE_PROFILE.sicEm),
+        'durationMultiplier'
+      ),
       stacks: 1
     });
   }
@@ -280,7 +282,10 @@ function emitMergedCommandEffects(context: RangerCastContext, skill: RangerSkill
       actorType: 'effect',
       skillId: skill.id,
       skillName: 'Resounding Timbre',
-      duration: balanceProfileValueFromContext(context, CORE_PROFILE.resoundingTimbre, 'durationMultiplier', 2)
+      duration: balanceProfileNumber(
+        requireBalanceProfileFromContext(context, CORE_PROFILE.resoundingTimbre),
+        'durationMultiplier'
+      )
     });
   }
 }

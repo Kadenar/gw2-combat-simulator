@@ -39,7 +39,7 @@ export const SOULBEAST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     durationMultiplier: 6,
     internalCooldown: 1,
     initialDelay: 0.28,
-    effects: [{ type: 'strike', coefficient: 0.95, hits: 1 }]
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.95, hits: 1 }]
   },
   {
     id: SOULBEAST_BALANCE_PROFILE_IDS.vultureStance,
@@ -49,8 +49,8 @@ export const SOULBEAST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     durationMultiplier: 6,
     internalCooldown: 0.25,
     effects: [
-      { type: 'condition', condition: 'Poisoned', duration: 4, stacks: 1 },
-      { type: 'boon', boon: 'might', duration: 4, stacks: 1 }
+      { name: 'Poisoned', type: 'condition', condition: 'Poisoned', duration: 4, stacks: 1 },
+      { name: 'might', type: 'boon', boon: 'might', duration: 4, stacks: 1 }
     ]
   },
   {
@@ -58,30 +58,31 @@ export const SOULBEAST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     parentId: ID.WINTERS_BITE,
     name: "Winter's Bite - Beastmode Trigger",
     profileKind: 'skill-variant',
-    effects: [{ type: 'condition', condition: 'Weakness', duration: 10, stacks: 1 }]
+    effects: [{ name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 10, stacks: 1 }]
   },
   trait(SOULBEAST_BALANCE_PROFILE_IDS.unstoppableUnion, 'Unstoppable Union', {
-    effects: [{ type: 'boon', boon: 'protection', duration: 2.5, stacks: 1 }]
+    effects: [{ name: 'protection', type: 'boon', boon: 'protection', duration: 2.5, stacks: 1 }]
   }),
   trait(SOULBEAST_BALANCE_PROFILE_IDS.leaderOfThePack, 'Leader of the Pack', {
     durationMultiplier: 1.2
   }),
   trait(SOULBEAST_BALANCE_PROFILE_IDS.liveFast, 'Live Fast', {
     effects: [
-      { type: 'boon', boon: 'fury', duration: 6, stacks: 1 },
-      { type: 'boon', boon: 'quickness', duration: 3, stacks: 1 }
+      { name: 'fury', type: 'boon', boon: 'fury', duration: 6, stacks: 1 },
+      { name: 'quickness', type: 'boon', boon: 'quickness', duration: 3, stacks: 1 }
     ]
   }),
   trait(SOULBEAST_BALANCE_PROFILE_IDS.wiltingStrike, 'Wilting Strike', {
-    effects: [{ type: 'condition', condition: 'Weakness', duration: 4, stacks: 1 }]
+    effects: [{ name: 'Weakness', type: 'condition', condition: 'Weakness', duration: 4, stacks: 1 }]
   }),
   trait(SOULBEAST_BALANCE_PROFILE_IDS.goForTheEyes, 'Go for the Eyes', {
     internalCooldown: 12,
-    effects: [{ type: 'blind', duration: 5 }]
+    effects: [{ name: 'Blind', type: 'blind', duration: 5 }]
   }),
   trait(SOULBEAST_BALANCE_PROFILE_IDS.twiceAsVicious, 'Twice as Vicious', {
     effects: [
       {
+        name: 'twice-as-vicious',
         type: 'buff',
         kind: 'twice-as-vicious',
         duration: 10,
@@ -92,12 +93,12 @@ export const SOULBEAST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   trait(SOULBEAST_BALANCE_PROFILE_IDS.bestialRage, 'Bestial Rage', {
     internalCooldown: 0.25,
     effects: [
-      { type: 'boon', boon: 'might', duration: 8, stacks: 5 },
-      { type: 'boon', boon: 'fury', duration: 3, stacks: 1 }
+      { name: 'might', type: 'boon', boon: 'might', duration: 8, stacks: 5 },
+      { name: 'fury', type: 'boon', boon: 'fury', duration: 3, stacks: 1 }
     ]
   }),
   trait(SOULBEAST_BALANCE_PROFILE_IDS.predatorsCunning, "Predator's Cunning", {
-    effects: [{ type: 'strike', coefficient: 0.006, hits: 1 }]
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.006, hits: 1 }]
   }),
   trait(TRAIT.OPPRESSIVE_SUPERIORITY, 'Oppressive Superiority', {
     conditionDurationBonus: 0.1

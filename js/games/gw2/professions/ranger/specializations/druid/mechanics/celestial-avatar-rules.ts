@@ -7,8 +7,9 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
-  balanceProfileEffectFromContext,
   requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -27,9 +28,13 @@ import {
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
 
-function eclipseEffect(context: RangerCastContext, index: number) {
-  return balanceProfileEffectFromContext(context, PROFILE.eclipse, 'condition', index);
-}
+// Eclipse packets are keyed by their Celestial Avatar skill so removing one never rebinds another skill's condition.
+const ECLIPSE_EFFECTS: ReadonlyMap<RangerSkill['id'], string> = new Map<RangerSkill['id'], string>([
+  [ID.COSMIC_RAY, 'Cosmic Ray'],
+  [ID.SEED_OF_LIFE, 'Seed of Life'],
+  [ID.LUNAR_IMPACT, 'Lunar Impact'],
+  [ID.REJUVENATING_TIDES, 'Rejuvenating Tides']
+]);
 
 export function applyCelestialAvatarTraits(context: RangerCastContext, skill: RangerSkill): void {
   // Natural Convergence has 4 distinct pulses; all other CA skills emit once at cast start
@@ -37,9 +42,14 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
   // Channel traits stop with the cast, while already-applied conditions keep ticking.
   const pulseLanded = (at: number) =>
     skill.id !== ID.NATURAL_CONVERGENCE || castCompleted(context) || at <= context.effectiveEnd + EPSILON;
-  if (hasTrait(context, TRAIT.GRACE_OF_THE_LAND)) {
-    const effect = balanceProfileEffectFromContext(context, PROFILE.graceOfTheLand, 'boon');
-    const boon = String(effect?.boon || 'alacrity');
+  const graceProfile = hasTrait(context, TRAIT.GRACE_OF_THE_LAND)
+    ? requireBalanceProfileFromContext(context, PROFILE.graceOfTheLand)
+    : undefined;
+  const grace = graceProfile && requireEffect(graceProfile, 'boon', 'alacrity');
+  if (graceProfile && grace) {
+    const boon = String(grace.boon);
+    const duration = effectNumber(graceProfile, grace, 'duration');
+    const stacks = effectNumber(graceProfile, grace, 'stacks');
     for (const atMs of pulses) {
       if (!pulseLanded(context.start + atMs / 1000)) continue;
       emitSkillBuff(context, skill, {
@@ -51,78 +61,38 @@ export function applyCelestialAvatarTraits(context: RangerCastContext, skill: Ra
         skillName: 'Grace of the Land',
         name: 'Grace of the Land - Alacrity',
         kind: boon,
-        duration: Number(effect?.duration ?? 1),
-        stacks: Number(effect?.stacks ?? 1),
+        duration,
+        stacks,
         triggeredBy: skill.name
       });
     }
   }
 
   if (!hasTrait(context, TRAIT.ECLIPSE)) return;
-  const applications: Array<{ at: number; condition: string; duration: number; stacks: number }> = [];
-  switch (skill.id) {
-    case ID.COSMIC_RAY:
-      {
-        const effect = eclipseEffect(context, 0);
-        applications.push({
-          at: context.start,
-          condition: String(effect?.condition || 'Vulnerability'),
-          duration: Number(effect?.duration ?? 8),
-          stacks: Number(effect?.stacks ?? 1)
-        });
-      }
-
-      break;
-    case ID.SEED_OF_LIFE:
-      {
-        const effect = eclipseEffect(context, 1);
-        applications.push({
-          at: context.start,
-          condition: String(effect?.condition || 'Poisoned'),
-          duration: Number(effect?.duration ?? 8),
-          stacks: Number(effect?.stacks ?? 3)
-        });
-      }
-
-      break;
-    case ID.LUNAR_IMPACT:
-      // Lunar Impact lands at effectiveEnd (it's a ground-targeted projectile with travel time)
-      {
-        const effect = eclipseEffect(context, 2);
-        applications.push({
-          at: context.effectiveEnd,
-          condition: String(effect?.condition || 'Immobilized'),
-          duration: Number(effect?.duration ?? 3),
-          stacks: Number(effect?.stacks ?? 1)
-        });
-      }
-
-      break;
-    case ID.REJUVENATING_TIDES:
-      {
-        const effect = eclipseEffect(context, 3);
-        applications.push({
-          at: context.start,
-          condition: String(effect?.condition || 'Chilled'),
-          duration: Number(effect?.duration ?? 2),
-          stacks: Number(effect?.stacks ?? 1)
-        });
-      }
-
-      break;
-    case ID.NATURAL_CONVERGENCE:
-      for (const [index, atMs] of pulses.entries()) {
-        // Final pulse applies 3 stacks of Burning; all prior pulses apply 1
-        const effect = eclipseEffect(context, index === pulses.length - 1 ? 5 : 4);
-        applications.push({
+  const singleEffect = ECLIPSE_EFFECTS.get(skill.id);
+  const pulseEffects =
+    skill.id === ID.NATURAL_CONVERGENCE
+      ? // Final pulse uses its own authored packet; all prior pulses share the ordinary pulse packet.
+        pulses.map((atMs, index) => ({
           at: context.start + atMs / 1000,
-          condition: String(effect?.condition || 'Burning'),
-          duration: Number(effect?.duration ?? 5),
-          stacks: Number(effect?.stacks ?? (index === pulses.length - 1 ? 3 : 1))
-        });
-      }
-
-      break;
+          name: index === pulses.length - 1 ? 'Natural Convergence final pulse' : 'Natural Convergence'
+        }))
+      : singleEffect
+        ? // Lunar Impact lands at effectiveEnd (it's a ground-targeted projectile with travel time)
+          [{ at: skill.id === ID.LUNAR_IMPACT ? context.effectiveEnd : context.start, name: singleEffect }]
+        : [];
+  if (!pulseEffects.length) return;
+  const eclipse = requireBalanceProfileFromContext(context, PROFILE.eclipse);
+  const applications: Array<{ at: number; condition: string; duration: number; stacks: number }> = [];
+  for (const { at, name } of pulseEffects) {
+    const effect = requireEffect(eclipse, 'condition', name);
+    if (!effect) continue;
+    applications.push({
+      at,
+      condition: String(effect.condition),
+      duration: effectNumber(eclipse, effect, 'duration'),
+      stacks: effectNumber(eclipse, effect, 'stacks')
+    });
   }
 
   // Keep every Eclipse packet explicit while sharing only the authored application list.
@@ -160,7 +130,8 @@ export const druidModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'ranger.natural-balance-condition-damage',
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: 'damage-additive',
-    amount: 0.05,
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.NATURAL_BALANCE), 'conditionDamageIncrease'),
     when: naturalBalanceActive
   },
   {

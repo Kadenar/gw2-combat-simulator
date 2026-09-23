@@ -6,9 +6,10 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
-  balanceProfileEffectFromContext as profileEffect,
-  balanceProfileFromContext,
-  balanceProfileEffect
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import {
@@ -23,35 +24,38 @@ import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ran
 // immobilize followed by the profile-defined Muddy Terrain condition pulses.
 export function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill): void {
   const state = professionCoreState(context);
-  const profile = balanceProfileFromContext(context, PROFILE.childOfEarth);
   if (!hasTrait(context, TRAIT.CHILD_OF_EARTH) || !isInternalCooldownReady(context.start, state.childOfEarthReadyAt)) {
     return;
   }
 
-  state.childOfEarthReadyAt = context.start + Number(profile?.internalCooldown ?? 20);
+  const profile = requireBalanceProfileFromContext(context, PROFILE.childOfEarth);
+  const immobilized = requireEffect(profile, 'condition', 'Immobilized');
+  // Pulse conditions keep their own identities, so removing one never rebinds another.
+  const pulses = [requireEffect(profile, 'condition', 'Crippled'), requireEffect(profile, 'condition', 'Slow')].filter(
+    (effect) => effect !== undefined
+  );
+  // The cooldown gates the lesser field; with every packet removed there is nothing to gate.
+  if (!immobilized && !pulses.length) return;
+  state.childOfEarthReadyAt = context.start + balanceProfileNumber(profile, 'internalCooldown');
   const at = context.effectiveEnd;
-  const immobilized = balanceProfileEffect(profile, 'condition', 0);
-  emitSkillCondition(context, {
-    at,
-    source: 'Trait',
-    actorType: 'effect',
-    skillId: TRAIT.CHILD_OF_EARTH,
-    skillName: 'Child of Earth',
-    name: 'Lesser Muddy Terrain - Immobilized',
-    condition: 'Immobilized',
-    duration: Number(immobilized?.duration ?? 1),
-    stacks: Number(immobilized?.stacks ?? 1),
-    triggeredBy: skill.name
-  });
-  const applications = Number(profile?.maximumStacks ?? 5);
-  const interval = Number(profile?.pulseInterval ?? 2);
+  if (immobilized)
+    emitSkillCondition(context, {
+      at,
+      source: 'Trait',
+      actorType: 'effect',
+      skillId: TRAIT.CHILD_OF_EARTH,
+      skillName: 'Child of Earth',
+      name: 'Lesser Muddy Terrain - Immobilized',
+      condition: String(immobilized.condition),
+      duration: effectNumber(profile, immobilized, 'duration'),
+      stacks: effectNumber(profile, immobilized, 'stacks'),
+      triggeredBy: skill.name
+    });
+  const applications = balanceProfileNumber(profile, 'maximumStacks');
+  const interval = balanceProfileNumber(profile, 'pulseInterval');
   for (let application = 0; application < applications; application += 1) {
-    for (const effect of [
-      balanceProfileEffect(profile, 'condition', 1),
-      balanceProfileEffect(profile, 'condition', 2)
-    ]) {
-      const condition = String(effect?.condition || '');
-      if (!condition) continue;
+    for (const effect of pulses) {
+      const condition = String(effect.condition);
       emitSkillCondition(context, {
         at: at + application * interval,
         source: 'Trait',
@@ -60,8 +64,8 @@ export function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill)
         skillName: 'Child of Earth',
         name: `Lesser Muddy Terrain - ${condition}`,
         condition,
-        duration: Number(effect?.duration ?? 0),
-        stacks: Number(effect?.stacks ?? 1),
+        duration: effectNumber(profile, effect, 'duration'),
+        stacks: effectNumber(profile, effect, 'stacks'),
         triggeredBy: skill.name
       });
     }
@@ -74,8 +78,11 @@ export function triggerPoisonMaster(context: RangerResolverContext, event: Gw2Re
     return;
   }
 
+  const profile = requireBalanceProfileFromContext(context, PROFILE.poisonMaster);
+  const poison = requireEffect(profile, 'condition', 'Poisoned');
+  // The armed pet attack exists only to deliver poison, so a removed packet leaves it armed.
+  if (!poison) return;
   state.poisonMasterPetAttackReady = false;
-  const poison = profileEffect(context, PROFILE.poisonMaster, 'condition');
   context.queue.enqueue(
     buildResolverCondition({
       at: event.at,
@@ -86,9 +93,9 @@ export function triggerPoisonMaster(context: RangerResolverContext, event: Gw2Re
       skillId: TRAIT.POISON_MASTER,
       skillName: 'Poison Master',
       name: 'Poison Master - Poisoned',
-      condition: 'Poisoned',
-      duration: Number(poison?.duration ?? 8),
-      stacks: Number(poison?.stacks ?? 2),
+      condition: String(poison.condition),
+      duration: effectNumber(profile, poison, 'duration'),
+      stacks: effectNumber(profile, poison, 'stacks'),
       triggeredBy: event.skillName
     })
   );
@@ -103,17 +110,19 @@ export function triggerArachnophobia(context: RangerResolverContext, event: Gw2R
     return;
   }
 
-  const torment = profileEffect(context, PROFILE.arachnophobia, 'condition');
+  const profile = requireBalanceProfileFromContext(context, PROFILE.arachnophobia);
+  const torment = requireEffect(profile, 'condition', 'Torment');
+  if (!torment) return;
   // Twin Darts splits the trait's per-attack Torment across its two projectiles;
   // single-hit spider Spit keeps the full duration.
   const duration =
-    Number(torment?.duration ?? 3) / (event.skillId === ID.TWIN_DARTS ? Number(event.totalHits || 2) : 1);
+    effectNumber(profile, torment, 'duration') / (event.skillId === ID.TWIN_DARTS ? Number(event.totalHits || 2) : 1);
   queueCondition(
     context,
     event,
-    String(torment?.condition || 'Torment'),
+    String(torment.condition),
     duration,
-    Number(torment?.stacks ?? 1),
+    effectNumber(profile, torment, 'stacks'),
     TRAIT.ARACHNOPHOBIA,
     'Arachnophobia'
   );
@@ -131,9 +140,12 @@ export function reactToRangerCoreControl(context: RangerResolverContext, event: 
     return;
   }
 
-  const profile = balanceProfileFromContext(context, PROFILE.carnivore);
-  const strike = balanceProfileEffect(profile, 'strike');
-  state.carnivoreReadyAt = event.at + Number(profile?.internalCooldown ?? 0.25);
+  const profile = requireBalanceProfileFromContext(context, PROFILE.carnivore);
+  const strike = requireEffect(profile, 'strike', 'Strike');
+  // The cooldown gates only the life-steal strike, so a removed strike leaves it ready.
+  if (!strike) return;
+  state.carnivoreReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+  const hits = effectNumber(profile, strike, 'hits');
   context.queue.enqueue(
     buildResolverStrike({
       at: event.at,
@@ -143,10 +155,10 @@ export function reactToRangerCoreControl(context: RangerResolverContext, event: 
       skillId: TRAIT.CARNIVORE,
       skillName: 'Carnivore',
 
-      coefficient: Number(strike?.coefficient ?? 0.05),
-      hits: Number(strike?.hits ?? 1),
+      coefficient: effectNumber(profile, strike, 'coefficient'),
+      hits,
 
-      totalHits: Number(strike?.hits ?? 1),
+      totalHits: hits,
       skillWeapon: 'Unequipped',
       canCrit: false,
       damageKind: 'life-steal',

@@ -1,8 +1,9 @@
 /** Registers scheduler-phase skill activations for this module. */
 import {
-  balanceProfileFromContext,
-  balanceProfileEffect,
-  balanceProfileValueFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -35,10 +36,12 @@ function unleash(context: RangerCastContext, rangerUnleashed: boolean): void {
 
   // The exact ambush deadline is anchored to cast start; no combat-tick rounding applies.
   state.ambushReadyUntil = canonicalTime(
-    context.start + balanceProfileValueFromContext(context, PROFILE.resources, 'durationMultiplier', 4)
+    context.start +
+      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'durationMultiplier')
   );
   state.unleashedPowerReadyAt =
-    context.start + balanceProfileValueFromContext(context, PROFILE.resources, 'internalCooldown', 9);
+    context.start +
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'internalCooldown');
 }
 
 export const untamedSkillHandlers = Object.freeze({
@@ -69,9 +72,13 @@ export const untamedSkillHandlers = Object.freeze({
     },
     afterEffects(context: RangerCastContext, skill: RangerSkill, rangerWasUnleashed: unknown) {
       // Boon and duration differ depending on which side was unleashed when the skill was cast.
-      const profileId = rangerWasUnleashed ? PROFILE.explodingSporesRanger : PROFILE.explodingSporesPet;
-      const effect = balanceProfileEffect(balanceProfileFromContext(context, profileId), 'boon');
-      const boon = String(effect?.boon || (rangerWasUnleashed ? 'might' : 'protection'));
+      const profile = requireBalanceProfileFromContext(
+        context,
+        rangerWasUnleashed ? PROFILE.explodingSporesRanger : PROFILE.explodingSporesPet
+      );
+      const effect = requireEffect(profile, 'boon', rangerWasUnleashed ? 'might' : 'protection');
+      if (!effect) return;
+      const boon = String(effect.boon);
       emitSkillBuff(context, {
         at: context.effectiveEnd,
         source: 'ranger',
@@ -81,13 +88,8 @@ export const untamedSkillHandlers = Object.freeze({
         skillName: skill.name,
         name: `${skill.name} - ${boon}`,
         kind: boon,
-        duration: gw2SchedulerBoonDuration(
-          context,
-          skill,
-          boon,
-          Number(effect?.duration ?? (rangerWasUnleashed ? 10 : 4))
-        ),
-        stacks: Number(effect?.stacks ?? (rangerWasUnleashed ? 8 : 1))
+        duration: gw2SchedulerBoonDuration(context, skill, boon, effectNumber(profile, effect, 'duration')),
+        stacks: effectNumber(profile, effect, 'stacks')
       });
     }
   },

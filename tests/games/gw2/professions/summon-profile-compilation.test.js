@@ -39,6 +39,11 @@ test('minion profile compilation normalizes profile and command packets', () => 
             minionKey: 'test',
             minionCount: 2,
             pulseInterval: 3,
+            basePower: 1000,
+            damagePerCoefficient: 1000,
+            criticalChance: 0.05,
+            criticalDamage: 1.5,
+            alternateEvery: 4,
             effects: [
               { type: 'strike', coefficient: 0.5 },
               { type: 'strike', packetLabel: 'alternate', coefficient: 1 },

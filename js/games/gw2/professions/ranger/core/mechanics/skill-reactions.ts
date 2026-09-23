@@ -5,7 +5,11 @@ import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/cha
 /** Owns Core Ranger skill-armed hit reactions that are not trait-line definitions. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { balanceProfileEffectFromContext as profileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import {
@@ -24,15 +28,11 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: G
   // Pet and merged-player routes share one grant, including its inclusive final hit.
   expireCharges(state.poisonousStrikes, event.at, true);
 
-  if (
-    !isPetStrike(event) ||
-    !(Number(event.coefficient) > 0) ||
-    !consumeCharge(state.poisonousStrikes, event.at, 0, true)
-  ) {
-    return;
-  }
-
-  const poison = profileEffect(context, PROFILE.poisonousStrikes, 'condition');
+  if (!isPetStrike(event) || !(Number(event.coefficient) > 0)) return;
+  const profile = requireBalanceProfileFromContext(context, PROFILE.poisonousStrikes);
+  const poison = requireEffect(profile, 'condition', 'Poisoned');
+  // The charges exist only to deliver poison, so a removed packet leaves them unspent.
+  if (!poison || !consumeCharge(state.poisonousStrikes, event.at, 0, true)) return;
   context.queue.enqueue(
     buildResolverCondition({
       ...petDerivedConditionMetadata(context, event),
@@ -44,9 +44,9 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: G
       skillId: ID.DOUBLE_ARC,
       skillName: 'Poisonous Strikes',
       name: 'Poisonous Strikes - Poisoned',
-      condition: 'Poisoned',
-      duration: Number(poison?.duration ?? 6),
-      stacks: Number(poison?.stacks ?? 1),
+      condition: String(poison.condition),
+      duration: effectNumber(profile, poison, 'duration'),
+      stacks: effectNumber(profile, poison, 'stacks'),
       triggeredBy: event.skillName
     })
   );
@@ -54,15 +54,14 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: G
 
 export function triggerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
-  // Grants sort by expiry: spend the earliest deadline, and still prune on ineligible hits.
-  const { expiries, consumed } = consumeOldestStacks(
-    state.sharpeningStoneExpirations,
-    isPlayerStrike(event) && Number(event.coefficient) > 0 ? 1 : 0,
-    event.at
-  );
+  const eligible = isPlayerStrike(event) && Number(event.coefficient) > 0;
+  const profile = eligible ? requireBalanceProfileFromContext(context, PROFILE.sharpeningStone) : undefined;
+  const bleeding = profile && requireEffect(profile, 'condition', 'Bleeding');
+  // Grants sort by expiry: spend the earliest deadline, and still prune on ineligible hits. Grants exist only to
+  // deliver bleeding, so a removed packet only prunes them.
+  const { expiries, consumed } = consumeOldestStacks(state.sharpeningStoneExpirations, bleeding ? 1 : 0, event.at);
   state.sharpeningStoneExpirations = expiries;
-  if (!consumed) return;
-  const bleeding = profileEffect(context, PROFILE.sharpeningStone, 'condition');
+  if (!consumed || !profile || !bleeding) return;
   context.queue.enqueue(
     buildResolverCondition({
       at: event.at,
@@ -73,9 +72,9 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
       skillId: ID.SHARPENING_STONE,
       skillName: 'Sharpening Stone',
       name: 'Sharpening Stone - Bleeding',
-      condition: 'Bleeding',
-      duration: Number(bleeding?.duration ?? 8),
-      stacks: Number(bleeding?.stacks ?? 1),
+      condition: String(bleeding.condition),
+      duration: effectNumber(profile, bleeding, 'duration'),
+      stacks: effectNumber(profile, bleeding, 'stacks'),
       triggeredBy: event.skillName
     })
   );
@@ -90,7 +89,9 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
       application.resolvedAudience.includesSelf && application.at <= event.at && application.expiresAt > event.at
   );
   if (!active) return;
-  const might = profileEffect(context, PROFILE.strengthOfThePack, 'boon');
+  const profile = requireBalanceProfileFromContext(context, PROFILE.strengthOfThePack);
+  const might = requireEffect(profile, 'boon', 'might');
+  if (!might) return;
   queueResolverBoon(
     context,
     event,
@@ -102,9 +103,9 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
       skillId: ID.STRENGTH_OF_THE_PACK,
       skillName: '"Strength of the Pack!"',
       name: '"Strength of the Pack!" - Might',
-      kind: String(might?.boon || 'might'),
-      duration: Number(might?.duration ?? 8),
-      stacks: Number(might?.stacks ?? 1),
+      kind: String(might.boon),
+      duration: effectNumber(profile, might, 'duration'),
+      stacks: effectNumber(profile, might, 'stacks'),
       audience: {
         recipients: 'summons' as const,
         affectsSelf: false,
@@ -120,7 +121,10 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
 export function triggerStalkersStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const skill = eventSkill(context, event);
   if (skill?.id === ID.STALKERS_STRIKE && stalkersStrikeTargetImpaired(context.config, event.at, context)) {
-    // The base packet owns three stacks; movement impairment contributes the documented two more.
+    // The base packet owns its own Poison; the impaired-target profile owns only the additional application.
+    const profile = requireBalanceProfileFromContext(context, PROFILE.stalkersStrikeImpaired);
+    const poison = requireEffect(profile, 'condition', 'Poisoned');
+    if (!poison) return;
     context.queue.enqueue(
       buildResolverCondition({
         at: event.at,
@@ -130,9 +134,9 @@ export function triggerStalkersStrike(context: RangerResolverContext, event: Gw2
         skillId: skill.id,
         skillName: skill.name,
         name: `${skill.name} — Poisoned`,
-        condition: 'Poisoned',
-        duration: 8,
-        stacks: 2,
+        condition: String(poison.condition),
+        duration: effectNumber(profile, poison, 'duration'),
+        stacks: effectNumber(profile, poison, 'stacks'),
         activationId: event.activationId
       })
     );
@@ -143,15 +147,18 @@ export function triggerStalkersStrike(context: RangerResolverContext, event: Gw2
 export function triggerBloodThirst(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context);
   expireCharges(state.bloodThirst, event.at);
-  if (event.sourceId !== ID.CRIPPLING_SHOT && consumeCharge(state.bloodThirst, event.at)) {
-    const bleeding = profileEffect(context, PROFILE.bloodThirst, 'condition');
+  if (event.sourceId === ID.CRIPPLING_SHOT) return;
+  const profile = requireBalanceProfileFromContext(context, PROFILE.bloodThirst);
+  const bleeding = requireEffect(profile, 'condition', 'Bleeding');
+  // Charges exist only to deliver bleeding, so a removed packet leaves them unspent.
+  if (bleeding && consumeCharge(state.bloodThirst, event.at)) {
     queueBleeding(
       context,
       event,
-      Number(bleeding?.duration ?? 12),
+      effectNumber(profile, bleeding, 'duration'),
       ID.CRIPPLING_SHOT,
       'Blood Thirst',
-      Number(bleeding?.stacks ?? 1)
+      effectNumber(profile, bleeding, 'stacks')
     );
   }
 }

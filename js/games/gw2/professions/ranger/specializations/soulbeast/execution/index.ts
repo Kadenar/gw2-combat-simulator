@@ -1,5 +1,8 @@
 /** Registers scheduler-phase skill activations for this module. */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { RangerCastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import {
@@ -47,7 +50,7 @@ export const soulbeastSkillHandlers = Object.freeze({
         context,
         skill,
         'one-wolf-pack',
-        balanceProfileValueFromContext(context, PROFILE.oneWolfPack, 'durationMultiplier', 6)
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.oneWolfPack), 'durationMultiplier')
       );
       // Keep the public stance timer aligned with the personal application.
       soulbeastState.from(context).oneWolfPackUntil = context.start + duration;
@@ -60,7 +63,7 @@ export const soulbeastSkillHandlers = Object.freeze({
         context,
         skill,
         'vulture-stance',
-        balanceProfileValueFromContext(context, PROFILE.vultureStance, 'durationMultiplier', 6)
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.vultureStance), 'durationMultiplier')
       );
     }
   }

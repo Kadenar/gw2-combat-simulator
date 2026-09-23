@@ -1,7 +1,6 @@
 import {
-  balanceProfileFromContext,
-  balanceProfileValue,
-  balanceProfileValueFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -16,11 +15,14 @@ import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ran
 
 /** Reads this invocation's profiles once; only Vigor presence changes while traversing its recovery windows. */
 function rangerEnduranceRegenerationRates(context: RangerSchedulerContext) {
-  const resources = balanceProfileFromContext(context, PROFILE.resources);
-  const regeneration = balanceProfileValue(resources, 'enduranceRegenerationPerSecond', 5);
-  const vigorMultiplier = balanceProfileValue(resources, 'vigorRegenerationMultiplier', 1.5);
+  const resources = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const regeneration = balanceProfileNumber(resources, 'enduranceRegenerationPerSecond');
+  const vigorMultiplier = balanceProfileNumber(resources, 'vigorRegenerationMultiplier');
   const naturalVigor = hasTrait({ config: context.config }, TRAIT.NATURAL_VIGOR)
-    ? balanceProfileValueFromContext(context, PROFILE.naturalVigor, 'vigorRegenerationMultiplier', 0.25)
+    ? balanceProfileNumber(
+        requireBalanceProfileFromContext(context, PROFILE.naturalVigor),
+        'vigorRegenerationMultiplier'
+      )
     : 0;
   return {
     base: regeneration * (1 + naturalVigor),

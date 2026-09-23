@@ -29,34 +29,37 @@ export const DRUID_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
     resourceGain: 8
   }),
   trait(DRUID_BALANCE_PROFILE_IDS.naturalBalance, 'Natural Balance', {
+    conditionDamageIncrease: 0.05,
     conditionDurationBonus: 0.1,
-    effects: [{ type: 'buff', kind: 'natural-balance', duration: 10, stacks: 1 }]
+    effects: [{ name: 'natural-balance', type: 'buff', kind: 'natural-balance', duration: 10, stacks: 1 }]
   }),
   trait(DRUID_BALANCE_PROFILE_IDS.graceOfTheLand, 'Grace of the Land', {
-    effects: [{ type: 'boon', boon: 'alacrity', duration: 1, stacks: 1 }]
+    effects: [{ name: 'alacrity', type: 'boon', boon: 'alacrity', duration: 1, stacks: 1 }]
   }),
   trait(DRUID_BALANCE_PROFILE_IDS.eclipse, 'Eclipse', {
     effects: [
       {
+        name: 'Cosmic Ray',
         type: 'condition',
         condition: 'Vulnerability',
         duration: 8,
         stacks: 1
       },
-      { type: 'condition', condition: 'Poisoned', duration: 8, stacks: 3 },
+      { name: 'Seed of Life', type: 'condition', condition: 'Poisoned', duration: 8, stacks: 3 },
       {
+        name: 'Lunar Impact',
         type: 'condition',
         condition: 'Immobilized',
         duration: 3,
         stacks: 1
       },
-      { type: 'condition', condition: 'Chilled', duration: 2, stacks: 1 },
-      { type: 'condition', condition: 'Burning', duration: 5, stacks: 1 },
-      { type: 'condition', condition: 'Burning', duration: 5, stacks: 3 }
+      { name: 'Rejuvenating Tides', type: 'condition', condition: 'Chilled', duration: 2, stacks: 1 },
+      { name: 'Natural Convergence', type: 'condition', condition: 'Burning', duration: 5, stacks: 1 },
+      { name: 'Natural Convergence final pulse', type: 'condition', condition: 'Burning', duration: 5, stacks: 3 }
     ]
   }),
   trait(DRUID_BALANCE_PROFILE_IDS.bloodMoon, 'Blood Moon', {
-    effects: [{ type: 'condition', condition: 'Bleeding', duration: 4, stacks: 2 }]
+    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration: 4, stacks: 2 }]
   }),
   trait(DRUID_BALANCE_PROFILE_IDS.naturalFortitude, 'Natural Fortitude', {
     attributeBonus: 240

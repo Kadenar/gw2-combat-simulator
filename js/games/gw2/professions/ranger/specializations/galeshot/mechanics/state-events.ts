@@ -1,5 +1,8 @@
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 
@@ -14,7 +17,7 @@ export function handleGaleshotState(context: RangerResolverContext, event: Gw2Re
     event.windForce || 0,
     0,
     0,
-    balanceProfileValueFromContext(context, PROFILE.resources, 'minimumStacks', 5)
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'minimumStacks')
   );
   state.galeForceUntil = Math.max(0, Number(event.galeForceUntil || 0));
   state.mistralUntil = Math.max(0, Number(event.mistralUntil || 0));

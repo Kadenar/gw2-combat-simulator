@@ -8,10 +8,12 @@ import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
-  balanceProfileEffectFromContext as profileEffect,
-  balanceProfileFromContext,
-  balanceProfileEffect
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { BalanceProfile, ConditionEffect, StatusEffect, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -99,15 +101,14 @@ function firstBeastAbilityHit(context: RangerResolverContext, event: Gw2Resolver
   return true;
 }
 
-/** Preserve the selected profile's condition stack count as well as its duration. */
-function queueCondition(
+/** Emit one surviving profile condition with its authored identity, stacks, and duration. */
+function queueProfileCondition(
   context: RangerResolverContext,
   event: Gw2ResolverEvent,
-  condition: string,
-  duration: number,
+  profile: BalanceProfile,
+  effect: ConditionEffect,
   sourceId: number,
-  name: string,
-  stacks: number
+  name: string
 ): void {
   context.queue.enqueue(
     buildResolverCondition({
@@ -118,12 +119,32 @@ function queueCondition(
       skillId: sourceId,
       skillName: name,
 
-      condition,
-      duration,
-      stacks,
+      condition: String(effect.condition),
+      duration: effectNumber(profile, effect, 'duration'),
+      stacks: effectNumber(profile, effect, 'stacks'),
       triggeredBy: event.skillName,
       metadata: event.metadata?.triggeredByAlly ? { triggeredByAlly: event.metadata.triggeredByAlly } : undefined
     })
+  );
+}
+
+/** Emit one surviving boon or buff; its identity comes from the authored boon or buff kind. */
+function queueProfileBuff(
+  context: RangerResolverContext,
+  event: Gw2ResolverEvent,
+  profile: BalanceProfile,
+  effect: StatusEffect,
+  name: string,
+  sourceId: number
+): void {
+  queueSoulbeastBuff(
+    context,
+    event,
+    String(effect.boon ?? effect.kind),
+    effectNumber(profile, effect, 'duration'),
+    effectNumber(profile, effect, 'stacks'),
+    name,
+    sourceId
   );
 }
 
@@ -131,16 +152,14 @@ function queueCondition(
 function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const core = professionCoreState(context);
   expireCharges(core.poisonousStrikes, event.at, true);
-  if (
-    !soulbeastState.from(context).beastmodeActive ||
-    !isPlayerStrike(event) ||
-    !(Number(event.coefficient) > 0) ||
-    !consumeCharge(core.poisonousStrikes, event.at, 0, true)
-  ) {
+  if (!soulbeastState.from(context).beastmodeActive || !isPlayerStrike(event) || !(Number(event.coefficient) > 0)) {
     return;
   }
 
-  const poison = profileEffect(context, CORE_PROFILE.poisonousStrikes, 'condition');
+  const profile = requireBalanceProfileFromContext(context, CORE_PROFILE.poisonousStrikes);
+  const poison = requireEffect(profile, 'condition', 'Poisoned');
+  // The charges exist only to deliver poison, so a removed packet leaves them unspent.
+  if (!poison || !consumeCharge(core.poisonousStrikes, event.at, 0, true)) return;
   context.queue.enqueue(
     buildResolverCondition({
       at: event.at,
@@ -150,21 +169,25 @@ function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Gw
       skillId: ID.DOUBLE_ARC,
       skillName: 'Poisonous Strikes',
       name: 'Poisonous Strikes - Poisoned',
-      condition: 'Poisoned',
-      duration: Number(poison?.duration ?? 6),
-      stacks: Number(poison?.stacks ?? 1),
+      condition: String(poison.condition),
+      duration: effectNumber(profile, poison, 'duration'),
+      stacks: effectNumber(profile, poison, 'stacks'),
       triggeredBy: event.skillName
     })
   );
 }
 
 /** Personal and allied echoes use the same delayed strike and source attributes. */
-function queueOneWolfPackStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const profile = balanceProfileFromContext(context, PROFILE.oneWolfPack);
-  const strike = balanceProfileEffect(profile, 'strike');
+function queueOneWolfPackStrike(
+  context: RangerResolverContext,
+  event: Gw2ResolverEvent,
+  profile: BalanceProfile,
+  strike: StrikeEffect
+): void {
+  const hits = effectNumber(profile, strike, 'hits');
   context.queue.enqueue(
     buildResolverStrike({
-      at: event.at + Number(profile?.initialDelay ?? 0.28),
+      at: event.at + balanceProfileNumber(profile, 'initialDelay'),
       source: 'ranger',
       sourceId: ID.ONE_WOLF_PACK_STRIKE,
       actorType: 'effect',
@@ -172,10 +195,10 @@ function queueOneWolfPackStrike(context: RangerResolverContext, event: Gw2Resolv
       skillId: ID.ONE_WOLF_PACK,
       skillName: 'One Wolf Pack',
 
-      coefficient: Number(strike?.coefficient ?? 0.95),
-      hits: Number(strike?.hits ?? 1),
+      coefficient: effectNumber(profile, strike, 'coefficient'),
+      hits,
 
-      totalHits: Number(strike?.hits ?? 1),
+      totalHits: hits,
       // Echoes use the stance's nonweapon strength, independent of the attack that triggered them.
       skillWeapon: 'Unequipped',
       canCrit: true,
@@ -186,28 +209,42 @@ function queueOneWolfPackStrike(context: RangerResolverContext, event: Gw2Resolv
 }
 
 /** Vulture's poison is attributed to the stance source; might stays on the triggering recipient. */
-function queueVultureStanceEffects(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const profile = balanceProfileFromContext(context, PROFILE.vultureStance);
-  const poison = balanceProfileEffect(profile, 'condition');
-  const might = balanceProfileEffect(profile, 'boon');
-  queueCondition(
-    context,
-    event,
-    String(poison?.condition || 'Poisoned'),
-    Number(poison?.duration ?? 4),
-    ID.VULTURE_STANCE,
-    'Vulture Stance',
-    Number(poison?.stacks ?? 1)
-  );
-  queueSoulbeastBuff(
-    context,
-    event,
-    String(might?.boon || 'might'),
-    Number(might?.duration ?? 4),
-    Number(might?.stacks ?? 1),
-    'Vulture Stance',
-    ID.VULTURE_STANCE
-  );
+function queueVultureStanceEffects(
+  context: RangerResolverContext,
+  event: Gw2ResolverEvent,
+  profile: BalanceProfile,
+  poison: ConditionEffect | undefined,
+  might: StatusEffect | undefined
+): void {
+  if (poison) queueProfileCondition(context, event, profile, poison, ID.VULTURE_STANCE, 'Vulture Stance');
+  if (might) queueProfileBuff(context, event, profile, might, 'Vulture Stance', ID.VULTURE_STANCE);
+}
+
+/**
+ * Resolve a stance's surviving output before its cooldown advances; a stance whose packets were all removed has no
+ * proc to gate, so it must not consume the cooldown either.
+ */
+function queueStanceProc(
+  context: RangerResolverContext,
+  event: Gw2ResolverEvent,
+  wolfPack: boolean,
+  startCooldown: (internalCooldown: number) => void
+): void {
+  if (wolfPack) {
+    const profile = requireBalanceProfileFromContext(context, PROFILE.oneWolfPack);
+    const strike = requireEffect(profile, 'strike', 'Strike');
+    if (!strike) return;
+    startCooldown(balanceProfileNumber(profile, 'internalCooldown'));
+    queueOneWolfPackStrike(context, event, profile, strike);
+    return;
+  }
+
+  const profile = requireBalanceProfileFromContext(context, PROFILE.vultureStance);
+  const poison = requireEffect(profile, 'condition', 'Poisoned');
+  const might = requireEffect(profile, 'boon', 'might');
+  if (!poison && !might) return;
+  startCooldown(balanceProfileNumber(profile, 'internalCooldown'));
+  queueVultureStanceEffects(context, event, profile, poison, might);
 }
 
 /** Allied opportunities have independent stance cooldowns, including across overlapping applications. */
@@ -217,11 +254,9 @@ function handleSharedStanceHit(context: RangerResolverContext, event: Gw2Resolve
   const key = `${event.kind}:${allyIndex}`;
   const state = soulbeastState.from(context);
   if (event.at + EPSILON < (state.alliedStanceReadyAt[key] ?? 0)) return;
-  const wolfPack = event.kind === 'one-wolf-pack';
-  const profile = balanceProfileFromContext(context, wolfPack ? PROFILE.oneWolfPack : PROFILE.vultureStance);
-  state.alliedStanceReadyAt[key] = event.at + Number(profile?.internalCooldown ?? (wolfPack ? 1 : 0.25));
-  if (wolfPack) queueOneWolfPackStrike(context, event);
-  else queueVultureStanceEffects(context, event);
+  queueStanceProc(context, event, event.kind === 'one-wolf-pack', (internalCooldown) => {
+    state.alliedStanceReadyAt[key] = event.at + internalCooldown;
+  });
 }
 
 export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw2ResolverEvent): void {
@@ -239,10 +274,10 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
     // Periodic hits exactly one interval apart can each trigger an echo; tolerate floating-point drift.
     event.at + EPSILON >= state.oneWolfPackReadyAt
   ) {
-    const profile = balanceProfileFromContext(context, PROFILE.oneWolfPack);
     // 1-second ICD between echoes even within a single multi-hit skill.
-    state.oneWolfPackReadyAt = event.at + Number(profile?.internalCooldown ?? 1);
-    queueOneWolfPackStrike(context, event);
+    queueStanceProc(context, event, true, (internalCooldown) => {
+      state.oneWolfPackReadyAt = event.at + internalCooldown;
+    });
   }
 
   // Vulture Stance procs per player hit with a 0.25 s ICD; effect-sourced hits (e.g. OWP echoes) are excluded.
@@ -251,87 +286,65 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
     isInternalCooldownReady(event.at, state.vultureStanceReadyAt) &&
     isPlayerStrike(event)
   ) {
-    const profile = balanceProfileFromContext(context, PROFILE.vultureStance);
-    state.vultureStanceReadyAt = event.at + Number(profile?.internalCooldown ?? 0.25);
-    queueVultureStanceEffects(context, event);
+    queueStanceProc(context, event, false, (internalCooldown) => {
+      state.vultureStanceReadyAt = event.at + internalCooldown;
+    });
   }
 
   if (!firstBeastAbilityHit(context, event)) return;
   if (hasTrait(context, TRAIT.LIVE_FAST)) {
-    const fury = profileEffect(context, PROFILE.liveFast, 'boon', 0);
-    const quickness = profileEffect(context, PROFILE.liveFast, 'boon', 1);
-    queueSoulbeastBuff(
-      context,
-      event,
-      String(fury?.boon || 'fury'),
-      Number(fury?.duration ?? 6),
-      Number(fury?.stacks ?? 1),
-      'Live Fast',
-      TRAIT.LIVE_FAST
-    );
-    queueSoulbeastBuff(
-      context,
-      event,
-      String(quickness?.boon || 'quickness'),
-      Number(quickness?.duration ?? 3),
-      Number(quickness?.stacks ?? 1),
-      'Live Fast',
-      TRAIT.LIVE_FAST
-    );
+    const profile = requireBalanceProfileFromContext(context, PROFILE.liveFast);
+    const fury = requireEffect(profile, 'boon', 'fury');
+    const quickness = requireEffect(profile, 'boon', 'quickness');
+    if (fury) queueProfileBuff(context, event, profile, fury, 'Live Fast', TRAIT.LIVE_FAST);
+    if (quickness) queueProfileBuff(context, event, profile, quickness, 'Live Fast', TRAIT.LIVE_FAST);
   }
 
   if (hasTrait(context, TRAIT.WILTING_STRIKE)) {
-    const weakness = profileEffect(context, PROFILE.wiltingStrike, 'condition');
-    queueCondition(
-      context,
-      event,
-      String(weakness?.condition || 'Weakness'),
-      Number(weakness?.duration ?? 4),
-      TRAIT.WILTING_STRIKE,
-      'Wilting Strike',
-      Number(weakness?.stacks ?? 1)
-    );
+    const profile = requireBalanceProfileFromContext(context, PROFILE.wiltingStrike);
+    const weakness = requireEffect(profile, 'condition', 'Weakness');
+    if (weakness) queueProfileCondition(context, event, profile, weakness, TRAIT.WILTING_STRIKE, 'Wilting Strike');
   }
 
   if (hasTrait(context, TRAIT.GO_FOR_THE_EYES) && isInternalCooldownReady(event.at, state.goForTheEyesReadyAt)) {
-    const profile = balanceProfileFromContext(context, PROFILE.goForTheEyes);
-    const blind = balanceProfileEffect(profile, 'blind');
-    state.goForTheEyesReadyAt = event.at + Number(profile?.internalCooldown ?? 12);
-    context.queue.enqueue({
-      type: 'blind',
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.GO_FOR_THE_EYES,
-      actorType: 'effect',
-      skillId: TRAIT.GO_FOR_THE_EYES,
-      skillName: 'Go for the Eyes',
-      duration: Number(blind?.duration ?? 5),
-      triggeredBy: event.skillName
-    });
+    const profile = requireBalanceProfileFromContext(context, PROFILE.goForTheEyes);
+    const blind = requireEffect(profile, 'blind', 'Blind');
+    // The cooldown gates only the blind, so a removed blind leaves it ready.
+    if (blind) {
+      state.goForTheEyesReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+      context.queue.enqueue({
+        type: 'blind',
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.GO_FOR_THE_EYES,
+        actorType: 'effect',
+        skillId: TRAIT.GO_FOR_THE_EYES,
+        skillName: 'Go for the Eyes',
+        duration: effectNumber(profile, blind, 'duration'),
+        triggeredBy: event.skillName
+      });
+    }
   }
 
   if (hasTrait(context, TRAIT.GO_FOR_THE_THROAT) && isInternalCooldownReady(event.at, state.goForTheThroatReadyAt)) {
-    const profile = balanceProfileFromContext(context, CORE_PROFILE.goForTheThroat);
-    const lesserSicEm = balanceProfileEffect(profile, 'buff', 1);
-    state.goForTheThroatReadyAt = event.at + Number(profile?.internalCooldown ?? 10);
-    const duration = Number(lesserSicEm?.duration ?? 5);
-    context.recordProc(
-      'trait',
-      'Lesser "Sic \'Em!"',
-      event.at,
-      event.skillName,
-      `${duration}s, +15% strike damage`,
-      context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon || context.helpers.skillsById?.get(ID.SIC_EM)?.icon || ''
-    );
-    queueSoulbeastBuff(
-      context,
-      event,
-      String(lesserSicEm?.kind || 'lesser-sic-em'),
-      duration,
-      Number(lesserSicEm?.stacks ?? 1),
-      'Lesser "Sic \'Em!"',
-      ID.LESSER_SIC_EM
-    );
+    const profile = requireBalanceProfileFromContext(context, CORE_PROFILE.goForTheThroat);
+    // Merged Soulbeasts receive only the player's buff; the pet variant has no recipient here.
+    const lesserSicEm = requireEffect(profile, 'buff', 'lesser-sic-em');
+    if (lesserSicEm) {
+      state.goForTheThroatReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+      const duration = effectNumber(profile, lesserSicEm, 'duration');
+      context.recordProc(
+        'trait',
+        'Lesser "Sic \'Em!"',
+        event.at,
+        event.skillName,
+        `${duration}s, +15% strike damage`,
+        context.helpers.skillsById?.get(ID.LESSER_SIC_EM)?.icon ||
+          context.helpers.skillsById?.get(ID.SIC_EM)?.icon ||
+          ''
+      );
+      queueProfileBuff(context, event, profile, lesserSicEm, 'Lesser "Sic \'Em!"', ID.LESSER_SIC_EM);
+    }
   }
 }
 
@@ -340,41 +353,19 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
 export function reactToSoulbeastControl(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = soulbeastState.from(context);
   if (hasTrait(context, TRAIT.TWICE_AS_VICIOUS)) {
-    const buff = profileEffect(context, PROFILE.twiceAsVicious, 'buff');
-    queueSoulbeastBuff(
-      context,
-      event,
-      String(buff?.kind || 'twice-as-vicious'),
-      Number(buff?.duration ?? 10),
-      Number(buff?.stacks ?? 1),
-      'Twice as Vicious',
-      TRAIT.TWICE_AS_VICIOUS
-    );
+    const profile = requireBalanceProfileFromContext(context, PROFILE.twiceAsVicious);
+    const buff = requireEffect(profile, 'buff', 'twice-as-vicious');
+    if (buff) queueProfileBuff(context, event, profile, buff, 'Twice as Vicious', TRAIT.TWICE_AS_VICIOUS);
   }
 
   if (hasTrait(context, TRAIT.BESTIAL_RAGE) && isInternalCooldownReady(event.at, state.bestialRageReadyAt)) {
-    const profile = balanceProfileFromContext(context, PROFILE.bestialRage);
-    const might = balanceProfileEffect(profile, 'boon', 0);
-    const fury = balanceProfileEffect(profile, 'boon', 1);
-    state.bestialRageReadyAt = event.at + Number(profile?.internalCooldown ?? 0.25);
-    queueSoulbeastBuff(
-      context,
-      event,
-      String(might?.boon || 'might'),
-      Number(might?.duration ?? 8),
-      Number(might?.stacks ?? 5),
-      'Bestial Rage',
-      TRAIT.BESTIAL_RAGE
-    );
-    queueSoulbeastBuff(
-      context,
-      event,
-      String(fury?.boon || 'fury'),
-      Number(fury?.duration ?? 3),
-      Number(fury?.stacks ?? 1),
-      'Bestial Rage',
-      TRAIT.BESTIAL_RAGE
-    );
+    const profile = requireBalanceProfileFromContext(context, PROFILE.bestialRage);
+    const might = requireEffect(profile, 'boon', 'might');
+    const fury = requireEffect(profile, 'boon', 'fury');
+    // Either surviving boon keeps the shared cooldown; removing both leaves no proc to gate.
+    if (might || fury) state.bestialRageReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+    if (might) queueProfileBuff(context, event, profile, might, 'Bestial Rage', TRAIT.BESTIAL_RAGE);
+    if (fury) queueProfileBuff(context, event, profile, fury, 'Bestial Rage', TRAIT.BESTIAL_RAGE);
   }
 }
 
@@ -384,7 +375,10 @@ export function reactToSoulbeastCondition(context: RangerResolverContext, event:
     return;
   }
 
-  const strike = profileEffect(context, PROFILE.predatorsCunning, 'strike');
+  const profile = requireBalanceProfileFromContext(context, PROFILE.predatorsCunning);
+  const strike = requireEffect(profile, 'strike', 'Strike');
+  if (!strike) return;
+  const hits = effectNumber(profile, strike, 'hits');
   context.queue.enqueue(
     buildResolverStrike({
       at: event.at,
@@ -394,10 +388,10 @@ export function reactToSoulbeastCondition(context: RangerResolverContext, event:
       skillId: TRAIT.PREDATORS_CUNNING,
       skillName: "Predator's Cunning",
 
-      coefficient: Number(strike?.coefficient ?? 0.006),
-      hits: Number(strike?.hits ?? 1),
+      coefficient: effectNumber(profile, strike, 'coefficient'),
+      hits,
 
-      totalHits: Number(strike?.hits ?? 1),
+      totalHits: hits,
       skillWeapon: 'Unequipped',
       canCrit: false,
       triggeredBy: event.skillName
@@ -421,8 +415,8 @@ export function essenceOfSpeedExtension(
     return null;
   }
 
-  const profile = balanceProfileFromContext(context, PROFILE.essenceOfSpeed);
-  state.essenceOfSpeedReadyAt = event.at + Number(profile?.internalCooldown ?? 5);
+  const profile = requireBalanceProfileFromContext(context, PROFILE.essenceOfSpeed);
+  state.essenceOfSpeedReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
   return {
     type: 'boon_extension',
     at: event.at,
@@ -431,7 +425,7 @@ export function essenceOfSpeedExtension(
     actorType: 'effect',
     skillId: TRAIT.ESSENCE_OF_SPEED,
     skillName: 'Essence of Speed',
-    duration: Number(profile?.durationMultiplier ?? 2),
+    duration: balanceProfileNumber(profile, 'durationMultiplier'),
     excludedKind: 'quickness'
   };
 }
@@ -445,7 +439,7 @@ export function reactToSoulbeastBuff(context: RangerResolverContext, event: Gw2R
   if (event.kind !== 'one-wolf-pack' && event.kind !== 'vulture-stance') return;
   const maximumAllies = event.resolvedAudience?.alliedPlayerCount ?? 0;
   if (!maximumAllies) return;
-  const profile = balanceProfileFromContext(
+  const profile = requireBalanceProfileFromContext(
     context,
     event.kind === 'one-wolf-pack' ? PROFILE.oneWolfPack : PROFILE.vultureStance
   );
@@ -455,7 +449,7 @@ export function reactToSoulbeastBuff(context: RangerResolverContext, event: Gw2R
     start,
     duration: Math.max(0, event.at + Number(event.duration || 0) - start),
     maximumAllies,
-    internalCooldown: Number(profile?.internalCooldown ?? (event.kind === 'one-wolf-pack' ? 1 : 0.25))
+    internalCooldown: balanceProfileNumber(profile, 'internalCooldown')
   })) {
     context.queue.enqueue({
       type: 'ranger.shared-stance-hit',
@@ -484,14 +478,7 @@ export function reactToRangerWinterBite(context: RangerResolverContext, event: G
   }
 
   core.winterBiteReady = false;
-  const weakness = profileEffect(context, PROFILE.wintersBite, 'condition');
-  queueCondition(
-    context,
-    event,
-    String(weakness?.condition || 'Weakness'),
-    Number(weakness?.duration ?? 10),
-    ID.WINTERS_BITE,
-    "Winter's Bite",
-    Number(weakness?.stacks ?? 1)
-  );
+  const profile = requireBalanceProfileFromContext(context, PROFILE.wintersBite);
+  const weakness = requireEffect(profile, 'condition', 'Weakness');
+  if (weakness) queueProfileCondition(context, event, profile, weakness, ID.WINTERS_BITE, "Winter's Bite");
 }

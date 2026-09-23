@@ -5,10 +5,10 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
-  balanceProfileEffectFromContext as profileEffect,
-  balanceProfileFromContext,
-  balanceProfileEffect,
-  balanceProfileValueFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
@@ -32,9 +32,11 @@ type RangerCriticalHitDefinition = ResolvedCriticalHitOptions<
 
 export function applyRangerDodgeTraits(context: RangerCastContext, at = context.effectiveEnd): void {
   if (!hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) return;
-  const effect = profileEffect(context, PROFILE.lightOnYourFeet, 'buff');
-  const kind = String(effect?.kind || 'light-on-your-feet');
-  const baseDuration = Number(effect?.duration ?? 6);
+  const profile = requireBalanceProfileFromContext(context, PROFILE.lightOnYourFeet);
+  const effect = requireEffect(profile, 'buff', 'light-on-your-feet');
+  if (!effect) return;
+  const kind = String(effect.kind);
+  const baseDuration = effectNumber(profile, effect, 'duration');
   // Reapplications stack duration in game, so preserve the live remainder
   // instead of replacing it with another six-second overlapping window.
   const activeUntil = context.events
@@ -49,7 +51,7 @@ export function applyRangerDodgeTraits(context: RangerCastContext, at = context.
     skillName: 'Light on your Feet',
     kind,
     duration: baseDuration + Math.max(0, activeUntil - at),
-    stacks: Number(effect?.stacks ?? 1)
+    stacks: effectNumber(profile, effect, 'stacks')
   });
 }
 
@@ -67,25 +69,28 @@ export function applyRangerWeaponSwapTraits(
     hasTrait({ config: context.config }, TRAIT.TAIL_WIND) &&
     isInternalCooldownReady(at, state.tailWindReadyAt)
   ) {
-    const profile = balanceProfileFromContext(context, PROFILE.tailWind);
-    const effect = balanceProfileEffect(profile, 'boon');
-    state.tailWindReadyAt = at + Number(profile?.internalCooldown ?? 9);
-    emitSkillBuff(context, {
-      at,
-      source: 'Trait',
-      sourceId: TRAIT.TAIL_WIND,
-      actorType: 'effect',
-      skillId: skill.id,
-      skillName: 'Tail Wind',
-      kind: String(effect?.boon || 'swiftness'),
-      duration: gw2SchedulerBoonDuration(
-        context,
-        skill,
-        String(effect?.boon || 'swiftness'),
-        Number(effect?.duration ?? 9)
-      ),
-      stacks: Number(effect?.stacks ?? 1)
-    });
+    const profile = requireBalanceProfileFromContext(context, PROFILE.tailWind);
+    const effect = requireEffect(profile, 'boon', 'swiftness');
+    // The cooldown gates only swiftness, so a removed boon leaves it ready.
+    if (effect) {
+      state.tailWindReadyAt = at + balanceProfileNumber(profile, 'internalCooldown');
+      emitSkillBuff(context, {
+        at,
+        source: 'Trait',
+        sourceId: TRAIT.TAIL_WIND,
+        actorType: 'effect',
+        skillId: skill.id,
+        skillName: 'Tail Wind',
+        kind: String(effect.boon),
+        duration: gw2SchedulerBoonDuration(
+          context,
+          skill,
+          String(effect.boon),
+          effectNumber(profile, effect, 'duration')
+        ),
+        stacks: effectNumber(profile, effect, 'stacks')
+      });
+    }
   }
 
   if (
@@ -93,26 +98,28 @@ export function applyRangerWeaponSwapTraits(
     hasTrait({ config: context.config }, TRAIT.QUICK_DRAW) &&
     isInternalCooldownReady(at, state.quickDrawReadyAt)
   ) {
-    const profile = balanceProfileFromContext(context, PROFILE.quickDraw);
-    const effect = balanceProfileEffect(profile, 'boon');
-    state.quickDrawReadyAt = at + Number(profile?.internalCooldown ?? 9);
-    state.quickDrawUntil = at + Number(profile?.durationMultiplier ?? 5);
-    emitSkillBuff(context, {
-      at,
-      source: 'Trait',
-      sourceId: TRAIT.QUICK_DRAW,
-      actorType: 'effect',
-      skillId: skill.id,
-      skillName: 'Quick Draw',
-      kind: String(effect?.boon || 'quickness'),
-      duration: gw2SchedulerBoonDuration(
-        context,
-        skill,
-        String(effect?.boon || 'quickness'),
-        Number(effect?.duration ?? 3)
-      ),
-      stacks: Number(effect?.stacks ?? 1)
-    });
+    const profile = requireBalanceProfileFromContext(context, PROFILE.quickDraw);
+    const effect = requireEffect(profile, 'boon', 'quickness');
+    // The recharge window is trait-owned, so it and its cooldown survive a removed quickness packet.
+    state.quickDrawReadyAt = at + balanceProfileNumber(profile, 'internalCooldown');
+    state.quickDrawUntil = at + balanceProfileNumber(profile, 'durationMultiplier');
+    if (effect)
+      emitSkillBuff(context, {
+        at,
+        source: 'Trait',
+        sourceId: TRAIT.QUICK_DRAW,
+        actorType: 'effect',
+        skillId: skill.id,
+        skillName: 'Quick Draw',
+        kind: String(effect.boon),
+        duration: gw2SchedulerBoonDuration(
+          context,
+          skill,
+          String(effect.boon),
+          effectNumber(profile, effect, 'duration')
+        ),
+        stacks: effectNumber(profile, effect, 'stacks')
+      });
   }
 
   if (
@@ -120,20 +127,28 @@ export function applyRangerWeaponSwapTraits(
     hasTrait({ config: context.config }, TRAIT.FURIOUS_GRIP) &&
     isInternalCooldownReady(at, state.furiousGripReadyAt)
   ) {
-    const profile = balanceProfileFromContext(context, PROFILE.furiousGrip);
-    const effect = balanceProfileEffect(profile, 'boon');
-    state.furiousGripReadyAt = at + Number(profile?.internalCooldown ?? 9);
-    emitSkillBuff(context, {
-      at,
-      source: 'Trait',
-      sourceId: TRAIT.FURIOUS_GRIP,
-      actorType: 'effect',
-      skillId: skill.id,
-      skillName: 'Furious Grip',
-      kind: String(effect?.boon || 'fury'),
-      duration: gw2SchedulerBoonDuration(context, skill, String(effect?.boon || 'fury'), Number(effect?.duration ?? 5)),
-      stacks: Number(effect?.stacks ?? 1)
-    });
+    const profile = requireBalanceProfileFromContext(context, PROFILE.furiousGrip);
+    const effect = requireEffect(profile, 'boon', 'fury');
+    // The cooldown gates only fury, so a removed boon leaves it ready.
+    if (effect) {
+      state.furiousGripReadyAt = at + balanceProfileNumber(profile, 'internalCooldown');
+      emitSkillBuff(context, {
+        at,
+        source: 'Trait',
+        sourceId: TRAIT.FURIOUS_GRIP,
+        actorType: 'effect',
+        skillId: skill.id,
+        skillName: 'Furious Grip',
+        kind: String(effect.boon),
+        duration: gw2SchedulerBoonDuration(
+          context,
+          skill,
+          String(effect.boon),
+          effectNumber(profile, effect, 'duration')
+        ),
+        stacks: effectNumber(profile, effect, 'stacks')
+      });
+    }
   }
 }
 
@@ -160,16 +175,13 @@ export const rangerCoreCriticalReactions = Object.freeze({
   },
   handler(context, event, _details, application): void {
     // Reuse this invocation's authored effect, emitting one bleeding application per threshold proc.
-    const bleeding = profileEffect(context, PROFILE.sharpenedEdges, 'condition');
+    const profile = requireBalanceProfileFromContext(context, PROFILE.sharpenedEdges);
+    const bleeding = requireEffect(profile, 'condition', 'Bleeding');
+    if (!bleeding) return;
+    const duration = effectNumber(profile, bleeding, 'duration');
+    const stacks = effectNumber(profile, bleeding, 'stacks');
     for (let proc = 0; proc < application.quantity; proc += 1) {
-      queueBleeding(
-        context,
-        event,
-        Number(bleeding?.duration ?? 3),
-        TRAIT.SHARPENED_EDGES,
-        'Sharpened Edges',
-        Number(bleeding?.stacks ?? 1)
-      );
+      queueBleeding(context, event, duration, TRAIT.SHARPENED_EDGES, 'Sharpened Edges', stacks);
     }
   }
 } satisfies RangerCriticalHitDefinition);
@@ -177,5 +189,5 @@ export const rangerCoreCriticalReactions = Object.freeze({
 export const rangerCoreProfiledCriticalReaction = Object.freeze({
   ...rangerCoreCriticalReactions,
   chanceOnCriticalHit: (context: RangerResolverContext) =>
-    balanceProfileValueFromContext(context, PROFILE.sharpenedEdges, 'criticalChance', 0.33)
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.sharpenedEdges), 'criticalChance')
 } satisfies RangerCriticalHitDefinition);

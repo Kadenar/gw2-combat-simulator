@@ -6,6 +6,7 @@ import { thiefProfession } from '#gw2/professions/thief/profession.js';
 
 import { thiefAxeReaction } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
 import { triggerSharpeningStone } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
+import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import { SCOURGE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
@@ -61,7 +62,11 @@ test('Sharpening Stone prunes excluded hits and spends the earliest surviving ex
   const prior = Object.freeze([1, 5, 30]);
   const core = { sharpeningStoneExpirations: prior };
   const queued = [];
-  const context = { profession: { core }, queue: { enqueue: (event) => queued.push(event) } };
+  const context = {
+    catalog: rangerCatalog,
+    profession: { core },
+    queue: { enqueue: (event) => queued.push(event) }
+  };
   const event = { type: 'damage', at: 1, actorType: 'effect', coefficient: 1 };
   triggerSharpeningStone(context, event);
   assert.deepEqual(core.sharpeningStoneExpirations, [5, 30]);
@@ -152,10 +157,11 @@ test('Scourge retains latest expiries in ascending snapshots and prunes at compl
   profile.maximumStacks = 4;
   cast();
   assert.deepEqual(state.shades, [5, 30, 31, 32]);
+  // Zero status durations are invalid, so a short positive lifetime exercises strict expiry of the prior grant.
   context.effectiveEnd = 5;
-  lifetime.duration = 0;
+  lifetime.duration = 0.5;
   cast();
-  assert.deepEqual(state.shades, [30, 31, 32], 'expiry is strict at completion, including the incoming grant');
+  assert.deepEqual(state.shades, [5.5, 30, 31, 32], 'expiry is strict at completion');
   profile.maximumStacks = 0;
   cast();
   assert.deepEqual(state.shades, []);

@@ -1,9 +1,10 @@
 /** Registers scheduler-phase skill activations for this module. */
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
-  balanceProfileFromContext,
-  balanceProfileEffect,
-  balanceProfileValueFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -25,28 +26,20 @@ export function completeRangerHealingSkill(context: RangerCastContext, skill: Ra
   const petActive = professionCoreState(context).petActive;
   const companionId = rangerPetCompanionId(context);
   const timeline = createGw2TimelineIndex({ events: context.events });
-  // PvE copy durations are skill-owned; concentration is applied by the standard boon emitter.
-  const copies = Object.entries({
-    aegis: 5,
-    alacrity: 3,
-    fury: 3,
-    might: 10,
-    protection: 2,
-    quickness: 2,
-    regeneration: 5,
-    resistance: 2,
-    resolution: 5,
-    stability: 3,
-    swiftness: 3,
-    vigor: 3
-  }).map(([kind, duration]) => {
-    const maximum = kind === 'might' || kind === 'stability' ? 25 : 1;
-    const player = Math.min(maximum, context.buffStacks(kind, context.effectiveEnd));
-    const pet = petActive
-      ? timeline.buffStacksAt(kind, context.effectiveEnd, 0, maximum, 'summon', companionId)
-      : player;
-    return { kind, duration, player, pet };
-  });
+  // Snapshot both actors before emitting copies; concentration is applied by the boon emitter.
+  if (!skill.effects?.length) throw new Error('We Heal As One is missing boon copy effects');
+  const copies = skill.effects
+    .filter((effect) => effect.type === 'boon')
+    .map((effect) => {
+      const kind = String(effect.boon);
+      const duration = Number(effect.duration);
+      const maximum = kind === 'might' || kind === 'stability' ? 25 : 1;
+      const player = Math.min(maximum, context.buffStacks(kind, context.effectiveEnd));
+      const pet = petActive
+        ? timeline.buffStacksAt(kind, context.effectiveEnd, 0, maximum, 'summon', companionId)
+        : player;
+      return { kind, duration, player, pet };
+    });
   for (const { kind, duration, player, pet } of copies) {
     if (pet > 0)
       emitSkillBuff(context, skill, {
@@ -78,7 +71,7 @@ function performRangerDodge(context: RangerCastContext): boolean {
     state,
     spendEndurance(
       state,
-      balanceProfileValueFromContext(context, PROFILE.resources, 'resourceCost', 50),
+      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'resourceCost'),
       context.start,
       state.maximumEndurance
     )
@@ -111,6 +104,8 @@ function swapRangerPets(context: RangerCastContext, skill: RangerSkill): boolean
 }
 
 export const rangerCoreSkillHandlers = Object.freeze({
+  // Keep boon effects as metadata so the completion hook can check live boon stacks first.
+  'ranger.we-heal-as-one': replaceSkill({}),
   'ranger.dodge': replaceSkill({
     beforeEffects: performRangerDodge
   }),
@@ -145,7 +140,7 @@ export const rangerCoreSkillHandlers = Object.freeze({
   'ranger.poisonous-strikes': {
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
-      const profile = balanceProfileFromContext(context, PROFILE.poisonousStrikes);
+      const profile = requireBalanceProfileFromContext(context, PROFILE.poisonousStrikes);
       context.emit({
         type: 'ranger.poisonous-strikes',
         at: context.effectiveEnd,
@@ -154,15 +149,15 @@ export const rangerCoreSkillHandlers = Object.freeze({
         actorType: 'player',
         skillId: skill.id,
         skillName: skill.name,
-        charges: Number(profile?.playerStacks ?? 2),
-        duration: Number(profile?.durationMultiplier ?? 10)
+        charges: balanceProfileNumber(profile, 'playerStacks'),
+        duration: balanceProfileNumber(profile, 'durationMultiplier')
       });
     }
   },
   'ranger.sharpening-stone': {
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
-      const profile = balanceProfileFromContext(context, PROFILE.sharpeningStone);
+      const profile = requireBalanceProfileFromContext(context, PROFILE.sharpeningStone);
       context.emit({
         type: 'ranger.sharpening-stone',
         at: context.start,
@@ -171,26 +166,29 @@ export const rangerCoreSkillHandlers = Object.freeze({
         actorType: 'player',
         skillId: skill.id,
         skillName: skill.name,
-        charges: Number(profile?.playerStacks ?? 10),
-        duration: Number(profile?.durationMultiplier ?? 30)
+        charges: balanceProfileNumber(profile, 'playerStacks'),
+        duration: balanceProfileNumber(profile, 'durationMultiplier')
       });
     }
   },
   'ranger.sun-spirit': {
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
-      const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sunSpirit), 'condition');
+      const profile = requireBalanceProfileFromContext(context, PROFILE.sunSpirit);
+      const burning = requireEffect(profile, 'condition', 'Burning');
+      if (!burning) return;
       // Separate Burning applications preserve the total, including any fractional final stack.
-      const stacks = Number(burning?.stacks ?? 3);
+      const stacks = effectNumber(profile, burning, 'stacks');
+      const duration = effectNumber(profile, burning, 'duration');
       for (let index = 0; index < Math.ceil(stacks); index += 1) {
         emitSkillCondition(context, {
           at: context.effectiveEnd,
           skillId: ID.SOLAR_FLARE,
           skillName: 'Solar Flare',
           name: 'Solar Flare - Burning',
-          condition: 'Burning',
+          condition: String(burning.condition),
           stacks: Math.min(1, stacks - index),
-          duration: Number(burning?.duration ?? 6),
+          duration,
           triggeredBy: skill.name
         });
       }
@@ -210,7 +208,7 @@ export const rangerCoreSkillHandlers = Object.freeze({
         kind: 'sic-em-pet',
         // Apply the instant command before simultaneous pet damage queries its modifier.
         priority: -20,
-        duration: balanceProfileValueFromContext(context, PROFILE.sicEm, 'durationMultiplier', 10),
+        duration: balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.sicEm), 'durationMultiplier'),
         stacks: 1
       });
     }
@@ -226,8 +224,11 @@ export const rangerCoreSkillHandlers = Object.freeze({
         actorType: 'player',
         skillId: skill.id,
         skillName: skill.name,
-        charges: balanceProfileValueFromContext(context, PROFILE.bloodThirst, 'playerStacks', 3),
-        duration: balanceProfileValueFromContext(context, PROFILE.bloodThirst, 'durationMultiplier', 12)
+        charges: balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.bloodThirst), 'playerStacks'),
+        duration: balanceProfileNumber(
+          requireBalanceProfileFromContext(context, PROFILE.bloodThirst),
+          'durationMultiplier'
+        )
       });
     }
   }

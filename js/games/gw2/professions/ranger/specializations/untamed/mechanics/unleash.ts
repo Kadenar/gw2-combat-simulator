@@ -1,4 +1,7 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
@@ -131,7 +134,8 @@ export const untamedSkillMechanicHandlers = Object.freeze({
     activationId: string;
   }): void => {
     // This shared F5 recharge is fixed and therefore intentionally ignores Alacrity.
-    const readyAt = castStart + balanceProfileValueFromContext(context, PROFILE.resources, 'recharge', 1);
+    const readyAt =
+      castStart + balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'recharge');
     context.state.cooldowns.set(ID.UNLEASH_RANGER, readyAt);
     context.state.cooldowns.set(ID.UNLEASH_PET, readyAt);
     const action = context.events.find(
@@ -165,13 +169,15 @@ export const untamedSchedulerHooks = Object.freeze({
     const state = untamedState.from(context);
     if (!isInternalCooldownReady(context.start, state.letLooseReadyAt)) return;
     const profileId = PROFILE.letLoose;
-    state.letLooseReadyAt = context.start + balanceProfileValueFromContext(context, profileId, 'internalCooldown', 9);
+    state.letLooseReadyAt =
+      context.start + balanceProfileNumber(requireBalanceProfileFromContext(context, profileId), 'internalCooldown');
     // Weapon swap resets Unleashed Power so the next Unleash Ranger re-opens an ambush window.
     state.unleashedPowerReadyAt = 0;
     if (state.rangerUnleashed) {
       // Keep an exact deadline from swap completion, shared by cast and palette queries.
       state.ambushReadyUntil = canonicalTime(
-        context.effectiveEnd + balanceProfileValueFromContext(context, PROFILE.resources, 'durationMultiplier', 4)
+        context.effectiveEnd +
+          balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'durationMultiplier')
       );
     }
   }

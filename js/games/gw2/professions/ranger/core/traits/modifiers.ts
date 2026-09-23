@@ -1,5 +1,4 @@
 import {
-  balanceProfileValueFromContext,
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -149,11 +148,9 @@ function modifyRangerConditionBaseDuration(context: Gw2ModifierContext, multipli
   if (skill?.categories?.includes('Trap') && hasTrait(context, TRAIT.TRAPPERS_EXPERTISE)) {
     return (
       multiplier *
-      balanceProfileValueFromContext(
-        context,
-        PROFILE.trappersExpertise,
-        skill.id === ID.FLAME_TRAP ? 'coefficientMultiplier' : 'durationMultiplier',
-        skill.id === ID.FLAME_TRAP ? 1.66 : 1.6
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, PROFILE.trappersExpertise),
+        skill.id === ID.FLAME_TRAP ? 'coefficientMultiplier' : 'durationMultiplier'
       )
     );
   }
@@ -161,11 +158,20 @@ function modifyRangerConditionBaseDuration(context: Gw2ModifierContext, multipli
   let extension = 0;
   if (hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && positional(context)) {
     if (skill?.id === ID.CROSSFIRE && context.condition === 'Bleeding') {
-      extension = balanceProfileValueFromContext(context, PROFILE.lightOnYourFeet, 'durationPerTier', 2);
+      extension = balanceProfileNumber(
+        requireBalanceProfileFromContext(context, PROFILE.lightOnYourFeet),
+        'durationPerTier'
+      );
     } else if (skill?.id === ID.POISON_VOLLEY && context.condition === 'Poisoned') {
-      extension = balanceProfileValueFromContext(context, PROFILE.lightOnYourFeet, 'durationPerTier', 2);
+      extension = balanceProfileNumber(
+        requireBalanceProfileFromContext(context, PROFILE.lightOnYourFeet),
+        'durationPerTier'
+      );
     } else if (skill?.id === ID.CRIPPLING_SHOT && context.condition === 'Immobilized') {
-      extension = balanceProfileValueFromContext(context, PROFILE.lightOnYourFeet, 'minimumStacks', 1);
+      extension = balanceProfileNumber(
+        requireBalanceProfileFromContext(context, PROFILE.lightOnYourFeet),
+        'minimumStacks'
+      );
     }
   }
 
@@ -364,7 +370,11 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     id: 'ranger.stalkers-strike-movement-impaired',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
-    factor: 2,
+    factor: (context) =>
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, PROFILE.stalkersStrikeImpaired),
+        'damageMultiplier'
+      ),
     // Double only this skill's strike when Cripple, Slow, or Immobilize is active.
     when: (context) =>
       gw2EventSkill(context)?.id === ID.STALKERS_STRIKE &&
@@ -428,28 +438,46 @@ export const rangerCoreCastRules = Object.freeze({
       state.quickDrawUntil > context.state.time &&
       hasTrait(context, TRAIT.QUICK_DRAW)
     ) {
-      result *= balanceProfileValueFromContext(context, PROFILE.quickDraw, 'rechargeMultiplier', 0.34);
+      result *= balanceProfileNumber(
+        requireBalanceProfileFromContext(context, PROFILE.quickDraw),
+        'rechargeMultiplier'
+      );
     }
 
     if (skill?.weapon === 'Axe' && hasTrait(context, TRAIT.HONED_AXES)) {
-      result *= balanceProfileValueFromContext(context, PROFILE.honedAxes, 'rechargeMultiplier', 0.8);
+      result *= balanceProfileNumber(
+        requireBalanceProfileFromContext(context, PROFILE.honedAxes),
+        'rechargeMultiplier'
+      );
     }
 
     if (skill?.weapon === 'Shortbow' && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) {
-      result *= balanceProfileValueFromContext(context, PROFILE.lightOnYourFeet, 'rechargeMultiplier', 0.8);
+      result *= balanceProfileNumber(
+        requireBalanceProfileFromContext(context, PROFILE.lightOnYourFeet),
+        'rechargeMultiplier'
+      );
     }
 
     // Lead the Wind reduces every supported longbow skill's base recharge before shared recharge-rate scaling.
     if (skill?.weapon === 'Longbow' && hasTrait(context, TRAIT.LEAD_THE_WIND)) {
-      result *= balanceProfileValueFromContext(context, PROFILE.leadTheWind, 'rechargeMultiplier', 0.8);
+      result *= balanceProfileNumber(
+        requireBalanceProfileFromContext(context, PROFILE.leadTheWind),
+        'rechargeMultiplier'
+      );
     }
 
     if (['Dagger', 'Torch'].includes(String(skill?.weapon || '')) && hasTrait(context, TRAIT.AMBIDEXTERITY)) {
-      result *= balanceProfileValueFromContext(context, PROFILE.ambidexterity, 'rechargeMultiplier', 0.8);
+      result *= balanceProfileNumber(
+        requireBalanceProfileFromContext(context, PROFILE.ambidexterity),
+        'rechargeMultiplier'
+      );
     }
 
     if (skill?.petSkill && hasTrait(context, TRAIT.PACK_ALPHA)) {
-      result *= balanceProfileValueFromContext(context, PROFILE.packAlpha, 'rechargeMultiplier', 0.8);
+      result *= balanceProfileNumber(
+        requireBalanceProfileFromContext(context, PROFILE.packAlpha),
+        'rechargeMultiplier'
+      );
     }
 
     return result;

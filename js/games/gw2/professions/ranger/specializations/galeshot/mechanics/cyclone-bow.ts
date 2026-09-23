@@ -1,9 +1,10 @@
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { advanceResourceRecharge } from '#gw2/platform/combat/resources/clock.js';
 import {
-  balanceProfileFromContext,
-  balanceProfileEffect,
-  balanceProfileValueFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -41,7 +42,10 @@ const MISSILE_SKILL_IDS = new Set<number>([
 export function advanceGaleshotArrows(context: RangerSchedulerContext, target: number): void {
   const state = galeshotState.from(context);
   if (target <= state.arrowsUpdatedAt) return;
-  state.maximumArrows = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 8);
+  state.maximumArrows = balanceProfileNumber(
+    requireBalanceProfileFromContext(context, PROFILE.resources),
+    'maximumStacks'
+  );
   state.arrows = Math.min(state.maximumArrows, state.arrows);
   // Integrate each Alacrity segment before converting baseline recharge progress into whole arrows.
   const intervals = Array.from(
@@ -65,7 +69,7 @@ export function advanceGaleshotArrows(context: RangerSchedulerContext, target: n
     state.arrows,
     state.maximumArrows,
     state.arrowRechargeProgress,
-    balanceProfileValueFromContext(context, PROFILE.resources, 'pulseInterval', 5),
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'pulseInterval'),
     intervals,
     EPSILON
   );
@@ -77,7 +81,10 @@ export function advanceGaleshotArrows(context: RangerSchedulerContext, target: n
 /** Restores arrows against the current profile cap without discarding fractional gains. */
 export function restoreArrow(context: RangerSchedulerContext, amount = 1): void {
   const state = galeshotState.from(context);
-  state.maximumArrows = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 8);
+  state.maximumArrows = balanceProfileNumber(
+    requireBalanceProfileFromContext(context, PROFILE.resources),
+    'maximumStacks'
+  );
   state.arrows = Math.min(state.maximumArrows, state.arrows + amount);
 }
 
@@ -124,50 +131,55 @@ export const galeshotMissileReaction = scheduledReaction<
     const state = galeshotState.from(context);
     // An armed Mistral includes missiles landing at expiry; zero never arms it.
     if (state.mistralUntil > 0 && at <= state.mistralUntil) {
-      const profile = balanceProfileFromContext(context, PROFILE.mistral);
-      const strike = balanceProfileEffect(profile, 'strike');
-      const chilled = balanceProfileEffect(profile, 'condition');
+      const profile = requireBalanceProfileFromContext(context, PROFILE.mistral);
+      const strike = requireEffect(profile, 'strike', 'Strike');
+      const chilled = requireEffect(profile, 'condition', 'Chilled');
       // Each missile-triggered Mistral is its own effect activation while its
       // strike and condition packets remain grouped under one identity.
-      const activationId = context.createActivationId('effect');
-      emitSkillDamage(context, {
-        at: at,
-        source: 'ranger',
-        sourceId: ID.MISTRAL,
-        actorType: 'player',
-        skillId: ID.MISTRAL,
-        skillName: 'Mistral',
-        name: 'Mistral',
-        coefficient: Number(strike?.coefficient ?? 0.3),
-        hits: Number(strike?.hits ?? 1),
-        canCrit: true,
-        damageKind: 'galeshot-mistral',
-        triggeredBy: payload.skillName,
-        activationId
-      });
-      emitSkillCondition(context, {
-        at: at,
-        skillId: ID.MISTRAL,
-        skillName: 'Mistral',
-        name: 'Mistral - Chilled',
-        condition: String(chilled?.condition || 'Chilled'),
-        duration: Number(chilled?.duration ?? 1),
-        stacks: Number(chilled?.stacks ?? 1),
-        triggeredBy: payload.skillName,
-        activationId
-      });
+      const activationId = strike || chilled ? context.createActivationId('effect') : undefined;
+      if (strike)
+        emitSkillDamage(context, {
+          at: at,
+          source: 'ranger',
+          sourceId: ID.MISTRAL,
+          actorType: 'player',
+          skillId: ID.MISTRAL,
+          skillName: 'Mistral',
+          name: 'Mistral',
+          coefficient: effectNumber(profile, strike, 'coefficient'),
+          hits: effectNumber(profile, strike, 'hits'),
+          canCrit: true,
+          damageKind: 'galeshot-mistral',
+          triggeredBy: payload.skillName,
+          activationId
+        });
+      if (chilled)
+        emitSkillCondition(context, {
+          at: at,
+          skillId: ID.MISTRAL,
+          skillName: 'Mistral',
+          name: 'Mistral - Chilled',
+          condition: String(chilled.condition),
+          duration: effectNumber(profile, chilled, 'duration'),
+          stacks: effectNumber(profile, chilled, 'stacks'),
+          triggeredBy: payload.skillName,
+          activationId
+        });
     }
 
     if (!hasTrait({ config: context.config }, TRAIT.SHRIKE)) return;
-    const profile = balanceProfileFromContext(context, PROFILE.shrike);
-    const threshold = Number(profile?.threshold ?? 12);
-    const strike = balanceProfileEffect(profile, 'strike');
+    const profile = requireBalanceProfileFromContext(context, PROFILE.shrike);
+    const threshold = balanceProfileNumber(profile, 'threshold');
     state.missileHits += 1;
     if (state.missileHits < threshold) return;
     // Subtract rather than reset so any overshoot from burst windows is preserved.
     state.missileHits -= threshold;
-    restoreArrow(context, Number(profile?.resourceGain ?? 1));
-    const hits = Number(strike?.hits ?? 3);
+    // The arrow refund is independent of the strike, so it survives strike removal.
+    restoreArrow(context, balanceProfileNumber(profile, 'resourceGain'));
+    const strike = requireEffect(profile, 'strike', 'Strike');
+    if (!strike) return;
+    const hits = effectNumber(profile, strike, 'hits');
+    const coefficient = effectNumber(profile, strike, 'coefficient');
     for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
       emitSkillDamage(context, {
         at: at,
@@ -178,7 +190,7 @@ export const galeshotMissileReaction = scheduledReaction<
         skillId: TRAIT.SHRIKE,
         skillName: 'Shrike',
         name: 'Shrike',
-        coefficient: Number(strike?.coefficient ?? 0.8),
+        coefficient,
         hits: 1,
         hitIndex,
         totalHits: hits,
@@ -231,9 +243,12 @@ export const galeshotPetReaction = scheduledReaction<
       return;
     }
 
+    const profile = requireBalanceProfileFromContext(context, PROFILE.wutheringWind);
+    const strike = requireEffect(profile, 'strike', 'Strike');
+    // The primed charge and proc exist only for the strike, so a removed strike leaves the charge armed.
+    if (!strike) return;
     state.wutheringWindReady = false;
     if (activationId) state.wutheringWindActivationIds[activationId] = true;
-    const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.wutheringWind), 'strike');
     context.emit({
       type: 'proc',
       at: at,
@@ -257,8 +272,8 @@ export const galeshotPetReaction = scheduledReaction<
       skillId: ID.WUTHERING_WIND,
       skillName: 'Wuthering Wind',
       name: 'Wuthering Wind',
-      coefficient: Number(strike?.coefficient ?? 2),
-      hits: Number(strike?.hits ?? 1),
+      coefficient: effectNumber(profile, strike, 'coefficient'),
+      hits: effectNumber(profile, strike, 'hits'),
       canCrit: true,
       damageKind: 'galeshot-wuthering-wind',
       triggeredBy: payload.skillName,
@@ -301,9 +316,9 @@ export const galeshotDisableReaction = scheduledReaction<
     }
 
     // 0.25 s ICD prevents one multi-hit ability from restoring more than one arrow.
-    const profile = balanceProfileFromContext(context, PROFILE.thrillOfTheCatch);
-    state.thrillOfTheCatchReadyAt = context.state.time + Number(profile?.internalCooldown ?? 0.25);
-    restoreArrow(context, Number(profile?.resourceGain ?? 1));
+    const profile = requireBalanceProfileFromContext(context, PROFILE.thrillOfTheCatch);
+    state.thrillOfTheCatchReadyAt = context.state.time + balanceProfileNumber(profile, 'internalCooldown');
+    restoreArrow(context, balanceProfileNumber(profile, 'resourceGain'));
   }
 });
 
@@ -329,9 +344,11 @@ export function completeGaleshotSkill(context: RangerCastContext, skill: RangerS
     return;
   }
 
-  const profile = balanceProfileFromContext(context, PROFILE.flockTogether);
-  const quickness = balanceProfileEffect(profile, 'boon');
-  state.flockTogetherReadyAt = context.effectiveEnd + Number(profile?.internalCooldown ?? 20);
+  const profile = requireBalanceProfileFromContext(context, PROFILE.flockTogether);
+  const quickness = requireEffect(profile, 'boon', 'quickness');
+  // The cooldown gates only quickness, so a removed boon leaves it ready.
+  if (!quickness) return;
+  state.flockTogetherReadyAt = context.effectiveEnd + balanceProfileNumber(profile, 'internalCooldown');
   emitSkillBuff(context, {
     at: context.effectiveEnd,
     source: 'Trait',
@@ -339,15 +356,15 @@ export function completeGaleshotSkill(context: RangerCastContext, skill: RangerS
     actorType: 'effect',
     skillId: TRAIT.FLOCK_TOGETHER,
     skillName: 'Flock Together',
-    kind: String(quickness?.boon || 'quickness'),
-    boon: String(quickness?.boon || 'quickness'),
+    kind: String(quickness.boon),
+    boon: String(quickness.boon),
     duration: gw2SchedulerBoonDuration(
       context,
       skill,
-      String(quickness?.boon || 'quickness'),
-      Number(quickness?.duration ?? 5)
+      String(quickness.boon),
+      effectNumber(profile, quickness, 'duration')
     ),
-    stacks: Number(quickness?.stacks ?? 1),
+    stacks: effectNumber(profile, quickness, 'stacks'),
     audience: { recipients: 'party' as const, maximumRecipients: 5 },
     triggeredBy: skill.name
   });

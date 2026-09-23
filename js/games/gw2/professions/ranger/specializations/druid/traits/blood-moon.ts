@@ -1,6 +1,10 @@
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
@@ -9,7 +13,9 @@ import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/sp
 
 function triggerBloodMoon(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, TRAIT.BLOOD_MOON)) return;
-  const bleeding = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.bloodMoon), 'condition');
+  const profile = requireBalanceProfileFromContext(context, PROFILE.bloodMoon);
+  const bleeding = requireEffect(profile, 'condition', 'Bleeding');
+  if (!bleeding) return;
   context.queue.enqueue(
     buildResolverCondition({
       at: event.at,
@@ -20,9 +26,9 @@ function triggerBloodMoon(context: RangerResolverContext, event: Gw2ResolverEven
       skillId: TRAIT.BLOOD_MOON,
       skillName: 'Blood Moon',
       name: 'Blood Moon - Bleeding',
-      condition: String(bleeding?.condition || 'Bleeding'),
-      duration: Number(bleeding?.duration ?? 4),
-      stacks: Number(bleeding?.stacks ?? 2),
+      condition: String(bleeding.condition),
+      duration: effectNumber(profile, bleeding, 'duration'),
+      stacks: effectNumber(profile, bleeding, 'stacks'),
       triggeredBy: event.skillName
     })
   );

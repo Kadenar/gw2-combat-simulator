@@ -5,9 +5,10 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
-  balanceProfileEffectFromContext as profileEffect,
-  balanceProfileFromContext,
-  balanceProfileEffect
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { eventSkill, queueBleeding } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
@@ -55,9 +56,12 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
   }
 
   if (skill.type === 'Heal') {
-    if (hasTrait(context, TRAIT.WELLSPRING)) {
-      const effect = profileEffect(context, PROFILE.wellspring, 'boon');
-      const kind = String(effect?.boon || 'regeneration');
+    const wellspringProfile = hasTrait(context, TRAIT.WELLSPRING)
+      ? requireBalanceProfileFromContext(context, PROFILE.wellspring)
+      : undefined;
+    const effect = wellspringProfile && requireEffect(wellspringProfile, 'boon', 'regeneration');
+    if (wellspringProfile && effect) {
+      const kind = String(effect.boon);
       emitSkillBuff(context, skill, {
         at: context.effectiveEnd,
         source: 'Trait',
@@ -68,8 +72,8 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
         name: `Wellspring - ${kind}`,
         kind,
         boon: kind,
-        duration: Number(effect?.duration ?? 6),
-        stacks: Number(effect?.stacks ?? 1),
+        duration: effectNumber(wellspringProfile, effect, 'duration'),
+        stacks: effectNumber(wellspringProfile, effect, 'stacks'),
         audience: { recipients: 'party' as const, maximumRecipients: 5 },
         triggeredBy: skill.name
       });
@@ -78,9 +82,13 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
     emitChildOfEarth(context, skill);
   }
 
-  if (skill.weapon === 'Warhorn' && hasTrait(context, TRAIT.WINDBORNE_NOTES)) {
-    const effect = profileEffect(context, PROFILE.windborneNotes, 'boon');
-    const kind = String(effect?.boon || 'regeneration');
+  const windborneNotesProfile =
+    skill.weapon === 'Warhorn' && hasTrait(context, TRAIT.WINDBORNE_NOTES)
+      ? requireBalanceProfileFromContext(context, PROFILE.windborneNotes)
+      : undefined;
+  const windborneNotes = windborneNotesProfile && requireEffect(windborneNotesProfile, 'boon', 'regeneration');
+  if (windborneNotesProfile && windborneNotes) {
+    const kind = String(windborneNotes.boon);
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
       source: 'Trait',
@@ -91,8 +99,8 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
       name: `Windborne Notes - ${kind}`,
       kind,
       boon: kind,
-      duration: Number(effect?.duration ?? 6),
-      stacks: Number(effect?.stacks ?? 1),
+      duration: effectNumber(windborneNotesProfile, windborneNotes, 'duration'),
+      stacks: effectNumber(windborneNotesProfile, windborneNotes, 'stacks'),
       audience: { recipients: 'party' as const, maximumRecipients: 5 },
       triggeredBy: skill.name
     });
@@ -100,10 +108,12 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
 
   // Point-Blank Shot materializes Lead the Wind's self boons only when the trait is selected.
   if (skill.id === ID.POINT_BLANK_SHOT && hasTrait(context, TRAIT.LEAD_THE_WIND)) {
-    const profile = balanceProfileFromContext(context, PROFILE.leadTheWind);
-    for (let index = 0; index < 2; index += 1) {
-      const effect = balanceProfileEffect(profile, 'boon', index);
-      const kind = String(effect?.boon || ['swiftness', 'quickness'][index]);
+    const profile = requireBalanceProfileFromContext(context, PROFILE.leadTheWind);
+    // Each named boon is independent, so removing one keeps its sibling bound to its own values.
+    for (const name of ['swiftness', 'quickness']) {
+      const effect = requireEffect(profile, 'boon', name);
+      if (!effect) continue;
+      const kind = String(effect.boon);
       emitSkillBuff(context, skill, {
         at: context.effectiveEnd,
         source: 'Trait',
@@ -114,8 +124,8 @@ export function completeRangerTraits(context: RangerCastContext, skill: RangerSk
         name: `Lead the Wind - ${kind}`,
         kind,
         boon: kind,
-        duration: Number(effect?.duration ?? [10, 5][index]),
-        stacks: Number(effect?.stacks ?? 1),
+        duration: effectNumber(profile, effect, 'duration'),
+        stacks: effectNumber(profile, effect, 'stacks'),
         triggeredBy: skill.name
       });
     }
@@ -137,25 +147,28 @@ export function applyRangerBeastSkillTraits(
 ): void {
   const state = professionCoreState(context);
   if (hasTrait(context, TRAIT.REJUVENATION) && isInternalCooldownReady(context.start, state.rejuvenationReadyAt)) {
-    const profile = balanceProfileFromContext(context, PROFILE.rejuvenation);
-    const effect = balanceProfileEffect(profile, 'boon');
-    state.rejuvenationReadyAt = context.start + Number(profile?.internalCooldown ?? 20);
-    const kind = String(effect?.boon || 'regeneration');
-    emitSkillBuff(context, skill, {
-      at: context.effectiveEnd,
-      source: 'Trait',
-      sourceId: TRAIT.REJUVENATION,
-      actorType: 'effect',
-      skillId: TRAIT.REJUVENATION,
-      skillName: 'Rejuvenation',
-      name: `Rejuvenation - ${kind}`,
-      kind,
-      boon: kind,
-      duration: Number(effect?.duration ?? 10),
-      stacks: Number(effect?.stacks ?? 1),
-      audience: { recipients: 'party' as const, maximumRecipients: 5 },
-      triggeredBy: skill.name
-    });
+    const profile = requireBalanceProfileFromContext(context, PROFILE.rejuvenation);
+    const effect = requireEffect(profile, 'boon', 'regeneration');
+    // The cooldown gates only regeneration, so a removed boon leaves the trait ready.
+    if (effect) {
+      state.rejuvenationReadyAt = context.start + balanceProfileNumber(profile, 'internalCooldown');
+      const kind = String(effect.boon);
+      emitSkillBuff(context, skill, {
+        at: context.effectiveEnd,
+        source: 'Trait',
+        sourceId: TRAIT.REJUVENATION,
+        actorType: 'effect',
+        skillId: TRAIT.REJUVENATION,
+        skillName: 'Rejuvenation',
+        name: `Rejuvenation - ${kind}`,
+        kind,
+        boon: kind,
+        duration: effectNumber(profile, effect, 'duration'),
+        stacks: effectNumber(profile, effect, 'stacks'),
+        audience: { recipients: 'party' as const, maximumRecipients: 5 },
+        triggeredBy: skill.name
+      });
+    }
   }
 
   const notBeforeCombat =
@@ -176,19 +189,21 @@ export function applyRangerBeastSkillTraits(
     hasTrait(context, TRAIT.WOLFSONG) &&
     rangerPetByName(professionCoreState(context).activePet).family === 'canine'
   ) {
-    const effect = profileEffect(context, PROFILE.wolfsong, 'condition');
-    emitSkillCondition(context, {
-      at: context.effectiveEnd,
-      source: 'Trait',
-      actorType: 'effect',
-      skillId: TRAIT.WOLFSONG,
-      skillName: 'Wolfsong',
-      name: 'Wolfsong - Vulnerability',
-      condition: String(effect?.condition || 'Vulnerability'),
-      duration: Number(effect?.duration ?? 6),
-      stacks: Number(effect?.stacks ?? 6),
-      triggeredBy: skill.name
-    });
+    const profile = requireBalanceProfileFromContext(context, PROFILE.wolfsong);
+    const effect = requireEffect(profile, 'condition', 'Vulnerability');
+    if (effect)
+      emitSkillCondition(context, {
+        at: context.effectiveEnd,
+        source: 'Trait',
+        actorType: 'effect',
+        skillId: TRAIT.WOLFSONG,
+        skillName: 'Wolfsong',
+        name: 'Wolfsong - Vulnerability',
+        condition: String(effect.condition),
+        duration: effectNumber(profile, effect, 'duration'),
+        stacks: effectNumber(profile, effect, 'stacks'),
+        triggeredBy: skill.name
+      });
   }
 }
 
@@ -206,25 +221,19 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
   }> = [];
   const inCombat = context.combatStartTime != null && context.start >= context.combatStartTime;
   if (inCombat && hasTrait(context, TRAIT.SPIRITED_ARRIVAL)) {
-    const profile = balanceProfileFromContext(context, PROFILE.spiritedArrival);
-    const might = balanceProfileEffect(profile, 'boon', 0);
-    const fury = balanceProfileEffect(profile, 'boon', 1);
-    partyBoons.push(
-      {
+    const profile = requireBalanceProfileFromContext(context, PROFILE.spiritedArrival);
+    for (const name of ['might', 'fury']) {
+      const effect = requireEffect(profile, 'boon', name);
+      if (!effect) continue;
+      partyBoons.push({
         sourceId: TRAIT.SPIRITED_ARRIVAL,
         sourceName: 'Spirited Arrival',
-        kind: String(might?.boon || 'might'),
-        duration: Number(might?.duration ?? 12),
-        stacks: Number(might?.stacks ?? 6)
-      },
-      {
-        sourceId: TRAIT.SPIRITED_ARRIVAL,
-        sourceName: 'Spirited Arrival',
-        kind: String(fury?.boon || 'fury'),
-        duration: Number(fury?.duration ?? 8),
-        stacks: Number(fury?.stacks ?? 1)
-      }
-    );
+        kind: String(effect.boon),
+        duration: effectNumber(profile, effect, 'duration'),
+        stacks: effectNumber(profile, effect, 'stacks')
+      });
+    }
+
     for (const boon of partyBoons) {
       emitSkillBuff(context, skill, {
         at,
@@ -247,17 +256,18 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
   }
 
   if (hasTrait(context, TRAIT.CLARION_BOND) && isInternalCooldownReady(context.start, state.clarionBondReadyAt)) {
-    const profile = balanceProfileFromContext(context, PROFILE.clarionBond);
-    state.clarionBondReadyAt = context.start + Number(profile?.internalCooldown ?? 15);
-    for (let index = 0; index < 3; index += 1) {
-      const effect = balanceProfileEffect(profile, 'boon', index);
-      const kind = String(effect?.boon || ['fury', 'might', 'swiftness'][index]);
+    const profile = requireBalanceProfileFromContext(context, PROFILE.clarionBond);
+    // The blast finisher is part of the lesser warhorn package, so the cooldown survives removed boons.
+    state.clarionBondReadyAt = context.start + balanceProfileNumber(profile, 'internalCooldown');
+    for (const name of ['fury', 'might', 'swiftness']) {
+      const effect = requireEffect(profile, 'boon', name);
+      if (!effect) continue;
       partyBoons.push({
         sourceId: TRAIT.CLARION_BOND,
         sourceName: 'Clarion Bond',
-        kind,
-        duration: Number(effect?.duration ?? 5),
-        stacks: Number(effect?.stacks ?? [1, 6, 1][index])
+        kind: String(effect.boon),
+        duration: effectNumber(profile, effect, 'duration'),
+        stacks: effectNumber(profile, effect, 'stacks')
       });
     }
 
@@ -280,19 +290,20 @@ export function applyRangerPetSwapTraits(context: RangerCastContext, skill: Rang
       });
     }
 
-    const weakness = balanceProfileEffect(profile, 'condition');
-    emitSkillCondition(context, {
-      at,
-      source: 'Trait',
-      actorType: 'effect',
-      skillId: TRAIT.CLARION_BOND,
-      skillName: 'Clarion Bond',
-      name: 'Lesser Call of the Wild - Weakness',
-      condition: 'Weakness',
-      duration: Number(weakness?.duration ?? 5),
-      stacks: Number(weakness?.stacks ?? 1),
-      triggeredBy: skill.name
-    });
+    const weakness = requireEffect(profile, 'condition', 'Weakness');
+    if (weakness)
+      emitSkillCondition(context, {
+        at,
+        source: 'Trait',
+        actorType: 'effect',
+        skillId: TRAIT.CLARION_BOND,
+        skillName: 'Clarion Bond',
+        name: 'Lesser Call of the Wild - Weakness',
+        condition: String(weakness.condition),
+        duration: effectNumber(profile, weakness, 'duration'),
+        stacks: effectNumber(profile, weakness, 'stacks'),
+        triggeredBy: skill.name
+      });
     context.emit({
       type: 'proc',
       at,
@@ -324,7 +335,9 @@ export function triggerTrappersExpertise(context: RangerResolverContext, event: 
     !state.trapCrippleActivations[event.activationId] &&
     hasTrait(context, TRAIT.TRAPPERS_EXPERTISE)
   ) {
-    const cripple = profileEffect(context, PROFILE.trappersExpertise, 'condition');
+    const profile = requireBalanceProfileFromContext(context, PROFILE.trappersExpertise);
+    const cripple = requireEffect(profile, 'condition', 'Crippled');
+    if (!cripple) return;
     state.trapCrippleActivations[event.activationId] = true;
     context.queue.enqueue(
       buildResolverCondition({
@@ -335,9 +348,9 @@ export function triggerTrappersExpertise(context: RangerResolverContext, event: 
         skillId: TRAIT.TRAPPERS_EXPERTISE,
         skillName: "Trapper's Expertise",
         name: "Trapper's Expertise — Crippled",
-        condition: 'Crippled',
-        duration: Number(cripple?.duration ?? 3),
-        stacks: Number(cripple?.stacks ?? 1),
+        condition: String(cripple.condition),
+        duration: effectNumber(profile, cripple, 'duration'),
+        stacks: effectNumber(profile, cripple, 'stacks'),
         fixedDuration: true,
         triggeredBy: event.skillName
       })
@@ -350,30 +363,42 @@ export function triggerLightOnYourFeet(context: RangerResolverContext, event: Gw
   const skill = eventSkill(context, event);
   if (skill?.id === ID.CROSSFIRE && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) && context.config?.target?.defiant) {
     const bleeding = skill.effects?.find((effect) => effect.type === 'condition' && effect.condition === 'Bleeding');
-    // Defiant Crossfire gains a second stack with the same extended base duration.
-    queueBleeding(context, event, Number(bleeding?.duration ?? 3) + 2, TRAIT.LIGHT_ON_YOUR_FEET, 'Light on your Feet');
+    // Defiant Crossfire gains a second stack with the same extended base duration; with the skill's own
+    // Bleeding removed there is no base stack to duplicate.
+    if (bleeding) {
+      const extension = balanceProfileNumber(
+        requireBalanceProfileFromContext(context, PROFILE.lightOnYourFeet),
+        'durationPerTier'
+      );
+      queueBleeding(
+        context,
+        event,
+        effectNumber(skill, bleeding, 'duration') + extension,
+        TRAIT.LIGHT_ON_YOUR_FEET,
+        'Light on your Feet'
+      );
+    }
   }
 
   if (skill?.id === ID.CONCUSSION_SHOT && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) {
-    const vulnerability = balanceProfileEffect(
-      balanceProfileFromContext(context, PROFILE.lightOnYourFeet),
-      'condition'
-    );
-    context.queue.enqueue(
-      buildResolverCondition({
-        at: event.at,
-        source: 'Trait',
-        sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
-        actorType: 'effect',
-        skillId: TRAIT.LIGHT_ON_YOUR_FEET,
-        skillName: 'Light on your Feet',
-        name: 'Light on your Feet — Vulnerability',
-        condition: String(vulnerability?.condition || 'Vulnerability'),
-        // The vulnerability upgrade is unconditional once the trait is selected.
-        duration: Number(vulnerability?.duration ?? 10),
-        stacks: Number(vulnerability?.stacks ?? 10),
-        triggeredBy: event.skillName
-      })
-    );
+    const profile = requireBalanceProfileFromContext(context, PROFILE.lightOnYourFeet);
+    const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+    if (vulnerability)
+      context.queue.enqueue(
+        buildResolverCondition({
+          at: event.at,
+          source: 'Trait',
+          sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
+          actorType: 'effect',
+          skillId: TRAIT.LIGHT_ON_YOUR_FEET,
+          skillName: 'Light on your Feet',
+          name: 'Light on your Feet — Vulnerability',
+          condition: String(vulnerability.condition),
+          // The vulnerability upgrade is unconditional once the trait is selected.
+          duration: effectNumber(profile, vulnerability, 'duration'),
+          stacks: effectNumber(profile, vulnerability, 'stacks'),
+          triggeredBy: event.skillName
+        })
+      );
   }
 }

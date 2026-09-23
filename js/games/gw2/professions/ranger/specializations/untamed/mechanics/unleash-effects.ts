@@ -5,9 +5,10 @@ import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechan
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
-  balanceProfileEffectFromContext as profileEffect,
-  balanceProfileFromContext,
-  balanceProfileEffect
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
@@ -87,10 +88,10 @@ function queueTraitCondition(
 function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, TRAIT.FEROCIOUS_SYMBIOSIS)) return;
   const state = untamedState.from(context);
-  const profile = balanceProfileFromContext(context, PROFILE.ferociousSymbiosis);
-  const maximumStacks = Number(profile?.maximumStacks ?? 5);
-  const duration = Number(profile?.durationMultiplier ?? 5);
-  const internalCooldown = Number(profile?.internalCooldown ?? 0.5);
+  const profile = requireBalanceProfileFromContext(context, PROFILE.ferociousSymbiosis);
+  const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
+  const duration = balanceProfileNumber(profile, 'durationMultiplier');
+  const internalCooldown = balanceProfileNumber(profile, 'internalCooldown');
   if (isPlayerStrike(event)) {
     if (!isInternalCooldownReady(event.at, state.ferociousSymbiosisPetReadyAt)) return;
     // A player hit builds Pet stacks (cross-buff: player hits power the pet).
@@ -125,28 +126,22 @@ function triggerLetLoose(context: RangerResolverContext, event: Gw2ResolverEvent
   // Each ambush activation grants boons exactly once even if the skill hits multiple times.
   if (activations[event.activationId]) return;
   activations[event.activationId] = true;
-  const quickness = profileEffect(context, PROFILE.letLoose, 'boon', 0);
-  const might = profileEffect(context, PROFILE.letLoose, 'boon', 1);
-  queueTraitBuff(
-    context,
-    event,
-    String(quickness?.boon || 'quickness'),
-    Number(quickness?.duration ?? 5),
-    Number(quickness?.stacks ?? 1),
-    TRAIT.LET_LOOSE,
-    'Let Loose',
-    true
-  );
-  queueTraitBuff(
-    context,
-    event,
-    String(might?.boon || 'might'),
-    Number(might?.duration ?? 10),
-    Number(might?.stacks ?? 5),
-    TRAIT.LET_LOOSE,
-    'Let Loose',
-    true
-  );
+  const profile = requireBalanceProfileFromContext(context, PROFILE.letLoose);
+  // Each named boon is independent, so removing one keeps its sibling bound to its own values.
+  for (const name of ['quickness', 'might']) {
+    const effect = requireEffect(profile, 'boon', name);
+    if (!effect) continue;
+    queueTraitBuff(
+      context,
+      event,
+      String(effect.boon),
+      effectNumber(profile, effect, 'duration'),
+      effectNumber(profile, effect, 'stacks'),
+      TRAIT.LET_LOOSE,
+      'Let Loose',
+      true
+    );
+  }
 }
 
 function triggerBlindingOutburst(context: RangerResolverContext, event: Gw2ResolverEvent): void {
@@ -154,13 +149,15 @@ function triggerBlindingOutburst(context: RangerResolverContext, event: Gw2Resol
     return;
   }
 
-  const blindness = profileEffect(context, PROFILE.blindingOutburst, 'condition');
+  const profile = requireBalanceProfileFromContext(context, PROFILE.blindingOutburst);
+  const blindness = requireEffect(profile, 'condition', 'Blindness');
+  if (!blindness) return;
   queueTraitCondition(
     context,
     event,
-    String(blindness?.condition || 'Blindness'),
-    Number(blindness?.duration ?? 2),
-    Number(blindness?.stacks ?? 1),
+    String(blindness.condition),
+    effectNumber(profile, blindness, 'duration'),
+    effectNumber(profile, blindness, 'stacks'),
     TRAIT.BLINDING_OUTBURST,
     'Blinding Outburst'
   );
@@ -188,28 +185,18 @@ export function reactToUntamedControl(context: RangerResolverContext, event: Gw2
     hasTrait(context, TRAIT.DEBILITATING_BLOWS) &&
     isInternalCooldownReady(event.at, state.debilitatingBlowsReadyAt)
   ) {
-    const profile = balanceProfileFromContext(context, PROFILE.debilitatingBlows);
-    state.debilitatingBlowsReadyAt = event.at + Number(profile?.internalCooldown ?? 1);
+    const profile = requireBalanceProfileFromContext(context, PROFILE.debilitatingBlows);
     // Unleash state determines which condition is applied: Poisoned when Ranger unleashed, Slow otherwise.
-    if (state.rangerUnleashed) {
-      const poison = balanceProfileEffect(profile, 'condition', 0);
+    const condition = requireEffect(profile, 'condition', state.rangerUnleashed ? 'Poisoned' : 'Slow');
+    // The cooldown gates only the selected condition, so a removed packet leaves it ready.
+    if (condition) {
+      state.debilitatingBlowsReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
       queueTraitCondition(
         context,
         event,
-        String(poison?.condition || 'Poisoned'),
-        Number(poison?.duration ?? 5),
-        Number(poison?.stacks ?? 2),
-        TRAIT.DEBILITATING_BLOWS,
-        'Debilitating Blows'
-      );
-    } else {
-      const slow = balanceProfileEffect(profile, 'condition', 1);
-      queueTraitCondition(
-        context,
-        event,
-        String(slow?.condition || 'Slow'),
-        Number(slow?.duration ?? 2),
-        Number(slow?.stacks ?? 2),
+        String(condition.condition),
+        effectNumber(profile, condition, 'duration'),
+        effectNumber(profile, condition, 'stacks'),
         TRAIT.DEBILITATING_BLOWS,
         'Debilitating Blows'
       );
@@ -217,18 +204,21 @@ export function reactToUntamedControl(context: RangerResolverContext, event: Gw2
   }
 
   if (hasTrait(context, TRAIT.ENHANCING_IMPACT) && isInternalCooldownReady(event.at, state.enhancingImpactReadyAt)) {
-    const profile = balanceProfileFromContext(context, PROFILE.enhancingImpact);
-    const effect = balanceProfileEffect(profile, 'boon', state.rangerUnleashed ? 0 : 1);
-    state.enhancingImpactReadyAt = event.at + Number(profile?.internalCooldown ?? 1);
+    const profile = requireBalanceProfileFromContext(context, PROFILE.enhancingImpact);
     // Unleash state determines the boon: Quickness when Ranger unleashed, Stability otherwise.
-    queueTraitBuff(
-      context,
-      event,
-      String(effect?.boon || (state.rangerUnleashed ? 'quickness' : 'stability')),
-      Number(effect?.duration ?? 3),
-      Number(effect?.stacks ?? 1),
-      TRAIT.ENHANCING_IMPACT,
-      'Enhancing Impact'
-    );
+    const effect = requireEffect(profile, 'boon', state.rangerUnleashed ? 'quickness' : 'stability');
+    // The cooldown gates only the selected boon, so a removed packet leaves it ready.
+    if (effect) {
+      state.enhancingImpactReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+      queueTraitBuff(
+        context,
+        event,
+        String(effect.boon),
+        effectNumber(profile, effect, 'duration'),
+        effectNumber(profile, effect, 'stacks'),
+        TRAIT.ENHANCING_IMPACT,
+        'Enhancing Impact'
+      );
+    }
   }
 }

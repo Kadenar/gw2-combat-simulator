@@ -442,8 +442,22 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     castTimeMs: 500
   },
   [ID.WE_HEAL_AS_ONE]: {
-    // The Core completion hook copies live recipient boons
-    effects: [],
-    castTimeMs: 920
+    // The replacement handler leaves these durations for the completion hook to copy active boons.
+    effects: [
+      { type: 'boon', boon: 'aegis', duration: 5 },
+      { type: 'boon', boon: 'alacrity', duration: 3 },
+      { type: 'boon', boon: 'fury', duration: 3 },
+      { type: 'boon', boon: 'might', duration: 10 },
+      { type: 'boon', boon: 'protection', duration: 2 },
+      { type: 'boon', boon: 'quickness', duration: 2 },
+      { type: 'boon', boon: 'regeneration', duration: 5 },
+      { type: 'boon', boon: 'resistance', duration: 2 },
+      { type: 'boon', boon: 'resolution', duration: 5 },
+      { type: 'boon', boon: 'stability', duration: 3 },
+      { type: 'boon', boon: 'swiftness', duration: 3 },
+      { type: 'boon', boon: 'vigor', duration: 3 }
+    ],
+    castTimeMs: 920,
+    handlerId: 'ranger.we-heal-as-one'
   }
 });

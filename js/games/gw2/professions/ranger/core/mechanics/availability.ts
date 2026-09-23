@@ -1,6 +1,9 @@
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -21,7 +24,7 @@ export function rangerCoreCastAvailability(context: RangerCastContext, skill: Ra
   if (selection) return selection;
   const state = professionCoreState(context);
   if (skill.id === ID.DODGE) {
-    const cost = balanceProfileValueFromContext(context, PROFILE.resources, 'resourceCost', 50);
+    const cost = balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'resourceCost');
     return state.endurance + EPSILON >= cost
       ? { ready: true }
       : {
