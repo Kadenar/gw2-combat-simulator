@@ -190,9 +190,9 @@ test('Virtuoso executes a patched shatter tick beside an empty zero-blade tier',
 
   assert.deepEqual(result.warnings, []);
   assert.equal(hit.coefficient, 7);
-  assert.equal(shatter.ticks[5][0].coefficient, 7);
-  assert.equal(shatter.coefficients[0], 0);
-  assert.deepEqual(shatter.ticks[0], []);
+  assert.equal(shatter.strikes[5].ticks[0].coefficient, 7);
+  assert.equal(shatter.strikes[0].coefficient, 0);
+  assert.equal(shatter.strikes[0].ticks, undefined);
   assert.deepEqual(catalog.balanceProfilesById.get(profileId).effects[0], before.effects[0]);
   assert.deepEqual(original, before);
   assert.equal(MESMER_VIRTUOSO_SHATTERS[ID.BLADESONG_HARMONY].ticks[5][0].coefficient, 0.7);

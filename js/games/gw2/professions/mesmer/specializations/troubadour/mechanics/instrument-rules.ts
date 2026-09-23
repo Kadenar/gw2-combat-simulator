@@ -1,9 +1,5 @@
 import { observeSyncopateEvent } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
-import {
-  balanceProfileValueFromContext,
-  balanceProfileFromContext,
-  balanceProfileNumberFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -123,7 +119,7 @@ function completeTroubadourPhantasm(context: MesmerCastContext, skill: MesmerSki
   const runtime = mesmerRuntimeFor(context);
   runtime.resources.queueResources(
     context.fullEnd,
-    balanceProfileValueFromContext(context, TRAIT.HARMONIZE, 'resourceGain', 1),
+    balanceProfileNumberFromContext(context, TRAIT.HARMONIZE, 'resourceGain'),
     runtime.activePrimaryWeapon(),
     'Harmonize',
     { traitId: TRAIT.HARMONIZE, traitName: 'Harmonize' }
@@ -145,7 +141,7 @@ function modifyTroubadourRecharge(context: MesmerRechargeContext, sharedDuration
   const flutePlaying = troubadourState.from(runtime.context).instruments.Flute > runtime.context.state.time;
   return (
     Number(context.skill.cooldown || 0) /
-    (flutePlaying ? Number(balanceProfileFromContext(context, TRAIT.SYMPHONIC_RESONANCE)?.dodgeRechargeSpeed) : 1)
+    (flutePlaying ? balanceProfileNumberFromContext(context, TRAIT.SYMPHONIC_RESONANCE, 'dodgeRechargeSpeed') : 1)
   );
 }
 
@@ -199,7 +195,7 @@ export const troubadourSkillMechanicHandlers = Object.freeze({
     if (!flute || readyAt == null) return;
     context.cooldownController.reduceSkillRecharge(
       flute,
-      balanceProfileValueFromContext(context, TRAIT.MAYHEM, 'rechargeReduction', 1.5),
+      balanceProfileNumberFromContext(context, TRAIT.MAYHEM, 'rechargeReduction'),
       at
     );
     runtime.addTraitProc('Mayhem', at, skill.name);

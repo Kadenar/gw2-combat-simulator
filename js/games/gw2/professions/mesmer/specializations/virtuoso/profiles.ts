@@ -53,27 +53,13 @@ export const VIRTUOSO_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
       }[Number(skillId)] || `Virtuoso Shatter ${skillId}`,
       shatter,
       Number(skillId) === ID.BLADESONG_SORROW
-        ? [
-            {
-              type: 'condition',
-              condition: 'Confusion',
-              duration: 3,
-              stacks: 1
-            }
-          ]
+        ? [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 3, stacks: 1 }]
         : []
     )
   ),
   trait(VIRTUOSO_BALANCE_PROFILE_IDS.deadlyBlades, 'Deadly Blades', {
     durationMultiplier: 7,
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        duration: 5,
-        stacks: 1
-      }
-    ]
+    effects: [{ name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', duration: 5, stacks: 1 }]
   }),
   trait(VIRTUOSO_BALANCE_PROFILE_IDS.quietIntensity, 'Quiet Intensity', {
     phantasmCriticalChance: 0.15,
@@ -84,14 +70,7 @@ export const VIRTUOSO_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     damageMultiplier: 1.05
   }),
   trait(VIRTUOSO_BALANCE_PROFILE_IDS.jaggedMind, 'Jagged Mind', {
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Bleeding',
-        duration: 4,
-        stacks: 1
-      }
-    ]
+    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration: 4, stacks: 1 }]
   }),
   mesmerTraitDamageProfile(
     VIRTUOSO_BALANCE_PROFILE_IDS.phantasmalBlades,

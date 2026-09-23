@@ -61,7 +61,7 @@ export function createResourceController({
     cause: MesmerResourceCause = {}
   ): void => {
     const amount = Math.max(0, Number(count || 0));
-    if (!amount) return;
+    if (!amount || resourceDefinition.maximum <= 0) return;
     let gained = 0;
     const created: Array<{ id: number; weapon: string }> = [];
     const createdClones: MesmerClone[] = [];

@@ -1,5 +1,7 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import {
+  balanceProfileNumberFromContext,
+  requireEffectFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
@@ -14,32 +16,27 @@ const triggerShatterBoon = (
   resolution: MesmerShatterResolution,
   traitId: number,
   traitName: string,
-  fallbackBoon: 'alacrity' | 'quickness'
+  effectName: 'alacrity' | 'quickness'
 ): void => {
   const runtime = mesmerRuntimeFor(context);
   if (!runtime.traits.has(traitId)) return;
 
-  const effect: SkillEffect = runtime.balanceProfile(traitId)?.effects?.find(({ type }) => type === 'boon') ?? {
-    type: 'boon',
-    boon: fallbackBoon,
-    duration: 3,
-    stacks: 1,
-    audience: { recipients: 'party' as const, maximumRecipients: 5 }
-  };
-  const kind = String(effect.boon || fallbackBoon);
+  const effect = requireEffectFromContext(context, 'balance-profile', traitId, 'boon', effectName);
+  if (!effect) return;
+  const kind = String(effect.boon);
   const baseDuration =
-    Number(effect.duration ?? 3) +
-    (resolution.spent + 1) * balanceProfileValueFromContext(context, traitId, 'durationPerTier', 1);
+    Number(effect.duration) +
+    (resolution.spent + 1) * balanceProfileNumberFromContext(context, traitId, 'durationPerTier');
   const duration = gw2SchedulerBoonDuration(context, { id: traitId, name: traitName }, kind, baseDuration);
   runtime.addEvent({
     type: 'buff',
     at: resolution.at,
     kind,
-    stacks: Number(effect.stacks ?? 1),
+    stacks: Number(effect.stacks),
     duration,
     skillName: resolution.skill.name,
     sourceSkill: resolution.skill.name,
-    audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
+    audience: effect.audience
   });
   runtime.addTraitProc(traitName, resolution.at, resolution.skill.name, `${duration}s ${kind}`);
 };
@@ -55,14 +52,14 @@ export function resolveIllusionaryReversion(context: MesmerCastContext, resoluti
   const runtime = mesmerRuntimeFor(context);
   if (
     !runtime.traits.has(TRAIT.ILLUSIONARY_REVERSION) ||
-    resolution.spent !== balanceProfileValueFromContext(context, TRAIT.ILLUSIONARY_REVERSION, 'threshold', 3)
+    resolution.spent !== balanceProfileNumberFromContext(context, TRAIT.ILLUSIONARY_REVERSION, 'threshold')
   ) {
     return;
   }
 
   runtime.resources.queueResources(
     resolution.at,
-    balanceProfileValueFromContext(context, TRAIT.ILLUSIONARY_REVERSION, 'resourceGain', 1),
+    balanceProfileNumberFromContext(context, TRAIT.ILLUSIONARY_REVERSION, 'resourceGain'),
     runtime.activePrimaryWeapon(),
     'Illusionary Reversion',
     {

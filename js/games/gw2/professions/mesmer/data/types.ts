@@ -40,7 +40,7 @@ export interface MesmerConditionEffect extends ConditionEffect {
 export interface MesmerConditionApplication {
   readonly metadata?: EffectMetadata;
   readonly name: string;
-  readonly duration: number;
+  readonly duration?: number;
   readonly stacks?: number;
   readonly applications?: number;
   readonly atMs?: number;

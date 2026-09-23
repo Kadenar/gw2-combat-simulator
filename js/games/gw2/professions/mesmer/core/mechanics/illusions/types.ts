@@ -1,5 +1,5 @@
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { SkillId, StrikeTick } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 
 import type { MesmerResourceCause } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
@@ -13,8 +13,9 @@ export interface MesmerClone {
   nextAttackAt?: number;
 }
 
-export interface MesmerTraitDamage {
+export interface MesmerTraitDamage extends Partial<StrikeEffect> {
   readonly balanceProfileId?: SkillId;
+  readonly name?: string;
   readonly coefficient?: number;
   readonly hits?: number;
   readonly ticks?: readonly StrikeTick[];

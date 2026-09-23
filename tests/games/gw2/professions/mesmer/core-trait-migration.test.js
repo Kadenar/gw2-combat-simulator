@@ -1,3 +1,4 @@
+import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
@@ -17,7 +18,7 @@ test('Master Fencer consumes blocked critical thresholds before its final cooldo
       state: { profession: { core, specialization: { kind: 'Core', state: {} } } },
       traits: new Set(),
       stochastic: false,
-      balanceProfile: () => ({ internalCooldown: duration }),
+      balanceProfile: (id) => ({ ...mesmerCatalog.balanceProfilesById.get(id), internalCooldown: duration }),
       boonDuration: (_boon, duration) => duration,
       addTraitProc(_name, at) {
         assert.equal(core.traitReadyAt[TRAIT.MASTER_FENCER], at + duration);
@@ -239,7 +240,7 @@ test('canonical phantasm ownership triggers Sharper Images without Master Fencer
       procs.push(name);
       return null;
     },
-    balanceProfile: () => undefined
+    balanceProfile: (id) => mesmerCatalog.balanceProfilesById.get(id)
   };
 
   // Canonical summon ownership prevents an illusion hit from also counting as a player hit.

@@ -8,7 +8,8 @@ import type {
   MesmerAddCondition,
   MesmerAddDamage,
   MesmerAddEvent,
-  MesmerAddTraitProc
+  MesmerAddTraitProc,
+  MesmerRuntime
 } from '#gw2/professions/mesmer/types.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import type {
@@ -35,6 +36,7 @@ export interface MesmerSkillDamageController {
 }
 
 interface SkillDamageControllerOptions {
+  readonly balanceProfile: MesmerRuntime['balanceProfile'];
   readonly traits: ReadonlySet<number>;
   readonly phantasms: MesmerPhantasmEffectController;
   readonly addEvent: MesmerAddEvent;
@@ -49,9 +51,10 @@ export function createSkillDamageController({
   addEvent,
   addTraitProc,
   addCondition,
-  addDamage
+  addDamage,
+  balanceProfile
 }: SkillDamageControllerOptions): MesmerSkillDamageController {
-  const fencersFinesseContext = { traits, addEvent, addTraitProc };
+  const fencersFinesseContext = { traits, addEvent, addTraitProc, balanceProfile };
   const schedulePlayerStrike = (
     skill: MesmerSkill,
     group: MesmerStrikeEffect,

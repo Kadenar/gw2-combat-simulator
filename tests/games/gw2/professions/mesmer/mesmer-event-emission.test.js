@@ -1,3 +1,4 @@
+import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -14,6 +15,7 @@ test('phantasm packet and Harmonize commitment preserve their interruption toler
       const packets = [];
       const resources = [];
       const context = {
+        catalog: mesmerCatalog,
         start: 2,
         fullEnd: 4,
         effectiveEnd,

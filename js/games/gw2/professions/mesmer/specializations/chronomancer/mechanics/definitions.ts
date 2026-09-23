@@ -2,7 +2,7 @@
  * Chronomancer-owned formulas and mechanic classifications.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type {
   MesmerPhantasmAttackTiming,
   MesmerTraitDamage
@@ -132,7 +132,7 @@ export const MESMER_CHRONOMANCER_TRAIT_DAMAGE: Readonly<Record<string, MesmerTra
     damageIncrease: 0.1
   }
 });
-export const MESMER_CHRONOMANCER_SHATTERS: Readonly<Record<number, MesmerShatter>> = Object.freeze({
+export const MESMER_CHRONOMANCER_SHATTERS: Readonly<Record<number, MesmerShatterDefinition>> = Object.freeze({
   [ID.CONTINUUM_SPLIT]: {
     slot: 5,
     kind: 'continuum',

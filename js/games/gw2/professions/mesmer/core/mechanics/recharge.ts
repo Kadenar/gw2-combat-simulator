@@ -1,5 +1,5 @@
 /** Applies Core Mesmer availability, recharge, and shatter-ammunition policy. */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2EffectiveCooldown, gw2RechargeRate } from '#gw2/platform/skills/recharge.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerMaximumAmmoContext, MesmerRechargeContext } from '#gw2/professions/mesmer/types.js';
@@ -26,9 +26,9 @@ export function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDurat
     (mesmerRuntimeFor(context).shatters[skill.id] || mesmerRuntimeFor(context).instruments[skill.id]) &&
     traits.has(TRAIT.MASTER_OF_MISDIRECTION)
   )
-    multiplier *= balanceProfileValueFromContext(context, PROFILE.masterOfMisdirection, 'rechargeMultiplier', 0.85);
+    multiplier *= balanceProfileNumberFromContext(context, PROFILE.masterOfMisdirection, 'rechargeMultiplier');
   if (skill.weapon === 'Sword' && traits.has(TRAIT.FENCERS_FINESSE)) {
-    multiplier *= balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'rechargeMultiplier', 0.8);
+    multiplier *= balanceProfileNumberFromContext(context, PROFILE.fencersFinesse, 'rechargeMultiplier');
   }
 
   const rechargeRate = gw2RechargeRate(config, { alacrityRate: 1.25 });
@@ -56,7 +56,7 @@ export function modifyMesmerMaximumAmmo(context: MesmerMaximumAmmoContext, maxim
   const runtime = mesmerRuntimeFor(context);
   const isSlot1 = runtime.shatters[id]?.slot === 1 || runtime.instruments[id]?.slot === 1;
   return isSlot1 && mesmerRuntimeFor(context).traits.has(TRAIT.SHATTER_STORM)
-    ? balanceProfileValueFromContext(context, PROFILE.shatterStorm, 'maximumStacks', 2)
+    ? balanceProfileNumberFromContext(context, PROFILE.shatterStorm, 'maximumStacks')
     : maximum;
 }
 

@@ -17,6 +17,8 @@ export function completeChronomancerTimeBomb(context: MesmerCastContext, skill: 
   if (!runtime.traits.has(TRAIT.TIME_BOMB) || at < state.timeBombUntil) return;
 
   const timeBomb = runtime.traitDamage['Time Bomb'];
+  // The removed explosion cannot arm a timer or emit a synthetic hit.
+  if (timeBomb.type !== 'strike') return;
   const duration = Number(timeBomb.duration || 0);
   // This is the delayed explosion timer; rearming is allowed exactly when it detonates.
   state.timeBombUntil = canonicalTime(at + duration);
@@ -45,8 +47,8 @@ export function completeChronomancerTimeBomb(context: MesmerCastContext, skill: 
       },
       state.timeBombUntil,
       {
-        coefficient: timeBomb.coefficient,
-        hits: timeBomb.hits,
+        ...timeBomb,
+        summonKind: undefined,
         source: 'Player',
         weapon: 'utility'
       }

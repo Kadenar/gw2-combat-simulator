@@ -1,3 +1,4 @@
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { flattenProfessionState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
@@ -13,10 +14,11 @@ import type {
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 
 /** Selects the active specialization's public resource contract at the family boundary. */
-export function mesmerResourceDefinition(specialization: string): MesmerResourceDefinition {
-  if (specialization === 'Virtuoso') return { singular: 'blade', plural: 'blades', maximum: 5 };
-  if (specialization === 'Troubadour') return { singular: 'note', plural: 'notes', maximum: 3 };
-  return { singular: 'clone', plural: 'clones', maximum: 3 };
+export function mesmerResourceDefinition(specialization: string, context: unknown): MesmerResourceDefinition {
+  const maximum = balanceProfileNumberFromContext(context, mesmerResourceProfileId(specialization), 'maximumStacks');
+  if (specialization === 'Virtuoso') return { singular: 'blade', plural: 'blades', maximum };
+  if (specialization === 'Troubadour') return { singular: 'note', plural: 'notes', maximum };
+  return { singular: 'clone', plural: 'clones', maximum };
 }
 
 /** Selects the active resource balance profile without making Core own elite profile IDs. */

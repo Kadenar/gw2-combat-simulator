@@ -5,7 +5,8 @@ import type {
   CanonicalCatalog,
   Skill,
   SkillId,
-  StrikeTick
+  StrikeTick,
+  StrikeEffect
 } from '#gw2/platform/engine/skills/types.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
@@ -232,12 +233,14 @@ export interface MesmerUiContext extends Omit<ProfessionUiCallbackContext<Mesmer
 /** UI slice whose callbacks read Mesmer end-state projections. */
 export type MesmerUiSlice = Partial<ProfessionUiContract<Partial<MesmerProfessionState>>>;
 
-export interface MesmerAmbushStrike {
+export interface MesmerAmbushStrike extends Partial<StrikeEffect> {
   readonly coefficient?: number;
   readonly hits?: number;
   readonly atMs?: number;
   readonly castTimeMs?: number;
   readonly damageAtMs?: number;
+  /** Repeated statuses retain their cadence when their sibling strike is removed. */
+  readonly statusAtMs?: readonly number[];
   readonly ticks?: readonly StrikeTick[];
   readonly conditions?: readonly MesmerConditionApplication[];
   readonly boons?: readonly MesmerConditionApplication[];
@@ -255,7 +258,7 @@ export interface MesmerAmbushAttack extends MesmerSkill {
   readonly createsClone?: boolean;
 }
 
-export interface MesmerInstrument {
+export interface MesmerInstrument extends Partial<StrikeEffect> {
   readonly balanceProfileId?: SkillId;
   readonly slot: number;
   readonly instrument: string;

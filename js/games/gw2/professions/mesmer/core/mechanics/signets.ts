@@ -1,7 +1,7 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 /** Owns Signet of Illusions passive scheduling and Core Mesmer signet mechanic callbacks. */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type {
@@ -85,8 +85,7 @@ export function restartSignetIllusionsPassive(context: MesmerSchedulerContext, a
     key: SIGNET_ILLUSIONS_OWNER,
     at: Math.max(
       context.state.time,
-      Math.max(activeAt, readyAt) +
-        balanceProfileValueFromContext(context, PROFILE.signetOfIllusions, 'pulseInterval', 10)
+      Math.max(activeAt, readyAt) + balanceProfileNumberFromContext(context, PROFILE.signetOfIllusions, 'pulseInterval')
     ),
     captured: {}
   });
@@ -99,7 +98,7 @@ export function restartSignetIllusionsPassive(context: MesmerSchedulerContext, a
 export const signetIllusionsPassive = timedEffect<MesmerSchedulerContext, object>({
   id: SIGNET_ILLUSIONS_OWNER,
   priority: -20,
-  interval: (context) => balanceProfileValueFromContext(context, PROFILE.signetOfIllusions, 'pulseInterval', 10),
+  interval: (context) => balanceProfileNumberFromContext(context, PROFILE.signetOfIllusions, 'pulseInterval'),
   effectsAt(context, at) {
     const runtime = mesmerRuntimeFor(context);
     const skill = equippedSignetOfIllusions(context);
@@ -113,7 +112,7 @@ export const signetIllusionsPassive = timedEffect<MesmerSchedulerContext, object
 
     runtime.resources.gainResources(
       at,
-      balanceProfileValueFromContext(context, PROFILE.signetOfIllusions, 'resourceGain', 1),
+      balanceProfileNumberFromContext(context, PROFILE.signetOfIllusions, 'resourceGain'),
       runtime.activePrimaryWeapon(),
       skill.name,
       { sourceSkillId: skill.id }

@@ -1,4 +1,8 @@
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { normalizeSkillEffects } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffectFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
 import {
   defineSkillVariantProfile as variant,
@@ -20,6 +24,7 @@ export const TROUBADOUR_BALANCE_PROFILE_IDS = Object.freeze({
   harmoniousHarp: 'mesmer.troubadour.harmonious-harp',
   harmoniousHarpAlternate: 'mesmer.troubadour.harmonious-harp-alternate',
   deafeningDrum: 'mesmer.troubadour.deafening-drum',
+  torturedMastermind: 'mesmer.troubadour.tale-tortured-mastermind',
   honorableRogue: 'mesmer.troubadour.tale-honorable-rogue',
   soulkeeper: 'mesmer.troubadour.tale-soulkeeper',
   valiantMarshal: 'mesmer.troubadour.tale-valiant-marshal',
@@ -55,6 +60,7 @@ export function mesmerInstrumentProfile(
       ...(instrument.ticks?.length
         ? [
             {
+              name: 'Strike',
               type: 'strike' as const,
               ticks: instrument.ticks,
               timingAnchor: 'castEnd' as const,
@@ -62,15 +68,10 @@ export function mesmerInstrumentProfile(
             }
           ]
         : Number(instrument.hits) > 0
-          ? [
-              {
-                type: 'strike' as const,
-                coefficient: instrument.coefficient,
-                hits: instrument.hits
-              }
-            ]
+          ? [{ name: 'Strike', type: 'strike' as const, coefficient: instrument.coefficient, hits: instrument.hits }]
           : []),
       ...(instrument.conditions || []).map((status) => ({
+        name: status.name,
         type: 'condition' as const,
         condition: status.name,
         duration: status.duration,
@@ -87,27 +88,29 @@ export function mesmerProfiledInstrument(
   instrument: MesmerInstrument,
   balanceProfileId: string
 ): MesmerInstrument {
-  const profile = balanceProfileFromContext(context, balanceProfileId);
-  const strike = balanceProfileEffect(profile, 'strike');
-  const conditions = (profile?.effects || [])
+  const profile = requireBalanceProfileFromContext(context, balanceProfileId);
+  const strike =
+    instrument.ticks?.length || Number(instrument.hits) > 0
+      ? requireEffectFromContext(context, 'balance-profile', balanceProfileId, 'strike', 'Strike')
+      : undefined;
+  const conditions = normalizeSkillEffects(
+    profile.effects || [],
+    `profession=mesmer patch=${profile.balanceDataContext?.patchId ?? '<unknown>'} profile=${profile.id}`
+  )
     .filter((effect) => effect.type === 'condition')
     .map((effect) => ({
-      name: String(effect.condition || ''),
-      duration: Number(effect.duration || 0),
-      stacks: Number(effect.stacks ?? 1),
-      ...(effect.applications == null ? {} : { applications: Number(effect.applications) })
+      ...effect,
+      summonKind: undefined,
+      name: String(effect.condition ?? effect.name)
     }));
   return {
-    ...instrument,
+    slot: instrument.slot,
+    instrument: instrument.instrument,
+    damageAtMs: instrument.damageAtMs,
+    persistsAfterInterrupt: instrument.persistsAfterInterrupt,
     balanceProfileId,
-    ...(strike?.ticks?.length
-      ? { coefficient: undefined, hits: undefined, ticks: strike.ticks }
-      : {
-          coefficient: Number(strike?.coefficient ?? instrument.coefficient),
-          hits: Number(strike?.hits ?? instrument.hits),
-          ticks: undefined
-        }),
-    conditions: profile ? conditions : instrument.conditions
+    ...strike,
+    conditions
   };
 }
 
@@ -141,7 +144,7 @@ export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     durationMultiplier: 5,
     durationPerTier: 5,
     damageIncrease: 0.1,
-    effects: [{ type: 'buff', kind: 'distortion', duration: 2, stacks: 1 }]
+    effects: [{ name: 'distortion', type: 'buff', kind: 'distortion', duration: 2, stacks: 1 }]
   },
   ...Object.entries(MESMER_TROUBADOUR_INSTRUMENTS).map(([skillId, instrument]) =>
     mesmerInstrumentProfile(
@@ -158,40 +161,39 @@ export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
       instrument
     )
   ),
+  tale(
+    TROUBADOUR_BALANCE_PROFILE_IDS.torturedMastermind,
+    ID.TALE_OF_THE_TORTURED_MASTERMIND,
+    'Tale of the Tortured Mastermind',
+    []
+  ),
   tale(TROUBADOUR_BALANCE_PROFILE_IDS.honorableRogue, ID.TALE_OF_THE_HONORABLE_ROGUE, 'Tale of the Honorable Rogue', [
-    { type: 'boon', boon: 'aegis', duration: 4, stacks: 1 }
+    { name: 'aegis', type: 'boon', boon: 'aegis', duration: 4, stacks: 1 }
   ]),
   tale(
     TROUBADOUR_BALANCE_PROFILE_IDS.soulkeeper,
     ID.TALE_OF_THE_SOULKEEPER,
     'Tale of the Soulkeeper',
     [
-      { type: 'boon', boon: 'might', duration: 15, stacks: 10 },
-      { type: 'boon', boon: 'fury', duration: 10, stacks: 1 },
-      { type: 'boon', boon: 'quickness', duration: 4, stacks: 1 }
+      { name: 'might', type: 'boon', boon: 'might', duration: 15, stacks: 10 },
+      { name: 'fury', type: 'boon', boon: 'fury', duration: 10, stacks: 1 },
+      { name: 'quickness', type: 'boon', boon: 'quickness', duration: 4, stacks: 1 }
     ],
     2
   ),
   tale(TROUBADOUR_BALANCE_PROFILE_IDS.valiantMarshal, ID.TALE_OF_THE_VALIANT_MARSHAL, 'Tale of the Valiant Marshal', [
-    { type: 'boon', boon: 'stability', duration: 4, stacks: 5 },
-    { type: 'boon', boon: 'resistance', duration: 3, stacks: 1 }
+    { name: 'stability', type: 'boon', boon: 'stability', duration: 4, stacks: 5 },
+    { name: 'resistance', type: 'boon', boon: 'resistance', duration: 3, stacks: 1 }
   ]),
   trait(TROUBADOUR_BALANCE_PROFILE_IDS.harmonize, 'Harmonize', {
     resourceGain: 1
   }),
   trait(TROUBADOUR_BALANCE_PROFILE_IDS.mayhem, 'Mayhem', {
     rechargeReduction: 1.5,
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Torment',
-        duration: 5,
-        stacks: 4
-      }
-    ]
+    effects: [{ name: 'Torment', type: 'condition', condition: 'Torment', duration: 5, stacks: 4 }]
   }),
   trait(TROUBADOUR_BALANCE_PROFILE_IDS.raconteur, 'Raconteur', {
-    effects: [{ type: 'boon', boon: 'protection', duration: 3, stacks: 1 }]
+    effects: [{ name: 'protection', type: 'boon', boon: 'protection', duration: 3, stacks: 1 }]
   }),
   SYNCOPATE_PROFILE,
   {
@@ -200,11 +202,11 @@ export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     name: 'Crescendo',
     profileKind: 'skill-variant',
     damageIncreasePerStack: 0.25,
-    effects: [{ type: 'strike', coefficient: 2.25, hits: 1 }]
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 2.25, hits: 1 }]
   },
   trait(TROUBADOUR_BALANCE_PROFILE_IDS.shredding, 'Shredding', {
     damageIncrease: 0.15,
-    effects: [{ type: 'strike', coefficient: 1, hits: 1, atMs: 600 }]
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 1, hits: 1, atMs: 600 }]
   }),
   trait(TROUBADOUR_BALANCE_PROFILE_IDS.lifeOfTheParty, 'Life of the Party', {
     effects: [
@@ -260,13 +262,6 @@ export const TROUBADOUR_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
   trait(TROUBADOUR_BALANCE_PROFILE_IDS.alteredChord, 'Altered Chord', {
     rechargeReduction: 2,
     durationMultiplier: 10,
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Confusion',
-        duration: 8,
-        stacks: 5
-      }
-    ]
+    effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 8, stacks: 5 }]
   })
 ]);

@@ -2,7 +2,7 @@ import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/m
 import { scheduleDeclarativeEffects } from '#gw2/platform/execution/effect-adapter.js';
 import { applyCryOfPain } from '#gw2/professions/mesmer/core/traits/index.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerShatterResolverRequest,
@@ -15,96 +15,94 @@ export function resolveBladesong(
   { skill, shatter, at, castStart, spent }: MesmerShatterResolverRequest
 ): readonly MesmerShatterTraitHit[] {
   const runtime = mesmerRuntimeFor(context);
-  const packetTicks = () => {
-    const ticks = shatter.ticks?.[spent];
-    if (!ticks?.length) throw new TypeError(`${skill.name} requires explicit strike ticks for ${spent} blades.`);
-    return ticks;
-  };
+  const strike = shatter.strikes[spent];
+  const packetTicks = () => strike?.ticks ?? [];
 
   const addBladeDamage = (ticks: readonly { readonly atMs: number; readonly coefficient: number }[]) =>
-    runtime.addDamage(
-      skill,
-      at,
-      {
-        ticks,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        source: 'Player',
-        weaponStrengthProfileId: 'nonweapon.profession-mechanic'
-      },
-      { metadata: { shatterTraitEligible: true, blade: true } }
-    );
+    strike
+      ? runtime.addDamage(
+          skill,
+          at,
+          {
+            ...strike,
+            name: undefined,
+            summonKind: undefined,
+            ...(ticks.length ? { ticks } : {}),
+            timingAnchor: 'castStart',
+            timingScale: 'fixed',
+            source: 'Player',
+            weaponStrengthProfileId: 'nonweapon.profession-mechanic'
+          },
+          { metadata: { shatterTraitEligible: true, blade: true } }
+        )
+      : [];
 
   if (shatter.kind === 'blade-power') {
     const ticks = packetTicks();
-    addBladeDamage(ticks);
-    return ticks.map((tick) => ({ at: at + tick.atMs / 1000, count: 1 }));
+    return addBladeDamage(ticks).map((event) => ({ at: event.at, count: 1 }));
   }
 
   if (shatter.kind === 'blade-confusion') {
-    const baseConfusion = mesmerConditionFromProfile(context, shatter.balanceProfileId || skill.id, {
-      name: 'Confusion',
-      duration: 3,
-      stacks: 1
-    });
+    const baseConfusion = mesmerConditionFromProfile(context, shatter.balanceProfileId || skill.id, 'Confusion');
     const confusion = applyCryOfPain(runtime, baseConfusion);
-    const duration = Number(confusion.duration || 0);
-    const stacks = Number(confusion.stacks ?? 1);
     const ticks = packetTicks();
 
-    addBladeDamage(ticks);
-    runtime.addCondition(skill.name, at, {
-      name: 'Confusion',
-      duration,
-      ticks: ticks.map((tick) => ({
-        atMs: tick.atMs,
-        condition: 'Confusion',
-        duration,
-        stacks
-      })),
-      timingAnchor: 'castStart',
-      timingScale: 'fixed'
-    });
-    return ticks.map((tick) => ({ at: at + tick.atMs / 1000, count: 1 }));
+    const hits = addBladeDamage(ticks);
+    if (confusion)
+      runtime.addCondition(skill.name, at, {
+        name: 'Confusion',
+        duration: confusion.duration,
+        ticks: (strike?.ticks?.map((tick) => tick.atMs) ?? shatter.conditionAtMs?.[spent] ?? []).map((atMs) => ({
+          atMs,
+          condition: 'Confusion',
+          duration: Number(confusion.duration),
+          stacks: Number(confusion.stacks)
+        })),
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      });
+    return hits.map((event) => ({ at: event.at, count: 1 }));
   }
 
   if (shatter.kind === 'blade-control') {
     // A blade cannot impact before the activation has actually committed its resource spend.
     const damageAt = Math.max(at, castStart + Number(shatter.damageAtMs || 0) / 1000);
-    runtime.addDamage(
-      skill,
-      damageAt,
-      {
-        coefficient: shatter.coefficients[spent],
-        hits: 1,
-        source: 'Player',
-        weaponStrengthProfileId: 'nonweapon.profession-mechanic'
-      },
-      { metadata: { shatterTraitEligible: true, blade: true } }
-    );
+    if (strike)
+      runtime.addDamage(
+        skill,
+        damageAt,
+        {
+          ...strike,
+          name: undefined,
+          summonKind: undefined,
+          hits: 1,
+          source: 'Player',
+          weaponStrengthProfileId: 'nonweapon.profession-mechanic'
+        },
+        { metadata: { shatterTraitEligible: true, blade: true } }
+      );
     scheduleDeclarativeEffects(context, skill, context.reservationId, castStart, damageAt, damageAt);
-    return [{ at: damageAt, count: 1 }];
+    return strike ? [{ at: damageAt, count: 1 }] : [];
   }
 
   if (shatter.kind === 'blade-requiem') {
     const ticks = [...packetTicks()];
     // Fragmentation extends the spinning blades by one pulse with the same damage as the last pulse.
-    if (runtime.traits.has(TRAIT.MASTER_OF_FRAGMENTATION)) {
+    if (ticks.length && runtime.traits.has(TRAIT.MASTER_OF_FRAGMENTATION)) {
       const last = ticks[ticks.length - 1];
       ticks.push({
         ...last,
         atMs:
           last.atMs +
-          balanceProfileValueFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION, 'durationMultiplier', 1) * 1000
+          balanceProfileNumberFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION, 'durationMultiplier') * 1000
       });
     }
 
-    addBladeDamage(ticks);
-    return ticks.map((tick) => ({ at: at + tick.atMs / 1000, count: 1 }));
+    return addBladeDamage(ticks).map((event) => ({ at: event.at, count: 1 }));
   }
 
   if (shatter.kind === 'blade-defense') {
-    return [{ at, count: 1 }];
+    return strike ? [{ at, count: 1 }] : [];
   }
 
   throw new Error(`Unsupported Bladesong kind: ${shatter.kind}.`);

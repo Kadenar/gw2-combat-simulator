@@ -2,7 +2,7 @@
  * Core-owned formulas and mechanic classifications.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type {
   MesmerCloneAttack,
   MesmerPhantasmAttackTiming,
@@ -259,7 +259,7 @@ export const MESMER_CORE_TRAIT_DAMAGE: Readonly<Record<string, MesmerTraitDamage
     cooldown: 28
   }
 });
-export const MESMER_CORE_SHATTERS: Readonly<Record<number, MesmerShatter>> = Object.freeze({
+export const MESMER_CORE_SHATTERS: Readonly<Record<number, MesmerShatterDefinition>> = Object.freeze({
   [ID.CRY_OF_FRUSTRATION]: {
     slot: 2,
     kind: 'confusion',

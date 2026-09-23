@@ -47,8 +47,7 @@ export const virtuosoUi: MesmerUiSlice = Object.freeze({
     mesmerResourceViews(context, {
       id: 'blades',
       singular: 'blade',
-      plural: 'blades',
-      maximum: 5
+      plural: 'blades'
     }),
   paletteSkillAvailability: virtuosoPaletteSkillAvailability
 });

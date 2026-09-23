@@ -1,5 +1,8 @@
 /** Owns imperative Core Mesmer Chaos trait effects. */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileNumberFromContext,
+  requireEffectFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -62,14 +65,14 @@ export function triggerChaoticInterruption(
   // Only affects weapon skills that are recharging.
   const readyAt = Number(context.state.cooldowns.get(targetId) || 0);
   if (!(readyAt > event.at + EPSILON)) return;
-  const reduction = balanceProfileValueFromContext(context, TRAIT.CHAOTIC_INTERRUPTION, 'recharge', 5);
+  const reduction = balanceProfileNumberFromContext(context, TRAIT.CHAOTIC_INTERRUPTION, 'recharge');
   const target = context.catalog.skillsById.get(targetId);
   if (!target) return;
   context.cooldownController.reduceSkillRecharge(target, reduction, event.at);
 
   if (defiant) {
     core.traitReadyAt[TRAIT.CHAOTIC_INTERRUPTION] =
-      event.at + balanceProfileValueFromContext(context, TRAIT.CHAOTIC_INTERRUPTION, 'internalCooldown', 1);
+      event.at + balanceProfileNumberFromContext(context, TRAIT.CHAOTIC_INTERRUPTION, 'internalCooldown');
   }
 
   runtime.addTraitProc(
@@ -88,15 +91,22 @@ export function triggerIllusionaryMembrane(
   at: number
 ): void {
   if (shatter?.slot !== 2 || !context.traits.has(TRAIT.ILLUSIONARY_MEMBRANE)) return;
-  const effect = context.balanceProfile(TRAIT.ILLUSIONARY_MEMBRANE)?.effects?.find(({ type }) => type === 'buff');
+  const effect = requireEffectFromContext(
+    context,
+    'balance-profile',
+    TRAIT.ILLUSIONARY_MEMBRANE,
+    'buff',
+    'illusionary-membrane'
+  );
+  if (!effect) return;
   context.addEvent({
     type: 'buff',
     at,
     // Resolve after the same-time shatter packets without inventing elapsed time.
     priority: 5,
     kind: 'illusionary-membrane',
-    stacks: Number(effect?.stacks ?? 1),
-    duration: Number(effect?.duration ?? 15)
+    stacks: Number(effect.stacks),
+    duration: Number(effect.duration)
   });
   context.addTraitProc('Illusionary Membrane', at, skillName);
 }
@@ -111,7 +121,8 @@ export function triggerMethodOfMadness(
   if (!context.traits.has(TRAIT.METHOD_OF_MADNESS)) return;
   const readyAt = professionCoreState(context.state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] || 0;
   if (!isInternalCooldownReady(at, readyAt)) return;
-  if (!storm.ticks?.length) throw new TypeError('Lesser Chaos Storm requires explicit strike ticks.');
+  // A removed storm has no attack, proc, or attack-owned cooldown.
+  if (storm.type !== 'strike') return;
   context.addDamage(
     {
       id: 'Lesser Chaos Storm',
@@ -121,7 +132,8 @@ export function triggerMethodOfMadness(
     },
     at,
     {
-      ticks: storm.ticks,
+      ...storm,
+      summonKind: undefined,
       timingAnchor: 'castStart',
       timingScale: 'fixed',
       source: 'Player',

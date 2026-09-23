@@ -1,3 +1,4 @@
+import { requireEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   tooltipFactorChange,
   tooltipSeconds,
@@ -25,8 +26,10 @@ import {
 import { VIRTUOSO_SHATTER_PROFILE_IDS } from '#gw2/professions/mesmer/specializations/virtuoso/profiles.js';
 import {
   MIRAGE_BALANCE_PROFILE_IDS as MIRAGE,
-  MIRAGE_AMBUSH_PROFILE_IDS
+  MIRAGE_AMBUSH_PROFILE_IDS,
+  mesmerProfiledAmbush
 } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
+import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import {
   TROUBADOUR_BALANCE_PROFILE_IDS as TROUBADOUR,
   TROUBADOUR_INSTRUMENT_PROFILE_IDS
@@ -52,9 +55,16 @@ const shatterTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
     balanceContext,
     { ...MESMER_CORE_SHATTER_PROFILE_IDS, ...CHRONOMANCER_SHATTER_PROFILE_IDS, ...VIRTUOSO_SHATTER_PROFILE_IDS }[id]
   );
-  const payloads = (profile.effects || []).filter((effect) => effect.type === 'strike');
   const native = balanceContext.catalog.skillsById.get(entity.id)!;
-  const facts = payloads.flatMap((effect, tier) => {
+  // Resolve by resource tier so removing a strike cannot relabel its surviving neighbors.
+  const facts = definition.coefficients.flatMap((_, tier) => {
+    const effect = requireEffectFromContext(
+      balanceContext,
+      'balance-profile',
+      profile.id,
+      'strike',
+      `${tier} resources`
+    );
     if (bladesong && tier === 0) return [];
     const sources = bladesong ? tier : tier + 1;
     const qualifier = `${tier} ${bladesong ? 'blades' : 'clones'} spent`;
@@ -63,7 +73,7 @@ const shatterTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
       : definition.kind === 'power' || definition.kind === 'confusion';
     return simulationEffectFacts(
       [
-        ...(strike
+        ...(strike && effect
           ? [
               {
                 ...effect,
@@ -210,9 +220,13 @@ export const mesmerTooltips: ProfessionTooltips = {
     'mesmer.ambush': (balanceContext, entity) => {
       const selected = balanceContext.catalog.skillsById.get(entity.id)!;
       const profile = tooltipProfile(balanceContext, MIRAGE_AMBUSH_PROFILE_IDS[String(selected.weapon)]);
-      const playerPackets =
-        profile.effects?.filter((effect) => effect.type === 'strike').find((effect) => effect.source === 'Player')
-          ?.ticks?.length ?? 1;
+      // Describe repeated statuses with the same independent cadence used by the runtime.
+      const { player } = mesmerProfiledAmbush(
+        balanceContext,
+        MESMER_MIRAGE_AMBUSH_SKILLS[String(selected.weapon)],
+        MIRAGE_AMBUSH_PROFILE_IDS[String(selected.weapon)]
+      );
+      const playerPackets = (player.ticks ?? player.statusAtMs)?.length ?? 1;
       const facts = (profile.effects || []).flatMap((effect) => {
         const clone = effect.source === 'Clone';
         const repeated = !clone && (effect.type === 'boon' || (effect.type === 'condition' && effect.source == null));

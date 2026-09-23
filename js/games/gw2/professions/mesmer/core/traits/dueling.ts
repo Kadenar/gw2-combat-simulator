@@ -1,9 +1,8 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 /** Owns imperative Core Mesmer Dueling trait effects. */
 import {
-  balanceProfileFromContext,
-  balanceProfileEffect,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
@@ -49,7 +48,8 @@ type BlindingDissipationContext = Pick<MesmerRuntime, 'traits' | 'addEvent' | 'a
 function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerResolverEvent, detail: string): void {
   if (!context.traits.has(TRAIT.INEPTITUDE)) return;
   const count = Math.max(1, Math.trunc(Number(event.count || 1)));
-  const effect = balanceProfileEffect(balanceProfileFromContext(context, TRAIT.INEPTITUDE), 'condition');
+  const effect = requireEffectFromContext(context, 'balance-profile', TRAIT.INEPTITUDE, 'condition', 'Confusion');
+  if (!effect) return;
   context.recordProc(
     'trait',
     'Ineptitude',
@@ -64,9 +64,9 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
       at: event.at,
       name: `${event.skillName} — Ineptitude`,
       skillName: event.skillName,
-      condition: String(effect?.condition || 'Confusion'),
-      duration: Number(effect?.duration ?? 5),
-      stacks: Number(effect?.stacks ?? 2) * count,
+      condition: String(effect.condition),
+      duration: Number(effect.duration),
+      stacks: Number(effect.stacks) * count,
       source: 'Player',
       sourceId: TRAIT.INEPTITUDE,
       actorType: 'player'
@@ -77,11 +77,13 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
 /** Applies the interrupt half of Ineptitude with its defiant-target interval. */
 export function triggerIneptitudeFromInterrupt(context: MesmerResolverContext, event: MesmerResolverEvent): void {
   if (!context.traits.has(TRAIT.INEPTITUDE)) return;
+  // A removed Confusion packet owns no interrupt cooldown.
+  if (!requireEffectFromContext(context, 'balance-profile', TRAIT.INEPTITUDE, 'condition', 'Confusion')) return;
   const defiant = Boolean(context.config.target?.defiant);
   if (defiant && !isInternalCooldownReady(event.at, context.profession.ineptitudeReadyAt)) return;
   if (defiant) {
     context.profession.ineptitudeReadyAt =
-      event.at + balanceProfileValueFromContext(context, TRAIT.INEPTITUDE, 'internalCooldown', 3);
+      event.at + balanceProfileNumberFromContext(context, TRAIT.INEPTITUDE, 'internalCooldown');
   }
 
   applyIneptitudeConfusion(context, { ...event, count: defiant ? 1 : event.count }, 'interrupt → blind → confusion');
@@ -106,7 +108,7 @@ export function triggerBlindingDissipation(
 
 /** Emits Fencer's Finesse stacks at the materialized sword-hit cadence. */
 export function emitFencersFinesseStacks(
-  context: FencersFinesseContext,
+  context: FencersFinesseContext & Pick<MesmerRuntime, 'balanceProfile'>,
   skill: MesmerSkill,
   hitTimes: readonly number[],
   hits: number | undefined
@@ -115,6 +117,9 @@ export function emitFencersFinesseStacks(
     return Infinity;
   }
 
+  // Stack lifetime and cap come from the selected trait profile.
+  const duration = balanceProfileNumberFromContext(context, TRAIT.FENCERS_FINESSE, 'durationMultiplier');
+  const maximum = balanceProfileNumberFromContext(context, TRAIT.FENCERS_FINESSE, 'maximumStacks');
   const hitCount = Math.max(1, Math.trunc(Number(hits || 1)));
   if (hitTimes.length === hitCount) {
     for (const hitAt of hitTimes) {
@@ -125,7 +130,7 @@ export function emitFencersFinesseStacks(
         priority: 5,
         kind: 'fencer',
         stacks: 1,
-        duration: 6
+        duration
       });
     }
 
@@ -137,8 +142,8 @@ export function emitFencersFinesseStacks(
     at: hitTimes[0],
     priority: 5,
     kind: 'fencer',
-    stacks: Math.min(10, hitCount),
-    duration: 6
+    stacks: Math.min(maximum, hitCount),
+    duration
   });
   return hitTimes[0];
 }
@@ -171,6 +176,11 @@ export function triggerMasterFencer(
   }
 
   const core = professionCoreState(context.state);
+  const furyEffects = ['Self Fury', 'Allied Fury'].flatMap((name) => {
+    const effect = requireEffectFromContext(context, 'balance-profile', TRAIT.MASTER_FENCER, 'boon', name);
+    return effect ? [effect] : [];
+  });
+  if (!furyEffects.length) return;
   const tracker = { progress: core.masterFencerProgress, readyAt: 0 };
   const application = advanceCriticalProc(
     criticalOpportunity(chance, typeof event.didCrit === 'boolean' ? event.didCrit : undefined),
@@ -187,16 +197,17 @@ export function triggerMasterFencer(
   // its ICD, so cooldown gating remains after the shared progress advance.
   if (!application) return;
 
-  const profile = context.balanceProfile(TRAIT.MASTER_FENCER);
-  if (!tryConsumeProcCooldown(core.traitReadyAt, TRAIT.MASTER_FENCER, event.at, Number(profile?.internalCooldown ?? 8)))
+  if (
+    !tryConsumeProcCooldown(
+      core.traitReadyAt,
+      TRAIT.MASTER_FENCER,
+      event.at,
+      balanceProfileNumberFromContext(context, TRAIT.MASTER_FENCER, 'internalCooldown')
+    )
+  )
     return;
   context.addTraitProc('Master Fencer', event.at, event.skillName, '8s self fury, 4s allied fury');
-  const furyEffects = (profile?.effects || []).filter((effect) => effect.type === 'boon');
-  for (const [index, application] of [
-    { audience: { recipients: 'self' as const }, duration: 8 },
-    { audience: { recipients: 'party' as const }, duration: 4 }
-  ].entries()) {
-    const effect = furyEffects[index];
+  for (const effect of furyEffects) {
     context.emitEvent(event, {
       type: 'buff',
       at: event.at,
@@ -205,11 +216,11 @@ export function triggerMasterFencer(
       actorType: 'player',
       skillId: TRAIT.MASTER_FENCER,
       skillName: 'Master Fencer',
-      name: `Master Fencer — ${application.audience.recipients} fury`,
+      name: `Master Fencer — ${effect.audience?.recipients ?? 'self'} fury`,
       kind: 'fury',
-      duration: context.boonDuration(String(effect?.boon || 'fury'), Number(effect?.duration ?? application.duration)),
-      stacks: Number(effect?.stacks ?? 1),
-      audience: effect?.audience ?? application.audience
+      duration: context.boonDuration(String(effect.boon), Number(effect.duration)),
+      stacks: Number(effect.stacks),
+      audience: effect.audience
     });
   }
 }
@@ -225,6 +236,8 @@ export function triggerSharperImages(
   }
 
   const core = professionCoreState(context.state);
+  const effect = requireEffectFromContext(context, 'balance-profile', TRAIT.SHARPER_IMAGES, 'condition', 'Bleeding');
+  if (!effect) return;
   const tracker = { progress: core.sharperImagesProgress, readyAt: 0 };
   const application = advanceCriticalProc(
     criticalOpportunity(chance, typeof event.didCrit === 'boolean' ? event.didCrit : undefined),
@@ -238,7 +251,6 @@ export function triggerSharperImages(
   core.sharperImagesProgress = tracker.progress;
   if (!application) return;
   const procCount = application.quantity;
-  const effect = context.balanceProfile(TRAIT.SHARPER_IMAGES)?.effects?.find(({ type }) => type === 'condition');
 
   context.emitEvent(event, {
     type: 'condition',
@@ -246,8 +258,8 @@ export function triggerSharperImages(
     name: `${event.name} — Sharper Images`,
     skillName: event.skillName,
     condition: 'Bleeding',
-    duration: Number(effect?.duration ?? 5),
-    stacks: procCount * Number(effect?.stacks ?? 1),
+    duration: Number(effect.duration),
+    stacks: procCount * Number(effect.stacks),
     source: 'Player',
     sourceId: TRAIT.SHARPER_IMAGES,
     actorType: 'player'

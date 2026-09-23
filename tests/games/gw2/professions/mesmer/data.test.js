@@ -236,6 +236,7 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
   assert.deepEqual(profile('Chronomancer', CHRONOMANCER_BALANCE_PROFILE_IDS.stretchedTime).profile.effects[0], {
     type: 'boon',
     boon: 'alacrity',
+    name: 'alacrity',
     duration: 3,
     stacks: 1,
     audience: { recipients: 'party', maximumRecipients: 5 }
@@ -319,6 +320,7 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
   assert.deepEqual(preview.balanceProfilesById.get(CHRONOMANCER_BALANCE_PROFILE_IDS.seizeTheMoment).effects[0], {
     type: 'boon',
     boon: 'quickness',
+    name: 'quickness',
     duration: 4,
     stacks: 1,
     audience: { recipients: 'party', maximumRecipients: 10 }
@@ -333,7 +335,10 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
     MESMER_CORE_SHATTER_PROFILE_IDS
   )[ID.MIND_WRACK];
 
-  assert.deepEqual(profiledShatter.coefficients, [0.81, 1.75, 2.42, 3.22]);
+  assert.deepEqual(
+    profiledShatter.strikes.map((strike) => strike.coefficient),
+    [0.81, 1.75, 2.42, 3.22]
+  );
   assert.equal(
     mesmerProfiledAmbush({ catalog: preview }, AMBUSH_ATTACKS.Axe, MIRAGE_AMBUSH_PROFILE_IDS.Axe).player.coefficient,
     1.1

@@ -57,7 +57,6 @@ export const troubadourUi: MesmerUiSlice = Object.freeze({
       id: 'notes',
       singular: 'note',
       plural: 'notes',
-      maximum: 3,
       pipStyle: 'mesmer-notes'
     });
     if (!activeInstruments.length) return notes;

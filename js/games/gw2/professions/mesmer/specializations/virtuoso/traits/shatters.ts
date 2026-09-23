@@ -1,4 +1,4 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
@@ -10,14 +10,14 @@ export function resolveInfiniteForgeRefund(context: MesmerCastContext, resolutio
   const runtime = mesmerRuntimeFor(context);
   if (
     !runtime.traits.has(TRAIT.INFINITE_FORGE) ||
-    resolution.spent < balanceProfileValueFromContext(context, TRAIT.INFINITE_FORGE, 'threshold', 5)
+    resolution.spent < balanceProfileNumberFromContext(context, TRAIT.INFINITE_FORGE, 'threshold')
   ) {
     return;
   }
 
   runtime.resources.queueResources(
     resolution.at,
-    balanceProfileValueFromContext(context, TRAIT.INFINITE_FORGE, 'resourceGain', 2),
+    balanceProfileNumberFromContext(context, TRAIT.INFINITE_FORGE, 'resourceGain'),
     runtime.activePrimaryWeapon(),
     'Infinite Forge refund',
     {

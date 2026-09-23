@@ -20,7 +20,8 @@ export const mesmerAppAdapter = definePatchedProfessionApp({
   runtime: {
     buildConfigInputs(app, { specialization }) {
       const build = app.build as MesmerCanonicalBuild;
-      const startsWithClones = mesmerProfession.ui.resourceViews({ specialization })[0]?.singular === 'clone';
+      // Initial clones are disabled by build policy, independent of the selected resource capacity.
+      const startsWithClones = specialization !== 'Virtuoso' && specialization !== 'Troubadour';
       return { initialResource: startsWithClones ? 0 : build.initialResource };
     }
   },

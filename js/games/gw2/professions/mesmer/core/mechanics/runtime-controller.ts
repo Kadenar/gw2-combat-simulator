@@ -2,14 +2,14 @@ import { EPSILON } from '#kernel/core/clock.js';
 /** Connects Core Mesmer resources, profession actions, player effects, and illusions into one simulation runtime. */
 import {
   balanceProfileFromContext,
-  balanceProfileValueFromContext
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerResourceDefinition, mesmerResourceProfileId } from '#gw2/professions/mesmer/family-state.js';
+import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerRuntime, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import {
   MESMER_CORE_CLONE_ATTACKS,
@@ -51,8 +51,8 @@ function runtimeTraitsPhantasmSpawnModifiers(
   if (!traits.has(TRAIT.BOUNTIFUL_BLADES)) return {};
   return {
     [ID.PHANTASMAL_BERSERKER]: {
-      countMultiplier: balanceProfileValueFromContext(context, PROFILE.bountifulBlades, 'summons', 2),
-      damageMultiplier: balanceProfileValueFromContext(context, PROFILE.bountifulBlades, 'damageMultiplier', 0.66)
+      countMultiplier: balanceProfileNumberFromContext(context, PROFILE.bountifulBlades, 'summons'),
+      damageMultiplier: balanceProfileNumberFromContext(context, PROFILE.bountifulBlades, 'damageMultiplier')
     }
   };
 }
@@ -70,16 +70,7 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
   const { state, config, catalog } = context;
   // Normalize canonical selected IDs once for all Mesmer controllers.
   const traits = new Set((config.selectedTraitIds || []).map(Number));
-  const baseResourceDefinition = mesmerResourceDefinition(config.specialization);
-  const resourceDefinition = {
-    ...baseResourceDefinition,
-    maximum: balanceProfileValueFromContext(
-      context,
-      mesmerResourceProfileId(config.specialization),
-      'maximumStacks',
-      baseResourceDefinition.maximum
-    )
-  };
+  const resourceDefinition = mesmerResourceDefinition(config.specialization, context);
   const skillsById = catalog.skillsById;
   const allSkills = catalog.skills;
   const flipSkillsByParent = new Map<SkillId, MesmerSkill>(

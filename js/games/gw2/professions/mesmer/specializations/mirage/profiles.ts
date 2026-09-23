@@ -1,5 +1,15 @@
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { BalanceProfile, SkillEffect, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
+import { normalizeSkillEffects } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffectFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import type {
+  BalanceProfile,
+  SkillEffect,
+  StrikeEffect,
+  ConditionEffect,
+  StatusEffect
+} from '#gw2/platform/engine/skills/types.js';
 import {
   defineSkillVariantProfile as variant,
   defineTraitProfile as trait
@@ -48,7 +58,7 @@ function attackStatusEffect(status: MesmerConditionApplication, source: 'Player'
     type: 'condition',
     source,
     condition: status.name,
-    duration: status.duration,
+    duration: Number(status.duration),
     stacks: status.stacks
   };
 }
@@ -58,7 +68,7 @@ function boonStatusEffect(status: MesmerConditionApplication, source: 'Player' |
     type: 'boon',
     source,
     boon: status.name.toLowerCase(),
-    duration: status.duration,
+    duration: Number(status.duration),
     stacks: status.stacks
   };
 }
@@ -116,17 +126,19 @@ export function mesmerAmbushProfile(id: string, attack: MesmerAmbushAttack): Bal
 // Merge Mirage profile status effects into the base skill while preserving
 // explicit skill overrides and packet ordering.
 function profileStatuses(
-  profile: BalanceProfile | undefined,
+  profile: BalanceProfile,
   type: 'condition' | 'boon',
   source: 'Player' | 'Clone'
 ): MesmerConditionApplication[] {
-  return (profile?.effects || [])
-    .filter((effect) => effect.type === type && effect.source === source)
+  return normalizeSkillEffects(
+    profile.effects || [],
+    `profession=mesmer patch=${profile.balanceDataContext?.patchId ?? '<unknown>'} profile=${profile.id}`
+  )
+    .filter((effect): effect is ConditionEffect | StatusEffect => effect.type === type && effect.source === source)
     .map((effect) => ({
-      name: String(type === 'condition' ? effect.condition || '' : effect.boon || ''),
-      duration: Number(effect.duration || 0),
-      stacks: Number(effect.stacks ?? 1),
-      ...(effect.applications == null ? {} : { applications: Number(effect.applications) })
+      ...effect,
+      summonKind: undefined,
+      name: String(type === 'condition' ? (effect.condition ?? effect.name) : effect.boon)
     }));
 }
 
@@ -136,48 +148,42 @@ export function mesmerProfiledAmbush(
   attack: MesmerAmbushAttack,
   balanceProfileId: string
 ): MesmerAmbushAttack {
-  const profile = balanceProfileFromContext(context, balanceProfileId);
-  const strikes = (profile?.effects || []).filter((effect) => effect.type === 'strike');
-  const playerStrike = strikes.find((effect) => effect.source === 'Player');
-  const cloneStrike = strikes.find((effect) => effect.source === 'Clone');
-  const vulnerability = (profile?.effects || []).find(
-    (effect) => effect.type === 'condition' && effect.condition === 'Vulnerability' && effect.source == null
+  const profile = requireBalanceProfileFromContext(context, balanceProfileId);
+  const playerStrike = requireEffectFromContext(
+    context,
+    'balance-profile',
+    balanceProfileId,
+    'strike',
+    'Player attack'
   );
+  const cloneStrike = requireEffectFromContext(context, 'balance-profile', balanceProfileId, 'strike', 'Clone attack');
+  const vulnerability = attack.vulnerability
+    ? requireEffectFromContext(context, 'balance-profile', balanceProfileId, 'condition', 'Vulnerability')
+    : undefined;
   return {
     ...attack,
     balanceProfileId,
     player: {
-      ...attack.player,
-      ...(playerStrike?.ticks?.length
-        ? { coefficient: undefined, hits: undefined, atMs: undefined, ticks: playerStrike.ticks }
-        : {
-            coefficient: Number(playerStrike?.coefficient ?? attack.player.coefficient),
-            hits: Number(playerStrike?.hits ?? attack.player.hits),
-            atMs: Number(playerStrike?.atMs ?? attack.player.atMs),
-            ticks: undefined
-          }),
-      conditions: profile ? profileStatuses(profile, 'condition', 'Player') : attack.player.conditions,
-      boons: profile ? profileStatuses(profile, 'boon', 'Player') : attack.player.boons
+      castTimeMs: attack.player.castTimeMs,
+      damageAtMs: attack.player.damageAtMs,
+      statusAtMs: attack.player.ticks?.map((tick) => tick.atMs),
+      ...playerStrike,
+      conditions: profileStatuses(profile, 'condition', 'Player'),
+      boons: profileStatuses(profile, 'boon', 'Player')
     },
     clone: {
-      ...attack.clone,
-      ...(cloneStrike?.ticks?.length
-        ? { coefficient: undefined, hits: undefined, atMs: undefined, ticks: cloneStrike.ticks }
-        : {
-            coefficient: Number(cloneStrike?.coefficient ?? attack.clone.coefficient),
-            hits: Number(cloneStrike?.hits ?? attack.clone.hits),
-            atMs: Number(cloneStrike?.atMs ?? attack.clone.atMs),
-            ticks: undefined
-          }),
-      conditions: profile ? profileStatuses(profile, 'condition', 'Clone') : attack.clone.conditions,
-      boons: profile ? profileStatuses(profile, 'boon', 'Clone') : attack.clone.boons
+      castTimeMs: attack.clone.castTimeMs,
+      damageAtMs: attack.clone.damageAtMs,
+      ...cloneStrike,
+      conditions: profileStatuses(profile, 'condition', 'Clone'),
+      boons: profileStatuses(profile, 'boon', 'Clone')
     },
     vulnerability: vulnerability
       ? {
-          duration: Number(vulnerability.duration || 0),
-          stacks: Number(vulnerability.stacks ?? 1)
+          duration: Number(vulnerability.duration),
+          stacks: Number(vulnerability.stacks)
         }
-      : attack.vulnerability
+      : undefined
   };
 }
 
@@ -189,39 +195,32 @@ export const MIRAGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     durationMultiplier: 0.75,
     durationPerTier: 1.5,
     effects: [
-      { type: 'strike', coefficient: 0.6, hits: 1 },
+      { name: 'Strike', type: 'strike', coefficient: 0.6, hits: 1 },
       // Touching a mirror weakens nearby enemies; creating it does not apply the condition.
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 4 },
-      { type: 'buff', kind: 'mirage-mirror', duration: 8, stacks: 1 }
+      { name: 'Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 4 },
+      { name: 'mirage-mirror', type: 'buff', kind: 'mirage-mirror', duration: 8, stacks: 1 }
     ]
   },
   ...Object.entries(MESMER_MIRAGE_AMBUSH_SKILLS).map(([weapon, attack]) =>
     mesmerAmbushProfile(MIRAGE_AMBUSH_PROFILE_IDS[weapon], attack)
   ),
   trait(MIRAGE_BALANCE_PROFILE_IDS.nominalEndurance, "Nomad's Endurance", {
-    effects: [{ type: 'boon', boon: 'vigor', duration: 3, stacks: 1 }]
+    effects: [{ name: 'vigor', type: 'boon', boon: 'vigor', duration: 3, stacks: 1 }]
   }),
   trait(MIRAGE_BALANCE_PROFILE_IDS.selfDeception, 'Self-Deception', {
     resourceGain: 1
   }),
   trait(MIRAGE_BALANCE_PROFILE_IDS.renewingOasis, 'Renewing Oasis', {
-    effects: [{ type: 'boon', boon: 'regeneration', duration: 4, stacks: 1 }]
+    effects: [{ name: 'regeneration', type: 'boon', boon: 'regeneration', duration: 4, stacks: 1 }]
   }),
   trait(MIRAGE_BALANCE_PROFILE_IDS.riddleOfSand, 'Riddle of Sand', {
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Confusion',
-        duration: 4,
-        stacks: 2
-      }
-    ]
+    effects: [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 4, stacks: 2 }]
   }),
   trait(MIRAGE_BALANCE_PROFILE_IDS.desertDistortion, 'Desert Distortion', {
     resourceGain: 1
   }),
   trait(MIRAGE_BALANCE_PROFILE_IDS.mirageMantle, 'Mirage Mantle', {
-    effects: [{ type: 'boon', boon: 'alacrity', duration: 4, stacks: 1 }]
+    effects: [{ name: 'alacrity', type: 'boon', boon: 'alacrity', duration: 4, stacks: 1 }]
   }),
   trait(MIRAGE_BALANCE_PROFILE_IDS.phantomPain, 'Phantom Pain', {
     maximumStacks: 4,

@@ -55,7 +55,11 @@ test('Mirage endurance preserves partial regeneration through Energy sigil grant
     assert.ok(Math.abs(result.planningState.profession.endurance - expected) < 0.01);
     assert.equal(result.planningState.ammo['Dodge / Mirage Cloak'], undefined);
     const view = mesmerProfession.ui
-      .resourceViews({ specialization: 'Mirage', professionState: result.planningState.profession })
+      .resourceViews({
+        catalog: mesmerCatalog,
+        specialization: 'Mirage',
+        professionState: result.planningState.profession
+      })
       .find((resource) => resource.id === 'endurance');
     assert.equal(view.value, result.planningState.profession.endurance);
     assert.equal(view.maximum, 100);

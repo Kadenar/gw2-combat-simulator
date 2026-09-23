@@ -1,5 +1,8 @@
 import { eventReaction, scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  balanceProfileNumberFromContext,
+  requireEffectFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
@@ -37,18 +40,15 @@ export const bloodsongReaction = scheduledReaction<
     const runtime = mesmerRuntimeFor(context);
     const state = virtuosoState.from(context);
     state.bloodsongProgress += Number(payload.stacks || 0);
-    const profile = balanceProfileFromContext(context, TRAIT.BLOODSONG);
-    const threshold = Number(profile?.threshold ?? 5);
+    const threshold = balanceProfileNumberFromContext(context, TRAIT.BLOODSONG, 'threshold');
+    const resourceGain = balanceProfileNumberFromContext(context, TRAIT.BLOODSONG, 'resourceGain');
     // A disabled threshold must not enqueue an unbounded number of blade gains.
     while (threshold > 0 && state.bloodsongProgress >= threshold - PROC_PROGRESS_TOLERANCE) {
       state.bloodsongProgress -= threshold;
-      runtime.resources.queueResources(
-        at,
-        Number(profile?.resourceGain ?? 1),
-        runtime.activePrimaryWeapon(),
-        'Bloodsong',
-        { traitId: TRAIT.BLOODSONG, traitName: 'Bloodsong' }
-      );
+      runtime.resources.queueResources(at, resourceGain, runtime.activePrimaryWeapon(), 'Bloodsong', {
+        traitId: TRAIT.BLOODSONG,
+        traitName: 'Bloodsong'
+      });
     }
   }
 });
@@ -81,7 +81,8 @@ export const jaggedMindReaction = eventReaction<MesmerSchedulerContext>({
       materialization: 'weighted'
     });
     if (!application) return;
-    const effect = balanceProfileEffect(balanceProfileFromContext(context, TRAIT.JAGGED_MIND), 'condition');
+    const effect = requireEffectFromContext(context, 'balance-profile', TRAIT.JAGGED_MIND, 'condition', 'Bleeding');
+    if (!effect) return;
     emitSkillCondition(context, {
       cause: event,
 
@@ -90,8 +91,8 @@ export const jaggedMindReaction = eventReaction<MesmerSchedulerContext>({
       skillName: event.skillName,
       parentSkillName: event.parentSkillName,
       condition: 'Bleeding',
-      duration: Number(effect?.duration ?? 4),
-      stacks: application.quantity * Number(effect?.stacks ?? 1),
+      duration: Number(effect.duration),
+      stacks: application.quantity * Number(effect.stacks),
       source: event.source,
       sourceId: TRAIT.JAGGED_MIND,
       actorType: event.actorType

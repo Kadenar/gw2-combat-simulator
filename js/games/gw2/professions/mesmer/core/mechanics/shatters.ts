@@ -14,9 +14,11 @@ export function resolveCloneShatter(
 ): readonly MesmerShatterTraitHit[] {
   const runtime = mesmerRuntimeFor(context);
   const sources = spent + 1;
+  const strike = shatter.strikes[spent];
 
   const addStrikePackets = (): void => {
-    const ticks = shatter.ticks?.[spent] ?? [{ atMs: 0, coefficient: Number(shatter.coefficients[spent] || 0) }];
+    if (!strike) return;
+    const ticks = strike.ticks ?? [{ atMs: strike.atMs ?? 0, coefficient: strike.coefficient }];
 
     // Each source contributes one hit to every packet, but shatter traits are
     // attached only to the first packet as required by repeat-strike shatters.
@@ -25,6 +27,10 @@ export function resolveCloneShatter(
         skill,
         at + tick.atMs / 1000,
         {
+          ...strike,
+          name: undefined,
+          summonKind: undefined,
+          ticks: undefined,
           coefficient: tick.coefficient,
           hits: sources,
           atMs: 0,
@@ -39,52 +45,55 @@ export function resolveCloneShatter(
   if (shatter.kind === 'power') {
     addStrikePackets();
   } else if (shatter.kind === 'confusion') {
-    runtime.addDamage(
-      skill,
-      at,
-      {
-        coefficient: shatter.coefficients[spent],
-        hits: sources,
-        atMs: 0,
-        source: 'Player',
-        weaponStrengthProfileId: 'nonweapon.profession-mechanic'
-      },
-      { metadata: { shatterTraitEligible: true } }
-    );
+    if (strike)
+      runtime.addDamage(
+        skill,
+        at,
+        {
+          ...strike,
+          name: undefined,
+          summonKind: undefined,
+          hits: sources,
+          atMs: 0,
+          source: 'Player',
+          weaponStrengthProfileId: 'nonweapon.profession-mechanic'
+        },
+        { metadata: { shatterTraitEligible: true } }
+      );
 
-    const baseConfusion = mesmerConditionFromProfile(context, shatter.balanceProfileId || skill.id, {
-      name: 'Confusion',
-      duration: 3,
-      stacks: 1
-    });
+    const baseConfusion = mesmerConditionFromProfile(context, shatter.balanceProfileId || skill.id, 'Confusion');
     const confusion = applyCryOfPain(runtime, baseConfusion);
-    runtime.addCondition(
-      skill.name,
-      at,
-      {
-        ...confusion,
-        stacks: sources * Number(confusion.stacks ?? 1)
-      },
-      'Player',
-      '',
-      { metadata: { shatterTraitEligible: true } }
-    );
+    if (confusion)
+      runtime.addCondition(
+        skill.name,
+        at,
+        {
+          ...confusion,
+          stacks: sources * Number(confusion.stacks ?? 1)
+        },
+        'Player',
+        '',
+        { metadata: { shatterTraitEligible: true } }
+      );
 
     triggerBlindingDissipation(runtime, skill.name, at, sources);
   } else if (shatter.kind === 'defense') {
-    // Zero-coefficient packets preserve defensive shatters as hits for on-hit effects.
-    runtime.addDamage(
-      skill,
-      at,
-      {
-        coefficient: shatter.coefficients[spent],
-        hits: sources,
-        atMs: 0,
-        source: 'Player',
-        weaponStrengthProfileId: 'nonweapon.profession-mechanic'
-      },
-      { metadata: { shatterTraitEligible: true } }
-    );
+    // An authored zero still hits; a removed packet cannot trigger hit traits.
+    if (strike)
+      runtime.addDamage(
+        skill,
+        at,
+        {
+          ...strike,
+          name: undefined,
+          summonKind: undefined,
+          hits: sources,
+          atMs: 0,
+          source: 'Player',
+          weaponStrengthProfileId: 'nonweapon.profession-mechanic'
+        },
+        { metadata: { shatterTraitEligible: true } }
+      );
   } else if (shatter.kind === 'control') {
     // The resolved spend supplies player plus clone applications; no cast-completion observation substitutes for them.
     scheduleDeclarativeEffects(
@@ -102,5 +111,5 @@ export function resolveCloneShatter(
     throw new Error(`Unsupported clone shatter kind: ${shatter.kind}.`);
   }
 
-  return [{ at, count: sources }];
+  return strike || shatter.kind === 'control' ? [{ at, count: sources }] : [];
 }

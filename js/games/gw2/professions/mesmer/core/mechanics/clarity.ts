@@ -1,3 +1,4 @@
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 /** Owns the Clarity window that one spear cast arms and a later spear cast consumes. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SchedulerState } from '#gw2/platform/execution/types.js';
@@ -11,7 +12,6 @@ import type {
 } from '#gw2/professions/mesmer/types.js';
 import { scheduleDeclarativeEffects } from '#gw2/platform/execution/effect-adapter.js';
 
-const CLARITY_DURATION = 15;
 const CLARITY_ICON = 'https://wiki.guildwars2.com/wiki/Special:FilePath/Clarity.png';
 const CLARITY_CONSUMERS = new Set<number>([ID.IMAGINARY_INVERSION, ID.PHANTASMAL_LANCER, ID.MENTAL_COLLAPSE]);
 
@@ -50,7 +50,7 @@ export function applyMesmerClarity(
 ): void {
   if (skill.id !== ID.MIND_THE_GAP) return;
   professionCoreState(state).clarityUntil =
-    at + Number(balanceProfile('mesmer.core.clarity')?.durationMultiplier ?? CLARITY_DURATION);
+    at + balanceProfileNumberFromContext(balanceProfile, 'mesmer.core.clarity', 'durationMultiplier');
   addEvent({
     type: 'proc',
     procType: 'skill',

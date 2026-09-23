@@ -1,3 +1,4 @@
+import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import {
   emitSkillBuff,
@@ -91,7 +92,7 @@ export function createMesmerEventEmitters({
       : Array.from({ length: Math.max(1, Math.trunc(Number(condition.applications ?? 1))) }, (_, index) => ({
           atMs: Number(condition.atMs || 0) + index * Number(condition.intervalMs || 0),
           condition: condition.name,
-          duration: condition.duration,
+          duration: requireBalanceNumber(condition.duration, `${skillName} condition duration`),
           stacks: Number(condition.stacks ?? 1)
         }));
 

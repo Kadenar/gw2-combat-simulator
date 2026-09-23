@@ -41,14 +41,7 @@ export const CHRONOMANCER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
       }[Number(skillId)] || `Chronomancer Shatter ${skillId}`,
       shatter,
       Number(skillId) === ID.REWINDER
-        ? [
-            {
-              type: 'condition',
-              condition: 'Confusion',
-              duration: 3,
-              stacks: 1
-            }
-          ]
+        ? [{ name: 'Confusion', type: 'condition', condition: 'Confusion', duration: 3, stacks: 1 }]
         : []
     ),
     // The existing Continuum controller reads this duration per player or clone shatter source.
@@ -74,6 +67,7 @@ export const CHRONOMANCER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     durationPerTier: 1,
     effects: [
       {
+        name: 'alacrity',
         type: 'boon',
         boon: 'alacrity',
         duration: 3,
@@ -86,6 +80,7 @@ export const CHRONOMANCER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     durationPerTier: 1,
     effects: [
       {
+        name: 'quickness',
         type: 'boon',
         boon: 'quickness',
         duration: 3,

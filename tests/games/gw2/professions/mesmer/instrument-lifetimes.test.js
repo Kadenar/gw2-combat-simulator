@@ -97,7 +97,7 @@ test('instrument commitment, damage bonuses, cleanup, and UI share exact exclusi
     const projected = projectMesmerPlanningState({ schedulerContext: context });
     assert.equal(projected.activeInstruments.length, Number(active));
     const view = troubadourUi
-      .resourceViews({ professionState: projected })
+      .resourceViews({ catalog: context.catalog, professionState: projected })
       .find((item) => item.id === 'playing-instruments');
     assert.equal(Boolean(view), active);
     const query = modifierContext(context, at);

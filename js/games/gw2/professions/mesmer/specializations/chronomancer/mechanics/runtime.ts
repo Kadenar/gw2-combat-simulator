@@ -1,4 +1,4 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
@@ -42,7 +42,7 @@ export function initializeChronomancerRuntime(context: MesmerSchedulerContext): 
           repeat: {
             label: 'Chronophantasma',
             traitName: 'Chronophantasma',
-            damageMultiplier: balanceProfileValueFromContext(context, PROFILE.chronophantasma, 'damageMultiplier', 1.05)
+            damageMultiplier: balanceProfileNumberFromContext(context, PROFILE.chronophantasma, 'damageMultiplier')
           }
         }
       : undefined
@@ -61,9 +61,9 @@ export function initializeChronomancerRuntime(context: MesmerSchedulerContext): 
     consumeResources: runtime.actions.consumeResources,
     triggerShatterTraits: runtime.actions.triggerShatterTraits,
     addEvent: runtime.addEvent,
-    durationPerSource: balanceProfileValueFromContext(context, PROFILE.continuumSplit, 'durationPerTier', 1.5),
+    durationPerSource: balanceProfileNumberFromContext(context, PROFILE.continuumSplit, 'durationPerTier'),
     bonusDuration: runtime.traits.has(TRAIT.MASTER_OF_FRAGMENTATION)
-      ? balanceProfileValueFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION, 'durationMultiplier', 1)
+      ? balanceProfileNumberFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION, 'durationMultiplier')
       : 0,
     scheduleExpiry: (at) =>
       context.tasks.schedule({

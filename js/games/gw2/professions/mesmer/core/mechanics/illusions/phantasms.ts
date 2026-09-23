@@ -174,8 +174,8 @@ export function createPhantasmEffectController({
       },
       at,
       {
-        coefficient: bonus.damage.coefficient,
-        hits: bonus.damage.hits,
+        ...bonus.damage,
+        summonKind: undefined,
         source: 'Player',
         weaponStrength: bonus.damage.weaponStrength
       }

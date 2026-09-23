@@ -1,3 +1,4 @@
+import { requireEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type {
   MesmerRuntime,
   MesmerShatterResolver,
@@ -25,20 +26,14 @@ export function mesmerRuntimeFor(
   return runtime;
 }
 
-/** Reads the first condition profile while preserving the caller's explicit fallback contract. */
+/** Resolve a named condition without reconstructing an explicitly removed packet. */
 export function mesmerConditionFromProfile(
   context: { readonly mesmerRuntime?: MesmerRuntime } | null | undefined,
   id: number | string,
-  fallback: MesmerConditionApplication
-): MesmerConditionApplication {
-  const effect = mesmerRuntimeFor(context)
-    .balanceProfile(id)
-    ?.effects?.find(({ type }) => type === 'condition');
-  return {
-    name: String(effect?.condition || fallback.name),
-    duration: Number(effect?.duration ?? fallback.duration),
-    stacks: Number(effect?.stacks ?? fallback.stacks)
-  };
+  name: string
+): MesmerConditionApplication | undefined {
+  const effect = requireEffectFromContext(mesmerRuntimeFor(context), 'balance-profile', id, 'condition', name);
+  return effect ? { ...effect, summonKind: undefined, name: effect.condition! } : undefined;
 }
 
 /**

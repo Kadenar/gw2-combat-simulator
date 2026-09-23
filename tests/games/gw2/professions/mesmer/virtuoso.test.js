@@ -1,3 +1,4 @@
+import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import test from 'node:test';
@@ -20,6 +21,7 @@ test('clone metadata keeps delayed critical tasks cancellable by their owner', (
     const processed = [];
     const tasks = createTaskQueue({ handlers: { [type]: (_context, task) => processed.push(task) } });
     const context = {
+      catalog: mesmerCatalog,
       state: { time: 0 },
       tasks,
       mesmerRuntime: {
@@ -74,6 +76,7 @@ test('deferred Virtuoso procs use replacement facts and preserve skill-derived b
       }
     });
     const context = {
+      catalog: mesmerCatalog,
       state: { time: 0 },
       config: { randomness: { mode: 'stochastic' } },
       profession: { id: 'mesmer' },

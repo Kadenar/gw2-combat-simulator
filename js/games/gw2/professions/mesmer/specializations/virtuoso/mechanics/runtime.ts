@@ -1,5 +1,5 @@
 import { infiniteForge } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/blades-and-bladesongs.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { resolveDeadlyBlades } from '#gw2/professions/mesmer/specializations/virtuoso/traits/deadly-blades.js';
@@ -38,7 +38,7 @@ export function initializeVirtuosoRuntime(context: MesmerSchedulerContext): void
     // Virtuoso owns blade-tick conversion and its optional phantasm trait variations.
     phantasmPolicy: {
       conversionTiming: 'blade-tick',
-      ...(runtime.traits.has(TRAIT.PHANTASMAL_BLADES)
+      ...(runtime.traits.has(TRAIT.PHANTASMAL_BLADES) && phantasmalBlade.type === 'strike'
         ? {
             bonusStrike: {
               name: 'Phantasmal Blade',
@@ -57,11 +57,13 @@ export function initializeVirtuosoRuntime(context: MesmerSchedulerContext): void
 
   // Infinite Forge's recurring blade generation starts only for the active Virtuoso specialization.
   if (runtime.traits.has(TRAIT.INFINITE_FORGE)) {
-    infiniteForge.start(context, {
-      key: 'forge',
-      at: balanceProfileValueFromContext(context, TRAIT.INFINITE_FORGE, 'pulseInterval', 3),
-      ownerId: 'mesmer.infinite-forge',
-      captured: {}
-    });
+    const interval = balanceProfileNumberFromContext(context, TRAIT.INFINITE_FORGE, 'pulseInterval');
+    if (interval > 0)
+      infiniteForge.start(context, {
+        key: 'forge',
+        at: interval,
+        ownerId: 'mesmer.infinite-forge',
+        captured: {}
+      });
   }
 }

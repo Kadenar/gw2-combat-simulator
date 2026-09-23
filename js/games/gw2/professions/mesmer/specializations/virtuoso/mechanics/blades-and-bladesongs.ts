@@ -1,10 +1,7 @@
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
-import {
-  balanceProfileValueFromContext,
-  balanceProfileNumberFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -143,12 +140,12 @@ export const infiniteForge = timedEffect({
   id: 'mesmer.infinite-forge',
   priority: -20,
   interval: (context: MesmerSchedulerContext) =>
-    balanceProfileValueFromContext(context, TRAIT.INFINITE_FORGE, 'pulseInterval', 3),
+    balanceProfileNumberFromContext(context, TRAIT.INFINITE_FORGE, 'pulseInterval'),
   effectsAt(context: MesmerSchedulerContext, at: number) {
     const runtime = mesmerRuntimeFor(context);
     runtime.resources.gainResources(
       at,
-      balanceProfileValueFromContext(context, TRAIT.INFINITE_FORGE, 'playerStacks', 1),
+      balanceProfileNumberFromContext(context, TRAIT.INFINITE_FORGE, 'playerStacks'),
       runtime.activePrimaryWeapon(),
       'Infinite Forge',
       {

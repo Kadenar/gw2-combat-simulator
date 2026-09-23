@@ -2,7 +2,7 @@
  * Virtuoso-owned formulas and mechanic classifications.
  */
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type {
   MesmerPhantasmAttackTiming,
   MesmerTraitDamage
@@ -39,7 +39,7 @@ export const MESMER_VIRTUOSO_TRAIT_DAMAGE: Readonly<Record<string, MesmerTraitDa
     weaponStrength: 2553.5
   }
 });
-export const MESMER_VIRTUOSO_SHATTERS: Readonly<Record<number, MesmerShatter>> = Object.freeze({
+export const MESMER_VIRTUOSO_SHATTERS: Readonly<Record<number, MesmerShatterDefinition>> = Object.freeze({
   [ID.BLADETURN_REQUIEM]: {
     slot: 5,
     kind: 'blade-requiem',

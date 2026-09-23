@@ -1,8 +1,5 @@
 /** Applies Core Mesmer trait and equipment modifiers at the shared modifier boundary. */
-import {
-  balanceProfileValueFromContext,
-  balanceProfileNumberFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -42,8 +39,8 @@ function prepareCoreAttributeFacts(context: Gw2ModifierContext) {
     chaoticConcentrationBonus: chaoticPersistence
       ? balanceProfileNumberFromContext(context, PROFILE.chaoticPersistence, 'concentrationBonus')
       : 0,
-    fencerDuration: balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'durationMultiplier', 6),
-    fencerMaximum: balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'maximumStacks', 10),
+    fencerDuration: balanceProfileNumberFromContext(context, PROFILE.fencersFinesse, 'durationMultiplier'),
+    fencerMaximum: balanceProfileNumberFromContext(context, PROFILE.fencersFinesse, 'maximumStacks'),
     fencerPerStack: balanceProfileNumberFromContext(context, PROFILE.fencersFinesse, 'attributePerStack')
   };
 }

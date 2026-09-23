@@ -105,8 +105,7 @@ export const chronomancerUi: MesmerUiSlice = Object.freeze({
     mesmerResourceViews(context, {
       id: 'clones',
       singular: 'clone',
-      plural: 'clones',
-      maximum: 3
+      plural: 'clones'
     }),
   paletteSkillAvailability: chronomancerPaletteSkillAvailability
 });

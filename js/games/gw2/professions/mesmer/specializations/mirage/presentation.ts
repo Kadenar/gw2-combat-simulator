@@ -1,5 +1,5 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   mesmerMechanicPaletteGroups,
   mesmerResourceViews,
@@ -23,7 +23,7 @@ function mirageEffectPresentations(context: MesmerUiContext): ProfessionEffectPr
       kind: 'phantom-pain',
       name: 'Phantom Pain',
       color: '#df79bd',
-      maximumStacks: balanceProfileValueFromContext(context, PROFILE.phantomPain, 'maximumStacks', 4)
+      maximumStacks: balanceProfileNumberFromContext(context, PROFILE.phantomPain, 'maximumStacks')
     },
     {
       id: 'mesmer-mirage-cloak',
@@ -53,8 +53,7 @@ export const mirageUi: MesmerUiSlice = Object.freeze({
     ...mesmerResourceViews(context, {
       id: 'clones',
       singular: 'clone',
-      plural: 'clones',
-      maximum: 3
+      plural: 'clones'
     }),
     // Reuse the shared endurance bar under Dodge while keeping clone pips above the shatters.
     {

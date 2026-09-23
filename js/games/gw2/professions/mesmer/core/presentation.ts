@@ -1,7 +1,8 @@
+import { mesmerResourceProfileId } from '#gw2/professions/mesmer/family-state.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 import type {
@@ -24,7 +25,6 @@ export interface MesmerUiResourceDefinition {
   readonly id: 'blades' | 'notes' | 'clones';
   readonly singular: string;
   readonly plural: string;
-  readonly maximum: number;
   readonly pipStyle?: string;
 }
 
@@ -77,6 +77,9 @@ export function mesmerResourceViews(
   definition: MesmerUiResourceDefinition
 ): ProfessionResourceView[] {
   const state = flattenProfessionState(context.state?.profession || context.professionState) as MesmerUiState;
+  // Palette pips use the same selected capacity as runtime resource spending.
+  const specialization = definition.id === 'blades' ? 'Virtuoso' : definition.id === 'notes' ? 'Troubadour' : 'Core';
+  const maximum = balanceProfileNumberFromContext(context, mesmerResourceProfileId(specialization), 'maximumStacks');
   const value =
     definition.id === 'clones'
       ? Number(state.clones?.length ?? state.resource ?? context.value ?? 0)
@@ -84,7 +87,8 @@ export function mesmerResourceViews(
   return [
     {
       ...definition,
-      value: clamp(value, 0, definition.maximum),
+      maximum,
+      value: clamp(value, 0, maximum),
       canStart: definition.id !== 'clones',
       shortLabel: definition.id === 'clones' ? 'Cln' : definition.singular.slice(0, 3),
       statusLabel: definition.id === 'clones' ? 'Active' : 'Current',
@@ -131,7 +135,7 @@ function mesmerCoreEffectPresentations(context: MesmerUiContext): ProfessionEffe
       kind: 'compounding',
       name: 'Compounding Power',
       color: '#cfb5ff',
-      maximumStacks: balanceProfileValueFromContext(context, PROFILE.compoundingPower, 'maximumStacks', 5)
+      maximumStacks: balanceProfileNumberFromContext(context, PROFILE.compoundingPower, 'maximumStacks')
     },
     {
       id: 'mesmer-illusionary-membrane',
@@ -145,7 +149,7 @@ function mesmerCoreEffectPresentations(context: MesmerUiContext): ProfessionEffe
       kind: 'fencer',
       name: "Fencer's Finesse",
       color: '#e1c070',
-      maximumStacks: balanceProfileValueFromContext(context, PROFILE.fencersFinesse, 'maximumStacks', 10)
+      maximumStacks: balanceProfileNumberFromContext(context, PROFILE.fencersFinesse, 'maximumStacks')
     }
   ];
 }
@@ -164,8 +168,7 @@ export const mesmerCoreUi: MesmerUiSlice = Object.freeze({
       ? mesmerResourceViews(context, {
           id: 'clones',
           singular: 'clone',
-          plural: 'clones',
-          maximum: 3
+          plural: 'clones'
         })
       : []
 });

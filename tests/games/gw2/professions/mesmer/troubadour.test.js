@@ -483,6 +483,7 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
     ['Lute', 'Flute']
   );
   const resourceViews = mesmerProfession.ui.resourceViews({
+    catalog: mesmerCatalog,
     specialization: 'Troubadour',
     professionState: result.planningState.profession
   });
@@ -499,6 +500,7 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
   );
   assert.ok(playingView.statusItems.every((item) => /^\d+\.\d+s$/.test(item.valueLabel)));
   const resourceHtml = activeResourceGroup({
+    activeCatalog: mesmerCatalog,
     profession: mesmerProfession,
     adapter: { eliteSpecialization: () => 'Troubadour' },
     build: { initialResource: 0 },

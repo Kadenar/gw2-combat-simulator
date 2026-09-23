@@ -97,7 +97,8 @@ export function createSkillEffectController({
     addEvent,
     addTraitProc,
     addCondition,
-    addDamage
+    addDamage,
+    balanceProfile
   });
   const specialEffects = createSkillSpecialEffectController({
     state,

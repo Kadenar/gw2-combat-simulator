@@ -1,6 +1,9 @@
 /** Owns imperative Core Mesmer Illusions trait effects. */
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { balanceProfileEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -28,7 +31,14 @@ export function triggerMasterOfFragmentation(context: MesmerSchedulerContext, ev
     ![ID.CRY_OF_FRUSTRATION, ID.REWINDER, ID.BLADESONG_SORROW, ID.FLUSTERING_FLUTE].some((id) => id === event.skillId)
   )
     return;
-  const effect = balanceProfileEffectFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION, 'condition', drum ? 1 : 0);
+  const effect = requireEffectFromContext(
+    context,
+    'balance-profile',
+    TRAIT.MASTER_OF_FRAGMENTATION,
+    'condition',
+    drum ? 'Weakness' : 'Cripple'
+  );
+  if (!effect) return;
   emitSkillCondition(context, {
     cause: event,
     at: event.at,
@@ -37,8 +47,8 @@ export function triggerMasterOfFragmentation(context: MesmerSchedulerContext, ev
     skillId: event.skillId,
     skillName: event.skillName,
     condition: drum ? 'Weakness' : 'Cripple',
-    duration: Number(effect?.duration ?? 3),
-    stacks: Number(effect?.stacks ?? 1)
+    duration: Number(effect.duration),
+    stacks: Number(effect.stacks)
   });
 }
 
@@ -53,9 +63,10 @@ export function triggerThePledge(context: MesmerSchedulerContext, event: Simulat
     (event.skillId !== ID.PHANTASMAL_MAGE && event.skillId !== ID.THE_PRESTIGE)
   )
     return;
-  const effect = balanceProfileEffectFromContext(context, TRAIT.THE_PLEDGE, 'condition');
+  const effect = requireEffectFromContext(context, 'balance-profile', TRAIT.THE_PLEDGE, 'condition', 'Burning');
+  if (!effect) return;
   // Separate Burning applications preserve the total, including any fractional final stack.
-  const stacks = Number(effect?.stacks ?? 2);
+  const stacks = Number(effect.stacks);
   for (let index = 0; index < Math.ceil(stacks); index += 1) {
     emitSkillCondition(context, {
       cause: event,
@@ -65,7 +76,7 @@ export function triggerThePledge(context: MesmerSchedulerContext, event: Simulat
       skillId: event.skillId,
       skillName: event.skillName,
       condition: 'Burning',
-      duration: Number(effect?.duration ?? 3),
+      duration: Number(effect.duration),
       stacks: Math.min(1, stacks - index)
     });
   }
@@ -74,15 +85,11 @@ export function triggerThePledge(context: MesmerSchedulerContext, event: Simulat
 /** Returns Cry of Pain's Confusion override before the owning shatter emits packets. */
 export function applyCryOfPain(
   context: CryOfPainContext,
-  fallback: MesmerConditionApplication
-): MesmerConditionApplication {
-  if (!context.traits.has(TRAIT.CRY_OF_PAIN)) return fallback;
-  const effect = context.balanceProfile(TRAIT.CRY_OF_PAIN)?.effects?.find(({ type }) => type === 'condition');
-  return {
-    name: String(effect?.condition || fallback.name),
-    duration: Number(effect?.duration ?? fallback.duration),
-    stacks: Number(effect?.stacks ?? fallback.stacks)
-  };
+  condition: MesmerConditionApplication | undefined
+): MesmerConditionApplication | undefined {
+  if (!context.traits.has(TRAIT.CRY_OF_PAIN)) return condition;
+  const effect = requireEffectFromContext(context, 'balance-profile', TRAIT.CRY_OF_PAIN, 'condition', 'Confusion');
+  return effect ? { ...effect, summonKind: undefined, name: effect.condition! } : condition;
 }
 
 /** Emits Compounding Power stacks and its proc record at the owning lifecycle position. */
@@ -94,7 +101,7 @@ export function triggerCompoundingPower(
   detail: string
 ): void {
   if (!context.traits.has(TRAIT.COMPOUNDING_POWER) || count <= 0) return;
-  const duration = Number(context.balanceProfile(TRAIT.COMPOUNDING_POWER)?.durationMultiplier ?? 8);
+  const duration = balanceProfileNumberFromContext(context, TRAIT.COMPOUNDING_POWER, 'durationMultiplier');
   for (let index = 0; index < count; index += 1) {
     context.addEvent({
       type: 'buff',
@@ -115,13 +122,18 @@ export function triggerMaimTheDisillusioned(
   resolution: MesmerShatterResolution
 ): void {
   if (!resolution.traitHits.length || !context.traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) return;
-  const effect = context
-    .balanceProfile(TRAIT.MAIM_THE_DISILLUSIONED)
-    ?.effects?.find(({ type }) => type === 'condition');
+  const effect = requireEffectFromContext(
+    context,
+    'balance-profile',
+    TRAIT.MAIM_THE_DISILLUSIONED,
+    'condition',
+    'Torment'
+  );
+  if (!effect) return;
   const maim = {
-    name: String(effect?.condition || 'Torment'),
-    duration: Number(effect?.duration ?? 6),
-    stacks: Number(effect?.stacks ?? 1)
+    name: String(effect.condition),
+    duration: Number(effect.duration),
+    stacks: Number(effect.stacks)
   };
   for (const hit of resolution.traitHits) {
     if (hit.count <= 0) continue;
@@ -141,6 +153,6 @@ export function triggerMaimTheDisillusioned(
 /** Returns the profile-owned Phantasmal Haste speed before phantasm packet times are derived. */
 export function phantasmalHasteSpeed(context: CryOfPainContext): number {
   return context.traits.has(TRAIT.PHANTASMAL_HASTE)
-    ? Number(context.balanceProfile(TRAIT.PHANTASMAL_HASTE)?.quicknessCastMultiplier ?? 1.5)
+    ? balanceProfileNumberFromContext(context, TRAIT.PHANTASMAL_HASTE, 'quicknessCastMultiplier')
     : 1;
 }
