@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
@@ -55,7 +58,8 @@ function familiarSkillId(context: ElementalistUiContext): number {
   const element = selectedElement(context);
   const state = uiState(context);
   const build = context.build;
-  const empoweredMaximum = balanceProfileNumberFromContext(context, PROFILE.resources, 'minimumStacks');
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const empoweredMaximum = balanceProfileNumber(resourcesProfile, 'minimumStacks');
   const empowered = Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0);
   const name = FAMILIAR_SKILL_NAMES[element][empowered >= empoweredMaximum ? 'empowered' : 'basic'];
   return ELEMENTALIST_FAMILIAR_SKILL_IDS[name];
@@ -77,15 +81,18 @@ function familiarPaletteAvailability(context: ElementalistUiContext, skill: Skil
   const build = context.build;
   const maximum =
     state.maximumCharges ??
-    balanceProfileNumberFromContext(
-      context,
-      getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.SPECIALIZED_ELEMENTS)
-        ? PROFILE.specializedElements
-        : PROFILE.resources,
+    balanceProfileNumber(
+      requireBalanceProfileFromContext(
+        context,
+        getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.SPECIALIZED_ELEMENTS)
+          ? PROFILE.specializedElements
+          : PROFILE.resources
+      ),
       'maximumStacks'
     );
   const charges = Number(state.charges ?? build?.initialEvokerCharges ?? maximum);
-  const empoweredMaximum = balanceProfileNumberFromContext(context, PROFILE.resources, 'minimumStacks');
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const empoweredMaximum = balanceProfileNumber(resourcesProfile, 'minimumStacks');
   const empowered = Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0);
   if (BASIC_FAMILIARS.has(skill.id)) {
     return empowered < empoweredMaximum && charges >= maximum
@@ -181,14 +188,17 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
     const build = context.build;
     const maximum =
       state.maximumCharges ??
-      balanceProfileNumberFromContext(
-        context,
-        getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.SPECIALIZED_ELEMENTS)
-          ? PROFILE.specializedElements
-          : PROFILE.resources,
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(
+          context,
+          getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.SPECIALIZED_ELEMENTS)
+            ? PROFILE.specializedElements
+            : PROFILE.resources
+        ),
         'maximumStacks'
       );
-    const empoweredMaximum = balanceProfileNumberFromContext(context, PROFILE.resources, 'minimumStacks');
+    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+    const empoweredMaximum = balanceProfileNumber(resourcesProfile, 'minimumStacks');
     const empowered = boundedNumber(
       Math.floor(Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0)),
       0,

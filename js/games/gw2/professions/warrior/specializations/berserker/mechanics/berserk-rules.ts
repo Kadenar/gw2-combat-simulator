@@ -1,7 +1,6 @@
 import {
   requireBalanceProfileFromContext,
-  balanceProfileNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
@@ -75,11 +74,12 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw
   };
   if (active(context)) {
     const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-    const powerBonus = balanceProfileNumber(resourcesProfile, 'attributeBonus', context);
+    const powerBonus = balanceProfileNumber(resourcesProfile, 'attributeBonus');
     result.power += powerBonus;
-    result.conditionDamage += balanceProfileNumber(resourcesProfile, 'attributePerStack', context);
+    result.conditionDamage += balanceProfileNumber(resourcesProfile, 'attributePerStack');
     if (hasTrait(context, TRAIT.GREAT_FORTITUDE)) {
-      const conversion = balanceProfileNumberFromContext(context, CORE_PROFILE.greatFortitude, 'attributeConversion');
+      const greatFortitudeProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.greatFortitude);
+      const conversion = balanceProfileNumber(greatFortitudeProfile, 'attributeConversion');
       result.vitality = Number(result.vitality || 0) + powerBonus * conversion;
       result.ferocity += powerBonus * conversion;
     }
@@ -88,8 +88,8 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw
   if (hasTrait(context, TRAIT.BLOOD_REACTION)) {
     const bloodReactionProfile = requireBalanceProfileFromContext(context, PROFILE.bloodReaction);
     const conversion = active(context)
-      ? balanceProfileNumber(bloodReactionProfile, 'coefficientMultiplier', context)
-      : balanceProfileNumber(bloodReactionProfile, 'attributeConversion', context);
+      ? balanceProfileNumber(bloodReactionProfile, 'coefficientMultiplier')
+      : balanceProfileNumber(bloodReactionProfile, 'attributeConversion');
     result.ferocity += conversionPrecision * conversion;
     result.conditionDamage += conversionPower * conversion;
   }
@@ -102,7 +102,8 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'warrior.smash-brawler-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.SMASH_BRAWLER, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SMASH_BRAWLER), 'criticalChance'),
     when: (context) => hasTrait(context, TRAIT.SMASH_BRAWLER) && active(context)
   },
   {

@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -84,10 +87,13 @@ export function holosmithProfileStrikeFactor(
 ): number {
   const tier = holosmithHeatTier(snapshot);
   if (tier === 'enhanced') {
-    return balanceProfileNumberFromContext(context, profileId, 'enhancedStrikeFactor');
+    const profile = requireBalanceProfileFromContext(context, profileId);
+    return balanceProfileNumber(profile, 'enhancedStrikeFactor');
   }
 
-  return tier === 'high' ? balanceProfileNumberFromContext(context, profileId, 'highStrikeFactor') : 1;
+  return tier === 'high'
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, profileId), 'highStrikeFactor')
+    : 1;
 }
 
 /** Reads an event's captured strike factor or evaluates its profile against current heat as a fallback. */
@@ -119,9 +125,10 @@ export function decorateHolosmithHeatEvent(context: EngineerSchedulerContext, ev
   if (event.type === 'engineer.radiant-arc-quickness') {
     const tier = holosmithHeatTier(snapshot);
     const field = tier === 'enhanced' ? 'enhancedDuration' : tier === 'high' ? 'highDuration' : 'baseDuration';
+    const radiantArcHeatTierProfile = requireBalanceProfileFromContext(context, PROFILE.radiantArcHeatTier);
     context.replaceEvent(event, {
       ...activation,
-      duration: balanceProfileNumberFromContext(context, PROFILE.radiantArcHeatTier, field)
+      duration: balanceProfileNumber(radiantArcHeatTierProfile, field)
     });
     return;
   }
@@ -129,9 +136,10 @@ export function decorateHolosmithHeatEvent(context: EngineerSchedulerContext, ev
   if (event.type === 'engineer.refraction-cutter-extra-blades') {
     const tier = holosmithHeatTier(snapshot);
     const field = tier === 'enhanced' ? 'enhancedExtraBlades' : tier === 'high' ? 'highExtraBlades' : 'baseExtraBlades';
+    const refractionCutterHeatTierProfile = requireBalanceProfileFromContext(context, PROFILE.refractionCutterHeatTier);
     context.replaceEvent(event, {
       ...activation,
-      extraBlades: balanceProfileNumberFromContext(context, PROFILE.refractionCutterHeatTier, field)
+      extraBlades: balanceProfileNumber(refractionCutterHeatTierProfile, field)
     });
     return;
   }

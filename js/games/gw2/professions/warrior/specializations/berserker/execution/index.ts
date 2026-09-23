@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 /** Registers scheduler-phase skill activations for this module. */
 
 import { augmentSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
@@ -27,8 +30,9 @@ function enterBerserk(context: WarriorCastContext, skill: WarriorSkill): void {
     return;
   }
   const core = professionCoreState(context);
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   // Berserk mode collapses the three adrenaline bars into one slot of ten.
-  core.maximumAdrenaline = balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
+  core.maximumAdrenaline = balanceProfileNumber(resourcesProfile, 'maximumStacks');
   syncWarriorAdrenaline(context);
   const state = berserkerState.from(context);
   state.berserkActive = true;

@@ -5,7 +5,7 @@ import {
   canonicalTargetConditionName,
   targetHasCondition
 } from '#gw2/platform/combat/state/targets.js';
-import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
+import { remainingTargetHealthBelow, remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
@@ -43,12 +43,14 @@ export function hasSelectedSkill(context: Gw2ModifierContext, name: string): boo
   return selectedSkillNames(context).has(name);
 }
 
-/** Uses explicit target-health assumptions first, then derives health from resolved damage totals. */
+/** Shares the resolver's dynamic health model so modifiers, death detection, and diagnostics agree on one value. */
 export function targetHealthFraction(context: Gw2ModifierContext): number {
-  const configured = Number(context.config?.targetHealthFraction ?? context.config?.target?.healthFraction);
-  if (Number.isFinite(configured)) return clamp(configured, 0, 1);
-
   return remainingTargetHealthFraction(context.config, context.runtime) ?? 1;
+}
+
+/** Modifier-context form of the shared strict "target below X% health" gate. */
+export function targetHealthBelow(context: Gw2ModifierContext, threshold: number): boolean {
+  return remainingTargetHealthBelow(context.config, context.runtime, threshold);
 }
 
 /** Simulations always use full health; only isolated stat-preview queries can vary it. */

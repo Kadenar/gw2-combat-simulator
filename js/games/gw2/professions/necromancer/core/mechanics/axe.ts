@@ -1,5 +1,5 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
+import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { DamageEvent } from '#gw2/platform/engine/events/events.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -48,7 +48,7 @@ export function reactToNecromancerAxeDamage(
   }
 
   if (skill.id !== ID.RENDING_CLAWS && skill.id !== ID.UNHOLY_FEAST) return;
-  if (targetHealthFraction({ config: context.config, runtime: context, time: event.at }) >= 0.5) return;
+  if (!remainingTargetHealthBelow(context.config, context, 0.5)) return;
 
   if (skill.id === ID.RENDING_CLAWS) {
     const vulnerability = skill.effects?.find((effect) => effect.type === 'condition')?.ticks?.[

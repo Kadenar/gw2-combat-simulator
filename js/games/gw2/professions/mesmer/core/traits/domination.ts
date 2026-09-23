@@ -2,7 +2,7 @@ import { EPSILON } from '#kernel/core/clock.js';
 /** Owns imperative Core Mesmer Domination trait effects. */
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { requireEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { MesmerCastContext, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -19,7 +19,8 @@ export function scheduleBountifulBlades(context: MesmerCastContext, skill: Mesme
     (context.effectiveEnd - context.start) * 1000 + EPSILON * 1000 < Number(skill.interruptCommitMs)
   )
     return;
-  const effect = requireEffectFromContext(context, 'balance-profile', TRAIT.BOUNTIFUL_BLADES, 'strike', 'Strike');
+  const bountifulBladesProfile = requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_BLADES);
+  const effect = requireEffect(bountifulBladesProfile, 'strike', 'Strike');
   if (!effect) return;
   if (effect?.type !== 'strike') return;
   runtime.addDamage(
@@ -44,7 +45,8 @@ export function triggerDazzling(
   const runtime = context.mesmerRuntime;
   if (!runtime?.traits.has(TRAIT.DAZZLING) || missesTarget(event)) return;
   if (event.actorType !== 'player' && event.actorType !== 'summon') return;
-  const effect = requireEffectFromContext(context, 'balance-profile', TRAIT.DAZZLING, 'condition', 'Vulnerability');
+  const dazzlingProfile = requireBalanceProfileFromContext(context, TRAIT.DAZZLING);
+  const effect = requireEffect(dazzlingProfile, 'condition', 'Vulnerability');
   if (!effect) return;
   emitSkillCondition(context, {
     cause: event,

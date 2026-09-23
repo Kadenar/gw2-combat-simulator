@@ -16,8 +16,8 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 
 function warriorEnduranceRegenerationRate(context: WarriorSchedulerContext, vigor: boolean): number {
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const base = balanceProfileNumber(resourcesProfile, 'enduranceRegenerationPerSecond', context);
-  const vigorMultiplier = balanceProfileNumber(resourcesProfile, 'vigorRegenerationMultiplier', context);
+  const base = balanceProfileNumber(resourcesProfile, 'enduranceRegenerationPerSecond');
+  const vigorMultiplier = balanceProfileNumber(resourcesProfile, 'vigorRegenerationMultiplier');
   return base * (vigor ? vigorMultiplier : 1);
 }
 

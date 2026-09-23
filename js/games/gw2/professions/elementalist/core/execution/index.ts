@@ -4,8 +4,9 @@ import { EPSILON } from '#kernel/core/clock.js';
  * Catalog fragments remain in `skills/`; cross-cast state lives in `mechanics/`.
  */
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { grantEndurance, spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
@@ -162,14 +163,10 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
 
   if (Number(skill.resourceGain || 0) > 0) {
     updateEndurance(context, state, at);
+    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
     Object.assign(
       state,
-      grantEndurance(
-        state,
-        Number(skill.resourceGain),
-        at,
-        balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks')
-      )
+      grantEndurance(state, Number(skill.resourceGain), at, balanceProfileNumber(resourcesProfile, 'maximumStacks'))
     );
   }
 }
@@ -194,13 +191,8 @@ export const elementalistCoreSkillMechanicHandlers = Object.freeze({
     at: number;
   }): void => {
     const state = professionCoreState(context);
-    const auraEffect = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.elementalExplosion,
-      'buff',
-      state.primaryAttunement
-    );
+    const elementalExplosionProfile = requireBalanceProfileFromContext(context, PROFILE.elementalExplosion);
+    const auraEffect = requireEffect(elementalExplosionProfile, 'buff', state.primaryAttunement);
     if (auraEffect) {
       applyElementalistAura(context, {
         at,
@@ -245,13 +237,14 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
   // Dodge is modeled as a cast, so endurance is caught up to now before its cost is spent.
   if (Number(skill.id) === ID.DODGE) {
     updateEndurance(context, state, context.effectiveEnd);
+    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
     Object.assign(
       state,
       spendEndurance(
         state,
-        balanceProfileNumberFromContext(context, PROFILE.resources, 'resourceCost'),
+        balanceProfileNumber(resourcesProfile, 'resourceCost'),
         context.effectiveEnd,
-        balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks')
+        balanceProfileNumber(resourcesProfile, 'maximumStacks')
       )
     );
     triggerEvasiveArcana(context, skill);
@@ -260,7 +253,8 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
   completeArcaneEcho(context, skill);
 
   if (Number(skill.id) === ID.FULGOR) {
-    const pulse = requireEffectFromContext(context, 'balance-profile', PROFILE.fulgor, 'strike', 'Fulgor');
+    const fulgorProfile = requireBalanceProfileFromContext(context, PROFILE.fulgor);
+    const pulse = requireEffect(fulgorProfile, 'strike', 'Fulgor');
     if (!pulse?.ticks?.length) throw new TypeError('Fulgor requires an explicit strike timeline.');
     // Fulgor owns one secondary action at a time, so a recast replaces only
     // the prior action's pulses that had not occurred when the recast began.

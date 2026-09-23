@@ -1,8 +1,9 @@
 /** Imperative Earth trait behavior; dispatch and event classification remain outside this line module. */
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext,
-  effectNumberFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -38,13 +39,8 @@ export function triggerEarthenBlast(context: ElementalistSchedulerContext, at: n
   if (!combatStarted(context, at) || !hasTrait(context, 'Earthen Blast')) return;
   // Use the same attunement or overload trigger for the damage packet and its proc record.
   const sourceSkill = context.catalog.skillsById.get(sourceId)?.name || '';
-  const earthenBlastStrike = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.earthenBlast,
-    'strike',
-    'Earthen Blast'
-  );
+  const earthenBlastProfile = requireBalanceProfileFromContext(context, PROFILE.earthenBlast);
+  const earthenBlastStrike = requireEffect(earthenBlastProfile, 'strike', 'Earthen Blast');
   if (earthenBlastStrike) {
     emitSkillDamage(context, {
       at,
@@ -55,13 +51,7 @@ export function triggerEarthenBlast(context: ElementalistSchedulerContext, at: n
       skillName: 'Earthen Blast',
       triggeredBy: sourceSkill,
       icon: EARTHEN_BLAST_ICON,
-      coefficient: effectNumberFromContext(
-        context,
-        'balance-profile',
-        PROFILE.earthenBlast,
-        earthenBlastStrike,
-        'coefficient'
-      ),
+      coefficient: effectNumber(earthenBlastProfile, earthenBlastStrike, 'coefficient'),
       skillWeapon: 'Unequipped',
       noCrit: true
     });
@@ -92,13 +82,14 @@ export function applyEarthsEmbrace(context: ElementalistLifecycleContext, skill:
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   if (!hasTrait(context, "Earth's Embrace")) return;
+  const earthsEmbraceProfile = requireBalanceProfileFromContext(context, PROFILE.earthsEmbrace);
   // Claim the existing owner-local timer before any derived effect.
   if (
     !tryConsumeProcCooldown(
       state.procReadyAt,
       'earthsEmbrace',
       at,
-      balanceProfileNumberFromContext(context, PROFILE.earthsEmbrace, 'internalCooldown')
+      balanceProfileNumber(earthsEmbraceProfile, 'internalCooldown')
     )
   )
     return;
@@ -121,7 +112,8 @@ export function applyWrittenInStone(
           ? 'Earth'
           : null;
   if (!signet) return;
-  const effect = requireEffectFromContext(context, 'balance-profile', PROFILE.writtenInStone, 'buff', signet);
+  const writtenInStoneProfile = requireBalanceProfileFromContext(context, PROFILE.writtenInStone);
+  const effect = requireEffect(writtenInStoneProfile, 'buff', signet);
   if (effect) {
     applyAura(context, {
       at: context.effectiveEnd,
@@ -137,23 +129,18 @@ export function applyWrittenInStone(
 export function applyStrengthOfStone(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, 'Strength of Stone')) return;
   const state = professionCoreState(context);
+  const strengthOfStoneProfile = requireBalanceProfileFromContext(context, PROFILE.strengthOfStone);
   // Claim the existing owner-local timer before any derived effect.
   if (
     !tryConsumeProcCooldown(
       state.procReadyAt,
       'strengthOfStone',
       event.at,
-      balanceProfileNumberFromContext(context, PROFILE.strengthOfStone, 'internalCooldown')
+      balanceProfileNumber(strengthOfStoneProfile, 'internalCooldown')
     )
   )
     return;
-  const bleeding = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.strengthOfStone,
-    'condition',
-    'Strength of Stone'
-  );
+  const bleeding = requireEffect(strengthOfStoneProfile, 'condition', 'Strength of Stone');
   if (bleeding) {
     applyElementalistDerivedCondition(context, event, {
       source: 'Strength of Stone',
@@ -169,7 +156,8 @@ export function applyStrengthOfStone(context: ElementalistResolverContext, event
 
 /** Shares Elemental Shielding's profile defaults without coupling phase-specific boon application. */
 function elementalShieldingEffect(context: unknown) {
-  const effect = requireEffectFromContext(context, 'balance-profile', PROFILE.elementalShielding, 'boon', 'Protection');
+  const elementalShieldingProfile = requireBalanceProfileFromContext(context, PROFILE.elementalShielding);
+  const effect = requireEffect(elementalShieldingProfile, 'boon', 'Protection');
   if (!effect) return undefined;
   return {
     kind: String(effect.boon).toLowerCase(),

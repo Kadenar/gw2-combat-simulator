@@ -1,6 +1,9 @@
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import {
   buffMatchesAudience,
@@ -74,9 +77,10 @@ function completeMirageSkill(context: MesmerCastContext, skill: MesmerSkill): vo
     skill.categories?.includes('Deception') &&
     runtime.actions.currentResource() > 0
   ) {
+    const selfDeceptionProfile = requireBalanceProfileFromContext(context, TRAIT.SELF_DECEPTION);
     runtime.resources.queueResources(
       context.fullEnd,
-      balanceProfileNumberFromContext(context, TRAIT.SELF_DECEPTION, 'resourceGain'),
+      balanceProfileNumber(selfDeceptionProfile, 'resourceGain'),
       runtime.activePrimaryWeapon(),
       `Self-Deception: ${skill.name}`,
       {

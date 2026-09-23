@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 import type { EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
@@ -16,7 +19,8 @@ export const engineerCoreSchedulerHooks = Object.freeze({
     handler(context: EngineerSchedulerContext) {
       // Both current and maximum endurance begin at the selected profile's capacity.
       const state = professionCoreState(context);
-      state.maximumEndurance = balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
+      const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+      state.maximumEndurance = balanceProfileNumber(resourcesProfile, 'maximumStacks');
       state.endurance = state.maximumEndurance;
     }
   },

@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { reduceMatchingCooldowns } from '#gw2/platform/execution/cooldowns.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
@@ -13,11 +16,8 @@ import type { EngineerCastContext, EngineerSkill } from '#gw2/professions/engine
 export function performEngineerDodge(context: EngineerCastContext, skill: EngineerSkill): void {
   const state = professionCoreState(context);
   const at = context.start;
-  const enduranceCost = balanceProfileNumberFromContext(
-    context,
-    ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
-    'resourceCost'
-  );
+  const resourcesProfile = requireBalanceProfileFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources);
+  const enduranceCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
   Object.assign(state, spendEndurance(state, enduranceCost, at, state.maximumEndurance));
 
   context.emit({
@@ -32,10 +32,11 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
 
   // Power Wrench rewards the dodge by advancing active elite-skill recharge.
   if (hasTrait(context.config, TRAIT.POWER_WRENCH)) {
+    const powerWrenchProfile = requireBalanceProfileFromContext(context, TRAIT.POWER_WRENCH);
     const reducedBy = reduceMatchingCooldowns(
       context,
       (candidate) => candidate.type === 'Elite' || candidate.slot === 'Elite',
-      balanceProfileNumberFromContext(context, TRAIT.POWER_WRENCH, 'rechargeReduction'),
+      balanceProfileNumber(powerWrenchProfile, 'rechargeReduction'),
       at
     );
     // only emit proc when something actually changed — suppresses no-op entries in the event log
@@ -56,10 +57,11 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
 
   // Adrenal Implant independently advances every active toolbelt recharge.
   if (hasTrait(context.config, TRAIT.ADRENAL_IMPLANT)) {
+    const adrenalImplantProfile = requireBalanceProfileFromContext(context, TRAIT.ADRENAL_IMPLANT);
     const reducedBy = reduceMatchingCooldowns(
       context,
       isEngineerToolbeltSkill,
-      balanceProfileNumberFromContext(context, TRAIT.ADRENAL_IMPLANT, 'rechargeReduction'),
+      balanceProfileNumber(adrenalImplantProfile, 'rechargeReduction'),
       at
     );
     if (reducedBy > 0) {

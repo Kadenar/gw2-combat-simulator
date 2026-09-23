@@ -1,8 +1,9 @@
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
@@ -24,12 +25,14 @@ export function kineticAcceleratorBoons(
   if (event.finisherType === 'Whirl') {
     const state = scrapperState.from(context);
     if (!isInternalCooldownReady(event.at, state.kineticAcceleratorsWhirlReadyAt)) return [];
+    const kineticAcceleratorsProfile = requireBalanceProfileFromContext(context, PROFILE.kineticAccelerators);
     state.kineticAcceleratorsWhirlReadyAt =
-      event.at + balanceProfileNumberFromContext(context, PROFILE.kineticAccelerators, 'internalCooldown');
+      event.at + balanceProfileNumber(kineticAcceleratorsProfile, 'internalCooldown');
   }
 
   return ['quickness', 'might'].flatMap((kind) => {
-    const effect = requireEffectFromContext(context, 'balance-profile', PROFILE.kineticAccelerators, 'boon', kind);
+    const kineticAcceleratorsProfile = requireBalanceProfileFromContext(context, PROFILE.kineticAccelerators);
+    const effect = requireEffect(kineticAcceleratorsProfile, 'boon', kind);
     if (!effect) return [];
     return [
       {

@@ -1,7 +1,7 @@
 import {
   requireBalanceProfileFromContext,
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  balanceProfileNumber,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
@@ -70,9 +70,10 @@ export function resolveTroubadourTale({ context, skill, at, castStart, activatio
     requiredInstrument &&
     activeTroubadourInstrumentsAt(context.eventsOfType('mesmer.instrument'), castStart, action).has(requiredInstrument)
   ) {
+    const profile = requireBalanceProfileFromContext(runtime, profileId);
     runtime.resources.queueResources(
       at,
-      balanceProfileNumberFromContext(runtime, profileId, 'resourceGain'),
+      balanceProfileNumber(profile, 'resourceGain'),
       runtime.activePrimaryWeapon(),
       skill.name
     );
@@ -83,7 +84,8 @@ export function resolveTroubadourTale({ context, skill, at, castStart, activatio
   }
 
   if (runtime.traits.has(TRAIT.RACONTEUR)) {
-    const protection = requireEffectFromContext(runtime, 'balance-profile', TRAIT.RACONTEUR, 'boon', 'protection');
+    const raconteurProfile = requireBalanceProfileFromContext(runtime, TRAIT.RACONTEUR);
+    const protection = requireEffect(raconteurProfile, 'boon', 'protection');
     if (!protection) return;
     runtime.addEvent({
       type: 'buff',

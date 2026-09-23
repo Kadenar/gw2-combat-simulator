@@ -3,7 +3,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import {
@@ -64,7 +64,8 @@ export function createFirebrandState(config: GuardianConfig = {}): GuardianFireb
   const profileContext = {
     balanceProfile: (id: string | number) => FIREBRAND_BALANCE_PROFILES.find((profile) => profile.id === id)
   };
-  const maximum = balanceProfileNumberFromContext(profileContext, PROFILE.resources, 'maximumStacks');
+  const resourcesProfile = requireBalanceProfileFromContext(profileContext, PROFILE.resources);
+  const maximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
   const ashesProfile = requireBalanceProfileFromContext(profileContext, PROFILE.ashes);
   const burn = requireEffect(ashesProfile, 'condition', 'Burning');
   return {
@@ -74,11 +75,16 @@ export function createFirebrandState(config: GuardianConfig = {}): GuardianFireb
       archivistOfWhispers,
       maximum,
       archivistOfWhispers
-        ? balanceProfileNumberFromContext(profileContext, PROFILE.archivistOfWhispers, 'maximumStacks')
+        ? balanceProfileNumber(
+            requireBalanceProfileFromContext(profileContext, PROFILE.archivistOfWhispers),
+            'maximumStacks'
+          )
         : maximum,
-      balanceProfileNumberFromContext(
-        profileContext,
-        hasTrait(config, GUARDIAN_TRAIT_IDS.LOREMASTER) ? PROFILE.loremaster : PROFILE.resources,
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(
+          profileContext,
+          hasTrait(config, GUARDIAN_TRAIT_IDS.LOREMASTER) ? PROFILE.loremaster : PROFILE.resources
+        ),
         'pulseInterval'
       )
     ),
@@ -117,13 +123,14 @@ export function initializeFirebrandBalanceState(context: GuardianSchedulerContex
   const state = firebrandState.from(context);
   const archivistOfWhispers = hasTrait(context, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS);
 
-  const defaultMaximum = balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const defaultMaximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
   const traitMaximum = archivistOfWhispers
-    ? balanceProfileNumberFromContext(context, PROFILE.archivistOfWhispers, 'maximumStacks')
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.archivistOfWhispers), 'maximumStacks')
     : defaultMaximum;
   const interval = hasTrait(context, GUARDIAN_TRAIT_IDS.LOREMASTER)
-    ? balanceProfileNumberFromContext(context, PROFILE.loremaster, 'pulseInterval')
-    : balanceProfileNumberFromContext(context, PROFILE.resources, 'pulseInterval');
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.loremaster), 'pulseInterval')
+    : balanceProfileNumber(resourcesProfile, 'pulseInterval');
   Object.assign(
     state,
     initialTomePageState(context.config, archivistOfWhispers, defaultMaximum, traitMaximum, interval)

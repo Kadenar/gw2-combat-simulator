@@ -8,7 +8,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
+import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -29,11 +29,9 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 
-/** Reports whether resolved player and environment damage has crossed half the configured target health. */
+/** Reports whether the target is strictly below half health, using the shared threshold contract. */
 function targetBelowHalfHealth(context: NecromancerResolverContext): boolean {
-  const maximum = Number(context.config.target?.health || 0);
-  if (!(maximum > 0)) return false;
-  return targetHealthLoss(context.config, context) > maximum * 0.5;
+  return remainingTargetHealthBelow(context.config, context, 0.5);
 }
 
 export function applyReapersMight(

@@ -4,7 +4,10 @@ import {
   guardianUiSkillIdsByName,
   guardianUiState
 } from '#gw2/professions/guardian/core/presentation.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import type {
   ProfessionEffectPresentation,
@@ -41,7 +44,8 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
   }
 
   const lethalRemaining = Number(state.lethalTempoUntil || 0) - at;
-  const maximum = balanceProfileNumberFromContext(context, PROFILE.lethalTempo, 'maximumStacks');
+  const lethalTempoProfile = requireBalanceProfileFromContext(context, PROFILE.lethalTempo);
+  const maximum = balanceProfileNumber(lethalTempoProfile, 'maximumStacks');
   const lethalStacks = boundedInteger(state.lethalTempoStacks || 0, 0, 0, maximum);
   // Lethal Tempo remains available for damage and refreshes on its final tick.
   if (Number(state.lethalTempoUntil || 0) > 0 && lethalRemaining >= 0 && lethalStacks > 0) {
@@ -58,6 +62,7 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
 
 /** Labels Willbender's timed effects and treats refreshed states as replacements rather than additive grants. */
 function willbenderEffectPresentations(context: GuardianUiContext): ProfessionEffectPresentation[] {
+  const lethalTempoProfile = requireBalanceProfileFromContext(context, PROFILE.lethalTempo);
   return [
     ...[
       ['justice', 'Rushing Justice'],
@@ -74,7 +79,7 @@ function willbenderEffectPresentations(context: GuardianUiContext): ProfessionEf
       id: 'guardian-lethal-tempo',
       kind: 'lethal-tempo',
       name: 'Lethal Tempo',
-      maximumStacks: balanceProfileNumberFromContext(context, PROFILE.lethalTempo, 'maximumStacks'),
+      maximumStacks: balanceProfileNumber(lethalTempoProfile, 'maximumStacks'),
       replacementGroup: 'guardian-lethal-tempo'
     }
   ];

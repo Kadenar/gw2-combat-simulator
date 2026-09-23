@@ -3,8 +3,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -181,12 +180,13 @@ export function reactToZealSymbolTraits(context: GuardianResolverContext, event:
 
   const state = guardianResolverState(context);
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER)) {
+    const symbolicAvengerProfile = requireBalanceProfileFromContext(context, PROFILE.symbolicAvenger);
     // At the cap, replace only the shortest remaining stack instead of refreshing the entire buff.
     state.symbolicAvengerExpirations = grantTimedStacks(state.symbolicAvengerExpirations || [], {
       at: event.at,
-      expiresAt: event.at + balanceProfileNumberFromContext(context, PROFILE.symbolicAvenger, 'pulseInterval'),
+      expiresAt: event.at + balanceProfileNumber(symbolicAvengerProfile, 'pulseInterval'),
       count: 1,
-      maximumStacks: balanceProfileNumberFromContext(context, PROFILE.symbolicAvenger, 'maximumStacks'),
+      maximumStacks: balanceProfileNumber(symbolicAvengerProfile, 'maximumStacks'),
       retain: 'latest-expiry'
     });
     recordGuardianTraitProc(
@@ -238,7 +238,11 @@ export function reactToZealotsResolution(
     !isGw2PlayerActorEvent(event) ||
     !(Number(event.coefficient || 0) > 0) ||
     !(targetHealth > 0) ||
-    !(damageDone > targetHealth * balanceProfileNumberFromContext(context, PROFILE.zealotsResolution, 'threshold')) ||
+    !(
+      damageDone >
+      targetHealth *
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.zealotsResolution), 'threshold')
+    ) ||
     !isInternalCooldownReady(event.at, Number(state.zealotsResolutionReadyAt || 0)) ||
     event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION
   ) {
@@ -246,8 +250,8 @@ export function reactToZealotsResolution(
   }
 
   if (!queueLesserSymbolOfResolution(context, event.at, event.skillName)) return;
-  state.zealotsResolutionReadyAt =
-    event.at + balanceProfileNumberFromContext(context, PROFILE.zealotsResolution, 'cooldown');
+  const zealotsResolutionProfile = requireBalanceProfileFromContext(context, PROFILE.zealotsResolution);
+  state.zealotsResolutionReadyAt = event.at + balanceProfileNumber(zealotsResolutionProfile, 'cooldown');
   recordGuardianTraitProc(
     context,
     GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION,

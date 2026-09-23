@@ -1,7 +1,8 @@
 import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
@@ -18,6 +19,7 @@ export function resolveDeadlyBlades(context: MesmerCastContext, resolution: Mesm
   if (!runtime.traits.has(TRAIT.DEADLY_BLADES)) return;
 
   const at = resolution.at;
+  const deadlyBladesProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES);
   runtime.addEvent({
     type: 'buff',
     at,
@@ -25,7 +27,7 @@ export function resolveDeadlyBlades(context: MesmerCastContext, resolution: Mesm
     priority: 5,
     kind: 'deadly-blades',
     stacks: 1,
-    duration: balanceProfileNumberFromContext(context, TRAIT.DEADLY_BLADES, 'durationMultiplier')
+    duration: balanceProfileNumber(deadlyBladesProfile, 'durationMultiplier')
   });
   runtime.addTraitProc('Deadly Blades', at, resolution.skill.name);
 }
@@ -52,13 +54,8 @@ export const deadlyBladesReaction = eventReaction<MesmerSchedulerContext>({
     // Skill-derived eligibility survives replacement, but explicit canonical flags win.
     const event = { ...canonicalEvent };
     if (!Object.hasOwn(event.metadata ?? {}, 'blade')) event.metadata = { ...event.metadata, blade: true };
-    const deadlyBlades = requireEffectFromContext(
-      context,
-      'balance-profile',
-      TRAIT.DEADLY_BLADES,
-      'condition',
-      'Vulnerability'
-    );
+    const deadlyBladesProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES);
+    const deadlyBlades = requireEffect(deadlyBladesProfile, 'condition', 'Vulnerability');
     if (!deadlyBlades) return;
     // Vulnerability follows the same sampled-or-weighted critical fact as Jagged
     // Mind, but remains a separate trait-owned condition application.

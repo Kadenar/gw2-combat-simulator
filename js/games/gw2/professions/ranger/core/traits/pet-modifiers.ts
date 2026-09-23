@@ -1,6 +1,9 @@
 /** Owns Ranger pet-audience attributes and rules so player modifier composition stays explicit. */
 import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -35,11 +38,13 @@ export function modifyRangerPetAttributes(
   const family = activePetFamily(context);
 
   if (hasTrait(context, TRAIT.ARACHNOPHOBIA) && ['spider', 'devourer'].includes(family)) {
-    adjust('expertise', balanceProfileNumberFromContext(context, PROFILE.arachnophobia, 'weaponAttributeBonus'));
+    const arachnophobiaProfile = requireBalanceProfileFromContext(context, PROFILE.arachnophobia);
+    adjust('expertise', balanceProfileNumber(arachnophobiaProfile, 'weaponAttributeBonus'));
   }
 
   if (!hasTrait(context, TRAIT.WELLSPRING)) return;
-  const conversion = balanceProfileNumberFromContext(context, PROFILE.wellspring, 'attributeConversion');
+  const wellspringProfile = requireBalanceProfileFromContext(context, PROFILE.wellspring);
+  const conversion = balanceProfileNumber(wellspringProfile, 'attributeConversion');
   if (staticRulesApplied) adjust('healingPower', -Number(context.config?.stats?.power || 0) * conversion);
   const summonBasePower = Number(context.event?.summonBasePower);
   const petPower =

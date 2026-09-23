@@ -1,8 +1,9 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 /** Owns imperative Core Mesmer Dueling trait effects. */
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
@@ -48,7 +49,8 @@ type BlindingDissipationContext = Pick<MesmerRuntime, 'traits' | 'addEvent' | 'a
 function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerResolverEvent, detail: string): void {
   if (!context.traits.has(TRAIT.INEPTITUDE)) return;
   const count = Math.max(1, Math.trunc(Number(event.count || 1)));
-  const effect = requireEffectFromContext(context, 'balance-profile', TRAIT.INEPTITUDE, 'condition', 'Confusion');
+  const ineptitudeProfile = requireBalanceProfileFromContext(context, TRAIT.INEPTITUDE);
+  const effect = requireEffect(ineptitudeProfile, 'condition', 'Confusion');
   if (!effect) return;
   context.recordProc(
     'trait',
@@ -77,13 +79,13 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
 /** Applies the interrupt half of Ineptitude with its defiant-target interval. */
 export function triggerIneptitudeFromInterrupt(context: MesmerResolverContext, event: MesmerResolverEvent): void {
   if (!context.traits.has(TRAIT.INEPTITUDE)) return;
+  const ineptitudeProfile = requireBalanceProfileFromContext(context, TRAIT.INEPTITUDE);
   // A removed Confusion packet owns no interrupt cooldown.
-  if (!requireEffectFromContext(context, 'balance-profile', TRAIT.INEPTITUDE, 'condition', 'Confusion')) return;
+  if (!requireEffect(ineptitudeProfile, 'condition', 'Confusion')) return;
   const defiant = Boolean(context.config.target?.defiant);
   if (defiant && !isInternalCooldownReady(event.at, context.profession.ineptitudeReadyAt)) return;
   if (defiant) {
-    context.profession.ineptitudeReadyAt =
-      event.at + balanceProfileNumberFromContext(context, TRAIT.INEPTITUDE, 'internalCooldown');
+    context.profession.ineptitudeReadyAt = event.at + balanceProfileNumber(ineptitudeProfile, 'internalCooldown');
   }
 
   applyIneptitudeConfusion(context, { ...event, count: defiant ? 1 : event.count }, 'interrupt → blind → confusion');
@@ -117,9 +119,10 @@ export function emitFencersFinesseStacks(
     return Infinity;
   }
 
+  const fencersFinesseProfile = requireBalanceProfileFromContext(context, TRAIT.FENCERS_FINESSE);
   // Stack lifetime and cap come from the selected trait profile.
-  const duration = balanceProfileNumberFromContext(context, TRAIT.FENCERS_FINESSE, 'durationMultiplier');
-  const maximum = balanceProfileNumberFromContext(context, TRAIT.FENCERS_FINESSE, 'maximumStacks');
+  const duration = balanceProfileNumber(fencersFinesseProfile, 'durationMultiplier');
+  const maximum = balanceProfileNumber(fencersFinesseProfile, 'maximumStacks');
   const hitCount = Math.max(1, Math.trunc(Number(hits || 1)));
   if (hitTimes.length === hitCount) {
     for (const hitAt of hitTimes) {
@@ -176,8 +179,10 @@ export function triggerMasterFencer(
   }
 
   const core = professionCoreState(context.state);
+  // One resolved owner supplies both fury effects and the ICD for this proc attempt.
+  const masterFencerProfile = requireBalanceProfileFromContext(context, TRAIT.MASTER_FENCER);
   const furyEffects = ['Self Fury', 'Allied Fury'].flatMap((name) => {
-    const effect = requireEffectFromContext(context, 'balance-profile', TRAIT.MASTER_FENCER, 'boon', name);
+    const effect = requireEffect(masterFencerProfile, 'boon', name);
     return effect ? [effect] : [];
   });
   if (!furyEffects.length) return;
@@ -202,7 +207,7 @@ export function triggerMasterFencer(
       core.traitReadyAt,
       TRAIT.MASTER_FENCER,
       event.at,
-      balanceProfileNumberFromContext(context, TRAIT.MASTER_FENCER, 'internalCooldown')
+      balanceProfileNumber(masterFencerProfile, 'internalCooldown')
     )
   )
     return;
@@ -236,7 +241,8 @@ export function triggerSharperImages(
   }
 
   const core = professionCoreState(context.state);
-  const effect = requireEffectFromContext(context, 'balance-profile', TRAIT.SHARPER_IMAGES, 'condition', 'Bleeding');
+  const sharperImagesProfile = requireBalanceProfileFromContext(context, TRAIT.SHARPER_IMAGES);
+  const effect = requireEffect(sharperImagesProfile, 'condition', 'Bleeding');
   if (!effect) return;
   const tracker = { progress: core.sharperImagesProgress, readyAt: 0 };
   const application = advanceCriticalProc(

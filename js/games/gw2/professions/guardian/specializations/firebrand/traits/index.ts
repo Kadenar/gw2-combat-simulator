@@ -5,8 +5,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
@@ -67,11 +66,15 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
       state.swiftScholarCount = 0;
     }
 
+    const profile = requireBalanceProfileFromContext(context, DORMANT_PROFILE_BY_VIRTUE[virtue]);
     // A ready passive starts its dormancy clock; Power of the Virtuous shortens
     // that clock, while reopening a dormant Tome preserves it.
-    const dormantCooldown = balanceProfileNumberFromContext(context, DORMANT_PROFILE_BY_VIRTUE[virtue], 'cooldown');
+    const dormantCooldown = balanceProfileNumber(profile, 'cooldown');
     const dormantRechargeMultiplier = hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
-      ? balanceProfileNumberFromContext(context, CORE_PROFILE.powerOfTheVirtuous, 'rechargeMultiplier')
+      ? balanceProfileNumber(
+          requireBalanceProfileFromContext(context, CORE_PROFILE.powerOfTheVirtuous),
+          'rechargeMultiplier'
+        )
       : 1;
     const passiveReadyAt = passiveWasReady
       ? at + dormantCooldown * dormantRechargeMultiplier

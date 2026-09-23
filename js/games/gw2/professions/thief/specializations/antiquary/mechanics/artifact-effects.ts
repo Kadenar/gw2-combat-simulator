@@ -24,7 +24,7 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
   const state = antiquaryState.from(context);
   if (!consumeCharge(state.mistburn, event.at)) return;
   const mistburnProcProfile = requireBalanceProfileFromContext(context, PROFILE.mistburnProc);
-  const burning = requireEffect(mistburnProcProfile, 'condition', 'Burning', context);
+  const burning = requireEffect(mistburnProcProfile, 'condition', 'Burning');
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!burning) return;
   context.applyCondition(
@@ -37,8 +37,8 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
       skillName: 'Mistburn Mortar',
       name: 'Mistburn Mortar — Charged Strike',
       condition: String(burning.condition),
-      stacks: effectNumber(mistburnProcProfile, burning, 'stacks', context),
-      duration: effectNumber(mistburnProcProfile, burning, 'duration', context),
+      stacks: effectNumber(mistburnProcProfile, burning, 'stacks'),
+      duration: effectNumber(mistburnProcProfile, burning, 'duration'),
       triggeredBy: event.skillName
     })
   );
@@ -55,7 +55,7 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, event: ThiefRe
   )
     return;
   const sunCrystalMeticulousProfile = requireBalanceProfileFromContext(context, PROFILE.sunCrystalMeticulous);
-  const burning = requireEffect(sunCrystalMeticulousProfile, 'condition', 'Burning', context);
+  const burning = requireEffect(sunCrystalMeticulousProfile, 'condition', 'Burning');
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!burning) return;
   context.applyCondition(
@@ -70,8 +70,8 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, event: ThiefRe
       // Preserve trait provenance so the already-enhanced duration is not multiplied again.
       triggeredBy: event.skillName,
       condition: String(burning.condition),
-      stacks: effectNumber(sunCrystalMeticulousProfile, burning, 'stacks', context),
-      duration: effectNumber(sunCrystalMeticulousProfile, burning, 'duration', context)
+      stacks: effectNumber(sunCrystalMeticulousProfile, burning, 'stacks'),
+      duration: effectNumber(sunCrystalMeticulousProfile, burning, 'duration')
     })
   );
 }

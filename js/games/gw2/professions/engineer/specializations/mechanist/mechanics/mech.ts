@@ -1,9 +1,10 @@
 import { actorLoop } from '#gw2/platform/profession-definition/mechanics.js';
 import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext,
-  effectNumberFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   emitSkillBuff,
@@ -217,9 +218,10 @@ export function observeEngineerMechEvent(context: EngineerSchedulerContext, even
 
 /** Emits the mech fighter trait's strike, burning, and defiance-damage packets as one activation. */
 function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
-  const strike = requireEffectFromContext(context, 'balance-profile', PROFILE.rocketPunch, 'strike', 'Rocket Punch');
-  const condition = requireEffectFromContext(context, 'balance-profile', PROFILE.rocketPunch, 'condition', 'Burning');
-  const control = requireEffectFromContext(context, 'balance-profile', PROFILE.rocketPunch, 'control', 'Rocket Punch');
+  const rocketPunchProfile = requireBalanceProfileFromContext(context, PROFILE.rocketPunch);
+  const strike = requireEffect(rocketPunchProfile, 'strike', 'Rocket Punch');
+  const condition = requireEffect(rocketPunchProfile, 'condition', 'Burning');
+  const control = requireEffect(rocketPunchProfile, 'control', 'Rocket Punch');
   // Rocket Punch is the mech's activation, not another packet from the
   // player's triggering weapon cast, so it owns a separate strength roll.
   const activationId = context.createActivationId('summon-attack');
@@ -232,7 +234,7 @@ function emitRocketPunch(context: EngineerCastContext, skill: EngineerSkill, at:
       skillId: ID.ROCKET_PUNCH_MECH,
       skillName: 'Rocket Punch (Mech)',
       name: 'Rocket Punch (Mech)',
-      coefficient: effectNumberFromContext(context, 'balance-profile', PROFILE.rocketPunch, strike, 'coefficient'),
+      coefficient: effectNumber(rocketPunchProfile, strike, 'coefficient'),
       hits: 1,
       hitIndex: 1,
       totalHits: 1,
@@ -299,13 +301,15 @@ export function applyEngineerMechCastTraits(context: EngineerCastContext, skill:
     skill.slot === 'Weapon_3' &&
     isInternalCooldownReady(at, Number(professionCoreState(context).traitProcReadyAt.rocketPunch || 0))
   ) {
+    const rocketPunchProfile = requireBalanceProfileFromContext(context, PROFILE.rocketPunch);
     professionCoreState(context).traitProcReadyAt.rocketPunch =
-      at + balanceProfileNumberFromContext(context, PROFILE.rocketPunch, 'internalCooldown');
+      at + balanceProfileNumber(rocketPunchProfile, 'internalCooldown');
     emitRocketPunch(context, skill, at);
   }
 
   if (isEngineerMechCommand(skill) && hasTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)) {
-    const boon = requireEffectFromContext(context, 'balance-profile', PROFILE.jadeDynamo, 'boon', 'quickness');
+    const jadeDynamoProfile = requireBalanceProfileFromContext(context, PROFILE.jadeDynamo);
+    const boon = requireEffect(jadeDynamoProfile, 'boon', 'quickness');
     if (boon) {
       emitSkillBuff(context, {
         at,
@@ -350,23 +354,12 @@ function stepMechAttack(
   // distinct within-pair and between-pair delays.
   if (hasTrait(context.config, TRAIT.MECH_ARMS_JADE_CANNONS)) {
     const firstArm = phase === 0;
-    const jadeCannonsStrike = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.jadeCannons,
-      'strike',
-      'Jade Cannons'
-    );
+    const jadeCannonsProfile = requireBalanceProfileFromContext(context, PROFILE.jadeCannons);
+    const jadeCannonsStrike = requireEffect(jadeCannonsProfile, 'strike', 'Jade Cannons');
     if (jadeCannonsStrike) {
       emitMechStrike(context, {
         at: at,
-        coefficient: effectNumberFromContext(
-          context,
-          'balance-profile',
-          PROFILE.jadeCannons,
-          jadeCannonsStrike,
-          'coefficient'
-        ),
+        coefficient: effectNumber(jadeCannonsProfile, jadeCannonsStrike, 'coefficient'),
         name: 'Jade Energy Shot',
         skillId: firstArm ? ID.JADE_ENERGY_SHOT : ID.JADE_ENERGY_SHOT_ID_63348
       });
@@ -394,12 +387,13 @@ function stepMechAttack(
     name: 'Hard Strike',
     skillId: ID.HARD_STRIKE
   };
-  const strike = requireEffectFromContext(context, 'balance-profile', PROFILE.meleeChain, 'strike', melee.name);
+  const meleeChainProfile = requireBalanceProfileFromContext(context, PROFILE.meleeChain);
+  const strike = requireEffect(meleeChainProfile, 'strike', melee.name);
   if (strike) {
     emitMechStrike(context, {
       at: at,
       ...melee,
-      coefficient: effectNumberFromContext(context, 'balance-profile', PROFILE.meleeChain, strike, 'coefficient'),
+      coefficient: effectNumber(meleeChainProfile, strike, 'coefficient'),
       hits: Number(strike.hits)
     });
   }
@@ -433,15 +427,10 @@ export function activateOverclockSignet(context: EngineerCastContext, skill: Eng
   const rate = mechAttackRate(context, at);
   const interval = MECHANIST_ATTACK_TIMING.jadeBusterPulseInterval / rate;
   const firstHit = MECHANIST_ATTACK_TIMING.jadeBusterFirstHitDelay / rate;
-  const hits = balanceProfileNumberFromContext(context, PROFILE.overclock, 'packetCount');
-  const strike = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.overclock,
-    'strike',
-    'Jade Buster Cannon'
-  );
-  const condition = requireEffectFromContext(context, 'balance-profile', PROFILE.overclock, 'condition', 'Burning');
+  const overclockProfile = requireBalanceProfileFromContext(context, PROFILE.overclock);
+  const hits = balanceProfileNumber(overclockProfile, 'packetCount');
+  const strike = requireEffect(overclockProfile, 'strike', 'Jade Buster Cannon');
+  const condition = requireEffect(overclockProfile, 'condition', 'Burning');
   // Block the basic attack loop for the full cannon burst so hits don't overlap.
   state.mech.busyUntil = Math.max(
     Number(state.mech.busyUntil || 0),
@@ -452,7 +441,7 @@ export function activateOverclockSignet(context: EngineerCastContext, skill: Eng
     if (strike) {
       emitMechStrike(context, {
         at: impactAt,
-        coefficient: effectNumberFromContext(context, 'balance-profile', PROFILE.overclock, strike, 'coefficient'),
+        coefficient: effectNumber(overclockProfile, strike, 'coefficient'),
         hits: 1,
         name: 'Jade Buster Cannon',
         skillId: ID.JADE_BUSTER_CANNON,

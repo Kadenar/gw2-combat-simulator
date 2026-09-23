@@ -9,9 +9,10 @@
 import { denySkillCast } from '#gw2/professions/shared/availability.js';
 import { retryCast } from '#gw2/platform/engine/skills/availability.js';
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext,
-  effectNumberFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  balanceProfileNumber,
+  effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -55,7 +56,8 @@ const FULL_ETCHING_CHARGE_SKILLS = new Set<number>([ID.OVERLOAD_FIRE, ID.OVERLOA
  */
 export function applyTempestShoutTraits(context: ElementalistCastContext, skill: Skill): void {
   if (!hasTrait(context, 'Tempestuous Aria')) return;
-  const might = requireEffectFromContext(context, 'balance-profile', PROFILE.tempestuousAria, 'boon', 'Shout Might');
+  const tempestuousAriaProfile = requireBalanceProfileFromContext(context, PROFILE.tempestuousAria);
+  const might = requireEffect(tempestuousAriaProfile, 'boon', 'Shout Might');
   if (might) {
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
@@ -76,7 +78,8 @@ export function applyTempestShoutTraits(context: ElementalistCastContext, skill:
 function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   if (!skill.overload) return;
   if (hasTrait(context, 'Hardy Conduit')) {
-    const protection = requireEffectFromContext(context, 'balance-profile', PROFILE.hardyConduit, 'boon', 'Protection');
+    const hardyConduitProfile = requireBalanceProfileFromContext(context, PROFILE.hardyConduit);
+    const protection = requireEffect(hardyConduitProfile, 'boon', 'Protection');
     if (protection) {
       emitSkillBuff(context, skill, {
         at: context.start,
@@ -92,20 +95,9 @@ function onCastStart(context: ElementalistCastContext, skill: Skill): void {
   }
 
   if (hasTrait(context, 'Harmonious Conduit')) {
-    const swiftness = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.harmoniousConduit,
-      'boon',
-      'Swiftness'
-    );
-    const stability = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.harmoniousConduit,
-      'boon',
-      'Stability'
-    );
+    const harmoniousConduitProfile = requireBalanceProfileFromContext(context, PROFILE.harmoniousConduit);
+    const swiftness = requireEffect(harmoniousConduitProfile, 'boon', 'Swiftness');
+    const stability = requireEffect(harmoniousConduitProfile, 'boon', 'Stability');
     for (const effect of [swiftness, stability]) {
       if (!effect) continue;
       const boon = {
@@ -144,12 +136,12 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
     return denySkillCast(skill, 'elementalist.tempest-attunement', `requires ${String(skill.attunement)} attunement.`);
   }
 
+  const overloadsProfile = requireBalanceProfileFromContext(context, PROFILE.overloads);
   // Transcendent Tempest shortens the dwell, and alacrity speeds the singularity's formation.
   const dwell =
     (hasTrait(context, 'Transcendent Tempest')
-      ? balanceProfileNumberFromContext(context, PROFILE.overloads, 'durationMultiplier')
-      : balanceProfileNumberFromContext(context, PROFILE.overloads, 'initialDelay')) /
-    (context.config.boons?.alacrity ? 1.25 : 1);
+      ? balanceProfileNumber(overloadsProfile, 'durationMultiplier')
+      : balanceProfileNumber(overloadsProfile, 'initialDelay')) / (context.config.boons?.alacrity ? 1.25 : 1);
   // The configured starting attunement carries a negative entry stamp and needs no dwell.
   const startingAttunementReady = state.attunementEnteredAt < 0;
   const readyAt = startingAttunementReady ? context.start : state.attunementEnteredAt + dwell;
@@ -166,16 +158,18 @@ function availability(context: ElementalistPrecastContext, skill: Skill): Availa
 // preserving interruption behavior and the distinct final-pulse duration.
 function afterCast(context: ElementalistCastContext, skill: Skill): void {
   if (!skill.overload || !hasTrait(context, 'Lucid Singularity')) return;
+  const lucidSingularityProfile = requireBalanceProfileFromContext(context, PROFILE.lucidSingularity);
   const hits = context.events
     .filter(
       (event: SimulationEvent) =>
         event.activationId === context.reservationId && event.type === 'damage' && Number(event.coefficient || 0) > 0
     )
     .sort((left: SimulationEvent, right: SimulationEvent) => left.at - right.at)
-    .slice(0, balanceProfileNumberFromContext(context, PROFILE.lucidSingularity, 'maximumStacks'));
+    .slice(0, balanceProfileNumber(lucidSingularityProfile, 'maximumStacks'));
   hits.forEach((event: SimulationEvent, index: number) => {
     const effectName = index === hits.length - 1 ? 'Final Alacrity' : 'Pulse Alacrity';
-    const alacrity = requireEffectFromContext(context, 'balance-profile', PROFILE.lucidSingularity, 'boon', effectName);
+    const lucidSingularityProfile = requireBalanceProfileFromContext(context, PROFILE.lucidSingularity);
+    const alacrity = requireEffect(lucidSingularityProfile, 'boon', effectName);
     if (!alacrity) return;
     emitSkillBuff(context, skill, {
       at: event.at,
@@ -194,7 +188,8 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
 // for overloads the attunement lockout and each completion trait.
 function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   if (skill.type === 'Heal' && hasTrait(context, 'Gale Song')) {
-    const protection = requireEffectFromContext(context, 'balance-profile', PROFILE.galeSong, 'boon', 'Protection');
+    const galeSongProfile = requireBalanceProfileFromContext(context, PROFILE.galeSong);
+    const protection = requireEffect(galeSongProfile, 'boon', 'Protection');
     if (protection) {
       emitSkillBuff(context, skill, {
         at: context.effectiveEnd,
@@ -231,13 +226,8 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
           : attunement === 'Air'
             ? 'Shocking Aura'
             : 'Magnetic Aura';
-    const unstableConduitAttunement = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.unstableConduit,
-      'buff',
-      attunement
-    );
+    const unstableConduitProfile = requireBalanceProfileFromContext(context, PROFILE.unstableConduit);
+    const unstableConduitAttunement = requireEffect(unstableConduitProfile, 'buff', attunement);
     if (unstableConduitAttunement) {
       applyElementalistAura(context as never, {
         at: context.effectiveEnd,
@@ -256,6 +246,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   }
 
   if (hasTrait(context, 'Transcendent Tempest')) {
+    const transcendentTempestProfile = requireBalanceProfileFromContext(context, PROFILE.transcendentTempest);
     emitSkillBuff(context, {
       at: context.effectiveEnd,
       // The completion buff applies to the final Overload packet and to
@@ -267,25 +258,22 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
       skillName: 'Transcendent Tempest',
       kind: 'transcendent-tempest',
       stacks: 1,
-      duration: balanceProfileNumberFromContext(context, PROFILE.transcendentTempest, 'durationMultiplier')
+      duration: balanceProfileNumber(transcendentTempestProfile, 'durationMultiplier')
     });
   }
 
   // Overload Air's completion strike: a non-critical unequipped-weapon hit, mirrored onto an
   // active fire/earth elemental and recorded as its own proc for attribution.
   if (skill.id === ID.OVERLOAD_AIR) {
-    const lightningJoltOverloadAirLightningJoltStrike = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.lightningJolt,
+    const lightningJoltProfile = requireBalanceProfileFromContext(context, PROFILE.lightningJolt);
+    const lightningJoltOverloadAirLightningJoltStrike = requireEffect(
+      lightningJoltProfile,
       'strike',
       'Overload Air - Lightning Jolt'
     );
     if (lightningJoltOverloadAirLightningJoltStrike) {
-      const coefficient = effectNumberFromContext(
-        context,
-        'balance-profile',
-        PROFILE.lightningJolt,
+      const coefficient = effectNumber(
+        lightningJoltProfile,
         lightningJoltOverloadAirLightningJoltStrike,
         'coefficient'
       );
@@ -325,7 +313,11 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
 // Elemental Enchantment shortens overload recharges only.
 function modifyRechargeDuration(context: ElementalistPrecastContext, duration: number): number {
   return context.skill.overload && hasTrait(context, 'Elemental Enchantment')
-    ? duration * balanceProfileNumberFromContext(context, CORE_PROFILE.elementalEnchantment, 'rechargeMultiplier')
+    ? duration *
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, CORE_PROFILE.elementalEnchantment),
+          'rechargeMultiplier'
+        )
     : duration;
 }
 
@@ -349,9 +341,9 @@ function onEventScheduled(context: ElementalistCastContext, event: SimulationEve
   if (event.type === 'elementalist.attunement' && event.to === 'Water' && hasTrait(context, 'Latent Stamina')) {
     const state = tempestState.from(context);
     if (isInternalCooldownReady(event.at, state.latentStaminaReadyAt)) {
-      state.latentStaminaReadyAt =
-        event.at + balanceProfileNumberFromContext(context, PROFILE.latentStamina, 'internalCooldown');
-      const vigor = requireEffectFromContext(context, 'balance-profile', PROFILE.latentStamina, 'boon', 'Vigor');
+      const latentStaminaProfile = requireBalanceProfileFromContext(context, PROFILE.latentStamina);
+      state.latentStaminaReadyAt = event.at + balanceProfileNumber(latentStaminaProfile, 'internalCooldown');
+      const vigor = requireEffect(latentStaminaProfile, 'boon', 'Vigor');
       const sourceId = event.skillId ?? event.sourceId;
       if (vigor) {
         emitSkillBuff(context, elementalistEventSkill(context, 'Latent Stamina', sourceId), {

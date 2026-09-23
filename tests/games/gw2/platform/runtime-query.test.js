@@ -13,6 +13,7 @@ import {
   selectedSkillNames,
   targetConditionActive,
   targetConditionCount,
+  targetHealthBelow,
   targetHealthFraction,
   vulnerabilityStacks
 } from '#gw2/platform/combat/query/runtime-query.js';
@@ -325,12 +326,12 @@ test('selected skill queries normalize name arrays and slot records', () => {
   assert.equal(hasSelectedSkill(recordContext, 'Missing'), false);
 });
 
-test('health fractions preserve explicit precedence and dynamic damage fallback', () => {
+test('target health derives from starting health and resolved damage', () => {
   assert.equal(
-    targetHealthFraction(context({ config: { targetHealthFraction: 1.4, target: { healthFraction: 0.2 } } })),
-    1
+    targetHealthFraction(context({ config: { target: { health: 100, startingHealthFraction: 0.25 } } })),
+    0.25
   );
-  assert.equal(targetHealthFraction(context({ config: { target: { healthFraction: 0.2, health: 100 } } })), 0.2);
+  assert.equal(targetHealthFraction(context({ config: { target: { health: 100, startingHealthFraction: 1.4 } } })), 1);
   assert.equal(
     targetHealthFraction(
       context({
@@ -350,6 +351,19 @@ test('health fractions preserve explicit precedence and dynamic damage fallback'
     0.4
   );
   assert.equal(targetHealthFraction(context()), 1);
+});
+
+// Every "below X% health" rule shares this gate, so exactly-at-threshold must never qualify.
+test('target-health-below gates are strict at the threshold and closed for unbounded targets', () => {
+  const afterDamage = (strike) =>
+    context({ config: { target: { health: 100 } }, runtime: { totals: { strike, condition: 0 } } });
+  assert.equal(targetHealthBelow(afterDamage(50), 0.5), false);
+  assert.equal(targetHealthBelow(afterDamage(51), 0.5), true);
+  assert.equal(
+    targetHealthBelow(context({ config: { target: { health: 100, startingHealthFraction: 0.5 } } }), 0.5),
+    false
+  );
+  assert.equal(targetHealthBelow(context({ runtime: { totals: { strike: 1e9, condition: 0 } } }), 1), false);
 });
 
 test('player health stays full even when callers supply legacy health overrides', () => {

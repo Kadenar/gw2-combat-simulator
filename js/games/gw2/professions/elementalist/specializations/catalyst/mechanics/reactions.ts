@@ -9,8 +9,9 @@ import { resolverSourceSkill, buildResolverStrike, buildResolverCondition } from
  */
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
@@ -101,7 +102,7 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
       state.elementalEpitomeReadyAt,
       attunement,
       event.at,
-      balanceProfileNumberFromContext(context, PROFILE.elementalEpitome, 'internalCooldown')
+      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.elementalEpitome), 'internalCooldown')
     )
   ) {
     const aura = elementalEpitomeAura(context, attunement);
@@ -117,20 +118,22 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
       state.elementalSynergyReadyAt,
       attunement,
       event.at,
-      balanceProfileNumberFromContext(context, PROFILE.elementalSynergy, 'internalCooldown')
+      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.elementalSynergy), 'internalCooldown')
     )
   ) {
     if (attunement === 'Fire' || attunement === 'Earth') {
       const boon = elementalSynergyBoon(context, attunement);
       if (boon) queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, 'Elemental Synergy');
     } else if (attunement === 'Air') {
+      const elementalSynergyProfile = requireBalanceProfileFromContext(context, PROFILE.elementalSynergy);
+      const resourcesProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.resources);
       Object.assign(
         core,
         grantEndurance(
           core,
-          balanceProfileNumberFromContext(context, PROFILE.elementalSynergy, 'resourceGain'),
+          balanceProfileNumber(elementalSynergyProfile, 'resourceGain'),
           event.at,
-          balanceProfileNumberFromContext(context, CORE_PROFILE.resources, 'maximumStacks')
+          balanceProfileNumber(resourcesProfile, 'maximumStacks')
         )
       );
     }
@@ -170,16 +173,10 @@ export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2R
 
   const state = catalystState.from(context);
   if (!isInternalCooldownReady(event.at, state.viciousEmpowermentReadyAt)) return;
-  state.viciousEmpowermentReadyAt =
-    event.at + balanceProfileNumberFromContext(context, PROFILE.viciousEmpowerment, 'internalCooldown');
-  const empowerment = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.viciousEmpowerment,
-    'buff',
-    'Empowerment'
-  );
-  const might = requireEffectFromContext(context, 'balance-profile', PROFILE.viciousEmpowerment, 'boon', 'Might');
+  const viciousEmpowermentProfile = requireBalanceProfileFromContext(context, PROFILE.viciousEmpowerment);
+  state.viciousEmpowermentReadyAt = event.at + balanceProfileNumber(viciousEmpowermentProfile, 'internalCooldown');
+  const empowerment = requireEffect(viciousEmpowermentProfile, 'buff', 'Empowerment');
+  const might = requireEffect(viciousEmpowermentProfile, 'boon', 'Might');
   if (empowerment) {
     queueCatalystBuff(
       context,
@@ -219,12 +216,13 @@ export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2
   }
 
   const state = catalystState.from(context);
+  const elementalEmpowermentProfile = requireBalanceProfileFromContext(context, PROFILE.elementalEmpowerment);
   grantCatalystElementalEmpowerment(
     state,
     event.at,
     Number(event.duration || 0),
     Number(event.stacks || 1),
-    balanceProfileNumberFromContext(context, PROFILE.elementalEmpowerment, 'maximumStacks')
+    balanceProfileNumber(elementalEmpowermentProfile, 'maximumStacks')
   );
 }
 
@@ -247,16 +245,10 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
     return;
   }
 
-  state.shatteringIceReadyAt =
-    event.at + balanceProfileNumberFromContext(context, PROFILE.shatteringIce, 'internalCooldown');
-  const strike = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.shatteringIce,
-    'strike',
-    'Shattering Ice - Triggered Packet'
-  );
-  const chilled = requireEffectFromContext(context, 'balance-profile', PROFILE.shatteringIce, 'condition', 'Chilled');
+  const shatteringIceProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringIce);
+  state.shatteringIceReadyAt = event.at + balanceProfileNumber(shatteringIceProfile, 'internalCooldown');
+  const strike = requireEffect(shatteringIceProfile, 'strike', 'Shattering Ice - Triggered Packet');
+  const chilled = requireEffect(shatteringIceProfile, 'condition', 'Chilled');
   if (strike) {
     context.queue.enqueue(
       buildResolverStrike({

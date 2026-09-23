@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { syncWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
@@ -12,8 +15,9 @@ export function advanceBerserker(context: WarriorSchedulerContext, target: numbe
     state.berserkActive = false;
     state.berserkUntil = 0;
     const core = professionCoreState(context);
+    const resourcesProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.resources);
     // Restore the full three-bar adrenaline cap when berserk expires.
-    core.maximumAdrenaline = balanceProfileNumberFromContext(context, CORE_PROFILE.resources, 'maximumStacks');
+    core.maximumAdrenaline = balanceProfileNumber(resourcesProfile, 'maximumStacks');
     syncWarriorAdrenaline(context);
   }
 }

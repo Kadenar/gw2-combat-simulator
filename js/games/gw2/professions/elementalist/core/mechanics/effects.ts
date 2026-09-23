@@ -6,7 +6,7 @@
  * this module; it must not depend on them.
  */
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { requireEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -77,7 +77,8 @@ export function emitProfiledBuff(
   priority = 0,
   recipients: 'self' | 'party' = 'self'
 ): void {
-  const effect = requireEffectFromContext(context, 'balance-profile', profileId, 'boon', effectName);
+  const profile = requireBalanceProfileFromContext(context, profileId);
+  const effect = requireEffect(profile, 'boon', effectName);
   if (!effect) return;
   const kind = String(effect.boon).toLowerCase();
 
@@ -105,7 +106,8 @@ export function emitProfiledCondition(
   sourceId: Skill['id'],
   triggeredBy = ''
 ): boolean {
-  const effect = requireEffectFromContext(context, 'balance-profile', profileId, 'condition', effectName);
+  const profile = requireBalanceProfileFromContext(context, profileId);
+  const effect = requireEffect(profile, 'condition', effectName);
   if (!effect) return false;
   const condition = String(effect.condition);
   const stacks = Number(effect.stacks);

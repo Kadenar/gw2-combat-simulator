@@ -1,5 +1,8 @@
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -36,8 +39,9 @@ function modifyEngineerConditionBaseDuration(context: Gw2ModifierContext, multip
     return multiplier;
   }
 
+  const chemicalRoundsProfile = requireBalanceProfileFromContext(context, TRAIT.CHEMICAL_ROUNDS);
   // Apply the skill-specific increase uniformly so every pistol condition keeps it beyond the global duration cap.
-  return multiplier * balanceProfileNumberFromContext(context, TRAIT.CHEMICAL_ROUNDS, 'conditionDurationMultiplier');
+  return multiplier * balanceProfileNumber(chemicalRoundsProfile, 'conditionDurationMultiplier');
 }
 
 export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -108,7 +112,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
         hasTrait(context, TRAIT.TAKEDOWN_ROUND) &&
         // 1e-9 tolerance prevents floating-point rounding from falsely reading "full endurance"
         Number(state.endurance || 0) <
-          balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks') - 1e-9
+          balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks') - 1e-9
       );
     }
   },
@@ -133,14 +137,16 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'engineer.high-caliber',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.HIGH_CALIBER, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HIGH_CALIBER), 'criticalChance'),
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.HIGH_CALIBER)
   },
   {
     id: 'engineer.grand-entrance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.GRAND_ENTRANCE, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GRAND_ENTRANCE), 'criticalChance'),
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.GRAND_ENTRANCE) &&
@@ -167,7 +173,8 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'engineer.static-discharge-critical-damage',
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
-    factor: (context) => balanceProfileNumberFromContext(context, TRAIT.STATIC_DISCHARGE, 'criticalDamage'),
+    factor: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.STATIC_DISCHARGE), 'criticalDamage'),
     when: (context) => context.event?.staticDischarge === true
   },
   {
@@ -186,7 +193,8 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
 
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.SERRATED_STEEL, 'durationMultiplier'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SERRATED_STEEL), 'durationMultiplier'),
     // Panel-derived simulation stats already contain this static bonus; provenance keeps direct simulations compatible.
     when: (context) =>
       context.condition === 'Bleeding' &&
@@ -198,7 +206,8 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
 
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.INCENDIARY_POWDER, 'durationMultiplier'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.INCENDIARY_POWDER), 'durationMultiplier'),
     when: (context) =>
       context.condition === 'Burning' &&
       hasTrait(context, TRAIT.INCENDIARY_POWDER) &&
@@ -208,7 +217,8 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'engineer.hematic-focus',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.HEMATIC_FOCUS, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HEMATIC_FOCUS), 'criticalChance'),
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.HEMATIC_FOCUS) &&
@@ -222,15 +232,14 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: G
   // buildAttributesApplied guard: prevents double-counting when the build calculator already applied these bonuses
   const buildAttributesApplied = professionStaticRulesApplied(context.config);
   if (hasTrait(context, TRAIT.CHEMICAL_ROUNDS) && !buildAttributesApplied) {
+    const chemicalRoundsProfile = requireBalanceProfileFromContext(context, PROFILE.chemicalRounds);
     modified.conditionDamage =
-      Number(modified.conditionDamage || 0) +
-      balanceProfileNumberFromContext(context, PROFILE.chemicalRounds, 'attributeBonus');
+      Number(modified.conditionDamage || 0) + balanceProfileNumber(chemicalRoundsProfile, 'attributeBonus');
   }
 
   if (hasTrait(context, TRAIT.THERMAL_VISION) && !buildAttributesApplied) {
-    modified.expertise =
-      Number(modified.expertise || 0) +
-      balanceProfileNumberFromContext(context, PROFILE.thermalVision, 'attributeBonus');
+    const thermalVisionProfile = requireBalanceProfileFromContext(context, PROFILE.thermalVision);
+    modified.expertise = Number(modified.expertise || 0) + balanceProfileNumber(thermalVisionProfile, 'attributeBonus');
   }
 
   if (
@@ -239,7 +248,8 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: G
     // only skip if regen is a permanent assumption AND build attributes already account for it
     !(buildAttributesApplied && Boolean(context.config?.boons?.regeneration))
   ) {
-    const attributeBonus = balanceProfileNumberFromContext(context, PROFILE.energyAmplifier, 'attributeBonus');
+    const energyAmplifierProfile = requireBalanceProfileFromContext(context, PROFILE.energyAmplifier);
+    const attributeBonus = balanceProfileNumber(energyAmplifierProfile, 'attributeBonus');
     modified.power = Number(modified.power || 0) + attributeBonus;
     modified.healingPower = Number(modified.healingPower || 0) + attributeBonus;
   }
@@ -249,19 +259,16 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: G
     activeBoonStacks(context, 'fury', 1) > 0 &&
     !(buildAttributesApplied && Boolean(context.config?.boons?.fury))
   ) {
-    modified.ferocity =
-      Number(modified.ferocity || 0) + balanceProfileNumberFromContext(context, PROFILE.noScope, 'attributeBonus');
+    const noScopeProfile = requireBalanceProfileFromContext(context, PROFILE.noScope);
+    modified.ferocity = Number(modified.ferocity || 0) + balanceProfileNumber(noScopeProfile, 'attributeBonus');
   }
 
   if (hasTrait(context, TRAIT.EXPLOSIVE_TEMPER)) {
+    const explosiveTemperProfile = requireBalanceProfileFromContext(context, PROFILE.explosiveTemper);
     modified.ferocity =
       Number(modified.ferocity || 0) +
-      activeBoonStacks(
-        context,
-        'explosive-temper',
-        balanceProfileNumberFromContext(context, PROFILE.explosiveTemper, 'maximumStacks')
-      ) *
-        balanceProfileNumberFromContext(context, PROFILE.explosiveTemper, 'attributePerStack');
+      activeBoonStacks(context, 'explosive-temper', balanceProfileNumber(explosiveTemperProfile, 'maximumStacks')) *
+        balanceProfileNumber(explosiveTemperProfile, 'attributePerStack');
   }
 
   applyEngineerSharpshooterConditionDamage(context, modified);
@@ -284,24 +291,26 @@ export function applyEngineerSharpshooterConditionDamage(
     return;
   }
 
+  const sharpshooterProfile = requireBalanceProfileFromContext(context, PROFILE.sharpshooter);
   // Sharpshooter replaces the attribute only for bleeding that inherits the player's outgoing modifiers.
   attributes.conditionDamage =
-    Number(attributes.power || 0) *
-    balanceProfileNumberFromContext(context, PROFILE.sharpshooter, 'coefficientMultiplier');
+    Number(attributes.power || 0) * balanceProfileNumber(sharpshooterProfile, 'coefficientMultiplier');
 }
 
 /** Applies toolbelt and gadget recharge reductions from the active Core traits. */
 function modifyEngineerCoreRechargeDuration(context: EngineerRechargeContext, duration: number): number {
   const skill = context.skill;
   if (isEngineerToolbeltSkill(skill) && hasTrait(context.config, TRAIT.MECHANIZED_DEPLOYMENT)) {
-    return duration * balanceProfileNumberFromContext(context, TRAIT.MECHANIZED_DEPLOYMENT, 'rechargeMultiplier');
+    const mechanizedDeploymentProfile = requireBalanceProfileFromContext(context, TRAIT.MECHANIZED_DEPLOYMENT);
+    return duration * balanceProfileNumber(mechanizedDeploymentProfile, 'rechargeMultiplier');
   }
 
   if (
     skill?.categories?.some((category) => String(category).toLowerCase() === 'gadget') &&
     hasTrait(context.config, TRAIT.GADGETEER)
   ) {
-    return duration * balanceProfileNumberFromContext(context, TRAIT.GADGETEER, 'rechargeMultiplier');
+    const gadgeteerProfile = requireBalanceProfileFromContext(context, TRAIT.GADGETEER);
+    return duration * balanceProfileNumber(gadgeteerProfile, 'rechargeMultiplier');
   }
 
   return duration;

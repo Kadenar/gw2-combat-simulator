@@ -8,7 +8,10 @@ import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
  * bonuses that must land on ferocity and condition damage before those
  * attributes feed into scaling.
  */
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -59,7 +62,10 @@ export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: (context) =>
-      balanceProfileNumberFromContext(context, ELEMENTALIST_TRAIT_IDS.ENHANCED_POTENCY, 'criticalChance'),
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, ELEMENTALIST_TRAIT_IDS.ENHANCED_POTENCY),
+        'criticalChance'
+      ),
     when: (context: ElementalistModifierContext) =>
       context.config?.evokerElement === 'Air' &&
       hasTrait(context, 'Enhanced Potency') &&
@@ -86,17 +92,16 @@ export function modifyEvokerAttributes(context: ElementalistModifierContext, att
     context.config?.evokerElement === 'Air' &&
     Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
   ) {
-    modified.ferocity =
-      Number(modified.ferocity || 0) +
-      balanceProfileNumberFromContext(context, PROFILE.enhancedPotency, 'attributeBonus');
+    const enhancedPotencyProfile = requireBalanceProfileFromContext(context, PROFILE.enhancedPotency);
+    modified.ferocity = Number(modified.ferocity || 0) + balanceProfileNumber(enhancedPotencyProfile, 'attributeBonus');
   }
 
   if (context.config?.evokerElement === 'Fire' && hasTrait(context, 'Enhanced Potency')) {
+    const enhancedPotencyProfile = requireBalanceProfileFromContext(context, PROFILE.enhancedPotency);
     // Fire Enhanced Potency scales condition damage per might stack
     modified.conditionDamage =
       Number(modified.conditionDamage || 0) +
-      elementalistMightStacks(context) *
-        balanceProfileNumberFromContext(context, PROFILE.enhancedPotency, 'attributePerStack');
+      elementalistMightStacks(context) * balanceProfileNumber(enhancedPotencyProfile, 'attributePerStack');
   }
 
   return modified;

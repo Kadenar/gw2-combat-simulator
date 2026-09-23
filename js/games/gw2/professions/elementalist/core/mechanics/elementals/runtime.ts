@@ -20,7 +20,10 @@ import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
  * Auto-summon: when enabled and a glyph is slotted, the elemental is re-summoned on
  * combat start (or first offensive event) without an explicit cast in the rotation.
  */
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import {
@@ -643,10 +646,8 @@ function expireElemental(
   consumeSkillFlip(state.availableFlips, context.catalog.skillsByName.get(commandName(element))!.id);
   const glyph = glyphSkillForElement(context, element);
   if (glyph) {
-    context.state.cooldowns.set(
-      glyph.id,
-      at + balanceProfileNumberFromContext(context, PROFILE.summonedElemental, 'recharge')
-    );
+    const summonedElementalProfile = requireBalanceProfileFromContext(context, PROFILE.summonedElemental);
+    context.state.cooldowns.set(glyph.id, at + balanceProfileNumber(summonedElementalProfile, 'recharge'));
   }
 }
 
@@ -670,7 +671,8 @@ function startElemental(context: ElementalistSchedulerContext, at: number): void
   }
 
   elemental.started = true;
-  const delay = balanceProfileNumberFromContext(context, PROFILE.summonedElemental, 'initialDelay');
+  const summonedElementalProfile = requireBalanceProfileFromContext(context, PROFILE.summonedElemental);
+  const delay = balanceProfileNumber(summonedElementalProfile, 'initialDelay');
   elementalActions.start(context, at, {
     key: ELEMENTAL_TASK_OWNER,
     ownerId: elementalistElementalCompanionId(elemental.summonGeneration),
@@ -710,13 +712,12 @@ function summonElemental(
     elementalActions.stop(context, at, elementalistElementalCompanionId(state.summonedElemental.summonGeneration));
   context.tasks.cancelOwner(ELEMENTAL_TASK_OWNER);
   const summonGeneration = state.summonedElemental.summonGeneration + 1;
+  const summonedElementalProfile = requireBalanceProfileFromContext(context, PROFILE.summonedElemental);
   state.summonedElemental = {
     element,
     summonGeneration,
     actionGeneration: 0,
-    activeUntil: canonicalTime(
-      at + balanceProfileNumberFromContext(context, PROFILE.summonedElemental, 'durationMultiplier')
-    ),
+    activeUntil: canonicalTime(at + balanceProfileNumber(summonedElementalProfile, 'durationMultiplier')),
     busyUntil: at,
     secondaryAttackReadyAt: at,
     currentActivationId: null,

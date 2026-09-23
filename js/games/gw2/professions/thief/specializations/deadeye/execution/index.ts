@@ -4,7 +4,6 @@ import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skil
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 /** Registers scheduler-phase skill activations for this module. */
 import {
-  balanceProfileNumberFromContext,
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
@@ -45,7 +44,8 @@ function completeDeadeyesMark(context: ThiefCastContext): void {
   // Re-marking an already-marked target adds to existing malice rather than resetting it
   const remarkingTarget = state.markedTargetId === 'primary-target' && state.markExpiresAt > at;
   state.markedTargetId = 'primary-target';
-  state.markExpiresAt = at + balanceProfileNumberFromContext(context, PROFILE.resources, 'durationMultiplier');
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  state.markExpiresAt = at + balanceProfileNumber(resourcesProfile, 'durationMultiplier');
   state.markGeneration += 1;
   state.malice = remarkingTarget
     ? Math.min(state.maximumMalice, state.malice + initialDeadeyeMalice(context))
@@ -116,7 +116,7 @@ function completeDeadeyeStealthAttack(context: ThiefCastContext, skill: ThiefSki
   completeStealthAttack(context, skill);
   if (skill.id !== ID.MALICIOUS_SNEAK_ATTACK || castWasInterrupted(context)) return;
   const maliciousSneakAttackProfile = requireBalanceProfileFromContext(context, PROFILE.maliciousSneakAttack);
-  const torment = requireEffect(maliciousSneakAttackProfile, 'condition', 'Torment', context);
+  const torment = requireEffect(maliciousSneakAttackProfile, 'condition', 'Torment');
   if (!torment) return;
   const prepared = (handlerState || {}) as DeadeyeHandlerState;
   emitSkillCondition(context, {
@@ -125,9 +125,9 @@ function completeDeadeyeStealthAttack(context: ThiefCastContext, skill: ThiefSki
     skillName: skill.name,
     condition: String(torment.condition),
     duration:
-      effectNumber(maliciousSneakAttackProfile, torment, 'duration', context) +
-      Number(prepared.malice || 0) * balanceProfileNumber(maliciousSneakAttackProfile, 'durationMultiplier', context),
-    stacks: effectNumber(maliciousSneakAttackProfile, torment, 'stacks', context)
+      effectNumber(maliciousSneakAttackProfile, torment, 'duration') +
+      Number(prepared.malice || 0) * balanceProfileNumber(maliciousSneakAttackProfile, 'durationMultiplier'),
+    stacks: effectNumber(maliciousSneakAttackProfile, torment, 'stacks')
   });
 }
 
@@ -176,8 +176,8 @@ function completeMercy(context: ThiefCastContext): void {
   const mercyProfile = requireBalanceProfileFromContext(context, PROFILE.mercy);
   gainThiefInitiative(
     context,
-    balanceProfileNumber(mercyProfile, 'resourceGain', context) +
-      malice * balanceProfileNumber(mercyProfile, 'attributePerStack', context),
+    balanceProfileNumber(mercyProfile, 'resourceGain') +
+      malice * balanceProfileNumber(mercyProfile, 'attributePerStack'),
     context.effectiveEnd,
     'mercy'
   );
@@ -188,12 +188,13 @@ function completeShadowFlare(context: ThiefCastContext): void {
   // Shadow Swap is granted only by an accepted Shadow Flare activation.
   if (context.action?.cancelled === true) return;
   const core = professionCoreState(context);
+  const shadowFlareProfile = requireBalanceProfileFromContext(context, PROFILE.shadowFlare);
   // Register Shadow Swap as an available flip for 4s; availability.ts gates the cast on this timestamp
   armSkillFlip(
     core.availableFlips,
     ID.SHADOW_SWAP,
     context.effectiveEnd,
-    context.effectiveEnd + balanceProfileNumberFromContext(context, PROFILE.shadowFlare, 'durationMultiplier')
+    context.effectiveEnd + balanceProfileNumber(shadowFlareProfile, 'durationMultiplier')
   );
   emitThiefStateSnapshot(context, context.effectiveEnd, 'shadow-flare');
 }
@@ -226,13 +227,12 @@ function observeDeadeyeSpearStealthEffect(
 ): void {
   const prepared = (handlerState || {}) as DeadeyeHandlerState;
   if (event.type === 'damage' && event.name === 'Malicious Ashen Assault — Final Strike') {
+    const maliciousAshenAssaultProfile = requireBalanceProfileFromContext(context, PROFILE.maliciousAshenAssault);
     // Final Strike damage scales with malice: coefficient × (1 + malice × 2%); only the final hit receives the multiplier
     context.replaceEvent(event, {
       coefficient:
         Number(event.coefficient || 0) *
-        (1 +
-          Number(prepared.malice || 0) *
-            balanceProfileNumberFromContext(context, PROFILE.maliciousAshenAssault, 'coefficientMultiplier'))
+        (1 + Number(prepared.malice || 0) * balanceProfileNumber(maliciousAshenAssaultProfile, 'coefficientMultiplier'))
     });
   }
 }
@@ -241,9 +241,10 @@ function completeDeadeyeSpearStealthAttack(context: ThiefCastContext, skill: Thi
   const prepared = (handlerState || {}) as DeadeyeHandlerState;
   const at = context.effectiveEnd;
 
+  const maliciousAshenAssaultProfile = requireBalanceProfileFromContext(context, PROFILE.maliciousAshenAssault);
   gainThiefInitiative(
     context,
-    balanceProfileNumberFromContext(context, PROFILE.maliciousAshenAssault, 'resourceGain'),
+    balanceProfileNumber(maliciousAshenAssaultProfile, 'resourceGain'),
     at,
     'ashen-assault-refund'
   );

@@ -1,10 +1,10 @@
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { reduceMatchingCooldowns } from '#gw2/platform/execution/cooldowns.js';
 import {
-  requireEffectFromContext,
   requireBalanceProfileFromContext,
-  balanceProfileNumberFromContext,
-  effectNumberFromContext
+  balanceProfileNumber,
+  requireEffect,
+  effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillControl, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -49,7 +49,8 @@ function applyAmalgamStrain(context: EngineerSchedulerContext, morphKind: Amalga
   const state = amalgamState.from(context);
   const profile = requireBalanceProfileFromContext(context, PROFILE.strains);
   if (morphKind === 'thorns') {
-    const duration = balanceProfileNumberFromContext(context, PROFILE.rapaciousStrain, 'durationMultiplier');
+    const rapaciousStrainProfile = requireBalanceProfileFromContext(context, PROFILE.rapaciousStrain);
+    const duration = balanceProfileNumber(rapaciousStrainProfile, 'durationMultiplier');
     state.rapaciousUntil = Math.max(Number(state.rapaciousUntil || 0), at + duration);
   }
 
@@ -113,16 +114,11 @@ function assumesDamagingField(context: EngineerSchedulerContext): boolean {
 /** Schedules six one-second Thorns Retaliation pulses when damaging-field uptime is explicitly assumed. */
 function scheduleThornsRetaliation(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   if (!assumesDamagingField(context)) return;
-  const hits = balanceProfileNumberFromContext(context, PROFILE.morphs, 'maximumStacks');
-  const interval = balanceProfileNumberFromContext(context, PROFILE.morphs, 'pulseInterval');
+  const morphsProfile = requireBalanceProfileFromContext(context, PROFILE.morphs);
+  const hits = balanceProfileNumber(morphsProfile, 'maximumStacks');
+  const interval = balanceProfileNumber(morphsProfile, 'pulseInterval');
   for (let index = 0; index < hits; index += 1) {
-    const morphsAmalgamMorphsStrike = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.morphs,
-      'strike',
-      'Amalgam Morphs'
-    );
+    const morphsAmalgamMorphsStrike = requireEffect(morphsProfile, 'strike', 'Amalgam Morphs');
     if (morphsAmalgamMorphsStrike) {
       emitSkillDamage(context, {
         at: at + index * interval,
@@ -132,13 +128,7 @@ function scheduleThornsRetaliation(context: EngineerCastContext, skill: Engineer
         skillId: skill.id,
         skillName: skill.name,
         name: 'Thorns Retaliation',
-        coefficient: effectNumberFromContext(
-          context,
-          'balance-profile',
-          PROFILE.morphs,
-          morphsAmalgamMorphsStrike,
-          'coefficient'
-        ),
+        coefficient: effectNumber(morphsProfile, morphsAmalgamMorphsStrike, 'coefficient'),
         hits: 1,
         hitIndex: index + 1,
         totalHits: hits,
@@ -160,9 +150,10 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
 
   // Resolve traits whose duration or strain depends on the chosen protocol.
   if (hasTrait(context.config, TRAIT.WILLING_HOST)) {
+    const willingHostProfile = requireBalanceProfileFromContext(context, PROFILE.willingHost);
     state.willingHostUntil = Math.max(
       state.willingHostUntil,
-      at + balanceProfileNumberFromContext(context, PROFILE.willingHost, 'durationMultiplier')
+      at + balanceProfileNumber(willingHostProfile, 'durationMultiplier')
     );
   }
 
@@ -170,6 +161,7 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
     const sourceSkill =
       context.catalog.skillsById.get(TRAIT.HARDENED_CHROME) ||
       ({ id: TRAIT.HARDENED_CHROME, name: 'Hardened Chrome' } as EngineerSkill);
+    const hardenedChromeProfile = requireBalanceProfileFromContext(context, PROFILE.hardenedChrome);
     emitSkillBuff(context, {
       skill: sourceSkill,
       at,
@@ -179,7 +171,7 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
       skillName: 'Hardened Chrome',
       name: 'Hardened Chrome',
       kind: 'protection',
-      duration: balanceProfileNumberFromContext(context, PROFILE.hardenedChrome, 'minimumStacks'),
+      duration: balanceProfileNumber(hardenedChromeProfile, 'minimumStacks'),
       stacks: 1
     });
   }
@@ -192,7 +184,8 @@ export function activateAmalgamMorph(context: EngineerCastContext, skill: Engine
   if (hasTrait(context.config, TRAIT.NEW_GENES)) {
     // Each selected boon survives independently, including the protocol-specific packet.
     for (const name of ['alacrity', 'might', ...(morphKind ? [morphKind] : [])]) {
-      const boon = requireEffectFromContext(context, 'balance-profile', PROFILE.newGenes, 'boon', name);
+      const newGenesProfile = requireBalanceProfileFromContext(context, PROFILE.newGenes);
+      const boon = requireEffect(newGenesProfile, 'boon', name);
       if (!boon) continue;
       emitSkillBuff(context, {
         at,
@@ -217,9 +210,10 @@ export function activatePlasmaticState(context: EngineerCastContext, skill: Engi
   if (!strike) return;
   const timing = context.schedulerPolicy.effectTiming?.(context, skill, strike) ?? strike;
   const at = effectFirstAt(context.start, context.fullEnd, timing);
+  const plasmaticStateProfile = requireBalanceProfileFromContext(context, PROFILE.plasmaticState);
   amalgamState.from(context).plasmaticStateUntil = Math.max(
     amalgamState.from(context).plasmaticStateUntil,
-    at + balanceProfileNumberFromContext(context, PROFILE.plasmaticState, 'durationMultiplier')
+    at + balanceProfileNumber(plasmaticStateProfile, 'durationMultiplier')
   );
   emitEngineerStateSnapshot(context, at, 'plasmatic-state');
 }
@@ -232,7 +226,8 @@ export function evolveAmalgam(context: EngineerCastContext): void {
   const at = context.start + castDuration * (520 / 640);
   const state = amalgamState.from(context);
   const selected = selectedMorphKinds(context);
-  state.evolvedUntil = at + balanceProfileNumberFromContext(context, PROFILE.evolve, 'durationMultiplier');
+  const evolveProfile = requireBalanceProfileFromContext(context, PROFILE.evolve);
+  state.evolvedUntil = at + balanceProfileNumber(evolveProfile, 'durationMultiplier');
 
   if (!hasTrait(context.config, TRAIT.SILVER_LINING)) {
     for (const morphKind of selected) {
@@ -254,6 +249,7 @@ export function evolveAmalgam(context: EngineerCastContext): void {
     const sourceSkill =
       context.catalog.skillsById.get(TRAIT.HARDENED_CHROME) ||
       ({ id: TRAIT.HARDENED_CHROME, name: 'Hardened Chrome' } as EngineerSkill);
+    const hardenedChromeProfile = requireBalanceProfileFromContext(context, PROFILE.hardenedChrome);
     emitSkillBuff(context, {
       skill: sourceSkill,
       at,
@@ -263,7 +259,7 @@ export function evolveAmalgam(context: EngineerCastContext): void {
       skillName: 'Hardened Chrome',
       name: 'Hardened Chrome',
       kind: 'protection',
-      duration: balanceProfileNumberFromContext(context, PROFILE.hardenedChrome, 'maximumStacks'),
+      duration: balanceProfileNumber(hardenedChromeProfile, 'maximumStacks'),
       stacks: 1
     });
   }
@@ -302,12 +298,9 @@ export const mercurialTendenciesReaction = scheduledReaction<
     const readyAt = Number(coreState.traitProcReadyAt.mercurialTendencies || 0);
     if (!isInternalCooldownReady(at, readyAt)) return;
 
+    const mercurialTendenciesProfile = requireBalanceProfileFromContext(context, PROFILE.mercurialTendencies);
     // Find every live Evolve timer because the skill may use either cooldown or ammo recharge tracking.
-    const rechargeReduction = balanceProfileNumberFromContext(
-      context,
-      PROFILE.mercurialTendencies,
-      'rechargeReduction'
-    );
+    const rechargeReduction = balanceProfileNumber(mercurialTendenciesProfile, 'rechargeReduction');
     const reducedBy = reduceMatchingCooldowns(
       context,
       (skill) => EVOLVE_SKILL_IDS.has(skill.id),
@@ -319,7 +312,7 @@ export const mercurialTendenciesReaction = scheduledReaction<
 
     // Consume the internal cooldown only when a recharge was actually reduced, then expose the aggregate payoff.
     coreState.traitProcReadyAt.mercurialTendencies =
-      at + balanceProfileNumberFromContext(context, PROFILE.mercurialTendencies, 'internalCooldown');
+      at + balanceProfileNumber(mercurialTendenciesProfile, 'internalCooldown');
     context.emit({
       type: 'proc',
       at,

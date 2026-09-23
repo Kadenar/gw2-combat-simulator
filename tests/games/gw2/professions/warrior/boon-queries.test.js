@@ -7,7 +7,7 @@ import {
   warriorBoonActive
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { modifyWarriorArmsAttributes, warriorArmsModifierRules } from '#gw2/professions/warrior/core/traits/arms.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { createBladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { bladeswornSkillMechanicHandlers } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger.js';
 import { bladeswornAttributeRules } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger-rules.js';
@@ -67,6 +67,7 @@ test('Flow Stabilizer reads accumulated pre-cast Fury and excludes its own activ
   const invoke = () =>
     bladeswornSkillMechanicHandlers['warrior.bladesworn.flow-stabilizer']({
       context,
+      skill: warriorCatalog.skillsById.get(ID.FLOW_STABILIZER),
       at: 7,
       castStart: 7,
       activationId: 'current'
@@ -93,6 +94,7 @@ test('Flow Stabilizer uses exact Fury application and expiry boundaries', () => 
   ]) {
     const state = createBladeswornState();
     bladeswornSkillMechanicHandlers['warrior.bladesworn.flow-stabilizer']({
+      skill: warriorCatalog.skillsById.get(ID.FLOW_STABILIZER),
       context: {
         catalog: warriorCatalog,
         config: {},

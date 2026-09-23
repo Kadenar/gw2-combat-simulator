@@ -1,6 +1,7 @@
 import {
   balanceProfileValueFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -12,7 +13,7 @@ import {
   hasSelectedSkill,
   targetConditionActive,
   targetConditionCount,
-  targetHealthFraction
+  targetHealthBelow
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCoreCastAvailability } from '#gw2/professions/ranger/core/mechanics/availability.js';
@@ -85,13 +86,10 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
       ]
     ] as const) {
       if (!hasTrait(context, trait)) continue;
-      const current = balanceProfileNumberFromContext(
-        context,
-        trait,
-        active ? 'weaponAttributeBonus' : 'attributeBonus'
-      );
+      const traitProfile = requireBalanceProfileFromContext(context, trait);
+      const current = balanceProfileNumber(traitProfile, active ? 'weaponAttributeBonus' : 'attributeBonus');
       const baseline = staticRulesApplied
-        ? balanceProfileNumberFromContext(context, trait, calculated ? 'weaponAttributeBonus' : 'attributeBonus')
+        ? balanceProfileNumber(traitProfile, calculated ? 'weaponAttributeBonus' : 'attributeBonus')
         : 0;
       adjust(attribute, current - baseline);
     }
@@ -101,16 +99,17 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
         adjust(
           'healingPower',
           Number(context.config?.stats?.power || 0) *
-            balanceProfileNumberFromContext(context, TRAIT.WELLSPRING, 'attributeConversion')
+            balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.WELLSPRING), 'attributeConversion')
         );
     }
 
     if (hasTrait(context, TRAIT.VICIOUS_QUARRY)) {
+      const viciousQuarryProfile = requireBalanceProfileFromContext(context, TRAIT.VICIOUS_QUARRY);
       adjust(
         'ferocity',
         (Number(rangerBoonActive(context, 'fury')) -
           Number(staticRulesApplied && Boolean(context.config?.boons?.fury))) *
-          balanceProfileNumberFromContext(context, TRAIT.VICIOUS_QUARRY, 'attributeBonus')
+          balanceProfileNumber(viciousQuarryProfile, 'attributeBonus')
       );
     }
   }
@@ -118,16 +117,23 @@ function modifyRangerAttributes(context: Gw2ModifierContext, attributes: Gw2Reso
   // Shared base bonuses also apply to pet queries before their family-specific bonuses.
   if (!staticRulesApplied) {
     if (hasTrait(context, TRAIT.ARACHNOPHOBIA))
-      adjust('expertise', balanceProfileNumberFromContext(context, TRAIT.ARACHNOPHOBIA, 'attributeBonus'));
+      adjust(
+        'expertise',
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ARACHNOPHOBIA), 'attributeBonus')
+      );
     if (hasTrait(context, TRAIT.LINGERING_MAGIC))
-      adjust('concentration', balanceProfileNumberFromContext(context, TRAIT.LINGERING_MAGIC, 'attributeBonus'));
+      adjust(
+        'concentration',
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.LINGERING_MAGIC), 'attributeBonus')
+      );
   }
 
   modifyRangerPetAttributes(context, result, staticRulesApplied);
 
   if (hasSelectedSkill(context, 'Signet of the Wild')) {
     const active = !context.timeline?.skillOnCooldownAt(ID.SIGNET_OF_THE_WILD, context.time);
-    const bonus = balanceProfileNumberFromContext(context, PROFILE.signetOfTheWild, 'attributeBonus');
+    const signetOfTheWildProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfTheWild);
+    const bonus = balanceProfileNumber(signetOfTheWildProfile, 'attributeBonus');
     if (staticRulesApplied) adjust('ferocity', active ? 0 : -bonus);
     if (!staticRulesApplied && active) adjust('ferocity', bonus);
   }
@@ -194,7 +200,8 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     id: 'ranger.hunters-tactics-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.HUNTERS_TACTICS, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.HUNTERS_TACTICS), 'criticalChance'),
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) && positional(context) && hasTrait(context, TRAIT.HUNTERS_TACTICS)
   },
@@ -212,7 +219,11 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     id: 'ranger.light-on-your-feet-condition-duration',
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET, 'conditionDurationBonus'),
+    amount: (context) =>
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, TRAIT.LIGHT_ON_YOUR_FEET),
+        'conditionDurationBonus'
+      ),
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET) &&
@@ -222,7 +233,8 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     id: 'ranger.vicious-quarry-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.VICIOUS_QUARRY, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.VICIOUS_QUARRY), 'criticalChance'),
     when: (context) => hasTrait(context, TRAIT.VICIOUS_QUARRY) && rangerBoonActive(context, 'fury')
   },
   {
@@ -263,7 +275,8 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     id: 'ranger.precise-strike',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.PRECISE_STRIKE, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PRECISE_STRIKE), 'criticalChance'),
     when: (context) => openingStrikeReady(context) && hasTrait(context, TRAIT.PRECISE_STRIKE)
   },
   {
@@ -345,7 +358,7 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     factor: 1.2,
     when: (context) =>
       (eventSkill(context)?.id === ID.WARCLAWS_ENGAGE || eventSkill(context)?.id === ID.PREDATORS_AMBUSH) &&
-      targetHealthFraction(context) < 0.5
+      targetHealthBelow(context, 0.5)
   },
   {
     id: 'ranger.stalkers-strike-movement-impaired',

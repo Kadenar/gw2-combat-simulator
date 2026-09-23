@@ -1,8 +1,5 @@
 import { normalizeSkillEffects } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import {
-  requireBalanceProfileFromContext,
-  requireEffectFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
 import {
   defineSkillVariantProfile as variant,
@@ -90,9 +87,7 @@ export function mesmerProfiledInstrument(
 ): MesmerInstrument {
   const profile = requireBalanceProfileFromContext(context, balanceProfileId);
   const strike =
-    instrument.ticks?.length || Number(instrument.hits) > 0
-      ? requireEffectFromContext(context, 'balance-profile', balanceProfileId, 'strike', 'Strike')
-      : undefined;
+    instrument.ticks?.length || Number(instrument.hits) > 0 ? requireEffect(profile, 'strike', 'Strike') : undefined;
   const conditions = normalizeSkillEffects(
     profile.effects || [],
     `profession=mesmer patch=${profile.balanceDataContext?.patchId ?? '<unknown>'} profile=${profile.id}`

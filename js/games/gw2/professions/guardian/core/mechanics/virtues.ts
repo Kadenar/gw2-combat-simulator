@@ -4,7 +4,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
@@ -204,9 +204,11 @@ export function reactToJusticeHitWithOptions(
   const justiceProfile = requireBalanceProfileFromContext(context, PROFILE.justice);
   if (!requireEffect(justiceProfile, 'condition', 'Burning (passive)')) return;
   state.justiceHitCount += 1;
-  const triggerHits = balanceProfileNumberFromContext(
-    context,
-    hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH) ? PROFILE.permeatingWrath : PROFILE.justice,
+  const triggerHits = balanceProfileNumber(
+    requireBalanceProfileFromContext(
+      context,
+      hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH) ? PROFILE.permeatingWrath : PROFILE.justice
+    ),
     'threshold'
   );
   if (state.justiceHitCount < triggerHits) return;

@@ -2,9 +2,10 @@ import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /** Imperative Fire trait behavior; dispatch order remains centralized in the trait index. */
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext,
-  effectNumberFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -47,7 +48,8 @@ export function triggerSunspot(
 
   // Keep strike and Burning attribution aligned with the actual attunement or overload that triggered Sunspot.
   const sourceSkill = context.catalog.skillsById.get(sourceId)?.name || '';
-  const sunspotAura = requireEffectFromContext(context, 'balance-profile', PROFILE.sunspot, 'buff', 'Sunspot Aura');
+  const sunspotProfile = requireBalanceProfileFromContext(context, PROFILE.sunspot);
+  const sunspotAura = requireEffect(sunspotProfile, 'buff', 'Sunspot Aura');
   if (sunspotAura) {
     applyAura(context, {
       at,
@@ -58,7 +60,7 @@ export function triggerSunspot(
     });
   }
 
-  const sunspotStrike = requireEffectFromContext(context, 'balance-profile', PROFILE.sunspot, 'strike', 'Sunspot');
+  const sunspotStrike = requireEffect(sunspotProfile, 'strike', 'Sunspot');
   if (sunspotStrike) {
     emitSkillDamage(context, {
       at,
@@ -69,7 +71,7 @@ export function triggerSunspot(
       skillName: 'Sunspot',
       icon: SUNSPOT_ICON,
       triggeredBy: sourceSkill,
-      coefficient: effectNumberFromContext(context, 'balance-profile', PROFILE.sunspot, sunspotStrike, 'coefficient'),
+      coefficient: effectNumber(sunspotProfile, sunspotStrike, 'coefficient'),
       skillWeapon: 'Unequipped',
       noCrit: true
     });
@@ -94,38 +96,17 @@ export function triggerSunspot(
 export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at: number, sourceId: Skill['id']): void {
   if (!combatStarted(context, at) || !hasTrait(context, "Pyromancer's Puissance")) return;
 
-  const impactAt = at + balanceProfileNumberFromContext(context, PROFILE.pyromancersPuissance, 'initialDelay');
+  const pyromancersPuissanceProfile = requireBalanceProfileFromContext(context, PROFILE.pyromancersPuissance);
+  const impactAt = at + balanceProfileNumber(pyromancersPuissanceProfile, 'initialDelay');
   const cappedMight = Math.min(
-    balanceProfileNumberFromContext(context, PROFILE.pyromancersPuissance, 'maximumStacks'),
+    balanceProfileNumber(pyromancersPuissanceProfile, 'maximumStacks'),
     context.buffStacks('might', at)
   );
-  const flameExpulsionStrike = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.pyromancersPuissance,
-    'strike',
-    'Flame Expulsion'
-  );
-  const flameExpulsionCondition = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.pyromancersPuissance,
-    'condition',
-    'Flame Expulsion'
-  );
+  const flameExpulsionStrike = requireEffect(pyromancersPuissanceProfile, 'strike', 'Flame Expulsion');
+  const flameExpulsionCondition = requireEffect(pyromancersPuissanceProfile, 'condition', 'Flame Expulsion');
   if (flameExpulsionStrike) {
-    const baseCoefficient = effectNumberFromContext(
-      context,
-      'balance-profile',
-      PROFILE.pyromancersPuissance,
-      flameExpulsionStrike,
-      'coefficient'
-    );
-    const coefficientPerMight = balanceProfileNumberFromContext(
-      context,
-      PROFILE.pyromancersPuissance,
-      'damageIncreasePerStack'
-    );
+    const baseCoefficient = effectNumber(pyromancersPuissanceProfile, flameExpulsionStrike, 'coefficient');
+    const coefficientPerMight = balanceProfileNumber(pyromancersPuissanceProfile, 'damageIncreasePerStack');
     emitSkillDamage(context, {
       at: impactAt,
       source: 'Flame Expulsion',
@@ -141,11 +122,7 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
 
   if (flameExpulsionCondition) {
     const baseBurningDuration = Number(flameExpulsionCondition.duration);
-    const burningDurationPerMight = balanceProfileNumberFromContext(
-      context,
-      PROFILE.pyromancersPuissance,
-      'durationPerTier'
-    );
+    const burningDurationPerMight = balanceProfileNumber(pyromancersPuissanceProfile, 'durationPerTier');
 
     emitSkillCondition(context, {
       skill: elementalistEventSkill(context, 'Flame Expulsion', sourceId),
@@ -157,17 +134,14 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
       duration: Math.min(
         baseBurningDuration + burningDurationPerMight * cappedMight,
         baseBurningDuration +
-          burningDurationPerMight *
-            balanceProfileNumberFromContext(context, PROFILE.pyromancersPuissance, 'maximumStacks')
+          burningDurationPerMight * balanceProfileNumber(pyromancersPuissanceProfile, 'maximumStacks')
       ),
       skillName: 'Flame Expulsion'
     });
   }
 
-  const pyromancersPuissanceFlameExpulsionMight = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.pyromancersPuissance,
+  const pyromancersPuissanceFlameExpulsionMight = requireEffect(
+    pyromancersPuissanceProfile,
     'boon',
     'Flame Expulsion Might'
   );
@@ -212,7 +186,8 @@ export function applyPyromancersPuissance(context: ElementalistLifecycleContext,
 /** Applies Smothering Auras' profile-driven duration multiplier once. */
 export function elementalistAuraDuration(context: unknown, duration: number): number {
   return hasTrait(context, 'Smothering Auras')
-    ? duration * balanceProfileNumberFromContext(context, PROFILE.smotheringAuras, 'durationMultiplier')
+    ? duration *
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.smotheringAuras), 'durationMultiplier')
     : duration;
 }
 
@@ -243,10 +218,8 @@ export function extendPersistingFlamesPackets(context: ElementalistLifecycleCont
       event.type === 'condition' &&
       Math.abs(event.at - template.at) <= EPSILON
   );
-  const extraPackets = Math.max(
-    0,
-    Math.trunc(balanceProfileNumberFromContext(context, PROFILE.persistingFlames, 'summons'))
-  );
+  const persistingFlamesProfile = requireBalanceProfileFromContext(context, PROFILE.persistingFlames);
+  const extraPackets = Math.max(0, Math.trunc(balanceProfileNumber(persistingFlamesProfile, 'summons')));
   for (let index = 1; index <= extraPackets; index += 1) {
     const at = template.at + interval * index;
     context.emit({ ...template, at, metadata: { ...template.metadata, largeHitboxOnly: false } });
@@ -271,21 +244,16 @@ export function extendPersistingFlamesField(context: ElementalistSchedulerContex
       candidate.fieldType === 'Fire'
   );
   if (!field) return;
+  const persistingFlamesProfile = requireBalanceProfileFromContext(context, PROFILE.persistingFlames);
   context.replaceEvent(field, {
-    expiresAt:
-      Number(field.expiresAt) + balanceProfileNumberFromContext(context, PROFILE.persistingFlames, 'durationPerTier')
+    expiresAt: Number(field.expiresAt) + balanceProfileNumber(persistingFlamesProfile, 'durationPerTier')
   });
 }
 
 /** Materializes Burning Precision after its registered critical-hit reaction succeeds. */
 export function applyBurningPrecision(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  const burning = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.burningPrecision,
-    'condition',
-    'Burning Precision'
-  );
+  const burningPrecisionProfile = requireBalanceProfileFromContext(context, PROFILE.burningPrecision);
+  const burning = requireEffect(burningPrecisionProfile, 'condition', 'Burning Precision');
   if (burning) {
     applyElementalistDerivedCondition(context, event, {
       source: 'Burning Precision',
@@ -303,12 +271,13 @@ export function applyBurningPrecision(context: Gw2ResolverRuntime, event: Gw2Res
 /** Grants one resolver-side Persisting Flames stack from a classified field tick or Burning application. */
 export function grantPersistingFlames(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, 'Persisting Flames')) return;
+  const persistingFlamesProfile = requireBalanceProfileFromContext(context, PROFILE.persistingFlames);
   queueElementalistBuff(
     context,
     event,
     'Persisting Flames',
     1,
-    balanceProfileNumberFromContext(context, PROFILE.persistingFlames, 'durationMultiplier'),
+    balanceProfileNumber(persistingFlamesProfile, 'durationMultiplier'),
     resolverSourceSkill(event)
   );
 }

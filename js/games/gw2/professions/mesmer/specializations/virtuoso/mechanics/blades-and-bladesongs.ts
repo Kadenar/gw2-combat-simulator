@@ -1,7 +1,10 @@
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -55,10 +58,10 @@ function applyVirtuosoAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   const quietIntensityDelta =
     hasTrait(context, TRAIT.QUIET_INTENSITY) && !staticApplied
       ? Number(context.config?.stats?.vitality || 0) *
-        balanceProfileNumberFromContext(context, PROFILE.quietIntensity, 'vitalityConversion')
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.quietIntensity), 'vitalityConversion')
       : 0;
   const sharpeningSorrowDelta = hasTrait(context, PROFILE.sharpeningSorrow)
-    ? balanceProfileNumberFromContext(context, PROFILE.sharpeningSorrow, 'expertiseBonus') *
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.sharpeningSorrow), 'expertiseBonus') *
       (Number(boonActive(context, 'fury')) - Number(staticApplied && Boolean(context.config?.boons?.fury)))
     : 0;
   if (quietIntensityDelta === 0 && sharpeningSorrowDelta === 0) return attributes;
@@ -74,14 +77,16 @@ export const virtuosoModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'mesmer.virtuoso.phantasmal-fury-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.QUIET_INTENSITY, 'phantasmCriticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.QUIET_INTENSITY), 'phantasmCriticalChance'),
     when: (context) => context.event?.summonKind === 'phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FURY)
   },
   {
     id: 'mesmer.quiet-intensity-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.QUIET_INTENSITY, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.QUIET_INTENSITY), 'criticalChance'),
     when: (context) =>
       !illusionSource(context) &&
       hasTrait(context, TRAIT.QUIET_INTENSITY) &&
@@ -140,12 +145,13 @@ export const infiniteForge = timedEffect({
   id: 'mesmer.infinite-forge',
   priority: -20,
   interval: (context: MesmerSchedulerContext) =>
-    balanceProfileNumberFromContext(context, TRAIT.INFINITE_FORGE, 'pulseInterval'),
+    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.INFINITE_FORGE), 'pulseInterval'),
   effectsAt(context: MesmerSchedulerContext, at: number) {
     const runtime = mesmerRuntimeFor(context);
+    const infiniteForgeProfile = requireBalanceProfileFromContext(context, TRAIT.INFINITE_FORGE);
     runtime.resources.gainResources(
       at,
-      balanceProfileNumberFromContext(context, TRAIT.INFINITE_FORGE, 'playerStacks'),
+      balanceProfileNumber(infiniteForgeProfile, 'playerStacks'),
       runtime.activePrimaryWeapon(),
       'Infinite Forge',
       {

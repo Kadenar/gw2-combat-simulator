@@ -76,7 +76,6 @@ export function calculateBuffedAttributes(
     weaponSetStats: [activeStats, activeStats],
     boons,
     selectedTraitIds: config.selectedTraitIds?.filter((id) => !disabledTraits.has(id)),
-    targetHealthFraction: targetHealth,
     target: {
       ...config.target,
       health: 100,

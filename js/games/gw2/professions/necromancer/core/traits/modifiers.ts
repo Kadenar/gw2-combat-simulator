@@ -1,7 +1,8 @@
 import type { Gw2Stats, Gw2MutableStats } from '#gw2/platform/combat/types.js';
 import {
   balanceProfileFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -13,7 +14,7 @@ import {
   hasSelectedSkill,
   targetConditionActive,
   targetConditionCount,
-  targetHealthFraction,
+  targetHealthBelow,
   vulnerabilityStacks
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -115,7 +116,8 @@ export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, att
   const gearPower = Number(context.config?.stats?.power || 0);
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   if (hasSelectedSkill(context, 'Signet of Spite')) {
-    const signetPower = balanceProfileNumberFromContext(context, PROFILE.signetOfSpite, 'attributeBonus');
+    const signetOfSpiteProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfSpite);
+    const signetPower = balanceProfileNumber(signetOfSpiteProfile, 'attributeBonus');
     const passiveActive = playerModifierContext(context) && signetOfSpitePassiveActive(context);
     if (staticRulesApplied) {
       if (!passiveActive) result.power -= signetPower;
@@ -139,39 +141,45 @@ export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, att
     timedCarapace + minionCarapace
   );
   if (hasTrait(context, TRAIT.DEADLY_STRENGTH) && carapace > 0) {
-    const perStack = balanceProfileNumberFromContext(context, PROFILE.deadlyStrength, 'attributePerStack');
+    const deadlyStrengthProfile = requireBalanceProfileFromContext(context, PROFILE.deadlyStrength);
+    const perStack = balanceProfileNumber(deadlyStrengthProfile, 'attributePerStack');
     result.power += carapace * perStack;
     result.conditionDamage += carapace * perStack;
   }
 
   if (hasTrait(context, TRAIT.AWAKEN_THE_PAIN)) {
-    const perStack = balanceProfileNumberFromContext(context, PROFILE.awakenThePain, 'attributePerStack');
+    const awakenThePainProfile = requireBalanceProfileFromContext(context, PROFILE.awakenThePain);
+    const perStack = balanceProfileNumber(awakenThePainProfile, 'attributePerStack');
     result.power += Number(context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) * perStack;
   }
 
   if (!staticRulesApplied) {
     if (hasTrait(context, TRAIT.SPITEFUL_FORTITUDE)) {
-      result.vitality +=
-        gearPower * balanceProfileNumberFromContext(context, PROFILE.spitefulFortitude, 'attributeConversion');
+      const spitefulFortitudeProfile = requireBalanceProfileFromContext(context, PROFILE.spitefulFortitude);
+      result.vitality += gearPower * balanceProfileNumber(spitefulFortitudeProfile, 'attributeConversion');
     }
 
     if (hasTrait(context, TRAIT.FURIOUS_DEMISE)) {
-      result.precision += balanceProfileNumberFromContext(context, PROFILE.furiousDemise, 'attributeBonus');
+      const furiousDemiseProfile = requireBalanceProfileFromContext(context, PROFILE.furiousDemise);
+      result.precision += balanceProfileNumber(furiousDemiseProfile, 'attributeBonus');
     }
 
     if (hasTrait(context, TRAIT.TARGET_THE_WEAK)) {
+      const targetTheWeakProfile = requireBalanceProfileFromContext(context, PROFILE.targetTheWeak);
       // Flat Precision from Furious Demise is present before the conversion.
       result.conditionDamage += Math.floor(
-        result.precision * balanceProfileNumberFromContext(context, PROFILE.targetTheWeak, 'attributeConversion')
+        result.precision * balanceProfileNumber(targetTheWeakProfile, 'attributeConversion')
       );
     }
 
     if (hasTrait(context, TRAIT.LINGERING_CURSE)) {
-      result.conditionDamage += balanceProfileNumberFromContext(context, PROFILE.lingeringCurse, 'attributeBonus');
+      const lingeringCurseProfile = requireBalanceProfileFromContext(context, PROFILE.lingeringCurse);
+      result.conditionDamage += balanceProfileNumber(lingeringCurseProfile, 'attributeBonus');
     }
 
     if (hasTrait(context, TRAIT.VITAL_PERSISTENCE)) {
-      result.vitality += balanceProfileNumberFromContext(context, PROFILE.vitalPersistence, 'attributeBonus');
+      const vitalPersistenceProfile = requireBalanceProfileFromContext(context, PROFILE.vitalPersistence);
+      result.vitality += balanceProfileNumber(vitalPersistenceProfile, 'attributeBonus');
     }
   }
 
@@ -196,7 +204,10 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
 
     amount: (context) =>
       targetConditionCount(context) *
-      balanceProfileNumberFromContext(context, TRAIT.TARGET_THE_WEAK, 'criticalChancePerCondition'),
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, TRAIT.TARGET_THE_WEAK),
+        'criticalChancePerCondition'
+      ),
     when: (context) => hasTrait(context, TRAIT.TARGET_THE_WEAK)
   },
   {
@@ -204,7 +215,8 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
     label: 'Death Perception',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.DEATH_PERCEPTION, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DEATH_PERCEPTION), 'criticalChance'),
     when: (context) => hasTrait(context, TRAIT.DEATH_PERCEPTION)
   },
   {
@@ -231,7 +243,8 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
 
-    factor: (context) => balanceProfileNumberFromContext(context, TRAIT.DEATH_PERCEPTION, 'criticalDamage'),
+    factor: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DEATH_PERCEPTION), 'criticalDamage'),
     order: 100,
     when: (context) => hasTrait(context, TRAIT.DEATH_PERCEPTION) && Boolean(necromancerActiveShroud(context))
   },
@@ -250,7 +263,7 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
     operation: 'multiply',
     factor: 1.2,
     order: 100,
-    when: (context) => hasTrait(context, TRAIT.CLOSE_TO_DEATH) && targetHealthFraction(context) < 0.5
+    when: (context) => hasTrait(context, TRAIT.CLOSE_TO_DEATH) && targetHealthBelow(context, 0.5)
   },
   {
     // Ghastly Claws' own Vulnerability bonus multiplies the target's ordinary Vulnerability multiplier.
@@ -282,7 +295,10 @@ export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.f
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'multiply',
     factor: (context) =>
-      balanceProfileNumberFromContext(context, TRAIT.BARBED_PRECISION, 'conditionDurationMultiplier'),
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, TRAIT.BARBED_PRECISION),
+        'conditionDurationMultiplier'
+      ),
     when: (context) =>
       context.condition === 'Bleeding' &&
       hasTrait(context, TRAIT.BARBED_PRECISION) &&

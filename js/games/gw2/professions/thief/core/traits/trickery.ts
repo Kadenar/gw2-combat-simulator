@@ -2,7 +2,6 @@ import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   requireBalanceProfileFromContext,
-  balanceProfileNumberFromContext,
   requireEffect,
   effectNumber,
   balanceProfileNumber
@@ -24,7 +23,7 @@ import type { ThiefCastContext, ThiefSkill } from '#gw2/professions/thief/types.
 export function applyDeadlyAmbush(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.DEADLY_AMBUSH)) return;
   const deadlyAmbushProfile = requireBalanceProfileFromContext(context, PROFILE.deadlyAmbush);
-  const bleeding = requireEffect(deadlyAmbushProfile, 'condition', 'Bleeding', context);
+  const bleeding = requireEffect(deadlyAmbushProfile, 'condition', 'Bleeding');
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!bleeding) return;
   emitSkillCondition(context, {
@@ -35,8 +34,8 @@ export function applyDeadlyAmbush(context: ThiefCastContext, at: number): void {
     skillName: 'Deadly Ambush',
     triggeredBy: context.skill?.name,
     condition: String(bleeding.condition),
-    duration: effectNumber(deadlyAmbushProfile, bleeding, 'duration', context),
-    stacks: effectNumber(deadlyAmbushProfile, bleeding, 'stacks', context),
+    duration: effectNumber(deadlyAmbushProfile, bleeding, 'duration'),
+    stacks: effectNumber(deadlyAmbushProfile, bleeding, 'stacks'),
     name: 'Deadly Ambush — Bleeding'
   });
 }
@@ -60,9 +59,9 @@ export function applyThrillOfTheCrime(context: ThiefCastContext, at: number): vo
         context,
         context.skill,
         boon,
-        effectNumber(thrillOfTheCrimeProfile, effect, 'duration', context)
+        effectNumber(thrillOfTheCrimeProfile, effect, 'duration')
       ),
-      stacks: effectNumber(thrillOfTheCrimeProfile, effect, 'stacks', context)
+      stacks: effectNumber(thrillOfTheCrimeProfile, effect, 'stacks')
     });
   }
 }
@@ -72,7 +71,7 @@ export function applyBountifulTheft(context: ThiefCastContext, at: number): void
   // The boonless target grants both independent packets; removing either leaves its sibling intact.
   const bountifulTheftProfile = requireBalanceProfileFromContext(context, PROFILE.bountifulTheft);
   for (const name of ['Vigor', 'Might']) {
-    const effect = requireEffect(bountifulTheftProfile, 'boon', name, context);
+    const effect = requireEffect(bountifulTheftProfile, 'boon', name);
     if (!effect) continue;
     const boon = String(effect.boon);
     emitSkillBuff(context, {
@@ -89,9 +88,9 @@ export function applyBountifulTheft(context: ThiefCastContext, at: number): void
         context,
         context.skill,
         boon,
-        effectNumber(bountifulTheftProfile, effect, 'duration', context)
+        effectNumber(bountifulTheftProfile, effect, 'duration')
       ),
-      stacks: effectNumber(bountifulTheftProfile, effect, 'stacks', context)
+      stacks: effectNumber(bountifulTheftProfile, effect, 'stacks')
     });
   }
 }
@@ -100,7 +99,7 @@ export function applySleightOfHand(context: ThiefCastContext, at: number): void 
   if (!hasTrait(context.config, TRAIT.SLEIGHT_OF_HAND)) return;
   // The Daze packet is removable independently of the recharge scalar.
   const sleightOfHandProfile = requireBalanceProfileFromContext(context, PROFILE.sleightOfHand);
-  const control = requireEffect(sleightOfHandProfile, 'control', 'daze', context);
+  const control = requireEffect(sleightOfHandProfile, 'control', 'daze');
   if (!control) return;
   emitSkillControl(context, {
     at,
@@ -116,12 +115,8 @@ export function applySleightOfHand(context: ThiefCastContext, at: number): void 
 
 export function applyKleptomaniac(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.KLEPTOMANIAC)) return;
-  gainThiefInitiative(
-    context,
-    balanceProfileNumberFromContext(context, PROFILE.kleptomaniac, 'resourceGain'),
-    at,
-    'kleptomaniac'
-  );
+  const kleptomaniacProfile = requireBalanceProfileFromContext(context, PROFILE.kleptomaniac);
+  gainThiefInitiative(context, balanceProfileNumber(kleptomaniacProfile, 'resourceGain'), at, 'kleptomaniac');
 }
 
 export function applyLeadAttacks(context: ThiefCastContext, skill: ThiefSkill, at: number): void {
@@ -130,11 +125,11 @@ export function applyLeadAttacks(context: ThiefCastContext, skill: ThiefSkill, a
   const state = professionCoreState(context);
 
   const leadAttacksProfile = requireBalanceProfileFromContext(context, PROFILE.leadAttacks);
-  const maximumStacks = balanceProfileNumber(leadAttacksProfile, 'maximumStacks', context);
+  const maximumStacks = balanceProfileNumber(leadAttacksProfile, 'maximumStacks');
   // New initiative spending replaces the oldest stacks at the cap without refreshing the remaining stacks.
   const expirations = grantTimedStacks(state.leadAttackExpirations || [], {
     at,
-    expiresAt: at + balanceProfileNumber(leadAttacksProfile, 'durationMultiplier', context),
+    expiresAt: at + balanceProfileNumber(leadAttacksProfile, 'durationMultiplier'),
     // A patched fractional cost has always granted a whole stack for its remainder, so round up here
     // rather than let the shared integer boundary truncate it.
     count: Math.ceil(initiativeCost),
@@ -151,7 +146,7 @@ export function applyLeadAttacks(context: ThiefCastContext, skill: ThiefSkill, a
     source: 'Trait',
     sourceId: TRAIT.LEAD_ATTACKS,
     kind: 'lead-attacks',
-    duration: balanceProfileNumber(leadAttacksProfile, 'durationMultiplier', context),
+    duration: balanceProfileNumber(leadAttacksProfile, 'durationMultiplier'),
     stacks: Math.min(initiativeCost, maximumStacks)
   });
 

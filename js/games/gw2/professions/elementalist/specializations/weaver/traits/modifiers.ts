@@ -1,7 +1,10 @@
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -57,7 +60,10 @@ export const weaverModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: (context) =>
-      balanceProfileNumberFromContext(context, ELEMENTALIST_TRAIT_IDS.SUPERIOR_ELEMENTS, 'criticalChance'),
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, ELEMENTALIST_TRAIT_IDS.SUPERIOR_ELEMENTS),
+        'criticalChance'
+      ),
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, 'Superior Elements') &&
@@ -76,7 +82,8 @@ function modifyWeaverAttributes(context: ElementalistModifierContext, attributes
       ?.secondaryAttunement ?? context.config?.secondaryAttunement;
   if (typeof secondary === 'string') active.add(secondary);
 
-  const attributeBonus = balanceProfileNumberFromContext(context, PROFILE.elementalPolyphony, 'attributeBonus');
+  const elementalPolyphonyProfile = requireBalanceProfileFromContext(context, PROFILE.elementalPolyphony);
+  const attributeBonus = balanceProfileNumber(elementalPolyphonyProfile, 'attributeBonus');
   if (active.has('Fire')) {
     modified.power = Number(modified.power || 0) + attributeBonus;
   }

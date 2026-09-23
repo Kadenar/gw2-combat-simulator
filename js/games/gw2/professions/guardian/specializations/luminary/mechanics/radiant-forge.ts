@@ -4,7 +4,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
@@ -365,7 +365,10 @@ function finalizeRadiantForgeCooldown(context: GuardianSchedulerContext, at: num
   const baseRecharge = Math.max(0, Number(enter.cooldown ?? enter.recharge ?? 10));
   const adjustedBase = Math.max(
     0,
-    baseRecharge - (used <= 1 ? balanceProfileNumberFromContext(context, PROFILE.forge, 'rechargeReduction') : 0)
+    baseRecharge -
+      (used <= 1
+        ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.forge), 'rechargeReduction')
+        : 0)
   );
   // Preserve the ratio of effective-to-base recharge so alacrity/recharge
   // traits still apply proportionally to the adjusted cooldown.

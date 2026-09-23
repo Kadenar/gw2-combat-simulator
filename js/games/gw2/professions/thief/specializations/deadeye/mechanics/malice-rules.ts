@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -63,16 +66,19 @@ function modifyDeadeyeAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   // These stat bonuses come from the GW2 build panel (professionStaticRules); skip them if the build already includes them to avoid double-counting
   if (!professionStaticRulesApplied(context.config)) {
     if (hasTrait(context, TRAIT.SILENT_SCOPE)) {
-      result.precision += balanceProfileNumberFromContext(context, PROFILE.silentScope, 'attributeBonus');
+      const silentScopeProfile = requireBalanceProfileFromContext(context, PROFILE.silentScope);
+      result.precision += balanceProfileNumber(silentScopeProfile, 'attributeBonus');
     }
 
     if (hasTrait(context, TRAIT.PREMEDITATION)) {
-      result.concentration += balanceProfileNumberFromContext(context, PROFILE.premeditation, 'attributeBonus');
+      const premeditationProfile = requireBalanceProfileFromContext(context, PROFILE.premeditation);
+      result.concentration += balanceProfileNumber(premeditationProfile, 'attributeBonus');
     }
   }
 
   if (hasTrait(context, TRAIT.BE_QUICK_OR_BE_KILLED) && boonActive(context, 'quickness')) {
-    const bonus = balanceProfileNumberFromContext(context, PROFILE.beQuickOrBeKilled, 'attributeBonus');
+    const beQuickOrBeKilledProfile = requireBalanceProfileFromContext(context, PROFILE.beQuickOrBeKilled);
+    const bonus = balanceProfileNumber(beQuickOrBeKilledProfile, 'attributeBonus');
     result.power += bonus;
     result.precision += bonus;
   }

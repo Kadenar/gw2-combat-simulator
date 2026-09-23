@@ -1,5 +1,8 @@
 import type { EngineerModifierContext } from '#gw2/professions/engineer/types.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -86,7 +89,11 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'engineer.carbolic-composition-duration',
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.CARBOLIC_COMPOSITION, 'conditionDurationBonus'),
+    amount: (context) =>
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, TRAIT.CARBOLIC_COMPOSITION),
+        'conditionDurationBonus'
+      ),
     // Panel-derived simulation stats already contain this static bonus; provenance keeps direct simulations compatible.
     when: (context) =>
       context.condition === 'Poisoned' &&
@@ -99,9 +106,10 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 function modifyAmalgamAttributes(context: EngineerModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const modified = { ...attributes };
   if (activeEngineerSpecializationState(context, 'Amalgam', 'evolvedUntil')) {
+    const evolveProfile = requireBalanceProfileFromContext(context, PROFILE.evolve);
     const evolveFactor = hasTrait(context, TRAIT.DOUBLE_HELIX)
-      ? balanceProfileNumberFromContext(context, PROFILE.evolve, 'coefficientMultiplier')
-      : balanceProfileNumberFromContext(context, PROFILE.evolve, 'damageMultiplier');
+      ? balanceProfileNumber(evolveProfile, 'coefficientMultiplier')
+      : balanceProfileNumber(evolveProfile, 'damageMultiplier');
     const pool = context.config?.amalgamEvolveAttributePool;
     for (const [attribute, poolAttribute] of EVOLVE_ATTRIBUTES) {
       const eligible = Number(pool?.[poolAttribute] ?? modified[attribute] ?? 0);
@@ -113,11 +121,11 @@ function modifyAmalgamAttributes(context: EngineerModifierContext, attributes: G
   }
 
   if (activeEngineerSpecializationState(context, 'Amalgam', 'titanicUntil')) {
+    const strainsProfile = requireBalanceProfileFromContext(context, PROFILE.strains);
     // Titanic Strain adds 5 power + 5 condition damage per might stack on top
     // of the standard 30 power per stack that's already in the base attributes.
     const improvedMight =
-      activeBoonStacks(context, 'might') *
-      balanceProfileNumberFromContext(context, PROFILE.strains, 'attributePerStack');
+      activeBoonStacks(context, 'might') * balanceProfileNumber(strainsProfile, 'attributePerStack');
     modified.power += improvedMight;
     modified.conditionDamage += improvedMight;
   }
@@ -132,7 +140,10 @@ function modifyAmalgamAttributes(context: EngineerModifierContext, attributes: G
 function modifyAmalgamMaximumAmmo(context: EngineerMaximumAmmoContext, maximum: number): number {
   if (!context.skill || !EVOLVE_SKILL_IDS.has(Number(context.skill.id))) return maximum;
   return context.skill.id === ID.EVOLVE_DOUBLE_HELIX && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
-    ? Math.max(balanceProfileNumberFromContext(context, PROFILE.evolve, 'maximumStacks'), Number(maximum || 0))
+    ? Math.max(
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.evolve), 'maximumStacks'),
+        Number(maximum || 0)
+      )
     : 0;
 }
 

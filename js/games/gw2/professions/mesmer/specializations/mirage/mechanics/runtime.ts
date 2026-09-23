@@ -1,4 +1,4 @@
-import { requireEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -75,5 +75,5 @@ export function initializeMirageRuntime(context: MesmerSchedulerContext): void {
   // Riddle of Sand starts armed only for the active Mirage runtime and is re-armed by Mirage shatters.
   mirageState.from(context).riddleOfSandReady =
     runtime.traits.has(TRAIT.RIDDLE_OF_SAND) &&
-    Boolean(requireEffectFromContext(context, 'balance-profile', TRAIT.RIDDLE_OF_SAND, 'condition', 'Confusion'));
+    Boolean(requireEffect(requireBalanceProfileFromContext(context, TRAIT.RIDDLE_OF_SAND), 'condition', 'Confusion'));
 }

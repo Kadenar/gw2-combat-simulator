@@ -6,8 +6,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { EPSILON } from '#kernel/core/clock.js';
@@ -203,10 +202,11 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
 
   state.swiftScholarCount += 1;
 
-  if (state.swiftScholarCount >= balanceProfileNumberFromContext(context, PROFILE.swiftScholar, 'minimumStacks')) {
+  const swiftScholarProfile = requireBalanceProfileFromContext(context, PROFILE.swiftScholar);
+  if (state.swiftScholarCount >= balanceProfileNumber(swiftScholarProfile, 'minimumStacks')) {
     state.swiftScholarCount = 0;
     context.replaceEvent(context.action, {
-      tomePageRefund: balanceProfileNumberFromContext(context, PROFILE.swiftScholar, 'resourceGain')
+      tomePageRefund: balanceProfileNumber(swiftScholarProfile, 'resourceGain')
     });
   }
 
@@ -373,14 +373,16 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
 // Page regeneration remains a resource clock; passive Aegis owns a separate fixed cadence.
 export function initializeTomeCourage(context: GuardianSchedulerContext): void {
   if (selectedGuardianSpecialization({ config: context.config }) !== 'Firebrand') return;
-  if (balanceProfileNumberFromContext(context, PROFILE.passiveCourage, 'pulseInterval') > 0)
+  const passiveCourageProfile = requireBalanceProfileFromContext(context, PROFILE.passiveCourage);
+  if (balanceProfileNumber(passiveCourageProfile, 'pulseInterval') > 0)
     tomeCourage.start(context, { at: 0, captured: {} });
 }
 
 export const tomeCourage = timedEffect<GuardianSchedulerContext, object>({
   id: 'guardian.firebrand.passive-courage',
   priority: -200,
-  interval: (context) => balanceProfileNumberFromContext(context, PROFILE.passiveCourage, 'pulseInterval'),
+  interval: (context) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.passiveCourage), 'pulseInterval'),
   effectsAt(context, at) {
     const courage = context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.TOME_OF_COURAGE);
 

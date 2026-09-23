@@ -3,7 +3,6 @@ import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics
 import { gainShadowForce } from '#gw2/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import {
-  balanceProfileNumberFromContext,
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
@@ -55,7 +54,7 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
             : null;
     if (boonName) {
       const shadeStepProfile = requireBalanceProfileFromContext(context, PROFILE.shadeStep);
-      const effect = requireEffect(shadeStepProfile, 'boon', boonName, context);
+      const effect = requireEffect(shadeStepProfile, 'boon', boonName);
       if (effect) {
         const boon = String(effect.boon);
         emitSkillBuff(context, {
@@ -72,9 +71,9 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
             context,
             context.skill,
             boon,
-            effectNumber(shadeStepProfile, effect, 'duration', context)
+            effectNumber(shadeStepProfile, effect, 'duration')
           ),
-          stacks: effectNumber(shadeStepProfile, effect, 'stacks', context),
+          stacks: effectNumber(shadeStepProfile, effect, 'stacks'),
           audience: { recipients: 'party' as const }
         });
       }
@@ -84,9 +83,9 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
   // Dark Sentry is a mandatory Specter minor trait.
   if (skill.id === ID.DAWNS_REPOSE) {
     const dawnsReposeBarrierProfile = requireBalanceProfileFromContext(context, PROFILE.dawnsReposeBarrier);
-    const barrier = requireEffect(dawnsReposeBarrierProfile, 'buff', 'barrier', context);
+    const barrier = requireEffect(dawnsReposeBarrierProfile, 'buff', 'barrier');
     const alliedRecipients = Math.min(
-      balanceProfileNumber(dawnsReposeBarrierProfile, 'maximumTargets', context),
+      balanceProfileNumber(dawnsReposeBarrierProfile, 'maximumTargets'),
       gw2AlliedPlayerAssumptions(context.config).count
     );
     // Barrier removal also suppresses the barrier-triggered Dark Sentry reaction.
@@ -101,8 +100,8 @@ export function completeShadowShroudSkill(context: ThiefCastContext, skill: Thie
       skillName: skill.name,
       name: "Dawn's Repose - Barrier",
       kind: 'barrier',
-      duration: effectNumber(dawnsReposeBarrierProfile, barrier, 'duration', context),
-      stacks: effectNumber(dawnsReposeBarrierProfile, barrier, 'stacks', context),
+      duration: effectNumber(dawnsReposeBarrierProfile, barrier, 'duration'),
+      stacks: effectNumber(dawnsReposeBarrierProfile, barrier, 'stacks'),
       audience: { recipients: 'party' as const, affectsSelf: false, maximumRecipients: alliedRecipients }
     });
     context.tasks.schedule({
@@ -142,10 +141,8 @@ export const larcenousTormentReaction = scheduledReaction<
     const stacks = Math.max(0, Number(payload.stacks || 0));
     if (!(stacks > 0)) return;
 
-    gainShadowForce(
-      context,
-      stacks * balanceProfileNumberFromContext(context, PROFILE.larcenousTorment, 'resourceGain')
-    );
+    const larcenousTormentProfile = requireBalanceProfileFromContext(context, PROFILE.larcenousTorment);
+    gainShadowForce(context, stacks * balanceProfileNumber(larcenousTormentProfile, 'resourceGain'));
     emitThiefStateSnapshot(context, taskAt, 'larcenous-torment');
   }
 });
@@ -176,12 +173,12 @@ export function handleDarkSentry(
   if (!recipientCount) return;
 
   const darkSentryProfile = requireBalanceProfileFromContext(context, PROFILE.darkSentry);
-  const venom = requireEffect(darkSentryProfile, 'buff', 'rot-wallow-venom', context);
+  const venom = requireEffect(darkSentryProfile, 'buff', 'rot-wallow-venom');
   if (!venom) return;
-  const torment = requireEffect(darkSentryProfile, 'condition', 'Torment', context);
+  const torment = requireEffect(darkSentryProfile, 'condition', 'Torment');
   // Reuse immutable tuning across every recipient and queued proc in this grant.
-  const readyAt = task.at + balanceProfileNumber(darkSentryProfile, 'internalCooldown', context);
-  const venomDuration = effectNumber(darkSentryProfile, venom, 'duration', context);
+  const readyAt = task.at + balanceProfileNumber(darkSentryProfile, 'internalCooldown');
+  const venomDuration = effectNumber(darkSentryProfile, venom, 'duration');
   for (const allyIndex of eligibleAllies) {
     state.darkSentryReadyAtByAlly[String(allyIndex)] = readyAt;
   }
@@ -197,13 +194,13 @@ export function handleDarkSentry(
     icon: ROT_WALLOW_VENOM_ICON,
     kind: 'rot-wallow-venom',
     duration: venomDuration,
-    stacks: effectNumber(darkSentryProfile, venom, 'stacks', context),
+    stacks: effectNumber(darkSentryProfile, venom, 'stacks'),
     audience: { recipients: 'party' as const, affectsSelf: false, maximumRecipients: recipientCount }
   });
   // The next allied strike must fit the grant, including the shared allied expiry boundary.
   if (torment) {
-    const tormentStacks = effectNumber(darkSentryProfile, torment, 'stacks', context);
-    const tormentDuration = effectNumber(darkSentryProfile, torment, 'duration', context);
+    const tormentStacks = effectNumber(darkSentryProfile, torment, 'stacks');
+    const tormentDuration = effectNumber(darkSentryProfile, torment, 'duration');
     for (const proc of gw2AlliedPlayerProcTimeline(context.config, {
       start: task.at,
       duration: venomDuration,
@@ -241,11 +238,11 @@ export function applyLarcenousTorment(context: ThiefResolverContext, application
   const stacks = Math.max(0, Math.trunc(Number(application.stacks || 0)));
 
   const larcenousTormentProfile = requireBalanceProfileFromContext(context, PROFILE.larcenousTorment);
-  const strike = requireEffect(larcenousTormentProfile, 'strike', 'Larcenous Torment', context);
+  const strike = requireEffect(larcenousTormentProfile, 'strike', 'Larcenous Torment');
   // Force gain is independent of the removable life-siphon packet.
   if (strike) {
-    const flatStrikeBase = effectNumber(larcenousTormentProfile, strike, 'flatStrikeBase', context);
-    const flatStrikePowerCoeff = effectNumber(larcenousTormentProfile, strike, 'flatStrikePowerCoeff', context);
+    const flatStrikeBase = effectNumber(larcenousTormentProfile, strike, 'flatStrikeBase');
+    const flatStrikePowerCoeff = effectNumber(larcenousTormentProfile, strike, 'flatStrikePowerCoeff');
     for (let stack = 1; stack <= stacks; stack += 1) {
       context.queue.enqueue(
         buildResolverStrike({
@@ -275,6 +272,6 @@ export function applyLarcenousTorment(context: ThiefResolverContext, application
   if (state.shadowShroudActive) return;
   state.shadowClock.value = Math.min(
     state.shadowClock.maximum,
-    state.shadowClock.value + stacks * balanceProfileNumber(larcenousTormentProfile, 'resourceGain', context)
+    state.shadowClock.value + stacks * balanceProfileNumber(larcenousTormentProfile, 'resourceGain')
   );
 }

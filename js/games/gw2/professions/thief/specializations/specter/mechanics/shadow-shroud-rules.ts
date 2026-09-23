@@ -1,6 +1,5 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import {
-  balanceProfileNumberFromContext,
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -71,17 +70,18 @@ function modifySpecterAttributes(context: Gw2ModifierContext, attributes: Gw2Res
     const secondOpinionProfile = requireBalanceProfileFromContext(context, PROFILE.secondOpinion);
     result.healingPower =
       Number(result.healingPower || 0) +
-      gearConditionDamage * balanceProfileNumber(secondOpinionProfile, 'attributeConversion', context);
+      gearConditionDamage * balanceProfileNumber(secondOpinionProfile, 'attributeConversion');
     result.conditionDamage =
       Number(result.conditionDamage || 0) +
-      balanceProfileNumber(secondOpinionProfile, 'attributeBonus', context) +
-      (wieldingScepter(context) ? balanceProfileNumber(secondOpinionProfile, 'attributePerStack', context) : 0);
+      balanceProfileNumber(secondOpinionProfile, 'attributeBonus') +
+      (wieldingScepter(context) ? balanceProfileNumber(secondOpinionProfile, 'attributePerStack') : 0);
   }
 
   if (hasTrait(context, TRAIT.STRENGTH_OF_SHADOWS)) {
+    const strengthOfShadowsProfile = requireBalanceProfileFromContext(context, PROFILE.strengthOfShadows);
     result.expertise =
       Number(result.expertise || 0) +
-      gearVitality * balanceProfileNumberFromContext(context, PROFILE.strengthOfShadows, 'attributeConversion');
+      gearVitality * balanceProfileNumber(strengthOfShadowsProfile, 'attributeConversion');
   }
 
   return result;

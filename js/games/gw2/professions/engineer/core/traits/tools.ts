@@ -1,8 +1,9 @@
 /** Owns imperative Core Engineer Tools effects while keeping hook registration in the public dispatcher. */
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext,
-  effectNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect,
+  effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -34,16 +35,10 @@ export function applyStreamlinedKits(context: EngineerCastContext, skill: Engine
     !isInternalCooldownReady(at, Number(state.traitProcReadyAt.streamlinedKits || 0))
   )
     return;
-  state.traitProcReadyAt.streamlinedKits =
-    at + balanceProfileNumberFromContext(context, PROFILE.streamlinedKits, 'internalCooldown');
+  const streamlinedKitsProfile = requireBalanceProfileFromContext(context, PROFILE.streamlinedKits);
+  state.traitProcReadyAt.streamlinedKits = at + balanceProfileNumber(streamlinedKitsProfile, 'internalCooldown');
   // Every eligible kit entry grants the shared swiftness effect.
-  const streamlinedKitsSwiftness = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.streamlinedKits,
-    'boon',
-    'swiftness'
-  );
+  const streamlinedKitsSwiftness = requireEffect(streamlinedKitsProfile, 'boon', 'swiftness');
   if (streamlinedKitsSwiftness) {
     emitSkillBuff(context, skill, {
       at,
@@ -59,13 +54,7 @@ export function applyStreamlinedKits(context: EngineerCastContext, skill: Engine
 
   // Grenade Kit additionally drops the trait's mine strike on entry.
   if (skill.id === ID.GRENADE_KIT) {
-    const streamlinedKitsStrike = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.streamlinedKits,
-      'strike',
-      'Streamlined Kits'
-    );
+    const streamlinedKitsStrike = requireEffect(streamlinedKitsProfile, 'strike', 'Streamlined Kits');
     if (streamlinedKitsStrike) {
       emitSkillDamage(context, {
         at,
@@ -77,13 +66,7 @@ export function applyStreamlinedKits(context: EngineerCastContext, skill: Engine
         skillName: 'Drop Mine',
         parentSkillName: skill.name,
         name: 'Drop Mine',
-        coefficient: effectNumberFromContext(
-          context,
-          'balance-profile',
-          PROFILE.streamlinedKits,
-          streamlinedKitsStrike,
-          'coefficient'
-        ),
+        coefficient: effectNumber(streamlinedKitsProfile, streamlinedKitsStrike, 'coefficient'),
         hits: 1,
         hitIndex: 1,
         totalHits: 1,
@@ -98,13 +81,8 @@ export function applyStreamlinedKits(context: EngineerCastContext, skill: Engine
 /** Grants Optimized Activation vigor for a completed toolbelt cast. */
 export function applyOptimizedActivation(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.OPTIMIZED_ACTIVATION)) return;
-  const optimizedActivationVigor = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.optimizedActivation,
-    'boon',
-    'vigor'
-  );
+  const optimizedActivationProfile = requireBalanceProfileFromContext(context, PROFILE.optimizedActivation);
+  const optimizedActivationVigor = requireEffect(optimizedActivationProfile, 'boon', 'vigor');
   if (optimizedActivationVigor) {
     emitSkillBuff(context, skill, {
       at,
@@ -122,13 +100,8 @@ export function applyOptimizedActivation(context: EngineerSchedulerContext, skil
 /** Queues Static Discharge from a completed toolbelt cast. */
 export function applyStaticDischarge(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.STATIC_DISCHARGE)) return;
-  const staticDischargeStrike = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.staticDischarge,
-    'strike',
-    'Static Discharge'
-  );
+  const staticDischargeProfile = requireBalanceProfileFromContext(context, PROFILE.staticDischarge);
+  const staticDischargeStrike = requireEffect(staticDischargeProfile, 'strike', 'Static Discharge');
   if (staticDischargeStrike) {
     emitSkillDamage(context, {
       at,
@@ -141,13 +114,7 @@ export function applyStaticDischarge(context: EngineerSchedulerContext, skill: E
       parentSkillName: skill.name,
       icon: context.catalog.skillsById.get(ID.STATIC_DISCHARGE_TRAIT_SKILL)?.icon || '',
       name: 'Static Discharge',
-      coefficient: effectNumberFromContext(
-        context,
-        'balance-profile',
-        PROFILE.staticDischarge,
-        staticDischargeStrike,
-        'coefficient'
-      ),
+      coefficient: effectNumber(staticDischargeProfile, staticDischargeStrike, 'coefficient'),
       hits: 1,
       hitIndex: 1,
       totalHits: 1,
@@ -163,18 +130,13 @@ export function applyStaticDischarge(context: EngineerSchedulerContext, skill: E
 export function applyKineticBattery(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.KINETIC_BATTERY)) return;
   const state = professionCoreState(context);
-  const maximumCharges = balanceProfileNumberFromContext(context, PROFILE.kineticBattery, 'maximumStacks');
+  const kineticBatteryProfile = requireBalanceProfileFromContext(context, PROFILE.kineticBattery);
+  const maximumCharges = balanceProfileNumber(kineticBatteryProfile, 'maximumStacks');
   state.kineticCharges = Math.min(maximumCharges, Number(state.kineticCharges || 0) + 1);
   // Grant the speed and damage package and reset charges every fifth toolbelt cast.
   if (state.kineticCharges >= maximumCharges) {
     state.kineticCharges = 0;
-    const kineticBatteryBuff = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.kineticBattery,
-      'buff',
-      'kinetic-battery'
-    );
+    const kineticBatteryBuff = requireEffect(kineticBatteryProfile, 'buff', 'kinetic-battery');
     if (kineticBatteryBuff) {
       const buffDuration = Number(kineticBatteryBuff.duration);
       emitSkillBuff(context, skill, {
@@ -189,13 +151,7 @@ export function applyKineticBattery(context: EngineerSchedulerContext, skill: En
       });
     }
 
-    const kineticBatteryQuickness = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.kineticBattery,
-      'boon',
-      'quickness'
-    );
+    const kineticBatteryQuickness = requireEffect(kineticBatteryProfile, 'boon', 'quickness');
     if (kineticBatteryQuickness) {
       emitSkillBuff(context, skill, {
         at,
@@ -209,13 +165,7 @@ export function applyKineticBattery(context: EngineerSchedulerContext, skill: En
       });
     }
 
-    const kineticBatterySuperspeed = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.kineticBattery,
-      'buff',
-      'superspeed'
-    );
+    const kineticBatterySuperspeed = requireEffect(kineticBatteryProfile, 'buff', 'superspeed');
     if (kineticBatterySuperspeed) {
       emitSkillBuff(context, skill, {
         at,

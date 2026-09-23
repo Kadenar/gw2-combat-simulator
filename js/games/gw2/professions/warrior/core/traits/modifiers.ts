@@ -1,10 +1,13 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
+import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorCastAvailability } from '#gw2/professions/warrior/core/mechanics/availability.js';
 import {
@@ -55,7 +58,7 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     // Kill Shot gets the same execute bonus from either a defiant target or live sub-50% health.
     when: (context) =>
       warriorEventSkill(context)?.id === ID.KILL_SHOT &&
-      (context.config?.target?.defiant === true || targetHealthFraction(context) < 0.5)
+      (context.config?.target?.defiant === true || targetHealthBelow(context, 0.5))
   },
   {
     id: 'warrior.throw-axe-health-threshold',
@@ -68,9 +71,9 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
       upperFactor: 1.5
     } as Readonly<Record<string, number>>,
     factor: (context, _target, parameters) =>
-      targetHealthFraction(context) <= parameters.lowerThreshold
+      targetHealthBelow(context, parameters.lowerThreshold)
         ? parameters.lowerFactor
-        : targetHealthFraction(context) <= parameters.upperThreshold
+        : targetHealthBelow(context, parameters.upperThreshold)
           ? parameters.upperFactor
           : 1,
     order: 100,
@@ -125,11 +128,14 @@ function modifyRechargeDuration(context: WarriorSchedulerContext & { skill?: War
   if (skill?.id === ID.SWAP_WEAPONS) return duration > 0 ? Math.min(5, duration) : 0;
   let result = duration;
   if (skill?.burst && hasTrait(context, TRAIT.VERSATILE_POWER))
-    result *= balanceProfileNumberFromContext(context, TRAIT.VERSATILE_POWER, 'rechargeMultiplier');
+    result *= balanceProfileNumber(
+      requireBalanceProfileFromContext(context, TRAIT.VERSATILE_POWER),
+      'rechargeMultiplier'
+    );
   if (skill?.weapon === 'Greatsword' && hasTrait(context, TRAIT.FORCEFUL_GREATSWORD)) result *= 0.8;
   if (skill?.weapon === 'Sword' && hasTrait(context, TRAIT.BLADEMASTER)) result *= 0.8;
   if (skill?.weapon === 'Axe' && hasTrait(context, TRAIT.AXE_MASTERY))
-    result *= balanceProfileNumberFromContext(context, TRAIT.AXE_MASTERY, 'rechargeMultiplier');
+    result *= balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.AXE_MASTERY), 'rechargeMultiplier');
   return result;
 }
 

@@ -1,5 +1,8 @@
 import { HERALD_ELEVATED_COMPASSION_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { bolsteredBondsBonuses } from '#gw2/professions/revenant/specializations/conduit/traits/bolstered-bonds.js';
@@ -47,20 +50,28 @@ export function applyRevenantBuildAttributeRules(
   const profileContext = balanceContext ?? { catalog: revenantCatalog };
   const traitDurations: Gw2NumericAttributes = {};
   const traitCriticalChance = hasTrait('Brutal Momentum')
-    ? 100 * balanceProfileNumberFromContext(profileContext, 'revenant.renegade.brutal-momentum', 'criticalChance')
+    ? 100 *
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(profileContext, 'revenant.renegade.brutal-momentum'),
+        'criticalChance'
+      )
     : 0;
 
   if (hasTrait('Pact of Pain')) {
-    traitDurations['Condition Duration'] =
-      100 * balanceProfileNumberFromContext(profileContext, TRAIT.PACT_OF_PAIN, 'conditionDurationBonus');
+    const pactOfPainProfile = requireBalanceProfileFromContext(profileContext, TRAIT.PACT_OF_PAIN);
+    traitDurations['Condition Duration'] = 100 * balanceProfileNumber(pactOfPainProfile, 'conditionDurationBonus');
   }
 
   if (hasTrait('Yearning Empowerment')) {
+    const yearningEmpowermentProfile = requireBalanceProfileFromContext(profileContext, TRAIT.YEARNING_EMPOWERMENT);
     const duration =
-      100 * balanceProfileNumberFromContext(profileContext, TRAIT.YEARNING_EMPOWERMENT, 'conditionDurationBonus') +
+      100 * balanceProfileNumber(yearningEmpowermentProfile, 'conditionDurationBonus') +
       (hasTrait('Numinous Gift')
         ? 100 *
-          balanceProfileNumberFromContext(profileContext, 'revenant.conduit.numinous-gift', 'conditionDurationBonus')
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(profileContext, 'revenant.conduit.numinous-gift'),
+            'conditionDurationBonus'
+          )
         : 0);
 
     for (const condition of ['Bleeding', 'Burning', 'Confusion', 'Poison', 'Torment']) {
@@ -68,12 +79,16 @@ export function applyRevenantBuildAttributeRules(
     }
   }
 
+  const seethingMaliceProfile = requireBalanceProfileFromContext(profileContext, TRAIT.SEETHING_MALICE);
+  const lifeAttunementProfile = requireBalanceProfileFromContext(profileContext, TRAIT.LIFE_ATTUNEMENT);
+  const reinforcedPotencyProfile = requireBalanceProfileFromContext(profileContext, TRAIT.REINFORCED_POTENCY);
+  const empireDividedProfile = requireBalanceProfileFromContext(profileContext, TRAIT.EMPIRE_DIVIDED);
   const attributeEffects: Gw2AttributeEffect[] = [
     {
       kind: 'flat',
       source: 'Seething Malice',
       to: 'Condition Damage',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.SEETHING_MALICE, 'attributeBonus'),
+      amount: balanceProfileNumber(seethingMaliceProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Seething Malice')
     },
@@ -81,7 +96,7 @@ export function applyRevenantBuildAttributeRules(
       kind: 'flat',
       source: 'Life Attunement',
       to: 'Healing Power',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.LIFE_ATTUNEMENT, 'attributeBonus'),
+      amount: balanceProfileNumber(lifeAttunementProfile, 'attributeBonus'),
       feedsConversions: true,
       enabled: hasTrait('Life Attunement')
     },
@@ -89,7 +104,7 @@ export function applyRevenantBuildAttributeRules(
       kind: 'flat',
       source: 'Reinforced Potency',
       to: 'Concentration',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.REINFORCED_POTENCY, 'attributeBonus'),
+      amount: balanceProfileNumber(reinforcedPotencyProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Reinforced Potency')
     },
@@ -98,7 +113,7 @@ export function applyRevenantBuildAttributeRules(
       source: 'Empire Divided',
       to: 'Power',
       // The fixed full-health assumption always enables Empire Divided's Power bonus.
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.EMPIRE_DIVIDED, 'attributeBonus'),
+      amount: balanceProfileNumber(empireDividedProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Empire Divided')
     }
@@ -118,13 +133,18 @@ export function applyRevenantBuildAttributeRules(
     }
   }
 
+  const versedInStoneProfile = requireBalanceProfileFromContext(profileContext, TRAIT.VERSED_IN_STONE);
+  const heraldElevatedCompassionProfile = requireBalanceProfileFromContext(
+    profileContext,
+    HERALD_ELEVATED_COMPASSION_PROFILE_ID
+  );
   attributeEffects.push(
     {
       kind: 'conversion',
       source: 'Versed in Stone',
       from: 'Toughness',
       to: 'Power',
-      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.VERSED_IN_STONE, 'attributeConversion'),
+      multiplier: balanceProfileNumber(versedInStoneProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'common',
       enabled: hasTrait('Versed in Stone')
@@ -134,7 +154,7 @@ export function applyRevenantBuildAttributeRules(
       source: 'Life Attunement',
       from: 'Healing Power',
       to: 'Concentration',
-      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.LIFE_ATTUNEMENT, 'attributeConversion'),
+      multiplier: balanceProfileNumber(lifeAttunementProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'eligible',
       enabled: hasTrait('Life Attunement')
@@ -144,11 +164,7 @@ export function applyRevenantBuildAttributeRules(
       source: 'Elevated Compassion',
       from: 'Power',
       to: 'Concentration',
-      multiplier: balanceProfileNumberFromContext(
-        profileContext,
-        HERALD_ELEVATED_COMPASSION_PROFILE_ID,
-        'attributeConversion'
-      ),
+      multiplier: balanceProfileNumber(heraldElevatedCompassionProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'common',
       enabled: hasTrait('Elevated Compassion')

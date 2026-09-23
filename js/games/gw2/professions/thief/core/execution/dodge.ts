@@ -1,7 +1,6 @@
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import {
-  balanceProfileNumberFromContext,
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
@@ -21,28 +20,24 @@ import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thie
 export function performThiefDodge(context: ThiefCastContext): void {
   const state = professionCoreState(context);
 
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   Object.assign(
     state,
-    spendEndurance(
-      state,
-      balanceProfileNumberFromContext(context, PROFILE.resources, 'resourceCost'),
-      context.start,
-      state.maximumEndurance
-    )
+    spendEndurance(state, balanceProfileNumber(resourcesProfile, 'resourceCost'), context.start, state.maximumEndurance)
   );
   emitThiefStateSnapshot(context, context.start, 'dodge');
   if (hasTrait(context.config, TRAIT.UNCATCHABLE)) {
     // Each surviving condition owns its pulses; deleting Bleeding cannot remove Crippled.
     const uncatchableProfile = requireBalanceProfileFromContext(context, PROFILE.uncatchable);
-    const initialDelay = balanceProfileNumber(uncatchableProfile, 'initialDelay', context);
-    const pulseInterval = balanceProfileNumber(uncatchableProfile, 'pulseInterval', context);
+    const initialDelay = balanceProfileNumber(uncatchableProfile, 'initialDelay');
+    const pulseInterval = balanceProfileNumber(uncatchableProfile, 'pulseInterval');
     for (const name of ['Bleeding', 'Crippled']) {
-      const effect = requireEffect(uncatchableProfile, 'condition', name, context);
+      const effect = requireEffect(uncatchableProfile, 'condition', name);
       if (!effect) continue;
-      const applications = effectNumber(uncatchableProfile, effect, 'applications', context);
+      const applications = effectNumber(uncatchableProfile, effect, 'applications');
       // Read this condition once, then reuse its tuning for each pulse.
-      const duration = effectNumber(uncatchableProfile, effect, 'duration', context);
-      const stacks = effectNumber(uncatchableProfile, effect, 'stacks', context);
+      const duration = effectNumber(uncatchableProfile, effect, 'duration');
+      const stacks = effectNumber(uncatchableProfile, effect, 'stacks');
       for (let pulse = 0; pulse < applications; pulse += 1) {
         const at = context.start + initialDelay + pulse * pulseInterval;
         emitSkillCondition(context, {
@@ -77,9 +72,9 @@ export function completeThiefDodge(context: ThiefCastContext): void {
       state.traitProcReadyAt,
       TRAIT.UPPER_HAND,
       at,
-      balanceProfileNumber(upperHandProfile, 'internalCooldown', context)
+      balanceProfileNumber(upperHandProfile, 'internalCooldown')
     )
   )
     return;
-  gainThiefInitiative(context, balanceProfileNumber(upperHandProfile, 'resourceGain', context), at, 'upper-hand');
+  gainThiefInitiative(context, balanceProfileNumber(upperHandProfile, 'resourceGain'), at, 'upper-hand');
 }

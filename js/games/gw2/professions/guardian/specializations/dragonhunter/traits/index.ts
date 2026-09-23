@@ -2,7 +2,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -50,6 +50,6 @@ export function bigGameHunterTetherDuration(context: GuardianCastContext): numbe
   // Big Game Hunter doubles tether duration (6 → 12s) and is also what
   // unlocks the Vulnerability condition and passive Crippled in the resolver.
   return hasTrait(context, TRAIT.BIG_GAME_HUNTER)
-    ? balanceProfileNumberFromContext(context, PROFILE.bigGameHunter, 'pulseInterval')
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.bigGameHunter), 'pulseInterval')
     : 6;
 }

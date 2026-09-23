@@ -7,7 +7,10 @@ import type {
 } from '#gw2/platform/profession-presentation/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ELEMENTALIST_JADE_SPHERE_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
@@ -34,9 +37,10 @@ function catalystPaletteAvailability(context: ElementalistUiContext, skill: Skil
     return { available: false, message: `Requires ${String(skill.attunement)} attunement.` };
   }
 
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   // Palette costs and initial capacity follow the same selected profile as simulation.
-  const maximum = balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
-  const sphereCost = balanceProfileNumberFromContext(context, PROFILE.resources, 'resourceCost');
+  const maximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
+  const sphereCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
   const energy = Number(state.energy ?? build?.initialCatalystEnergy ?? maximum);
   const available = energy >= sphereCost;
   return {
@@ -48,7 +52,8 @@ function catalystPaletteAvailability(context: ElementalistUiContext, skill: Skil
 // Empowering Auras has no stored state, so replay its buff events up to the
 // inspected time to recover the live stack count and remaining duration.
 function empoweringAurasAt(context: ElementalistUiContext, at: number): { stacks: number; remaining: number } | null {
-  const maximum = balanceProfileNumberFromContext(context, PROFILE.empoweringAuras, 'maximumStacks');
+  const empoweringAurasProfile = requireBalanceProfileFromContext(context, PROFILE.empoweringAuras);
+  const maximum = balanceProfileNumber(empoweringAurasProfile, 'maximumStacks');
   let expiries: number[] = [];
   const events = (context.result as { events?: readonly SimulationEvent[] } | undefined)?.events || [];
   for (const event of events) {
@@ -76,7 +81,8 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
   const items: RotationStateSnapshotItem[] = [];
   const empowerment = activeStackCount(state.elementalEmpowermentExpiries || [], at);
   if (empowerment > 0) {
-    const maximum = balanceProfileNumberFromContext(context, PROFILE.elementalEmpowerment, 'maximumStacks');
+    const elementalEmpowermentProfile = requireBalanceProfileFromContext(context, PROFILE.elementalEmpowerment);
+    const maximum = balanceProfileNumber(elementalEmpowermentProfile, 'maximumStacks');
     items.push({
       id: 'catalyst-elemental-empowerment',
       label: 'Elemental Empowerment',
@@ -87,10 +93,11 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
 
   const empoweringAuras = empoweringAurasAt(context, at);
   if (empoweringAuras) {
+    const empoweringAurasProfile = requireBalanceProfileFromContext(context, PROFILE.empoweringAuras);
     items.push({
       id: 'catalyst-empowering-auras',
       label: 'Empowering Auras',
-      value: `${empoweringAuras.stacks}/${balanceProfileNumberFromContext(context, PROFILE.empoweringAuras, 'maximumStacks')} · ${empoweringAuras.remaining.toFixed(1)}s`,
+      value: `${empoweringAuras.stacks}/${balanceProfileNumber(empoweringAurasProfile, 'maximumStacks')} · ${empoweringAuras.remaining.toFixed(1)}s`,
       title: 'Active Empowering Auras stacks and refreshed duration remaining'
     });
   }
@@ -111,12 +118,13 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
 
 /** Publishes Catalyst effect presentation from its active balance profile. */
 function catalystEffectPresentations(context: ElementalistUiContext): ProfessionEffectPresentation[] {
+  const elementalEmpowermentProfile = requireBalanceProfileFromContext(context, PROFILE.elementalEmpowerment);
   return [
     {
       id: 'elementalist-elemental-empowerment',
       kind: 'elemental empowerment',
       name: 'Elemental Empowerment',
-      maximumStacks: balanceProfileNumberFromContext(context, PROFILE.elementalEmpowerment, 'maximumStacks')
+      maximumStacks: balanceProfileNumber(elementalEmpowermentProfile, 'maximumStacks')
     }
   ];
 }
@@ -143,7 +151,8 @@ export const catalystUi: ElementalistUiSlice = Object.freeze({
   resourceViews: (context: ElementalistUiContext): ProfessionResourceView[] => {
     const state = uiState(context);
     const build = context.build;
-    const maximum = balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
+    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+    const maximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
     return [
       {
         id: 'catalyst-energy',

@@ -1,7 +1,8 @@
 import { resolverTimedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -22,15 +23,10 @@ function triggerMassMomentum(context: EngineerResolverContext, event: EngineerRe
   if (!hasTrait(context, TRAIT.MASS_MOMENTUM) || activeBoonStacks(context, 'stability', 1, event.at) === 0)
     return false;
   const state = procState(context);
+  const massMomentumProfile = requireBalanceProfileFromContext(context, PROFILE.massMomentum);
   if (Number(state.massMomentum || 0) <= event.at) {
-    state.massMomentum = event.at + balanceProfileNumberFromContext(context, PROFILE.massMomentum, 'pulseInterval');
-    const massMomentumMight = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.massMomentum,
-      'boon',
-      'might'
-    );
+    state.massMomentum = event.at + balanceProfileNumber(massMomentumProfile, 'pulseInterval');
+    const massMomentumMight = requireEffect(massMomentumProfile, 'boon', 'might');
     if (massMomentumMight) {
       queueBuff(context, event, {
         name: 'Mass Momentum',
@@ -45,7 +41,7 @@ function triggerMassMomentum(context: EngineerResolverContext, event: EngineerRe
     }
   }
 
-  const interval = balanceProfileNumberFromContext(context, PROFILE.massMomentum, 'pulseInterval');
+  const interval = balanceProfileNumber(massMomentumProfile, 'pulseInterval');
   const next = Math.max(event.at + interval, Number(state.massMomentum || 0));
   if (interval > 0 && massMomentum.nextAt(context) > next)
     massMomentum.start(context, { key: 'stability', at: next, captured: event });
@@ -54,7 +50,8 @@ function triggerMassMomentum(context: EngineerResolverContext, event: EngineerRe
 // A single pending resolver occurrence deduplicates hit/boon triggers and rechecks live Stability.
 const massMomentum = resolverTimedEffect<EngineerResolverContext, EngineerResolverEvent>({
   id: 'engineer.mass-momentum-pulse',
-  interval: (context) => balanceProfileNumberFromContext(context, PROFILE.massMomentum, 'pulseInterval'),
+  interval: (context) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.massMomentum), 'pulseInterval'),
   effectsAt(context, at, event) {
     return triggerMassMomentum(context, { ...event, at });
   }
@@ -75,21 +72,15 @@ function reactToScrapperBuff(context: EngineerResolverContext, event: EngineerRe
     activeBoonStacks(
       context,
       'might',
-      balanceProfileNumberFromContext(context, PROFILE.appliedForce, 'maximumStacks'),
+      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.appliedForce), 'maximumStacks'),
       event.at
-    ) >= balanceProfileNumberFromContext(context, PROFILE.appliedForce, 'threshold')
+    ) >= balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.appliedForce), 'threshold')
   ) {
     const state = procState(context);
     if (isInternalCooldownReady(event.at, Number(state.appliedForce || 0))) {
-      state.appliedForce =
-        event.at + balanceProfileNumberFromContext(context, PROFILE.appliedForce, 'internalCooldown');
-      const appliedForceStability = requireEffectFromContext(
-        context,
-        'balance-profile',
-        PROFILE.appliedForce,
-        'boon',
-        'stability'
-      );
+      const appliedForceProfile = requireBalanceProfileFromContext(context, PROFILE.appliedForce);
+      state.appliedForce = event.at + balanceProfileNumber(appliedForceProfile, 'internalCooldown');
+      const appliedForceStability = requireEffect(appliedForceProfile, 'boon', 'stability');
       if (appliedForceStability) {
         queueBuff(context, event, {
           name: 'Applied Force',

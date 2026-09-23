@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { getActiveTraits } from '#gw2/professions/mesmer/data/traits-data.js';
@@ -36,13 +39,24 @@ export function applyMesmerBuildAttributeRules(
 
   const assumptions = mesmerBuild.assumptions || {};
 
+  const quietIntensityProfile = requireBalanceProfileFromContext(profileContext, TRAIT.QUIET_INTENSITY);
+  const chaoticPersistenceProfile = requireBalanceProfileFromContext(profileContext, TRAIT.CHAOTIC_PERSISTENCE);
+  const sharpeningSorrowProfile = requireBalanceProfileFromContext(profileContext, TRAIT.SHARPENING_SORROW);
+  const signetOfDominationPassiveProfile = requireBalanceProfileFromContext(
+    profileContext,
+    'mesmer.core.signet-of-domination-passive'
+  );
+  const signetOfMidnightPassiveProfile = requireBalanceProfileFromContext(
+    profileContext,
+    'mesmer.core.signet-of-midnight-passive'
+  );
   const attributeEffects: Gw2AttributeEffect[] = [
     {
       kind: 'conversion',
       source: 'Quiet Intensity',
       from: 'Vitality',
       to: 'Ferocity',
-      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.QUIET_INTENSITY, 'vitalityConversion'),
+      multiplier: balanceProfileNumber(quietIntensityProfile, 'vitalityConversion'),
       rounding: 'round',
       input: 'common',
       enabled: hasTrait('Quiet Intensity')
@@ -51,7 +65,7 @@ export function applyMesmerBuildAttributeRules(
       kind: 'flat',
       source: 'Chaotic Persistence',
       to: 'Expertise',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.CHAOTIC_PERSISTENCE, 'expertiseBonus'),
+      amount: balanceProfileNumber(chaoticPersistenceProfile, 'expertiseBonus'),
       feedsConversions: false,
       enabled: hasTrait('Chaotic Persistence') && assumptions.regeneration !== false
     },
@@ -59,7 +73,7 @@ export function applyMesmerBuildAttributeRules(
       kind: 'flat',
       source: 'Chaotic Persistence',
       to: 'Concentration',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.CHAOTIC_PERSISTENCE, 'concentrationBonus'),
+      amount: balanceProfileNumber(chaoticPersistenceProfile, 'concentrationBonus'),
       feedsConversions: false,
       enabled: hasTrait('Chaotic Persistence') && assumptions.regeneration !== false
     },
@@ -67,7 +81,7 @@ export function applyMesmerBuildAttributeRules(
       kind: 'flat',
       source: 'Sharpening Sorrow',
       to: 'Expertise',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.SHARPENING_SORROW, 'expertiseBonus'),
+      amount: balanceProfileNumber(sharpeningSorrowProfile, 'expertiseBonus'),
       feedsConversions: false,
       enabled: hasTrait('Sharpening Sorrow') && assumptions.fury !== false
     },
@@ -75,11 +89,7 @@ export function applyMesmerBuildAttributeRules(
       kind: 'flat',
       source: 'Signet of Domination',
       to: 'Condition Damage',
-      amount: balanceProfileNumberFromContext(
-        profileContext,
-        'mesmer.core.signet-of-domination-passive',
-        'conditionDamageBonus'
-      ),
+      amount: balanceProfileNumber(signetOfDominationPassiveProfile, 'conditionDamageBonus'),
       feedsConversions: false,
       enabled: hasSelectedSkillId(10232) || hasSelectedSkill('Signet of Domination')
     },
@@ -87,11 +97,7 @@ export function applyMesmerBuildAttributeRules(
       kind: 'flat',
       source: 'Signet of Midnight',
       to: 'Expertise',
-      amount: balanceProfileNumberFromContext(
-        profileContext,
-        'mesmer.core.signet-of-midnight-passive',
-        'expertiseBonus'
-      ),
+      amount: balanceProfileNumber(signetOfMidnightPassiveProfile, 'expertiseBonus'),
       feedsConversions: false,
       enabled: hasSelectedSkillId(10234) || hasSelectedSkill('Signet of Midnight')
     }
@@ -102,15 +108,19 @@ export function applyMesmerBuildAttributeRules(
   // Duration bonuses come from profiles, not metadata annotations.
   if (hasTrait('Malicious Sorcery'))
     traitDurations['Confusion Duration'] =
-      100 * balanceProfileNumberFromContext(profileContext, TRAIT.MALICIOUS_SORCERY, 'durationMultiplier');
+      100 *
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(profileContext, TRAIT.MALICIOUS_SORCERY),
+        'durationMultiplier'
+      );
 
   if (hasTrait('Quiet Intensity') && assumptions.fury !== false) {
-    traitCriticalChance +=
-      100 * balanceProfileNumberFromContext(profileContext, TRAIT.QUIET_INTENSITY, 'criticalChance');
+    traitCriticalChance += 100 * balanceProfileNumber(quietIntensityProfile, 'criticalChance');
   }
 
   if (hasTrait('Flow of Time') && assumptions.alacrity !== false) {
-    traitCriticalChance += 100 * balanceProfileNumberFromContext(profileContext, TRAIT.FLOW_OF_TIME, 'criticalChance');
+    const flowOfTimeProfile = requireBalanceProfileFromContext(profileContext, TRAIT.FLOW_OF_TIME);
+    traitCriticalChance += 100 * balanceProfileNumber(flowOfTimeProfile, 'criticalChance');
   }
 
   return finalizeProfessionBuildAttributes(common, {

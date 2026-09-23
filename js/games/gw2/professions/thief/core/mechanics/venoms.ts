@@ -88,8 +88,8 @@ export function activateVenom(context: ThiefCastContext, skill: ThiefSkill): voi
   const at = context.effectiveEnd;
 
   const profile = requireBalanceProfileFromContext(context, venom.profileId);
-  const maximumStacks = balanceProfileNumber(profile, 'maximumStacks', context);
-  const duration = balanceProfileNumber(profile, 'durationMultiplier', context);
+  const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
+  const duration = balanceProfileNumber(profile, 'durationMultiplier');
   addVenomCharges(state, skill.id, at, maximumStacks, duration);
   const effects = conditionEffects(profile);
   // Recasts queue behind remaining ally charges, keeping one proc per assumed strike.
@@ -106,8 +106,8 @@ export function activateVenom(context: ThiefCastContext, skill: ThiefSkill): voi
   // Keep proc ordering while validating each condition once for the whole allied grant.
   const packets = effects.map((effect) => ({
     effect,
-    stacks: effectNumber(profile, effect, 'stacks', context),
-    duration: effectNumber(profile, effect, 'duration', context)
+    stacks: effectNumber(profile, effect, 'stacks'),
+    duration: effectNumber(profile, effect, 'duration')
   }));
   for (const proc of alliedProcs) {
     for (let effectIndex = 0; effectIndex < packets.length; effectIndex += 1) {
@@ -153,8 +153,8 @@ export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefRes
           skillName: venom.skillName,
           name: `${venom.skillName} — ${effect.condition}`,
           condition: String(effect.condition),
-          stacks: effectNumber(profile, effect, 'stacks', context),
-          duration: effectNumber(profile, effect, 'duration', context),
+          stacks: effectNumber(profile, effect, 'stacks'),
+          duration: effectNumber(profile, effect, 'duration'),
           activationId: event.activationId || `${event.skillId}:${event.at}`,
           triggeredBy: event.skillName,
           metadata: { venomProcEffectIndex: effectIndex }

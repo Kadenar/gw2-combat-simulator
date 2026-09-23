@@ -1,7 +1,8 @@
 /** Owns imperative Core Mesmer Chaos trait effects. */
 import {
-  balanceProfileNumberFromContext,
-  requireEffectFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -65,14 +66,15 @@ export function triggerChaoticInterruption(
   // Only affects weapon skills that are recharging.
   const readyAt = Number(context.state.cooldowns.get(targetId) || 0);
   if (!(readyAt > event.at + EPSILON)) return;
-  const reduction = balanceProfileNumberFromContext(context, TRAIT.CHAOTIC_INTERRUPTION, 'recharge');
+  const chaoticInterruptionProfile = requireBalanceProfileFromContext(context, TRAIT.CHAOTIC_INTERRUPTION);
+  const reduction = balanceProfileNumber(chaoticInterruptionProfile, 'recharge');
   const target = context.catalog.skillsById.get(targetId);
   if (!target) return;
   context.cooldownController.reduceSkillRecharge(target, reduction, event.at);
 
   if (defiant) {
     core.traitReadyAt[TRAIT.CHAOTIC_INTERRUPTION] =
-      event.at + balanceProfileNumberFromContext(context, TRAIT.CHAOTIC_INTERRUPTION, 'internalCooldown');
+      event.at + balanceProfileNumber(chaoticInterruptionProfile, 'internalCooldown');
   }
 
   runtime.addTraitProc(
@@ -91,13 +93,8 @@ export function triggerIllusionaryMembrane(
   at: number
 ): void {
   if (shatter?.slot !== 2 || !context.traits.has(TRAIT.ILLUSIONARY_MEMBRANE)) return;
-  const effect = requireEffectFromContext(
-    context,
-    'balance-profile',
-    TRAIT.ILLUSIONARY_MEMBRANE,
-    'buff',
-    'illusionary-membrane'
-  );
+  const illusionaryMembraneProfile = requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE);
+  const effect = requireEffect(illusionaryMembraneProfile, 'buff', 'illusionary-membrane');
   if (!effect) return;
   context.addEvent({
     type: 'buff',

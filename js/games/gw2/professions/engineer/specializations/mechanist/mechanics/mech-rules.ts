@@ -2,7 +2,7 @@ import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
 import { isEngineerMechEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
   requireBalanceProfileFromContext,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
@@ -78,10 +78,12 @@ export const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     id: 'engineer.force-signet',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
-    amount: (context) =>
-      hasTrait(context, TRAIT.MECH_CORE_J_DRIVE)
-        ? balanceProfileNumberFromContext(context, PROFILE.forceSignet, 'activeDamageIncrease')
-        : balanceProfileNumberFromContext(context, PROFILE.forceSignet, 'damageIncrease'),
+    amount: (context) => {
+      const forceSignetProfile = requireBalanceProfileFromContext(context, PROFILE.forceSignet);
+      return hasTrait(context, TRAIT.MECH_CORE_J_DRIVE)
+        ? balanceProfileNumber(forceSignetProfile, 'activeDamageIncrease')
+        : balanceProfileNumber(forceSignetProfile, 'damageIncrease');
+    },
     when: (context) =>
       selectedSignet(context, 'Force Signet') &&
       (hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ||
@@ -102,7 +104,8 @@ export const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     id: 'engineer.mech-base-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, PROFILE.resources, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'criticalChance'),
     when: (context) => engineerMechEvent(context) && !hasTrait(context, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR)
   },
   {
@@ -110,7 +113,8 @@ export const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
 
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.MECH_ARMS_JADE_CANNONS, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MECH_ARMS_JADE_CANNONS), 'criticalChance'),
     when: (context) => engineerMechEvent(context) && hasTrait(context, TRAIT.MECH_ARMS_JADE_CANNONS)
   }
 ]);
@@ -131,7 +135,10 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Gw2S
       0,
       Number(modified.ferocity || 0) -
         (hasTrait(context, TRAIT.NO_SCOPE) && activeBoonStacks(context, 'fury', 1) > 0
-          ? balanceProfileNumberFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.noScope, 'attributeBonus')
+          ? balanceProfileNumber(
+              requireBalanceProfileFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.noScope),
+              'attributeBonus'
+            )
           : 0)
     ),
     conditionDamage: Math.max(0, Number(modified.conditionDamage || 0) - mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK)
@@ -153,7 +160,8 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Gw2S
 function modifyMechanistRechargeDuration(context: EngineerRechargeContext, duration: number): number {
   const skill = context.skill;
   if (isEngineerMechCommand(skill) && hasTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)) {
-    return duration * balanceProfileNumberFromContext(context, PROFILE.jadeDynamo, 'rechargeMultiplier');
+    const jadeDynamoProfile = requireBalanceProfileFromContext(context, PROFILE.jadeDynamo);
+    return duration * balanceProfileNumber(jadeDynamoProfile, 'rechargeMultiplier');
   }
 
   // Overclock Signet passively reduces other signet recharges while selected

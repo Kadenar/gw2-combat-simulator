@@ -3,7 +3,7 @@
  * mechanic hook - currently just Altruistic Aspect's meditation boons.
  */
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { requireEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistCastContext } from '#gw2/professions/elementalist/types.js';
@@ -17,7 +17,8 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementa
 export function applyAltruisticAspect(context: ElementalistCastContext, skill: Skill): void {
   if (!hasTrait(context, 'Altruistic Aspect')) return;
   if (!ALTRUISTIC_ASPECT_SKILLS.has(skill.id)) return;
-  const effect = requireEffectFromContext(context, 'balance-profile', PROFILE.altruisticAspect, 'boon', skill.name);
+  const altruisticAspectProfile = requireBalanceProfileFromContext(context, PROFILE.altruisticAspect);
+  const effect = requireEffect(altruisticAspectProfile, 'boon', skill.name);
   if (effect) {
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,

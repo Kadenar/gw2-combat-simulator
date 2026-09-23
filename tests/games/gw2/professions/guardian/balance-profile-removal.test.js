@@ -255,10 +255,12 @@ test('Glaring Burst support removal preserves shared Vulnerability', () => {
 
 test('required profile fields fail contextually and selected catalogs cannot fall through', () => {
   const profile = guardianCatalog.balanceProfilesById.get(TRAIT.LETHAL_TEMPO);
+  // Resolved profiles carry their own source, so diagnostics need no runtime context.
+  const balanceDataContext = { professionId: 'guardian', patchId: 'malformed' };
   for (const maximumStacks of [undefined, null, '5', NaN]) {
     const catalog = {
-      balanceProfilesById: new Map([[TRAIT.LETHAL_TEMPO, { ...profile, maximumStacks }]]),
-      balanceDataContext: { professionId: 'guardian', patchId: 'malformed' }
+      balanceProfilesById: new Map([[TRAIT.LETHAL_TEMPO, { ...profile, maximumStacks, balanceDataContext }]]),
+      balanceDataContext
     };
     assert.throws(() => lethalTempoParameters({ catalog }), /profession=guardian patch=malformed.*maximumStacks/);
   }

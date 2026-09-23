@@ -1,8 +1,5 @@
 import { normalizeSkillEffects } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import {
-  requireBalanceProfileFromContext,
-  requireEffectFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type {
   BalanceProfile,
   SkillEffect,
@@ -149,17 +146,9 @@ export function mesmerProfiledAmbush(
   balanceProfileId: string
 ): MesmerAmbushAttack {
   const profile = requireBalanceProfileFromContext(context, balanceProfileId);
-  const playerStrike = requireEffectFromContext(
-    context,
-    'balance-profile',
-    balanceProfileId,
-    'strike',
-    'Player attack'
-  );
-  const cloneStrike = requireEffectFromContext(context, 'balance-profile', balanceProfileId, 'strike', 'Clone attack');
-  const vulnerability = attack.vulnerability
-    ? requireEffectFromContext(context, 'balance-profile', balanceProfileId, 'condition', 'Vulnerability')
-    : undefined;
+  const playerStrike = requireEffect(profile, 'strike', 'Player attack');
+  const cloneStrike = requireEffect(profile, 'strike', 'Clone attack');
+  const vulnerability = attack.vulnerability ? requireEffect(profile, 'condition', 'Vulnerability') : undefined;
   return {
     ...attack,
     balanceProfileId,

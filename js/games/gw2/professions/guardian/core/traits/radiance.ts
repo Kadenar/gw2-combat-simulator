@@ -7,8 +7,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -88,8 +87,9 @@ export function reactToRighteousInstincts(context: GuardianResolverContext, even
   state.resolutionUntil = gw2EffectExpiresAt(wasActive ? state.resolutionUntil : event.at, duration);
   if (!wasActive) {
     if (!queueRighteousMight(context, event.at, 'Resolution applied')) return;
+    const righteousInstinctsProfile = requireBalanceProfileFromContext(context, PROFILE.righteousInstincts);
     // Zero disables subsequent interval procs while retaining the initial application.
-    const interval = balanceProfileNumberFromContext(context, PROFILE.righteousInstincts, 'pulseInterval');
+    const interval = balanceProfileNumber(righteousInstinctsProfile, 'pulseInterval');
     if (!(interval > 0)) return;
     righteousInstincts.start(context, { key: 'resolution', at: event.at + interval, captured: {} });
   }
@@ -100,7 +100,8 @@ export function reactToRighteousInstincts(context: GuardianResolverContext, even
 export const righteousInstincts = resolverTimedEffect<GuardianResolverContext, object>({
   id: 'guardian.righteous-instincts-tick',
   priority: -10,
-  interval: (context) => balanceProfileNumberFromContext(context, PROFILE.righteousInstincts, 'pulseInterval'),
+  interval: (context) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.righteousInstincts), 'pulseInterval'),
   effectsAt(context, at) {
     if (
       !hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS) ||

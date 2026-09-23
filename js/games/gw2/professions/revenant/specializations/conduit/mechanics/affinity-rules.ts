@@ -1,5 +1,8 @@
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { handleMesmerReleaseConditions } from '#gw2/professions/revenant/specializations/conduit/execution/release-potential.js';
@@ -127,7 +130,10 @@ export const conduitModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
     amount: (context) =>
-      balanceProfileNumberFromContext(context, 'revenant.conduit.numinous-gift', 'conditionDurationBonus'),
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, 'revenant.conduit.numinous-gift'),
+        'conditionDurationBonus'
+      ),
     when: (context) =>
       isDamagingCondition(context.condition) &&
       hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) &&
@@ -146,7 +152,7 @@ function modifyConduitAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
   // or 1 (inactive) - 1 (already in build stats) = 0 during non-form (effectively a no-op addition).
   const cosmicMultiplier =
     Number(state.cosmicWisdomUntil || 0) > context.time
-      ? balanceProfileNumberFromContext(context, TRAIT.BOLSTERED_BONDS, 'attributeMultiplier')
+      ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BOLSTERED_BONDS), 'attributeMultiplier')
       : 1;
   const buildMultiplier = professionStaticRulesApplied(context.config) ? 1 : 0;
   const bonuses = bolsteredBondsBonuses(context, coreState.selectedLegendIds, cosmicMultiplier - buildMultiplier);

@@ -1,7 +1,8 @@
 /** Owns Syncopate's balance values, disable procs, and delayed Drum wave. */
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext as profileValue
+  requireBalanceProfileFromContext,
+  requireEffect,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTraitProfile } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -23,7 +24,8 @@ export const SYNCOPATE_PROFILE = defineTraitProfile(TRAIT.SYNCOPATE, 'Syncopate'
 export function observeSyncopateEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
   const runtime = mesmerRuntimeFor(context);
   if (!runtime.traits.has(TRAIT.SYNCOPATE)) return;
-  const damage = requireEffectFromContext(context, 'balance-profile', TRAIT.SYNCOPATE, 'strike', 'Immediate wave');
+  const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
+  const damage = requireEffect(syncopateProfile, 'strike', 'Immediate wave');
   if (!damage) return;
 
   if (event.type === 'control') {
@@ -69,9 +71,10 @@ export function scheduleSyncopateDrumWave(
 ): void {
   const runtime = mesmerRuntimeFor(context);
   if (!runtime.traits.has(TRAIT.SYNCOPATE)) return;
-  const delayedAt = damageAt + profileValue(context, TRAIT.SYNCOPATE, 'initialDelay');
-  const delayedWave = requireEffectFromContext(context, 'balance-profile', TRAIT.SYNCOPATE, 'strike', 'Delayed wave');
-  const daze = requireEffectFromContext(context, 'balance-profile', TRAIT.SYNCOPATE, 'control', 'Delayed daze');
+  const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
+  const delayedAt = damageAt + balanceProfileNumber(syncopateProfile, 'initialDelay');
+  const delayedWave = requireEffect(syncopateProfile, 'strike', 'Delayed wave');
+  const daze = requireEffect(syncopateProfile, 'control', 'Delayed daze');
   // The delayed strike and disable survive independently; empty output produces no proc.
   if (!delayedWave && !daze) return;
   if (delayedWave)

@@ -1,5 +1,8 @@
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
@@ -50,7 +53,8 @@ function ritualistAvailability(
 function modifyRitualistAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = cloneNecromancerAttributes(attributes);
   if (!professionStaticRulesApplied(context.config) && hasTrait(context, TRAIT.BOON_OF_CREATION)) {
-    result.concentration += balanceProfileNumberFromContext(context, PROFILE.boonOfCreation, 'attributeBonus');
+    const boonOfCreationProfile = requireBalanceProfileFromContext(context, PROFILE.boonOfCreation);
+    result.concentration += balanceProfileNumber(boonOfCreationProfile, 'attributeBonus');
   }
 
   return result;

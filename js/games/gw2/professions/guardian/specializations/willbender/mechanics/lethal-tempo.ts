@@ -3,7 +3,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -19,8 +19,9 @@ export function lethalTempoParameters(context: unknown) {
   const profile = requireBalanceProfileFromContext(context, profileId);
   const window = requireEffect(profile, 'buff', 'lethal-tempo');
   if (!window) return undefined;
+  const lethalTempoProfile = requireBalanceProfileFromContext(context, PROFILE.lethalTempo);
   return {
-    maximumStacks: balanceProfileNumberFromContext(context, PROFILE.lethalTempo, 'maximumStacks'),
+    maximumStacks: balanceProfileNumber(lethalTempoProfile, 'maximumStacks'),
     duration: effectNumber(profile, window, 'duration')
   };
 }

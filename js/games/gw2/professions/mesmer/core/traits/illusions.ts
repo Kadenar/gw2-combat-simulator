@@ -1,8 +1,9 @@
 /** Owns imperative Core Mesmer Illusions trait effects. */
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
@@ -31,13 +32,8 @@ export function triggerMasterOfFragmentation(context: MesmerSchedulerContext, ev
     ![ID.CRY_OF_FRUSTRATION, ID.REWINDER, ID.BLADESONG_SORROW, ID.FLUSTERING_FLUTE].some((id) => id === event.skillId)
   )
     return;
-  const effect = requireEffectFromContext(
-    context,
-    'balance-profile',
-    TRAIT.MASTER_OF_FRAGMENTATION,
-    'condition',
-    drum ? 'Weakness' : 'Cripple'
-  );
+  const masterOfFragmentationProfile = requireBalanceProfileFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION);
+  const effect = requireEffect(masterOfFragmentationProfile, 'condition', drum ? 'Weakness' : 'Cripple');
   if (!effect) return;
   emitSkillCondition(context, {
     cause: event,
@@ -63,7 +59,8 @@ export function triggerThePledge(context: MesmerSchedulerContext, event: Simulat
     (event.skillId !== ID.PHANTASMAL_MAGE && event.skillId !== ID.THE_PRESTIGE)
   )
     return;
-  const effect = requireEffectFromContext(context, 'balance-profile', TRAIT.THE_PLEDGE, 'condition', 'Burning');
+  const thePledgeProfile = requireBalanceProfileFromContext(context, TRAIT.THE_PLEDGE);
+  const effect = requireEffect(thePledgeProfile, 'condition', 'Burning');
   if (!effect) return;
   // Separate Burning applications preserve the total, including any fractional final stack.
   const stacks = Number(effect.stacks);
@@ -88,7 +85,8 @@ export function applyCryOfPain(
   condition: MesmerConditionApplication | undefined
 ): MesmerConditionApplication | undefined {
   if (!context.traits.has(TRAIT.CRY_OF_PAIN)) return condition;
-  const effect = requireEffectFromContext(context, 'balance-profile', TRAIT.CRY_OF_PAIN, 'condition', 'Confusion');
+  const cryOfPainProfile = requireBalanceProfileFromContext(context, TRAIT.CRY_OF_PAIN);
+  const effect = requireEffect(cryOfPainProfile, 'condition', 'Confusion');
   return effect ? { ...effect, summonKind: undefined, name: effect.condition! } : condition;
 }
 
@@ -101,7 +99,8 @@ export function triggerCompoundingPower(
   detail: string
 ): void {
   if (!context.traits.has(TRAIT.COMPOUNDING_POWER) || count <= 0) return;
-  const duration = balanceProfileNumberFromContext(context, TRAIT.COMPOUNDING_POWER, 'durationMultiplier');
+  const compoundingPowerProfile = requireBalanceProfileFromContext(context, TRAIT.COMPOUNDING_POWER);
+  const duration = balanceProfileNumber(compoundingPowerProfile, 'durationMultiplier');
   for (let index = 0; index < count; index += 1) {
     context.addEvent({
       type: 'buff',
@@ -122,13 +121,8 @@ export function triggerMaimTheDisillusioned(
   resolution: MesmerShatterResolution
 ): void {
   if (!resolution.traitHits.length || !context.traits.has(TRAIT.MAIM_THE_DISILLUSIONED)) return;
-  const effect = requireEffectFromContext(
-    context,
-    'balance-profile',
-    TRAIT.MAIM_THE_DISILLUSIONED,
-    'condition',
-    'Torment'
-  );
+  const maimTheDisillusionedProfile = requireBalanceProfileFromContext(context, TRAIT.MAIM_THE_DISILLUSIONED);
+  const effect = requireEffect(maimTheDisillusionedProfile, 'condition', 'Torment');
   if (!effect) return;
   const maim = {
     name: String(effect.condition),
@@ -153,6 +147,6 @@ export function triggerMaimTheDisillusioned(
 /** Returns the profile-owned Phantasmal Haste speed before phantasm packet times are derived. */
 export function phantasmalHasteSpeed(context: CryOfPainContext): number {
   return context.traits.has(TRAIT.PHANTASMAL_HASTE)
-    ? balanceProfileNumberFromContext(context, TRAIT.PHANTASMAL_HASTE, 'quicknessCastMultiplier')
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PHANTASMAL_HASTE), 'quicknessCastMultiplier')
     : 1;
 }

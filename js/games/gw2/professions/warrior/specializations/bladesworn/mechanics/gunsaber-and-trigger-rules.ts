@@ -1,7 +1,6 @@
 import {
   requireBalanceProfileFromContext,
-  balanceProfileNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
@@ -68,7 +67,8 @@ function resolveSharpAsTheWindSkillId(context: WarriorSchedulerContext, skillId:
 export const bladeswornSchedulerHooks = Object.freeze({
   initialize: (context: WarriorSchedulerContext) => {
     const state = bladeswornState.from(context);
-    state.maximumFlow = balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
+    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+    state.maximumFlow = balanceProfileNumber(resourcesProfile, 'maximumStacks');
     state.flow = Math.min(state.maximumFlow, state.flow);
     professionCoreState(context).maximumAdrenaline = 0;
     syncWarriorAdrenaline(context);
@@ -94,7 +94,8 @@ export const bladeswornSchedulerHooks = Object.freeze({
 function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = { ...attributes } as Gw2MutableStats & { ferocity: number };
   if (hasTrait(context, TRAIT.GUNS_AND_GLORY) && runtimeBuffActive(context, 'guns-and-glory')) {
-    result.ferocity += balanceProfileNumberFromContext(context, PROFILE.gunsAndGlory, 'attributeBonus');
+    const gunsAndGloryProfile = requireBalanceProfileFromContext(context, PROFILE.gunsAndGlory);
+    result.ferocity += balanceProfileNumber(gunsAndGloryProfile, 'attributeBonus');
   }
 
   return result;
@@ -260,7 +261,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
 
   if (skill.id === ID.DRAGON_TRIGGER) {
     const dragonTriggerProfile = requireBalanceProfileFromContext(context, PROFILE.dragonTrigger);
-    const flowCost = balanceProfileNumber(dragonTriggerProfile, 'threshold', context);
+    const flowCost = balanceProfileNumber(dragonTriggerProfile, 'threshold');
     if (state.flow + EPSILON < flowCost) {
       return {
         ready: false,

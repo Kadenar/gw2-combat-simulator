@@ -1,5 +1,8 @@
 import { observeSyncopateEvent } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -62,7 +65,9 @@ function hasLute(context: Gw2ModifierContext): boolean {
 export function applyTroubadourAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const instrumentCount = hasTrait(context, TRAIT.FORTISSIMO) ? activeInstrumentCount(context) : 0;
   const fortissimo = instrumentCount
-    ? 1 + instrumentCount * balanceProfileNumberFromContext(context, TRAIT.FORTISSIMO, 'attributeConversion')
+    ? 1 +
+      instrumentCount *
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FORTISSIMO), 'attributeConversion')
     : 1;
   if (fortissimo === 1) return attributes;
   return {
@@ -117,9 +122,10 @@ function completeTroubadourPhantasm(context: MesmerCastContext, skill: MesmerSki
   if (interrupted && !completedInterruptedPhantasm) return;
 
   const runtime = mesmerRuntimeFor(context);
+  const harmonizeProfile = requireBalanceProfileFromContext(context, TRAIT.HARMONIZE);
   runtime.resources.queueResources(
     context.fullEnd,
-    balanceProfileNumberFromContext(context, TRAIT.HARMONIZE, 'resourceGain'),
+    balanceProfileNumber(harmonizeProfile, 'resourceGain'),
     runtime.activePrimaryWeapon(),
     'Harmonize',
     { traitId: TRAIT.HARMONIZE, traitName: 'Harmonize' }
@@ -141,7 +147,9 @@ function modifyTroubadourRecharge(context: MesmerRechargeContext, sharedDuration
   const flutePlaying = troubadourState.from(runtime.context).instruments.Flute > runtime.context.state.time;
   return (
     Number(context.skill.cooldown || 0) /
-    (flutePlaying ? balanceProfileNumberFromContext(context, TRAIT.SYMPHONIC_RESONANCE, 'dodgeRechargeSpeed') : 1)
+    (flutePlaying
+      ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SYMPHONIC_RESONANCE), 'dodgeRechargeSpeed')
+      : 1)
   );
 }
 
@@ -193,11 +201,8 @@ export const troubadourSkillMechanicHandlers = Object.freeze({
     const flute = runtime.skillsById.get(ID.FLUSTERING_FLUTE);
     const readyAt = flute ? context.state.cooldowns.get(flute.id) : null;
     if (!flute || readyAt == null) return;
-    context.cooldownController.reduceSkillRecharge(
-      flute,
-      balanceProfileNumberFromContext(context, TRAIT.MAYHEM, 'rechargeReduction'),
-      at
-    );
+    const mayhemProfile = requireBalanceProfileFromContext(context, TRAIT.MAYHEM);
+    context.cooldownController.reduceSkillRecharge(flute, balanceProfileNumber(mayhemProfile, 'rechargeReduction'), at);
     runtime.addTraitProc('Mayhem', at, skill.name);
   }
 });

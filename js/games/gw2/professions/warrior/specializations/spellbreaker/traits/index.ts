@@ -31,15 +31,15 @@ function gainAttackersInsight(
   applications = 1
 ): void {
   const attackersInsightProfile = requireBalanceProfileFromContext(context, PROFILE.attackersInsight);
-  const effect = requireEffect(attackersInsightProfile, 'buff', 'attackers-insight', context);
+  const effect = requireEffect(attackersInsightProfile, 'buff', 'attackers-insight');
   // Removed packets do not open their associated state or schedule follow-ups.
   if (!effect) return;
   // Keep the newest grants; a disabled cap or expired grant cannot add live stacks.
   state.attackerInsightExpiries = grantTimedStacks(state.attackerInsightExpiries, {
     at,
-    expiresAt: at + effectNumber(attackersInsightProfile, effect, 'duration', context),
+    expiresAt: at + effectNumber(attackersInsightProfile, effect, 'duration'),
     count: Math.max(1, Math.trunc(applications)),
-    maximumStacks: balanceProfileNumber(attackersInsightProfile, 'maximumStacks', context),
+    maximumStacks: balanceProfileNumber(attackersInsightProfile, 'maximumStacks'),
     retain: 'newest-grant'
   });
 }
@@ -64,13 +64,13 @@ function triggerMagebaneTether(
   if (!isInternalCooldownReady(at, state.magebaneTetherReadyAt)) return false;
 
   const magebaneTetherProfile = requireBalanceProfileFromContext(context, PROFILE.magebaneTether);
-  const effect = requireEffect(magebaneTetherProfile, 'buff', 'magebane-tether', context);
+  const effect = requireEffect(magebaneTetherProfile, 'buff', 'magebane-tether');
   // A removed tether must not activate its damage window.
   if (!effect) return false;
-  state.magebaneTetherUntil = at + effectNumber(magebaneTetherProfile, effect, 'duration', context);
+  state.magebaneTetherUntil = at + effectNumber(magebaneTetherProfile, effect, 'duration');
   // Divide by recharge rate so alacrity reduces the internal cooldown.
   state.magebaneTetherReadyAt =
-    at + balanceProfileNumber(magebaneTetherProfile, 'cooldown', context) / gw2RechargeRate(context.config);
+    at + balanceProfileNumber(magebaneTetherProfile, 'cooldown') / gw2RechargeRate(context.config);
   return true;
 }
 
@@ -93,7 +93,7 @@ export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event
       ['daze', 'stun'].includes(String(event.controlKind || '').toLowerCase())
     ) {
       const noEscapeProfile = requireBalanceProfileFromContext(context, PROFILE.noEscape);
-      const effect = requireEffect(noEscapeProfile, 'condition', 'Immobilized', context);
+      const effect = requireEffect(noEscapeProfile, 'condition', 'Immobilized');
       if (effect)
         emitSkillCondition(context, {
           cause: event,
@@ -106,8 +106,8 @@ export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event
           skillName: event.skillName,
           name: 'No Escape - Immobilized',
           condition: 'Immobilized',
-          stacks: effectNumber(noEscapeProfile, effect, 'stacks', context),
-          duration: effectNumber(noEscapeProfile, effect, 'duration', context)
+          stacks: effectNumber(noEscapeProfile, effect, 'stacks'),
+          duration: effectNumber(noEscapeProfile, effect, 'duration')
         });
     }
 

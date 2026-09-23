@@ -1,5 +1,8 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { requireEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 /** Owns HGH's elixir cast effects and scheduled-event duration extension. */
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -16,10 +19,11 @@ function isElixirSkill(skill: EngineerSkill | undefined): boolean {
 export function applyHgh(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.HGH) || !isElixirSkill(skill) || castWasInterrupted(context)) return;
 
+  const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);
   // The same patched packets drive elixir boons, the extra strike, and their tooltips.
-  const might = requireEffectFromContext(context, 'balance-profile', TRAIT.HGH, 'boon', 'might');
-  const fury = requireEffectFromContext(context, 'balance-profile', TRAIT.HGH, 'boon', 'fury');
-  const strike = requireEffectFromContext(context, 'balance-profile', TRAIT.HGH, 'strike', 'HGH');
+  const might = requireEffect(hghProfile, 'boon', 'might');
+  const fury = requireEffect(hghProfile, 'boon', 'fury');
+  const strike = requireEffect(hghProfile, 'strike', 'HGH');
   if (might) {
     emitSkillBuff(context, skill, {
       at,
@@ -63,7 +67,8 @@ export function observeEngineerHghEvent(context: EngineerSchedulerContext, event
   if (!hasTrait(context.config, TRAIT.HGH) || event.sourceId === TRAIT.HGH) return;
   const skill = context.catalog.skillsById.get(event.skillId ?? event.sourceId) as EngineerSkill | undefined;
   if (!isElixirSkill(skill)) return;
-  const durationMultiplier = balanceProfileNumberFromContext(context, TRAIT.HGH, 'durationMultiplier');
+  const hghProfile = requireBalanceProfileFromContext(context, TRAIT.HGH);
+  const durationMultiplier = balanceProfileNumber(hghProfile, 'durationMultiplier');
 
   if (event.type === 'combo_field') {
     const duration = Number(event.expiresAt) - event.at;

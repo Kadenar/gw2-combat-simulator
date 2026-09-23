@@ -1,4 +1,4 @@
-import { requireEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type {
   MesmerRuntime,
   MesmerShatterResolver,
@@ -32,7 +32,7 @@ export function mesmerConditionFromProfile(
   id: number | string,
   name: string
 ): MesmerConditionApplication | undefined {
-  const effect = requireEffectFromContext(mesmerRuntimeFor(context), 'balance-profile', id, 'condition', name);
+  const effect = requireEffect(requireBalanceProfileFromContext(mesmerRuntimeFor(context), id), 'condition', name);
   return effect ? { ...effect, summonKind: undefined, name: effect.condition! } : undefined;
 }
 

@@ -2,7 +2,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -116,10 +116,9 @@ export function replaceVirtueOfResolutionDuration(
     return false;
   }
 
+  const virtueOfResolutionProfile = requireBalanceProfileFromContext(context, PROFILE.virtueOfResolution);
   context.replaceEvent(event, {
-    duration:
-      Number(event.duration) *
-      balanceProfileNumberFromContext(context, PROFILE.virtueOfResolution, 'durationMultiplier')
+    duration: Number(event.duration) * balanceProfileNumber(virtueOfResolutionProfile, 'durationMultiplier')
   });
   return true;
 }

@@ -1,8 +1,9 @@
 /** Owns imperative Core Engineer Firearms critical-hit and condition reactions. */
 import {
   procChanceFromContext,
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -41,13 +42,8 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     randomStream: 'engineer.serrated-steel',
     attribution: { kind: 'trait', id: TRAIT.SERRATED_STEEL },
     handler(context, event, _details, application) {
-      const serratedSteelBleeding = requireEffectFromContext(
-        context,
-        'balance-profile',
-        PROFILE.serratedSteel,
-        'condition',
-        'Bleeding'
-      );
+      const serratedSteelProfile = requireBalanceProfileFromContext(context, PROFILE.serratedSteel);
+      const serratedSteelBleeding = requireEffect(serratedSteelProfile, 'condition', 'Bleeding');
       if (serratedSteelBleeding) {
         applyEngineerDerivedCondition(context, event, {
           name: 'Serrated Steel',
@@ -75,7 +71,8 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => balanceProfileNumberFromContext(context, PROFILE.noScope, 'internalCooldown'),
+      duration: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.noScope), 'internalCooldown'),
       readyAt: (context) => Number(procState(context).noScope || 0),
       setReadyAt: (context, readyAt) => {
         procState(context).noScope = readyAt;
@@ -83,7 +80,8 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     },
     attribution: { kind: 'trait', id: TRAIT.NO_SCOPE },
     handler(context, event) {
-      const noScopeFury = requireEffectFromContext(context, 'balance-profile', PROFILE.noScope, 'boon', 'fury');
+      const noScopeProfile = requireBalanceProfileFromContext(context, PROFILE.noScope);
+      const noScopeFury = requireEffect(noScopeProfile, 'boon', 'fury');
       if (noScopeFury) {
         queueBuff(context, event, {
           name: 'No Scope',
@@ -109,7 +107,8 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => balanceProfileNumberFromContext(context, PROFILE.incendiaryPowder, 'internalCooldown'),
+      duration: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.incendiaryPowder), 'internalCooldown'),
       readyAt: (context) => Number(procState(context)['incendiaryPowder.player'] || 0),
       setReadyAt: (context, readyAt) => {
         procState(context)['incendiaryPowder.player'] = readyAt;
@@ -119,13 +118,8 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     progressDuringCooldown: 'accumulate',
     attribution: { kind: 'trait', id: TRAIT.INCENDIARY_POWDER },
     handler(context, event) {
-      const incendiaryPowderBurning = requireEffectFromContext(
-        context,
-        'balance-profile',
-        PROFILE.incendiaryPowder,
-        'condition',
-        'Burning'
-      );
+      const incendiaryPowderProfile = requireBalanceProfileFromContext(context, PROFILE.incendiaryPowder);
+      const incendiaryPowderBurning = requireEffect(incendiaryPowderProfile, 'condition', 'Burning');
       if (incendiaryPowderBurning) {
         applyEngineerDerivedCondition(context, event, {
           name: 'Incendiary Powder',
@@ -150,14 +144,9 @@ export function applyThermalVision(context: EngineerResolverContext, event: Engi
   }
 
   const state = professionCoreState(context);
+  const thermalVisionProfile = requireBalanceProfileFromContext(context, PROFILE.thermalVision);
   // Math.max extends the window when multiple Burning applications overlap.
-  const thermalVisionBuff = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.thermalVision,
-    'buff',
-    'thermal-vision'
-  );
+  const thermalVisionBuff = requireEffect(thermalVisionProfile, 'buff', 'thermal-vision');
   if (thermalVisionBuff) {
     state.traitProcReadyAt.thermalVisionUntil = Math.max(
       Number(state.traitProcReadyAt.thermalVisionUntil || 0),
@@ -172,13 +161,8 @@ export function applySanguineArray(context: EngineerResolverContext, event: Engi
     return;
   }
 
-  const sanguineArrayMight = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.sanguineArray,
-    'boon',
-    'might'
-  );
+  const sanguineArrayProfile = requireBalanceProfileFromContext(context, PROFILE.sanguineArray);
+  const sanguineArrayMight = requireEffect(sanguineArrayProfile, 'boon', 'might');
   if (sanguineArrayMight) {
     queueBuff(context, event, {
       name: 'Sanguine Array',
@@ -201,9 +185,10 @@ export function applyHematicFocus(context: EngineerResolverContext, event: Engin
 
   const state = procState(context);
   if (!isInternalCooldownReady(event.at, Number(state.hematicFocus || 0))) return;
-  const hematicFocusFury = requireEffectFromContext(context, 'balance-profile', PROFILE.hematicFocus, 'boon', 'fury');
+  const hematicFocusProfile = requireBalanceProfileFromContext(context, PROFILE.hematicFocus);
+  const hematicFocusFury = requireEffect(hematicFocusProfile, 'boon', 'fury');
   if (hematicFocusFury) {
-    state.hematicFocus = event.at + balanceProfileNumberFromContext(context, PROFILE.hematicFocus, 'internalCooldown');
+    state.hematicFocus = event.at + balanceProfileNumber(hematicFocusProfile, 'internalCooldown');
     queueBuff(context, event, {
       name: 'Hematic Focus',
       kind: String(hematicFocusFury.boon).toLowerCase(),

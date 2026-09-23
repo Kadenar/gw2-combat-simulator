@@ -2,7 +2,8 @@ import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
   balanceProfileEffect,
   balanceProfileFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -39,8 +40,9 @@ function initializeHarbingerRuntime(context: NecromancerSchedulerContext): void 
   // Seed the chart before the first cast so initial Blight contributes throughout the observation window.
   emitBlightState(context, harbingerState.from(context), context.state.time);
   if (!professionStaticRulesApplied(context.config)) {
+    const alchemicVigorProfile = requireBalanceProfileFromContext(context, PROFILE.alchemicVigor);
     // Alchemic Vigor's vitality changes the physical life-force pool even though the normalized meter remains stable.
-    const vitality = balanceProfileNumberFromContext(context, PROFILE.alchemicVigor, 'attributeBonus');
+    const vitality = balanceProfileNumber(alchemicVigorProfile, 'attributeBonus');
     core.maximumHealth += vitality * 10;
     core.lifeForcePoolCapacity = core.maximumHealth * 0.69 * (core.maximumLifeForce / 100);
   }
@@ -141,23 +143,25 @@ function modifyHarbingerAttributes(context: Gw2ModifierContext, attributes: Gw2S
     // Alchemic Vigor is the minor adept trait; the specialization check lets it apply even when only the
     // spec is selected without the trait being explicitly listed (e.g. from the specialization line bonus).
     if (context.config?.specialization === 'Harbinger' || hasTrait(context, TRAIT.ALCHEMIC_VIGOR)) {
-      result.vitality += balanceProfileNumberFromContext(context, PROFILE.alchemicVigor, 'attributeBonus');
+      const alchemicVigorProfile = requireBalanceProfileFromContext(context, PROFILE.alchemicVigor);
+      result.vitality += balanceProfileNumber(alchemicVigorProfile, 'attributeBonus');
     }
 
     if (hasTrait(context, TRAIT.IMPLACABLE_FOE)) {
-      result.ferocity +=
-        result.vitality * balanceProfileNumberFromContext(context, PROFILE.implacableFoe, 'attributeConversion');
+      const implacableFoeProfile = requireBalanceProfileFromContext(context, PROFILE.implacableFoe);
+      result.ferocity += result.vitality * balanceProfileNumber(implacableFoeProfile, 'attributeConversion');
     }
 
     if (hasTrait(context, TRAIT.TWISTED_MEDICINE)) {
-      result.concentration +=
-        result.vitality * balanceProfileNumberFromContext(context, PROFILE.twistedMedicine, 'attributeConversion');
+      const twistedMedicineProfile = requireBalanceProfileFromContext(context, PROFILE.twistedMedicine);
+      result.concentration += result.vitality * balanceProfileNumber(twistedMedicineProfile, 'attributeConversion');
     }
 
     if (hasTrait(context, TRAIT.DARK_GUNSLINGER)) {
+      const darkGunslingerProfile = requireBalanceProfileFromContext(context, PROFILE.darkGunslinger);
       // Alchemic Vigor and other flat Vitality bonuses precede conversion.
       result.expertise += Math.round(
-        result.vitality * balanceProfileNumberFromContext(context, PROFILE.darkGunslinger, 'attributeConversion')
+        result.vitality * balanceProfileNumber(darkGunslingerProfile, 'attributeConversion')
       );
     }
   }
@@ -200,7 +204,8 @@ export const harbingerModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
 
-    factor: (context) => balanceProfileNumberFromContext(context, TRAIT.WICKED_CORRUPTION, 'criticalDamage'),
+    factor: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.WICKED_CORRUPTION), 'criticalDamage'),
     order: 100,
     when: (context) => hasTrait(context, TRAIT.WICKED_CORRUPTION) && targetConditionActive(context, 'Torment')
   },

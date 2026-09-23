@@ -1,6 +1,7 @@
 import {
-  balanceProfileNumberFromContext,
-  requireEffectFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -21,12 +22,12 @@ const triggerShatterBoon = (
   const runtime = mesmerRuntimeFor(context);
   if (!runtime.traits.has(traitId)) return;
 
-  const effect = requireEffectFromContext(context, 'balance-profile', traitId, 'boon', effectName);
+  const traitProfile = requireBalanceProfileFromContext(context, traitId);
+  const effect = requireEffect(traitProfile, 'boon', effectName);
   if (!effect) return;
   const kind = String(effect.boon);
   const baseDuration =
-    Number(effect.duration) +
-    (resolution.spent + 1) * balanceProfileNumberFromContext(context, traitId, 'durationPerTier');
+    Number(effect.duration) + (resolution.spent + 1) * balanceProfileNumber(traitProfile, 'durationPerTier');
   const duration = gw2SchedulerBoonDuration(context, { id: traitId, name: traitName }, kind, baseDuration);
   runtime.addEvent({
     type: 'buff',
@@ -52,14 +53,16 @@ export function resolveIllusionaryReversion(context: MesmerCastContext, resoluti
   const runtime = mesmerRuntimeFor(context);
   if (
     !runtime.traits.has(TRAIT.ILLUSIONARY_REVERSION) ||
-    resolution.spent !== balanceProfileNumberFromContext(context, TRAIT.ILLUSIONARY_REVERSION, 'threshold')
+    resolution.spent !==
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_REVERSION), 'threshold')
   ) {
     return;
   }
 
+  const illusionaryReversionProfile = requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_REVERSION);
   runtime.resources.queueResources(
     resolution.at,
-    balanceProfileNumberFromContext(context, TRAIT.ILLUSIONARY_REVERSION, 'resourceGain'),
+    balanceProfileNumber(illusionaryReversionProfile, 'resourceGain'),
     runtime.activePrimaryWeapon(),
     'Illusionary Reversion',
     {

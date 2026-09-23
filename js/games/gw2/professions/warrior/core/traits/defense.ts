@@ -2,8 +2,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 /** Owns imperative Defense trait effects while the public dispatcher preserves cross-line ordering. */
@@ -35,7 +34,7 @@ import type {
 export function applyThickSkinCastStart(context: WarriorCastContext, skill: WarriorSkill): void {
   if (skill.type !== 'Heal' || !hasTrait(context, TRAIT.THICK_SKIN)) return;
   const thickSkinProfile = requireBalanceProfileFromContext(context, TRAIT.THICK_SKIN);
-  const protection = requireEffect(thickSkinProfile, 'boon', 'protection', context);
+  const protection = requireEffect(thickSkinProfile, 'boon', 'protection');
   if (protection)
     emitSkillBuff(context, {
       at: context.start,
@@ -47,12 +46,12 @@ export function applyThickSkinCastStart(context: WarriorCastContext, skill: Warr
       name: 'Thick Skin',
       kind: 'protection',
       boon: 'protection',
-      stacks: effectNumber(thickSkinProfile, protection, 'stacks', context),
+      stacks: effectNumber(thickSkinProfile, protection, 'stacks'),
       duration: gw2SchedulerBoonDuration(
         context,
         skill,
         'protection',
-        effectNumber(thickSkinProfile, protection, 'duration', context)
+        effectNumber(thickSkinProfile, protection, 'duration')
       )
     });
 }
@@ -60,7 +59,8 @@ export function applyThickSkinCastStart(context: WarriorCastContext, skill: Warr
 // Grant Merciless Hammer adrenaline after target-control state is updated.
 export function applyMercilessHammer(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (event.type !== 'control' || event.actorType !== 'player' || !hasTrait(context, TRAIT.MERCILESS_HAMMER)) return;
-  gainWarriorAdrenaline(context, balanceProfileNumberFromContext(context, PROFILE.mercilessHammer, 'resourceGain'));
+  const mercilessHammerProfile = requireBalanceProfileFromContext(context, PROFILE.mercilessHammer);
+  gainWarriorAdrenaline(context, balanceProfileNumber(mercilessHammerProfile, 'resourceGain'));
 }
 
 // Grant Stalwart Strength stability once per internal-cooldown window.
@@ -69,14 +69,14 @@ export function applyStalwartStrength(context: WarriorSchedulerContext, event: W
   const state = professionCoreState(context);
 
   const stalwartStrengthProfile = requireBalanceProfileFromContext(context, PROFILE.stalwartStrength);
-  const stability = requireEffect(stalwartStrengthProfile, 'boon', 'stability', context);
+  const stability = requireEffect(stalwartStrengthProfile, 'boon', 'stability');
   // Reserve this trait's own deadline before emitting its effects.
   if (
     !tryConsumeProcCooldown(
       state.traitProcReadyAt,
       'stalwartStrength',
       event.at,
-      balanceProfileNumber(stalwartStrengthProfile, 'internalCooldown', context)
+      balanceProfileNumber(stalwartStrengthProfile, 'internalCooldown')
     )
   )
     return;
@@ -95,8 +95,8 @@ export function applyStalwartStrength(context: WarriorSchedulerContext, event: W
       name: 'Stalwart Strength',
       kind: 'stability',
       boon: 'stability',
-      duration: effectNumber(stalwartStrengthProfile, stability, 'duration', context),
-      stacks: effectNumber(stalwartStrengthProfile, stability, 'stacks', context),
+      duration: effectNumber(stalwartStrengthProfile, stability, 'duration'),
+      stacks: effectNumber(stalwartStrengthProfile, stability, 'stacks'),
       audience: { recipients: 'self' as const }
     });
 }

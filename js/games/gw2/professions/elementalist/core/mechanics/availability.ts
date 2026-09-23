@@ -8,7 +8,10 @@ import { EPSILON } from '#kernel/core/clock.js';
  * A denial without a retry timestamp rejects the rotation command outright; a
  * denial carrying one asks the scheduler to retry the same command at that time.
  */
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -84,7 +87,8 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
   // reports the time regeneration covers the cost.
   if (Number(skill.id) === ID.DODGE) {
     updateEndurance(context, state, context.start);
-    const enduranceCost = balanceProfileNumberFromContext(context, PROFILE.resources, 'resourceCost');
+    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+    const enduranceCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
     return state.endurance + EPSILON >= enduranceCost
       ? ready()
       : unavailable(
@@ -168,8 +172,8 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
   const skillId = Number(skill.id);
   const hammerElements = HAMMER_ORB_SKILLS[skillId] ? [HAMMER_ORB_SKILLS[skillId]] : null;
   if (hammerElements) {
-    const retryAt =
-      state.hammerOrbLastCastAt + balanceProfileNumberFromContext(context, PROFILE.hammerOrbs, 'initialDelay');
+    const hammerOrbsProfile = requireBalanceProfileFromContext(context, PROFILE.hammerOrbs);
+    const retryAt = state.hammerOrbLastCastAt + balanceProfileNumber(hammerOrbsProfile, 'initialDelay');
     if (retryAt > context.start + EPSILON) {
       return unavailable(
         skill,

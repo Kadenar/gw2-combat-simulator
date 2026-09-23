@@ -2,7 +2,10 @@ import { mesmerResourceProfileId } from '#gw2/professions/mesmer/family-state.js
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 import type {
@@ -79,7 +82,10 @@ export function mesmerResourceViews(
   const state = flattenProfessionState(context.state?.profession || context.professionState) as MesmerUiState;
   // Palette pips use the same selected capacity as runtime resource spending.
   const specialization = definition.id === 'blades' ? 'Virtuoso' : definition.id === 'notes' ? 'Troubadour' : 'Core';
-  const maximum = balanceProfileNumberFromContext(context, mesmerResourceProfileId(specialization), 'maximumStacks');
+  const maximum = balanceProfileNumber(
+    requireBalanceProfileFromContext(context, mesmerResourceProfileId(specialization)),
+    'maximumStacks'
+  );
   const value =
     definition.id === 'clones'
       ? Number(state.clones?.length ?? state.resource ?? context.value ?? 0)
@@ -129,13 +135,15 @@ const CORE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION
 
 /** Publishes Core Mesmer effect labels, colors, and patch-aware stack caps to result views. */
 function mesmerCoreEffectPresentations(context: MesmerUiContext): ProfessionEffectPresentation[] {
+  const compoundingPowerProfile = requireBalanceProfileFromContext(context, PROFILE.compoundingPower);
+  const fencersFinesseProfile = requireBalanceProfileFromContext(context, PROFILE.fencersFinesse);
   return [
     {
       id: 'mesmer-compounding-power',
       kind: 'compounding',
       name: 'Compounding Power',
       color: '#cfb5ff',
-      maximumStacks: balanceProfileNumberFromContext(context, PROFILE.compoundingPower, 'maximumStacks')
+      maximumStacks: balanceProfileNumber(compoundingPowerProfile, 'maximumStacks')
     },
     {
       id: 'mesmer-illusionary-membrane',
@@ -149,7 +157,7 @@ function mesmerCoreEffectPresentations(context: MesmerUiContext): ProfessionEffe
       kind: 'fencer',
       name: "Fencer's Finesse",
       color: '#e1c070',
-      maximumStacks: balanceProfileNumberFromContext(context, PROFILE.fencersFinesse, 'maximumStacks')
+      maximumStacks: balanceProfileNumber(fencersFinesseProfile, 'maximumStacks')
     }
   ];
 }

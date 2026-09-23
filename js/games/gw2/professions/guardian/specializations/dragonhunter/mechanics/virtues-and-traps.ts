@@ -5,7 +5,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -69,8 +69,11 @@ export const dragonhunterAttributeRules = Object.freeze({
 
 function courageInterval(context: GuardianSchedulerContext): number {
   return hasTrait(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)
-    ? balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE, 'pulseInterval')
-    : balanceProfileNumberFromContext(context, PROFILE.passiveCourage, 'pulseInterval');
+    ? balanceProfileNumber(
+        requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE),
+        'pulseInterval'
+      )
+    : balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.passiveCourage), 'pulseInterval');
 }
 
 // Retain the passive cadence during dormancy; zero interval disables it entirely.
@@ -112,9 +115,10 @@ const shieldOfCourage = timedEffect<GuardianSchedulerContext, object>({
 export function updateDragonhunterCastState(context: GuardianCastContext, skill: GuardianSkill): void {
   if (skill.slot === 'Elite' && hasTrait(context, GUARDIAN_TRAIT_IDS.HUNTERS_DETERMINATION)) {
     const core = professionCoreState(context);
+    const huntersDeterminationProfile = requireBalanceProfileFromContext(context, PROFILE.huntersDetermination);
     // Endurance is applied directly to scheduler state (not via an emit) so
     // the dodge-availability check sees it immediately on the same advance tick.
-    const endurance = balanceProfileNumberFromContext(context, PROFILE.huntersDetermination, 'resourceGain');
+    const endurance = balanceProfileNumber(huntersDeterminationProfile, 'resourceGain');
     Object.assign(core, grantEndurance(core, endurance, context.effectiveEnd, core.maximumEndurance));
     emitGuardianProc(context, {
       name: "Hunter's Determination",

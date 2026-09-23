@@ -1,7 +1,8 @@
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
   balanceProfileFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -31,12 +32,13 @@ import { purgeScourgeTimedState, scourgeState } from '#gw2/professions/necromanc
 function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = cloneNecromancerAttributes(attributes);
   if (!professionStaticRulesApplied(context.config) && hasTrait(context, TRAIT.FELL_BEACON)) {
+    const fellBeaconProfile = requireBalanceProfileFromContext(context, PROFILE.fellBeacon);
     // Fell Beacon converts 7% of condition damage into expertise; must use raw
     // gear stats (config.stats) not the merged attribute record because might
     // stacks and trait bonuses like Lingering Curse are already folded in there
     result.expertise +=
       Number(context.config?.stats?.conditionDamage || 0) *
-      balanceProfileNumberFromContext(context, PROFILE.fellBeacon, 'attributeConversion');
+      balanceProfileNumber(fellBeaconProfile, 'attributeConversion');
   }
 
   if (
@@ -46,7 +48,8 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
       (expiresAt: number) => expiresAt > context.time
     )
   ) {
-    const bonus = balanceProfileNumberFromContext(context, PROFILE.sandSage, 'attributeBonus');
+    const sandSageProfile = requireBalanceProfileFromContext(context, PROFILE.sandSage);
+    const bonus = balanceProfileNumber(sandSageProfile, 'attributeBonus');
     // Dynamic attribute queries may begin from sparse scheduler stats, so normalize
     // absent duration attributes before applying Sand Sage's active-shade bonus.
     result.concentration = Number(result.concentration || 0) + bonus;

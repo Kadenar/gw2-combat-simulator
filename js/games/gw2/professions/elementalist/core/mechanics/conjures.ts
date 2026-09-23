@@ -3,8 +3,9 @@
  * Conjure skill fragments live in `skills/conjure-skills.ts`.
  */
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -36,11 +37,12 @@ export function applyConjureState(context: ElementalistLifecycleContext, skill: 
   let swapped = false;
   if (conjuredWeapon) {
     state.conjureEquipped = conjuredWeapon;
-    state.conjurePickups[conjuredWeapon] =
-      at + balanceProfileNumberFromContext(context, PROFILE.conjurePickups, 'durationMultiplier');
+    const conjurePickupsProfile = requireBalanceProfileFromContext(context, PROFILE.conjurePickups);
+    state.conjurePickups[conjuredWeapon] = at + balanceProfileNumber(conjurePickupsProfile, 'durationMultiplier');
     swapped = true;
     if (hasTrait(context, 'Conjurer')) {
-      const conjurerBuff = requireEffectFromContext(context, 'balance-profile', PROFILE.conjurer, 'buff', 'Conjurer');
+      const conjurerProfile = requireBalanceProfileFromContext(context, PROFILE.conjurer);
+      const conjurerBuff = requireEffect(conjurerProfile, 'buff', 'Conjurer');
       if (conjurerBuff) {
         applyElementalistAura(context, {
           at,
@@ -69,7 +71,8 @@ export function applyConjureState(context: ElementalistLifecycleContext, skill: 
   if (swapped) {
     // Each equipped copy gets its own lifetime; the separately summoned ground copy is consumed once.
     state.conjureExpiresAt = state.conjureEquipped
-      ? at + balanceProfileNumberFromContext(context, PROFILE.conjurePickups, 'durationMultiplier')
+      ? at +
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.conjurePickups), 'durationMultiplier')
       : 0;
     resetAutoattackChains(context);
     context.emit({

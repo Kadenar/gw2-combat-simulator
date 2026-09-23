@@ -1,5 +1,8 @@
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
@@ -43,10 +46,10 @@ export function observeSpearChainEffect(
     readonly fallingSpiderEmpowered?: boolean;
   };
   if (prepared.fallingSpiderEmpowered && event.type === 'damage') {
+    const fallingSpiderEmpoweredProfile = requireBalanceProfileFromContext(context, PROFILE.fallingSpiderEmpowered);
     context.replaceEvent(event, {
       coefficient:
-        Number(event.coefficient || 0) *
-        balanceProfileNumberFromContext(context, PROFILE.fallingSpiderEmpowered, 'damageMultiplier')
+        Number(event.coefficient || 0) * balanceProfileNumber(fallingSpiderEmpoweredProfile, 'damageMultiplier')
     });
     return;
   }
@@ -56,10 +59,9 @@ export function observeSpearChainEffect(
     event.type === 'condition' &&
     ['Bleeding', 'Poisoned'].includes(event.condition)
   ) {
+    const fallingSpiderEmpoweredProfile = requireBalanceProfileFromContext(context, PROFILE.fallingSpiderEmpowered);
     context.replaceEvent(event, {
-      stacks:
-        Number(event.stacks ?? 1) +
-        balanceProfileNumberFromContext(context, PROFILE.fallingSpiderEmpowered, 'resourceGain')
+      stacks: Number(event.stacks ?? 1) + balanceProfileNumber(fallingSpiderEmpoweredProfile, 'resourceGain')
     });
     return;
   }
@@ -77,9 +79,10 @@ export function prepareSpearStealthAttack(context: ThiefCastContext, skill: Thie
 
 export function completeSpearStealthAttack(context: ThiefCastContext, skill: ThiefSkill): void {
   const at = context.effectiveEnd;
+  const ashenAssaultRefundProfile = requireBalanceProfileFromContext(context, PROFILE.ashenAssaultRefund);
   gainThiefInitiative(
     context,
-    balanceProfileNumberFromContext(context, PROFILE.ashenAssaultRefund, 'resourceGain'),
+    balanceProfileNumber(ashenAssaultRefundProfile, 'resourceGain'),
     at,
     'ashen-assault-refund'
   );
@@ -107,8 +110,8 @@ export function updateSpearChainState(context: ThiefCastContext, skill: ThiefSki
     state.spearLastWasFinisher = false;
     state.spearPreviousSkillId = skill.id;
     if (followsFinisher) {
-      state.distractingThrowBuffUntil =
-        at + balanceProfileNumberFromContext(context, PROFILE.distractingThrow, 'durationMultiplier');
+      const distractingThrowProfile = requireBalanceProfileFromContext(context, PROFILE.distractingThrow);
+      state.distractingThrowBuffUntil = at + balanceProfileNumber(distractingThrowProfile, 'durationMultiplier');
     }
 
     emitThiefStateSnapshot(context, at, 'distracting-throw-lead');

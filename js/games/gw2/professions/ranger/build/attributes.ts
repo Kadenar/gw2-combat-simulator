@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { soulbeastArchetypeAttributes } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
@@ -50,14 +53,15 @@ export function applyRangerBuildAttributeRules(
 
   const soulbeast = rangerBuild.specializations?.some((specialization) => specialization.name === 'Soulbeast');
 
+  const stridersStrengthProfile = requireBalanceProfileFromContext(profileContext, TRAIT.STRIDERS_STRENGTH);
+  const honedAxesProfile = requireBalanceProfileFromContext(profileContext, TRAIT.HONED_AXES);
   const attributeEffects: Gw2AttributeEffect[] = [
     {
       kind: 'flat',
       source: "Strider's Strength",
       to: 'Power',
-      amount: balanceProfileNumberFromContext(
-        profileContext,
-        TRAIT.STRIDERS_STRENGTH,
+      amount: balanceProfileNumber(
+        stridersStrengthProfile,
         weapons?.includes('Sword') ? 'weaponAttributeBonus' : 'attributeBonus'
       ),
       feedsConversions: false,
@@ -67,9 +71,8 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: 'Honed Axes',
       to: 'Ferocity',
-      amount: balanceProfileNumberFromContext(
-        profileContext,
-        TRAIT.HONED_AXES,
+      amount: balanceProfileNumber(
+        honedAxesProfile,
         weapons?.includes('Axe') ? 'weaponAttributeBonus' : 'attributeBonus'
       ),
       feedsConversions: false,
@@ -79,11 +82,12 @@ export function applyRangerBuildAttributeRules(
 
   if (soulbeast && hasTrait('Pack Alpha')) {
     for (const attribute of PACK_ALPHA_ATTRIBUTES) {
+      const packAlphaProfile = requireBalanceProfileFromContext(profileContext, TRAIT.PACK_ALPHA);
       attributeEffects.push({
         kind: 'flat',
         source: 'Pack Alpha',
         to: attribute,
-        amount: balanceProfileNumberFromContext(profileContext, TRAIT.PACK_ALPHA, 'attributeBonus'),
+        amount: balanceProfileNumber(packAlphaProfile, 'attributeBonus'),
         feedsConversions: false
       });
     }
@@ -91,12 +95,20 @@ export function applyRangerBuildAttributeRules(
 
   const favoredWeapon = weapons?.some((weapon) => ['Dagger', 'Mace', 'Torch'].includes(weapon));
 
+  const petsProwessProfile = requireBalanceProfileFromContext(profileContext, TRAIT.PETS_PROWESS);
+  const ambidexterityProfile = requireBalanceProfileFromContext(profileContext, TRAIT.AMBIDEXTERITY);
+  const arachnophobiaProfile = requireBalanceProfileFromContext(profileContext, TRAIT.ARACHNOPHOBIA);
+  const lingeringMagicProfile = requireBalanceProfileFromContext(profileContext, TRAIT.LINGERING_MAGIC);
+  const naturalFortitudeProfile = requireBalanceProfileFromContext(profileContext, TRAIT.NATURAL_FORTITUDE);
+  const wellspringProfile = requireBalanceProfileFromContext(profileContext, TRAIT.WELLSPRING);
+  const viciousQuarryProfile = requireBalanceProfileFromContext(profileContext, TRAIT.VICIOUS_QUARRY);
+  const signetOfTheWildProfile = requireBalanceProfileFromContext(profileContext, 'ranger.core.signet-of-the-wild');
   attributeEffects.push(
     {
       kind: 'flat',
       source: "Pet's Prowess",
       to: 'Ferocity',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.PETS_PROWESS, 'attributeBonus'),
+      amount: balanceProfileNumber(petsProwessProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: soulbeast && hasTrait("Pet's Prowess")
     },
@@ -104,11 +116,7 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: 'Ambidexterity',
       to: 'Condition Damage',
-      amount: balanceProfileNumberFromContext(
-        profileContext,
-        TRAIT.AMBIDEXTERITY,
-        favoredWeapon ? 'weaponAttributeBonus' : 'attributeBonus'
-      ),
+      amount: balanceProfileNumber(ambidexterityProfile, favoredWeapon ? 'weaponAttributeBonus' : 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Ambidexterity')
     },
@@ -116,7 +124,7 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: 'Arachnophobia',
       to: 'Expertise',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.ARACHNOPHOBIA, 'attributeBonus'),
+      amount: balanceProfileNumber(arachnophobiaProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Arachnophobia')
     },
@@ -124,7 +132,7 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: 'Lingering Magic',
       to: 'Concentration',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.LINGERING_MAGIC, 'attributeBonus'),
+      amount: balanceProfileNumber(lingeringMagicProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Lingering Magic')
     },
@@ -132,7 +140,7 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: 'Natural Fortitude',
       to: 'Vitality',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.NATURAL_FORTITUDE, 'attributeBonus'),
+      amount: balanceProfileNumber(naturalFortitudeProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Natural Fortitude')
     },
@@ -141,7 +149,7 @@ export function applyRangerBuildAttributeRules(
       source: 'Wellspring',
       from: 'Power',
       to: 'Healing Power',
-      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.WELLSPRING, 'attributeConversion'),
+      multiplier: balanceProfileNumber(wellspringProfile, 'attributeConversion'),
       rounding: 'none',
       input: 'common',
       enabled: hasTrait('Wellspring')
@@ -150,7 +158,7 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: 'Vicious Quarry',
       to: 'Ferocity',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.VICIOUS_QUARRY, 'attributeBonus'),
+      amount: balanceProfileNumber(viciousQuarryProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Vicious Quarry') && rangerBuild.assumptions?.fury !== false
     },
@@ -158,7 +166,7 @@ export function applyRangerBuildAttributeRules(
       kind: 'flat',
       source: 'Signet of the Wild',
       to: 'Ferocity',
-      amount: balanceProfileNumberFromContext(profileContext, 'ranger.core.signet-of-the-wild', 'attributeBonus'),
+      amount: balanceProfileNumber(signetOfTheWildProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasSelectedSkill('Signet of the Wild')
     }

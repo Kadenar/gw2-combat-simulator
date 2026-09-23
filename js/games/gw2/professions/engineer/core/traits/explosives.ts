@@ -1,9 +1,10 @@
 /** Owns imperative Core Engineer Explosives trait effects without registering their reactions. */
 import {
   procChanceFromContext,
-  requireEffectFromContext,
-  balanceProfileNumberFromContext,
-  effectNumberFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  balanceProfileNumber,
+  effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -34,12 +35,12 @@ export function applyGrenadier(context: EngineerCastContext, skill: EngineerSkil
     !isInternalCooldownReady(at, Number(state.traitProcReadyAt.grenadier || 0))
   )
     return;
-  const grenadier = requireEffectFromContext(context, 'balance-profile', PROFILE.grenadier, 'strike', 'Grenadier');
+  const grenadierProfile = requireBalanceProfileFromContext(context, PROFILE.grenadier);
+  const grenadier = requireEffect(grenadierProfile, 'strike', 'Grenadier');
   if (!grenadier) return;
-  state.traitProcReadyAt.grenadier =
-    at + balanceProfileNumberFromContext(context, PROFILE.grenadier, 'internalCooldown');
+  state.traitProcReadyAt.grenadier = at + balanceProfileNumber(grenadierProfile, 'internalCooldown');
   const hits = Number(grenadier.hits);
-  const coefficient = effectNumberFromContext(context, 'balance-profile', PROFILE.grenadier, grenadier, 'coefficient');
+  const coefficient = effectNumber(grenadierProfile, grenadier, 'coefficient');
   // Emit distinct packets so per-hit reactions and attribution retain the barrage sequence.
   for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
     emitSkillDamage(context, {
@@ -75,25 +76,14 @@ export function applyExplosiveEntrance(context: EngineerResolverContext, event: 
     return;
   }
 
-  const explosiveEntranceStrike = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.explosiveEntrance,
-    'strike',
-    'Explosive Entrance'
-  );
+  const explosiveEntranceProfile = requireBalanceProfileFromContext(context, PROFILE.explosiveEntrance);
+  const explosiveEntranceStrike = requireEffect(explosiveEntranceProfile, 'strike', 'Explosive Entrance');
   if (explosiveEntranceStrike) {
     // Only a surviving packet consumes this once-per-dodge proc.
     state.explosiveEntranceFired = true;
     queueDamage(context, event, {
       name: 'Explosive Entrance',
-      coefficient: effectNumberFromContext(
-        context,
-        'balance-profile',
-        PROFILE.explosiveEntrance,
-        explosiveEntranceStrike,
-        'coefficient'
-      ),
+      coefficient: effectNumber(explosiveEntranceProfile, explosiveEntranceStrike, 'coefficient'),
       sourceId: TRAIT.EXPLOSIVE_ENTRANCE,
       actorType: 'effect',
       ownerActorType: 'player',
@@ -111,13 +101,8 @@ export function applySteelPackedPowder(
   explosion: boolean
 ): void {
   if (!explosion || !hasTrait(context, TRAIT.STEEL_PACKED_POWDER)) return;
-  const steelPackedPowderVulnerability = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.steelPackedPowder,
-    'condition',
-    'Vulnerability'
-  );
+  const steelPackedPowderProfile = requireBalanceProfileFromContext(context, PROFILE.steelPackedPowder);
+  const steelPackedPowderVulnerability = requireEffect(steelPackedPowderProfile, 'condition', 'Vulnerability');
   if (steelPackedPowderVulnerability) {
     applyEngineerDerivedCondition(context, event, {
       name: 'Steel-Packed Powder',
@@ -145,8 +130,9 @@ export function applyShortFuse(
     return;
   }
 
-  state.shortFuse = event.at + balanceProfileNumberFromContext(context, PROFILE.shortFuse, 'internalCooldown');
-  const shortFuseFury = requireEffectFromContext(context, 'balance-profile', PROFILE.shortFuse, 'boon', 'fury');
+  const shortFuseProfile = requireBalanceProfileFromContext(context, PROFILE.shortFuse);
+  state.shortFuse = event.at + balanceProfileNumber(shortFuseProfile, 'internalCooldown');
+  const shortFuseFury = requireEffect(shortFuseProfile, 'boon', 'fury');
   if (shortFuseFury) {
     queueBuff(context, event, {
       name: 'Short Fuse',
@@ -168,13 +154,8 @@ export function applyExplosiveTemper(
   explosion: boolean
 ): void {
   if (!explosion || !hasTrait(context, TRAIT.EXPLOSIVE_TEMPER)) return;
-  const explosiveTemperBuff = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.explosiveTemper,
-    'buff',
-    'explosive-temper'
-  );
+  const explosiveTemperProfile = requireBalanceProfileFromContext(context, PROFILE.explosiveTemper);
+  const explosiveTemperBuff = requireEffect(explosiveTemperProfile, 'buff', 'explosive-temper');
   if (explosiveTemperBuff) {
     queueBuff(context, event, {
       name: 'Explosive Temper',
@@ -235,13 +216,8 @@ export function applyShrapnel(
     state.shrapnelProgress = Number(state.shrapnelProgress || 0) - 1;
   }
 
-  const shrapnelBleeding = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.shrapnel,
-    'condition',
-    'Bleeding'
-  );
+  const shrapnelProfile = requireBalanceProfileFromContext(context, PROFILE.shrapnel);
+  const shrapnelBleeding = requireEffect(shrapnelProfile, 'condition', 'Bleeding');
   if (shrapnelBleeding) {
     applyEngineerDerivedCondition(context, event, {
       name: 'Shrapnel',
@@ -256,13 +232,7 @@ export function applyShrapnel(
     });
   }
 
-  const shrapnelCrippled = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.shrapnel,
-    'condition',
-    'Crippled'
-  );
+  const shrapnelCrippled = requireEffect(shrapnelProfile, 'condition', 'Crippled');
   if (shrapnelCrippled) {
     queueBuff(context, event, {
       name: 'Shrapnel',
@@ -299,35 +269,21 @@ export function applyAimAssistedRocket(context: EngineerResolverContext, event: 
     return;
   }
 
-  state.aimAssistedRocket =
-    event.at + balanceProfileNumberFromContext(context, PROFILE.aimAssistedRocket, 'internalCooldown');
+  const aimAssistedRocketProfile = requireBalanceProfileFromContext(context, PROFILE.aimAssistedRocket);
+  state.aimAssistedRocket = event.at + balanceProfileNumber(aimAssistedRocketProfile, 'internalCooldown');
   state.aimAssistedRocketCount = Number(state.aimAssistedRocketCount || 0) + 1;
   // Every fifth projectile upgrades to Orbital Command Strike with its two-second call-down delay.
-  const alternateEvery = balanceProfileNumberFromContext(context, PROFILE.aimAssistedRocket, 'maximumStacks');
+  const alternateEvery = balanceProfileNumber(aimAssistedRocketProfile, 'maximumStacks');
   const orbital = state.aimAssistedRocketCount % alternateEvery === 0;
-  const rocket = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.aimAssistedRocket,
-    'strike',
-    orbital ? 'Orbital Strike' : 'Rocket'
-  );
+  const rocket = requireEffect(aimAssistedRocketProfile, 'strike', orbital ? 'Orbital Strike' : 'Rocket');
   if (rocket) {
     queueDamage(context, event, {
       name: orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket',
-      coefficient: effectNumberFromContext(
-        context,
-        'balance-profile',
-        PROFILE.aimAssistedRocket,
-        rocket,
-        'coefficient'
-      ),
+      coefficient: effectNumber(aimAssistedRocketProfile, rocket, 'coefficient'),
       sourceId: orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
       actorType: 'effect',
       ownerActorType: 'player',
-      at:
-        event.at +
-        effectNumberFromContext(context, 'balance-profile', PROFILE.aimAssistedRocket, rocket, 'atMs') / 1000,
+      at: event.at + effectNumber(aimAssistedRocketProfile, rocket, 'atMs') / 1000,
       explosion: !orbital,
       ...(orbital
         ? {

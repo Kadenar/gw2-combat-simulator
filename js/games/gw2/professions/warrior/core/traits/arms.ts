@@ -3,7 +3,6 @@ import {
   requireEffect,
   effectNumber,
   balanceProfileNumber,
-  balanceProfileNumberFromContext,
   procChanceFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
@@ -17,7 +16,7 @@ import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
+import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -41,16 +40,13 @@ import type {
   WarriorSkill
 } from '#gw2/professions/warrior/types.js';
 
-// Trigger Lesser Signet of Might after the first eligible post-half-health strike at that strike's exact timestamp.
+// Trigger Lesser Signet of Might after the first eligible below-half-health strike at that strike's exact timestamp.
 export function reactToWarriorDamage(context: WarriorResolverContext, event: WarriorResolverEvent): void {
-  const targetHealth = Number(context.config.target?.health || 0);
-  const damageDone = targetHealthLoss(context.config, context);
   const state = professionCoreState(context);
   if (
     event.actorType !== 'player' ||
     !(Number(event.coefficient || 0) > 0) ||
-    !(targetHealth > 0) ||
-    damageDone < targetHealth * 0.5 ||
+    !remainingTargetHealthBelow(context.config, context, 0.5) ||
     !hasTrait(context, TRAIT.SIGNET_MASTERY)
   ) {
     return;
@@ -63,7 +59,7 @@ export function reactToWarriorDamage(context: WarriorResolverContext, event: War
       state.traitProcReadyAt,
       'lesserSignetMight',
       event.at,
-      balanceProfileNumber(signetMastery, 'internalCooldown', context)
+      balanceProfileNumber(signetMastery, 'internalCooldown')
     )
   )
     return;
@@ -82,8 +78,8 @@ export function reactToWarriorDamage(context: WarriorResolverContext, event: War
         skillName: 'Lesser Signet of Might',
 
         kind,
-        stacks: effectNumber(signetMastery, effect, 'stacks', context),
-        duration: effectNumber(signetMastery, effect, 'duration', context)
+        stacks: effectNumber(signetMastery, effect, 'stacks'),
+        duration: effectNumber(signetMastery, effect, 'duration')
       })
     );
   }
@@ -105,15 +101,15 @@ export function armBurstPrecision(context: WarriorCastContext, skill: WarriorSki
   const burstPrecisionProfile = requireBalanceProfileFromContext(context, PROFILE.burstPrecision);
   professionCoreState(context).burstPrecisionDurations[context.reservationId] =
     spent >= 30
-      ? balanceProfileNumber(burstPrecisionProfile, 'maximumStacks', context)
-      : balanceProfileNumber(burstPrecisionProfile, 'minimumStacks', context);
+      ? balanceProfileNumber(burstPrecisionProfile, 'maximumStacks')
+      : balanceProfileNumber(burstPrecisionProfile, 'minimumStacks');
 }
 
 // Materialize Signet Mastery at cast completion before relic and Strength completion effects.
 export function applySignetMasteryCastComplete(context: WarriorCastContext, skill: WarriorSkill): void {
   if (!skill.categories?.includes('Signet') || !hasTrait(context, TRAIT.SIGNET_MASTERY)) return;
   const signetMasteryProfile = requireBalanceProfileFromContext(context, PROFILE.signetMastery);
-  const effect = requireEffect(signetMasteryProfile, 'buff', 'signet-mastery', context);
+  const effect = requireEffect(signetMasteryProfile, 'buff', 'signet-mastery');
   if (effect)
     emitSkillBuff(context, {
       at: context.effectiveEnd,
@@ -124,8 +120,8 @@ export function applySignetMasteryCastComplete(context: WarriorCastContext, skil
       skillName: skill.name,
       name: 'Signet Mastery',
       kind: 'signet-mastery',
-      stacks: effectNumber(signetMasteryProfile, effect, 'stacks', context),
-      duration: effectNumber(signetMasteryProfile, effect, 'duration', context)
+      stacks: effectNumber(signetMasteryProfile, effect, 'stacks'),
+      duration: effectNumber(signetMasteryProfile, effect, 'duration')
     });
 }
 
@@ -143,12 +139,12 @@ export function applyOpportunist(context: WarriorSchedulerContext, event: Warrio
       state.traitProcReadyAt,
       'opportunist',
       event.at,
-      balanceProfileNumber(opportunistProfile, 'internalCooldown', context)
+      balanceProfileNumber(opportunistProfile, 'internalCooldown')
     )
   )
     return;
-  const fury = requireEffect(opportunistProfile, 'boon', 'fury', context);
-  gainWarriorAdrenaline(context, balanceProfileNumber(opportunistProfile, 'resourceGain', context));
+  const fury = requireEffect(opportunistProfile, 'boon', 'fury');
+  gainWarriorAdrenaline(context, balanceProfileNumber(opportunistProfile, 'resourceGain'));
   if (fury)
     emitSkillBuff(context, {
       skill:
@@ -164,8 +160,8 @@ export function applyOpportunist(context: WarriorSchedulerContext, event: Warrio
       name: 'Opportunist',
       kind: 'fury',
       boon: 'fury',
-      duration: effectNumber(opportunistProfile, fury, 'duration', context),
-      stacks: effectNumber(opportunistProfile, fury, 'stacks', context),
+      duration: effectNumber(opportunistProfile, fury, 'duration'),
+      stacks: effectNumber(opportunistProfile, fury, 'stacks'),
       audience: { recipients: 'self' as const }
     });
 }
@@ -181,9 +177,8 @@ export function applyBurstPrecision(
   const state = professionCoreState(context);
   const duration =
     state.burstPrecisionDurations[activationKey] ??
-    balanceProfileNumberFromContext(
-      context,
-      PROFILE.burstPrecision,
+    balanceProfileNumber(
+      requireBalanceProfileFromContext(context, PROFILE.burstPrecision),
       Number(skill.burstTier ?? 1) >= 3 ? 'maximumStacks' : 'minimumStacks'
     );
   delete state.burstPrecisionDurations[activationKey];
@@ -234,7 +229,7 @@ export function applyBloodlust(context: WarriorSchedulerContext, event: WarriorS
   const bleeding = application?.quantity || 0;
   if (bleeding <= 0) return;
   const bloodlustProfile = requireBalanceProfileFromContext(context, PROFILE.bloodlust);
-  const effect = requireEffect(bloodlustProfile, 'condition', 'Bleeding', context);
+  const effect = requireEffect(bloodlustProfile, 'condition', 'Bleeding');
   if (effect)
     emitSkillCondition(context, {
       cause: event,
@@ -249,8 +244,8 @@ export function applyBloodlust(context: WarriorSchedulerContext, event: WarriorS
       name: 'Bloodlust — Bleeding',
       metadata: { procCount: bleeding },
       condition: 'Bleeding',
-      stacks: bleeding * effectNumber(bloodlustProfile, effect, 'stacks', context),
-      duration: effectNumber(bloodlustProfile, effect, 'duration', context)
+      stacks: bleeding * effectNumber(bloodlustProfile, effect, 'stacks'),
+      duration: effectNumber(bloodlustProfile, effect, 'duration')
     });
 }
 
@@ -259,8 +254,8 @@ export function applyFurious(context: WarriorSchedulerContext, event: WarriorSim
   if (!hasTrait(context, TRAIT.FURIOUS) || criticals <= 0) return;
 
   const furiousProfile = requireBalanceProfileFromContext(context, PROFILE.furious);
-  const effect = requireEffect(furiousProfile, 'buff', 'furious-surge', context);
-  gainWarriorAdrenaline(context, criticals * balanceProfileNumber(furiousProfile, 'resourceGain', context));
+  const effect = requireEffect(furiousProfile, 'buff', 'furious-surge');
+  gainWarriorAdrenaline(context, criticals * balanceProfileNumber(furiousProfile, 'resourceGain'));
   if (effect)
     emitSkillBuff(context, {
       cause: event,
@@ -272,8 +267,8 @@ export function applyFurious(context: WarriorSchedulerContext, event: WarriorSim
       skillName: event.skillName,
       name: 'Furious Surge',
       kind: 'furious-surge',
-      stacks: criticals * effectNumber(furiousProfile, effect, 'stacks', context),
-      duration: effectNumber(furiousProfile, effect, 'duration', context)
+      stacks: criticals * effectNumber(furiousProfile, effect, 'stacks'),
+      duration: effectNumber(furiousProfile, effect, 'duration')
     });
 }
 
@@ -290,14 +285,14 @@ export function applySunderingBurst(
   }
 
   const sunderingBurstProfile = requireBalanceProfileFromContext(context, PROFILE.sunderingBurst);
-  const effect = requireEffect(sunderingBurstProfile, 'condition', criticals > 0 ? 'Critical burst' : 'Burst', context);
+  const effect = requireEffect(sunderingBurstProfile, 'condition', criticals > 0 ? 'Critical burst' : 'Burst');
   // Reserve this trait's own deadline before emitting its effects.
   if (
     !tryConsumeProcCooldown(
       state.traitProcReadyAt,
       'sunderingBurst',
       event.at,
-      balanceProfileNumber(sunderingBurstProfile, 'internalCooldown', context)
+      balanceProfileNumber(sunderingBurstProfile, 'internalCooldown')
     )
   )
     return;
@@ -312,8 +307,8 @@ export function applySunderingBurst(
       skillName: event.skillName,
       name: 'Sundering Burst — Vulnerability',
       condition: 'Vulnerability',
-      stacks: effectNumber(sunderingBurstProfile, effect, 'stacks', context),
-      duration: effectNumber(sunderingBurstProfile, effect, 'duration', context)
+      stacks: effectNumber(sunderingBurstProfile, effect, 'stacks'),
+      duration: effectNumber(sunderingBurstProfile, effect, 'duration')
     });
 }
 
@@ -325,14 +320,14 @@ export function applyFuriousBurst(context: WarriorCastContext, skill: WarriorSki
   }
 
   const furiousBurstProfile = requireBalanceProfileFromContext(context, PROFILE.furiousBurst);
-  const fury = requireEffect(furiousBurstProfile, 'boon', 'fury', context);
+  const fury = requireEffect(furiousBurstProfile, 'boon', 'fury');
   // Reserve this trait's own deadline before emitting its effects.
   if (
     !tryConsumeProcCooldown(
       state.traitProcReadyAt,
       'furiousBurst',
       context.effectiveEnd,
-      balanceProfileNumber(furiousBurstProfile, 'internalCooldown', context)
+      balanceProfileNumber(furiousBurstProfile, 'internalCooldown')
     )
   )
     return;
@@ -347,13 +342,8 @@ export function applyFuriousBurst(context: WarriorCastContext, skill: WarriorSki
       name: 'Furious Burst',
       kind: 'fury',
       boon: 'fury',
-      stacks: effectNumber(furiousBurstProfile, fury, 'stacks', context),
-      duration: gw2SchedulerBoonDuration(
-        context,
-        skill,
-        'fury',
-        effectNumber(furiousBurstProfile, fury, 'duration', context)
-      )
+      stacks: effectNumber(furiousBurstProfile, fury, 'stacks'),
+      duration: gw2SchedulerBoonDuration(context, skill, 'fury', effectNumber(furiousBurstProfile, fury, 'duration'))
     });
 }
 
@@ -367,10 +357,10 @@ export function modifyWarriorArmsAttributes(
   const signetStacks = warriorActiveBuffStacks(
     context,
     'signet-mastery',
-    balanceProfileNumber(signetMasteryProfile, 'maximumStacks', context)
+    balanceProfileNumber(signetMasteryProfile, 'maximumStacks')
   );
   if (hasTrait(context, TRAIT.SIGNET_MASTERY)) {
-    result.ferocity += signetStacks * balanceProfileNumber(signetMasteryProfile, 'attributeBonus', context);
+    result.ferocity += signetStacks * balanceProfileNumber(signetMasteryProfile, 'attributeBonus');
   }
 
   if (
@@ -378,23 +368,27 @@ export function modifyWarriorArmsAttributes(
     warriorBoonActive(context, 'fury') &&
     !(staticRulesApplied && Boolean(context.config?.boons?.fury))
   ) {
-    result.conditionDamage += balanceProfileNumberFromContext(context, PROFILE.deepStrikes, 'attributeBonus');
+    const deepStrikesProfile = requireBalanceProfileFromContext(context, PROFILE.deepStrikes);
+    result.conditionDamage += balanceProfileNumber(deepStrikesProfile, 'attributeBonus');
   }
 
   if (hasTrait(context, TRAIT.BLADEMASTER) && warriorWieldingWeapon(context, 'Sword')) {
-    result.conditionDamage += balanceProfileNumberFromContext(context, PROFILE.blademaster, 'attributeBonus');
+    const blademasterProfile = requireBalanceProfileFromContext(context, PROFILE.blademaster);
+    result.conditionDamage += balanceProfileNumber(blademasterProfile, 'attributeBonus');
   }
 
   const furiousProfile = requireBalanceProfileFromContext(context, PROFILE.furious);
   result.conditionDamage +=
-    warriorActiveBuffStacks(context, 'furious-surge', balanceProfileNumber(furiousProfile, 'maximumStacks', context)) *
-    balanceProfileNumber(furiousProfile, 'attributeBonus', context);
+    warriorActiveBuffStacks(context, 'furious-surge', balanceProfileNumber(furiousProfile, 'maximumStacks')) *
+    balanceProfileNumber(furiousProfile, 'attributeBonus');
   if (hasTrait(context, TRAIT.BURST_PRECISION) && warriorActiveBuffStacks(context, 'burst-precision', 1) > 0) {
-    result.ferocity += balanceProfileNumberFromContext(context, PROFILE.burstPrecision, 'attributeBonus');
+    const burstPrecisionProfile = requireBalanceProfileFromContext(context, PROFILE.burstPrecision);
+    result.ferocity += balanceProfileNumber(burstPrecisionProfile, 'attributeBonus');
   }
 
   if (warriorActiveBuffStacks(context, 'signet-of-fury-active', 1) > 0) {
-    const bonus = balanceProfileNumberFromContext(context, PROFILE.signetOfFuryActive, 'attributeBonus');
+    const signetOfFuryActiveProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfFuryActive);
+    const bonus = balanceProfileNumber(signetOfFuryActiveProfile, 'attributeBonus');
     result.precision += bonus;
     result.ferocity += bonus;
   }
@@ -410,8 +404,9 @@ export function modifyWarriorArmsAttributes(
     return staticRulesApplied ? onCooldown : !onCooldown;
   });
   if (activeSignets.length > 0) {
+    const signetPassivesProfile = requireBalanceProfileFromContext(context, PROFILE.signetPassives);
     // Both eligible signets use the same passive bonus, read once before applying it.
-    const passiveBonus = balanceProfileNumberFromContext(context, PROFILE.signetPassives, 'attributeBonus');
+    const passiveBonus = balanceProfileNumber(signetPassivesProfile, 'attributeBonus');
     for (const [, , attribute] of activeSignets) {
       result[attribute] += (staticRulesApplied ? -1 : 1) * passiveBonus;
     }
@@ -423,28 +418,32 @@ export const warriorArmsModifierRules: readonly Gw2ModifierRule[] = Object.freez
     id: 'warrior.furious-burst-fury-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.FURIOUS_BURST, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FURIOUS_BURST), 'criticalChance'),
     when: (context) => hasTrait(context, TRAIT.FURIOUS_BURST) && warriorBoonActive(context, 'fury')
   },
   {
     id: 'warrior.deep-strikes',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.DEEP_STRIKES, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DEEP_STRIKES), 'criticalChance'),
     when: (context) => hasTrait(context, TRAIT.DEEP_STRIKES) && targetConditionActive(context, 'Bleeding')
   },
   {
     id: 'warrior.unsuspecting-foe',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.UNSUSPECTING_FOE, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.UNSUSPECTING_FOE), 'criticalChance'),
     when: (context) => hasTrait(context, TRAIT.UNSUSPECTING_FOE) && warriorTargetControlled(context)
   },
   {
     id: 'warrior.burst-precision',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.BURST_PRECISION, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.BURST_PRECISION), 'criticalChance'),
     when: (context) =>
       hasTrait(context, TRAIT.BURST_PRECISION) &&
       (Boolean(warriorEventSkill(context)?.burst) || warriorActiveBuffStacks(context, 'burst-precision', 1) > 0)

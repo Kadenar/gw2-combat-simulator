@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -17,11 +20,8 @@ import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
 export const spellbreakerSchedulerHooks = Object.freeze({
   initialize: (context: WarriorSchedulerContext) => {
-    professionCoreState(context).maximumAdrenaline = balanceProfileNumberFromContext(
-      context,
-      PROFILE.resources,
-      'maximumStacks'
-    );
+    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+    professionCoreState(context).maximumAdrenaline = balanceProfileNumber(resourcesProfile, 'maximumStacks');
     syncWarriorAdrenaline(context);
   },
   onEventScheduled: {
@@ -56,8 +56,8 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw
     precision: number;
     ferocity: number;
   };
-  const bonus =
-    insightStacks(context) * balanceProfileNumberFromContext(context, PROFILE.attackersInsight, 'attributePerStack');
+  const attackersInsightProfile = requireBalanceProfileFromContext(context, PROFILE.attackersInsight);
+  const bonus = insightStacks(context) * balanceProfileNumber(attackersInsightProfile, 'attributePerStack');
   result.power += bonus;
   result.precision += bonus;
   result.ferocity += bonus;
@@ -70,7 +70,8 @@ const modifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
     // The target never has boons, so the full bonus always applies.
-    factor: (context) => balanceProfileNumberFromContext(context, TRAIT.PURE_STRIKE, 'criticalDamage'),
+    factor: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PURE_STRIKE), 'criticalDamage'),
     when: (context) => hasTrait(context, TRAIT.PURE_STRIKE)
   },
   {

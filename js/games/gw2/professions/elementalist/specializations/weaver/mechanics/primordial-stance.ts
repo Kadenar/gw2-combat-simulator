@@ -3,7 +3,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * Owns Primordial Stance's scheduled pulses against the live Weaver attunement pair.
  * Skill packet templates remain in `skills/slot-skills.ts`.
  */
-import { requireEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
@@ -56,13 +56,8 @@ function emitPrimordialStancePulse(
   const attunements = state.secondaryAttunement
     ? [core.primaryAttunement, state.secondaryAttunement]
     : [core.primaryAttunement];
-  const strike = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.primordialStance,
-    'strike',
-    'Primordial Stance'
-  );
+  const primordialStanceProfile = requireBalanceProfileFromContext(context, PROFILE.primordialStance);
+  const strike = requireEffect(primordialStanceProfile, 'strike', 'Primordial Stance');
   if (strike)
     emitSkillDamage(context, {
       at,
@@ -77,13 +72,7 @@ function emitPrimordialStancePulse(
     });
 
   for (const attunement of attunements) {
-    const effect = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.primordialStance,
-      'condition',
-      attunement
-    );
+    const effect = requireEffect(primordialStanceProfile, 'condition', attunement);
     if (!effect) continue;
 
     emitSkillCondition(context, {

@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { revenantCastAvailability } from '#gw2/professions/revenant/core/mechanics/availability.js';
 import { modifyRevenantRechargeDuration } from '#gw2/professions/revenant/core/traits/index.js';
@@ -12,6 +15,7 @@ import {
   boonActive,
   playerHealthFraction,
   targetConditionActive,
+  targetHealthBelow,
   targetHealthFraction,
   vulnerabilityStacks
 } from '#gw2/platform/combat/query/runtime-query.js';
@@ -167,13 +171,13 @@ export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.SWIFT_TERMINATION) &&
-      targetHealthFraction(context) < 0.5
+      targetHealthBelow(context, 0.5)
   }
 ]);
 
 function modifyCoreCriticalChance(context: RevenantModifierContext, chance: number): number {
   return hasTrait(context, TRAIT.ROILING_MISTS) && boonActive(context, 'fury')
-    ? chance + balanceProfileNumberFromContext(context, TRAIT.ROILING_MISTS, 'criticalChance')
+    ? chance + balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ROILING_MISTS), 'criticalChance')
     : chance;
 }
 
@@ -182,7 +186,8 @@ function modifyCoreCriticalChance(context: RevenantModifierContext, chance: numb
 function modifyCoreConditionDuration(context: RevenantModifierContext, duration: number): number {
   let modified = duration;
   if (hasTrait(context, TRAIT.PACT_OF_PAIN) && !professionStaticRulesApplied(context.config)) {
-    modified += balanceProfileNumberFromContext(context, TRAIT.PACT_OF_PAIN, 'conditionDurationBonus');
+    const pactOfPainProfile = requireBalanceProfileFromContext(context, TRAIT.PACT_OF_PAIN);
+    modified += balanceProfileNumber(pactOfPainProfile, 'conditionDurationBonus');
   }
 
   if (
@@ -190,7 +195,8 @@ function modifyCoreConditionDuration(context: RevenantModifierContext, duration:
     hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) &&
     !professionStaticRulesApplied(context.config)
   ) {
-    modified += balanceProfileNumberFromContext(context, TRAIT.YEARNING_EMPOWERMENT, 'conditionDurationBonus');
+    const yearningEmpowermentProfile = requireBalanceProfileFromContext(context, TRAIT.YEARNING_EMPOWERMENT);
+    modified += balanceProfileNumber(yearningEmpowermentProfile, 'conditionDurationBonus');
   }
 
   return modified;
@@ -213,12 +219,10 @@ function modifyCoreAttributes(context: RevenantModifierContext, attributes: Gw2S
       25 - baseMight
     );
     const might = baseMight + dynamicMight;
-    modified.power =
-      Number(modified.power || 0) +
-      might * balanceProfileNumberFromContext(context, TRAIT.NOTORIETY, 'attributePerStack');
+    const notorietyProfile = requireBalanceProfileFromContext(context, TRAIT.NOTORIETY);
+    modified.power = Number(modified.power || 0) + might * balanceProfileNumber(notorietyProfile, 'attributePerStack');
     modified.conditionDamage =
-      Number(modified.conditionDamage || 0) -
-      might * balanceProfileNumberFromContext(context, TRAIT.NOTORIETY, 'attributePerStack');
+      Number(modified.conditionDamage || 0) - might * balanceProfileNumber(notorietyProfile, 'attributePerStack');
   }
 
   return modified;

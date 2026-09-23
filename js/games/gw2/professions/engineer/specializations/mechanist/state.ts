@@ -7,7 +7,10 @@ import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
 } from '#gw2/platform/engine/profession/state.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -100,19 +103,12 @@ export function engineerMechAttributes(
 
   // Standalone initialization uses the canonical declaration; runtime callers pass their selected profile.
   const balanceContext = { balanceProfile: () => profile };
-  const baseAttribute = balanceProfileNumberFromContext(balanceContext, PROFILE.resources, 'baseAttribute');
-  const inheritanceRatio = balanceProfileNumberFromContext(balanceContext, PROFILE.resources, 'inheritanceRatio');
-  const secondaryCap = balanceProfileNumberFromContext(balanceContext, PROFILE.resources, 'secondaryAttributeCap');
-  const improvedSecondaryCap = balanceProfileNumberFromContext(
-    balanceContext,
-    PROFILE.resources,
-    'improvedSecondaryAttributeCap'
-  );
-  const improvedInheritanceRatio = balanceProfileNumberFromContext(
-    balanceContext,
-    PROFILE.resources,
-    'improvedInheritanceRatio'
-  );
+  const resourcesProfile = requireBalanceProfileFromContext(balanceContext, PROFILE.resources);
+  const baseAttribute = balanceProfileNumber(resourcesProfile, 'baseAttribute');
+  const inheritanceRatio = balanceProfileNumber(resourcesProfile, 'inheritanceRatio');
+  const secondaryCap = balanceProfileNumber(resourcesProfile, 'secondaryAttributeCap');
+  const improvedSecondaryCap = balanceProfileNumber(resourcesProfile, 'improvedSecondaryAttributeCap');
+  const improvedInheritanceRatio = balanceProfileNumber(resourcesProfile, 'improvedInheritanceRatio');
   // Secondary stats inherit 50 % of the player's value up to 750.
   // Conductive Alloys and Channeling Conduits each double the cap to 1500 and
   // raise the inheritance ratio to 100 % for their respective stat groups.
@@ -124,16 +120,15 @@ export function engineerMechAttributes(
 
   return {
     power: Math.min(
-      balanceProfileNumberFromContext(balanceContext, PROFILE.resources, 'powerCap'),
+      balanceProfileNumber(resourcesProfile, 'powerCap'),
       baseAttribute + playerAttribute(playerStats, 'power', 1000) * inheritanceRatio
     ),
     precision: variable
       ? Math.min(
-          balanceProfileNumberFromContext(balanceContext, PROFILE.resources, 'precisionCap'),
-          balanceProfileNumberFromContext(balanceContext, PROFILE.resources, 'basePrecision') +
-            playerAttribute(playerStats, 'precision', 1000)
+          balanceProfileNumber(resourcesProfile, 'precisionCap'),
+          balanceProfileNumber(resourcesProfile, 'basePrecision') + playerAttribute(playerStats, 'precision', 1000)
         )
-      : balanceProfileNumberFromContext(balanceContext, PROFILE.resources, 'basePrecision'),
+      : balanceProfileNumber(resourcesProfile, 'basePrecision'),
     toughness: baseAttribute + playerAttribute(playerStats, 'toughness', 1000),
     vitality: baseAttribute + playerAttribute(playerStats, 'vitality', 1000),
     ferocity: secondary('ferocity'),

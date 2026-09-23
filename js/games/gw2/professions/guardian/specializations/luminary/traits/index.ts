@@ -5,7 +5,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
@@ -109,8 +109,9 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
   }
 
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS)) {
-    const duration = balanceProfileNumberFromContext(context, PROFILE.empoweredArmaments, 'resourceGain');
-    const maximumDuration = balanceProfileNumberFromContext(context, PROFILE.empoweredArmaments, 'maximumStacks');
+    const empoweredArmamentsProfile = requireBalanceProfileFromContext(context, PROFILE.empoweredArmaments);
+    const duration = balanceProfileNumber(empoweredArmamentsProfile, 'resourceGain');
+    const maximumDuration = balanceProfileNumber(empoweredArmamentsProfile, 'maximumStacks');
     const wasActive = Number(state.empoweredArmamentsUntil || 0) > at;
     // Duration stacks additively up to a 20 s cap; the cap prevents the buff
     // from extending forever if many weapons are equipped in quick succession.
@@ -136,7 +137,8 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
   }
 
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.ILLUMINATING_INSPIRATION)) {
-    const reduction = balanceProfileNumberFromContext(context, PROFILE.illuminatingInspiration, 'rechargeReduction');
+    const illuminatingInspirationProfile = requireBalanceProfileFromContext(context, PROFILE.illuminatingInspiration);
+    const reduction = balanceProfileNumber(illuminatingInspirationProfile, 'rechargeReduction');
     reduceVirtueCooldowns(context, at, reduction);
     emitGuardianProc(context, {
       name: 'Illuminating Inspiration',

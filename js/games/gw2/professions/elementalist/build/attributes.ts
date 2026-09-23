@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
@@ -38,6 +41,18 @@ export function applyElementalistBuildAttributeRules(
     getActiveTraits
   });
 
+  const ferociousWindsProfile = requireBalanceProfileFromContext(profileContext, TRAIT.FEROCIOUS_WINDS);
+  const strengthOfStoneProfile = requireBalanceProfileFromContext(profileContext, TRAIT.STRENGTH_OF_STONE);
+  const signetOfFirePassiveProfile = requireBalanceProfileFromContext(
+    profileContext,
+    'elementalist.core.signet-of-fire-passive'
+  );
+  const burningRageProfile = requireBalanceProfileFromContext(profileContext, TRAIT.BURNING_RAGE);
+  const aeromancersTrainingProfile = requireBalanceProfileFromContext(profileContext, TRAIT.AEROMANCERS_TRAINING);
+  const elementalEnchantmentProfile = requireBalanceProfileFromContext(profileContext, TRAIT.ELEMENTAL_ENCHANTMENT);
+  const gatheredFocusProfile = requireBalanceProfileFromContext(profileContext, TRAIT.GATHERED_FOCUS);
+  const soothingPowerProfile = requireBalanceProfileFromContext(profileContext, TRAIT.SOOTHING_POWER);
+  const elementalRefreshmentProfile = requireBalanceProfileFromContext(profileContext, TRAIT.ELEMENTAL_REFRESHMENT);
   // Every effect here is declarative: the shared resolver applies flat grants first, then
   // conversions. `input: 'common'` converts from the pre-effect totals and
   // `feedsConversions: false` keeps a flat grant out of any conversion's input.
@@ -47,7 +62,7 @@ export function applyElementalistBuildAttributeRules(
       source: 'Ferocious Winds',
       from: 'Precision',
       to: 'Ferocity',
-      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.FEROCIOUS_WINDS, 'attributeConversion'),
+      multiplier: balanceProfileNumber(ferociousWindsProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'common',
       enabled: hasTrait('Ferocious Winds')
@@ -57,7 +72,7 @@ export function applyElementalistBuildAttributeRules(
       source: 'Strength of Stone',
       from: 'Toughness',
       to: 'Condition Damage',
-      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.STRENGTH_OF_STONE, 'attributeConversion'),
+      multiplier: balanceProfileNumber(strengthOfStoneProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'common',
       enabled: hasTrait('Strength of Stone')
@@ -66,11 +81,7 @@ export function applyElementalistBuildAttributeRules(
       kind: 'flat',
       source: 'Signet of Fire',
       to: 'Precision',
-      amount: balanceProfileNumberFromContext(
-        profileContext,
-        'elementalist.core.signet-of-fire-passive',
-        'attributeBonus'
-      ),
+      amount: balanceProfileNumber(signetOfFirePassiveProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasSelectedSkill('Signet of Fire')
     },
@@ -78,7 +89,7 @@ export function applyElementalistBuildAttributeRules(
       kind: 'flat',
       source: 'Burning Rage',
       to: 'Condition Damage',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.BURNING_RAGE, 'attributeBonus'),
+      amount: balanceProfileNumber(burningRageProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Burning Rage')
     },
@@ -86,7 +97,7 @@ export function applyElementalistBuildAttributeRules(
       kind: 'flat',
       source: "Aeromancer's Training",
       to: 'Ferocity',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.AEROMANCERS_TRAINING, 'attributeBonus'),
+      amount: balanceProfileNumber(aeromancersTrainingProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait("Aeromancer's Training")
     },
@@ -94,7 +105,7 @@ export function applyElementalistBuildAttributeRules(
       kind: 'flat',
       source: 'Elemental Enchantment',
       to: 'Concentration',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.ELEMENTAL_ENCHANTMENT, 'attributeBonus'),
+      amount: balanceProfileNumber(elementalEnchantmentProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Elemental Enchantment')
     },
@@ -102,7 +113,7 @@ export function applyElementalistBuildAttributeRules(
       kind: 'flat',
       source: 'Gathered Focus',
       to: 'Concentration',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.GATHERED_FOCUS, 'attributeBonus'),
+      amount: balanceProfileNumber(gatheredFocusProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Gathered Focus')
     },
@@ -110,7 +121,7 @@ export function applyElementalistBuildAttributeRules(
       kind: 'flat',
       source: 'Soothing Power',
       to: 'Vitality',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.SOOTHING_POWER, 'attributeBonus'),
+      amount: balanceProfileNumber(soothingPowerProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Soothing Power')
     },
@@ -118,7 +129,7 @@ export function applyElementalistBuildAttributeRules(
       kind: 'flat',
       source: 'Elemental Refreshment',
       to: 'Vitality',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.ELEMENTAL_REFRESHMENT, 'attributeBonus'),
+      amount: balanceProfileNumber(elementalRefreshmentProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Elemental Refreshment')
     }
@@ -126,19 +137,13 @@ export function applyElementalistBuildAttributeRules(
 
   // Condition-duration traits are percentage bonuses, tracked apart from the flat effects.
   if (hasTrait('Burning Precision')) {
-    traitDurations['Burning Duration'] = balanceProfileNumberFromContext(
-      profileContext,
-      TRAIT.BURNING_PRECISION,
-      'durationMultiplier'
-    );
+    const burningPrecisionProfile = requireBalanceProfileFromContext(profileContext, TRAIT.BURNING_PRECISION);
+    traitDurations['Burning Duration'] = balanceProfileNumber(burningPrecisionProfile, 'durationMultiplier');
   }
 
   if (hasTrait('Serrated Stones')) {
-    traitDurations['Bleeding Duration'] = balanceProfileNumberFromContext(
-      profileContext,
-      TRAIT.SERRATED_STONES,
-      'durationMultiplier'
-    );
+    const serratedStonesProfile = requireBalanceProfileFromContext(profileContext, TRAIT.SERRATED_STONES);
+    traitDurations['Bleeding Duration'] = balanceProfileNumber(serratedStonesProfile, 'durationMultiplier');
   }
 
   return finalizeProfessionBuildAttributes(common, {
@@ -146,7 +151,8 @@ export function applyElementalistBuildAttributeRules(
     attributeEffects,
     traitDurations,
     traitCriticalChance: hasTrait("Zephyr's Speed")
-      ? 100 * balanceProfileNumberFromContext(profileContext, TRAIT.ZEPHYRS_SPEED, 'criticalChance')
+      ? 100 *
+        balanceProfileNumber(requireBalanceProfileFromContext(profileContext, TRAIT.ZEPHYRS_SPEED), 'criticalChance')
       : 0
   });
 }

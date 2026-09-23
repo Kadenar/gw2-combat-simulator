@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefEndurance } from '#gw2/professions/thief/core/mechanics/resource-events.js';
@@ -9,18 +12,14 @@ import type { ThiefCastContext } from '#gw2/professions/thief/types.js';
 /** Applies movement-skill Acrobatics state before its ordered endurance reaction. */
 export function applyFluidStrikes(context: ThiefCastContext, at: number): boolean {
   if (!hasTrait(context.config, TRAIT.FLUID_STRIKES)) return false;
-  professionCoreState(context).fluidStrikesUntil =
-    at + balanceProfileNumberFromContext(context, PROFILE.fluidStrikes, 'durationMultiplier');
+  const fluidStrikesProfile = requireBalanceProfileFromContext(context, PROFILE.fluidStrikes);
+  professionCoreState(context).fluidStrikesUntil = at + balanceProfileNumber(fluidStrikesProfile, 'durationMultiplier');
   return true;
 }
 
 export function applyHardToCatch(context: ThiefCastContext, at: number): boolean {
   if (!hasTrait(context.config, TRAIT.HARD_TO_CATCH)) return false;
-  gainThiefEndurance(
-    context,
-    balanceProfileNumberFromContext(context, PROFILE.hardToCatch, 'resourceGain'),
-    at,
-    'hard-to-catch'
-  );
+  const hardToCatchProfile = requireBalanceProfileFromContext(context, PROFILE.hardToCatch);
+  gainThiefEndurance(context, balanceProfileNumber(hardToCatchProfile, 'resourceGain'), at, 'hard-to-catch');
   return true;
 }

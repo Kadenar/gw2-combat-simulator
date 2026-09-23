@@ -63,11 +63,12 @@ test('Rending Claws doubles each hit vulnerability only below half health', () =
   const ticks = necromancerCatalog.skillsById.get(ID.RENDING_CLAWS).effects[0].ticks;
   const interruptMs = (ticks[0].atMs + ticks[1].atMs) / 2;
   for (const [healthFraction, stacks] of [
-    [0.5, 1],
+    // The gate reads live health after the hit lands, so the non-qualifying start stays clear of half.
+    [0.51, 1],
     [0.49, 2]
   ]) {
     const result = simulate('Core', [{ name: 'Rending Claws', interruptMs }, wait(1000)], {
-      target: { healthFraction }
+      target: { startingHealthFraction: healthFraction }
     });
     const applications = result.resolvedEvents.filter((event) => event.condition === 'Vulnerability');
     const hit = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.RENDING_CLAWS);
@@ -83,10 +84,13 @@ test('Rending Claws doubles each hit vulnerability only below half health', () =
 // A qualifying Feast impact owns the delayed proc, which remains pending after the player's cast has ended.
 test('Unholy Feast gates its delayed burst below half health and clips it to the observation window', () => {
   for (const [healthFraction, expectedBurst] of [
-    [0.5, false],
+    // The gate reads live health after the hit lands, so the non-qualifying start stays clear of half.
+    [0.51, false],
     [0.49, true]
   ]) {
-    const result = simulate('Core', ['Unholy Feast', wait(2000)], { target: { healthFraction } });
+    const result = simulate('Core', ['Unholy Feast', wait(2000)], {
+      target: { startingHealthFraction: healthFraction }
+    });
     const feast = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.UNHOLY_FEAST);
     const cripple = result.resolvedEvents.find((event) => event.condition === 'Crippled');
     const burst = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.UNHOLY_BURST);
@@ -102,7 +106,7 @@ test('Unholy Feast gates its delayed burst below half health and clips it to the
     assert.deepEqual(result.warnings, []);
   }
 
-  const clipped = simulate('Core', ['Unholy Feast'], { target: { healthFraction: 0.49 } });
+  const clipped = simulate('Core', ['Unholy Feast'], { target: { startingHealthFraction: 0.49 } });
   assert.equal(
     clipped.resolvedEvents.some((event) => event.skillId === ID.UNHOLY_BURST),
     false

@@ -2,8 +2,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 /** Owns imperative Strength trait effects while the public dispatcher preserves cross-line ordering. */
@@ -72,8 +71,7 @@ export function applyForcefulGreatsword(context: WarriorSchedulerContext, event:
       id: 'warrior.core.forceful-greatsword',
       chanceOnCriticalHit: Math.min(
         1,
-        balanceProfileNumber(forcefulGreatswordProfile, 'procChance', context) *
-          (weapons.includes('Greatsword') ? 2 : 1)
+        balanceProfileNumber(forcefulGreatswordProfile, 'procChance') * (weapons.includes('Greatsword') ? 2 : 1)
       ),
       randomStream: 'warrior.forceful-greatsword'
     },
@@ -82,7 +80,7 @@ export function applyForcefulGreatsword(context: WarriorSchedulerContext, event:
   );
   state.forcefulGreatswordProgress = tracker.progress;
   if (!application) return;
-  const might = requireEffect(forcefulGreatswordProfile, 'boon', 'might', context);
+  const might = requireEffect(forcefulGreatswordProfile, 'boon', 'might');
   if (might)
     emitSkillBuff(context, {
       cause: event,
@@ -96,8 +94,8 @@ export function applyForcefulGreatsword(context: WarriorSchedulerContext, event:
       fixedDuration: false,
       kind: 'might',
       boon: 'might',
-      stacks: application.quantity * effectNumber(forcefulGreatswordProfile, might, 'stacks', context),
-      duration: effectNumber(forcefulGreatswordProfile, might, 'duration', context),
+      stacks: application.quantity * effectNumber(forcefulGreatswordProfile, might, 'stacks'),
+      duration: effectNumber(forcefulGreatswordProfile, might, 'duration'),
       audience: { recipients: 'self' as const }
     });
 }
@@ -112,8 +110,8 @@ function berserkersPowerStacks(context: WarriorCastContext, skill: WarriorSkill,
   if (!skill.burst || spent <= 0 || !hasTrait(context, TRAIT.BERSERKERS_POWER)) return 0;
 
   const burstTiersProfile = requireBalanceProfileFromContext(context, PROFILE.burstTiers);
-  const tierTwo = balanceProfileNumber(burstTiersProfile, 'threshold', context);
-  const tierThree = balanceProfileNumber(burstTiersProfile, 'maximumStacks', context);
+  const tierTwo = balanceProfileNumber(burstTiersProfile, 'threshold');
+  const tierThree = balanceProfileNumber(burstTiersProfile, 'maximumStacks');
   return spent >= tierThree ? 4 : spent >= tierTwo ? 3 : 2;
 }
 
@@ -135,8 +133,8 @@ export function applyRecklessDodge(context: WarriorCastContext, skill: WarriorSk
   if (!hasTrait(context, TRAIT.RECKLESS_DODGE)) return;
 
   const recklessDodgeProfile = requireBalanceProfileFromContext(context, PROFILE.recklessDodge);
-  const strike = requireEffect(recklessDodgeProfile, 'strike', 'Strike', context);
-  const might = requireEffect(recklessDodgeProfile, 'boon', 'might', context);
+  const strike = requireEffect(recklessDodgeProfile, 'strike', 'Strike');
+  const might = requireEffect(recklessDodgeProfile, 'boon', 'might');
   if (strike)
     emitSkillDamage(context, {
       at: context.effectiveEnd,
@@ -146,7 +144,7 @@ export function applyRecklessDodge(context: WarriorCastContext, skill: WarriorSk
       skillId: skill.id,
       skillName: skill.name,
       name: 'Reckless Dodge',
-      coefficient: effectNumber(recklessDodgeProfile, strike, 'coefficient', context)
+      coefficient: effectNumber(recklessDodgeProfile, strike, 'coefficient')
     });
   if (might)
     emitSkillBuff(context, {
@@ -159,13 +157,8 @@ export function applyRecklessDodge(context: WarriorCastContext, skill: WarriorSk
       name: 'Reckless Dodge — Might',
       kind: 'might',
       boon: 'might',
-      stacks: effectNumber(recklessDodgeProfile, might, 'stacks', context),
-      duration: gw2SchedulerBoonDuration(
-        context,
-        skill,
-        'might',
-        effectNumber(recklessDodgeProfile, might, 'duration', context)
-      )
+      stacks: effectNumber(recklessDodgeProfile, might, 'stacks'),
+      duration: gw2SchedulerBoonDuration(context, skill, 'might', effectNumber(recklessDodgeProfile, might, 'duration'))
     });
 }
 
@@ -179,10 +172,10 @@ export function grantBerserkersPower(
   const granted = Math.max(0, requestedStacks);
   if (!granted) return;
   const berserkersPowerProfile = requireBalanceProfileFromContext(context, PROFILE.berserkersPower);
-  const effect = requireEffect(berserkersPowerProfile, 'buff', 'berserkers-power', context);
+  const effect = requireEffect(berserkersPowerProfile, 'buff', 'berserkers-power');
   // Removed packets do not open their associated state or schedule follow-ups.
   if (!effect) return;
-  const duration = effectNumber(berserkersPowerProfile, effect, 'duration', context);
+  const duration = effectNumber(berserkersPowerProfile, effect, 'duration');
   // Buff applications own expiry and retain overflow beyond the visible stack cap.
   emitSkillBuff(context, {
     at,
@@ -204,7 +197,7 @@ export function grantBerserkersPower(
 export function applyPeakPerformanceCastStart(context: WarriorCastContext, skill: WarriorSkill): void {
   if (!skill.categories?.includes('Physical') || !hasTrait(context, TRAIT.PEAK_PERFORMANCE)) return;
   const peakPerformanceProfile = requireBalanceProfileFromContext(context, PROFILE.peakPerformance);
-  const effect = requireEffect(peakPerformanceProfile, 'buff', 'peak-performance', context);
+  const effect = requireEffect(peakPerformanceProfile, 'buff', 'peak-performance');
   // Removed packets do not open their associated state or schedule follow-ups.
   if (!effect) return;
   let at = context.effectiveEnd;
@@ -228,8 +221,8 @@ export function applyPeakPerformanceCastStart(context: WarriorCastContext, skill
     skillName: skill.name,
     name: 'Peak Performance',
     kind: 'peak-performance',
-    stacks: effectNumber(peakPerformanceProfile, effect, 'stacks', context),
-    duration: effectNumber(peakPerformanceProfile, effect, 'duration', context)
+    stacks: effectNumber(peakPerformanceProfile, effect, 'stacks'),
+    duration: effectNumber(peakPerformanceProfile, effect, 'duration')
   });
 }
 
@@ -240,8 +233,8 @@ export function applyBraveStrideCastComplete(context: WarriorCastContext, skill:
   }
 
   const braveStrideProfile = requireBalanceProfileFromContext(context, PROFILE.braveStride);
-  const stability = requireEffect(braveStrideProfile, 'boon', 'stability', context);
-  gainWarriorAdrenaline(context, balanceProfileNumber(braveStrideProfile, 'resourceGain', context));
+  const stability = requireEffect(braveStrideProfile, 'boon', 'stability');
+  gainWarriorAdrenaline(context, balanceProfileNumber(braveStrideProfile, 'resourceGain'));
   if (stability)
     emitSkillBuff(context, {
       at: context.effectiveEnd,
@@ -253,12 +246,12 @@ export function applyBraveStrideCastComplete(context: WarriorCastContext, skill:
       name: 'Brave Stride',
       kind: 'stability',
       boon: 'stability',
-      stacks: effectNumber(braveStrideProfile, stability, 'stacks', context),
+      stacks: effectNumber(braveStrideProfile, stability, 'stacks'),
       duration: gw2SchedulerBoonDuration(
         context,
         skill,
         'stability',
-        effectNumber(braveStrideProfile, stability, 'duration', context)
+        effectNumber(braveStrideProfile, stability, 'duration')
       )
     });
 }
@@ -281,8 +274,8 @@ export function applyBodyBlow(context: WarriorSchedulerContext, event: WarriorSi
       (effect) =>
         [
           String(effect.condition),
-          effectNumber(profile, effect, 'duration', context),
-          effectNumber(profile, effect, 'stacks', context)
+          effectNumber(profile, effect, 'duration'),
+          effectNumber(profile, effect, 'stacks')
         ] as const
     )) {
     emitSkillCondition(context, {
@@ -310,14 +303,14 @@ export function applyAggressiveOnslaught(context: WarriorSchedulerContext, event
   const state = professionCoreState(context);
 
   const aggressiveOnslaughtProfile = requireBalanceProfileFromContext(context, PROFILE.aggressiveOnslaught);
-  const quickness = requireEffect(aggressiveOnslaughtProfile, 'boon', 'quickness', context);
+  const quickness = requireEffect(aggressiveOnslaughtProfile, 'boon', 'quickness');
   // Reserve this trait's own deadline before emitting its effects.
   if (
     !tryConsumeProcCooldown(
       state.traitProcReadyAt,
       'aggressiveOnslaught',
       event.at,
-      balanceProfileNumber(aggressiveOnslaughtProfile, 'internalCooldown', context)
+      balanceProfileNumber(aggressiveOnslaughtProfile, 'internalCooldown')
     )
   )
     return;
@@ -336,8 +329,8 @@ export function applyAggressiveOnslaught(context: WarriorSchedulerContext, event
       name: 'Aggressive Onslaught',
       kind: 'quickness',
       boon: 'quickness',
-      duration: effectNumber(aggressiveOnslaughtProfile, quickness, 'duration', context),
-      stacks: effectNumber(aggressiveOnslaughtProfile, quickness, 'stacks', context),
+      duration: effectNumber(aggressiveOnslaughtProfile, quickness, 'duration'),
+      stacks: effectNumber(aggressiveOnslaughtProfile, quickness, 'stacks'),
       audience: { recipients: 'self' as const }
     });
 }
@@ -345,11 +338,8 @@ export function applyAggressiveOnslaught(context: WarriorSchedulerContext, event
 // Restore endurance at the first qualifying hit of a burst activation.
 export function applyBuildingMomentum(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (!hasTrait(context, TRAIT.BUILDING_MOMENTUM)) return;
-  gainWarriorEndurance(
-    context,
-    balanceProfileNumberFromContext(context, PROFILE.buildingMomentum, 'resourceGain'),
-    event.at
-  );
+  const buildingMomentumProfile = requireBalanceProfileFromContext(context, PROFILE.buildingMomentum);
+  gainWarriorEndurance(context, balanceProfileNumber(buildingMomentumProfile, 'resourceGain'), event.at);
 }
 
 // Resolve Strength-owned attributes without hiding their formulas in the cross-line composer.
@@ -360,22 +350,24 @@ export function modifyWarriorStrengthAttributes(
   gearPower: number
 ): void {
   if (hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)) {
+    const pinnacleOfStrengthProfile = requireBalanceProfileFromContext(context, PROFILE.pinnacleOfStrength);
     result.power +=
       Number(context.query?.mightStacksAt(context.time, context.runtime, context.event) || 0) *
-      balanceProfileNumberFromContext(context, PROFILE.pinnacleOfStrength, 'attributeBonus');
+      balanceProfileNumber(pinnacleOfStrengthProfile, 'attributeBonus');
   }
 
   if (hasTrait(context, TRAIT.FORCEFUL_GREATSWORD) && !staticRulesApplied) {
     const forcefulGreatswordProfile = requireBalanceProfileFromContext(context, PROFILE.forcefulGreatsword);
     result.power +=
-      balanceProfileNumber(forcefulGreatswordProfile, 'attributeBonus', context) +
+      balanceProfileNumber(forcefulGreatswordProfile, 'attributeBonus') +
       Number(warriorWieldingWeapon(context, 'Greatsword')) *
-        balanceProfileNumber(forcefulGreatswordProfile, 'weaponAttributeBonus', context);
+        balanceProfileNumber(forcefulGreatswordProfile, 'weaponAttributeBonus');
   }
 
   if (hasTrait(context, TRAIT.GREAT_FORTITUDE) && !staticRulesApplied) {
+    const greatFortitudeProfile = requireBalanceProfileFromContext(context, PROFILE.greatFortitude);
     // Static builds already bake this gear-only conversion; live Might and signets must not feed it.
-    const conversion = balanceProfileNumberFromContext(context, PROFILE.greatFortitude, 'attributeConversion');
+    const conversion = balanceProfileNumber(greatFortitudeProfile, 'attributeConversion');
     result.vitality += gearPower * conversion;
     result.ferocity += gearPower * conversion;
   }
@@ -386,7 +378,8 @@ export const warriorStrengthModifierRules: readonly Gw2ModifierRule[] = Object.f
     id: 'warrior.pinnacle-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.PINNACLE_OF_STRENGTH, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PINNACLE_OF_STRENGTH), 'criticalChance'),
     when: (context) => hasTrait(context, TRAIT.PINNACLE_OF_STRENGTH)
   },
   {

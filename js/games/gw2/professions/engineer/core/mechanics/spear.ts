@@ -1,5 +1,8 @@
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 /**
@@ -69,10 +72,11 @@ export function scheduleLightningRod(context: EngineerCastContext, skill: Engine
 /** Applies Conduit Surge's Focused window and emits its synchronized state and skill events. */
 export function scheduleConduitSurge(context: EngineerCastContext, skill: EngineerSkill): void {
   const at = context.effectiveEnd;
+  const conduitSurgeProfile = requireBalanceProfileFromContext(context, PROFILE.conduitSurge);
   // update focusedUntil in scheduler state for subsequent availability/damage checks
   professionCoreState(context).focusedUntil = Math.max(
     professionCoreState(context).focusedUntil,
-    at + balanceProfileNumberFromContext(context, PROFILE.conduitSurge, 'durationMultiplier')
+    at + balanceProfileNumber(conduitSurgeProfile, 'durationMultiplier')
   );
   // also emit a state event so the resolver's Focused window is synchronized
   emitEngineerStateSnapshot(context, at, 'conduit-surge');

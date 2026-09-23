@@ -1,6 +1,9 @@
 import { actorLoop } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import {
@@ -55,7 +58,8 @@ function rangerPetAttributes(context?: RangerSchedulerContext | RangerResolverCo
 
   if (context) {
     if (hasTrait(context, TRAIT.PACK_ALPHA)) {
-      const bonus = balanceProfileNumberFromContext(context, PROFILE.packAlpha, 'weaponAttributeBonus');
+      const packAlphaProfile = requireBalanceProfileFromContext(context, PROFILE.packAlpha);
+      const bonus = balanceProfileNumber(packAlphaProfile, 'weaponAttributeBonus');
       power += bonus;
       precision += bonus;
       toughness += bonus;
@@ -64,15 +68,18 @@ function rangerPetAttributes(context?: RangerSchedulerContext | RangerResolverCo
     }
 
     if (hasTrait(context, TRAIT.STRIDERS_STRENGTH)) {
-      power += balanceProfileNumberFromContext(context, PROFILE.stridersStrength, 'attributeBonus');
+      const stridersStrengthProfile = requireBalanceProfileFromContext(context, PROFILE.stridersStrength);
+      power += balanceProfileNumber(stridersStrengthProfile, 'attributeBonus');
     }
 
     if (hasTrait(context, TRAIT.HONED_AXES)) {
-      ferocity += balanceProfileNumberFromContext(context, PROFILE.honedAxes, 'attributeBonus');
+      const honedAxesProfile = requireBalanceProfileFromContext(context, PROFILE.honedAxes);
+      ferocity += balanceProfileNumber(honedAxesProfile, 'attributeBonus');
     }
 
     if (hasTrait(context, TRAIT.PETS_PROWESS)) {
-      ferocity += balanceProfileNumberFromContext(context, PROFILE.petsProwess, 'attributeBonus');
+      const petsProwessProfile = requireBalanceProfileFromContext(context, PROFILE.petsProwess);
+      ferocity += balanceProfileNumber(petsProwessProfile, 'attributeBonus');
     }
 
     // Independent pet strikes resolve critical stats from this metadata, not player attribute modifiers.
@@ -80,14 +87,16 @@ function rangerPetAttributes(context?: RangerSchedulerContext | RangerResolverCo
       hasTrait(context, TRAIT.FANG_AND_CLAW) &&
       ['feline', 'avian', 'drake'].includes(rangerPetByName(petName).family)
     ) {
-      precision += balanceProfileNumberFromContext(context, PROFILE.fangAndClaw, 'attributeBonus');
-      ferocity += balanceProfileNumberFromContext(context, PROFILE.fangAndClaw, 'weaponAttributeBonus');
+      const fangAndClawProfile = requireBalanceProfileFromContext(context, PROFILE.fangAndClaw);
+      precision += balanceProfileNumber(fangAndClawProfile, 'attributeBonus');
+      ferocity += balanceProfileNumber(fangAndClawProfile, 'weaponAttributeBonus');
     }
 
     if (hasTrait(context, TRAIT.ARACHNOPHOBIA)) {
-      expertise += balanceProfileNumberFromContext(context, PROFILE.arachnophobia, 'attributeBonus');
+      const arachnophobiaProfile = requireBalanceProfileFromContext(context, PROFILE.arachnophobia);
+      expertise += balanceProfileNumber(arachnophobiaProfile, 'attributeBonus');
       if (['spider', 'devourer'].includes(rangerPetByName(petName).family)) {
-        expertise += balanceProfileNumberFromContext(context, PROFILE.arachnophobia, 'weaponAttributeBonus');
+        expertise += balanceProfileNumber(arachnophobiaProfile, 'weaponAttributeBonus');
       }
     }
 
@@ -97,7 +106,8 @@ function rangerPetAttributes(context?: RangerSchedulerContext | RangerResolverCo
       petHasSelectedSkill(scheduler, 'Signet of the Wild') &&
       Number(scheduler.state.cooldowns.get(ID.SIGNET_OF_THE_WILD) || 0) <= scheduler.state.time
     ) {
-      ferocity += balanceProfileNumberFromContext(context, PROFILE.signetOfTheWild, 'attributeBonus');
+      const signetOfTheWildProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfTheWild);
+      ferocity += balanceProfileNumber(signetOfTheWildProfile, 'attributeBonus');
     }
   }
 

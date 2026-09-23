@@ -2,8 +2,9 @@ import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -38,13 +39,8 @@ function reactToAmalgamDamage(context: EngineerResolverContext, event: EngineerR
   if (!(Number(event.coefficient) > 0)) return;
   const state = procState(context);
   if (hasTrait(context, TRAIT.CARBOLIC_COMPOSITION) && isAmalgamSkillHit(context, event)) {
-    const poison = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.carbolicComposition,
-      'condition',
-      'Poisoned'
-    );
+    const carbolicCompositionProfile = requireBalanceProfileFromContext(context, PROFILE.carbolicComposition);
+    const poison = requireEffect(carbolicCompositionProfile, 'condition', 'Poisoned');
     if (poison) {
       applyEngineerDerivedCondition(context, event, {
         name: 'Carbolic Composition',
@@ -58,8 +54,9 @@ function reactToAmalgamDamage(context: EngineerResolverContext, event: EngineerR
     }
   }
 
+  const rapaciousStrainProfile = requireBalanceProfileFromContext(context, PROFILE.rapaciousStrain);
   // Rapacious requires both states and cannot trigger itself, even with a zero authored ICD.
-  const cooldown = balanceProfileNumberFromContext(context, PROFILE.rapaciousStrain, 'internalCooldown');
+  const cooldown = balanceProfileNumber(rapaciousStrainProfile, 'internalCooldown');
   if (
     event.actorType !== 'summon' &&
     event.sourceId !== 'engineer.rapacious-strain' &&
@@ -68,13 +65,7 @@ function reactToAmalgamDamage(context: EngineerResolverContext, event: EngineerR
     (cooldown === 0 || isInternalCooldownReady(event.at, Number(state.rapacious || 0)))
   ) {
     state.rapacious = event.at + cooldown;
-    const strike = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.rapaciousStrain,
-      'strike',
-      'Rapacious Strain'
-    );
+    const strike = requireEffect(rapaciousStrainProfile, 'strike', 'Rapacious Strain');
     // Keep Rapacious effect-owned for proc gating while inheriting the player's outgoing modifiers.
     if (strike) {
       queueDamage(context, event, {

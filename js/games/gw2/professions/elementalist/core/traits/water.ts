@@ -1,7 +1,8 @@
 /** Imperative Water trait behavior; post-cast ordering stays in the trait dispatcher. */
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -24,23 +25,18 @@ export function applySoothingIce(
     return;
   }
 
+  const soothingIceProfile = requireBalanceProfileFromContext(context, PROFILE.soothingIce);
   // Claim the existing owner-local timer before any derived effect.
   if (
     !tryConsumeProcCooldown(
       state.procReadyAt,
       'soothingIce',
       at,
-      balanceProfileNumberFromContext(context, PROFILE.soothingIce, 'internalCooldown')
+      balanceProfileNumber(soothingIceProfile, 'internalCooldown')
     )
   )
     return;
-  const soothingIceFrostAura = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.soothingIce,
-    'buff',
-    'Frost Aura'
-  );
+  const soothingIceFrostAura = requireEffect(soothingIceProfile, 'buff', 'Frost Aura');
   if (soothingIceFrostAura) {
     applyAura(context, {
       at,

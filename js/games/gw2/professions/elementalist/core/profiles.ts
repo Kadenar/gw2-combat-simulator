@@ -84,7 +84,7 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 // Effect-literal builders keep the profile table below readable; the `name`
-// is the lookup key callers pass to `requireEffectFromContext`.
+// is the lookup key callers pass to `requireEffect`.
 const namedBoon = (name: string, boon: string, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',
   name,

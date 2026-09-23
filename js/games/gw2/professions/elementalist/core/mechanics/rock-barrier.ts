@@ -1,6 +1,9 @@
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 /** Owns the Rock Barrier/Hurl flip window and its delayed root-skill recharge. */
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
@@ -15,12 +18,13 @@ export const elementalistRockBarrierMechanicHandlers = Object.freeze({
     context: ElementalistSchedulerContext;
     at: number;
   }): void => {
+    const rockBarrierProfile = requireBalanceProfileFromContext(context, PROFILE.rockBarrier);
     // Store one exact deadline for Hurl availability, presentation, and natural recharge.
     armSkillFlip(
       professionCoreState(context).availableFlips,
       ID.HURL,
       at,
-      at + balanceProfileNumberFromContext(context, PROFILE.rockBarrier, 'durationMultiplier')
+      at + balanceProfileNumber(rockBarrierProfile, 'durationMultiplier')
     );
   },
   'elementalist.core.release-rock-barrier': ({

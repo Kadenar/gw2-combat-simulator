@@ -32,7 +32,7 @@ export const CATALYST_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 // Named boon/aura effect shorthands; `name` is the lookup key handlers pass to
-// requireEffectFromContext (usually the attunement), not the buff itself.
+// requireEffect (usually the attunement), not the buff itself.
 const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',
   name,

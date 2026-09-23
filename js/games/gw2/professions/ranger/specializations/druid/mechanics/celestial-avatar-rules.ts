@@ -8,7 +8,8 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -166,7 +167,8 @@ export const druidModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'ranger.natural-balance-condition-duration',
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, TRAIT.NATURAL_BALANCE, 'conditionDurationBonus'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.NATURAL_BALANCE), 'conditionDurationBonus'),
     when: naturalBalanceActive
   }
 ]);
@@ -177,7 +179,8 @@ function modifyDruidAttributes(context: Gw2ModifierContext, attributes: Gw2Resol
   const staticRulesApplied = professionStaticRulesApplied(context.config);
   if (staticRulesApplied && context.event?.actorType === 'summon') return attributes;
   const result = { ...attributes };
-  const vitality = balanceProfileNumberFromContext(context, PROFILE.naturalFortitude, 'attributeBonus');
+  const naturalFortitudeProfile = requireBalanceProfileFromContext(context, PROFILE.naturalFortitude);
+  const vitality = balanceProfileNumber(naturalFortitudeProfile, 'attributeBonus');
   result.vitality = Number(result.vitality || 0) + (staticRulesApplied ? 0 : vitality);
   return result;
 }

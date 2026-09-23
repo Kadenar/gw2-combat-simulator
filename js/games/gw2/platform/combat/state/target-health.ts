@@ -44,3 +44,16 @@ export function remainingTargetHealthFraction(
   if (!(maximum > 0)) return null;
   return clamp(1 - targetHealthLoss(config, state) / maximum, 0, 1);
 }
+
+/**
+ * Owns the "target below X% health" contract: strictly below, so a target sitting exactly at the threshold does not
+ * qualify, and an unbounded target never does. Every health-gated rule uses this so the boundary cannot drift.
+ */
+export function remainingTargetHealthBelow(
+  config: Pick<Gw2Config, 'target'> | null | undefined,
+  state: Gw2TargetDamageState | null | undefined,
+  threshold: number
+): boolean {
+  const fraction = remainingTargetHealthFraction(config, state);
+  return fraction != null && fraction < threshold;
+}

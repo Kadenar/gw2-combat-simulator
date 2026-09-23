@@ -321,10 +321,13 @@ test('required Thief tuning fails contextually and accepts a real zero', () => {
     balanceDataContext: { professionId: 'thief', patchId: 'invalid-thief' }
   };
   const context = { catalog, config: { selectedTraitIds: [TRAIT.MUG] } };
+  // Resolved profiles carry their own source, so diagnostics need no runtime context.
+  const { balanceDataContext } = catalog;
   for (const value of [undefined, null, '1', NaN, Infinity]) {
     catalog.balanceProfilesById.set(CORE.resources, {
       ...thiefCatalog.balanceProfilesById.get(CORE.resources),
-      resourceGain: value
+      resourceGain: value,
+      balanceDataContext
     });
     assert.throws(
       () => thiefInitiativeRegenerationRate({ kneeling: false }, context),
@@ -332,7 +335,8 @@ test('required Thief tuning fails contextually and accepts a real zero', () => {
     );
     catalog.balanceProfilesById.set(CORE.mug, {
       ...thiefCatalog.balanceProfilesById.get(CORE.mug),
-      effects: [{ type: 'strike', name: 'Mug', coefficient: value, hits: 1 }]
+      effects: [{ type: 'strike', name: 'Mug', coefficient: value, hits: 1 }],
+      balanceDataContext
     });
     assert.throws(
       () => applyMug(context, 0),

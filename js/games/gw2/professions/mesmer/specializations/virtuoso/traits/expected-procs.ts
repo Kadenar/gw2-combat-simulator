@@ -1,7 +1,8 @@
 import { eventReaction, scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import {
-  balanceProfileNumberFromContext,
-  requireEffectFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -40,8 +41,9 @@ export const bloodsongReaction = scheduledReaction<
     const runtime = mesmerRuntimeFor(context);
     const state = virtuosoState.from(context);
     state.bloodsongProgress += Number(payload.stacks || 0);
-    const threshold = balanceProfileNumberFromContext(context, TRAIT.BLOODSONG, 'threshold');
-    const resourceGain = balanceProfileNumberFromContext(context, TRAIT.BLOODSONG, 'resourceGain');
+    const bloodsongProfile = requireBalanceProfileFromContext(context, TRAIT.BLOODSONG);
+    const threshold = balanceProfileNumber(bloodsongProfile, 'threshold');
+    const resourceGain = balanceProfileNumber(bloodsongProfile, 'resourceGain');
     // A disabled threshold must not enqueue an unbounded number of blade gains.
     while (threshold > 0 && state.bloodsongProgress >= threshold - PROC_PROGRESS_TOLERANCE) {
       state.bloodsongProgress -= threshold;
@@ -81,7 +83,8 @@ export const jaggedMindReaction = eventReaction<MesmerSchedulerContext>({
       materialization: 'weighted'
     });
     if (!application) return;
-    const effect = requireEffectFromContext(context, 'balance-profile', TRAIT.JAGGED_MIND, 'condition', 'Bleeding');
+    const jaggedMindProfile = requireBalanceProfileFromContext(context, TRAIT.JAGGED_MIND);
+    const effect = requireEffect(jaggedMindProfile, 'condition', 'Bleeding');
     if (!effect) return;
     emitSkillCondition(context, {
       cause: event,

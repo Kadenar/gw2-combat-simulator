@@ -1,7 +1,6 @@
 import {
   requireBalanceProfileFromContext,
-  balanceProfileNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
@@ -114,14 +113,16 @@ type DragonTriggerContext = WarriorCastContext | WarriorSchedulerContext;
 export function maximumDragonCharges(context: DragonTriggerContext): number {
   const dragonTriggerProfile = requireBalanceProfileFromContext(context, PROFILE.dragonTrigger);
   return hasTrait(context, TRAIT.DARING_DRAGON)
-    ? balanceProfileNumber(dragonTriggerProfile, 'minimumStacks', context)
-    : balanceProfileNumber(dragonTriggerProfile, 'maximumStacks', context);
+    ? balanceProfileNumber(dragonTriggerProfile, 'minimumStacks')
+    : balanceProfileNumber(dragonTriggerProfile, 'maximumStacks');
 }
 
 export function dragonFlowPerInterval(context: DragonTriggerContext): number {
-  const cost = balanceProfileNumberFromContext(context, PROFILE.dragonTrigger, 'resourceCost');
+  const dragonTriggerProfile = requireBalanceProfileFromContext(context, PROFILE.dragonTrigger);
+  const cost = balanceProfileNumber(dragonTriggerProfile, 'resourceCost');
   return hasTrait(context, TRAIT.DARING_DRAGON)
-    ? cost * balanceProfileNumberFromContext(context, TRAIT.DARING_DRAGON, 'resourceCostMultiplier')
+    ? cost *
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DARING_DRAGON), 'resourceCostMultiplier')
     : cost;
 }
 

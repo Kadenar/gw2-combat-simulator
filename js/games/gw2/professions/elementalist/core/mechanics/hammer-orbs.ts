@@ -6,8 +6,9 @@
  * Hammer skill fragments live in `skills/weapons/hammer.ts`.
  */
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -42,10 +43,11 @@ export function scheduleGrandFinaleProfile(context: ElementalistCastContext, ski
     return expiresAt != null && expiresAt >= context.start;
   });
 
-  const at = context.effectiveEnd + balanceProfileNumberFromContext(context, PROFILE.grandFinale, 'initialDelay');
+  const grandFinaleProfile = requireBalanceProfileFromContext(context, PROFILE.grandFinale);
+  const at = context.effectiveEnd + balanceProfileNumber(grandFinaleProfile, 'initialDelay');
   for (let index = 0; index < active.length; index += 1) {
     const element = active[index];
-    const strike = requireEffectFromContext(context, 'balance-profile', PROFILE.grandFinale, 'strike', element);
+    const strike = requireEffect(grandFinaleProfile, 'strike', element);
     if (strike) {
       emitSkillDamage(context, {
         at,
@@ -104,7 +106,8 @@ export function applyHammerState(context: ElementalistCastContext, skill: Skill)
   const at = context.effectiveEnd;
   const single = HAMMER_ORB_SKILLS[Number(skill.id)];
   if (single) {
-    const orbDuration = balanceProfileNumberFromContext(context, PROFILE.hammerOrbs, 'durationMultiplier');
+    const hammerOrbsProfile = requireBalanceProfileFromContext(context, PROFILE.hammerOrbs);
+    const orbDuration = balanceProfileNumber(hammerOrbsProfile, 'durationMultiplier');
     const previouslyActive = new Set(activeHammerOrbElements(state, at));
     // Refresh every live orb's window and stretch the buff event already on the timeline.
     for (const [element, expiresAt] of Object.entries(state.hammerOrbs)) {

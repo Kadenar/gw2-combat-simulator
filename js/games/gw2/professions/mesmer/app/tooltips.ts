@@ -1,4 +1,4 @@
-import { requireEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   tooltipFactorChange,
   tooltipSeconds,
@@ -58,13 +58,8 @@ const shatterTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const native = balanceContext.catalog.skillsById.get(entity.id)!;
   // Resolve by resource tier so removing a strike cannot relabel its surviving neighbors.
   const facts = definition.coefficients.flatMap((_, tier) => {
-    const effect = requireEffectFromContext(
-      balanceContext,
-      'balance-profile',
-      profile.id,
-      'strike',
-      `${tier} resources`
-    );
+    const idProfile = requireBalanceProfileFromContext(balanceContext, profile.id);
+    const effect = requireEffect(idProfile, 'strike', `${tier} resources`);
     if (bladesong && tier === 0) return [];
     const sources = bladesong ? tier : tier + 1;
     const qualifier = `${tier} ${bladesong ? 'blades' : 'clones'} spent`;

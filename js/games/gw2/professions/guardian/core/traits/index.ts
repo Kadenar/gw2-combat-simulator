@@ -4,8 +4,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -88,7 +87,10 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
 
   if (skill.id === GUARDIAN_SKILL_IDS.PURGING_FLAMES) {
     const durationMultiplier = hasTrait(context, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS)
-      ? balanceProfileNumberFromContext(context, PROFILE.masterOfConsecrations, 'durationMultiplier')
+      ? balanceProfileNumber(
+          requireBalanceProfileFromContext(context, PROFILE.masterOfConsecrations),
+          'durationMultiplier'
+        )
       : 1;
     context.replaceEvent(context.action, {
       comboFields: [

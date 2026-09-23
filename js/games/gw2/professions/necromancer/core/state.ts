@@ -1,5 +1,8 @@
 import { NECROMANCER_CORE_BALANCE_PROFILES } from '#gw2/professions/necromancer/core/profiles.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -99,21 +102,20 @@ export function necromancerMaximumHealth(
   let vitality = Number(config.stats?.vitality ?? 1000);
   if (!professionStaticRulesApplied(config)) {
     if (hasTrait(traits, NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE)) {
+      const spitefulFortitudeProfile = requireBalanceProfileFromContext(
+        balanceContext,
+        NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE
+      );
       vitality +=
-        Number(config.stats?.power ?? 1000) *
-        balanceProfileNumberFromContext(
-          balanceContext,
-          NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE,
-          'attributeConversion'
-        );
+        Number(config.stats?.power ?? 1000) * balanceProfileNumber(spitefulFortitudeProfile, 'attributeConversion');
     }
 
     if (hasTrait(traits, NECROMANCER_TRAIT_IDS.VITAL_PERSISTENCE)) {
-      vitality += balanceProfileNumberFromContext(
+      const vitalPersistenceProfile = requireBalanceProfileFromContext(
         balanceContext,
-        NECROMANCER_TRAIT_IDS.VITAL_PERSISTENCE,
-        'attributeBonus'
+        NECROMANCER_TRAIT_IDS.VITAL_PERSISTENCE
       );
+      vitality += balanceProfileNumber(vitalPersistenceProfile, 'attributeBonus');
     }
   }
 

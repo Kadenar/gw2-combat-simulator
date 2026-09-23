@@ -2,7 +2,8 @@ import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
   balanceProfileEffect,
   balanceProfileFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { targetConditionStacks as configuredTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
@@ -103,7 +104,8 @@ export const reaperSchedulerHooks = Object.freeze({
 function modifyReaperAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = cloneNecromancerAttributes(attributes);
   if (hasTrait(context, TRAIT.REAPERS_ONSLAUGHT) && necromancerActiveShroud(context) === 'reaper') {
-    result.ferocity += balanceProfileNumberFromContext(context, PROFILE.reapersOnslaught, 'attributeBonus');
+    const reapersOnslaughtProfile = requireBalanceProfileFromContext(context, PROFILE.reapersOnslaught);
+    result.ferocity += balanceProfileNumber(reapersOnslaughtProfile, 'attributeBonus');
   }
 
   return result;
@@ -133,15 +135,19 @@ export const reaperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     // Each stack of Vulnerability adds 2% crit chance, capped at 25 stacks (50% max bonus).
     // Falls back to configured static stacks when a live query runtime isn't available.
 
-    amount: (context) =>
-      Math.min(
-        balanceProfileNumberFromContext(context, TRAIT.DECIMATE_DEFENSES, 'maximumStacks'),
-        Number(
-          context.query?.targetConditionStacks
-            ? context.query.targetConditionStacks('Vulnerability', context.time, context.runtime)
-            : configuredTargetConditionStacks(context.config || {}, 'Vulnerability', context.time, context.runtime)
-        )
-      ) * balanceProfileNumberFromContext(context, TRAIT.DECIMATE_DEFENSES, 'criticalChancePerStack'),
+    amount: (context) => {
+      const decimateDefensesProfile = requireBalanceProfileFromContext(context, TRAIT.DECIMATE_DEFENSES);
+      return (
+        Math.min(
+          balanceProfileNumber(decimateDefensesProfile, 'maximumStacks'),
+          Number(
+            context.query?.targetConditionStacks
+              ? context.query.targetConditionStacks('Vulnerability', context.time, context.runtime)
+              : configuredTargetConditionStacks(context.config || {}, 'Vulnerability', context.time, context.runtime)
+          )
+        ) * balanceProfileNumber(decimateDefensesProfile, 'criticalChancePerStack')
+      );
+    },
     when: (context) => hasTrait(context, TRAIT.DECIMATE_DEFENSES)
   },
   {

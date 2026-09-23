@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
@@ -7,11 +10,7 @@ import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thie
 
 export function applySkrittSwipeTraits(context: ThiefCastContext, at: number): void {
   if (hasTrait(context.config, TRAIT.KLEPTOMANIAC)) {
-    gainThiefInitiative(
-      context,
-      balanceProfileNumberFromContext(context, PROFILE.kleptomaniac, 'resourceGain'),
-      at,
-      'kleptomaniac'
-    );
+    const kleptomaniacProfile = requireBalanceProfileFromContext(context, PROFILE.kleptomaniac);
+    gainThiefInitiative(context, balanceProfileNumber(kleptomaniacProfile, 'resourceGain'), at, 'kleptomaniac');
   }
 }

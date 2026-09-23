@@ -2,8 +2,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import { reduceMatchingCooldowns } from '#gw2/platform/execution/cooldowns.js';
@@ -62,7 +61,7 @@ export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number
 
   const traitProfile = requireBalanceProfileFromContext(context, traitId);
   if (traitId === TRAIT.UNSEEN_SWORD) {
-    const strike = requireEffect(traitProfile, 'strike', 'Strike', context);
+    const strike = requireEffect(traitProfile, 'strike', 'Strike');
     if (strike)
       emitSkillDamage(context, {
         at,
@@ -75,10 +74,10 @@ export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number
         skillName: 'Unseen Sword',
         parentSkillName: context.skill.name,
         name: 'Unseen Sword',
-        coefficient: effectNumber(traitProfile, strike, 'coefficient', context)
+        coefficient: effectNumber(traitProfile, strike, 'coefficient')
       });
   } else if (traitId === TRAIT.SHARP_AS_THE_WIND) {
-    const burning = requireEffect(traitProfile, 'condition', 'Burning', context);
+    const burning = requireEffect(traitProfile, 'condition', 'Burning');
     if (burning)
       emitSkillCondition(context, {
         at,
@@ -90,11 +89,11 @@ export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number
         skillName: 'Unsheathe Gunsaber',
         name: 'Sharp as the Wind — Burning',
         condition: 'Burning',
-        stacks: effectNumber(traitProfile, burning, 'stacks', context),
-        duration: effectNumber(traitProfile, burning, 'duration', context)
+        stacks: effectNumber(traitProfile, burning, 'stacks'),
+        duration: effectNumber(traitProfile, burning, 'duration')
       });
   } else if (traitId === TRAIT.RIVERS_FLOW) {
-    const might = requireEffect(traitProfile, 'boon', 'might', context);
+    const might = requireEffect(traitProfile, 'boon', 'might');
     if (might)
       emitSkillBuff(context, {
         at,
@@ -106,22 +105,22 @@ export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number
         name: "River's Flow — Might",
         kind: 'might',
         boon: 'might',
-        stacks: effectNumber(traitProfile, might, 'stacks', context),
+        stacks: effectNumber(traitProfile, might, 'stacks'),
         duration: gw2SchedulerBoonDuration(
           context,
           context.skill,
           'might',
-          effectNumber(traitProfile, might, 'duration', context)
+          effectNumber(traitProfile, might, 'duration')
         ),
         audience: { recipients: 'party' as const }
       });
   }
 
-  state.gunsaberSwapTraitReadyAt = at + balanceProfileNumber(traitProfile, 'internalCooldown', context);
-  const positiveFlow = requireEffect(traitProfile, 'buff', 'positive-flow', context);
+  state.gunsaberSwapTraitReadyAt = at + balanceProfileNumber(traitProfile, 'internalCooldown');
+  const positiveFlow = requireEffect(traitProfile, 'buff', 'positive-flow');
   // Removed packets do not open their associated state or schedule follow-ups.
   if (!positiveFlow) return;
-  const positiveFlowDuration = effectNumber(traitProfile, positiveFlow, 'duration', context);
+  const positiveFlowDuration = effectNumber(traitProfile, positiveFlow, 'duration');
   // Keep a continuous regeneration window across live refreshes; reopen only after its exact endpoint.
   if (state.traitPositiveFlowUntil <= at) {
     state.traitPositiveFlowStartedAt = at;
@@ -138,7 +137,7 @@ export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number
       skillName: 'Unsheathe Gunsaber',
       name: 'Positive Flow',
       kind: 'positive-flow',
-      stacks: effectNumber(traitProfile, positiveFlow, 'stacks', context),
+      stacks: effectNumber(traitProfile, positiveFlow, 'stacks'),
       duration: positiveFlowDuration
     });
 }
@@ -147,7 +146,7 @@ export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number
 export function applyDragonTriggerEntryTraits(context: WarriorCastContext, skill: WarriorSkill): void {
   if (!hasTrait(context, TRAIT.DRAGONSCALE_DEFENSE)) return;
   const dragonscaleDefenseProfile = requireBalanceProfileFromContext(context, PROFILE.dragonscaleDefense);
-  const stability = requireEffect(dragonscaleDefenseProfile, 'boon', 'stability', context);
+  const stability = requireEffect(dragonscaleDefenseProfile, 'boon', 'stability');
   if (stability)
     emitSkillBuff(context, {
       at: context.effectiveEnd,
@@ -159,12 +158,12 @@ export function applyDragonTriggerEntryTraits(context: WarriorCastContext, skill
       name: 'Dragonscale Defense',
       kind: 'stability',
       boon: 'stability',
-      stacks: effectNumber(dragonscaleDefenseProfile, stability, 'stacks', context),
+      stacks: effectNumber(dragonscaleDefenseProfile, stability, 'stacks'),
       duration: gw2SchedulerBoonDuration(
         context,
         skill,
         'stability',
-        effectNumber(dragonscaleDefenseProfile, stability, 'duration', context)
+        effectNumber(dragonscaleDefenseProfile, stability, 'duration')
       )
     });
 }
@@ -185,7 +184,7 @@ export function applyDragonSlashTraits(context: WarriorCastContext, skill: Warri
 
   if (hasTrait(context, TRAIT.DARING_DRAGON)) {
     const daringDragonProfile = requireBalanceProfileFromContext(context, TRAIT.DARING_DRAGON);
-    const alacrity = requireEffect(daringDragonProfile, 'boon', 'alacrity', context);
+    const alacrity = requireEffect(daringDragonProfile, 'boon', 'alacrity');
     if (alacrity)
       emitSkillBuff(context, {
         at: context.effectiveEnd,
@@ -197,12 +196,12 @@ export function applyDragonSlashTraits(context: WarriorCastContext, skill: Warri
         name: 'Daring Dragon — Alacrity',
         kind: 'alacrity',
         boon: 'alacrity',
-        stacks: effectNumber(daringDragonProfile, alacrity, 'stacks', context),
+        stacks: effectNumber(daringDragonProfile, alacrity, 'stacks'),
         duration: gw2SchedulerBoonDuration(
           context,
           skill,
           'alacrity',
-          effectNumber(daringDragonProfile, alacrity, 'duration', context)
+          effectNumber(daringDragonProfile, alacrity, 'duration')
         ),
         audience: { recipients: 'party' as const }
       });
@@ -231,7 +230,8 @@ function skillIsOnActiveBar(context: WarriorCastContext, skill: WarriorSkill): b
 }
 
 function activateLushForest(context: WarriorCastContext, sourceSkill: WarriorSkill, at: number): void {
-  const rechargeReduction = balanceProfileNumberFromContext(context, PROFILE.lushForest, 'rechargeReduction');
+  const lushForestProfile = requireBalanceProfileFromContext(context, PROFILE.lushForest);
+  const rechargeReduction = balanceProfileNumber(lushForestProfile, 'rechargeReduction');
   const cooldownReduction = reduceMatchingCooldowns(
     context,
     (skill) => !LUSH_FOREST_EXCLUDED_SKILL_IDS.has(Number(skill.id)) && skillIsOnActiveBar(context, skill),
@@ -264,9 +264,9 @@ export function applyBladeswornCompletionTraits(
 ): void {
   if (roundsSpent > 0 && hasTrait(context, TRAIT.FIERCE_AS_FIRE)) {
     const fierceAsFireProfile = requireBalanceProfileFromContext(context, PROFILE.fierceAsFire);
-    const effect = requireEffect(fierceAsFireProfile, 'buff', 'fierce-as-fire', context);
+    const effect = requireEffect(fierceAsFireProfile, 'buff', 'fierce-as-fire');
     if (effect) {
-      const duration = effectNumber(fierceAsFireProfile, effect, 'duration', context);
+      const duration = effectNumber(fierceAsFireProfile, effect, 'duration');
       // Buff applications are the shared source for live stacks and their presentation.
       emitSkillBuff(context, {
         at,
@@ -304,8 +304,8 @@ export function observeBladeswornExplosionTraits(
   const remaining = Math.max(0, state.gunsAndGloryUntil - event.at);
   const gunsAndGloryProfile = requireBalanceProfileFromContext(context, PROFILE.gunsAndGlory);
   const duration = Math.min(
-    balanceProfileNumber(gunsAndGloryProfile, 'maximumStacks', context),
-    remaining + balanceProfileNumber(gunsAndGloryProfile, 'resourceGain', context)
+    balanceProfileNumber(gunsAndGloryProfile, 'maximumStacks'),
+    remaining + balanceProfileNumber(gunsAndGloryProfile, 'resourceGain')
   );
   state.gunsAndGloryUntil = event.at + duration;
   emitSkillBuff(context, {

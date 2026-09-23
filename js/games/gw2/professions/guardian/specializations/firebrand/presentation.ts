@@ -1,5 +1,8 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -156,11 +159,13 @@ export const firebrandUi = Object.freeze({
     // Preview capacity follows the selected catalog even before a simulation supplies resource state.
     const maximum =
       state.maximumTomePages ??
-      balanceProfileNumberFromContext(
-        context,
-        hasTrait(context.config, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS)
-          ? PROFILE.archivistOfWhispers
-          : PROFILE.resources,
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(
+          context,
+          hasTrait(context.config, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS)
+            ? PROFILE.archivistOfWhispers
+            : PROFILE.resources
+        ),
         'maximumStacks'
       );
     const simulationTime = Number(context.simulationTime || 0);

@@ -1224,7 +1224,6 @@ test('Kill Shot scales with adrenaline, stays level one on Spellbreaker, and gai
       initialResource,
       primaryWeapon: 'Rifle',
       stats: { precision: 0, ferocity: 0 },
-      targetHealthFraction: 1,
       target: { defiant: false, conditions: {} },
       ...config
     });
@@ -1238,7 +1237,7 @@ test('Kill Shot scales with adrenaline, stays level one on Spellbreaker, and gai
 
   const normal = killShot('Core', 10);
   const defiant = killShot('Core', 10, { target: { defiant: true, conditions: {} } });
-  const belowHalf = killShot('Core', 10, { targetHealthFraction: 0.49 });
+  const belowHalf = killShot('Core', 10, { target: { defiant: false, startingHealthFraction: 0.49, conditions: {} } });
 
   assertFlooredDamageMultiplier(defiant.strikeDamage, normal.strikeDamage, 1.2);
   assertFlooredDamageMultiplier(belowHalf.strikeDamage, normal.strikeDamage, 1.2);

@@ -1,7 +1,6 @@
 /** Owns immediate Core Thief action callbacks; persistent summon behavior lives in mechanics. */
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import {
-  balanceProfileNumberFromContext,
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -28,13 +27,8 @@ export function applyThiefWeaponSwapEffects(context: ThiefCastContext): void {
     isInternalCooldownReady(at, Number(state.quickPocketsReadyAt || 0))
   ) {
     const quickPocketsProfile = requireBalanceProfileFromContext(context, PROFILE.quickPockets);
-    state.quickPocketsReadyAt = at + balanceProfileNumber(quickPocketsProfile, 'internalCooldown', context);
-    gainThiefInitiative(
-      context,
-      balanceProfileNumber(quickPocketsProfile, 'resourceGain', context),
-      at,
-      'quick-pockets'
-    );
+    state.quickPocketsReadyAt = at + balanceProfileNumber(quickPocketsProfile, 'internalCooldown');
+    gainThiefInitiative(context, balanceProfileNumber(quickPocketsProfile, 'resourceGain'), at, 'quick-pockets');
   }
 }
 
@@ -54,8 +48,8 @@ export function stand(context: ThiefCastContext): void {
 export function activateAssassinsSignet(context: ThiefCastContext): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  state.assassinsSignetActiveUntil =
-    at + balanceProfileNumberFromContext(context, PROFILE.assassinsSignet, 'durationMultiplier');
+  const assassinsSignetProfile = requireBalanceProfileFromContext(context, PROFILE.assassinsSignet);
+  state.assassinsSignetActiveUntil = at + balanceProfileNumber(assassinsSignetProfile, 'durationMultiplier');
   state.assassinsSignetPassiveDisabledUntil = Number(
     context.rechargeReadyAt || context.state.cooldowns.get(ID.ASSASSINS_SIGNET) || at
   );

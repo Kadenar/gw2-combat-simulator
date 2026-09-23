@@ -2,7 +2,8 @@ import { EPSILON } from '#kernel/core/clock.js';
 /** Connects Core Mesmer resources, profession actions, player effects, and illusions into one simulation runtime. */
 import {
   balanceProfileFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
@@ -49,10 +50,11 @@ function runtimeTraitsPhantasmSpawnModifiers(
   traits: ReadonlySet<number>
 ): Record<number, { countMultiplier: number; damageMultiplier: number }> {
   if (!traits.has(TRAIT.BOUNTIFUL_BLADES)) return {};
+  const bountifulBladesProfile = requireBalanceProfileFromContext(context, PROFILE.bountifulBlades);
   return {
     [ID.PHANTASMAL_BERSERKER]: {
-      countMultiplier: balanceProfileNumberFromContext(context, PROFILE.bountifulBlades, 'summons'),
-      damageMultiplier: balanceProfileNumberFromContext(context, PROFILE.bountifulBlades, 'damageMultiplier')
+      countMultiplier: balanceProfileNumber(bountifulBladesProfile, 'summons'),
+      damageMultiplier: balanceProfileNumber(bountifulBladesProfile, 'damageMultiplier')
     }
   };
 }

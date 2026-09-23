@@ -1,6 +1,5 @@
 import {
   requireBalanceProfileFromContext,
-  balanceProfileNumberFromContext,
   requireEffect,
   effectNumber,
   balanceProfileNumber
@@ -18,7 +17,7 @@ import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/s
 // Starting malice when Deadeye's Mark is applied to a fresh target (Malicious Intent: 2, otherwise: 0)
 export function initialDeadeyeMalice(context: ThiefCastContext): number {
   return hasTrait(context.config, TRAIT.MALICIOUS_INTENT)
-    ? balanceProfileNumberFromContext(context, PROFILE.maliciousIntent, 'resourceGain')
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.maliciousIntent), 'resourceGain')
     : 0;
 }
 
@@ -32,7 +31,7 @@ export function applyMaliciousAshenAssaultCondition(
   if (malice <= 0) return;
 
   const maliciousAshenAssaultProfile = requireBalanceProfileFromContext(context, PROFILE.maliciousAshenAssault);
-  const torment = requireEffect(maliciousAshenAssaultProfile, 'condition', 'Torment', context);
+  const torment = requireEffect(maliciousAshenAssaultProfile, 'condition', 'Torment');
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!torment) return;
   emitSkillCondition(context, {
@@ -42,9 +41,9 @@ export function applyMaliciousAshenAssaultCondition(
     skillName: context.skill?.name ?? null,
     condition: String(torment.condition),
     duration:
-      effectNumber(maliciousAshenAssaultProfile, torment, 'duration', context) +
-      malice * balanceProfileNumber(maliciousAshenAssaultProfile, 'durationMultiplier', context),
-    stacks: effectNumber(maliciousAshenAssaultProfile, torment, 'stacks', context),
+      effectNumber(maliciousAshenAssaultProfile, torment, 'duration') +
+      malice * balanceProfileNumber(maliciousAshenAssaultProfile, 'durationMultiplier'),
+    stacks: effectNumber(maliciousAshenAssaultProfile, torment, 'stacks'),
     sourceId: skill.id,
     name: 'Malicious Ashen Assault — Torment'
   });
@@ -53,7 +52,7 @@ export function applyMaliciousAshenAssaultCondition(
 export function applyDeadeyesMarkTraits(context: ThiefCastContext, at: number): void {
   if (!hasTrait(context.config, TRAIT.BE_QUICK_OR_BE_KILLED)) return;
   const beQuickOrBeKilledProfile = requireBalanceProfileFromContext(context, PROFILE.beQuickOrBeKilled);
-  const quickness = requireEffect(beQuickOrBeKilledProfile, 'boon', 'Quickness', context);
+  const quickness = requireEffect(beQuickOrBeKilledProfile, 'boon', 'Quickness');
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!quickness) return;
   const boon = String(quickness.boon);
@@ -74,9 +73,9 @@ export function applyDeadeyesMarkTraits(context: ThiefCastContext, at: number): 
       context,
       sourceSkill,
       boon,
-      effectNumber(beQuickOrBeKilledProfile, quickness, 'duration', context)
+      effectNumber(beQuickOrBeKilledProfile, quickness, 'duration')
     ),
-    stacks: effectNumber(beQuickOrBeKilledProfile, quickness, 'stacks', context)
+    stacks: effectNumber(beQuickOrBeKilledProfile, quickness, 'stacks')
   });
 }
 
@@ -100,13 +99,8 @@ export function applyDeadeyeStolenSkillTraits(context: ThiefCastContext, at: num
       name: `${source} — ${boon}`,
       kind: boon.toLowerCase(),
       boon,
-      duration: gw2SchedulerBoonDuration(
-        context,
-        sourceSkill,
-        boon,
-        effectNumber(profile, effect, 'duration', context)
-      ),
-      stacks: effectNumber(profile, effect, 'stacks', context),
+      duration: gw2SchedulerBoonDuration(context, sourceSkill, boon, effectNumber(profile, effect, 'duration')),
+      stacks: effectNumber(profile, effect, 'stacks'),
       audience: { recipients: 'party' as const, maximumRecipients: 5 }
     });
   }
@@ -125,7 +119,7 @@ export function applyMaleficentSeven(context: ThiefEmissionContext, at: number):
 
   state.maleficentSevenTriggered = true;
   const profile = requireBalanceProfileFromContext(context, PROFILE.maleficentSeven);
-  gainThiefInitiative(context, balanceProfileNumber(profile, 'resourceGain', context), at, 'maleficent-seven');
+  gainThiefInitiative(context, balanceProfileNumber(profile, 'resourceGain'), at, 'maleficent-seven');
   for (const effect of (profile?.effects || []).filter((entry) => entry.type === 'boon')) {
     const boon = String(effect.boon);
     const source = 'Maleficent Seven';
@@ -141,13 +135,8 @@ export function applyMaleficentSeven(context: ThiefEmissionContext, at: number):
       name: `${source} — ${boon}`,
       kind: boon.toLowerCase(),
       boon,
-      duration: gw2SchedulerBoonDuration(
-        context,
-        sourceSkill,
-        boon,
-        effectNumber(profile, effect, 'duration', context)
-      ),
-      stacks: effectNumber(profile, effect, 'stacks', context)
+      duration: gw2SchedulerBoonDuration(context, sourceSkill, boon, effectNumber(profile, effect, 'duration')),
+      stacks: effectNumber(profile, effect, 'stacks')
     });
   }
 }

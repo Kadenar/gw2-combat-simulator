@@ -6,8 +6,9 @@ import { EPSILON } from '#kernel/core/clock.js';
  */
 import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillControl } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -47,7 +48,8 @@ export function applyWeaverHammerState(context: ElementalistCastContext, skill: 
   if (!elements) return;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  const orbDuration = balanceProfileNumberFromContext(context, CORE_PROFILE.hammerOrbs, 'durationMultiplier');
+  const hammerOrbsProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.hammerOrbs);
+  const orbDuration = balanceProfileNumber(hammerOrbsProfile, 'durationMultiplier');
   // Any orb still alive is extended to the new full duration, including the
   // buff events already placed on the timeline.
   const previouslyActive = new Set(activeHammerOrbElements(state, at));
@@ -91,9 +93,9 @@ export function weaverHammerAvailability(
   const elements = weaverDualAttunements(skill);
   if (!elements) return null;
   const state = professionCoreState(context);
+  const hammerOrbsProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.hammerOrbs);
   // Every dual hammer skill shares one short lockout after the last orb cast.
-  const retryAt =
-    state.hammerOrbLastCastAt + balanceProfileNumberFromContext(context, CORE_PROFILE.hammerOrbs, 'initialDelay');
+  const retryAt = state.hammerOrbLastCastAt + balanceProfileNumber(hammerOrbsProfile, 'initialDelay');
   if (retryAt > context.start + EPSILON) {
     return retryCast(
       retryAt,
@@ -135,7 +137,8 @@ export function applyWeaverPistolState(context: ElementalistCastContext, skill: 
   for (const element of active) {
     state.pistolBullets[element] = false;
     if (skill.id === ID.FROSTFIRE_FLURRY && element === 'Fire') {
-      const aura = requireEffectFromContext(context, 'balance-profile', PROFILE.frostfireFlurry, 'buff', 'Fire');
+      const frostfireFlurryProfile = requireBalanceProfileFromContext(context, PROFILE.frostfireFlurry);
+      const aura = requireEffect(frostfireFlurryProfile, 'buff', 'Fire');
       if (aura) {
         applyElementalistAura(context, {
           at,
@@ -152,7 +155,8 @@ export function applyWeaverPistolState(context: ElementalistCastContext, skill: 
     } else if (skill.id === ID.MOLTEN_METEOR && element === 'Earth') {
       emitProfiledCondition(context, at, PROFILE.moltenMeteor, 'Earth', skill.name, skill.id);
     } else if (skill.id === ID.FLOWING_FINESSE && element === 'Water') {
-      const aura = requireEffectFromContext(context, 'balance-profile', PROFILE.flowingFinesse, 'buff', 'Water');
+      const flowingFinesseProfile = requireBalanceProfileFromContext(context, PROFILE.flowingFinesse);
+      const aura = requireEffect(flowingFinesseProfile, 'buff', 'Water');
       if (aura) {
         applyElementalistAura(context, {
           at,

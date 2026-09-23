@@ -2,10 +2,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumber,
-  balanceProfileNumberFromContext,
-  requireEffectFromContext,
-  effectNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -120,8 +117,9 @@ export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSk
   state.dragonTriggerActive = true;
   state.dragonTriggerStartedAt = context.effectiveEnd;
 
+  const dragonTriggerProfile = requireBalanceProfileFromContext(context, PROFILE.dragonTrigger);
   state.dragonTriggerChargeDeadline = canonicalTime(
-    context.effectiveEnd + balanceProfileNumberFromContext(context, PROFILE.dragonTrigger, 'cooldown')
+    context.effectiveEnd + balanceProfileNumber(dragonTriggerProfile, 'cooldown')
   );
   state.dragonCharges = 0;
   // Tactical Reload doubles charge gain per tick. It is consumed immediately
@@ -155,9 +153,10 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
       ? context.start + 0.72
       : context.effectiveEnd;
   const adrenalineSpent = dragonChargesToAdrenalineSpent(charges);
+  const burstMasteryProfile = requireBalanceProfileFromContext(context, PROFILE.burstMastery);
   applyWarriorBurstSpendTraits(context, skill, adrenalineSpent, {
     resourceSpent: state.dragonTriggerFlowSpent,
-    resourceRefundRate: balanceProfileNumberFromContext(context, PROFILE.burstMastery, 'resourceGain')
+    resourceRefundRate: balanceProfileNumber(burstMasteryProfile, 'resourceGain')
   });
   state.dragonAdrenalineSpentByActivation[context.reservationId] = adrenalineSpent;
   context.emit({
@@ -236,8 +235,7 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
   const strike = requireEffect(
     artilleryProfile,
     'strike',
-    sharpAsTheWind ? 'Strike' : charges >= 2 ? 'Two rounds' : 'One round',
-    context
+    sharpAsTheWind ? 'Strike' : charges >= 2 ? 'Two rounds' : 'One round'
   );
 
   if (strike)
@@ -248,7 +246,7 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
       skillName: skill.name,
       source: 'Warrior',
       actorType: 'player',
-      coefficient: effectNumber(artilleryProfile, strike, 'coefficient', context),
+      coefficient: effectNumber(artilleryProfile, strike, 'coefficient'),
       skillWeapon: 'Gunsaber',
       damageKind: 'explosion',
       projectile: sharpAsTheWind,
@@ -266,7 +264,7 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
     });
   if (sharpAsTheWind) {
     // The condition variant spends the same ammo pool while scaling its Bleeding payload by rounds consumed.
-    const bleeding = requireEffect(artilleryProfile, 'condition', charges >= 2 ? 'Two rounds' : 'One round', context);
+    const bleeding = requireEffect(artilleryProfile, 'condition', charges >= 2 ? 'Two rounds' : 'One round');
 
     if (bleeding)
       emitSkillCondition(context, {
@@ -274,13 +272,13 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
         at: context.effectiveEnd,
         source: 'Warrior',
         condition: String(bleeding.condition),
-        stacks: effectNumber(artilleryProfile, bleeding, 'stacks', context),
-        duration: effectNumber(artilleryProfile, bleeding, 'duration', context)
+        stacks: effectNumber(artilleryProfile, bleeding, 'stacks'),
+        duration: effectNumber(artilleryProfile, bleeding, 'duration')
       });
   }
 
   // Control is a sibling packet, not an unconditional consequence of spending ammunition.
-  const control = requireEffect(artilleryProfile, 'control', 'Control', context);
+  const control = requireEffect(artilleryProfile, 'control', 'Control');
   if (control)
     emitSkillControl(context, {
       at: context.effectiveEnd,
@@ -319,9 +317,9 @@ function dragonFlowRateSegments(
   const segments: DragonFlowRateSegment[] = [];
 
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const baseFlow = balanceProfileNumber(resourcesProfile, 'energyRegenerationPerSecond', context);
-  const stabilizerBonus = balanceProfileNumber(resourcesProfile, 'resourceGain', context);
-  const positiveFlowBonus = balanceProfileNumber(resourcesProfile, 'attributePerStack', context);
+  const baseFlow = balanceProfileNumber(resourcesProfile, 'energyRegenerationPerSecond');
+  const stabilizerBonus = balanceProfileNumber(resourcesProfile, 'resourceGain');
+  const positiveFlowBonus = balanceProfileNumber(resourcesProfile, 'attributePerStack');
   for (let index = 0; index < uniqueBoundaries.length - 1; index += 1) {
     const start = Number(uniqueBoundaries[index]);
     const end = Number(uniqueBoundaries[index + 1]);
@@ -510,23 +508,21 @@ function activateOverchargedCartridges(context: WarriorCastContext, at: number):
   const buff = requireEffect(
     overchargedCartridgesProfile,
     'buff',
-    supercharged ? 'supercharged-cartridges' : 'overcharged-cartridges',
-    context
+    supercharged ? 'supercharged-cartridges' : 'overcharged-cartridges'
   );
   // The selected cartridge buff owns its window; removed Burning leaves the strike bonus intact.
   if (!buff) return;
   const burning = requireEffect(
     overchargedCartridgesProfile,
     'condition',
-    supercharged ? 'Supercharged Burning' : 'Overcharged Burning',
-    context
+    supercharged ? 'Supercharged Burning' : 'Overcharged Burning'
   );
-  const duration = effectNumber(overchargedCartridgesProfile, buff, 'duration', context);
+  const duration = effectNumber(overchargedCartridgesProfile, buff, 'duration');
   state.overchargedCartridgeWindows.push({
     startedAt: at,
     expiresAt: at + duration,
-    damageBonus: effectNumber(overchargedCartridgesProfile, buff, 'damageIncreasePerStack', context),
-    burningDuration: burning ? effectNumber(overchargedCartridgesProfile, burning, 'duration', context) : 0,
+    damageBonus: effectNumber(overchargedCartridgesProfile, buff, 'damageIncreasePerStack'),
+    burningDuration: burning ? effectNumber(overchargedCartridgesProfile, burning, 'duration') : 0,
     supercharged
   });
   if (buff)
@@ -539,7 +535,7 @@ function activateOverchargedCartridges(context: WarriorCastContext, at: number):
       skillName: 'Overcharged Cartridges',
       name: supercharged ? 'Supercharged Cartridges' : 'Overcharged Cartridges',
       kind: supercharged ? 'supercharged-cartridges' : 'overcharged-cartridges',
-      stacks: effectNumber(overchargedCartridgesProfile, buff, 'stacks', context),
+      stacks: effectNumber(overchargedCartridgesProfile, buff, 'stacks'),
       duration
     });
 }
@@ -594,11 +590,13 @@ export function completeBladeswornSkill(context: WarriorCastContext, skill: Warr
 export const bladeswornSkillMechanicHandlers = Object.freeze({
   'warrior.bladesworn.flow-stabilizer': ({
     context,
+    skill,
     at,
     castStart,
     activationId
   }: {
     context: WarriorSchedulerContext;
+    skill: WarriorSkill;
     at: number;
     castStart: number;
     activationId: string;
@@ -609,14 +607,12 @@ export const bladeswornSkillMechanicHandlers = Object.freeze({
     }
 
     // A removed Positive Flow packet cannot open a regeneration window; the conditional instant gain is independent.
-    const flow = requireEffectFromContext(context, 'skill', ID.FLOW_STABILIZER, 'buff', 'Positive Flow');
+    // The activating Flow Stabilizer skill owns the packet, so no catalog lookup is needed.
+    const flow = requireEffect(skill, 'buff', 'Positive Flow');
     if (flow)
       state.flowStabilizerWindows.push({
         startedAt: at,
-        expiresAt: gw2EffectExpiresAt(
-          at,
-          effectNumberFromContext(context, 'skill', ID.FLOW_STABILIZER, flow, 'duration')
-        )
+        expiresAt: gw2EffectExpiresAt(at, effectNumber(skill, flow, 'duration'))
       });
     refreshDragonTriggerEntryProjection(context);
   },
@@ -681,8 +677,7 @@ export function observeBladeswornEvent(context: WarriorSchedulerContext, event: 
     const burning = requireEffect(
       overchargedCartridgesProfile,
       'condition',
-      cartridges.supercharged ? 'Supercharged Burning' : 'Overcharged Burning',
-      context
+      cartridges.supercharged ? 'Supercharged Burning' : 'Overcharged Burning'
     );
     if (burning)
       emitSkillCondition(context, {
@@ -697,7 +692,7 @@ export function observeBladeswornEvent(context: WarriorSchedulerContext, event: 
         skillName: event.skillName,
         name: 'Overcharged Cartridges — Burning',
         condition: 'Burning',
-        stacks: effectNumber(overchargedCartridgesProfile, burning, 'stacks', context),
+        stacks: effectNumber(overchargedCartridgesProfile, burning, 'stacks'),
         duration: cartridges.burningDuration
       });
   }

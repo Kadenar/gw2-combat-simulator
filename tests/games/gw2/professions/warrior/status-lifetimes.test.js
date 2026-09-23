@@ -80,6 +80,7 @@ test('Positive Flow integrates trait and Flow Stabilizer bonuses through their d
     else
       bladeswornSkillMechanicHandlers['warrior.bladesworn.flow-stabilizer']({
         context,
+        skill: context.catalog.skillsById.get(ID.FLOW_STABILIZER),
         at: 0.001,
         castStart: 0.001,
         activationId: 'stabilizer'

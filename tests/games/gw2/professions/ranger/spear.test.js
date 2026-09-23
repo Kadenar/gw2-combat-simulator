@@ -84,7 +84,11 @@ test('Falcon bonus requires a defiant, disabled, or immobilized target at impact
 test('spear leap damage increases only below half target health', () => {
   for (const id of [ID.WARCLAWS_ENGAGE, ID.PREDATORS_AMBUSH]) {
     const rotation = id === ID.PREDATORS_AMBUSH ? [ID.PANTHERS_PROWL, id] : [id];
-    const run = (healthFraction) => strike(simulate('Soulbeast', rotation, { target: { healthFraction } }), id).damage;
+    const run = (healthFraction) =>
+      strike(
+        simulate('Soulbeast', rotation, { target: { health: 1_000_000, startingHealthFraction: healthFraction } }),
+        id
+      ).damage;
     assertFlooredDamageMultiplier(run(0.49), run(0.5), 1.2);
     close(run(0.75) / run(0.5), 1);
   }

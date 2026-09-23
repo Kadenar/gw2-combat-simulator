@@ -2,7 +2,10 @@ import { expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -55,7 +58,8 @@ export function spendAntiquaryResources(context: ThiefCastContext, skill: ThiefS
   if (
     inCombat &&
     hasTrait(context.config, TRAIT.PRODIGIOUS_PINCHER) &&
-    state.initiativeSpentSincePilfer >= balanceProfileNumberFromContext(context, PROFILE.prodigiousPincher, 'threshold')
+    state.initiativeSpentSincePilfer >=
+      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.prodigiousPincher), 'threshold')
   ) {
     pilferArtifacts(context, context.start, 'prodigious-pincher', 'initiative');
   }

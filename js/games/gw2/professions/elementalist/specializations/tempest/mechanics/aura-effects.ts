@@ -3,7 +3,10 @@ import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
  * Owns Tempest resolver reactions to accepted Elementalist auras.
  * Core aura application and shared resolver helpers remain under Core mechanics.
  */
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { tempestAuraBoons } from '#gw2/professions/elementalist/specializations/tempest/mechanics/aura-boons.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -23,8 +26,9 @@ import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/element
  */
 export function applyTempestResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (hasTrait(context, 'Tempestuous Aria')) {
-    const extension = balanceProfileNumberFromContext(context, PROFILE.tempestuousAria, 'durationMultiplier');
-    const maximum = balanceProfileNumberFromContext(context, PROFILE.tempestuousAria, 'maximumStacks');
+    const tempestuousAriaProfile = requireBalanceProfileFromContext(context, PROFILE.tempestuousAria);
+    const extension = balanceProfileNumber(tempestuousAriaProfile, 'durationMultiplier');
+    const maximum = balanceProfileNumber(tempestuousAriaProfile, 'maximumStacks');
     // Extend the newest live application instead of stacking a second one, clamping the new expiry
     // to the maximum window measured from this aura; with none live, start a fresh application.
     const current = activeElementalistBuffs(context, 'Tempestuous Aria', event.at).at(-1);

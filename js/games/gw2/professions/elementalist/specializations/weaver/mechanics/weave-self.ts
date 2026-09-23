@@ -4,7 +4,10 @@ import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
  * Owns Weave Self activation, Perfect Weave state, and attunement recharge changes.
  * Skill fragments remain in `skills/slot-skills.ts`.
  */
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { ScheduledTask } from '#gw2/platform/execution/types.js';
@@ -30,9 +33,9 @@ export const WEAVE_SELF_ACTIVATION_TASK = 'elementalist.weave-self-activation';
 /** Schedules Weave Self at its profiled mid-cast activation point. */
 export function startWeaveSelfCast(context: ElementalistCastContext, skill: Skill): void {
   if (skill.id !== ID.WEAVE_SELF) return;
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const at =
-    context.start +
-    (context.fullEnd - context.start) * balanceProfileNumberFromContext(context, PROFILE.resources, 'firstPacketRatio');
+    context.start + (context.fullEnd - context.start) * balanceProfileNumber(resourcesProfile, 'firstPacketRatio');
   if (at > context.effectiveEnd + EPSILON) return;
   context.tasks.schedule({
     type: WEAVE_SELF_ACTIVATION_TASK,
@@ -45,10 +48,8 @@ export function startWeaveSelfCast(context: ElementalistCastContext, skill: Skil
 /** Starts Weave Self's recharge at the same partial-cast point as its activation. */
 export function modifyWeaveSelfRechargeStart(context: ElementalistPrecastContext, rechargeStart: number): number {
   if (context.skill.id !== ID.WEAVE_SELF) return rechargeStart;
-  return (
-    context.start +
-    (rechargeStart - context.start) * balanceProfileNumberFromContext(context, PROFILE.resources, 'firstPacketRatio')
-  );
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  return context.start + (rechargeStart - context.start) * balanceProfileNumber(resourcesProfile, 'firstPacketRatio');
 }
 
 /** Opens the Weave Self window and seeds it with the current attunement. */
@@ -60,7 +61,8 @@ export function handleWeaveSelfActivation(
   const core = professionCoreState(context);
   const at = task.at;
   const sourceId = task.payload?.sourceId ?? ID.WEAVE_SELF;
-  const duration = balanceProfileNumberFromContext(context, PROFILE.resources, 'durationMultiplier');
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const duration = balanceProfileNumber(resourcesProfile, 'durationMultiplier');
   // Availability and emitted temporary buffs expire on the same combat tick.
   state.weaveSelfUntil = gw2EffectExpiresAt(at, duration);
   state.weaveSelfVisited = [core.primaryAttunement];
@@ -89,9 +91,10 @@ export function applyWeaveSelfAttunement(
   const state = weaverState.from(context);
   if (!(state.weaveSelfUntil > at)) return;
 
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const recharge = elementalistAlacrityAdjustedDuration(
     context as never,
-    balanceProfileNumberFromContext(context, PROFILE.resources, 'initialDelay')
+    balanceProfileNumber(resourcesProfile, 'initialDelay')
   );
   for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
     setElementalistAttunementReadyAt(context, attunement, at + recharge);
@@ -117,7 +120,7 @@ export function applyWeaveSelfAttunement(
   if (visited.size < ELEMENTALIST_ATTUNEMENTS.length) return;
   state.weaveSelfUntil = 0;
   state.weaveSelfVisited = [];
-  const perfectWeaveDuration = balanceProfileNumberFromContext(context, PROFILE.resources, 'recharge');
+  const perfectWeaveDuration = balanceProfileNumber(resourcesProfile, 'recharge');
   state.perfectWeaveUntil = gw2EffectExpiresAt(at, perfectWeaveDuration);
   for (const kind of ['perfect weave', 'weave self fire', 'weave self air']) {
     emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {

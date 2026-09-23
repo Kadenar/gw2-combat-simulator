@@ -2,7 +2,6 @@ import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/c
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import {
-  balanceProfileNumberFromContext,
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -45,14 +44,27 @@ export function applyThiefBuildAttributeRules(
   const traitDurations: Gw2NumericAttributes = {};
 
   const secondOpinionProfile = requireBalanceProfileFromContext(profileContext, TRAIT.SECOND_OPINION);
+  const daggerTrainingProfile = requireBalanceProfileFromContext(profileContext, TRAIT.DAGGER_TRAINING);
+  const deadlyAmbitionProfile = requireBalanceProfileFromContext(profileContext, TRAIT.DEADLY_AMBITION);
+  const revealedTrainingProfile = requireBalanceProfileFromContext(profileContext, TRAIT.REVEALED_TRAINING);
+  const noQuarterProfile = requireBalanceProfileFromContext(profileContext, TRAIT.NO_QUARTER);
+  const preparednessProfile = requireBalanceProfileFromContext(profileContext, TRAIT.PREPAREDNESS);
+  const staffMasterProfile = requireBalanceProfileFromContext(profileContext, TRAIT.STAFF_MASTER);
+  const swindlersEquilibriumProfile = requireBalanceProfileFromContext(profileContext, TRAIT.SWINDLERS_EQUILIBRIUM);
+  const silentScopeProfile = requireBalanceProfileFromContext(profileContext, TRAIT.SILENT_SCOPE);
+  const premeditationProfile = requireBalanceProfileFromContext(profileContext, TRAIT.PREMEDITATION);
+  const practicedToleranceProfile = requireBalanceProfileFromContext(profileContext, TRAIT.PRACTICED_TOLERANCE);
+  const maraudersResilienceProfile = requireBalanceProfileFromContext(profileContext, TRAIT.MARAUDERS_RESILIENCE);
+  const strengthOfShadowsProfile = requireBalanceProfileFromContext(profileContext, TRAIT.STRENGTH_OF_SHADOWS);
+  const assassinsSignetProfile = requireBalanceProfileFromContext(profileContext, 'thief.core.assassins-signet');
+  const signetOfAgilityProfile = requireBalanceProfileFromContext(profileContext, CORE.signetOfAgility);
   const attributeEffects: readonly Gw2AttributeEffect[] = [
     {
       kind: 'flat',
       source: 'Dagger Training',
       to: 'Power',
-      amount: balanceProfileNumberFromContext(
-        profileContext,
-        TRAIT.DAGGER_TRAINING,
+      amount: balanceProfileNumber(
+        daggerTrainingProfile,
         wields(thiefBuild, 'Dagger', weaponSet) ? 'weaponAttributeBonus' : 'attributeBonus'
       ),
       feedsConversions: true,
@@ -62,7 +74,7 @@ export function applyThiefBuildAttributeRules(
       kind: 'flat',
       source: 'Deadly Ambition',
       to: 'Condition Damage',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.DEADLY_AMBITION, 'attributeBonus'),
+      amount: balanceProfileNumber(deadlyAmbitionProfile, 'attributeBonus'),
       feedsConversions: true,
       enabled: hasTrait('Deadly Ambition')
     },
@@ -70,7 +82,7 @@ export function applyThiefBuildAttributeRules(
       kind: 'flat',
       source: 'Revealed Training',
       to: 'Power',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.REVEALED_TRAINING, 'attributeBonus'),
+      amount: balanceProfileNumber(revealedTrainingProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Revealed Training')
     },
@@ -78,7 +90,7 @@ export function applyThiefBuildAttributeRules(
       kind: 'flat',
       source: 'No Quarter',
       to: 'Ferocity',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.NO_QUARTER, 'attributeBonus'),
+      amount: balanceProfileNumber(noQuarterProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('No Quarter') && Boolean(thiefBuild.assumptions?.fury)
     },
@@ -86,7 +98,7 @@ export function applyThiefBuildAttributeRules(
       kind: 'flat',
       source: 'Preparedness',
       to: 'Expertise',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.PREPAREDNESS, 'attributeBonus'),
+      amount: balanceProfileNumber(preparednessProfile, 'attributeBonus'),
       feedsConversions: true,
       enabled: hasTrait('Preparedness')
     },
@@ -94,9 +106,8 @@ export function applyThiefBuildAttributeRules(
       kind: 'flat',
       source: 'Staff Master',
       to: 'Power',
-      amount: balanceProfileNumberFromContext(
-        profileContext,
-        TRAIT.STAFF_MASTER,
+      amount: balanceProfileNumber(
+        staffMasterProfile,
         wields(thiefBuild, 'Staff', weaponSet) ? 'weaponAttributeBonus' : 'attributeBonus'
       ),
       feedsConversions: true,
@@ -106,9 +117,8 @@ export function applyThiefBuildAttributeRules(
       kind: 'flat',
       source: "Swindler's Equilibrium",
       to: 'Power',
-      amount: balanceProfileNumberFromContext(
-        profileContext,
-        TRAIT.SWINDLERS_EQUILIBRIUM,
+      amount: balanceProfileNumber(
+        swindlersEquilibriumProfile,
         wields(thiefBuild, 'Sword', weaponSet) ? 'weaponAttributeBonus' : 'attributeBonus'
       ),
       feedsConversions: true,
@@ -118,7 +128,7 @@ export function applyThiefBuildAttributeRules(
       kind: 'flat',
       source: 'Silent Scope',
       to: 'Precision',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.SILENT_SCOPE, 'attributeBonus'),
+      amount: balanceProfileNumber(silentScopeProfile, 'attributeBonus'),
       feedsConversions: true,
       enabled: hasTrait('Silent Scope')
     },
@@ -126,7 +136,7 @@ export function applyThiefBuildAttributeRules(
       kind: 'flat',
       source: 'Premeditation',
       to: 'Concentration',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.PREMEDITATION, 'attributeBonus'),
+      amount: balanceProfileNumber(premeditationProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Premeditation')
     },
@@ -135,9 +145,9 @@ export function applyThiefBuildAttributeRules(
       source: 'Second Opinion',
       to: 'Condition Damage',
       amount:
-        balanceProfileNumber(secondOpinionProfile, 'attributeBonus', profileContext) +
+        balanceProfileNumber(secondOpinionProfile, 'attributeBonus') +
         (wields(thiefBuild, 'Scepter', weaponSet)
-          ? balanceProfileNumber(secondOpinionProfile, 'attributePerStack', profileContext)
+          ? balanceProfileNumber(secondOpinionProfile, 'attributePerStack')
           : 0),
       feedsConversions: true,
       enabled: hasTrait('Second Opinion')
@@ -147,7 +157,7 @@ export function applyThiefBuildAttributeRules(
       source: 'Practiced Tolerance',
       from: 'Precision',
       to: 'Ferocity',
-      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.PRACTICED_TOLERANCE, 'attributeConversion'),
+      multiplier: balanceProfileNumber(practicedToleranceProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'eligible',
       enabled: hasTrait('Practiced Tolerance')
@@ -157,7 +167,7 @@ export function applyThiefBuildAttributeRules(
       source: "Marauder's Resilience",
       from: 'Power',
       to: 'Vitality',
-      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.MARAUDERS_RESILIENCE, 'attributeConversion'),
+      multiplier: balanceProfileNumber(maraudersResilienceProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'eligible',
       enabled: hasTrait("Marauder's Resilience")
@@ -167,7 +177,7 @@ export function applyThiefBuildAttributeRules(
       source: 'Second Opinion',
       from: 'Condition Damage',
       to: 'Healing Power',
-      multiplier: balanceProfileNumber(secondOpinionProfile, 'attributeConversion', profileContext),
+      multiplier: balanceProfileNumber(secondOpinionProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'eligible',
       enabled: hasTrait('Second Opinion')
@@ -177,7 +187,7 @@ export function applyThiefBuildAttributeRules(
       source: 'Strength of Shadows',
       from: 'Vitality',
       to: 'Expertise',
-      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.STRENGTH_OF_SHADOWS, 'attributeConversion'),
+      multiplier: balanceProfileNumber(strengthOfShadowsProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'eligible',
       enabled: hasTrait('Strength of Shadows')
@@ -186,7 +196,7 @@ export function applyThiefBuildAttributeRules(
       kind: 'flat',
       source: "Assassin's Signet",
       to: 'Power',
-      amount: balanceProfileNumberFromContext(profileContext, 'thief.core.assassins-signet', 'attributeBonus'),
+      amount: balanceProfileNumber(assassinsSignetProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasSelectedSkill("Assassin's Signet")
     },
@@ -195,7 +205,7 @@ export function applyThiefBuildAttributeRules(
       kind: 'flat',
       source: 'Signet of Agility',
       to: 'Precision',
-      amount: balanceProfileNumberFromContext(profileContext, CORE.signetOfAgility, 'attributeBonus'),
+      amount: balanceProfileNumber(signetOfAgilityProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasSelectedSkill('Signet of Agility')
     }
@@ -203,8 +213,8 @@ export function applyThiefBuildAttributeRules(
 
   // Static condition-duration traits belong in panel stats so simulation provenance can prevent rebaking them.
   if (hasTrait('Potent Poison')) {
-    traitDurations['Poison Duration'] =
-      100 * balanceProfileNumberFromContext(profileContext, TRAIT.POTENT_POISON, 'conditionDurationBonus');
+    const potentPoisonProfile = requireBalanceProfileFromContext(profileContext, TRAIT.POTENT_POISON);
+    traitDurations['Poison Duration'] = 100 * balanceProfileNumber(potentPoisonProfile, 'conditionDurationBonus');
   }
 
   return finalizeProfessionBuildAttributes(common, {

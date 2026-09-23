@@ -7,7 +7,10 @@ import { EPSILON } from '#kernel/core/clock.js';
  * `attunements.ts` later consumes.
  */
 import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
@@ -71,7 +74,8 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
 
   // basic familiar requires a full charge bar and no empowered stack (empowered means the flip form is active)
   if (BASIC_FAMILIARS.has(skill.id)) {
-    const requiredEmpowered = balanceProfileNumberFromContext(context, PROFILE.resources, 'minimumStacks');
+    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+    const requiredEmpowered = balanceProfileNumber(resourcesProfile, 'minimumStacks');
     // Recorded familiar inputs can precede the simulator's weapon completion; wait for real pending grants.
     if (state.empowered < requiredEmpowered && state.charges < state.maximumCharges) {
       const pending = state.concurrentParentAnchors
@@ -99,8 +103,9 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
         );
   }
 
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   // empowered familiar requires 3 empowered stacks built up from basic familiar casts
-  const requiredEmpowered = balanceProfileNumberFromContext(context, PROFILE.resources, 'minimumStacks');
+  const requiredEmpowered = balanceProfileNumber(resourcesProfile, 'minimumStacks');
   return state.empowered >= requiredEmpowered
     ? { ready: true }
     : denyCast('elementalist.evoker-empowered', `${skill.name} is unavailable - requires three empowered charges.`);

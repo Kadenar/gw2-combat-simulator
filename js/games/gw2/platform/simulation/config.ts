@@ -12,8 +12,6 @@ export interface Gw2Config {
   readonly specialization?: string;
   /** Starting value of the profession's primary resource. */
   readonly initialResource?: number;
-  /** Target health as a fraction of maximum when a caller configures it directly. */
-  readonly targetHealthFraction?: number;
   /** Patch the simulation runs against, when the application previews balance changes. */
   readonly patchId?: string;
   readonly procRateOverrides?: Readonly<Record<string, number>>;

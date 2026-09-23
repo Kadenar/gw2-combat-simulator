@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
@@ -76,14 +79,15 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     amount: (context) => {
       const provenance = attributeProvenance(context.config);
       const currentWeapon = activeWeapon(context);
+      const zealousBladeProfile = requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE);
       return provenance.professionStaticRulesApplied
         ? (Number(currentWeapon === 'Greatsword') - Number(provenance.calculatedPrimaryWeapon === 'Greatsword')) *
-            (balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE, 'weaponAttributeBonus') -
-              balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE, 'attributeBonus'))
-        : balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE, 'attributeBonus') +
+            (balanceProfileNumber(zealousBladeProfile, 'weaponAttributeBonus') -
+              balanceProfileNumber(zealousBladeProfile, 'attributeBonus'))
+        : balanceProfileNumber(zealousBladeProfile, 'attributeBonus') +
             Number(currentWeapon === 'Greatsword') *
-              (balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE, 'weaponAttributeBonus') -
-                balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE, 'attributeBonus'));
+              (balanceProfileNumber(zealousBladeProfile, 'weaponAttributeBonus') -
+                balanceProfileNumber(zealousBladeProfile, 'attributeBonus'));
     },
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE)
   },
@@ -95,7 +99,10 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     amount: (context) =>
       attributeProvenance(context.config).professionStaticRulesApplied
         ? 0
-        : balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH, 'attributeBonus'),
+        : balanceProfileNumber(
+            requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH),
+            'attributeBonus'
+          ),
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH)
   },
   {
@@ -106,11 +113,14 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     amount: (context) => {
       const provenance = attributeProvenance(context.config);
       const currentWeapon = activeWeapon(context);
+      const rightHandStrengthProfile = requireBalanceProfileFromContext(
+        context,
+        GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH
+      );
       return provenance.professionStaticRulesApplied
         ? (Number(isOneHandedWeapon(currentWeapon)) - Number(isOneHandedWeapon(provenance.calculatedPrimaryWeapon))) *
-            balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH, 'attributeBonus')
-        : Number(isOneHandedWeapon(currentWeapon)) *
-            balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH, 'attributeBonus');
+            balanceProfileNumber(rightHandStrengthProfile, 'attributeBonus')
+        : Number(isOneHandedWeapon(currentWeapon)) * balanceProfileNumber(rightHandStrengthProfile, 'attributeBonus');
     },
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH)
   },
@@ -122,7 +132,10 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     amount: (context) =>
       attributeProvenance(context.config).professionStaticRulesApplied
         ? 0
-        : balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER, 'attributeBonus'),
+        : balanceProfileNumber(
+            requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER),
+            'attributeBonus'
+          ),
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER)
   },
   {
@@ -134,7 +147,10 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
       attributeProvenance(context.config).professionStaticRulesApplied
         ? 0
         : Number(context.config?.stats?.vitality || 0) *
-          balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS, 'attributeConversion'),
+          balanceProfileNumber(
+            requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS),
+            'attributeConversion'
+          ),
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
   },
   {
@@ -147,10 +163,14 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
       const perfectInscriptions = hasTrait(context, GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS);
       const passiveActive =
         perfectInscriptions || !context.timeline?.skillOnCooldownAt(GUARDIAN_SKILL_IDS.BANE_SIGNET, context.time);
+      const baneSignetPassiveProfile = requireBalanceProfileFromContext(context, 'guardian.core.bane-signet-passive');
       const amount =
-        balanceProfileNumberFromContext(context, 'guardian.core.bane-signet-passive', 'attributeBonus') *
+        balanceProfileNumber(baneSignetPassiveProfile, 'attributeBonus') *
         (perfectInscriptions
-          ? balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS, 'attributeMultiplier')
+          ? balanceProfileNumber(
+              requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS),
+              'attributeMultiplier'
+            )
           : 1);
       return (
         (Number(passiveActive) - Number(attributeProvenance(context.config).professionStaticRulesApplied)) * amount
@@ -167,10 +187,17 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
       const perfectInscriptions = hasTrait(context, GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS);
       const passiveActive =
         perfectInscriptions || !context.timeline?.skillOnCooldownAt(GUARDIAN_SKILL_IDS.SIGNET_OF_WRATH, context.time);
+      const signetOfWrathPassiveProfile = requireBalanceProfileFromContext(
+        context,
+        'guardian.core.signet-of-wrath-passive'
+      );
       const amount =
-        balanceProfileNumberFromContext(context, 'guardian.core.signet-of-wrath-passive', 'attributeBonus') *
+        balanceProfileNumber(signetOfWrathPassiveProfile, 'attributeBonus') *
         (perfectInscriptions
-          ? balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS, 'attributeMultiplier')
+          ? balanceProfileNumber(
+              requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.PERFECT_INSCRIPTIONS),
+              'attributeMultiplier'
+            )
           : 1);
       return attributeProvenance(context.config).professionStaticRulesApplied
         ? passiveActive
@@ -220,7 +247,11 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'guardian.radiant-power-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER),
+        'criticalChance'
+      ),
     when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_POWER) && targetConditionActive(context, 'Burning')
   },
   {
@@ -228,7 +259,10 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
     amount: (context) =>
-      balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS, 'criticalChance'),
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS),
+        'criticalChance'
+      ),
     when: (context) =>
       hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS) && guardianBoonActive(context, 'resolution')
   },
@@ -292,7 +326,10 @@ export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
     amount: (context) =>
-      balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE, 'conditionDurationBonus'),
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE),
+        'conditionDurationBonus'
+      ),
     // Specific condition-duration bonuses add to Expertise and are skipped when panel stats already include them.
     when: (context) =>
       context.condition === 'Burning' &&
@@ -305,15 +342,18 @@ function modifyGuardianRechargeDuration(context: GuardianSkillModifierContext, d
   const skill = context.skill;
   let result = duration;
   if (skill?.weapon === 'Greatsword' && hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE)) {
-    result *= balanceProfileNumberFromContext(context, PROFILE.zealousBlade, 'rechargeMultiplier');
+    const zealousBladeProfile = requireBalanceProfileFromContext(context, PROFILE.zealousBlade);
+    result *= balanceProfileNumber(zealousBladeProfile, 'rechargeMultiplier');
   }
 
   if (skill?.weapon === 'Torch' && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)) {
-    result *= balanceProfileNumberFromContext(context, PROFILE.radiantFire, 'rechargeMultiplier');
+    const radiantFireProfile = requireBalanceProfileFromContext(context, PROFILE.radiantFire);
+    result *= balanceProfileNumber(radiantFireProfile, 'rechargeMultiplier');
   }
 
   if (skill?.weapon === 'Focus' && hasTrait(context, GUARDIAN_TRAIT_IDS.FOCUS_MASTERY)) {
-    result *= balanceProfileNumberFromContext(context, PROFILE.focusMastery, 'rechargeMultiplier');
+    const focusMasteryProfile = requireBalanceProfileFromContext(context, PROFILE.focusMastery);
+    result *= balanceProfileNumber(focusMasteryProfile, 'rechargeMultiplier');
   }
 
   if (
@@ -321,7 +361,8 @@ function modifyGuardianRechargeDuration(context: GuardianSkillModifierContext, d
     /^Profession_[1-3]$/.test(String(skill.slot || '')) &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
   ) {
-    result *= balanceProfileNumberFromContext(context, PROFILE.powerOfTheVirtuous, 'rechargeMultiplier');
+    const powerOfTheVirtuousProfile = requireBalanceProfileFromContext(context, PROFILE.powerOfTheVirtuous);
+    result *= balanceProfileNumber(powerOfTheVirtuousProfile, 'rechargeMultiplier');
   }
 
   return result;
@@ -330,11 +371,13 @@ function modifyGuardianRechargeDuration(context: GuardianSkillModifierContext, d
 function modifyGuardianMaximumAmmo(context: GuardianSkillModifierContext, maximum: number): number {
   let result = maximum;
   if (context.skill?.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)) {
-    result = Math.max(result, balanceProfileNumberFromContext(context, PROFILE.radiantFire, 'maximumStacks'));
+    const radiantFireProfile = requireBalanceProfileFromContext(context, PROFILE.radiantFire);
+    result = Math.max(result, balanceProfileNumber(radiantFireProfile, 'maximumStacks'));
   }
 
   if (context.skill?.categories?.includes('SpiritWeapon') && hasTrait(context, GUARDIAN_TRAIT_IDS.ETERNAL_ARMORY)) {
-    result += balanceProfileNumberFromContext(context, PROFILE.eternalArmory, 'resourceGain');
+    const eternalArmoryProfile = requireBalanceProfileFromContext(context, PROFILE.eternalArmory);
+    result += balanceProfileNumber(eternalArmoryProfile, 'resourceGain');
   }
 
   return result;
@@ -350,14 +393,16 @@ function modifyGuardianConditionBaseDuration(context: Gw2ModifierContext, durati
       context.event?.skillId === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME) &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)
   ) {
-    result *= balanceProfileNumberFromContext(context, PROFILE.radiantFire, 'durationMultiplier');
+    const radiantFireProfile = requireBalanceProfileFromContext(context, PROFILE.radiantFire);
+    result *= balanceProfileNumber(radiantFireProfile, 'durationMultiplier');
   }
 
   if (
     (context.sourceId === 'guardian.justice-passive' || context.event?.sourceId === 'guardian.justice-passive') &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH)
   ) {
-    result *= balanceProfileNumberFromContext(context, PROFILE.amplifiedWrath, 'durationMultiplier');
+    const amplifiedWrathProfile = requireBalanceProfileFromContext(context, PROFILE.amplifiedWrath);
+    result *= balanceProfileNumber(amplifiedWrathProfile, 'durationMultiplier');
   }
 
   return result;

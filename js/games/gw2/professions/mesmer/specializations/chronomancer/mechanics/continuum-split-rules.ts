@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
@@ -79,7 +82,8 @@ export const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'mesmer.flow-of-time-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
     operation: 'add',
-    amount: (context) => balanceProfileNumberFromContext(context, MESMER_TRAIT_IDS.FLOW_OF_TIME, 'criticalChance'),
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, MESMER_TRAIT_IDS.FLOW_OF_TIME), 'criticalChance'),
     when: (context) =>
       hasTrait(context, TRAIT.FLOW_OF_TIME) &&
       Boolean(context.config?.boons?.alacrity) &&
@@ -89,7 +93,9 @@ export const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.free
     id: 'mesmer.danger-time',
     target: MODIFIER_TARGET.CRITICAL_DAMAGE,
     operation: 'multiply',
-    factor: (context) => 1 + balanceProfileNumberFromContext(context, MESMER_TRAIT_IDS.DANGER_TIME, 'criticalDamage'),
+    factor: (context) =>
+      1 +
+      balanceProfileNumber(requireBalanceProfileFromContext(context, MESMER_TRAIT_IDS.DANGER_TIME), 'criticalDamage'),
     when: (context) =>
       hasTrait(context, TRAIT.DANGER_TIME) &&
       ['player', 'summon'].includes(gw2EventActorType(context.event)) &&
@@ -127,12 +133,13 @@ function observeChronomancerEvent(context: MesmerSchedulerContext, event: Simula
   }
 
   const skillName = String(event.skillName || event.name || 'Control effect');
+  const dangerTimeProfile = requireBalanceProfileFromContext(runtime, TRAIT.DANGER_TIME);
   runtime.addEvent({
     type: 'buff',
     at: event.at,
     kind: 'danger-time',
     stacks: 1,
-    duration: balanceProfileNumberFromContext(runtime, TRAIT.DANGER_TIME, 'durationMultiplier'),
+    duration: balanceProfileNumber(dangerTimeProfile, 'durationMultiplier'),
     sourceSkill: skillName
   });
   runtime.addTraitProc('Danger Time', event.at, skillName);

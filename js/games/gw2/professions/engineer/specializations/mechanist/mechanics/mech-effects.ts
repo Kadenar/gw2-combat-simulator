@@ -1,8 +1,9 @@
 import { isEngineerMechEvent as mechEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext,
-  procChanceFromContext
+  procChanceFromContext,
+  requireBalanceProfileFromContext,
+  requireEffect,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -41,13 +42,8 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
     randomStream: 'engineer.serrated-steel.mech',
     attribution: { kind: 'trait', id: TRAIT.SERRATED_STEEL },
     handler(context, event, _details, application) {
-      const serratedSteelBleeding = requireEffectFromContext(
-        context,
-        'balance-profile',
-        CORE_PROFILE.serratedSteel,
-        'condition',
-        'Bleeding'
-      );
+      const serratedSteelProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.serratedSteel);
+      const serratedSteelBleeding = requireEffect(serratedSteelProfile, 'condition', 'Bleeding');
       if (serratedSteelBleeding) {
         applyEngineerDerivedCondition(context, event, {
           name: 'Serrated Steel',
@@ -79,7 +75,10 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
     },
     internalCooldown: {
       duration: (context) =>
-        balanceProfileNumberFromContext(context, CORE_PROFILE.incendiaryPowder, 'internalCooldown'),
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, CORE_PROFILE.incendiaryPowder),
+          'internalCooldown'
+        ),
       readyAt: (context) => Number(procState(context)['incendiaryPowder.mech'] || 0),
       setReadyAt: (context, readyAt) => {
         procState(context)['incendiaryPowder.mech'] = readyAt;
@@ -88,13 +87,8 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
     progressDuringCooldown: 'accumulate',
     attribution: { kind: 'trait', id: TRAIT.INCENDIARY_POWDER },
     handler(context, event) {
-      const incendiaryPowderBurning = requireEffectFromContext(
-        context,
-        'balance-profile',
-        CORE_PROFILE.incendiaryPowder,
-        'condition',
-        'Burning'
-      );
+      const incendiaryPowderProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.incendiaryPowder);
+      const incendiaryPowderBurning = requireEffect(incendiaryPowderProfile, 'condition', 'Burning');
       if (incendiaryPowderBurning) {
         applyEngineerDerivedCondition(context, event, {
           name: 'Incendiary Powder',
@@ -130,17 +124,14 @@ function reactToMechanistDamage(
     hasTrait(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS) &&
     isInternalCooldownReady(event.at, Number(state.singleEdgeCutters || 0))
   ) {
-    const packet = requireEffectFromContext(
+    const mechArmsSingleEdgeCuttersProfile = requireBalanceProfileFromContext(
       context,
-      'balance-profile',
-      TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
-      'condition',
-      'Bleeding'
+      TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS
     );
+    const packet = requireEffect(mechArmsSingleEdgeCuttersProfile, 'condition', 'Bleeding');
     if (packet) {
       // A removed arm effect cannot consume its own proc cooldown.
-      state.singleEdgeCutters =
-        event.at + balanceProfileNumberFromContext(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, 'internalCooldown');
+      state.singleEdgeCutters = event.at + balanceProfileNumber(mechArmsSingleEdgeCuttersProfile, 'internalCooldown');
       applyEngineerDerivedCondition(context, event, {
         name: 'Mech Arms: Single-Edge Cutters',
         condition: String(packet.condition),
@@ -159,16 +150,13 @@ function reactToMechanistDamage(
     hasTrait(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS) &&
     isInternalCooldownReady(event.at, Number(state.highImpactDrivers || 0))
   ) {
-    const packet = requireEffectFromContext(
+    const mechArmsHighImpactDriversProfile = requireBalanceProfileFromContext(
       context,
-      'balance-profile',
-      TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
-      'boon',
-      'might'
+      TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS
     );
+    const packet = requireEffect(mechArmsHighImpactDriversProfile, 'boon', 'might');
     if (packet) {
-      state.highImpactDrivers =
-        event.at + balanceProfileNumberFromContext(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, 'internalCooldown');
+      state.highImpactDrivers = event.at + balanceProfileNumber(mechArmsHighImpactDriversProfile, 'internalCooldown');
       queueBuff(context, event, {
         name: 'Mech Arms: High-Impact Drivers',
         kind: String(packet.boon).toLowerCase(),
@@ -183,13 +171,8 @@ function reactToMechanistDamage(
   }
 
   if (event.mechBasicAttack === true && hasTrait(context, TRAIT.MECH_ARMS_JADE_CANNONS)) {
-    const vulnerability = requireEffectFromContext(
-      context,
-      'balance-profile',
-      TRAIT.MECH_ARMS_JADE_CANNONS,
-      'condition',
-      'Vulnerability'
-    );
+    const mechArmsJadeCannonsProfile = requireBalanceProfileFromContext(context, TRAIT.MECH_ARMS_JADE_CANNONS);
+    const vulnerability = requireEffect(mechArmsJadeCannonsProfile, 'condition', 'Vulnerability');
     if (vulnerability)
       applyEngineerDerivedCondition(context, event, {
         name: 'Mech Arms: Jade Cannons',

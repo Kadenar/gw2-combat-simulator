@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
@@ -325,7 +328,8 @@ export const engineerCoreUi: EngineerUiSlice = Object.freeze({
   resourceViews: (context: EngineerUiContext) => {
     const state = engineerUiState(context);
     if (!usesToolsTraitline(context)) return [];
-    const maximum = balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
+    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+    const maximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
     const endurance: ProfessionResourceView = {
       id: 'endurance',
       singular: 'endurance',

@@ -4,7 +4,6 @@ import {
   effectNumber,
   requireEffect,
   requireBalanceProfileFromContext,
-  balanceProfileNumberFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -87,7 +86,7 @@ function emitDodgeEffect(
       emitSkillDamage(context, {
         ...common,
         source: 'thief',
-        coefficient: effectNumber(profile, effect, 'coefficient', context),
+        coefficient: effectNumber(profile, effect, 'coefficient'),
         hits: 1,
         skillWeapon: 'Unequipped'
       });
@@ -98,8 +97,8 @@ function emitDodgeEffect(
 
       name: `${dodgeSkillName} — ${effect.condition}`,
       condition: String(effect.condition),
-      stacks: effectNumber(profile, effect, 'stacks', context),
-      duration: effectNumber(profile, effect, 'duration', context)
+      stacks: effectNumber(profile, effect, 'stacks'),
+      duration: effectNumber(profile, effect, 'duration')
     });
   } else if (effect.type === 'boon') {
     // Dodge boons use the canonical scheduled buff event consumed by the resolver.
@@ -108,8 +107,8 @@ function emitDodgeEffect(
       name: `${dodgeSkillName} — ${effect.boon}`,
       boon: effect.boon,
       kind: String(effect.boon).toLowerCase(),
-      stacks: effectNumber(profile, effect, 'stacks', context),
-      duration: effectNumber(profile, effect, 'duration', context)
+      stacks: effectNumber(profile, effect, 'stacks'),
+      duration: effectNumber(profile, effect, 'duration')
     });
   }
 }
@@ -124,12 +123,12 @@ export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill
   const profile = profileId == null ? undefined : requireBalanceProfileFromContext(context, profileId);
   if (profile && state.selectedDodge === 'Bounding Dodger') {
     // +6 s pads the 5 s in-game bonus window to absorb quickness-compressed cast times
-    state.boundingDamageUntil = context.effectiveEnd + balanceProfileNumber(profile, 'durationMultiplier', context);
+    state.boundingDamageUntil = context.effectiveEnd + balanceProfileNumber(profile, 'durationMultiplier');
   }
 
   if (profile && state.selectedDodge === 'Lotus Training') {
     // Same padding as Bounding Dodger — resolver checks > context.time so equality is not enough
-    const duration = balanceProfileNumber(profile, 'durationMultiplier', context);
+    const duration = balanceProfileNumber(profile, 'durationMultiplier');
     state.lotusConditionDamageUntil = context.effectiveEnd + duration;
     // Expose the same timed trait window used by damage modifiers as a visible buff.
     emitSkillBuff(context, skill, {
@@ -144,11 +143,11 @@ export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill
   // A removed Weakness cannot arm a pending grant or expiry window.
   if (hasTrait(context.config, TRAIT.WEAKENING_STRIKES)) {
     const weakeningProfile = requireBalanceProfileFromContext(context, PROFILE.weakeningStrikes);
-    if (requireEffect(weakeningProfile, 'condition', 'Weakness', context)) {
+    if (requireEffect(weakeningProfile, 'condition', 'Weakness')) {
       // Arm a bounded grant; only a resolved strike can consume it.
       state.weakeningStrikeReady = true;
       state.weakeningStrikeGeneration += 1;
-      const duration = balanceProfileNumber(weakeningProfile, 'durationMultiplier', context);
+      const duration = balanceProfileNumber(weakeningProfile, 'durationMultiplier');
       state.weakeningStrikeExpiresAt = context.effectiveEnd + duration;
       emitSkillBuff(context, skill, {
         at: context.effectiveEnd,
@@ -169,19 +168,21 @@ export function applyDaredevilDodge(context: ThiefCastContext, skill: ThiefSkill
 function spendDaredevilTraitResources(context: ThiefCastContext, skill: ThiefSkill): void {
   const cost = Number(skill.initiativeCost || 0);
   if (cost > 0 && skill.weapon === 'Staff' && hasTrait(context.config, TRAIT.STAFF_MASTER)) {
+    const staffMasterProfile = requireBalanceProfileFromContext(context, PROFILE.staffMaster);
     // Staff Master refunds 2 endurance per initiative spent, not per cast
     gainThiefEndurance(
       context,
-      cost * balanceProfileNumberFromContext(context, PROFILE.staffMaster, 'resourceGain'),
+      cost * balanceProfileNumber(staffMasterProfile, 'resourceGain'),
       context.start,
       'staff-master'
     );
   }
 
   if (BRAWLERS_TENACITY_PHYSICAL_SKILLS.has(skill.id) && hasTrait(context.config, TRAIT.BRAWLERS_TENACITY)) {
+    const brawlersTenacityProfile = requireBalanceProfileFromContext(context, PROFILE.brawlersTenacity);
     gainThiefEndurance(
       context,
-      balanceProfileNumberFromContext(context, PROFILE.brawlersTenacity, 'resourceGain'),
+      balanceProfileNumber(brawlersTenacityProfile, 'resourceGain'),
       context.start,
       'brawlers-tenacity'
     );
@@ -201,7 +202,7 @@ export function applyWeakeningStrike(context: ThiefResolverContext, event: Thief
     return;
   state.weakeningStrikeReady = false;
   const weakeningStrikesProfile = requireBalanceProfileFromContext(context, PROFILE.weakeningStrikes);
-  const weakness = requireEffect(weakeningStrikesProfile, 'condition', 'Weakness', context);
+  const weakness = requireEffect(weakeningStrikesProfile, 'condition', 'Weakness');
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!weakness) return;
   context.applyCondition(
@@ -214,8 +215,8 @@ export function applyWeakeningStrike(context: ThiefResolverContext, event: Thief
       activationId: event.activationId,
       triggeredBy: event.skillName,
       condition: String(weakness.condition),
-      duration: effectNumber(weakeningStrikesProfile, weakness, 'duration', context),
-      stacks: effectNumber(weakeningStrikesProfile, weakness, 'stacks', context),
+      duration: effectNumber(weakeningStrikesProfile, weakness, 'duration'),
+      stacks: effectNumber(weakeningStrikesProfile, weakness, 'stacks'),
       sourceId: TRAIT.WEAKENING_STRIKES,
       name: 'Weakening Strikes — Weakness'
     })
@@ -229,9 +230,10 @@ export function beginDaredevilTraits(context: ThiefCastContext, skill: ThiefSkil
 /** Grants Daredevil's selected on-steal endurance at completion, before the final Core snapshot. */
 export function applyEnduranceThief(context: ThiefCastContext): void {
   if (!hasTrait(context.config, TRAIT.ENDURANCE_THIEF)) return;
+  const enduranceThiefProfile = requireBalanceProfileFromContext(context, PROFILE.enduranceThief);
   gainThiefEndurance(
     context,
-    balanceProfileNumberFromContext(context, PROFILE.enduranceThief, 'resourceGain'),
+    balanceProfileNumber(enduranceThiefProfile, 'resourceGain'),
     context.effectiveEnd,
     'endurance-thief'
   );

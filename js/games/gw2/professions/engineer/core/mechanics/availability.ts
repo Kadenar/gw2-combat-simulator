@@ -1,6 +1,9 @@
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -22,11 +25,8 @@ export function engineerCoreCastAvailability(
   if (selection) return selection;
   const state = professionCoreState(context);
   if (skill.id === ID.DODGE) {
-    const enduranceCost = balanceProfileNumberFromContext(
-      context,
-      ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
-      'resourceCost'
-    );
+    const resourcesProfile = requireBalanceProfileFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources);
+    const enduranceCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
     // epsilon prevents floating-point rounding from blocking a dodge at exactly the threshold
     return Number(state.endurance || 0) + EPSILON >= enduranceCost
       ? { ready: true }

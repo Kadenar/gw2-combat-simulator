@@ -8,12 +8,9 @@ import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profes
 import {
   balanceProfileFromContext,
   balanceProfileNumber,
-  balanceProfileNumberFromContext,
   effectNumber,
-  effectNumberFromContext,
   requireBalanceProfileFromContext,
-  requireEffect,
-  requireEffectFromContext
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 const first = { type: 'condition', name: 'First', condition: 'Burning', stacks: 1, duration: 2 };
@@ -28,6 +25,9 @@ const profile = {
 };
 const skill = { id: 1, name: 'Skill', effects: [first, second] };
 const fixture = () => createCanonicalCatalog({ generated: [skill], balanceProfiles: [profile] });
+// Callers select an owner once; skills come from the catalog, profiles from the context-based resolver.
+const ownerOf = (catalog, kind) =>
+  kind === 'skill' ? catalog.skillsById.get(1) : requireBalanceProfileFromContext({ catalog }, 1);
 
 test('resolved owners preserve strict effect reads without another catalog lookup', () => {
   const catalog = applyBalanceProfilePatch(
@@ -61,12 +61,8 @@ test('resolved owners preserve strict effect reads without another catalog looku
   }
   assert.equal(lookups, 1);
 
-  // Skill records use the same checks; diagnostic context must never reselect the owner.
-  const diagnosticContext = {
-    config: { profession: 'fixture', patchId: 'preview' },
-    balanceProfile: () => assert.fail('Resolved effect reads must not query a catalog')
-  };
-  for (const owner of [selected, skill]) {
+  // Skill records use the same checks and label diagnostics from their own source metadata.
+  for (const owner of [selected, { ...skill, balanceDataContext: selected.balanceDataContext }]) {
     assert.throws(
       () => requireEffect({ ...owner, effects: [second, second] }, 'condition', 'Second'),
       /duplicate effect key/
@@ -83,7 +79,7 @@ test('resolved owners preserve strict effect reads without another catalog looku
       ).stacks,
       1
     );
-    assert.throws(() => effectNumber(owner, second, 'missing', diagnosticContext), /profession=fixture patch=preview/);
+    assert.throws(() => effectNumber(owner, second, 'missing'), /profession=fixture patch=preview/);
   }
 });
 
@@ -95,7 +91,7 @@ for (const [kind, section, apply, index] of [
   test(`${kind}: named removal, replacement, empty lists and successive overlays preserve identity`, () => {
     const live = fixture();
     const patch = (catalog, edit) => apply(catalog, { [section]: { 1: edit } });
-    const read = (catalog, name) => requireEffectFromContext({ catalog }, kind, 1, 'condition', name);
+    const read = (catalog, name) => requireEffect(ownerOf(catalog, kind), 'condition', name);
     const packets = (catalog) =>
       ['First', 'Second'].flatMap((name) => {
         const effect = read(catalog, name);
@@ -111,13 +107,7 @@ for (const [kind, section, apply, index] of [
     assert.deepEqual(read(live, 'First'), first);
     assert.throws(() => read(removed, 'Typo'), /unknown effect key/);
     assert.deepEqual(
-      requireEffectFromContext(
-        { catalog: removed },
-        kind === 'skill' ? 'balance-profile' : 'skill',
-        1,
-        'condition',
-        'First'
-      ),
+      requireEffect(ownerOf(removed, kind === 'skill' ? 'balance-profile' : 'skill'), 'condition', 'First'),
       first
     );
     const edited = patch(removed, { effects: [{ name: 'Second', duration: 4 }] });
@@ -175,9 +165,10 @@ for (const [kind, section, apply, index] of [
         { type: 'custom', name: 'Recurrence', eventType: 'fixture', event: {}, intervalMs: 0 }
       ]
     });
-    assert.equal(requireEffectFromContext({ catalog: patched }, kind, 1, 'strike', 'Flat').coefficient, undefined);
-    assert.equal(requireEffectFromContext({ catalog: patched }, kind, 1, 'strike', 'Flat').hits, 1);
-    assert.equal(requireEffectFromContext({ catalog: patched }, kind, 1, 'boon', 'Status').stacks, 1);
+    const patchedOwner = ownerOf(patched, kind);
+    assert.equal(requireEffect(patchedOwner, 'strike', 'Flat').coefficient, undefined);
+    assert.equal(requireEffect(patchedOwner, 'strike', 'Flat').hits, 1);
+    assert.equal(requireEffect(patchedOwner, 'boon', 'Status').stacks, 1);
     // Custom packets need both dispatch fields in declarations, patches, and direct procedural reads.
     const custom = { type: 'custom', name: 'Custom', eventType: 'fixture', event: {} };
     for (const field of ['eventType', 'event']) {
@@ -195,13 +186,13 @@ for (const [kind, section, apply, index] of [
         );
         const owner = { ...live[index].get(1), effects: [invalid] };
         const catalog = { ...live, [index]: new Map([[1, owner]]), [section]: [owner] };
-        assert.throws(() => requireEffectFromContext({ catalog }, kind, 1, 'custom', 'Custom'), error);
+        assert.throws(() => requireEffect(owner, 'custom', 'Custom'), error);
         assert.deepEqual(patch({ removeEffects: [{ name: 'Custom' }] }, catalog)[index].get(1).effects, []);
       }
     }
 
     const customCatalog = patch({ addEffects: [custom] });
-    assert.deepEqual(requireEffectFromContext({ catalog: customCatalog }, kind, 1, 'custom', 'Custom'), custom);
+    assert.deepEqual(requireEffect(ownerOf(customCatalog, kind), 'custom', 'Custom'), custom);
     // Removing invalid source data is valid; retaining it is rejected before exposing an overlay.
     const brokenOwner = { ...live[index].get(1), effects: [{ ...first, duration: null }, second] };
     const broken = { ...live, [index]: new Map([[1, brokenOwner]]), [section]: [brokenOwner] };
@@ -221,10 +212,6 @@ test('required reads select one source and retain strict numeric and diagnostic 
   assert.equal(balanceProfileFromContext(context, 1), undefined);
   assert.throws(() => requireBalanceProfileFromContext(context, 1), /profession=fixture patch=preview profile=1/);
   assert.throws(() => requireBalanceProfileFromContext(null, 1), /missing required profile\/catalog/);
-  assert.throws(
-    () => requireEffectFromContext({}, 'skill', 1, 'condition', 'First'),
-    /missing required skill\/catalog/
-  );
   for (const source of [
     { catalog },
     { helpers: catalog },
@@ -233,35 +220,39 @@ test('required reads select one source and retain strict numeric and diagnostic 
     { balanceProfile: () => profile },
     () => profile
   ]) {
-    assert.equal(requireBalanceProfileFromContext(source, 1).id, 1);
-    assert.equal(balanceProfileNumberFromContext(source, 1, 'procChance'), 0);
-    assert.equal(balanceProfileNumberFromContext(source, 1, 'intervalMs'), 0);
+    const selectedProfile = requireBalanceProfileFromContext(source, 1);
+    assert.equal(selectedProfile.id, 1);
+    assert.equal(balanceProfileNumber(selectedProfile, 'procChance'), 0);
+    assert.equal(balanceProfileNumber(selectedProfile, 'intervalMs'), 0);
   }
 
   for (const value of [undefined, null, false, '', '3', NaN, Infinity]) {
-    const source = { catalog: { ...selected, balanceProfilesById: new Map([[1, { ...profile, procChance: value }]]) } };
+    const invalid = { ...profile, procChance: value, balanceDataContext: selected.balanceDataContext };
+    const source = { catalog: { ...selected, balanceProfilesById: new Map([[1, invalid]]) } };
     assert.throws(
-      () => balanceProfileNumberFromContext(source, 1, 'procChance'),
+      () => balanceProfileNumber(requireBalanceProfileFromContext(source, 1), 'procChance'),
       /profession=fixture patch=preview profile=1 field=procChance expected=finite number received=/
     );
     assert.throws(
-      () => effectNumberFromContext(source, 'balance-profile', 1, { ...first, duration: value }, 'duration'),
+      () => effectNumber(requireBalanceProfileFromContext(source, 1), { ...first, duration: value }, 'duration'),
       /effect=condition\/First field=duration/
     );
   }
 
-  assert.equal(effectNumberFromContext({ catalog }, 'skill', 1, { type: 'strike', coefficient: 0 }, 'coefficient'), 0);
+  assert.equal(effectNumber(catalog.skillsById.get(1), { type: 'strike', coefficient: 0 }, 'coefficient'), 0);
   const removed = applyBalanceProfilePatch(catalog, { balanceProfiles: { 1: { removeEffects: [{ name: 'First' }] } } });
   assert.equal(
-    requireEffectFromContext((id) => removed.balanceProfilesById.get(id), 'balance-profile', 1, 'condition', 'First'),
+    requireEffect(
+      requireBalanceProfileFromContext((id) => removed.balanceProfilesById.get(id), 1),
+      'condition',
+      'First'
+    ),
     undefined
   );
   assert.throws(
     () =>
-      requireEffectFromContext(
-        () => ({ ...profile, effects: [first, first] }),
-        'balance-profile',
-        1,
+      requireEffect(
+        requireBalanceProfileFromContext(() => ({ ...profile, effects: [first, first] }), 1),
         'condition',
         'First'
       ),
@@ -269,10 +260,8 @@ test('required reads select one source and retain strict numeric and diagnostic 
   );
   assert.throws(
     () =>
-      requireEffectFromContext(
-        () => ({ ...profile, effects: [{ ...first, duration: null }] }),
-        'balance-profile',
-        1,
+      requireEffect(
+        requireBalanceProfileFromContext(() => ({ ...profile, effects: [{ ...first, duration: null }] }), 1),
         'condition',
         'First'
       ),
@@ -310,11 +299,13 @@ test('full previews and selected runtimes preserve removals without leaking acro
     family.resolveRuntime({ specialization: 'Elite', patchId: 'preview' }).catalog
   ]) {
     for (const kind of ['skill', 'balance-profile']) {
-      assert.equal(requireEffectFromContext({ catalog }, kind, 1, 'condition', 'First'), undefined);
-      assert.deepEqual(requireEffectFromContext({ catalog }, kind, 1, 'condition', 'Second'), second);
+      const owner = ownerOf(catalog, kind);
+      assert.equal(requireEffect(owner, 'condition', 'First'), undefined);
+      assert.deepEqual(requireEffect(owner, 'condition', 'Second'), second);
+      // Only balance profiles carry patch metadata, so skill diagnostics name the owner and effect alone.
       assert.throws(
-        () => requireEffectFromContext({ catalog }, kind, 1, 'condition', 'Typo'),
-        /profession=fixture patch=preview/
+        () => requireEffect(owner, 'condition', 'Typo'),
+        kind === 'skill' ? /skill=1 effect=condition\/Typo unknown effect key/ : /profession=fixture patch=preview/
       );
     }
 
@@ -322,26 +313,18 @@ test('full previews and selected runtimes preserve removals without leaking acro
     const lookup = (id) => catalog.balanceProfilesById.get(id);
     for (const context of [lookup, { balanceProfile: lookup }]) {
       for (const id of [1, 2]) {
-        assert.throws(
-          () => balanceProfileNumberFromContext(context, id, 'missing'),
-          /profession=fixture patch=preview/
-        );
-        assert.throws(
-          () => requireEffectFromContext(context, 'balance-profile', id, 'condition', 'Typo'),
-          /profession=fixture patch=preview/
-        );
-        const effect = requireEffectFromContext(context, 'balance-profile', id, 'condition', 'Second');
-        assert.throws(
-          () => effectNumberFromContext(context, 'balance-profile', id, effect, 'missing'),
-          /profession=fixture patch=preview/
-        );
+        const selectedProfile = requireBalanceProfileFromContext(context, id);
+        assert.throws(() => balanceProfileNumber(selectedProfile, 'missing'), /profession=fixture patch=preview/);
+        assert.throws(() => requireEffect(selectedProfile, 'condition', 'Typo'), /profession=fixture patch=preview/);
+        const effect = requireEffect(selectedProfile, 'condition', 'Second');
+        assert.throws(() => effectNumber(selectedProfile, effect, 'missing'), /profession=fixture patch=preview/);
       }
     }
   }
 
   for (const catalog of [family.catalogFor(), family.resolveRuntime({ specialization: 'Elite' }).catalog]) {
-    assert.deepEqual(requireEffectFromContext({ catalog }, 'skill', 1, 'condition', 'First'), first);
-    assert.deepEqual(requireEffectFromContext({ catalog }, 'balance-profile', 1, 'condition', 'First'), first);
+    assert.deepEqual(requireEffect(ownerOf(catalog, 'skill'), 'condition', 'First'), first);
+    assert.deepEqual(requireEffect(ownerOf(catalog, 'balance-profile'), 'condition', 'First'), first);
   }
 
   const core = family.resolveRuntime({ specialization: 'Core', patchId: 'preview' });
@@ -380,11 +363,12 @@ test('profile callbacks follow the latest overlay and never label an opaque sour
     [uneditedPatch, 'unedited']
   ]) {
     const lookup = (id) => catalog.balanceProfilesById.get(id);
+    const selectedProfile = requireBalanceProfileFromContext(lookup, 1);
     assert.throws(
-      () => balanceProfileNumberFromContext(lookup, 1, 'missing'),
+      () => balanceProfileNumber(selectedProfile, 'missing'),
       new RegExp(`profession=fixture patch=${patchId}`)
     );
-    assert.equal(requireEffectFromContext(lookup, 'balance-profile', 1, 'condition', 'First'), undefined);
+    assert.equal(requireEffect(selectedProfile, 'condition', 'First'), undefined);
   }
 
   assert.equal(live.balanceProfilesById.get(1).balanceDataContext, undefined);

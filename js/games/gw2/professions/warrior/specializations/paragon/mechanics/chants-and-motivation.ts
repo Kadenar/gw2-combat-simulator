@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
@@ -26,7 +29,8 @@ export const paragonSchedulerHooks = Object.freeze({
   // Keep Core's three-bar adrenaline pool; each chant or burst still spends one bar.
   initialize: (context: WarriorSchedulerContext) => {
     const state = paragonState.from(context);
-    state.maximumMotivation = balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
+    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+    state.maximumMotivation = balanceProfileNumber(resourcesProfile, 'maximumStacks');
     state.motivation = Math.min(state.maximumMotivation, state.motivation);
   },
   onCastStart: beginParagonCast,
@@ -124,11 +128,11 @@ function modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw
     return attributes;
   }
 
+  const inspiringImplementsProfile = requireBalanceProfileFromContext(context, PROFILE.inspiringImplements);
   return {
     ...attributes,
     concentration:
-      Number(attributes.concentration || 0) +
-      balanceProfileNumberFromContext(context, PROFILE.inspiringImplements, 'attributeBonus')
+      Number(attributes.concentration || 0) + balanceProfileNumber(inspiringImplementsProfile, 'attributeBonus')
   };
 }
 

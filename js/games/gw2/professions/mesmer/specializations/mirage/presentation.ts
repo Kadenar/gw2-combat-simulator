@@ -1,5 +1,8 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   mesmerMechanicPaletteGroups,
   mesmerResourceViews,
@@ -17,13 +20,14 @@ const MIRAGE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATI
 
 /** Publishes Mirage-only timed effects and their chart limits. */
 function mirageEffectPresentations(context: MesmerUiContext): ProfessionEffectPresentation[] {
+  const phantomPainProfile = requireBalanceProfileFromContext(context, PROFILE.phantomPain);
   return [
     {
       id: 'mesmer-phantom-pain',
       kind: 'phantom-pain',
       name: 'Phantom Pain',
       color: '#df79bd',
-      maximumStacks: balanceProfileNumberFromContext(context, PROFILE.phantomPain, 'maximumStacks')
+      maximumStacks: balanceProfileNumber(phantomPainProfile, 'maximumStacks')
     },
     {
       id: 'mesmer-mirage-cloak',

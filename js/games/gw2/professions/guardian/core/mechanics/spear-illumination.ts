@@ -7,7 +7,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { effectFirstAtMs, strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
@@ -220,7 +220,9 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
   const illuminated = luminanceActive || illuminatedArmed;
   const profileId = SPEAR_PROFILE_BY_SKILL_ID[skill.id];
   const multiplier =
-    profileId === undefined ? 1 : balanceProfileNumberFromContext(context, profileId, 'damageMultiplier');
+    profileId === undefined
+      ? 1
+      : balanceProfileNumber(requireBalanceProfileFromContext(context, profileId), 'damageMultiplier');
 
   if (illuminated && multiplier > 1) {
     const at = emitIlluminatedBonus(context, skill, multiplier);

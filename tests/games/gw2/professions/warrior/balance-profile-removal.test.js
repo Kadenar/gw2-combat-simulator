@@ -349,8 +349,10 @@ test('Warrior handlers reject missing profiles and invalid required scalars cont
     () => applyMarchingOrders(context, { at: 1 }),
     /profession=warrior patch=broken.*missing required profile/
   );
+  // Resolved profiles carry their own source, so diagnostics need no runtime context.
+  const { balanceDataContext } = context.catalog;
   for (const value of [undefined, null, '10', NaN, Infinity]) {
-    profiles.set(CORE.marchingOrders, { ...original, internalCooldown: value });
+    profiles.set(CORE.marchingOrders, { ...original, internalCooldown: value, balanceDataContext });
     assert.throws(
       () => applyMarchingOrders(context, { at: 1 }),
       /profession=warrior patch=broken.*field=internalCooldown/

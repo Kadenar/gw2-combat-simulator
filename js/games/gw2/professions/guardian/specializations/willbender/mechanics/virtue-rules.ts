@@ -8,7 +8,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -256,10 +256,11 @@ function queueInFlightWeaponCooldownReduction(
     // Already-accumulated pending reductions are subtracted from the remaining
     // recharge so that multiple virtue triggers during the same cast don't over-reduce.
     const available = Math.max(0, Number(event.rechargeReadyAt) - at - pending);
+    const restorativeVirtuesProfile = requireBalanceProfileFromContext(context, PROFILE.restorativeVirtues);
     // In-flight skills are not in the cooldown controller yet, so project the same base-to-tracked conversion here.
     const reduction = Math.min(
       gw2TrackedRechargeReduction(
-        balanceProfileNumberFromContext(context, PROFILE.restorativeVirtues, 'rechargeReduction'),
+        balanceProfileNumber(restorativeVirtuesProfile, 'rechargeReduction'),
         context.hasBuff('alacrity', at) ? Number(context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE) : 1
       ),
       available
@@ -274,7 +275,8 @@ function queueInFlightWeaponCooldownReduction(
 
 function reduceActiveWeaponCooldowns(context: GuardianSchedulerContext, at: number): number {
   const weaponNames = activeWeaponNames(context);
-  const rechargeReduction = balanceProfileNumberFromContext(context, PROFILE.restorativeVirtues, 'rechargeReduction');
+  const restorativeVirtuesProfile = requireBalanceProfileFromContext(context, PROFILE.restorativeVirtues);
+  const rechargeReduction = balanceProfileNumber(restorativeVirtuesProfile, 'rechargeReduction');
   let reducedBy = reduceMatchingCooldowns(
     context,
     (skill) => isActiveWeaponSkill(skill, weaponNames),
@@ -571,8 +573,11 @@ export const willbenderVirtueHitReaction = scheduledReaction<
       // only for justice; resolve and courage always require 5 hits.
       const triggerHits =
         virtue === 'justice' && hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
-          ? balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH, 'threshold')
-          : balanceProfileNumberFromContext(context, PROFILE.virtueWindows, 'threshold');
+          ? balanceProfileNumber(
+              requireBalanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH),
+              'threshold'
+            )
+          : balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.virtueWindows), 'threshold');
       if (state.virtueHitCounts[virtue] < triggerHits) continue;
       state.virtueHitCounts[virtue] = 0;
       triggerVirtue(virtue, virtue === 'justice' ? 2 : undefined, virtue === 'justice' ? true : undefined);

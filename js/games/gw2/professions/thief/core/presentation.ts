@@ -1,7 +1,10 @@
 import { skillFlipVisible, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
@@ -251,7 +254,10 @@ export const thiefCoreUi = Object.freeze({
       id: 'thief-lead-attacks',
       kind: 'lead-attacks',
       name: 'Lead Attacks',
-      maximumStacks: balanceProfileNumberFromContext(context, PROFILE.leadAttacks, 'maximumStacks')
+      maximumStacks: balanceProfileNumber(
+        requireBalanceProfileFromContext(context, PROFILE.leadAttacks),
+        'maximumStacks'
+      )
     }
   ],
   assumptionControls: Object.freeze([

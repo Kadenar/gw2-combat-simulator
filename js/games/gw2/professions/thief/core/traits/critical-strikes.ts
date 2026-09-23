@@ -2,7 +2,6 @@ import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import {
-  balanceProfileNumberFromContext,
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
@@ -56,14 +55,14 @@ function criticalBoonDefinition(context: unknown, traitId: SkillId) {
   const rule = CRITICAL_BOONS.find((rule) => rule.traitId === traitId)!;
 
   const selectedProfile = requireBalanceProfileFromContext(context, rule.profileId);
-  const effect = requireEffect(selectedProfile, 'boon', 'Fury', context);
+  const effect = requireEffect(selectedProfile, 'boon', 'Fury');
   if (!effect) return null;
   return {
     ...rule,
     boon: String(effect.boon),
-    duration: effectNumber(selectedProfile, effect, 'duration', context),
-    stacks: effectNumber(selectedProfile, effect, 'stacks', context),
-    internalCooldown: balanceProfileNumber(selectedProfile, 'internalCooldown', context)
+    duration: effectNumber(selectedProfile, effect, 'duration'),
+    stacks: effectNumber(selectedProfile, effect, 'stacks'),
+    internalCooldown: balanceProfileNumber(selectedProfile, 'internalCooldown')
   };
 }
 
@@ -205,7 +204,7 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
   },
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
-      balanceProfileNumberFromContext(context, TRAIT.UNRELENTING_STRIKES, 'internalCooldown'),
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.UNRELENTING_STRIKES), 'internalCooldown'),
     readyAt: (context: ThiefResolverContext) =>
       Number(professionCoreState(context).traitProcReadyAt[TRAIT.UNRELENTING_STRIKES] || 0),
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
@@ -258,7 +257,7 @@ export const noQuarterCriticalReaction = Object.freeze({
   },
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
-      balanceProfileNumberFromContext(context, TRAIT.NO_QUARTER, 'internalCooldown'),
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.NO_QUARTER), 'internalCooldown'),
     readyAt: (context: ThiefResolverContext) =>
       Number(professionCoreState(context).traitProcReadyAt[TRAIT.NO_QUARTER] || 0),
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
@@ -287,7 +286,7 @@ export function applyAssassinsFury(context: ThiefResolverContext, event: ThiefRe
   const state = professionCoreState(context);
 
   const assassinsFuryProfile = requireBalanceProfileFromContext(context, PROFILE.assassinsFury);
-  const might = requireEffect(assassinsFuryProfile, 'boon', 'Might', context);
+  const might = requireEffect(assassinsFuryProfile, 'boon', 'Might');
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!might) return;
   // Claim this owner's ICD before effects or resource snapshots can re-enter the trait.
@@ -296,7 +295,7 @@ export function applyAssassinsFury(context: ThiefResolverContext, event: ThiefRe
       state.traitProcReadyAt,
       TRAIT.ASSASSINS_FURY,
       event.at,
-      balanceProfileNumber(assassinsFuryProfile, 'internalCooldown', context)
+      balanceProfileNumber(assassinsFuryProfile, 'internalCooldown')
     )
   )
     return;
@@ -314,8 +313,8 @@ export function applyAssassinsFury(context: ThiefResolverContext, event: ThiefRe
       skillName: "Assassin's Fury",
       name: `Assassin's Fury - ${boon}`,
       kind: boon.toLowerCase(),
-      duration: effectNumber(assassinsFuryProfile, might, 'duration', context),
-      stacks: effectNumber(assassinsFuryProfile, might, 'stacks', context),
+      duration: effectNumber(assassinsFuryProfile, might, 'duration'),
+      stacks: effectNumber(assassinsFuryProfile, might, 'stacks'),
       audience: { recipients: 'self' },
       triggeredBy: event.skillName
     })

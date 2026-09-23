@@ -115,16 +115,12 @@ test('Explosives traits use the requested packets, gates, and health modifiers',
 
   const noModifiers = simulate('Core', ['Puncturing Jab'], {
     stats: { precision: 1000, ferocity: 0 },
-    playerHealthFraction: 0.8,
-    targetHealthFraction: 0.5,
-    target: { conditions: { Vulnerability: 10 } }
+    target: { health: 1_000_000, startingHealthFraction: 0.5, conditions: { Vulnerability: 10 } }
   });
   const modifiers = simulate('Core', ['Puncturing Jab'], {
     selectedTraitIds: [TRAIT.GLASS_CANNON, TRAIT.SHAPED_CHARGE, TRAIT.BIG_BOOMER],
     stats: { precision: 1000, ferocity: 0 },
-    playerHealthFraction: 0.8,
-    targetHealthFraction: 0.5,
-    target: { conditions: { Vulnerability: 10 } }
+    target: { health: 1_000_000, startingHealthFraction: 0.5, conditions: { Vulnerability: 10 } }
   });
   const firstStrike = (result) => result.resolvedEvents.find((event) => event.type === 'damage');
 
@@ -340,12 +336,11 @@ test('Aim-Assisted Rocket calls an orbital strike after four rockets', () => {
 });
 
 test('Firearms traits apply critical tiers, durations, procs, and Power bleeding', () => {
-  const heavy = [0.8, 0.7, 0.4, 0.2].map((targetHealthFraction) => {
+  const heavy = [0.8, 0.7, 0.4, 0.2].map((startingHealthFraction) => {
     const result = simulate('Core', ['Puncturing Jab'], {
       selectedTraitIds: [TRAIT.HIGH_CALIBER, TRAIT.HEAVY_METAL],
       stats: { precision: 1000, ferocity: 0 },
-      targetHealthFraction,
-      target: { conditions: {} }
+      target: { health: 1_000_000, startingHealthFraction, conditions: {} }
     });
     const hit = result.resolvedEvents.find((event) => event.type === 'damage');
 

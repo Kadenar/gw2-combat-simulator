@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
@@ -209,12 +212,13 @@ function warriorCoreStateSnapshot(context: WarriorUiContext): RotationStateSnaps
 
 /** Publishes the Core Warrior stack cap from the same patchable profile used by its modifier. */
 function warriorCoreEffectPresentations(context: WarriorUiContext): ProfessionEffectPresentation[] {
+  const berserkersPowerProfile = requireBalanceProfileFromContext(context, PROFILE.berserkersPower);
   return [
     {
       id: 'warrior-berserkers-power',
       kind: 'berserkers-power',
       name: "Berserker's Power",
-      maximumStacks: balanceProfileNumberFromContext(context, PROFILE.berserkersPower, 'maximumStacks')
+      maximumStacks: balanceProfileNumber(berserkersPowerProfile, 'maximumStacks')
     }
   ];
 }

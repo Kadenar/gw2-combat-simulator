@@ -9,7 +9,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
  * be charged twice.
  */
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { requireEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
@@ -23,20 +23,9 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementa
 // Materialize Electric Enchantment's strike and condition package for the invoking
 // skill while preserving shared event attribution.
 function emitElectricEnchantment(context: ElementalistSchedulerContext, event: SimulationEvent): void {
-  const strike = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.galvanicEnchantment,
-    'strike',
-    'Galvanic Enchantment'
-  );
-  const burning = requireEffectFromContext(
-    context,
-    'balance-profile',
-    PROFILE.galvanicEnchantment,
-    'condition',
-    'Burning'
-  );
+  const galvanicEnchantmentProfile = requireBalanceProfileFromContext(context, PROFILE.galvanicEnchantment);
+  const strike = requireEffect(galvanicEnchantmentProfile, 'strike', 'Galvanic Enchantment');
+  const burning = requireEffect(galvanicEnchantmentProfile, 'condition', 'Burning');
   if (strike) {
     emitSkillDamage(context, {
       cause: event,

@@ -1,6 +1,9 @@
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import {
   createBuildAttributeContext,
@@ -33,13 +36,21 @@ export function applyEngineerBuildAttributeRules(
 
   const traitDurations: Gw2NumericAttributes = {};
 
+  const chemicalRoundsProfile = requireBalanceProfileFromContext(profileContext, TRAIT.CHEMICAL_ROUNDS);
+  const thermalVisionProfile = requireBalanceProfileFromContext(profileContext, TRAIT.THERMAL_VISION);
+  const compoundingChemicalsProfile = requireBalanceProfileFromContext(profileContext, TRAIT.COMPOUNDING_CHEMICALS);
+  const hybridVigorProfile = requireBalanceProfileFromContext(profileContext, TRAIT.HYBRID_VIGOR);
+  const blastShieldProfile = requireBalanceProfileFromContext(profileContext, TRAIT.BLAST_SHIELD);
+  const energyAmplifierProfile = requireBalanceProfileFromContext(profileContext, TRAIT.ENERGY_AMPLIFIER);
+  const noScopeProfile = requireBalanceProfileFromContext(profileContext, TRAIT.NO_SCOPE);
+  const kineticAcceleratorsProfile = requireBalanceProfileFromContext(profileContext, TRAIT.KINETIC_ACCELERATORS);
   // Describe static trait bonuses declaratively so shared provenance and conversion ordering stay intact.
   const attributeEffects: readonly Gw2AttributeEffect[] = [
     {
       kind: 'flat',
       source: 'Chemical Rounds',
       to: 'Condition Damage',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.CHEMICAL_ROUNDS, 'attributeBonus'),
+      amount: balanceProfileNumber(chemicalRoundsProfile, 'attributeBonus'),
       feedsConversions: true,
       enabled: hasTrait('Chemical Rounds')
     },
@@ -47,7 +58,7 @@ export function applyEngineerBuildAttributeRules(
       kind: 'flat',
       source: 'Thermal Vision',
       to: 'Expertise',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.THERMAL_VISION, 'attributeBonus'),
+      amount: balanceProfileNumber(thermalVisionProfile, 'attributeBonus'),
       feedsConversions: true,
       enabled: hasTrait('Thermal Vision')
     },
@@ -55,7 +66,7 @@ export function applyEngineerBuildAttributeRules(
       kind: 'flat',
       source: 'Compounding Chemicals',
       to: 'Concentration',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.COMPOUNDING_CHEMICALS, 'attributeBonus'),
+      amount: balanceProfileNumber(compoundingChemicalsProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Compounding Chemicals')
     },
@@ -63,7 +74,7 @@ export function applyEngineerBuildAttributeRules(
       kind: 'flat',
       source: 'Hybrid Vigor',
       to: 'Vitality',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.HYBRID_VIGOR, 'attributeBonus'),
+      amount: balanceProfileNumber(hybridVigorProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Hybrid Vigor')
     },
@@ -72,7 +83,7 @@ export function applyEngineerBuildAttributeRules(
       source: 'Blast Shield',
       from: 'Power',
       to: 'Vitality',
-      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.BLAST_SHIELD, 'attributeConversion'),
+      multiplier: balanceProfileNumber(blastShieldProfile, 'attributeConversion'),
       rounding: 'none',
       input: 'eligible',
       enabled: hasTrait('Blast Shield')
@@ -81,7 +92,7 @@ export function applyEngineerBuildAttributeRules(
       kind: 'flat',
       source: 'Energy Amplifier',
       to: 'Power',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.ENERGY_AMPLIFIER, 'attributeBonus'),
+      amount: balanceProfileNumber(energyAmplifierProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Energy Amplifier') && engineerBuild.assumptions?.regeneration !== false
     },
@@ -89,7 +100,7 @@ export function applyEngineerBuildAttributeRules(
       kind: 'flat',
       source: 'Energy Amplifier',
       to: 'Healing Power',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.ENERGY_AMPLIFIER, 'attributeBonus'),
+      amount: balanceProfileNumber(energyAmplifierProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('Energy Amplifier') && engineerBuild.assumptions?.regeneration !== false
     },
@@ -97,7 +108,7 @@ export function applyEngineerBuildAttributeRules(
       kind: 'flat',
       source: 'No Scope',
       to: 'Ferocity',
-      amount: balanceProfileNumberFromContext(profileContext, TRAIT.NO_SCOPE, 'attributeBonus'),
+      amount: balanceProfileNumber(noScopeProfile, 'attributeBonus'),
       feedsConversions: false,
       enabled: hasTrait('No Scope') && engineerBuild.assumptions?.fury !== false
     },
@@ -106,7 +117,7 @@ export function applyEngineerBuildAttributeRules(
       source: 'Kinetic Accelerators',
       from: 'Power',
       to: 'Concentration',
-      multiplier: balanceProfileNumberFromContext(profileContext, TRAIT.KINETIC_ACCELERATORS, 'attributeConversion'),
+      multiplier: balanceProfileNumber(kineticAcceleratorsProfile, 'attributeConversion'),
       rounding: 'round',
       input: 'eligible',
       enabled: hasTrait('Kinetic Accelerators')
@@ -115,18 +126,19 @@ export function applyEngineerBuildAttributeRules(
 
   // Surface static condition-duration traits in the panel so the same finalized values can seed simulation stats.
   if (hasTrait('Serrated Steel')) {
-    traitDurations['Bleeding Duration'] =
-      100 * balanceProfileNumberFromContext(profileContext, TRAIT.SERRATED_STEEL, 'durationMultiplier');
+    const serratedSteelProfile = requireBalanceProfileFromContext(profileContext, TRAIT.SERRATED_STEEL);
+    traitDurations['Bleeding Duration'] = 100 * balanceProfileNumber(serratedSteelProfile, 'durationMultiplier');
   }
 
   if (hasTrait('Incendiary Powder')) {
-    traitDurations['Burning Duration'] =
-      100 * balanceProfileNumberFromContext(profileContext, TRAIT.INCENDIARY_POWDER, 'durationMultiplier');
+    const incendiaryPowderProfile = requireBalanceProfileFromContext(profileContext, TRAIT.INCENDIARY_POWDER);
+    traitDurations['Burning Duration'] = 100 * balanceProfileNumber(incendiaryPowderProfile, 'durationMultiplier');
   }
 
   if (hasTrait('Carbolic Composition')) {
+    const carbolicCompositionProfile = requireBalanceProfileFromContext(profileContext, TRAIT.CARBOLIC_COMPOSITION);
     traitDurations['Poison Duration'] =
-      100 * balanceProfileNumberFromContext(profileContext, TRAIT.CARBOLIC_COMPOSITION, 'conditionDurationBonus');
+      100 * balanceProfileNumber(carbolicCompositionProfile, 'conditionDurationBonus');
   }
 
   // Preserve the common conversion pool separately because Amalgam evolves from the pre-profession values.

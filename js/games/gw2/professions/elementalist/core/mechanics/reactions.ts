@@ -3,8 +3,9 @@ import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/char
 /** Resolver event classification and reaction registration for Core Elementalist behavior. */
 import {
   procChanceFromContext,
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 // Resolver mutations target the owned Core slice of the nested Elementalist runtime.
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -135,7 +136,8 @@ export const elementalistCoreCriticalReactions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => balanceProfileNumberFromContext(context, PROFILE.ragingStorm, 'internalCooldown'),
+      duration: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.ragingStorm), 'internalCooldown'),
       readyAt: (context) => Number(professionCoreState(context).procReadyAt.ragingStorm || 0),
       setReadyAt: (context, readyAt) => {
         professionCoreState(context).procReadyAt.ragingStorm = readyAt;
@@ -147,7 +149,8 @@ export const elementalistCoreCriticalReactions = Object.freeze([
   }),
   onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.arcane-precision',
-    chanceOnCriticalHit: (context) => balanceProfileNumberFromContext(context, PROFILE.arcanePrecision, 'procChance'),
+    chanceOnCriticalHit: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.arcanePrecision), 'procChance'),
     when: (context, event, details) => criticalTraitEligible(context, event, details, 'Arcane Precision'),
     expectedProgress: {
       get: (context) => Number(professionCoreState(context).criticalProcProgress.arcanePrecision || 0),
@@ -156,7 +159,8 @@ export const elementalistCoreCriticalReactions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => balanceProfileNumberFromContext(context, PROFILE.arcanePrecision, 'internalCooldown'),
+      duration: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.arcanePrecision), 'internalCooldown'),
       readyAt: (context) => Number(professionCoreState(context).procReadyAt.arcanePrecision || 0),
       setReadyAt: (context, readyAt) => {
         professionCoreState(context).procReadyAt.arcanePrecision = readyAt;
@@ -177,7 +181,8 @@ export const elementalistCoreCriticalReactions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => balanceProfileNumberFromContext(context, PROFILE.renewingStamina, 'internalCooldown'),
+      duration: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.renewingStamina), 'internalCooldown'),
       readyAt: (context) => Number(professionCoreState(context).procReadyAt.renewingStamina || 0),
       setReadyAt: (context, readyAt) => {
         professionCoreState(context).procReadyAt.renewingStamina = readyAt;
@@ -198,7 +203,8 @@ export const elementalistCoreCriticalReactions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => balanceProfileNumberFromContext(context, PROFILE.burningPrecision, 'internalCooldown'),
+      duration: (context) =>
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.burningPrecision), 'internalCooldown'),
       readyAt: (context) => Number(professionCoreState(context).procReadyAt.burningPrecision || 0),
       setReadyAt: (context, readyAt) => {
         professionCoreState(context).procReadyAt.burningPrecision = readyAt;
@@ -240,13 +246,8 @@ export function applyElementalistResolvedDamage(
     Number(event.coefficient) > 0 &&
     consumeCharge(core.shatteringStone, event.at)
   ) {
-    const bleeding = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.shatteringStone,
-      'condition',
-      'Triggered Bleeding'
-    );
+    const shatteringStoneProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringStone);
+    const bleeding = requireEffect(shatteringStoneProfile, 'condition', 'Triggered Bleeding');
     if (bleeding) {
       applyElementalistDerivedCondition(context, event, {
         source: 'Shattering Stone',

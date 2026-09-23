@@ -1,5 +1,8 @@
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { kineticAcceleratorBoons } from '#gw2/professions/engineer/specializations/scrapper/traits/kinetic-accelerators.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -60,16 +63,13 @@ export const scrapperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 // Applied Force (GM trait): each might stack (capped at 25) adds 30 flat power at cast time.
 function modifyScrapperAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   if (!hasTrait(context, TRAIT.APPLIED_FORCE)) return attributes;
+  const appliedForceProfile = requireBalanceProfileFromContext(context, PROFILE.appliedForce);
   const modified = {
     ...attributes,
     power:
       Number(attributes.power || 0) +
-      activeBoonStacks(
-        context,
-        'might',
-        balanceProfileNumberFromContext(context, PROFILE.appliedForce, 'maximumStacks')
-      ) *
-        balanceProfileNumberFromContext(context, PROFILE.appliedForce, 'attributePerStack')
+      activeBoonStacks(context, 'might', balanceProfileNumber(appliedForceProfile, 'maximumStacks')) *
+        balanceProfileNumber(appliedForceProfile, 'attributePerStack')
   };
   // Core converts Power before Applied Force runs, so refresh Sharpshooter with the final Power.
   applyEngineerSharpshooterConditionDamage(context, modified);
@@ -79,7 +79,10 @@ function modifyScrapperAttributes(context: Gw2ModifierContext, attributes: Gw2St
 // Ex Machina (adept trait): Function Gyro gets a minimum of 2 ammo charges.
 function modifyScrapperMaximumAmmo(context: EngineerMaximumAmmoContext, maximum: number): number {
   return context.skill?.id === ID.FUNCTION_GYRO && hasTrait(context.config, TRAIT.EX_MACHINA)
-    ? Math.max(balanceProfileNumberFromContext(context, TRAIT.EX_MACHINA, 'maximumAmmo'), Number(maximum || 0))
+    ? Math.max(
+        balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EX_MACHINA), 'maximumAmmo'),
+        Number(maximum || 0)
+      )
     : maximum;
 }
 

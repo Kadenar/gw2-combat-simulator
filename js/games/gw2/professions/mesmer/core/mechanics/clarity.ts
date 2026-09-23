@@ -1,4 +1,7 @@
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 /** Owns the Clarity window that one spear cast arms and a later spear cast consumes. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SchedulerState } from '#gw2/platform/execution/types.js';
@@ -49,8 +52,8 @@ export function applyMesmerClarity(
   at: number
 ): void {
   if (skill.id !== ID.MIND_THE_GAP) return;
-  professionCoreState(state).clarityUntil =
-    at + balanceProfileNumberFromContext(balanceProfile, 'mesmer.core.clarity', 'durationMultiplier');
+  const clarityProfile = requireBalanceProfileFromContext(balanceProfile, 'mesmer.core.clarity');
+  professionCoreState(state).clarityUntil = at + balanceProfileNumber(clarityProfile, 'durationMultiplier');
   addEvent({
     type: 'proc',
     procType: 'skill',

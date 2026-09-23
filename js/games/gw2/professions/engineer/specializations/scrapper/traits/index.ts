@@ -1,6 +1,7 @@
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillControl } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -32,6 +33,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
   // Speed of Synergy: healing toolbelt skills grant superspeed.
   // Med Kit toolbelt gets 12s (exceptional duration from the kit design); all others get 7s.
   if (hasTrait(context.config, TRAIT.SPEED_OF_SYNERGY) && isHealingToolbeltSkill(context, skill)) {
+    const speedOfSynergyProfile = requireBalanceProfileFromContext(context, PROFILE.speedOfSynergy);
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
       source: 'Trait',
@@ -41,8 +43,8 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       kind: 'superspeed',
       duration:
         skill.toolbeltParentId === ID.MED_KIT
-          ? balanceProfileNumberFromContext(context, PROFILE.speedOfSynergy, 'maximumStacks')
-          : balanceProfileNumberFromContext(context, PROFILE.speedOfSynergy, 'minimumStacks'),
+          ? balanceProfileNumber(speedOfSynergyProfile, 'maximumStacks')
+          : balanceProfileNumber(speedOfSynergyProfile, 'minimumStacks'),
       stacks: 1,
       maximumDuration: 10
     });
@@ -51,6 +53,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
   // Speed of Synergy also applies when casting the heal skill itself (7s),
   // but Med Kit is excluded because equipping it doesn't constitute a cast.
   if (hasTrait(context.config, TRAIT.SPEED_OF_SYNERGY) && isHealingSkill(skill) && skill.id !== ID.MED_KIT) {
+    const speedOfSynergyProfile = requireBalanceProfileFromContext(context, PROFILE.speedOfSynergy);
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
       source: 'Trait',
@@ -58,7 +61,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       actorType: 'player',
       name: 'Speed of Synergy — superspeed',
       kind: 'superspeed',
-      duration: balanceProfileNumberFromContext(context, PROFILE.speedOfSynergy, 'threshold'),
+      duration: balanceProfileNumber(speedOfSynergyProfile, 'threshold'),
       stacks: 1,
       maximumDuration: 10
     });
@@ -66,13 +69,8 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
 
   // Gyroscopic Acceleration (adept trait): Well skills and Function Gyro grant 5s superspeed.
   if (hasTrait(context.config, TRAIT.GYROSCOPIC_ACCELERATION) && (category(skill, 'Well') || isFunctionGyro(skill))) {
-    const gyroscopicAccelerationSuperspeed = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.gyroscopicAcceleration,
-      'buff',
-      'superspeed'
-    );
+    const gyroscopicAccelerationProfile = requireBalanceProfileFromContext(context, PROFILE.gyroscopicAcceleration);
+    const gyroscopicAccelerationSuperspeed = requireEffect(gyroscopicAccelerationProfile, 'buff', 'superspeed');
     if (gyroscopicAccelerationSuperspeed) {
       emitSkillBuff(context, skill, {
         at: context.effectiveEnd,
@@ -131,13 +129,8 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
 
   // Mass Momentum (GM trait): Function Gyro grants 3 stacks of stability (seeds the pulse loop).
   if (hasTrait(context.config, TRAIT.MASS_MOMENTUM)) {
-    const massMomentumStability = requireEffectFromContext(
-      context,
-      'balance-profile',
-      PROFILE.massMomentum,
-      'boon',
-      'stability'
-    );
+    const massMomentumProfile = requireBalanceProfileFromContext(context, PROFILE.massMomentum);
+    const massMomentumStability = requireEffect(massMomentumProfile, 'boon', 'stability');
     if (massMomentumStability) {
       emitSkillBuff(context, skill, {
         at: context.effectiveEnd,

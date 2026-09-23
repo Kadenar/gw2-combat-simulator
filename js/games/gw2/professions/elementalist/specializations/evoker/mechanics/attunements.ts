@@ -8,8 +8,9 @@
  * attunement actually changing.
  */
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
@@ -55,12 +56,13 @@ function consumeEvokerAttunementTraitCooldown(
   at: number,
   profileId: Skill['id']
 ): boolean {
+  const evocationProfile = requireBalanceProfileFromContext(context, PROFILE.evocation);
   // Both real and familiar-triggered entries share a per-profile claim before downstream effects.
   return tryConsumeProcCooldown(
     state.attunementTraitProcReadyAt,
     String(profileId),
     at,
-    balanceProfileNumberFromContext(context, PROFILE.evocation, 'internalCooldown')
+    balanceProfileNumber(evocationProfile, 'internalCooldown')
   );
 }
 
@@ -117,28 +119,24 @@ export function applyEvokerAttunementRechargePolicy(
 
   // only the previously active attunement goes on the off-attunement recharge; others use the default below
   if (previous === state.element) {
+    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
     setElementalistAttunementReadyAt(
       context,
       previous,
       Math.max(
         Number(readyAtBefore[previous] || 0),
         event.at +
-          elementalistAttunementRechargeDuration(
-            context as never,
-            balanceProfileNumberFromContext(context, PROFILE.resources, 'recharge')
-          )
+          elementalistAttunementRechargeDuration(context as never, balanceProfileNumber(resourcesProfile, 'recharge'))
       )
     );
   }
 
   for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
     if (attunement === target || attunement === previous) continue;
+    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
     const defaultReadyAt =
       event.at +
-      elementalistAttunementRechargeDuration(
-        context as never,
-        balanceProfileNumberFromContext(context, PROFILE.resources, 'recharge')
-      );
+      elementalistAttunementRechargeDuration(context as never, balanceProfileNumber(resourcesProfile, 'recharge'));
     const existingReadyAt = Number(readyAtBefore[attunement] || 0);
     const preservedRemaining = Number(preserved[attunement] || 0);
     // if the attunement already had less time left than the new default, keep the shorter timer
@@ -181,7 +179,8 @@ export function triggerSpecializedElementEntry(
     applyInscriptionAirEntry(context, at, skill);
 
     if (hasTrait(context, 'Fresh Air')) {
-      const freshAir = requireEffectFromContext(context, 'balance-profile', CORE_PROFILE.freshAir, 'buff', 'fresh-air');
+      const freshAirProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.freshAir);
+      const freshAir = requireEffect(freshAirProfile, 'buff', 'fresh-air');
       if (freshAir) {
         emitSkillBuff(context, skill, {
           at,

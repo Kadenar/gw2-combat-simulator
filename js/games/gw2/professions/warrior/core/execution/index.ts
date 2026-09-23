@@ -2,8 +2,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { scheduleDeclarativeEffects } from '#gw2/platform/execution/effect-adapter.js';
 
@@ -27,9 +26,9 @@ import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/wa
 
 function burstTier(context: WarriorCastContext, spent: number): number {
   const burstTiersProfile = requireBalanceProfileFromContext(context, PROFILE.burstTiers);
-  return spent >= balanceProfileNumber(burstTiersProfile, 'maximumStacks', context)
+  return spent >= balanceProfileNumber(burstTiersProfile, 'maximumStacks')
     ? 3
-    : spent >= balanceProfileNumber(burstTiersProfile, 'threshold', context)
+    : spent >= balanceProfileNumber(burstTiersProfile, 'threshold')
       ? 2
       : 1;
 }
@@ -92,10 +91,10 @@ function useResourceSkill(context: WarriorCastContext, skill: WarriorSkill): voi
     effects.some((effect) => effect.type === 'condition' && effect.condition === 'Bleeding')
   ) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.bloodthirsterTiers);
-    const bleeding = requireEffect(profile, 'condition', `Tier ${tier}`, context);
+    const bleeding = requireEffect(profile, 'condition', `Tier ${tier}`);
     const values = bleeding && {
-      stacks: effectNumber(profile, bleeding, 'stacks', context),
-      duration: effectNumber(profile, bleeding, 'duration', context)
+      stacks: effectNumber(profile, bleeding, 'stacks'),
+      duration: effectNumber(profile, bleeding, 'duration')
     };
     effects = effects.flatMap<(typeof effects)[number]>((effect) =>
       effect.type === 'condition' && effect.condition === 'Bleeding'
@@ -107,9 +106,9 @@ function useResourceSkill(context: WarriorCastContext, skill: WarriorSkill): voi
   } else if (skill.id === ID.EVISCERATE && effects.some((effect) => effect.type === 'strike')) {
     const variantId = [PROFILE.eviscerateTier1, PROFILE.eviscerateTier2, PROFILE.eviscerateTier3][tier - 1];
     const profile = requireBalanceProfileFromContext(context, variantId);
-    const strike = requireEffect(profile, 'strike', 'Strike', context);
+    const strike = requireEffect(profile, 'strike', 'Strike');
     const values = strike && {
-      coefficient: effectNumber(profile, strike, 'coefficient', context),
+      coefficient: effectNumber(profile, strike, 'coefficient'),
       name: `Eviscerate — Level ${tier} Damage`
     };
     effects = effects.flatMap<(typeof effects)[number]>((effect) =>
@@ -135,15 +134,15 @@ function useCombustiveShot(context: WarriorCastContext, skill: WarriorSkill): vo
   const pulses = tier + 1;
 
   const combustiveShotProfile = requireBalanceProfileFromContext(context, PROFILE.combustiveShot);
-  const strike = requireEffect(combustiveShotProfile, 'strike', 'Strike', context);
-  const burning = requireEffect(combustiveShotProfile, 'condition', 'Burning', context);
-  const interval = balanceProfileNumber(combustiveShotProfile, 'pulseInterval', context);
-  const durationPerTier = balanceProfileNumber(combustiveShotProfile, 'durationPerTier', context);
+  const strike = requireEffect(combustiveShotProfile, 'strike', 'Strike');
+  const burning = requireEffect(combustiveShotProfile, 'condition', 'Burning');
+  const interval = balanceProfileNumber(combustiveShotProfile, 'pulseInterval');
+  const durationPerTier = balanceProfileNumber(combustiveShotProfile, 'durationPerTier');
   // Pulses share one validated packet snapshot; removed components remain absent.
-  const coefficient = strike && effectNumber(combustiveShotProfile, strike, 'coefficient', context);
+  const coefficient = strike && effectNumber(combustiveShotProfile, strike, 'coefficient');
   const burningValues = burning && {
-    stacks: effectNumber(combustiveShotProfile, burning, 'stacks', context),
-    duration: effectNumber(combustiveShotProfile, burning, 'duration', context)
+    stacks: effectNumber(combustiveShotProfile, burning, 'stacks'),
+    duration: effectNumber(combustiveShotProfile, burning, 'duration')
   };
   const ownedField = skill.comboFields?.find((field) => field.ownerId === 'warrior');
   context.replaceEvent(context.action, {
@@ -235,11 +234,10 @@ function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill)
   const bullets = Math.max(1, Number(context.ammo?.charges || 1));
 
   const dragonsRoarProfile = requireBalanceProfileFromContext(context, PROFILE.dragonsRoar);
-  const strike = requireEffect(dragonsRoarProfile, 'strike', 'Strike', context);
+  const strike = requireEffect(dragonsRoarProfile, 'strike', 'Strike');
   const castDuration = Math.max(0, context.effectiveEnd - context.start);
-  const firstBulletAt =
-    context.start + castDuration * balanceProfileNumber(dragonsRoarProfile, 'firstPacketRatio', context);
-  const bulletInterval = castDuration * balanceProfileNumber(dragonsRoarProfile, 'packetIntervalRatio', context);
+  const firstBulletAt = context.start + castDuration * balanceProfileNumber(dragonsRoarProfile, 'firstPacketRatio');
+  const bulletInterval = castDuration * balanceProfileNumber(dragonsRoarProfile, 'packetIntervalRatio');
   recordWarriorAmmoSpend(context, bullets, bullets >= Number(context.ammo?.maximum || skill.ammo || 0));
 
   if (context.ammo && context.ammo.charges > 1) context.ammo.charges = 1;
@@ -248,7 +246,7 @@ function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill)
   });
   if (!strike) return;
   // Ammunition changes the packet count, not the coefficient read from this profile.
-  const coefficient = effectNumber(dragonsRoarProfile, strike, 'coefficient', context);
+  const coefficient = effectNumber(dragonsRoarProfile, strike, 'coefficient');
   for (let hitIndex = 1; hitIndex <= bullets; hitIndex += 1) {
     emitSkillDamage(context, {
       at: firstBulletAt + (hitIndex - 1) * bulletInterval,
@@ -270,7 +268,8 @@ function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill)
 
 function performWarriorDodge(context: WarriorCastContext, skill: WarriorSkill): boolean {
   const state = professionCoreState(context);
-  const cost = balanceProfileNumberFromContext(context, PROFILE.resources, 'resourceCost');
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const cost = balanceProfileNumber(resourcesProfile, 'resourceCost');
   Object.assign(state, spendEndurance(state, cost, context.start, state.maximumEndurance));
   applyRecklessDodge(context, skill);
   return true;

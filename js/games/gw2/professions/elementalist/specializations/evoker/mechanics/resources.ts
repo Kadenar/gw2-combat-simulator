@@ -7,7 +7,10 @@ import { EPSILON } from '#kernel/core/clock.js';
  * the resource events the charge dial renders. Spending charges belongs to the
  * familiar handlers; this module only accrues and reports them.
  */
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -31,19 +34,22 @@ export function initialize(context: ElementalistSchedulerContext): void {
   const core = professionCoreState(context);
   // Specialized Elements keeps the six-charge capacity but accelerates each
   // matching weapon skill to three charges.
-  state.maximumCharges = balanceProfileNumberFromContext(
-    context,
-    hasTrait(context, 'Specialized Elements') ? PROFILE.specializedElements : PROFILE.resources,
+  state.maximumCharges = balanceProfileNumber(
+    requireBalanceProfileFromContext(
+      context,
+      hasTrait(context, 'Specialized Elements') ? PROFILE.specializedElements : PROFILE.resources
+    ),
     'maximumStacks'
   );
   state.charges = Math.max(
     0,
     Math.min(state.maximumCharges, Number(context.config.initialEvokerCharges ?? state.maximumCharges))
   );
+  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   state.empowered = Math.max(
     0,
     Math.min(
-      balanceProfileNumberFromContext(context, PROFILE.resources, 'minimumStacks'),
+      balanceProfileNumber(resourcesProfile, 'minimumStacks'),
       Number(context.config.initialEvokerEmpowered ?? 0)
     )
   );
@@ -96,8 +102,8 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pic
   return String(skill.attunement || '')
     .split('+')
     .includes(state.element)
-    ? balanceProfileNumberFromContext(context, profile, 'playerStacks')
-    : balanceProfileNumberFromContext(context, PROFILE.resources, 'allyStacks');
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, profile), 'playerStacks')
+    : balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'allyStacks');
 }
 
 // commits one grant, clamped to capacity, and reports it with a delta so the log shows the change

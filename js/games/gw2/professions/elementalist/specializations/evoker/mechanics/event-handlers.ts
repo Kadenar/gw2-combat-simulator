@@ -7,8 +7,9 @@
  * traits.
  */
 import {
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -38,10 +39,12 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
     state.element === 'Fire' &&
     isInternalCooldownReady(event.at, state.ignitePassiveReadyAt)
   ) {
-    const might = requireEffectFromContext(context, 'balance-profile', PROFILE.evocation, 'boon', 'Fire Familiar');
+    const evocationProfile = requireBalanceProfileFromContext(context, PROFILE.evocation);
+    const might = requireEffect(evocationProfile, 'boon', 'Fire Familiar');
     const sourceId = event.skillId ?? event.sourceId;
     if (might) {
-      state.ignitePassiveReadyAt = event.at + balanceProfileNumberFromContext(context, PROFILE.ignite, 'pulseInterval');
+      const igniteProfile = requireBalanceProfileFromContext(context, PROFILE.ignite);
+      state.ignitePassiveReadyAt = event.at + balanceProfileNumber(igniteProfile, 'pulseInterval');
       emitSkillBuff(context, elementalistEventSkill(context, 'Fire Familiar', sourceId), {
         at: event.at,
         source: 'Fire Familiar',
@@ -69,12 +72,13 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
   if (event.to !== state.element) return;
   if (hasTrait(context, 'Elemental Balance')) {
     state.elementalBalanceProgress += 1;
-    const threshold = balanceProfileNumberFromContext(context, PROFILE.elementalBalance, 'threshold');
+    const elementalBalanceProfile = requireBalanceProfileFromContext(context, PROFILE.elementalBalance);
+    const threshold = balanceProfileNumber(elementalBalanceProfile, 'threshold');
     if (state.elementalBalanceProgress >= threshold) {
       // subtract rather than reset so any overflow from simultaneous gains isn't lost
       state.elementalBalanceProgress -= threshold;
       // Temporary-effect expiry uses the absolute combat tick, including patched durations.
-      const duration = balanceProfileNumberFromContext(context, PROFILE.elementalBalance, 'durationMultiplier');
+      const duration = balanceProfileNumber(elementalBalanceProfile, 'durationMultiplier');
       state.elementalBalanceUntil = gw2EffectExpiresAt(event.at, duration);
       emitElementalistProc(context as never, {
         at: event.at,
@@ -90,9 +94,10 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
 
   // Elemental Dynamo turns each entry into familiar charges and reports the new total
   if (!hasTrait(context, 'Elemental Dynamo')) return;
+  const elementalDynamoProfile = requireBalanceProfileFromContext(context, PROFILE.elementalDynamo);
   state.charges = Math.min(
     state.maximumCharges,
-    state.charges + balanceProfileNumberFromContext(context, PROFILE.elementalDynamo, 'resourceGain')
+    state.charges + balanceProfileNumber(elementalDynamoProfile, 'resourceGain')
   );
   context.emitDerived(event, {
     type: 'resource',

@@ -3,8 +3,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
-  balanceProfileNumber,
-  balanceProfileNumberFromContext
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -118,7 +117,8 @@ export function replayInitialLuminaryState(context: GuardianCastContext, skill: 
 /** Counts damage packets inside Effulgent Stance's half-open activation window. */
 export function reactToEffulgentStrike(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = luminaryState.from(context);
-  const maximumStacks = balanceProfileNumberFromContext(context, PROFILE.effulgentStance, 'maximumStacks');
+  const effulgentStanceProfile = requireBalanceProfileFromContext(context, PROFILE.effulgentStance);
+  const maximumStacks = balanceProfileNumber(effulgentStanceProfile, 'maximumStacks');
   const guardianOwnedStrike =
     isGw2PlayerActorEvent(event) || (event.source === 'guardian' && event.actorType === 'effect');
   if (

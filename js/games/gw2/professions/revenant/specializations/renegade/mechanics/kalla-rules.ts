@@ -1,5 +1,8 @@
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -101,7 +104,10 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     target: MODIFIER_TARGET.CONDITION_DURATION,
     operation: 'add',
     amount: (context) =>
-      balanceProfileNumberFromContext(context, RENEGADE_PROFILE_IDS.bloodFury, 'conditionDurationBonus'),
+      balanceProfileNumber(
+        requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.bloodFury),
+        'conditionDurationBonus'
+      ),
     // Blood Fury shares the chronological player-Fury query used by Core Revenant modifiers.
     when: (context) =>
       context.condition === 'Bleeding' && hasTrait(context, TRAIT.BLOOD_FURY) && boonActive(context, 'fury')
@@ -114,15 +120,9 @@ function modifyRenegadeCriticalChance(context: Gw2ModifierContext, chance: numbe
   const maximum = Number(state.maximumEndurance || 0);
   // 1e-9 tolerance handles floating-point endurance values that should be exactly at cap
   const full = maximum > 0 && Number(state.endurance || 0) >= maximum - 1e-9;
+  const brutalMomentumProfile = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.brutalMomentum);
   // At full endurance: +33% crit; below full: +10% crit
-  return (
-    chance +
-    balanceProfileNumberFromContext(
-      context,
-      RENEGADE_PROFILE_IDS.brutalMomentum,
-      full ? 'fullEnduranceCriticalChance' : 'criticalChance'
-    )
-  );
+  return chance + balanceProfileNumber(brutalMomentumProfile, full ? 'fullEnduranceCriticalChance' : 'criticalChance');
 }
 
 export const renegadeAttributeRules = Object.freeze({

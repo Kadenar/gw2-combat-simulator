@@ -14,8 +14,8 @@ import type {
 import { boundedInteger } from '#kernel/core/numeric.js';
 import {
   requireBalanceProfileFromContext,
-  requireEffectFromContext,
-  balanceProfileNumberFromContext
+  requireEffect,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 
@@ -72,8 +72,9 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
     context,
     isFocused ? PROFILE.focusedLightningRod : PROFILE.lightningRod
   );
-  const condition = requireEffectFromContext(context, 'balance-profile', profile.id, 'condition', 'Vulnerability');
-  const strike = requireEffectFromContext(context, 'balance-profile', profile.id, 'strike', profile.name);
+  const idProfile = requireBalanceProfileFromContext(context, profile.id);
+  const condition = requireEffect(idProfile, 'condition', 'Vulnerability');
+  const strike = requireEffect(idProfile, 'strike', profile.name);
   if (strike)
     queueDamage(context, event, {
       name: 'Lightning Rod',
@@ -91,13 +92,14 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
 /** Opens the Focused target window and resolves Conduit Surge's strike and burning packets. */
 export function handleConduitSurge(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const profile = requireBalanceProfileFromContext(context, PROFILE.conduitSurge);
-  const burning = requireEffectFromContext(context, 'balance-profile', profile.id, 'condition', 'Burning');
+  const idProfile = requireBalanceProfileFromContext(context, profile.id);
+  const burning = requireEffect(idProfile, 'condition', 'Burning');
   // Math.max preserves a longer existing Focused window; Conduit Surge must not shorten it
   professionCoreState(context).focusedUntil = Math.max(
     Number(professionCoreState(context).focusedUntil || 0),
-    event.at + balanceProfileNumberFromContext(context, profile.id, 'durationMultiplier')
+    event.at + balanceProfileNumber(idProfile, 'durationMultiplier')
   );
-  const strike = requireEffectFromContext(context, 'balance-profile', profile.id, 'strike', profile.name);
+  const strike = requireEffect(idProfile, 'strike', profile.name);
   if (strike)
     queueDamage(context, event, {
       name: 'Conduit Surge',
@@ -126,17 +128,13 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
     context,
     isFocused ? PROFILE.focusedElectricArtillery : PROFILE.electricArtillery
   );
-  const immobilize = requireEffectFromContext(context, 'balance-profile', profile.id, 'condition', 'Immobilized');
-  const vulnerability = requireEffectFromContext(context, 'balance-profile', profile.id, 'condition', 'Vulnerability');
-  const burning = requireEffectFromContext(context, 'balance-profile', profile.id, 'condition', 'Burning');
+  const idProfile = requireBalanceProfileFromContext(context, profile.id);
+  const immobilize = requireEffect(idProfile, 'condition', 'Immobilized');
+  const vulnerability = requireEffect(idProfile, 'condition', 'Vulnerability');
+  const burning = requireEffect(idProfile, 'condition', 'Burning');
   // charges accumulate from Lightning Rod hits (max 12); Math.trunc discards partial charges
-  const charges = boundedInteger(
-    event.charges || 0,
-    0,
-    0,
-    balanceProfileNumberFromContext(context, profile.id, 'maximumStacks')
-  );
-  const strike = requireEffectFromContext(context, 'balance-profile', profile.id, 'strike', profile.name);
+  const charges = boundedInteger(event.charges || 0, 0, 0, balanceProfileNumber(idProfile, 'maximumStacks'));
+  const strike = requireEffect(idProfile, 'strike', profile.name);
   if (strike)
     queueDamage(context, event, {
       name: 'Electric Artillery',
@@ -153,8 +151,7 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
   // The tooltip specifies charges required per stack: one when Focused, otherwise two.
   if (vulnerability) {
     const vulnerabilityStacks =
-      Math.floor(charges / balanceProfileNumberFromContext(context, profile.id, 'chargesPerVulnerability')) *
-      Number(vulnerability.stacks);
+      Math.floor(charges / balanceProfileNumber(idProfile, 'chargesPerVulnerability')) * Number(vulnerability.stacks);
     if (vulnerabilityStacks > 0) {
       applyEngineerDerivedCondition(context, event, {
         name: 'Electric Artillery',
@@ -178,9 +175,7 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
           skillName: 'Electric Artillery',
           condition: 'Burning',
           stacks: Math.min(1, stacks - index),
-          duration:
-            Number(burning.duration) +
-            charges * balanceProfileNumberFromContext(context, profile.id, 'burningDurationPerCharge'),
+          duration: Number(burning.duration) + charges * balanceProfileNumber(idProfile, 'burningDurationPerCharge'),
           source: 'engineer',
           sourceId: event.skillId ?? event.sourceId,
           actorType: 'player'

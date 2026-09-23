@@ -1,7 +1,10 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 /** Owns Signet of Illusions passive scheduling and Core Mesmer signet mechanic callbacks. */
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type {
@@ -81,11 +84,12 @@ export function restartSignetIllusionsPassive(context: MesmerSchedulerContext, a
   const skill = equippedSignetOfIllusions(context);
   if (!skill) return;
   const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
+  const signetOfIllusionsProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfIllusions);
   signetIllusionsPassive.start(context, {
     key: SIGNET_ILLUSIONS_OWNER,
     at: Math.max(
       context.state.time,
-      Math.max(activeAt, readyAt) + balanceProfileNumberFromContext(context, PROFILE.signetOfIllusions, 'pulseInterval')
+      Math.max(activeAt, readyAt) + balanceProfileNumber(signetOfIllusionsProfile, 'pulseInterval')
     ),
     captured: {}
   });
@@ -98,7 +102,8 @@ export function restartSignetIllusionsPassive(context: MesmerSchedulerContext, a
 export const signetIllusionsPassive = timedEffect<MesmerSchedulerContext, object>({
   id: SIGNET_ILLUSIONS_OWNER,
   priority: -20,
-  interval: (context) => balanceProfileNumberFromContext(context, PROFILE.signetOfIllusions, 'pulseInterval'),
+  interval: (context) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.signetOfIllusions), 'pulseInterval'),
   effectsAt(context, at) {
     const runtime = mesmerRuntimeFor(context);
     const skill = equippedSignetOfIllusions(context);
@@ -110,9 +115,10 @@ export const signetIllusionsPassive = timedEffect<MesmerSchedulerContext, object
       return;
     }
 
+    const signetOfIllusionsProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfIllusions);
     runtime.resources.gainResources(
       at,
-      balanceProfileNumberFromContext(context, PROFILE.signetOfIllusions, 'resourceGain'),
+      balanceProfileNumber(signetOfIllusionsProfile, 'resourceGain'),
       runtime.activePrimaryWeapon(),
       skill.name,
       { sourceSkillId: skill.id }

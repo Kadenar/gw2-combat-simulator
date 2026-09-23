@@ -10,7 +10,10 @@ import type { ProfessionBalanceContext } from '#gw2/platform/profession-presenta
 import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
-import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 
 export interface SimulationTooltip {
   readonly description: string;
@@ -122,7 +125,8 @@ export function profileFact(
   name: string,
   format: (value: number) => string = tooltipDecimal
 ): TooltipFact {
-  return { name, detail: format(balanceProfileNumberFromContext(context, id, field)) };
+  const idProfile = requireBalanceProfileFromContext(context, id);
+  return { name, detail: format(balanceProfileNumber(idProfile, field)) };
 }
 
 /** Scalar rules and their named parameters remain the sole owners of patchable modifier inputs. */

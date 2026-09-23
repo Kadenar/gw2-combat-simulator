@@ -5,9 +5,10 @@ import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/m
 import { withMesmerCastEmission } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import {
-  requireEffectFromContext,
-  effectNumberFromContext,
-  balanceProfileNumberFromContext as profileValue
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import {
@@ -32,10 +33,10 @@ function instrumentAttack(
   const runtime = mesmerRuntimeFor(context);
   const shredding =
     data.instrument === 'Lute' && runtime.traits.has(TRAIT.SHREDDING)
-      ? requireEffectFromContext(runtime, 'balance-profile', TRAIT.SHREDDING, 'strike', 'Strike')
+      ? requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.SHREDDING), 'strike', 'Strike')
       : undefined;
   if (shredding && !shredding.ticks)
-    effectNumberFromContext(runtime, 'balance-profile', TRAIT.SHREDDING, shredding, 'atMs');
+    effectNumber(requireBalanceProfileFromContext(runtime, TRAIT.SHREDDING), shredding, 'atMs');
   // The extra note belongs to Shredding, so removing the native Lute strike does not remove it.
   for (const attack of [data, shredding]) {
     if (attack?.type !== 'strike') continue;
@@ -100,7 +101,8 @@ function instrumentAttack(
   if (runtime.traits.has(TRAIT.LIFE_OF_THE_PARTY) && data.instrument === 'Lute') {
     // Each named boon survives independently when its sibling is removed.
     for (const name of ['Lute Quickness', 'Lute Might']) {
-      const effect = requireEffectFromContext(runtime, 'balance-profile', TRAIT.LIFE_OF_THE_PARTY, 'boon', name);
+      const lifeOfThePartyProfile = requireBalanceProfileFromContext(runtime, TRAIT.LIFE_OF_THE_PARTY);
+      const effect = requireEffect(lifeOfThePartyProfile, 'boon', name);
       if (!effect) continue;
       runtime.addEvent({
         type: 'buff',
@@ -124,8 +126,9 @@ function commitInstrument(context: MesmerCastContext, skill: MesmerSkill, data: 
     sourceSkill: skill.name,
     rotationIndex: context.commandIndex
   });
-  const baseDuration = profileValue(runtime, PROFILE.instruments, 'durationMultiplier');
-  const durationPerNote = profileValue(runtime, PROFILE.instruments, 'durationPerTier');
+  const instrumentsProfile = requireBalanceProfileFromContext(runtime, PROFILE.instruments);
+  const baseDuration = balanceProfileNumber(instrumentsProfile, 'durationMultiplier');
+  const durationPerNote = balanceProfileNumber(instrumentsProfile, 'durationPerTier');
   // Playing windows are exact and replace only the matching instrument, without action-tick rounding.
   const expiresAt = canonicalTime(at + baseDuration + spent * durationPerNote);
   const state = troubadourState.from(context);
@@ -140,9 +143,10 @@ function commitInstrument(context: MesmerCastContext, skill: MesmerSkill, data: 
 
   if (
     runtime.traits.has(TRAIT.CALL_AND_RESPONSE) &&
-    spent === profileValue(runtime, TRAIT.CALL_AND_RESPONSE, 'threshold')
+    spent === balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.CALL_AND_RESPONSE), 'threshold')
   ) {
-    const afterimageAt = at + profileValue(runtime, TRAIT.CALL_AND_RESPONSE, 'initialDelay');
+    const callAndResponseProfile = requireBalanceProfileFromContext(runtime, TRAIT.CALL_AND_RESPONSE);
+    const afterimageAt = at + balanceProfileNumber(callAndResponseProfile, 'initialDelay');
     instrumentAttack(context, skill, data, afterimageAt, 'Afterimage', 'summon');
     runtime.addTraitProc('Call and Response', afterimageAt, skill.name);
   }
@@ -158,9 +162,10 @@ function commitInstrument(context: MesmerCastContext, skill: MesmerSkill, data: 
     const crescendo = runtime.skillsById.get(ID.CRESCENDO);
     const ready = crescendo ? context.state.cooldowns.get(crescendo.id) : undefined;
     if (crescendo && ready) {
+      const alteredChordProfile = requireBalanceProfileFromContext(runtime, TRAIT.ALTERED_CHORD);
       context.cooldownController.reduceSkillRecharge(
         crescendo,
-        profileValue(runtime, TRAIT.ALTERED_CHORD, 'rechargeReduction'),
+        balanceProfileNumber(alteredChordProfile, 'rechargeReduction'),
         at
       );
     }
@@ -173,11 +178,15 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
   const state = troubadourState.from(context);
   const damageAt = canonicalTime(context.start + Number(skill.damageAtMs || 0) / 1000);
   const activeInstruments = activeTroubadourInstrumentsAt(context.eventsOfType('mesmer.instrument'), damageAt);
-  const strike = requireEffectFromContext(runtime, 'balance-profile', PROFILE.crescendo, 'strike', 'Strike');
+  const crescendoProfile = requireBalanceProfileFromContext(runtime, PROFILE.crescendo);
+  const strike = requireEffect(crescendoProfile, 'strike', 'Strike');
   // Fragmentation replaces Crescendo's per-instrument effectiveness with the trait's improved value.
   const effectiveness = runtime.traits.has(TRAIT.MASTER_OF_FRAGMENTATION)
-    ? profileValue(runtime, TRAIT.MASTER_OF_FRAGMENTATION, 'damageIncreasePerStack')
-    : profileValue(runtime, PROFILE.crescendo, 'damageIncreasePerStack');
+    ? balanceProfileNumber(
+        requireBalanceProfileFromContext(runtime, TRAIT.MASTER_OF_FRAGMENTATION),
+        'damageIncreasePerStack'
+      )
+    : balanceProfileNumber(crescendoProfile, 'damageIncreasePerStack');
   if (strike)
     runtime.addDamage(skill, damageAt, {
       ...strike,
@@ -192,7 +201,8 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
 
   if (runtime.traits.has(TRAIT.LIFE_OF_THE_PARTY)) {
     for (const name of ['Crescendo Quickness', 'Crescendo Might', 'Crescendo Fury']) {
-      const effect = requireEffectFromContext(runtime, 'balance-profile', TRAIT.LIFE_OF_THE_PARTY, 'boon', name);
+      const lifeOfThePartyProfile = requireBalanceProfileFromContext(runtime, TRAIT.LIFE_OF_THE_PARTY);
+      const effect = requireEffect(lifeOfThePartyProfile, 'boon', name);
       if (!effect) continue;
       runtime.addEvent({
         type: 'buff',
@@ -209,6 +219,7 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
 
   if (runtime.traits.has(TRAIT.ALTERED_CHORD)) {
     if (state.lastInstrument === 'Lute') {
+      const alteredChordProfile = requireBalanceProfileFromContext(runtime, TRAIT.ALTERED_CHORD);
       runtime.addEvent({
         type: 'buff',
         at: damageAt,
@@ -216,7 +227,7 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
         priority: 5,
         kind: 'altered-chord',
         stacks: 1,
-        duration: profileValue(runtime, TRAIT.ALTERED_CHORD, 'durationMultiplier')
+        duration: balanceProfileNumber(alteredChordProfile, 'durationMultiplier')
       });
       runtime.addTraitProc('Altered Chord', damageAt, skill.name, 'Lute');
     } else if (state.lastInstrument === 'Flute') {
@@ -238,9 +249,10 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
   }
 
   if (runtime.traits.has(TRAIT.FORTISSIMO)) {
-    const applications = profileValue(runtime, TRAIT.FORTISSIMO, 'maximumStacks');
-    const interval = profileValue(runtime, TRAIT.FORTISSIMO, 'pulseInterval');
-    const resourceGain = profileValue(runtime, TRAIT.FORTISSIMO, 'resourceGain');
+    const fortissimoProfile = requireBalanceProfileFromContext(runtime, TRAIT.FORTISSIMO);
+    const applications = balanceProfileNumber(fortissimoProfile, 'maximumStacks');
+    const interval = balanceProfileNumber(fortissimoProfile, 'pulseInterval');
+    const resourceGain = balanceProfileNumber(fortissimoProfile, 'resourceGain');
     for (let index = 1; index <= applications; index += 1) {
       runtime.resources.queueResources(
         at + index * interval,
@@ -266,13 +278,8 @@ export function scheduleTroubadourPerformance(context: MesmerCastContext, skill:
     if (instrument) {
       instrumentAttack(context, skill, instrument, context.start + Number(instrument.damageAtMs || 0) / 1000);
       if (instrument.instrument === 'Harp') {
-        const distortion = requireEffectFromContext(
-          runtime,
-          'balance-profile',
-          PROFILE.instruments,
-          'buff',
-          'distortion'
-        );
+        const instrumentsProfile = requireBalanceProfileFromContext(runtime, PROFILE.instruments);
+        const distortion = requireEffect(instrumentsProfile, 'buff', 'distortion');
         if (distortion)
           runtime.addEvent({
             type: 'buff',
