@@ -70,7 +70,7 @@ test("Mirage Thrust retains player and clone skill identity and grants one Fence
 });
 
 // The Pledge follows each eligible player application, preserving delay and excluding phantasm and derived Burning.
-test('The Pledge adds one trait-owned Burning packet to each supported torch skill', () => {
+test('The Pledge adds separate trait-owned Burning stacks to each supported torch skill', () => {
   for (const name of ['Phantasmal Mage', 'The Prestige']) {
     for (const selectedTraitIds of [[], [TRAIT.THE_PLEDGE]]) {
       const result = simulateMesmer([name, { name: '__wait', waitMs: 3500 }], {
@@ -81,7 +81,7 @@ test('The Pledge adds one trait-owned Burning packet to each supported torch ski
         selectedTraitIds
       });
       const bonus = result.events.filter((event) => event.type === 'condition' && event.sourceId === TRAIT.THE_PLEDGE);
-      assert.equal(bonus.length, selectedTraitIds.length, name);
+      assert.equal(bonus.length, 2 * selectedTraitIds.length, name);
       if (!bonus.length) continue;
       const base = result.events.find(
         (event) =>
@@ -90,12 +90,15 @@ test('The Pledge adds one trait-owned Burning packet to each supported torch ski
           event.actorType === 'player' &&
           event.sourceId === event.skillId
       );
-      assert.equal(bonus[0].at, base.at);
-      assert.equal(bonus[0].activationId, base.activationId);
-      assert.equal(bonus[0].actorType, 'player');
-      assert.equal(bonus[0].condition, 'Burning');
-      assert.equal(bonus[0].stacks, 2);
-      assert.equal(bonus[0].duration, 3);
+      // Every stack retains the player burn's attribution and impact without recursively retriggering the trait.
+      for (const packet of bonus) {
+        assert.equal(packet.at, base.at);
+        assert.equal(packet.activationId, base.activationId);
+        assert.equal(packet.actorType, 'player');
+        assert.equal(packet.condition, 'Burning');
+        assert.equal(packet.stacks, 1);
+        assert.equal(packet.duration, 3);
+      }
     }
   }
 });

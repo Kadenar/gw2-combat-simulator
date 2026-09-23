@@ -837,7 +837,8 @@ test('Phantasmal Mage separates player, Pledge, and phantasm conditions', () => 
     playerBurning.map((event) => [event.stacks, event.duration, event.at]).sort((left, right) => left[0] - right[0]),
     [
       [1, 6, 0.76],
-      [2, 3, 0.76]
+      [1, 3, 0.76],
+      [1, 3, 0.76]
     ]
   );
   assert.deepEqual(

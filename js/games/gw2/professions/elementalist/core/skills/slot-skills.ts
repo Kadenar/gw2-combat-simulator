@@ -198,7 +198,14 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Glyph',
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.5 },
-      { type: 'condition', condition: 'Burning', stacks: 3, duration: 6, metadata: {} }
+      // Apply each Burning stack separately so same-impact relic checks observe every application.
+      ...Array.from({ length: 3 }, () => ({
+        type: 'condition' as const,
+        condition: 'Burning' as const,
+        stacks: 1,
+        duration: 6,
+        metadata: {}
+      }))
     ])
   },
   [ID.GLYPH_OF_ELEMENTAL_POWER_WATER]: {
@@ -462,7 +469,14 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     ],
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5 },
-      { type: 'condition', condition: 'Burning', stacks: 2, duration: 10, metadata: {} }
+      // Apply each Burning stack separately so same-impact relic checks observe every application.
+      ...Array.from({ length: 2 }, () => ({
+        type: 'condition' as const,
+        condition: 'Burning' as const,
+        stacks: 1,
+        duration: 10,
+        metadata: {}
+      }))
     ])
   },
   [ID.SIGNET_OF_EARTH]: {
@@ -533,7 +547,14 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     cooldown: 20,
     skillFamily: 'Cantrip',
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'condition', condition: 'Burning', stacks: 2, duration: 6, metadata: {} },
+      // Apply each Burning stack separately so same-impact relic checks observe every application.
+      ...Array.from({ length: 2 }, () => ({
+        type: 'condition' as const,
+        condition: 'Burning' as const,
+        stacks: 1,
+        duration: 6,
+        metadata: {}
+      })),
       { type: 'boon', boon: 'Might', stacks: 3, duration: 9, metadata: {} }
     ])
   }

@@ -249,14 +249,18 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
       coefficient: Number(strike?.coefficient ?? [1.5, 2.25, 3][tier]),
       skillWeapon: 'Unequipped'
     });
-    emitSkillCondition(context, {
-      skill,
-      at,
-      source: skill.name,
-      condition: String(burning?.condition || 'Burning'),
-      stacks: Number(burning?.stacks ?? [1, 2, 3][tier]),
-      duration: Number(burning?.duration ?? [3, 5, 5][tier])
-    });
+    // Separate Burning applications preserve the total, including any fractional final stack.
+    const stacks = Number(burning?.stacks ?? [1, 2, 3][tier]);
+    for (let index = 0; index < Math.ceil(stacks); index += 1) {
+      emitSkillCondition(context, {
+        skill,
+        at,
+        source: skill.name,
+        condition: String(burning?.condition || 'Burning'),
+        stacks: Math.min(1, stacks - index),
+        duration: Number(burning?.duration ?? [3, 5, 5][tier])
+      });
+    }
   }
 }
 

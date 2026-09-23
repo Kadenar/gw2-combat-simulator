@@ -355,14 +355,18 @@ export function handleKingOfFiresDetonationTask(context: WarriorSchedulerContext
     coefficient: Number(strike?.coefficient ?? 0.7),
     canTriggerCriticalTraits: true
   });
-  emitSkillCondition(context, {
-    ...common,
+  // Separate Burning applications preserve the total, including any fractional final stack.
+  const stacks = Number(burning?.stacks ?? 3);
+  for (let index = 0; index < Math.ceil(stacks); index += 1) {
+    emitSkillCondition(context, {
+      ...common,
 
-    name: 'King of Fires — Burning',
-    condition: 'Burning',
-    stacks: Number(burning?.stacks ?? 3),
-    duration: Number(burning?.duration ?? 3)
-  });
+      name: 'King of Fires — Burning',
+      condition: 'Burning',
+      stacks: Math.min(1, stacks - index),
+      duration: Number(burning?.duration ?? 3)
+    });
+  }
 }
 
 export function finishBerserkerCast(context: WarriorCastContext, skill: WarriorSkill): void {

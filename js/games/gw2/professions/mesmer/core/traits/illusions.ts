@@ -54,17 +54,21 @@ export function triggerThePledge(context: MesmerSchedulerContext, event: Simulat
   )
     return;
   const effect = balanceProfileEffectFromContext(context, TRAIT.THE_PLEDGE, 'condition');
-  emitSkillCondition(context, {
-    cause: event,
-    at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.THE_PLEDGE,
-    skillId: event.skillId,
-    skillName: event.skillName,
-    condition: 'Burning',
-    duration: Number(effect?.duration ?? 3),
-    stacks: Number(effect?.stacks ?? 2)
-  });
+  // Separate Burning applications preserve the total, including any fractional final stack.
+  const stacks = Number(effect?.stacks ?? 2);
+  for (let index = 0; index < Math.ceil(stacks); index += 1) {
+    emitSkillCondition(context, {
+      cause: event,
+      at: event.at,
+      source: 'Trait',
+      sourceId: TRAIT.THE_PLEDGE,
+      skillId: event.skillId,
+      skillName: event.skillName,
+      condition: 'Burning',
+      duration: Number(effect?.duration ?? 3),
+      stacks: Math.min(1, stacks - index)
+    });
+  }
 }
 
 /** Returns Cry of Pain's Confusion override before the owning shatter emits packets. */

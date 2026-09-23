@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { emitProfiledCondition } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 
 function relicHarness(name) {
   const relic = createRelicRuntime(name);
@@ -115,6 +117,85 @@ test('Last Tyrant ignores non-burning and non-player applications', () => {
   assert.equal(Number(relic.state.stacks || 0), 0);
   relic.rules.condition(ctx, relic.state, burning(0, { actorType: 'effect', ownerActorType: 'player' }), helpers);
   assert.equal(relic.state.stacks, 1);
+});
+
+// Actual skill packets must finish a four-stack Fury cycle at one impact without multiplying Burning damage.
+test('one-time multi-stack Burning skills expose each stack to Last Tyrant at the same impact', async () => {
+  const skillsByProfession = {
+    elementalist: { 5679: 3, 5675: 2, 5691: 2, 34736: 3, 5542: 2, 30662: 2, 76585: 2, 71907: 2, 5535: 2 },
+    engineer: { 72974: 3, 43630: 2 },
+    guardian: { 9088: 2, 9089: 3, 9151: 3, 43826: 2, 71817: 5, 42924: 3 },
+    necromancer: { 62655: 3 },
+    ranger: { 12597: 3 },
+    revenant: { 62962: 2, 27162: 2, 46857: 2 },
+    thief: { 76895: 2, 76733: 2 },
+    warrior: { 14519: 3, 42803: 2, 80226: 2 }
+  };
+  for (const [profession, skills] of Object.entries(skillsByProfession)) {
+    const module = await import(`#gw2/professions/${profession}/catalog.js`);
+    for (const [id, totalStacks] of Object.entries(skills)) {
+      const skill = module[`${profession}Catalog`].skillsById.get(Number(id));
+      const packets = skill.effects
+        .flatMap((effect) =>
+          materializeSkillEffectApplications({
+            skill,
+            effect,
+            start: 1,
+            fullEnd: 2,
+            baseEvent: { source: profession, sourceId: skill.id, skillName: skill.name, actorType: 'player' }
+          })
+        )
+        .map(({ event }) => event)
+        .filter((event) => event.type === 'condition' && event.condition === 'Burning');
+      assert.equal(packets.length, totalStacks, skill.name);
+      assert.ok(
+        packets.every((event) => event.stacks === 1 && event.at === packets[0].at),
+        skill.name
+      );
+      const { relic, ctx, helpers, conditions } = relicHarness('Last Tyrant');
+      relic.state.stacks = 4;
+      for (const event of packets) relic.rules.condition(ctx, relic.state, event, helpers);
+      assert.equal(conditions.length, 1, skill.name);
+      assert.equal(conditions[0].at, packets[0].at, skill.name);
+    }
+  }
+});
+
+// Shared one-time proc emission preserves profile values and leaves other conditions bundled.
+test('profiled Burning procs preserve fractional totals and source attribution when split', () => {
+  for (const [condition, stacks, expected] of [
+    ['Burning', 2.5, [1, 1, 0.5]],
+    ['Bleeding', 3, [3]]
+  ]) {
+    const events = [];
+    const context = {
+      profession: { id: 'elementalist' },
+      catalog: {
+        skillsById: new Map(),
+        skillsByName: new Map(),
+        balanceProfilesById: new Map([
+          [
+            'fixture',
+            {
+              effects: [{ type: 'condition', name: 'Fire', condition, stacks, duration: 7 }]
+            }
+          ]
+        ])
+      },
+      emit: (event) => events.push(event)
+    };
+    emitProfiledCondition(context, 3, 'fixture', 'Fire', 'Burning', 1, 1, 'Fixture Proc', 123, 'Fixture Skill');
+    assert.deepEqual(
+      events.map((event) => event.stacks),
+      expected
+    );
+    assert.ok(
+      events.every(
+        (event) =>
+          event.at === 3 && event.duration === 7 && event.sourceId === 123 && event.triggeredBy === 'Fixture Skill'
+      )
+    );
+  }
 });
 
 function combo(at, finisherType = 'Blast') {

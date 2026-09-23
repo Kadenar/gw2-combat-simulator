@@ -153,13 +153,14 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         canCrit: false,
         noCrit: true
       },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 2,
+      // Apply each Burning stack separately so same-impact relic checks observe every application.
+      ...Array.from({ length: 2 }, () => ({
+        type: 'condition' as const,
+        condition: 'Burning' as const,
+        stacks: 1,
         duration: 6,
-        actorType: 'player'
-      }
+        actorType: 'player' as const
+      }))
     ]
   },
   [ID.OVERHEAT]: {

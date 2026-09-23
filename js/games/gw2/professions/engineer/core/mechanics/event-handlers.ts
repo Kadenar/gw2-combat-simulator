@@ -143,17 +143,21 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
     });
   }
 
-  context.queue.enqueue(
-    buildResolverCondition({
-      at: event.at,
-      name: 'Electric Artillery — Burning',
-      skillName: 'Electric Artillery',
-      condition: 'Burning',
-      stacks: Number(burning.stacks),
-      duration: Number(burning.duration) + charges * Number(profile.burningDurationPerCharge),
-      source: 'engineer',
-      sourceId: event.skillId ?? event.sourceId,
-      actorType: 'player'
-    })
-  );
+  // Separate Burning applications preserve the total, including any fractional final stack.
+  const stacks = Number(burning.stacks);
+  for (let index = 0; index < Math.ceil(stacks); index += 1) {
+    context.queue.enqueue(
+      buildResolverCondition({
+        at: event.at,
+        name: 'Electric Artillery — Burning',
+        skillName: 'Electric Artillery',
+        condition: 'Burning',
+        stacks: Math.min(1, stacks - index),
+        duration: Number(burning.duration) + charges * Number(profile.burningDurationPerCharge),
+        source: 'engineer',
+        sourceId: event.skillId ?? event.sourceId,
+        actorType: 'player'
+      })
+    );
+  }
 }

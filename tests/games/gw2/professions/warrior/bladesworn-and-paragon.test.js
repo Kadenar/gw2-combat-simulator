@@ -125,7 +125,10 @@ test('Sharp as the Wind selects condition Gunsaber variants and their secondary 
   assert.deepEqual(coefficientsFor(ID.SHARP_ARTILLERY_SLASH), [2]);
   assert.deepEqual(conditionsFor(ID.SHARP_ARTILLERY_SLASH), [['Bleeding', 4, 7]]);
   assert.deepEqual(coefficientsFor(ID.SHARP_CYCLONE_TRIGGER), [1]);
-  assert.deepEqual(conditionsFor(ID.SHARP_CYCLONE_TRIGGER), [['Burning', 2, 5]]);
+  assert.deepEqual(conditionsFor(ID.SHARP_CYCLONE_TRIGGER), [
+    ['Burning', 1, 5],
+    ['Burning', 1, 5]
+  ]);
   assert.equal(
     result.events.find(
       (event) => event.type === 'buff' && event.kind === 'aegis' && event.skillId === ID.SHARP_CYCLONE_TRIGGER
@@ -168,14 +171,20 @@ test('Sharp as the Wind scales each Dragon Slash burning payload with charge', (
         selectedTraitIds: [TRAIT.SHARP_AS_THE_WIND]
       });
       const damage = result.events.find((event) => event.type === 'damage' && event.skillId === variantId);
-      const burning = result.events.find(
+      const burning = result.events.filter(
         (event) => event.type === 'condition' && event.skillId === variantId && event.condition === 'Burning'
       );
 
       assert.deepEqual(result.warnings, []);
       assert.equal(damage.coefficient, coefficient);
-      assert.equal(burning.stacks, expectedStacks);
-      assert.equal(burning.duration, expectedDuration);
+      // Full stacks are independent applications; a final fractional packet preserves partial-charge scaling.
+      assert.equal(
+        burning.reduce((total, event) => total + event.stacks, 0),
+        expectedStacks
+      );
+      assert.equal(burning.length, Math.ceil(expectedStacks));
+      assert.ok(burning.every((event) => event.stacks > 0 && event.stacks <= 1 && event.duration === expectedDuration));
+      assert.ok(burning.every((event) => event.at === damage.at));
     }
   }
 });

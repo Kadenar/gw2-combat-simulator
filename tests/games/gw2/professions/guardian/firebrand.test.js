@@ -415,11 +415,14 @@ test('Cleansing Flame applies Burning on its final strike', () => {
   const strikes = packets.filter((event) => event.type === 'damage');
   const burning = packets.filter((event) => event.type === 'condition' && event.condition === 'Burning');
 
-  // Completion carries the condition payload, without pinning the channel's cast time.
+  // Both independent burns land on the final strike, preserving the channel's application ordering.
   assert.ok(strikes.length > 1);
   assert.deepEqual(
-    burning.map((event) => event.at),
-    [strikes.at(-1).at]
+    burning.map((event) => [event.stacks, event.at]),
+    [
+      [1, strikes.at(-1).at],
+      [1, strikes.at(-1).at]
+    ]
   );
 });
 

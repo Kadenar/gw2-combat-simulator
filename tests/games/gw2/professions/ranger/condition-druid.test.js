@@ -705,17 +705,20 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
   );
 });
 
-test("Sun Spirit emits Solar Flare's burning packet", () => {
+test("Sun Spirit emits Solar Flare's individual burning stacks", () => {
   const result = simulate(['Sun Spirit', { type: 'wait', durationMs: 6000 }], {
     sharePlayerBoonsWithSummons: true
   });
-  const solarFlare = result.resolvedEvents.find(
+  const solarFlare = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === ID.SOLAR_FLARE
   );
 
-  assert.equal(solarFlare.stacks, 3);
-  assert.equal(solarFlare.duration, 6);
-  assert.equal(solarFlare.triggeredBy, 'Sun Spirit');
+  // The spirit activation preserves Solar Flare's player-owned total and attribution across three applications.
+  assert.equal(solarFlare.length, 3);
+  assert.ok(
+    solarFlare.every((event) => event.stacks === 1 && event.duration === 6 && event.triggeredBy === 'Sun Spirit')
+  );
+  assert.ok(solarFlare.every((event) => event.at === solarFlare[0].at));
   const might = result.events.filter(({ type, kind }) => type === 'buff' && kind === 'might');
 
   assert.deepEqual(

@@ -347,12 +347,13 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     // The API exposes a generic missing-icon asset, so pin the wiki's dedicated icon for result rows.
     icon: 'https://wiki.guildwars2.com/wiki/Special:Redirect/file/Solar_Flare.png',
     effects: [
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 3,
+      // Apply each Burning stack separately so same-impact relic checks observe every application.
+      ...Array.from({ length: 3 }, () => ({
+        type: 'condition' as const,
+        condition: 'Burning' as const,
+        stacks: 1,
         duration: 6
-      }
+      }))
     ],
     castTimeMs: 500
   },

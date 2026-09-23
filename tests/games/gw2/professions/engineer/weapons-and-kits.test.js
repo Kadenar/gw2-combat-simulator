@@ -1203,12 +1203,14 @@ test('Engineer spear focus selects one branch and Lightning Rod pulses eight tim
     focused.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Electric Artillery').length,
     1
   );
-  const artilleryBurn = focused.resolvedEvents.find(
+  const artilleryBurns = focused.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.name === 'Electric Artillery — Burning'
   );
 
-  assert.equal(artilleryBurn.stacks, 2);
-  assert.equal(artilleryBurn.duration, 7);
+  // Focused charges extend both independent burns without increasing the total stack count.
+  assert.equal(artilleryBurns.length, 2);
+  assert.ok(artilleryBurns.every((event) => event.stacks === 1 && event.duration === 7));
+  assert.equal(artilleryBurns[0].at, artilleryBurns[1].at);
 
   const unfocused = simulate(
     'Amalgam',

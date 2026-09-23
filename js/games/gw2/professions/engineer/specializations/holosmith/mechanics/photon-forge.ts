@@ -198,16 +198,20 @@ function emitPhotonicBlastingModuleEffects(context: EngineerSchedulerContext, ef
     ]
   });
   // Burning shares the delayed PBM timestamp but remains a separate canonical effect application.
-  emitSkillCondition(context, {
-    at: effectAt,
-    source: 'Trait',
-    sourceId: TRAIT.PHOTONIC_BLASTING_MODULE,
-    skillName: 'Photonic Blasting Module',
-    name: 'Photonic Blasting Module — Burning',
-    condition: 'Burning',
-    stacks: balanceProfileValue(condition, 'stacks', 7),
-    duration: balanceProfileValue(condition, 'duration', 6)
-  });
+  // Separate Burning applications preserve the total, including any fractional final stack.
+  const stacks = balanceProfileValue(condition, 'stacks', 7);
+  for (let index = 0; index < Math.ceil(stacks); index += 1) {
+    emitSkillCondition(context, {
+      at: effectAt,
+      source: 'Trait',
+      sourceId: TRAIT.PHOTONIC_BLASTING_MODULE,
+      skillName: 'Photonic Blasting Module',
+      name: 'Photonic Blasting Module — Burning',
+      condition: 'Burning',
+      stacks: Math.min(1, stacks - index),
+      duration: balanceProfileValue(condition, 'duration', 6)
+    });
+  }
 }
 
 /** Locks Forge attacks at maximum heat; the rotation owns exit while Overheat consequences remain automatic. */

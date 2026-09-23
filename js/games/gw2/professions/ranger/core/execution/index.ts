@@ -180,16 +180,20 @@ export const rangerCoreSkillHandlers = Object.freeze({
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
       const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sunSpirit), 'condition');
-      emitSkillCondition(context, {
-        at: context.effectiveEnd,
-        skillId: ID.SOLAR_FLARE,
-        skillName: 'Solar Flare',
-        name: 'Solar Flare - Burning',
-        condition: 'Burning',
-        stacks: Number(burning?.stacks ?? 3),
-        duration: Number(burning?.duration ?? 6),
-        triggeredBy: skill.name
-      });
+      // Separate Burning applications preserve the total, including any fractional final stack.
+      const stacks = Number(burning?.stacks ?? 3);
+      for (let index = 0; index < Math.ceil(stacks); index += 1) {
+        emitSkillCondition(context, {
+          at: context.effectiveEnd,
+          skillId: ID.SOLAR_FLARE,
+          skillName: 'Solar Flare',
+          name: 'Solar Flare - Burning',
+          condition: 'Burning',
+          stacks: Math.min(1, stacks - index),
+          duration: Number(burning?.duration ?? 6),
+          triggeredBy: skill.name
+        });
+      }
     }
   },
   'ranger.sic-em': {

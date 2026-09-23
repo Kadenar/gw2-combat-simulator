@@ -147,7 +147,14 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     skillFamily: 'Weapon skill',
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2 },
-      { type: 'condition', condition: 'Burning', stacks: 2, duration: 4, metadata: {} }
+      // Apply each Burning stack separately so same-impact relic checks observe every application.
+      ...Array.from({ length: 2 }, () => ({
+        type: 'condition' as const,
+        condition: 'Burning' as const,
+        stacks: 1,
+        duration: 4,
+        metadata: {}
+      }))
     ])
   },
   [ID.FIRE_GRAB]: {

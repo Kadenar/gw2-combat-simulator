@@ -114,12 +114,13 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
             stacks: 1,
             duration: 3
           },
-          {
+          // Apply each Burning stack separately so same-impact relic checks observe every application.
+          ...Array.from({ length: 2 }, () => ({
             atMs: 2280,
-            condition: 'Burning',
-            stacks: 2,
+            condition: 'Burning' as const,
+            stacks: 1,
             duration: 4
-          }
+          }))
         ]
       }
     ]),
@@ -354,13 +355,14 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
         name: 'Call of the Dragon',
         actorType: 'player'
       },
-      {
-        type: 'condition',
-        condition: 'Burning',
-        stacks: 2,
+      // Apply each Burning stack separately so same-impact relic checks observe every application.
+      ...Array.from({ length: 2 }, () => ({
+        type: 'condition' as const,
+        condition: 'Burning' as const,
+        stacks: 1,
         duration: 3,
-        actorType: 'player'
-      },
+        actorType: 'player' as const
+      })),
       {
         type: 'condition',
         condition: 'Chilled',

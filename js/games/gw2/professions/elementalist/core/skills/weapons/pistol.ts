@@ -418,7 +418,14 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     effects: [
       ...impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         { type: 'strike', coefficient: 0.2 },
-        { type: 'condition', condition: 'Burning', stacks: 2, duration: 6, metadata: {} }
+        // Apply each Burning stack separately so same-impact relic checks observe every application.
+        ...Array.from({ length: 2 }, () => ({
+          type: 'condition' as const,
+          condition: 'Burning' as const,
+          stacks: 1,
+          duration: 6,
+          metadata: {}
+        }))
       ]),
       ...impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
         { type: 'strike', coefficient: 0.2 },

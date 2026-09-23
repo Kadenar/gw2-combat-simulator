@@ -163,7 +163,8 @@ test('all accepted Staff and Spear burst variants spend resources and grant firs
     for (const [specialization, remaining] of [
       ['Core', 1],
       ['Spellbreaker', 11],
-      ['Paragon', 1]
+      // Paragon retains its three-bar pool, spends ten, then gains one from the hit.
+      ['Paragon', 21]
     ]) {
       const result = simulate(specialization, [skillId, { type: 'wait', durationMs: 1 }], {
         primaryWeapon,

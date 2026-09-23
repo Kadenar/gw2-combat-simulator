@@ -84,11 +84,11 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
   [ID.FLAME_BLAST]: {
     castTimeMs: 800,
     cooldown: 6,
-    // Flame Blast launches its blast finisher around 480 ms, but a committed cancel keeps the serial lane locked through the full animation.
+    // The blast lands at 520 ms after its earlier commit while the cast keeps its full lockout.
     retainsCastLockoutAfterInterrupt: true,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects(
-      { atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
+      { atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
       [
         {
           type: 'strike',
@@ -147,11 +147,13 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         ownerId: 'engineer',
         fieldType: 'Fire',
         duration: 1,
-        startAnchor: 'castEnd',
+        startAnchor: 'castStart',
+        startMs: 360,
         inclusiveExpiry: true
       }
     ],
-    effects: [
+    // The hit, Burning, boons, and fire field resolve around 360 ms, two ticks before the cast completes.
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 0.5,
@@ -160,9 +162,17 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         actorType: 'player'
       },
       {
+        // Stoke's Burning stacks apply separately so each reaches condition-triggered relic rules.
         type: 'condition',
         condition: 'Burning',
-        stacks: 2,
+        stacks: 1,
+        duration: 6,
+        actorType: 'player'
+      },
+      {
+        type: 'condition',
+        condition: 'Burning',
+        stacks: 1,
         duration: 6,
         actorType: 'player'
       },
@@ -178,7 +188,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
         duration: 8,
         stacks: 8
       }
-    ],
+    ]),
     kit: 'Flamethrower'
   }
 });

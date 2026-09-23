@@ -743,15 +743,12 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
   assert.equal(ventProc.sourceSkill, 'Dodge');
   assert.equal(ventProc.icon, engineerCatalog.skillsById.get(ID.VENT_EXHAUST).icon);
   assert.ok(vented.events.some((event) => event.type === 'buff' && event.kind === 'vigor' && event.duration === 3));
-  assert.ok(
-    vented.events.some(
-      (event) =>
-        event.type === 'condition' &&
-        event.name === 'Vent Exhaust — Burning' &&
-        event.stacks === 2 &&
-        event.duration === 6
-    )
+  // Heat loss invokes the skill's separate Burning applications without changing their payload total.
+  const ventBurns = vented.events.filter(
+    (event) => event.type === 'condition' && event.name === 'Vent Exhaust — Burning'
   );
+  assert.equal(ventBurns.length, 2);
+  assert.ok(ventBurns.every((event) => event.stacks === 1 && event.duration === 6 && event.at === vent.at));
 
   const enhanced = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 3000 }], {
     initialHeat: 99,
@@ -827,6 +824,11 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
   assert.equal(blast.coefficient, 5);
   assert.equal(blast.explosion, true);
   assert.equal(blast.comboFinishers[0].finisherType, 'Blast');
+  const blastBurns = blasting.events.filter(
+    (event) => event.type === 'condition' && event.sourceId === TRAIT.PHOTONIC_BLASTING_MODULE
+  );
+  assert.equal(blastBurns.length, 7);
+  assert.ok(blastBurns.every((event) => event.stacks === 1 && event.duration === 6 && event.at === blast.at));
   assert.equal(
     blasting.events.some((event) => event.type === 'proc' && event.name === 'Overheat'),
     false

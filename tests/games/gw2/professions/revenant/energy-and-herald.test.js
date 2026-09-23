@@ -1619,7 +1619,8 @@ test('Herald consume skills apply their full outgoing profiles', () => {
     [
       ['Weakness', 1, 5],
       ['Chilled', 1, 3],
-      ['Burning', 2, 4]
+      ['Burning', 1, 4],
+      ['Burning', 1, 4]
     ]
   );
 

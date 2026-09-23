@@ -192,14 +192,18 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
   const maximumBurningDuration = Number(skill.dragonSlashMaximumBurningDuration || 0);
   if (minimumBurningDuration > 0 && maximumBurningDuration > 0) {
     // Sharp as the Wind converts charge into both Burning intensity and duration on one linear scale.
-    emitSkillCondition(context, {
-      skill,
-      at: impactAt,
-      source: 'Warrior',
-      condition: 'Burning',
-      stacks: dragonSlashCoefficient(1, 20, charges, maximumCharges),
-      duration: dragonSlashCoefficient(minimumBurningDuration, maximumBurningDuration, charges, maximumCharges)
-    });
+    // Separate Burning applications preserve the total, including any fractional final stack.
+    const stacks = dragonSlashCoefficient(1, 20, charges, maximumCharges);
+    for (let index = 0; index < Math.ceil(stacks); index += 1) {
+      emitSkillCondition(context, {
+        skill,
+        at: impactAt,
+        source: 'Warrior',
+        condition: 'Burning',
+        stacks: Math.min(1, stacks - index),
+        duration: dragonSlashCoefficient(minimumBurningDuration, maximumBurningDuration, charges, maximumCharges)
+      });
+    }
   }
 
   applyDragonSlashTraits(context, skill, impactAt);

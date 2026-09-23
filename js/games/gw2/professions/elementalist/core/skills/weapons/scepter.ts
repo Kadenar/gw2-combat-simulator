@@ -117,7 +117,14 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
           ],
           metadata: {}
         },
-        { type: 'condition', condition: 'Burning', stacks: 2, duration: 6, metadata: {} }
+        // Apply each Burning stack separately so same-impact relic checks observe every application.
+        ...Array.from({ length: 2 }, () => ({
+          type: 'condition' as const,
+          condition: 'Burning' as const,
+          stacks: 1,
+          duration: 6,
+          metadata: {}
+        }))
       ]),
       ...impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.75 },

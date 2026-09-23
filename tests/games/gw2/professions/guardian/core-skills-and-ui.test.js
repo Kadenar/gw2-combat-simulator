@@ -113,19 +113,25 @@ test('Guardian grouped impacts support payload patches without changing sibling 
     skills: {
       [id]: {
         coefficient: { from: 3, to: 4 },
-        conditions: { Burning: { stacks: { from: 5, to: 6 } } }
+        conditions: { Burning: { duration: { from: 6, to: 7 } } }
       }
     }
   });
   const patched = preview.skillsById.get(id);
 
-  assert.deepEqual(patched.effects, [
-    { ...original.effects[0], coefficient: 4 },
-    { ...original.effects[1], stacks: 6 },
-    original.effects[2]
-  ]);
+  // A condition selector updates every independent burn without altering the sibling control effect.
+  assert.deepEqual(
+    patched.effects,
+    original.effects.map((effect) =>
+      effect.type === 'strike'
+        ? { ...effect, coefficient: 4 }
+        : effect.condition === 'Burning'
+          ? { ...effect, duration: 7 }
+          : effect
+    )
+  );
   assert.equal(original.effects[0].coefficient, 3);
-  assert.equal(original.effects[1].stacks, 5);
+  assert.equal(original.effects[1].duration, 6);
 });
 
 // Check evaluated offsets so generated timelines and direct status effects are covered too.

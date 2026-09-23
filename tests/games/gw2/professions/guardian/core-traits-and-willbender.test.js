@@ -966,7 +966,7 @@ test("Radiant Fire upgrades Zealot's Flame duration, recharge, and ammo", () => 
     true
   );
   assert.equal(
-    fireBurns.every((event) => event.stacks === 3 && Math.abs(event.effectiveDuration - 3.6) < 1e-9),
+    fireBurns.every((event) => event.stacks === 1 && Math.abs(event.effectiveDuration - 3.6) < 1e-9),
     true
   );
 });

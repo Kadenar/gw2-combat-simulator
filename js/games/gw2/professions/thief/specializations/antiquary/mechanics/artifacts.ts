@@ -362,15 +362,19 @@ function emitCannonBackfire(context: ThiefCastContext, at: number): void {
     coefficient: Number(strike?.coefficient ?? 3),
     hits: Number(strike?.hits ?? 1)
   });
-  emitSkillCondition(context, {
-    at: impactAt,
-    skillId: ID.STONE_SUMMIT_CANNON,
-    skillName: 'Stone Summit Cannon',
-    name: 'Stone Summit Cannon — Backfire',
-    condition: String(burning?.condition || 'Burning'),
-    stacks: Number(burning?.stacks ?? 3),
-    duration: Number(burning?.duration ?? 4)
-  });
+  // Separate Burning applications preserve the total, including any fractional final stack.
+  const stacks = Number(burning?.stacks ?? 3);
+  for (let index = 0; index < Math.ceil(stacks); index += 1) {
+    emitSkillCondition(context, {
+      at: impactAt,
+      skillId: ID.STONE_SUMMIT_CANNON,
+      skillName: 'Stone Summit Cannon',
+      name: 'Stone Summit Cannon — Backfire',
+      condition: String(burning?.condition || 'Burning'),
+      stacks: Math.min(1, stacks - index),
+      duration: Number(burning?.duration ?? 4)
+    });
+  }
 }
 
 // Materialize the successful Canach cannon shot and its target effects from one

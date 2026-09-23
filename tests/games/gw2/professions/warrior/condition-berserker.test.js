@@ -96,7 +96,10 @@ test('Condition Berserker skill data uses configured values and packet timing', 
     [{ type: 'strike', coefficient: 1.32, hits: 3, atMs: 240 }]
   );
   // Read packet payloads through the canonical helpers so shared impacts and timelines use the same checks.
-  assert.deepEqual(conditionEffectTicks(fan.effects[1]), [{ atMs: 240, condition: 'Burning', stacks: 3, duration: 3 }]);
+  assert.deepEqual(
+    fan.effects.filter((effect) => effect.type === 'condition').flatMap(conditionEffectTicks),
+    Array(3).fill({ atMs: 240, condition: 'Burning', stacks: 1, duration: 3 })
+  );
 
   const gash = skill(ID.GASH);
   assert.equal(gash.retainsCastLockoutAfterInterrupt, true);
@@ -269,6 +272,8 @@ test('Fan of Fire keeps only cast-time skills behind its retained aftercast', as
       ['damage', 0.24],
       ['damage', 0.24],
       ['damage', 0.24],
+      ['condition', 0.24],
+      ['condition', 0.24],
       ['condition', 0.24]
     ]
   );

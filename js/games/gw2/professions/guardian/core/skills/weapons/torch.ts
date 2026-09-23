@@ -17,7 +17,10 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 2520, condition: 'Burning', stacks: 2, duration: 4 }]
+        ticks: [
+          // Apply each Burning stack separately so same-impact relic checks observe every application.
+          ...Array.from({ length: 2 }, () => ({ atMs: 2520, condition: 'Burning' as const, stacks: 1, duration: 4 }))
+        ]
       }
     ])
   },
@@ -35,12 +38,13 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Par
           coefficient: 2.25,
           projectile: true
         },
-        {
-          type: 'condition',
-          condition: 'Burning',
-          stacks: 3,
+        // Apply each Burning stack separately so same-impact relic checks observe every application.
+        ...Array.from({ length: 3 }, () => ({
+          type: 'condition' as const,
+          condition: 'Burning' as const,
+          stacks: 1,
           duration: 3
-        }
+        }))
       ]
     )
   },
