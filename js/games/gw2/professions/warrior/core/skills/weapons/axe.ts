@@ -6,6 +6,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.CHOP]: {
     interruptCommitMs: 440,
+    dualWieldCastTimeMs: 320,
     castTimeMs: 520,
     effects: [
       {
@@ -19,6 +20,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
   },
   [ID.DOUBLE_CHOP]: {
     castTimeMs: 760,
+    dualWieldCastTimeMs: 560,
     effects: [
       {
         type: 'strike',
@@ -38,6 +40,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partia
   },
   [ID.TRIPLE_CHOP]: {
     castTimeMs: 1280,
+    dualWieldCastTimeMs: 960,
     effects: [
       {
         type: 'strike',

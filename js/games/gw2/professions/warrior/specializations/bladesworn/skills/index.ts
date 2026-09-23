@@ -33,6 +33,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   [ID.TACTICAL_RELOAD]: {
     effects: [],
     castTimeMs: 560,
+    dualWieldCastTimeMs: 400,
     // Tactical Reload commits at 480ms, keeps its remaining cast lockout, and resolves its reload after interruption.
     interruptCommitMs: 480,
     retainsCastLockoutAfterInterrupt: true,
@@ -134,6 +135,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ammoCastLockout: 1,
     effects: [],
     castTimeMs: 600,
+    dualWieldCastTimeMs: 480,
     // Committed interrupted casts keep the cartridge window consumed by later explosions.
     interruptCommitMs: 480,
     handlerId: 'warrior.overcharged-cartridges'

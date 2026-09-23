@@ -15,7 +15,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.SIGNET_OF_RAGE]: {
-    castTimeMs: 167,
+    castTimeMs: 200,
     dualWieldCastTimeMs: 160,
     effects: [
       {
@@ -60,6 +60,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
   },
   [ID.HEALING_SIGNET]: {
     castTimeMs: 1080,
+    dualWieldCastTimeMs: 840,
     effects: [
       {
         type: 'boon',
@@ -153,7 +154,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
   },
   [ID.SIGNET_OF_FURY]: {
     cooldown: 16,
-    castTimeMs: 350,
+    castTimeMs: 400,
     dualWieldCastTimeMs: 280,
     adrenalineGain: 30,
     // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
@@ -254,7 +255,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.DEFIANT_STANCE]: {
-    castTimeMs: 500,
+    castTimeMs: 640,
     effects: []
   }
 });
