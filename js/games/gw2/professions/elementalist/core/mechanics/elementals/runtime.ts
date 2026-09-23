@@ -20,7 +20,7 @@ import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
  * Auto-summon: when enabled and a glyph is slotted, the elemental is re-summoned on
  * combat start (or first offensive event) without an explicit cast in the rotation.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import {
@@ -645,15 +645,7 @@ function expireElemental(
   if (glyph) {
     context.state.cooldowns.set(
       glyph.id,
-      at +
-        balanceProfileValueFromContext(
-          context,
-          PROFILE.summonedElemental,
-          'recharge',
-          element === 'Earth'
-            ? EARTH_ELEMENTAL_EVTC_PROFILE.rechargeAfterExpiry
-            : FIRE_ELEMENTAL_EVTC_PROFILE.rechargeAfterExpiry
-        )
+      at + balanceProfileNumberFromContext(context, PROFILE.summonedElemental, 'recharge')
     );
   }
 }
@@ -678,14 +670,7 @@ function startElemental(context: ElementalistSchedulerContext, at: number): void
   }
 
   elemental.started = true;
-  const delay = balanceProfileValueFromContext(
-    context,
-    PROFILE.summonedElemental,
-    'initialDelay',
-    elemental.element === 'Earth'
-      ? EARTH_ELEMENTAL_EVTC_PROFILE.targetAcquisitionDelay
-      : FIRE_ELEMENTAL_EVTC_PROFILE.targetAcquisitionDelay
-  );
+  const delay = balanceProfileNumberFromContext(context, PROFILE.summonedElemental, 'initialDelay');
   elementalActions.start(context, at, {
     key: ELEMENTAL_TASK_OWNER,
     ownerId: elementalistElementalCompanionId(elemental.summonGeneration),
@@ -715,7 +700,7 @@ function summonElemental(
   element: ElementalKind
 ): void {
   const state = professionCoreState(context);
-  const profile = elementalRuntimeProfile(element);
+
   // Replacement ends the old action and flip together with its queued work.
   interruptCurrentAction(context, at);
   const previousElement = state.summonedElemental.element;
@@ -730,7 +715,7 @@ function summonElemental(
     summonGeneration,
     actionGeneration: 0,
     activeUntil: canonicalTime(
-      at + balanceProfileValueFromContext(context, PROFILE.summonedElemental, 'durationMultiplier', profile.lifetime)
+      at + balanceProfileNumberFromContext(context, PROFILE.summonedElemental, 'durationMultiplier')
     ),
     busyUntil: at,
     secondaryAttackReadyAt: at,

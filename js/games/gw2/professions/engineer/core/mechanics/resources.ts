@@ -1,4 +1,4 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -16,27 +16,21 @@ export function engineerEnduranceRegenerationRate(context: EngineerSchedulerCont
   const multiplier =
     1 +
     (vigor
-      ? balanceProfileValueFromContext(
+      ? balanceProfileNumberFromContext(
           context,
           ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
-          'vigorRegenerationMultiplier',
-          1.5
+          'vigorRegenerationMultiplier'
         ) - 1
       : 0) +
     (hasTrait(context.config, TRAIT.ADRENAL_IMPLANT)
-      ? balanceProfileValueFromContext(
-          context,
-          ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
-          'coefficientMultiplier',
-          1.25
-        ) - 1
+      ? balanceProfileNumberFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'coefficientMultiplier') -
+        1
       : 0);
   return (
-    balanceProfileValueFromContext(
+    balanceProfileNumberFromContext(
       context,
       ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
-      'enduranceRegenerationPerSecond',
-      5
+      'enduranceRegenerationPerSecond'
     ) * multiplier
   );
 }
@@ -60,7 +54,7 @@ export function engineerEnduranceReadyAt(
     enduranceIntervals(context, context.start, Infinity),
     Number(
       state.maximumEndurance ||
-        balanceProfileValueFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'maximumStacks', 100)
+        balanceProfileNumberFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'maximumStacks')
     )
   );
 }
@@ -72,7 +66,7 @@ export function advanceEngineerResources(context: EngineerSchedulerContext, targ
   if (target <= from) return;
   const maximum = Number(
     state.maximumEndurance ||
-      balanceProfileValueFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'maximumStacks', 100)
+      balanceProfileNumberFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'maximumStacks')
   );
   Object.assign(state, advanceEnduranceIntervals(state, enduranceIntervals(context, from, target), maximum));
 

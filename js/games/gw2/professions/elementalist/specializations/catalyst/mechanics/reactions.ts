@@ -9,8 +9,8 @@ import { resolverSourceSkill, buildResolverStrike, buildResolverCondition } from
  */
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
@@ -73,6 +73,7 @@ export function applyCatalystResolverAura(context: ElementalistResolverContext, 
   }
 
   const empowerment = elementalEpitomeEmpowerment(context);
+  if (!empowerment) return;
   queueElementalistBuff(
     context,
     event,
@@ -100,12 +101,14 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
       state.elementalEpitomeReadyAt,
       attunement,
       event.at,
-      balanceProfileValueFromContext(context, PROFILE.elementalEpitome, 'internalCooldown', 10)
+      balanceProfileNumberFromContext(context, PROFILE.elementalEpitome, 'internalCooldown')
     )
   ) {
     const aura = elementalEpitomeAura(context, attunement);
-    queueElementalistAura(context, event, aura.canonicalAura, aura.duration, 'Elemental Epitome');
-    recordElementalistTraitProc(context, event, 'Elemental Epitome');
+    if (aura) {
+      queueElementalistAura(context, event, aura.aura, aura.duration, 'Elemental Epitome');
+      recordElementalistTraitProc(context, event, 'Elemental Epitome');
+    }
   }
 
   if (
@@ -114,20 +117,20 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
       state.elementalSynergyReadyAt,
       attunement,
       event.at,
-      balanceProfileValueFromContext(context, PROFILE.elementalSynergy, 'internalCooldown', 10)
+      balanceProfileNumberFromContext(context, PROFILE.elementalSynergy, 'internalCooldown')
     )
   ) {
     if (attunement === 'Fire' || attunement === 'Earth') {
       const boon = elementalSynergyBoon(context, attunement);
-      queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, 'Elemental Synergy');
+      if (boon) queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, 'Elemental Synergy');
     } else if (attunement === 'Air') {
       Object.assign(
         core,
         grantEndurance(
           core,
-          balanceProfileValueFromContext(context, PROFILE.elementalSynergy, 'resourceGain', 50),
+          balanceProfileNumberFromContext(context, PROFILE.elementalSynergy, 'resourceGain'),
           event.at,
-          balanceProfileValueFromContext(context, CORE_PROFILE.resources, 'maximumStacks', 100)
+          balanceProfileNumberFromContext(context, CORE_PROFILE.resources, 'maximumStacks')
         )
       );
     }
@@ -168,23 +171,29 @@ export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2R
   const state = catalystState.from(context);
   if (!isInternalCooldownReady(event.at, state.viciousEmpowermentReadyAt)) return;
   state.viciousEmpowermentReadyAt =
-    event.at + balanceProfileValueFromContext(context, PROFILE.viciousEmpowerment, 'internalCooldown', 0.25);
-  const empowerment = balanceProfileEffectFromContext(context, PROFILE.viciousEmpowerment, 'buff', 0, 'Empowerment');
-  const might = balanceProfileEffectFromContext(context, PROFILE.viciousEmpowerment, 'boon', 0, 'Might');
-  queueCatalystBuff(
+    event.at + balanceProfileNumberFromContext(context, PROFILE.viciousEmpowerment, 'internalCooldown');
+  const empowerment = requireEffectFromContext(
     context,
-    event,
-    'elemental empowerment',
-    Number(empowerment?.stacks ?? 2),
-    Number(empowerment?.duration ?? 15)
+    'balance-profile',
+    PROFILE.viciousEmpowerment,
+    'buff',
+    'Empowerment'
   );
-  queueCatalystBuff(
-    context,
-    event,
-    String(might?.boon || 'might'),
-    Number(might?.stacks ?? 2),
-    Number(might?.duration ?? 10)
-  );
+  const might = requireEffectFromContext(context, 'balance-profile', PROFILE.viciousEmpowerment, 'boon', 'Might');
+  if (empowerment) {
+    queueCatalystBuff(
+      context,
+      event,
+      'elemental empowerment',
+      Number(empowerment.stacks),
+      Number(empowerment.duration)
+    );
+  }
+
+  if (might) {
+    queueCatalystBuff(context, event, String(might.boon), Number(might.stacks), Number(might.duration));
+  }
+
   context.recordProc('trait', 'Vicious Empowerment', event.at, event.skillName);
 }
 
@@ -215,7 +224,7 @@ export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2
     event.at,
     Number(event.duration || 0),
     Number(event.stacks || 1),
-    balanceProfileValueFromContext(context, PROFILE.elementalEmpowerment, 'maximumStacks', 10)
+    balanceProfileNumberFromContext(context, PROFILE.elementalEmpowerment, 'maximumStacks')
   );
 }
 
@@ -239,35 +248,45 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
   }
 
   state.shatteringIceReadyAt =
-    event.at + balanceProfileValueFromContext(context, PROFILE.shatteringIce, 'internalCooldown', 1);
-  const strike = balanceProfileEffectFromContext(context, PROFILE.shatteringIce, 'strike');
-  const chilled = balanceProfileEffectFromContext(context, PROFILE.shatteringIce, 'condition');
-  context.queue.enqueue(
-    buildResolverStrike({
-      at: event.at,
-      source: 'Shattering Ice Proc',
-      sourceId: event.skillId ?? event.sourceId,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillName: 'Shattering Ice Proc',
-      coefficient: Number(strike?.coefficient ?? 0.6),
-      skillWeapon: 'Unequipped',
-      triggeredBy: event.skillName
-    })
+    event.at + balanceProfileNumberFromContext(context, PROFILE.shatteringIce, 'internalCooldown');
+  const strike = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.shatteringIce,
+    'strike',
+    'Shattering Ice - Triggered Packet'
   );
+  const chilled = requireEffectFromContext(context, 'balance-profile', PROFILE.shatteringIce, 'condition', 'Chilled');
+  if (strike) {
+    context.queue.enqueue(
+      buildResolverStrike({
+        at: event.at,
+        source: 'Shattering Ice Proc',
+        sourceId: event.skillId ?? event.sourceId,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillName: 'Shattering Ice Proc',
+        coefficient: Number(strike.coefficient),
+        skillWeapon: 'Unequipped',
+        triggeredBy: event.skillName
+      })
+    );
+  }
 
-  context.queue.enqueue(
-    buildResolverCondition({
-      at: event.at,
-      source: 'Shattering Ice Proc',
-      sourceId: event.skillId ?? event.sourceId,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillName: 'Shattering Ice Proc',
-      condition: String(chilled?.condition || 'Chilled'),
-      stacks: Number(chilled?.stacks ?? 1),
-      duration: Number(chilled?.duration ?? 1),
-      triggeredBy: event.skillName
-    })
-  );
+  if (chilled) {
+    context.queue.enqueue(
+      buildResolverCondition({
+        at: event.at,
+        source: 'Shattering Ice Proc',
+        sourceId: event.skillId ?? event.sourceId,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillName: 'Shattering Ice Proc',
+        condition: String(chilled.condition),
+        stacks: Number(chilled.stacks),
+        duration: Number(chilled.duration),
+        triggeredBy: event.skillName
+      })
+    );
+  }
 }

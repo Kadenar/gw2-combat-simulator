@@ -20,6 +20,7 @@ test('Lightning Hammer keeps normal weapon skills visible but unavailable across
   // The family gate also applies before Weaver delegates its dual-attunement rules.
   for (const specialization of ['Core', 'Tempest', 'Weaver', 'Catalyst', 'Evoker']) {
     const context = {
+      catalog: elementalistCatalog,
       specialization,
       build: { selectedSkills: { Utility1: 'Conjure Lightning Hammer', Utility2: 'Conjure Frost Bow' } },
       professionState: { primaryAttunement: 'Fire', conjureEquipped: 'Lightning Hammer' }

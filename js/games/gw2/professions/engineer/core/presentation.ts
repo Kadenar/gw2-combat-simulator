@@ -1,3 +1,5 @@
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
@@ -322,14 +324,15 @@ export const engineerCoreUi: EngineerUiSlice = Object.freeze({
   // Shows endurance only when the Tools line makes dodge resource management relevant.
   resourceViews: (context: EngineerUiContext) => {
     const state = engineerUiState(context);
-    const views: ProfessionResourceView[] = [];
+    if (!usesToolsTraitline(context)) return [];
+    const maximum = balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
     const endurance: ProfessionResourceView = {
       id: 'endurance',
       singular: 'endurance',
       plural: 'endurance',
-      maximum: Number(state.maximumEndurance || 100),
-      value: Number(state.endurance ?? 100),
-      startMaximum: 100,
+      maximum,
+      value: Number(state.endurance ?? maximum),
+      startMaximum: maximum,
       canStart: false,
       displayMode: 'bar',
       shortLabel: 'End',
@@ -338,9 +341,7 @@ export const engineerCoreUi: EngineerUiSlice = Object.freeze({
       // spends it, matching the shared palette placement used by professions.
       paletteSkillId: ID.DODGE
     };
-    // endurance bar only shown when Tools traitline is active — that's when endurance management is relevant
-    if (usesToolsTraitline(context)) views.push(endurance);
-    return views;
+    return [endurance];
   },
   // Keep battery progress and its active buff timer together at the inspected rotation point.
   rotationStateSnapshot: (context: EngineerUiContext): RotationStateSnapshotItem[] => {

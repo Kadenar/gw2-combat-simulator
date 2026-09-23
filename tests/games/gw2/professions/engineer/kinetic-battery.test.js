@@ -92,6 +92,7 @@ test('Kinetic Battery resets on the fifth command and grants five seconds of spe
 test('Kinetic Battery charges and buff timer appear in Active State across Engineer specializations', () => {
   for (const specialization of ['Core', 'Mechanist', 'Holosmith', 'Scrapper', 'Amalgam']) {
     const context = {
+      catalog: engineerCatalog,
       specialization,
       config: { selectedTraitIds: [TRAIT.KINETIC_BATTERY] },
       professionState: { kineticCharges: 4 }

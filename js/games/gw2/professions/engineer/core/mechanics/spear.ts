@@ -1,3 +1,5 @@
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 /**
@@ -14,7 +16,6 @@ import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-stat
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { activeStackCount, addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { EngineerCastContext, EngineerSchedulerContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 
 const LIGHTNING_ROD_FIRST_PULSE_DELAY_SECONDS = 0.16;
@@ -71,7 +72,7 @@ export function scheduleConduitSurge(context: EngineerCastContext, skill: Engine
   // update focusedUntil in scheduler state for subsequent availability/damage checks
   professionCoreState(context).focusedUntil = Math.max(
     professionCoreState(context).focusedUntil,
-    at + Number(balanceProfileFromContext(context, PROFILE.conduitSurge)!.durationMultiplier)
+    at + balanceProfileNumberFromContext(context, PROFILE.conduitSurge, 'durationMultiplier')
   );
   // also emit a state event so the resolver's Focused window is synchronized
   emitEngineerStateSnapshot(context, at, 'conduit-surge');
@@ -171,39 +172,39 @@ export function scheduleDevastatorFollowup(context: EngineerCastContext, _skill:
   const activationId = `${context.reservationId}:focused-devastation`;
   // The triggered catalog skill owns aggregate strike damage and per-packet burning for this follow-up.
   const followup = context.catalog.skillsById.get(ID.FOCUSED_DEVASTATION)!;
-  const strike = followup.effects!.find((effect) => effect.type === 'strike')!;
-  const burning = followup.effects!.find((effect) => effect.type === 'condition')!;
-  const hits = strike.ticks!.length;
-  for (let index = 0; index < hits; index += 1) {
-    const at = impactAt + strike.ticks![index].atMs / 1000;
-    emitSkillDamage(context, {
-      at,
-      source: 'engineer',
-      sourceId: ID.FOCUSED_DEVASTATION,
-      activationId,
-      actorType: 'player',
-      skillId: ID.FOCUSED_DEVASTATION,
-      skillName: 'Focused Devastation',
-      name: 'Focused Devastation',
-      coefficient: strike.ticks![index].coefficient,
-      hits: 1,
-      hitIndex: index + 1,
-      totalHits: hits,
-      skillWeapon: 'Spear',
-      weaponStrengthProfileId: 'nonweapon.unequipped',
-      // projectile already in flight — events persist even if the cast is interrupted
-      persistsAfterInterrupt: true
-    });
-    emitSkillCondition(context, {
-      at,
-      activationId,
-      skillId: ID.FOCUSED_DEVASTATION,
-      skillName: 'Focused Devastation',
-      name: 'Focused Devastation — Burning',
-      condition: 'Burning',
-      stacks: Number(burning.stacks),
-      duration: Number(burning.duration),
-      persistsAfterInterrupt: true
-    });
+  // Materialize each surviving effect on its own timeline so deleting a strike cannot delete Burning.
+  for (const effect of followup.effects || []) {
+    for (const { at, event } of materializeSkillEffectApplications({
+      skill: followup,
+      effect,
+      start: impactAt,
+      fullEnd: impactAt,
+      baseEvent: { source: 'engineer', sourceId: followup.id, actorType: 'player', activationId }
+    })) {
+      if (event.type === 'damage')
+        emitSkillDamage(context, {
+          ...event,
+          at,
+          coefficient: Number(event.coefficient),
+          skillId: followup.id,
+          skillName: followup.name,
+          name: followup.name,
+          skillWeapon: 'Spear',
+          weaponStrengthProfileId: 'nonweapon.unequipped',
+          persistsAfterInterrupt: true
+        });
+      if (event.type === 'condition')
+        emitSkillCondition(context, {
+          ...event,
+          at,
+          skillId: followup.id,
+          skillName: followup.name,
+          name: `${followup.name} — Burning`,
+          condition: String(event.condition),
+          stacks: Number(event.stacks),
+          duration: Number(event.duration),
+          persistsAfterInterrupt: true
+        });
+    }
   }
 }

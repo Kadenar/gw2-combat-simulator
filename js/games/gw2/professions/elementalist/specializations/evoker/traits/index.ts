@@ -3,11 +3,11 @@
  * mechanic hook - currently just Altruistic Aspect's meditation boons.
  */
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { balanceProfileEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistCastContext } from '#gw2/professions/elementalist/types.js';
-import { ALTRUISTIC_ASPECT_BOONS } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { ALTRUISTIC_ASPECT_SKILLS } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 
 /**
@@ -16,17 +16,18 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementa
  */
 export function applyAltruisticAspect(context: ElementalistCastContext, skill: Skill): void {
   if (!hasTrait(context, 'Altruistic Aspect')) return;
-  const boon = ALTRUISTIC_ASPECT_BOONS.get(skill.id);
-  if (!boon) return;
-  const effect = balanceProfileEffectFromContext(context, PROFILE.altruisticAspect, 'boon', 0, skill.name);
-  emitSkillBuff(context, skill, {
-    at: context.effectiveEnd,
-    source: skill.name,
-    sourceId: skill.id,
-    actorType: 'player',
-    kind: String(effect?.boon || boon[0]).toLowerCase(),
-    stacks: Number(effect?.stacks ?? boon[1]),
-    duration: Number(effect?.duration ?? boon[2]),
-    skillName: skill.name
-  });
+  if (!ALTRUISTIC_ASPECT_SKILLS.has(skill.id)) return;
+  const effect = requireEffectFromContext(context, 'balance-profile', PROFILE.altruisticAspect, 'boon', skill.name);
+  if (effect) {
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: String(effect.boon).toLowerCase(),
+      stacks: Number(effect.stacks),
+      duration: Number(effect.duration),
+      skillName: skill.name
+    });
+  }
 }

@@ -2,7 +2,7 @@
  * Owns Evoker recharge modification for the Elemental Balance one-use window.
  * The persistent window state remains in the Evoker state slice.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
@@ -36,5 +36,5 @@ export function commitRechargeDuration(
   }
 
   state.elementalBalanceUntil = 0; // single-use window; next arm cycle starts fresh
-  return duration * balanceProfileValueFromContext(context, PROFILE.elementalBalance, 'rechargeMultiplier', 0.34);
+  return duration * balanceProfileNumberFromContext(context, PROFILE.elementalBalance, 'rechargeMultiplier');
 }

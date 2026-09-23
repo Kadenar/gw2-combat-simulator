@@ -1,8 +1,7 @@
 import { resolverTimedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValue,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -24,23 +23,29 @@ function triggerMassMomentum(context: EngineerResolverContext, event: EngineerRe
     return false;
   const state = procState(context);
   if (Number(state.massMomentum || 0) <= event.at) {
-    state.massMomentum = event.at + balanceProfileValueFromContext(context, PROFILE.massMomentum, 'pulseInterval', 1);
-    queueBuff(context, event, {
-      name: 'Mass Momentum',
-      kind: 'might',
-      stacks: 1,
-      duration: balanceProfileValue(
-        balanceProfileEffectFromContext(context, PROFILE.massMomentum, 'boon'),
-        'duration',
-        5
-      ),
-      sourceId: TRAIT.MASS_MOMENTUM,
-      actorType: 'effect'
-    });
-    recordTrait(context, 'Mass Momentum', event);
+    state.massMomentum = event.at + balanceProfileNumberFromContext(context, PROFILE.massMomentum, 'pulseInterval');
+    const massMomentumMight = requireEffectFromContext(
+      context,
+      'balance-profile',
+      PROFILE.massMomentum,
+      'boon',
+      'might'
+    );
+    if (massMomentumMight) {
+      queueBuff(context, event, {
+        name: 'Mass Momentum',
+        kind: String(massMomentumMight.boon).toLowerCase(),
+        stacks: Number(massMomentumMight.stacks),
+        duration: Number(massMomentumMight.duration),
+        sourceId: TRAIT.MASS_MOMENTUM,
+        actorType: 'effect'
+      });
+
+      recordTrait(context, 'Mass Momentum', event);
+    }
   }
 
-  const interval = balanceProfileValueFromContext(context, PROFILE.massMomentum, 'pulseInterval', 1);
+  const interval = balanceProfileNumberFromContext(context, PROFILE.massMomentum, 'pulseInterval');
   const next = Math.max(event.at + interval, Number(state.massMomentum || 0));
   if (interval > 0 && massMomentum.nextAt(context) > next)
     massMomentum.start(context, { key: 'stability', at: next, captured: event });
@@ -49,7 +54,7 @@ function triggerMassMomentum(context: EngineerResolverContext, event: EngineerRe
 // A single pending resolver occurrence deduplicates hit/boon triggers and rechecks live Stability.
 const massMomentum = resolverTimedEffect<EngineerResolverContext, EngineerResolverEvent>({
   id: 'engineer.mass-momentum-pulse',
-  interval: (context) => balanceProfileValueFromContext(context, PROFILE.massMomentum, 'pulseInterval', 1),
+  interval: (context) => balanceProfileNumberFromContext(context, PROFILE.massMomentum, 'pulseInterval'),
   effectsAt(context, at, event) {
     return triggerMassMomentum(context, { ...event, at });
   }
@@ -70,27 +75,33 @@ function reactToScrapperBuff(context: EngineerResolverContext, event: EngineerRe
     activeBoonStacks(
       context,
       'might',
-      balanceProfileValueFromContext(context, PROFILE.appliedForce, 'maximumStacks', 25),
+      balanceProfileNumberFromContext(context, PROFILE.appliedForce, 'maximumStacks'),
       event.at
-    ) >= balanceProfileValueFromContext(context, PROFILE.appliedForce, 'threshold', 10)
+    ) >= balanceProfileNumberFromContext(context, PROFILE.appliedForce, 'threshold')
   ) {
     const state = procState(context);
     if (isInternalCooldownReady(event.at, Number(state.appliedForce || 0))) {
       state.appliedForce =
-        event.at + balanceProfileValueFromContext(context, PROFILE.appliedForce, 'internalCooldown', 10);
-      queueBuff(context, event, {
-        name: 'Applied Force',
-        kind: 'stability',
-        stacks: 1,
-        duration: balanceProfileValue(
-          balanceProfileEffectFromContext(context, PROFILE.appliedForce, 'boon'),
-          'duration',
-          3
-        ),
-        sourceId: TRAIT.APPLIED_FORCE,
-        actorType: 'effect'
-      });
-      recordTrait(context, 'Applied Force', event);
+        event.at + balanceProfileNumberFromContext(context, PROFILE.appliedForce, 'internalCooldown');
+      const appliedForceStability = requireEffectFromContext(
+        context,
+        'balance-profile',
+        PROFILE.appliedForce,
+        'boon',
+        'stability'
+      );
+      if (appliedForceStability) {
+        queueBuff(context, event, {
+          name: 'Applied Force',
+          kind: String(appliedForceStability.boon).toLowerCase(),
+          stacks: Number(appliedForceStability.stacks),
+          duration: Number(appliedForceStability.duration),
+          sourceId: TRAIT.APPLIED_FORCE,
+          actorType: 'effect'
+        });
+
+        recordTrait(context, 'Applied Force', event);
+      }
     }
   }
 

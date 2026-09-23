@@ -274,6 +274,7 @@ test('Kinetic Accelerators grants setup boons from precombat combos', () => {
 test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () => {
   const boons = [];
   const context = {
+    catalog: engineerCatalog,
     config: {
       selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS],
       stats: { concentration: 0 }
@@ -338,6 +339,7 @@ test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () =
 test('Scrapper snapshots cannot rewind or pre-spend the resolver Whirl cooldown', () => {
   const grants = [];
   const context = {
+    catalog: engineerCatalog,
     config: { selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS] },
     profession: { core: {}, specialization: { kind: 'Scrapper', state: createScrapperState() } },
     query: { statsAt: () => ({ concentration: 0 }) },

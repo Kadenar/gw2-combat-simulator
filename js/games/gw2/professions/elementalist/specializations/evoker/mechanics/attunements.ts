@@ -8,8 +8,8 @@
  * attunement actually changing.
  */
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
@@ -37,7 +37,6 @@ import {
 } from '#gw2/professions/elementalist/core/traits/index.js';
 import { applyInscriptionAirEntry, applyOneWithAir } from '#gw2/professions/elementalist/core/traits/air.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-import { OFF_ATTUNEMENT_RECHARGE_SECONDS } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState, type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 
@@ -61,7 +60,7 @@ function consumeEvokerAttunementTraitCooldown(
     state.attunementTraitProcReadyAt,
     String(profileId),
     at,
-    balanceProfileValueFromContext(context, PROFILE.evocation, 'internalCooldown', 5)
+    balanceProfileNumberFromContext(context, PROFILE.evocation, 'internalCooldown')
   );
 }
 
@@ -126,7 +125,7 @@ export function applyEvokerAttunementRechargePolicy(
         event.at +
           elementalistAttunementRechargeDuration(
             context as never,
-            balanceProfileValueFromContext(context, PROFILE.resources, 'recharge', OFF_ATTUNEMENT_RECHARGE_SECONDS)
+            balanceProfileNumberFromContext(context, PROFILE.resources, 'recharge')
           )
       )
     );
@@ -138,7 +137,7 @@ export function applyEvokerAttunementRechargePolicy(
       event.at +
       elementalistAttunementRechargeDuration(
         context as never,
-        balanceProfileValueFromContext(context, PROFILE.resources, 'recharge', OFF_ATTUNEMENT_RECHARGE_SECONDS)
+        balanceProfileNumberFromContext(context, PROFILE.resources, 'recharge')
       );
     const existingReadyAt = Number(readyAtBefore[attunement] || 0);
     const preservedRemaining = Number(preserved[attunement] || 0);
@@ -182,17 +181,19 @@ export function triggerSpecializedElementEntry(
     applyInscriptionAirEntry(context, at, skill);
 
     if (hasTrait(context, 'Fresh Air')) {
-      const freshAir = balanceProfileEffectFromContext(context, CORE_PROFILE.freshAir, 'buff');
-      emitSkillBuff(context, skill, {
-        at,
-        source: skill.name,
-        sourceId: skill.id,
-        actorType: 'player',
-        kind: String(freshAir?.kind || 'Fresh Air').toLowerCase(),
-        stacks: Number(freshAir?.stacks ?? 1),
-        duration: Number(freshAir?.duration ?? 5),
-        skillName: skill.name
-      });
+      const freshAir = requireEffectFromContext(context, 'balance-profile', CORE_PROFILE.freshAir, 'buff', 'fresh-air');
+      if (freshAir) {
+        emitSkillBuff(context, skill, {
+          at,
+          source: skill.name,
+          sourceId: skill.id,
+          actorType: 'player',
+          kind: String(freshAir.kind).toLowerCase(),
+          stacks: Number(freshAir.stacks),
+          duration: Number(freshAir.duration),
+          skillName: skill.name
+        });
+      }
     }
   } else if (element === 'Earth') {
     if (hasTrait(context, 'Earthen Blast') && procReady(CORE_PROFILE.earthenBlast)) {

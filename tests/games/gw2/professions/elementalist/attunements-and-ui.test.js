@@ -485,6 +485,7 @@ test('weapon palette rows group Elementalist skills by attunement and slot', () 
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
+    activeCatalog: elementalistProfession.catalog,
     skills: elementalistCatalog.skills,
     skillByName: elementalistCatalog.skillsByName,
     skillById: elementalistCatalog.skillsById,
@@ -546,6 +547,7 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
+    activeCatalog: elementalistProfession.catalog,
     skills: elementalistCatalog.skills,
     skillByName: elementalistCatalog.skillsByName,
     skillById: elementalistCatalog.skillsById,
@@ -661,6 +663,7 @@ test('starting attunement controls render catalog icons', () => {
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
+    activeCatalog: elementalistProfession.catalog,
     results: null,
     changed() {}
   };
@@ -701,6 +704,7 @@ test('rotation palette exposes each attunement as an action', () => {
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
+    activeCatalog: elementalistProfession.catalog,
     skills: elementalistCatalog.skills,
     skillByName: elementalistCatalog.skillsByName,
     skillById: elementalistCatalog.skillsById,
@@ -893,6 +897,7 @@ test('Evoker layers familiar charges beside F5', () => {
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
+    activeCatalog: elementalistProfession.catalog,
     results: { planningState: { profession: professionState } }
   });
 
@@ -905,6 +910,7 @@ test('Evoker layers familiar charges beside F5', () => {
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
+    activeCatalog: elementalistProfession.catalog,
     results: {
       planningState: { profession: { ...professionState, charges: 6, maximumCharges: 6, empowered: 0 } }
     }
@@ -913,6 +919,7 @@ test('Evoker layers familiar charges beside F5', () => {
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
+    activeCatalog: elementalistProfession.catalog,
     results: {
       planningState: { profession: { ...professionState, charges: 4, empowered: 3 } }
     }
@@ -937,6 +944,7 @@ test('Evoker renders stacked starting controls for basic and empowered charges',
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
+    activeCatalog: elementalistProfession.catalog,
     results: null,
     changed() {}
   };
@@ -1055,6 +1063,7 @@ test('core attunements enforce and report their individual recharge', () => {
       build: elementalistProfession.createBuildDefaults(),
       adapter: elementalistAppAdapter,
       profession: elementalistProfession,
+      activeCatalog: elementalistProfession.catalog,
       skillById: elementalistCatalog.skillsById,
       skillByName: elementalistCatalog.skillsByName,
       results: result

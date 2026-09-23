@@ -38,8 +38,8 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     name: 'Lightning Rod Pulse',
     profileKind: 'skill-variant',
     effects: [
-      { type: 'strike', coefficient: 0.17, hits: 1 },
-      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8 }
+      { name: 'Lightning Rod Pulse', type: 'strike', coefficient: 0.17, hits: 1 },
+      { name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8 }
     ]
   },
   {
@@ -47,8 +47,8 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     name: 'Focused Lightning Rod Pulse',
     profileKind: 'skill-variant',
     effects: [
-      { type: 'strike', coefficient: 0.3, hits: 1 },
-      { type: 'condition', condition: 'Vulnerability', stacks: 2, duration: 8 }
+      { name: 'Focused Lightning Rod Pulse', type: 'strike', coefficient: 0.3, hits: 1 },
+      { name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 2, duration: 8 }
     ]
   },
   {
@@ -57,8 +57,8 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     profileKind: 'skill-variant',
     durationMultiplier: 10,
     effects: [
-      { type: 'strike', coefficient: 1.2, hits: 1 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 7 }
+      { name: 'Conduit Surge', type: 'strike', coefficient: 1.2, hits: 1 },
+      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 7 }
     ]
   },
   {
@@ -69,10 +69,10 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     chargesPerVulnerability: 2,
     burningDurationPerCharge: 0.25,
     effects: [
-      { type: 'strike', coefficient: 1, hits: 1 },
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 },
-      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8 },
-      { type: 'condition', condition: 'Burning', stacks: 2, duration: 3 }
+      { name: 'Electric Artillery', type: 'strike', coefficient: 1, hits: 1 },
+      { name: 'Immobilized', type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 },
+      { name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8 },
+      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 2, duration: 3 }
     ]
   },
   {
@@ -83,10 +83,10 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     chargesPerVulnerability: 1,
     burningDurationPerCharge: 0.5,
     effects: [
-      { type: 'strike', coefficient: 1.5, hits: 1 },
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 },
-      { type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8 },
-      { type: 'condition', condition: 'Burning', stacks: 2, duration: 3 }
+      { name: 'Focused Electric Artillery', type: 'strike', coefficient: 1.5, hits: 1 },
+      { name: 'Immobilized', type: 'condition', condition: 'Immobilized', stacks: 1, duration: 2 },
+      { name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8 },
+      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 2, duration: 3 }
     ]
   },
   {
@@ -102,52 +102,45 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   },
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.grenadier, 'Grenadier', {
     internalCooldown: 20,
-    effects: [{ type: 'strike', coefficient: 0.5, hits: 6, atMs: 0 }]
+    effects: [{ name: 'Grenadier', type: 'strike', coefficient: 0.5, hits: 6, atMs: 0 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.streamlinedKits, 'Streamlined Kits', {
     internalCooldown: 20,
     effects: [
-      { type: 'boon', boon: 'swiftness', stacks: 1, duration: 20 },
-      { type: 'strike', coefficient: 1.75, hits: 1 }
+      { name: 'swiftness', type: 'boon', boon: 'swiftness', stacks: 1, duration: 20 },
+      { name: 'Streamlined Kits', type: 'strike', coefficient: 1.75, hits: 1 }
     ]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.optimizedActivation, 'Optimized Activation', {
-    effects: [{ type: 'boon', boon: 'vigor', stacks: 1, duration: 4 }]
+    effects: [{ name: 'vigor', type: 'boon', boon: 'vigor', stacks: 1, duration: 4 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.staticDischarge, 'Static Discharge', {
     criticalDamage: 2,
-    effects: [{ type: 'strike', coefficient: 0.33, hits: 1 }]
+    effects: [{ name: 'Static Discharge', type: 'strike', coefficient: 0.33, hits: 1 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.kineticBattery, 'Kinetic Battery', {
     maximumStacks: 5,
     effects: [
-      { type: 'buff', kind: 'kinetic-battery', stacks: 1, duration: 5 },
-      { type: 'boon', boon: 'quickness', stacks: 1, duration: 5 },
+      { name: 'kinetic-battery', type: 'buff', kind: 'kinetic-battery', stacks: 1, duration: 5 },
+      { name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 5 },
       // Superspeed accompanies the fifth charge without boon-duration scaling.
-      { type: 'buff', kind: 'superspeed', stacks: 1, duration: 5 }
+      { name: 'superspeed', type: 'buff', kind: 'superspeed', stacks: 1, duration: 5 }
     ]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.explosiveEntrance, 'Explosive Entrance', {
-    effects: [{ type: 'strike', coefficient: 1.25, hits: 1 }]
+    effects: [{ name: 'Explosive Entrance', type: 'strike', coefficient: 1.25, hits: 1 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.steelPackedPowder, 'Steel-Packed Powder', {
-    effects: [
-      {
-        type: 'condition',
-        condition: 'Vulnerability',
-        stacks: 1,
-        duration: 5
-      }
-    ]
+    effects: [{ name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 5 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.shortFuse, 'Short Fuse', {
     internalCooldown: 3,
-    effects: [{ type: 'boon', boon: 'fury', stacks: 1, duration: 4 }]
+    effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 4 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.explosiveTemper, 'Explosive Temper', {
     maximumStacks: 10,
     attributePerStack: 20,
-    effects: [{ type: 'buff', kind: 'explosive-temper', stacks: 1, duration: 10 }]
+    effects: [{ name: 'explosive-temper', type: 'buff', kind: 'explosive-temper', stacks: 1, duration: 10 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.shrapnel, 'Shrapnel', {
     procRate: {
@@ -158,8 +151,8 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     },
     procChance: 0.33,
     effects: [
-      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6 },
-      { type: 'condition', condition: 'Crippled', stacks: 1, duration: 1 }
+      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 6 },
+      { name: 'Crippled', type: 'condition', condition: 'Crippled', stacks: 1, duration: 1 }
     ]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.serratedSteel, 'Serrated Steel', {
@@ -171,23 +164,24 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     },
     procChance: 0.33,
     durationMultiplier: 0.33,
-    effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }]
+    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.noScope, 'No Scope', {
     internalCooldown: 8,
     attributeBonus: 150,
-    effects: [{ type: 'boon', boon: 'fury', stacks: 1, duration: 4 }]
+    effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 4 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.incendiaryPowder, 'Incendiary Powder', {
     internalCooldown: 10,
     durationMultiplier: 0.33,
-    effects: [{ type: 'condition', condition: 'Burning', stacks: 1, duration: 8 }]
+    effects: [{ name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 8 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.aimAssistedRocket, 'Aim-Assisted Rocket', {
     internalCooldown: 3,
     maximumStacks: 5,
     effects: [
       {
+        name: 'Rocket',
         type: 'strike',
         coefficient: 1,
         hits: 1,
@@ -196,6 +190,7 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
         timingScale: 'fixed'
       },
       {
+        name: 'Orbital Strike',
         type: 'strike',
         coefficient: 1.92,
         hits: 1,
@@ -207,15 +202,15 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.thermalVision, 'Thermal Vision', {
     attributeBonus: 150,
-    effects: [{ type: 'buff', kind: 'thermal-vision', stacks: 1, duration: 4 }]
+    effects: [{ name: 'thermal-vision', type: 'buff', kind: 'thermal-vision', stacks: 1, duration: 4 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.sanguineArray, 'Sanguine Array', {
-    effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 4 }]
+    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 1, duration: 4 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.hematicFocus, 'Hematic Focus', {
     criticalChance: 0.15,
     internalCooldown: 8,
-    effects: [{ type: 'boon', boon: 'fury', stacks: 1, duration: 8 }]
+    effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 8 }]
   }),
   trait(ENGINEER_CORE_BALANCE_PROFILE_IDS.chemicalRounds, 'Chemical Rounds', {
     conditionDurationMultiplier: 4 / 3,
@@ -242,9 +237,9 @@ export const ENGINEER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   trait(TRAIT.HGH, 'HGH', {
     durationMultiplier: 1.2,
     effects: [
-      { type: 'boon', boon: 'might', stacks: 2, duration: 12 },
-      { type: 'boon', boon: 'fury', stacks: 1, duration: 4 },
-      { type: 'strike', coefficient: 0.85, hits: 1, packetLabel: 'additional Acid Bomb strike' }
+      { name: 'might', type: 'boon', boon: 'might', stacks: 2, duration: 12 },
+      { name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 4 },
+      { name: 'HGH', type: 'strike', coefficient: 0.85, hits: 1, packetLabel: 'additional Acid Bomb strike' }
     ]
   }),
   trait(TRAIT.ADRENAL_IMPLANT, 'Adrenal Implant', { rechargeReduction: 1 }),

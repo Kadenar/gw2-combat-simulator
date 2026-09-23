@@ -1,8 +1,8 @@
 /** Owns imperative Core Engineer Tools effects while keeping hook registration in the public dispatcher. */
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValue,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext,
+  effectNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -35,149 +35,199 @@ export function applyStreamlinedKits(context: EngineerCastContext, skill: Engine
   )
     return;
   state.traitProcReadyAt.streamlinedKits =
-    at + balanceProfileValueFromContext(context, PROFILE.streamlinedKits, 'internalCooldown', 20);
+    at + balanceProfileNumberFromContext(context, PROFILE.streamlinedKits, 'internalCooldown');
   // Every eligible kit entry grants the shared swiftness effect.
-  emitSkillBuff(context, skill, {
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.STREAMLINED_KITS,
-    actorType: 'player',
-    name: 'Streamlined Kits — swiftness',
-    kind: 'swiftness',
-    duration: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.streamlinedKits, 'boon'),
-      'duration',
-      20
-    ),
-    stacks: 1
-  });
-  // Grenade Kit additionally drops the trait's mine strike on entry.
-  if (skill.id === ID.GRENADE_KIT) {
-    emitSkillDamage(context, {
+  const streamlinedKitsSwiftness = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.streamlinedKits,
+    'boon',
+    'swiftness'
+  );
+  if (streamlinedKitsSwiftness) {
+    emitSkillBuff(context, skill, {
       at,
       source: 'Trait',
       sourceId: TRAIT.STREAMLINED_KITS,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      skillId: skill.id,
-      skillName: 'Drop Mine',
-      parentSkillName: skill.name,
-      name: 'Drop Mine',
-      coefficient: balanceProfileValue(
-        balanceProfileEffectFromContext(context, PROFILE.streamlinedKits, 'strike'),
-        'coefficient',
-        1.75
-      ),
-      hits: 1,
-      hitIndex: 1,
-      totalHits: 1,
-      skillWeapon: 'Unequipped',
-      explosion: true,
-      triggeredBy: skill.name
+      actorType: 'player',
+      name: 'Streamlined Kits — swiftness',
+      kind: String(streamlinedKitsSwiftness.boon).toLowerCase(),
+      duration: Number(streamlinedKitsSwiftness.duration),
+      stacks: Number(streamlinedKitsSwiftness.stacks)
     });
+  }
+
+  // Grenade Kit additionally drops the trait's mine strike on entry.
+  if (skill.id === ID.GRENADE_KIT) {
+    const streamlinedKitsStrike = requireEffectFromContext(
+      context,
+      'balance-profile',
+      PROFILE.streamlinedKits,
+      'strike',
+      'Streamlined Kits'
+    );
+    if (streamlinedKitsStrike) {
+      emitSkillDamage(context, {
+        at,
+        source: 'Trait',
+        sourceId: TRAIT.STREAMLINED_KITS,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillId: skill.id,
+        skillName: 'Drop Mine',
+        parentSkillName: skill.name,
+        name: 'Drop Mine',
+        coefficient: effectNumberFromContext(
+          context,
+          'balance-profile',
+          PROFILE.streamlinedKits,
+          streamlinedKitsStrike,
+          'coefficient'
+        ),
+        hits: 1,
+        hitIndex: 1,
+        totalHits: 1,
+        skillWeapon: 'Unequipped',
+        explosion: true,
+        triggeredBy: skill.name
+      });
+    }
   }
 }
 
 /** Grants Optimized Activation vigor for a completed toolbelt cast. */
 export function applyOptimizedActivation(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.OPTIMIZED_ACTIVATION)) return;
-  emitSkillBuff(context, skill, {
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.OPTIMIZED_ACTIVATION,
-    actorType: 'player',
-    name: 'Optimized Activation — vigor',
-    kind: 'vigor',
-    duration: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.optimizedActivation, 'boon'),
-      'duration',
-      4
-    ),
-    stacks: 1
-  });
+  const optimizedActivationVigor = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.optimizedActivation,
+    'boon',
+    'vigor'
+  );
+  if (optimizedActivationVigor) {
+    emitSkillBuff(context, skill, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.OPTIMIZED_ACTIVATION,
+      actorType: 'player',
+      name: 'Optimized Activation — vigor',
+      kind: String(optimizedActivationVigor.boon).toLowerCase(),
+      duration: Number(optimizedActivationVigor.duration),
+      stacks: Number(optimizedActivationVigor.stacks)
+    });
+  }
 }
 
 /** Queues Static Discharge from a completed toolbelt cast. */
 export function applyStaticDischarge(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.STATIC_DISCHARGE)) return;
-  emitSkillDamage(context, {
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.STATIC_DISCHARGE,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    skillId: ID.STATIC_DISCHARGE_TRAIT_SKILL,
-    skillName: 'Static Discharge',
-    parentSkillName: skill.name,
-    icon: context.catalog.skillsById.get(ID.STATIC_DISCHARGE_TRAIT_SKILL)?.icon || '',
-    name: 'Static Discharge',
-    coefficient: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.staticDischarge, 'strike'),
-      'coefficient',
-      0.33
-    ),
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
-    // Static Discharge uses the unequipped weapon-strength profile, not its tooltip weapon.
-    skillWeapon: 'Unequipped',
-    staticDischarge: true,
-    triggeredBy: skill.name
-  });
+  const staticDischargeStrike = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.staticDischarge,
+    'strike',
+    'Static Discharge'
+  );
+  if (staticDischargeStrike) {
+    emitSkillDamage(context, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.STATIC_DISCHARGE,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillId: ID.STATIC_DISCHARGE_TRAIT_SKILL,
+      skillName: 'Static Discharge',
+      parentSkillName: skill.name,
+      icon: context.catalog.skillsById.get(ID.STATIC_DISCHARGE_TRAIT_SKILL)?.icon || '',
+      name: 'Static Discharge',
+      coefficient: effectNumberFromContext(
+        context,
+        'balance-profile',
+        PROFILE.staticDischarge,
+        staticDischargeStrike,
+        'coefficient'
+      ),
+      hits: 1,
+      hitIndex: 1,
+      totalHits: 1,
+      // Static Discharge uses the unequipped weapon-strength profile, not its tooltip weapon.
+      skillWeapon: 'Unequipped',
+      staticDischarge: true,
+      triggeredBy: skill.name
+    });
+  }
 }
 
 /** Advances Kinetic Battery and emits its fifth-cast buff package plus a state snapshot. */
 export function applyKineticBattery(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.KINETIC_BATTERY)) return;
   const state = professionCoreState(context);
-  const maximumCharges = balanceProfileValueFromContext(context, PROFILE.kineticBattery, 'maximumStacks', 5);
+  const maximumCharges = balanceProfileNumberFromContext(context, PROFILE.kineticBattery, 'maximumStacks');
   state.kineticCharges = Math.min(maximumCharges, Number(state.kineticCharges || 0) + 1);
   // Grant the speed and damage package and reset charges every fifth toolbelt cast.
   if (state.kineticCharges >= maximumCharges) {
     state.kineticCharges = 0;
-    const buffDuration = balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.kineticBattery, 'buff'),
-      'duration',
-      5
+    const kineticBatteryBuff = requireEffectFromContext(
+      context,
+      'balance-profile',
+      PROFILE.kineticBattery,
+      'buff',
+      'kinetic-battery'
     );
-    emitSkillBuff(context, skill, {
-      at,
-      source: 'Trait',
-      sourceId: TRAIT.KINETIC_BATTERY,
-      actorType: 'player',
-      name: 'Kinetic Battery',
-      kind: 'kinetic-battery',
-      duration: buffDuration,
-      stacks: 1
-    });
-    emitSkillBuff(context, skill, {
-      at,
-      source: 'Trait',
-      sourceId: TRAIT.KINETIC_BATTERY,
-      actorType: 'player',
-      name: 'Kinetic Battery — quickness',
-      kind: 'quickness',
-      duration: balanceProfileValue(
-        balanceProfileEffectFromContext(context, PROFILE.kineticBattery, 'boon'),
-        'duration',
-        5
-      ),
-      stacks: 1
-    });
-    emitSkillBuff(context, skill, {
-      at,
-      source: 'Trait',
-      sourceId: TRAIT.KINETIC_BATTERY,
-      actorType: 'player',
-      name: 'Kinetic Battery — superspeed',
-      kind: 'superspeed',
-      duration: balanceProfileValue(
-        balanceProfileEffectFromContext(context, PROFILE.kineticBattery, 'buff', 1),
-        'duration',
-        5
-      ),
-      stacks: 1
-    });
+    if (kineticBatteryBuff) {
+      const buffDuration = Number(kineticBatteryBuff.duration);
+      emitSkillBuff(context, skill, {
+        at,
+        source: 'Trait',
+        sourceId: TRAIT.KINETIC_BATTERY,
+        actorType: 'player',
+        name: 'Kinetic Battery',
+        kind: 'kinetic-battery',
+        duration: buffDuration,
+        stacks: 1
+      });
+    }
+
+    const kineticBatteryQuickness = requireEffectFromContext(
+      context,
+      'balance-profile',
+      PROFILE.kineticBattery,
+      'boon',
+      'quickness'
+    );
+    if (kineticBatteryQuickness) {
+      emitSkillBuff(context, skill, {
+        at,
+        source: 'Trait',
+        sourceId: TRAIT.KINETIC_BATTERY,
+        actorType: 'player',
+        name: 'Kinetic Battery — quickness',
+        kind: String(kineticBatteryQuickness.boon).toLowerCase(),
+        duration: Number(kineticBatteryQuickness.duration),
+        stacks: Number(kineticBatteryQuickness.stacks)
+      });
+    }
+
+    const kineticBatterySuperspeed = requireEffectFromContext(
+      context,
+      'balance-profile',
+      PROFILE.kineticBattery,
+      'buff',
+      'superspeed'
+    );
+    if (kineticBatterySuperspeed) {
+      emitSkillBuff(context, skill, {
+        at,
+        source: 'Trait',
+        sourceId: TRAIT.KINETIC_BATTERY,
+        actorType: 'player',
+        name: 'Kinetic Battery — superspeed',
+        kind: 'superspeed',
+        duration: Number(kineticBatterySuperspeed.duration),
+        stacks: Number(kineticBatterySuperspeed.stacks)
+      });
+    }
   }
 
   emitEngineerStateSnapshot(context, at, 'kinetic-battery');

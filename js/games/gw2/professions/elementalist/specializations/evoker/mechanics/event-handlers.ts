@@ -7,8 +7,8 @@
  * traits.
  */
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -38,19 +38,21 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
     state.element === 'Fire' &&
     isInternalCooldownReady(event.at, state.ignitePassiveReadyAt)
   ) {
-    state.ignitePassiveReadyAt = event.at + balanceProfileValueFromContext(context, PROFILE.ignite, 'pulseInterval', 1);
-    const might = balanceProfileEffectFromContext(context, PROFILE.evocation, 'boon', 0, 'Fire Familiar');
+    const might = requireEffectFromContext(context, 'balance-profile', PROFILE.evocation, 'boon', 'Fire Familiar');
     const sourceId = event.skillId ?? event.sourceId;
-    emitSkillBuff(context, elementalistEventSkill(context, 'Fire Familiar', sourceId), {
-      at: event.at,
-      source: 'Fire Familiar',
-      sourceId,
-      actorType: 'player',
-      kind: String(might?.boon || 'Might').toLowerCase(),
-      stacks: Number(might?.stacks ?? 1),
-      duration: Number(might?.duration ?? 6),
-      skillName: 'Fire Familiar'
-    });
+    if (might) {
+      state.ignitePassiveReadyAt = event.at + balanceProfileNumberFromContext(context, PROFILE.ignite, 'pulseInterval');
+      emitSkillBuff(context, elementalistEventSkill(context, 'Fire Familiar', sourceId), {
+        at: event.at,
+        source: 'Fire Familiar',
+        sourceId,
+        actorType: 'player',
+        kind: String(might.boon).toLowerCase(),
+        stacks: Number(might.stacks),
+        duration: Number(might.duration),
+        skillName: 'Fire Familiar'
+      });
+    }
   }
 
   // forward-facing consumption; enchantments.ts covers strikes already queued when the stack was granted
@@ -67,12 +69,12 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
   if (event.to !== state.element) return;
   if (hasTrait(context, 'Elemental Balance')) {
     state.elementalBalanceProgress += 1;
-    const threshold = balanceProfileValueFromContext(context, PROFILE.elementalBalance, 'threshold', 2);
+    const threshold = balanceProfileNumberFromContext(context, PROFILE.elementalBalance, 'threshold');
     if (state.elementalBalanceProgress >= threshold) {
       // subtract rather than reset so any overflow from simultaneous gains isn't lost
       state.elementalBalanceProgress -= threshold;
       // Temporary-effect expiry uses the absolute combat tick, including patched durations.
-      const duration = balanceProfileValueFromContext(context, PROFILE.elementalBalance, 'durationMultiplier', 5);
+      const duration = balanceProfileNumberFromContext(context, PROFILE.elementalBalance, 'durationMultiplier');
       state.elementalBalanceUntil = gw2EffectExpiresAt(event.at, duration);
       emitElementalistProc(context as never, {
         at: event.at,
@@ -90,7 +92,7 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
   if (!hasTrait(context, 'Elemental Dynamo')) return;
   state.charges = Math.min(
     state.maximumCharges,
-    state.charges + balanceProfileValueFromContext(context, PROFILE.elementalDynamo, 'resourceGain', 1)
+    state.charges + balanceProfileNumberFromContext(context, PROFILE.elementalDynamo, 'resourceGain')
   );
   context.emitDerived(event, {
     type: 'resource',

@@ -8,6 +8,7 @@ import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
  */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import { produceGw2OwnedComboEvents } from '#gw2/platform/execution/gw2-policy/combo-materializer.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerCastContext, EngineerSchedulerContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
@@ -28,15 +29,29 @@ function emitCleansingBurstPulse(context: EngineerCastContext, at: number): void
   const boonEffects = (cleansingBurst.effects ?? []).filter(
     (effect) => effect.type === 'boon' || effect.type === 'buff'
   );
-  boonEffects.forEach((effect, index) => {
+  boonEffects.forEach((effect) => {
     emitSkillBuff(context, cleansingBurst, {
       at,
       kind: String(effect.boon || effect.kind || ''),
-      stacks: Number(effect.stacks || 1),
-      duration: Number(effect.duration || 0),
-      // Attach the field descriptor to only the first pulse so exactly one field is produced.
-      ...(index === 0 ? { comboFields: cleansingBurst.comboFields } : {})
+      stacks: Number(effect.stacks),
+      duration: Number(effect.duration)
     });
+  });
+  // The water field survives independently when a patch removes Cleansing Burst's boons.
+  const activation = context.events.find(
+    (event) => event.type === 'action' && event.activationId === context.reservationId
+  )!;
+  produceGw2OwnedComboEvents(context, {
+    ...activation,
+    type: 'action',
+    at,
+    source: cleansingBurst.name,
+    sourceId: cleansingBurst.id,
+    actorType: 'player',
+    skillId: cleansingBurst.id,
+    skillName: cleansingBurst.name,
+    activationId: `${context.reservationId}:cleansing-burst`,
+    comboFields: cleansingBurst.comboFields
   });
 }
 

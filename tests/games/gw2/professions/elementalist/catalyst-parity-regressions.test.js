@@ -152,6 +152,7 @@ test('Frigid Flurry can finish combos with either initial ice-bullet state', () 
 test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
   const state = catalystState.create();
   const context = {
+    catalog: elementalistCatalog,
     profession: {
       specialization: { kind: 'Catalyst', state }
     }
@@ -221,6 +222,7 @@ test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
 test('Relentless Fire exposes separate strike and condition modifiers for its active window', () => {
   const modifiers = createModifierHooks({ rules: catalystModifierRules });
   const context = {
+    catalog: elementalistCatalog,
     time: 1,
     runtime: {
       boons: new Map([['relentless fire', [{ at: 0, expiresAt: 5, stacks: 1 }]]])
@@ -260,6 +262,7 @@ test('Shattering Ice is proc-only and accepts player-owned effect and field atta
   const skill = elementalistCatalog.skillsByName.get('Shattering Ice');
   const state = catalystState.create();
   const context = {
+    catalog: elementalistCatalog,
     profession: { specialization: { kind: 'Catalyst', state } },
     config: {},
     queue: new StableEventQueue()

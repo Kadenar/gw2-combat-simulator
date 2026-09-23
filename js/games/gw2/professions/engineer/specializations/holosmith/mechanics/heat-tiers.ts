@@ -1,4 +1,4 @@
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -84,10 +84,10 @@ export function holosmithProfileStrikeFactor(
 ): number {
   const tier = holosmithHeatTier(snapshot);
   if (tier === 'enhanced') {
-    return balanceProfileValueFromContext(context, profileId, 'enhancedStrikeFactor', 1);
+    return balanceProfileNumberFromContext(context, profileId, 'enhancedStrikeFactor');
   }
 
-  return tier === 'high' ? balanceProfileValueFromContext(context, profileId, 'highStrikeFactor', 1) : 1;
+  return tier === 'high' ? balanceProfileNumberFromContext(context, profileId, 'highStrikeFactor') : 1;
 }
 
 /** Reads an event's captured strike factor or evaluates its profile against current heat as a fallback. */
@@ -119,10 +119,9 @@ export function decorateHolosmithHeatEvent(context: EngineerSchedulerContext, ev
   if (event.type === 'engineer.radiant-arc-quickness') {
     const tier = holosmithHeatTier(snapshot);
     const field = tier === 'enhanced' ? 'enhancedDuration' : tier === 'high' ? 'highDuration' : 'baseDuration';
-    const fallback = tier === 'enhanced' ? 6 : tier === 'high' ? 4 : 2;
     context.replaceEvent(event, {
       ...activation,
-      duration: balanceProfileValueFromContext(context, PROFILE.radiantArcHeatTier, field, fallback)
+      duration: balanceProfileNumberFromContext(context, PROFILE.radiantArcHeatTier, field)
     });
     return;
   }
@@ -130,10 +129,9 @@ export function decorateHolosmithHeatEvent(context: EngineerSchedulerContext, ev
   if (event.type === 'engineer.refraction-cutter-extra-blades') {
     const tier = holosmithHeatTier(snapshot);
     const field = tier === 'enhanced' ? 'enhancedExtraBlades' : tier === 'high' ? 'highExtraBlades' : 'baseExtraBlades';
-    const fallback = tier === 'enhanced' ? 4 : tier === 'high' ? 2 : 0;
     context.replaceEvent(event, {
       ...activation,
-      extraBlades: balanceProfileValueFromContext(context, PROFILE.refractionCutterHeatTier, field, fallback)
+      extraBlades: balanceProfileNumberFromContext(context, PROFILE.refractionCutterHeatTier, field)
     });
     return;
   }

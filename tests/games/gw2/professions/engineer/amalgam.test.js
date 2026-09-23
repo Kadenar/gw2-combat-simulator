@@ -536,6 +536,7 @@ test('Evolve scales only its eligible static attribute pool', () => {
   ];
   const resolved = Object.fromEntries(attributes.map((attribute) => [attribute, 1500]));
   const context = (traits) => ({
+    catalog: engineerCatalog,
     traits: new Set(traits),
     config: { amalgamEvolveAttributePool: pool },
     runtime: {

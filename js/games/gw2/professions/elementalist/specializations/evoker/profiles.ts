@@ -4,8 +4,7 @@
  * Every retunable number the mechanics read (charge caps, ICDs, familiar delays
  * and interrupt windows, trait boons, recharge multipliers) lives here as a
  * balance profile, so patch adjustments are data edits rather than code edits.
- * Code looks values up through `balanceProfileValueFromContext`/`Effect`, with the
- * literal at the call site acting only as a fallback.
+ * Mechanics require selected profile values and preserve explicit effect removals.
  */
 import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import {
@@ -212,8 +211,8 @@ export const EVOKER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     playerStacks: 2,
     durationMultiplier: 6,
     effects: [
-      { type: 'strike', coefficient: 0.4, hits: 1 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 1.5 }
+      { name: 'Galvanic Enchantment', type: 'strike', coefficient: 0.4, hits: 1 },
+      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 1.5 }
     ]
   }),
   trait(EVOKER_BALANCE_PROFILE_IDS.elementalBalance, 'Elemental Balance', {

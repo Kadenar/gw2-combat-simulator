@@ -1,10 +1,8 @@
 import { isEngineerMechEvent as mechEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValue,
-  balanceProfileValueFromContext,
-  procChanceFromContext,
-  balanceProfileFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext,
+  procChanceFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -43,26 +41,27 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
     randomStream: 'engineer.serrated-steel.mech',
     attribution: { kind: 'trait', id: TRAIT.SERRATED_STEEL },
     handler(context, event, _details, application) {
-      applyEngineerDerivedCondition(context, event, {
-        name: 'Serrated Steel',
-        procCount: application.quantity,
-        condition: 'Bleeding',
-        stacks:
-          balanceProfileValue(
-            balanceProfileEffectFromContext(context, CORE_PROFILE.serratedSteel, 'condition'),
-            'stacks',
-            1
-          ) * application.quantity,
-        duration: balanceProfileValue(
-          balanceProfileEffectFromContext(context, CORE_PROFILE.serratedSteel, 'condition'),
-          'duration',
-          3
-        ),
-        sourceId: TRAIT.SERRATED_STEEL,
-        actorType: 'summon',
-        metadata: { engineerMech: true }
-      });
-      recordTrait(context, 'Serrated Steel', event);
+      const serratedSteelBleeding = requireEffectFromContext(
+        context,
+        'balance-profile',
+        CORE_PROFILE.serratedSteel,
+        'condition',
+        'Bleeding'
+      );
+      if (serratedSteelBleeding) {
+        applyEngineerDerivedCondition(context, event, {
+          name: 'Serrated Steel',
+          procCount: application.quantity,
+          condition: String(serratedSteelBleeding.condition),
+          stacks: Number(serratedSteelBleeding.stacks) * application.quantity,
+          duration: Number(serratedSteelBleeding.duration),
+          sourceId: TRAIT.SERRATED_STEEL,
+          actorType: 'summon',
+          metadata: { engineerMech: true }
+        });
+
+        recordTrait(context, 'Serrated Steel', event);
+      }
     }
   },
   {
@@ -80,7 +79,7 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
     },
     internalCooldown: {
       duration: (context) =>
-        balanceProfileValueFromContext(context, CORE_PROFILE.incendiaryPowder, 'internalCooldown', 10),
+        balanceProfileNumberFromContext(context, CORE_PROFILE.incendiaryPowder, 'internalCooldown'),
       readyAt: (context) => Number(procState(context)['incendiaryPowder.mech'] || 0),
       setReadyAt: (context, readyAt) => {
         procState(context)['incendiaryPowder.mech'] = readyAt;
@@ -89,24 +88,26 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
     progressDuringCooldown: 'accumulate',
     attribution: { kind: 'trait', id: TRAIT.INCENDIARY_POWDER },
     handler(context, event) {
-      applyEngineerDerivedCondition(context, event, {
-        name: 'Incendiary Powder',
-        condition: 'Burning',
-        stacks: balanceProfileValue(
-          balanceProfileEffectFromContext(context, CORE_PROFILE.incendiaryPowder, 'condition'),
-          'stacks',
-          1
-        ),
-        duration: balanceProfileValue(
-          balanceProfileEffectFromContext(context, CORE_PROFILE.incendiaryPowder, 'condition'),
-          'duration',
-          8
-        ),
-        sourceId: TRAIT.INCENDIARY_POWDER,
-        actorType: 'summon',
-        metadata: { engineerMech: true }
-      });
-      recordTrait(context, 'Incendiary Powder', event);
+      const incendiaryPowderBurning = requireEffectFromContext(
+        context,
+        'balance-profile',
+        CORE_PROFILE.incendiaryPowder,
+        'condition',
+        'Burning'
+      );
+      if (incendiaryPowderBurning) {
+        applyEngineerDerivedCondition(context, event, {
+          name: 'Incendiary Powder',
+          condition: String(incendiaryPowderBurning.condition),
+          stacks: Number(incendiaryPowderBurning.stacks),
+          duration: Number(incendiaryPowderBurning.duration),
+          sourceId: TRAIT.INCENDIARY_POWDER,
+          actorType: 'summon',
+          metadata: { engineerMech: true }
+        });
+
+        recordTrait(context, 'Incendiary Powder', event);
+      }
     }
   }
 ] satisfies readonly ResolvedCriticalHitOptions<
@@ -129,52 +130,76 @@ function reactToMechanistDamage(
     hasTrait(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS) &&
     isInternalCooldownReady(event.at, Number(state.singleEdgeCutters || 0))
   ) {
-    // 1-second ICD: store next-eligible timestamp so rapid mech hits don't
-    // trigger the trait on every packet.
-    state.singleEdgeCutters =
-      event.at + Number(balanceProfileFromContext(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS)?.internalCooldown);
-    const packet = balanceProfileEffectFromContext(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, 'condition', 0)!;
-    applyEngineerDerivedCondition(context, event, {
-      name: 'Mech Arms: Single-Edge Cutters',
-      condition: 'Bleeding',
-      stacks: Number(packet.stacks),
-      duration: Number(packet.duration),
-      sourceId: TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
-      actorType: 'summon',
-      metadata: { engineerMech: true }
-    });
-    recordTrait(context, 'Mech Arms: Single-Edge Cutters', event);
+    const packet = requireEffectFromContext(
+      context,
+      'balance-profile',
+      TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
+      'condition',
+      'Bleeding'
+    );
+    if (packet) {
+      // A removed arm effect cannot consume its own proc cooldown.
+      state.singleEdgeCutters =
+        event.at + balanceProfileNumberFromContext(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, 'internalCooldown');
+      applyEngineerDerivedCondition(context, event, {
+        name: 'Mech Arms: Single-Edge Cutters',
+        condition: String(packet.condition),
+        stacks: Number(packet.stacks),
+        duration: Number(packet.duration),
+        sourceId: TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
+        actorType: 'summon',
+        metadata: { engineerMech: true }
+      });
+
+      recordTrait(context, 'Mech Arms: Single-Edge Cutters', event);
+    }
   }
 
   if (
     hasTrait(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS) &&
     isInternalCooldownReady(event.at, Number(state.highImpactDrivers || 0))
   ) {
-    // Same 1-second ICD pattern as Single-Edge Cutters above.
-    state.highImpactDrivers =
-      event.at + Number(balanceProfileFromContext(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS)?.internalCooldown);
-    const packet = balanceProfileEffectFromContext(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, 'boon', 0)!;
-    queueBuff(context, event, {
-      name: 'Mech Arms: High-Impact Drivers',
-      kind: 'might',
-      stacks: Number(packet.stacks),
-      duration: Number(packet.duration),
-      sourceId: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
-      actorType: 'effect'
-    });
-    recordTrait(context, 'Mech Arms: High-Impact Drivers', event);
+    const packet = requireEffectFromContext(
+      context,
+      'balance-profile',
+      TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
+      'boon',
+      'might'
+    );
+    if (packet) {
+      state.highImpactDrivers =
+        event.at + balanceProfileNumberFromContext(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, 'internalCooldown');
+      queueBuff(context, event, {
+        name: 'Mech Arms: High-Impact Drivers',
+        kind: String(packet.boon).toLowerCase(),
+        stacks: Number(packet.stacks),
+        duration: Number(packet.duration),
+        sourceId: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
+        actorType: 'effect'
+      });
+
+      recordTrait(context, 'Mech Arms: High-Impact Drivers', event);
+    }
   }
 
   if (event.mechBasicAttack === true && hasTrait(context, TRAIT.MECH_ARMS_JADE_CANNONS)) {
-    applyEngineerDerivedCondition(context, event, {
-      name: 'Mech Arms: Jade Cannons',
-      condition: 'Vulnerability',
-      stacks: 1,
-      duration: 6,
-      sourceId: TRAIT.MECH_ARMS_JADE_CANNONS,
-      actorType: 'summon',
-      metadata: { engineerMech: true }
-    });
+    const vulnerability = requireEffectFromContext(
+      context,
+      'balance-profile',
+      TRAIT.MECH_ARMS_JADE_CANNONS,
+      'condition',
+      'Vulnerability'
+    );
+    if (vulnerability)
+      applyEngineerDerivedCondition(context, event, {
+        name: 'Mech Arms: Jade Cannons',
+        condition: String(vulnerability.condition),
+        stacks: Number(vulnerability.stacks),
+        duration: Number(vulnerability.duration),
+        sourceId: TRAIT.MECH_ARMS_JADE_CANNONS,
+        actorType: 'summon',
+        metadata: { engineerMech: true }
+      });
   }
 }
 

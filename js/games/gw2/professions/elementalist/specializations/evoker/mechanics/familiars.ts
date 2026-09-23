@@ -1,3 +1,4 @@
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 /**
  * Familiar cast lifecycle - the heart of the Evoker specialization.
  *
@@ -9,9 +10,8 @@
  * Elements), and the Evoker meditation payloads.
  */
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValue,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -21,7 +21,7 @@ import {
   gw2EffectExpiresAt
 } from '#gw2/platform/skills/timing.js';
 import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import type { Skill, SkillEffect, StrikeTick, ConditionTick } from '#gw2/platform/engine/skills/types.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
@@ -30,8 +30,7 @@ import {
   ELECTRIC_ENCHANTMENT_ICON,
   FAMILIAR_BASIC_BY_EMPOWERED,
   FAMILIAR_ELEMENTS,
-  FAMILIAR_FLIP_DELAYS,
-  FAMILIAR_INTERRUPT_WINDOWS,
+  FAMILIAR_EMPOWERED_BY_BASIC,
   FAMILIAR_PROFILE_BY_BASIC
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import {
@@ -53,57 +52,40 @@ function releaseElementalProcession(context: ElementalistCastContext, sourceSkil
   for (const skillId of [ID.CONFLAGRATION, ID.BUOYANT_DELUGE, ID.LIGHTNING_BLITZ, ID.SEISMIC_IMPACT]) {
     const familiar = context.catalog.skillsById.get(skillId);
     if (!familiar) continue;
-    for (const rawEffect of familiar.effects || []) {
-      const effect = rawEffect;
-      // Procession launches an independent familiar sequence rather than a
-      // player cast, so its packets retain their unquickened runtime spacing.
+    for (const effect of familiar.effects || []) {
+      if (!['strike', 'condition', 'control', 'blind'].includes(effect.type)) continue;
+      // Procession preserves the familiar's unquickened timing and each surviving packet's representation.
       const runtimeCastMs = Math.max(0, Number(familiar.castTimeMs || 0) * GW2_QUICKNESS_ACTION_RATE);
-      const timingScale = effect.timingScale === 'cast' ? castRelativeEffectTimingScale(familiar, runtimeCastMs) : 1;
-      const ticks = Array.isArray(effect.ticks) ? effect.ticks : [effect];
-      for (const rawTick of ticks) {
-        // Array.isArray erases the catalog tick type; retain the authored tick/effect union.
-        const tick = rawTick as StrikeTick | ConditionTick | SkillEffect;
-        const at = context.effectiveEnd + (Number(tick.atMs ?? effect.atMs ?? 0) * timingScale) / 1_000;
-        const comboFinishers = tick.comboFinishers || effect.comboFinishers;
-        if (effect.type === 'strike') {
+      const scale = effect.timingScale === 'cast' ? castRelativeEffectTimingScale(familiar, runtimeCastMs) : 1;
+      for (const application of materializeSkillEffectApplications({
+        skill: familiar,
+        effect,
+        start: 0,
+        fullEnd: 0,
+        baseEvent: { source: familiar.name, sourceId: familiar.id, actorType: 'player', triggeredBy: sourceSkill.name }
+      })) {
+        const { event } = application;
+        const at = context.effectiveEnd + application.at * scale;
+        if (event.type === 'damage')
           emitSkillDamage(context, {
+            ...event,
             at,
-            source: familiar.name,
-            sourceId: familiar.id,
-            actorType: 'player',
-            skillName: familiar.name,
+            coefficient: Number(event.coefficient),
             skillId: familiar.id,
-            coefficient: Number(tick.coefficient ?? effect.coefficient ?? 0),
-            skillWeapon: 'Profession mechanic',
-            canCrit: effect.canCrit !== false,
-            comboFinishers,
-            triggeredBy: sourceSkill.name
+            skillName: familiar.name,
+            skillWeapon: 'Profession mechanic'
           });
-        } else if (effect.type === 'condition') {
+        else if (event.type === 'condition')
           emitSkillCondition(context, {
+            ...event,
             at,
-            source: familiar.name,
-            skillName: familiar.name,
             skillId: familiar.id,
-            condition: String(tick.condition || effect.condition || ''),
-            stacks: Number(tick.stacks ?? effect.stacks ?? 1),
-            duration: Number(tick.duration ?? effect.duration ?? 0),
-            triggeredBy: sourceSkill.name
-          });
-        } else if (effect.type === 'control' || effect.type === 'blind') {
-          context.emit({
-            type: String(effect.type),
-            at,
-            source: familiar.name,
-            sourceId: familiar.id,
-            actorType: 'player',
             skillName: familiar.name,
-            skillId: familiar.id,
-            controlKind: tick.controlKind ?? effect.controlKind,
-            comboFinishers,
-            triggeredBy: sourceSkill.name
+            condition: String(event.condition),
+            stacks: Number(event.stacks),
+            duration: Number(event.duration)
           });
-        }
+        else context.emit({ ...event, at, skillId: familiar.id, skillName: familiar.name });
       }
     }
   }
@@ -159,14 +141,12 @@ export function onCastStart(context: ElementalistCastContext, skill: Skill): voi
   }
 
   // if the empowered familiar was recently cast and the basic fires within the window, the empowered effects are retroactively cancelled
-  const interrupt = FAMILIAR_INTERRUPT_WINDOWS.get(skill.id);
-  if (interrupt) {
-    const [empoweredSkill, fallbackWindow] = interrupt;
-    const window = balanceProfileValueFromContext(
+  const empoweredSkill = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
+  if (empoweredSkill) {
+    const window = balanceProfileNumberFromContext(
       context,
       FAMILIAR_PROFILE_BY_BASIC.get(skill.id) ?? skill.id,
-      'durationMultiplier',
-      fallbackWindow
+      'durationMultiplier'
     );
     const basicKey = String(skill.id);
     const recent = state.lastEmpoweredFamiliarByBasic[basicKey];
@@ -204,62 +184,72 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
     // Consecutive Ignites stay at the final burning tier until the inactivity window resets it.
     if (
       context.start - state.igniteLastUsedAt >=
-      balanceProfileValueFromContext(context, PROFILE.ignite, 'threshold', 15)
+      balanceProfileNumberFromContext(context, PROFILE.ignite, 'threshold')
     ) {
       state.igniteTier = 0;
     }
 
-    const durations = [2, 0.5, 1, 1.5];
+    // Keep tier identity stable even when an earlier tier's Burning is removed.
+    const tiers = ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4'];
     for (const event of context.events) {
       if (event.activationId === context.reservationId && event.type === 'condition' && event.condition === 'Burning') {
-        context.replaceEvent(event, {
-          duration: balanceProfileValue(
-            balanceProfileEffectFromContext(context, PROFILE.ignite, 'condition', 0, `Tier ${state.igniteTier + 1}`),
-            'duration',
-            durations[state.igniteTier]
-          )
-        });
+        const igniteCondition = requireEffectFromContext(
+          context,
+          'balance-profile',
+          PROFILE.ignite,
+          'condition',
+          tiers[state.igniteTier]
+        );
+        context.replaceEvent(
+          event,
+          igniteCondition ? { duration: Number(igniteCondition.duration) } : { cancelled: true }
+        );
       }
     }
 
-    state.igniteTier = Math.min(state.igniteTier + 1, durations.length - 1);
+    state.igniteTier = Math.min(state.igniteTier + 1, tiers.length - 1);
     state.igniteLastUsedAt = context.start;
   }
 
   // Fox's Fury picks one of three tiers from the might stacks held at cast start
   if (skill.id === ID.FOXS_FURY) {
     const might = context.buffStacks('might', context.start);
-    const threshold = balanceProfileValueFromContext(context, PROFILE.foxsFury, 'threshold', 10);
+    const threshold = balanceProfileNumberFromContext(context, PROFILE.foxsFury, 'threshold');
     const tier = might >= threshold * 2 ? 2 : might >= threshold ? 1 : 0;
     const effectName = `Tier ${tier + 1}`;
-    const strike = balanceProfileEffectFromContext(context, PROFILE.foxsFury, 'strike', 0, effectName);
-    const burning = balanceProfileEffectFromContext(context, PROFILE.foxsFury, 'condition', 0, effectName);
+    const strike = requireEffectFromContext(context, 'balance-profile', PROFILE.foxsFury, 'strike', effectName);
+    const burning = requireEffectFromContext(context, 'balance-profile', PROFILE.foxsFury, 'condition', effectName);
     // The profile delay uses the authored cast timeline, just like declarative skill packets.
     const at =
       context.start +
-      balanceProfileValueFromContext(context, PROFILE.foxsFury, 'initialDelay', 0.56) *
+      balanceProfileNumberFromContext(context, PROFILE.foxsFury, 'initialDelay') *
         castRelativeEffectTimingScale(skill, (context.fullEnd - context.start) * 1000);
-    emitSkillDamage(context, {
-      at,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: 'player',
-      skillName: skill.name,
-      skillId: skill.id,
-      coefficient: Number(strike?.coefficient ?? [1.5, 2.25, 3][tier]),
-      skillWeapon: 'Unequipped'
-    });
-    // Separate Burning applications preserve the total, including any fractional final stack.
-    const stacks = Number(burning?.stacks ?? [1, 2, 3][tier]);
-    for (let index = 0; index < Math.ceil(stacks); index += 1) {
-      emitSkillCondition(context, {
-        skill,
+    if (strike) {
+      emitSkillDamage(context, {
         at,
         source: skill.name,
-        condition: String(burning?.condition || 'Burning'),
-        stacks: Math.min(1, stacks - index),
-        duration: Number(burning?.duration ?? [3, 5, 5][tier])
+        sourceId: skill.id,
+        actorType: 'player',
+        skillName: skill.name,
+        skillId: skill.id,
+        coefficient: Number(strike.coefficient),
+        skillWeapon: 'Unequipped'
       });
+    }
+
+    // Separate Burning applications preserve the total, including any fractional final stack.
+    if (burning) {
+      const stacks = Number(burning.stacks);
+      for (let index = 0; index < Math.ceil(stacks); index += 1) {
+        emitSkillCondition(context, {
+          skill,
+          at,
+          source: skill.name,
+          condition: String(burning.condition),
+          stacks: Math.min(1, stacks - index),
+          duration: Number(burning.duration)
+        });
+      }
     }
   }
 }
@@ -267,9 +257,9 @@ export function afterCast(context: ElementalistCastContext, skill: Skill): void 
 // refreshes the Familiar's Prowess damage buff, extending an active one rather than stacking a second
 function grantFamiliarProwess(context: ElementalistCastContext, skill: Skill): void {
   const at = context.effectiveEnd;
-  const baseDuration = balanceProfileValueFromContext(context, PROFILE.familiarsProwess, 'durationMultiplier', 5);
-  const extension = balanceProfileValueFromContext(context, PROFILE.familiarsProwess, 'durationPerTier', 5);
-  const maximumDuration = balanceProfileValueFromContext(context, PROFILE.familiarsProwess, 'maximumStacks', 15);
+  const baseDuration = balanceProfileNumberFromContext(context, PROFILE.familiarsProwess, 'durationMultiplier');
+  const extension = balanceProfileNumberFromContext(context, PROFILE.familiarsProwess, 'durationPerTier');
+  const maximumDuration = balanceProfileNumberFromContext(context, PROFILE.familiarsProwess, 'maximumStacks');
   const current = context.events
     .filter(
       (event) =>
@@ -321,28 +311,30 @@ function applyFamiliarTraitProcs(context: ElementalistCastContext, skill: Skill)
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
   if (familiarElement && hasTrait(context, "Familiar's Blessing")) {
     const quick = familiarElement === 'Fire' || familiarElement === 'Air';
-    const blessing = balanceProfileEffectFromContext(
+    const blessing = requireEffectFromContext(
       context,
+      'balance-profile',
       PROFILE.familiarsBlessing,
       'boon',
-      0,
       quick ? 'Quickness' : 'Alacrity'
     );
-    emitSkillBuff(context, skill, {
-      at,
-      source: "Familiar's Blessing",
-      sourceId: skill.id,
-      actorType: 'player',
-      kind: String(blessing?.boon || (quick ? 'Quickness' : 'Alacrity')).toLowerCase(),
-      stacks: Number(blessing?.stacks ?? 1),
-      duration: Number(blessing?.duration ?? (quick ? 1.75 : 4)),
-      skillName: "Familiar's Blessing"
-    });
+    if (blessing) {
+      emitSkillBuff(context, skill, {
+        at,
+        source: "Familiar's Blessing",
+        sourceId: skill.id,
+        actorType: 'player',
+        kind: String(blessing.boon).toLowerCase(),
+        stacks: Number(blessing.stacks),
+        duration: Number(blessing.duration),
+        skillName: "Familiar's Blessing"
+      });
+    }
   }
 
   if (familiarElement && hasTrait(context, 'Galvanic Enchantment')) {
-    const stacks = balanceProfileValueFromContext(context, PROFILE.galvanicEnchantment, 'playerStacks', 2);
-    const duration = balanceProfileValueFromContext(context, PROFILE.galvanicEnchantment, 'durationMultiplier', 6);
+    const stacks = balanceProfileNumberFromContext(context, PROFILE.galvanicEnchantment, 'playerStacks');
+    const duration = balanceProfileNumberFromContext(context, PROFILE.galvanicEnchantment, 'durationMultiplier');
     grantElectricEnchantments(state, at, stacks, duration);
     emitElementalistProc(context as never, {
       at,
@@ -361,24 +353,27 @@ function applyFamiliarSkillEffects(context: ElementalistCastContext, skill: Skil
   const at = context.effectiveEnd;
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
   if (skill.id === ID.LIGHTNING_BLITZ) {
-    const stacks = balanceProfileValueFromContext(context, PROFILE.familiarUtility, 'resourceGain', 1);
-    const enchantment = balanceProfileEffectFromContext(
+    const stacks = balanceProfileNumberFromContext(context, PROFILE.familiarUtility, 'resourceGain');
+    const enchantment = requireEffectFromContext(
       context,
+      'balance-profile',
       PROFILE.familiarUtility,
       'buff',
-      0,
       'Lightning Blitz Enchantment'
     );
-    grantElectricEnchantments(state, at, stacks, Number(enchantment?.duration ?? 6));
-    emitElementalistProc(context as never, {
-      at,
-      name: 'Electric Enchantment',
-      procType: 'skill',
-      sourceId: skill.id,
-      sourceSkill: skill.name,
-      detail: `+${stacks} ${stacks === 1 ? 'stack' : 'stacks'}`,
-      icon: ELECTRIC_ENCHANTMENT_ICON
-    });
+    if (enchantment) {
+      grantElectricEnchantments(state, at, stacks, Number(enchantment.duration));
+
+      emitElementalistProc(context as never, {
+        at,
+        name: 'Electric Enchantment',
+        procType: 'skill',
+        sourceId: skill.id,
+        sourceSkill: skill.name,
+        detail: `+${stacks} ${stacks === 1 ? 'stack' : 'stacks'}`,
+        icon: ELECTRIC_ENCHANTMENT_ICON
+      });
+    }
   }
 
   if (familiarElement) {
@@ -386,17 +381,19 @@ function applyFamiliarSkillEffects(context: ElementalistCastContext, skill: Skil
   }
 
   if (skill.id === ID.ZAP) {
-    const zap = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'buff', 0, 'Zap Window');
-    emitSkillBuff(context, {
-      at,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: 'player',
-      skillName: skill.name,
-      kind: 'zap buff',
-      stacks: Number(zap?.stacks ?? 1),
-      duration: Number(zap?.duration ?? 5)
-    });
+    const zap = requireEffectFromContext(context, 'balance-profile', PROFILE.familiarUtility, 'buff', 'Zap Window');
+    if (zap) {
+      emitSkillBuff(context, {
+        at,
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: 'player',
+        skillName: skill.name,
+        kind: 'zap buff',
+        stacks: Number(zap.stacks),
+        duration: Number(zap.duration)
+      });
+    }
   }
 }
 
@@ -409,17 +406,16 @@ function settleFamiliarChargeState(context: ElementalistCastContext, skill: Skil
   if (BASIC_FAMILIARS.has(skill.id)) {
     state.charges = 0;
     state.empowered = Math.min(
-      balanceProfileValueFromContext(context, PROFILE.resources, 'minimumStacks', 3),
+      balanceProfileNumberFromContext(context, PROFILE.resources, 'minimumStacks'),
       state.empowered + 1
     );
-    const flip = FAMILIAR_FLIP_DELAYS.get(skill.id);
-    const empowered = flip ? context.catalog.skillsById.get(flip[0]) : undefined;
+    const flip = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
+    const empowered = flip ? context.catalog.skillsById.get(flip) : undefined;
     if (flip && empowered) {
-      const delay = balanceProfileValueFromContext(
+      const delay = balanceProfileNumberFromContext(
         context,
         FAMILIAR_PROFILE_BY_BASIC.get(skill.id) ?? skill.id,
-        'initialDelay',
-        flip[1]
+        'initialDelay'
       );
       context.state.cooldowns.set(
         empowered.id,
@@ -455,53 +451,71 @@ function applyMeditationEffects(context: ElementalistCastContext, skill: Skill):
   }
 
   if (skill.id === ID.HARES_AGILITY) {
-    const stacks = balanceProfileValueFromContext(context, PROFILE.familiarUtility, 'playerStacks', 5);
-    const enchantment = balanceProfileEffectFromContext(
+    const stacks = balanceProfileNumberFromContext(context, PROFILE.familiarUtility, 'playerStacks');
+    const enchantment = requireEffectFromContext(
       context,
+      'balance-profile',
       PROFILE.familiarUtility,
       'buff',
-      0,
       'Hare Enchantment'
     );
-    grantElectricEnchantments(state, at, stacks, Number(enchantment?.duration ?? 10));
-    emitElementalistProc(context as never, {
-      at,
-      name: 'Electric Enchantment',
-      procType: 'skill',
-      sourceId: skill.id,
-      sourceSkill: skill.name,
-      detail: `+${stacks} stacks`,
-      icon: ELECTRIC_ENCHANTMENT_ICON
-    });
+    if (enchantment) {
+      grantElectricEnchantments(state, at, stacks, Number(enchantment.duration));
+
+      emitElementalistProc(context as never, {
+        at,
+        name: 'Electric Enchantment',
+        procType: 'skill',
+        sourceId: skill.id,
+        sourceSkill: skill.name,
+        detail: `+${stacks} stacks`,
+        icon: ELECTRIC_ENCHANTMENT_ICON
+      });
+    }
+
     applyElectricEnchantmentsRetrospectively(context, state);
   } else if (skill.id === ID.TOADS_FORTITUDE && state.element === 'Earth') {
-    const resistance = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'boon', 0, 'Toad Resistance');
-    emitSkillBuff(context, skill, {
-      at,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: 'player',
-      kind: String(resistance?.boon || 'Resistance').toLowerCase(),
-      stacks: Number(resistance?.stacks ?? 1),
-      duration: Number(resistance?.duration ?? 4),
-      skillName: skill.name
-    });
+    const resistance = requireEffectFromContext(
+      context,
+      'balance-profile',
+      PROFILE.familiarUtility,
+      'boon',
+      'Toad Resistance'
+    );
+    if (resistance) {
+      emitSkillBuff(context, skill, {
+        at,
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: 'player',
+        kind: String(resistance.boon).toLowerCase(),
+        stacks: Number(resistance.stacks),
+        duration: Number(resistance.duration),
+        skillName: skill.name
+      });
+    }
   } else if (skill.id === ID.FOXS_FURY) {
-    const might = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'boon', 0, 'Fox Might');
-    const fireMight = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'boon', 0, 'Fox Fire Bonus');
-    const fury = balanceProfileEffectFromContext(context, PROFILE.familiarUtility, 'boon', 0, 'Fox Fury');
-    for (const boon of [
-      {
-        kind: String(might?.boon || 'Might').toLowerCase(),
-        stacks: Number(might?.stacks ?? 8) + (state.element === 'Fire' ? Number(fireMight?.stacks ?? 3) : 0),
-        duration: Number(might?.duration ?? 10)
-      },
-      {
-        kind: String(fury?.boon || 'Fury').toLowerCase(),
-        stacks: Number(fury?.stacks ?? 1),
-        duration: Number(fury?.duration ?? 10)
-      }
-    ]) {
+    const might = requireEffectFromContext(context, 'balance-profile', PROFILE.familiarUtility, 'boon', 'Fox Might');
+    const fireMight = requireEffectFromContext(
+      context,
+      'balance-profile',
+      PROFILE.familiarUtility,
+      'boon',
+      'Fox Fire Bonus'
+    );
+    const fury = requireEffectFromContext(context, 'balance-profile', PROFILE.familiarUtility, 'boon', 'Fox Fury');
+    const fireBonus = state.element === 'Fire' ? fireMight : undefined;
+    const combinedMight =
+      might && fireBonus && might.boon === fireBonus.boon && might.duration === fireBonus.duration
+        ? { ...might, stacks: Number(might.stacks) + Number(fireBonus.stacks) }
+        : undefined;
+    for (const effect of [...(combinedMight ? [combinedMight] : [might, fireBonus]), fury]) {
+      if (!effect) continue;
+      const boon = {
+        kind: String(effect.boon).toLowerCase(),
+        stacks: Number(effect.stacks),
+        duration: Number(effect.duration)
+      };
       emitSkillBuff(context, skill, {
         at,
         source: skill.name,
@@ -523,11 +537,10 @@ function applySpecializedElementsTrait(context: ElementalistCastContext, skill: 
     const basic = BASIC_FAMILIARS.has(skill.id);
     applyWeaponSkillRechargeMultiplier(
       context,
-      balanceProfileValueFromContext(
+      balanceProfileNumberFromContext(
         context,
         basic ? PROFILE.specializedElementsBasicRecharge : PROFILE.specializedElementsEmpoweredRecharge,
-        'rechargeMultiplier',
-        basic ? 0.9 : 0.67
+        'rechargeMultiplier'
       )
     );
     if (!basic) {

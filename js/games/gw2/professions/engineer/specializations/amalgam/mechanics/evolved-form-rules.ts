@@ -1,8 +1,5 @@
 import type { EngineerModifierContext } from '#gw2/professions/engineer/types.js';
-import {
-  balanceProfileValueFromContext,
-  balanceProfileNumberFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -22,9 +19,9 @@ import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.j
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { EngineerMaximumAmmoContext, EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import { mercurialTendenciesReaction } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 
 const EVOLVE_SKILL_IDS = new Set([ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX]);
-import { mercurialTendenciesReaction } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 
 /** Registers scheduled-event observation and deferred Mercurial Tendencies execution. */
 export const amalgamSchedulerHooks = Object.freeze({
@@ -103,8 +100,8 @@ function modifyAmalgamAttributes(context: EngineerModifierContext, attributes: G
   const modified = { ...attributes };
   if (activeEngineerSpecializationState(context, 'Amalgam', 'evolvedUntil')) {
     const evolveFactor = hasTrait(context, TRAIT.DOUBLE_HELIX)
-      ? balanceProfileValueFromContext(context, PROFILE.evolve, 'coefficientMultiplier', 1.2)
-      : balanceProfileValueFromContext(context, PROFILE.evolve, 'damageMultiplier', 1.1);
+      ? balanceProfileNumberFromContext(context, PROFILE.evolve, 'coefficientMultiplier')
+      : balanceProfileNumberFromContext(context, PROFILE.evolve, 'damageMultiplier');
     const pool = context.config?.amalgamEvolveAttributePool;
     for (const [attribute, poolAttribute] of EVOLVE_ATTRIBUTES) {
       const eligible = Number(pool?.[poolAttribute] ?? modified[attribute] ?? 0);
@@ -135,7 +132,7 @@ function modifyAmalgamAttributes(context: EngineerModifierContext, attributes: G
 function modifyAmalgamMaximumAmmo(context: EngineerMaximumAmmoContext, maximum: number): number {
   if (!context.skill || !EVOLVE_SKILL_IDS.has(Number(context.skill.id))) return maximum;
   return context.skill.id === ID.EVOLVE_DOUBLE_HELIX && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
-    ? Math.max(balanceProfileValueFromContext(context, PROFILE.evolve, 'maximumStacks', 2), Number(maximum || 0))
+    ? Math.max(balanceProfileNumberFromContext(context, PROFILE.evolve, 'maximumStacks'), Number(maximum || 0))
     : 0;
 }
 

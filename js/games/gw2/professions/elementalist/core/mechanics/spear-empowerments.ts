@@ -1,5 +1,5 @@
 /** Owns spear etching progress and one-shot empowerments that survive until a later cast consumes them. */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { emitSkillControl } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -53,7 +53,7 @@ export function consumeElementalistSpearFollowup(
         ? {
             coefficient:
               Number(event.coefficient || 0) *
-              balanceProfileValueFromContext(context, PROFILE.spearEmpowerments, 'damageMultiplier', 1.2)
+              balanceProfileNumberFromContext(context, PROFILE.spearEmpowerments, 'damageMultiplier')
           }
         : {}),
       ...(followup.critical ? { forceCrit: true } : {})
@@ -93,7 +93,7 @@ export function completeElementalistSpearProgression(context: ElementalistCastCo
     state.etchings[candidate.etching] = {
       ...progress,
       stage:
-        otherCasts >= balanceProfileValueFromContext(context, PROFILE.spearEmpowerments, 'maximumStacks', 3)
+        otherCasts >= balanceProfileNumberFromContext(context, PROFILE.spearEmpowerments, 'maximumStacks')
           ? 'full'
           : 'lesser',
       otherCasts

@@ -112,6 +112,7 @@ for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
       assert.equal(
         runtime[modifier](
           {
+            catalog: engineerCatalog,
             config: {
               specialization: 'Mechanist',
               selectedSkills: selected ? [signet] : [],
@@ -132,6 +133,7 @@ test('Overclock reduces other signet recharges only while its passive is availab
   // Its own cooldown stays at 90 seconds; J-Drive retains the stronger passive during recharge.
   const runtime = engineerProfession.resolveRuntime({ specialization: 'Mechanist' });
   const context = {
+    catalog: engineerCatalog,
     config: { selectedSkills: ['Overclock Signet'] },
     skill: mechanic('Superconducting Signet'),
     state: { cooldowns: new Map() },
@@ -150,6 +152,7 @@ test('Overclock reduces other signet recharges only while its passive is availab
 test('mech Quickness uses its own boon audience and retains copied applications', () => {
   // The player's permanent boon alone is insufficient; copied timed boons retain their own expiry.
   const context = {
+    catalog: engineerCatalog,
     ...createScheduledEvents({ prepareEvent: (event) => event, observeEvent() {} }),
     config: { boons: { quickness: true }, selectedSkills: ['Force Signet'] },
     state: { cooldowns: new Map() }
@@ -334,6 +337,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
     })
     .modifyAttributes(
       {
+        catalog: engineerCatalog,
         config: {
           specialization: 'Mechanist',
           selectedSkills: ['Shift Signet'],

@@ -1,9 +1,9 @@
 /** Owns imperative Core Engineer Explosives trait effects without registering their reactions. */
 import {
   procChanceFromContext,
-  balanceProfileEffectFromContext,
-  balanceProfileValue,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext,
+  effectNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -34,11 +34,12 @@ export function applyGrenadier(context: EngineerCastContext, skill: EngineerSkil
     !isInternalCooldownReady(at, Number(state.traitProcReadyAt.grenadier || 0))
   )
     return;
+  const grenadier = requireEffectFromContext(context, 'balance-profile', PROFILE.grenadier, 'strike', 'Grenadier');
+  if (!grenadier) return;
   state.traitProcReadyAt.grenadier =
-    at + balanceProfileValueFromContext(context, PROFILE.grenadier, 'internalCooldown', 20);
-  const grenadier = balanceProfileEffectFromContext(context, PROFILE.grenadier, 'strike');
-  const hits = balanceProfileValue(grenadier, 'hits', 6);
-  const coefficient = balanceProfileValue(grenadier, 'coefficient', 0.5);
+    at + balanceProfileNumberFromContext(context, PROFILE.grenadier, 'internalCooldown');
+  const hits = Number(grenadier.hits);
+  const coefficient = effectNumberFromContext(context, 'balance-profile', PROFILE.grenadier, grenadier, 'coefficient');
   // Emit distinct packets so per-hit reactions and attribution retain the barrage sequence.
   for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
     emitSkillDamage(context, {
@@ -74,21 +75,33 @@ export function applyExplosiveEntrance(context: EngineerResolverContext, event: 
     return;
   }
 
-  // Fires once per attack sequence; dodge resets the flag for the next sequence.
-  state.explosiveEntranceFired = true;
-  queueDamage(context, event, {
-    name: 'Explosive Entrance',
-    coefficient: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.explosiveEntrance, 'strike'),
-      'coefficient',
-      1.25
-    ),
-    sourceId: TRAIT.EXPLOSIVE_ENTRANCE,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    explosion: true
-  });
-  recordTrait(context, 'Explosive Entrance', event);
+  const explosiveEntranceStrike = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.explosiveEntrance,
+    'strike',
+    'Explosive Entrance'
+  );
+  if (explosiveEntranceStrike) {
+    // Only a surviving packet consumes this once-per-dodge proc.
+    state.explosiveEntranceFired = true;
+    queueDamage(context, event, {
+      name: 'Explosive Entrance',
+      coefficient: effectNumberFromContext(
+        context,
+        'balance-profile',
+        PROFILE.explosiveEntrance,
+        explosiveEntranceStrike,
+        'coefficient'
+      ),
+      sourceId: TRAIT.EXPLOSIVE_ENTRANCE,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      explosion: true
+    });
+
+    recordTrait(context, 'Explosive Entrance', event);
+  }
 }
 
 /** Applies Steel-Packed Powder to a hit already classified as an explosion. */
@@ -98,22 +111,23 @@ export function applySteelPackedPowder(
   explosion: boolean
 ): void {
   if (!explosion || !hasTrait(context, TRAIT.STEEL_PACKED_POWDER)) return;
-  applyEngineerDerivedCondition(context, event, {
-    name: 'Steel-Packed Powder',
-    condition: 'Vulnerability',
-    stacks: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.steelPackedPowder, 'condition'),
-      'stacks',
-      1
-    ),
-    duration: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.steelPackedPowder, 'condition'),
-      'duration',
-      5
-    ),
-    sourceId: TRAIT.STEEL_PACKED_POWDER,
-    actorType: 'effect'
-  });
+  const steelPackedPowderVulnerability = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.steelPackedPowder,
+    'condition',
+    'Vulnerability'
+  );
+  if (steelPackedPowderVulnerability) {
+    applyEngineerDerivedCondition(context, event, {
+      name: 'Steel-Packed Powder',
+      condition: String(steelPackedPowderVulnerability.condition),
+      stacks: Number(steelPackedPowderVulnerability.stacks),
+      duration: Number(steelPackedPowderVulnerability.duration),
+      sourceId: TRAIT.STEEL_PACKED_POWDER,
+      actorType: 'effect'
+    });
+  }
 }
 
 /** Grants Short Fuse fury from an explosion when its internal cooldown is ready. */
@@ -131,16 +145,20 @@ export function applyShortFuse(
     return;
   }
 
-  state.shortFuse = event.at + balanceProfileValueFromContext(context, PROFILE.shortFuse, 'internalCooldown', 3);
-  queueBuff(context, event, {
-    name: 'Short Fuse',
-    kind: 'fury',
-    stacks: 1,
-    duration: balanceProfileValue(balanceProfileEffectFromContext(context, PROFILE.shortFuse, 'boon'), 'duration', 4),
-    sourceId: TRAIT.SHORT_FUSE,
-    actorType: 'effect'
-  });
-  recordTrait(context, 'Short Fuse', event);
+  state.shortFuse = event.at + balanceProfileNumberFromContext(context, PROFILE.shortFuse, 'internalCooldown');
+  const shortFuseFury = requireEffectFromContext(context, 'balance-profile', PROFILE.shortFuse, 'boon', 'fury');
+  if (shortFuseFury) {
+    queueBuff(context, event, {
+      name: 'Short Fuse',
+      kind: String(shortFuseFury.boon).toLowerCase(),
+      stacks: Number(shortFuseFury.stacks),
+      duration: Number(shortFuseFury.duration),
+      sourceId: TRAIT.SHORT_FUSE,
+      actorType: 'effect'
+    });
+
+    recordTrait(context, 'Short Fuse', event);
+  }
 }
 
 /** Adds an Explosive Temper stack for each explosion hit. */
@@ -150,19 +168,25 @@ export function applyExplosiveTemper(
   explosion: boolean
 ): void {
   if (!explosion || !hasTrait(context, TRAIT.EXPLOSIVE_TEMPER)) return;
-  queueBuff(context, event, {
-    name: 'Explosive Temper',
-    kind: 'explosive-temper',
-    stacks: 1,
-    duration: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.explosiveTemper, 'buff'),
-      'duration',
-      10
-    ),
-    sourceId: TRAIT.EXPLOSIVE_TEMPER,
-    actorType: 'effect'
-  });
-  recordTrait(context, 'Explosive Temper', event);
+  const explosiveTemperBuff = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.explosiveTemper,
+    'buff',
+    'explosive-temper'
+  );
+  if (explosiveTemperBuff) {
+    queueBuff(context, event, {
+      name: 'Explosive Temper',
+      kind: 'explosive-temper',
+      stacks: Number(explosiveTemperBuff.stacks),
+      duration: Number(explosiveTemperBuff.duration),
+      sourceId: TRAIT.EXPLOSIVE_TEMPER,
+      actorType: 'effect'
+    });
+
+    recordTrait(context, 'Explosive Temper', event);
+  }
 }
 
 /** Grants Grand Entrance's resistance and critical-chance window from its trait strike. */
@@ -211,38 +235,46 @@ export function applyShrapnel(
     state.shrapnelProgress = Number(state.shrapnelProgress || 0) - 1;
   }
 
-  applyEngineerDerivedCondition(context, event, {
-    name: 'Shrapnel',
-    condition: 'Bleeding',
-    // Count the activation on its primary effect only; the Crippled effect is part of the same proc.
-    procCount: 1,
-    stacks: balanceProfileValue(balanceProfileEffectFromContext(context, PROFILE.shrapnel, 'condition'), 'stacks', 1),
-    duration: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.shrapnel, 'condition'),
-      'duration',
-      6
-    ),
-    sourceId: TRAIT.SHRAPNEL,
-    actorType: 'effect',
-    ownerActorType: 'player'
-  });
-  queueBuff(context, event, {
-    name: 'Shrapnel',
-    kind: 'target-crippled',
-    stacks: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.shrapnel, 'condition', 1),
-      'stacks',
-      1
-    ),
-    duration: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.shrapnel, 'condition', 1),
-      'duration',
-      1
-    ),
-    sourceId: TRAIT.SHRAPNEL,
-    actorType: 'effect'
-  });
-  recordTrait(context, 'Shrapnel', event);
+  const shrapnelBleeding = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.shrapnel,
+    'condition',
+    'Bleeding'
+  );
+  if (shrapnelBleeding) {
+    applyEngineerDerivedCondition(context, event, {
+      name: 'Shrapnel',
+      condition: String(shrapnelBleeding.condition),
+      // Count the activation on its primary effect only; the Crippled effect is part of the same proc.
+      procCount: 1,
+      stacks: Number(shrapnelBleeding.stacks),
+      duration: Number(shrapnelBleeding.duration),
+      sourceId: TRAIT.SHRAPNEL,
+      actorType: 'effect',
+      ownerActorType: 'player'
+    });
+  }
+
+  const shrapnelCrippled = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.shrapnel,
+    'condition',
+    'Crippled'
+  );
+  if (shrapnelCrippled) {
+    queueBuff(context, event, {
+      name: 'Shrapnel',
+      kind: 'target-crippled',
+      stacks: Number(shrapnelCrippled.stacks),
+      duration: Number(shrapnelCrippled.duration),
+      sourceId: TRAIT.SHRAPNEL,
+      actorType: 'effect'
+    });
+  }
+
+  if (shrapnelBleeding || shrapnelCrippled) recordTrait(context, 'Shrapnel', event);
 }
 
 // Mech attacks do not trigger Aim-Assisted Rocket; player projectiles and Grenade Kit packets do.
@@ -268,31 +300,48 @@ export function applyAimAssistedRocket(context: EngineerResolverContext, event: 
   }
 
   state.aimAssistedRocket =
-    event.at + balanceProfileValueFromContext(context, PROFILE.aimAssistedRocket, 'internalCooldown', 3);
+    event.at + balanceProfileNumberFromContext(context, PROFILE.aimAssistedRocket, 'internalCooldown');
   state.aimAssistedRocketCount = Number(state.aimAssistedRocketCount || 0) + 1;
   // Every fifth projectile upgrades to Orbital Command Strike with its two-second call-down delay.
-  const alternateEvery = balanceProfileValueFromContext(context, PROFILE.aimAssistedRocket, 'maximumStacks', 5);
+  const alternateEvery = balanceProfileNumberFromContext(context, PROFILE.aimAssistedRocket, 'maximumStacks');
   const orbital = state.aimAssistedRocketCount % alternateEvery === 0;
-  const rocket = balanceProfileEffectFromContext(context, PROFILE.aimAssistedRocket, 'strike', orbital ? 1 : 0);
-  queueDamage(context, event, {
-    name: orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket',
-    coefficient: balanceProfileValue(rocket, 'coefficient', orbital ? 1.92 : 1),
-    sourceId: orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    at: event.at + balanceProfileValue(rocket, 'atMs', orbital ? 2000 : 40) / 1000,
-    explosion: !orbital,
-    ...(orbital
-      ? {
-          comboFinisher: {
-            ownerId: 'engineer',
-            attemptId: `${event.activationId || event.sourceId}:orbital-command-strike:blast`,
-            finisherType: 'Blast',
-            ambiguousFieldSelection: 'oldest'
+  const rocket = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.aimAssistedRocket,
+    'strike',
+    orbital ? 'Orbital Strike' : 'Rocket'
+  );
+  if (rocket) {
+    queueDamage(context, event, {
+      name: orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket',
+      coefficient: effectNumberFromContext(
+        context,
+        'balance-profile',
+        PROFILE.aimAssistedRocket,
+        rocket,
+        'coefficient'
+      ),
+      sourceId: orbital ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      at:
+        event.at +
+        effectNumberFromContext(context, 'balance-profile', PROFILE.aimAssistedRocket, rocket, 'atMs') / 1000,
+      explosion: !orbital,
+      ...(orbital
+        ? {
+            comboFinisher: {
+              ownerId: 'engineer',
+              attemptId: `${event.activationId || event.sourceId}:orbital-command-strike:blast`,
+              finisherType: 'Blast',
+              ambiguousFieldSelection: 'oldest'
+            }
           }
-        }
-      : {}),
-    weaponStrengthProfileId: 'nonweapon.unequipped'
-  });
-  recordTrait(context, orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket', event);
+        : {}),
+      weaponStrengthProfileId: 'nonweapon.unequipped'
+    });
+
+    recordTrait(context, orbital ? 'Orbital Command Strike' : 'Aim-Assisted Rocket', event);
+  }
 }

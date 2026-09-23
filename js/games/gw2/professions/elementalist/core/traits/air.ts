@@ -3,7 +3,7 @@ import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/type
 import { EPSILON } from '#kernel/core/clock.js';
 /** Imperative Air trait behavior; dispatch and reaction registration stay with their existing owners. */
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { balanceProfileEffectFromContext, balanceProfileValue } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireEffectFromContext, effectNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
@@ -35,38 +35,48 @@ export function triggerElectricDischarge(
   sourceId: Skill['id']
 ): void {
   if (!combatStarted(context, at) || !hasTrait(context, 'Electric Discharge')) return;
-  emitSkillDamage(context, {
-    at,
-    source: 'Electric Discharge',
-    sourceId,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    skillName: 'Electric Discharge',
-    coefficient: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.electricDischarge, 'strike', 0, 'Electric Discharge'),
-      'coefficient',
-      0.35
-    ),
-    skillWeapon: 'Unequipped'
-  });
-  emitProfiledCondition(
+  const electricDischargeStrike = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.electricDischarge,
+    'strike',
+    'Electric Discharge'
+  );
+  if (electricDischargeStrike) {
+    emitSkillDamage(context, {
+      at,
+      source: 'Electric Discharge',
+      sourceId,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillName: 'Electric Discharge',
+      coefficient: effectNumberFromContext(
+        context,
+        'balance-profile',
+        PROFILE.electricDischarge,
+        electricDischargeStrike,
+        'coefficient'
+      ),
+      skillWeapon: 'Unequipped'
+    });
+  }
+
+  const conditionEmitted = emitProfiledCondition(
     context,
     at,
     PROFILE.electricDischarge,
     'Electric Discharge',
-    'Vulnerability',
-    1,
-    8,
     'Electric Discharge',
     sourceId
   );
-  emitElementalistProc(context, {
-    at,
-    name: 'Electric Discharge',
-    procType: 'trait',
-    sourceId,
-    sourceSkill: context.catalog.skillsById.get(sourceId)?.name
-  });
+  if (electricDischargeStrike || conditionEmitted)
+    emitElementalistProc(context, {
+      at,
+      name: 'Electric Discharge',
+      procType: 'trait',
+      sourceId,
+      sourceSkill: context.catalog.skillsById.get(sourceId)?.name
+    });
 }
 
 /** Opens Fresh Air's ferocity window when an attunement transition newly enters Air. */
@@ -77,40 +87,44 @@ export function applyFreshAirAttunementEntry(
   previous: string
 ): void {
   if (previous === 'Air' || !hasTrait(context, 'Fresh Air')) return;
-  const freshAir = balanceProfileEffectFromContext(context, PROFILE.freshAir, 'buff');
-  emitSkillBuff(context, skill, {
-    at,
-    source: skill.name,
-    sourceId: skill.id,
-    actorType: 'player',
-    kind: 'fresh air',
-    stacks: Number(freshAir?.stacks ?? 1),
-    duration: Number(freshAir?.duration ?? 5),
-    skillName: skill.name,
-    priority: -10
-  });
+  const freshAir = requireEffectFromContext(context, 'balance-profile', PROFILE.freshAir, 'buff', 'fresh-air');
+  if (freshAir) {
+    emitSkillBuff(context, skill, {
+      at,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: 'fresh air',
+      stacks: Number(freshAir.stacks),
+      duration: Number(freshAir.duration),
+      skillName: skill.name,
+      priority: -10
+    });
+  }
 }
 
 /** Reads Superspeed as a buff so profile overrides apply without boon-duration scaling. */
 export function applyOneWithAir(context: ElementalistSchedulerContext, at: number, skill: Skill): void {
   if (!hasTrait(context, 'One with Air')) return;
-  const superspeed = balanceProfileEffectFromContext(context, PROFILE.oneWithAir, 'buff', 0, 'Superspeed');
-  emitSkillBuff(context, skill, {
-    at,
-    source: skill.name,
-    sourceId: skill.id,
-    actorType: 'player',
-    kind: String(superspeed?.kind || 'Superspeed').toLowerCase(),
-    stacks: Number(superspeed?.stacks ?? 1),
-    duration: Number(superspeed?.duration ?? 3),
-    skillName: skill.name
-  });
+  const superspeed = requireEffectFromContext(context, 'balance-profile', PROFILE.oneWithAir, 'buff', 'Superspeed');
+  if (superspeed) {
+    emitSkillBuff(context, skill, {
+      at,
+      source: skill.name,
+      sourceId: skill.id,
+      actorType: 'player',
+      kind: String(superspeed.kind).toLowerCase(),
+      stacks: Number(superspeed.stacks),
+      duration: Number(superspeed.duration),
+      skillName: skill.name
+    });
+  }
 }
 
 /** Grants Inscription's dedicated Resistance effect after entering Air. */
 export function applyInscriptionAirEntry(context: ElementalistSchedulerContext, at: number, skill: Skill): void {
   if (hasTrait(context, 'Inscription')) {
-    emitProfiledBuff(context, at, PROFILE.inscription, 'Air Entry', 'Resistance', 1, 3, skill.name, skill.id);
+    emitProfiledBuff(context, at, PROFILE.inscription, 'Air Entry', skill.name, skill.id);
   }
 }
 
@@ -118,25 +132,7 @@ export function applyInscriptionAirEntry(context: ElementalistSchedulerContext, 
 export function applyInscriptionPostCast(context: ElementalistLifecycleContext, skill: Skill): void {
   if (!hasTrait(context, 'Inscription') || skill.skillFamily !== 'Glyph') return;
   const state = professionCoreState(context);
-  const boon =
-    state.primaryAttunement === 'Fire'
-      ? (['Fire', 'Might', 1, 10] as const)
-      : state.primaryAttunement === 'Water'
-        ? (['Water', 'Regeneration', 1, 10] as const)
-        : state.primaryAttunement === 'Air'
-          ? (['Air', 'Swiftness', 1, 10] as const)
-          : (['Earth', 'Protection', 1, 3] as const);
-  emitProfiledBuff(
-    context,
-    context.effectiveEnd,
-    PROFILE.inscription,
-    boon[0],
-    boon[1],
-    boon[2],
-    boon[3],
-    skill.name,
-    skill.id
-  );
+  emitProfiledBuff(context, context.effectiveEnd, PROFILE.inscription, state.primaryAttunement, skill.name, skill.id);
 }
 
 /** Projects when queued critical candidates will complete Fresh Air's expected proc. */
@@ -244,63 +240,78 @@ function processFreshAirCandidates(context: ElementalistSchedulerContext, throug
 export function applyLightningRod(context: ElementalistSchedulerContext, event: SimulationEvent): void {
   if (!hasTrait(context, 'Lightning Rod')) return;
   const sourceId = event.skillId ?? event.sourceId;
-  emitSkillDamage(context, {
-    cause: event,
-    at: event.at,
-    source: 'Lightning Rod',
-    sourceId,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    skillName: 'Lightning Rod',
-    coefficient: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.lightningRod, 'strike'),
-      'coefficient',
-      1.5
-    ),
-    skillWeapon: 'Unequipped'
-  });
-  emitProfiledCondition(
+  const lightningRodStrike = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.lightningRod,
+    'strike',
+    'Lightning Rod'
+  );
+  if (lightningRodStrike) {
+    emitSkillDamage(context, {
+      cause: event,
+      at: event.at,
+      source: 'Lightning Rod',
+      sourceId,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillName: 'Lightning Rod',
+      coefficient: effectNumberFromContext(
+        context,
+        'balance-profile',
+        PROFILE.lightningRod,
+        lightningRodStrike,
+        'coefficient'
+      ),
+      skillWeapon: 'Unequipped'
+    });
+  }
+
+  const conditionEmitted = emitProfiledCondition(
     context,
     event.at,
     PROFILE.lightningRod,
     'Lightning Rod',
-    'Weakness',
-    1,
-    4,
     'Lightning Rod',
     sourceId
   );
-  emitElementalistProc(context, {
-    at: event.at,
-    name: 'Lightning Rod',
-    procType: 'trait',
-    sourceId,
-    sourceSkill: String(event.skillName || event.source || '')
-  });
+  if (lightningRodStrike || conditionEmitted)
+    emitElementalistProc(context, {
+      at: event.at,
+      name: 'Lightning Rod',
+      procType: 'trait',
+      sourceId,
+      sourceSkill: String(event.skillName || event.source || '')
+    });
 }
 
 /** Materializes Raging Storm after its registered critical-hit reaction succeeds. */
 export function applyRagingStorm(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
-  const fury = balanceProfileEffectFromContext(context, PROFILE.ragingStorm, 'boon', 0, 'Fury');
-  queueElementalistBuff(
-    context,
-    event,
-    String(fury?.boon || 'Fury'),
-    Number(fury?.stacks ?? 1),
-    Number(fury?.duration ?? 4),
-    'Raging Storm'
-  );
+  const fury = requireEffectFromContext(context, 'balance-profile', PROFILE.ragingStorm, 'boon', 'Fury');
+  if (fury) {
+    queueElementalistBuff(
+      context,
+      event,
+      String(fury.boon),
+      Number(fury.stacks),
+      Number(fury.duration),
+      'Raging Storm'
+    );
+  }
 }
 
 /** Both aura paths select the same profile effects before applying their own duration policy. */
 function zephyrsBoonEffects(context: unknown) {
-  return ['Fury', 'Swiftness'].map((name) => {
-    const effect = balanceProfileEffectFromContext(context, PROFILE.zephyrsBoon, 'boon', 0, name);
-    return {
-      kind: String(effect?.boon || name).toLowerCase(),
-      stacks: Number(effect?.stacks ?? 1),
-      duration: Number(effect?.duration ?? 5)
-    };
+  return ['Fury', 'Swiftness'].flatMap((name) => {
+    const effect = requireEffectFromContext(context, 'balance-profile', PROFILE.zephyrsBoon, 'boon', name);
+    if (!effect) return [];
+    return [
+      {
+        kind: String(effect.boon).toLowerCase(),
+        stacks: Number(effect.stacks),
+        duration: Number(effect.duration)
+      }
+    ];
   });
 }
 

@@ -1,3 +1,4 @@
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -16,6 +17,7 @@ const vigor = (at, duration, includesSelf = true) => ({
 
 function resourceContext(events, config = {}) {
   return {
+    catalog: engineerCatalog,
     config,
     events,
     start: 0,

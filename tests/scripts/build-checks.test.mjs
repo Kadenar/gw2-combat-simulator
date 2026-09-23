@@ -27,18 +27,7 @@ test('lint owns JavaScript syntax coverage outside generated and local-tool dire
     assert.equal(result.fatalErrorCount, 1, filePath);
   }
 
-  for (const directory of [
-    'node_modules',
-    'dist',
-    'coverage',
-    'build',
-    'reference-repos',
-    '.scratch',
-    '.analysis-inputs',
-    '.claude',
-    '.git',
-    '.lavish'
-  ]) {
+  for (const directory of ['node_modules', 'dist', 'reference-repos', '.scratch', '.claude', '.git', '.lavish']) {
     assert.equal(await eslint.isPathIgnored(`${directory}/syntax-probe.mjs`), true, directory);
   }
 

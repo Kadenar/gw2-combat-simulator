@@ -1,3 +1,4 @@
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -71,7 +72,12 @@ const PLAYER_MODIFIER_PREDICATES = Object.freeze([
     (event) => {
       const attributes = { power: 150, conditionDamage: 0 };
       applyEngineerSharpshooterConditionDamage(
-        { time: 1, event: { ...event, condition: 'Bleeding' }, traits: new Set([ENGINEER_TRAIT_IDS.SHARPSHOOTER]) },
+        {
+          catalog: engineerCatalog,
+          time: 1,
+          event: { ...event, condition: 'Bleeding' },
+          traits: new Set([ENGINEER_TRAIT_IDS.SHARPSHOOTER])
+        },
         attributes
       );
       return attributes.conditionDamage === 100;

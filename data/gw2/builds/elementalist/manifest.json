@@ -38,7 +38,7 @@
         "label": "Condition (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-weaver-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-scepter.json",
-        "benchmarkDps": 44015,
+        "benchmarkDps": 44021,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-scepter-warhorn"
       }
@@ -58,7 +58,7 @@
         "label": "Power (Sword/Dagger) - FA",
         "build": "data/gw2/builds/elementalist/b-power-tempest-sword.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-sword.json",
-        "benchmarkDps": 42145,
+        "benchmarkDps": 42174,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-sword-dagger"
       },
@@ -66,7 +66,7 @@
         "label": "Power (Scepter/Dagger) - FA",
         "build": "data/gw2/builds/elementalist/b-power-tempest-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-scepter.json",
-        "benchmarkDps": 41832,
+        "benchmarkDps": 41817,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-scepter-dagger"
       },
@@ -74,7 +74,7 @@
         "label": "Power (Spear) - FA",
         "build": "data/gw2/builds/elementalist/b-power-tempest-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-spear.json",
-        "benchmarkDps": 41941,
+        "benchmarkDps": 41945,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-spear"
       },
@@ -82,7 +82,7 @@
         "label": "Power (Hammer) - FA",
         "build": "data/gw2/builds/elementalist/b-power-tempest-hammer.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-hammer.json",
-        "benchmarkDps": 42480,
+        "benchmarkDps": 42486,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-hammer"
       },
@@ -90,7 +90,7 @@
         "label": "Power (Dagger/Dagger) - FA",
         "build": "data/gw2/builds/elementalist/b-power-tempest-dagger.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-dagger.json",
-        "benchmarkDps": 43475,
+        "benchmarkDps": 43492,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-dagger-dagger"
       },
@@ -98,7 +98,7 @@
         "label": "Power Alacrity (Sword/Dagger) - FA",
         "build": "data/gw2/builds/elementalist/b-power-alac-tempest-sword.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-alac-tempest-sword.json",
-        "benchmarkDps": 32806,
+        "benchmarkDps": 32782,
         "upToDate": true
       },
       {
@@ -121,7 +121,7 @@
         "label": "Condition (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-tempest-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-tempest-scepter.json",
-        "benchmarkDps": 40762,
+        "benchmarkDps": 40763,
         "upToDate": false,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-tempest-scepter-warhorn"
       },
@@ -256,14 +256,14 @@
         "build": "data/gw2/builds/elementalist/b-power-evoker-hare.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-evoker-scepter-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-evoker-hare.json",
-        "benchmarkDps": 41934,
+        "benchmarkDps": 41939,
         "upToDate": true
       },
       {
         "label": "Power Quickness Hare (Scepter/Dagger)",
         "build": "data/gw2/builds/elementalist/b-power-quick-evoker-hare.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-quick-evoker-hare.json",
-        "benchmarkDps": 32589,
+        "benchmarkDps": 32593,
         "upToDate": true
       },
       {
@@ -271,7 +271,7 @@
         "build": "data/gw2/builds/elementalist/b-power-alac-evoker-toad.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-alacrity-evoker-scepter-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-alac-evoker-toad.json",
-        "benchmarkDps": 34336,
+        "benchmarkDps": 34340,
         "upToDate": true
       },
       {

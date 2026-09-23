@@ -23,15 +23,15 @@ export const SCRAPPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     attributeConversion: 0.13,
     internalCooldown: 3,
     effects: [
-      { type: 'boon', boon: 'quickness', stacks: 1, duration: 3 },
-      { type: 'boon', boon: 'might', stacks: 3, duration: 10 }
+      { name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 3 },
+      { name: 'might', type: 'boon', boon: 'might', stacks: 3, duration: 10 }
     ]
   }),
   trait(SCRAPPER_BALANCE_PROFILE_IDS.massMomentum, 'Mass Momentum', {
     pulseInterval: 1,
     effects: [
-      { type: 'boon', boon: 'might', stacks: 1, duration: 5 },
-      { type: 'boon', boon: 'stability', stacks: 1, duration: 3 }
+      { name: 'might', type: 'boon', boon: 'might', stacks: 1, duration: 5 },
+      { name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 3 }
     ]
   }),
   trait(SCRAPPER_BALANCE_PROFILE_IDS.speedOfSynergy, 'Speed of Synergy', {
@@ -40,10 +40,10 @@ export const SCRAPPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     maximumStacks: 12
   }),
   trait(SCRAPPER_BALANCE_PROFILE_IDS.gyroscopicAcceleration, 'Gyroscopic Acceleration', {
-    effects: [{ type: 'buff', kind: 'superspeed', stacks: 1, duration: 5 }]
+    effects: [{ name: 'superspeed', type: 'buff', kind: 'superspeed', stacks: 1, duration: 5 }]
   }),
   trait(SCRAPPER_BALANCE_PROFILE_IDS.systemShocker, 'System Shocker', {
-    effects: [{ type: 'control' }]
+    effects: [{ name: 'System Shocker', type: 'control' }]
   }),
   // Trait tuning is shared by build calculations, combat, and tooltips.
   trait(TRAIT.EX_MACHINA, 'Ex Machina', { maximumAmmo: 2 }),
@@ -52,6 +52,6 @@ export const SCRAPPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     threshold: 10,
     internalCooldown: 10,
     attributePerStack: 30,
-    effects: [{ type: 'boon', boon: 'stability', stacks: 1, duration: 3 }]
+    effects: [{ name: 'stability', type: 'boon', boon: 'stability', stacks: 1, duration: 3 }]
   })
 ]);

@@ -1,3 +1,7 @@
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { getActiveTraits } from '#gw2/professions/elementalist/data/traits-data.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import type { ElementalistUiContext, ElementalistUiSlice } from '#gw2/professions/elementalist/types.js';
 /**
  * Evoker rotation-palette presentation.
@@ -51,8 +55,9 @@ function familiarSkillId(context: ElementalistUiContext): number {
   const element = selectedElement(context);
   const state = uiState(context);
   const build = context.build;
+  const empoweredMaximum = balanceProfileNumberFromContext(context, PROFILE.resources, 'minimumStacks');
   const empowered = Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0);
-  const name = FAMILIAR_SKILL_NAMES[element][empowered >= 3 ? 'empowered' : 'basic'];
+  const name = FAMILIAR_SKILL_NAMES[element][empowered >= empoweredMaximum ? 'empowered' : 'basic'];
   return ELEMENTALIST_FAMILIAR_SKILL_IDS[name];
 }
 
@@ -70,11 +75,20 @@ function familiarPaletteAvailability(context: ElementalistUiContext, skill: Skil
 
   const state = uiState(context);
   const build = context.build;
-  const maximum = Number(state.maximumCharges ?? 6);
+  const maximum =
+    state.maximumCharges ??
+    balanceProfileNumberFromContext(
+      context,
+      getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.SPECIALIZED_ELEMENTS)
+        ? PROFILE.specializedElements
+        : PROFILE.resources,
+      'maximumStacks'
+    );
   const charges = Number(state.charges ?? build?.initialEvokerCharges ?? maximum);
+  const empoweredMaximum = balanceProfileNumberFromContext(context, PROFILE.resources, 'minimumStacks');
   const empowered = Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0);
   if (BASIC_FAMILIARS.has(skill.id)) {
-    return empowered < 3 && charges >= maximum
+    return empowered < empoweredMaximum && charges >= maximum
       ? { available: true, message: '' }
       : {
           available: false,
@@ -82,11 +96,11 @@ function familiarPaletteAvailability(context: ElementalistUiContext, skill: Skil
         };
   }
 
-  return empowered >= 3
+  return empowered >= empoweredMaximum
     ? { available: true, message: '' }
     : {
         available: false,
-        message: `${skill.name} requires three empowered familiar charges.`
+        message: `${skill.name} requires ${empoweredMaximum} empowered familiar charges.`
       };
 }
 
@@ -165,8 +179,22 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
   resourceViews: (context: ElementalistUiContext): ProfessionResourceView[] => {
     const state = uiState(context);
     const build = context.build;
-    const maximum = Number(state.maximumCharges || 6);
-    const empowered = boundedNumber(Math.floor(Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0)), 0, 0, 3);
+    const maximum =
+      state.maximumCharges ??
+      balanceProfileNumberFromContext(
+        context,
+        getActiveTraits(context.build?.specializations || []).some((trait) => trait.id === TRAIT.SPECIALIZED_ELEMENTS)
+          ? PROFILE.specializedElements
+          : PROFILE.resources,
+        'maximumStacks'
+      );
+    const empoweredMaximum = balanceProfileNumberFromContext(context, PROFILE.resources, 'minimumStacks');
+    const empowered = boundedNumber(
+      Math.floor(Number(state.empowered ?? build?.initialEvokerEmpowered ?? 0)),
+      0,
+      0,
+      empoweredMaximum
+    );
     const element = selectedElement(context).toLowerCase();
     const charges = Number(state.charges ?? build?.initialEvokerCharges ?? maximum);
     const basicReady = charges >= maximum;
@@ -185,16 +213,16 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
         pipStyle: `elementalist-evoker-${element}-${empowered}${basicReady ? '-ready' : ''}`,
         showValue: false,
         shortLabel: 'Charges',
-        statusLabel: `Familiar (${empowered}/3 empowered)`
+        statusLabel: `Familiar (${empowered}/${empoweredMaximum} empowered)`
       },
       {
         // Expose empowered progress as a start-only resource so rotations can begin at any stage without adding a second live meter.
         id: 'evoker-empowered-charges',
         singular: 'empowered charge',
         plural: 'empowered charges',
-        maximum: 3,
+        maximum: empoweredMaximum,
         value: empowered,
-        startMaximum: 3,
+        startMaximum: empoweredMaximum,
         canStart: true,
         buildKey: 'initialEvokerEmpowered',
         step: 1,

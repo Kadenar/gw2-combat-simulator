@@ -724,7 +724,13 @@ test('Engineer spear resolver and tooltip use the same selected packet profile',
     { at: 10, skillId: skill.id, skillName: skill.name, charges: 2 }
   );
   assert.ok(packets.some((packet) => packet.coefficient === 2));
-  assert.ok(packets.some((packet) => packet.condition === 'Burning' && packet.stacks === 3 && packet.duration === 6));
+  // Burning resolves as separate single-stack applications whose total matches the selected profile.
+  const burning = packets.filter((packet) => packet.condition === 'Burning');
+  assert.equal(
+    burning.reduce((total, packet) => total + packet.stacks, 0),
+    3
+  );
+  assert.ok(burning.every((packet) => packet.duration === 6));
 });
 
 // Selected strain packets must agree across tooltips, both activation routes, and the mechanic's lifetime.

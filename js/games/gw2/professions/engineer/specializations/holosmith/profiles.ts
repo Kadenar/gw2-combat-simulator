@@ -45,17 +45,17 @@ export const HOLOSMITH_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   },
   trait(HOLOSMITH_BALANCE_PROFILE_IDS.thermalReleaseValve, 'Thermal Release Valve', {
     // The trait owns the dodge boon; the invoked Vent Exhaust skill owns its damage and heat loss.
-    effects: [{ type: 'boon', boon: 'vigor', stacks: 1, duration: 3 }]
+    effects: [{ name: 'vigor', type: 'boon', boon: 'vigor', stacks: 1, duration: 3 }]
   }),
   trait(HOLOSMITH_BALANCE_PROFILE_IDS.solarFocusingLens, 'Solar Focusing Lens', {
     minimumStacks: 2,
     maximumStacks: 6,
     durationMultiplier: 4,
-    effects: [{ type: 'condition', condition: 'Burning', stacks: 1, duration: 3 }]
+    effects: [{ name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 3 }]
   }),
   trait(HOLOSMITH_BALANCE_PROFILE_IDS.enhancedCapacity, 'Enhanced Capacity Storage Unit', {
     pulseInterval: 1,
-    effects: [{ type: 'boon', boon: 'might', stacks: 2, duration: 6 }]
+    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 2, duration: 6 }]
   }),
   skillVariant(HOLOSMITH_BALANCE_PROFILE_IDS.swordHeatTier, 'Holosmith Sword Heat Tier', {
     highStrikeFactor: 1.2,
@@ -70,33 +70,36 @@ export const HOLOSMITH_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     enhancedStrikeFactor: 1.35
   }),
   skillVariant(HOLOSMITH_BALANCE_PROFILE_IDS.laserDiskHeatTier, 'Laser Disk Heat Tier', {
+    highStrikeFactor: 1,
     basePacketCount: 12,
     highPacketCount: 18,
     packetInterval: 0.52,
     enhancedStrikeFactor: 1.35,
     effects: [
-      { type: 'strike', coefficient: 0.5, hits: 1 },
-      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2 }
+      { name: 'Laser Disk Heat Tier', type: 'strike', coefficient: 0.5, hits: 1 },
+      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2 }
     ]
   }),
   skillVariant(HOLOSMITH_BALANCE_PROFILE_IDS.launchWallHeatTier, 'Launch Wall Heat Tier', {
+    highStrikeFactor: 1,
     basePacketCount: 1,
     highPacketCount: 3,
     initialDelay: 0.48,
     enhancedStrikeFactor: 1.35,
     effects: [
-      { type: 'strike', coefficient: 1.5, hits: 1 },
-      { type: 'condition', condition: 'Vulnerability', stacks: 3, duration: 5 }
+      { name: 'Launch Wall Heat Tier', type: 'strike', coefficient: 1.5, hits: 1 },
+      { name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 3, duration: 5 }
     ]
   }),
   skillVariant(HOLOSMITH_BALANCE_PROFILE_IDS.primeLightBeamHeatTier, 'Prime Light Beam Heat Tier', {
+    highStrikeFactor: 1,
     packetCount: 10,
     packetInterval: 1,
     enhancedStrikeFactor: 1.2,
     enhancedConditionBaseDurationFactor: 1.5,
     effects: [
-      { type: 'strike', coefficient: 0.5, hits: 1 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 3 }
+      { name: 'Prime Light Beam Heat Tier', type: 'strike', coefficient: 0.5, hits: 1 },
+      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 3 }
     ]
   }),
   skillVariant(HOLOSMITH_BALANCE_PROFILE_IDS.radiantArcHeatTier, 'Radiant Arc Heat Tier', {
@@ -110,16 +113,16 @@ export const HOLOSMITH_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     enhancedExtraBlades: 4,
     initialDelay: 0.36,
     effects: [
-      { type: 'strike', coefficient: 0.4, hits: 1 },
-      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 4 }
+      { name: 'Refraction Cutter Heat Tier', type: 'strike', coefficient: 0.4, hits: 1 },
+      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 4 }
     ]
   }),
   trait(HOLOSMITH_BALANCE_PROFILE_IDS.photonicBlastingModule, 'Photonic Blasting Module', {
     initialDelay: 1.56,
     cooldown: 5,
     effects: [
-      { type: 'strike', coefficient: 5, hits: 1 },
-      { type: 'condition', condition: 'Burning', stacks: 7, duration: 6 }
+      { name: 'Photonic Blasting Module', type: 'strike', coefficient: 5, hits: 1 },
+      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 7, duration: 6 }
     ]
   })
 ]);

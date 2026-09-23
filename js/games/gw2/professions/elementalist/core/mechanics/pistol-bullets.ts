@@ -6,9 +6,9 @@
  * cast completion. Pistol skill fragments live in `skills/weapons/pistol.ts`.
  */
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValue,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext,
+  effectNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
@@ -48,20 +48,22 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
   if (state.pistolBullets[element] && !PISTOL_NO_CONSUME.has(Number(skill.id))) {
     state.pistolBullets[element] = false;
     if (skill.id === ID.RAGING_RICOCHET) {
-      emitProfiledBuff(context, at, PROFILE.ragingRicochet, 'Fire', 'Might', 1, 10, skill.name, skill.id);
+      emitProfiledBuff(context, at, PROFILE.ragingRicochet, 'Fire', skill.name, skill.id);
     } else if (skill.id === ID.SEARING_SALVO) {
-      const aura = balanceProfileEffectFromContext(context, PROFILE.searingSalvo, 'buff', 0, 'Fire');
-      applyElementalistAura(context, {
-        at,
-        aura: String(aura?.kind || 'Fire Aura'),
-        duration: Number(aura?.duration ?? 4),
-        skillName: skill.name,
-        sourceId: skill.id
-      });
+      const aura = requireEffectFromContext(context, 'balance-profile', PROFILE.searingSalvo, 'buff', 'Fire');
+      if (aura) {
+        applyElementalistAura(context, {
+          at,
+          aura: String(aura.kind),
+          duration: Number(aura.duration),
+          skillName: skill.name,
+          sourceId: skill.id
+        });
+      }
     } else if (skill.id === ID.FROZEN_FUSILLADE) {
       // The field's four-second lifetime starts at projectile release, so
       // aftercast length and cancellation cannot move its enhanced detonation.
-      const delay = balanceProfileValueFromContext(context, PROFILE.frozenFusillade, 'initialDelay', 4);
+      const delay = balanceProfileNumberFromContext(context, PROFILE.frozenFusillade, 'initialDelay');
       const detonationAt =
         context.start +
         projectCastRelativeEffectTimingMs(
@@ -71,36 +73,38 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
         ) /
           1000 +
         delay;
-      emitSkillDamage(context, {
-        at: detonationAt,
-        source: skill.name,
-        sourceId: skill.id,
-        actorType: 'player',
-        skillName: skill.name,
-        skillId: skill.id,
-        coefficient: balanceProfileValue(
-          balanceProfileEffectFromContext(context, PROFILE.frozenFusillade, 'strike'),
-          'coefficient',
-          0.75
-        ),
-        skillWeapon: 'Pistol'
-      });
-      emitProfiledCondition(
+      const frozenFusilladeWaterBulletStrike = requireEffectFromContext(
         context,
-        detonationAt,
+        'balance-profile',
         PROFILE.frozenFusillade,
-        'Water Bullet',
-        'Bleeding',
-        5,
-        8,
-        skill.name,
-        skill.id
+        'strike',
+        'Water Bullet'
       );
+      if (frozenFusilladeWaterBulletStrike) {
+        emitSkillDamage(context, {
+          at: detonationAt,
+          source: skill.name,
+          sourceId: skill.id,
+          actorType: 'player',
+          skillName: skill.name,
+          skillId: skill.id,
+          coefficient: effectNumberFromContext(
+            context,
+            'balance-profile',
+            PROFILE.frozenFusillade,
+            frozenFusilladeWaterBulletStrike,
+            'coefficient'
+          ),
+          skillWeapon: 'Pistol'
+        });
+      }
+
+      emitProfiledCondition(context, detonationAt, PROFILE.frozenFusillade, 'Water Bullet', skill.name, skill.id);
     } else if (skill.id === ID.DAZING_DISCHARGE) {
       // Arms a window that shortens the next pistol skill's recharge; the
       // reduction is consumed in `mechanics/recharge.ts`.
       state.dazingDischargeUntil =
-        at + balanceProfileValueFromContext(context, PROFILE.dazingDischarge, 'durationMultiplier', 5);
+        at + balanceProfileNumberFromContext(context, PROFILE.dazingDischarge, 'durationMultiplier');
     } else if (skill.id === ID.SHATTERING_STONE) {
       // Arm the buff on the event timeline so the resolver consumes its charges
       // in impact order, including attacks scheduled before this cast.
@@ -108,8 +112,8 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
         at,
         source: skill.name,
         kind: 'shattering stone',
-        stacks: balanceProfileValueFromContext(context, PROFILE.shatteringStone, 'maximumStacks', 3),
-        duration: balanceProfileValueFromContext(context, PROFILE.shatteringStone, 'durationMultiplier', 10)
+        stacks: balanceProfileNumberFromContext(context, PROFILE.shatteringStone, 'maximumStacks'),
+        duration: balanceProfileNumberFromContext(context, PROFILE.shatteringStone, 'durationMultiplier')
       });
     } else if (skill.id === ID.BOULDER_BLAST) {
       // The projectile finisher is a separate non-weapon activation from the

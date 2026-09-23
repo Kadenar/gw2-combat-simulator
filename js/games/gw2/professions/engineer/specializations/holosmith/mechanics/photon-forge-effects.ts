@@ -1,10 +1,11 @@
+import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValue,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext,
+  effectNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { enqueueGw2OwnedComboFinisher } from '#gw2/platform/resolver/combo-resolution.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -43,24 +44,34 @@ export function consumeSolarFocusingLens(
   )
     return;
   const state = holosmithState.from(context);
+  const condition = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.solarFocusingLens,
+    'condition',
+    'Burning'
+  );
+  if (!condition) return;
   // Lens cannot activate before its grant; zero-ICD consumption does not enforce readyAt.
   if (event.at < (state.solarFocusingLens.readyAt ?? 0) || !consumeCharge(state.solarFocusingLens, event.at, 0, true))
     return;
-  const condition = balanceProfileEffectFromContext(context, PROFILE.solarFocusingLens, 'condition');
-  context.queue.enqueue(
-    buildResolverCondition({
-      at: event.at,
-      source: 'Trait',
-      sourceId: TRAIT.SOLAR_FOCUSING_LENS,
-      actorType: 'player',
-      skillId: event.skillId,
-      skillName: event.skillName,
-      name: 'Solar Focusing Lens — Burning',
-      condition: 'Burning',
-      stacks: balanceProfileValue(condition, 'stacks', 1),
-      duration: balanceProfileValue(condition, 'duration', 3)
-    })
-  );
+  if (condition) {
+    context.queue.enqueue(
+      buildResolverCondition({
+        at: event.at,
+        source: 'Trait',
+        sourceId: TRAIT.SOLAR_FOCUSING_LENS,
+        actorType: 'player',
+        skillId: event.skillId,
+        skillName: event.skillName,
+        name: 'Solar Focusing Lens — Burning',
+        condition: String(condition.condition),
+        stacks: Number(condition.stacks),
+        duration: Number(condition.duration)
+      })
+    );
+  }
+
   return { solarFocusingLens: true };
 }
 
@@ -76,61 +87,79 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
   const enhancedCapacityTier = tier === 'enhanced';
   const packets = Math.max(
     0,
-    Math.trunc(balanceProfileValueFromContext(context, PROFILE.primeLightBeamHeatTier, 'packetCount', 10))
+    Math.trunc(balanceProfileNumberFromContext(context, PROFILE.primeLightBeamHeatTier, 'packetCount'))
   );
   const interval = Math.max(
     0,
-    balanceProfileValueFromContext(context, PROFILE.primeLightBeamHeatTier, 'packetInterval', 1)
+    balanceProfileNumberFromContext(context, PROFILE.primeLightBeamHeatTier, 'packetInterval')
   );
   const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.primeLightBeamHeatTier, snapshot);
-  const strike = balanceProfileEffectFromContext(context, PROFILE.primeLightBeamHeatTier, 'strike');
-  const condition = balanceProfileEffectFromContext(context, PROFILE.primeLightBeamHeatTier, 'condition');
+  const strike = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.primeLightBeamHeatTier,
+    'strike',
+    'Prime Light Beam Heat Tier'
+  );
+  const condition = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.primeLightBeamHeatTier,
+    'condition',
+    'Burning'
+  );
   const conditionBaseDurationFactor = enhancedCapacityTier
-    ? balanceProfileValueFromContext(
-        context,
-        PROFILE.primeLightBeamHeatTier,
-        'enhancedConditionBaseDurationFactor',
-        1.5
-      )
+    ? balanceProfileNumberFromContext(context, PROFILE.primeLightBeamHeatTier, 'enhancedConditionBaseDurationFactor')
     : 1;
   // Each field pulse emits a paired explosion and burning application at the same timestamp.
   for (let pulse = 0; pulse < packets; pulse += 1) {
     const at = event.at + pulse * interval;
-    context.queue.enqueue(
-      buildResolverStrike({
-        at,
-        name: 'Field Damage',
-        skillName: event.skillName,
-        coefficient: balanceProfileValue(strike, 'coefficient', 0.5),
+    if (strike) {
+      context.queue.enqueue(
+        buildResolverStrike({
+          at,
+          name: 'Field Damage',
+          skillName: event.skillName,
+          coefficient: effectNumberFromContext(
+            context,
+            'balance-profile',
+            PROFILE.primeLightBeamHeatTier,
+            strike,
+            'coefficient'
+          ),
 
-        hitIndex: pulse + 1,
-        totalHits: packets,
-        source: 'engineer',
-        sourceId: event.skillId ?? event.sourceId,
-        actorType: 'player',
-        skillId: event.skillId,
-        skillWeapon: 'Unequipped',
-        damageKind: 'explosion',
-        holosmithStrikeFactor: strikeFactor
-      })
-    );
-    context.queue.enqueue(
-      buildResolverCondition({
-        at,
-        name: `${event.skillName} — Burning`,
-        skillName: event.skillName,
-        condition: 'Burning',
-        stacks: balanceProfileValue(condition, 'stacks', 1),
-        duration: balanceProfileValue(condition, 'duration', 3),
-        applicationIndex: pulse + 1,
-        totalApplications: packets,
-        source: 'engineer',
-        sourceId: event.skillId ?? event.sourceId,
-        actorType: 'player',
-        skillId: event.skillId,
-        holosmithConditionBaseDurationFactor: conditionBaseDurationFactor
-      })
-    );
+          hitIndex: pulse + 1,
+          totalHits: packets,
+          source: 'engineer',
+          sourceId: event.skillId ?? event.sourceId,
+          actorType: 'player',
+          skillId: event.skillId,
+          skillWeapon: 'Unequipped',
+          damageKind: 'explosion',
+          holosmithStrikeFactor: strikeFactor
+        })
+      );
+    }
+
+    if (condition) {
+      context.queue.enqueue(
+        buildResolverCondition({
+          at,
+          name: `${event.skillName} — Burning`,
+          skillName: event.skillName,
+          condition: String(condition.condition),
+          stacks: Number(condition.stacks),
+          duration: Number(condition.duration),
+          applicationIndex: pulse + 1,
+          totalApplications: packets,
+          source: 'engineer',
+          sourceId: event.skillId ?? event.sourceId,
+          actorType: 'player',
+          skillId: event.skillId,
+          holosmithConditionBaseDurationFactor: conditionBaseDurationFactor
+        })
+      );
+    }
   }
 }
 
@@ -142,57 +171,76 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
   const pulses = Math.max(
     0,
     Math.trunc(
-      balanceProfileValueFromContext(
+      balanceProfileNumberFromContext(
         context,
         PROFILE.laserDiskHeatTier,
-        tier === 'base' ? 'basePacketCount' : 'highPacketCount',
-        tier === 'base' ? 12 : 18
+        tier === 'base' ? 'basePacketCount' : 'highPacketCount'
       )
     )
   );
-  const interval = Math.max(
-    0,
-    balanceProfileValueFromContext(context, PROFILE.laserDiskHeatTier, 'packetInterval', 0.52)
-  );
+  const interval = Math.max(0, balanceProfileNumberFromContext(context, PROFILE.laserDiskHeatTier, 'packetInterval'));
   const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.laserDiskHeatTier, snapshot);
-  const strike = balanceProfileEffectFromContext(context, PROFILE.laserDiskHeatTier, 'strike');
-  const condition = balanceProfileEffectFromContext(context, PROFILE.laserDiskHeatTier, 'condition');
+  const strike = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.laserDiskHeatTier,
+    'strike',
+    'Laser Disk Heat Tier'
+  );
+  const condition = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.laserDiskHeatTier,
+    'condition',
+    'Bleeding'
+  );
   // Expand the disk into paired strike and bleed packets on successive cadence boundaries.
   for (let pulse = 0; pulse < pulses; pulse += 1) {
     const at = event.at + (pulse + 1) * interval;
-    context.queue.enqueue(
-      buildResolverStrike({
-        at,
-        name: 'Laser Disk',
-        skillName: event.skillName,
-        coefficient: balanceProfileValue(strike, 'coefficient', 0.5),
+    if (strike) {
+      context.queue.enqueue(
+        buildResolverStrike({
+          at,
+          name: 'Laser Disk',
+          skillName: event.skillName,
+          coefficient: effectNumberFromContext(
+            context,
+            'balance-profile',
+            PROFILE.laserDiskHeatTier,
+            strike,
+            'coefficient'
+          ),
 
-        hitIndex: pulse + 1,
-        totalHits: pulses,
-        source: 'engineer',
-        sourceId: event.skillId ?? event.sourceId,
-        actorType: 'player',
-        skillId: event.skillId,
-        skillWeapon: 'Utility',
-        holosmithStrikeFactor: strikeFactor
-      })
-    );
-    context.queue.enqueue(
-      buildResolverCondition({
-        at,
-        name: `${event.skillName} - Bleeding`,
-        skillName: event.skillName,
-        condition: 'Bleeding',
-        stacks: balanceProfileValue(condition, 'stacks', 1),
-        duration: balanceProfileValue(condition, 'duration', 2),
-        applicationIndex: pulse + 1,
-        totalApplications: pulses,
-        source: 'engineer',
-        sourceId: event.skillId ?? event.sourceId,
-        actorType: 'player',
-        skillId: event.skillId
-      })
-    );
+          hitIndex: pulse + 1,
+          totalHits: pulses,
+          source: 'engineer',
+          sourceId: event.skillId ?? event.sourceId,
+          actorType: 'player',
+          skillId: event.skillId,
+          skillWeapon: 'Utility',
+          holosmithStrikeFactor: strikeFactor
+        })
+      );
+    }
+
+    if (condition) {
+      context.queue.enqueue(
+        buildResolverCondition({
+          at,
+          name: `${event.skillName} - Bleeding`,
+          skillName: event.skillName,
+          condition: String(condition.condition),
+          stacks: Number(condition.stacks),
+          duration: Number(condition.duration),
+          applicationIndex: pulse + 1,
+          totalApplications: pulses,
+          source: 'engineer',
+          sourceId: event.skillId ?? event.sourceId,
+          actorType: 'player',
+          skillId: event.skillId
+        })
+      );
+    }
   }
 }
 
@@ -204,55 +252,77 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
   const walls = Math.max(
     0,
     Math.trunc(
-      balanceProfileValueFromContext(
+      balanceProfileNumberFromContext(
         context,
         PROFILE.launchWallHeatTier,
-        tier === 'base' ? 'basePacketCount' : 'highPacketCount',
-        tier === 'base' ? 1 : 3
+        tier === 'base' ? 'basePacketCount' : 'highPacketCount'
       )
     )
   );
   const at =
-    event.at + Math.max(0, balanceProfileValueFromContext(context, PROFILE.launchWallHeatTier, 'initialDelay', 0.48));
+    event.at + Math.max(0, balanceProfileNumberFromContext(context, PROFILE.launchWallHeatTier, 'initialDelay'));
   const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.launchWallHeatTier, snapshot);
-  const strike = balanceProfileEffectFromContext(context, PROFILE.launchWallHeatTier, 'strike');
-  const condition = balanceProfileEffectFromContext(context, PROFILE.launchWallHeatTier, 'condition');
+  const strike = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.launchWallHeatTier,
+    'strike',
+    'Launch Wall Heat Tier'
+  );
+  const condition = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.launchWallHeatTier,
+    'condition',
+    'Vulnerability'
+  );
   // Every wall lands together and owns one explosion plus one vulnerability application.
   for (let wall = 0; wall < walls; wall += 1) {
-    context.queue.enqueue(
-      buildResolverStrike({
-        at,
-        name: 'Launch Wall',
-        skillName: event.skillName,
-        coefficient: balanceProfileValue(strike, 'coefficient', 1.5),
+    if (strike) {
+      context.queue.enqueue(
+        buildResolverStrike({
+          at,
+          name: 'Launch Wall',
+          skillName: event.skillName,
+          coefficient: effectNumberFromContext(
+            context,
+            'balance-profile',
+            PROFILE.launchWallHeatTier,
+            strike,
+            'coefficient'
+          ),
 
-        hitIndex: wall + 1,
-        totalHits: walls,
-        source: 'engineer',
-        sourceId: event.skillId ?? event.sourceId,
-        actorType: 'player',
-        skillId: event.skillId,
-        skillWeapon: 'Utility',
-        damageKind: 'explosion',
-        holosmithStrikeFactor: strikeFactor
-      })
-    );
-    context.queue.enqueue(
-      buildResolverCondition({
-        at,
-        name: `${event.skillName} - Vulnerability`,
-        skillName: event.skillName,
-        condition: 'Vulnerability',
-        stacks: balanceProfileValue(condition, 'stacks', 3),
-        duration: balanceProfileValue(condition, 'duration', 5),
-        applicationIndex: wall + 1,
-        totalApplications: walls,
-        source: 'engineer',
-        sourceId: event.skillId ?? event.sourceId,
-        actorType: 'player',
-        skillId: event.skillId
-      })
-    );
+          hitIndex: wall + 1,
+          totalHits: walls,
+          source: 'engineer',
+          sourceId: event.skillId ?? event.sourceId,
+          actorType: 'player',
+          skillId: event.skillId,
+          skillWeapon: 'Utility',
+          damageKind: 'explosion',
+          holosmithStrikeFactor: strikeFactor
+        })
+      );
+    }
+
+    if (condition) {
+      context.queue.enqueue(
+        buildResolverCondition({
+          at,
+          name: `${event.skillName} - Vulnerability`,
+          skillName: event.skillName,
+          condition: String(condition.condition),
+          stacks: Number(condition.stacks),
+          duration: Number(condition.duration),
+          applicationIndex: wall + 1,
+          totalApplications: walls,
+          source: 'engineer',
+          sourceId: event.skillId ?? event.sourceId,
+          actorType: 'player',
+          skillId: event.skillId
+        })
+      );
+    }
   }
 }
 
@@ -262,78 +332,98 @@ function handleRadiantArcQuickness(context: EngineerResolverContext, event: Holo
     name: 'Radiant Arc - quickness',
     kind: 'quickness',
     stacks: 1,
-    duration: Math.max(0, Number(event.duration ?? 2))
+    duration: requireBalanceNumber(event.duration, 'Radiant Arc field=duration')
   });
 }
 
 /** Materializes every heat-granted Refraction Cutter blade as a strike, bleed, and projectile finisher. */
 function handleRefractionCutterExtraBlades(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
   const extraBlades = Math.max(0, Math.trunc(Number(holosmithEventMetadata(event).extraBlades || 0)));
-  const delay = Math.max(
-    0,
-    balanceProfileValueFromContext(context, PROFILE.refractionCutterHeatTier, 'initialDelay', 0.36)
+  const delay = Math.max(0, balanceProfileNumberFromContext(context, PROFILE.refractionCutterHeatTier, 'initialDelay'));
+  const strike = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.refractionCutterHeatTier,
+    'strike',
+    'Refraction Cutter Heat Tier'
   );
-  const strike = balanceProfileEffectFromContext(context, PROFILE.refractionCutterHeatTier, 'strike');
-  const condition = balanceProfileEffectFromContext(context, PROFILE.refractionCutterHeatTier, 'condition');
+  const condition = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.refractionCutterHeatTier,
+    'condition',
+    'Bleeding'
+  );
   // Materialize each extra blade independently so its strike can own a matching combo attempt and bleed.
   for (let blade = 0; blade < extraBlades; blade += 1) {
     const at = event.at + delay;
-    const damage = context.queue.enqueue(
-      buildResolverStrike({
-        at,
-        name: 'Refraction Cutter Blade',
-        // Heat-generated blades share the base projectile's separate damage identity.
-        damageBreakdownName: 'Refraction Cutter Blade',
-        skillName: event.skillName,
-        coefficient: balanceProfileValue(strike, 'coefficient', 0.4),
+    if (strike) {
+      const damage = context.queue.enqueue(
+        buildResolverStrike({
+          at,
+          name: 'Refraction Cutter Blade',
+          // Heat-generated blades share the base projectile's separate damage identity.
+          damageBreakdownName: 'Refraction Cutter Blade',
+          skillName: event.skillName,
+          coefficient: effectNumberFromContext(
+            context,
+            'balance-profile',
+            PROFILE.refractionCutterHeatTier,
+            strike,
+            'coefficient'
+          ),
 
-        hitIndex: blade + 2,
-        totalHits: extraBlades + 1,
-        source: 'engineer',
-        sourceId: ID.REFRACTION_CUTTER_BLADE,
-        actorType: 'player',
-        skillId: event.skillId,
-        skillWeapon: 'Sword',
-        projectile: true,
-        comboFinishers: [
-          {
-            ownerId: 'engineer',
-            finisherType: 'Projectile',
-            chance: 1,
-            preferredFieldTypes: ['Fire'],
-            ambiguousFieldSelection: 'oldest'
-          }
-        ]
-      })
-    );
-    // Register the owned finisher from the queued strike rather than emitting an uncorrelated combo event.
-    enqueueGw2OwnedComboFinisher(context, damage, {
-      ownerId: 'engineer',
-      attemptId: `${event.activationId || event.sourceId}:refraction-cutter:projectile:${blade + 2}`,
-      finisherType: 'Projectile',
-      at,
-      effectAt: at,
-      chance: 1,
-      preferredFieldTypes: ['Fire'],
-      ambiguousFieldSelection: 'oldest'
-    });
-    // Pair the blade's bleed with the same delayed impact and application index.
-    context.queue.enqueue(
-      buildResolverCondition({
+          hitIndex: blade + 2,
+          totalHits: extraBlades + 1,
+          source: 'engineer',
+          sourceId: ID.REFRACTION_CUTTER_BLADE,
+          actorType: 'player',
+          skillId: event.skillId,
+          skillWeapon: 'Sword',
+          projectile: true,
+          comboFinishers: [
+            {
+              ownerId: 'engineer',
+              finisherType: 'Projectile',
+              chance: 1,
+              preferredFieldTypes: ['Fire'],
+              ambiguousFieldSelection: 'oldest'
+            }
+          ]
+        })
+      );
+      // Register the owned finisher from the queued strike rather than emitting an uncorrelated combo event.
+      enqueueGw2OwnedComboFinisher(context, damage, {
+        ownerId: 'engineer',
+        attemptId: `${event.activationId || event.sourceId}:refraction-cutter:projectile:${blade + 2}`,
+        finisherType: 'Projectile',
         at,
-        name: `${event.skillName} - Bleeding`,
-        skillName: event.skillName,
-        condition: 'Bleeding',
-        stacks: balanceProfileValue(condition, 'stacks', 1),
-        duration: balanceProfileValue(condition, 'duration', 4),
-        applicationIndex: blade + 2,
-        totalApplications: extraBlades + 1,
-        source: 'engineer',
-        sourceId: event.skillId ?? event.sourceId,
-        actorType: 'player',
-        skillId: event.skillId
-      })
-    );
+        effectAt: at,
+        chance: 1,
+        preferredFieldTypes: ['Fire'],
+        ambiguousFieldSelection: 'oldest'
+      });
+    }
+
+    // Pair the blade's bleed with the same delayed impact and application index.
+    if (condition) {
+      context.queue.enqueue(
+        buildResolverCondition({
+          at,
+          name: `${event.skillName} - Bleeding`,
+          skillName: event.skillName,
+          condition: String(condition.condition),
+          stacks: Number(condition.stacks),
+          duration: Number(condition.duration),
+          applicationIndex: blade + 2,
+          totalApplications: extraBlades + 1,
+          source: 'engineer',
+          sourceId: event.skillId ?? event.sourceId,
+          actorType: 'player',
+          skillId: event.skillId
+        })
+      );
+    }
   }
 }
 

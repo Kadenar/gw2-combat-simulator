@@ -1,9 +1,8 @@
 /** Owns imperative Core Engineer Firearms critical-hit and condition reactions. */
 import {
   procChanceFromContext,
-  balanceProfileEffectFromContext,
-  balanceProfileValue,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -42,26 +41,27 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     randomStream: 'engineer.serrated-steel',
     attribution: { kind: 'trait', id: TRAIT.SERRATED_STEEL },
     handler(context, event, _details, application) {
-      applyEngineerDerivedCondition(context, event, {
-        name: 'Serrated Steel',
-        procCount: application.quantity,
-        condition: 'Bleeding',
-        stacks:
-          balanceProfileValue(
-            balanceProfileEffectFromContext(context, PROFILE.serratedSteel, 'condition'),
-            'stacks',
-            1
-          ) * application.quantity,
-        duration: balanceProfileValue(
-          balanceProfileEffectFromContext(context, PROFILE.serratedSteel, 'condition'),
-          'duration',
-          3
-        ),
-        sourceId: TRAIT.SERRATED_STEEL,
-        actorType: 'effect',
-        ownerActorType: 'player'
-      });
-      recordTrait(context, 'Serrated Steel', event);
+      const serratedSteelBleeding = requireEffectFromContext(
+        context,
+        'balance-profile',
+        PROFILE.serratedSteel,
+        'condition',
+        'Bleeding'
+      );
+      if (serratedSteelBleeding) {
+        applyEngineerDerivedCondition(context, event, {
+          name: 'Serrated Steel',
+          procCount: application.quantity,
+          condition: String(serratedSteelBleeding.condition),
+          stacks: Number(serratedSteelBleeding.stacks) * application.quantity,
+          duration: Number(serratedSteelBleeding.duration),
+          sourceId: TRAIT.SERRATED_STEEL,
+          actorType: 'effect',
+          ownerActorType: 'player'
+        });
+
+        recordTrait(context, 'Serrated Steel', event);
+      }
     }
   },
   {
@@ -75,7 +75,7 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => balanceProfileValueFromContext(context, PROFILE.noScope, 'internalCooldown', 8),
+      duration: (context) => balanceProfileNumberFromContext(context, PROFILE.noScope, 'internalCooldown'),
       readyAt: (context) => Number(procState(context).noScope || 0),
       setReadyAt: (context, readyAt) => {
         procState(context).noScope = readyAt;
@@ -83,15 +83,19 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     },
     attribution: { kind: 'trait', id: TRAIT.NO_SCOPE },
     handler(context, event) {
-      queueBuff(context, event, {
-        name: 'No Scope',
-        kind: 'fury',
-        stacks: 1,
-        duration: balanceProfileValue(balanceProfileEffectFromContext(context, PROFILE.noScope, 'boon'), 'duration', 4),
-        sourceId: TRAIT.NO_SCOPE,
-        actorType: 'effect'
-      });
-      recordTrait(context, 'No Scope', event);
+      const noScopeFury = requireEffectFromContext(context, 'balance-profile', PROFILE.noScope, 'boon', 'fury');
+      if (noScopeFury) {
+        queueBuff(context, event, {
+          name: 'No Scope',
+          kind: String(noScopeFury.boon).toLowerCase(),
+          stacks: Number(noScopeFury.stacks),
+          duration: Number(noScopeFury.duration),
+          sourceId: TRAIT.NO_SCOPE,
+          actorType: 'effect'
+        });
+
+        recordTrait(context, 'No Scope', event);
+      }
     }
   },
   {
@@ -105,7 +109,7 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => balanceProfileValueFromContext(context, PROFILE.incendiaryPowder, 'internalCooldown', 10),
+      duration: (context) => balanceProfileNumberFromContext(context, PROFILE.incendiaryPowder, 'internalCooldown'),
       readyAt: (context) => Number(procState(context)['incendiaryPowder.player'] || 0),
       setReadyAt: (context, readyAt) => {
         procState(context)['incendiaryPowder.player'] = readyAt;
@@ -115,24 +119,26 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     progressDuringCooldown: 'accumulate',
     attribution: { kind: 'trait', id: TRAIT.INCENDIARY_POWDER },
     handler(context, event) {
-      applyEngineerDerivedCondition(context, event, {
-        name: 'Incendiary Powder',
-        condition: 'Burning',
-        stacks: balanceProfileValue(
-          balanceProfileEffectFromContext(context, PROFILE.incendiaryPowder, 'condition'),
-          'stacks',
-          1
-        ),
-        duration: balanceProfileValue(
-          balanceProfileEffectFromContext(context, PROFILE.incendiaryPowder, 'condition'),
-          'duration',
-          8
-        ),
-        sourceId: TRAIT.INCENDIARY_POWDER,
-        actorType: 'effect',
-        ownerActorType: 'player'
-      });
-      recordTrait(context, 'Incendiary Powder', event);
+      const incendiaryPowderBurning = requireEffectFromContext(
+        context,
+        'balance-profile',
+        PROFILE.incendiaryPowder,
+        'condition',
+        'Burning'
+      );
+      if (incendiaryPowderBurning) {
+        applyEngineerDerivedCondition(context, event, {
+          name: 'Incendiary Powder',
+          condition: String(incendiaryPowderBurning.condition),
+          stacks: Number(incendiaryPowderBurning.stacks),
+          duration: Number(incendiaryPowderBurning.duration),
+          sourceId: TRAIT.INCENDIARY_POWDER,
+          actorType: 'effect',
+          ownerActorType: 'player'
+        });
+
+        recordTrait(context, 'Incendiary Powder', event);
+      }
     }
   }
 ] satisfies readonly EngineerCriticalHitDefinition[]);
@@ -145,11 +151,19 @@ export function applyThermalVision(context: EngineerResolverContext, event: Engi
 
   const state = professionCoreState(context);
   // Math.max extends the window when multiple Burning applications overlap.
-  state.traitProcReadyAt.thermalVisionUntil = Math.max(
-    Number(state.traitProcReadyAt.thermalVisionUntil || 0),
-    event.at +
-      balanceProfileValue(balanceProfileEffectFromContext(context, PROFILE.thermalVision, 'buff'), 'duration', 4)
+  const thermalVisionBuff = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.thermalVision,
+    'buff',
+    'thermal-vision'
   );
+  if (thermalVisionBuff) {
+    state.traitProcReadyAt.thermalVisionUntil = Math.max(
+      Number(state.traitProcReadyAt.thermalVisionUntil || 0),
+      event.at + Number(thermalVisionBuff.duration)
+    );
+  }
 }
 
 /** Converts player-owned Bleeding applications into Sanguine Array might. */
@@ -158,19 +172,25 @@ export function applySanguineArray(context: EngineerResolverContext, event: Engi
     return;
   }
 
-  queueBuff(context, event, {
-    name: 'Sanguine Array',
-    kind: 'might',
-    stacks: Math.max(1, Number(event.stacks || 1)),
-    duration: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.sanguineArray, 'boon'),
-      'duration',
-      4
-    ),
-    sourceId: TRAIT.SANGUINE_ARRAY,
-    actorType: 'effect'
-  });
-  recordTrait(context, 'Sanguine Array', event);
+  const sanguineArrayMight = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.sanguineArray,
+    'boon',
+    'might'
+  );
+  if (sanguineArrayMight) {
+    queueBuff(context, event, {
+      name: 'Sanguine Array',
+      kind: String(sanguineArrayMight.boon).toLowerCase(),
+      stacks: Math.max(1, Number(event.stacks || 1)),
+      duration: Number(sanguineArrayMight.duration),
+      sourceId: TRAIT.SANGUINE_ARRAY,
+      actorType: 'effect'
+    });
+
+    recordTrait(context, 'Sanguine Array', event);
+  }
 }
 
 /** Grants Hematic Focus fury from player-owned Bleeding when its cooldown is ready. */
@@ -181,18 +201,18 @@ export function applyHematicFocus(context: EngineerResolverContext, event: Engin
 
   const state = procState(context);
   if (!isInternalCooldownReady(event.at, Number(state.hematicFocus || 0))) return;
-  state.hematicFocus = event.at + balanceProfileValueFromContext(context, PROFILE.hematicFocus, 'internalCooldown', 8);
-  queueBuff(context, event, {
-    name: 'Hematic Focus',
-    kind: 'fury',
-    stacks: 1,
-    duration: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.hematicFocus, 'boon'),
-      'duration',
-      8
-    ),
-    sourceId: TRAIT.HEMATIC_FOCUS,
-    actorType: 'effect'
-  });
-  recordTrait(context, 'Hematic Focus', event);
+  const hematicFocusFury = requireEffectFromContext(context, 'balance-profile', PROFILE.hematicFocus, 'boon', 'fury');
+  if (hematicFocusFury) {
+    state.hematicFocus = event.at + balanceProfileNumberFromContext(context, PROFILE.hematicFocus, 'internalCooldown');
+    queueBuff(context, event, {
+      name: 'Hematic Focus',
+      kind: String(hematicFocusFury.boon).toLowerCase(),
+      stacks: Number(hematicFocusFury.stacks),
+      duration: Number(hematicFocusFury.duration),
+      sourceId: TRAIT.HEMATIC_FOCUS,
+      actorType: 'effect'
+    });
+
+    recordTrait(context, 'Hematic Focus', event);
+  }
 }

@@ -416,6 +416,7 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
   const ignite = { ...elementalistCatalog.skillsById.get(ID.IGNITE), name: 'Renamed familiar' };
   const state = evokerState.create({ evokerElement: 'Fire', initialEvokerCharges: 6 });
   const context = {
+    catalog: elementalistCatalog,
     state: {
       profession: {
         core: {},
@@ -441,6 +442,7 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
   const core = createElementalistCoreState({ pistolBullets: { Earth: true, Air: true } });
   const pistolEvents = [];
   const pistolContext = {
+    catalog: elementalistCatalog,
     state: { profession: { core } },
     effectiveEnd: 1,
     config: { selectedTraitIds: [] },

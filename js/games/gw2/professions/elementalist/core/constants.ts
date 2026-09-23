@@ -2,23 +2,13 @@
  * Literal lookup tables shared by Core Elementalist mechanics.
  *
  * Skill-id keyed maps let cast, availability, and presentation code classify a
- * skill by its element or mechanic without inspecting catalog text. Numeric
- * defaults here are the fallbacks used whenever a balance profile omits the
- * corresponding field.
+ * skill by its element or mechanic without inspecting catalog text.
  *
  * This module holds data only; it must not import mechanics.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 
-/** Default recharge stamped on the attunement the player just left. */
-export const ATTUNEMENT_RECHARGE_SECONDS = 10;
-/** Default lockout applied to the attunements not involved in a swap. */
-export const OFF_ATTUNEMENT_RECHARGE_SECONDS = 1.5;
-/** Endurance one dodge spends; also the profile fallback for dodge availability. */
-export const DODGE_ENDURANCE_COST = 50;
-/** Baseline endurance regeneration used when projecting dodge availability. */
-export const ENDURANCE_PER_SECOND = 5;
 /** Hammer skills that create an orb, mapped to the element whose orb slot they occupy. */
 export const HAMMER_ORB_SKILLS: Readonly<Record<number, ElementalistAttunement>> = Object.freeze({
   [ID.FLAME_WHEEL]: 'Fire',

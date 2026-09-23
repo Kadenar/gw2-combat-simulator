@@ -1,7 +1,6 @@
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValue,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillControl } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -42,8 +41,8 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       kind: 'superspeed',
       duration:
         skill.toolbeltParentId === ID.MED_KIT
-          ? balanceProfileValueFromContext(context, PROFILE.speedOfSynergy, 'maximumStacks', 12)
-          : balanceProfileValueFromContext(context, PROFILE.speedOfSynergy, 'minimumStacks', 5),
+          ? balanceProfileNumberFromContext(context, PROFILE.speedOfSynergy, 'maximumStacks')
+          : balanceProfileNumberFromContext(context, PROFILE.speedOfSynergy, 'minimumStacks'),
       stacks: 1,
       maximumDuration: 10
     });
@@ -59,7 +58,7 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
       actorType: 'player',
       name: 'Speed of Synergy — superspeed',
       kind: 'superspeed',
-      duration: balanceProfileValueFromContext(context, PROFILE.speedOfSynergy, 'threshold', 7),
+      duration: balanceProfileNumberFromContext(context, PROFILE.speedOfSynergy, 'threshold'),
       stacks: 1,
       maximumDuration: 10
     });
@@ -67,21 +66,26 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
 
   // Gyroscopic Acceleration (adept trait): Well skills and Function Gyro grant 5s superspeed.
   if (hasTrait(context.config, TRAIT.GYROSCOPIC_ACCELERATION) && (category(skill, 'Well') || isFunctionGyro(skill))) {
-    emitSkillBuff(context, skill, {
-      at: context.effectiveEnd,
-      source: 'Trait',
-      sourceId: TRAIT.GYROSCOPIC_ACCELERATION,
-      actorType: 'player',
-      name: 'Gyroscopic Acceleration — superspeed',
-      kind: 'superspeed',
-      duration: balanceProfileValue(
-        balanceProfileEffectFromContext(context, PROFILE.gyroscopicAcceleration, 'buff'),
-        'duration',
-        5
-      ),
-      stacks: 1,
-      maximumDuration: 10
-    });
+    const gyroscopicAccelerationSuperspeed = requireEffectFromContext(
+      context,
+      'balance-profile',
+      PROFILE.gyroscopicAcceleration,
+      'buff',
+      'superspeed'
+    );
+    if (gyroscopicAccelerationSuperspeed) {
+      emitSkillBuff(context, skill, {
+        at: context.effectiveEnd,
+        source: 'Trait',
+        sourceId: TRAIT.GYROSCOPIC_ACCELERATION,
+        actorType: 'player',
+        name: 'Gyroscopic Acceleration — superspeed',
+        kind: 'superspeed',
+        duration: Number(gyroscopicAccelerationSuperspeed.duration),
+        stacks: Number(gyroscopicAccelerationSuperspeed.stacks),
+        maximumDuration: 10
+      });
+    }
   }
 
   // Remaining traits only proc on Function Gyro.
@@ -127,19 +131,24 @@ export function applyScrapperCastTraits(context: EngineerCastContext, skill: Eng
 
   // Mass Momentum (GM trait): Function Gyro grants 3 stacks of stability (seeds the pulse loop).
   if (hasTrait(context.config, TRAIT.MASS_MOMENTUM)) {
-    emitSkillBuff(context, skill, {
-      at: context.effectiveEnd,
-      source: 'Trait',
-      sourceId: TRAIT.MASS_MOMENTUM,
-      actorType: 'player',
-      name: 'Mass Momentum — stability',
-      kind: 'stability',
-      duration: balanceProfileValue(
-        balanceProfileEffectFromContext(context, PROFILE.massMomentum, 'boon', 1),
-        'duration',
-        3
-      ),
-      stacks: 1
-    });
+    const massMomentumStability = requireEffectFromContext(
+      context,
+      'balance-profile',
+      PROFILE.massMomentum,
+      'boon',
+      'stability'
+    );
+    if (massMomentumStability) {
+      emitSkillBuff(context, skill, {
+        at: context.effectiveEnd,
+        source: 'Trait',
+        sourceId: TRAIT.MASS_MOMENTUM,
+        actorType: 'player',
+        name: 'Mass Momentum — stability',
+        kind: String(massMomentumStability.boon).toLowerCase(),
+        duration: Number(massMomentumStability.duration),
+        stacks: Number(massMomentumStability.stacks)
+      });
+    }
   }
 }

@@ -72,7 +72,13 @@ test('force clocks are detached in snapshots and planning projections and absent
 function snapshot(profession, specialization, professionState, atSeconds, result) {
   // These fixture buffs were scheduled and committed; specialized views can inspect either report history.
   if (result) result = { ...result, events: result.resolvedEvents };
-  return profession.ui.rotationStateSnapshot({ specialization, professionState, atSeconds, result });
+  return profession.ui.rotationStateSnapshot({
+    catalog: profession.catalog,
+    specialization,
+    professionState,
+    atSeconds,
+    result
+  });
 }
 
 function valuesById(items) {

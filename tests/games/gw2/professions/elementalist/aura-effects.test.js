@@ -181,6 +181,7 @@ test('Tempest preserves aura damage windows and grants boons only for resolver-o
   for (const origin of [{}, { elementalistResolverGeneratedAura: true }, { type: 'aura' }]) {
     const queued = [];
     const context = {
+      catalog: elementalistCatalog,
       traits: new Set(['Tempestuous Aria', 'Invigorating Torrents', 'Elemental Bastion']),
       config: {},
       query: { statsAt: () => ({ concentration: 0 }) },

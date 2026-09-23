@@ -2,7 +2,7 @@
  * Owns Core Elementalist cross-cast recharge policy and one-shot modifier consumption.
  * Skill fragments declare base cooldowns; persistent systems decide when and how they recharge.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 
@@ -42,7 +42,7 @@ export function modifyElementalistRechargeDuration(
 
   let adjustedDuration = duration;
   if (skill.id === ID.RIDE_THE_LIGHTNING) {
-    adjustedDuration *= balanceProfileValueFromContext(context, PROFILE.rideTheLightning, 'rechargeMultiplier', 0.5);
+    adjustedDuration *= balanceProfileNumberFromContext(context, PROFILE.rideTheLightning, 'rechargeMultiplier');
   }
 
   // The four *mancer's Training traits shorten weapon recharges, each only for
@@ -62,7 +62,7 @@ export function modifyElementalistRechargeDuration(
           : attunement === 'Earth'
             ? PROFILE.geomancersTraining
             : PROFILE.aquamancersTraining;
-    adjustedDuration *= balanceProfileValueFromContext(context, profileId, 'rechargeMultiplier', 0.8);
+    adjustedDuration *= balanceProfileNumberFromContext(context, profileId, 'rechargeMultiplier');
   }
 
   return adjustedDuration;
@@ -75,12 +75,12 @@ function commitElementalistRechargeDuration(context: ElementalistPrecastContext,
   const state = professionCoreState(context);
   if (state.spearNextRechargeReduction && skillWeapon(skill) === 'Spear') {
     state.spearNextRechargeReduction = false;
-    return duration * balanceProfileValueFromContext(context, PROFILE.spearEmpowerments, 'rechargeMultiplier', 0.67);
+    return duration * balanceProfileNumberFromContext(context, PROFILE.spearEmpowerments, 'rechargeMultiplier');
   }
 
   if (state.dazingDischargeUntil > context.start && skillWeapon(skill) === 'Pistol') {
     state.dazingDischargeUntil = 0;
-    return duration * balanceProfileValueFromContext(context, PROFILE.dazingDischarge, 'rechargeMultiplier', 0.67);
+    return duration * balanceProfileNumberFromContext(context, PROFILE.dazingDischarge, 'rechargeMultiplier');
   }
 
   return duration;

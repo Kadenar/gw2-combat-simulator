@@ -6,8 +6,8 @@
  * Hammer skill fragments live in `skills/weapons/hammer.ts`.
  */
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -41,37 +41,34 @@ export function scheduleGrandFinaleProfile(context: ElementalistCastContext, ski
     const expiresAt = state.hammerOrbs[element];
     return expiresAt != null && expiresAt >= context.start;
   });
-  const conditions: Readonly<Record<ElementalistAttunement, readonly [string, number, number]>> = {
-    Fire: ['Burning', 2, 5],
-    Water: ['Vulnerability', 6, 10],
-    Air: ['Weakness', 1, 5],
-    Earth: ['Bleeding', 4, 5]
-  };
-  const at = context.effectiveEnd + balanceProfileValueFromContext(context, PROFILE.grandFinale, 'initialDelay', 0.68);
+
+  const at = context.effectiveEnd + balanceProfileNumberFromContext(context, PROFILE.grandFinale, 'initialDelay');
   for (let index = 0; index < active.length; index += 1) {
     const element = active[index];
-    const strike = balanceProfileEffectFromContext(context, PROFILE.grandFinale, 'strike', 0, element);
-    emitSkillDamage(context, {
-      at,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      coefficient: Number(strike?.coefficient ?? 1.4),
-      skillWeapon: 'Hammer',
-      comboFinishers: [
-        {
-          ownerId: 'elementalist',
-          finisherType: 'Projectile',
-          ambiguousFieldSelection: 'oldest'
-        }
-      ],
-      hitIndex: index + 1,
-      totalHits: active.length
-    });
-    const [condition, stacks, duration] = conditions[element];
-    emitProfiledCondition(context, at, PROFILE.grandFinale, element, condition, stacks, duration, skill.name, skill.id);
+    const strike = requireEffectFromContext(context, 'balance-profile', PROFILE.grandFinale, 'strike', element);
+    if (strike) {
+      emitSkillDamage(context, {
+        at,
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: 'player',
+        skillId: skill.id,
+        skillName: skill.name,
+        coefficient: Number(strike.coefficient),
+        skillWeapon: 'Hammer',
+        comboFinishers: [
+          {
+            ownerId: 'elementalist',
+            finisherType: 'Projectile',
+            ambiguousFieldSelection: 'oldest'
+          }
+        ],
+        hitIndex: index + 1,
+        totalHits: active.length
+      });
+    }
+
+    emitProfiledCondition(context, at, PROFILE.grandFinale, element, skill.name, skill.id);
   }
 
   return true;
@@ -107,7 +104,7 @@ export function applyHammerState(context: ElementalistCastContext, skill: Skill)
   const at = context.effectiveEnd;
   const single = HAMMER_ORB_SKILLS[Number(skill.id)];
   if (single) {
-    const orbDuration = balanceProfileValueFromContext(context, PROFILE.hammerOrbs, 'durationMultiplier', 15);
+    const orbDuration = balanceProfileNumberFromContext(context, PROFILE.hammerOrbs, 'durationMultiplier');
     const previouslyActive = new Set(activeHammerOrbElements(state, at));
     // Refresh every live orb's window and stretch the buff event already on the timeline.
     for (const [element, expiresAt] of Object.entries(state.hammerOrbs)) {

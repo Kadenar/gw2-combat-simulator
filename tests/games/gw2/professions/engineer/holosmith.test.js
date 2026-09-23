@@ -171,6 +171,7 @@ test('ECSU carries pulse readiness, resets at the threshold, and restarts on a d
   const state = createHolosmithState(config);
   const events = [];
   const context = {
+    catalog: engineerCatalog,
     config,
     state: { profession: { core: createEngineerCoreState(), specialization: { kind: 'Holosmith', state } } },
     events,
@@ -302,8 +303,15 @@ test('Holosmith Forge behavior follows skill IDs after display labels change', (
   const engage = { ...engineerCatalog.skillsById.get(ID.ENGAGE_PHOTON_FORGE), name: 'Renamed forge entry' };
 
   assert.equal(
-    holosmithCastAvailability({ config: { specialization: 'Holosmith' }, state: { profession }, start: 0 }, engage)
-      .code,
+    holosmithCastAvailability(
+      {
+        catalog: engineerCatalog,
+        config: { specialization: 'Holosmith' },
+        state: { profession },
+        start: 0
+      },
+      engage
+    ).code,
     'engineer.forge-active'
   );
 
@@ -329,6 +337,7 @@ test('Holosmith Forge behavior follows skill IDs after display labels change', (
 test('Engineer availability follows skill IDs after display labels change', () => {
   const core = createEngineerCoreState();
   const coreContext = {
+    catalog: engineerCatalog,
     config: { specialization: 'Core' },
     state: { profession: { core, specialization: { kind: 'Core', state: {} } } },
     start: 0
@@ -343,6 +352,7 @@ test('Engineer availability follows skill IDs after display labels change', () =
 
   const mechanist = createMechanistState();
   const mechanistContext = {
+    catalog: engineerCatalog,
     config: { specialization: 'Mechanist' },
     state: { profession: { core: createEngineerCoreState(), specialization: { kind: 'Mechanist', state: mechanist } } }
   };

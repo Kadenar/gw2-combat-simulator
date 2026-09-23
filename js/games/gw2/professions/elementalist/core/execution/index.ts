@@ -4,8 +4,8 @@ import { EPSILON } from '#kernel/core/clock.js';
  * Catalog fragments remain in `skills/`; cross-cast state lives in `mechanics/`.
  */
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { grantEndurance, spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
 import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
@@ -13,11 +13,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { produceGw2OwnedComboEvents } from '#gw2/platform/execution/gw2-policy/combo-materializer.js';
 import { emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import {
-  AURA_TRANSMUTE_SKILLS,
-  CONJURE_PICKUP_WEAPONS,
-  DODGE_ENDURANCE_COST
-} from '#gw2/professions/elementalist/core/constants.js';
+import { AURA_TRANSMUTE_SKILLS, CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { onAttunementComplete, targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { updateEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
 import { completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
@@ -31,7 +27,7 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
 import { shareAttunementVariantRecharge } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
+import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
 import {
   applyElementalistAura,
   applyGenericPostCast,
@@ -172,7 +168,7 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
         state,
         Number(skill.resourceGain),
         at,
-        balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100)
+        balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks')
       )
     );
   }
@@ -198,27 +194,23 @@ export const elementalistCoreSkillMechanicHandlers = Object.freeze({
     at: number;
   }): void => {
     const state = professionCoreState(context);
-    const auraByAttunement: Readonly<Record<ElementalistAttunement, readonly [string, number]>> = {
-      Fire: ['Fire Aura', 4],
-      Water: ['Frost Aura', 4],
-      Air: ['Shocking Aura', 3],
-      Earth: ['Magnetic Aura', 3]
-    };
-    const [fallbackAura, fallbackDuration] = auraByAttunement[state.primaryAttunement];
-    const auraEffect = balanceProfileEffectFromContext(
+    const auraEffect = requireEffectFromContext(
       context,
+      'balance-profile',
       PROFILE.elementalExplosion,
       'buff',
-      0,
       state.primaryAttunement
     );
-    applyElementalistAura(context, {
-      at,
-      aura: String(auraEffect?.kind || fallbackAura),
-      duration: Number(auraEffect?.duration ?? fallbackDuration),
-      skillName: skill.name,
-      sourceId: skill.id
-    });
+    if (auraEffect) {
+      applyElementalistAura(context, {
+        at,
+        aura: String(auraEffect.kind),
+        duration: Number(auraEffect.duration),
+        skillName: skill.name,
+        sourceId: skill.id
+      });
+    }
+
     for (const element of ELEMENTALIST_ATTUNEMENTS) state.pistolBullets[element] = false;
   }
 });
@@ -257,9 +249,9 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
       state,
       spendEndurance(
         state,
-        balanceProfileValueFromContext(context, PROFILE.resources, 'resourceCost', DODGE_ENDURANCE_COST),
+        balanceProfileNumberFromContext(context, PROFILE.resources, 'resourceCost'),
         context.effectiveEnd,
-        balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100)
+        balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks')
       )
     );
     triggerEvasiveArcana(context, skill);
@@ -268,7 +260,7 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
   completeArcaneEcho(context, skill);
 
   if (Number(skill.id) === ID.FULGOR) {
-    const pulse = balanceProfileEffectFromContext(context, PROFILE.fulgor, 'strike');
+    const pulse = requireEffectFromContext(context, 'balance-profile', PROFILE.fulgor, 'strike', 'Fulgor');
     if (!pulse?.ticks?.length) throw new TypeError('Fulgor requires an explicit strike timeline.');
     // Fulgor owns one secondary action at a time, so a recast replaces only
     // the prior action's pulses that had not occurred when the recast began.

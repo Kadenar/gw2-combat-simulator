@@ -184,7 +184,7 @@ test('profiled Burning procs preserve fractional totals and source attribution w
       },
       emit: (event) => events.push(event)
     };
-    emitProfiledCondition(context, 3, 'fixture', 'Fire', 'Burning', 1, 1, 'Fixture Proc', 123, 'Fixture Skill');
+    emitProfiledCondition(context, 3, 'fixture', 'Fire', 'Fixture Proc', 123, 'Fixture Skill');
     assert.deepEqual(
       events.map((event) => event.stacks),
       expected

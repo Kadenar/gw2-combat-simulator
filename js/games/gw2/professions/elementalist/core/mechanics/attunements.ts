@@ -2,7 +2,7 @@
  * Owns Core Elementalist attunement selection, recharge, and cast-completion transitions.
  * Specializations may intercept the shared hooks but keep their extra state locally.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -14,10 +14,6 @@ import {
   type ElementalistAttunement
 } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
-import {
-  ATTUNEMENT_RECHARGE_SECONDS,
-  OFF_ATTUNEMENT_RECHARGE_SECONDS
-} from '#gw2/professions/elementalist/core/constants.js';
 import { combatStarted } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   applyElementalistAttunementTraits,
@@ -62,7 +58,7 @@ export function elementalistAlacrityAdjustedDuration(context: ElementalistCastCo
 export function elementalistAttunementRechargeDuration(context: ElementalistCastContext, seconds: number): number {
   let adjusted = seconds;
   if (hasTrait(context, 'Elemental Enchantment')) {
-    adjusted *= balanceProfileValueFromContext(context, PROFILE.elementalEnchantment, 'rechargeMultiplier', 0.85);
+    adjusted *= balanceProfileNumberFromContext(context, PROFILE.elementalEnchantment, 'rechargeMultiplier');
   }
 
   return elementalistAlacrityAdjustedDuration(context, adjusted);
@@ -107,7 +103,7 @@ export function onAttunementComplete(
         at +
           elementalistAttunementRechargeDuration(
             context,
-            balanceProfileValueFromContext(context, PROFILE.resources, 'recharge', ATTUNEMENT_RECHARGE_SECONDS)
+            balanceProfileNumberFromContext(context, PROFILE.resources, 'recharge')
           )
       )
     );
@@ -118,7 +114,7 @@ export function onAttunementComplete(
         at +
         elementalistAttunementRechargeDuration(
           context,
-          balanceProfileValueFromContext(context, PROFILE.resources, 'initialDelay', OFF_ATTUNEMENT_RECHARGE_SECONDS)
+          balanceProfileNumberFromContext(context, PROFILE.resources, 'initialDelay')
         );
       let nextReadyAt = Math.max(existingReadyAt, defaultReadyAt);
       // Fresh Air can pull Air's ready time in ahead of its scheduled recharge.

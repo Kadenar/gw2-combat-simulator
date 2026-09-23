@@ -26,7 +26,7 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
   // Resolver procs use these authored packets and cooldowns, including explicit zero edits.
   trait(AMALGAM_BALANCE_PROFILE_IDS.carbolicComposition, 'Carbolic Composition', {
     conditionDurationBonus: 0.33,
-    effects: [{ type: 'condition', condition: 'Poisoned', stacks: 1, duration: 3 }]
+    effects: [{ name: 'Poisoned', type: 'condition', condition: 'Poisoned', stacks: 1, duration: 3 }]
   }),
   {
     id: AMALGAM_BALANCE_PROFILE_IDS.rapaciousStrain,
@@ -34,7 +34,7 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     profileKind: 'mechanic',
     durationMultiplier: 8,
     internalCooldown: 0.48,
-    effects: [{ type: 'strike', coefficient: 0.3, hits: 1 }]
+    effects: [{ name: 'Rapacious Strain', type: 'strike', coefficient: 0.3, hits: 1 }]
   },
   {
     id: AMALGAM_BALANCE_PROFILE_IDS.morphs,
@@ -43,7 +43,7 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     durationMultiplier: 6,
     pulseInterval: 1,
     maximumStacks: 6,
-    effects: [{ type: 'strike', coefficient: 0.5, hits: 1 }]
+    effects: [{ name: 'Amalgam Morphs', type: 'strike', coefficient: 0.5, hits: 1 }]
   },
   {
     id: AMALGAM_BALANCE_PROFILE_IDS.strains,
@@ -124,8 +124,15 @@ export const AMALGAM_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
   },
   trait(AMALGAM_BALANCE_PROFILE_IDS.newGenes, 'New Genes', {
     effects: [
-      { type: 'boon', boon: 'alacrity', stacks: 1, duration: 5 },
-      { type: 'boon', boon: 'might', stacks: 4, duration: 12 }
+      { name: 'alacrity', type: 'boon', boon: 'alacrity', stacks: 1, duration: 5 },
+      { name: 'might', type: 'boon', boon: 'might', stacks: 4, duration: 12 },
+      { name: 'cleanse', type: 'boon', boon: 'aegis', stacks: 1, duration: 4, metadata: { trigger: 'cleanse' } },
+      { name: 'protect', type: 'boon', boon: 'protection', stacks: 1, duration: 4, metadata: { trigger: 'protect' } },
+      { name: 'thorns', type: 'boon', boon: 'stability', stacks: 2, duration: 4, metadata: { trigger: 'thorns' } },
+      { name: 'demolish', type: 'boon', boon: 'swiftness', stacks: 1, duration: 6, metadata: { trigger: 'demolish' } },
+      { name: 'obliterate', type: 'boon', boon: 'might', stacks: 5, duration: 12, metadata: { trigger: 'obliterate' } },
+      { name: 'pierce', type: 'boon', boon: 'vigor', stacks: 1, duration: 4, metadata: { trigger: 'pierce' } },
+      { name: 'shred', type: 'boon', boon: 'fury', stacks: 1, duration: 6, metadata: { trigger: 'shred' } }
     ]
   }),
   trait(AMALGAM_BALANCE_PROFILE_IDS.willingHost, 'Willing Host', {

@@ -154,6 +154,7 @@ export function assertProfessionFamilyConformance({ family, core, specialization
     );
 
     const context = {
+      catalog: family.catalog,
       config,
       build: { ...family.createBuildDefaults(), specialization: name },
       state: { profession: state },

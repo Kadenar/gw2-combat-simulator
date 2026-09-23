@@ -4,7 +4,7 @@ import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
  * Owns Weave Self activation, Perfect Weave state, and attunement recharge changes.
  * Skill fragments remain in `skills/slot-skills.ts`.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { ScheduledTask } from '#gw2/platform/execution/types.js';
@@ -32,8 +32,7 @@ export function startWeaveSelfCast(context: ElementalistCastContext, skill: Skil
   if (skill.id !== ID.WEAVE_SELF) return;
   const at =
     context.start +
-    (context.fullEnd - context.start) *
-      balanceProfileValueFromContext(context, PROFILE.resources, 'firstPacketRatio', 0.65);
+    (context.fullEnd - context.start) * balanceProfileNumberFromContext(context, PROFILE.resources, 'firstPacketRatio');
   if (at > context.effectiveEnd + EPSILON) return;
   context.tasks.schedule({
     type: WEAVE_SELF_ACTIVATION_TASK,
@@ -48,8 +47,7 @@ export function modifyWeaveSelfRechargeStart(context: ElementalistPrecastContext
   if (context.skill.id !== ID.WEAVE_SELF) return rechargeStart;
   return (
     context.start +
-    (rechargeStart - context.start) *
-      balanceProfileValueFromContext(context, PROFILE.resources, 'firstPacketRatio', 0.65)
+    (rechargeStart - context.start) * balanceProfileNumberFromContext(context, PROFILE.resources, 'firstPacketRatio')
   );
 }
 
@@ -62,7 +60,7 @@ export function handleWeaveSelfActivation(
   const core = professionCoreState(context);
   const at = task.at;
   const sourceId = task.payload?.sourceId ?? ID.WEAVE_SELF;
-  const duration = balanceProfileValueFromContext(context, PROFILE.resources, 'durationMultiplier', 20);
+  const duration = balanceProfileNumberFromContext(context, PROFILE.resources, 'durationMultiplier');
   // Availability and emitted temporary buffs expire on the same combat tick.
   state.weaveSelfUntil = gw2EffectExpiresAt(at, duration);
   state.weaveSelfVisited = [core.primaryAttunement];
@@ -93,7 +91,7 @@ export function applyWeaveSelfAttunement(
 
   const recharge = elementalistAlacrityAdjustedDuration(
     context as never,
-    balanceProfileValueFromContext(context, PROFILE.resources, 'initialDelay', 2)
+    balanceProfileNumberFromContext(context, PROFILE.resources, 'initialDelay')
   );
   for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
     setElementalistAttunementReadyAt(context, attunement, at + recharge);
@@ -119,7 +117,7 @@ export function applyWeaveSelfAttunement(
   if (visited.size < ELEMENTALIST_ATTUNEMENTS.length) return;
   state.weaveSelfUntil = 0;
   state.weaveSelfVisited = [];
-  const perfectWeaveDuration = balanceProfileValueFromContext(context, PROFILE.resources, 'recharge', 10);
+  const perfectWeaveDuration = balanceProfileNumberFromContext(context, PROFILE.resources, 'recharge');
   state.perfectWeaveUntil = gw2EffectExpiresAt(at, perfectWeaveDuration);
   for (const kind of ['perfect weave', 'weave self fire', 'weave self air']) {
     emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {

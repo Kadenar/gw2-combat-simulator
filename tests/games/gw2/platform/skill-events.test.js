@@ -290,9 +290,7 @@ test('condition metadata validates every migrated annotation and preserves expli
   const metadata = {
     cloneId: 0,
     blade: false,
-    shatter: false,
     shatterTraitEligible: false,
-    instrument: 'Flute',
     triggeredByAlly: 0,
     venomProcEffectIndex: 0
   };

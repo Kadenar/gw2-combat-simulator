@@ -4,8 +4,8 @@
  *
  * Mechanic and skill-variant profiles carry their own ids; trait profiles are
  * keyed by trait id so a profile can be looked up straight from the trait. Code
- * reads these through the shared balance-profile accessors and always passes
- * a hardcoded fallback, so a build with no patch data still simulates.
+ * reads required values through the shared balance-profile contract; the
+ * authored catalog supplies baseline values when no patch is selected.
  */
 import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import {
@@ -84,7 +84,7 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 // Effect-literal builders keep the profile table below readable; the `name`
-// is the lookup key callers pass to `balanceProfileEffectFromContext`.
+// is the lookup key callers pass to `requireEffectFromContext`.
 const namedBoon = (name: string, boon: string, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',
   name,
@@ -221,7 +221,10 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     'Frozen Fusillade - Water Bullet',
     {
       initialDelay: 4,
-      effects: [{ type: 'strike', coefficient: 0.75, hits: 1 }, namedCondition('Water Bullet', 'Bleeding', 5, 8)]
+      effects: [
+        { type: 'strike', name: 'Water Bullet', coefficient: 0.75, hits: 1 },
+        namedCondition('Water Bullet', 'Bleeding', 5, 8)
+      ]
     }
   ),
   variant(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.dazingDischarge, ID.DAZING_DISCHARGE, 'Dazing Discharge - Air Bullet', {
@@ -242,6 +245,7 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     effects: [
       {
         type: 'strike',
+        name: 'Fulgor',
         ticks: Array.from({ length: 6 }, (_, index) => ({
           atMs: 320 + index * 1000,
           coefficient: 0,
@@ -322,7 +326,7 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.zephyrsSpeed, "Zephyr's Speed", { criticalChance: 0.05 }),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.freshAir, 'Fresh Air', {
     attributeBonus: 250,
-    effects: [{ type: 'buff', kind: 'fresh-air', stacks: 1, duration: 5 }]
+    effects: [{ name: 'fresh-air', type: 'buff', kind: 'fresh-air', stacks: 1, duration: 5 }]
   }),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.zephyrsBoon, "Zephyr's Boon", {
     effects: [namedBoon('Fury', 'fury', 1, 5), namedBoon('Swiftness', 'swiftness', 1, 5)]
@@ -362,7 +366,10 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     rechargeMultiplier: 0.8
   }),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.lightningRod, 'Lightning Rod', {
-    effects: [{ type: 'strike', coefficient: 1.5, hits: 1 }, namedCondition('Lightning Rod', 'Weakness', 1, 4)]
+    effects: [
+      { name: 'Lightning Rod', type: 'strike', coefficient: 1.5, hits: 1 },
+      namedCondition('Lightning Rod', 'Weakness', 1, 4)
+    ]
   }),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.earthsEmbrace, "Earth's Embrace", {
     internalCooldown: 15,
@@ -373,7 +380,7 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     effects: [namedBoon('Protection', 'protection', 1, 3)]
   }),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.earthenBlast, 'Earthen Blast', {
-    effects: [{ type: 'strike', coefficient: 0.36, hits: 1 }]
+    effects: [{ name: 'Earthen Blast', type: 'strike', coefficient: 0.36, hits: 1 }]
   }),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.strengthOfStone, 'Strength of Stone', {
     attributeConversion: 0.1,

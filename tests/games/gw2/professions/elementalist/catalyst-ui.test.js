@@ -65,8 +65,8 @@ test('Catalyst chart uses the Elemental Empowerment stack cap', () => {
 
 test('Catalyst exposes every Jade Sphere beside its energy in the rotation palette', () => {
   const context = {
-    specialization: 'Catalyst',
     catalog: elementalistProfession.catalog,
+    specialization: 'Catalyst',
     professionState: {
       primaryAttunement: 'Fire',
       energy: 30
@@ -92,6 +92,7 @@ test('Catalyst exposes every Jade Sphere beside its energy in the rotation palet
 
 test('Catalyst energy exposes its native compact-bar styling hook', () => {
   const [energy] = elementalistProfession.ui.resourceViews({
+    catalog: elementalistProfession.catalog,
     specialization: 'Catalyst',
     professionState: { energy: 20 }
   });
@@ -114,6 +115,7 @@ test('Elementalist utilities render beside profession controls before weapons', 
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
+    activeCatalog: elementalistProfession.catalog,
     skills: elementalistProfession.catalog.skills,
     skillByName: elementalistProfession.catalog.skillsByName,
     skillById: elementalistProfession.catalog.skillsById,
@@ -151,6 +153,7 @@ test('Catalyst sphere palette availability reflects attunement and energy', () =
   const fireSphere = elementalistProfession.catalog.skillsById.get(ELEMENTALIST_JADE_SPHERE_SKILL_IDS.Fire);
   const waterSphere = elementalistProfession.catalog.skillsById.get(ELEMENTALIST_JADE_SPHERE_SKILL_IDS.Water);
   const context = {
+    catalog: elementalistProfession.catalog,
     specialization: 'Catalyst',
     professionState: {
       primaryAttunement: 'Fire',

@@ -3,9 +3,8 @@
  * Conjure skill fragments live in `skills/conjure-skills.ts`.
  */
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValue,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -38,20 +37,19 @@ export function applyConjureState(context: ElementalistLifecycleContext, skill: 
   if (conjuredWeapon) {
     state.conjureEquipped = conjuredWeapon;
     state.conjurePickups[conjuredWeapon] =
-      at + balanceProfileValueFromContext(context, PROFILE.conjurePickups, 'durationMultiplier', 30);
+      at + balanceProfileNumberFromContext(context, PROFILE.conjurePickups, 'durationMultiplier');
     swapped = true;
     if (hasTrait(context, 'Conjurer')) {
-      applyElementalistAura(context, {
-        at,
-        aura: 'Fire Aura',
-        duration: balanceProfileValue(
-          balanceProfileEffectFromContext(context, PROFILE.conjurer, 'buff', 0, 'Conjurer'),
-          'duration',
-          4
-        ),
-        skillName: 'Conjurer',
-        sourceId: skill.id
-      });
+      const conjurerBuff = requireEffectFromContext(context, 'balance-profile', PROFILE.conjurer, 'buff', 'Conjurer');
+      if (conjurerBuff) {
+        applyElementalistAura(context, {
+          at,
+          aura: String(conjurerBuff.kind),
+          duration: Number(conjurerBuff.duration),
+          skillName: 'Conjurer',
+          sourceId: skill.id
+        });
+      }
     }
   } else if (Number(skill.id) === ID.DROP_BUNDLE) {
     swapped = state.conjureEquipped != null;
@@ -71,7 +69,7 @@ export function applyConjureState(context: ElementalistLifecycleContext, skill: 
   if (swapped) {
     // Each equipped copy gets its own lifetime; the separately summoned ground copy is consumed once.
     state.conjureExpiresAt = state.conjureEquipped
-      ? at + balanceProfileValueFromContext(context, PROFILE.conjurePickups, 'durationMultiplier', 30)
+      ? at + balanceProfileNumberFromContext(context, PROFILE.conjurePickups, 'durationMultiplier')
       : 0;
     resetAutoattackChains(context);
     context.emit({

@@ -1,7 +1,7 @@
 /**
  * Balance-profile data for Catalyst: the energy resource, the three augment skill
  * variants, and every Catalyst trait. Mechanics read these through
- * `balanceProfileValueFromContext`/`balanceProfileEffectFromContext`, so patch data can retune
+ * the shared required-value and removal-aware effect readers, so patch data can retune
  * Catalyst numbers without touching handler code.
  */
 import type { BalanceProfile, SkillEffect } from '#gw2/platform/engine/skills/types.js';
@@ -32,7 +32,7 @@ export const CATALYST_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 // Named boon/aura effect shorthands; `name` is the lookup key handlers pass to
-// balanceProfileEffectFromContext (usually the attunement), not the buff itself.
+// requireEffectFromContext (usually the attunement), not the buff itself.
 const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',
   name,
@@ -84,8 +84,8 @@ export const CATALYST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     durationPerTier: 8,
     internalCooldown: 1,
     effects: [
-      { type: 'strike', coefficient: 0.6, hits: 1 },
-      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 1 }
+      { name: 'Shattering Ice - Triggered Packet', type: 'strike', coefficient: 0.6, hits: 1 },
+      { name: 'Chilled', type: 'condition', condition: 'Chilled', stacks: 1, duration: 1 }
     ]
   },
   {

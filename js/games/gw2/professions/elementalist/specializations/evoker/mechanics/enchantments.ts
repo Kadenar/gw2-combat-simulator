@@ -9,7 +9,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
  * be charged twice.
  */
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { balanceProfileEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
@@ -23,41 +23,60 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementa
 // Materialize Electric Enchantment's strike and condition package for the invoking
 // skill while preserving shared event attribution.
 function emitElectricEnchantment(context: ElementalistSchedulerContext, event: SimulationEvent): void {
-  const strike = balanceProfileEffectFromContext(context, PROFILE.galvanicEnchantment, 'strike');
-  const burning = balanceProfileEffectFromContext(context, PROFILE.galvanicEnchantment, 'condition');
-  emitSkillDamage(context, {
-    cause: event,
+  const strike = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.galvanicEnchantment,
+    'strike',
+    'Galvanic Enchantment'
+  );
+  const burning = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.galvanicEnchantment,
+    'condition',
+    'Burning'
+  );
+  if (strike) {
+    emitSkillDamage(context, {
+      cause: event,
 
-    at: event.at,
-    source: 'Electric Enchantment',
-    sourceId: event.skillId ?? event.sourceId,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    skillName: 'Electric Enchantment',
-    coefficient: Number(strike?.coefficient ?? 0.4),
-    skillWeapon: 'Unequipped'
-  });
-  emitSkillCondition(context, {
-    cause: event,
+      at: event.at,
+      source: 'Electric Enchantment',
+      sourceId: event.skillId ?? event.sourceId,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillName: 'Electric Enchantment',
+      coefficient: Number(strike.coefficient),
+      skillWeapon: 'Unequipped'
+    });
+  }
 
-    at: event.at,
-    source: 'Electric Enchantment',
-    sourceId: event.skillId ?? event.sourceId,
-    actorType: 'effect',
-    ownerActorType: 'player',
-    skillName: 'Electric Enchantment',
-    condition: String(burning?.condition || 'Burning'),
-    stacks: Number(burning?.stacks ?? 1),
-    duration: Number(burning?.duration ?? 1.5)
-  });
-  emitElementalistProc(context as never, {
-    at: event.at,
-    name: 'Electric Enchantment',
-    procType: 'trait',
-    sourceId: event.skillId ?? event.sourceId,
-    sourceSkill: String(event.skillName || event.source || ''),
-    icon: ELECTRIC_ENCHANTMENT_ICON
-  });
+  if (burning) {
+    emitSkillCondition(context, {
+      cause: event,
+
+      at: event.at,
+      source: 'Electric Enchantment',
+      sourceId: event.skillId ?? event.sourceId,
+      actorType: 'effect',
+      ownerActorType: 'player',
+      skillName: 'Electric Enchantment',
+      condition: String(burning.condition),
+      stacks: Number(burning.stacks),
+      duration: Number(burning.duration)
+    });
+  }
+
+  if (strike || burning)
+    emitElementalistProc(context as never, {
+      at: event.at,
+      name: 'Electric Enchantment',
+      procType: 'trait',
+      sourceId: event.skillId ?? event.sourceId,
+      sourceSkill: String(event.skillName || event.source || ''),
+      icon: ELECTRIC_ENCHANTMENT_ICON
+    });
 }
 
 /** Marks the canonical hit before emission so repeated or reentrant processing cannot spend it twice. */

@@ -1,3 +1,4 @@
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
@@ -20,6 +21,7 @@ test('Elementalist ignores cancelled Vigor grants and extensions in recovery and
   for (const cancelledType of ['buff', 'boon_extension']) {
     for (const targets of [[8], [2, 3, 4, 6, 8]]) {
       const context = {
+        catalog: elementalistCatalog,
         config: {},
         events: [
           vigor(0, 20, false),
@@ -41,7 +43,11 @@ test('Elementalist ignores cancelled Vigor grants and extensions in recovery and
 });
 
 test('timed Vigor recovery crosses application and expiry boundaries without rewinding', () => {
-  const context = { config: {}, events: [vigor(2, 2), vigor(0, 20, false)] };
+  const context = {
+    catalog: elementalistCatalog,
+    config: {},
+    events: [vigor(2, 2), vigor(0, 20, false)]
+  };
   const state = { endurance: 0, enduranceUpdatedAt: 0 };
 
   // Two base seconds, two Vigor seconds, then two base seconds restore 35 endurance.
@@ -55,7 +61,11 @@ test('timed Vigor recovery crosses application and expiry boundaries without rew
 });
 
 test('Vigor stacks duration without stacking its rate and respects the duration cap', () => {
-  const context = { config: {}, events: [vigor(3, 2), vigor(2, 2)] };
+  const context = {
+    catalog: elementalistCatalog,
+    config: {},
+    events: [vigor(3, 2), vigor(2, 2)]
+  };
   const state = { endurance: 0, enduranceUpdatedAt: 0 };
   updateEndurance(context, state, 8);
   assert.equal(state.endurance, 50);
@@ -68,7 +78,11 @@ test('Vigor stacks duration without stacking its rate and respects the duration 
 });
 
 test('permanent Vigor keeps its rate through timed expiry and endurance remains capped', () => {
-  const context = { config: { boons: { vigor: true } }, events: [vigor(2, 2)] };
+  const context = {
+    catalog: elementalistCatalog,
+    config: { boons: { vigor: true } },
+    events: [vigor(2, 2)]
+  };
   const state = { endurance: 0, enduranceUpdatedAt: 0 };
   updateEndurance(context, state, 6);
   assert.equal(state.endurance, 45);

@@ -1,5 +1,5 @@
 /** Owns Arcane Echo's window and the later weapon cast that consumes it. */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
@@ -11,7 +11,7 @@ export function completeArcaneEcho(context: ElementalistCastContext, skill: Skil
   const state = professionCoreState(context);
   if (Number(skill.id) === ID.ARCANE_ECHO) {
     state.arcaneEchoUntil =
-      context.effectiveEnd + balanceProfileValueFromContext(context, PROFILE.arcaneEcho, 'durationMultiplier', 10);
+      context.effectiveEnd + balanceProfileNumberFromContext(context, PROFILE.arcaneEcho, 'durationMultiplier');
     return;
   }
 
@@ -27,7 +27,7 @@ export function completeArcaneEcho(context: ElementalistCastContext, skill: Skil
   state.arcaneEchoUntil = 0;
   context.state.cooldowns.set(
     skill.id,
-    context.effectiveEnd + balanceProfileValueFromContext(context, PROFILE.arcaneEcho, 'recharge', 1)
+    context.effectiveEnd + balanceProfileNumberFromContext(context, PROFILE.arcaneEcho, 'recharge')
   );
   const arcaneEcho = context.catalog.skillsById.get(ID.ARCANE_ECHO);
   if (arcaneEcho) {

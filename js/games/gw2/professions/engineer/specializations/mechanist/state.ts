@@ -1,9 +1,13 @@
+import {
+  MECHANIST_BALANCE_PROFILES,
+  MECHANIST_BALANCE_PROFILE_IDS as PROFILE
+} from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
 } from '#gw2/platform/engine/profession/state.js';
-import { balanceProfileValue } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -87,18 +91,28 @@ function playerAttribute(stats: Partial<Gw2Stats>, key: keyof EngineerMechAttrib
 export function engineerMechAttributes(
   config: EngineerConfig = {},
   playerStats: Partial<Gw2Stats> = {},
-  profile?: BalanceProfile
+  profile: BalanceProfile = MECHANIST_BALANCE_PROFILES.find((entry) => entry.id === PROFILE.resources)!
 ): EngineerMechAttributes {
   const traits = selectedEngineerTraits(config);
   const conductive = hasTrait(traits, TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS);
   const channeling = hasTrait(traits, TRAIT.MECH_FRAME_CHANNELING_CONDUITS);
   const variable = hasTrait(traits, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR);
 
-  const baseAttribute = balanceProfileValue(profile, 'baseAttribute', 1000);
-  const inheritanceRatio = balanceProfileValue(profile, 'inheritanceRatio', 0.5);
-  const secondaryCap = balanceProfileValue(profile, 'secondaryAttributeCap', 750);
-  const improvedSecondaryCap = balanceProfileValue(profile, 'improvedSecondaryAttributeCap', 1500);
-  const improvedInheritanceRatio = balanceProfileValue(profile, 'improvedInheritanceRatio', 1);
+  // Standalone initialization uses the canonical declaration; runtime callers pass their selected profile.
+  const balanceContext = { balanceProfile: () => profile };
+  const baseAttribute = balanceProfileNumberFromContext(balanceContext, PROFILE.resources, 'baseAttribute');
+  const inheritanceRatio = balanceProfileNumberFromContext(balanceContext, PROFILE.resources, 'inheritanceRatio');
+  const secondaryCap = balanceProfileNumberFromContext(balanceContext, PROFILE.resources, 'secondaryAttributeCap');
+  const improvedSecondaryCap = balanceProfileNumberFromContext(
+    balanceContext,
+    PROFILE.resources,
+    'improvedSecondaryAttributeCap'
+  );
+  const improvedInheritanceRatio = balanceProfileNumberFromContext(
+    balanceContext,
+    PROFILE.resources,
+    'improvedInheritanceRatio'
+  );
   // Secondary stats inherit 50 % of the player's value up to 750.
   // Conductive Alloys and Channeling Conduits each double the cap to 1500 and
   // raise the inheritance ratio to 100 % for their respective stat groups.
@@ -110,15 +124,16 @@ export function engineerMechAttributes(
 
   return {
     power: Math.min(
-      balanceProfileValue(profile, 'powerCap', 2250),
+      balanceProfileNumberFromContext(balanceContext, PROFILE.resources, 'powerCap'),
       baseAttribute + playerAttribute(playerStats, 'power', 1000) * inheritanceRatio
     ),
     precision: variable
       ? Math.min(
-          balanceProfileValue(profile, 'precisionCap', 2500),
-          balanceProfileValue(profile, 'basePrecision', 1) + playerAttribute(playerStats, 'precision', 1000)
+          balanceProfileNumberFromContext(balanceContext, PROFILE.resources, 'precisionCap'),
+          balanceProfileNumberFromContext(balanceContext, PROFILE.resources, 'basePrecision') +
+            playerAttribute(playerStats, 'precision', 1000)
         )
-      : balanceProfileValue(profile, 'basePrecision', 1),
+      : balanceProfileNumberFromContext(balanceContext, PROFILE.resources, 'basePrecision'),
     toughness: baseAttribute + playerAttribute(playerStats, 'toughness', 1000),
     vitality: baseAttribute + playerAttribute(playerStats, 'vitality', 1000),
     ferocity: secondary('ferocity'),

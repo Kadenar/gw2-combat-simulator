@@ -7,7 +7,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * the resource events the charge dial renders. Spending charges belongs to the
  * familiar handlers; this module only accrues and reports them.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -31,13 +31,22 @@ export function initialize(context: ElementalistSchedulerContext): void {
   const core = professionCoreState(context);
   // Specialized Elements keeps the six-charge capacity but accelerates each
   // matching weapon skill to three charges.
-  state.maximumCharges = balanceProfileValueFromContext(
+  state.maximumCharges = balanceProfileNumberFromContext(
     context,
     hasTrait(context, 'Specialized Elements') ? PROFILE.specializedElements : PROFILE.resources,
-    'maximumStacks',
-    6
+    'maximumStacks'
   );
-  state.charges = Math.min(state.maximumCharges, state.charges);
+  state.charges = Math.max(
+    0,
+    Math.min(state.maximumCharges, Number(context.config.initialEvokerCharges ?? state.maximumCharges))
+  );
+  state.empowered = Math.max(
+    0,
+    Math.min(
+      balanceProfileNumberFromContext(context, PROFILE.resources, 'minimumStacks'),
+      Number(context.config.initialEvokerEmpowered ?? 0)
+    )
+  );
   // locks the core attunement system to the fixed element so core trait procs key off the right element
   if (hasTrait(context, 'Specialized Elements')) {
     core.primaryAttunement = state.element;
@@ -87,8 +96,8 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pic
   return String(skill.attunement || '')
     .split('+')
     .includes(state.element)
-    ? balanceProfileValueFromContext(context, profile, 'playerStacks', specialized ? 3 : 2)
-    : balanceProfileValueFromContext(context, PROFILE.resources, 'allyStacks', 1);
+    ? balanceProfileNumberFromContext(context, profile, 'playerStacks')
+    : balanceProfileNumberFromContext(context, PROFILE.resources, 'allyStacks');
 }
 
 // commits one grant, clamped to capacity, and reports it with a delta so the log shows the change

@@ -3,7 +3,7 @@ import type { ElementalistUiContext, ElementalistUiSlice } from '#gw2/profession
  * Tempest UI contract: groups the four overloads on the rotation palette, and
  * previews overload availability so the editor can grey out casts the scheduler would reject.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { PaletteSkillAvailability } from '#gw2/platform/profession-presentation/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -36,8 +36,8 @@ function overloadPaletteAvailability(context: ElementalistUiContext, skill: Skil
   const boons = config?.boons;
   const dwell =
     (hasTrait(context, 'Transcendent Tempest')
-      ? balanceProfileValueFromContext(context, PROFILE.overloads, 'durationMultiplier', 4)
-      : balanceProfileValueFromContext(context, PROFILE.overloads, 'initialDelay', 6)) /
+      ? balanceProfileNumberFromContext(context, PROFILE.overloads, 'durationMultiplier')
+      : balanceProfileNumberFromContext(context, PROFILE.overloads, 'initialDelay')) /
     (Boolean(boons?.alacrity ?? assumptions?.alacrity) ? 1.25 : 1);
   const retryAt = enteredAt + dwell;
   const available = Number(context.time || 0) + 1e-9 >= retryAt;

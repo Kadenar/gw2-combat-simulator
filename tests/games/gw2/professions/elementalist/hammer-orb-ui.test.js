@@ -20,6 +20,7 @@ function createHammerApp(hammerOrbs, time = 0) {
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
+    activeCatalog: elementalistProfession.catalog,
     skills: elementalistCatalog.skills,
     skillByName: elementalistCatalog.skillsByName,
     skillById: elementalistCatalog.skillsById,

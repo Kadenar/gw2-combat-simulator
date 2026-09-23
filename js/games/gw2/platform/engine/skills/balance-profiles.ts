@@ -183,11 +183,17 @@ export function balanceProfileNumberFromContext(context: unknown, id: SkillId, f
 /** Read one opt-in proc chance for scheduler and resolver paths while retaining profession-owned eligibility and ICDs. */
 export function procChanceFromContext(
   context: { readonly config?: { readonly procRateOverrides?: Readonly<Record<string, number>> } },
-  id: SkillId,
-  fallback = 0.33
+  id: SkillId
 ): number {
-  const profile = balanceProfileFromContext(context, id);
-  const declaration = profile?.procRate;
-  const override = declaration && context.config?.procRateOverrides?.[declaration.id];
-  return override ?? balanceProfileValue(profile, declaration?.field ?? 'procChance', fallback);
+  const profile = requireBalanceProfileFromContext(context, id);
+  const declaration = profile.procRate;
+  const label = balanceDataLabel(context, `profile=${id} field=procRate`, profile);
+  if (!declaration?.id || !declaration.field) throw new Error(`Invalid balance data: ${label} missing declaration`);
+  // Overrides tune a valid declaration; they must not conceal missing or invalid baseline data.
+  const baseline = balanceProfileNumberFromContext(context, id, declaration.field);
+  const override = context.config?.procRateOverrides?.[declaration.id];
+  const chance = override === undefined ? baseline : requireBalanceNumber(override, label);
+  if (baseline < 0 || baseline > 1 || chance < 0 || chance > 1)
+    throw new Error(`Invalid balance data: ${label} expected=number in [0, 1]`);
+  return chance;
 }

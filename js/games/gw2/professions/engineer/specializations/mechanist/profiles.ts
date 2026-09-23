@@ -39,48 +39,42 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Jade Mech Melee Chain',
     profileKind: 'skill-variant',
     effects: [
-      {
-        type: 'strike',
-        coefficient: 0.45,
-        hits: 1
-      },
-      {
-        type: 'strike',
-        coefficient: 0.45,
-        hits: 1
-      },
-      {
-        type: 'strike',
-        coefficient: 0.8,
-        hits: 2,
-        atMs: 0
-      }
+      { name: 'Hard Strike', type: 'strike', coefficient: 0.45, hits: 1 },
+      { name: 'Heavy Smash (Mech)', type: 'strike', coefficient: 0.45, hits: 1 },
+      { name: 'Twin Strike (Mech)', type: 'strike', coefficient: 0.8, hits: 2, atMs: 0 }
     ]
   },
   trait(MECHANIST_BALANCE_PROFILE_IDS.jadeCannons, 'Jade Cannons', {
     criticalChance: 0.2,
-    effects: [{ type: 'strike', coefficient: 0.42, hits: 1 }]
+    effects: [
+      { name: 'Jade Cannons', type: 'strike', coefficient: 0.42, hits: 1 },
+      { name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 6 }
+    ]
   }),
   trait(MECHANIST_BALANCE_PROFILE_IDS.rocketPunch, 'Rocket Punch', {
     internalCooldown: 5,
     effects: [
-      { type: 'strike', coefficient: 1, hits: 1 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 5 },
-      { type: 'control' }
+      { name: 'Rocket Punch', type: 'strike', coefficient: 1, hits: 1 },
+      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 5 },
+      { name: 'Rocket Punch', type: 'control' }
     ]
   }),
   // Trait tuning is shared by build calculations, combat, and tooltips.
   trait(TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, 'Mech Arms: High-Impact Drivers', {
     internalCooldown: 1,
-    effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 10, packetLabel: 'on qualifying mech strikes' }]
+    effects: [
+      { name: 'might', type: 'boon', boon: 'might', stacks: 1, duration: 10, packetLabel: 'on qualifying mech strikes' }
+    ]
   }),
   trait(TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, 'Mech Arms: Single-Edge Cutters', {
     internalCooldown: 1,
-    effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3, actorType: 'summon' }]
+    effects: [
+      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3, actorType: 'summon' }
+    ]
   }),
   trait(MECHANIST_BALANCE_PROFILE_IDS.jadeDynamo, 'Jade Dynamo', {
     rechargeMultiplier: 0.8,
-    effects: [{ type: 'boon', boon: 'quickness', stacks: 1, duration: 2.5 }]
+    effects: [{ name: 'quickness', type: 'boon', boon: 'quickness', stacks: 1, duration: 2.5 }]
   }),
   {
     id: MECHANIST_BALANCE_PROFILE_IDS.forceSignet,
@@ -97,8 +91,8 @@ export const MECHANIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     parentId: ID.OVERCLOCK_SIGNET,
     packetCount: 5,
     effects: [
-      { type: 'strike', coefficient: 0.95, hits: 1 },
-      { type: 'condition', condition: 'Burning', stacks: 1, duration: 6 }
+      { name: 'Jade Buster Cannon', type: 'strike', coefficient: 0.95, hits: 1 },
+      { name: 'Burning', type: 'condition', condition: 'Burning', stacks: 1, duration: 6 }
     ]
   }
 ]);

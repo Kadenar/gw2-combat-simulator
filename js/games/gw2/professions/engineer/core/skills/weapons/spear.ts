@@ -126,7 +126,8 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'condition',
         condition: 'Burning',
-        // Each delayed follow-up strike applies one separate burning packet.
+        // Burning owns its cadence independently of the removable strike timeline.
+        atMs: 160,
         stacks: 1,
         applications: 6,
         intervalMs: 160,

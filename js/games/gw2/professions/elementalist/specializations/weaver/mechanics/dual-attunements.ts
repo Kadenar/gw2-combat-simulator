@@ -10,8 +10,8 @@
 import { denySkillCast } from '#gw2/professions/shared/availability.js';
 import { denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -85,7 +85,7 @@ function initialize(context: ElementalistSchedulerContext): void {
       actorType: 'player',
       kind: 'elements of rage',
       stacks: 1,
-      duration: balanceProfileValueFromContext(context, PROFILE.elementsOfRage, 'durationMultiplier', 8),
+      duration: balanceProfileNumberFromContext(context, PROFILE.elementsOfRage, 'durationMultiplier'),
       skillName: 'Starting Attunement'
     });
   }
@@ -162,9 +162,6 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       event.at,
       PROFILE.elementalPursuit,
       'Swiftness',
-      'Swiftness',
-      1,
-      3,
       'Elemental Pursuit',
       event.skillId ?? event.sourceId
     );
@@ -205,7 +202,7 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
       actorType: 'player',
       kind: 'elements of rage',
       stacks: 1,
-      duration: balanceProfileValueFromContext(context, PROFILE.elementsOfRage, 'durationMultiplier', 8),
+      duration: balanceProfileNumberFromContext(context, PROFILE.elementsOfRage, 'durationMultiplier'),
       skillName: source
     });
   }
@@ -215,17 +212,25 @@ function onEventScheduled(context: ElementalistSchedulerContext, event: Simulati
   // Pre-combat setup swaps must not generate trait procs.
   if (at < Number(context.combatStartTime || 0) - EPSILON) return;
   if (hasTrait(context, "Weaver's Prowess") && (unravelActive || target === previous)) {
-    const resistance = balanceProfileEffectFromContext(context, PROFILE.weaversProwess, 'boon', 0, 'Resistance');
-    emitSkillBuff(context, elementalistEventSkill(context, "Weaver's Prowess", sourceId), {
-      at,
-      source: "Weaver's Prowess",
-      sourceId,
-      actorType: 'player',
-      kind: String(resistance?.boon || 'Resistance').toLowerCase(),
-      stacks: Number(resistance?.stacks ?? 1),
-      duration: Number(resistance?.duration ?? 3),
-      skillName: "Weaver's Prowess"
-    });
+    const resistance = requireEffectFromContext(
+      context,
+      'balance-profile',
+      PROFILE.weaversProwess,
+      'boon',
+      'Resistance'
+    );
+    if (resistance) {
+      emitSkillBuff(context, elementalistEventSkill(context, "Weaver's Prowess", sourceId), {
+        at,
+        source: "Weaver's Prowess",
+        sourceId,
+        actorType: 'player',
+        kind: String(resistance.boon).toLowerCase(),
+        stacks: Number(resistance.stacks),
+        duration: Number(resistance.duration),
+        skillName: "Weaver's Prowess"
+      });
+    }
   }
 
   // A normal Weaver swap moves both hands and so counts as two attunement
@@ -252,7 +257,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
       0,
       WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS -
         (hasTrait(context, 'Flow State')
-          ? balanceProfileValueFromContext(context, PROFILE.flowState, 'rechargeReduction', 1)
+          ? balanceProfileNumberFromContext(context, PROFILE.flowState, 'rechargeReduction')
           : 0)
     );
     onAttunementComplete(context, skill, target, {
@@ -267,24 +272,24 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   applyWeaverHammerState(context, skill);
 
   if (hasTrait(context, 'Bolstered Elements') && skill.skillFamily === 'Stance') {
-    emitProfiledBuff(context, at, PROFILE.bolsteredElements, 'Protection', 'Protection', 1, 3, skill.name, skill.id);
+    emitProfiledBuff(context, at, PROFILE.bolsteredElements, 'Protection', skill.name, skill.id);
   }
 
   // Swift Revenge pays out per element of the dual skill that was just cast.
   if (hasTrait(context, 'Swift Revenge') && dualAttunements) {
     for (const element of dualAttunements) {
       if (element === 'Fire') {
-        emitProfiledBuff(context, at, PROFILE.swiftRevenge, 'Fire', 'Might', 3, 5, skill.name, skill.id);
+        emitProfiledBuff(context, at, PROFILE.swiftRevenge, 'Fire', skill.name, skill.id);
       } else if (element === 'Air') {
-        emitProfiledBuff(context, at, PROFILE.swiftRevenge, 'Air', 'Swiftness', 1, 5, skill.name, skill.id);
+        emitProfiledBuff(context, at, PROFILE.swiftRevenge, 'Air', skill.name, skill.id);
       } else if (element === 'Earth') {
         Object.assign(
           core,
           grantEndurance(
             core,
-            balanceProfileValueFromContext(context, PROFILE.swiftRevenge, 'resourceGain', 25),
+            balanceProfileNumberFromContext(context, PROFILE.swiftRevenge, 'resourceGain'),
             at,
-            balanceProfileValueFromContext(context, CORE_PROFILE.resources, 'maximumStacks', 100)
+            balanceProfileNumberFromContext(context, CORE_PROFILE.resources, 'maximumStacks')
           )
         );
       }
@@ -299,8 +304,8 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
     isInternalCooldownReady(at, state.superiorElementsReadyAt)
   ) {
     state.superiorElementsReadyAt =
-      at + balanceProfileValueFromContext(context, PROFILE.superiorElements, 'internalCooldown', 4);
-    emitProfiledCondition(context, at, PROFILE.superiorElements, 'Weakness', 'Weakness', 1, 5, skill.name, skill.id);
+      at + balanceProfileNumberFromContext(context, PROFILE.superiorElements, 'internalCooldown');
+    emitProfiledCondition(context, at, PROFILE.superiorElements, 'Weakness', skill.name, skill.id);
   }
 
   // The Spear dual skill makes the main-hand element immediately re-attunable
@@ -322,7 +327,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
     const previousPrimary = core.primaryAttunement;
     const previousSecondary = state.secondaryAttunement;
     state.secondaryAttunement = core.primaryAttunement;
-    state.unravelUntil = at + balanceProfileValueFromContext(context, PROFILE.unravel, 'durationMultiplier', 5);
+    state.unravelUntil = at + balanceProfileNumberFromContext(context, PROFILE.unravel, 'durationMultiplier');
     core.attunementEnteredAt = at;
     context.emit({
       type: 'elementalist.attunement',
@@ -342,26 +347,21 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
       setElementalistAttunementReadyAt(context, attunement as keyof typeof core.attunementReadyAt, at);
     }
 
-    const boon =
-      previousPrimary === 'Fire'
-        ? (['Fire', 'Might', 5] as const)
-        : previousPrimary === 'Water'
-          ? (['Water', 'Vigor', 1] as const)
-          : previousPrimary === 'Air'
-            ? (['Air', 'Fury', 1] as const)
-            : (['Earth', 'Protection', 1] as const);
-    const profiledBoon = balanceProfileEffectFromContext(context, PROFILE.unravel, 'boon', 0, boon[0]);
-    const boonKind = String(profiledBoon?.boon || boon[1]).toLowerCase();
-    emitSkillBuff(context, skill, {
-      at: context.effectiveEnd,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: 'player',
-      name: skill.name,
-      kind: boonKind,
-      duration: Number(profiledBoon?.duration ?? 5),
-      stacks: Number(profiledBoon?.stacks ?? boon[2])
-    });
+    const profiledBoon = requireEffectFromContext(context, 'balance-profile', PROFILE.unravel, 'boon', previousPrimary);
+    if (profiledBoon) {
+      const boonKind = String(profiledBoon.boon).toLowerCase();
+      emitSkillBuff(context, skill, {
+        at: context.effectiveEnd,
+        source: skill.name,
+        sourceId: skill.id,
+        actorType: 'player',
+        name: skill.name,
+        kind: boonKind,
+        duration: Number(profiledBoon.duration),
+        stacks: Number(profiledBoon.stacks)
+      });
+    }
+
     if (hasTrait(context, 'Elements of Rage') && previousPrimary !== previousSecondary) {
       emitSkillBuff(context, skill, {
         at: context.effectiveEnd,
@@ -370,7 +370,7 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
         actorType: 'player',
         name: skill.name,
         kind: 'elements of rage',
-        duration: balanceProfileValueFromContext(context, PROFILE.elementsOfRage, 'durationMultiplier', 8),
+        duration: balanceProfileNumberFromContext(context, PROFILE.elementsOfRage, 'durationMultiplier'),
         stacks: 1
       });
     }
@@ -378,17 +378,19 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
 
   // Dual attacks grant Might only while the stance is armed and strictly unexpired.
   if (dualAttunements && state.ferventStanceUntil > 0 && state.ferventStanceUntil > at) {
-    const might = balanceProfileEffectFromContext(context, PROFILE.ferventStance, 'boon', 0, 'Might');
-    emitSkillBuff(context, skill, {
-      at,
-      source: 'Fervent Stance',
-      sourceId: skill.id,
-      actorType: 'player',
-      kind: String(might?.boon || 'Might').toLowerCase(),
-      stacks: Number(might?.stacks ?? 3),
-      duration: Number(might?.duration ?? 8),
-      skillName: 'Fervent Stance'
-    });
+    const might = requireEffectFromContext(context, 'balance-profile', PROFILE.ferventStance, 'boon', 'Might');
+    if (might) {
+      emitSkillBuff(context, skill, {
+        at,
+        source: 'Fervent Stance',
+        sourceId: skill.id,
+        actorType: 'player',
+        kind: String(might.boon).toLowerCase(),
+        stacks: Number(might.stacks),
+        duration: Number(might.duration),
+        skillName: 'Fervent Stance'
+      });
+    }
   }
 }
 
@@ -405,7 +407,7 @@ export const weaverSkillMechanicHandlers = Object.freeze({
     at: number;
   }): void => {
     weaverState.from(context).ferventStanceUntil =
-      at + balanceProfileValueFromContext(context, PROFILE.ferventStance, 'durationMultiplier', 8);
+      at + balanceProfileNumberFromContext(context, PROFILE.ferventStance, 'durationMultiplier');
   }
 });
 
@@ -416,7 +418,7 @@ function afterCast(context: ElementalistCastContext, skill: Skill): void {
     const state = weaverState.from(context);
     const core = professionCoreState(context);
     state.unravelUntil =
-      context.effectiveEnd + balanceProfileValueFromContext(context, PROFILE.unravel, 'durationMultiplier', 5);
+      context.effectiveEnd + balanceProfileNumberFromContext(context, PROFILE.unravel, 'durationMultiplier');
     for (const attunement of Object.keys(core.attunementReadyAt)) {
       setElementalistAttunementReadyAt(
         context,
@@ -435,11 +437,11 @@ function modifyRechargeDuration(context: ElementalistPrecastContext, duration: n
   const skill = context.skill;
   let adjusted = duration;
   if (skill.id === ID.PURBLINDING_PLASMA && professionCoreState(context).pistolBullets.Air) {
-    adjusted *= balanceProfileValueFromContext(context, PROFILE.purblindingPlasma, 'rechargeMultiplier', 2 / 3);
+    adjusted *= balanceProfileNumberFromContext(context, PROFILE.purblindingPlasma, 'rechargeMultiplier');
   }
 
   if (String(skill.slot) === 'Weapon_3' && weaverDualAttunements(skill) && hasTrait(context, 'Flow State')) {
-    adjusted *= balanceProfileValueFromContext(context, PROFILE.flowState, 'rechargeMultiplier', 0.8);
+    adjusted *= balanceProfileNumberFromContext(context, PROFILE.flowState, 'rechargeMultiplier');
   }
 
   return adjusted;

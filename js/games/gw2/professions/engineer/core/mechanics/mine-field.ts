@@ -7,7 +7,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { applyEngineerToolbeltTraits } from '#gw2/professions/engineer/core/traits/index.js';
-import type { ConditionEffect, ConditionTick } from '#gw2/platform/engine/skills/types.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { EngineerCastContext, EngineerSchedulerContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
@@ -18,35 +18,30 @@ function emitMineField(
   at: number,
   activationId: string
 ): void {
-  // Precast fields keep their authored packet profile but move every mine to the combat boundary.
-  const strike = skill.effects?.find((effect) => effect.type === 'strike');
-  if (strike) {
-    emitSkillDamage(context, skill, {
-      at,
-      activationId,
-      coefficient: Number(strike.coefficient || 0),
-      hits: Number(strike.hits || 1),
-      name: String(strike.name || skill.name),
-      actorType: 'player',
-      metadata: strike.metadata
-    });
-  }
-
-  const condition = skill.effects?.find((effect) => effect.type === 'condition');
-  const applications: readonly (ConditionTick | ConditionEffect)[] = Array.isArray(condition?.ticks)
-    ? condition.ticks
-    : condition
-      ? [condition]
-      : [];
-  for (const application of applications) {
-    emitSkillCondition(context, {
+  // Each surviving effect keeps its authored packets, moved together to the combat boundary.
+  for (const effect of skill.effects || []) {
+    for (const { event } of materializeSkillEffectApplications({
       skill,
-      at,
-      activationId,
-      condition: String(application.condition || ''),
-      stacks: Number(application.stacks || 1),
-      duration: Number(application.duration || 0)
-    });
+      effect,
+      start: at,
+      fullEnd: at,
+      baseEvent: { source: 'engineer', sourceId: skill.id, actorType: 'player', activationId }
+    })) {
+      if (event.type === 'damage') {
+        emitSkillDamage(context, skill, { ...event, at, coefficient: Number(event.coefficient) });
+      }
+
+      if (event.type === 'condition') {
+        emitSkillCondition(context, {
+          ...event,
+          skill,
+          at,
+          condition: String(event.condition),
+          stacks: Number(event.stacks),
+          duration: Number(event.duration)
+        });
+      }
+    }
   }
 }
 

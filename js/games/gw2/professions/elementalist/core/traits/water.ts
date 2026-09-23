@@ -1,8 +1,7 @@
 /** Imperative Water trait behavior; post-cast ordering stays in the trait dispatcher. */
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValue,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -31,20 +30,26 @@ export function applySoothingIce(
       state.procReadyAt,
       'soothingIce',
       at,
-      balanceProfileValueFromContext(context, PROFILE.soothingIce, 'internalCooldown', 15)
+      balanceProfileNumberFromContext(context, PROFILE.soothingIce, 'internalCooldown')
     )
   )
     return;
-  applyAura(context, {
-    at,
-    aura: 'Frost Aura',
-    duration: balanceProfileValue(
-      balanceProfileEffectFromContext(context, PROFILE.soothingIce, 'buff', 0, 'Frost Aura'),
-      'duration',
-      4
-    ),
-    skillName: 'Soothing Ice',
-    sourceId: skill.id
-  });
-  emitProfiledBuff(context, at, PROFILE.soothingIce, 'Regeneration', 'Regeneration', 1, 4, 'Soothing Ice', skill.id);
+  const soothingIceFrostAura = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.soothingIce,
+    'buff',
+    'Frost Aura'
+  );
+  if (soothingIceFrostAura) {
+    applyAura(context, {
+      at,
+      aura: String(soothingIceFrostAura.kind),
+      duration: Number(soothingIceFrostAura.duration),
+      skillName: 'Soothing Ice',
+      sourceId: skill.id
+    });
+  }
+
+  emitProfiledBuff(context, at, PROFILE.soothingIce, 'Regeneration', 'Soothing Ice', skill.id);
 }

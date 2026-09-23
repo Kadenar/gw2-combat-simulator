@@ -1,12 +1,6 @@
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
-export interface AmalgamNewGenesBoon {
-  readonly kind: string;
-  readonly duration: number;
-  readonly stacks?: number;
-}
-
 export type AmalgamMorphKind = 'cleanse' | 'protect' | 'thorns' | 'demolish' | 'obliterate' | 'pierce' | 'shred';
 
 // Each selectable protocol variant maps to one stable behavior kind regardless of its display label.
@@ -32,65 +26,4 @@ export const AMALGAM_MORPH_KIND_BY_SKILL_ID: ReadonlyMap<SkillId, AmalgamMorphKi
   [ID.OFFENSIVE_PROTOCOL_SHRED, 'shred'],
   [ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866, 'shred'],
   [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103, 'shred']
-]);
-
-// Per-morph extra boon granted by the New Genes trait, on top of its universal
-// alacrity (5s) + 4 might (12s) that every morph cast receives.
-export const AMALGAM_NEW_GENES_BOONS: ReadonlyMap<AmalgamMorphKind, AmalgamNewGenesBoon> = new Map([
-  [
-    'cleanse',
-    {
-      kind: 'aegis',
-      duration: 4,
-      stacks: 1
-    }
-  ],
-  [
-    'protect',
-    {
-      kind: 'protection',
-      duration: 4,
-      stacks: 1
-    }
-  ],
-  [
-    'thorns',
-    {
-      kind: 'stability',
-      duration: 4,
-      stacks: 2
-    }
-  ],
-  [
-    'demolish',
-    {
-      kind: 'swiftness',
-      duration: 6,
-      stacks: 1
-    }
-  ],
-  [
-    'obliterate',
-    {
-      kind: 'might',
-      duration: 12,
-      stacks: 5
-    }
-  ],
-  [
-    'pierce',
-    {
-      kind: 'vigor',
-      duration: 4,
-      stacks: 1
-    }
-  ],
-  [
-    'shred',
-    {
-      kind: 'fury',
-      duration: 6,
-      stacks: 1
-    }
-  ]
 ]);

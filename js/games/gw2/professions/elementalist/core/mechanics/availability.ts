@@ -8,7 +8,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * A denial without a retry timestamp rejects the rotation command outright; a
  * denial carrying one asks the scheduler to retry the same command at that time.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -20,7 +20,6 @@ import {
   AURA_TRANSMUTE_SKILLS,
   CONJURE_PICKUP_WEAPONS,
   CONJURED_WEAPONS,
-  DODGE_ENDURANCE_COST,
   HAMMER_ORB_SKILLS
 } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
@@ -85,12 +84,7 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
   // reports the time regeneration covers the cost.
   if (Number(skill.id) === ID.DODGE) {
     updateEndurance(context, state, context.start);
-    const enduranceCost = balanceProfileValueFromContext(
-      context,
-      PROFILE.resources,
-      'resourceCost',
-      DODGE_ENDURANCE_COST
-    );
+    const enduranceCost = balanceProfileNumberFromContext(context, PROFILE.resources, 'resourceCost');
     return state.endurance + EPSILON >= enduranceCost
       ? ready()
       : unavailable(
@@ -175,7 +169,7 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
   const hammerElements = HAMMER_ORB_SKILLS[skillId] ? [HAMMER_ORB_SKILLS[skillId]] : null;
   if (hammerElements) {
     const retryAt =
-      state.hammerOrbLastCastAt + balanceProfileValueFromContext(context, PROFILE.hammerOrbs, 'initialDelay', 0.48);
+      state.hammerOrbLastCastAt + balanceProfileNumberFromContext(context, PROFILE.hammerOrbs, 'initialDelay');
     if (retryAt > context.start + EPSILON) {
       return unavailable(
         skill,

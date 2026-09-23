@@ -6,7 +6,7 @@
  * this module; it must not depend on them.
  */
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { balanceProfileEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireEffectFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -66,52 +66,49 @@ export function activeBuffEvents(context: ElementalistSchedulerContext, kind: st
   );
 }
 
-/** Emits a boon whose kind, stacks, and duration come from the balance profile, falling back to the supplied literals. */
+/** Emit only the surviving named boon, using the selected profile's validated values. */
 export function emitProfiledBuff(
   context: ElementalistSchedulerContext,
   at: number,
   profileId: Skill['id'],
   effectName: string,
-  fallbackKind: string,
-  fallbackStacks: number,
-  fallbackDuration: number,
   source: string,
   sourceId: Skill['id'],
   priority = 0,
   recipients: 'self' | 'party' = 'self'
 ): void {
-  const effect = balanceProfileEffectFromContext(context, profileId, 'boon', 0, effectName);
-  const kind = String(effect?.boon || fallbackKind).toLowerCase();
+  const effect = requireEffectFromContext(context, 'balance-profile', profileId, 'boon', effectName);
+  if (!effect) return;
+  const kind = String(effect.boon).toLowerCase();
+
   emitSkillBuff(context, elementalistEventSkill(context, source, sourceId), {
     at,
     source,
     sourceId,
     actorType: 'player',
     kind,
-    stacks: Number(effect?.stacks ?? fallbackStacks),
-    duration: Number(effect?.duration ?? fallbackDuration),
+    stacks: Number(effect.stacks),
+    duration: Number(effect.duration),
     skillName: source,
     priority,
     ...(recipients === 'party' ? { audience: { recipients: 'party' as const, maximumRecipients: 5 } } : {})
   });
 }
 
-/** Emits a condition whose type, stacks, and duration come from the balance profile, falling back to the supplied literals. */
+/** A removed condition emits nothing; surviving Burning still exposes each stack to relics. */
 export function emitProfiledCondition(
   context: ElementalistSchedulerContext,
   at: number,
   profileId: Skill['id'],
   effectName: string,
-  fallbackCondition: string,
-  fallbackStacks: number,
-  fallbackDuration: number,
   source: string,
   sourceId: Skill['id'],
   triggeredBy = ''
-): void {
-  const effect = balanceProfileEffectFromContext(context, profileId, 'condition', 0, effectName);
-  const condition = String(effect?.condition || fallbackCondition);
-  const stacks = Number(effect?.stacks ?? fallbackStacks);
+): boolean {
+  const effect = requireEffectFromContext(context, 'balance-profile', profileId, 'condition', effectName);
+  if (!effect) return false;
+  const condition = String(effect.condition);
+  const stacks = Number(effect.stacks);
   // One-time Burning procs expose each stack to relics; other conditions keep their original packet.
   const applications = condition === 'Burning' ? Math.ceil(stacks) : 1;
   for (let index = 0; index < applications; index += 1) {
@@ -122,12 +119,14 @@ export function emitProfiledCondition(
       sourceId,
       condition,
       stacks: condition === 'Burning' ? Math.min(1, stacks - index) : stacks,
-      duration: Number(effect?.duration ?? fallbackDuration),
+      duration: Number(effect.duration),
       skillName: source,
       // Preserve an explicit trigger so resolved condition ticks can be attributed to their originating skill.
       triggeredBy
     });
   }
+
+  return applications > 0;
 }
 
 // Emit a consistently attributed proc marker for skill- and trait-owned

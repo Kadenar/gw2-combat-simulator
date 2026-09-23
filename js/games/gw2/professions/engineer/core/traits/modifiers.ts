@@ -1,9 +1,5 @@
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
-import {
-  balanceProfileValueFromContext,
-  balanceProfileFromContext,
-  balanceProfileNumberFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -41,7 +37,7 @@ function modifyEngineerConditionBaseDuration(context: Gw2ModifierContext, multip
   }
 
   // Apply the skill-specific increase uniformly so every pistol condition keeps it beyond the global duration cap.
-  return multiplier * Number(balanceProfileFromContext(context, TRAIT.CHEMICAL_ROUNDS)?.conditionDurationMultiplier);
+  return multiplier * balanceProfileNumberFromContext(context, TRAIT.CHEMICAL_ROUNDS, 'conditionDurationMultiplier');
 }
 
 export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -111,7 +107,8 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
         isGw2PlayerModifierOwnedEvent(context.event) &&
         hasTrait(context, TRAIT.TAKEDOWN_ROUND) &&
         // 1e-9 tolerance prevents floating-point rounding from falsely reading "full endurance"
-        Number(state.endurance || 0) < Number(state.maximumEndurance || 100) - 1e-9
+        Number(state.endurance || 0) <
+          balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks') - 1e-9
       );
     }
   },
@@ -262,7 +259,7 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: G
       activeBoonStacks(
         context,
         'explosive-temper',
-        balanceProfileValueFromContext(context, PROFILE.explosiveTemper, 'maximumStacks', 10)
+        balanceProfileNumberFromContext(context, PROFILE.explosiveTemper, 'maximumStacks')
       ) *
         balanceProfileNumberFromContext(context, PROFILE.explosiveTemper, 'attributePerStack');
   }
@@ -290,21 +287,21 @@ export function applyEngineerSharpshooterConditionDamage(
   // Sharpshooter replaces the attribute only for bleeding that inherits the player's outgoing modifiers.
   attributes.conditionDamage =
     Number(attributes.power || 0) *
-    balanceProfileValueFromContext(context, PROFILE.sharpshooter, 'coefficientMultiplier', 2 / 3);
+    balanceProfileNumberFromContext(context, PROFILE.sharpshooter, 'coefficientMultiplier');
 }
 
 /** Applies toolbelt and gadget recharge reductions from the active Core traits. */
 function modifyEngineerCoreRechargeDuration(context: EngineerRechargeContext, duration: number): number {
   const skill = context.skill;
   if (isEngineerToolbeltSkill(skill) && hasTrait(context.config, TRAIT.MECHANIZED_DEPLOYMENT)) {
-    return duration * Number(balanceProfileFromContext(context, TRAIT.MECHANIZED_DEPLOYMENT)?.rechargeMultiplier);
+    return duration * balanceProfileNumberFromContext(context, TRAIT.MECHANIZED_DEPLOYMENT, 'rechargeMultiplier');
   }
 
   if (
     skill?.categories?.some((category) => String(category).toLowerCase() === 'gadget') &&
     hasTrait(context.config, TRAIT.GADGETEER)
   ) {
-    return duration * Number(balanceProfileFromContext(context, TRAIT.GADGETEER)?.rechargeMultiplier);
+    return duration * balanceProfileNumberFromContext(context, TRAIT.GADGETEER, 'rechargeMultiplier');
   }
 
   return duration;

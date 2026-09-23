@@ -6,8 +6,8 @@ import { EPSILON } from '#kernel/core/clock.js';
  */
 import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillControl } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -47,7 +47,7 @@ export function applyWeaverHammerState(context: ElementalistCastContext, skill: 
   if (!elements) return;
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  const orbDuration = balanceProfileValueFromContext(context, CORE_PROFILE.hammerOrbs, 'durationMultiplier', 15);
+  const orbDuration = balanceProfileNumberFromContext(context, CORE_PROFILE.hammerOrbs, 'durationMultiplier');
   // Any orb still alive is extended to the new full duration, including the
   // buff events already placed on the timeline.
   const previouslyActive = new Set(activeHammerOrbElements(state, at));
@@ -93,7 +93,7 @@ export function weaverHammerAvailability(
   const state = professionCoreState(context);
   // Every dual hammer skill shares one short lockout after the last orb cast.
   const retryAt =
-    state.hammerOrbLastCastAt + balanceProfileValueFromContext(context, CORE_PROFILE.hammerOrbs, 'initialDelay', 0.48);
+    state.hammerOrbLastCastAt + balanceProfileNumberFromContext(context, CORE_PROFILE.hammerOrbs, 'initialDelay');
   if (retryAt > context.start + EPSILON) {
     return retryCast(
       retryAt,
@@ -135,31 +135,35 @@ export function applyWeaverPistolState(context: ElementalistCastContext, skill: 
   for (const element of active) {
     state.pistolBullets[element] = false;
     if (skill.id === ID.FROSTFIRE_FLURRY && element === 'Fire') {
-      const aura = balanceProfileEffectFromContext(context, PROFILE.frostfireFlurry, 'buff', 0, 'Fire');
-      applyElementalistAura(context, {
-        at,
-        aura: String(aura?.kind || 'Fire Aura'),
-        duration: Number(aura?.duration ?? 3),
-        skillName: skill.name,
-        sourceId: skill.id
-      });
+      const aura = requireEffectFromContext(context, 'balance-profile', PROFILE.frostfireFlurry, 'buff', 'Fire');
+      if (aura) {
+        applyElementalistAura(context, {
+          at,
+          aura: String(aura.kind),
+          duration: Number(aura.duration),
+          skillName: skill.name,
+          sourceId: skill.id
+        });
+      }
     } else if (skill.id === ID.FROSTFIRE_FLURRY && element === 'Water') {
-      emitProfiledCondition(context, at, PROFILE.frostfireFlurry, 'Water', 'Vulnerability', 4, 8, skill.name, skill.id);
+      emitProfiledCondition(context, at, PROFILE.frostfireFlurry, 'Water', skill.name, skill.id);
     } else if (skill.id === ID.PURBLINDING_PLASMA && element === 'Fire') {
-      emitProfiledCondition(context, at, PROFILE.purblindingPlasma, 'Fire', 'Burning', 3, 4, skill.name, skill.id);
+      emitProfiledCondition(context, at, PROFILE.purblindingPlasma, 'Fire', skill.name, skill.id);
     } else if (skill.id === ID.MOLTEN_METEOR && element === 'Earth') {
-      emitProfiledCondition(context, at, PROFILE.moltenMeteor, 'Earth', 'Bleeding', 3, 8, skill.name, skill.id);
+      emitProfiledCondition(context, at, PROFILE.moltenMeteor, 'Earth', skill.name, skill.id);
     } else if (skill.id === ID.FLOWING_FINESSE && element === 'Water') {
-      const aura = balanceProfileEffectFromContext(context, PROFILE.flowingFinesse, 'buff', 0, 'Water');
-      applyElementalistAura(context, {
-        at,
-        aura: String(aura?.kind || 'Frost Aura'),
-        duration: Number(aura?.duration ?? 3),
-        skillName: skill.name,
-        sourceId: skill.id
-      });
+      const aura = requireEffectFromContext(context, 'balance-profile', PROFILE.flowingFinesse, 'buff', 'Water');
+      if (aura) {
+        applyElementalistAura(context, {
+          at,
+          aura: String(aura.kind),
+          duration: Number(aura.duration),
+          skillName: skill.name,
+          sourceId: skill.id
+        });
+      }
     } else if (skill.id === ID.FLOWING_FINESSE && element === 'Air') {
-      emitProfiledBuff(context, at, PROFILE.flowingFinesse, 'Air', 'Superspeed', 1, 4, skill.name, skill.id);
+      emitProfiledBuff(context, at, PROFILE.flowingFinesse, 'Air', skill.name, skill.id);
     } else if (skill.id === ID.ENERVATING_EARTH && element === 'Air') {
       emitSkillControl(context, {
         at,
@@ -171,7 +175,7 @@ export function applyWeaverPistolState(context: ElementalistCastContext, skill: 
         controlKind: 'crowd-control'
       });
     } else if (skill.id === ID.ENERVATING_EARTH && element === 'Earth') {
-      emitProfiledCondition(context, at, PROFILE.enervatingEarth, 'Earth', 'Bleeding', 4, 8, skill.name, skill.id);
+      emitProfiledCondition(context, at, PROFILE.enervatingEarth, 'Earth', skill.name, skill.id);
     }
   }
 }

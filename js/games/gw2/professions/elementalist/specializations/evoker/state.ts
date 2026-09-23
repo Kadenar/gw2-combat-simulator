@@ -1,3 +1,8 @@
+import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import {
+  EVOKER_BALANCE_PROFILES,
+  EVOKER_BALANCE_PROFILE_IDS as PROFILE
+} from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { activeChargeGrants, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
@@ -17,6 +22,11 @@ import {
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
+
+// Standalone state uses authored capacities until initialization selects the active balance profile.
+const resources = EVOKER_BALANCE_PROFILES.find((profile) => profile.id === PROFILE.resources)!;
+const maximumCharges = requireBalanceNumber(resources.maximumStacks, 'Evoker resources maximumStacks');
+const maximumEmpowered = requireBalanceNumber(resources.minimumStacks, 'Evoker resources minimumStacks');
 
 /** Per-simulation Evoker state carried across every cast, hook, and resolver pass. */
 export interface EvokerState {
@@ -80,7 +90,6 @@ export const evokerState = defineProfessionSpecializationState(
   'Evoker',
   (config: ElementalistConfig = {}): EvokerState => {
     // pre-simulation default; initialize() in resources.ts overwrites this from the balance profile once traits are resolved
-    const maximumCharges = 6;
     const element = ELEMENTALIST_ATTUNEMENTS.includes(config.evokerElement as ElementalistAttunement)
       ? (config.evokerElement as ElementalistAttunement)
       : 'Fire';
@@ -88,7 +97,7 @@ export const evokerState = defineProfessionSpecializationState(
       element,
       maximumCharges,
       charges: boundedNumber(config.initialEvokerCharges ?? maximumCharges, maximumCharges, 0, maximumCharges),
-      empowered: boundedNumber(config.initialEvokerEmpowered ?? 0, 0, 0, 3),
+      empowered: boundedNumber(config.initialEvokerEmpowered ?? 0, 0, 0, maximumEmpowered),
       electricEnchantmentGrants: [],
       elementalBalanceProgress: 0,
       elementalBalanceUntil: 0,
@@ -125,7 +134,7 @@ export function grantElectricEnchantments(state: EvokerState, at: number, stacks
 export const EVOKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   element: 'Fire',
   charges: 0,
-  maximumCharges: 6,
+  maximumCharges,
   empowered: 0,
   elementalBalanceProgress: 0,
   elementalBalanceUntil: 0

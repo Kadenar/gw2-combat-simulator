@@ -1,3 +1,7 @@
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
+import type { EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
 import { observeEngineerMineFieldEvent } from '#gw2/professions/engineer/core/mechanics/mine-field.js';
 import { applyEngineerCastTraits, observeEngineerHghEvent } from '#gw2/professions/engineer/core/traits/index.js';
 import { lightningRod } from '#gw2/professions/engineer/core/mechanics/spear.js';
@@ -6,6 +10,16 @@ import { advanceEngineerResources } from '#gw2/professions/engineer/core/mechani
 
 /** Registers Core Engineer resources, weapons, traits, and tasks in scheduler order. */
 export const engineerCoreSchedulerHooks = Object.freeze({
+  initialize: {
+    id: 'engineer.endurance-initialize',
+    order: 5,
+    handler(context: EngineerSchedulerContext) {
+      // Both current and maximum endurance begin at the selected profile's capacity.
+      const state = professionCoreState(context);
+      state.maximumEndurance = balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
+      state.endurance = state.maximumEndurance;
+    }
+  },
   advance: {
     id: 'engineer.resources',
     order: 10,

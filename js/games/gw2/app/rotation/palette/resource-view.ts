@@ -110,6 +110,7 @@ function activeResourceDefinitions(app: ProfessionAppState): ProfessionResourceV
       ? activeSpecialization(app)
       : String(app.build?.specialization || 'Core');
   return resourceDisplayViews(app.profession, {
+    catalog: app.activeCatalog,
     specialization,
     build: app.build,
     // Profession views use scheduler seconds for their live cooldown labels.
@@ -333,6 +334,7 @@ export function renderStartResource(app: ProfessionAppState): void {
   if (!element) return;
   const professionState = professionPlanningState(app.results);
   const definitions = resourceDisplayViews(app.profession, {
+    catalog: app.activeCatalog,
     specialization: activeSpecialization(app),
     build: app.build,
     professionState,

@@ -1,7 +1,4 @@
-import {
-  balanceProfileValueFromContext,
-  balanceProfileFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { reduceMatchingCooldowns } from '#gw2/platform/execution/cooldowns.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
@@ -16,11 +13,10 @@ import type { EngineerCastContext, EngineerSkill } from '#gw2/professions/engine
 export function performEngineerDodge(context: EngineerCastContext, skill: EngineerSkill): void {
   const state = professionCoreState(context);
   const at = context.start;
-  const enduranceCost = balanceProfileValueFromContext(
+  const enduranceCost = balanceProfileNumberFromContext(
     context,
     ENGINEER_CORE_BALANCE_PROFILE_IDS.resources,
-    'resourceCost',
-    50
+    'resourceCost'
   );
   Object.assign(state, spendEndurance(state, enduranceCost, at, state.maximumEndurance));
 
@@ -39,7 +35,7 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
     const reducedBy = reduceMatchingCooldowns(
       context,
       (candidate) => candidate.type === 'Elite' || candidate.slot === 'Elite',
-      Number(balanceProfileFromContext(context, TRAIT.POWER_WRENCH)?.rechargeReduction),
+      balanceProfileNumberFromContext(context, TRAIT.POWER_WRENCH, 'rechargeReduction'),
       at
     );
     // only emit proc when something actually changed — suppresses no-op entries in the event log
@@ -63,7 +59,7 @@ export function performEngineerDodge(context: EngineerCastContext, skill: Engine
     const reducedBy = reduceMatchingCooldowns(
       context,
       isEngineerToolbeltSkill,
-      Number(balanceProfileFromContext(context, TRAIT.ADRENAL_IMPLANT)?.rechargeReduction),
+      balanceProfileNumberFromContext(context, TRAIT.ADRENAL_IMPLANT, 'rechargeReduction'),
       at
     );
     if (reducedBy > 0) {

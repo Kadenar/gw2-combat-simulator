@@ -1,8 +1,7 @@
 import type { Gw2MutableStats, Gw2Stats } from '#gw2/platform/combat/types.js';
 import { isEngineerMechEvent } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-ownership.js';
 import {
-  balanceProfileFromContext,
-  balanceProfileValueFromContext,
+  requireBalanceProfileFromContext,
   balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -79,14 +78,10 @@ export const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
     id: 'engineer.force-signet',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
-    parameters: {
-      baseBonus: 0.15,
-      jDriveBonus: 0.18
-    } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) =>
+    amount: (context) =>
       hasTrait(context, TRAIT.MECH_CORE_J_DRIVE)
-        ? balanceProfileValueFromContext(context, PROFILE.forceSignet, 'activeDamageIncrease', parameters.jDriveBonus)
-        : balanceProfileValueFromContext(context, PROFILE.forceSignet, 'damageIncrease', parameters.baseBonus),
+        ? balanceProfileNumberFromContext(context, PROFILE.forceSignet, 'activeDamageIncrease')
+        : balanceProfileNumberFromContext(context, PROFILE.forceSignet, 'damageIncrease'),
     when: (context) =>
       selectedSignet(context, 'Force Signet') &&
       (hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ||
@@ -144,7 +139,7 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Gw2S
   const mech = engineerMechAttributes(
     context.config,
     inheritedSource,
-    balanceProfileFromContext(context, PROFILE.resources)
+    requireBalanceProfileFromContext(context, PROFILE.resources)
   );
   if (selectedSignet(context, 'Shift Signet')) {
     mech.power += mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK;
@@ -158,7 +153,7 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Gw2S
 function modifyMechanistRechargeDuration(context: EngineerRechargeContext, duration: number): number {
   const skill = context.skill;
   if (isEngineerMechCommand(skill) && hasTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)) {
-    return duration * balanceProfileValueFromContext(context, PROFILE.jadeDynamo, 'rechargeMultiplier', 0.8);
+    return duration * balanceProfileNumberFromContext(context, PROFILE.jadeDynamo, 'rechargeMultiplier');
   }
 
   // Overclock Signet passively reduces other signet recharges while selected

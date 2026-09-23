@@ -2,10 +2,9 @@
  * Owns Elementalist-specific endurance regeneration policy.
  * Shared capped resource arithmetic stays in the platform endurance primitive.
  */
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { ENDURANCE_PER_SECOND } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import {
   advanceEnduranceIntervals,
@@ -15,18 +14,8 @@ import {
 
 /** Resolves Elementalist's profile-aware endurance rate while leaving shared arithmetic to the GW2 primitive. */
 export function elementalistEnduranceRegenerationRate(context: ElementalistSchedulerContext, vigor: boolean): number {
-  const regeneration = balanceProfileValueFromContext(
-    context,
-    PROFILE.resources,
-    'enduranceRegenerationPerSecond',
-    ENDURANCE_PER_SECOND
-  );
-  const vigorMultiplier = balanceProfileValueFromContext(
-    context,
-    PROFILE.resources,
-    'vigorRegenerationMultiplier',
-    1.5
-  );
+  const regeneration = balanceProfileNumberFromContext(context, PROFILE.resources, 'enduranceRegenerationPerSecond');
+  const vigorMultiplier = balanceProfileNumberFromContext(context, PROFILE.resources, 'vigorRegenerationMultiplier');
   return regeneration * (vigor ? vigorMultiplier : 1);
 }
 
@@ -41,7 +30,7 @@ function enduranceIntervals(context: ElementalistSchedulerContext, start: number
 export function updateEndurance(context: ElementalistSchedulerContext, state: ElementalistCoreState, at: number): void {
   if (at <= state.enduranceUpdatedAt) return;
 
-  const maximum = balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100);
+  const maximum = balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks');
   Object.assign(
     state,
     advanceEnduranceIntervals(state, enduranceIntervals(context, state.enduranceUpdatedAt, at), maximum)
@@ -59,6 +48,6 @@ export function elementalistEnduranceReadyAt(
     { endurance: current, enduranceUpdatedAt: at },
     cost,
     enduranceIntervals(context, at, Infinity),
-    balanceProfileValueFromContext(context, PROFILE.resources, 'maximumStacks', 100)
+    balanceProfileNumberFromContext(context, PROFILE.resources, 'maximumStacks')
   );
 }

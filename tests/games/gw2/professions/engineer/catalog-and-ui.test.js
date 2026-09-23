@@ -295,7 +295,9 @@ test('Engineer catalog retains reviewed packet and profile mechanics', () => {
   );
 
   assert.equal(thermalReleaseValve.resourceCost, undefined);
-  assert.deepEqual(thermalReleaseValve.effects, [{ type: 'boon', boon: 'vigor', stacks: 1, duration: 3 }]);
+  assert.deepEqual(thermalReleaseValve.effects, [
+    { type: 'boon', name: 'vigor', boon: 'vigor', stacks: 1, duration: 3 }
+  ]);
   const poisonGrenade = ENGINEER_CORE_SKILL_MECHANICS[5806];
 
   assert.equal(poisonGrenade.castTimeMs, 680);
@@ -483,6 +485,7 @@ test('Engineer renders Endurance only for Tools and uses a standard bar', () => 
     })
     .createProfessionState({ specialization: 'Core' });
   const core = engineerProfession.ui.resourceViews({
+    catalog: engineerCatalog,
     specialization: 'Core',
     build,
     professionState: state
@@ -494,6 +497,7 @@ test('Engineer renders Endurance only for Tools and uses a standard bar', () => 
   );
 
   const tools = engineerProfession.ui.resourceViews({
+    catalog: engineerCatalog,
     specialization: 'Core',
     build: {
       ...build,
@@ -512,6 +516,7 @@ test('Engineer renders Endurance only for Tools and uses a standard bar', () => 
   assert.equal(Object.hasOwn(endurance, 'pipStyle'), false);
 
   const holosmith = engineerProfession.ui.resourceViews({
+    catalog: engineerCatalog,
     specialization: 'Holosmith',
     build,
     professionState: engineerProfession
@@ -541,6 +546,7 @@ test('Engineer Tools endurance renders beneath Dodge instead of as a standalone 
     build,
     adapter,
     profession: engineerProfession,
+    activeCatalog: engineerCatalog,
     skills: engineerCatalog.skills,
     skillById: engineerCatalog.skillsById,
     skillByName: engineerCatalog.skillsByName,
@@ -576,6 +582,7 @@ test('Engineer kits render beneath weapons while Holosmith mechanics stay groupe
     build,
     adapter,
     profession: engineerProfession,
+    activeCatalog: engineerCatalog,
     skills: engineerCatalog.skills,
     skillById: engineerCatalog.skillsById,
     skillByName: engineerCatalog.skillsByName,
@@ -876,6 +883,7 @@ test('Photon Forge kit lockout renders as a queueable palette cooldown', async (
     build,
     adapter,
     profession: engineerProfession,
+    activeCatalog: engineerCatalog,
     skills: engineerCatalog.skills,
     skillById: engineerCatalog.skillsById,
     skillByName: engineerCatalog.skillsByName,

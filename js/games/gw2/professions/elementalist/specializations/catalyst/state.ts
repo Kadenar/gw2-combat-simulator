@@ -1,3 +1,8 @@
+import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import {
+  CATALYST_BALANCE_PROFILES,
+  CATALYST_BALANCE_PROFILE_IDS as PROFILE
+} from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import {
   definePublicStateDefaults,
@@ -7,9 +12,15 @@ import type { ElementalistConfig } from '#gw2/professions/elementalist/build/typ
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Default ceiling for the Jade Sphere energy resource before balance profiles retune it. */
-export const CATALYST_MAXIMUM_ENERGY = 30;
+export const CATALYST_MAXIMUM_ENERGY = requireBalanceNumber(
+  CATALYST_BALANCE_PROFILES.find((profile) => profile.id === PROFILE.resources)!.maximumStacks,
+  'Catalyst resources maximumStacks'
+);
 /** Default ceiling on concurrent Elemental Empowerment stacks. */
-export const CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS = 10;
+export const CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS = requireBalanceNumber(
+  CATALYST_BALANCE_PROFILES.find((profile) => profile.id === PROFILE.elementalEmpowerment)!.maximumStacks,
+  'Elemental Empowerment maximumStacks'
+);
 
 /**
  * Catalyst combat bookkeeping: Jade Sphere energy, the per-attunement sphere

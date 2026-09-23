@@ -115,7 +115,9 @@ export class ProfessionApp implements ProfessionAppState {
     this.weaponData = adapter.weaponData;
     this.relicNames = adapter.relicNames || SHARED_RELIC_NAMES;
     this.specializations = adapter.specializations;
-    this.resourceDefinitions = (specialization: string) => this.profession.ui.resourceViews({ specialization });
+    // Starting resource controls use the selected patch before any simulation exists.
+    this.resourceDefinitions = (specialization: string) =>
+      this.profession.ui.resourceViews({ specialization, catalog: this.activeCatalog, build: this.build });
     this.attributeWeaponSet = 1;
     this.attributeData = null;
     this.results = null;

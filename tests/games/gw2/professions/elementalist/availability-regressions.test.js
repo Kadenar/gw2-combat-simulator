@@ -141,6 +141,7 @@ test('conjure pickup availability and consumption require a finite, unexpired gr
       if (expiry !== undefined) core.conjurePickups[weapon] = expiry;
       const events = [];
       const context = {
+        catalog: elementalistCatalog,
         state: { profession: { core } },
         start: 0,
         effectiveEnd: 0.3,

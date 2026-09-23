@@ -1,3 +1,4 @@
+import { requireBalanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   tooltipFactorChange,
   tooltipSeconds,
@@ -15,10 +16,7 @@ import {
   type ProfessionTooltips,
   type DescribeSimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
-import {
-  AMALGAM_NEW_GENES_BOONS,
-  AMALGAM_MORPH_KIND_BY_SKILL_ID
-} from '#gw2/professions/engineer/specializations/amalgam/mechanics/new-genes.js';
+import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/mechanics/new-genes.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/engineer/core/profiles.js';
 import { HOLOSMITH_BALANCE_PROFILE_IDS as HOLOSMITH } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as MECHANIST } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
@@ -302,20 +300,22 @@ export const engineerTooltips: ProfessionTooltips = {
   skills: {
     [ID.AIR_BLAST]: (balanceContext, entity) => {
       const effects = balanceContext.catalog.skillsById.get(entity.id)!.effects!;
-      const burning = effects.find((effect) => effect.type === 'custom')!.event!;
+      const burning = effects.find((effect) => effect.type === 'custom')?.event;
       return {
         description: 'Knock back the target. Apply burning only if it is already burning when the blast arrives.',
         facts: [
           ...simulationEffectFacts(effects.filter((effect) => effect.type !== 'custom')).facts,
           ...simulationEffectFacts(
-            [
-              {
-                type: 'condition',
-                condition: String(burning.condition),
-                stacks: tooltipNumber(burning, 'stacks'),
-                duration: tooltipNumber(burning, 'duration')
-              }
-            ],
+            burning
+              ? [
+                  {
+                    type: 'condition',
+                    condition: String(burning.condition),
+                    stacks: tooltipNumber(burning, 'stacks'),
+                    duration: tooltipNumber(burning, 'duration')
+                  }
+                ]
+              : [],
             'requires burning at impact'
           ).facts
         ]
@@ -973,22 +973,10 @@ export const engineerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.NEW_GENES]: traitTooltip(
       'Protocols grant party alacrity, might, and an additional boon determined by the protocol.',
-      () =>
-        [...AMALGAM_NEW_GENES_BOONS].flatMap(
-          ([protocol, boon]) =>
-            simulationEffectFacts(
-              [
-                {
-                  type: 'boon',
-                  boon: boon.kind,
-                  stacks: boon.stacks,
-                  duration: boon.duration,
-                  audience: { recipients: 'party' }
-                }
-              ],
-              `${protocol} protocol`
-            ).facts
-        )
+      (balanceContext) =>
+        requireBalanceProfileFromContext(balanceContext, TRAIT.NEW_GENES).effects?.flatMap((effect) =>
+          effect.metadata?.trigger ? simulationEffectFacts([effect], `${effect.metadata.trigger} protocol`).facts : []
+        ) ?? []
     ),
     [TRAIT.DOUBLE_HELIX]: traitTooltip(
       'Evolve gains ammunition and a stronger attribute increase from its eligible attribute pool.',

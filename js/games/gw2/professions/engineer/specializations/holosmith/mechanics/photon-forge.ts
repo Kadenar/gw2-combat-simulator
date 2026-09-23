@@ -3,9 +3,9 @@ import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
 import {
-  balanceProfileEffectFromContext,
-  balanceProfileValue,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext,
+  effectNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
@@ -44,14 +44,9 @@ const PHOTON_FORGE_OVERHEAT_PENALTY_TASK = 'engineer.photon-forge-overheat-penal
 /** Converts the profiled passive heat rate, including Light Density Amplifier, to one cadence tick. */
 function passiveHeatPerTick(context: EngineerSchedulerContext): number {
   const heatPerSecond =
-    balanceProfileValueFromContext(
-      context,
-      PROFILE.heat,
-      'energyRegenerationPerSecond',
-      HOLOSMITH_HEAT.basePassivePerSecond
-    ) +
+    balanceProfileNumberFromContext(context, PROFILE.heat, 'energyRegenerationPerSecond') +
     (hasTrait(context.config, TRAIT.LIGHT_DENSITY_AMPLIFIER)
-      ? balanceProfileValueFromContext(context, PROFILE.heat, 'resourceGain', HOLOSMITH_HEAT.lightDensityBonusPerSecond)
+      ? balanceProfileNumberFromContext(context, PROFILE.heat, 'resourceGain')
       : 0);
 
   // Scale profile rates to the resource cadence so 2%/s becomes 0.2% per 100 ms.
@@ -82,21 +77,23 @@ function nextPassiveHeatTick(at: number): number {
 
 /** Emits one profiled Enhanced Capacity Storage Unit might pulse. */
 function emitEnhancedCapacityMight(context: EngineerSchedulerContext, at: number): void {
-  const boon = balanceProfileEffectFromContext(context, PROFILE.enhancedCapacity, 'boon');
+  const boon = requireEffectFromContext(context, 'balance-profile', PROFILE.enhancedCapacity, 'boon', 'might');
   const sourceSkill = {
     id: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
     name: 'Enhanced Capacity Storage Unit'
   } as EngineerSkill;
-  emitSkillBuff(context, {
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
-    actorType: 'player',
-    name: 'Enhanced Capacity Storage Unit — might',
-    kind: 'might',
-    duration: gw2SchedulerBoonDuration(context, sourceSkill, 'might', balanceProfileValue(boon, 'duration', 6)),
-    stacks: balanceProfileValue(boon, 'stacks', 2)
-  });
+  if (boon) {
+    emitSkillBuff(context, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
+      actorType: 'player',
+      name: 'Enhanced Capacity Storage Unit — might',
+      kind: String(boon.boon).toLowerCase(),
+      duration: gw2SchedulerBoonDuration(context, sourceSkill, 'might', Number(boon.duration)),
+      stacks: Number(boon.stacks)
+    });
+  }
 }
 
 /** Emits the first ECSU might pulse immediately when a discrete heat gain crosses the threshold. */
@@ -115,7 +112,7 @@ function triggerInstantEnhancedCapacityMight(
   emitEnhancedCapacityMight(context, at);
   enhancedCapacityMight.start(context, {
     key: 'might',
-    at: at + balanceProfileValueFromContext(context, PROFILE.enhancedCapacity, 'pulseInterval', 1),
+    at: at + balanceProfileNumberFromContext(context, PROFILE.enhancedCapacity, 'pulseInterval'),
     captured: {}
   });
 }
@@ -124,7 +121,7 @@ function triggerInstantEnhancedCapacityMight(
 export const enhancedCapacityMight = timedEffect<EngineerSchedulerContext, object>({
   id: 'engineer.enhanced-capacity-might',
   priority: -200,
-  interval: (context) => balanceProfileValueFromContext(context, PROFILE.enhancedCapacity, 'pulseInterval', 1),
+  interval: (context) => balanceProfileNumberFromContext(context, PROFILE.enhancedCapacity, 'pulseInterval'),
   effectsAt(context, at) {
     if (holosmithState.from(context).heat <= HOLOSMITH_HEAT.enhancedCapacityThreshold) return false;
     emitEnhancedCapacityMight(context, at);
@@ -142,12 +139,7 @@ export function grantSolarFocusingLens(context: EngineerSchedulerContext, at: nu
     sourceId: TRAIT.SOLAR_FOCUSING_LENS,
     actorType: 'player',
     stacks,
-    duration: balanceProfileValueFromContext(
-      context,
-      PROFILE.solarFocusingLens,
-      'durationMultiplier',
-      HOLOSMITH_HEAT.solarFocusingLensDuration
-    )
+    duration: balanceProfileNumberFromContext(context, PROFILE.solarFocusingLens, 'durationMultiplier')
   });
 }
 
@@ -173,44 +165,67 @@ function scheduleToolbeltOverheatPenalty(context: EngineerSchedulerContext, at: 
 
 /** Emits the delayed strike and burning packets owned by Photonic Blasting Module. */
 function emitPhotonicBlastingModuleEffects(context: EngineerSchedulerContext, effectAt: number): void {
-  const strike = balanceProfileEffectFromContext(context, PROFILE.photonicBlastingModule, 'strike');
-  const condition = balanceProfileEffectFromContext(context, PROFILE.photonicBlastingModule, 'condition');
+  const strike = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.photonicBlastingModule,
+    'strike',
+    'Photonic Blasting Module'
+  );
+  const condition = requireEffectFromContext(
+    context,
+    'balance-profile',
+    PROFILE.photonicBlastingModule,
+    'condition',
+    'Burning'
+  );
   // The explosion owns the blast finisher and resolves before its same-time condition packet.
-  emitSkillDamage(context, {
-    at: effectAt,
-    source: 'Trait',
-    sourceId: TRAIT.PHOTONIC_BLASTING_MODULE,
-    actorType: 'player',
-    skillName: 'Photonic Blasting Module',
-    name: 'Photonic Blasting Module',
-    coefficient: balanceProfileValue(strike, 'coefficient', 5),
-    hits: 1,
-    hitIndex: 1,
-    totalHits: 1,
-    skillWeapon: 'Unequipped',
-    explosion: true,
-    comboFinishers: [
-      {
-        ownerId: 'engineer',
-        finisherType: 'Blast',
-        ambiguousFieldSelection: 'oldest'
-      }
-    ]
-  });
-  // Burning shares the delayed PBM timestamp but remains a separate canonical effect application.
-  // Separate Burning applications preserve the total, including any fractional final stack.
-  const stacks = balanceProfileValue(condition, 'stacks', 7);
-  for (let index = 0; index < Math.ceil(stacks); index += 1) {
-    emitSkillCondition(context, {
+  if (strike) {
+    emitSkillDamage(context, {
       at: effectAt,
       source: 'Trait',
       sourceId: TRAIT.PHOTONIC_BLASTING_MODULE,
+      actorType: 'player',
       skillName: 'Photonic Blasting Module',
-      name: 'Photonic Blasting Module — Burning',
-      condition: 'Burning',
-      stacks: Math.min(1, stacks - index),
-      duration: balanceProfileValue(condition, 'duration', 6)
+      name: 'Photonic Blasting Module',
+      coefficient: effectNumberFromContext(
+        context,
+        'balance-profile',
+        PROFILE.photonicBlastingModule,
+        strike,
+        'coefficient'
+      ),
+      hits: 1,
+      hitIndex: 1,
+      totalHits: 1,
+      skillWeapon: 'Unequipped',
+      explosion: true,
+      comboFinishers: [
+        {
+          ownerId: 'engineer',
+          finisherType: 'Blast',
+          ambiguousFieldSelection: 'oldest'
+        }
+      ]
     });
+  }
+
+  // Burning shares the delayed PBM timestamp but remains a separate canonical effect application.
+  // Separate Burning applications preserve the total, including any fractional final stack.
+  if (condition) {
+    const stacks = Number(condition.stacks);
+    for (let index = 0; index < Math.ceil(stacks); index += 1) {
+      emitSkillCondition(context, {
+        at: effectAt,
+        source: 'Trait',
+        sourceId: TRAIT.PHOTONIC_BLASTING_MODULE,
+        skillName: 'Photonic Blasting Module',
+        name: 'Photonic Blasting Module — Burning',
+        condition: String(condition.condition),
+        stacks: Math.min(1, stacks - index),
+        duration: Number(condition.duration)
+      });
+    }
   }
 }
 
@@ -219,12 +234,7 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
   const state = holosmithState.from(context);
   const photonicBlastingModule = hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE);
   const effectDelay = photonicBlastingModule
-    ? balanceProfileValueFromContext(
-        context,
-        PROFILE.photonicBlastingModule,
-        'initialDelay',
-        HOLOSMITH_HEAT.overheatEffectDelay
-      )
+    ? balanceProfileNumberFromContext(context, PROFILE.photonicBlastingModule, 'initialDelay')
     : HOLOSMITH_HEAT.overheatEffectDelay;
   const effectAt = at + effectDelay;
   state.heat = state.maximumHeat;
@@ -236,8 +246,8 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
     context,
     effectAt,
     photonicBlastingModule
-      ? balanceProfileValueFromContext(context, PROFILE.photonicBlastingModule, 'cooldown', 5)
-      : balanceProfileValueFromContext(context, PROFILE.overheat, 'maximumStacks', 15)
+      ? balanceProfileNumberFromContext(context, PROFILE.photonicBlastingModule, 'cooldown')
+      : balanceProfileNumberFromContext(context, PROFILE.overheat, 'maximumStacks')
   );
 
   // Publish maximum heat at the overheat timestamp. The module blast and its
@@ -246,7 +256,7 @@ function forceOverheat(context: EngineerSchedulerContext, at: number): void {
   grantSolarFocusingLens(
     context,
     photonicBlastingModule ? effectAt : at,
-    balanceProfileValueFromContext(context, PROFILE.solarFocusingLens, 'maximumStacks', 6)
+    balanceProfileNumberFromContext(context, PROFILE.solarFocusingLens, 'maximumStacks')
   );
   if (photonicBlastingModule) emitPhotonicBlastingModuleEffects(context, effectAt);
 }
@@ -353,7 +363,7 @@ function enterPhotonForge(context: EngineerCastContext, skill: EngineerSkill): v
   const state = holosmithState.from(context);
   const coreState = professionCoreState(context);
   const at = context.effectiveEnd;
-  const baseKitLockout = balanceProfileValueFromContext(context, PROFILE.heat, 'cooldown', 6);
+  const baseKitLockout = balanceProfileNumberFromContext(context, PROFILE.heat, 'cooldown');
   coreState.activeKit = '';
   state.photonForgeActive = true;
   state.forgeExitedAt = null;
@@ -364,7 +374,7 @@ function enterPhotonForge(context: EngineerCastContext, skill: EngineerSkill): v
   grantSolarFocusingLens(
     context,
     at,
-    balanceProfileValueFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks', 2)
+    balanceProfileNumberFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks')
   );
   emitEngineerBarSwap(context, skill, at);
   emitEngineerStateSnapshot(context, at, 'enter-forge');
@@ -383,7 +393,7 @@ function exitPhotonForge(context: EngineerCastContext, skill: EngineerSkill): vo
     grantSolarFocusingLens(
       context,
       at,
-      balanceProfileValueFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks', 2)
+      balanceProfileNumberFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks')
     );
   }
 
@@ -532,19 +542,22 @@ function triggerVentExhaust(context: EngineerCastContext, triggeringSkill: Engin
 export function triggerThermalReleaseValve(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.THERMAL_RELEASE_VALVE)) return;
   const state = holosmithState.from(context);
-  const boon = balanceProfileEffectFromContext(context, PROFILE.thermalReleaseValve, 'boon');
-  emitSkillBuff(context, {
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.THERMAL_RELEASE_VALVE,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    name: 'Thermal Release Valve — vigor',
-    kind: 'vigor',
-    duration: gw2SchedulerBoonDuration(context, skill, 'vigor', balanceProfileValue(boon, 'duration', 3)),
-    stacks: balanceProfileValue(boon, 'stacks', 1)
-  });
+  const boon = requireEffectFromContext(context, 'balance-profile', PROFILE.thermalReleaseValve, 'boon', 'vigor');
+  if (boon) {
+    emitSkillBuff(context, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.THERMAL_RELEASE_VALVE,
+      actorType: 'player',
+      skillId: skill.id,
+      skillName: skill.name,
+      name: 'Thermal Release Valve — vigor',
+      kind: String(boon.boon).toLowerCase(),
+      duration: gw2SchedulerBoonDuration(context, skill, 'vigor', Number(boon.duration)),
+      stacks: Number(boon.stacks)
+    });
+  }
+
   if (state.heat <= 0 || (hasTrait(context.config, TRAIT.PHOTONIC_BLASTING_MODULE) && !state.overheated)) return;
   triggerVentExhaust(context, skill, at);
 }
@@ -568,7 +581,7 @@ export function handleHolosmithKitEquip(context: EngineerCastContext, skill: Eng
     grantSolarFocusingLens(
       context,
       at,
-      balanceProfileValueFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks', 2)
+      balanceProfileNumberFromContext(context, PROFILE.solarFocusingLens, 'minimumStacks')
     );
   }
 

@@ -3,8 +3,8 @@ import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/char
 /** Resolver event classification and reaction registration for Core Elementalist behavior. */
 import {
   procChanceFromContext,
-  balanceProfileEffectFromContext,
-  balanceProfileValueFromContext
+  requireEffectFromContext,
+  balanceProfileNumberFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 // Resolver mutations target the owned Core slice of the nested Elementalist runtime.
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -135,7 +135,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => balanceProfileValueFromContext(context, PROFILE.ragingStorm, 'internalCooldown', 8),
+      duration: (context) => balanceProfileNumberFromContext(context, PROFILE.ragingStorm, 'internalCooldown'),
       readyAt: (context) => Number(professionCoreState(context).procReadyAt.ragingStorm || 0),
       setReadyAt: (context, readyAt) => {
         professionCoreState(context).procReadyAt.ragingStorm = readyAt;
@@ -147,8 +147,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
   }),
   onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.arcane-precision',
-    chanceOnCriticalHit: (context) =>
-      balanceProfileValueFromContext(context, PROFILE.arcanePrecision, 'procChance', 0.33),
+    chanceOnCriticalHit: (context) => balanceProfileNumberFromContext(context, PROFILE.arcanePrecision, 'procChance'),
     when: (context, event, details) => criticalTraitEligible(context, event, details, 'Arcane Precision'),
     expectedProgress: {
       get: (context) => Number(professionCoreState(context).criticalProcProgress.arcanePrecision || 0),
@@ -157,7 +156,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => balanceProfileValueFromContext(context, PROFILE.arcanePrecision, 'internalCooldown', 3),
+      duration: (context) => balanceProfileNumberFromContext(context, PROFILE.arcanePrecision, 'internalCooldown'),
       readyAt: (context) => Number(professionCoreState(context).procReadyAt.arcanePrecision || 0),
       setReadyAt: (context, readyAt) => {
         professionCoreState(context).procReadyAt.arcanePrecision = readyAt;
@@ -178,7 +177,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => balanceProfileValueFromContext(context, PROFILE.renewingStamina, 'internalCooldown', 10),
+      duration: (context) => balanceProfileNumberFromContext(context, PROFILE.renewingStamina, 'internalCooldown'),
       readyAt: (context) => Number(professionCoreState(context).procReadyAt.renewingStamina || 0),
       setReadyAt: (context, readyAt) => {
         professionCoreState(context).procReadyAt.renewingStamina = readyAt;
@@ -199,7 +198,7 @@ export const elementalistCoreCriticalReactions = Object.freeze([
       }
     },
     internalCooldown: {
-      duration: (context) => balanceProfileValueFromContext(context, PROFILE.burningPrecision, 'internalCooldown', 5),
+      duration: (context) => balanceProfileNumberFromContext(context, PROFILE.burningPrecision, 'internalCooldown'),
       readyAt: (context) => Number(professionCoreState(context).procReadyAt.burningPrecision || 0),
       setReadyAt: (context, readyAt) => {
         professionCoreState(context).procReadyAt.burningPrecision = readyAt;
@@ -241,20 +240,22 @@ export function applyElementalistResolvedDamage(
     Number(event.coefficient) > 0 &&
     consumeCharge(core.shatteringStone, event.at)
   ) {
-    const bleeding = balanceProfileEffectFromContext(
+    const bleeding = requireEffectFromContext(
       context,
+      'balance-profile',
       PROFILE.shatteringStone,
       'condition',
-      0,
       'Triggered Bleeding'
     );
-    applyElementalistDerivedCondition(context, event, {
-      source: 'Shattering Stone',
-      sourceId: ID.SHATTERING_STONE,
-      condition: String(bleeding?.condition || 'Bleeding'),
-      stacks: Number(bleeding?.stacks ?? 1),
-      duration: Number(bleeding?.duration ?? 5)
-    });
+    if (bleeding) {
+      applyElementalistDerivedCondition(context, event, {
+        source: 'Shattering Stone',
+        sourceId: ID.SHATTERING_STONE,
+        condition: String(bleeding.condition),
+        stacks: Number(bleeding.stacks),
+        duration: Number(bleeding.duration)
+      });
+    }
   }
 }
 
