@@ -1,6 +1,12 @@
 import { isTimeInWindow } from '#kernel/core/clock.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { conditionEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
@@ -34,27 +40,34 @@ import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necroma
 // Default `at` is effectiveEnd because barrier traits fire on cast completion; callers that
 // need a different timing (e.g. Sandstorm pulse) pass their own timestamp explicitly
 function applyBarrierTraits(context: NecromancerCastContext, skill: NecromancerSkill, at = context.effectiveEnd): void {
-  if (hasTrait(context, TRAIT.ABRASIVE_GRIT)) {
-    const might = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.abrasiveGrit), 'boon');
+  // Each barrier trait emits its own named boon independently of the other.
+  for (const [trait, profileId, name] of [
+    [TRAIT.ABRASIVE_GRIT, PROFILE.abrasiveGrit, 'might'],
+    [TRAIT.DESERT_EMPOWERMENT, PROFILE.desertEmpowerment, 'alacrity']
+  ] as const) {
+    if (!hasTrait(context, trait)) continue;
+    const profile = requireBalanceProfileFromContext(context, profileId);
+    const boon = requireEffect(profile, 'boon', name);
+    if (!boon) continue;
     emitSkillBuff(context, skill, {
       at,
-      kind: String(might?.boon || 'might'),
-      duration: Number(might?.duration ?? 6),
-      stacks: Number(might?.stacks ?? 2),
+      kind: String(boon.boon),
+      duration: effectNumber(profile, boon, 'duration'),
+      stacks: effectNumber(profile, boon, 'stacks'),
       audience: { recipients: 'party' as const, maximumRecipients: 5 }
     });
   }
+}
 
-  if (hasTrait(context, TRAIT.DESERT_EMPOWERMENT)) {
-    const alacrity = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.desertEmpowerment), 'boon');
-    emitSkillBuff(context, skill, {
-      at,
-      kind: String(alacrity?.boon || 'alacrity'),
-      duration: Number(alacrity?.duration ?? 1.5),
-      stacks: Number(alacrity?.stacks ?? 1),
-      audience: { recipients: 'party' as const, maximumRecipients: 5 }
-    });
-  }
+/** Soul Barbs uses its authored window for shade shrouds as well as ordinary shroud entry. */
+function emitShadeSoulBarbs(context: NecromancerCastContext, skill: NecromancerSkill, at: number): void {
+  if (!hasTrait(context, TRAIT.SOUL_BARBS)) return;
+  emitSkillBuff(context, skill, {
+    at,
+    kind: 'necromancer-soul-barbs',
+    duration: balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SOUL_BARBS), 'duration'),
+    stacks: 1
+  });
 }
 
 // Append Scourge's barrier-triggered trait boons after the shared barrier effects resolve.
@@ -71,23 +84,24 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
   // matching the in-game timing; all other shade skills strike at cast completion
   const impactAt =
     skill.id === ID.MANIFEST_SAND_SHADE ? context.start + (context.fullEnd - context.start) * (11 / 12) : at;
-  const shadeProfile = balanceProfileFromContext(context, PROFILE.shade);
-  if (!shadeProfile) throw new Error('Missing Scourge shade balance profile');
+  const shadeProfile = requireBalanceProfileFromContext(context, PROFILE.shade);
   if (skill.id === ID.MANIFEST_SAND_SHADE) {
     const profile = hasTrait(context, TRAIT.SAND_SAVANT)
-      ? balanceProfileFromContext(context, PROFILE.sandSavant)
+      ? requireBalanceProfileFromContext(context, PROFILE.sandSavant)
       : shadeProfile;
-    const maximum = Number(profile?.maximumStacks ?? 3);
-    const duration = Number(balanceProfileEffect(profile, 'buff')?.duration ?? 15);
+    const maximum = balanceProfileNumber(profile, 'maximumStacks');
+    // The shade's lifetime is its buff, so a removed buff manifests no shade.
+    const lifetime = requireEffect(profile, 'buff', 'active-shade');
     // Retain the longest-lived shades, preserving ascending order for snapshots.
     // Disabled caps and expired grants cannot leave inactive shades in the pool.
-    state.shades = grantTimedStacks(state.shades, {
-      at,
-      expiresAt: at + duration,
-      count: 1,
-      maximumStacks: maximum,
-      retain: 'latest-expiry'
-    }).reverse();
+    if (lifetime)
+      state.shades = grantTimedStacks(state.shades, {
+        at,
+        expiresAt: at + effectNumber(profile, lifetime, 'duration'),
+        count: 1,
+        maximumStacks: maximum,
+        retain: 'latest-expiry'
+      }).reverse();
     if (hasTrait(context, TRAIT.DESERT_EMPOWERMENT)) {
       applyBarrierTraits(context, skill, at);
     }
@@ -126,46 +140,51 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
   // another. Keep the parent cast skill for mechanics, report the packet name
   // separately so EVTC parsing can match the correct hit to the correct source.
   const shadeStrikeName = skill.id === ID.NEFARIOUS_FAVOR ? 'Manifest Sand Shade' : 'Manifest Sand Shade (F1/F5)';
-  const shadeStrike = balanceProfileEffect(shadeProfile, 'strike');
-  emitSkillDamage(context, skill, {
-    at: impactAt,
-    name: 'Sand Shade - Strike',
-    sourceId: ID.MANIFEST_SAND_SHADE,
-    coefficient: Number(shadeStrike?.coefficient ?? 0.666),
-    skillWeapon: 'Unequipped',
-    skillName: shadeStrikeName,
-    parentSkillName: skill.name,
-    // Read the selected shade profile so patches also update Dhuumfire's duration and ICD.
-    metadata: {
-      necromancerShroudSkillOne: true,
-      dhuumfireDuration: Number(shadeProfile.dhuumfireDuration),
-      dhuumfireInterval: Number(shadeProfile.dhuumfireInterval)
-    }
-  });
-  const shadeCondition = balanceProfileEffect(shadeProfile, 'condition');
-  emitSkillCondition(context, {
-    skill,
-    at: impactAt,
-    sourceId: ID.MANIFEST_SAND_SHADE,
-    condition: String(shadeCondition?.condition || ''),
-    stacks: Number(shadeCondition?.stacks ?? 1),
-    duration: Number(shadeCondition?.duration || 0)
-  });
+  // The shade strike and condition are independent packets; either survives the other's removal.
+  const shadeStrike = requireEffect(shadeProfile, 'strike', 'Strike');
+  if (shadeStrike)
+    emitSkillDamage(context, skill, {
+      at: impactAt,
+      name: 'Sand Shade - Strike',
+      sourceId: ID.MANIFEST_SAND_SHADE,
+      coefficient: effectNumber(shadeProfile, shadeStrike, 'coefficient'),
+      skillWeapon: 'Unequipped',
+      skillName: shadeStrikeName,
+      parentSkillName: skill.name,
+      // Read the selected shade profile so patches also update Dhuumfire's duration and ICD.
+      metadata: {
+        necromancerShroudSkillOne: true,
+        dhuumfireDuration: balanceProfileNumber(shadeProfile, 'dhuumfireDuration'),
+        dhuumfireInterval: balanceProfileNumber(shadeProfile, 'dhuumfireInterval')
+      }
+    });
+  const shadeCondition = requireEffect(shadeProfile, 'condition', 'Torment');
+  if (shadeCondition)
+    emitSkillCondition(context, {
+      skill,
+      at: impactAt,
+      sourceId: ID.MANIFEST_SAND_SHADE,
+      condition: String(shadeCondition.condition),
+      stacks: effectNumber(shadeProfile, shadeCondition, 'stacks'),
+      duration: effectNumber(shadeProfile, shadeCondition, 'duration')
+    });
 
   // Sadistic Searing remains effect-sourced while player ownership lets equipment react to its Burning.
   if (skill.id === ID.NEFARIOUS_FAVOR && hasTrait(context, TRAIT.SADISTIC_SEARING)) {
-    const condition = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sadisticSearing), 'condition');
-    emitSkillCondition(context, {
-      skill,
-      at,
-      source: 'Trait',
-      sourceId: TRAIT.SADISTIC_SEARING,
-      actorType: 'effect',
-      ownerActorType: 'player',
-      condition: String(condition?.condition || ''),
-      stacks: Number(condition?.stacks ?? 1),
-      duration: Number(condition?.duration || 0)
-    });
+    const profile = requireBalanceProfileFromContext(context, PROFILE.sadisticSearing);
+    const condition = requireEffect(profile, 'condition', 'Burning');
+    if (condition)
+      emitSkillCondition(context, {
+        skill,
+        at,
+        source: 'Trait',
+        sourceId: TRAIT.SADISTIC_SEARING,
+        actorType: 'effect',
+        ownerActorType: 'player',
+        condition: String(condition.condition),
+        stacks: effectNumber(profile, condition, 'stacks'),
+        duration: effectNumber(profile, condition, 'duration')
+      });
   } else if (skill.id === ID.SAND_CASCADE) {
     applyBarrierTraits(context, skill, at);
   } else if (skill.id === ID.GARISH_PILLAR) {
@@ -174,69 +193,79 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
       controlKind: 'fear'
     });
   } else if (skill.id === ID.DESERT_SHROUD) {
-    if (hasTrait(context, TRAIT.SOUL_BARBS)) {
-      emitSkillBuff(context, skill, { at, kind: 'necromancer-soul-barbs', duration: 15, stacks: 1 });
+    emitShadeSoulBarbs(context, skill, at);
+    applyBarrierTraits(context, skill, at);
+    const desert = requireBalanceProfileFromContext(context, PROFILE.desertShroud);
+    // Strike and Torment pulses follow their own authored schedules, so removing one keeps the other.
+    const strike = requireEffect(desert, 'strike', 'Strike');
+    const torment = requireEffect(desert, 'condition', 'Torment');
+    if (strike && !strike.ticks?.length) throw new Error('Desert Shroud requires an explicit strike timeline.');
+    for (const tick of strike?.ticks || []) {
+      emitSkillDamage(context, skill, {
+        at: at + Number(tick.atMs) / 1000,
+        coefficient: Number(tick.coefficient)
+      });
     }
 
-    applyBarrierTraits(context, skill, at);
-    const desert = balanceProfileFromContext(context, PROFILE.desertShroud);
-    const strike = balanceProfileEffect(desert, 'strike');
-    const torment = balanceProfileEffect(desert, 'condition');
-    const ticks = strike?.type === 'strike' ? strike.ticks : null;
-    if (!ticks?.length) throw new Error('Desert Shroud requires an explicit strike timeline.');
-    for (const tick of ticks) {
-      const pulseAt = at + Number(tick.atMs) / 1000;
-      emitSkillDamage(context, skill, { at: pulseAt, coefficient: Number(tick.coefficient) });
+    for (const tick of torment ? conditionEffectTicks(torment) : []) {
       emitSkillCondition(context, {
         skill,
-        at: pulseAt,
-        condition: String(torment?.condition || ''),
-        stacks: Number(torment?.stacks ?? 1),
-        duration: Number(torment?.duration || 0)
+        at: at + Number(tick.atMs) / 1000,
+        condition: tick.condition,
+        stacks: tick.stacks,
+        duration: tick.duration
       });
     }
   } else if (skill.id === ID.SANDSTORM_SHROUD) {
-    const sandstorm = balanceProfileFromContext(context, PROFILE.sandstormShroud);
-    const strike = balanceProfileEffect(sandstorm, 'strike');
-    const torment = balanceProfileEffect(sandstorm, 'condition');
-    const pulseProtection = balanceProfileEffect(sandstorm, 'boon');
-    const detonationProtection = balanceProfileEffect(sandstorm, 'boon', 1);
-    const delay = Number(strike?.atMs ?? 3500) / 1000;
-    const pulseCount = Number(pulseProtection?.applications ?? 3);
-    const pulseInterval = Number(pulseProtection?.intervalMs ?? 1000) / 1000;
-    if (hasTrait(context, TRAIT.SOUL_BARBS)) {
-      emitSkillBuff(context, skill, { at, kind: 'necromancer-soul-barbs', duration: 15, stacks: 1 });
-    }
+    const sandstorm = requireBalanceProfileFromContext(context, PROFILE.sandstormShroud);
+    const strike = requireEffect(sandstorm, 'strike', 'Strike');
+    const torment = requireEffect(sandstorm, 'condition', 'Torment');
+    const pulseProtection = requireEffect(sandstorm, 'boon', 'protection pulses');
+    const detonationProtection = requireEffect(sandstorm, 'boon', 'protection');
+    emitShadeSoulBarbs(context, skill, at);
 
-    // Pulses fire at cast-end + 0s, 1s, 2s; detonation fires separately at cast-end + 3.5s
-    for (let index = 0; index < pulseCount; index += 1) {
+    // Pulses fire at cast-end + 0s, 1s, 2s; each barrier pulse is owned by its protection cadence, so removing the
+    // pulse protection removes those pulses while the detonation keeps its own packets.
+    const pulseCount = pulseProtection ? effectNumber(sandstorm, pulseProtection, 'applications') : 0;
+    const pulseInterval = pulseProtection ? effectNumber(sandstorm, pulseProtection, 'intervalMs') / 1000 : 0;
+    for (let index = 0; pulseProtection && index < pulseCount; index += 1) {
       const pulseAt = at + index * pulseInterval;
       applyBarrierTraits(context, skill, pulseAt);
       emitSkillBuff(context, skill, {
         at: pulseAt,
-        kind: 'protection',
-        duration: Number(pulseProtection?.duration ?? 1.5),
-        stacks: Number(pulseProtection?.stacks ?? 1),
+        kind: String(pulseProtection.boon),
+        duration: effectNumber(sandstorm, pulseProtection, 'duration'),
+        stacks: effectNumber(sandstorm, pulseProtection, 'stacks'),
         audience: { recipients: 'party' as const, maximumRecipients: 5 }
       });
     }
 
-    applyBarrierTraits(context, skill, at + delay);
-    emitSkillBuff(context, skill, {
-      at: at + delay,
-      kind: 'protection',
-      duration: Number(detonationProtection?.duration ?? 3),
-      stacks: Number(detonationProtection?.stacks ?? 1),
-      audience: { recipients: 'party' as const, maximumRecipients: 5 }
-    });
-    emitSkillDamage(context, skill, { at: at + delay, coefficient: Number(strike?.coefficient ?? 3) });
-    emitSkillCondition(context, {
-      skill,
-      at: at + delay,
-      condition: String(torment?.condition || ''),
-      stacks: Number(torment?.stacks ?? 1),
-      duration: Number(torment?.duration || 0)
-    });
+    // Detonation packets keep their own authored impact offsets.
+    if (detonationProtection) {
+      const detonationAt = at + effectNumber(sandstorm, detonationProtection, 'atMs') / 1000;
+      applyBarrierTraits(context, skill, detonationAt);
+      emitSkillBuff(context, skill, {
+        at: detonationAt,
+        kind: String(detonationProtection.boon),
+        duration: effectNumber(sandstorm, detonationProtection, 'duration'),
+        stacks: effectNumber(sandstorm, detonationProtection, 'stacks'),
+        audience: { recipients: 'party' as const, maximumRecipients: 5 }
+      });
+    }
+
+    if (strike)
+      emitSkillDamage(context, skill, {
+        at: at + effectNumber(sandstorm, strike, 'atMs') / 1000,
+        coefficient: effectNumber(sandstorm, strike, 'coefficient')
+      });
+    if (torment)
+      emitSkillCondition(context, {
+        skill,
+        at: at + effectNumber(sandstorm, torment, 'atMs') / 1000,
+        condition: String(torment.condition),
+        stacks: effectNumber(sandstorm, torment, 'stacks'),
+        duration: effectNumber(sandstorm, torment, 'duration')
+      });
   }
 
   return true;

@@ -1,10 +1,12 @@
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import {
-  balanceProfileEffect,
-  balanceProfileFromContext,
-  balanceProfileEffectFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { BalanceProfile, StatusEffect } from '#gw2/platform/engine/skills/types.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -28,6 +30,23 @@ import { runNecromancerShroudEnter } from '#gw2/professions/necromancer/core/mec
 import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
 import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
+/** Emit one surviving entry boon with its authored identity; a removed boon emits nothing. */
+function emitEntryBoon(
+  context: NecromancerCastContext,
+  skill: NecromancerSkill,
+  at: number,
+  profile: BalanceProfile,
+  boon: StatusEffect | undefined
+): void {
+  if (!boon) return;
+  emitSkillBuff(context, skill, {
+    at,
+    kind: String(boon.boon),
+    duration: effectNumber(profile, boon, 'duration'),
+    stacks: effectNumber(profile, boon, 'stacks')
+  });
+}
+
 // Snapshot current life-force-related state, arm the matching exit skill, and
 // apply all entry traits before publishing the shroud weapon-set transition.
 function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
@@ -41,34 +60,34 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
     : 0;
   // Resolve entry-time carapace and life-force traits against the pre-transform state.
   if (hasTrait(context, TRAIT.SOUL_COMPREHENSION)) {
+    const profile = requireBalanceProfileFromContext(context, TRAIT.SOUL_COMPREHENSION);
     gainNecromancerLifeForce(
       context,
-      Math.min(
-        Number(balanceProfileFromContext(context, TRAIT.SOUL_COMPREHENSION)?.maximumStacks),
-        timedCarapace + minionCarapace
-      ) * Number(balanceProfileFromContext(context, TRAIT.SOUL_COMPREHENSION)?.lifeForcePerStack),
+      Math.min(balanceProfileNumber(profile, 'maximumStacks'), timedCarapace + minionCarapace) *
+        balanceProfileNumber(profile, 'lifeForcePerStack'),
       at
     );
   }
 
   if (hasTrait(context, TRAIT.ARMORED_SHROUD)) {
-    addCarapace(
-      state,
-      Number(balanceProfileFromContext(context, TRAIT.ARMORED_SHROUD)?.resourceGain),
-      at,
-      Number(balanceProfileFromContext(context, TRAIT.ARMORED_SHROUD)?.duration)
-    );
+    const profile = requireBalanceProfileFromContext(context, TRAIT.ARMORED_SHROUD);
+    addCarapace(state, balanceProfileNumber(profile, 'resourceGain'), at, balanceProfileNumber(profile, 'duration'));
   }
 
   if (hasTrait(context, TRAIT.SHROUDED_REMOVAL)) {
     // Remove only the patched number of active applications and reward each successful removal.
-    const profile = balanceProfileFromContext(context, TRAIT.SHROUDED_REMOVAL)!;
+    const profile = requireBalanceProfileFromContext(context, TRAIT.SHROUDED_REMOVAL);
     const removed = state.selfConditions
       .filter((application) => isTimeInWindow(at, application.appliedAt, application.expiresAt))
-      .slice(0, Number(profile.maximumConditions));
+      .slice(0, balanceProfileNumber(profile, 'maximumConditions'));
     if (removed.length) {
       state.selfConditions = state.selfConditions.filter((application) => !removed.includes(application));
-      addCarapace(state, removed.length * Number(profile.resourceGain), at, Number(profile.duration));
+      addCarapace(
+        state,
+        removed.length * balanceProfileNumber(profile, 'resourceGain'),
+        at,
+        balanceProfileNumber(profile, 'duration')
+      );
     }
   }
 
@@ -95,88 +114,66 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
     emitSkillBuff(context, skill, {
       at,
       kind: 'necromancer-soul-barbs',
-      duration: Number(balanceProfileFromContext(context, TRAIT.SOUL_BARBS)?.duration),
+      duration: balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SOUL_BARBS), 'duration'),
       stacks: 1
     });
   }
 
-  if (hasTrait(context, TRAIT.AWAKEN_THE_PAIN)) {
-    const boon = balanceProfileEffectFromContext(context, TRAIT.AWAKEN_THE_PAIN, 'boon', 0)!;
-    emitSkillBuff(context, skill, { at, kind: 'might', duration: Number(boon.duration), stacks: Number(boon.stacks) });
-  }
-
-  if (hasTrait(context, TRAIT.FURIOUS_DEMISE)) {
-    const boon = balanceProfileEffectFromContext(context, TRAIT.FURIOUS_DEMISE, 'boon', 0)!;
-    emitSkillBuff(context, skill, { at, kind: 'fury', duration: Number(boon.duration), stacks: Number(boon.stacks) });
-  }
-
-  if (hasTrait(context, TRAIT.SPEED_OF_SHADOWS)) {
-    const boon = balanceProfileEffectFromContext(context, TRAIT.SPEED_OF_SHADOWS, 'boon', 0)!;
-    emitSkillBuff(context, skill, {
-      at,
-      kind: 'swiftness',
-      duration: Number(boon.duration),
-      stacks: Number(boon.stacks)
-    });
-  }
-
-  if (hasTrait(context, TRAIT.ETERNAL_LIFE)) {
-    const boon = balanceProfileEffectFromContext(context, TRAIT.ETERNAL_LIFE, 'boon', 0)!;
-    emitSkillBuff(context, skill, {
-      at,
-      kind: 'protection',
-      duration: Number(boon.duration),
-      stacks: Number(boon.stacks)
-    });
+  for (const [trait, boon] of [
+    [TRAIT.AWAKEN_THE_PAIN, 'might'],
+    [TRAIT.FURIOUS_DEMISE, 'fury'],
+    [TRAIT.SPEED_OF_SHADOWS, 'swiftness'],
+    [TRAIT.ETERNAL_LIFE, 'protection']
+  ] as const) {
+    if (!hasTrait(context, trait)) continue;
+    const profile = requireBalanceProfileFromContext(context, trait);
+    emitEntryBoon(context, skill, at, profile, requireEffect(profile, 'boon', boon));
   }
 
   if (hasTrait(context, TRAIT.WEAKENING_SHROUD)) {
-    const profile = balanceProfileFromContext(context, TRAIT.WEAKENING_SHROUD);
-    const strike = balanceProfileEffect(profile, 'strike')!;
-    const bleeding = balanceProfileEffect(profile, 'condition', 0)!;
-    const weakness = balanceProfileEffect(profile, 'condition', 1)!;
-    emitSkillDamage(context, skill, {
-      at,
-      name: 'Weakening Shroud',
-      source: 'Trait',
-      sourceId: TRAIT.WEAKENING_SHROUD,
-      actorType: 'effect',
-      coefficient: Number(strike.coefficient),
-      skillWeapon: 'Unequipped'
-    });
-    emitSkillCondition(context, {
-      skill,
-      at,
-      source: 'Trait',
-      sourceId: TRAIT.WEAKENING_SHROUD,
-      actorType: 'effect',
-      condition: 'Bleeding',
-      stacks: Number(bleeding.stacks),
-      duration: Number(bleeding.duration)
-    });
-    emitSkillCondition(context, {
-      skill,
-      at,
-      source: 'Trait',
-      sourceId: TRAIT.WEAKENING_SHROUD,
-      actorType: 'effect',
-      condition: 'Weakness',
-      stacks: Number(weakness.stacks),
-      duration: Number(weakness.duration)
-    });
+    const profile = requireBalanceProfileFromContext(context, TRAIT.WEAKENING_SHROUD);
+    // The strike and both conditions are independent packets; removing one keeps the others.
+    const strike = requireEffect(profile, 'strike', 'Strike');
+    const bleeding = requireEffect(profile, 'condition', 'Bleeding');
+    const weakness = requireEffect(profile, 'condition', 'Weakness');
+    if (strike)
+      emitSkillDamage(context, skill, {
+        at,
+        name: 'Weakening Shroud',
+        source: 'Trait',
+        sourceId: TRAIT.WEAKENING_SHROUD,
+        actorType: 'effect',
+        coefficient: effectNumber(profile, strike, 'coefficient'),
+        skillWeapon: 'Unequipped'
+      });
+    for (const condition of [bleeding, weakness]) {
+      if (!condition) continue;
+      emitSkillCondition(context, {
+        skill,
+        at,
+        source: 'Trait',
+        sourceId: TRAIT.WEAKENING_SHROUD,
+        actorType: 'effect',
+        condition: String(condition.condition),
+        stacks: effectNumber(profile, condition, 'stacks'),
+        duration: effectNumber(profile, condition, 'duration')
+      });
+    }
   }
 
   if (hasTrait(context, TRAIT.SPITEFUL_SPIRIT)) {
-    const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.spitefulSpirit), 'strike');
-    emitSkillDamage(context, skill, {
-      at,
-      name: 'Spiteful Spirit',
-      source: 'Trait',
-      sourceId: TRAIT.SPITEFUL_SPIRIT,
-      actorType: 'effect',
-      coefficient: Number(strike?.coefficient || 0),
-      skillWeapon: 'Unequipped'
-    });
+    const profile = requireBalanceProfileFromContext(context, PROFILE.spitefulSpirit);
+    const strike = requireEffect(profile, 'strike', 'Strike');
+    if (strike)
+      emitSkillDamage(context, skill, {
+        at,
+        name: 'Spiteful Spirit',
+        source: 'Trait',
+        sourceId: TRAIT.SPITEFUL_SPIRIT,
+        actorType: 'effect',
+        coefficient: effectNumber(profile, strike, 'coefficient'),
+        skillWeapon: 'Unequipped'
+      });
   }
 
   // Publish the visible weapon transition only after all entry state and trait effects are committed.

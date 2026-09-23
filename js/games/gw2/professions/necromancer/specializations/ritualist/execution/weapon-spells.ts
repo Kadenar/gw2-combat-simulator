@@ -2,7 +2,10 @@
  * Owns Ritualist weapon-spell application behavior and modeled allied-player proc scheduling.
  * Declarative weapon-spell fragments remain in `skills/index.ts`.
  */
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { gw2AlliedEffectRecipients, gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -50,7 +53,7 @@ function applyWeaponSpell(context: NecromancerCastContext, skill: NecromancerSki
     alliesReceiveFullBenefit: fullAlliedBenefit
   });
   if (spell === 'nightmare' || spell === 'splinter') {
-    const proc = balanceProfileFromContext(
+    const proc = requireBalanceProfileFromContext(
       context,
       spell === 'nightmare' ? PROFILE.nightmareWeaponProc : PROFILE.splinterWeaponProc
     );
@@ -60,7 +63,7 @@ function applyWeaponSpell(context: NecromancerCastContext, skill: NecromancerSki
       duration: Number(definition.duration || 0),
       maximumAllies: party.alliedPlayerCount,
       maximumPerAlly: allyStacks,
-      internalCooldown: Number(proc?.internalCooldown || 0)
+      internalCooldown: balanceProfileNumber(proc, 'internalCooldown')
     });
     for (let index = 0; index < alliedProcs.length; index += 1) {
       const proc = alliedProcs[index];

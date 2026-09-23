@@ -148,6 +148,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     icon: 'https://render.guildwars2.com/file/9CA8D4479BEE9A28C810CCB0E234BAC7712104A0/3680170.png',
     effects: [
       {
+        name: 'necromancer-painful-bond',
         type: 'buff',
         kind: 'necromancer-painful-bond',
         stacks: 1,
@@ -155,6 +156,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         actorType: 'player'
       },
       {
+        name: 'Strike',
         type: 'strike',
         coefficient: 0,
         hits: 1,
@@ -173,6 +175,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     internalCooldown: 0,
     effects: [
       {
+        name: 'Strike',
         type: 'strike',
         coefficient: 0,
         hits: 1,
@@ -183,6 +186,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         damageKind: 'life-steal'
       },
       {
+        name: 'Vulnerability',
         type: 'condition',
         condition: 'Vulnerability',
         stacks: 2,
@@ -197,7 +201,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     profileKind: 'skill-variant',
     parentId: ID.SPLINTER_WEAPON,
     internalCooldown: 0.32,
-    effects: [{ type: 'strike', coefficient: 0.4, hits: 1, actorType: 'effect' }]
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.4, hits: 1, actorType: 'effect' }]
   },
   {
     id: RITUALIST_BALANCE_PROFILE_IDS.explosiveGrowth,
@@ -205,7 +209,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     profileKind: 'trait',
     categories: ['Trait'],
     coefficientMultiplier: 1.2,
-    effects: [{ type: 'strike', coefficient: 1.2, hits: 1, actorType: 'effect' }]
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 1.2, hits: 1, actorType: 'effect' }]
   },
   {
     id: RITUALIST_BALANCE_PROFILE_IDS.boonOfCreation,
@@ -223,6 +227,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     categories: ['Trait'],
     effects: [
       {
+        name: 'quickness',
         type: 'boon',
         boon: 'quickness',
         stacks: 1,
@@ -231,6 +236,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         audience: { recipients: 'party' as const }
       },
       {
+        name: 'might',
         type: 'boon',
         boon: 'might',
         stacks: 8,
@@ -239,6 +245,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         audience: { recipients: 'party' as const }
       },
       {
+        name: 'fury',
         type: 'boon',
         boon: 'fury',
         stacks: 1,
@@ -247,6 +254,7 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         audience: { recipients: 'party' as const }
       },
       {
+        name: 'resolution',
         type: 'boon',
         boon: 'resolution',
         stacks: 1,

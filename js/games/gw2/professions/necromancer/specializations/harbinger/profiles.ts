@@ -35,8 +35,8 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     pulseCount: 8,
     pulseInterval: 0.75 / 8,
     effects: [
-      { type: 'strike', coefficient: 0.6 },
-      { type: 'condition', condition: 'Torment', stacks: 1, duration: 3 }
+      { name: 'Strike', type: 'strike', coefficient: 0.6 },
+      { name: 'Torment', type: 'condition', condition: 'Torment', stacks: 1, duration: 3 }
     ]
   }),
   {
@@ -53,6 +53,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     minimumStacks: 20,
     effects: [
       {
+        name: 'meltdown',
         type: 'buff',
         kind: 'meltdown',
         stacks: 1,
@@ -60,12 +61,14 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         actorType: 'player'
       },
       {
+        name: 'Strike',
         type: 'strike',
         coefficient: 4.5,
         hits: 1,
         actorType: 'effect'
       },
       {
+        name: 'Torment',
         type: 'condition',
         condition: 'Torment',
         stacks: 6,
@@ -77,6 +80,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   trait(HARBINGER_BALANCE_PROFILE_IDS.septicCorruption, 'Septic Corruption', {
     effects: [
       {
+        name: 'Poisoned',
         type: 'condition',
         condition: 'Poisoned',
         stacks: 1,
@@ -89,6 +93,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     blightGain: 4,
     effects: [
       {
+        name: 'Vulnerability',
         type: 'condition',
         condition: 'Vulnerability',
         stacks: 2,
@@ -100,6 +105,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   trait(HARBINGER_BALANCE_PROFILE_IDS.deathlyHaste, 'Deathly Haste', {
     effects: [
       {
+        name: 'quickness',
         type: 'boon',
         boon: 'quickness',
         stacks: 1,
@@ -108,6 +114,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         audience: { recipients: 'party' as const }
       },
       {
+        name: 'fury',
         type: 'boon',
         boon: 'fury',
         stacks: 1,
@@ -124,6 +131,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     attributeConversion: 0.13,
     effects: [
       {
+        name: 'stability',
         type: 'boon',
         boon: 'stability',
         stacks: 3,
@@ -131,6 +139,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         actorType: 'player'
       },
       {
+        name: 'implacable-foe',
         type: 'buff',
         kind: 'implacable-foe',
         stacks: 1,
@@ -142,6 +151,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   trait(HARBINGER_BALANCE_PROFILE_IDS.bolsteringBrew, 'Bolstering Brew', {
     effects: [
       {
+        name: 'protection',
         type: 'boon',
         boon: 'protection',
         stacks: 1,
@@ -171,8 +181,9 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       blightCost: 5,
       blightGain: 10,
       effects: [
-        { type: 'strike', coefficient: 1.6, hits: 1, actorType: 'player' },
+        { name: 'Strike', type: 'strike', coefficient: 1.6, hits: 1, actorType: 'player' },
         {
+          name: 'Poisoned',
           type: 'condition',
           condition: 'Poisoned',
           stacks: 3,
@@ -186,8 +197,9 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     blightCost: 5,
     blightGain: 10,
     effects: [
-      { type: 'strike', coefficient: 4, hits: 1, actorType: 'player' },
+      { name: 'Strike', type: 'strike', coefficient: 4, hits: 1, actorType: 'player' },
       {
+        name: 'Torment',
         type: 'condition',
         condition: 'Torment',
         stacks: 3,
@@ -195,6 +207,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         actorType: 'player'
       },
       {
+        name: 'Weakness',
         type: 'condition',
         condition: 'Weakness',
         stacks: 1,
@@ -202,6 +215,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         actorType: 'player'
       },
       {
+        name: 'might',
         type: 'boon',
         boon: 'might',
         stacks: 10,
@@ -209,6 +223,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         actorType: 'player'
       },
       {
+        name: 'fury',
         type: 'boon',
         boon: 'fury',
         stacks: 1,
@@ -220,7 +235,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   variant(HARBINGER_BALANCE_PROFILE_IDS.elixirOfBlissEmpowered, ID.ELIXIR_OF_BLISS, 'Elixir of Bliss - Empowered', {
     blightCost: 5,
     blightGain: 10,
-    effects: [{ type: 'strike', coefficient: 1.6, hits: 1, actorType: 'player' }]
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 1.6, hits: 1, actorType: 'player' }]
   }),
   variant(
     HARBINGER_BALANCE_PROFILE_IDS.elixirOfIgnoranceEmpowered,
@@ -229,7 +244,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     {
       blightCost: 5,
       blightGain: 10,
-      effects: [{ type: 'strike', coefficient: 1.6, hits: 1, actorType: 'player' }]
+      effects: [{ name: 'Strike', type: 'strike', coefficient: 1.6, hits: 1, actorType: 'player' }]
     }
   ),
   variant(
@@ -240,8 +255,9 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       blightCost: 5,
       blightGain: 10,
       effects: [
-        { type: 'strike', coefficient: 2, hits: 1, actorType: 'player' },
+        { name: 'Strike', type: 'strike', coefficient: 2, hits: 1, actorType: 'player' },
         {
+          name: 'Crippled',
           type: 'condition',
           condition: 'Crippled',
           stacks: 1,
@@ -249,6 +265,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
           actorType: 'player'
         },
         {
+          name: 'quickness',
           type: 'boon',
           boon: 'quickness',
           stacks: 1,
@@ -256,6 +273,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
           actorType: 'player'
         },
         {
+          name: 'swiftness',
           type: 'boon',
           boon: 'swiftness',
           stacks: 1,
@@ -273,10 +291,11 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       blightCost: 10,
       blightGain: 15,
       effects: [
-        { type: 'strike', coefficient: 3, hits: 1, actorType: 'player' },
+        { name: 'Strike', type: 'strike', coefficient: 3, hits: 1, actorType: 'player' },
         // Only Burning needs individual applications; other conditions retain their bundled stacks.
         ...GW2_DAMAGING_CONDITIONS.flatMap((condition) =>
-          Array.from({ length: condition === 'Burning' ? 3 : 1 }, () => ({
+          Array.from({ length: condition === 'Burning' ? 3 : 1 }, (_, index) => ({
+            name: condition === 'Burning' ? `Burning ${index + 1}` : condition,
             type: 'condition' as const,
             condition,
             stacks: condition === 'Burning' ? 1 : 3,
@@ -285,6 +304,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
           }))
         ),
         {
+          name: 'might',
           type: 'boon',
           boon: 'might',
           stacks: 25,
@@ -292,6 +312,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
           actorType: 'player'
         },
         {
+          name: 'fury',
           type: 'boon',
           boon: 'fury',
           stacks: 1,
@@ -299,6 +320,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
           actorType: 'player'
         },
         {
+          name: 'quickness',
           type: 'boon',
           boon: 'quickness',
           stacks: 1,
@@ -306,6 +328,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
           actorType: 'player'
         },
         {
+          name: 'alacrity',
           type: 'boon',
           boon: 'alacrity',
           stacks: 1,
@@ -318,8 +341,9 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   variant(HARBINGER_BALANCE_PROFILE_IDS.devouringCutEmpowered, ID.DEVOURING_CUT, 'Devouring Cut - Empowered', {
     blightCost: 5,
     effects: [
-      { type: 'strike', coefficient: 2, hits: 1, actorType: 'player' },
+      { name: 'Strike', type: 'strike', coefficient: 2, hits: 1, actorType: 'player' },
       {
+        name: 'Torment',
         type: 'condition',
         condition: 'Torment',
         stacks: 5,
@@ -331,8 +355,9 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   variant(HARBINGER_BALANCE_PROFILE_IDS.voraciousArcEmpowered, ID.VORACIOUS_ARC, 'Voracious Arc - Empowered', {
     blightCost: 5,
     effects: [
-      { type: 'strike', coefficient: 2.8, hits: 1, actorType: 'player' },
+      { name: 'Strike', type: 'strike', coefficient: 2.8, hits: 1, actorType: 'player' },
       {
+        name: 'Torment',
         type: 'condition',
         condition: 'Torment',
         stacks: 5,

@@ -1,4 +1,8 @@
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { applyTraitCondition, applyTraitVulnerability } from '#gw2/professions/necromancer/core/traits/index.js';
@@ -14,25 +18,29 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
   // Doom Approaches Vulnerability applies only on the first hit of Tainted Bolts, not each chain projectile.
   const firstHit = Number(event.hitIndex || 1) === 1;
   if (hasTrait(context, TRAIT.DOOM_APPROACHES) && firstHit && skill?.id === ID.TAINTED_BOLTS) {
-    const vulnerability = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.doomApproaches), 'condition');
-    applyTraitVulnerability(context, event, {
-      name: 'Doom Approaches',
-      traitId: TRAIT.DOOM_APPROACHES,
-      stacks: Number(vulnerability?.stacks ?? 2),
-      duration: Number(vulnerability?.duration ?? 6)
-    });
+    const profile = requireBalanceProfileFromContext(context, PROFILE.doomApproaches);
+    const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+    if (vulnerability)
+      applyTraitVulnerability(context, event, {
+        name: 'Doom Approaches',
+        traitId: TRAIT.DOOM_APPROACHES,
+        stacks: effectNumber(profile, vulnerability, 'stacks'),
+        duration: effectNumber(profile, vulnerability, 'duration')
+      });
   }
 
   // Septic Corruption procs on shroud slot 2 specifically (the pistol #2 skill), not all pistol hits.
   if (hasTrait(context, TRAIT.SEPTIC_CORRUPTION) && skill?.shroudSlot === 2) {
-    const condition = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.septicCorruption), 'condition');
-    applyTraitCondition(context, event, {
-      name: 'Septic Corruption',
-      traitId: TRAIT.SEPTIC_CORRUPTION,
-      condition: String(condition?.condition || 'Poisoned'),
-      stacks: Number(condition?.stacks ?? 1),
-      duration: Number(condition?.duration ?? 3)
-    });
+    const profile = requireBalanceProfileFromContext(context, PROFILE.septicCorruption);
+    const condition = requireEffect(profile, 'condition', 'Poisoned');
+    if (condition)
+      applyTraitCondition(context, event, {
+        name: 'Septic Corruption',
+        traitId: TRAIT.SEPTIC_CORRUPTION,
+        condition: String(condition.condition),
+        stacks: effectNumber(profile, condition, 'stacks'),
+        duration: effectNumber(profile, condition, 'duration')
+      });
   }
 }
 

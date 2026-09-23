@@ -2,7 +2,12 @@ import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { resolverTimedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
@@ -13,17 +18,17 @@ export function handleNecromancerPainfulBond(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {
-  const definition = balanceProfileFromContext(context, PROFILE.painfulBond);
-  const buff = balanceProfileEffect(definition, 'buff');
+  const definition = requireBalanceProfileFromContext(context, PROFILE.painfulBond);
   const state = ritualistState.from(context);
   if (event.mode === 'apply') {
-    const duration = Number(event.duration ?? buff?.duration ?? 10);
+    // The scheduler stamps the authored window on every application.
+    const duration = Number(event.duration);
     // Painful Bond duration-stacks: overlapping applications add their full
     // duration to the remaining effect instead of refreshing its expiry.
     state.painfulBondUntil = gw2EffectExpiresAt(Math.max(event.at, Number(state.painfulBondUntil || 0)), duration);
     if (!Number.isFinite(state.painfulBondPulseAnchorAt)) {
       // Only the first application schedules the tick chain; stacked applications preserve its one-second cadence.
-      const firstPulseAt = event.at + Number(definition?.initialDelay ?? 0.004);
+      const firstPulseAt = event.at + balanceProfileNumber(definition, 'initialDelay');
       state.painfulBondPulseAnchorAt = firstPulseAt;
       painfulBondPulses.start(context, { key: 'painful-bond', at: firstPulseAt, captured: event });
     }
@@ -35,26 +40,28 @@ export function handleNecromancerPainfulBond(
 // Keep the anchor alive through inactive gaps; only the damage window has exclusive expiry.
 export const painfulBondPulses = resolverTimedEffect<NecromancerResolverContext, NecromancerResolverEvent>({
   id: 'necromancer.painful-bond-pulse',
-  interval: (context) => Number(balanceProfileFromContext(context, PROFILE.painfulBond)?.pulseInterval ?? 1),
+  interval: (context) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.painfulBond), 'pulseInterval'),
   effectsAt(context, at, event) {
-    const definition = balanceProfileFromContext(context, PROFILE.painfulBond);
-    const strike = balanceProfileEffect(definition, 'strike');
+    const definition = requireBalanceProfileFromContext(context, PROFILE.painfulBond);
+    const strike = requireEffect(definition, 'strike', 'Strike');
     const state = ritualistState.from(context);
-    // Damage fires only while the debuff is still active; the final tick at expiry is suppressed
-    if (at < Number(state.painfulBondUntil || 0)) {
+    // Damage fires only while the debuff is still active; the final tick at expiry is suppressed. A removed strike
+    // keeps the cadence but emits no pulse damage.
+    if (strike && at < Number(state.painfulBondUntil || 0)) {
       context.queue.enqueue(
         buildResolverStrike({
           at: at,
 
           skillName: 'Painful Bond',
           coefficient: 0,
-          flatStrikeBase: Number(strike?.flatStrikeBase || 0),
-          flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff || 0),
+          flatStrikeBase: effectNumber(definition, strike, 'flatStrikeBase'),
+          flatStrikePowerCoeff: effectNumber(definition, strike, 'flatStrikePowerCoeff'),
 
           source: 'Spirit',
           sourceId: 'ritualist.painful-bond',
           actorType: 'effect',
-          icon: String(definition?.icon || ''),
+          icon: String(definition.icon || ''),
           skillWeapon: 'Unequipped',
           noCrit: true, // Painful Bond pulses cannot crit in-game regardless of stats
           triggeredBy: event.triggeredBy || 'Anguish'

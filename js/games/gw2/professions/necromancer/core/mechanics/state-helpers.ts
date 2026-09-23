@@ -1,4 +1,7 @@
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
@@ -150,7 +153,7 @@ export function applyDueNecromancerLifeForceGains(context: NecromancerSchedulerC
 function addNecromancerLifeForce(context: NecromancerSchedulerContext, amount: number): boolean {
   const state = professionCoreState(context);
   const multiplier = hasTrait(context, TRAIT.GLUTTONY)
-    ? Number(balanceProfileFromContext(context, TRAIT.GLUTTONY)?.lifeForceGainMultiplier)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GLUTTONY), 'lifeForceGainMultiplier')
     : 1;
   const before = state.lifeForce;
   state.lifeForce = Math.min(

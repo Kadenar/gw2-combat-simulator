@@ -4,7 +4,12 @@ import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics
  * Owns Necromancer spear Soul Shard generation, consumption, and conditional cast behavior.
  * Spear skill fragments remain in `skills/weapons/spear.ts`; `index.ts` assigns cast phases.
  */
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   emitSkillCondition,
@@ -87,8 +92,10 @@ function soulShardDamage(
   index: number,
   total: number
 ): void {
-  const profile = balanceProfileFromContext(context, PROFILE.soulShards);
-  const strike = balanceProfileEffect(profile, 'strike');
+  const profile = requireBalanceProfileFromContext(context, PROFILE.soulShards);
+  const strike = requireEffect(profile, 'strike', 'Soul Shards');
+  // The consumed shard's bonus packet is its only output; a removed strike emits nothing.
+  if (!strike) return;
   emitSkillDamage(context, {
     at,
     source: 'necromancer',
@@ -104,14 +111,14 @@ function soulShardDamage(
     hitIndex: index,
     totalHits: total,
     skillWeapon: 'Unequipped',
-    flatStrikeBase: Number(strike?.flatStrikeBase || 0),
-    flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff || 0),
+    flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
+    flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
     flatStrikeMultiplier:
       hasTrait(context, TRAIT.SOUL_BARBS) && context.hasBuff('necromancer-soul-barbs', at) ? 1.1 : 1,
-    flatStrikeHealthThreshold: Number(profile?.threshold || 0),
-    flatStrikeThresholdMultiplier: Number(profile?.damageMultiplier ?? 1),
-    noCrit: strike?.noCrit === true,
-    damageKind: String(strike?.damageKind || '')
+    flatStrikeHealthThreshold: balanceProfileNumber(profile, 'threshold'),
+    flatStrikeThresholdMultiplier: balanceProfileNumber(profile, 'damageMultiplier'),
+    noCrit: strike.noCrit === true,
+    damageKind: String(strike.damageKind || '')
   });
 }
 

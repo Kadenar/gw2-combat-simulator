@@ -2,10 +2,12 @@ import { buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolve
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 /** Owns imperative Core Necromancer Spite trait behavior for ordered dispatcher calls. */
 import {
-  balanceProfileEffect,
-  balanceProfileFromContext,
-  balanceProfileEffectFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { BalanceProfile, ConditionEffect } from '#gw2/platform/engine/skills/types.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
@@ -41,7 +43,10 @@ export function applyReapersMight(
   shroudSkillOne: boolean
 ): void {
   if (!hasTrait(context, TRAIT.REAPERS_MIGHT) || !firstHit || !shroudSkillOne) return;
-  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.reapersMight), 'boon');
+  const profile = requireBalanceProfileFromContext(context, PROFILE.reapersMight);
+  const effect = requireEffect(profile, 'boon', 'might');
+  // The proc record reports only a delivered boon.
+  if (!effect) return;
   queueResolverBoon(
     context,
     event,
@@ -49,9 +54,9 @@ export function applyReapersMight(
       at: event.at,
 
       skillName: "Reaper's Might",
-      kind: String(effect?.boon || 'might'),
-      stacks: Number(effect?.stacks ?? 1),
-      duration: Number(effect?.duration ?? 15),
+      kind: String(effect.boon),
+      stacks: effectNumber(profile, effect, 'stacks'),
+      duration: effectNumber(profile, effect, 'duration'),
       source: 'Trait',
       sourceId: TRAIT.REAPERS_MIGHT,
       actorType: 'effect',
@@ -63,15 +68,17 @@ export function applyReapersMight(
 
 export function applySiphonedPower(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (!hasTrait(context, TRAIT.SIPHONED_POWER) || !targetBelowHalfHealth(context)) return;
-  const profile = balanceProfileFromContext(context, PROFILE.siphonedPower);
-  const effect = balanceProfileEffect(profile, 'boon');
-  // Claim only after local eligibility, before conditions, resources or queued strikes.
+  const profile = requireBalanceProfileFromContext(context, PROFILE.siphonedPower);
+  const effect = requireEffect(profile, 'boon', 'might');
+  // Claim only after local eligibility, before conditions, resources or queued strikes; the cooldown gates only
+  // might, so a removed boon leaves it ready.
   if (
+    !effect ||
     !tryConsumeProcCooldown(
       professionCoreState(context).traitProcReadyAt,
       'siphonedPower',
       event.at,
-      Number(profile?.cooldown ?? 1)
+      balanceProfileNumber(profile, 'cooldown')
     )
   )
     return;
@@ -82,9 +89,9 @@ export function applySiphonedPower(context: NecromancerResolverContext, event: N
       at: event.at,
 
       skillName: 'Siphoned Power',
-      kind: String(effect?.boon || 'might'),
-      stacks: Number(effect?.stacks ?? 3),
-      duration: Number(effect?.duration ?? 8),
+      kind: String(effect.boon),
+      stacks: effectNumber(profile, effect, 'stacks'),
+      duration: effectNumber(profile, effect, 'duration'),
       source: 'Trait',
       sourceId: TRAIT.SIPHONED_POWER,
       actorType: 'effect',
@@ -96,7 +103,7 @@ export function applySiphonedPower(context: NecromancerResolverContext, event: N
 
 // Scheduler predictions and resolver observations must agree on the raw percentage each strike grants.
 function spitefulFortitudeLifeForceGain(context: NecromancerSchedulerContext | NecromancerResolverContext): number {
-  return Number(balanceProfileFromContext(context, PROFILE.spitefulFortitude)?.lifeForceGain ?? 1);
+  return balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.spitefulFortitude), 'lifeForceGain');
 }
 
 export function applySpitefulFortitude(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
@@ -152,48 +159,67 @@ export function predictSpitefulFortitude(
 
 export function applyChillOfDeath(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (!hasTrait(context, TRAIT.CHILL_OF_DEATH) || !targetBelowHalfHealth(context)) return;
-  const profile = balanceProfileFromContext(context, PROFILE.chillOfDeath);
-  // Claim only after local eligibility, before conditions, resources or queued strikes.
+  const profile = requireBalanceProfileFromContext(context, PROFILE.chillOfDeath);
+  // No target boons can be removed, so use only the zero-boon strike profile.
+  const strike = requireEffect(profile, 'strike', 'Lesser Spinal Shivers - No Boons');
+  const chilled = requireEffect(profile, 'condition', 'Chilled');
+  // Claim only after local eligibility, before conditions, resources or queued strikes; with both packets removed
+  // there is no proc to gate.
   if (
+    (!strike && !chilled) ||
     !tryConsumeProcCooldown(
       professionCoreState(context).traitProcReadyAt,
       'chillOfDeath',
       event.at,
-      Number(profile?.cooldown ?? 16)
+      balanceProfileNumber(profile, 'cooldown')
     )
   )
     return;
-  // No target boons can be removed, so use only the zero-boon strike profile.
-  const coefficient = Number(balanceProfileEffect(profile, 'strike')?.coefficient ?? 0.6);
-  queueTraitCoefficientDamage(context, event, {
-    name: 'Lesser Spinal Shivers',
-    traitId: TRAIT.CHILL_OF_DEATH,
-    coefficient,
-    noCrit: true
-  });
+  if (strike)
+    queueTraitCoefficientDamage(context, event, {
+      name: 'Lesser Spinal Shivers',
+      traitId: TRAIT.CHILL_OF_DEATH,
+      coefficient: effectNumber(profile, strike, 'coefficient'),
+      noCrit: true
+    });
+  // Without its strike, Chill has no resolved hit to follow and applies at the trigger instead.
+  else if (chilled) queueChillOfDeathCondition(context, event, profile, chilled);
 }
 
-/** Queue Chill from the resolved trait strike so sibling strikes keep their pre-Chill state. */
-export function applyChillOfDeathCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  if (event.actorType !== 'effect' || event.sourceId !== TRAIT.CHILL_OF_DEATH) return;
-  const profile = balanceProfileFromContext(context, PROFILE.chillOfDeath);
+function queueChillOfDeathCondition(
+  context: NecromancerResolverContext,
+  event: NecromancerResolverEvent,
+  profile: BalanceProfile,
+  chilled: ConditionEffect
+): void {
   context.queue.enqueue(
     buildResolverCondition({
-      condition: 'Chilled',
-      stacks: 1,
+      condition: String(chilled.condition),
+      stacks: effectNumber(profile, chilled, 'stacks'),
       name: 'Lesser Spinal Shivers — Chilled',
       at: event.at,
       source: 'Trait',
       sourceId: TRAIT.CHILL_OF_DEATH,
       actorType: 'effect',
       skillName: 'Lesser Spinal Shivers',
-      duration: Number(balanceProfileEffect(profile, 'condition')?.duration ?? 5)
+      duration: effectNumber(profile, chilled, 'duration')
     })
   );
 }
 
+/** Queue Chill from the resolved trait strike so sibling strikes keep their pre-Chill state. */
+export function applyChillOfDeathCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
+  if (event.actorType !== 'effect' || event.sourceId !== TRAIT.CHILL_OF_DEATH) return;
+  const profile = requireBalanceProfileFromContext(context, PROFILE.chillOfDeath);
+  const chilled = requireEffect(profile, 'condition', 'Chilled');
+  if (chilled) queueChillOfDeathCondition(context, event, profile, chilled);
+}
+
 export function applySignetsOfSuffering(context: NecromancerCastContext, skill: NecromancerSkill): void {
   if (!skill.categories?.includes('Signet') || !hasTrait(context, TRAIT.SIGNETS_OF_SUFFERING)) return;
+  const profile = requireBalanceProfileFromContext(context, TRAIT.SIGNETS_OF_SUFFERING);
+  const strike = requireEffect(profile, 'strike', 'Strike');
+  if (!strike) return;
   emitSkillDamage(context, skill, {
     at: context.effectiveEnd,
     name: 'Signets of Suffering',
@@ -202,9 +228,7 @@ export function applySignetsOfSuffering(context: NecromancerCastContext, skill: 
     actorType: 'effect',
     coefficient: 0,
     skillWeapon: 'Unequipped',
-    flatStrikeBase: Number(
-      balanceProfileEffectFromContext(context, TRAIT.SIGNETS_OF_SUFFERING, 'strike', 0)!.flatStrikeBase
-    ),
+    flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
     noCrit: true,
     damageKind: 'life-steal'
   });
@@ -213,13 +237,17 @@ export function applySignetsOfSuffering(context: NecromancerCastContext, skill: 
 export function applyMaliciousSwarm(context: NecromancerCastContext, skill: NecromancerSkill): void {
   const state = professionCoreState(context);
   if (skill.type !== 'Heal' || !hasTrait(context, TRAIT.MALICIOUS_SWARM)) return;
-  // Claim only after local eligibility, before conditions, resources or queued strikes.
+  const profile = requireBalanceProfileFromContext(context, TRAIT.MALICIOUS_SWARM);
+  const strike = requireEffect(profile, 'strike', 'Strike');
+  // Claim only after local eligibility, before conditions, resources or queued strikes; the cooldown gates only the
+  // strike, so a removed strike leaves it ready.
   if (
+    !strike ||
     !tryConsumeProcCooldown(
       state.traitProcReadyAt,
       'maliciousSwarm',
       context.effectiveEnd,
-      Number(balanceProfileFromContext(context, TRAIT.MALICIOUS_SWARM)?.internalCooldown)
+      balanceProfileNumber(profile, 'internalCooldown')
     )
   )
     return;
@@ -229,7 +257,7 @@ export function applyMaliciousSwarm(context: NecromancerCastContext, skill: Necr
     source: 'Trait',
     sourceId: TRAIT.MALICIOUS_SWARM,
     actorType: 'effect',
-    coefficient: Number(balanceProfileEffectFromContext(context, TRAIT.MALICIOUS_SWARM, 'strike', 0)!.coefficient),
+    coefficient: effectNumber(profile, strike, 'coefficient'),
     skillWeapon: 'Unequipped'
   });
 }

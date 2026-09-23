@@ -1,6 +1,8 @@
 import {
-  balanceProfileFromContext,
-  balanceProfileEffectFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 /** Owns imperative Core Necromancer Death Magic trait behavior for ordered dispatcher calls. */
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
@@ -20,9 +22,9 @@ export function applyCorruptorsFervor(context: NecromancerResolverContext, event
   if (event.actorType === 'summon' || !hasTrait(context, TRAIT.CORRUPTERS_FERVOR)) return;
   addCarapace(
     professionCoreState(context),
-    Number(balanceProfileFromContext(context, TRAIT.CORRUPTERS_FERVOR)?.resourceGain),
+    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CORRUPTERS_FERVOR), 'resourceGain'),
     event.at,
-    Number(balanceProfileFromContext(context, TRAIT.CORRUPTERS_FERVOR)?.duration)
+    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.CORRUPTERS_FERVOR), 'duration')
   );
 }
 
@@ -35,21 +37,24 @@ export function applyDarkDefense(context: NecromancerCastContext, skill: Necroma
       state.traitProcReadyAt,
       'darkDefense',
       context.effectiveEnd,
-      Number(balanceProfileFromContext(context, TRAIT.DARK_DEFENSE)?.internalCooldown)
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DARK_DEFENSE), 'internalCooldown')
     )
   )
     return;
   addCarapace(
     state,
-    Number(balanceProfileFromContext(context, TRAIT.DARK_DEFENSE)?.resourceGain),
+    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DARK_DEFENSE), 'resourceGain'),
     context.effectiveEnd,
-    Number(balanceProfileFromContext(context, TRAIT.DARK_DEFENSE)?.duration)
+    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.DARK_DEFENSE), 'duration')
   );
-  const protection = balanceProfileEffectFromContext(context, TRAIT.DARK_DEFENSE, 'boon', 0)!;
+  const profile = requireBalanceProfileFromContext(context, TRAIT.DARK_DEFENSE);
+  const protection = requireEffect(profile, 'boon', 'protection');
+  // Carapace is independent of the boon, so a removed boon keeps the carapace grant.
+  if (!protection) return;
   emitSkillBuff(context, skill, {
     at: context.effectiveEnd,
-    kind: 'protection',
-    duration: Number(protection.duration),
-    stacks: Number(protection.stacks)
+    kind: String(protection.boon),
+    duration: effectNumber(profile, protection, 'duration'),
+    stacks: effectNumber(profile, protection, 'stacks')
   });
 }

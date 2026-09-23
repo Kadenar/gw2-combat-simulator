@@ -1,8 +1,8 @@
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
-  balanceProfileEffect,
-  balanceProfileFromContext,
   requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -60,14 +60,16 @@ function emitDeathlyHaste(
   skill: NecromancerSkill,
   attribution: { source?: string; sourceId?: NecromancerSkill['id'] } = {}
 ): void {
-  const profile = balanceProfileFromContext(context, PROFILE.deathlyHaste);
-  for (const [index, kind] of ['quickness', 'fury'].entries()) {
-    const effect = balanceProfileEffect(profile, 'boon', index);
+  const profile = requireBalanceProfileFromContext(context, PROFILE.deathlyHaste);
+  // Each named boon is independent, so removing one keeps its sibling bound to its own values.
+  for (const name of ['quickness', 'fury']) {
+    const effect = requireEffect(profile, 'boon', name);
+    if (!effect) continue;
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
-      kind: String(effect?.boon || kind),
-      duration: Number(effect?.duration ?? 4),
-      stacks: Number(effect?.stacks ?? 1),
+      kind: String(effect.boon),
+      duration: effectNumber(profile, effect, 'duration'),
+      stacks: effectNumber(profile, effect, 'stacks'),
       audience: { recipients: 'party', maximumRecipients: 5 },
       ...attribution
     });
@@ -86,7 +88,7 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
     if (hasTrait(context, TRAIT.CORRUPTED_TALENT)) {
       gainNecromancerLifeForce(
         context,
-        Number(balanceProfileFromContext(context, PROFILE.corruptedTalent)?.lifeForceGain ?? 15),
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.corruptedTalent), 'lifeForceGain'),
         at
       );
     }
@@ -94,21 +96,20 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
     if (hasTrait(context, TRAIT.DEATHLY_HASTE)) emitDeathlyHaste(context, skill);
 
     if (hasTrait(context, TRAIT.IMPLACABLE_FOE)) {
-      const profile = balanceProfileFromContext(context, PROFILE.implacableFoe);
-      const stability = balanceProfileEffect(profile, 'boon');
-      const buff = balanceProfileEffect(profile, 'buff');
-      emitSkillBuff(context, skill, {
-        at,
-        kind: String(stability?.boon || 'stability'),
-        duration: Number(stability?.duration ?? 5),
-        stacks: Number(stability?.stacks ?? 3)
-      });
-      emitSkillBuff(context, skill, {
-        at,
-        kind: String(buff?.kind || 'implacable-foe'),
-        duration: Number(buff?.duration ?? 2),
-        stacks: Number(buff?.stacks ?? 1)
-      });
+      const profile = requireBalanceProfileFromContext(context, PROFILE.implacableFoe);
+      // Stability and the Implacable Foe status are independent entry outputs.
+      for (const effect of [
+        requireEffect(profile, 'boon', 'stability'),
+        requireEffect(profile, 'buff', 'implacable-foe')
+      ]) {
+        if (!effect) continue;
+        emitSkillBuff(context, skill, {
+          at,
+          kind: String(effect.boon ?? effect.kind),
+          duration: effectNumber(profile, effect, 'duration'),
+          stacks: effectNumber(profile, effect, 'stacks')
+        });
+      }
     }
   }
 
@@ -185,7 +186,8 @@ function activeBlight(context: Gw2ModifierContext): number {
 /** Applies Dark Gunslinger's pistol recharge reduction. */
 function modifyHarbingerRechargeDuration(context: NecromancerSkillModifierContext, duration: number): number {
   return context.skill?.weapon === 'Pistol' && hasTrait(context, TRAIT.DARK_GUNSLINGER)
-    ? duration * Number(balanceProfileFromContext(context, PROFILE.darkGunslinger)?.rechargeMultiplier ?? 0.8)
+    ? duration *
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.darkGunslinger), 'rechargeMultiplier')
     : duration;
 }
 

@@ -1,6 +1,5 @@
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
-  balanceProfileFromContext,
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -63,7 +62,7 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
 function modifyScourgeRechargeDuration(context: NecromancerSkillModifierContext, duration: number): number {
   // Sand Savant adds a 25% recharge penalty alongside the ammo cap reduction to 1
   return context.skill?.id === ID.MANIFEST_SAND_SHADE && hasTrait(context, TRAIT.SAND_SAVANT)
-    ? duration * Number(balanceProfileFromContext(context, PROFILE.sandSavant)?.rechargePenalty ?? 1.25)
+    ? duration * balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.sandSavant), 'rechargePenalty')
     : duration;
 }
 
@@ -71,7 +70,7 @@ function modifyScourgeRechargeDuration(context: NecromancerSkillModifierContext,
 function modifyScourgeMaximumAmmo(context: NecromancerSkillModifierContext, maximum: number): number {
   // Sand Savant merges all 3 shades into a single more-powerful shade; only 1 charge allowed
   return context.skill?.id === ID.MANIFEST_SAND_SHADE && hasTrait(context, TRAIT.SAND_SAVANT)
-    ? Number(balanceProfileFromContext(context, PROFILE.sandSavant)?.maximumStacks ?? 1)
+    ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.sandSavant), 'maximumStacks')
     : maximum;
 }
 
@@ -109,9 +108,9 @@ function onScourgeEventScheduled(context: NecromancerSchedulerContext, event: Ne
     return;
   }
 
-  const profile = balanceProfileFromContext(context, PROFILE.nourishingAshes);
-  state.nourishingAshesReadyAt = event.at + Number(profile?.cooldown ?? 3);
-  gainNecromancerLifeForce(context, Number(profile?.lifeForceGain ?? 5), event.at, 'nourishing-ashes');
+  const profile = requireBalanceProfileFromContext(context, PROFILE.nourishingAshes);
+  state.nourishingAshesReadyAt = event.at + balanceProfileNumber(profile, 'cooldown');
+  gainNecromancerLifeForce(context, balanceProfileNumber(profile, 'lifeForceGain'), event.at, 'nourishing-ashes');
 }
 
 export const scourgeSchedulerHooks = Object.freeze({

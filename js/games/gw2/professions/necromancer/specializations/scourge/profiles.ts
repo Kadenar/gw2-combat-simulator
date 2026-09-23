@@ -23,6 +23,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     cooldown: 3,
     effects: [
       {
+        name: 'Burning',
         type: 'condition',
         condition: 'Burning',
         stacks: 1,
@@ -41,12 +42,14 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     dhuumfireInterval: 1,
     effects: [
       {
+        name: 'Strike',
         type: 'strike',
         coefficient: 0.666,
         hits: 1,
         actorType: 'player'
       },
       {
+        name: 'Torment',
         type: 'condition',
         condition: 'Torment',
         stacks: 1,
@@ -54,6 +57,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         actorType: 'player'
       },
       {
+        name: 'active-shade',
         type: 'buff',
         kind: 'active-shade',
         stacks: 1,
@@ -67,6 +71,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     rechargePenalty: 1.25,
     effects: [
       {
+        name: 'active-shade',
         type: 'buff',
         kind: 'active-shade',
         stacks: 1,
@@ -78,6 +83,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
   trait(SCOURGE_BALANCE_PROFILE_IDS.abrasiveGrit, 'Abrasive Grit', {
     effects: [
       {
+        name: 'might',
         type: 'boon',
         boon: 'might',
         stacks: 2,
@@ -90,6 +96,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
   trait(SCOURGE_BALANCE_PROFILE_IDS.desertEmpowerment, 'Desert Empowerment', {
     effects: [
       {
+        name: 'alacrity',
         type: 'boon',
         boon: 'alacrity',
         stacks: 1,
@@ -102,6 +109,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
   trait(SCOURGE_BALANCE_PROFILE_IDS.sadisticSearing, 'Sadistic Searing', {
     effects: [
       {
+        name: 'Burning',
         type: 'condition',
         condition: 'Burning',
         stacks: 1,
@@ -114,7 +122,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     id: SCOURGE_BALANCE_PROFILE_IDS.garishPillar,
     name: 'Garish Pillar - Fear',
     profileKind: 'skill-variant',
-    effects: [{ type: 'control', actorType: 'player' }]
+    effects: [{ name: 'Control', type: 'control', actorType: 'player' }]
   },
   {
     id: SCOURGE_BALANCE_PROFILE_IDS.desertShroud,
@@ -123,11 +131,13 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
+        name: 'Strike',
         type: 'strike',
         ticks: Array.from({ length: 7 }, (_, index) => ({ atMs: index * 1000, coefficient: 3.15 / 7 })),
         actorType: 'player'
       },
       {
+        name: 'Torment',
         type: 'condition',
         condition: 'Torment',
         stacks: 1,
@@ -145,10 +155,11 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: [
       ...impactEffects({ atMs: 3500, timingAnchor: 'castStart', timingScale: 'fixed' }, [
-        { type: 'strike', coefficient: 3, hits: 1, actorType: 'player' },
-        { type: 'condition', condition: 'Torment', stacks: 6, duration: 5, actorType: 'player' }
+        { name: 'Strike', type: 'strike', coefficient: 3, hits: 1, actorType: 'player' },
+        { name: 'Torment', type: 'condition', condition: 'Torment', stacks: 6, duration: 5, actorType: 'player' }
       ]),
       {
+        name: 'protection pulses',
         type: 'boon',
         boon: 'protection',
         stacks: 1,
@@ -161,6 +172,7 @@ export const SCOURGE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze
         audience: { recipients: 'party' as const }
       },
       {
+        name: 'protection',
         type: 'boon',
         boon: 'protection',
         stacks: 1,

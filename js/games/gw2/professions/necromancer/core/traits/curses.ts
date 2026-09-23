@@ -1,10 +1,11 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 /** Owns imperative Core Necromancer Curses trait behavior for ordered dispatcher calls. */
 import {
-  balanceProfileEffect,
-  balanceProfileFromContext,
-  procChanceFromContext,
-  balanceProfileEffectFromContext
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber,
+  procChanceFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
@@ -42,14 +43,16 @@ export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
   handler: (context, event, _details, application) => {
     // Barbed Precision emits one condition application per threshold proc.
     for (let proc = 0; proc < application.quantity; proc += 1) {
-      const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.barbedPrecision), 'condition');
+      const profile = requireBalanceProfileFromContext(context, PROFILE.barbedPrecision);
+      const effect = requireEffect(profile, 'condition', 'Bleeding');
+      if (!effect) return;
       applyTraitCondition(context, event, {
         name: 'Barbed Precision',
         procCount: 1,
         traitId: TRAIT.BARBED_PRECISION,
-        condition: String(effect?.condition || 'Bleeding'),
-        stacks: Number(effect?.stacks ?? 1),
-        duration: Number(effect?.duration ?? 3)
+        condition: String(effect.condition),
+        stacks: effectNumber(profile, effect, 'stacks'),
+        duration: effectNumber(profile, effect, 'duration')
       });
     }
   }
@@ -57,15 +60,17 @@ export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
 
 export function applyBitterChill(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.condition !== 'Chilled' || !hasTrait(context, TRAIT.BITTER_CHILL)) return;
-  const vulnerability = balanceProfileEffectFromContext(context, TRAIT.BITTER_CHILL, 'condition', 0)!;
+  const profile = requireBalanceProfileFromContext(context, TRAIT.BITTER_CHILL);
+  const vulnerability = requireEffect(profile, 'condition', 'Vulnerability');
+  if (!vulnerability) return;
   context.queue.enqueue(
     buildResolverCondition({
       at: event.at,
       name: 'Bitter Chill',
       skillName: 'Bitter Chill',
-      condition: 'Vulnerability',
-      stacks: Number(vulnerability.stacks),
-      duration: Number(vulnerability.duration),
+      condition: String(vulnerability.condition),
+      stacks: effectNumber(profile, vulnerability, 'stacks'),
+      duration: effectNumber(profile, vulnerability, 'duration'),
       source: 'Trait',
       sourceId: TRAIT.BITTER_CHILL,
       actorType: 'effect',
@@ -77,15 +82,17 @@ export function applyBitterChill(context: NecromancerResolverContext, event: Nec
 
 export function applyChillingDarkness(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (!hasTrait(context, TRAIT.CHILLING_DARKNESS)) return;
-  const profile = balanceProfileFromContext(context, PROFILE.chillingDarkness);
-  const effect = balanceProfileEffect(profile, 'condition');
-  // Claim only after local eligibility, before conditions, resources or queued strikes.
+  const profile = requireBalanceProfileFromContext(context, PROFILE.chillingDarkness);
+  const effect = requireEffect(profile, 'condition', 'Chilled');
+  // Claim only after local eligibility, before conditions, resources or queued strikes; the cooldown gates only
+  // Chill, so a removed packet leaves it ready.
   if (
+    !effect ||
     !tryConsumeProcCooldown(
       professionCoreState(context).traitProcReadyAt,
       'chillingDarkness',
       event.at,
-      Number(profile?.cooldown ?? 3)
+      balanceProfileNumber(profile, 'cooldown')
     )
   )
     return;
@@ -110,12 +117,14 @@ export function applyTerror(context: NecromancerResolverContext, event: Necroman
 
 export function applyInsidiousDisruption(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (!hasTrait(context, TRAIT.INSIDIOUS_DISRUPTION)) return;
-  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.insidiousDisruption), 'condition');
+  const profile = requireBalanceProfileFromContext(context, PROFILE.insidiousDisruption);
+  const effect = requireEffect(profile, 'condition', 'Torment');
+  if (!effect) return;
   applyTraitCondition(context, event, {
     name: 'Insidious Disruption',
     traitId: TRAIT.INSIDIOUS_DISRUPTION,
-    condition: String(effect?.condition || 'Torment'),
-    stacks: Number(effect?.stacks ?? 1),
-    duration: Number(effect?.duration ?? 5)
+    condition: String(effect.condition),
+    stacks: effectNumber(profile, effect, 'stacks'),
+    duration: effectNumber(profile, effect, 'duration')
   });
 }

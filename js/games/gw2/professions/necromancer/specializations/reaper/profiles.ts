@@ -24,6 +24,7 @@ export const REAPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
   trait(REAPER_BALANCE_PROFILE_IDS.deathlyChill, 'Deathly Chill', {
     effects: [
       {
+        name: 'Bleeding',
         type: 'condition',
         condition: 'Bleeding',
         stacks: 4,
@@ -37,12 +38,14 @@ export const REAPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
     criticalChance: 1,
     effects: [
       {
+        name: 'Strike',
         type: 'strike',
         coefficient: 1.125,
         hits: 1,
         actorType: 'effect'
       },
       {
+        name: 'Chilled',
         type: 'condition',
         condition: 'Chilled',
         stacks: 1,
@@ -54,6 +57,7 @@ export const REAPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
   trait(REAPER_BALANCE_PROFILE_IDS.shiversOfDread, 'Shivers of Dread', {
     effects: [
       {
+        name: 'Chilled',
         type: 'condition',
         condition: 'Chilled',
         stacks: 1,
@@ -65,6 +69,7 @@ export const REAPER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze(
   trait(REAPER_BALANCE_PROFILE_IDS.auguryOfDeath, 'Augury of Death', {
     effects: [
       {
+        name: 'Strike',
         type: 'strike',
         coefficient: 0,
         hits: 1,

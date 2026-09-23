@@ -1,5 +1,10 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
@@ -97,16 +102,18 @@ export function advanceHarbingerBlight(context: NecromancerSchedulerContext, tar
   const start = Number(coreState.lastResourceAt || 0);
   const end = Math.max(start, Number(target || 0));
   // Life force drains at 5% of maximum per second inside Harbinger Shroud.
-  const resources = balanceProfileFromContext(context, PROFILE.resources);
-  const drainRate = (Number(coreState.maximumLifeForce || 100) * Number(resources?.lifeForceDrain ?? 5)) / 100;
+  const resources = requireBalanceProfileFromContext(context, PROFILE.resources);
+  const drainRate =
+    (Number(coreState.maximumLifeForce || 100) * balanceProfileNumber(resources, 'lifeForceDrain')) / 100;
   // exitAt is the moment life force would hit 0 — Blight stops accruing if shroud exits before `end`.
   const exitAt =
     drainRate > 0 && drainRate * (end - start) >= coreState.lifeForce ? start + coreState.lifeForce / drainRate : end;
   // Doom Approaches doubles the passive Blight gain rate (2 → 4 stacks/s).
-  const stacksPerSecond = Number(
+  const stacksPerSecond = balanceProfileNumber(
     hasTrait(context, TRAIT.DOOM_APPROACHES)
-      ? (balanceProfileFromContext(context, PROFILE.doomApproaches)?.blightGain ?? 4)
-      : (resources?.blightGain ?? 2)
+      ? requireBalanceProfileFromContext(context, PROFILE.doomApproaches)
+      : resources,
+    'blightGain'
   );
   // nextBlightAt is a whole-second cursor; each tick adds stacksPerSecond stacks and advances the cursor by 1 s.
   while (Number(state.nextBlightAt ?? Number.POSITIVE_INFINITY) <= exitAt + EPSILON) {
@@ -135,14 +142,20 @@ function applyCascadingCorruption(
   )
     return;
   const state = harbingerState.from(context);
-  const profile = balanceProfileFromContext(context, PROFILE.cascadingCorruption);
-  const threshold = Number(profile?.minimumStacks ?? 20);
+  const profile = requireBalanceProfileFromContext(context, PROFILE.cascadingCorruption);
+  // Meltdown's window, strike, and Torment are independent outputs of one threshold proc.
+  const meltdown = requireEffect(profile, 'buff', 'meltdown');
+  const strike = requireEffect(profile, 'strike', 'Strike');
+  const torment = requireEffect(profile, 'condition', 'Torment');
+  // With every output removed there is no Meltdown to count toward.
+  if (!meltdown && !strike && !torment) return;
+  const threshold = balanceProfileNumber(profile, 'minimumStacks');
   state.cascadingCorruptionStacks += consumed;
   // Every 20 accumulated stacks triggers exactly one Meltdown; remainder carries over to the next threshold.
   if (state.cascadingCorruptionStacks < threshold) return;
   state.cascadingCorruptionStacks -= threshold;
   // Meltdown lasts 10 s and grants the Cascading Corruption damage bonus during that window.
-  state.meltdownUntil = at + Number(balanceProfileEffect(profile, 'buff')?.duration ?? 10);
+  if (meltdown) state.meltdownUntil = at + effectNumber(profile, meltdown, 'duration');
   context.emit({
     type: 'proc',
     procType: 'trait',
@@ -155,26 +168,27 @@ function applyCascadingCorruption(
     sourceId: TRAIT.CASCADING_CORRUPTION,
     actorType: 'effect'
   });
-  emitSkillDamage(context, CASCADING_CORRUPTION_EFFECT, {
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.CASCADING_CORRUPTION,
-    actorType: 'effect',
-    coefficient: Number(balanceProfileEffect(profile, 'strike')?.coefficient ?? 4.5),
-    parentSkillName: skill.name
-  });
-  const torment = balanceProfileEffect(profile, 'condition');
-  emitSkillCondition(context, {
-    skill: CASCADING_CORRUPTION_EFFECT,
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.CASCADING_CORRUPTION,
-    actorType: 'effect',
-    condition: String(torment?.condition || 'Torment'),
-    stacks: Number(torment?.stacks ?? 6),
-    duration: Number(torment?.duration ?? 6),
-    parentSkillName: skill.name
-  });
+  if (strike)
+    emitSkillDamage(context, CASCADING_CORRUPTION_EFFECT, {
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.CASCADING_CORRUPTION,
+      actorType: 'effect',
+      coefficient: effectNumber(profile, strike, 'coefficient'),
+      parentSkillName: skill.name
+    });
+  if (torment)
+    emitSkillCondition(context, {
+      skill: CASCADING_CORRUPTION_EFFECT,
+      at,
+      source: 'Trait',
+      sourceId: TRAIT.CASCADING_CORRUPTION,
+      actorType: 'effect',
+      condition: String(torment.condition),
+      stacks: effectNumber(profile, torment, 'stacks'),
+      duration: effectNumber(profile, torment, 'duration'),
+      parentSkillName: skill.name
+    });
 }
 
 /** Materializes a base or empowered elixir profile while preserving Blight metadata and boon routing. */
@@ -191,7 +205,7 @@ function emitElixirEffects(
     if (effect.type === 'strike') {
       emitSkillDamage(context, skill, {
         at: impactAt,
-        coefficient: Number(effect.coefficient || 0),
+        coefficient: effectNumber(source, effect, 'coefficient'),
         hits: Number(effect.hits ?? 1),
         metadata: {
           blightEmpowered: source !== skill,
@@ -202,16 +216,16 @@ function emitElixirEffects(
       emitSkillCondition(context, {
         skill,
         at: impactAt,
-        condition: String(effect.condition || ''),
-        stacks: Number(effect.stacks ?? 1),
-        duration: Number(effect.duration || 0)
+        condition: String(effect.condition),
+        stacks: effectNumber(source, effect, 'stacks'),
+        duration: effectNumber(source, effect, 'duration')
       });
     } else if (effect.type === 'boon') {
       emitSkillBuff(context, skill, {
         at: impactAt,
-        kind: String(effect.boon || ''),
-        duration: Number(effect.duration || 0),
-        stacks: Number(effect.stacks ?? 1),
+        kind: String(effect.boon),
+        duration: effectNumber(source, effect, 'duration'),
+        stacks: effectNumber(source, effect, 'stacks'),
         ...(boonOptions || {})
       });
     } else if (effect.type === 'blind') {
@@ -242,12 +256,11 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
   // Reconcile timed resources before checking empowerment or spending at completion.
   advanceHarbingerBlight(context, at);
   const state = harbingerState.from(context);
-  const ambition = skill.id === ID.ELIXIR_OF_AMBITION;
-  const empoweredProfile = balanceProfileFromContext(
+  const empoweredProfile = requireBalanceProfileFromContext(
     context,
     HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(skill.id)]
   );
-  const threshold = Number(empoweredProfile?.blightCost ?? skill.blightCost ?? 5);
+  const threshold = balanceProfileNumber(empoweredProfile, 'blightCost');
   const empowered = state.blight >= threshold;
   const consumed = empowered ? consumeBlight(state, threshold, at) : 0;
   emitBlightState(context, state, at);
@@ -258,27 +271,23 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
   const boonOptions = hasTrait(context, TRAIT.TWISTED_MEDICINE)
     ? { audience: { recipients: 'party' as const, maximumRecipients: 5 } }
     : undefined;
-  if (hasTrait(context, TRAIT.BOLSTERING_BREW)) {
-    const protection = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.bolsteringBrew), 'boon');
+  const bolsteringBrew = hasTrait(context, TRAIT.BOLSTERING_BREW)
+    ? requireBalanceProfileFromContext(context, PROFILE.bolsteringBrew)
+    : undefined;
+  const protection = bolsteringBrew && requireEffect(bolsteringBrew, 'boon', 'protection');
+  if (bolsteringBrew && protection) {
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
-      kind: String(protection?.boon || 'protection'),
-      duration: Number(protection?.duration ?? 3),
-      stacks: Number(protection?.stacks ?? 1),
+      kind: String(protection.boon),
+      duration: effectNumber(bolsteringBrew, protection, 'duration'),
+      stacks: effectNumber(bolsteringBrew, protection, 'stacks'),
       ...(boonOptions || {})
     });
   }
 
-  emitElixirEffects(
-    context,
-    skill,
-    empowered && empoweredProfile ? empoweredProfile : skill,
-    impactAt,
-    boonOptions,
-    state.blight
-  );
-  // Elixir of Ambition grants more Blight than other elixirs, consistent with its higher empowerment threshold.
-  addBlight(state, Number((empoweredProfile || skill).blightGain ?? (ambition ? 15 : 10)), at);
+  emitElixirEffects(context, skill, empowered ? empoweredProfile : skill, impactAt, boonOptions, state.blight);
+  // Elixir of Ambition's profile grants more Blight than other elixirs, consistent with its higher threshold.
+  addBlight(state, balanceProfileNumber(empoweredProfile, 'blightGain'), at);
   emitBlightState(context, state, at);
   emitNecromancerStateSnapshot(context, at, 'blight-gained', {
     dedupeAcrossSourceIds: true
@@ -300,11 +309,11 @@ function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): 
   // Earlier shroud ticks must land before this spend, including when the cast crosses a tick boundary.
   advanceHarbingerBlight(context, at);
   const state = harbingerState.from(context);
-  const empoweredProfile = balanceProfileFromContext(
+  const empoweredProfile = requireBalanceProfileFromContext(
     context,
     HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(skill.id)]
   );
-  const cost = Number(empoweredProfile?.blightCost ?? skill.blightCost ?? 5);
+  const cost = balanceProfileNumber(empoweredProfile, 'blightCost');
   const empowered = state.blight >= cost;
   const consumed = empowered ? consumeBlight(state, cost, at) : 0;
   // The strike retains the post-cost count after reconciling earlier resource ticks.
@@ -314,26 +323,27 @@ function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): 
   emitNecromancerStateSnapshot(context, at, 'blight-skill', {
     dedupeAcrossSourceIds: true
   });
-  const source = empowered && empoweredProfile ? empoweredProfile : skill;
-  const strike = balanceProfileEffect(source, 'strike');
-  if (!strike) return false;
-  emitSkillDamage(context, skill, {
-    at: impactAt,
-    coefficient: Number(strike.coefficient || 0),
-    metadata: {
-      blightEmpowered: empowered,
-      necromancerBlight: damageBlight
-    }
-  });
+  const source = empowered ? empoweredProfile : skill;
+  // A removed strike emits no hit while the spend, Torment, and control keep their own behavior.
+  const strike = requireEffect(source, 'strike', 'Strike');
+  if (strike)
+    emitSkillDamage(context, skill, {
+      at: impactAt,
+      coefficient: effectNumber(source, strike, 'coefficient'),
+      metadata: {
+        blightEmpowered: empowered,
+        necromancerBlight: damageBlight
+      }
+    });
   if (empowered) {
-    const condition = balanceProfileEffect(source, 'condition');
+    const condition = requireEffect(empoweredProfile, 'condition', 'Torment');
     if (condition) {
       emitSkillCondition(context, {
         skill,
         at: impactAt,
-        condition: String(condition.condition || 'Torment'),
-        stacks: Number(condition.stacks ?? 1),
-        duration: Number(condition.duration || 0)
+        condition: String(condition.condition),
+        stacks: effectNumber(empoweredProfile, condition, 'stacks'),
+        duration: effectNumber(empoweredProfile, condition, 'duration')
       });
     }
   }

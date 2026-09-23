@@ -1,7 +1,12 @@
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -90,7 +95,7 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
       sourceId: TRAIT.SOUL_BARBS,
       actorType: 'player',
       kind: 'necromancer-soul-barbs',
-      duration: Number(balanceProfileFromContext(context, TRAIT.SOUL_BARBS)?.duration),
+      duration: balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SOUL_BARBS), 'duration'),
       stacks: 1
     });
   }
@@ -152,7 +157,7 @@ export function startAlliedAttackOpportunities(context: NecromancerSchedulerCont
     [
       'necromancer.vampiric-presence-allied-hit',
       TRAIT.VAMPIRIC_PRESENCE,
-      Number(balanceProfileFromContext(context, PROFILE.vampiricPresence)?.cooldown ?? 0.5)
+      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.vampiricPresence), 'cooldown')
     ],
     ['necromancer.taste-for-blood-allied-hit', TRAIT.OVERFLOWING_THIRST, 0]
   ] as const) {
@@ -169,16 +174,22 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
   const end = Math.max(start, Number(target || 0));
   purgeTimedState(state, end);
   const undeath = activeSignetOfUndeath(context)
-    ? balanceProfileFromContext(context, PROFILE.signetOfUndeathPassive)
+    ? requireBalanceProfileFromContext(context, PROFILE.signetOfUndeathPassive)
     : undefined;
   const vampirism = activeSignetOfVampirism(context)
-    ? balanceProfileFromContext(context, PROFILE.signetOfVampirismPassive)
+    ? requireBalanceProfileFromContext(context, PROFILE.signetOfVampirismPassive)
     : undefined;
-  const undeathInterval = Number(undeath?.pulseInterval ?? 3);
-  const vampirismInterval = Number(vampirism?.pulseInterval ?? 3);
+  // Inactive clocks read nothing; their cursors are excluded below.
+  const undeathInterval = undeath ? balanceProfileNumber(undeath, 'pulseInterval') : 0;
+  const vampirismInterval = vampirism ? balanceProfileNumber(vampirism, 'pulseInterval') : 0;
+  const undeathGain = undeath ? balanceProfileNumber(undeath, 'lifeForceGain') : 0;
+  // The passive siphon is optional output: a removed strike keeps the pulse cadence but emits no hit.
+  const vampirismStrike = vampirism && requireEffect(vampirism, 'strike', 'Signet of Vampirism - Passive Life Siphon');
   const eternalLife = hasTrait(context, TRAIT.ETERNAL_LIFE);
-  const regeneration = balanceProfileFromContext(context, TRAIT.ETERNAL_LIFE)!;
-  const regenerationInterval = Number(regeneration.pulseInterval);
+  const regeneration = eternalLife ? requireBalanceProfileFromContext(context, TRAIT.ETERNAL_LIFE) : undefined;
+  const regenerationInterval = regeneration ? balanceProfileNumber(regeneration, 'pulseInterval') : 0;
+  const regenerationThreshold = regeneration ? balanceProfileNumber(regeneration, 'threshold') : 0;
+  const regenerationGain = regeneration ? balanceProfileNumber(regeneration, 'lifeForceGain') : 0;
   let at = start;
 
   // Drain before each discrete gain, expiry, or depletion so wait partitioning cannot change capped resources.
@@ -194,10 +205,14 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
     // Check AFTER gains so a gain exactly at `end` still applies. This is the exit from while (true).
     if (at >= end) break;
     // Recompute after each boundary: depletion or Lich expiry may have changed which resource rules are active.
-    const shroudProfile = balanceProfileFromContext(context, state.activeShroudProfileId || PROFILE.shroud);
     const rate =
       state.activeShroud && state.activeShroud !== 'lich'
-        ? (state.maximumLifeForce * Number(shroudProfile?.lifeForceDrain || 0)) / 100
+        ? (state.maximumLifeForce *
+            balanceProfileNumber(
+              requireBalanceProfileFromContext(context, state.activeShroudProfileId || PROFILE.shroud),
+              'lifeForceDrain'
+            )) /
+          100
         : 0;
     // Infinity excludes inactive clocks from Math.min; nonpositive pulse intervals disable recurring pulses.
     const nextUndeath = undeath && undeathInterval > 0 ? state.signetNextLifeForceAt : Infinity;
@@ -240,13 +255,10 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
     }
 
     if (nextRegeneration <= next + EPSILON) {
-      const threshold = state.maximumLifeForce * Number(regeneration.threshold);
+      const threshold = state.maximumLifeForce * regenerationThreshold;
       // Eternal Life fills only below its threshold; resources earned elsewhere remain intact.
       if (state.lifeForce < threshold) {
-        state.lifeForce = Math.min(
-          threshold,
-          state.lifeForce + (state.maximumLifeForce * Number(regeneration.lifeForceGain)) / 100
-        );
+        state.lifeForce = Math.min(threshold, state.lifeForce + (state.maximumLifeForce * regenerationGain) / 100);
       }
     }
 
@@ -259,7 +271,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
         nextUndeath > start + EPSILON &&
         (Number(context.state.cooldowns.get(ID.SIGNET_OF_UNDEATH) || 0) <= next + EPSILON || passiveWhileRecharging)
       ) {
-        gainNecromancerLifeForce(context, Number(undeath?.lifeForceGain || 0), next);
+        gainNecromancerLifeForce(context, undeathGain, next);
       }
 
       // Advance even when suppressed so the next iteration cannot revisit this pulse indefinitely.
@@ -271,18 +283,17 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
         nextVampirism > start + EPSILON &&
         (Number(context.state.cooldowns.get(ID.SIGNET_OF_VAMPIRISM) || 0) <= next + EPSILON || passiveWhileRecharging)
       ) {
-        const strike = balanceProfileEffect(vampirism, 'strike');
         const skill = context.catalog.skillsById.get(ID.SIGNET_OF_VAMPIRISM);
-        if (skill)
+        if (skill && vampirism && vampirismStrike)
           emitSkillDamage(context, skill, {
             at: next,
             name: 'Signet of Vampirism - Passive Life Siphon',
             coefficient: 0,
             skillWeapon: 'Unequipped',
-            flatStrikeBase: Number(strike?.flatStrikeBase || 0),
-            flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff || 0),
-            noCrit: strike?.noCrit === true,
-            damageKind: String(strike?.damageKind || '')
+            flatStrikeBase: effectNumber(vampirism, vampirismStrike, 'flatStrikeBase'),
+            flatStrikePowerCoeff: effectNumber(vampirism, vampirismStrike, 'flatStrikePowerCoeff'),
+            noCrit: vampirismStrike.noCrit === true,
+            damageKind: String(vampirismStrike.damageKind || '')
           });
       }
 
@@ -306,7 +317,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
 export function applySkillLifeForceGain(context: NecromancerCastContext, skill: NecromancerSkill): void {
   let amount = Number(skill.lifeForceGain || 0);
   if (skill.categories?.includes('Mark') && hasTrait(context, TRAIT.SOUL_MARKS)) {
-    amount += Number(balanceProfileFromContext(context, TRAIT.SOUL_MARKS)?.lifeForceGain);
+    amount += balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SOUL_MARKS), 'lifeForceGain');
   }
 
   // Read the same per-condition gain and cap that the selected skill exposes in its tooltip.

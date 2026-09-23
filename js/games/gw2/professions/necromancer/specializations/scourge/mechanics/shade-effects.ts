@@ -1,4 +1,9 @@
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -19,17 +24,19 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
     return;
   }
 
-  const profile = balanceProfileFromContext(context, PROFILE.demonicLore);
-  const effect = balanceProfileEffect(profile, 'condition');
+  const profile = requireBalanceProfileFromContext(context, PROFILE.demonicLore);
+  const effect = requireEffect(profile, 'condition', 'Burning');
+  // The cooldown gates only Burning, so a removed packet leaves it ready.
+  if (!effect) return;
   // Advance the ICD before applying the condition so re-entrant Torment events
   // within the same tick cannot double-proc
-  scourgeState.from(context).demonicLoreReadyAt = event.at + Number(profile?.cooldown ?? 3);
+  scourgeState.from(context).demonicLoreReadyAt = event.at + balanceProfileNumber(profile, 'cooldown');
   applyTraitCondition(context, event, {
     name: 'Demonic Lore',
     traitId: TRAIT.DEMONIC_LORE,
-    condition: String(effect?.condition || 'Burning'),
-    stacks: Number(effect?.stacks ?? 1),
-    duration: Number(effect?.duration ?? 1)
+    condition: String(effect.condition),
+    stacks: effectNumber(profile, effect, 'stacks'),
+    duration: effectNumber(profile, effect, 'duration')
   });
 }
 

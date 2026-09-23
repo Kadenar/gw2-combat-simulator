@@ -3,7 +3,10 @@ import { necromancerMaximumHealth } from '#gw2/professions/necromancer/core/stat
 import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { observeNecromancerPlagueSendingEvent } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
@@ -42,7 +45,12 @@ export const necromancerSchedulerHooks = Object.freeze({
     // Preserve the configured starting percentage when a patch changes the life-force capacity.
     if (hasTrait(context, TRAIT.SOUL_BATTERY)) {
       const state = professionCoreState(context);
-      const maximum = 100 * Number(balanceProfileFromContext(context, TRAIT.SOUL_BATTERY)?.lifeForceCapacityMultiplier);
+      const maximum =
+        100 *
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.SOUL_BATTERY),
+          'lifeForceCapacityMultiplier'
+        );
       const ratio = maximum / state.maximumLifeForce;
       state.lifeForce *= ratio;
       state.lifeForcePoolCapacity *= ratio;

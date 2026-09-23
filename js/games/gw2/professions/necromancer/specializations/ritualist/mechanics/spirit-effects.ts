@@ -1,5 +1,10 @@
 import { buildResolverStrike, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -40,50 +45,53 @@ function queueNightmareWeapon(
   event: NecromancerResolverEvent,
   definition: BalanceProfile
 ): void {
-  const strike = balanceProfileEffect(definition, 'strike');
-  const vulnerability = balanceProfileEffect(definition, 'condition');
-  // Materialize both components at the triggering strike's timestamp before recording the combined proc.
-  context.queue.enqueue(
-    buildResolverStrike({
-      at: event.at,
+  const strike = requireEffect(definition, 'strike', 'Strike');
+  const vulnerability = requireEffect(definition, 'condition', 'Vulnerability');
+  // Materialize both components at the triggering strike's timestamp before recording the combined proc; each
+  // survives the other's removal.
+  if (strike)
+    context.queue.enqueue(
+      buildResolverStrike({
+        at: event.at,
 
-      skillName: 'Nightmare Weapon',
-      coefficient: 0,
-      flatStrikeBase: Number(strike?.flatStrikeBase || 0),
-      flatStrikePowerCoeff: Number(strike?.flatStrikePowerCoeff || 0),
+        skillName: 'Nightmare Weapon',
+        coefficient: 0,
+        flatStrikeBase: effectNumber(definition, strike, 'flatStrikeBase'),
+        flatStrikePowerCoeff: effectNumber(definition, strike, 'flatStrikePowerCoeff'),
 
-      source: 'Weapon Spell',
-      sourceId: ID.NIGHTMARE_WEAPON,
-      actorType: 'effect',
-      skillId: ID.NIGHTMARE_WEAPON,
-      skillWeapon: 'Unequipped',
-      noCrit: true,
-      damageKind: 'life-steal',
-      triggeredBy: event.skillName,
-      // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
-      ...(event.metadata?.triggeredByAlly == null
-        ? {}
-        : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
-    })
-  );
-  context.queue.enqueue(
-    buildResolverCondition({
-      at: event.at,
-      name: 'Nightmare Weapon',
-      skillName: 'Nightmare Weapon',
-      condition: 'Vulnerability',
-      stacks: Number(vulnerability?.stacks || 0),
-      duration: Number(vulnerability?.duration || 0),
-      source: 'Weapon Spell',
-      sourceId: ID.NIGHTMARE_WEAPON,
-      actorType: 'effect',
-      triggeredBy: event.skillName,
-      // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
-      ...(event.metadata?.triggeredByAlly == null
-        ? {}
-        : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
-    })
-  );
+        source: 'Weapon Spell',
+        sourceId: ID.NIGHTMARE_WEAPON,
+        actorType: 'effect',
+        skillId: ID.NIGHTMARE_WEAPON,
+        skillWeapon: 'Unequipped',
+        noCrit: true,
+        damageKind: 'life-steal',
+        triggeredBy: event.skillName,
+        // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
+        ...(event.metadata?.triggeredByAlly == null
+          ? {}
+          : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
+      })
+    );
+  if (vulnerability)
+    context.queue.enqueue(
+      buildResolverCondition({
+        at: event.at,
+        name: 'Nightmare Weapon',
+        skillName: 'Nightmare Weapon',
+        condition: String(vulnerability.condition),
+        stacks: effectNumber(definition, vulnerability, 'stacks'),
+        duration: effectNumber(definition, vulnerability, 'duration'),
+        source: 'Weapon Spell',
+        sourceId: ID.NIGHTMARE_WEAPON,
+        actorType: 'effect',
+        triggeredBy: event.skillName,
+        // Derived spell packets inherit only ally attribution, not the triggering hit's other annotations.
+        ...(event.metadata?.triggeredByAlly == null
+          ? {}
+          : { metadata: { triggeredByAlly: event.metadata.triggeredByAlly } })
+      })
+    );
   context.recordProc?.(
     'skill',
     'Nightmare Weapon',
@@ -101,14 +109,15 @@ function queueSplinterWeapon(
   event: NecromancerResolverEvent,
   definition: BalanceProfile
 ): void {
-  const strike = balanceProfileEffect(definition, 'strike');
+  const strike = requireEffect(definition, 'strike', 'Strike');
+  if (!strike) return;
   // Queue the derived strike first, then expose the same trigger through proc reporting.
   context.queue.enqueue(
     buildResolverStrike({
       at: event.at,
 
       skillName: 'Splinter Weapon',
-      coefficient: Number(strike?.coefficient || 0),
+      coefficient: effectNumber(definition, strike, 'coefficient'),
 
       source: 'Weapon Spell',
       sourceId: ID.SPLINTER_WEAPON,
@@ -137,11 +146,10 @@ export function handleNecromancerWeaponSpellAllyTrigger(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {
-  const definition = balanceProfileFromContext(
+  const definition = requireBalanceProfileFromContext(
     context,
     event.spell === 'nightmare' ? PROFILE.nightmareWeaponProc : PROFILE.splinterWeaponProc
   );
-  if (!definition) return;
   if (event.spell === 'nightmare') {
     queueNightmareWeapon(context, event, definition);
   } else if (event.spell === 'splinter') {
@@ -159,14 +167,18 @@ function reactToDamage(context: NecromancerResolverContext, event: NecromancerRe
     const active = ritualistState.from(context).weaponSpells?.[spell];
     // Each recipient grant owns its expiry and spending; the spell has no second deadline.
     if (!active) continue;
-    const definition = balanceProfileFromContext(
+    const definition = requireBalanceProfileFromContext(
       context,
       spell === 'nightmare' ? PROFILE.nightmareWeaponProc : PROFILE.splinterWeaponProc
     );
-    if (!definition) continue;
+    // Charges exist only to deliver the spell's packets, so a spell with every packet removed spends none.
+    const hasOutput =
+      requireEffect(definition, 'strike', 'Strike') !== undefined ||
+      (spell === 'nightmare' && requireEffect(definition, 'condition', 'Vulnerability') !== undefined);
+    if (!hasOutput) continue;
+    const internalCooldown = balanceProfileNumber(definition, 'internalCooldown');
     for (const key of keys) {
       const recipient = active.recipients?.[key];
-      const internalCooldown = Number(definition.internalCooldown || 0);
       if (!consumeCharge(recipient, event.at, internalCooldown)) continue;
       if (spell === 'nightmare') {
         queueNightmareWeapon(context, event, definition);

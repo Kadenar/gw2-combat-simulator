@@ -80,8 +80,16 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
     'Consume Conditions — Corruption',
     {
       effects: [
-        { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 4, target: 'self' },
         {
+          name: 'Vulnerability',
+          type: 'condition',
+          condition: 'Vulnerability',
+          stacks: 5,
+          duration: 4,
+          target: 'self'
+        },
+        {
+          name: 'Master of Corruption Vulnerability',
           type: 'condition',
           condition: 'Vulnerability',
           stacks: 5,
@@ -95,8 +103,9 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
   ),
   variant(NECROMANCER_CORRUPTION_PROFILE_IDS[ID.BLOOD_IS_POWER], ID.BLOOD_IS_POWER, 'Blood Is Power — Corruption', {
     effects: [
-      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10, target: 'self' },
+      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10, target: 'self' },
       {
+        name: 'Torment',
         type: 'condition',
         condition: 'Torment',
         stacks: 2,
@@ -105,7 +114,14 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         requiredTrait: TRAIT.MASTER_OF_CORRUPTION,
         packetLabel: 'additional with Master of Corruption'
       },
-      { type: 'boon', boon: 'might', stacks: 5, duration: 20, audience: { recipients: 'party', maximumRecipients: 5 } }
+      {
+        name: 'might',
+        type: 'boon',
+        boon: 'might',
+        stacks: 5,
+        duration: 20,
+        audience: { recipients: 'party', maximumRecipients: 5 }
+      }
     ]
   }),
   variant(
@@ -114,8 +130,9 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
     'Corrosive Poison Cloud — Corruption',
     {
       effects: [
-        { type: 'condition', condition: 'Weakness', stacks: 1, duration: 6, target: 'self' },
+        { name: 'Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 6, target: 'self' },
         {
+          name: 'Crippled',
           type: 'condition',
           condition: 'Crippled',
           stacks: 1,
@@ -129,8 +146,9 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
   ),
   variant(NECROMANCER_CORRUPTION_PROFILE_IDS[ID.PLAGUELANDS], ID.PLAGUELANDS, 'Plaguelands — Corruption', {
     effects: [
-      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 10, target: 'self' },
+      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 10, target: 'self' },
       {
+        name: 'Poisoned',
         type: 'condition',
         condition: 'Poisoned',
         stacks: 1,
@@ -143,12 +161,12 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
   }),
   variant(NECROMANCER_CORE_BALANCE_PROFILE_IDS.darkPactOnHit, ID.DARK_PACT, 'Dark Pact — First Hit', {
     effects: [
-      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10, target: 'self' },
-      { type: 'condition', condition: 'Immobilized', stacks: 1, duration: 6 }
+      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10, target: 'self' },
+      { name: 'Immobilized', type: 'condition', condition: 'Immobilized', stacks: 1, duration: 6 }
     ]
   }),
   variant(NECROMANCER_CORE_BALANCE_PROFILE_IDS.lifeSiphonOnHit, ID.LIFE_SIPHON, 'Life Siphon — First Hit', {
-    effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8, target: 'self' }]
+    effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 1, duration: 8, target: 'self' }]
   }),
   {
     id: NECROMANCER_CORE_BALANCE_PROFILE_IDS.soulShards,
@@ -223,6 +241,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.dhuumfire, 'Dhuumfire', {
     effects: [
       {
+        name: 'Burning',
         type: 'condition',
         condition: 'Burning',
         stacks: 1,
@@ -234,6 +253,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.unyieldingBlast, 'Unyielding Blast', {
     effects: [
       {
+        name: 'Vulnerability',
         type: 'condition',
         condition: 'Vulnerability',
         stacks: 2,
@@ -253,6 +273,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
     criticalChance: 0.33,
     effects: [
       {
+        name: 'Bleeding',
         type: 'condition',
         condition: 'Bleeding',
         stacks: 1,
@@ -264,6 +285,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.vampiric, 'Vampiric', {
     effects: [
       {
+        name: 'player',
         type: 'strike',
         coefficient: 0,
         hits: 1,
@@ -275,6 +297,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         damageKind: 'life-steal'
       },
       {
+        name: 'minion',
         type: 'strike',
         coefficient: 0,
         hits: 1,
@@ -291,6 +314,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
     cooldown: 0.5,
     effects: [
       {
+        name: 'base',
         type: 'strike',
         coefficient: 0,
         hits: 1,
@@ -302,6 +326,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         damageKind: 'life-steal'
       },
       {
+        name: 'shroud',
         type: 'strike',
         coefficient: 0,
         hits: 1,
@@ -317,6 +342,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.overflowingThirst, 'Overflowing Thirst', {
     effects: [
       {
+        name: 'taste-for-blood',
         type: 'buff',
         kind: 'taste-for-blood',
         stacks: 3,
@@ -324,6 +350,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         actorType: 'player'
       },
       {
+        name: 'Strike',
         type: 'strike',
         coefficient: 0,
         flatStrikeBase: 375,
@@ -339,6 +366,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
     cooldown: 3,
     effects: [
       {
+        name: 'Chilled',
         type: 'condition',
         condition: 'Chilled',
         stacks: 1,
@@ -350,6 +378,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.insidiousDisruption, 'Insidious Disruption', {
     effects: [
       {
+        name: 'Torment',
         type: 'condition',
         condition: 'Torment',
         stacks: 1,
@@ -361,6 +390,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.reapersMight, "Reaper's Might", {
     effects: [
       {
+        name: 'might',
         type: 'boon',
         boon: 'might',
         stacks: 1,
@@ -373,6 +403,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
     cooldown: 1,
     effects: [
       {
+        name: 'might',
         type: 'boon',
         boon: 'might',
         stacks: 3,
@@ -392,6 +423,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         actorType: 'effect'
       },
       {
+        name: 'Chilled',
         type: 'condition',
         condition: 'Chilled',
         stacks: 1,
@@ -406,7 +438,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
   }),
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.deadlyStrength, 'Deadly Strength', { attributePerStack: 10 }),
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.awakenThePain, 'Awaken the Pain', {
-    effects: [{ type: 'boon', boon: 'might', stacks: 5, duration: 5, packetLabel: 'on shroud entry' }],
+    effects: [{ name: 'might', type: 'boon', boon: 'might', stacks: 5, duration: 5, packetLabel: 'on shroud entry' }],
     attributePerStack: 10
   }),
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.spitefulFortitude, 'Spiteful Fortitude', {
@@ -414,7 +446,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
     lifeForceGain: 1
   }),
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.furiousDemise, 'Furious Demise', {
-    effects: [{ type: 'boon', boon: 'fury', stacks: 1, duration: 8, packetLabel: 'on shroud entry' }],
+    effects: [{ name: 'fury', type: 'boon', boon: 'fury', stacks: 1, duration: 8, packetLabel: 'on shroud entry' }],
     attributeBonus: 180
   }),
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.targetTheWeak, 'Target the Weak', {
@@ -438,20 +470,24 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
     lifeForceGain: 3,
     threshold: 0.66,
     pulseInterval: 1,
-    effects: [{ type: 'boon', boon: 'protection', stacks: 1, duration: 3, packetLabel: 'on shroud entry' }]
+    effects: [
+      { name: 'protection', type: 'boon', boon: 'protection', stacks: 1, duration: 3, packetLabel: 'on shroud entry' }
+    ]
   }),
   trait(TRAIT.FEAR_OF_DEATH, 'Fear of Death', { lifeForceGain: 15, internalCooldown: 4 }),
   trait(TRAIT.SPEED_OF_SHADOWS, 'Speed of Shadows', {
-    effects: [{ type: 'boon', boon: 'swiftness', stacks: 1, duration: 10, packetLabel: 'on shroud entry' }]
+    effects: [
+      { name: 'swiftness', type: 'boon', boon: 'swiftness', stacks: 1, duration: 10, packetLabel: 'on shroud entry' }
+    ]
   }),
   trait(TRAIT.SOUL_MARKS, 'Soul Marks', { lifeForceGain: 3 }),
   trait(TRAIT.SOUL_BATTERY, 'Soul Battery', { lifeForceCapacityMultiplier: 1.2 }),
   trait(TRAIT.GLUTTONY, 'Gluttony', { lifeForceGainMultiplier: 1.1 }),
   trait(TRAIT.TRANSFUSION, 'Transfusion', {
     effects: [
-      { type: 'strike', coefficient: 1.8, hits: 1 },
-      { type: 'condition', condition: 'Poisoned', stacks: 2, duration: 4 },
-      { type: 'condition', condition: 'Chilled', stacks: 1, duration: 2 }
+      { name: 'Strike', type: 'strike', coefficient: 1.8, hits: 1 },
+      { name: 'Poisoned', type: 'condition', condition: 'Poisoned', stacks: 2, duration: 4 },
+      { name: 'Chilled', type: 'condition', condition: 'Chilled', stacks: 1, duration: 2 }
     ]
   }),
   trait(TRAIT.CORRUPTERS_FERVOR, "Corrupter's Fervor", { resourceGain: 1, duration: 10 }),
@@ -459,33 +495,44 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
     resourceGain: 10,
     duration: 10,
     internalCooldown: 5,
-    effects: [{ type: 'boon', boon: 'protection', stacks: 1, duration: 3 }]
+    effects: [{ name: 'protection', type: 'boon', boon: 'protection', stacks: 1, duration: 3 }]
   }),
   trait(TRAIT.SHROUDED_REMOVAL, 'Shrouded Removal', { maximumConditions: 1, resourceGain: 3, duration: 10 }),
   trait(TRAIT.SOUL_COMPREHENSION, 'Soul Comprehension', { lifeForcePerStack: 0.5, maximumStacks: 30 }),
   trait(TRAIT.ARMORED_SHROUD, 'Armored Shroud', { resourceGain: 5, duration: 10 }),
   trait(TRAIT.WEAKENING_SHROUD, 'Weakening Shroud', {
     effects: [
-      { type: 'strike', coefficient: 1.5, hits: 1 },
-      { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10 },
-      { type: 'condition', condition: 'Weakness', stacks: 1, duration: 6 }
+      { name: 'Strike', type: 'strike', coefficient: 1.5, hits: 1 },
+      { name: 'Bleeding', type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10 },
+      { name: 'Weakness', type: 'condition', condition: 'Weakness', stacks: 1, duration: 6 }
     ]
   }),
   trait(TRAIT.MASTER_OF_CORRUPTION, 'Master of Corruption', { rechargeMultiplier: 0.67 }),
   trait(TRAIT.PLAGUE_SENDING, 'Plague Sending', { maximumConditions: 2 }),
   trait(TRAIT.SIGNETS_OF_SUFFERING, 'Signets of Suffering', {
-    effects: [{ type: 'strike', coefficient: 0, hits: 1, flatStrikeBase: 1413, noCrit: true, damageKind: 'life-steal' }]
+    effects: [
+      {
+        name: 'Strike',
+        type: 'strike',
+        coefficient: 0,
+        hits: 1,
+        flatStrikeBase: 1413,
+        noCrit: true,
+        damageKind: 'life-steal'
+      }
+    ]
   }),
   trait(TRAIT.BITTER_CHILL, 'Bitter Chill', {
-    effects: [{ type: 'condition', condition: 'Vulnerability', stacks: 3, duration: 8 }]
+    effects: [{ name: 'Vulnerability', type: 'condition', condition: 'Vulnerability', stacks: 3, duration: 8 }]
   }),
   trait(TRAIT.MALICIOUS_SWARM, 'Malicious Swarm', {
     internalCooldown: 15,
-    effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 1, hits: 1 }]
   }),
   trait(NECROMANCER_CORE_BALANCE_PROFILE_IDS.spitefulSpirit, 'Spiteful Spirit', {
     effects: [
       {
+        name: 'Strike',
         type: 'strike',
         coefficient: 1,
         hits: 1,
@@ -591,6 +638,7 @@ export const NECROMANCER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obje
         comboFinishers: [MINION_PROJECTILE_FINISHER]
       },
       {
+        name: 'Crippled',
         type: 'condition',
         condition: 'Crippled',
         stacks: 1,

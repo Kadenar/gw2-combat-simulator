@@ -1,6 +1,5 @@
 import type { Gw2Stats, Gw2MutableStats } from '#gw2/platform/combat/types.js';
 import {
-  balanceProfileFromContext,
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -132,12 +131,13 @@ export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, att
     ? Object.values(necromancerRuntimeCoreState(context).activeMinions || {}).reduce(
         (total: number, count: number) =>
           total +
-          Number(count || 0) * Number(balanceProfileFromContext(context, PROFILE.fleshOfTheMaster)?.resourceGain ?? 2),
+          Number(count || 0) *
+            balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.fleshOfTheMaster), 'resourceGain'),
         0
       )
     : 0;
   const carapace = Math.min(
-    Number(balanceProfileFromContext(context, PROFILE.fleshOfTheMaster)?.maximumStacks ?? 30),
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.fleshOfTheMaster), 'maximumStacks'),
     timedCarapace + minionCarapace
   );
   if (hasTrait(context, TRAIT.DEADLY_STRENGTH) && carapace > 0) {
@@ -312,11 +312,17 @@ function modifyNecromancerCoreRechargeDuration(context: NecromancerSkillModifier
   const skill = context.skill;
   if (skill?.rechargeOnMinionDeath && !context.minionDeathRecharge) return 0;
   if (skill?.categories?.includes('Corruption') && hasTrait(context, TRAIT.MASTER_OF_CORRUPTION)) {
-    result *= Number(balanceProfileFromContext(context, TRAIT.MASTER_OF_CORRUPTION)?.rechargeMultiplier);
+    result *= balanceProfileNumber(
+      requireBalanceProfileFromContext(context, TRAIT.MASTER_OF_CORRUPTION),
+      'rechargeMultiplier'
+    );
   }
 
   if ((skill?.shroud || skill?.handlerId === 'necromancer.shade') && hasTrait(context, TRAIT.SINISTER_SHROUD)) {
-    result *= Number(balanceProfileFromContext(context, PROFILE.sinisterShroud)!.rechargeMultiplier);
+    result *= balanceProfileNumber(
+      requireBalanceProfileFromContext(context, PROFILE.sinisterShroud),
+      'rechargeMultiplier'
+    );
   }
 
   return result;
@@ -327,7 +333,8 @@ function modifyNecromancerConditionBaseDuration(context: Gw2ModifierContext, dur
   return necromancerEventSkill(context)?.weapon === 'Scepter' &&
     context.event?.skillId !== ID.DEVOURING_DARKNESS &&
     hasTrait(context, TRAIT.LINGERING_CURSE)
-    ? duration * Number(balanceProfileFromContext(context, PROFILE.lingeringCurse)?.durationMultiplier ?? 1.5)
+    ? duration *
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.lingeringCurse), 'durationMultiplier')
     : duration;
 }
 

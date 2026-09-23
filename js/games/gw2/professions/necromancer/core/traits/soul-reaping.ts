@@ -1,6 +1,11 @@
 /** Owns imperative Core Necromancer Soul Reaping trait behavior for ordered dispatcher calls. */
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -25,9 +30,12 @@ export function applyDhuumfire(
   shroudSkillOne: boolean
 ): void {
   if (!hasTrait(context, TRAIT.DHUUMFIRE) || !shroudSkillOne) return;
-  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.dhuumfire), 'condition');
+  const profile = requireBalanceProfileFromContext(context, PROFILE.dhuumfire);
+  const effect = requireEffect(profile, 'condition', 'Burning');
   const interval = Number(event.metadata?.dhuumfireInterval || 0);
-  // Zero or absent intervals bypass the claim so same-time applications remain unrestricted.
+  // Zero or absent intervals bypass the claim so same-time applications remain unrestricted; the claim gates only
+  // Burning, so a removed packet leaves it ready.
+  if (!effect) return;
   if (
     interval > 0 &&
     !tryConsumeProcCooldown(professionCoreState(context).traitProcReadyAt, 'dhuumfire', event.at, interval)
@@ -38,8 +46,8 @@ export function applyDhuumfire(
   applyTraitCondition(context, event, {
     name: 'Dhuumfire',
     traitId: TRAIT.DHUUMFIRE,
-    condition: String(effect?.condition || 'Burning'),
-    stacks: Number(effect?.stacks ?? 1),
+    condition: String(effect.condition),
+    stacks: effectNumber(profile, effect, 'stacks'),
     duration: Number(event.metadata?.dhuumfireDuration ?? skillDuration ?? effect?.duration ?? 3)
   });
 }
@@ -51,12 +59,14 @@ export function applyUnyieldingBlast(
   shroudSkillOne: boolean
 ): void {
   if (!hasTrait(context, TRAIT.UNYIELDING_BLAST) || !firstHit || !shroudSkillOne) return;
-  const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.unyieldingBlast), 'condition');
+  const profile = requireBalanceProfileFromContext(context, PROFILE.unyieldingBlast);
+  const effect = requireEffect(profile, 'condition', 'Vulnerability');
+  if (!effect) return;
   applyTraitVulnerability(context, event, {
     name: 'Unyielding Blast',
     traitId: TRAIT.UNYIELDING_BLAST,
-    stacks: Number(effect?.stacks ?? 2),
-    duration: Number(effect?.duration ?? 10)
+    stacks: effectNumber(profile, effect, 'stacks'),
+    duration: effectNumber(profile, effect, 'duration')
   });
 }
 
@@ -72,10 +82,11 @@ export function applyFearOfDeath(context: NecromancerCastContext, skill: Necroma
     return;
   gainNecromancerLifeForce(
     context,
-    Number(balanceProfileFromContext(context, TRAIT.FEAR_OF_DEATH)?.lifeForceGain),
+    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEAR_OF_DEATH), 'lifeForceGain'),
     context.effectiveEnd,
     'fear-of-death'
   );
   state.fearOfDeathReadyAt =
-    context.effectiveEnd + Number(balanceProfileFromContext(context, TRAIT.FEAR_OF_DEATH)?.internalCooldown);
+    context.effectiveEnd +
+    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.FEAR_OF_DEATH), 'internalCooldown');
 }

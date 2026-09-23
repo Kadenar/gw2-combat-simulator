@@ -1,8 +1,8 @@
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
-  balanceProfileEffect,
-  balanceProfileFromContext,
   requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
@@ -33,7 +33,10 @@ import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 /** Reduces every active Reaper Shroud cooldown when Reaper's Onslaught sees Life Reap land. */
 function reduceShroudCooldowns(context: NecromancerSchedulerContext, at: number): void {
-  const reduction = Number(balanceProfileFromContext(context, PROFILE.reapersOnslaught)?.rechargeReduction ?? 1);
+  const reduction = balanceProfileNumber(
+    requireBalanceProfileFromContext(context, PROFILE.reapersOnslaught),
+    'rechargeReduction'
+  );
   for (const candidate of context.catalog.skills || []) {
     if (candidate.shroud !== 'reaper') continue;
     context.cooldownController.reduceSkillRecharge(candidate, reduction, at);
@@ -51,20 +54,22 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
   }
 
   if (skill.categories?.includes('Shout') && hasTrait(context, TRAIT.AUGURY_OF_DEATH)) {
-    const effect = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.auguryOfDeath), 'strike');
-    emitSkillDamage(context, skill, {
-      at: context.effectiveEnd,
-      name: 'Augury of Death',
-      source: 'Trait',
-      sourceId: TRAIT.AUGURY_OF_DEATH,
-      actorType: 'effect',
-      coefficient: 0,
-      skillWeapon: 'Unequipped',
-      flatStrikeBase: Number(effect?.flatStrikeBase ?? 276),
-      flatStrikePowerCoeff: Number(effect?.flatStrikePowerCoeff ?? 0.02),
-      noCrit: true,
-      damageKind: 'life-steal'
-    });
+    const profile = requireBalanceProfileFromContext(context, PROFILE.auguryOfDeath);
+    const effect = requireEffect(profile, 'strike', 'Strike');
+    if (effect)
+      emitSkillDamage(context, skill, {
+        at: context.effectiveEnd,
+        name: 'Augury of Death',
+        source: 'Trait',
+        sourceId: TRAIT.AUGURY_OF_DEATH,
+        actorType: 'effect',
+        coefficient: 0,
+        skillWeapon: 'Unequipped',
+        flatStrikeBase: effectNumber(profile, effect, 'flatStrikeBase'),
+        flatStrikePowerCoeff: effectNumber(profile, effect, 'flatStrikePowerCoeff'),
+        noCrit: true,
+        damageKind: 'life-steal'
+      });
   }
 
   // Chilling Victory only procs on full completion; interrupted casts don't generate life force.
@@ -77,9 +82,14 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
     // Configured Chilled on target stands in for "target is chilled" since scheduler has no live condition state.
     context.config?.target?.conditions?.Chilled
   ) {
-    const profile = balanceProfileFromContext(context, PROFILE.chillingVictory);
-    gainNecromancerLifeForce(context, Number(profile?.lifeForceGain ?? 1), context.effectiveEnd, 'chilling-victory');
-    state.chillingVictoryReadyAt = context.effectiveEnd + Number(profile?.cooldown ?? 1);
+    const profile = requireBalanceProfileFromContext(context, PROFILE.chillingVictory);
+    gainNecromancerLifeForce(
+      context,
+      balanceProfileNumber(profile, 'lifeForceGain'),
+      context.effectiveEnd,
+      'chilling-victory'
+    );
+    state.chillingVictoryReadyAt = context.effectiveEnd + balanceProfileNumber(profile, 'cooldown');
   }
 }
 
@@ -88,7 +98,7 @@ function onEventScheduled(context: NecromancerSchedulerContext, event: Necromanc
   if (event.type === 'buff' && event.actorType === 'player' && hasTrait(context, TRAIT.BLIGHTERS_BOON)) {
     gainNecromancerLifeForce(
       context,
-      Number(balanceProfileFromContext(context, PROFILE.blightersBoon)?.lifeForceGain ?? 1),
+      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.blightersBoon), 'lifeForceGain'),
       event.at,
       'blighters-boon'
     );

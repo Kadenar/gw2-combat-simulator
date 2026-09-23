@@ -1,6 +1,11 @@
 import { actorLoop } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import {
   emitSkillBuff,
   emitSkillCondition,
@@ -85,16 +90,33 @@ export const ritualistSchedulerHooks = Object.freeze({
   taskHandlers: spiritActions.taskHandlers
 });
 
-// Decode each spirit's ordered balance-profile effects into its initial,
+// Each spirit declares only the attacks it owns; named packets keep their role after a sibling is removed.
+const SPIRIT_ATTACKS: Readonly<
+  Record<
+    string,
+    { readonly autoattack: string; readonly initial?: string; readonly lingering?: string; readonly active?: string }
+  >
+> = Object.freeze({
+  anguish: {
+    autoattack: 'Anguish Autoattack',
+    initial: 'Anguish Initial Barrage',
+    active: 'Summon Spirits - Anguish'
+  },
+  wanderlust: {
+    autoattack: 'Wanderlust Autoattack',
+    initial: 'Wanderlust Initial Swing',
+    lingering: 'Wanderlust Initial Field',
+    active: 'Summon Spirits - Wanderlust'
+  },
+  preservation: { autoattack: 'Preservation Autoattack' }
+});
+
+// Decode each spirit's named balance-profile effects into its initial,
 // autonomous, lingering, and active attack timings.
 function spiritDefinition(
   context: NecromancerCastContext | NecromancerSchedulerContext,
   skillId: SkillId
 ): SpiritDefinition | undefined {
-  // Resolve the profile and stable spirit key before interpreting positional effects.
-  const profileId = RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID[Number(skillId)];
-  const profile = balanceProfileFromContext(context, profileId);
-  if (!profile) return undefined;
   const key =
     skillId === ID.ANGUISH
       ? 'anguish'
@@ -104,26 +126,28 @@ function spiritDefinition(
           ? 'preservation'
           : '';
   if (!key) return undefined;
-  const effects = profile.effects || [];
-  const autoattack = effects[0];
-  const initial = effects[1];
-  const lingering = effects[2];
-  const active = key === 'wanderlust' ? effects[3] : effects[2];
-  // Procedural spirit scheduling consumes the same canonical packet timelines as declarative skills.
-  const ticks = (effect: typeof initial): readonly SpiritStrikeTick[] =>
-    effect?.type === 'strike'
+  const profile = requireBalanceProfileFromContext(context, RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID[Number(skillId)]);
+  const attacks = SPIRIT_ATTACKS[key];
+  const strike = (name: string | undefined) => (name ? requireEffect(profile, 'strike', name) : undefined);
+  const autoattack = strike(attacks.autoattack);
+  const active = strike(attacks.active);
+  // Procedural spirit scheduling consumes the same canonical packet timelines as declarative skills; a removed
+  // attack contributes no ticks.
+  const ticks = (effect: ReturnType<typeof strike>): readonly SpiritStrikeTick[] =>
+    effect
       ? strikeEffectTicks(effect).map((tick) => ({ atMs: Number(tick.atMs), coefficient: Number(tick.coefficient) }))
       : [];
   return {
     key,
-    initialBusyMs: Number(profile.initialBusyMs || 0),
-    autoattackImpactDelayMs: Number(profile.autoattackImpactDelayMs || 0),
-    attackCoefficient: Number(autoattack?.coefficient || 0),
-    attackWeaponStrength: Number(profile.weaponStrength || 0),
-    summonTicks: ticks(initial),
-    lingeringTicks: key === 'wanderlust' ? ticks(lingering) : [],
+    initialBusyMs: balanceProfileNumber(profile, 'initialBusyMs'),
+    autoattackImpactDelayMs: balanceProfileNumber(profile, 'autoattackImpactDelayMs'),
+    // A removed autoattack leaves a zero coefficient, which disables the autonomous loop.
+    attackCoefficient: autoattack ? effectNumber(profile, autoattack, 'coefficient') : 0,
+    attackWeaponStrength: balanceProfileNumber(profile, 'weaponStrength'),
+    summonTicks: ticks(strike(attacks.initial)),
+    lingeringTicks: ticks(strike(attacks.lingering)),
     activeTicks: ticks(active),
-    activeDuration: Number(active?.duration || 0)
+    activeDuration: active ? effectNumber(profile, active, 'duration') : 0
   };
 }
 
@@ -156,8 +180,9 @@ function spiritEventFields(
     ...(fields.weaponStrengthProfileId
       ? {}
       : {
-          weaponStrength: Number(
-            balanceProfileFromContext(context, CORE_PROFILE.summonAttributes)?.weaponStrength ?? 1048
+          weaponStrength: balanceProfileNumber(
+            requireBalanceProfileFromContext(context, CORE_PROFILE.summonAttributes),
+            'weaponStrength'
           )
         }),
     ...fields,
@@ -173,17 +198,17 @@ function spiritEventFields(
 // Re-summoning a spirit does NOT restart the cycle; it snaps the next attack to
 // the nearest future grid point so spirits never drift out of phase with each other.
 function nextSpiritPulse(context: NecromancerCastContext, state: RitualistState, at: number): number {
-  const resources = balanceProfileFromContext(context, PROFILE.resources);
+  const resources = requireBalanceProfileFromContext(context, PROFILE.resources);
   if (!Number.isFinite(state.spiritAutoAnchorAt)) {
     // Establish the shared cadence with the measured fresh- or re-summon attack delay.
     const delay = state.resummonedSpiritAutoCycle
-      ? Number(resources?.resummonedSpiritAttackDelayMs ?? 4140) / 1000
-      : Number(resources?.initialDelay ?? 7.36);
+      ? balanceProfileNumber(resources, 'resummonedSpiritAttackDelayMs') / 1000
+      : balanceProfileNumber(resources, 'initialDelay');
     state.spiritAutoAnchorAt = at + delay;
     state.resummonedSpiritAutoCycle = false;
   }
 
-  const interval = Number(resources?.pulseInterval ?? 4);
+  const interval = balanceProfileNumber(resources, 'pulseInterval');
   return state.spiritAutoAnchorAt > at
     ? state.spiritAutoAnchorAt
     : state.spiritAutoAnchorAt + Math.ceil((at - state.spiritAutoAnchorAt + Number.EPSILON) / interval) * interval;
@@ -198,7 +223,8 @@ function startSpiritActions(
 ): void {
   if (!(spirit.attackCoefficient > 0)) return;
   // An authored zero interval disables autonomous attacks rather than creating a zero-step clock.
-  if (!(Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 4) > 0)) return;
+  if (!(balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'pulseInterval') > 0))
+    return;
   const state = ritualistState.from(context);
   const generation = Number(state.spiritGenerations[spirit.key] || 0);
   if (generation > 1) {
@@ -236,9 +262,7 @@ function stepSpiritAttack(
     name: `${skill.name} Autoattack`,
     icon: skill.icon || '',
     coefficient: spirit.attackCoefficient,
-    weaponStrength:
-      spirit.attackWeaponStrength ??
-      Number(balanceProfileFromContext(context, CORE_PROFILE.summonAttributes)?.weaponStrength ?? 1048),
+    weaponStrength: spirit.attackWeaponStrength,
     requiresSpirit: spirit.key,
     requiresSpiritGeneration: payload.generation,
     // The shared clock starts animations; readiness is checked before their later impacts.
@@ -253,7 +277,8 @@ function stepSpiritAttack(
     }
   });
 
-  const nextAt = at + Number(balanceProfileFromContext(context, PROFILE.resources)?.pulseInterval ?? 4);
+  const nextAt =
+    at + balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'pulseInterval');
   if (nextAt > at && (context.observationEndTime == null || nextAt <= context.observationEndTime + EPSILON)) {
     return { at: nextAt, state: payload };
   }
@@ -265,9 +290,11 @@ function stepSpiritAttack(
 function emitPainfulBond(context: NecromancerCastContext, skill: NecromancerSkill, at: number): void {
   // Painful Bond is a profession status rather than a standard boon, so its
   // authored duration remains fixed even when the build has Concentration.
-  const duration = Number(
-    balanceProfileEffect(balanceProfileFromContext(context, PROFILE.painfulBond), 'buff')?.duration ?? 10
-  );
+  const profile = requireBalanceProfileFromContext(context, PROFILE.painfulBond);
+  const bond = requireEffect(profile, 'buff', 'necromancer-painful-bond');
+  // The visible status and resolver application are one window, so a removed buff opens neither.
+  if (!bond) return;
+  const duration = effectNumber(profile, bond, 'duration');
   emitSkillBuff(context, {
     at,
     source: 'necromancer',
@@ -276,9 +303,9 @@ function emitPainfulBond(context: NecromancerCastContext, skill: NecromancerSkil
     skillId: skill.id,
     skillName: skill.name,
     name: 'Painful Bond',
-    kind: 'necromancer-painful-bond',
+    kind: String(bond.kind),
     duration,
-    stacks: 1
+    stacks: effectNumber(profile, bond, 'stacks')
   });
   context.emit({
     type: 'necromancer.painful-bond',
@@ -289,7 +316,7 @@ function emitPainfulBond(context: NecromancerCastContext, skill: NecromancerSkil
     actorType: 'effect',
     skillName: 'Painful Bond',
     name: 'Painful Bond',
-    icon: String(balanceProfileFromContext(context, PROFILE.painfulBond)?.icon || ''),
+    icon: String(profile.icon || ''),
     duration,
     triggeredBy: skill.name
   });
@@ -475,7 +502,10 @@ function summonSpirits(context: NecromancerCastContext, skill: NecromancerSkill,
         skillWeapon: 'Unequipped',
         ...spiritEventFields(context, spirit.key, 'summon-spirits', {
           anguishConditionalDamage: spirit.key === 'anguish',
-          weaponStrength: Number(balanceProfileFromContext(context, PROFILE.resources)?.weaponStrength ?? 1056),
+          weaponStrength: balanceProfileNumber(
+            requireBalanceProfileFromContext(context, PROFILE.resources),
+            'weaponStrength'
+          ),
           hitIndex: index + 1,
           totalHits: spirit.activeTicks.length
         })
@@ -516,12 +546,14 @@ function ritualist(context: NecromancerCastContext, skill: NecromancerSkill): bo
     if (context.action.cancelled === true) return true;
     const spirits = Object.keys(state.activeSpirits).length;
     const essence = skill.effects?.find((effect) => effect.type === 'strike');
+    // A removed blast strike emits nothing.
+    if (!essence) return true;
     // Impact lands at 14/15 of the way through the cast window (observed from EVTC timing)
     const impactAt = context.start + (context.fullEnd - context.start) * (14 / 15);
     emitSkillDamage(context, skill, {
       at: impactAt,
-      coefficient: Number(essence?.coefficient ?? 0.75),
-      persistsAfterInterrupt: essence?.persistsAfterInterrupt === true,
+      coefficient: effectNumber(skill, essence, 'coefficient'),
+      persistsAfterInterrupt: essence.persistsAfterInterrupt === true,
       skillWeapon: activePrimaryWeapon(context),
       // Snapshot the spirit count at activation; the modifier rule owns per-spirit scaling.
       metadata: {
@@ -548,28 +580,31 @@ function innervate(context: NecromancerCastContext, skill: NecromancerSkill): bo
   const at = context.effectiveEnd;
   if (skill.id === ID.INNERVATE_ANGUISH) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
-    emitSkillDamage(context, skill, {
-      at,
-      source: 'Spirit',
-      actorType: 'player',
-      skillWeapon: 'Profession mechanic',
-      coefficient: Number(strike?.coefficient ?? 1.3),
-      summonKind: 'spirit',
-      summonOwner: 'spirit:anguish',
-      metadata: { spirit: 'anguish', spiritAttackType: 'innervate' }
-    });
+    if (strike)
+      emitSkillDamage(context, skill, {
+        at,
+        source: 'Spirit',
+        actorType: 'player',
+        skillWeapon: 'Profession mechanic',
+        coefficient: effectNumber(skill, strike, 'coefficient'),
+        summonKind: 'spirit',
+        summonOwner: 'spirit:anguish',
+        metadata: { spirit: 'anguish', spiritAttackType: 'innervate' }
+      });
     emitSpiritBoons(context, skill, at);
   } else if (skill.id === ID.INNERVATE_WANDERLUST) {
-    emitSkillControl(context, {
-      at,
-      source: 'Spirit',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      controlKind: String(balanceProfileEffect(skill, 'control')?.controlKind),
-      ...spiritEventFields(context, 'wanderlust', 'innervate')
-    });
+    const control = skill.effects?.find((effect) => effect.type === 'control');
+    if (control)
+      emitSkillControl(context, {
+        at,
+        source: 'Spirit',
+        sourceId: skill.id,
+        actorType: 'player',
+        skillId: skill.id,
+        skillName: skill.name,
+        controlKind: String(control.controlKind),
+        ...spiritEventFields(context, 'wanderlust', 'innervate')
+      });
   } else if (skill.id === ID.INNERVATE_PRESERVATION) {
     emitSpiritBoons(context, skill, at);
   } else {

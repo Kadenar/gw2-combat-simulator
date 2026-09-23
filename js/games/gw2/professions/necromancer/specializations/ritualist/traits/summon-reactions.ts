@@ -1,5 +1,10 @@
 import { EPSILON } from '#kernel/core/clock.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -32,13 +37,15 @@ function applyRitualistCreatureSummonTraits(
   if (hasTrait(context, TRAIT.BOON_OF_CREATION)) {
     gainNecromancerLifeForce(
       context,
-      Number(balanceProfileFromContext(context, PROFILE.boonOfCreation)?.lifeForceGain ?? 10) * count,
+      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.boonOfCreation), 'lifeForceGain') * count,
       at
     );
   }
 
   if (!hasTrait(context, TRAIT.EXPLOSIVE_GROWTH)) return;
-  const explosive = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.explosiveGrowth), 'strike');
+  const profile = requireBalanceProfileFromContext(context, PROFILE.explosiveGrowth);
+  const explosive = requireEffect(profile, 'strike', 'Strike');
+  if (!explosive) return;
   emitSkillDamage(context, skill, {
     at,
     name: 'Explosive Growth',
@@ -49,7 +56,7 @@ function applyRitualistCreatureSummonTraits(
     skillName: 'Explosive Growth',
     parentSkillName: skill.name,
     triggeredBy: skill.name,
-    coefficient: Number(explosive?.coefficient ?? 1.2) * count,
+    coefficient: effectNumber(profile, explosive, 'coefficient') * count,
     skillWeapon: 'Unequipped'
   });
 }
@@ -80,7 +87,10 @@ export function initializeRitualistSummonTraits(context: NecromancerSchedulerCon
       return;
     }
 
-    const drainPercent = Number(balanceProfileFromContext(runtime, PROFILE.resources)?.lifeForceDrain ?? 3);
+    const drainPercent = balanceProfileNumber(
+      requireBalanceProfileFromContext(runtime, PROFILE.resources),
+      'lifeForceDrain'
+    );
     core.lifeForce = Math.max(0, core.lifeForce - core.maximumLifeForce * (drainPercent / 100) * (end - start));
     if (core.lifeForce <= EPSILON) {
       core.lifeForce = 0;
@@ -103,32 +113,20 @@ export function refundRitualistSoulTwisting(context: NecromancerCastContext, ski
 /** Emits Empowering Spirits boons only when its owning trait is selected. */
 export function emitEmpoweringSpirits(context: NecromancerCastContext, skill: NecromancerSkill, key: string): void {
   if (!hasTrait(context, TRAIT.EMPOWERING_SPIRITS)) return;
-  const profile = balanceProfileFromContext(context, PROFILE.empoweringSpirits);
-  const quickness = balanceProfileEffect(profile, 'boon');
+  const profile = requireBalanceProfileFromContext(context, PROFILE.empoweringSpirits);
   const boonOptions = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
-  emitSkillBuff(context, skill, {
-    at: context.effectiveEnd,
-    kind: String(quickness?.boon || 'quickness'),
-    duration: Number(quickness?.duration ?? 3.75),
-    stacks: Number(quickness?.stacks ?? 1),
-    ...boonOptions
-  });
-  const boonIndex = key === 'anguish' ? 1 : key === 'wanderlust' ? 2 : 3;
-  const boon = balanceProfileEffect(profile, 'boon', boonIndex);
-  const defaults =
-    key === 'anguish'
-      ? { kind: 'might', duration: 10, stacks: 8 }
-      : key === 'wanderlust'
-        ? { kind: 'fury', duration: 5, stacks: 1 }
-        : key === 'preservation'
-          ? { kind: 'resolution', duration: 4, stacks: 1 }
-          : null;
-  if (!defaults) return;
-  emitSkillBuff(context, skill, {
-    at: context.effectiveEnd,
-    kind: String(boon?.boon || defaults.kind),
-    duration: Number(boon?.duration ?? defaults.duration),
-    stacks: Number(boon?.stacks ?? defaults.stacks),
-    ...boonOptions
-  });
+  // Quickness plus the summoned spirit's own boon; each is named, so removing one never substitutes another.
+  const spiritBoon =
+    key === 'anguish' ? 'might' : key === 'wanderlust' ? 'fury' : key === 'preservation' ? 'resolution' : null;
+  for (const name of spiritBoon ? ['quickness', spiritBoon] : ['quickness']) {
+    const boon = requireEffect(profile, 'boon', name);
+    if (!boon) continue;
+    emitSkillBuff(context, skill, {
+      at: context.effectiveEnd,
+      kind: String(boon.boon),
+      duration: effectNumber(profile, boon, 'duration'),
+      stacks: effectNumber(profile, boon, 'stacks'),
+      ...boonOptions
+    });
+  }
 }
