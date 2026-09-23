@@ -59,7 +59,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.HEALING_SIGNET]: {
-    castTimeMs: 833,
+    castTimeMs: 1080,
     effects: [
       {
         type: 'boon',

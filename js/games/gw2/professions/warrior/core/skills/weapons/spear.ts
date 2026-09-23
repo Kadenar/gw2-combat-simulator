@@ -22,6 +22,8 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
         // simulator has no target-position model to gate it on.
         ticks: [{ atMs: 1520, coefficient: 1.125 }],
         name: 'Maiming Spear — Aftershock Damage',
+        // Only the delayed aftershock counts as an explosion for explosion-triggered effects.
+        damageKind: 'explosion',
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         comboFinishers: [
@@ -46,11 +48,13 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
     // Custom: Suppresses secondary-target shards in single-target simulations; see `core/execution/index.ts`.
     handlerId: 'warrior.mighty-throw',
     castTimeMs: 640,
+    // Both impact packets count as explosions; shards still require a secondary target.
     effects: [
       {
         type: 'strike',
         ticks: [{ atMs: 480, coefficient: 1.2 }],
         name: 'Mighty Throw — Spear Damage',
+        damageKind: 'explosion',
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },
@@ -58,6 +62,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
         type: 'strike',
         ticks: [{ atMs: 480, coefficient: 0.9 }],
         name: 'Mighty Throw — Shard Damage',
+        damageKind: 'explosion',
         // Single-target suppression follows this stable packet identity rather than the display label.
         metadata: { packetKind: 'warrior.mighty-throw-shard' },
         timingAnchor: 'castStart',

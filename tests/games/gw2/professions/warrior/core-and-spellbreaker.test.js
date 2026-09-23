@@ -919,6 +919,20 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
   const singleTarget = simulate('Berserker', ['Mighty Throw']);
 
   assert.equal(singleTarget.events.find((event) => event.name === 'Mighty Throw — Shard Damage').coefficient, 0);
+  // Explosion tags belong to the aftershock and both throw packets, even when a shard has no secondary target.
+  const maimingDamage = simulate('Berserker', ['Maiming Spear', { type: 'wait', durationMs: 2500 }]).events.filter(
+    (event) => event.type === 'damage' && event.skillId === ID.MAIMING_SPEAR
+  );
+  assert.deepEqual(
+    maimingDamage.map((event) => event.damageKind),
+    [undefined, 'explosion']
+  );
+  assert.deepEqual(
+    singleTarget.events
+      .filter((event) => event.type === 'damage' && event.skillId === ID.MIGHTY_THROW)
+      .map((event) => event.damageKind),
+    ['explosion', 'explosion']
+  );
 });
 
 test('Warrior execution follows stable skill and packet IDs after display labels change', () => {
