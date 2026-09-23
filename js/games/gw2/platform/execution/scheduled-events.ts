@@ -1,4 +1,5 @@
 import { ACTION_SAFETY_LIMIT } from '#kernel/core/clock.js';
+import { insertSorted } from '#kernel/core/collections.js';
 import { createEvent, type SimulationEvent, type SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 
 interface ScheduledEventOptions {
@@ -56,31 +57,40 @@ export function createScheduledEvents({ prepareEvent, observeEvent, onEventRepla
     if (Number.isFinite(order)) eventOrderIndex.set(order, replacement);
   };
 
-  // Buff events are indexed by lowercased kind so buffStacks/hasBuff scan only
-  // the relevant buffs instead of the entire event log on every query.
-  const buffIndex = new Map<string, SimulationEvent[]>();
-  const buffKindKey = (event: SimulationEvent): string | null =>
-    event.type === 'buff' && event.resolvedAudience?.includesSelf ? String(event.kind || '').toLowerCase() : null;
+  // Keep player and summon histories separate and chronological so queries need neither full-log scans nor sorting.
+  const buffIndex = {
+    self: new Map<string, SimulationEvent[]>(),
+    summon: new Map<string, SimulationEvent[]>()
+  };
+  const buffAudiences = ['self', 'summon'] as const;
+  const compareBuffs = (left: SimulationEvent, right: SimulationEvent): number =>
+    left.at - right.at || Number(left.eventOrder) - Number(right.eventOrder);
   const indexBuffEvent = (event: SimulationEvent): void => {
-    const key = buffKindKey(event);
-    if (key == null) return;
-    const bucket = buffIndex.get(key);
-    if (bucket) bucket.push(event);
-    else buffIndex.set(key, [event]);
+    if (event.type !== 'buff') return;
+    const key = String(event.kind || '').toLowerCase();
+    for (const audience of buffAudiences) {
+      if (!event.resolvedAudience?.[audience === 'self' ? 'includesSelf' : 'includesSummons']) continue;
+      const index = buffIndex[audience];
+      const bucket = index.get(key);
+      if (bucket) insertSorted(bucket, event, compareBuffs);
+      else index.set(key, [event]);
+    }
   };
 
   const deindexBuffEvent = (event: SimulationEvent): void => {
-    const key = buffKindKey(event);
-    if (key == null) return;
-    const bucket = buffIndex.get(key);
-    const at = bucket?.indexOf(event) ?? -1;
-    if (bucket && at >= 0) bucket.splice(at, 1);
+    if (event.type !== 'buff') return;
+    const key = String(event.kind || '').toLowerCase();
+    for (const audience of buffAudiences) {
+      const bucket = buffIndex[audience].get(key);
+      const at = bucket?.indexOf(event) ?? -1;
+      if (bucket && at >= 0) bucket.splice(at, 1);
+    }
   };
 
   const store = {
     events,
-    buffEvents(kind: string): readonly SimulationEvent[] {
-      return buffIndex.get(kind) || emptyEventBucket;
+    buffEvents(kind: string, audience: 'self' | 'summon' = 'self'): readonly SimulationEvent[] {
+      return buffIndex[audience].get(String(kind || '').toLowerCase()) || emptyEventBucket;
     },
     eventsOfType(type: string) {
       return eventTypeIndex.get(String(type || '')) || emptyEventBucket;

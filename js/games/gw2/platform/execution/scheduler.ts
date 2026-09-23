@@ -202,6 +202,7 @@ export function createScheduler<TProfessionState extends object = object>({
       return `${prefix}:${++activationOrder}`;
     },
     eventsOfType: scheduledEvents.eventsOfType,
+    buffEvents: scheduledEvents.buffEvents,
     eventByOrder: scheduledEvents.eventByOrder,
     emit: scheduledEvents.emit,
     emitDerived: scheduledEvents.emitDerived,

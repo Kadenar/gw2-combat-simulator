@@ -23,6 +23,7 @@ interface DurationStackOptions<T> {
   readonly includes?: (application: T) => boolean;
   readonly duration?: (application: T) => number;
   readonly maximum?: number;
+  readonly ordered?: boolean;
 }
 
 export const GW2_BOON_DURATION_CAP_SECONDS = 30;
@@ -90,6 +91,7 @@ export function buffApplicationStacks<T extends BuffStackApplication>(
     const remaining = remainingDurationStackSeconds(applications, time, {
       includes,
       duration,
+      ordered,
       maximum: durationStackingBoonCapSeconds(kind)
     });
     return remaining > 0 ? clamp(1, 0, maximum) : 0;
@@ -176,15 +178,19 @@ export function standardBoonPresentation(kind: unknown): StandardBoonPresentatio
 export function remainingDurationStackSeconds<T extends DurationStackApplication>(
   applications: Iterable<T>,
   time: number,
-  { includes = () => true, duration, maximum = Infinity }: DurationStackOptions<T> = {}
+  { includes = () => true, duration, maximum = Infinity, ordered = false }: DurationStackOptions<T> = {}
 ): number {
   // Pool depletion uses the same precision as availability, so an expired pool cannot be revived by numeric noise.
   const normalize = (value: number): number => (value === Infinity ? Infinity : canonicalTime(value));
   time = normalize(time);
-  const matching = [...applications].filter(includes).sort((left, right) => Number(left.at) - Number(right.at));
+  // Ordered indexes can stream recipient filtering without allocating and sorting another history for each query.
+  const matching = ordered
+    ? applications
+    : [...applications].filter(includes).sort((left, right) => Number(left.at) - Number(right.at));
   let remaining = 0;
-  let previousTime = Number(matching[0]?.at ?? time);
+  let previousTime = time;
   for (const application of matching) {
+    if (ordered && !includes(application)) continue;
     const appliedAt = canonicalTime(Number(application.at));
     if (appliedAt > time) break;
     remaining = normalize(Math.max(0, remaining - Math.max(0, appliedAt - previousTime)));

@@ -3,6 +3,7 @@ import test from 'node:test';
 import { activeBoonStacks, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { runtimeTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import { gw2BuffActiveForAudience } from '#gw2/platform/execution/gw2-policy/policy.js';
+import { createScheduledEvents } from '#gw2/platform/execution/scheduled-events.js';
 
 import {
   durationStackingBoonCapSeconds,
@@ -12,20 +13,25 @@ import {
   standardBoonPresentation
 } from '#gw2/platform/combat/boons.js';
 
+// Use the scheduler's real indexes so emission and replacement remain part of the boon-query contract.
+function boonContext(events = []) {
+  const context = createScheduledEvents({ prepareEvent: (event) => event, observeEvent() {} });
+  for (const event of events) context.emit({ source: 'fixture', sourceId: 'boon', actorType: 'player', ...event });
+  return context;
+}
+
 // Floating-point sums cannot keep summon boons active at their exact canonical expiry.
 test('summon intensity boons exclude canonical expiry and preserve the preceding microsecond', () => {
-  const context = {
-    events: [
-      {
-        type: 'buff',
-        at: 0.56,
-        duration: 0.04,
-        kind: 'might',
-        stacks: 1,
-        resolvedAudience: { includesSummons: true, companionIds: [] }
-      }
-    ]
-  };
+  const context = boonContext([
+    {
+      type: 'buff',
+      at: 0.56,
+      duration: 0.04,
+      kind: 'might',
+      stacks: 1,
+      resolvedAudience: { includesSummons: true, companionIds: [] }
+    }
+  ]);
   for (const [at, active] of [
     [0.559999, false],
     [0.56, true],
@@ -39,15 +45,15 @@ test('summon intensity boons exclude canonical expiry and preserve the preceding
 
 // Independent recipients must not combine duration pools or inherit each other's expiry.
 test('summon boon queries keep capped recipients in separate duration pools', () => {
-  const context = {
-    events: ['minion:bone-minion:0', 'minion:bone-minion:1'].map((companionId, index) => ({
+  const context = boonContext(
+    ['minion:bone-minion:0', 'minion:bone-minion:1'].map((companionId, index) => ({
       type: 'buff',
       kind: 'quickness',
       at: index,
       duration: 2,
       resolvedAudience: { includesSummons: true, companionIds: [companionId] }
     }))
-  };
+  );
   const active = (index, at) =>
     gw2BuffActiveForAudience(context, 'quickness', at, 'summon', `minion:bone-minion:${index}`);
   assert.equal(active(0, 0), true);
@@ -58,8 +64,11 @@ test('summon boon queries keep capped recipients in separate duration pools', ()
   assert.equal(active(1, 2), true);
   assert.equal(active(1, 3), false);
   // A self-only extension must neither extend a companion nor change which companion owned the original boon.
-  context.events.push({
+  context.emit({
     type: 'boon_extension',
+    source: 'fixture',
+    sourceId: 'extension',
+    actorType: 'player',
     at: 1.5,
     duration: 4,
     resolvedAudience: { includesSelf: true, includesSummons: false, companionIds: [] }
@@ -67,6 +76,67 @@ test('summon boon queries keep capped recipients in separate duration pools', ()
   assert.equal(active(0, 2), false);
   assert.equal(active(1, 2), true);
   assert.equal(active(1, 3), false);
+});
+
+test('indexed summon boons preserve history across out-of-order grants and event replacements', () => {
+  // Cap duration chronologically, isolate recipients, and update kind/type/audience membership after replacements.
+  const summon = {
+    includesSelf: false,
+    includesSummons: true,
+    companionIds: ['pet'],
+    recipientCount: 1,
+    alliedPlayerCount: 0
+  };
+  const self = { ...summon, includesSelf: true, includesSummons: false, companionIds: [] };
+  const context = boonContext([
+    { type: 'buff', kind: 'quickness', at: 20, duration: 25, resolvedAudience: summon },
+    { type: 'buff', kind: 'quickness', at: 0, duration: 30, resolvedAudience: summon },
+    { type: 'buff', kind: 'quickness', at: 40, duration: 30, resolvedAudience: self }
+  ]);
+  const [later, earlier, selfOnly] = context.events;
+  const active = (at, companionId = 'pet') => gw2BuffActiveForAudience(context, 'quickness', at, 'summon', companionId);
+  assert.deepEqual(context.buffEvents('Quickness', 'summon'), [earlier, later]);
+  assert.deepEqual(context.buffEvents('quickness'), [selfOnly]);
+  // Queries must use the indexes even when unrelated event history is unavailable.
+  const indexed = {
+    ...context,
+    get events() {
+      return assert.fail('Summon queries must not scan the full event log');
+    }
+  };
+  assert.equal(gw2BuffActiveForAudience(indexed, 'quickness', 49.999999, 'summon', 'pet'), true);
+  assert.equal(active(50), false);
+  assert.equal(active(25, 'other'), false);
+  assert.equal(active(1), true);
+  context.replaceEvent(later, { at: 35, duration: 2 });
+  assert.equal(active(34), false);
+  assert.equal(active(36), true);
+  context.replaceEvent(later, { kind: 'might' });
+  assert.equal(active(36), false);
+  assert.equal(gw2BuffActiveForAudience(context, 'might', 36, 'summon', 'pet'), true);
+  context.replaceEvent(later, { type: 'marker' });
+  assert.equal(context.buffEvents('might', 'summon').length, 0);
+  context.replaceEvent(earlier, { resolvedAudience: self });
+  assert.equal(active(1), false);
+  context.replaceEvent(earlier, { resolvedAudience: summon });
+  assert.equal(active(1), true);
+  const extension = context.emit({
+    type: 'boon_extension',
+    at: 29,
+    duration: 4,
+    kind: 'quickness',
+    extensionAudience: 'all',
+    source: 'fixture',
+    sourceId: 'extension',
+    actorType: 'player'
+  });
+  assert.equal(gw2BuffActiveForAudience(indexed, 'quickness', 33.999999, 'summon', 'pet'), true);
+  assert.equal(active(34), false);
+  context.replaceEvent(extension, { duration: 1 });
+  assert.equal(active(31), false);
+  context.replaceEvent(extension, { at: 31, duration: 4 });
+  assert.equal(active(32), false);
+  assert.equal(active(1), true);
 });
 
 // Presence uses the same microsecond half-open boundary for duration pools, intensity boons, and conditions.

@@ -8,6 +8,7 @@ import { createProfessionSimulator } from '#tests/helpers/profession-simulation.
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { engineerMechHasQuickness } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { createScheduledEvents } from '#gw2/platform/execution/scheduled-events.js';
 
 // Mechanist contracts cover signet passives, mech boon state, inheritance, and command effects.
 const baseConfig = Object.freeze({
@@ -149,8 +150,8 @@ test('Overclock reduces other signet recharges only while its passive is availab
 test('mech Quickness uses its own boon audience and retains copied applications', () => {
   // The player's permanent boon alone is insufficient; copied timed boons retain their own expiry.
   const context = {
+    ...createScheduledEvents({ prepareEvent: (event) => event, observeEvent() {} }),
     config: { boons: { quickness: true }, selectedSkills: ['Force Signet'] },
-    events: [],
     state: { cooldowns: new Map() }
   };
   assert.equal(engineerMechHasQuickness(context, 0), false);
@@ -161,16 +162,17 @@ test('mech Quickness uses its own boon audience and retains copied applications'
   context.config.selectedTraitIds = [TRAIT.MECH_CORE_J_DRIVE];
   assert.equal(engineerMechHasQuickness(context, 1), true);
   context.config = { boons: {}, selectedSkills: [] };
-  context.events = [
-    {
-      type: 'buff',
-      kind: 'quickness',
-      at: 1,
-      duration: 2,
-      stacks: 1,
-      resolvedAudience: { includesSelf: false, includesSummons: true, companionIds: [] }
-    }
-  ];
+  context.emit({
+    source: 'fixture',
+    sourceId: 'boon',
+    actorType: 'player',
+    type: 'buff',
+    kind: 'quickness',
+    at: 1,
+    duration: 2,
+    stacks: 1,
+    resolvedAudience: { includesSelf: false, includesSummons: true, companionIds: [] }
+  });
   assert.equal(engineerMechHasQuickness(context, 0), false);
   assert.equal(engineerMechHasQuickness(context, 2), true);
   assert.equal(engineerMechHasQuickness(context, 3), false);
@@ -189,7 +191,9 @@ test('mech Quickness uses its own boon audience and retains copied applications'
   );
   assert.ok(copied?.resolvedAudience.includesSummons);
   assert.equal(copied.resolvedAudience.includesSelf, false);
-  context.events = result.events;
+  // Replay the completed simulation through the canonical index instead of swapping its backing event array.
+  Object.assign(context, createScheduledEvents({ prepareEvent: (event) => event, observeEvent() {} }));
+  for (const event of result.events) context.emit(event);
   assert.equal(engineerMechHasQuickness(context, copied.at + 0.2), true);
   assert.equal(engineerMechHasQuickness(context, copied.at + copied.duration + 0.1), false);
 });

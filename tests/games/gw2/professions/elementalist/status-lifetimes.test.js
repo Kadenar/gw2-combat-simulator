@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
+import { createScheduledEvents } from '#gw2/platform/execution/scheduled-events.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
@@ -28,27 +29,23 @@ function lifetimeContext(element = 'Fire') {
     selectedSkills: { Elite: element === 'Fire' ? 'Glyph of Elementals' : 'Glyph of Elementals (Earth)' }
   };
   const profession = elementalistProfession.resolveRuntime(config);
-  const events = [];
+  // Use canonical event replacement and boon indexes while keeping task execution under the test's control.
+  const scheduled = createScheduledEvents({ prepareEvent: (event) => event, observeEvent() {} });
   const queued = [];
   const queue = createTaskQueue({ handlers: elementalistElementalTaskHandlers });
   let sequence = 0;
   return {
+    ...scheduled,
     config,
     profession,
     catalog: profession.catalog,
     state: { time: 0, profession: profession.createProfessionState(config), cooldowns: new Map() },
-    events,
     queued,
     start: 0,
     effectiveEnd: 0.1 + 0.201,
     hasExplicitCombatStart: true,
     combatStartTime: null,
     createActivationId: () => `action-${++sequence}`,
-    emit: (event) => {
-      events.push(event);
-      return event;
-    },
-    replaceEvent: (event, update) => Object.assign(event, update),
     rechargeDurationFor: () => 8,
     tasks: {
       ...queue,
@@ -162,8 +159,8 @@ test('replacing an elemental interrupts its action, removes its flip, and reject
   const oldTasks = [...context.queued];
   context.effectiveEnd = 0.5;
   completeElementalistGlyphCast(context, context.catalog.skillsByName.get('Glyph of Elementals (Earth)'));
-  assert.equal(action.interruptedAt, 0.5);
-  assert.equal(action.endsAt, 0.5);
+  assert.equal(context.eventByOrder(action.eventOrder).interruptedAt, 0.5);
+  assert.equal(context.eventByOrder(action.eventOrder).endsAt, 0.5);
   assert.deepEqual(Object.keys(context.state.profession.core.availableFlips), [
     String(elementalistCatalog.skillsByName.get('Stomp').id)
   ]);
@@ -264,7 +261,7 @@ test('elemental command preemption resumes exactly at command recovery without s
     );
     const recovery = context.state.profession.core.summonedElemental.busyUntil;
     context.tasks.drainThrough(recovery - 0.000001, context);
-    assert.equal(interrupted.interruptedAt, 0.6);
+    assert.equal(context.eventByOrder(interrupted.eventOrder).interruptedAt, 0.6);
     assert.ok(
       !context.events.some((event) => event.type === 'damage' && event.activationId === interrupted.activationId)
     );

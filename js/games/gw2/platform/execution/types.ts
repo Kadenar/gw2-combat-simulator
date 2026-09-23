@@ -245,6 +245,8 @@ export interface SchedulerContext<TProfessionState extends object = object> {
   createActivationId(kind?: 'effect' | 'summon-attack' | string): string;
   advanceTo(at: number): void;
   eventsOfType(type: string): readonly SimulationEvent[];
+  /** Chronological buff applications for one kind and actor audience; replacements update the index immediately. */
+  buffEvents(kind: string, audience?: 'self' | 'summon'): readonly SimulationEvent[];
   eventByOrder(order: number): SimulationEvent | undefined;
   emit(event: SimulationEventBase): SimulationEvent;
   /** Applies updates to the current version of a scheduled event, preserving its eventOrder identity. */

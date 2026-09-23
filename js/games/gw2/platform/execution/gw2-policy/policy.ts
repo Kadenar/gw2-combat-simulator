@@ -123,8 +123,10 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
 ): boolean {
   if (audience === 'self') return context.hasBuff(kind, at);
   const normalized = String(kind || '').toLowerCase();
-  if (context.events.some((event) => event.type === 'boon_extension') && isStandardBoon(normalized)) {
-    const applications = boonApplicationsAt(context.events, normalized, canonicalTime(at));
+  const buffs = context.buffEvents(normalized, 'summon');
+  const extensions = context.eventsOfType('boon_extension');
+  if (extensions.length && isStandardBoon(normalized)) {
+    const applications = boonApplicationsAt([...buffs, ...extensions], normalized, canonicalTime(at));
     return (
       buffApplicationStacks(applications, normalized, at, 1, {
         audience: 'summon',
@@ -134,14 +136,12 @@ export function gw2BuffActiveForAudience<TProfessionState extends object>(
   }
 
   return (
-    buffApplicationStacks(context.events, normalized, at, 1, {
+    buffApplicationStacks(buffs, normalized, at, 1, {
+      ordered: true,
       duration: (event) => Number(normalizeBoonDuration(event).duration || 0),
       includes: (event) =>
-        event.type === 'buff' &&
-        String(event.kind || '').toLowerCase() === normalized &&
         // Recipient-specific clocks must not borrow another summon's boon applications.
-        buffMatchesAudience(event, 'summon', companionId) &&
-        Number(event.stacks || 1) > 0
+        buffMatchesAudience(event, 'summon', companionId) && Number(event.stacks || 1) > 0
     }) > 0
   );
 }
@@ -339,8 +339,9 @@ export function createGw2SchedulerPolicy(
         return configuredStacks + buffApplicationStacks(extended, kind, at, Infinity);
       }
 
-      // Scheduler history is already audience-selected; normalize grants only when reading their lifetime.
+      // Scheduler histories are chronological and audience-selected; normalize grants only when reading their lifetime.
       const dynamic = buffApplicationStacks(applications, kind, at, Infinity, {
+        ordered: true,
         includes: () => true,
         duration: (event) => Number(normalizeBoonDuration(event).duration || 0)
       });

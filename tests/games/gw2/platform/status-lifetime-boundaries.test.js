@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { createScheduledEvents } from '#gw2/platform/execution/scheduled-events.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
@@ -210,6 +211,8 @@ test('Lich Form expires exactly once and preserves its last live microsecond', (
 test('minion command control includes its deadline but excludes the following microsecond', () => {
   for (const at of [1.999999, 2, 2.000001]) {
     const context = contextFor(necromancerProfession, 'Core');
+    // Autonomous attacks query the same indexed boon history as the real scheduler.
+    Object.assign(context, createScheduledEvents({ prepareEvent: (event) => event, observeEvent() {} }));
     context.tasks = createTaskQueue({ handlers: minionActions.taskHandlers });
     minionActions.start(context, 0, {
       key: 'golem',
