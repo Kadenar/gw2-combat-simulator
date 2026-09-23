@@ -241,7 +241,13 @@ function extend(profession, events, at) {
   for (const event of events) recordBuffApplication(boons, event);
   const context = { boons, config: {}, queue: { enqueue() {} } };
   if (profession === 'Thief') {
-    noQuarterCriticalReaction.handler(context, { at, skillName: 'probe' }, {}, { quantity: 1 });
+    // Direct handler calls need the same selected balance source as resolver dispatch.
+    noQuarterCriticalReaction.handler(
+      { ...context, catalog: thiefProfession.catalog },
+      { at, skillName: 'probe' },
+      {},
+      { quantity: 1 }
+    );
   } else {
     handleRangerBoonExtension(context, { at, duration: 2 });
   }

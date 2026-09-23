@@ -3,8 +3,38 @@ import test from 'node:test';
 import { criticalChanceTooltip, rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { CATALYST_BALANCE_PROFILE_IDS as CATALYST_PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+
+// Template rendering needs the selected catalog both before simulation and when replaying aura stacks.
+test('Catalyst snapshots use the active balance catalog before and after simulation', () => {
+  const patched = withPatchPreview(elementalistProfession, {
+    id: 'snapshot-test',
+    label: 'Snapshot test',
+    professions: {
+      elementalist: {
+        balanceProfiles: { [CATALYST_PROFILE.empoweringAuras]: { fields: { maximumStacks: 2 } } }
+      }
+    }
+  });
+  const app = {
+    build: { rotation: [] },
+    profession: elementalistProfession,
+    activeCatalog: patched.resolveRuntime({ specialization: 'Catalyst', patchId: 'snapshot-test' }).catalog,
+    adapter: { eliteSpecialization: () => 'Catalyst' },
+    results: null
+  };
+  assert.ok(!rotationStateSnapshot(app).items.some((item) => item.id === 'catalyst-empowering-auras'));
+  app.results = {
+    planningState: { atSeconds: 1 },
+    events: [{ type: 'buff', kind: 'empowering auras', at: 0, duration: 5, stacks: 3 }]
+  };
+  const aura = rotationStateSnapshot(app).items.find((item) => item.id === 'catalyst-empowering-auras');
+  assert.equal(aura.value, '2/2 · 4.0s');
+});
 
 test('critical chance tooltips list contributors and cap behavior', () => {
   const event = {

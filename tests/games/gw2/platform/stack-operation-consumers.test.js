@@ -11,6 +11,7 @@ import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js'
 import { SCOURGE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { necromancerShadeSkillHandlers } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shades.js';
 import { WARRIOR_SKILL_IDS, WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { createSpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import {
@@ -73,7 +74,13 @@ test('Sharpening Stone prunes excluded hits and spends the earliest surviving ex
 });
 
 test('Insight keeps newest grants independently in scheduler and resolver state', () => {
-  const profile = { maximumStacks: 3, effects: [{ type: 'buff', duration: 4 }] };
+  // Keep canonical effect identities while shortening grants for the stack-ordering contract.
+  const profile = structuredClone(
+    warriorProfession.catalog.balanceProfilesById.get(SPELLBREAKER_BALANCE_PROFILE_IDS.attackersInsight)
+  );
+  const insight = profile.effects.find((effect) => effect.type === 'buff' && effect.name === 'attackers-insight');
+  profile.maximumStacks = 3;
+  insight.duration = 4;
   const shared = {
     config: { target: { defiant: true } },
     traits: new Set([WARRIOR_TRAIT_IDS.ATTACKERS_INSIGHT]),
@@ -100,15 +107,16 @@ test('Insight keeps newest grants independently in scheduler and resolver state'
   assert.deepEqual(resolverState.attackerInsightExpiries, [32, 5, 5]);
   assert.notEqual(resolverState.attackerInsightExpiries, schedulerState.attackerInsightExpiries);
 
-  // Patched zero-duration grants cannot evict live stacks; zero capacity disables the pool.
+  // Invalid durations must fail without changing live stacks; zero capacity disables the pool.
   for (const [context, react, state] of [
     [scheduler, observeSpellbreakerEvent, schedulerState],
     [resolver, reactToSpellbreakerControl, resolverState]
   ]) {
     profile.maximumStacks = 3;
-    profile.effects[0].duration = 0;
-    react(context, { ...event, at: 2 });
+    insight.duration = 0;
+    assert.throws(() => react(context, { ...event, at: 2 }), /positive duration/);
     assert.deepEqual(state.attackerInsightExpiries, [32, 5, 5]);
+    insight.duration = 4;
     profile.maximumStacks = 0;
     react(context, { ...event, at: 2 });
     assert.deepEqual(state.attackerInsightExpiries, []);

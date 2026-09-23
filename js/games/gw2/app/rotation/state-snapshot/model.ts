@@ -83,6 +83,8 @@ export function rotationStateSnapshot(app: ProfessionAppState): {
 
   items.push(
     ...app.profession.ui.rotationStateSnapshot({
+      // Snapshot traits must read the selected patch's balance data, just like the palette and simulation.
+      catalog: app.activeCatalog,
       specialization: activeSpecialization(app),
       professionState: state?.profession,
       atSeconds: timeMs / 1000,
