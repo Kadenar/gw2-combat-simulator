@@ -1,3 +1,4 @@
+import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -21,7 +22,7 @@ function ashesContext() {
   return {
     state: { profession: { core: {}, specialization: { kind: 'Firebrand', state } } },
     config: { specialization: 'Firebrand', selectedTraitIds: [GUARDIAN_TRAIT_IDS.QUICKFIRE] },
-    catalog: { skillsById: new Map() },
+    catalog: guardianCatalog,
     events,
     queue: { enqueue: (event) => events.push(event) },
     applyCondition: (event) => events.push(event),

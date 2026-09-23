@@ -1,7 +1,13 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -63,12 +69,9 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
 
     // A ready passive starts its dormancy clock; Power of the Virtuous shortens
     // that clock, while reopening a dormant Tome preserves it.
-    const dormantCooldown = Number(
-      balanceProfileFromContext(context, DORMANT_PROFILE_BY_VIRTUE[virtue])?.cooldown ??
-        (virtue === 'justice' ? 20 : virtue === 'resolve' ? 30 : 45)
-    );
+    const dormantCooldown = balanceProfileNumberFromContext(context, DORMANT_PROFILE_BY_VIRTUE[virtue], 'cooldown');
     const dormantRechargeMultiplier = hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
-      ? Number(balanceProfileFromContext(context, CORE_PROFILE.powerOfTheVirtuous)?.rechargeMultiplier ?? 0.85)
+      ? balanceProfileNumberFromContext(context, CORE_PROFILE.powerOfTheVirtuous, 'rechargeMultiplier')
       : 1;
     const passiveReadyAt = passiveWasReady
       ? at + dormantCooldown * dormantRechargeMultiplier
@@ -86,23 +89,26 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
       weaponLine: skill.name
     });
     if (passiveWasReady) {
-      const quickness = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.swiftScholar), 'boon');
-      emitSkillBuff(context, skill, {
-        at,
-        source: 'guardian',
-        sourceId: skill.id,
-        actorType: 'player',
-        kind: 'quickness',
-        duration: Number(quickness?.duration ?? 3),
-        stacks: 1
-      });
-      emitGuardianProc(context, {
-        name: 'Swift Scholar',
-        at,
-        sourceSkill: skill.name,
-        detail: '3 seconds of quickness',
-        icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.SWIFT_SCHOLAR)
-      });
+      const swiftScholarProfile = requireBalanceProfileFromContext(context, PROFILE.swiftScholar);
+      const quickness = requireEffect(swiftScholarProfile, 'boon', 'quickness');
+      if (quickness) {
+        emitSkillBuff(context, skill, {
+          at,
+          source: 'guardian',
+          sourceId: skill.id,
+          actorType: 'player',
+          kind: 'quickness',
+          duration: effectNumber(swiftScholarProfile, quickness, 'duration'),
+          stacks: effectNumber(swiftScholarProfile, quickness, 'stacks')
+        });
+        emitGuardianProc(context, {
+          name: 'Swift Scholar',
+          at,
+          sourceSkill: skill.name,
+          detail: '3 seconds of quickness',
+          icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.SWIFT_SCHOLAR)
+        });
+      }
     }
   }
 
@@ -111,44 +117,48 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
     hasTrait(context, GUARDIAN_TRAIT_IDS.LIBERATORS_VOW) &&
     isInternalCooldownReady(at, state.liberatorsVowReadyAt)
   ) {
-    const profile = balanceProfileFromContext(context, PROFILE.liberatorsVow);
-    const quickness = balanceProfileEffect(profile, 'boon');
-    state.liberatorsVowReadyAt = at + Number(profile?.internalCooldown ?? 7);
-    emitSkillBuff(context, skill, {
-      at,
-      source: 'guardian',
-      sourceId: skill.id,
-      actorType: 'player',
-      kind: 'quickness',
-      duration: Number(quickness?.duration ?? 2),
-      stacks: 1,
-      audience: { recipients: 'party' as const }
-    });
-    emitGuardianProc(context, {
-      name: "Liberator's Vow",
-      at,
-      sourceSkill: skill.name,
-      detail: '2 seconds of quickness',
-      icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.LIBERATORS_VOW)
-    });
+    const liberatorsVowProfile = requireBalanceProfileFromContext(context, PROFILE.liberatorsVow);
+    const quickness = requireEffect(liberatorsVowProfile, 'boon', 'quickness');
+    if (quickness) {
+      state.liberatorsVowReadyAt = at + balanceProfileNumber(liberatorsVowProfile, 'internalCooldown');
+      emitSkillBuff(context, skill, {
+        at,
+        source: 'guardian',
+        sourceId: skill.id,
+        actorType: 'player',
+        kind: 'quickness',
+        duration: effectNumber(liberatorsVowProfile, quickness, 'duration'),
+        stacks: effectNumber(liberatorsVowProfile, quickness, 'stacks'),
+        audience: { recipients: 'party' as const }
+      });
+      emitGuardianProc(context, {
+        name: "Liberator's Vow",
+        at,
+        sourceSkill: skill.name,
+        detail: '2 seconds of quickness',
+        icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.LIBERATORS_VOW)
+      });
+    }
   }
 
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS) && isFinalMantraCharge(context, skill)) {
-    const profile = balanceProfileFromContext(context, PROFILE.weightyTerms);
-    const slow = balanceProfileEffect(profile, 'condition');
-    const pageGain = Number(profile?.resourceGain ?? 2);
+    const weightyTermsProfile = requireBalanceProfileFromContext(context, PROFILE.weightyTerms);
+    const slow = requireEffect(weightyTermsProfile, 'condition', 'Slow');
+    const pageGain = balanceProfileNumber(weightyTermsProfile, 'resourceGain');
     // Refunds refill the pool without resetting its running regeneration timer.
     state.tomePages = Math.min(state.maximumTomePages, state.tomePages + pageGain);
 
-    emitSkillCondition(context, {
-      skill,
-      at,
-      sourceId: GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS,
-      name: 'Weighty Terms — Slow',
-      condition: String(slow?.condition || 'Slow'),
-      stacks: Number(slow?.stacks ?? 1),
-      duration: Number(slow?.duration ?? 1.5)
-    });
+    if (slow) {
+      emitSkillCondition(context, {
+        skill,
+        at,
+        sourceId: GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS,
+        name: 'Weighty Terms — Slow',
+        condition: String(slow.condition),
+        stacks: effectNumber(weightyTermsProfile, slow, 'stacks'),
+        duration: effectNumber(weightyTermsProfile, slow, 'duration')
+      });
+    }
     emitGuardianProc(context, {
       name: 'Weighty Terms',
       at,
@@ -175,10 +185,11 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
     hasTrait(context, GUARDIAN_TRAIT_IDS.STALWART_SPEED) &&
     isInternalCooldownReady(event.at, state.stalwartSpeedReadyAt)
   ) {
-    const profile = balanceProfileFromContext(context, PROFILE.stalwartSpeed);
-    const quickness = balanceProfileEffect(profile, 'boon');
+    const stalwartSpeedProfile = requireBalanceProfileFromContext(context, PROFILE.stalwartSpeed);
+    const quickness = requireEffect(stalwartSpeedProfile, 'boon', 'quickness');
+    if (!quickness) return;
     const sourceSkill = { id: GUARDIAN_TRAIT_IDS.STALWART_SPEED, name: 'Stalwart Speed' } as GuardianSkill;
-    state.stalwartSpeedReadyAt = event.at + Number(profile?.internalCooldown ?? 7);
+    state.stalwartSpeedReadyAt = event.at + balanceProfileNumber(stalwartSpeedProfile, 'internalCooldown');
     emitSkillBuff(context, {
       at: event.at,
       source: 'guardian',
@@ -187,8 +198,13 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
       skillId: GUARDIAN_TRAIT_IDS.STALWART_SPEED,
       skillName: 'Stalwart Speed',
       kind: 'quickness',
-      stacks: Number(quickness?.stacks ?? 1),
-      duration: gw2SchedulerBoonDuration(context, sourceSkill, 'quickness', Number(quickness?.duration ?? 2)),
+      stacks: effectNumber(stalwartSpeedProfile, quickness, 'stacks'),
+      duration: gw2SchedulerBoonDuration(
+        context,
+        sourceSkill,
+        'quickness',
+        effectNumber(stalwartSpeedProfile, quickness, 'duration')
+      ),
       audience: { recipients: 'party' as const },
       triggeredBy: event.skillName
     });
@@ -209,7 +225,8 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
     event.type === 'condition' &&
     ['immobilized', 'slow', 'slowed'].includes(String(event.condition || '').toLowerCase());
   if ((event.type === 'control' || qualifyingStoicCondition) && hasTrait(context, GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR)) {
-    const profile = balanceProfileFromContext(context, PROFILE.stoicDemeanor);
+    const profile = requireBalanceProfileFromContext(context, PROFILE.stoicDemeanor);
+    if (!profile.effects?.some((effect) => effect.type === 'boon')) return;
     const sourceSkill = { id: GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR, name: 'Stoic Demeanor' } as GuardianSkill;
     for (const buff of (profile?.effects || []).filter((effect) => effect.type === 'boon')) {
       emitSkillBuff(context, {
@@ -219,9 +236,14 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
         actorType: 'player',
         skillId: GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR,
         skillName: 'Stoic Demeanor',
-        kind: String(buff.boon || ''),
-        stacks: Number(buff.stacks ?? 1),
-        duration: gw2SchedulerBoonDuration(context, sourceSkill, String(buff.boon || ''), Number(buff.duration || 0)),
+        kind: String(buff.boon),
+        stacks: effectNumber(profile, buff, 'stacks'),
+        duration: gw2SchedulerBoonDuration(
+          context,
+          sourceSkill,
+          String(buff.boon),
+          effectNumber(profile, buff, 'duration')
+        ),
         triggeredBy: event.skillName
       });
     }
@@ -243,17 +265,16 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
     event.actorType === 'player' &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.UNRELENTING_CRITICISM)
   ) {
-    const bleeding = balanceProfileEffect(
-      balanceProfileFromContext(context, PROFILE.unrelentingCriticism),
-      'condition'
-    );
+    const unrelentingCriticismProfile = requireBalanceProfileFromContext(context, PROFILE.unrelentingCriticism);
+    const bleeding = requireEffect(unrelentingCriticismProfile, 'condition', 'Bleeding');
+    if (!bleeding) return;
     emitSkillCondition(context, {
       skill,
       at: event.at,
       name: 'Unrelenting Criticism — Bleeding',
-      condition: String(bleeding?.condition || 'Bleeding'),
-      stacks: Number(bleeding?.stacks ?? 1),
-      duration: Number(bleeding?.duration ?? 4.5),
+      condition: String(bleeding.condition),
+      stacks: effectNumber(unrelentingCriticismProfile, bleeding, 'stacks'),
+      duration: effectNumber(unrelentingCriticismProfile, bleeding, 'duration'),
       triggeredBy: 'Unrelenting Criticism',
       activationId: event.activationId
     });
@@ -295,18 +316,19 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
     return;
   }
 
-  const quickfire = balanceProfileFromContext(context, PROFILE.quickfire);
-  const ashes = balanceProfileFromContext(context, PROFILE.ashes);
-  const ashesBuff = balanceProfileEffect(quickfire, 'buff');
-  const burn = balanceProfileEffect(ashes, 'condition');
-  const duration = Number(ashesBuff?.duration ?? 10);
+  const quickfireProfile = requireBalanceProfileFromContext(context, PROFILE.quickfire);
+  const ashesBuff = requireEffect(quickfireProfile, 'buff', 'ashes-of-the-just');
+  const ashesProfile = requireBalanceProfileFromContext(context, PROFILE.ashes);
+  const burn = requireEffect(ashesProfile, 'condition', 'Burning');
+  if (!ashesBuff || !burn) return;
+  const duration = effectNumber(quickfireProfile, ashesBuff, 'duration');
   const expiresAt = gw2EffectExpiresAt(event.at, duration);
-  state.quickfireReadyAt = event.at + Number(quickfire?.internalCooldown ?? 7);
+  state.quickfireReadyAt = event.at + balanceProfileNumber(quickfireProfile, 'internalCooldown');
   // Prefer an allied Quickfire recipient when present; otherwise the simulated player receives the charge.
   if (alliedPlayerCount <= 0 && includesSelf) {
     // Refresh all live charges while preserving their hit cooldown.
     state.ashes = grantCharges(1, expiresAt, state.ashes, event.at);
-    state.ashesBurnDuration = Number(burn?.duration ?? 2);
+    state.ashesBurnDuration = effectNumber(ashesProfile, burn, 'duration');
     context.queue.enqueue({
       type: 'guardian.ashes-expired',
       at: state.ashes.expiresAt,
@@ -324,7 +346,7 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
       duration: expiresAt - event.at,
       maximumAllies: 1,
       maximumPerAlly: 1,
-      internalCooldown: Number(ashes?.internalCooldown ?? 1)
+      internalCooldown: balanceProfileNumber(ashesProfile, 'internalCooldown')
     });
     if (proc) {
       context.queue.enqueue(
@@ -337,9 +359,9 @@ export function reactToFirebrandBuffTraits(context: GuardianResolverContext, eve
           skillId: GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST,
           skillName: 'Quickfire',
           name: `Quickfire — Ally ${proc.allyIndex} Burning`,
-          condition: String(burn?.condition || 'Burning'),
-          stacks: Number(burn?.stacks ?? 1),
-          duration: Number(burn?.duration ?? 2),
+          condition: String(burn.condition),
+          stacks: effectNumber(ashesProfile, burn, 'stacks'),
+          duration: effectNumber(ashesProfile, burn, 'duration'),
           metadata: { triggeredByAlly: proc.allyIndex }
         })
       );

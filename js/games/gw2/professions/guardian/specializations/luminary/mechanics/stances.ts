@@ -1,5 +1,11 @@
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
@@ -112,7 +118,7 @@ export function replayInitialLuminaryState(context: GuardianCastContext, skill: 
 /** Counts damage packets inside Effulgent Stance's half-open activation window. */
 export function reactToEffulgentStrike(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = luminaryState.from(context);
-  const maximumStacks = Number(balanceProfileFromContext(context, PROFILE.effulgentStance)?.maximumStacks ?? 10);
+  const maximumStacks = balanceProfileNumberFromContext(context, PROFILE.effulgentStance, 'maximumStacks');
   const guardianOwnedStrike =
     isGw2PlayerActorEvent(event) || (event.source === 'guardian' && event.actorType === 'effect');
   if (
@@ -135,26 +141,32 @@ export function handleEffulgentActivated(context: GuardianResolverContext, event
 /** Consumes Effulgent stacks to scale detonation damage and trigger the maximum-stack daze. */
 export function handleEffulgentDetonate(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = luminaryState.from(context);
-  const profile = balanceProfileFromContext(context, PROFILE.effulgentStance);
-  const strike = balanceProfileEffect(profile, 'strike');
-  const maximumStacks = Number(profile?.maximumStacks ?? 10);
+
+  const effulgentStanceProfile = requireBalanceProfileFromContext(context, PROFILE.effulgentStance);
+  const strike = requireEffect(effulgentStanceProfile, 'strike', 'Strike');
+  const control = requireEffect(effulgentStanceProfile, 'control', 'Control');
+  const maximumStacks = balanceProfileNumber(effulgentStanceProfile, 'maximumStacks');
   const stacks = boundedNumber(state.effulgentStacks || 0, 0, 0, maximumStacks);
   state.effulgentActiveUntil = 0;
   state.effulgentStacks = 0;
-  context.recordProc('skill', 'Effulgent Stance', event.at, 'Effulgent Stance', `${stacks}/10 stacks`);
-  context.queue.enqueue(
-    buildGuardianStrike({
-      at: event.at,
-      priority: 5,
-      sourceId: GUARDIAN_SKILL_IDS.EFFULGENT_STANCE_DAMAGE,
-      skillId: GUARDIAN_SKILL_IDS.EFFULGENT_STANCE_DAMAGE,
-      skillName: 'Effulgent Stance',
-      name: 'Effulgent Stance',
-      coefficient: Number(strike?.coefficient ?? 0.5) + stacks * Number(profile?.damageIncreasePerStack ?? 0.35),
-      weaponStrengthProfileId: 'nonweapon.unequipped'
-    })
-  );
-  if (stacks === maximumStacks) {
+  if (strike) {
+    context.recordProc('skill', 'Effulgent Stance', event.at, 'Effulgent Stance', `${stacks}/10 stacks`);
+    context.queue.enqueue(
+      buildGuardianStrike({
+        at: event.at,
+        priority: 5,
+        sourceId: GUARDIAN_SKILL_IDS.EFFULGENT_STANCE_DAMAGE,
+        skillId: GUARDIAN_SKILL_IDS.EFFULGENT_STANCE_DAMAGE,
+        skillName: 'Effulgent Stance',
+        name: 'Effulgent Stance',
+        coefficient:
+          effectNumber(effulgentStanceProfile, strike, 'coefficient') +
+          stacks * balanceProfileNumber(effulgentStanceProfile, 'damageIncreasePerStack'),
+        weaponStrengthProfileId: 'nonweapon.unequipped'
+      })
+    );
+  }
+  if (control && stacks === maximumStacks) {
     context.queue.enqueue({
       type: 'control',
       at: event.at,

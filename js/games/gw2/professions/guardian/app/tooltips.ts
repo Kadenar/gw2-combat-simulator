@@ -602,7 +602,6 @@ export const guardianTooltips: ProfessionTooltips = {
     [TRAIT.PROTECTIVE_REVIVER]: outsideScopeTooltip,
     [TRAIT.PROTECTORS_RESTORATION]: (balanceContext, entity) => {
       const profile = tooltipProfile(balanceContext, entity.id);
-      const strike = profile.effects?.find((effect) => effect.type === 'strike');
       return {
         description:
           'Committing a healing skill creates Lesser Symbol of Protection. Each strike pulse also grants party protection.',
@@ -610,9 +609,7 @@ export const guardianTooltips: ProfessionTooltips = {
           profileFact(balanceContext, entity.id, 'internalCooldown', 'Internal cooldown', tooltipSeconds),
           ...simulationEffectFacts(
             profile.effects?.map((effect) =>
-              effect.type === 'boon'
-                ? { ...effect, applications: strike?.ticks?.length ?? 0, audience: { recipients: 'party' as const } }
-                : effect
+              effect.type === 'boon' ? { ...effect, audience: { recipients: 'party' as const } } : effect
             )
           ).facts
         ]

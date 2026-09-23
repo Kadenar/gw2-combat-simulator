@@ -1,4 +1,10 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -12,7 +18,9 @@ import { willbenderState } from '#gw2/professions/guardian/specializations/willb
 
 function recordLethalTempo(context: GuardianResolverContext, at: number, sourceSkill: string | undefined): void {
   const state = willbenderState.from(context);
-  const stacks = gainLethalTempo(state, at, lethalTempoParameters(context));
+  const tempo = lethalTempoParameters(context);
+  if (!tempo) return;
+  const stacks = gainLethalTempo(state, at, tempo);
   context.recordProc(
     'trait',
     'Lethal Tempo',
@@ -30,7 +38,7 @@ function handleWillbenderVirtueActivation(context: GuardianResolverContext, even
   state.flameVirtue = virtue;
   // Reopening a window preserves partial hit progress, including across inactive gaps.
   // State and the displayed buff expire on the same absolute effect tick.
-  const until = gw2EffectExpiresAt(event.at, Number(event.duration || 0));
+  const until = event.duration === undefined ? 0 : gw2EffectExpiresAt(event.at, Number(event.duration));
   if (virtue === 'justice') state.justiceUntil = until;
   if (virtue === 'resolve') state.resolveUntil = until;
   if (virtue === 'courage') state.courageUntil = until;
@@ -45,6 +53,10 @@ function handleWillbenderVirtueTrigger(context: GuardianResolverContext, event: 
   recordLethalTempo(context, event.at, event.sourceSkill as string | undefined);
   if (virtue !== 'justice') return;
   const active = event.justiceActive !== false;
+  // The Justice packet owns its burn counters; the completed virtue cycle retains its other reactions.
+  const justiceProfile = requireBalanceProfileFromContext(context, PROFILE.justice);
+  const burn = requireEffect(justiceProfile, 'condition', active ? 'Burning (active)' : 'Burning (passive)');
+  if (!burn) return;
   const core = professionCoreState(context);
   if (active) core.justiceActiveBurns += 1;
   else core.justicePassiveBurns += 1;
@@ -62,9 +74,9 @@ function handleWillbenderVirtueTrigger(context: GuardianResolverContext, event: 
       name: `Justice — ${active ? 'Active' : 'Passive'} Burning`,
       icon: context.helpers.skillsById?.get(ID.RUSHING_JUSTICE)?.icon || '', // WILLBENDER_JUSTICE has no icon; Rushing Justice shares the same visual in-game
 
-      condition: 'Burning',
-      stacks: 1,
-      duration: Number(event.burningDuration ?? 2),
+      condition: String(burn.condition),
+      stacks: effectNumber(justiceProfile, burn, 'stacks'),
+      duration: effectNumber(justiceProfile, burn, 'duration'),
       triggeredBy: event.sourceSkill
     })
   );

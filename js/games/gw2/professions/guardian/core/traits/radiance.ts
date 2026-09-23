@@ -3,7 +3,13 @@ import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
@@ -25,30 +31,33 @@ export function applyHealersResolution(context: GuardianCastContext, skill: Guar
   const state = professionCoreState(context);
   if (!isInternalCooldownReady(at, state.healersResolutionReadyAt)) return;
 
-  const profile = balanceProfileFromContext(context, PROFILE.healersResolution);
-  const resolution = balanceProfileEffect(profile, 'boon');
-  state.healersResolutionReadyAt = at + Number(profile?.internalCooldown ?? 20);
+  const healersResolutionProfile = requireBalanceProfileFromContext(context, PROFILE.healersResolution);
+  const resolution = requireEffect(healersResolutionProfile, 'boon', 'resolution');
+  if (!resolution) return;
+  state.healersResolutionReadyAt = at + balanceProfileNumber(healersResolutionProfile, 'internalCooldown');
   emitSkillBuff(context, skill, {
     at,
     source: 'guardian',
     sourceId: GUARDIAN_TRAIT_IDS.HEALERS_RESOLUTION,
     name: "Healer's Resolution",
     kind: 'resolution',
-    duration: Number(resolution?.duration ?? 8),
-    stacks: 1
+    duration: effectNumber(healersResolutionProfile, resolution, 'duration'),
+    stacks: effectNumber(healersResolutionProfile, resolution, 'stacks')
   });
 }
 
 /** Owns Righteous Instincts' Resolution window and recurring Might tick behavior. */
-function queueRighteousMight(context: GuardianResolverContext, at: number, detail: string): void {
-  const might = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.righteousInstincts), 'boon');
+function queueRighteousMight(context: GuardianResolverContext, at: number, detail: string): boolean {
+  const righteousInstinctsProfile = requireBalanceProfileFromContext(context, PROFILE.righteousInstincts);
+  const might = requireEffect(righteousInstinctsProfile, 'boon', 'might');
+  if (!might) return false;
   queueGuardianResolverBuff(context, {
     at,
     sourceId: GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS,
     skillName: 'Righteous Instincts',
     kind: 'might',
-    duration: Number(might?.duration ?? 6),
-    stacks: Number(might?.stacks ?? 1)
+    duration: effectNumber(righteousInstinctsProfile, might, 'duration'),
+    stacks: effectNumber(righteousInstinctsProfile, might, 'stacks')
   });
   recordGuardianTraitProc(
     context,
@@ -58,6 +67,7 @@ function queueRighteousMight(context: GuardianResolverContext, at: number, detai
     'Resolution',
     detail
   );
+  return true;
 }
 
 // React to self Resolution with Righteous Instincts state, scheduling future
@@ -77,9 +87,9 @@ export function reactToRighteousInstincts(context: GuardianResolverContext, even
   const wasActive = event.at < Number(state.resolutionUntil || 0);
   state.resolutionUntil = gw2EffectExpiresAt(wasActive ? state.resolutionUntil : event.at, duration);
   if (!wasActive) {
-    queueRighteousMight(context, event.at, 'Resolution applied');
+    if (!queueRighteousMight(context, event.at, 'Resolution applied')) return;
     // Zero disables subsequent interval procs while retaining the initial application.
-    const interval = Number(balanceProfileFromContext(context, PROFILE.righteousInstincts)?.pulseInterval ?? 1);
+    const interval = balanceProfileNumberFromContext(context, PROFILE.righteousInstincts, 'pulseInterval');
     if (!(interval > 0)) return;
     righteousInstincts.start(context, { key: 'resolution', at: event.at + interval, captured: {} });
   }
@@ -90,13 +100,13 @@ export function reactToRighteousInstincts(context: GuardianResolverContext, even
 export const righteousInstincts = resolverTimedEffect<GuardianResolverContext, object>({
   id: 'guardian.righteous-instincts-tick',
   priority: -10,
-  interval: (context) => Number(balanceProfileFromContext(context, PROFILE.righteousInstincts)?.pulseInterval ?? 1),
+  interval: (context) => balanceProfileNumberFromContext(context, PROFILE.righteousInstincts, 'pulseInterval'),
   effectsAt(context, at) {
     if (
       !hasTrait(context, GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS) ||
       at >= Number(guardianResolverState(context).resolutionUntil || 0)
     )
       return false;
-    queueRighteousMight(context, at, 'Resolution interval');
+    if (!queueRighteousMight(context, at, 'Resolution interval')) return false;
   }
 });

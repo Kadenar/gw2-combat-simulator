@@ -4,7 +4,7 @@ import {
   guardianUiSkillIdsByName,
   guardianUiState
 } from '#gw2/professions/guardian/core/presentation.js';
-import { balanceProfileValueFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import type {
   ProfessionEffectPresentation,
@@ -41,13 +41,14 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
   }
 
   const lethalRemaining = Number(state.lethalTempoUntil || 0) - at;
-  const lethalStacks = boundedInteger(state.lethalTempoStacks || 0, 0, 0, 5);
+  const maximum = balanceProfileNumberFromContext(context, PROFILE.lethalTempo, 'maximumStacks');
+  const lethalStacks = boundedInteger(state.lethalTempoStacks || 0, 0, 0, maximum);
   // Lethal Tempo remains available for damage and refreshes on its final tick.
   if (Number(state.lethalTempoUntil || 0) > 0 && lethalRemaining >= 0 && lethalStacks > 0) {
     items.push({
       id: 'willbender-lethal-tempo',
       label: 'Lethal Tempo',
-      value: `${lethalStacks}/5 · ${formatSecondsRemaining(lethalRemaining)}`,
+      value: `${lethalStacks}/${maximum} · ${formatSecondsRemaining(lethalRemaining)}`,
       title: 'Active Lethal Tempo stacks and time remaining'
     });
   }
@@ -73,7 +74,7 @@ function willbenderEffectPresentations(context: GuardianUiContext): ProfessionEf
       id: 'guardian-lethal-tempo',
       kind: 'lethal-tempo',
       name: 'Lethal Tempo',
-      maximumStacks: balanceProfileValueFromContext(context, PROFILE.lethalTempo, 'maximumStacks', 5),
+      maximumStacks: balanceProfileNumberFromContext(context, PROFILE.lethalTempo, 'maximumStacks'),
       replacementGroup: 'guardian-lethal-tempo'
     }
   ];

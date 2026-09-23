@@ -62,6 +62,7 @@ export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     effects: [
       {
         type: 'condition',
+        name: 'Burning',
         condition: 'Burning',
         stacks: 1,
         duration: 2,
@@ -69,6 +70,7 @@ export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       },
       {
         type: 'buff',
+        name: 'ashes-of-the-just',
         kind: 'ashes-of-the-just',
         stacks: 2,
         duration: 10,
@@ -76,6 +78,7 @@ export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
       },
       {
         type: 'boon',
+        name: 'might',
         boon: 'might',
         stacks: 8,
         duration: 10,
@@ -90,13 +93,13 @@ export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   trait(FIREBRAND_BALANCE_PROFILE_IDS.swiftScholar, 'Swift Scholar', {
     minimumStacks: 3,
     resourceGain: 1,
-    effects: [{ type: 'boon', boon: 'quickness', stacks: 1, duration: 3 }]
+    effects: [{ type: 'boon', name: 'quickness', boon: 'quickness', stacks: 1, duration: 3 }]
   }),
   trait(FIREBRAND_BALANCE_PROFILE_IDS.legendaryLore, 'Legendary Lore', {
     effects: [
-      { type: 'boon', boon: 'might', stacks: 2, duration: 10 },
-      { type: 'boon', boon: 'regeneration', stacks: 1, duration: 6 },
-      { type: 'boon', boon: 'protection', stacks: 1, duration: 4 }
+      { type: 'boon', name: 'might', boon: 'might', stacks: 2, duration: 10 },
+      { type: 'boon', name: 'regeneration', boon: 'regeneration', stacks: 1, duration: 6 },
+      { type: 'boon', name: 'protection', boon: 'protection', stacks: 1, duration: 4 }
     ]
   }),
   trait(FIREBRAND_BALANCE_PROFILE_IDS.imbuedHaste, 'Imbued Haste', {
@@ -104,26 +107,27 @@ export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
   }),
   trait(FIREBRAND_BALANCE_PROFILE_IDS.liberatorsVow, "Liberator's Vow", {
     internalCooldown: 7,
-    effects: [{ type: 'boon', boon: 'quickness', stacks: 1, duration: 2 }]
+    effects: [{ type: 'boon', name: 'quickness', boon: 'quickness', stacks: 1, duration: 2 }]
   }),
   trait(FIREBRAND_BALANCE_PROFILE_IDS.weightyTerms, 'Weighty Terms', {
     resourceGain: 2,
-    effects: [{ type: 'condition', condition: 'Slow', stacks: 1, duration: 1.5 }]
+    effects: [{ type: 'condition', name: 'Slow', condition: 'Slow', stacks: 1, duration: 1.5 }]
   }),
   trait(FIREBRAND_BALANCE_PROFILE_IDS.stalwartSpeed, 'Stalwart Speed', {
     internalCooldown: 7,
-    effects: [{ type: 'boon', boon: 'quickness', stacks: 1, duration: 2 }]
+    effects: [{ type: 'boon', name: 'quickness', boon: 'quickness', stacks: 1, duration: 2 }]
   }),
   trait(FIREBRAND_BALANCE_PROFILE_IDS.stoicDemeanor, 'Stoic Demeanor', {
     effects: [
-      { type: 'boon', boon: 'resistance', stacks: 1, duration: 2 },
-      { type: 'boon', boon: 'might', stacks: 3, duration: 10 }
+      { type: 'boon', name: 'resistance', boon: 'resistance', stacks: 1, duration: 2 },
+      { type: 'boon', name: 'might', boon: 'might', stacks: 3, duration: 10 }
     ]
   }),
   trait(FIREBRAND_BALANCE_PROFILE_IDS.unrelentingCriticism, 'Unrelenting Criticism', {
     effects: [
       {
         type: 'condition',
+        name: 'Bleeding',
         condition: 'Bleeding',
         stacks: 1,
         duration: 4.5
@@ -135,6 +139,7 @@ export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     effects: [
       {
         type: 'buff',
+        name: 'ashes-of-the-just',
         kind: 'ashes-of-the-just',
         stacks: 1,
         duration: 10
@@ -146,6 +151,6 @@ export const FIREBRAND_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     name: 'Tome of Courage - Passive',
     profileKind: 'mechanic',
     pulseInterval: 40,
-    effects: [{ type: 'boon', boon: 'aegis', stacks: 1, duration: 40 }]
+    effects: [{ type: 'boon', name: 'aegis', boon: 'aegis', stacks: 1, duration: 40 }]
   }
 ]);

@@ -1,5 +1,10 @@
 /** Shares Lethal Tempo's stack and expiry rules while scheduler and resolver retain independent state. */
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
@@ -10,18 +15,20 @@ import type { GuardianWillbenderState } from '#gw2/professions/guardian/speciali
 /** Decodes the trait-dependent window once for independent scheduler and resolver state transitions. */
 export function lethalTempoParameters(context: unknown) {
   const tyrantsMomentum = hasTrait(context, TRAIT.TYRANTS_MOMENTUM);
-  const lethalTempo = balanceProfileFromContext(context, PROFILE.lethalTempo);
-  const durationProfile = tyrantsMomentum ? balanceProfileFromContext(context, PROFILE.tyrantsMomentum) : lethalTempo;
+  const profileId = tyrantsMomentum ? PROFILE.tyrantsMomentum : PROFILE.lethalTempo;
+  const profile = requireBalanceProfileFromContext(context, profileId);
+  const window = requireEffect(profile, 'buff', 'lethal-tempo');
+  if (!window) return undefined;
   return {
-    maximumStacks: Number(lethalTempo?.maximumStacks ?? 5),
-    duration: Number(balanceProfileEffect(durationProfile, 'buff')?.duration ?? (tyrantsMomentum ? 4 : 6))
+    maximumStacks: balanceProfileNumberFromContext(context, PROFILE.lethalTempo, 'maximumStacks'),
+    duration: effectNumber(profile, window, 'duration')
   };
 }
 
 export function gainLethalTempo(
   state: GuardianWillbenderState,
   at: number,
-  { maximumStacks, duration }: ReturnType<typeof lethalTempoParameters>
+  { maximumStacks, duration }: NonNullable<ReturnType<typeof lethalTempoParameters>>
 ): number {
   // Grants through the expiry tick refresh every stack; only a later grant starts a new stack window.
   at = canonicalTime(at);

@@ -1,4 +1,9 @@
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -19,21 +24,23 @@ export function applyInspiredVirtue(
   at: number
 ): void {
   if (!hasTrait(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE)) return;
-  const inspired = balanceProfileEffect(
-    balanceProfileFromContext(context, PROFILE.inspiredVirtue),
+  const inspiredVirtueProfile = requireBalanceProfileFromContext(context, PROFILE.inspiredVirtue);
+  const inspired = requireEffect(
+    inspiredVirtueProfile,
     'boon',
-    virtueSlot === 'Profession_1' ? 0 : virtueSlot === 'Profession_2' ? 1 : 2
+    virtueSlot === 'Profession_1' ? 'might' : virtueSlot === 'Profession_2' ? 'regeneration' : 'protection'
   );
-  const boon = String(inspired?.boon || 'protection');
+  if (!inspired) return;
+  const boon = String(inspired.boon);
   emitSkillBuff(context, skill, {
     at,
     source: 'guardian',
-    stacks: Number(inspired?.stacks ?? 1),
+    stacks: effectNumber(inspiredVirtueProfile, inspired, 'stacks'),
     sourceId: GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
     actorType: 'player',
     name: 'Inspired Virtue',
     kind: boon,
-    duration: Number(inspired?.duration ?? 5),
+    duration: effectNumber(inspiredVirtueProfile, inspired, 'duration'),
     // Virtue activations apply these boons to nearby allies.
     audience: { recipients: 'party' as const }
   });
@@ -41,7 +48,9 @@ export function applyInspiredVirtue(
 
 export function applyVirtueOfResolution(context: GuardianCastContext, skill: GuardianSkill, at: number): void {
   if (!hasTrait(context, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION)) return;
-  const resolution = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.virtueOfResolution), 'boon');
+  const virtueOfResolutionProfile = requireBalanceProfileFromContext(context, PROFILE.virtueOfResolution);
+  const resolution = requireEffect(virtueOfResolutionProfile, 'boon', 'resolution');
+  if (!resolution) return;
   emitSkillBuff(context, skill, {
     at,
     source: 'guardian',
@@ -49,14 +58,16 @@ export function applyVirtueOfResolution(context: GuardianCastContext, skill: Gua
     actorType: 'player',
     name: 'Virtue of Resolution',
     kind: 'resolution',
-    duration: Number(resolution?.duration ?? 3),
-    stacks: 1
+    duration: effectNumber(virtueOfResolutionProfile, resolution, 'duration'),
+    stacks: effectNumber(virtueOfResolutionProfile, resolution, 'stacks')
   });
 }
 
 export function applyInspiringVirtue(context: GuardianCastContext, skill: GuardianSkill, at: number): void {
   if (!hasTrait(context, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE)) return;
-  const inspiring = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.inspiringVirtue), 'buff');
+  const inspiringVirtueProfile = requireBalanceProfileFromContext(context, PROFILE.inspiringVirtue);
+  const inspiring = requireEffect(inspiringVirtueProfile, 'buff', 'guardian-inspiring-virtue');
+  if (!inspiring) return;
   emitSkillBuff(context, skill, {
     at,
     source: 'guardian',
@@ -64,8 +75,8 @@ export function applyInspiringVirtue(context: GuardianCastContext, skill: Guardi
     actorType: 'player',
     name: 'Inspiring Virtue',
     kind: 'guardian-inspiring-virtue',
-    duration: Number(inspiring?.duration ?? 6),
-    stacks: 1
+    duration: effectNumber(inspiringVirtueProfile, inspiring, 'duration'),
+    stacks: effectNumber(inspiringVirtueProfile, inspiring, 'stacks')
   });
 }
 
@@ -76,16 +87,18 @@ export function applyIndomitableCourage(
   at: number
 ): void {
   if (virtueSlot !== 'Profession_3' || !hasTrait(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)) return;
-  const stability = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.indomitableCourage), 'boon');
+  const indomitableCourageProfile = requireBalanceProfileFromContext(context, PROFILE.indomitableCourage);
+  const stability = requireEffect(indomitableCourageProfile, 'boon', 'stability');
+  if (!stability) return;
   emitSkillBuff(context, skill, {
     at,
     source: 'guardian',
-    stacks: Number(stability?.stacks ?? 3),
+    stacks: effectNumber(indomitableCourageProfile, stability, 'stacks'),
     sourceId: GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE,
     actorType: 'player',
     name: 'Indomitable Courage',
     kind: 'stability',
-    duration: Number(stability?.duration ?? 4)
+    duration: effectNumber(indomitableCourageProfile, stability, 'duration')
   });
 }
 
@@ -106,11 +119,12 @@ export function replaceVirtueOfResolutionDuration(
   context.replaceEvent(event, {
     duration:
       Number(event.duration) *
-      Number(balanceProfileFromContext(context, PROFILE.virtueOfResolution)?.durationMultiplier ?? 1.25)
+      balanceProfileNumberFromContext(context, PROFILE.virtueOfResolution, 'durationMultiplier')
   });
   return true;
 }
 
+/** Emits each surviving extension effect directly from its authored cast-start timeline. */
 export function applyMasterOfConsecrations(context: GuardianCastContext, skill: GuardianSkill): void {
   if (
     skill.id !== GUARDIAN_SKILL_IDS.PURGING_FLAMES ||
@@ -119,13 +133,13 @@ export function applyMasterOfConsecrations(context: GuardianCastContext, skill: 
     return;
   }
 
-  const profile = balanceProfileFromContext(context, PROFILE.masterOfConsecrations);
-  const strike = balanceProfileEffect(profile, 'strike');
-  const burning = balanceProfileEffect(profile, 'condition');
-  const ticks = strike?.type === 'strike' ? strike.ticks : null;
-  if (!ticks?.length) throw new Error('Master of Consecrations requires an explicit strike timeline.');
-  for (const [index, tick] of ticks.entries()) {
-    const pulseAt = context.start + 6.32 + Number(tick.atMs) / 1000;
+  const masterOfConsecrationsProfile = requireBalanceProfileFromContext(context, PROFILE.masterOfConsecrations);
+  const strike = requireEffect(masterOfConsecrationsProfile, 'strike', 'Strike');
+  const burning = requireEffect(masterOfConsecrationsProfile, 'condition', 'Burning');
+  const ticks = strike?.ticks;
+  if (strike && !ticks?.length) throw new Error('Master of Consecrations requires an explicit strike timeline.');
+  for (const [index, tick] of (ticks ?? []).entries()) {
+    const pulseAt = context.start + tick.atMs / 1000;
     context.emit(
       buildGuardianStrike({
         at: pulseAt,
@@ -136,16 +150,22 @@ export function applyMasterOfConsecrations(context: GuardianCastContext, skill: 
         coefficient: Number(tick.coefficient),
         skillWeapon: 'Unequipped',
         hitIndex: 7 + index,
-        totalHits: 6 + ticks.length
+        totalHits: 6 + (ticks?.length ?? 0)
       })
     );
+  }
+
+  const burningTicks = burning?.ticks;
+  if (burning && !burningTicks?.length)
+    throw new Error('Master of Consecrations requires an explicit condition timeline.');
+  for (const tick of burningTicks ?? []) {
     emitSkillCondition(context, {
       skill,
-      at: pulseAt,
+      at: context.start + tick.atMs / 1000,
       name: `${skill.name} — Burning`,
-      condition: String(burning?.condition || 'Burning'),
-      stacks: Number(burning?.stacks ?? 1),
-      duration: Number(burning?.duration ?? 2)
+      condition: tick.condition,
+      stacks: tick.stacks,
+      duration: tick.duration
     });
   }
 }

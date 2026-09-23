@@ -41,18 +41,28 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     effects: [
       {
         type: 'strike',
+        name: 'Strike',
         // The symbol strikes on placement and twice more at one-second intervals.
         ticks: [0, 1000, 2000].map((atMs) => ({ atMs, coefficient: 0.6 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         actorType: 'player'
       },
-      { type: 'boon', boon: 'protection', duration: 1, stacks: 1 }
+      // Protection keeps its pulse cadence even if the strike is removed.
+      {
+        type: 'boon',
+        name: 'protection',
+        boon: 'protection',
+        duration: 1,
+        stacks: 1,
+        applications: 3,
+        intervalMs: 1000
+      }
     ]
   }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.healersResolution, "Healer's Resolution", {
     internalCooldown: 20,
-    effects: [{ type: 'boon', boon: 'resolution', duration: 8, stacks: 1 }]
+    effects: [{ type: 'boon', name: 'resolution', boon: 'resolution', duration: 8, stacks: 1 }]
   }),
   {
     id: GUARDIAN_CORE_BALANCE_PROFILE_IDS.justice,
@@ -62,6 +72,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     effects: [
       {
         type: 'condition',
+        name: 'Burning (active)',
         condition: 'Burning',
         stacks: 1,
         duration: 2,
@@ -70,6 +81,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
       },
       {
         type: 'condition',
+        name: 'Burning (passive)',
         condition: 'Burning',
         stacks: 1,
         duration: 1.2,
@@ -104,6 +116,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     effects: [
       {
         type: 'strike',
+        name: 'Fourth projectile',
         coefficient: 0.6,
         hits: 1,
         // Illuminated shards continue the same delayed volley at 200 ms intervals.
@@ -114,6 +127,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
       },
       {
         type: 'strike',
+        name: 'Fifth projectile',
         coefficient: 0.3,
         hits: 1,
         atMs: 1920,
@@ -129,8 +143,11 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     profileKind: 'skill-variant',
     parentId: ID.SYMBOL_OF_LUMINANCE,
     effects: [
+      // The single-use charge and symbol window can be patched independently.
+      { type: 'buff', name: 'illuminated', kind: 'illuminated', stacks: 1, duration: 5 },
       {
         type: 'buff',
+        name: 'guardian-spear-luminance',
         kind: 'guardian-spear-luminance',
         stacks: 1,
         duration: 5,
@@ -140,19 +157,20 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   },
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.inspiredVirtue, 'Inspired Virtue', {
     effects: [
-      { type: 'boon', boon: 'might', stacks: 3, duration: 5 },
-      { type: 'boon', boon: 'regeneration', stacks: 1, duration: 5 },
-      { type: 'boon', boon: 'protection', stacks: 1, duration: 5 }
+      { type: 'boon', name: 'might', boon: 'might', stacks: 3, duration: 5 },
+      { type: 'boon', name: 'regeneration', boon: 'regeneration', stacks: 1, duration: 5 },
+      { type: 'boon', name: 'protection', boon: 'protection', stacks: 1, duration: 5 }
     ]
   }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.virtueOfResolution, 'Virtue of Resolution', {
     durationMultiplier: 1.25,
-    effects: [{ type: 'boon', boon: 'resolution', stacks: 1, duration: 3 }]
+    effects: [{ type: 'boon', name: 'resolution', boon: 'resolution', stacks: 1, duration: 3 }]
   }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.inspiringVirtue, 'Inspiring Virtue', {
     effects: [
       {
         type: 'buff',
+        name: 'guardian-inspiring-virtue',
         kind: 'guardian-inspiring-virtue',
         stacks: 1,
         duration: 6
@@ -161,13 +179,14 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.indomitableCourage, 'Indomitable Courage', {
     pulseInterval: 30,
-    effects: [{ type: 'boon', boon: 'stability', stacks: 3, duration: 4 }]
+    effects: [{ type: 'boon', name: 'stability', boon: 'stability', stacks: 3, duration: 4 }]
   }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.furiousFocus, 'Furious Focus', {
     cooldown: 10,
     effects: [
       {
         type: 'strike',
+        name: 'Strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: index * 1000, coefficient: 3.25 / 5 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
@@ -177,20 +196,18 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.masterOfConsecrations, 'Master of Consecrations', {
     durationMultiplier: 1.4,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+    // Extend Purging Flames after its six base pulses, with independent cast-start timelines for each effect.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: Array.from({ length: 2 }, (_, index) => ({ atMs: index * 1000, coefficient: 0.4 / 2 })),
+        name: 'Strike',
+        ticks: [6320, 7320].map((atMs) => ({ atMs, coefficient: 0.2 })),
         actorType: 'player'
       },
       {
         type: 'condition',
-        condition: 'Burning',
-        stacks: 1,
-        duration: 2,
-        applications: 2,
-        intervalMs: 1000,
+        name: 'Burning',
+        ticks: [6320, 7320].map((atMs) => ({ atMs, condition: 'Burning', stacks: 1, duration: 2 })),
         actorType: 'player'
       }
     ])
@@ -201,17 +218,20 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
       ...impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
         {
           type: 'strike',
+          name: 'Smite',
           // Writ adds four more spatial Smite packets during its two-second symbol extension.
           ticks: [4240, 4760, 5240, 5760].map((atMs) => ({ atMs, coefficient: 0.2 })),
           actorType: 'player'
         },
         {
           type: 'strike',
+          name: 'Symbol',
           ticks: [5240, 6240].map((atMs) => ({ atMs, coefficient: 0.5 })),
           actorType: 'player'
         },
         {
           type: 'boon',
+          name: 'might',
           boon: 'might',
           stacks: 4,
           duration: 5,
@@ -238,6 +258,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     effects: [
       {
         type: 'condition',
+        name: 'Burning',
         condition: 'Burning',
         stacks: 1,
         duration: 1,
@@ -245,6 +266,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
       },
       {
         type: 'buff',
+        name: 'guardian-symbol-of-ignition-field',
         kind: 'guardian-symbol-of-ignition-field',
         stacks: 1,
         duration: 4,
@@ -256,6 +278,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     effects: [
       {
         type: 'condition',
+        name: 'Vulnerability',
         condition: 'Vulnerability',
         stacks: 2,
         duration: 5,
@@ -271,11 +294,13 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        name: 'Strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: index * 1000, coefficient: 2.5 / 5 })),
         actorType: 'player'
       },
       {
         type: 'boon',
+        name: 'resolution',
         boon: 'resolution',
         stacks: 1,
         duration: 2,
@@ -288,7 +313,7 @@ export const GUARDIAN_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.righteousInstincts, 'Righteous Instincts', {
     criticalChance: 0.25,
     pulseInterval: 1,
-    effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 6 }]
+    effects: [{ type: 'boon', name: 'might', boon: 'might', stacks: 1, duration: 6 }]
   }),
   trait(GUARDIAN_CORE_BALANCE_PROFILE_IDS.zealousBlade, 'Zealous Blade', {
     weaponAttributeBonus: 240,

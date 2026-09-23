@@ -3,7 +3,12 @@ import { EPSILON } from '#kernel/core/clock.js';
  * Owns Guardian spear's persistent Illuminated state and conditional packets.
  * Declarative spear fragments remain in `skills/weapons/spear.ts`.
  */
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { effectFirstAtMs, strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -76,13 +81,15 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
   const bonusFraction = multiplier - 1;
   let emittedAt: number | null = null;
   if (skill.id === ID.SOLAR_STORM) {
-    const profile = balanceProfileFromContext(context, SPEAR_PROFILE_BY_SKILL_ID[skill.id]);
-    const extraProjectiles = (profile?.effects || [])
-      .filter((effect) => effect.type === 'strike')
-      .map((effect, index) => ({ ...effect, hitIndex: index + 4 }));
-    for (const projectile of extraProjectiles) {
-      const at = context.start + Number(projectile.atMs || 0) / 1000;
-      const hitIndex = projectile.hitIndex;
+    const spearSolarStormProfile = requireBalanceProfileFromContext(context, PROFILE.spearSolarStorm);
+    // Projectile identity survives deletion of an earlier projectile.
+    for (const [name, hitIndex] of [
+      ['Fourth projectile', 4],
+      ['Fifth projectile', 5]
+    ] as const) {
+      const projectile = requireEffect(spearSolarStormProfile, 'strike', name);
+      if (!projectile) continue;
+      const at = context.start + effectNumber(spearSolarStormProfile, projectile, 'atMs') / 1000;
       // Illuminated projectiles belong to the committed volley and survive its cancelled aftercast.
       context.emit(
         buildGuardianStrike({
@@ -90,8 +97,8 @@ function emitIlluminatedBonus(context: GuardianCastContext, skill: GuardianSkill
           skillId: skill.id,
           skillName: skill.name,
           at,
-          name: `Solar Storm — ${projectile.hitIndex}th Strike`,
-          coefficient: Number(projectile.coefficient || 0),
+          name: `Solar Storm — ${hitIndex}th Strike`,
+          coefficient: effectNumber(spearSolarStormProfile, projectile, 'coefficient'),
           hitIndex,
           totalHits: 5,
           skillWeapon: 'Spear'
@@ -211,9 +218,9 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
   const illuminatedArmed = Number(state.spearIlluminatedUntil || 0) > context.start;
   state.spearIlluminatedArmed = illuminatedArmed;
   const illuminated = luminanceActive || illuminatedArmed;
-  const multiplier = Number(
-    balanceProfileFromContext(context, SPEAR_PROFILE_BY_SKILL_ID[skill.id])?.damageMultiplier ?? 1
-  );
+  const profileId = SPEAR_PROFILE_BY_SKILL_ID[skill.id];
+  const multiplier =
+    profileId === undefined ? 1 : balanceProfileNumberFromContext(context, profileId, 'damageMultiplier');
 
   if (illuminated && multiplier > 1) {
     const at = emitIlluminatedBonus(context, skill, multiplier);
@@ -230,9 +237,10 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
   }
 
   if (skill.id === ID.SYMBOL_OF_LUMINANCE) {
-    const duration = Number(
-      balanceProfileEffect(balanceProfileFromContext(context, PROFILE.spearLuminance), 'buff')?.duration ?? 5
-    );
+    const spearLuminanceProfile = requireBalanceProfileFromContext(context, PROFILE.spearLuminance);
+    const window = requireEffect(spearLuminanceProfile, 'buff', 'guardian-spear-luminance');
+    if (!window) return;
+    const duration = effectNumber(spearLuminanceProfile, window, 'duration');
     state.spearLuminanceUntil = gw2EffectExpiresAt(context.effectiveEnd, duration);
     emitProc(
       context,
@@ -243,6 +251,9 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
       'All spear skills illuminated while active'
     );
   } else if (SPEAR_ILLUMINATION_ARMERS.has(skill.id)) {
+    const spearLuminanceProfile = requireBalanceProfileFromContext(context, PROFILE.spearLuminance);
+    const window = requireEffect(spearLuminanceProfile, 'buff', 'illuminated');
+    if (!window) return;
     const firstStrikeAt =
       (skill.effects || [])
         .filter((effect) => effect.type === 'strike' && strikeEffectCoefficient(effect) > 0)
@@ -251,7 +262,7 @@ export function updateSpearIlluminationState(context: GuardianCastContext, skill
     state.spearIlluminatedArmed = true;
     state.spearIlluminatedUntil = gw2EffectExpiresAt(
       firstStrikeAt,
-      Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.spearLuminance), 'buff')?.duration ?? 5)
+      effectNumber(spearLuminanceProfile, window, 'duration')
     );
   }
 }

@@ -7,9 +7,12 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import {
   balanceProfileFromContext,
+  balanceProfileNumber,
   balanceProfileNumberFromContext,
+  effectNumber,
   effectNumberFromContext,
   requireBalanceProfileFromContext,
+  requireEffect,
   requireEffectFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
@@ -25,6 +28,64 @@ const profile = {
 };
 const skill = { id: 1, name: 'Skill', effects: [first, second] };
 const fixture = () => createCanonicalCatalog({ generated: [skill], balanceProfiles: [profile] });
+
+test('resolved owners preserve strict effect reads without another catalog lookup', () => {
+  const catalog = applyBalanceProfilePatch(
+    { ...fixture(), balanceDataContext: { professionId: 'fixture', patchId: 'preview' } },
+    { balanceProfiles: { 1: { removeEffects: [{ name: 'First' }] } } }
+  );
+  let lookups = 0;
+  const selected = requireBalanceProfileFromContext(() => {
+    assert.equal(++lookups, 1);
+    return catalog.balanceProfilesById.get(1);
+  }, 1);
+  assert.equal(requireEffect(selected, 'condition', 'First'), undefined);
+  const effect = requireEffect(selected, 'condition', 'Second');
+  assert.deepEqual(effect, second);
+  assert.equal(effectNumber(selected, effect, 'duration'), 3);
+  assert.equal(effectNumber(selected, { ...effect, atMs: 0 }, 'atMs'), 0);
+  assert.equal(balanceProfileNumber(selected, 'intervalMs'), 0);
+  assert.throws(
+    () => balanceProfileNumber(selected, 'missing'),
+    /profession=fixture patch=preview profile=1 field=missing expected=finite number/
+  );
+  assert.throws(
+    () => requireEffect(selected, 'condition', 'Typo'),
+    /profession=fixture patch=preview balance-profile=1 effect=condition\/Typo unknown effect key/
+  );
+  for (const value of [undefined, null, false, '', '3', NaN, Infinity]) {
+    assert.throws(
+      () => effectNumber(selected, { ...effect, duration: value }, 'duration'),
+      /profession=fixture patch=preview balance-profile=1 effect=condition\/Second field=duration expected=finite number/
+    );
+  }
+  assert.equal(lookups, 1);
+
+  // Skill records use the same checks; diagnostic context must never reselect the owner.
+  const diagnosticContext = {
+    config: { profession: 'fixture', patchId: 'preview' },
+    balanceProfile: () => assert.fail('Resolved effect reads must not query a catalog')
+  };
+  for (const owner of [selected, skill]) {
+    assert.throws(
+      () => requireEffect({ ...owner, effects: [second, second] }, 'condition', 'Second'),
+      /duplicate effect key/
+    );
+    assert.throws(
+      () => requireEffect({ ...owner, effects: [{ ...second, duration: null }] }, 'condition', 'Second'),
+      /duration/
+    );
+    assert.equal(
+      requireEffect(
+        { ...owner, effects: [{ type: 'boon', name: 'Status', boon: 'might', duration: 2 }] },
+        'boon',
+        'Status'
+      ).stacks,
+      1
+    );
+    assert.throws(() => effectNumber(owner, second, 'missing', diagnosticContext), /profession=fixture patch=preview/);
+  }
+});
 
 // The same ID and keys in different owner kinds must retain independent removal histories.
 for (const [kind, section, apply, index] of [

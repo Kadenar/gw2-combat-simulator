@@ -25,6 +25,7 @@ export const WILLBENDER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     effects: [
       {
         type: 'strike',
+        name: 'Strike',
         ticks: Array.from({ length: 5 }, (_, index) => ({ atMs: (index + 1) * 1000, coefficient: 0.22 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
@@ -38,9 +39,9 @@ export const WILLBENDER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     profileKind: 'mechanic',
     threshold: 5,
     effects: [
-      { type: 'buff', kind: 'justice', stacks: 1, duration: 8 },
-      { type: 'buff', kind: 'resolve', stacks: 1, duration: 6 },
-      { type: 'buff', kind: 'courage', stacks: 1, duration: 6 }
+      { type: 'buff', name: 'justice', kind: 'justice', stacks: 1, duration: 8 },
+      { type: 'buff', name: 'resolve', kind: 'resolve', stacks: 1, duration: 6 },
+      { type: 'buff', name: 'courage', kind: 'courage', stacks: 1, duration: 6 }
     ]
   },
   {
@@ -49,36 +50,37 @@ export const WILLBENDER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     profileKind: 'skill-variant',
     parentId: ID.CRASHING_COURAGE,
     effects: [
-      { type: 'boon', boon: 'aegis', stacks: 1, duration: 4 },
-      { type: 'boon', boon: 'stability', stacks: 1, duration: 4 }
+      { type: 'boon', name: 'aegis', boon: 'aegis', stacks: 1, duration: 4 },
+      { type: 'boon', name: 'stability', boon: 'stability', stacks: 1, duration: 4 }
     ]
   },
   trait(WILLBENDER_BALANCE_PROFILE_IDS.lethalTempo, 'Lethal Tempo', {
     maximumStacks: 5,
-    effects: [{ type: 'buff', kind: 'lethal-tempo', stacks: 1, duration: 6 }]
+    effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', stacks: 1, duration: 6 }]
   }),
   trait(WILLBENDER_BALANCE_PROFILE_IDS.tyrantsMomentum, "Tyrant's Momentum", {
     effects: [
-      { type: 'buff', kind: 'lethal-tempo', stacks: 1, duration: 4 },
-      { type: 'buff', kind: 'justice', stacks: 1, duration: 10 }
+      { type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', stacks: 1, duration: 4 },
+      { type: 'buff', name: 'justice', kind: 'justice', stacks: 1, duration: 10 }
     ]
   }),
   trait(WILLBENDER_BALANCE_PROFILE_IDS.restorativeVirtues, 'Restorative Virtues', {
     // Each virtue trigger advances active weapon recharge by 280ms before recharge-speed conversion.
     rechargeReduction: 0.28,
-    effects: [{ type: 'boon', boon: 'vigor', stacks: 1, duration: 3 }]
+    effects: [{ type: 'boon', name: 'vigor', boon: 'vigor', stacks: 1, duration: 3 }]
   }),
   trait(WILLBENDER_BALANCE_PROFILE_IDS.holyReckoning, 'Holy Reckoning', {
     effects: [
-      { type: 'boon', boon: 'might', stacks: 1, duration: 15, audience: { recipients: 'party' } },
-      { type: 'boon', boon: 'fury', stacks: 1, duration: 3, audience: { recipients: 'self' } }
+      { type: 'boon', name: 'might', boon: 'might', stacks: 1, duration: 15, audience: { recipients: 'party' } },
+      { type: 'boon', name: 'fury', boon: 'fury', stacks: 1, duration: 3, audience: { recipients: 'self' } }
     ]
   }),
   trait(WILLBENDER_BALANCE_PROFILE_IDS.phoenixProtocol, 'Phoenix Protocol', {
     effects: [
-      { type: 'boon', boon: 'alacrity', stacks: 1, duration: 5 },
+      { type: 'boon', name: 'alacrity', boon: 'alacrity', stacks: 1, duration: 5 },
       {
         type: 'boon',
+        name: 'alacrity (triggered)',
         boon: 'alacrity',
         stacks: 1,
         duration: 1,
@@ -91,6 +93,6 @@ export const WILLBENDER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
   trait(TRAIT.CONCEITED_CURATE, 'Conceited Curate', { attributeBonus: 180 }),
   trait(WILLBENDER_BALANCE_PROFILE_IDS.searingPact, 'Searing Pact', {
     attributeBonus: 120,
-    effects: [{ type: 'condition', condition: 'Burning', stacks: 1, duration: 1 }]
+    effects: [{ type: 'condition', name: 'Burning', condition: 'Burning', stacks: 1, duration: 1 }]
   })
 ]);

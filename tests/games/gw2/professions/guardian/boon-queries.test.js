@@ -72,7 +72,7 @@ test('Righteous Instincts preserves stacked self Resolution without accepting ot
     horizon: 10,
     queue: new StableEventQueue(),
     query: { statsAt: () => ({}) },
-    helpers: {}
+    helpers: guardianCatalog
   });
   const others = buff('resolution', { recipients: 'party', affectsSelf: false });
   recordBuffApplication(runtime.boons, others);

@@ -28,21 +28,25 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     name: 'Glaring Burst — Radiant Staff',
     profileKind: 'skill-variant',
     parentId: ID.GLARING_BURST,
-    effects: [{ type: 'boon', boon: 'regeneration', duration: 2, audience: { recipients: 'party' } }]
+    effects: [
+      { type: 'boon', name: 'regeneration', boon: 'regeneration', duration: 2, audience: { recipients: 'party' } }
+    ]
   },
   {
     id: LUMINARY_BALANCE_PROFILE_IDS.glaringBurstBulwark,
     name: 'Glaring Burst — Radiant Bulwark',
     profileKind: 'skill-variant',
     parentId: ID.GLARING_BURST,
-    effects: [{ type: 'boon', boon: 'resolution', duration: 1.5, audience: { recipients: 'party' } }]
+    effects: [
+      { type: 'boon', name: 'resolution', boon: 'resolution', duration: 1.5, audience: { recipients: 'party' } }
+    ]
   },
   {
     id: LUMINARY_BALANCE_PROFILE_IDS.glaringBurstVulnerability,
     name: 'Glaring Burst — Shared Vulnerability',
     profileKind: 'skill-variant',
     parentId: ID.GLARING_BURST,
-    effects: [{ type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 8 }]
+    effects: [{ type: 'condition', name: 'Vulnerability', condition: 'Vulnerability', stacks: 1, duration: 8 }]
   },
   {
     id: LUMINARY_BALANCE_PROFILE_IDS.forge,
@@ -54,6 +58,7 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     effects: [
       {
         type: 'buff',
+        name: 'radiant-forge',
         kind: 'radiant-forge',
         stacks: 1,
         duration: 20
@@ -65,14 +70,14 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     name: 'Glaring Burst - Radiant Hammer',
     profileKind: 'skill-variant',
     parentId: ID.GLARING_BURST,
-    effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
+    effects: [{ type: 'strike', name: 'Strike', coefficient: 1, hits: 1 }]
   },
   {
     id: LUMINARY_BALANCE_PROFILE_IDS.glaringBurstBlade,
     name: 'Glaring Burst - Radiant Blade',
     profileKind: 'skill-variant',
     parentId: ID.GLARING_BURST,
-    effects: [{ type: 'strike', coefficient: 1, hits: 1 }]
+    effects: [{ type: 'strike', name: 'Strike', coefficient: 1, hits: 1 }]
   },
   {
     id: LUMINARY_BALANCE_PROFILE_IDS.radiantJusticeImpact,
@@ -83,11 +88,13 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     effects: impactEffects({ atMs: 760, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        name: 'Strike',
         coefficient: 1.5,
         hits: 1
       },
       {
         type: 'condition',
+        name: 'Vulnerability',
         condition: 'Vulnerability',
         stacks: 8,
         duration: 8
@@ -101,19 +108,22 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
     parentId: ID.EFFULGENT_STANCE,
     maximumStacks: 10,
     damageIncreasePerStack: 0.35,
-    effects: [{ type: 'strike', coefficient: 0.5, hits: 1 }, { type: 'control' }]
+    effects: [
+      { type: 'strike', name: 'Strike', coefficient: 0.5, hits: 1 },
+      { type: 'control', name: 'Control' }
+    ]
   },
   {
     id: LUMINARY_BALANCE_PROFILE_IDS.lightAura,
     name: 'Luminary Light Aura',
     profileKind: 'mechanic',
-    effects: [{ type: 'buff', kind: 'light-aura', stacks: 1, duration: 4 }]
+    effects: [{ type: 'buff', name: 'light-aura', kind: 'light-aura', stacks: 1, duration: 4 }]
   },
   trait(LUMINARY_BALANCE_PROFILE_IDS.sovereignOfLight, 'Sovereign of Light', {
-    effects: [{ type: 'strike', coefficient: 1.5, hits: 1 }]
+    effects: [{ type: 'strike', name: 'Strike', coefficient: 1.5, hits: 1 }]
   }),
   trait(LUMINARY_BALANCE_PROFILE_IDS.radiantArmaments, 'Radiant Armaments', {
-    effects: [{ type: 'buff', kind: 'radiant-armaments', duration: 10 }]
+    effects: [{ type: 'buff', name: 'radiant-armaments', kind: 'radiant-armaments', duration: 10 }]
   }),
   trait(LUMINARY_BALANCE_PROFILE_IDS.empoweredArmaments, 'Empowered Armaments', {
     maximumStacks: 20,
@@ -122,15 +132,15 @@ export const LUMINARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freez
   // Equipping a radiant weapon grants the trait's PvE boon package to nearby allies.
   trait(LUMINARY_BALANCE_PROFILE_IDS.resplendentWeaponry, 'Resplendent Weaponry', {
     effects: [
-      { type: 'boon', boon: 'alacrity', duration: 4 },
-      { type: 'boon', boon: 'might', duration: 8, stacks: 1 },
-      { type: 'boon', boon: 'fury', duration: 5 }
+      { type: 'boon', name: 'alacrity', boon: 'alacrity', duration: 4 },
+      { type: 'boon', name: 'might', boon: 'might', duration: 8, stacks: 1 },
+      { type: 'boon', name: 'fury', boon: 'fury', duration: 5 }
     ]
   }),
   trait(LUMINARY_BALANCE_PROFILE_IDS.illuminatingInspiration, 'Illuminating Inspiration', { rechargeReduction: 4 }),
   // Trait tuning is shared by build calculations, combat, and tooltips.
   trait(TRAIT.LIGHTS_GIFT, "Light's Gift", { attributeBonus: 180 }),
   trait(LUMINARY_BALANCE_PROFILE_IDS.justiceIsBlind, 'Justice is Blind', {
-    effects: [{ type: 'blind', duration: 3 }]
+    effects: [{ type: 'blind', name: 'Blind', duration: 3 }]
   })
 ]);

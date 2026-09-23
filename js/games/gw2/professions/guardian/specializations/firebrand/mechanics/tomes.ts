@@ -2,7 +2,13 @@ import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { advanceDiscreteResource } from '#gw2/platform/combat/resources/clock.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
@@ -127,7 +133,7 @@ export function completeTomePage(context: GuardianCastContext, skill: GuardianSk
   const state = firebrandState.from(context);
   const pageCost = Math.max(1, Number(skill.pageCost ?? 1));
   // The first spend starts regeneration; later spends and refunds preserve its cadence, even at the cap.
-  if (!Number.isFinite(state.nextTomePageAt)) {
+  if (!Number.isFinite(state.nextTomePageAt) && state.tomePageInterval > 0) {
     state.nextTomePageAt = context.effectiveEnd + state.tomePageInterval;
   }
 
@@ -149,10 +155,11 @@ export function completeTomePage(context: GuardianCastContext, skill: GuardianSk
   }
 
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.LEGENDARY_LORE)) {
-    const boon = balanceProfileEffect(
-      balanceProfileFromContext(context, PROFILE.legendaryLore),
+    const legendaryLoreProfile = requireBalanceProfileFromContext(context, PROFILE.legendaryLore);
+    const boon = requireEffect(
+      legendaryLoreProfile,
       'boon',
-      skill.tome === 'justice' ? 0 : skill.tome === 'resolve' ? 1 : 2
+      skill.tome === 'justice' ? 'might' : skill.tome === 'resolve' ? 'regeneration' : 'protection'
     );
     if (boon) {
       emitSkillBuff(context, {
@@ -164,8 +171,13 @@ export function completeTomePage(context: GuardianCastContext, skill: GuardianSk
         skillName: skill.name,
         name: 'Legendary Lore',
         kind: String(boon.boon || ''),
-        stacks: Number(boon.stacks ?? 1),
-        duration: gw2SchedulerBoonDuration(context, skill, String(boon.boon || ''), Number(boon.duration || 0))
+        stacks: effectNumber(legendaryLoreProfile, boon, 'stacks'),
+        duration: gw2SchedulerBoonDuration(
+          context,
+          skill,
+          String(boon.boon || ''),
+          effectNumber(legendaryLoreProfile, boon, 'duration')
+        )
       });
     }
   }
@@ -190,25 +202,47 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
   }
 
   state.swiftScholarCount += 1;
-  const swiftScholar = balanceProfileFromContext(context, PROFILE.swiftScholar);
-  if (state.swiftScholarCount >= Number(swiftScholar?.minimumStacks ?? 3)) {
+
+  if (state.swiftScholarCount >= balanceProfileNumberFromContext(context, PROFILE.swiftScholar, 'minimumStacks')) {
     state.swiftScholarCount = 0;
-    context.replaceEvent(context.action, { tomePageRefund: Number(swiftScholar?.resourceGain ?? 1) });
+    context.replaceEvent(context.action, {
+      tomePageRefund: balanceProfileNumberFromContext(context, PROFILE.swiftScholar, 'resourceGain')
+    });
   }
 
   if (skill.id === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST) {
     // Both supplied EVTCs grant Ashes during the animation, independently of its cancellation cutoff.
     const at = context.start + 0.56;
-    const ashes = balanceProfileFromContext(context, PROFILE.ashes);
-    const burn = balanceProfileEffect(ashes, 'condition');
-    const ashesBuff = balanceProfileEffect(ashes, 'buff');
-    const might = balanceProfileEffect(ashes, 'boon');
-    const ashesDuration = Number(ashesBuff?.duration ?? 10);
+
+    const ashesProfile = requireBalanceProfileFromContext(context, PROFILE.ashes);
+    const burn = requireEffect(ashesProfile, 'condition', 'Burning');
+    const ashesBuff = requireEffect(ashesProfile, 'buff', 'ashes-of-the-just');
+    const might = requireEffect(ashesProfile, 'boon', 'might');
+    if (might) {
+      emitSkillBuff(context, {
+        at,
+        source: 'guardian',
+        sourceId: skill.id,
+        actorType: 'player',
+        skillId: skill.id,
+        skillName: skill.name,
+        name: 'Might',
+        kind: 'might',
+        stacks: effectNumber(ashesProfile, might, 'stacks'),
+        duration: gw2SchedulerBoonDuration(context, skill, 'might', effectNumber(ashesProfile, might, 'duration')),
+        audience: { recipients: 'party' as const }
+      });
+    }
+    if (!ashesBuff || !burn) return;
+    const ashesDuration = effectNumber(ashesProfile, ashesBuff, 'duration');
+    // Self and allied charges share the same authored burn packet.
+    const burnDuration = effectNumber(ashesProfile, burn, 'duration');
+    const burnStacks = effectNumber(ashesProfile, burn, 'stacks');
     state.ashes = grantCharges(
-      Number(ashes?.maximumStacks ?? ashesBuff?.stacks ?? 2),
+      balanceProfileNumber(ashesProfile, 'maximumStacks'),
       gw2EffectExpiresAt(at, ashesDuration)
     );
-    state.ashesBurnDuration = Number(burn?.duration ?? 2);
+    state.ashesBurnDuration = burnDuration;
     emitGuardianEvent(context, skill, 'guardian.ashes-granted', {
       at,
       // Detach the grant so later scheduler consumption cannot rewrite the application event.
@@ -228,24 +262,11 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
       duration: ashesDuration,
       audience: { recipients: 'party' as const }
     });
-    emitSkillBuff(context, {
-      at,
-      source: 'guardian',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      name: 'Might',
-      kind: 'might',
-      stacks: Number(might?.stacks ?? 8),
-      duration: gw2SchedulerBoonDuration(context, skill, 'might', Number(might?.duration ?? 10)),
-      audience: { recipients: 'party' as const }
-    });
     const alliedProcs = gw2AlliedPlayerProcTimeline(context.config, {
       start: at,
       duration: state.ashes.expiresAt - at,
       maximumPerAlly: state.ashes.charges,
-      internalCooldown: Number(ashes?.internalCooldown ?? 1)
+      internalCooldown: balanceProfileNumber(ashesProfile, 'internalCooldown')
     });
     for (let index = 0; index < alliedProcs.length; index += 1) {
       const proc = alliedProcs[index];
@@ -254,9 +275,9 @@ function useTomePage(context: GuardianCastContext, skill: GuardianSkill): void {
         at: proc.at,
         sourceId: 'guardian.ashes-of-the-just',
         name: `Ashes of the Just — Ally ${proc.allyIndex} Burning`,
-        condition: String(burn?.condition || 'Burning'),
-        stacks: Number(burn?.stacks ?? 1),
-        duration: Number(burn?.duration ?? 2),
+        condition: String(burn.condition),
+        stacks: burnStacks,
+        duration: burnDuration,
         activationId: `${context.reservationId}:ally:${proc.allyIndex}:${proc.procIndex}`,
         metadata: { triggeredByAlly: proc.allyIndex }
       });
@@ -332,15 +353,18 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
   const state = firebrandState.from(context);
   // Loop rather than a single add so multiple pages that matured in the same
   // advance window are all credited without needing separate advance calls.
-  const pages = advanceDiscreteResource(
-    state.tomePages,
-    state.maximumTomePages,
-    state.nextTomePageAt,
-    state.tomePageInterval,
-    target + EPSILON
-  );
-  state.tomePages = pages.value;
-  state.nextTomePageAt = pages.nextAt;
+  // A zero authored cadence disables regeneration without disabling spends or refunds.
+  if (state.tomePageInterval > 0) {
+    const pages = advanceDiscreteResource(
+      state.tomePages,
+      state.maximumTomePages,
+      state.nextTomePageAt,
+      state.tomePageInterval,
+      target + EPSILON
+    );
+    state.tomePages = pages.value;
+    state.nextTomePageAt = pages.nextAt;
+  }
 
   // Advancing to the deadline precedes its strikes; retain charges until those have resolved.
   expireCharges(state.ashes, target, true);
@@ -349,18 +373,20 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
 // Page regeneration remains a resource clock; passive Aegis owns a separate fixed cadence.
 export function initializeTomeCourage(context: GuardianSchedulerContext): void {
   if (selectedGuardianSpecialization({ config: context.config }) !== 'Firebrand') return;
-  if (Number(balanceProfileFromContext(context, PROFILE.passiveCourage)?.pulseInterval ?? 40) > 0)
+  if (balanceProfileNumberFromContext(context, PROFILE.passiveCourage, 'pulseInterval') > 0)
     tomeCourage.start(context, { at: 0, captured: {} });
 }
 
 export const tomeCourage = timedEffect<GuardianSchedulerContext, object>({
   id: 'guardian.firebrand.passive-courage',
   priority: -200,
-  interval: (context) => Number(balanceProfileFromContext(context, PROFILE.passiveCourage)?.pulseInterval ?? 40),
+  interval: (context) => balanceProfileNumberFromContext(context, PROFILE.passiveCourage, 'pulseInterval'),
   effectsAt(context, at) {
     const courage = context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.TOME_OF_COURAGE);
-    const passiveCourage = balanceProfileFromContext(context, PROFILE.passiveCourage);
-    const aegis = balanceProfileEffect(passiveCourage, 'boon');
+
+    const passiveCourageProfile = requireBalanceProfileFromContext(context, PROFILE.passiveCourage);
+    const aegis = requireEffect(passiveCourageProfile, 'boon', 'aegis');
+    if (!aegis) return false;
     if (!courage) return false;
     // Suppress passive aegis when the virtue is on its dormant cooldown (i.e.
     // the tome was recently activated), unless Stoic Demeanor overrides that
@@ -378,8 +404,13 @@ export const tomeCourage = timedEffect<GuardianSchedulerContext, object>({
         skillName: courage.name,
         name: 'Tome of Courage — Passive Aegis',
         kind: 'aegis',
-        stacks: Number(aegis?.stacks ?? 1),
-        duration: gw2SchedulerBoonDuration(context, courage, 'aegis', Number(aegis?.duration ?? 40))
+        stacks: effectNumber(passiveCourageProfile, aegis, 'stacks'),
+        duration: gw2SchedulerBoonDuration(
+          context,
+          courage,
+          'aegis',
+          effectNumber(passiveCourageProfile, aegis, 'duration')
+        )
       });
     }
   }
@@ -394,12 +425,13 @@ export function reactToAshesHit(
   event: GuardianResolverEvent,
   { hitContext }: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}
 ): void {
-  const ashes = balanceProfileFromContext(context, PROFILE.ashes);
-  const burn = balanceProfileEffect(ashes, 'condition');
+  const ashesProfile = requireBalanceProfileFromContext(context, PROFILE.ashes);
+  const burn = requireEffect(ashesProfile, 'condition', 'Burning');
+  if (!burn) return;
   if (!hitContext || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
 
   const state = firebrandState.from(context);
-  if (!consumeCharge(state.ashes, event.at, Number(ashes?.internalCooldown ?? 1), true)) return;
+  if (!consumeCharge(state.ashes, event.at, balanceProfileNumber(ashesProfile, 'internalCooldown'), true)) return;
 
   // Ashes burns resolve at charge consumption so same-timestamp condition
   // reactions cannot be reordered behind later damage packets.
@@ -412,8 +444,8 @@ export function reactToAshesHit(
       skillId: GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST,
       skillName: 'Epilogue: Ashes of the Just',
       name: 'Ashes of the Just — Burning',
-      condition: String(burn?.condition || 'Burning'),
-      stacks: Number(burn?.stacks ?? 1),
+      condition: String(burn.condition),
+      stacks: effectNumber(ashesProfile, burn, 'stacks'),
       duration: state.ashesBurnDuration
     })
   );

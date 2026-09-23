@@ -4,7 +4,12 @@ import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -93,95 +98,120 @@ export function applyWillbenderVirtueActivationTraits(
   context: GuardianCastContext,
   virtue: GuardianVirtue,
   at: number
-): number {
+): number | undefined {
   const state = willbenderState.from(context);
   const tyrantsMomentum = hasTrait(context, GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM);
-  const virtueWindows = balanceProfileFromContext(context, PROFILE.virtueWindows);
-  const window = balanceProfileEffect(virtueWindows, 'buff', virtue === 'justice' ? 0 : virtue === 'resolve' ? 1 : 2);
-  const tyrants = balanceProfileFromContext(context, PROFILE.tyrantsMomentum);
-  const duration =
-    virtue === 'justice' && tyrantsMomentum
-      ? Number(balanceProfileEffect(tyrants, 'buff', 1)?.duration ?? 10)
-      : Number(window?.duration ?? (virtue === 'justice' ? 8 : 6));
-  state[`${virtue}Until`] = gw2EffectExpiresAt(at, duration);
-  emitSkillBuff(context, {
-    at,
-    source: 'guardian',
-    sourceId: context.skill.id,
-    actorType: 'player',
-    skillId: context.skill.id,
-    skillName: context.skill.name,
-    kind: `willbender-${virtue}`,
-    duration,
-    audience: { recipients: 'self' }
-  });
-  const tempo = lethalTempoParameters(context);
-  gainLethalTempo(state, at, tempo);
-  emitSkillBuff(context, {
-    at,
-    source: 'guardian',
-    sourceId: GUARDIAN_TRAIT_IDS.LETHAL_TEMPO,
-    actorType: 'player',
-    skillId: GUARDIAN_TRAIT_IDS.LETHAL_TEMPO,
-    skillName: 'Lethal Tempo',
-    name: 'Lethal Tempo',
-    kind: 'lethal-tempo',
-    stacks: state.lethalTempoStacks,
-    // Emit the authored duration so buff-history rounding cannot add a second effect tick.
-    duration: tempo.duration
-  });
-  if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)) {
-    const vigor = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.restorativeVirtues), 'boon');
+  // Only the selected window owns its expiry; independent activation traits still run after removal.
+  const windowId = virtue === 'justice' && tyrantsMomentum ? PROFILE.tyrantsMomentum : PROFILE.virtueWindows;
+  const windowProfile = requireBalanceProfileFromContext(context, windowId);
+  const window = requireEffect(windowProfile, 'buff', virtue);
+  const duration = window ? effectNumber(windowProfile, window, 'duration') : undefined;
+  state[`${virtue}Until`] = duration === undefined ? 0 : gw2EffectExpiresAt(at, duration);
+  if (duration !== undefined)
     emitSkillBuff(context, {
       at,
       source: 'guardian',
-      sourceId: GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES,
+      sourceId: context.skill.id,
       actorType: 'player',
-      skillId: GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES,
-      skillName: 'Restorative Virtues',
-      name: 'Restorative Virtues — Vigor',
-      kind: 'vigor',
-      stacks: Number(vigor?.stacks ?? 1),
-      duration: gw2SchedulerBoonDuration(context, context.skill, 'vigor', Number(vigor?.duration ?? 3))
+      skillId: context.skill.id,
+      skillName: context.skill.name,
+      kind: `willbender-${virtue}`,
+      duration,
+      audience: { recipients: 'self' }
     });
+  const tempo = lethalTempoParameters(context);
+  if (tempo) {
+    gainLethalTempo(state, at, tempo);
+    emitSkillBuff(context, {
+      at,
+      source: 'guardian',
+      sourceId: GUARDIAN_TRAIT_IDS.LETHAL_TEMPO,
+      actorType: 'player',
+      skillId: GUARDIAN_TRAIT_IDS.LETHAL_TEMPO,
+      skillName: 'Lethal Tempo',
+      name: 'Lethal Tempo',
+      kind: 'lethal-tempo',
+      stacks: state.lethalTempoStacks,
+      // Emit the authored duration so buff-history rounding cannot add a second effect tick.
+      duration: tempo.duration
+    });
+  }
+  if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES)) {
+    const restorativeVirtuesProfile = requireBalanceProfileFromContext(context, PROFILE.restorativeVirtues);
+    const vigor = requireEffect(restorativeVirtuesProfile, 'boon', 'vigor');
+    if (vigor) {
+      emitSkillBuff(context, {
+        at,
+        source: 'guardian',
+        sourceId: GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES,
+        actorType: 'player',
+        skillId: GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES,
+        skillName: 'Restorative Virtues',
+        name: 'Restorative Virtues — Vigor',
+        kind: 'vigor',
+        stacks: effectNumber(restorativeVirtuesProfile, vigor, 'stacks'),
+        duration: gw2SchedulerBoonDuration(
+          context,
+          context.skill,
+          'vigor',
+          effectNumber(restorativeVirtuesProfile, vigor, 'duration')
+        )
+      });
+    }
   }
 
   // Holy Reckoning grants Fury only for Rushing Justice's activation; its Might belongs to later virtue triggers.
   if (context.skill.id === ID.RUSHING_JUSTICE && hasTrait(context, GUARDIAN_TRAIT_IDS.HOLY_RECKONING)) {
-    const fury = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.holyReckoning), 'boon', 1);
-    emitSkillBuff(context, {
-      at,
-      source: 'guardian',
-      sourceId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
-      actorType: 'player',
-      skillId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
-      skillName: 'Holy Reckoning',
-      name: 'Holy Reckoning — Fury',
-      kind: 'fury',
-      stacks: Number(fury?.stacks ?? 1),
-      duration: gw2SchedulerBoonDuration(context, context.skill, 'fury', Number(fury?.duration ?? 3)),
-      audience: { recipients: 'self' as const }
-    });
+    const holyReckoningProfile = requireBalanceProfileFromContext(context, PROFILE.holyReckoning);
+    const fury = requireEffect(holyReckoningProfile, 'boon', 'fury');
+    if (fury) {
+      emitSkillBuff(context, {
+        at,
+        source: 'guardian',
+        sourceId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
+        actorType: 'player',
+        skillId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
+        skillName: 'Holy Reckoning',
+        name: 'Holy Reckoning — Fury',
+        kind: 'fury',
+        stacks: effectNumber(holyReckoningProfile, fury, 'stacks'),
+        duration: gw2SchedulerBoonDuration(
+          context,
+          context.skill,
+          'fury',
+          effectNumber(holyReckoningProfile, fury, 'duration')
+        ),
+        audience: { recipients: 'self' as const }
+      });
+    }
   }
 
   if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)) {
-    const alacrity = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.phoenixProtocol), 'boon');
-    emitSkillBuff(context, {
-      at,
-      source: 'guardian',
-      sourceId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
-      actorType: 'player',
-      skillId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
-      skillName: 'Phoenix Protocol',
-      name: 'Phoenix Protocol — Activation Alacrity',
-      kind: 'alacrity',
-      stacks: Number(alacrity?.stacks ?? 1),
-      duration: gw2SchedulerBoonDuration(context, context.skill, 'alacrity', Number(alacrity?.duration ?? 5)),
-      // Phoenix Protocol is personal; Battle Presence shares its alacrity with nearby allies.
-      audience: {
-        recipients: hasTrait(context, GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE) ? ('party' as const) : ('self' as const)
-      }
-    });
+    const phoenixProtocolProfile = requireBalanceProfileFromContext(context, PROFILE.phoenixProtocol);
+    const alacrity = requireEffect(phoenixProtocolProfile, 'boon', 'alacrity');
+    if (alacrity) {
+      emitSkillBuff(context, {
+        at,
+        source: 'guardian',
+        sourceId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
+        actorType: 'player',
+        skillId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
+        skillName: 'Phoenix Protocol',
+        name: 'Phoenix Protocol — Activation Alacrity',
+        kind: 'alacrity',
+        stacks: effectNumber(phoenixProtocolProfile, alacrity, 'stacks'),
+        duration: gw2SchedulerBoonDuration(
+          context,
+          context.skill,
+          'alacrity',
+          effectNumber(phoenixProtocolProfile, alacrity, 'duration')
+        ),
+        // Phoenix Protocol is personal; Battle Presence shares its alacrity with nearby allies.
+        audience: {
+          recipients: hasTrait(context, GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE) ? ('party' as const) : ('self' as const)
+        }
+      });
+    }
   }
 
   return duration;
@@ -229,7 +259,7 @@ function queueInFlightWeaponCooldownReduction(
     // In-flight skills are not in the cooldown controller yet, so project the same base-to-tracked conversion here.
     const reduction = Math.min(
       gw2TrackedRechargeReduction(
-        Number(balanceProfileFromContext(context, PROFILE.restorativeVirtues)?.rechargeReduction ?? 0.28),
+        balanceProfileNumberFromContext(context, PROFILE.restorativeVirtues, 'rechargeReduction'),
         context.hasBuff('alacrity', at) ? Number(context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE) : 1
       ),
       available
@@ -244,9 +274,7 @@ function queueInFlightWeaponCooldownReduction(
 
 function reduceActiveWeaponCooldowns(context: GuardianSchedulerContext, at: number): number {
   const weaponNames = activeWeaponNames(context);
-  const rechargeReduction = Number(
-    balanceProfileFromContext(context, PROFILE.restorativeVirtues)?.rechargeReduction ?? 0.28
-  );
+  const rechargeReduction = balanceProfileNumberFromContext(context, PROFILE.restorativeVirtues, 'rechargeReduction');
   let reducedBy = reduceMatchingCooldowns(
     context,
     (skill) => isActiveWeaponSkill(skill, weaponNames),
@@ -279,6 +307,7 @@ function applyPendingWeaponCooldownReduction(context: GuardianCastContext, skill
 function emitLethalTempo(context: GuardianSchedulerContext, at: number, sourceSkill: string): void {
   const state = willbenderState.from(context);
   const tempo = lethalTempoParameters(context);
+  if (!tempo) return;
   gainLethalTempo(state, at, tempo);
   emitSkillBuff(context, {
     at,
@@ -303,12 +332,14 @@ function handleWillbenderFlameActivation(
   const payload = task.payload;
   const virtue = payload?.virtue;
   if (!payload || !virtue) return;
+  const flamesProfile = requireBalanceProfileFromContext(context, PROFILE.flames);
+  const strike = requireEffect(flamesProfile, 'strike', 'Strike');
+  if (!strike) return;
   const state = willbenderState.from(context);
   if (state.flameVirtue !== virtue) willbenderFlames.cancelOwner(context, 'willbender-flames');
   state.flameVirtue = virtue;
   const flameId = Number(payload.flameId);
-  const flames = balanceProfileFromContext(context, PROFILE.flames);
-  const strike = balanceProfileEffect(flames, 'strike');
+
   const ticks = strike?.type === 'strike' ? strike.ticks : null;
   if (!ticks?.length) throw new Error('Willbender Flames requires an explicit strike timeline.');
   // A flame field is a separate activation from the virtue that created it, so its unequipped weapon-strength
@@ -335,8 +366,10 @@ export const willbenderFlames = timedEffect<
   effectsAt(context, at, payload, occurrence) {
     const { flameId, activationId } = payload;
     const pulse = occurrence + 1;
-    const flames = balanceProfileFromContext(context, PROFILE.flames);
-    const strike = balanceProfileEffect(flames, 'strike');
+
+    const flamesProfile = requireBalanceProfileFromContext(context, PROFILE.flames);
+    const strike = requireEffect(flamesProfile, 'strike', 'Strike');
+    if (!strike) return;
     const ticks = strike?.type === 'strike' ? strike.ticks : null;
     const tick = ticks?.[pulse - 1];
     if (!ticks?.length || !tick) throw new Error('Willbender Flames pulse is missing its strike tick.');
@@ -357,21 +390,24 @@ export const willbenderFlames = timedEffect<
       })
     );
     if (hasTrait(context, GUARDIAN_TRAIT_IDS.SEARING_PACT)) {
-      const burning = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.searingPact), 'condition');
-      emitSkillCondition(context, {
-        at,
-        source: 'guardian',
-        sourceId: GUARDIAN_TRAIT_IDS.SEARING_PACT,
-        actorType: 'player',
-        skillId: GUARDIAN_TRAIT_IDS.SEARING_PACT,
-        skillName: 'Searing Pact',
-        name: 'Searing Pact — Burning',
-        condition: String(burning?.condition || 'Burning'),
-        stacks: Number(burning?.stacks ?? 1),
-        duration: Number(burning?.duration ?? 1),
-        triggeredBy: 'Willbender Flames',
-        ...(payload.offTarget === true ? { offTarget: true } : {})
-      });
+      const searingPactProfile = requireBalanceProfileFromContext(context, PROFILE.searingPact);
+      const burning = requireEffect(searingPactProfile, 'condition', 'Burning');
+      if (burning) {
+        emitSkillCondition(context, {
+          at,
+          source: 'guardian',
+          sourceId: GUARDIAN_TRAIT_IDS.SEARING_PACT,
+          actorType: 'player',
+          skillId: GUARDIAN_TRAIT_IDS.SEARING_PACT,
+          skillName: 'Searing Pact',
+          name: 'Searing Pact — Burning',
+          condition: String(burning.condition),
+          stacks: effectNumber(searingPactProfile, burning, 'stacks'),
+          duration: effectNumber(searingPactProfile, burning, 'duration'),
+          triggeredBy: 'Willbender Flames',
+          ...(payload.offTarget === true ? { offTarget: true } : {})
+        });
+      }
     }
   }
 });
@@ -426,21 +462,29 @@ export const willbenderVirtueHitReaction = scheduledReaction<
 
       // Grant one party Might packet for the completed virtue trigger, never for the activation that opened its window.
       if (hasTrait(context, GUARDIAN_TRAIT_IDS.HOLY_RECKONING)) {
-        const might = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.holyReckoning), 'boon');
-        emitSkillBuff(context, {
-          at,
-          source: 'guardian',
-          sourceId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
-          actorType: 'player',
-          skillId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
-          skillName: 'Holy Reckoning',
-          name: 'Holy Reckoning — Might',
-          kind: 'might',
-          stacks: Number(might?.stacks ?? 1),
-          duration: gw2SchedulerBoonDuration(context, boonSourceSkill, 'might', Number(might?.duration ?? 15)),
-          audience: { recipients: 'party' as const },
-          triggeredBy: sourceSkill
-        });
+        const holyReckoningProfile = requireBalanceProfileFromContext(context, PROFILE.holyReckoning);
+        const might = requireEffect(holyReckoningProfile, 'boon', 'might');
+        if (might) {
+          emitSkillBuff(context, {
+            at,
+            source: 'guardian',
+            sourceId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
+            actorType: 'player',
+            skillId: GUARDIAN_TRAIT_IDS.HOLY_RECKONING,
+            skillName: 'Holy Reckoning',
+            name: 'Holy Reckoning — Might',
+            kind: 'might',
+            stacks: effectNumber(holyReckoningProfile, might, 'stacks'),
+            duration: gw2SchedulerBoonDuration(
+              context,
+              boonSourceSkill,
+              'might',
+              effectNumber(holyReckoningProfile, might, 'duration')
+            ),
+            audience: { recipients: 'party' as const },
+            triggeredBy: sourceSkill
+          });
+        }
       }
 
       let cooldownReduction = 0;
@@ -470,9 +514,9 @@ export const willbenderVirtueHitReaction = scheduledReaction<
         ...(justiceActive == null ? {} : { justiceActive })
       });
       if (virtue === 'courage') {
-        const courage = balanceProfileFromContext(context, PROFILE.courageTrigger);
+        const courage = requireBalanceProfileFromContext(context, PROFILE.courageTrigger);
         for (const boon of (courage?.effects || []).filter((effect) => effect.type === 'boon')) {
-          const kind = String(boon.boon || '');
+          const kind = String(boon.boon);
           emitSkillBuff(context, {
             at,
             source: 'guardian',
@@ -482,31 +526,39 @@ export const willbenderVirtueHitReaction = scheduledReaction<
             skillName: 'Crashing Courage',
             name: `Crashing Courage — Triggered ${kind === 'aegis' ? 'Aegis' : 'Stability'}`,
             kind,
-            stacks: Number(boon.stacks ?? 1),
-            duration: gw2SchedulerBoonDuration(context, boonSourceSkill, kind, Number(boon.duration ?? 4)),
+            stacks: effectNumber(courage, boon, 'stacks'),
+            duration: gw2SchedulerBoonDuration(context, boonSourceSkill, kind, effectNumber(courage, boon, 'duration')),
             triggeredBy: sourceSkill
           });
         }
       }
 
       if (virtue === 'resolve' && hasTrait(context, GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL)) {
-        const alacrity = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.phoenixProtocol), 'boon', 1);
-        emitSkillBuff(context, {
-          at,
-          source: 'guardian',
-          sourceId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
-          actorType: 'player',
-          skillId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
-          skillName: 'Phoenix Protocol',
-          name: 'Phoenix Protocol — Alacrity',
-          kind: 'alacrity',
-          stacks: Number(alacrity?.stacks ?? 1),
-          duration: gw2SchedulerBoonDuration(context, boonSourceSkill, 'alacrity', Number(alacrity?.duration ?? 1)),
-          audience: {
-            recipients: hasTrait(context, GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE) ? ('party' as const) : ('self' as const)
-          },
-          triggeredBy: sourceSkill
-        });
+        const phoenixProtocolProfile = requireBalanceProfileFromContext(context, PROFILE.phoenixProtocol);
+        const alacrity = requireEffect(phoenixProtocolProfile, 'boon', 'alacrity (triggered)');
+        if (alacrity) {
+          emitSkillBuff(context, {
+            at,
+            source: 'guardian',
+            sourceId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
+            actorType: 'player',
+            skillId: GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
+            skillName: 'Phoenix Protocol',
+            name: 'Phoenix Protocol — Alacrity',
+            kind: 'alacrity',
+            stacks: effectNumber(phoenixProtocolProfile, alacrity, 'stacks'),
+            duration: gw2SchedulerBoonDuration(
+              context,
+              boonSourceSkill,
+              'alacrity',
+              effectNumber(phoenixProtocolProfile, alacrity, 'duration')
+            ),
+            audience: {
+              recipients: hasTrait(context, GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE) ? ('party' as const) : ('self' as const)
+            },
+            triggeredBy: sourceSkill
+          });
+        }
       }
     };
 
@@ -519,8 +571,8 @@ export const willbenderVirtueHitReaction = scheduledReaction<
       // only for justice; resolve and courage always require 5 hits.
       const triggerHits =
         virtue === 'justice' && hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
-          ? Number(balanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)?.threshold ?? 3)
-          : Number(balanceProfileFromContext(context, PROFILE.virtueWindows)?.threshold ?? 5);
+          ? balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH, 'threshold')
+          : balanceProfileNumberFromContext(context, PROFILE.virtueWindows, 'threshold');
       if (state.virtueHitCounts[virtue] < triggerHits) continue;
       state.virtueHitCounts[virtue] = 0;
       triggerVirtue(virtue, virtue === 'justice' ? 2 : undefined, virtue === 'justice' ? true : undefined);

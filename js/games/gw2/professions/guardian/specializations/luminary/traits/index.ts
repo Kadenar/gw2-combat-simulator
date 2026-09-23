@@ -1,7 +1,12 @@
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -62,8 +67,8 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
   const weapon = skill.radiantWeapon!;
   // Only committed weapon equips trigger these boons; flip attacks and uncommitted attempts do not.
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.RESPLENDENT_WEAPONRY)) {
-    const profile = balanceProfileFromContext(context, PROFILE.resplendentWeaponry);
-    for (const effect of profile?.effects || []) {
+    const profile = requireBalanceProfileFromContext(context, PROFILE.resplendentWeaponry);
+    for (const effect of profile.effects || []) {
       if (effect.type !== 'boon' || !effect.boon) continue;
       emitSkillBuff(context, skill, {
         at,
@@ -71,7 +76,7 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
         skillName: 'Resplendent Weaponry',
         kind: effect.boon,
         duration: effect.duration,
-        stacks: effect.stacks ?? 1,
+        stacks: effectNumber(profile, effect, 'stacks'),
         audience: { recipients: 'party' }
       });
     }
@@ -80,30 +85,32 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)) {
     // The active armament changes when its cast starts, so hammer boosts its own hit and other equips remove it.
     const armamentAt = context.start;
-    const armaments = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.radiantArmaments), 'buff');
-    emitSkillBuff(context, skill, {
-      at: armamentAt,
-      source: 'guardian',
-      sourceId: skill.id,
-      actorType: 'player',
-      kind: 'guardian-radiant-armaments',
-      duration: Number(armaments?.duration ?? 10),
-      stacks: 1,
-      metadata: { radiantWeapon: weapon }
-    });
-    emitGuardianProc(context, {
-      name: 'Radiant Armaments',
-      at: armamentAt,
-      sourceSkill: skill.name,
-      detail: weapon === 'hammer' ? 'Radiant hammer: +7% strike damage' : `${weapon}: hammer bonus removed`,
-      icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)
-    });
+    const radiantArmamentsProfile = requireBalanceProfileFromContext(context, PROFILE.radiantArmaments);
+    const armaments = requireEffect(radiantArmamentsProfile, 'buff', 'radiant-armaments');
+    if (armaments) {
+      emitSkillBuff(context, skill, {
+        at: armamentAt,
+        source: 'guardian',
+        sourceId: skill.id,
+        actorType: 'player',
+        kind: 'guardian-radiant-armaments',
+        duration: effectNumber(radiantArmamentsProfile, armaments, 'duration'),
+        stacks: 1,
+        metadata: { radiantWeapon: weapon }
+      });
+      emitGuardianProc(context, {
+        name: 'Radiant Armaments',
+        at: armamentAt,
+        sourceSkill: skill.name,
+        detail: weapon === 'hammer' ? 'Radiant hammer: +7% strike damage' : `${weapon}: hammer bonus removed`,
+        icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS)
+      });
+    }
   }
 
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS)) {
-    const profile = balanceProfileFromContext(context, PROFILE.empoweredArmaments);
-    const duration = Number(profile?.resourceGain ?? 6);
-    const maximumDuration = Number(profile?.maximumStacks ?? 20);
+    const duration = balanceProfileNumberFromContext(context, PROFILE.empoweredArmaments, 'resourceGain');
+    const maximumDuration = balanceProfileNumberFromContext(context, PROFILE.empoweredArmaments, 'maximumStacks');
     const wasActive = Number(state.empoweredArmamentsUntil || 0) > at;
     // Duration stacks additively up to a 20 s cap; the cap prevents the buff
     // from extending forever if many weapons are equipped in quick succession.
@@ -129,9 +136,7 @@ export function handleRadiantWeaponEquipped(context: GuardianCastContext, skill:
   }
 
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.ILLUMINATING_INSPIRATION)) {
-    const reduction = Number(
-      balanceProfileFromContext(context, PROFILE.illuminatingInspiration)?.rechargeReduction ?? 4
-    );
+    const reduction = balanceProfileNumberFromContext(context, PROFILE.illuminatingInspiration, 'rechargeReduction');
     reduceVirtueCooldowns(context, at, reduction);
     emitGuardianProc(context, {
       name: 'Illuminating Inspiration',
@@ -206,7 +211,7 @@ export function updateLuminaryTraitCastState(context: GuardianCastContext, skill
   replayInitialLuminaryState(context, skill);
   // Committed animation cancels still equip the weapon and trigger its traits.
   if (!context.action.cancelled) handleRadiantWeaponEquipped(context, skill);
-  if (skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE) {
+  if (skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE && luminaryState.from(context).radiantForge) {
     // Register Exit Radiant Forge as an available flip so the scheduler and
     // UI treat it as an always-ready option while the forge is active.
     // POSITIVE_INFINITY means "no cooldown / never expires".

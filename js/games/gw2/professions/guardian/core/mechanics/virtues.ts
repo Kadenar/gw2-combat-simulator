@@ -1,6 +1,11 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import { balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /**
  * @fileoverview Implements shared Guardian virtue validation, activation and
@@ -88,7 +93,10 @@ export function handleVirtueActivation(context: GuardianResolverContext, event: 
   if (!virtue) return;
   professionCoreState(context).virtueReadyAt[virtue] = Number(event.passiveReadyAt || event.at);
   if (virtue === 'justice' && event.skillId === GUARDIAN_SKILL_IDS.JUSTICE) {
-    professionCoreState(context).justiceActiveArmed = true;
+    const justiceProfile = requireBalanceProfileFromContext(context, PROFILE.justice);
+    professionCoreState(context).justiceActiveArmed = Boolean(
+      requireEffect(justiceProfile, 'condition', 'Burning (active)')
+    );
   }
 }
 
@@ -121,10 +129,9 @@ function applyJusticeBurn(
     readonly passiveBurnDuration?: number;
   }
 ): void {
-  const justice = balanceProfileFromContext(context, PROFILE.justice);
-  const burn = justice?.effects?.find(
-    (effect) => effect.type === 'condition' && effect.packetLabel === (active ? 'active' : 'passive')
-  );
+  const justiceProfile = requireBalanceProfileFromContext(context, PROFILE.justice);
+  const burn = requireEffect(justiceProfile, 'condition', active ? 'Burning (active)' : 'Burning (passive)');
+  if (!burn) return;
   const sourceId = active ? 'guardian.justice-active' : 'guardian.justice-passive';
   // Justice burns resolve immediately so passive/active counters and chained
   // condition reactions remain synchronized at the triggering hit timestamp.
@@ -137,10 +144,10 @@ function applyJusticeBurn(
       skillId,
       skillName,
       name: `${skillName} — ${active ? 'Active' : 'Passive'} Burning`,
-      condition: String(burn?.condition || 'Burning'),
-      stacks: Number(burn?.stacks ?? 1),
+      condition: String(burn.condition),
+      stacks: effectNumber(justiceProfile, burn, 'stacks'),
       duration: Number(
-        !active && passiveBurnDuration != null ? passiveBurnDuration : (burn?.duration ?? (active ? 2 : 1.2))
+        !active && passiveBurnDuration != null ? passiveBurnDuration : effectNumber(justiceProfile, burn, 'duration')
       )
     })
   );
@@ -194,11 +201,13 @@ export function reactToJusticeHitWithOptions(
 
   if (!retainsPassive && event.at < Number(state.virtueReadyAt.justice || 0)) return;
 
+  const justiceProfile = requireBalanceProfileFromContext(context, PROFILE.justice);
+  if (!requireEffect(justiceProfile, 'condition', 'Burning (passive)')) return;
   state.justiceHitCount += 1;
-  const triggerHits = Number(
-    hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
-      ? (balanceProfileFromContext(context, PROFILE.permeatingWrath)?.threshold ?? 3)
-      : (balanceProfileFromContext(context, PROFILE.justice)?.threshold ?? 5)
+  const triggerHits = balanceProfileNumberFromContext(
+    context,
+    hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH) ? PROFILE.permeatingWrath : PROFILE.justice,
+    'threshold'
   );
   if (state.justiceHitCount < triggerHits) return;
   state.justiceHitCount = 0;

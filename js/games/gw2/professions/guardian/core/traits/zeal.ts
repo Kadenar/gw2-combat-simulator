@@ -1,5 +1,11 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -29,14 +35,15 @@ import type {
 
 /** Owns Core Guardian Zeal's imperative symbol procs while leaving their sequence in the public dispatcher. */
 function emitLesserSymbolOfBlades(context: GuardianSchedulerContext, skill: GuardianSkill, at: number): void {
-  const profile = balanceProfileFromContext(context, PROFILE.furiousFocus);
-  const strike = balanceProfileEffect(profile, 'strike');
-  const ticks = strike?.type === 'strike' ? strike.ticks : null;
+  const furiousFocusProfile = requireBalanceProfileFromContext(context, PROFILE.furiousFocus);
+  const strike = requireEffect(furiousFocusProfile, 'strike', 'Strike');
+  if (!strike) return;
+  const ticks = strike?.ticks ?? [];
   if (!ticks?.length) throw new Error('Furious Focus requires an explicit strike timeline.');
   // The triggered symbol is one distinct activation so its unequipped weapon-strength roll is shared by its
   // pulses without colliding with the virtue cast's equipped-weapon roll.
   const activationId = context.createActivationId('effect');
-  for (const [index, tick] of ticks.entries()) {
+  for (const [index, tick] of (ticks ?? []).entries()) {
     context.emit(
       buildGuardianStrike({
         at: at + Number(tick.atMs) / 1000,
@@ -86,28 +93,32 @@ export function applyFuriousFocus(
     return;
   }
 
-  const lesserSymbol =
-    context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES) ||
-    ({
-      id: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES,
-      name: 'Lesser Symbol of Blades',
-      cooldown: Number(balanceProfileFromContext(context, PROFILE.furiousFocus)?.cooldown ?? 10)
-    } as GuardianSkill);
+  const furiousFocusProfile = requireBalanceProfileFromContext(context, PROFILE.furiousFocus);
+  if (!requireEffect(furiousFocusProfile, 'strike', 'Strike')) return;
+  // The proc profile owns recharge even when the catalog also contains its display skill.
+  const lesserSymbol = {
+    ...context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES),
+    id: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES,
+    name: 'Lesser Symbol of Blades',
+    cooldown: balanceProfileNumber(furiousFocusProfile, 'cooldown')
+  } as GuardianSkill;
   professionCoreState(context).furiousFocusReadyAt = at + context.rechargeDurationFor(lesserSymbol, at);
   emitLesserSymbolOfBlades(context, skill, at);
 }
 
 export function applySymbolicExposure(context: GuardianSchedulerContext, event: GuardianResolverEvent): void {
   if (!hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE)) return;
-  const exposure = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.symbolicExposure), 'condition');
+  const symbolicExposureProfile = requireBalanceProfileFromContext(context, PROFILE.symbolicExposure);
+  const exposure = requireEffect(symbolicExposureProfile, 'condition', 'Vulnerability');
+  if (!exposure) return;
   emitSkillCondition(context, {
     at: event.at,
     actorType: 'effect',
     skillId: GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
     skillName: 'Symbolic Exposure',
     condition: 'Vulnerability',
-    stacks: Number(exposure?.stacks ?? 2),
-    duration: Number(exposure?.duration ?? 5),
+    stacks: effectNumber(symbolicExposureProfile, exposure, 'stacks'),
+    duration: effectNumber(symbolicExposureProfile, exposure, 'duration'),
     triggeredBy: event.skillName
   });
 }
@@ -118,13 +129,14 @@ function queueLesserSymbolOfResolution(
   context: GuardianResolverContext,
   at: number,
   sourceSkill: string | undefined
-): void {
-  const profile = balanceProfileFromContext(context, PROFILE.zealotsResolution);
-  const strike = balanceProfileEffect(profile, 'strike');
-  const resolution = balanceProfileEffect(profile, 'boon');
-  const ticks = strike?.type === 'strike' ? strike.ticks : null;
-  if (!ticks?.length) throw new Error("Zealot's Resolution requires an explicit strike timeline.");
-  for (const [index, tick] of ticks.entries()) {
+): boolean {
+  const zealotsResolutionProfile = requireBalanceProfileFromContext(context, PROFILE.zealotsResolution);
+  const strike = requireEffect(zealotsResolutionProfile, 'strike', 'Strike');
+  const resolution = requireEffect(zealotsResolutionProfile, 'boon', 'resolution');
+  const ticks = strike?.ticks ?? [];
+  if (strike && !ticks?.length) throw new Error("Zealot's Resolution requires an explicit strike timeline.");
+  if (!strike && !resolution) return false;
+  for (const [index, tick] of (ticks ?? []).entries()) {
     const pulseAt = at + Number(tick.atMs) / 1000;
     context.queue.enqueue(
       buildGuardianStrike({
@@ -141,16 +153,26 @@ function queueLesserSymbolOfResolution(
         triggeredBy: sourceSkill
       })
     );
-    queueGuardianResolverBuff(context, {
-      at: pulseAt,
-      sourceId: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION,
-      skillName: 'Lesser Symbol of Resolution',
-      kind: 'resolution',
-      duration: Number(resolution?.duration ?? 2),
-      stacks: Number(resolution?.stacks ?? 1),
-      priority: 5
-    });
   }
+  if (resolution) {
+    // Resolve the surviving boon's cadence once for all symbol pulses.
+    const applications = effectNumber(zealotsResolutionProfile, resolution, 'applications');
+    const intervalMs = effectNumber(zealotsResolutionProfile, resolution, 'intervalMs');
+    const duration = effectNumber(zealotsResolutionProfile, resolution, 'duration');
+    const stacks = effectNumber(zealotsResolutionProfile, resolution, 'stacks');
+    for (let index = 0; index < applications; index++) {
+      queueGuardianResolverBuff(context, {
+        at: at + (index * intervalMs) / 1000,
+        sourceId: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION,
+        skillName: 'Lesser Symbol of Resolution',
+        kind: 'resolution',
+        duration,
+        stacks,
+        priority: 5
+      });
+    }
+  }
+  return true;
 }
 
 export function reactToZealSymbolTraits(context: GuardianResolverContext, event: GuardianResolverEvent): void {
@@ -159,13 +181,12 @@ export function reactToZealSymbolTraits(context: GuardianResolverContext, event:
 
   const state = guardianResolverState(context);
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER)) {
-    const profile = balanceProfileFromContext(context, PROFILE.symbolicAvenger);
     // At the cap, replace only the shortest remaining stack instead of refreshing the entire buff.
     state.symbolicAvengerExpirations = grantTimedStacks(state.symbolicAvengerExpirations || [], {
       at: event.at,
-      expiresAt: event.at + Number(profile?.pulseInterval ?? 15),
+      expiresAt: event.at + balanceProfileNumberFromContext(context, PROFILE.symbolicAvenger, 'pulseInterval'),
       count: 1,
-      maximumStacks: Number(profile?.maximumStacks ?? 5),
+      maximumStacks: balanceProfileNumberFromContext(context, PROFILE.symbolicAvenger, 'maximumStacks'),
       retain: 'latest-expiry'
     });
     recordGuardianTraitProc(
@@ -182,6 +203,9 @@ export function reactToZealSymbolTraits(context: GuardianResolverContext, event:
     event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE)
   ) {
+    const symbolicExposureProfile = requireBalanceProfileFromContext(context, PROFILE.symbolicExposure);
+    const exposure = requireEffect(symbolicExposureProfile, 'condition', 'Vulnerability');
+    if (!exposure) return;
     // Lesser Symbol applies target Vulnerability directly so it shares condition duration and stacking rules.
     context.queue.enqueue(
       buildResolverCondition({
@@ -192,8 +216,8 @@ export function reactToZealSymbolTraits(context: GuardianResolverContext, event:
         skillId: GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE,
         skillName: 'Symbolic Exposure',
         condition: 'Vulnerability',
-        duration: 5,
-        stacks: 2,
+        duration: effectNumber(symbolicExposureProfile, exposure, 'duration'),
+        stacks: effectNumber(symbolicExposureProfile, exposure, 'stacks'),
         priority: 5
       })
     );
@@ -206,6 +230,7 @@ export function reactToZealotsResolution(
   event: GuardianResolverEvent,
   hitDamage: number
 ): void {
+  if (!hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION)) return;
   const state = guardianResolverState(context);
   const targetHealth = Number(context.config.target?.health ?? 0);
   const damageDone = targetHealthLoss(context.config, context) - hitDamage;
@@ -213,20 +238,16 @@ export function reactToZealotsResolution(
     !isGw2PlayerActorEvent(event) ||
     !(Number(event.coefficient || 0) > 0) ||
     !(targetHealth > 0) ||
-    !(
-      damageDone >
-      targetHealth * Number(balanceProfileFromContext(context, PROFILE.zealotsResolution)?.threshold ?? 0.25)
-    ) ||
+    !(damageDone > targetHealth * balanceProfileNumberFromContext(context, PROFILE.zealotsResolution, 'threshold')) ||
     !isInternalCooldownReady(event.at, Number(state.zealotsResolutionReadyAt || 0)) ||
-    !hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION) ||
     event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION
   ) {
     return;
   }
 
+  if (!queueLesserSymbolOfResolution(context, event.at, event.skillName)) return;
   state.zealotsResolutionReadyAt =
-    event.at + Number(balanceProfileFromContext(context, PROFILE.zealotsResolution)?.cooldown ?? 30);
-  queueLesserSymbolOfResolution(context, event.at, event.skillName);
+    event.at + balanceProfileNumberFromContext(context, PROFILE.zealotsResolution, 'cooldown');
   recordGuardianTraitProc(
     context,
     GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION,

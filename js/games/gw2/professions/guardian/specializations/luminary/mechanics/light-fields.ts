@@ -1,5 +1,9 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
-import { balanceProfileEffect, balanceProfileFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/index.js';
@@ -54,7 +58,9 @@ function emitLightAuraOperation(
 function detonateLightAura(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = luminaryState.from(context);
   if (!lightAuraActive(state, event.at)) return;
-  const strike = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.sovereignOfLight), 'strike');
+  const sovereignOfLightProfile = requireBalanceProfileFromContext(context, PROFILE.sovereignOfLight);
+  const strike = requireEffect(sovereignOfLightProfile, 'strike', 'Strike');
+  if (!strike) return;
   state.lightAuraUntil = 0;
   context.queue.enqueue(
     buildGuardianStrike({
@@ -66,7 +72,7 @@ function detonateLightAura(context: GuardianResolverContext, event: GuardianReso
       skillId: GUARDIAN_SKILL_IDS.SOVEREIGN_OF_LIGHT_DAMAGE,
       skillName: 'Sovereign of Light',
       name: 'Sovereign of Light',
-      coefficient: Number(strike?.coefficient ?? 1.5),
+      coefficient: effectNumber(sovereignOfLightProfile, strike, 'coefficient'),
       skillWeapon: 'Unequipped',
       triggeredBy: event.sourceSkill || event.skillName,
       offTarget: event.offTarget === true
@@ -84,6 +90,14 @@ function detonateLightAura(context: GuardianResolverContext, event: GuardianReso
 
 /** Grants or refreshes Light Aura while limiting same-time Sovereign recovery to its Luminary source skill. */
 export function handleLightAuraGrant(context: GuardianResolverContext, event: GuardianResolverEvent): void {
+  // Combo auras carry their own duration; a removed local window cannot grant or refresh an aura.
+  let duration = event.duration;
+  if (duration === undefined) {
+    const lightAuraProfile = requireBalanceProfileFromContext(context, PROFILE.lightAura);
+    const aura = requireEffect(lightAuraProfile, 'buff', 'light-aura');
+    if (!aura) return;
+    duration = effectNumber(lightAuraProfile, aura, 'duration');
+  }
   const state = luminaryState.from(context);
   const sourceSkill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
   if (
@@ -95,15 +109,7 @@ export function handleLightAuraGrant(context: GuardianResolverContext, event: Gu
     detonateLightAura(context, event);
   }
 
-  // Skill and combo auras share the temporary-effect clock and expire before same-time detonations.
-  state.lightAuraUntil = gw2EffectExpiresAt(
-    event.at,
-    Number(
-      event.duration ??
-        balanceProfileEffect(balanceProfileFromContext(context, PROFILE.lightAura), 'buff')?.duration ??
-        4
-    )
-  );
+  state.lightAuraUntil = gw2EffectExpiresAt(event.at, Number(duration));
 }
 
 export function handleLightAuraDetonate(context: GuardianResolverContext, event: GuardianResolverEvent): void {
@@ -151,7 +157,9 @@ export function processLuminaryLightFields(context: GuardianCastContext, skill: 
   }
 
   if (virtueOne && hasTrait(context, GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND)) {
-    const blind = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.justiceIsBlind), 'blind');
+    const justiceIsBlindProfile = requireBalanceProfileFromContext(context, PROFILE.justiceIsBlind);
+    const blind = requireEffect(justiceIsBlindProfile, 'blind', 'Blind');
+    if (!blind) return;
     context.emit({
       type: 'blind',
       at: activationAt,
@@ -161,7 +169,7 @@ export function processLuminaryLightFields(context: GuardianCastContext, skill: 
       skillId: GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND,
       skillName: 'Justice is Blind',
       triggeredBy: skill.name,
-      duration: Number(blind?.duration ?? 3)
+      duration: effectNumber(justiceIsBlindProfile, blind, 'duration')
     });
   }
 }
@@ -175,7 +183,7 @@ export function observeLuminaryLightFields(context: GuardianSchedulerContext, ev
       event.at,
       { id: event.skillId ?? event.sourceId, name: event.skillName || event.name || 'Light Aura' },
       -15,
-      { duration: Number(event.duration ?? 5) }
+      { duration: Number(event.duration) }
     );
   }
 
@@ -185,8 +193,7 @@ export function observeLuminaryLightFields(context: GuardianSchedulerContext, ev
       'guardian.luminary.light-aura-grant',
       event.at,
       { id: event.skillId, name: event.skillName || 'Dazzling Hammer' },
-      -15,
-      { duration: 4 }
+      -15
     );
   }
 }

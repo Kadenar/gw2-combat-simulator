@@ -1,4 +1,9 @@
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  balanceProfileNumber,
+  effectNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
@@ -20,15 +25,16 @@ export function applyProtectorsRestoration(context: GuardianCastContext, skill: 
   const state = professionCoreState(context);
   if (!isInternalCooldownReady(at, state.protectorsRestorationReadyAt)) return;
 
-  const profile = balanceProfileFromContext(context, PROFILE.protectorsRestoration);
-  const strike = balanceProfileEffect(profile, 'strike');
-  const protection = balanceProfileEffect(profile, 'boon');
-  const ticks = strike?.ticks;
-  if (!ticks?.length) throw new Error("Protector's Restoration requires an explicit strike timeline.");
-  state.protectorsRestorationReadyAt = at + Number(profile?.internalCooldown ?? 20);
+  const profile = requireBalanceProfileFromContext(context, PROFILE.protectorsRestoration);
+  const strike = requireEffect(profile, 'strike', 'Strike');
+  const protection = requireEffect(profile, 'boon', 'protection');
+  const ticks = strike?.ticks ?? [];
+  if (strike && !ticks?.length) throw new Error("Protector's Restoration requires an explicit strike timeline.");
+  if (!strike && !protection) return;
+  state.protectorsRestorationReadyAt = at + balanceProfileNumber(profile, 'internalCooldown');
   const symbol = { id: GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_PROTECTION, name: 'Lesser Symbol of Protection' };
   const activationId = context.createActivationId('effect');
-  for (const [index, tick] of ticks.entries()) {
+  for (const [index, tick] of (ticks ?? []).entries()) {
     const pulseAt = at + Number(tick.atMs) / 1000;
     context.emit(
       buildGuardianStrike({
@@ -51,16 +57,26 @@ export function applyProtectorsRestoration(context: GuardianCastContext, skill: 
         triggeredBy: skill.name
       })
     );
-    emitSkillBuff(context, symbol, {
-      at: pulseAt,
-      source: 'guardian',
-      kind: 'protection',
-      duration: Number(protection?.duration ?? 1),
-      stacks: Number(protection?.stacks ?? 1),
-      activationId,
-      audience: { recipients: 'party' },
-      triggeredBy: skill.name
-    });
+  }
+
+  if (protection) {
+    // Boon pulses survive independently of the symbol strike.
+    const applications = effectNumber(profile, protection, 'applications');
+    const intervalMs = effectNumber(profile, protection, 'intervalMs');
+    const duration = effectNumber(profile, protection, 'duration');
+    const stacks = effectNumber(profile, protection, 'stacks');
+    for (let index = 0; index < applications; index++) {
+      emitSkillBuff(context, symbol, {
+        at: at + (index * intervalMs) / 1000,
+        source: 'guardian',
+        kind: 'protection',
+        duration,
+        stacks,
+        activationId,
+        audience: { recipients: 'party' },
+        triggeredBy: skill.name
+      });
+    }
   }
 
   emitGuardianProc(context, {
@@ -78,15 +94,16 @@ export function applyWritOfPersistence(context: GuardianCastContext, skill: Guar
     return;
   }
 
-  const profile = balanceProfileFromContext(context, PROFILE.writOfPersistence);
-  const extension = Number(balanceProfileEffect(profile, 'buff')?.duration ?? 2);
+  const profile = requireBalanceProfileFromContext(context, PROFILE.writOfPersistence);
+  const window = requireEffect(profile, 'buff', 'symbol-duration-extension');
+  const extension = window ? effectNumber(profile, window, 'duration') : 0;
   const strikeEffects = (skill.effects || []).filter((effect) => effect.type === 'strike');
   const field = skill.comboFields?.[0];
   if (!field) return;
   const fieldStart =
     (field?.startAnchor === 'castEnd' ? context.fullEnd : context.start) + Number(field?.startMs || 0) / 1000;
   const fieldEnd = fieldStart + Number(field?.duration || 0);
-  const strikePackets = (profile?.effects || [])
+  const strikePackets = (profile.effects || [])
     .filter((effect) => effect.type === 'strike')
     .flatMap((effect) =>
       (effect.ticks || []).map((tick) => ({
@@ -94,27 +111,30 @@ export function applyWritOfPersistence(context: GuardianCastContext, skill: Guar
         coefficient: Number(tick.coefficient)
       }))
     );
-  const might = balanceProfileEffect(profile, 'boon');
+  const might = requireEffect(profile, 'boon', 'might');
 
   // Writ adds a contiguous field segment because the original field is already active when cast-state hooks run.
-  context.emit({
-    type: 'combo_field',
-    at: fieldEnd,
-    source: 'guardian',
-    sourceId: skill.id,
-    actorType: 'effect',
-    skillId: skill.id,
-    skillName: skill.name,
-    activationId: context.action.activationId,
-    fieldId: `guardian:${String(context.action.activationId)}:writ-extension`,
-    fieldType: field?.fieldType || 'Light',
-    expiresAt: fieldEnd + extension,
-    ownerId: field?.ownerId || 'guardian',
-    ownerActorType: 'player',
-    triggeredBy: 'Writ of Persistence'
-  });
+  if (window) {
+    context.emit({
+      type: 'combo_field',
+      at: fieldEnd,
+      source: 'guardian',
+      sourceId: skill.id,
+      actorType: 'effect',
+      skillId: skill.id,
+      skillName: skill.name,
+      activationId: context.action.activationId,
+      fieldId: `guardian:${String(context.action.activationId)}:writ-extension`,
+      fieldType: field?.fieldType || 'Light',
+      expiresAt: fieldEnd + extension,
+      ownerId: field?.ownerId || 'guardian',
+      ownerActorType: 'player',
+      triggeredBy: 'Writ of Persistence'
+    });
+  }
 
   if (skill.id !== GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT) {
+    if (!window) return;
     const pulseEffect = strikeEffects.filter((effect) => strikeEffectTicks(effect).length > 1).at(-1);
     if (!pulseEffect) return;
     const pulseTicks = strikeEffectTicks(pulseEffect);
@@ -122,7 +142,7 @@ export function applyWritOfPersistence(context: GuardianCastContext, skill: Guar
     const pulseOrigin = pulseEffect.timingAnchor === 'castStart' ? context.start : context.fullEnd;
     const lastPulseAt = pulseTicks.length >= 5 ? fieldEnd : pulseOrigin + Number(lastPulse.atMs) / 1000;
     // Writ adds two one-second symbol pulses while the extended field remains active.
-    for (let index = 1; index <= 2; index += 1) {
+    for (let index = 1; index <= extension; index += 1) {
       context.emit(
         buildGuardianStrike({
           at: lastPulseAt + index,
@@ -133,7 +153,7 @@ export function applyWritOfPersistence(context: GuardianCastContext, skill: Guar
           coefficient: Number(lastPulse.coefficient),
           skillWeapon: skill.weapon || '',
           hitIndex: pulseTicks.length + index,
-          totalHits: pulseTicks.length + 2,
+          totalHits: pulseTicks.length + Math.floor(extension),
           isSymbol: true,
           triggeredBy: 'Writ of Persistence'
         })
@@ -162,15 +182,22 @@ export function applyWritOfPersistence(context: GuardianCastContext, skill: Guar
     );
   }
 
-  for (let index = 0; index < Number(might?.applications ?? 2); index += 1) {
+  if (!might) return;
+  // Validate the authored cadence once before emitting its repeated applications.
+  const applications = effectNumber(profile, might, 'applications');
+  const atMs = effectNumber(profile, might, 'atMs');
+  const intervalMs = effectNumber(profile, might, 'intervalMs');
+  const duration = effectNumber(profile, might, 'duration');
+  const stacks = effectNumber(profile, might, 'stacks');
+  for (let index = 0; index < applications; index += 1) {
     emitSkillBuff(context, skill, {
-      at: context.start + (Number(might?.atMs ?? 5240) + index * Number(might?.intervalMs ?? 1000)) / 1000,
+      at: context.start + (atMs + index * intervalMs) / 1000,
       source: 'guardian',
       sourceId: skill.id,
       actorType: 'player',
       kind: 'might',
-      duration: Number(might?.duration ?? 5),
-      stacks: Number(might?.stacks ?? 4),
+      duration,
+      stacks,
       audience: { recipients: 'party' as const },
       triggeredBy: 'Writ of Persistence'
     });

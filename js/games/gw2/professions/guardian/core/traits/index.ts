@@ -1,6 +1,12 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
@@ -53,40 +59,43 @@ export function updateGuardianTraitCastState(context: GuardianCastContext, skill
   applyWritOfPersistence(context, skill);
 
   if (skill.id === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION) {
-    const field = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.symbolOfIgnition), 'buff');
-    const duration = Number(field?.duration ?? 4);
-    context.replaceEvent(context.action, {
-      comboFields: [
-        {
-          ownerId: 'guardian',
-          fieldType: 'Light',
-          duration,
-          startAnchor: 'castEnd'
-        }
-      ]
-    });
-    context.emit({
-      type: 'guardian.symbol-of-ignition-field',
-      at: context.effectiveEnd,
-      source: 'guardian',
-      sourceId: skill.id,
-      actorType: 'effect',
-      skillId: skill.id,
-      skillName: skill.name,
-      duration
-    });
+    const symbolOfIgnitionProfile = requireBalanceProfileFromContext(context, PROFILE.symbolOfIgnition);
+    const field = requireEffect(symbolOfIgnitionProfile, 'buff', 'guardian-symbol-of-ignition-field');
+    if (field) {
+      const duration = effectNumber(symbolOfIgnitionProfile, field, 'duration');
+      context.replaceEvent(context.action, {
+        comboFields: [
+          {
+            ownerId: 'guardian',
+            fieldType: 'Light',
+            duration,
+            startAnchor: 'castEnd'
+          }
+        ]
+      });
+      context.emit({
+        type: 'guardian.symbol-of-ignition-field',
+        at: context.effectiveEnd,
+        source: 'guardian',
+        sourceId: skill.id,
+        actorType: 'effect',
+        skillId: skill.id,
+        skillName: skill.name,
+        duration
+      });
+    }
   }
 
   if (skill.id === GUARDIAN_SKILL_IDS.PURGING_FLAMES) {
-    const durationMultiplier = Number(
-      balanceProfileFromContext(context, PROFILE.masterOfConsecrations)?.durationMultiplier ?? 1.4
-    );
+    const durationMultiplier = hasTrait(context, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS)
+      ? balanceProfileNumberFromContext(context, PROFILE.masterOfConsecrations, 'durationMultiplier')
+      : 1;
     context.replaceEvent(context.action, {
       comboFields: [
         {
           ownerId: 'guardian',
           fieldType: 'Fire',
-          duration: hasTrait(context, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS) ? 5 * durationMultiplier : 5,
+          duration: 5 * durationMultiplier,
           startAnchor: 'castEnd'
         }
       ]
@@ -112,14 +121,15 @@ export function handleSymbolOfIgnitionField(context: GuardianResolverContext, ev
   const state = guardianResolverState(context);
   state.symbolIgnitionStartsAt = event.at;
   // The field includes its final timestamp, matching its last pulse.
-  state.symbolIgnitionUntil = canonicalTime(event.at + Number(event.duration ?? 4));
+  state.symbolIgnitionUntil = canonicalTime(event.at + Number(event.duration));
 }
 
 // Symbol hits and projectile hits have independent ignition cooldowns. Torch pulses
 // and fire-whirl bolts also ignite, but ordinary conditions and ignition itself do not.
 export function reactToSymbolOfIgnition(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  const profile = balanceProfileFromContext(context, PROFILE.symbolOfIgnition);
-  const burning = balanceProfileEffect(profile, 'condition');
+  const symbolOfIgnitionProfile = requireBalanceProfileFromContext(context, PROFILE.symbolOfIgnition);
+  const burning = requireEffect(symbolOfIgnitionProfile, 'condition', 'Burning');
+  if (!burning) return;
   const burningBolt =
     event.type === 'condition' &&
     event.condition === 'Burning' &&
@@ -150,7 +160,7 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
   // Match gw2combat's end-of-tick cooldown removal: the deadline itself is still blocked.
   if (!isInternalCooldownReady(event.at, state[cooldownKey])) return;
 
-  state[cooldownKey] = event.at + Number(profile?.internalCooldown ?? 0.24);
+  state[cooldownKey] = event.at + balanceProfileNumber(symbolOfIgnitionProfile, 'internalCooldown');
   context.queue.enqueue(
     buildResolverCondition({
       at: event.at,
@@ -161,9 +171,9 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
       skillId: GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION,
       skillName: 'Symbol of Ignition',
       name: 'Symbol of Ignition — Ignition',
-      condition: String(burning?.condition || 'Burning'),
-      stacks: Number(burning?.stacks ?? 1),
-      duration: Number(burning?.duration ?? 1),
+      condition: String(burning.condition),
+      stacks: effectNumber(symbolOfIgnitionProfile, burning, 'stacks'),
+      duration: effectNumber(symbolOfIgnitionProfile, burning, 'duration'),
       triggeredBy: event.skillName,
       projectile
     })

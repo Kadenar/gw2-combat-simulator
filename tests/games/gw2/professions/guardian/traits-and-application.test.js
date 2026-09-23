@@ -44,7 +44,7 @@ test('Guardian planning projection uses only scheduler state and leaves combat c
   const profession = { core: state, specialization: { kind: 'Core', state: {} } };
   const context = {
     profession,
-    helpers: { skillsById: guardianCatalog.skillsById },
+    helpers: guardianCatalog,
     applyCondition() {},
     recordProc() {}
   };

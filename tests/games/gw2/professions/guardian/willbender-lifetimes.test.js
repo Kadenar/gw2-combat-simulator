@@ -1,3 +1,4 @@
+import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -142,7 +143,11 @@ test('Lethal Tempo activation and trigger grants share one deadline with buff hi
       for (const context of [scheduler, resolver]) {
         assert.equal(context.state.profession.specialization.state.lethalTempoUntil, buff.expiresAt);
         for (const snapshotAt of [buff.expiresAt, buff.expiresAt + 0.000001]) {
-          const items = willbenderUi.rotationStateSnapshot({ state: context.state, atSeconds: snapshotAt });
+          const items = willbenderUi.rotationStateSnapshot({
+            catalog: guardianCatalog,
+            state: context.state,
+            atSeconds: snapshotAt
+          });
           assert.equal(
             items.some((item) => item.id === 'willbender-lethal-tempo'),
             snapshotAt === buff.expiresAt
@@ -155,10 +160,21 @@ test('Lethal Tempo activation and trigger grants share one deadline with buff hi
 
 test('virtue snapshots include the expiry instant without showing never-activated windows', () => {
   const context = contextAt(0);
-  assert.deepEqual(willbenderUi.rotationStateSnapshot({ state: context.state, atSeconds: 0 }), []);
+  assert.deepEqual(
+    willbenderUi.rotationStateSnapshot({
+      catalog: guardianCatalog,
+      state: context.state,
+      atSeconds: 0
+    }),
+    []
+  );
   for (const [virtue] of virtues) context.state.profession.specialization.state[`${virtue}Until`] = 10;
   for (const atSeconds of [9.999999, 10, 10.000001]) {
-    const items = willbenderUi.rotationStateSnapshot({ state: context.state, atSeconds });
+    const items = willbenderUi.rotationStateSnapshot({
+      catalog: guardianCatalog,
+      state: context.state,
+      atSeconds
+    });
     assert.equal(items.length, atSeconds <= 10 ? 3 : 0);
   }
 });

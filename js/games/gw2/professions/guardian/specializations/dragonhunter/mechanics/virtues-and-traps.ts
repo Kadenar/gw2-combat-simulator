@@ -1,7 +1,12 @@
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -64,8 +69,8 @@ export const dragonhunterAttributeRules = Object.freeze({
 
 function courageInterval(context: GuardianSchedulerContext): number {
   return hasTrait(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)
-    ? Number(balanceProfileFromContext(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE)?.pulseInterval ?? 30)
-    : Number(balanceProfileFromContext(context, PROFILE.passiveCourage)?.pulseInterval ?? 40);
+    ? balanceProfileNumberFromContext(context, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE, 'pulseInterval')
+    : balanceProfileNumberFromContext(context, PROFILE.passiveCourage, 'pulseInterval');
 }
 
 // Retain the passive cadence during dormancy; zero interval disables it entirely.
@@ -74,7 +79,9 @@ const shieldOfCourage = timedEffect<GuardianSchedulerContext, object>({
   priority: -200,
   interval: courageInterval,
   effectsAt(context, at) {
-    const aegis = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.passiveCourage), 'boon');
+    const passiveCourageProfile = requireBalanceProfileFromContext(context, PROFILE.passiveCourage);
+    const aegis = requireEffect(passiveCourageProfile, 'boon', 'aegis');
+    if (!aegis) return;
     const courage = context.catalog.skillsById.get(ID.SHIELD_OF_COURAGE);
     if (!courage) return false;
     // Passive Aegis is suppressed while the virtue's cooldown hasn't expired;
@@ -90,8 +97,13 @@ const shieldOfCourage = timedEffect<GuardianSchedulerContext, object>({
         skillName: courage.name,
         name: 'Shield of Courage — Passive Aegis',
         kind: 'aegis',
-        stacks: Number(aegis?.stacks ?? 1),
-        duration: gw2SchedulerBoonDuration(context, courage, 'aegis', Number(aegis?.duration ?? 20))
+        stacks: effectNumber(passiveCourageProfile, aegis, 'stacks'),
+        duration: gw2SchedulerBoonDuration(
+          context,
+          courage,
+          'aegis',
+          effectNumber(passiveCourageProfile, aegis, 'duration')
+        )
       });
     }
   }
@@ -102,7 +114,7 @@ export function updateDragonhunterCastState(context: GuardianCastContext, skill:
     const core = professionCoreState(context);
     // Endurance is applied directly to scheduler state (not via an emit) so
     // the dodge-availability check sees it immediately on the same advance tick.
-    const endurance = Number(balanceProfileFromContext(context, PROFILE.huntersDetermination)?.resourceGain ?? 100);
+    const endurance = balanceProfileNumberFromContext(context, PROFILE.huntersDetermination, 'resourceGain');
     Object.assign(core, grantEndurance(core, endurance, context.effectiveEnd, core.maximumEndurance));
     emitGuardianProc(context, {
       name: "Hunter's Determination",
@@ -116,14 +128,16 @@ export function updateDragonhunterCastState(context: GuardianCastContext, skill:
   if (skill.categories?.includes('Trap') && hasTrait(context, GUARDIAN_TRAIT_IDS.HUNTERS_PREMONITION)) {
     // Hunter's Premonition fires on any trap cast, not just DH traps;
     // the "Trap" category tag on the skill definition is the only gate.
-    const aegis = balanceProfileEffect(balanceProfileFromContext(context, PROFILE.huntersPremonition), 'boon');
+    const huntersPremonitionProfile = requireBalanceProfileFromContext(context, PROFILE.huntersPremonition);
+    const aegis = requireEffect(huntersPremonitionProfile, 'boon', 'aegis');
+    if (!aegis) return;
     emitSkillBuff(context, skill, {
       at: context.effectiveEnd,
       source: 'guardian',
       sourceId: skill.id,
       actorType: 'player',
       kind: 'aegis',
-      duration: Number(aegis?.duration ?? 3),
+      duration: effectNumber(huntersPremonitionProfile, aegis, 'duration'),
       stacks: 1
     });
   }

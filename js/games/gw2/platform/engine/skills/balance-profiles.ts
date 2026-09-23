@@ -88,7 +88,40 @@ export function requireBalanceProfileFromContext(context: unknown, id: SkillId):
   return profile;
 }
 
-/** Semantic emission lookup returns absence only for a recorded removal, never for a typo or ambiguous key. */
+function requireEffectOwnerFromContext(
+  context: unknown,
+  ownerKind: 'skill' | 'balance-profile',
+  id: SkillId
+): Skill | BalanceProfile {
+  if (ownerKind === 'balance-profile') return requireBalanceProfileFromContext(context, id);
+  const skill = catalogFromContext(context)?.skillsById?.get(id);
+  if (!skill)
+    throw new Error(`Invalid balance data: ${balanceDataLabel(context, `skill=${id}`)} missing required skill/catalog`);
+  return skill;
+}
+
+function effectOwnerLabel(owner: Skill | BalanceProfile, context?: unknown): string {
+  const profile = 'profileKind' in owner ? (owner as BalanceProfile) : undefined;
+  return balanceDataLabel(context, `${profile ? 'balance-profile' : 'skill'}=${owner.id}`, profile);
+}
+
+/** Query an already selected owner; only recorded removals may omit a named effect. */
+export function requireEffect<TType extends SkillEffect['type']>(
+  owner: Skill | BalanceProfile,
+  type: TType,
+  name: string,
+  context?: unknown
+): SkillEffectByType<TType> | undefined {
+  const key = skillEffectKey(type, name);
+  const label = `${effectOwnerLabel(owner, context)} effect=${type}/${name}`;
+  const matches = (owner.effects || []).filter((effect) => effect.type === type && effect.name === name);
+  if (matches.length > 1) throw new Error(`Invalid balance data: ${label} duplicate effect key`);
+  if (matches.length === 1) return normalizeEffect(matches[0], label) as SkillEffectByType<TType>;
+  if (owner.removedEffectKeys?.includes(key)) return undefined;
+  throw new Error(`Invalid balance data: ${label} unknown effect key`);
+}
+
+/** Context callers resolve once, then use the same strict lookup as callers holding a profile or skill. */
 export function requireEffectFromContext<TType extends SkillEffect['type']>(
   context: unknown,
   ownerKind: 'skill' | 'balance-profile',
@@ -96,22 +129,20 @@ export function requireEffectFromContext<TType extends SkillEffect['type']>(
   type: TType,
   name: string
 ): SkillEffectByType<TType> | undefined {
-  const key = skillEffectKey(type, name);
-  const owner =
-    ownerKind === 'balance-profile'
-      ? requireBalanceProfileFromContext(context, id)
-      : catalogFromContext(context)?.skillsById?.get(id);
-  const label = balanceDataLabel(
-    context,
-    `${ownerKind}=${id} effect=${type}/${name}`,
-    ownerKind === 'balance-profile' ? (owner as BalanceProfile) : undefined
+  return requireEffect(requireEffectOwnerFromContext(context, ownerKind, id), type, name, context);
+}
+
+/** Validate a surviving effect's field without looking up its owner again; context only supplies diagnostics. */
+export function effectNumber(
+  owner: Skill | BalanceProfile,
+  effect: SkillEffect,
+  field: string,
+  context?: unknown
+): number {
+  return requireBalanceNumber(
+    effect[field],
+    `${effectOwnerLabel(owner, context)} effect=${effect.type}/${effect.name ?? '<unnamed>'} field=${field}`
   );
-  if (!owner) throw new Error(`Invalid balance data: ${label} missing required skill/catalog`);
-  const matches = (owner.effects || []).filter((effect) => effect.type === type && effect.name === name);
-  if (matches.length > 1) throw new Error(`Invalid balance data: ${label} duplicate effect key`);
-  if (matches.length === 1) return normalizeEffect(matches[0], label) as SkillEffectByType<TType>;
-  if (owner.removedEffectKeys?.includes(key)) return undefined;
-  throw new Error(`Invalid balance data: ${label} unknown effect key`);
 }
 
 /** Read a required field only after resolving a surviving effect, retaining owner and patch diagnostics. */
@@ -122,14 +153,7 @@ export function effectNumberFromContext(
   effect: SkillEffect,
   field: string
 ): number {
-  return requireBalanceNumber(
-    effect[field],
-    balanceDataLabel(
-      context,
-      `${ownerKind}=${id} effect=${effect.type}/${effect.name ?? '<unnamed>'} field=${field}`,
-      ownerKind === 'balance-profile' ? balanceProfileFromContext(context, id) : undefined
-    )
-  );
+  return effectNumber(requireEffectOwnerFromContext(context, ownerKind, id), effect, field, context);
 }
 
 /** Returns the requested matching effect in declaration order without allocating or scanning past it. */
@@ -175,9 +199,16 @@ export function balanceProfileValueFromContext(context: unknown, id: SkillId, fi
 }
 
 /** Required balance inputs fail visibly instead of silently using unpatched values or producing NaN. */
+export function balanceProfileNumber(profile: BalanceProfile, field: string, context?: unknown): number {
+  return requireBalanceNumber(
+    profile[field],
+    balanceDataLabel(context, `profile=${profile.id} field=${field}`, profile)
+  );
+}
+
+/** Resolve the selected profile before validating its required numeric field. */
 export function balanceProfileNumberFromContext(context: unknown, id: SkillId, field: string): number {
-  const profile = requireBalanceProfileFromContext(context, id);
-  return requireBalanceNumber(profile[field], balanceDataLabel(context, `profile=${id} field=${field}`, profile));
+  return balanceProfileNumber(requireBalanceProfileFromContext(context, id), field, context);
 }
 
 /** Read one opt-in proc chance for scheduler and resolver paths while retaining profession-owned eligibility and ICDs. */

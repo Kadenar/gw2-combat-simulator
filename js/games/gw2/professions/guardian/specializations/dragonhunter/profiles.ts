@@ -23,6 +23,7 @@ export const DRAGONHUNTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     effects: [
       {
         type: 'condition',
+        name: 'Burning',
         condition: 'Burning',
         stacks: 1,
         duration: 2,
@@ -30,6 +31,7 @@ export const DRAGONHUNTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
       },
       {
         type: 'condition',
+        name: 'Crippled (passive)',
         condition: 'Crippled',
         stacks: 1,
         duration: 1.5,
@@ -40,9 +42,10 @@ export const DRAGONHUNTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
   },
   trait(DRAGONHUNTER_BALANCE_PROFILE_IDS.soaringDevastation, 'Soaring Devastation', {
     effects: [
-      { type: 'strike', coefficient: 1.5, hits: 1 },
+      { type: 'strike', name: 'Strike', coefficient: 1.5, hits: 1 },
       {
         type: 'condition',
+        name: 'Immobilized',
         condition: 'Immobilized',
         stacks: 1,
         duration: 3
@@ -54,6 +57,7 @@ export const DRAGONHUNTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     effects: [
       {
         type: 'condition',
+        name: 'Vulnerability',
         condition: 'Vulnerability',
         stacks: 1,
         duration: 10
@@ -62,19 +66,20 @@ export const DRAGONHUNTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
   }),
   trait(DRAGONHUNTER_BALANCE_PROFILE_IDS.huntersDetermination, "Hunter's Determination", { resourceGain: 100 }),
   trait(DRAGONHUNTER_BALANCE_PROFILE_IDS.huntersPremonition, "Hunter's Premonition", {
-    effects: [{ type: 'boon', boon: 'aegis', stacks: 1, duration: 3 }]
+    effects: [{ type: 'boon', name: 'aegis', boon: 'aegis', stacks: 1, duration: 3 }]
   }),
   {
     id: DRAGONHUNTER_BALANCE_PROFILE_IDS.passiveCourage,
     name: 'Shield of Courage - Passive',
     profileKind: 'mechanic',
     pulseInterval: 40,
-    effects: [{ type: 'boon', boon: 'aegis', stacks: 1, duration: 20 }]
+    effects: [{ type: 'boon', name: 'aegis', boon: 'aegis', stacks: 1, duration: 20 }]
   },
   trait(DRAGONHUNTER_BALANCE_PROFILE_IDS.dulledSenses, 'Dulled Senses', {
     effects: [
       {
         type: 'condition',
+        name: 'Crippled',
         condition: 'Crippled',
         stacks: 1,
         duration: 4
@@ -85,6 +90,6 @@ export const DRAGONHUNTER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
   trait(TRAIT.DEFENDERS_DOGMA, "Defender's Dogma", { attributeBonus: 180 }),
   trait(DRAGONHUNTER_BALANCE_PROFILE_IDS.heavyLight, 'Heavy Light', {
     internalCooldown: 1,
-    effects: [{ type: 'boon', boon: 'stability', stacks: 1, duration: 6 }]
+    effects: [{ type: 'boon', name: 'stability', boon: 'stability', stacks: 1, duration: 6 }]
   })
 ]);

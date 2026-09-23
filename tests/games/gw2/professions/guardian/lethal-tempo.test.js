@@ -11,8 +11,14 @@ import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.
 test('Lethal Tempo uses patched caps and trait windows without sharing phase state', () => {
   const catalog = {
     balanceProfilesById: new Map([
-      [PROFILE.lethalTempo, { maximumStacks: 2, effects: [{ type: 'buff', duration: 9 }] }],
-      [PROFILE.tyrantsMomentum, { effects: [{ type: 'buff', duration: 3 }] }]
+      [
+        PROFILE.lethalTempo,
+        { maximumStacks: 2, effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', duration: 9 }] }
+      ],
+      [
+        PROFILE.tyrantsMomentum,
+        { effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', duration: 3 }] }
+      ]
     ])
   };
   for (const [traits, duration] of [

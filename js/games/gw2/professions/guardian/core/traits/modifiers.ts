@@ -1,7 +1,4 @@
-import {
-  balanceProfileFromContext,
-  balanceProfileNumberFromContext
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { balanceProfileNumberFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { attributeProvenance } from '#gw2/platform/builds/attribute-provenance.js';
@@ -308,15 +305,15 @@ function modifyGuardianRechargeDuration(context: GuardianSkillModifierContext, d
   const skill = context.skill;
   let result = duration;
   if (skill?.weapon === 'Greatsword' && hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE)) {
-    result *= Number(balanceProfileFromContext(context, PROFILE.zealousBlade)?.rechargeMultiplier ?? 0.8);
+    result *= balanceProfileNumberFromContext(context, PROFILE.zealousBlade, 'rechargeMultiplier');
   }
 
   if (skill?.weapon === 'Torch' && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)) {
-    result *= Number(balanceProfileFromContext(context, PROFILE.radiantFire)?.rechargeMultiplier ?? 0.8);
+    result *= balanceProfileNumberFromContext(context, PROFILE.radiantFire, 'rechargeMultiplier');
   }
 
   if (skill?.weapon === 'Focus' && hasTrait(context, GUARDIAN_TRAIT_IDS.FOCUS_MASTERY)) {
-    result *= Number(balanceProfileFromContext(context, PROFILE.focusMastery)?.rechargeMultiplier ?? 0.8);
+    result *= balanceProfileNumberFromContext(context, PROFILE.focusMastery, 'rechargeMultiplier');
   }
 
   if (
@@ -324,7 +321,7 @@ function modifyGuardianRechargeDuration(context: GuardianSkillModifierContext, d
     /^Profession_[1-3]$/.test(String(skill.slot || '')) &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS)
   ) {
-    result *= Number(balanceProfileFromContext(context, PROFILE.powerOfTheVirtuous)?.rechargeMultiplier ?? 0.85);
+    result *= balanceProfileNumberFromContext(context, PROFILE.powerOfTheVirtuous, 'rechargeMultiplier');
   }
 
   return result;
@@ -333,11 +330,11 @@ function modifyGuardianRechargeDuration(context: GuardianSkillModifierContext, d
 function modifyGuardianMaximumAmmo(context: GuardianSkillModifierContext, maximum: number): number {
   let result = maximum;
   if (context.skill?.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)) {
-    result = Math.max(result, Number(balanceProfileFromContext(context, PROFILE.radiantFire)?.maximumStacks ?? 2));
+    result = Math.max(result, balanceProfileNumberFromContext(context, PROFILE.radiantFire, 'maximumStacks'));
   }
 
   if (context.skill?.categories?.includes('SpiritWeapon') && hasTrait(context, GUARDIAN_TRAIT_IDS.ETERNAL_ARMORY)) {
-    result += Number(balanceProfileFromContext(context, PROFILE.eternalArmory)?.resourceGain ?? 1);
+    result += balanceProfileNumberFromContext(context, PROFILE.eternalArmory, 'resourceGain');
   }
 
   return result;
@@ -353,14 +350,14 @@ function modifyGuardianConditionBaseDuration(context: Gw2ModifierContext, durati
       context.event?.skillId === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME) &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)
   ) {
-    result *= Number(balanceProfileFromContext(context, PROFILE.radiantFire)?.durationMultiplier ?? 1.5);
+    result *= balanceProfileNumberFromContext(context, PROFILE.radiantFire, 'durationMultiplier');
   }
 
   if (
     (context.sourceId === 'guardian.justice-passive' || context.event?.sourceId === 'guardian.justice-passive') &&
     hasTrait(context, GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH)
   ) {
-    result *= Number(balanceProfileFromContext(context, PROFILE.amplifiedWrath)?.durationMultiplier ?? 1.2);
+    result *= balanceProfileNumberFromContext(context, PROFILE.amplifiedWrath, 'durationMultiplier');
   }
 
   return result;

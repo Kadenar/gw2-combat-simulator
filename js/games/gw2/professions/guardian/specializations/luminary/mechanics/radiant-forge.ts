@@ -1,6 +1,11 @@
 import { consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
-import { balanceProfileFromContext, balanceProfileEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import {
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber,
+  balanceProfileNumberFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -151,13 +156,13 @@ function radiantForge(context: GuardianCastContext, skill: GuardianSkill): void 
     return;
   }
 
+  const forgeProfile = requireBalanceProfileFromContext(context, PROFILE.forge);
+  const window = requireEffect(forgeProfile, 'buff', 'radiant-forge');
+  if (!window) return;
   const state = luminaryState.from(context);
   state.radiantForge = true;
   // Forge is an exact form window; automatic exit must not run before this deadline.
-  state.radiantForgeEndsAt = canonicalTime(
-    context.effectiveEnd +
-      Number(balanceProfileEffect(balanceProfileFromContext(context, PROFILE.forge), 'buff')?.duration ?? 20)
-  );
+  state.radiantForgeEndsAt = canonicalTime(context.effectiveEnd + effectNumber(forgeProfile, window, 'duration'));
   state.radiantForgeEnteredAt = context.effectiveEnd;
   state.radiantWeapon = '';
   state.glaringBurstSwordSlow = false;
@@ -240,28 +245,33 @@ export function handleRadiantHammerImpact(
   if (!state.radiantJusticeArmed) return;
   state.radiantJusticeArmed = false;
   const skill = context.catalog.skillsById.get(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER)!;
-  const profile = balanceProfileFromContext(context, PROFILE.radiantJusticeImpact);
-  const strike = balanceProfileEffect(profile, 'strike');
-  const vulnerability = balanceProfileEffect(profile, 'condition');
-  const at = task.at + Number(strike?.atMs ?? 760) / 1000;
-  context.emit(
-    buildGuardianStrike({
-      at,
-      sourceId: skill.id,
-      skillId: skill.id,
-      skillName: skill.name,
-      name: 'Dazzling Hammer — Radiant Justice Impact',
-      coefficient: Number(strike?.coefficient ?? 1.5)
-    })
-  );
-  emitSkillCondition(context, {
-    skill,
-    at,
-    actorType: 'effect',
-    condition: 'Vulnerability',
-    stacks: Number(vulnerability?.stacks ?? 8),
-    duration: Number(vulnerability?.duration ?? 8)
-  });
+
+  const radiantJusticeImpactProfile = requireBalanceProfileFromContext(context, PROFILE.radiantJusticeImpact);
+  const strike = requireEffect(radiantJusticeImpactProfile, 'strike', 'Strike');
+  const vulnerability = requireEffect(radiantJusticeImpactProfile, 'condition', 'Vulnerability');
+  if (strike) {
+    const at = task.at + effectNumber(radiantJusticeImpactProfile, strike, 'atMs') / 1000;
+    context.emit(
+      buildGuardianStrike({
+        at,
+        sourceId: skill.id,
+        skillId: skill.id,
+        skillName: skill.name,
+        name: 'Dazzling Hammer — Radiant Justice Impact',
+        coefficient: effectNumber(radiantJusticeImpactProfile, strike, 'coefficient')
+      })
+    );
+  }
+  if (vulnerability) {
+    emitSkillCondition(context, {
+      skill,
+      at: task.at + effectNumber(radiantJusticeImpactProfile, vulnerability, 'atMs') / 1000,
+      actorType: 'effect',
+      condition: 'Vulnerability',
+      stacks: effectNumber(radiantJusticeImpactProfile, vulnerability, 'stacks'),
+      duration: effectNumber(radiantJusticeImpactProfile, vulnerability, 'duration')
+    });
+  }
 }
 
 /**
@@ -281,10 +291,9 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
       : radiantWeapon === 'blade'
         ? PROFILE.glaringBurstBlade
         : null;
-  const coefficient = Number(
-    balanceProfileEffect(profileId ? balanceProfileFromContext(context, profileId) : undefined, 'strike')
-      ?.coefficient || 0
-  );
+  // Support variants have no replacement strike profile; only resolve the selected damage variant.
+  const strikeProfile = profileId === null ? undefined : requireBalanceProfileFromContext(context, profileId);
+  const strike = strikeProfile ? requireEffect(strikeProfile, 'strike', 'Strike') : undefined;
   const runtimeCastMs = (context.fullEnd - context.start) * 1000;
   // The linked sword trace lands its fast/slow packets at 360/440 ms; other variants retain the measured 480 ms path.
   const impactMs =
@@ -294,25 +303,21 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
   const impactAt = context.start + impactMs / 1000;
   // Support variants grant their weapon-specific boon at the burst's impact.
   if (radiantWeapon === 'staff' || radiantWeapon === 'bulwark') {
-    const boon = balanceProfileEffect(
-      balanceProfileFromContext(
-        context,
-        radiantWeapon === 'staff' ? PROFILE.glaringBurstStaff : PROFILE.glaringBurstBulwark
-      ),
-      'boon'
-    );
-    if (!boon?.boon) throw new Error('Missing Glaring Burst support profile');
-    emitSkillBuff(context, skill, {
-      at: impactAt,
-      kind: boon.boon,
-      duration: boon.duration,
-      stacks: boon.stacks,
-      audience: boon.audience
-    });
+    const boonId = radiantWeapon === 'staff' ? PROFILE.glaringBurstStaff : PROFILE.glaringBurstBulwark;
+    const boonProfile = requireBalanceProfileFromContext(context, boonId);
+    const boon = requireEffect(boonProfile, 'boon', radiantWeapon === 'staff' ? 'regeneration' : 'resolution');
+    if (boon)
+      emitSkillBuff(context, skill, {
+        at: impactAt,
+        kind: String(boon.boon),
+        duration: boon.duration,
+        stacks: boon.stacks,
+        audience: boon.audience
+      });
   }
 
   if (radiantWeapon === 'blade') state.glaringBurstSwordSlow = !swordSlow;
-  if (coefficient > 0) {
+  if (strike && strikeProfile) {
     context.emit(
       buildGuardianStrike({
         at: impactAt,
@@ -320,25 +325,22 @@ function glaringBurst(context: GuardianCastContext, skill: GuardianSkill): void 
         skillId: skill.id,
         skillName: skill.name,
         name: skill.name,
-        coefficient,
+        coefficient: effectNumber(strikeProfile, strike, 'coefficient'),
         metadata: { radiantWeapon }
       })
     );
   }
 
   // Apply vulnerability after the simultaneous strike so it affects later attacks, not its own packet.
-  const vulnerability = balanceProfileEffect(
-    balanceProfileFromContext(context, PROFILE.glaringBurstVulnerability),
-    'condition'
-  );
-  if (!vulnerability?.condition || vulnerability.stacks == null || vulnerability.duration == null)
-    throw new Error('Missing Glaring Burst vulnerability profile');
+  const glaringBurstVulnerabilityProfile = requireBalanceProfileFromContext(context, PROFILE.glaringBurstVulnerability);
+  const vulnerability = requireEffect(glaringBurstVulnerabilityProfile, 'condition', 'Vulnerability');
+  if (!vulnerability) return;
   emitSkillCondition(context, {
     skill,
     at: impactAt,
-    condition: vulnerability.condition,
-    stacks: vulnerability.stacks,
-    duration: vulnerability.duration
+    condition: String(vulnerability.condition),
+    stacks: effectNumber(glaringBurstVulnerabilityProfile, vulnerability, 'stacks'),
+    duration: effectNumber(glaringBurstVulnerabilityProfile, vulnerability, 'duration')
   });
 }
 
@@ -359,9 +361,12 @@ function finalizeRadiantForgeCooldown(context: GuardianSchedulerContext, at: num
   const used = Object.keys(state.radiantWeaponsUsed || {}).filter((weapon) =>
     ['hammer', 'staff', 'blade', 'bulwark'].includes(weapon)
   ).length;
-  const forge = balanceProfileFromContext(context, PROFILE.forge);
+
   const baseRecharge = Math.max(0, Number(enter.cooldown ?? enter.recharge ?? 10));
-  const adjustedBase = Math.max(0, baseRecharge - (used <= 1 ? Number(forge?.rechargeReduction ?? 5) : 0));
+  const adjustedBase = Math.max(
+    0,
+    baseRecharge - (used <= 1 ? balanceProfileNumberFromContext(context, PROFILE.forge, 'rechargeReduction') : 0)
+  );
   // Preserve the ratio of effective-to-base recharge so alacrity/recharge
   // traits still apply proportionally to the adjusted cooldown.
   const fullEffective = context.rechargeDurationFor(enter, at);
