@@ -140,47 +140,14 @@ function modifyRechargeDuration(context: WarriorSchedulerContext & { skill?: War
 }
 
 const DUAL_WIELD_OFFHANDS = new Set(['Axe', 'Dagger', 'Mace', 'Sword']);
-const DUAL_WIELDING_EXCLUDED_SKILL_IDS = new Set<number>([
-  ID.EVISCERATE,
-  ID.AURA_SLICER,
-  ID.KICK,
-  ID.BULLS_CHARGE,
-  ID.BREACHING_STRIKE
-]);
-/** GW2 completes cast durations on 40 ms action-tick boundaries. */
-const ACTION_TICK_MS = 40;
-
-// Dual Wielding increases attack speed by 25%, so cast duration is divided by
-// 1.25. The tick snap must happen once, on the final duration: the game applies
-// every attack-speed modifier (Quickness included) and only then rounds to the
-// nearest action tick. Rounding the Quickness duration first — as the shared
-// scheduler does — then dividing here would double-round and run long.
-function roundToActionTick(durationSeconds: number): number {
-  return (Math.round((durationSeconds * 1000) / ACTION_TICK_MS) * ACTION_TICK_MS) / 1000;
-}
 
 function modifyCastDuration(context: WarriorCastContext, duration: number): number {
-  const skill = context.skill;
+  // Only measured Dual Wielding timings replace the Quickness-calibrated cast duration.
+  const measured = Number(context.skill.dualWieldCastTimeMs);
+  if (!(measured > 0)) return duration;
   const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
   const offhand = String(gw2ConfiguredWeaponSet(context.config, weaponSet)[1] || '');
-  const measured = Number(skill.dualWieldCastTimeMs || 0);
-  const dualWielding =
-    hasTrait(context, TRAIT.DUAL_WIELDING) &&
-    DUAL_WIELD_OFFHANDS.has(offhand) &&
-    !DUAL_WIELDING_EXCLUDED_SKILL_IDS.has(Number(skill.id)) &&
-    (skill.type === 'Weapon' ||
-      skill.type === 'Utility' ||
-      Boolean(skill.weapon) ||
-      Boolean(skill.burst) ||
-      measured > 0);
-  if (!dualWielding) return duration;
-  // A measured Dual Wielding cast (captured under Quickness) is used verbatim;
-  // the 1.25 divide is only a fallback for skills without a measured value.
-  if (measured > 0 && context.hasBuff('quickness', context.start)) {
-    return measured / 1000;
-  }
-
-  return roundToActionTick(duration / 1.25);
+  return hasTrait(context, TRAIT.DUAL_WIELDING) && DUAL_WIELD_OFFHANDS.has(offhand) ? measured / 1000 : duration;
 }
 
 export const warriorCoreAttributeRules = Object.freeze({

@@ -231,8 +231,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.BULLS_CHARGE]: {
-    // Bull's Charge is a fixed 640 ms cast: unaffected by Quickness and, per the
-    // exclusion set below, by Dual Wielding.
+    // Bull's Charge keeps its fixed 640 ms cast and has no measured Dual Wielding variant.
     castTimeMs: 640,
 
     comboFinishers: [

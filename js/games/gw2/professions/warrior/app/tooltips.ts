@@ -610,7 +610,7 @@ export const warriorTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.DUAL_WIELDING]: traitTooltip(
-      'Eligible skills cast faster when dual wielding. The simulator uses measured skill timings where supplied; weapon and skill exclusions still apply.'
+      'Skills with measured Dual Wielding timings cast faster while using an eligible offhand weapon.'
     ),
     [TRAIT.VERSATILE_RAGE]: traitTooltip('Weapon swapping grants adrenaline.', (balanceContext, id) => [
       profileFact(balanceContext, id, 'resourceGain', 'Adrenaline per weapon swap')

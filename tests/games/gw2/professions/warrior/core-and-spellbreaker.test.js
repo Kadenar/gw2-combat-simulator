@@ -67,6 +67,24 @@ const applyWarriorPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(wa
 
 const authoringWarriorProfession = withActivePatchPreview(warriorProfession);
 
+test('Dual Wielding uses only measured cast durations with an eligible offhand', () => {
+  // The trait changes a measured skill's scheduled cast while unmeasured skills retain their authored timing.
+  const duration = (skillId, overrides = {}) => {
+    const result = simulate('Core', [skillId], {
+      primaryWeapon: 'Axe',
+      secondaryWeapon: 'Axe',
+      selectedTraitIds: [TRAIT.DUAL_WIELDING],
+      ...overrides
+    });
+    return result.steps[0].end - result.steps[0].start;
+  };
+
+  assert.equal(duration(ID.THROW_AXE), 240);
+  assert.equal(duration(ID.KICK), 842);
+  assert.equal(duration(ID.THROW_AXE, { secondaryWeapon: undefined }), 360);
+  assert.equal(duration(ID.THROW_AXE, { selectedTraitIds: [] }), 360);
+});
+
 test('Warrior catalog normalizes authored skills and reviewed aliases', () => {
   assert.equal(warriorCatalog.skillsById.get(ID.WEAPON_STOW).name, 'Weapon Stow');
   // Catalog normalization preserves the authored icon; browser tests verify Vite resolves the artwork.

@@ -41,11 +41,8 @@ export interface WarriorRuntimeState {
 
 export interface WarriorSkill extends Skill {
   /**
-   * Measured cast duration (ms) while Dual Wielding, snapshotted under the
-   * benchmark's Quickness. Used verbatim by the cast-duration hook instead of
-   * scaling `castTimeMs` by 1.25, because the game rounds each buff
-   * combination from the base independently and the rounded Quickness value
-   * cannot reproduce it.
+   * Measured cast duration (ms) while Dual Wielding and Quickness are active.
+   * Only skills with this value receive a Dual Wielding cast-time adjustment.
    */
   readonly dualWieldCastTimeMs?: number;
   readonly adrenalineCost?: number;
