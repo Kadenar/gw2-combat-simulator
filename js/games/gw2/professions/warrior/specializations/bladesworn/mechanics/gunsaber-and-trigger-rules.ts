@@ -29,6 +29,7 @@ import {
   advanceBladesworn,
   bladeswornSkillMechanicHandlers,
   completeBladeswornSkill,
+  exitDragonTriggerForCastBar,
   observeBladeswornEvent,
   trackBladeswornAmmoCast
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger.js';
@@ -78,6 +79,11 @@ export const bladeswornSchedulerHooks = Object.freeze({
     id: 'warrior.bladesworn-ammo-cast',
     order: 20,
     handler: trackBladeswornAmmoCast
+  },
+  onCastStart: {
+    id: 'warrior.bladesworn-cast-bar-exits-trigger',
+    order: 20,
+    handler: exitDragonTriggerForCastBar
   },
   onCastComplete: {
     id: 'warrior.bladesworn-state',

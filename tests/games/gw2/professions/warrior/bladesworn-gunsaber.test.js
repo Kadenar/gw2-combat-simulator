@@ -87,6 +87,17 @@ test('Dragon Trigger starts Unsheathe recharge only when entering from normal we
   }
 });
 
+// Dragon Trigger only allows instant casts; a cast bar drops back to plain Gunsaber, so the slash cannot follow.
+test('casting a skill with a cast bar exits Dragon Trigger', () => {
+  const result = simulate(['__combat_start', ID.DRAGON_TRIGGER, ID.MENDING, ID.DRAGON_SLASH_FORCE]);
+  const slash = result.steps.find((step) => step.ri === 3);
+
+  assert.equal(result.steps.find((step) => step.ri === 2).invalid, undefined);
+  assert.equal(slash.invalid, true);
+  assert.match(slash.invalidReason, /Enter Dragon Trigger/);
+  assert.equal(result.planningState.profession.gunsaberActive, true);
+});
+
 test('Gunsaber swaps and Dragon Trigger entry leave both swap actions ready before combat', () => {
   // Both implicit setup and an explicit future combat marker allow unrestricted bar preparation.
   for (const suffix of [[], ['__combat_start']]) {

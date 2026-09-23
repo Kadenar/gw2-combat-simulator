@@ -2,6 +2,7 @@ import { mountFloatingEditor, type FloatingEditorHandle } from '#ui/rotation/edi
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 
 export interface ChargeReleaseEditorRow {
   readonly charges: number;
@@ -19,6 +20,8 @@ export interface ChargeReleaseEditorOptions {
   readonly icon?: string;
   readonly currentReleaseAtCharges?: number | null;
   readonly rows: readonly ChargeReleaseEditorRow[];
+  /** Simulation time (ms) of the combat-start marker; row times display relative to it like the timeline. */
+  readonly combatReferenceMs?: number;
   readonly unavailableMessage?: string;
   readonly onApply: (releaseAtCharges: number | undefined) => void;
 }
@@ -27,10 +30,11 @@ function seconds(value: number): string {
   return `${value.toFixed(3)}s`;
 }
 
-export function chargeReleaseRowLabel(row: ChargeReleaseEditorRow): string {
+// Release times use the timeline's combat-relative clock so a row matches the slash label it will produce.
+export function chargeReleaseRowLabel(row: ChargeReleaseEditorRow, combatReferenceMs = 0): string {
   const flow = row.flowAfter == null ? '—' : row.flowAfter.toFixed(2);
   return (
-    `${row.charges} charges · ${seconds(row.at)} (+${seconds(row.delta)}) · ` +
+    `${row.charges} charges · ${formatTimelineTime(row.at * 1000, combatReferenceMs, 3)} (+${seconds(row.delta)}) · ` +
     `${flow} Flow · ${row.coefficient.toFixed(2)} coefficient`
   );
 }
@@ -102,7 +106,7 @@ export function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): Fl
   for (const row of options.rows) {
     addChoice(
       String(row.charges),
-      chargeReleaseRowLabel(row),
+      chargeReleaseRowLabel(row, options.combatReferenceMs),
       currentAvailable && row.charges === current,
       Boolean(row.disabled),
       row.reason || ''
@@ -186,6 +190,7 @@ export function openDragonSlashReleaseEditor(options: {
     icon: options.skill.icon || undefined,
     currentReleaseAtCharges: options.currentReleaseAtCharges,
     rows: editorRows(projection.rows),
+    combatReferenceMs: resultCombatReferenceMs(options.app.results),
     unavailableMessage: String(projection.unavailableMessage || ''),
     onApply: options.onApply
   });

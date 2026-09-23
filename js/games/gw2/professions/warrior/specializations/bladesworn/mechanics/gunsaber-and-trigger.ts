@@ -5,7 +5,7 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
-import { canonicalTime } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { recordBladeswornAmmoSpend } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/ammunition.js';
 import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
@@ -559,6 +559,14 @@ export function trackBladeswornAmmoCast(context: WarriorCastContext, skill: Warr
       context.ammo && context.ammo.charges >= context.ammo.maximum
     );
   }
+}
+
+// Dragon Trigger only allows instant casts while charging. A skill with a cast bar drops back to plain Gunsaber
+// without releasing a slash, so the stance ends (and starts recharging) when that cast begins.
+export function exitDragonTriggerForCastBar(context: WarriorCastContext, skill: WarriorSkill): void {
+  if (!bladeswornState.from(context).dragonTriggerActive || skill.dragonSlash) return;
+  if (context.fullEnd - context.start <= EPSILON) return;
+  exitDragonTrigger(context, context.start);
 }
 
 // Commit Flow gains and activation-scoped ammo traits, then clear bookkeeping and
