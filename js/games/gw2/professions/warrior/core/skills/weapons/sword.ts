@@ -45,8 +45,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.GASH]: {
-    // Gash occupies the default cast lane for 560 ms, including retained aftercast.
-    castTimeMs: 560,
+    castTimeMs: 520,
     dualWieldCastTimeMs: 360,
     interruptCommitMs: 360,
     retainsCastLockoutAfterInterrupt: true,
