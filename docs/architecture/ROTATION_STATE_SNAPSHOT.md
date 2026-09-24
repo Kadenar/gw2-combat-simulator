@@ -45,9 +45,9 @@ The shared `templates/profession.html` page template includes it for every nativ
 
 ## How the snapshot gets its state
 
-`planningState` is a scheduler prediction at `atSeconds`, independent of target death. Its profession projection
-does not receive resolver state. Resolved effects belong to `combatState.profession` at `combatState.atSeconds`;
-never overlay those effects onto a later planning snapshot. These projections are not resumable checkpoints.
+`planningState` is a scheduler prediction at `atSeconds`, independent of target death. Its profession projection does
+not receive resolver state. Resolved effects belong to `combatState.profession` at `combatState.atSeconds`; never
+overlay those effects onto a later planning snapshot. These projections are not resumable checkpoints.
 
 The snapshot model and renderer live in:
 
@@ -56,12 +56,12 @@ js/games/gw2/app/rotation/state-snapshot/model.ts
 js/games/gw2/app/rotation/state-snapshot/view.ts
 ```
 
-The model uses `palettePlanningState(app)` to obtain the state associated with the current rotation position. The view only
-renders that prepared snapshot.
+The model uses `palettePlanningState(app)` to obtain the state associated with the current rotation position. The view
+only renders that prepared snapshot.
 
 At the end of the rotation, the existing simulation result is reused unless it includes an observation tail. In that
-case, `rotationPlanningStateAt()` obtains the rotation-end checkpoint so the palette and snapshot do not inspect the tail
-end.
+case, `rotationPlanningStateAt()` obtains the rotation-end checkpoint so the palette and snapshot do not inspect the
+tail end.
 
 At an insertion point, the application evaluates the rotation prefix up to that insertion index through
 `rotationPlanningStateAt()`. That checkpoint is cached and shared with other insertion-aware UI such as cooldown and
@@ -247,7 +247,7 @@ A profession may intentionally expose only selected state fields.
 For example, Warrior projects a whitelist through:
 
 ```text
-js/games/gw2/professions/warrior/state.ts
+js/games/gw2/professions/warrior/family-state.ts
 ```
 
 using:
@@ -280,31 +280,26 @@ The relevant profession or specialization state should define and initialize it:
 The simulation mechanics must update it when appropriate:
 
 ```ts
-state.battleFocusUntil = context.time + 5;
+state.battleFocusUntil = context.state.time + 5;
 ```
 
 Do not add a snapshot-only shadow copy of state that the simulator does not use.
 
 ### 2. Expose it through the end-state projection
 
-Add the key to the owning slice's public-key list (for example, `BERSERKER_PUBLIC_END_STATE_KEYS` in
-`specializations/berserker/state.ts`). The family-level `WARRIOR_PUBLIC_END_STATE_KEYS` aggregates those lists:
+Add the field and its inactive default to the owning slice's projection (for example,
+`BERSERKER_PUBLIC_STATE_PROJECTION` in `specializations/berserker/state.ts`):
 
 ```ts
-export const BERSERKER_PUBLIC_END_STATE_KEYS = Object.freeze([
-  // ...
-  'battleFocusUntil'
-]);
-```
-
-If the projection requires inactive defaults, add one to the same slice's defaults, which the family also aggregates:
-
-```ts
-export const BERSERKER_PUBLIC_END_STATE_DEFAULTS = Object.freeze({
+export const BERSERKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   // ...
   battleFocusUntil: 0
-});
+} satisfies Partial<BerserkerState>);
 ```
+
+`definePublicStateDefaults()` comes from `#gw2/platform/engine/profession/state.js`. Warrior's `family-state.ts`
+combines the slice projections with `composePublicStateProjections()` and derives `WARRIOR_PUBLIC_END_STATE_KEYS` from
+the combined projection. There is no separate per-slice key list to maintain.
 
 Now the value can reach:
 
@@ -517,7 +512,7 @@ The shared `rotationStateSnapshot()` function already receives the insertion-awa
 
 ```ts
 const state = palettePlanningState(app);
-const timeMs = Number(state?.time || 0);
+const timeMs = Number(state?.atSeconds || 0) * 1000;
 ```
 
 For example, to expose the currently active weapon set globally:
@@ -681,7 +676,7 @@ Example:
 
 ```js
 const RESULT = {
-  events: [
+  resolvedEvents: [
     {
       type: 'buff',
       kind: 'example-buff',

@@ -254,7 +254,7 @@ export function onResolvedCriticalHit<
       // Professions own deadlines; both modes consume the canonical seeded critical outcome.
       const state = options.internalCooldown ? { readyAt: options.internalCooldown.readyAt(context) } : undefined;
       const application = advanceCriticalProc(
-        criticalOpportunity(criticalChance, details.hitContext?.critical?.didCrit ?? undefined),
+        criticalOpportunity(criticalChance, details.hitContext?.critical?.didCrit),
         {
           id: options.id,
           at: event.at,

@@ -421,7 +421,6 @@ export function createGw2ComboMaterializer(
       if (event.type !== 'combo_finisher') return;
       // Precombat combos still grant setup effects; the resolver gates their enemy-facing outcomes.
       const combos = resolveComboAttempt(state, event as ComboFinisherEvent, {
-        stochastic: random.stochastic,
         roll: random.roll,
         warn(message) {
           context.warnings.push(message);

@@ -1,7 +1,7 @@
 # Mesmer
 
-Native shared-engine profession. Entry point `mesmer.html`. `definition.ts` composes the Core-first tuple from
-`modules.ts`; a runtime contains Core plus at most one of Chronomancer, Mirage, Virtuoso, or Troubadour. Core owns the
+Native shared-engine profession. Entry point `mesmer.html`. `profession.ts` composes the Core-first tuple from
+`catalog.ts`; a runtime contains Core plus at most one of Chronomancer, Mirage, Virtuoso, or Troubadour. Core owns the
 shared shatter, phantasm, clone, weapon, and trait behavior; each specialization owns a vertical slice under
 `specializations/<name>/`.
 
@@ -26,14 +26,15 @@ rotations are resolved at the build-migration boundary.
 - **Core** — weapon sets with a ten-second in-combat swap recharge (none out of combat), clone/phantasm/shatter
   mechanics, ID-keyed phantasm timing, and profession-specific resolver reactions such as Ineptitude.
 - **Chronomancer** — Continuum Split (restores cooldown state but not clones) and its shatter/alacrity behavior.
-- **Mirage** — Mirage Cloak dodge charges and ambush attacks.
+- **Mirage** — a continuous endurance pool, Mirage Cloak dodges, and ambush attacks.
 - **Virtuoso** — bladesongs that require and spend all stocked blades, Jagged Mind bleeding, and Bloodsong blade gains.
 - **Troubadour** — instruments resource, Crescendo, Dagger, and its dodge/ ambush interactions.
 
 ## Modeling boundaries
 
-Single-target, outgoing-damage focused. Phantasm and clone travel time uses fixed delays. Deterministic mode uses
-expected critical-condition applications; stochastic mode consumes the shared sampled critical-hit facts. Bloodsong
-grants blades at each five-stack bleeding-application threshold. Ally healing, barriers, control damage, stealth, and
-defensive effects stay outside the damage total; boon/distortion applications are still emitted. Full endurance is not
-simulated (only Mirage/Troubadour dodge charges). Competitive (PvP/WvW) splits are out of model.
+Single-target, outgoing-damage focused. Phantasm and clone travel time uses fixed delays. Critical-condition
+applications consume the shared seeded critical-hit facts in both simulation modes. Bloodsong grants blades at each
+five-stack bleeding-application threshold. Ally healing, barriers, control damage, stealth, and defensive effects stay
+outside the damage total; boon/distortion applications are still emitted. Mirage models a 100-point endurance pool,
+50-point dodges, and continuous regeneration at 5/sec or 7.5/sec with Vigor. Troubadour uses dodge charges. Competitive
+(PvP/WvW) splits are out of model.

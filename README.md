@@ -45,9 +45,13 @@ stay in its area. **Overlay relics** shows activation and expiry markers on the 
 
 ### Deterministic simulation
 
-The default mode produces a reproducible expected result for controlled A/B comparisons: total DPS, per-skill and
-condition damage, damage modifiers, cast/damage events, buff and condition state, resource usage, and execution
-timelines.
+The default mode uses midpoint weapon strength and average critical damage, with seeded rolls for critical-proc
+eligibility and other chance-based effects. The same inputs and seed reproduce the same result; proc outcomes represent
+one sample, not an average across trials. Results include DPS, per-skill and condition damage, modifiers, events, buffs,
+resources, and execution timelines.
+
+Set **Simulation seed** under **Simulation config → Simulation**. It defaults to **1** and is saved with the build,
+including exports. Keep the seed fixed for controlled A/B comparisons.
 
 ### RNG distribution
 

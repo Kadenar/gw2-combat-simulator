@@ -13,9 +13,6 @@ import type { WarriorCastContext, WarriorSchedulerContext } from '#gw2/professio
 import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { clamp } from '#kernel/core/numeric.js';
 
-export const DRAGON_TRIGGER_FLOW_COST = 15;
-export const DRAGON_TRIGGER_DURATION_SECONDS = 30;
-
 export const DRAGON_TRIGGER_ENTRY_RESOURCE_REASON = 'dragon trigger entry';
 export const DRAGON_TRIGGER_TICK_RESOURCE_REASON = 'dragon trigger charge';
 

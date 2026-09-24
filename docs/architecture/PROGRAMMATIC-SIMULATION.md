@@ -234,8 +234,8 @@ observationPolicy: { kind: "absolute", endTimeMs: 97_450 }
 ```
 
 The absolute timestamp cannot precede rotation end. Durations and timestamps must be finite and non-negative. Target
-death clips every mode. An explicit `wait` remains part of the player-command timeline and increases `rotationEndTime`; an
-observation tail does not.
+death clips every mode. An explicit `wait` remains part of the player-command timeline and increases `rotationEndTime`;
+an observation tail does not.
 
 Saved benchmark or imported-log metadata must not choose an observation policy. Logs and saved benchmark metrics are
 comparison targets. Benchmark runners use the default rotation boundary, matching the interactive simulator.
@@ -257,7 +257,7 @@ The direct API consumes resolved combat values. It does not calculate stats from
 | `boons`                                    | Might stacks and boolean boon assumptions                                                         |
 | `target`                                   | Armor, health, movement, defiance, and existing conditions                                        |
 | `sigilSets`, `relic`, `food`               | Optional common GW2 effects                                                                       |
-| `randomness`                               | Deterministic or seeded stochastic resolution                                                     |
+| `randomness`                               | Resolution mode and seed; both modes use seeded proc rolls                                        |
 
 Professions also accept their own resource and loadout fields. Existing tests are the most direct examples:
 
@@ -300,34 +300,34 @@ defaults.
 
 The commonly useful result fields are:
 
-| Field                                       | Meaning                                                            |
-| ------------------------------------------- | ------------------------------------------------------------------ |
-| `rotationEndTime` | End of the entered rotation, in absolute timeline seconds |
-| `observationEndTime` | Requested observation end, including any tail, in seconds |
-| `combatEndTime` | Target death or observation end, in seconds |
-| `combatStartTime`, `hasExplicitCombatStart` | Precast/combat boundary and whether a marker supplied it           |
-| `dpsStartTime`, `dpsWindow`                 | Reference time and measured DPS window                             |
-| `firstHitTime`, `lastHitTime`, `deathTime`  | Damage and target-death timing                                     |
-| `totalDamage`, `dps`                        | Overall result                                                     |
-| `strikeDamage`, `conditionDamage`           | Damage split                                                       |
-| `breakdown`, `conditionBreakdown`           | Raw contribution data                                              |
-| `casts`                                     | Aggregate cast counts                                              |
-| `events`, `resolvedEvents`                  | Scheduler and resolver timelines                                   |
-| `warnings`                                  | Invalid or constrained rotation behavior                           |
-| `planningState` | Scheduler-only prediction at `atSeconds`: cooldowns, ammo, weapon set, and profession resources |
-| `combatState` | Resolver-owned event state through its `atSeconds` boundary; not a complete player snapshot |
-| `randomness`                                | Actual resolution mode and seed                                    |
+| Field                                       | Meaning                                                                                         |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `rotationEndTime`                           | End of the entered rotation, in absolute timeline seconds                                       |
+| `observationEndTime`                        | Requested observation end, including any tail, in seconds                                       |
+| `combatEndTime`                             | Target death or observation end, in seconds                                                     |
+| `combatStartTime`, `hasExplicitCombatStart` | Precast/combat boundary and whether a marker supplied it                                        |
+| `dpsStartTime`, `dpsWindow`                 | Reference time and measured DPS window                                                          |
+| `firstHitTime`, `lastHitTime`, `deathTime`  | Damage and target-death timing                                                                  |
+| `totalDamage`, `dps`                        | Overall result                                                                                  |
+| `strikeDamage`, `conditionDamage`           | Damage split                                                                                    |
+| `breakdown`, `conditionBreakdown`           | Raw contribution data                                                                           |
+| `casts`                                     | Aggregate cast counts                                                                           |
+| `events`, `resolvedEvents`                  | Scheduler and resolver timelines                                                                |
+| `warnings`                                  | Invalid or constrained rotation behavior                                                        |
+| `planningState`                             | Scheduler-only prediction at `atSeconds`: cooldowns, ammo, weapon set, and profession resources |
+| `combatState`                               | Resolver-owned event state through its `atSeconds` boundary; not a complete player snapshot     |
+| `randomness`                                | Actual resolution mode and seed                                                                 |
 
-All boundary times and both state projections' `atSeconds` values use absolute timeline seconds. Planning
-continues through the requested horizon after target death; combat effects stop at `combatEndTime`. Planning
-projections never receive resolver state. Cooldown `readyAt` and `remaining` values retain milliseconds;
-ammo recharge timestamps retain seconds. The editor obtains rotation/insertion state through
-`rotationPlanningStateAt`, excluding observation tails when appending.
+All boundary times and both state projections' `atSeconds` values use absolute timeline seconds. Planning continues
+through the requested horizon after target death; combat effects stop at `combatEndTime`. Planning projections never
+receive resolver state. Cooldown `readyAt` and `remaining` values retain milliseconds; ammo recharge timestamps retain
+seconds. The editor obtains rotation/insertion state through `rotationPlanningStateAt`, excluding observation tails when
+appending.
 
-The old `duration`, `endState`, top-level `profession`, and standalone `snapshot` result fields are removed.
-Use `combatState.profession` for resolved effects and `planningState.profession` for predicted resources.
-Neither projection is a resumable checkpoint. Resolver records may retain expiry timestamps; evaluate active
-effects at `combatState.atSeconds`, never at the later planning time.
+The old `duration`, `endState`, top-level `profession`, and standalone `snapshot` result fields are removed. Use
+`combatState.profession` for resolved effects and `planningState.profession` for predicted resources. Neither projection
+is a resumable checkpoint. Resolver records may retain expiry timestamps; evaluate active effects at
+`combatState.atSeconds`, never at the later planning time.
 
 Use `skillBreakdownRows(result)` for a stable per-skill table instead of reimplementing aggregation over raw events.
 
@@ -346,20 +346,24 @@ console.table(simulationEventLogRows(result, null, engineerProfession));
 
 ## Deterministic and stochastic runs
 
-Deterministic resolution is appropriate for repeatable comparisons:
+Both modes use seeded rolls for critical-proc eligibility, secondary proc chances, and combo attempts. Both use average
+critical damage. Deterministic mode uses midpoint weapon strength:
 
 ```js
 randomness: { mode: "deterministic", seed: 1 }
 ```
 
-For a reproducible sampled run:
+Stochastic mode additionally samples weapon strength per activation:
 
 ```js
 randomness: { mode: "stochastic", seed: 42 }
 ```
 
-One stochastic run is not a distribution. Scripts that compare random outcomes should run multiple seeds and summarize
-their results, as done by `js/games/gw2/app/simulation/random-distribution/random-distribution.ts`.
+The default seed is `1`. The application saves the player's chosen seed in `assumptions.simulationSeed` and converts it
+to `config.randomness.seed`. Identical inputs and seed reproduce the same result within a simulator revision. One run in
+either mode represents one set of proc outcomes, not an average across seeds. Scripts that compare random outcomes
+should run multiple seeds and summarize their results, as done by
+`js/games/gw2/app/simulation/random-distribution/random-distribution.ts`.
 
 ## Current API status
 

@@ -57,7 +57,7 @@ export const bloodsongReaction = scheduledReaction<
 
 /** Jagged Mind reads canonical hit facts while retaining the observed skill's blade eligibility. */
 export const jaggedMindReaction = eventReaction<MesmerSchedulerContext>({
-  id: 'mesmer.virtuoso-expected-proc',
+  id: 'mesmer.jagged-mind',
   order: 30,
   missingEvent: 'error',
   select(context, event) {

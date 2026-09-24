@@ -125,7 +125,7 @@ test('combo outcomes retain summon condition scaling from the finisher', () => {
       summonBaseExpertise: 375,
       summonUsesProfessionModifiers: true
     },
-    { stochastic: false, roll: () => true, warn: () => {} }
+    { roll: () => true, warn: () => {} }
   );
   const [poison] = materializeComboOutcome(combo);
 
@@ -137,7 +137,6 @@ test('combo outcomes retain summon condition scaling from the finisher', () => {
     finisherType: 'Projectile'
   });
   const [followupCombo] = resolveComboAttempt(state, followup, {
-    stochastic: false,
     roll: () => true,
     warn: () => {}
   });
@@ -185,7 +184,6 @@ test('area combo boons use party targeting and can reach a summon', () => {
     ['summon:one']
   );
   const [combo] = resolveComboAttempt(state, finisher, {
-    stochastic: false,
     roll: () => true,
     warn: () => {}
   });

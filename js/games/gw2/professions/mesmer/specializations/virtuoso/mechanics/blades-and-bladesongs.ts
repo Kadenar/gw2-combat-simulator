@@ -25,7 +25,7 @@ import { VIRTUOSO_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer
 import {
   bloodsongReaction,
   jaggedMindReaction
-} from '#gw2/professions/mesmer/specializations/virtuoso/traits/expected-procs.js';
+} from '#gw2/professions/mesmer/specializations/virtuoso/traits/blade-procs.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';

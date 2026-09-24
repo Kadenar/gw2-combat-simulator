@@ -19,7 +19,6 @@ export interface CriticalProcRequest {
 
 export interface CriticalProcApplication {
   readonly quantity: number;
-  readonly kind: 'sampled';
 }
 
 function finiteNonNegative(value: unknown, label: string): number {
@@ -80,5 +79,5 @@ export function advanceCriticalProc(
     state!.readyAt = request.at + cooldown;
   }
 
-  return Object.freeze({ quantity, kind: 'sampled' });
+  return Object.freeze({ quantity });
 }

@@ -33,7 +33,7 @@ import {
   createCloneAttackScheduler,
   cloneActions
 } from '#gw2/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
-import { createExpectedProcTracker } from '#gw2/professions/mesmer/core/mechanics/illusions/expected-procs.js';
+import { createCriticalTraitDispatcher } from '#gw2/professions/mesmer/core/mechanics/illusions/critical-traits.js';
 import { createMesmerEventEmitters } from '#gw2/professions/mesmer/core/mechanics/illusions/event-emission.js';
 import type { MesmerActiveEmission, MesmerCastDetails } from '#gw2/professions/mesmer/core/execution/effect-types.js';
 import type {
@@ -204,7 +204,7 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
     scheduleResourceTask,
     balanceProfile: runtime.balanceProfile
   });
-  const expected = createExpectedProcTracker({
+  const criticalTraits = createCriticalTraitDispatcher({
     state,
     traits,
     criticalChance: (event) => context.schedulerPolicy.critical?.(context, event)?.chance || 0,
@@ -255,7 +255,7 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
     cloneAttackScheduler,
     destroyClone,
     resources,
-    expected,
+    criticalTraits,
     actions,
     skillEffects
   });

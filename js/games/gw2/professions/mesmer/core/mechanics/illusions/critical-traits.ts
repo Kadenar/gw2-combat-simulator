@@ -7,9 +7,9 @@ import type {
   MesmerRuntimeState
 } from '#gw2/professions/mesmer/types.js';
 import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/index.js';
-import type { MesmerExpectedProcTracker } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerCriticalTraitDispatcher } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 
-interface ExpectedProcTrackerOptions {
+interface CriticalTraitDispatcherOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
   readonly traits: ReadonlySet<number>;
   readonly criticalChance: (event: SimulationEvent) => number;
@@ -23,7 +23,7 @@ interface ExpectedProcTrackerOptions {
  * Keeps critical-candidate timing in the illusion subsystem while the trait
  * dispatcher materializes Dueling effects in their required order.
  */
-export function createExpectedProcTracker({
+export function createCriticalTraitDispatcher({
   state,
   traits,
   criticalChance,
@@ -31,7 +31,7 @@ export function createExpectedProcTracker({
   boonDuration,
   addTraitProc,
   balanceProfile
-}: ExpectedProcTrackerOptions): Readonly<MesmerExpectedProcTracker> {
+}: CriticalTraitDispatcherOptions): Readonly<MesmerCriticalTraitDispatcher> {
   const traitContext = {
     state,
     traits,

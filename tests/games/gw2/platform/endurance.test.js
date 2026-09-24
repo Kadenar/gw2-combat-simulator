@@ -5,18 +5,27 @@ import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-
 import {
   advanceEndurance,
   advanceEnduranceIntervals,
-  enduranceReadyAt,
   enduranceIntervalsReadyAt,
   vigorEnduranceIntervals,
   grantEndurance,
   spendEndurance
 } from '#gw2/platform/combat/resources/endurance.js';
 
+// Readiness under one constant regeneration rate starting at the observed time.
+function steadyEnduranceReadyAt(endurance, cost, at, rate) {
+  return enduranceIntervalsReadyAt(
+    { endurance, enduranceUpdatedAt: at },
+    cost,
+    [{ start: at, end: Infinity, rate }],
+    100
+  );
+}
+
 test('endurance affordability snaps to ticks without rounding fractional recovery or losing short boon windows', () => {
   const state = { endurance: 0, enduranceUpdatedAt: 0 };
   assert.ok(Math.abs(advanceEndurance(state, 0.1, 3, 100).endurance - 0.3) < 1e-12);
-  assert.equal(enduranceReadyAt(0, 1, 0, 3), 0.36);
-  assert.equal(enduranceReadyAt(1, 1, 0.1, 3), 0.1);
+  assert.equal(steadyEnduranceReadyAt(0, 1, 0, 3), 0.36);
+  assert.equal(steadyEnduranceReadyAt(1, 1, 0.1, 3), 0.1);
   assert.equal(
     enduranceIntervalsReadyAt(
       state,
@@ -98,9 +107,9 @@ test('endurance spend and grant clamp values and carry their timestamps', () => 
 });
 
 test('endurance readiness honors epsilon and reports an unavailable zero-rate recovery', () => {
-  assert.equal(enduranceReadyAt(49.99995, 50, 10, 5, 0.0001), 10);
-  assert.equal(enduranceReadyAt(25, 50, 10, 5, 0.0001), 15);
-  assert.equal(enduranceReadyAt(25, 50, 10, 0, 0.0001), null);
+  assert.equal(steadyEnduranceReadyAt(49.99995, 50, 10, 5), 10);
+  assert.equal(steadyEnduranceReadyAt(25, 50, 10, 5), 15);
+  assert.equal(steadyEnduranceReadyAt(25, 50, 10, 0), null);
 });
 
 test('endurance intervals clip settled time and ignore empty windows and uncovered gaps', () => {

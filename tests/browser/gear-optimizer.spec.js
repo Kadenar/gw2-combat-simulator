@@ -1,5 +1,33 @@
 import { expect, test } from '@playwright/test';
 
+// A narrow embedded optimizer must collapse its artwork even inside a wide browser window.
+test('preview responds to panel width without cropping the artwork', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.goto('/revenant.html#gear-optimizer', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  const panel = page.locator('#gear-optimizer');
+  const preview = panel.locator('.optimizer-preview');
+  const portrait = preview.locator('.optimizer-preview-portrait');
+  await expect(portrait).toBeVisible();
+  await expect(portrait.locator('img')).toHaveCSS('object-fit', 'contain');
+  const bounds = await portrait.boundingBox();
+  expect(bounds.height).toBeCloseTo(bounds.width, 0);
+
+  for (const width of [1096, 620, 390]) {
+    await panel.evaluate((element, width) => (element.style.width = `${width}px`), width);
+    await expect(portrait).toBeHidden();
+    expect(await preview.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+    const equipment = await preview.locator('.optimizer-preview-equipment').boundingBox();
+    const details = await preview.locator('.optimizer-preview-details').boundingBox();
+    if (width > 650) {
+      expect(details.y).toBeCloseTo(equipment.y, 0);
+      expect(details.x).toBeGreaterThanOrEqual(equipment.x + equipment.width);
+    } else {
+      expect(details.y).toBeGreaterThanOrEqual(equipment.y + equipment.height);
+    }
+  }
+});
+
 // Switching builds clears results, restores current gear, and terminates an outgoing search.
 test('build switches discard optimizer results and active searches', async ({ page }) => {
   await page.goto('/mesmer.html#gear-optimizer', { waitUntil: 'domcontentloaded' });
@@ -277,7 +305,7 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   const detailsBounds = await preview.locator('.optimizer-preview-details').boundingBox();
   expect(portraitBounds.x).toBeGreaterThanOrEqual(equipmentBounds.x + equipmentBounds.width);
   expect(detailsBounds.x).toBeGreaterThanOrEqual(portraitBounds.x + portraitBounds.width);
-  expect(portraitBounds.height).toBeGreaterThan(600);
+  expect(portraitBounds.height).toBeCloseTo(portraitBounds.width, 0);
   const trinketRows = await preview
     .locator('.optimizer-preview-trinkets .optimizer-preview-item')
     .evaluateAll((items) => items.map((item) => item.getBoundingClientRect().top));

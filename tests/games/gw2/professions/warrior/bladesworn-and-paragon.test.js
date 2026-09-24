@@ -14,8 +14,6 @@ import {
   dragonChargesForDurationMs
 } from '#gw2/professions/warrior/data/dragon-charges.js';
 import {
-  DRAGON_TRIGGER_DURATION_SECONDS,
-  DRAGON_TRIGGER_FLOW_COST,
   DRAGON_TRIGGER_TICK_RESOURCE_REASON,
   dragonChargesToAdrenalineSpent,
   projectDragonCharges,
@@ -23,6 +21,18 @@ import {
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import { advanceBladesworn } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger.js';
 import { createBladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
+import {
+  BLADESWORN_BALANCE_PROFILE_IDS,
+  BLADESWORN_BALANCE_PROFILES
+} from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
+
+// Read the balance profile the mechanic uses so balance patches cannot drift from these expectations.
+const DRAGON_TRIGGER_PROFILE = BLADESWORN_BALANCE_PROFILES.find(
+  ({ id }) => id === BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger
+);
+const DRAGON_TRIGGER_ENTRY_FLOW = DRAGON_TRIGGER_PROFILE.threshold;
+const DRAGON_TRIGGER_TICK_FLOW = DRAGON_TRIGGER_PROFILE.resourceCost;
+const DRAGON_TRIGGER_DURATION_SECONDS = DRAGON_TRIGGER_PROFILE.cooldown;
 
 const baseConfig = Object.freeze({
   stats: {
@@ -205,31 +215,35 @@ test('Dragon Slash—Force lands 520ms after release', () => {
   }
 });
 
-test('Dragon Trigger spends 15 Flow on entry and expires after 30 seconds', () => {
+test('Dragon Trigger spends its profile Flow cost on entry and expires after its profile duration', () => {
   const blocked = simulate('Bladesworn', ['Dragon Trigger'], {
-    initialResource: DRAGON_TRIGGER_FLOW_COST - 1
+    initialResource: DRAGON_TRIGGER_ENTRY_FLOW - 1
   });
 
-  assert.match(blocked.warnings[0], /requires at least 15 flow/);
-  assert.equal(blocked.planningState.profession.flow, DRAGON_TRIGGER_FLOW_COST - 1);
+  assert.match(blocked.warnings[0], new RegExp(`requires at least ${DRAGON_TRIGGER_ENTRY_FLOW} flow`));
+  assert.equal(blocked.planningState.profession.flow, DRAGON_TRIGGER_ENTRY_FLOW - 1);
 
   const active = simulate('Bladesworn', ['Dragon Trigger'], {
-    initialResource: DRAGON_TRIGGER_FLOW_COST
+    initialResource: DRAGON_TRIGGER_ENTRY_FLOW
   });
 
   assert.deepEqual(active.warnings, []);
   const entry = active.events.find((event) => event.type === 'resource' && event.reason === 'dragon trigger entry');
 
   // Entry consumes the minimum activation pool even before a charge tick is reached.
-  assert.equal(entry.amount, -15);
+  assert.equal(entry.amount, -DRAGON_TRIGGER_ENTRY_FLOW);
   assert.equal(entry.value, 0);
   assert.equal(active.planningState.profession.flow, 0);
   assert.equal(entry.maximumFlow, 100);
   assert.equal(entry.deadline - entry.at, DRAGON_TRIGGER_DURATION_SECONDS);
 
-  const expired = simulate('Bladesworn', ['Dragon Trigger', { type: 'wait', durationMs: 30001 }], {
-    initialResource: 100
-  });
+  const expired = simulate(
+    'Bladesworn',
+    ['Dragon Trigger', { type: 'wait', durationMs: DRAGON_TRIGGER_DURATION_SECONDS * 1000 + 1 }],
+    {
+      initialResource: 100
+    }
+  );
 
   assert.equal(expired.planningState.profession.dragonTriggerActive, false);
   assert.equal(expired.planningState.profession.dragonCharges, 0);
@@ -249,15 +263,15 @@ test('Dragon Trigger entry covers the first interval and later charges spend Flo
   assert.deepEqual(result.warnings, []);
   const entry = result.events.find((event) => event.reason === 'dragon trigger entry');
   const [first, second] = result.events.filter((event) => event.reason === DRAGON_TRIGGER_TICK_RESOURCE_REASON);
-  assert.equal(entry.value, 85);
+  assert.equal(entry.value, 100 - DRAGON_TRIGGER_ENTRY_FLOW);
   assert.equal(first.value, 1);
   assert.equal(first.at, 0.24);
-  assert.equal(first.flowAfter, 85);
+  assert.equal(first.flowAfter, 100 - DRAGON_TRIGGER_ENTRY_FLOW);
   assert.equal(first.flowSpent, 0);
   assert.equal(second.value, 2);
   assert.equal(second.at, 0.48);
-  assert.equal(second.flowAfter, 80);
-  assert.equal(second.flowSpent, 5);
+  assert.equal(second.flowAfter, 100 - DRAGON_TRIGGER_ENTRY_FLOW - DRAGON_TRIGGER_TICK_FLOW);
+  assert.equal(second.flowSpent, DRAGON_TRIGGER_TICK_FLOW);
 });
 
 test('Dragon Trigger defers recharge while charging and still blocks re-entry', () => {
@@ -440,7 +454,7 @@ test('Dragon Trigger spends Flow at fixed 240 ms intervals', () => {
         event.type === 'resource' && event.resource === 'dragon charges' && event.reason === 'profession mechanic'
     );
     assert.equal(release.chargingSeconds, expectedSeconds);
-    assert.equal(release.flowSpent, (expectedSeconds / 0.24 - 1) * 5);
+    assert.equal(release.flowSpent, (expectedSeconds / 0.24 - 1) * DRAGON_TRIGGER_TICK_FLOW);
     const entry = result.events.find((event) => event.reason === 'dragon trigger entry');
     const ticks = result.events.filter((event) => event.reason === 'dragon trigger charge');
     if (expectedSeconds === 2.4) assert.ok(Math.abs(ticks.at(-1).flowAfter - 44.8) < 1e-9);
@@ -599,11 +613,11 @@ test('Flow balance accounts for Stabilizer, entry spending, regeneration, and st
   // Independently balance every charge: Fury's 15 pays entry, while base and Stabilizer regenerate on 40 ms ticks.
   assert.deepEqual(result.warnings, []);
   assert.equal(entry.value, 0);
-  assert.equal(entry.amount, -15);
+  assert.equal(entry.amount, -DRAGON_TRIGGER_ENTRY_FLOW);
   for (const tick of ticks) {
     const regenerationTicks = Math.floor(Math.round(tick.at * 1_000_000) / 40_000);
     const gained = regenerationTicks * 0.08 + Math.min(regenerationTicks, 200) * 0.16;
-    assert.ok(Math.abs(tick.flowAfter - (gained - (tick.value - 1) * 5)) < 1e-9);
+    assert.ok(Math.abs(tick.flowAfter - (gained - (tick.value - 1) * DRAGON_TRIGGER_TICK_FLOW)) < 1e-9);
   }
 
   assert.ok(ticks.some((tick) => !tick.granted));
@@ -636,7 +650,7 @@ test('Dragon Trigger resource ticks match the shared projection', () => {
   const result = simulate(
     'Bladesworn',
     ['Dragon Trigger', 'Flow Stabilizer', { name: 'Dragon Slash—Force', releaseAtCharges: 4 }],
-    { initialResource: 15 }
+    { initialResource: DRAGON_TRIGGER_ENTRY_FLOW }
   );
 
   assert.deepEqual(result.warnings, []);

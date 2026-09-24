@@ -94,17 +94,6 @@ function enduranceThresholdAt(
   return regenerationPerSecond > 0 ? at + missing / regenerationPerSecond : null;
 }
 
-/** Regeneration-funded costs become available on the next 40 ms tick; an already funded cost needs no wait. */
-export function enduranceReadyAt(
-  currentEndurance: number,
-  cost: number,
-  at: number,
-  regenerationPerSecond: number
-): number | null {
-  const threshold = enduranceThresholdAt(currentEndurance, cost, at, regenerationPerSecond);
-  return threshold == null || threshold === at ? threshold : gw2CooldownReadyAt(threshold);
-}
-
 /** Integrates chronological windows without mutating the caller, accruing gaps, or replaying settled time. */
 export function advanceEnduranceIntervals(
   state: Gw2EnduranceState,

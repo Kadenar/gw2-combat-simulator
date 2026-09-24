@@ -25,7 +25,7 @@ function isCriticalSigil(name: string): boolean {
 export function decideCriticalSigils(
   event: SimulationEvent,
   names: readonly string[],
-  critical: { readonly chance: number; readonly didCrit?: boolean | null },
+  critical: { readonly chance: number; readonly didCrit?: boolean },
   state: { readonly readyAt: ReadonlyMap<string, number> }
 ): CriticalSigilDecision {
   const next = { procs: [] as CriticalSigilIntent[] };

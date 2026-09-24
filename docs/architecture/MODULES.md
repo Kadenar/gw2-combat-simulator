@@ -378,7 +378,7 @@ Important modules include:
 | `builds/attributes.ts`            | Shared attribute calculations                                                           |
 | `builds/codec.ts`                 | Build migration, normalization, and validation                                          |
 | `combat/formulas.ts`              | Pure strike/condition formulas and stat conversions, preserving calculation units       |
-| `combat/critical-procs.ts`        | Critical-proc progress, including the one-hit expected critical tracker                 |
+| `combat/critical-procs.ts`        | Critical-proc kernel: seeded critical outcomes, secondary proc rolls, and ICD claims    |
 | `combat/boons.ts`                 | Standard boon metadata, shared stack queries, duration pools, and grant recording       |
 | `skills/timing.ts`                | Effect duration rounding, absolute expiry, and skill timing                             |
 | `equipment/weapons/strength.ts`   | Weapon-strength profiles                                                                |
@@ -690,8 +690,9 @@ those contributions once under the appropriate sections. Do not create execution
 definition.
 
 Native profession modules do not support flat phase fields or `data.handlers`. Register scheduler-owned behavior under
-`mechanics.execution` and resolver-owned behavior under `mechanics.resolution`; runtime validation reports the exact
-replacement path when JavaScript callers use a retired field.
+`mechanics.execution` and resolver-owned behavior under `mechanics.resolution`. TypeScript checks field placement, but
+runtime validation does not reject unknown or retired fields; those fields register no behavior. Do not rely on a
+runtime error to detect a misplaced declaration.
 
 Mechanics should normally be implemented in owner-local files and assembled by `module.ts`.
 

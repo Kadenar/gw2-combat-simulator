@@ -16,7 +16,7 @@ test('critical procs consume sampled facts and independent secondary rolls', () 
     }
   };
   assert.equal(advanceCriticalProc(criticalOpportunity(0.5, false), request), null);
-  assert.deepEqual(advanceCriticalProc(criticalOpportunity(0.5, true, 2), request), { quantity: 1, kind: 'sampled' });
+  assert.deepEqual(advanceCriticalProc(criticalOpportunity(0.5, true, 2), request), { quantity: 1 });
   assert.deepEqual(streams, ['secondary', 'secondary']);
   assert.throws(() => criticalOpportunity(0.5, undefined), /requires a sampled critical outcome/);
   assert.throws(() => criticalOpportunity(0.5, true, 1.5), /integer/);
@@ -43,8 +43,7 @@ test('critical ICDs block through the canonical deadline without spending second
   assert.equal(rolls, 0);
   assert.equal(state.readyAt, 5);
   assert.deepEqual(advanceCriticalProc(criticalOpportunity(1, true), { ...request, at: 5.000001 }, state), {
-    quantity: 1,
-    kind: 'sampled'
+    quantity: 1
   });
   assert.equal(rolls, 1);
   assert.equal(state.readyAt, 5.000001 + 3);
@@ -64,7 +63,7 @@ test('scheduler procs use the canonical critical outcome and ignore rejected hit
   };
   const event = { type: 'damage', at: 2, coefficient: 1, didCrit: true };
   const request = { id: 'fixture', chanceOnCriticalHit: 0.5 };
-  assert.deepEqual(advanceScheduledCriticalProc(context, event, request), { quantity: 1, kind: 'sampled' });
+  assert.deepEqual(advanceScheduledCriticalProc(context, event, request), { quantity: 1 });
   for (const changes of [{ cancelled: true }, { type: 'marker' }, { offTarget: true }])
     assert.equal(advanceScheduledCriticalProc(context, { ...event, ...changes, didCrit: undefined }, request), null);
   assert.deepEqual(streams, ['fixture']);

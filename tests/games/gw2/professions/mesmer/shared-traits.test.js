@@ -4,7 +4,7 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerExpectedProcReaction } from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
+import { mesmerCriticalTraitReaction } from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
 import { mesmerCoreModifierRules } from '#gw2/professions/mesmer/core/traits/modifiers.js';
 
 test('Mental Anguish uses explicit nested shatter eligibility', () => {
@@ -25,13 +25,13 @@ test('delayed Mesmer hit procs retain annotations and prefer canonical critical 
   for (const canonical of [{ type: 'damage', at: 2, eventOrder: 7, didCrit: true, metadata: { cloneId: 0 } }]) {
     const processed = [];
     const context = {
-      mesmerRuntime: { expected: { process: (candidate) => processed.push(candidate) } },
+      mesmerRuntime: { criticalTraits: { process: (candidate) => processed.push(candidate) } },
       eventByOrder(order) {
         assert.equal(order, 7);
         return canonical;
       }
     };
-    mesmerExpectedProcReaction.taskHandlers['mesmer.expected-proc'](context, {
+    mesmerCriticalTraitReaction.taskHandlers['mesmer.critical-traits'](context, {
       at: 2,
       payload: { eventOrder: 7, metadata: event.metadata }
     });
@@ -47,7 +47,7 @@ test('delayed Mesmer hit procs retain annotations and prefer canonical critical 
 test('Mesmer critical reactions reject a missing canonical event', () => {
   assert.throws(
     () =>
-      mesmerExpectedProcReaction.taskHandlers['mesmer.expected-proc'](
+      mesmerCriticalTraitReaction.taskHandlers['mesmer.critical-traits'](
         { eventByOrder: () => undefined },
         { at: 2, payload: { eventOrder: 7, metadata: { blade: true } } }
       ),
@@ -383,34 +383,42 @@ test('Egotism does not increase condition damage', () => {
   assert.equal(bleeding(run([TRAIT.EGOTISM])), bleeding(run([])));
 });
 
-test('Sharper Images uses deterministic expected-proc accumulation', () => {
-  const config = defaultSimulationConfig({
-    specialization: 'Core',
-    selectedTraitIds: [TRAIT.SHARPER_IMAGES],
-    initialResource: 0,
-    primaryWeapon: 'Sword',
-    secondaryWeapon: 'Pistol',
-    stats: {
-      ...defaultSimulationConfig().stats,
-      precision: 1105
-    },
-    boons: {
-      ...defaultSimulationConfig().boons,
-      fury: false
-    }
-  });
-  const first = simulateMesmer(['Phantasmal Duelist', { name: '__wait', waitMs: 1000 }], config);
-  const second = simulateMesmer(
-    ['Phantasmal Duelist', { name: '__wait', waitMs: 16000 }, 'Phantasmal Duelist', { name: '__wait', waitMs: 1000 }],
-    config
-  );
+test('Sharper Images procs exactly on seeded critical illusion hits', () => {
+  // Each seed yields its own crit pattern; the trait must follow the canonical didCrit fact in every case.
+  for (const seed of [1, 2]) {
+    const config = defaultSimulationConfig({
+      specialization: 'Core',
+      selectedTraitIds: [TRAIT.SHARPER_IMAGES],
+      initialResource: 0,
+      primaryWeapon: 'Sword',
+      secondaryWeapon: 'Pistol',
+      stats: {
+        ...defaultSimulationConfig().stats,
+        precision: 2050
+      },
+      boons: {
+        ...defaultSimulationConfig().boons,
+        fury: false
+      }
+    });
+    config.randomness = { mode: 'deterministic', seed };
+    const result = simulateMesmer(['Phantasmal Duelist', { name: '__wait', waitMs: 2000 }], config);
+    const illusionHits = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && ['clone', 'phantasm'].includes(String(event.summonKind || ''))
+    );
+    const criticalTimes = illusionHits.filter((event) => event.didCrit === true).map((event) => event.at);
+    const procs = result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.name.includes('Sharper Images')
+    );
 
-  assert.equal(first.procSteps.filter((proc) => proc.skill === 'Sharper Images').length, 0);
-  assert.ok(second.procSteps.some((proc) => proc.skill === 'Sharper Images' && proc.detail === '1 critical-hit proc'));
-  assert.equal(
-    second.resolvedEvents.find((event) => event.type === 'condition' && event.name.includes('Sharper Images'))?.source,
-    'Player'
-  );
+    assert.ok(criticalTimes.length > 0 && criticalTimes.length < illusionHits.length, `seed ${seed}`);
+    assert.deepEqual(
+      procs.map((event) => event.at),
+      criticalTimes,
+      `seed ${seed}`
+    );
+    assert.ok(procs.every((event) => event.source === 'Player' && event.stacks === 1));
+  }
 });
 
 test('Mesmer allied boons prioritize players before active clones', () => {

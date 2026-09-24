@@ -4,7 +4,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import {
   advanceMesmerScheduler,
-  mesmerExpectedProcReaction,
+  mesmerCriticalTraitReaction,
   chaoticInterruptionReaction,
   handlePartyBuffTask,
   handleResourceGainTask,
@@ -43,7 +43,7 @@ export const mesmerCoreSchedulerHooks = Object.freeze({
     ...cloneActions.taskHandlers,
     'mesmer.party-buff': handlePartyBuffTask,
     'mesmer.resource-gain': handleResourceGainTask,
-    ...mesmerExpectedProcReaction.taskHandlers,
+    ...mesmerCriticalTraitReaction.taskHandlers,
     ...trackedHitReaction.taskHandlers,
     ...chaoticInterruptionReaction.taskHandlers,
     ...signetIllusionsPassive.taskHandlers

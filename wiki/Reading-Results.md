@@ -34,8 +34,9 @@ increase in the current setup; they are not additive because modifiers can inter
 The normal detailed result is deterministic and reproducible. **Calculate range** runs seeded stochastic trials for
 modeled random effects and reports the mean, median, likely range, and lucky or unlucky outcomes.
 
-Use deterministic results for precise A/B comparisons. Use the randomized range to judge how much normal outcome
-variation could hide a small difference.
+Keep the build's **Simulation seed** fixed for reproducible A/B comparisons. The detailed result is one seeded set of
+proc outcomes, with midpoint weapon strength and average critical damage. Use the randomized range to judge how much
+outcome variation could hide a small difference; stochastic trials also retain average critical damage.
 
 ## Relic break-even comparison
 

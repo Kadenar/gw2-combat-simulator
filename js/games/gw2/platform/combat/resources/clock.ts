@@ -28,22 +28,6 @@ export function resourceValueAt(clock: ResourceClock, at: number): number {
   return anchor.rate > 0 ? Math.min(value, Math.max(anchor.value, anchor.recoveryMaximum ?? anchor.maximum)) : value;
 }
 
-/** Accrues the previous rate before a gain, spend, or rate change; fractional progress survives every boundary. */
-export function advanceResourceClock(clock: ResourceClock, at: number): void {
-  if (!Number.isFinite(at) || at < clock.updatedAt)
-    throw new RangeError('Resource clocks must advance to a finite, nondecreasing time.');
-  clock.value = resourceValueAt(clock, at);
-  clock.updatedAt = at;
-}
-
-/** Changes a rate only after settling its previous interval. */
-export function setResourceRate(clock: ResourceClock, at: number, rate: number): void {
-  if (!Number.isFinite(rate)) throw new TypeError('Resource rates must be finite.');
-  advanceResourceClock(clock, at);
-  clock.rate = rate;
-  anchorResourceClock(clock);
-}
-
 /** Returns the next zero crossing; a non-draining resource has no depletion deadline. */
 export function resourceDepletionAt(clock: ResourceClock): number {
   const anchor = resourceAnchor(clock);

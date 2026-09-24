@@ -251,36 +251,31 @@ test('type bindings ignore other fields and use one oldest same-type field', () 
   assert.equal(combos[0].fieldType, 'Ice');
 });
 
-test('attempt IDs deduplicate packets and deterministic progress stays keyed', () => {
-  const attempts = Array.from({ length: 5 }, (_, index) =>
-    finisher(
-      `partial:${index}`,
-      { kind: 'field-type', fieldType: 'Fire' },
-      {
-        at: 1 + index * 0.1,
-        effectAt: 1 + index * 0.1,
-        chance: 0.2
-      }
-    )
-  );
-  const result = resolve([field('fire:1', 'Fire'), ...attempts, attempts[4]]);
+test('attempt IDs deduplicate successful and failed rolls', () => {
+  // A repeated packet must neither reroll a failure nor materialize a second success.
+  const state = createGw2ComboRuntimeState();
+  registerComboField(state, field('fire:1', 'Fire'));
+  const rolls = [];
+  const options = {
+    roll(chance, stream) {
+      rolls.push([chance, stream]);
+      return rolls.length === 2;
+    },
+    warn() {}
+  };
+  for (const [attemptId, count] of [
+    ['failed', 0],
+    ['succeeded', 1]
+  ]) {
+    const attempt = finisher(attemptId, { kind: 'field-id', fieldId: 'fire:1' }, { chance: 0.2 });
+    assert.equal(resolveComboAttempt(state, attempt, options).length, count);
+    assert.equal(resolveComboAttempt(state, attempt, options).length, 0);
+  }
 
-  assert.equal(result.resolvedEvents.filter((event) => event.type === 'combo').length, 1);
-
-  const keyed = resolve([
-    field('fire:keyed', 'Fire', 0, 5),
-    field('ice:keyed', 'Ice', 0, 5),
-    ...Array.from({ length: 4 }, (_, index) =>
-      finisher(`fire-keyed:${index}`, { kind: 'field-id', fieldId: 'fire:keyed' }, { chance: 0.2 })
-    ),
-    finisher('ice-keyed:1', { kind: 'field-id', fieldId: 'ice:keyed' }, { chance: 0.2 }),
-    finisher('fire-keyed:5', { kind: 'field-id', fieldId: 'fire:keyed' }, { chance: 0.2 })
+  assert.deepEqual(rolls, [
+    [0.2, 'gw2.combo:failed'],
+    [0.2, 'gw2.combo:succeeded']
   ]);
-
-  assert.deepEqual(
-    keyed.resolvedEvents.filter((event) => event.type === 'combo').map((event) => event.fieldType),
-    ['Fire']
-  );
 });
 
 test('Whirl applications do not multiply combos and authored double Blasts do', () => {
@@ -403,11 +398,11 @@ test('target death rejects distinct same-time combo finishers and reactions', ()
   );
 });
 
-function stochasticSignature(seed, consumeUnrelated = false) {
+function seededSignature(mode, seed, consumeUnrelated = false) {
   const state = createGw2ComboRuntimeState();
 
   registerComboField(state, field('fire:stochastic', 'Fire', 0, 10));
-  const random = createSimulationRandom({ mode: 'stochastic', seed });
+  const random = createSimulationRandom({ mode, seed });
 
   if (consumeUnrelated) random.roll(0.5, 'unrelated-mechanic');
 
@@ -422,7 +417,6 @@ function stochasticSignature(seed, consumeUnrelated = false) {
           { at: 1 + index * 0.1, effectAt: 1 + index * 0.1, chance: 0.5 }
         ),
         {
-          stochastic: random.stochastic,
           roll: random.roll,
           warn() {}
         }
@@ -430,10 +424,25 @@ function stochasticSignature(seed, consumeUnrelated = false) {
   ).join('');
 }
 
-test('stochastic combo streams are seeded and isolated from unrelated rolls', () => {
-  const first = stochasticSignature(7);
-
-  assert.equal(stochasticSignature(7), first);
-  assert.equal(stochasticSignature(7, true), first);
-  assert.notEqual(stochasticSignature(8), first);
+test('combo streams are seeded and isolated from unrelated rolls in both modes', () => {
+  const first = seededSignature('deterministic', 7);
+  for (const mode of ['deterministic', 'stochastic']) {
+    assert.equal(seededSignature(mode, 7), first);
+    assert.equal(seededSignature(mode, 7, true), first);
+    assert.notEqual(seededSignature(mode, 8), first);
+    // Exercise resolver wiring as well as the shared attempt contract, including guaranteed outcomes.
+    const events = [
+      field('fire:seeded', 'Fire'),
+      ...[0, 0.5, 0.5, 0.5, 1].map((chance, index) =>
+        finisher(`seeded:${index}`, { kind: 'field-id', fieldId: 'fire:seeded' }, { chance })
+      )
+    ];
+    const random = createSimulationRandom({ mode, seed: 7 });
+    const expected = events.slice(1).filter((event) => random.roll(event.chance, `gw2.combo:${event.attemptId}`));
+    const result = resolve(events, { randomness: { mode, seed: 7 } });
+    assert.deepEqual(
+      result.resolvedEvents.filter((event) => event.type === 'combo').map((event) => event.attemptId),
+      expected.map((event) => event.attemptId)
+    );
+  }
 });

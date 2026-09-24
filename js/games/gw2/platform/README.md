@@ -24,10 +24,10 @@ Optional patch-preview authoring, validation, and overlays belong in `../integra
 [Simulator modules](../../../../docs/architecture/MODULES.md#shared-guild-wars-2-platform) for the wider ownership map.
 
 Generic arithmetic is game-neutral and lives in `#kernel/core/numeric.js`; coercion of unvalidated build input belongs
-to `builds/codec.ts`. Critical progress belongs to `combat/critical-procs.ts`; whole-millisecond duration rounding and
-absolute effect expiry remain separate operations in `skills/timing.ts`. Condition coefficients live in
-`combat/formulas.ts`. Boon queries share stack/pool calculations in `combat/boons.ts` while selecting their own
-phase-visible histories.
+to `builds/codec.ts`. Seeded critical-proc eligibility, secondary rolls, and ICD claims belong to
+`combat/critical-procs.ts`; whole-millisecond duration rounding and absolute effect expiry remain separate operations in
+`skills/timing.ts`. Condition coefficients live in `combat/formulas.ts`. Boon queries share stack/pool calculations in
+`combat/boons.ts` while selecting their own phase-visible histories.
 
 Catalog indexing and balance-profile lookups belong in `engine/skills/`; GW2 autoattack-chain state transitions belong
 in `skills/autoattack-chain-controller.ts`. Shared event-to-skill lookup lives in `combat/query/event-skill.ts`, and

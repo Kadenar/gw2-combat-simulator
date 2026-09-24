@@ -192,7 +192,7 @@ export function applyGrandEntrance(context: EngineerResolverContext, event: Engi
   recordTrait(context, 'Grand Entrance', event);
 }
 
-/** Resolves Shrapnel's random or accumulated proc for an eligible explosion. */
+/** Rolls Shrapnel against the simulation seed in both modes for each eligible explosion. */
 export function applyShrapnel(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
@@ -200,21 +200,8 @@ export function applyShrapnel(
 ): void {
   // Generated rocket explosions also roll Shrapnel; effect ownership must not discard their opportunity.
   if (!explosion || !hasTrait(context, TRAIT.SHRAPNEL)) return;
-  const state = procState(context);
-  let triggered = false;
   const chance = procChanceFromContext(context, PROFILE.shrapnel);
-  if (context.random?.stochastic === true) {
-    triggered = context.random.roll(chance, 'engineer.shrapnel');
-  } else {
-    // Deterministic mode accumulates proc chance and spends one full proc at the threshold.
-    state.shrapnelProgress = Number(state.shrapnelProgress || 0) + chance;
-    triggered = state.shrapnelProgress >= 1;
-  }
-
-  if (!triggered) return;
-  if (!context.random?.stochastic === true) {
-    state.shrapnelProgress = Number(state.shrapnelProgress || 0) - 1;
-  }
+  if (!context.random.roll(chance, 'engineer.shrapnel')) return;
 
   const shrapnelProfile = requireBalanceProfileFromContext(context, PROFILE.shrapnel);
   const shrapnelBleeding = requireEffect(shrapnelProfile, 'condition', 'Bleeding');

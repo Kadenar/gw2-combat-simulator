@@ -1,5 +1,5 @@
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import { EPSILON, canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { comboCombatMetadata, comboDefinition } from '#gw2/platform/combos/definitions.js';
 
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
@@ -257,7 +257,6 @@ export function createGw2ComboRuntimeState(): Gw2ComboRuntimeState {
   return {
     fields: new Map(),
     handledAttemptIds: new Set(),
-    deterministicProgress: new Map(),
     warningKeys: new Set()
   };
 }
@@ -347,26 +346,7 @@ function boundField(
   return null;
 }
 
-// Accumulates fractional expected procs per unique {field+finisher+outcome} key.
-// Progress fires and resets by 1.0 each time it crosses the threshold — this
-// spreads proc events evenly across the rotation rather than rounding up or down.
-function deterministicSuccess(state: Gw2ComboRuntimeState, event: ComboFinisherEvent, field: ComboFieldEvent): boolean {
-  if (event.chance >= 1) return true;
-  if (event.chance <= 0) return false;
-  const outcome = comboDefinition(field.fieldType, event.finisherType).outcome;
-  const key = [field.fieldType, event.finisherType, outcome.kind, outcome.name].join('|');
-  const progress = (state.deterministicProgress.get(key) || 0) + event.chance;
-  if (progress + EPSILON < 1) {
-    state.deterministicProgress.set(key, progress);
-    return false;
-  }
-
-  state.deterministicProgress.set(key, Math.max(0, progress - 1));
-  return true;
-}
-
 export interface ResolveComboAttemptOptions {
-  readonly stochastic: boolean;
   readonly roll: (probability: number, stream: string) => boolean;
   readonly warn: (message: string) => void;
 }
@@ -375,7 +355,7 @@ export interface ResolveComboAttemptOptions {
 export function resolveComboAttempt(
   state: Gw2ComboRuntimeState,
   event: ComboFinisherEvent,
-  { stochastic, roll, warn }: ResolveComboAttemptOptions
+  { roll, warn }: ResolveComboAttemptOptions
 ): readonly ComboEvent[] {
   // Guard against the same attempt being processed twice if the finisher event
   // appears more than once in the event queue.
@@ -383,10 +363,8 @@ export function resolveComboAttempt(
   state.handledAttemptIds.add(event.attemptId);
   const field = boundField(state, event, warn);
   if (!field) return [];
-  const succeeded = stochastic
-    ? roll(event.chance, `gw2.combo:${event.attemptId}`)
-    : deterministicSuccess(state, event, field);
-  if (!succeeded) return [];
+  // Seed each attempt identically in both phases and modes so predicted combo effects match resolution.
+  if (!roll(event.chance, `gw2.combo:${event.attemptId}`)) return [];
 
   const definition = comboDefinition(field.fieldType, event.finisherType);
   return Object.freeze(

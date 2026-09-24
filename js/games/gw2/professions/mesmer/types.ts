@@ -31,7 +31,7 @@ import type {
   MesmerCloneAttack,
   MesmerCloneAttackScheduler,
   MesmerDestroyClone,
-  MesmerExpectedProcTracker,
+  MesmerCriticalTraitDispatcher,
   MesmerPhantasmAttackTiming,
   MesmerPhantasmPolicy,
   MesmerResourceController,
@@ -213,7 +213,7 @@ export interface MesmerRuntime {
   cloneAttackScheduler: MesmerCloneAttackScheduler;
   destroyClone: MesmerDestroyClone;
   resources: MesmerResourceController;
-  expected: MesmerExpectedProcTracker;
+  criticalTraits: MesmerCriticalTraitDispatcher;
   actions: MesmerProfessionActionController;
   continuum?: MesmerContinuumController;
   mirage?: MesmerMirageController;

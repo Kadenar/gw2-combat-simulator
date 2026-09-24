@@ -11,13 +11,8 @@ import {
   grantChargePool,
   replayChargeGrants
 } from '#gw2/platform/combat/resources/charges.js';
-import {
-  advanceResourceClock,
-  advanceDiscreteResource,
-  resourceDepletionAt,
-  resourceValueAt,
-  setResourceRate
-} from '#gw2/platform/combat/resources/clock.js';
+import { advanceResource } from '#gw2/platform/combat/resources/resource-policy.js';
+import { advanceDiscreteResource, resourceDepletionAt, resourceValueAt } from '#gw2/platform/combat/resources/clock.js';
 
 // Use the real queue so generation, cancellation, priority, and insertion-order checks exercise dispatch together.
 function harness(definition, beforeTask = () => {}) {
@@ -128,11 +123,14 @@ test('resource changes settle accrued progress and replace depletion without adm
     clock: () => clock,
     depleted: (context, at) => context.events.push(at)
   });
-  const { context, through } = harness(depletion, (at) => advanceResourceClock(clock, at));
+  const { context, through } = harness(depletion, (at) => advanceResource(clock, at));
   depletion.refresh(context);
-  setResourceRate(clock, 2, -1);
+  // Settle the previous interval before changing the rate, as the resource policy does.
+  advanceResource(clock, 2);
+  clock.rate = -1;
+  anchorResourceClock(clock);
   assert.equal(clock.value, 6);
-  advanceResourceClock(clock, 3);
+  advanceResource(clock, 3);
   clock.value += 2;
   anchorResourceClock(clock);
   depletion.refresh(context);
@@ -210,10 +208,10 @@ test('resource depletion waits for the next tick while retaining fractional drai
     clock: () => clock,
     depleted: (context, at) => context.events.push(at)
   });
-  const { context, queue, through } = harness(depletion, (at) => advanceResourceClock(clock, at));
+  const { context, queue, through } = harness(depletion, (at) => advanceResource(clock, at));
   depletion.refresh(context);
   assert.equal(queue.nextAt(), 0.36);
-  advanceResourceClock(clock, 0.1);
+  advanceResource(clock, 0.1);
   assert.equal(clock.value, 0.7);
   through(0.359);
   assert.deepEqual(context.events, []);

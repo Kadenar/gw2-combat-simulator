@@ -9,7 +9,7 @@ in-game DPS.
 - Strike and condition damage
 - Boons, conditions, traits, equipment effects, and damage modifiers
 - Weapon swaps, skill chains, transformations, and supported profession mechanics
-- Deterministic expected results and seeded random trials
+- Reproducible seeded proc outcomes and weapon-strength sampling
 
 ## Main boundaries
 
@@ -23,8 +23,10 @@ does not attempt to reproduce:
 - Competitive PvP or WvW balance splits
 - Unknown, undocumented, or newly changed game behavior
 
-Fixed or expected values may replace random behavior in deterministic mode. Imported logs can also differ because they
-contain realized critical hits and encounter conditions.
+Both modes use seeded rolls for critical-proc eligibility and other chance-based effects, while strike damage uses
+average critical damage. Deterministic mode uses midpoint weapon strength; stochastic mode rolls weapon strength per
+activation. A single seed represents one set of proc outcomes, not their expected average. Imported logs can also differ
+because they contain realized critical damage and encounter conditions.
 
 ## Good use
 

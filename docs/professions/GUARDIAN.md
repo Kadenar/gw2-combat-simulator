@@ -1,7 +1,7 @@
 # Guardian
 
-Native shared-engine profession. Entry point `guardian.html`. `definition.ts` is the stable export and composes the
-Core-first tuple from `modules.ts`. A runtime contains Core plus at most one of Dragonhunter, Firebrand, Willbender, or
+Native shared-engine profession. Entry point `guardian.html`. `profession.ts` is the stable export and composes the
+Core-first tuple from `catalog.ts`. A runtime contains Core plus at most one of Dragonhunter, Firebrand, Willbender, or
 Luminary. Virtues, Firebrand tomes, Radiant Forge, and weapon state each own their cast validation, scheduler hooks,
 skill handlers, and resolver reactions under `core/` or `specializations/<name>/`.
 

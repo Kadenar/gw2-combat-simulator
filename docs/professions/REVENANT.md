@@ -1,7 +1,7 @@
 # Revenant
 
-Native shared-engine profession. Entry point `revenant.html`. `definition.ts` is the stable export and composes the
-Core-first tuple from `modules.ts`. A runtime contains Core plus at most one of Herald, Renegade, Vindicator, or
+Native shared-engine profession. Entry point `revenant.html`. `profession.ts` is the stable export and composes the
+Core-first tuple from `catalog.ts`. A runtime contains Core plus at most one of Herald, Renegade, Vindicator, or
 Conduit. Core owns the always-active energy, legend, weapon, upkeep, trait, state, rules, and UI behavior; each
 specialization owns a complete vertical slice under `specializations/<name>/`. Only the selected elite module is present
 in a given runtime.

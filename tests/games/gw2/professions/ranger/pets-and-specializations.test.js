@@ -458,23 +458,25 @@ test('Ranger Ice projectile finishers resolve per projectile without triggering 
     comboConditions.map((event) => [event.skillName, event.outcome.condition, event.outcome.duration]),
     [
       ['Splitblade', 'Chilled', 1],
+      ['Ricochet', 'Chilled', 1],
       ['Ricochet', 'Chilled', 1]
     ]
   );
   assert.equal(deterministic.totalDamage, withoutTwiceAsVicious.totalDamage);
 
-  const stochastic = simulate('Soulbeast', rotation.slice(0, 6), {
+  // Weapon-strength sampling must not change which projectile attempts succeed for the same seed.
+  const stochastic = simulate('Soulbeast', rotation, {
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Axe',
     selectedPet: 'Pig',
     randomness: { mode: 'stochastic', seed: 1 }
   });
 
-  assert.equal(
-    stochastic.resolvedEvents.filter(
-      (event) => event.type === 'combo' && event.fieldType === 'Ice' && event.finisherType === 'Projectile'
-    ).length,
-    3
+  assert.deepEqual(
+    stochastic.resolvedEvents
+      .filter((event) => event.type === 'combo' && event.fieldType === 'Ice' && event.finisherType === 'Projectile')
+      .map((event) => event.attemptId),
+    comboConditions.map((event) => event.attemptId)
   );
 });
 

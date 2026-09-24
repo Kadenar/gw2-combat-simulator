@@ -1,7 +1,7 @@
 # Necromancer
 
-Native shared-engine profession. Entry point `necromancer.html`. `definition.ts` composes the Core-first tuple from
-`modules.ts`; a runtime contains Core plus at most one of Reaper, Scourge, Harbinger, or Ritualist. Only the selected
+Native shared-engine profession. Entry point `necromancer.html`. `profession.ts` composes the Core-first tuple from
+`catalog.ts`; a runtime contains Core plus at most one of Reaper, Scourge, Harbinger, or Ritualist. Only the selected
 elite's skills, traits, state, and activation behavior are present in that runtime, except elite weapon skills shared
 through Core for Weaponmaster Training.
 
@@ -30,8 +30,8 @@ through Core for Weaponmaster Training.
 - **Ritualist** — Ritualist's Shroud, spirits (Anguish/Wanderlust/Preservation), spirit attacks, Essence Blast,
   innervates, and its supporting traits.
 - Static and resolver-time strike/critical/condition/duration/recharge/resource/ shroud/chill/fear/minion/spirit/Blight
-  modifiers, with additive vs. multiplicative grouping. Deterministic mode uses expected-value critical procs;
-  stochastic mode uses the shared sampled critical-hit facts.
+  modifiers, with additive vs. multiplicative grouping. Critical procs use the shared seeded critical-hit facts in both
+  simulation modes.
 
 Core, Reaper, Harbinger, and Ritualist shroud skills stay visible while the matching shroud is inactive but are disabled
 until entry; weapon/slot skills are disabled while a transformed bar is active.

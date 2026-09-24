@@ -83,7 +83,6 @@ export function createGw2ComboResolution({
 
     combo_finisher(context, event) {
       const combos = resolveComboAttempt(context.combo, event as ComboFinisherEvent, {
-        stochastic: context.random.stochastic,
         roll: context.random.roll,
         warn(message) {
           context.warnings.push(message);

@@ -1,7 +1,7 @@
 # Ranger
 
-Native shared-engine profession. Entry point `ranger.html`. `definition.ts` composes the Core-first tuple from
-`modules.ts`; a runtime contains Core plus at most one of Druid, Soulbeast, Untamed, or Galeshot. Core owns pets, pet
+Native shared-engine profession. Entry point `ranger.html`. `profession.ts` composes the Core-first tuple from
+`catalog.ts`; a runtime contains Core plus at most one of Druid, Soulbeast, Untamed, or Galeshot. Core owns pets, pet
 swapping and commands, weapon state, Hammer variants, shared traits, and profession resources. Each specialization owns
 its data, state, mechanics, and UI under `specializations/<name>/`.
 

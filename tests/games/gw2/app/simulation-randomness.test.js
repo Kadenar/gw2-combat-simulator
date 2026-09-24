@@ -554,15 +554,15 @@ test('Reaper rolls ice-field projectile finishers per bullet by seed', () => {
       (event) => event.type === 'combo' && event.fieldType === 'Ice' && event.finisherType === 'Projectile'
     ).length;
 
-  // Deterministic mode banks the expected chance across all seven projectiles
-  // (Weeping Shots' six bullets plus Vicious Shot's one), so it is seed-stable.
-  assert.equal(boltCount('deterministic', 1), boltCount('deterministic', 9));
-
-  // Stochastic mode rolls each bullet separately: outcomes vary across seeds and
-  // reproduce for a fixed seed. A dud seed can also land zero bolts.
+  // Both modes roll each bullet separately with the same seed; a dud seed can land zero bolts.
   const seeds = [1, 2, 3, 4, 8];
-  const counts = seeds.map((seed) => boltCount('stochastic', seed));
+  const counts = seeds.map((seed) => boltCount('deterministic', seed));
 
+  assert.equal(boltCount('deterministic', 1), counts[0]);
+  assert.deepEqual(
+    seeds.map((seed) => boltCount('stochastic', seed)),
+    counts
+  );
   assert.equal(boltCount('stochastic', 1), counts[0]);
   assert.ok(new Set(counts).size > 1, 'per-bullet rolls should vary by seed');
   assert.ok(

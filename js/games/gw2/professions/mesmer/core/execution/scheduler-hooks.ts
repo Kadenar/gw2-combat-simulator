@@ -131,11 +131,11 @@ export function observeMesmerEvent(context: MesmerSchedulerContext, event: Simul
     }
   }
 
-  mesmerExpectedProcReaction.onEventScheduled.handler(context, event);
+  mesmerCriticalTraitReaction.onEventScheduled.handler(context, event);
 }
 
 /** Capture only annotations; critical outcomes must come from the canonical event at execution. */
-export const mesmerExpectedProcReaction = eventReaction<
+export const mesmerCriticalTraitReaction = eventReaction<
   MesmerSchedulerContext,
   SimulationEvent,
   {
@@ -143,7 +143,7 @@ export const mesmerExpectedProcReaction = eventReaction<
     readonly metadata: SimulationEvent['metadata'];
   }
 >({
-  id: 'mesmer.expected-proc',
+  id: 'mesmer.critical-traits',
   missingEvent: 'error',
   select(context, event) {
     const runtime = context.mesmerRuntime;
@@ -168,7 +168,10 @@ export const mesmerExpectedProcReaction = eventReaction<
     if (event.type !== 'damage' || event.cancelled === true || missesTarget(event)) return;
     if (context.hasExplicitCombatStart && (context.combatStartTime == null || event.at < context.combatStartTime))
       return;
-    mesmerRuntimeFor(context).expected.process({ ...event, metadata: { ...captured.metadata, ...event.metadata } });
+    mesmerRuntimeFor(context).criticalTraits.process({
+      ...event,
+      metadata: { ...captured.metadata, ...event.metadata }
+    });
   }
 });
 

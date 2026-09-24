@@ -208,8 +208,8 @@ resourceGain
 The available controls come from the actual live skill metadata. A field is only patchable when the skill exposes a
 supported numeric value.
 
-Cast calibration fields such as `castTimeMs`, summon-only `quicknessCastTimeMs`, `interruptCommitMs`, `ammoCastLockout`, and
-`rechargeOffsetMs` are runtime-only and cannot be edited through numeric preview fields. Existing packet offsets
+Cast calibration fields such as `castTimeMs`, summon-only `quicknessCastTimeMs`, `interruptCommitMs`, `ammoCastLockout`,
+and `rechargeOffsetMs` are runtime-only and cannot be edited through numeric preview fields. Existing packet offsets
 (`atMs`) are also hidden from authoring references. Change those in the owning runtime source. The allowlists in
 `js/games/gw2/integrations/patches/authoring/fields.ts` define the supported controls.
 
@@ -598,7 +598,9 @@ Preview DPS    40,850
 Difference     -1,250 (-2.97%)
 ```
 
-The automatic comparison uses deterministic simulation so RNG noise is not mistaken for a balance change.
+The automatic comparison uses deterministic mode and the same seed for both data sets. Weapon strength stays at its
+midpoint and critical damage stays averaged, but proc outcomes are sampled. Changes to eligibility or event order can
+change which rolls are consumed, so a single-seed comparison can include proc variation as well as the balance change.
 
 The normal detailed result follows whichever data set is selected by the user.
 

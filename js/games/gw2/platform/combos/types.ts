@@ -57,6 +57,5 @@ export interface ComboEvent extends SimulationEventBase<'combo'> {
 export interface Gw2ComboRuntimeState {
   readonly fields: Map<string, ComboFieldEvent>;
   readonly handledAttemptIds: Set<string>;
-  readonly deterministicProgress: Map<string, number>;
   readonly warningKeys: Set<string>;
 }

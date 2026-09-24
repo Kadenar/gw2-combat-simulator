@@ -7,6 +7,7 @@ import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 
 // Core trait contracts cover proc triggers, attribute modifiers, and Tools interactions.
 const baseConfig = Object.freeze({
@@ -152,16 +153,17 @@ test('each Shred slot emits projectile hits that trigger one Aim-Assisted Rocket
   }
 });
 
-test('generated rocket explosions contribute to deterministic Shrapnel progress', () => {
-  // Shred itself is not an explosion: four rockets alone must cross Shrapnel's 33% accumulator threshold.
+test('generated rocket explosions can trigger Shrapnel', () => {
+  // Shred itself is not an explosion; a guaranteed proc isolates the generated rocket's eligibility.
   const result = simulate(
     'Amalgam',
-    Array.from({ length: 4 }, () => [
+    [
       { name: 'Offensive Protocol: Shred', skillId: 77103 },
-      { type: 'wait', durationMs: 20000 }
-    ]).flat(),
+      { type: 'wait', durationMs: 100 }
+    ],
     {
-      selectedTraitIds: [TRAIT.AIM_ASSISTED_ROCKET, TRAIT.SHRAPNEL]
+      selectedTraitIds: [TRAIT.AIM_ASSISTED_ROCKET, TRAIT.SHRAPNEL],
+      procRateOverrides: { 'engineer.shrapnel': 1 }
     }
   );
   assert.deepEqual(result.warnings, []);
@@ -170,6 +172,40 @@ test('generated rocket explosions contribute to deterministic Shrapnel progress'
   assert.equal(bleed[0].triggeredBy, 'Aim-Assisted Rocket');
   assert.equal(bleed[0].stacks, 1);
   assert.equal(bleed[0].duration, 6);
+});
+
+test('Shrapnel uses reproducible seeded rolls in both modes and honors chance overrides', () => {
+  // Compare each explosion's outcome, not averaged proc counts; weapon-strength rolls must not shift this stream.
+  const signature = (mode, seed, chance = 0.33) => {
+    const result = simulate('Core', ['Grenade Kit', 'Grenade', 'Grenade', { type: 'wait', durationMs: 100 }], {
+      selectedTraitIds: [TRAIT.SHRAPNEL],
+      randomness: { mode, seed },
+      procRateOverrides: { 'engineer.shrapnel': chance }
+    });
+    assert.deepEqual(result.warnings, []);
+    const explosions = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillName === 'Grenade'
+    );
+    const bleeds = result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.skillName === 'Shrapnel'
+    );
+    const random = createSimulationRandom({ mode, seed });
+    const expected = explosions.filter(() => random.roll(chance, 'engineer.shrapnel'));
+    assert.deepEqual(
+      bleeds.map((event) => event.at),
+      expected.map((event) => event.at)
+    );
+    return bleeds.map((event) => event.at);
+  };
+
+  const first = signature('deterministic', 1);
+  assert.ok(first.length > 0);
+  for (const mode of ['deterministic', 'stochastic']) {
+    assert.deepEqual(signature(mode, 1), first);
+    assert.notDeepEqual(signature(mode, 42), first);
+    assert.deepEqual(signature(mode, 1, 0), []);
+    assert.equal(signature(mode, 1, 1).length, 6);
+  }
 });
 
 test('Serrated Steel counts critical projectile and effect hits without an explosion requirement', () => {
@@ -193,11 +229,11 @@ test('Electric Artillery and Devastator each contribute their explosion to Shrap
     ['Electric Artillery', ['Lightning Rod', { type: 'wait', durationMs: 4500 }, 'Electric Artillery']],
     ['Devastator', ['Conduit Surge', 'Devastator', { type: 'wait', durationMs: 1000 }]]
   ]) {
-    // Three grenades bank 0.99; the spear explosion must earn the bleed, while focused follow-ups must not.
+    // Guaranteed rolls isolate the spear explosion; focused follow-ups must not gain Shrapnel eligibility.
     const result = simulate(
       'Core',
-      ['Grenade Kit', 'Grenade', 'Stow Grenade Kit', ...attacks],
-      { selectedTraitIds: [TRAIT.SHRAPNEL] },
+      attacks,
+      { selectedTraitIds: [TRAIT.SHRAPNEL], procRateOverrides: { 'engineer.shrapnel': 1 } },
       // Observe the explosion after the projectile has left the cast lane.
       { kind: 'tail', durationMs: 1000 }
     );
@@ -207,7 +243,6 @@ test('Electric Artillery and Devastator each contribute their explosion to Shrap
     );
     assert.equal(bleeds.length, 1, name);
     assert.equal(bleeds[0].triggeredBy, name);
-    assert.ok(Math.abs(result.combatState.profession.traitProcReadyAt.shrapnelProgress - 0.32) < 1e-12, name);
   }
 });
 

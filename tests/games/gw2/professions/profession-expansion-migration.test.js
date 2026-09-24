@@ -355,18 +355,11 @@ test('profession registry entries conform to the shared contracts', async () => 
 
 test('ready native professions expose deliberate public end-state keys', async () => {
   const internalKeys = {
-    elementalist: [
-      'freshAirProgress',
-      'burningPrecisionProgress',
-      'enduranceUpdatedAt',
-      'comboProgress',
-      'procReadyAt'
-    ],
-    engineer: ['heatUpdatedAt', 'passiveHeatAt', 'lightningRodActivationId', 'traitProcReadyAt'],
+    elementalist: ['enduranceUpdatedAt', 'procReadyAt'],
+    engineer: ['heatUpdatedAt', 'passiveHeatAt', 'traitProcReadyAt'],
     guardian: ['ashesBurnDuration', 'furiousFocusReadyAt', 'radiantForgeEnteredAt'],
     mesmer: ['bloodsongProgress', 'pendingResources', 'traitReadyAt'],
     necromancer: [
-      'lastResourceAt',
       'nextBlightAt',
       'minionGenerations',
       'minionAttackGenerations',
@@ -382,15 +375,11 @@ test('ready native professions expose deliberate public end-state keys', async (
       'pendingSoulTwistSkill',
       'plagueSendingArmed',
       'plagueSendingEntrySkillId',
-      'signetNextLifeForceAt',
-      'vampirismNextAt',
       'painfulBondPulseAnchorAt',
       'targetChilledUntil',
       'targetControlledUntil',
       'fearOfDeathReadyAt',
       'vampiricPresenceReadyAt',
-      'barbedPrecisionProgress',
-      'chillingNovaProgress',
       'chillingNovaReadyAt',
       'chillingVictoryReadyAt',
       'demonicLoreReadyAt',
@@ -400,27 +389,19 @@ test('ready native professions expose deliberate public end-state keys', async (
     ],
     ranger: [],
     revenant: [
-      'energyUpdatedAt',
       'enduranceUpdatedAt',
-      'renegadeCriticalProgress',
-      'soulcleaveNextAlliedProcAt',
       'endlessEnmityReadyAt',
       'bloodFuryReadyAt',
       'soulcleaveReadyAt',
-      'upkeepAffinityNextAt',
-      'impossibleOddsLesserDaggersNextAt',
       'mistfireReadyAt',
       'traitProcReadyAt'
     ],
     // Initiative spending is public for the Prodigious Pincher active-state tracker.
-    thief: ['artifactOutcomeIndices', 'doubleEdgeOutcomeIndex', 'traitProcReadyAt'],
+    thief: ['traitProcReadyAt'],
     warrior: [
-      'burstPowerExpiries',
       'dragonTriggerStartedAt',
-      'fierceAsFireExpiries',
       'flowUpdatedAt',
       'gunsAndGloryUntil',
-      'signetMasteryExpiries',
       'soldierFocusReadyAt',
       'targetControlledUntil',
       'traitProcReadyAt'

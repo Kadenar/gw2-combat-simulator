@@ -120,9 +120,9 @@ The scheduler assigns every emitted event a monotonic `eventOrder`. `emitDerived
 fractional `causalOrder` immediately after the root cause. This keeps scheduler-materialized combo results, procs, and
 other derived facts next to their cause when timestamp and priority tie.
 
-Events created during resolution must be added with `enqueueOrdered()`. If such an event does not provide explicit
-causal metadata, the stable queue places it with the event currently being handled. Stable insertion order then resolves
-any remaining tie.
+Events created during resolution must be added with `context.queue.enqueue(event)`. If such an event does not provide
+explicit causal metadata, the stable queue places it with the event currently being handled. Stable insertion order then
+resolves any remaining tie.
 
 ### Shared condition pulses
 
@@ -178,10 +178,11 @@ Task draining never executes beyond its canonical target. Continuous resource re
 representable ready instant. Mesmer direct clone grants, phantasm conversions, shatter refunds, Harmonize, Tales, and
 Bloodsong resource tasks use their actual completion timestamp; task ordering replaces synthetic delays.
 
-Current platform examples include core cast completion at `-100`, shared trigger materialization at `-60`, combo
-materialization at approximately `-59`, and a default of `0`. These are existing relative placements, not a public set
-of reserved lanes. Profession tasks should choose a priority only when they have a demonstrated dependency on same-time
-work.
+Current platform examples include core cast completion at `-100`, shared trigger and combo materialization at
+`-60 + event.priority / 1_000_000` (missing priority is zero), and ordinary tasks at `0`. Both materializers use
+`gw2MaterializerTaskPriority()` so their event precedence agrees with resolution. These are existing relative
+placements, not a public set of reserved lanes. Profession tasks should choose a priority only when they have a
+demonstrated dependency on same-time work.
 
 Task priority can affect which canonical events are produced and their emission order. Once produced, however, those
 events are independently ordered by resolver event priority.
@@ -209,7 +210,7 @@ Hook order does not move events on the timeline. Modifier order does not determi
 4. Set priority on the emitted event or procedural skill-event options. Ordinary declarative effects use the default
    event priority.
 5. Keep priority relationships local to the owning mechanic and comment what must happen before or after what.
-6. Add resolver-created events with `enqueueOrdered()`, never a raw array push.
+6. Add resolver-created events with `context.queue.enqueue(event)`, never a raw array push.
 7. Use hook or reaction `order` when ordering handlers for the same event; do not manufacture another event solely to
    order callbacks.
 8. Test the smallest simultaneous-event scenario that proves the required state or packet order.

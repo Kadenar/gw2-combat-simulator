@@ -75,7 +75,7 @@ export interface MesmerResourceController {
   queueResources: MesmerQueueResources;
 }
 
-export interface MesmerExpectedProcTracker {
+export interface MesmerCriticalTraitDispatcher {
   process(event: SimulationEvent): void;
 }
 

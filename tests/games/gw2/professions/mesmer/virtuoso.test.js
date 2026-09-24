@@ -8,14 +8,14 @@ import { shatterResourceSpends, formatTimelineCastDetails } from '#gw2/app/rotat
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
 import { observeMesmerEvent } from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
-import { jaggedMindReaction } from '#gw2/professions/mesmer/specializations/virtuoso/traits/expected-procs.js';
+import { jaggedMindReaction } from '#gw2/professions/mesmer/specializations/virtuoso/traits/blade-procs.js';
 import { deadlyBladesReaction } from '#gw2/professions/mesmer/specializations/virtuoso/traits/deadly-blades.js';
 
 test('clone metadata keeps delayed critical tasks cancellable by their owner', () => {
   // Destroying one clone cancels its reactions while leaving another clone's work queued.
   for (const [observe, type, actorType] of [
-    [observeMesmerEvent, 'mesmer.expected-proc', 'summon'],
-    [jaggedMindReaction.onEventScheduled.handler, 'mesmer.virtuoso-expected-proc', 'summon'],
+    [observeMesmerEvent, 'mesmer.critical-traits', 'summon'],
+    [jaggedMindReaction.onEventScheduled.handler, 'mesmer.jagged-mind', 'summon'],
     [deadlyBladesReaction.onEventScheduled.handler, 'mesmer.deadly-blades-critical', 'player']
   ]) {
     const processed = [];
@@ -140,7 +140,7 @@ test('Virtuoso critical tasks reject missing canonical events', () => {
   const context = { mesmerRuntime: {}, eventByOrder: () => undefined };
   const task = { at: 1, payload: { type: 'blade', eventOrder: 7 } };
   assert.throws(
-    () => jaggedMindReaction.taskHandlers['mesmer.virtuoso-expected-proc'](context, task),
+    () => jaggedMindReaction.taskHandlers['mesmer.jagged-mind'](context, task),
     /requires a scheduled event/
   );
   assert.throws(

@@ -2,8 +2,9 @@
 
 The build editor exposes **Proc rate overrides** for selected, supported traits. Enter a percentage from 0 to 100; leave
 the field blank or use Reset to inherit the active balance profile. Changes rerun the simulation and invalidate
-dependent comparisons. Rates apply to both deterministic accumulation and stochastic rolls; trigger eligibility,
-internal cooldowns, effects, and profession-owned accumulator policies are preserved.
+dependent comparisons. Rates apply to seeded rolls in both simulation modes; trigger eligibility, internal cooldowns,
+and effects remain unchanged. Critical procs first require the hit's shared `didCrit` outcome, then roll any separate
+trait proc chance. Shrapnel rolls directly for each eligible explosion.
 
 For supported condition procs, Analysis displays activations in the Hits column. The primary resolved effect carries
 `metadata.procCount`; secondary effects do not repeat it. The count is independent of condition stacks and damage ticks,
@@ -20,8 +21,9 @@ no effect unless an active proc explicitly consumes them. Imported log observati
 1. Add `procRate: { id, traitId, field, opportunity }` to its profession-owned balance profile. `field` identifies the
    existing chance field, and `opportunity` describes its denominator, such as `eligible critical hit` or
    `eligible explosion hit`.
-2. Read its probability through `procChanceFromContext(context, profileId, fallback)`. Use the result in every
-   deterministic and stochastic branch while retaining existing eligibility and cooldown logic.
+2. Read its probability through `procChanceFromContext(context, profileId)` and use it for the seeded proc roll in both
+   modes, retaining existing eligibility and cooldown logic. The profile must declare a valid baseline chance even when
+   an override is supplied.
 3. Add a minimal trait-contract check covering zero, full probability, and ineligible opportunities. Mark the primary
    condition effect with `metadata.procCount` to expose its activations in Analysis.
 

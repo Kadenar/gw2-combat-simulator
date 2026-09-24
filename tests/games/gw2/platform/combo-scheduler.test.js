@@ -929,6 +929,40 @@ test('the scheduler predicts a delayed combo result for later facts', () => {
   assert.equal(scheduler.context.hasBuff('might', 2), true);
 });
 
+test('seeded fractional combos agree between scheduler predictions and resolver outcomes in both modes', () => {
+  // Chance-based setup boons must follow the same rolls in prediction and resolution.
+  const profession = fixtureProfession((context) => {
+    context.emit(boundaryField);
+    for (let index = 0; index < 8; index += 1) {
+      context.emit({
+        ...boundaryOwner,
+        type: 'combo_finisher',
+        at: 1 + index * 0.1,
+        effectAt: 1 + index * 0.1,
+        attemptId: `fractional:${index}`,
+        finisherType: 'Blast',
+        fieldBinding: { kind: 'field-id', fieldId: boundaryField.fieldId },
+        chance: 0.5,
+        applications: 1,
+        successfulCombos: 1
+      });
+    }
+  });
+  const rotation = [{ type: 'wait', durationMs: 3000 }];
+  const attempts = (events) => events.filter((event) => event.type === 'combo').map((event) => event.attemptId);
+  let first;
+  for (const mode of ['deterministic', 'stochastic']) {
+    const config = { ...boundaryConfig, randomness: { mode, seed: 7 } };
+    const scheduler = createScheduler({ profession, config, schedulerPolicy: createGw2SchedulerPolicy(config) });
+    const predicted = attempts(scheduler.run(rotation).events);
+    const resolved = attempts(simulateGw2({ profession, rotation, config }).resolvedEvents);
+    assert.ok(predicted.length > 0 && predicted.length < 8);
+    assert.deepEqual(resolved, predicted);
+    if (first) assert.deepEqual(resolved, first);
+    first = resolved;
+  }
+});
+
 test('canonically equal fields register before finishers by default', () => {
   const profession = fixtureProfession((context) => {
     context.emit({
