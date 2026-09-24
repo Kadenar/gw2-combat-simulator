@@ -541,7 +541,7 @@ test('Dragon Slash release projections respect Flow and traited charge caps', ()
     maximumCharges: 5,
     chargesPerInterval: 1,
     flowPerInterval: 10,
-    nextChargeAt: 1.25,
+    nextChargeAt: 1.24,
     deadline: 3.5,
     flowRateSegments: []
   };
@@ -557,9 +557,12 @@ test('Dragon Slash release projections respect Flow and traited charge caps', ()
     [1, 2, 3, 4, 5]
   );
   assert.equal(projection.rows[0].disabled, false);
-  assert.equal(projection.rows[0].flowAfter, 0);
-  assert.equal(projection.rows[1].disabled, true);
-  assert.match(projection.rows[1].reason, /Insufficient Flow/);
+  // Entry pays for the first charge; the remaining Flow funds exactly one additional interval.
+  assert.equal(projection.rows[0].flowAfter, 10);
+  assert.equal(projection.rows[1].disabled, false);
+  assert.equal(projection.rows[1].flowAfter, 0);
+  assert.equal(projection.rows[2].disabled, true);
+  assert.match(projection.rows[2].reason, /Insufficient Flow/);
   assert.equal(projection.rows.at(-1).coefficient, 20.4);
   assert.equal(
     dragonChargeReleaseProjection({

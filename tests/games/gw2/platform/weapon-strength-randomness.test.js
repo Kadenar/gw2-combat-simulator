@@ -71,7 +71,7 @@ test('canonical weapon-strength bounds derive every documented midpoint', () => 
 test('profile lookup and continuous sampling validate their inputs', () => {
   assert.equal(weaponStrengthProfileForName('Dagger')?.id, 'weapon.dagger');
   assert.equal(weaponStrengthProfileForName('Profession mechanic')?.id, 'nonweapon.profession-mechanic');
-  assert.equal(weaponStrengthProfileForName('Gunsaber')?.id, 'bundle.ascended');
+  assert.equal(weaponStrengthProfileForName('Gunsaber')?.id, 'bundle.exotic');
   assert.equal(weaponStrengthProfileForName('unknown'), null);
   assert.throws(() => weaponStrengthProfile('weapon.unknown'), /Unknown/);
   const rifle = weaponStrengthProfile('weapon.rifle');

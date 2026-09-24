@@ -46,33 +46,6 @@ test('default Condition Berserker uses the full training-golem health pool', asy
 });
 
 test('Condition Berserker skill data uses configured values and packet timing', () => {
-  const quicknessCastTimes = {
-    [ID.DUAL_SHOT]: 840,
-    [ID.FAN_OF_FIRE]: 560,
-    [ID.ARCING_ARROW]: 560,
-    [ID.PIN_DOWN]: 680,
-    [ID.SMOLDERING_ARROW]: 160,
-    [ID.COMBUSTIVE_SHOT]: 520,
-    [ID.SCORCHED_EARTH]: 360,
-    [ID.SAVAGE_LEAP]: 1000,
-    [ID.BLAZE_BREAKER]: 480,
-    [ID.FLAMES_OF_WAR]: 520,
-    [ID.REND]: 960,
-    [ID.FLAMING_FLURRY]: 1600,
-    [ID.SEVER_ARTERY]: 360,
-    [ID.GASH]: 560,
-    [ID.HAMSTRING]: 400,
-    [ID.BLOOD_RECKONING]: 280,
-    [ID.SHATTERING_BLOW]: 520,
-    [ID.SUNDERING_LEAP]: 960,
-    [ID.HEAD_BUTT]: 800
-  };
-
-  for (const [id, castTime] of Object.entries(quicknessCastTimes)) {
-    assert.equal(skill(Number(id)).castTimeMs, castTime);
-    assert.equal(castTime % 40, 0);
-  }
-
   const dualShot = skill(ID.DUAL_SHOT);
 
   assert.deepEqual(

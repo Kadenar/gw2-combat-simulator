@@ -92,10 +92,13 @@ test('Positive Flow integrates trait and Flow Stabilizer bonuses through their d
     }
 
     advanceBladesworn(context, until);
-    assert.ok(Math.abs(state.flow - (until - 0.001) * (source === 'trait' ? 4 : 6)) < 1e-9);
+    // Both sources grant two Positive Flow stacks: 4 Flow/s plus 2 base, credited on whole 40 ms ticks.
+    assert.ok(Math.abs(state.flow - until * 6) < 1e-9);
     const atExpiry = state.flow;
     advanceBladesworn(context, until + 0.001);
-    assert.ok(Math.abs(state.flow - atExpiry - 0.002) < 1e-9, 'only base Flow remains after expiry');
+    assert.equal(state.flow, atExpiry, 'Flow waits for the next regeneration tick');
+    advanceBladesworn(context, until + 0.04);
+    assert.ok(Math.abs(state.flow - atExpiry - 0.08) < 1e-9, 'only base Flow remains after expiry');
   }
 
   // The declarative Flow Stabilizer buff and its procedural state must agree on off-grid applications too.
