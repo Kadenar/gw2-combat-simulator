@@ -93,14 +93,14 @@ test('declarative ammo consumes and recharges shared charges', () => {
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'damage').length, 2);
   assert.deepEqual(
     result.events.filter((event) => event.type === 'action').map((event) => event.at),
-    [0, 0.25]
+    [0, 0.28]
   );
   assert.deepEqual(result.planningState.ammo['Fixture Ammo'], {
     charges: 1,
     maximum: 2,
     rechargeDuration: 5,
     nextRechargeAt: 10,
-    lockoutReadyAt: 0.5
+    lockoutReadyAt: 0.56
   });
 });
 
@@ -153,7 +153,7 @@ test('end state projects ammo and cooldowns at the resolution boundary', () => {
   }
 });
 
-test("shared scheduler waits until a skill's exact cooldown expiry", () => {
+test('shared scheduler detects cooldown completion on the next absolute action tick', () => {
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -179,13 +179,13 @@ test("shared scheduler waits until a skill's exact cooldown expiry", () => {
 
   assert.deepEqual(
     actions.map((event) => event.at),
-    [0, 0.3]
+    [0, 0.32]
   );
   assert.deepEqual(
     result.steps.map((step) => step.start),
-    [0, 300]
+    [0, 320]
   );
-  assert.equal(result.planningState.atSeconds * 1000, 300);
-  assert.equal(result.planningState.cooldowns['Fixture Cooldown'].readyAt, 600);
+  assert.equal(result.planningState.atSeconds * 1000, 320);
+  assert.equal(result.planningState.cooldowns['Fixture Cooldown'].readyAt, 640);
   assert.deepEqual(result.warnings, []);
 });

@@ -130,7 +130,8 @@ export function releaseRevenantUpkeep(context: RevenantCastContext, skill: Reven
   context.tasks.cancelOwner(`revenant.upkeep:${parent.id}`);
   const cooldown = Math.max(0, Number(parent.manualReleaseCooldown || 0));
   if (cooldown > 0) {
-    context.state.cooldowns.set(parent.id, at + cooldown);
+    // Apply recharge modifiers at release using the parent's release-specific base cooldown.
+    context.state.cooldowns.set(parent.id, at + context.rechargeDurationFor({ ...parent, cooldown }, at));
   }
 
   emitRevenantStateSnapshot(context, at, 'upkeep-released');

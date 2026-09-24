@@ -138,8 +138,12 @@ function advanceRevenantEnergyInterval(
     for (const active of state.activeUpkeeps) {
       const skill = context.catalog.skillsById.get(active.skillId);
       const cooldown = Math.max(0, Number(skill?.starvationCooldown || 0));
-      if (cooldown > 0) {
-        context.state.cooldowns.set(active.skillId, starvedAt + cooldown);
+      if (skill && cooldown > 0) {
+        // Sample recharge modifiers at exhaustion, even when an advance observes starvation later.
+        context.state.cooldowns.set(
+          active.skillId,
+          starvedAt + context.rechargeDurationFor({ ...skill, cooldown }, starvedAt)
+        );
       }
 
       context.tasks.cancelOwner(`revenant.upkeep:${active.skillId}`);

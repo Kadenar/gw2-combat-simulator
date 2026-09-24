@@ -341,6 +341,42 @@ test('Canceled Beguiling Haze retires its reservation without granting charges o
   assert.deepEqual(ammo, { maximum: 1, charges: 0, nextRechargeAt: 12 });
 });
 
+// Release cooldowns belong to the upkeep parent and use its release-specific duration with recharge modifiers.
+test('upkeep manual release cooldowns scale with Alacrity', () => {
+  for (const [specialization, legend, parentName, releaseName, cooldown] of [
+    ['Core', LEGEND.ASSASSIN, 'Impossible Odds', 'Relinquish Power', 1],
+    ['Core', LEGEND.CENTAUR, 'Protective Solace', 'Diminish Solace', 5],
+    ['Renegade', LEGEND.RENEGADE, "Soulcleave's Summit", 'Dismiss Lieutenant Soulcleave', 3]
+  ]) {
+    for (const alacrity of [false, true]) {
+      const result = simulate(specialization, [parentName, wait(1000), releaseName, parentName], {
+        selectedLegends: [legend, LEGEND.DEMON],
+        startingLegend: legend,
+        initialEnergy: 100,
+        boons: { alacrity }
+      });
+      const release = result.steps.find((step) => step.skill === releaseName);
+      assert.deepEqual(result.warnings, []);
+      assert.equal(result.steps.at(-1).start, release.end + (cooldown / (alacrity ? 1.25 : 1)) * 1000);
+    }
+  }
+});
+
+// Exhaustion starts a distinct parent cooldown at starvation, independent of the later observation endpoint.
+test('upkeep starvation cooldowns scale with Alacrity', () => {
+  for (const alacrity of [false, true]) {
+    const result = simulate('Core', ['Impossible Odds', wait(2000)], {
+      initialEnergy: 6,
+      boons: { alacrity }
+    });
+    const starvation = result.events.find((event) => event.reason === 'upkeep-starved');
+    assert.deepEqual(result.warnings, []);
+    assert.equal(starvation.at, 1);
+    assert.equal(result.schedulerState.cooldowns.get(SKILL.IMPOSSIBLE_ODDS), starvation.at + 4 / (alacrity ? 1.25 : 1));
+    assert.deepEqual(result.planningState.profession.activeUpkeeps, []);
+  }
+});
+
 test('Diminish Solace stops upkeep drain, retires owned tasks, and starts the parent cooldown', () => {
   const config = { selectedLegends: [LEGEND.CENTAUR, LEGEND.ASSASSIN], startingLegend: LEGEND.CENTAUR };
   const rotation = ['__combat_start', 'Protective Solace', wait(1000), 'Diminish Solace'];
@@ -355,6 +391,7 @@ test('Diminish Solace stops upkeep drain, retires owned tasks, and starts the pa
   const context = contextFor();
   const owners = [];
   context.tasks.cancelOwner = (id) => owners.push(id);
+  context.rechargeDurationFor = (skill) => skill.cooldown;
   context.effectiveEnd = 1;
   context.state.profession.core.activeUpkeeps.push({ skillId: SKILL.PROTECTIVE_SOLACE, upkeepCost: 8 });
   releaseRevenantUpkeep(context, revenantCatalog.skillsById.get(SKILL.DIMINISH_SOLACE));
