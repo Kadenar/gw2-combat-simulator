@@ -165,14 +165,8 @@ export const lifeForceDepletion = resourceDepletion({
 export const necromancerLifeForce: ResourcePolicy<NecromancerSchedulerContext> = {
   kind: 'continuous',
   state: (context) => professionCoreState(context).lifeForce,
-  maximum: (context) =>
-    100 *
-    (hasTrait(context, TRAIT.SOUL_BATTERY)
-      ? balanceProfileNumber(
-          requireBalanceProfileFromContext(context, TRAIT.SOUL_BATTERY),
-          'lifeForceCapacityMultiplier'
-        )
-      : 1),
+  // Capacity bonuses reduce fixed Scourge costs; all resource observations remain percentages.
+  maximum: () => 100,
   initial: (context, maximum) => (maximum * Number(context.config.initialResource ?? 100)) / 100,
   recovery(context) {
     const state = professionCoreState(context);

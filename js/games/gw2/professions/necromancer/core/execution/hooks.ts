@@ -1,6 +1,5 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { necromancerMaximumHealth } from '#gw2/professions/necromancer/core/state.js';
-import { normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
+import { necromancerLifeForceCostMultiplier } from '#gw2/professions/necromancer/core/state.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { observeNecromancerPlagueSendingEvent } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
@@ -36,12 +35,8 @@ import type { NecromancerSchedulerContext } from '#gw2/professions/necromancer/t
 export const necromancerSchedulerHooks = Object.freeze({
   initialize: (context: NecromancerSchedulerContext) => {
     const core = professionCoreState(context);
-    core.maximumHealth = necromancerMaximumHealth(
-      context.config,
-      normalizeSelectedTraitIds(context.config.selectedTraitIds),
-      context
-    );
-    core.lifeForcePoolCapacity = core.maximumHealth * 0.69 * (core.lifeForce.maximum / 100);
+    // The selected catalog may patch vitality traits or Soul Battery after the detached state was created.
+    core.lifeForceCostMultiplier = necromancerLifeForceCostMultiplier(context.config, context);
     initializeLifeForcePassives(context);
     if (!context.hasExplicitCombatStart) startAlliedAttackOpportunities(context, 0);
     replayNecromancerLifeForceGains(context);

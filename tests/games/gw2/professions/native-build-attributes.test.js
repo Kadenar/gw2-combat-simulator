@@ -246,7 +246,7 @@ test('shared attribute provenance applies profession static rules once', () => {
     stats: { power: 1000, vitality: 1100 }
   });
 
-  assert.equal(necromancerBrowserState.maximumHealth, necromancerDirectState.maximumHealth);
+  assert.equal(necromancerBrowserState.lifeForceCostMultiplier, necromancerDirectState.lifeForceCostMultiplier);
 
   const revenantDirect = revenantCoreRules.modifyConditionDuration(
     { catalog: revenantProfession.catalog, config: { selectedTraitIds: [TRAIT.PACT_OF_PAIN] }, condition: 'Torment' },

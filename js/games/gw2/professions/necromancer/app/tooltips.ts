@@ -77,7 +77,10 @@ export const necromancerTooltips: ProfessionTooltips = {
           : [
               {
                 name: 'Life force spent',
-                detail: tooltipDecimal(actualNecromancerLifeForceCost(tooltipNumber(entity, 'lifeForceCost')))
+                // Match whole-point in-game facts without rounding the cost used by simulation.
+                detail: actualNecromancerLifeForceCost(tooltipNumber(entity, 'lifeForceCost')).toLocaleString('en-US', {
+                  maximumFractionDigits: 0
+                })
               }
             ]
       ),

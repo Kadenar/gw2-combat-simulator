@@ -158,7 +158,6 @@ export interface NecromancerUiContext extends Omit<ProfessionUiCallbackContext<P
   readonly state?: {
     readonly profession?: Partial<NecromancerState>;
   };
-  readonly lifeForcePoolCapacity?: number;
 }
 
 /** UI slice whose callbacks read Necromancer end-state projections. */

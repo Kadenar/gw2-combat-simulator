@@ -32,8 +32,7 @@ export interface NecromancerTasteForBloodApplication {
 
 export interface NecromancerCoreState {
   lifeForce: ResourceClock;
-  maximumHealth: number;
-  lifeForcePoolCapacity: number;
+  lifeForceCostMultiplier: number;
   activeShroud: string;
   activeShroudEntryId?: SkillId | null;
   activeShroudExitId?: SkillId | null;
@@ -66,8 +65,7 @@ export interface NecromancerCoreState {
 /** Declares the Core fields exposed by every Necromancer end-state projection. */
 const NECROMANCER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'lifeForce',
-  'maximumHealth',
-  'lifeForcePoolCapacity',
+  'lifeForceCostMultiplier',
   'activeShroud',
   'soulShardGrant',
   'carapaceExpiries',
@@ -87,14 +85,14 @@ export const NECROMANCER_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
 
 const NECROMANCER_BASE_HEALTH = 9212;
 
-/** Calculates maximum health after Core vitality traits that were not already applied by the build layer. */
-export function necromancerMaximumHealth(
+/** Scales fixed Scourge costs onto a 0–100 meter, applying build vitality traits and Soul Battery once. */
+export function necromancerLifeForceCostMultiplier(
   config: NecromancerConfig,
-  traits: ReadonlySet<string | number>,
   balanceContext: unknown = {
     balanceProfile: (id: string | number) => NECROMANCER_CORE_BALANCE_PROFILES.find((profile) => profile.id === id)
   }
 ): number {
+  const traits = normalizeSelectedTraitIds(config.selectedTraitIds);
   let vitality = Number(config.stats?.vitality ?? 1000);
   if (!professionStaticRulesApplied(config)) {
     if (hasTrait(traits, NECROMANCER_TRAIT_IDS.SPITEFUL_FORTITUDE)) {
@@ -115,18 +113,23 @@ export function necromancerMaximumHealth(
     }
   }
 
-  return NECROMANCER_BASE_HEALTH + Math.max(0, vitality) * 10;
+  const capacityMultiplier = hasTrait(traits, NECROMANCER_TRAIT_IDS.SOUL_BATTERY)
+    ? balanceProfileNumber(
+        requireBalanceProfileFromContext(balanceContext, NECROMANCER_TRAIT_IDS.SOUL_BATTERY),
+        'lifeForceCapacityMultiplier'
+      )
+    : 1;
+  // Percentage costs require a nonzero capacity; reject invalid tuning before it creates infinite costs.
+  if (capacityMultiplier <= 0) throw new RangeError('Life-force capacity multiplier must be positive.');
+  return NECROMANCER_BASE_HEALTH / ((NECROMANCER_BASE_HEALTH + Math.max(0, vitality) * 10) * 0.69 * capacityMultiplier);
 }
 
 /** Converts a base-health percentage cost into the normalized life-force resource scale. */
 export function normalizedNecromancerLifeForceCost(
-  state: Partial<NecromancerCoreState>,
+  state: Pick<NecromancerCoreState, 'lifeForceCostMultiplier'>,
   baseHealthPercent: number
 ): number {
-  const actualCost = (NECROMANCER_BASE_HEALTH * Math.max(0, Number(baseHealthPercent || 0))) / 100;
-  const actualCapacity = Math.max(1, Number(state?.lifeForcePoolCapacity || 1));
-  const normalizedCapacity = Math.max(1, Number(state?.lifeForce?.maximum || 100));
-  return (actualCost * normalizedCapacity) / actualCapacity;
+  return Math.max(0, Number(baseHealthPercent || 0)) * state.lifeForceCostMultiplier;
 }
 
 /** Converts a base-health percentage into its raw life-force pool cost. */
@@ -136,25 +139,10 @@ export function actualNecromancerLifeForceCost(baseHealthPercent: number): numbe
 
 /** Creates fresh Core Necromancer resources, transforms, summons, and trait proc state from a build config. */
 export function createNecromancerCoreState(config: NecromancerConfig = {}): NecromancerCoreState {
-  // Normalize canonical selected IDs once for all initial state calculations.
-  const traits = normalizeSelectedTraitIds(config.selectedTraitIds);
-  const soulBattery = hasTrait(traits, NECROMANCER_TRAIT_IDS.SOUL_BATTERY);
-  const capacityMultiplier = soulBattery
-    ? Number(
-        NECROMANCER_CORE_BALANCE_PROFILES.find((profile) => profile.id === NECROMANCER_TRAIT_IDS.SOUL_BATTERY)!
-          .lifeForceCapacityMultiplier
-      )
-    : 1;
-  const maximumLifeForce = 100 * capacityMultiplier;
-  const maximumHealth = necromancerMaximumHealth(config, traits);
-  const lifeForcePoolCapacity = maximumHealth * 0.69 * capacityMultiplier;
-  const configuredLifeForce = Number(config.initialResource ?? 100);
-  const lifeForce = (maximumLifeForce * clamp(configuredLifeForce, 0, 100)) / 100;
   // Seed every mutable subsystem independently and bound the initial life-force value.
   const state: NecromancerCoreState = {
-    lifeForce: { value: lifeForce, maximum: maximumLifeForce, rate: 0, updatedAt: 0 },
-    maximumHealth,
-    lifeForcePoolCapacity,
+    lifeForce: { value: clamp(Number(config.initialResource ?? 100), 0, 100), maximum: 100, rate: 0, updatedAt: 0 },
+    lifeForceCostMultiplier: necromancerLifeForceCostMultiplier(config),
     activeShroud: '',
     activeShroudEntryId: null,
     activeShroudExitId: null,

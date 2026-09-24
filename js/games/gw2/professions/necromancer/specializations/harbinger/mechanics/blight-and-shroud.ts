@@ -13,6 +13,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gainNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { necromancerLifeForceCostMultiplier } from '#gw2/professions/necromancer/core/state.js';
 import {
   advanceHarbingerBlight,
   harbingerBlightTaskHandlers,
@@ -35,19 +36,24 @@ import type {
 import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 
-/** Applies Harbinger's health baseline and registers its shroud-exit Blight cursor cleanup. */
+/** Seeds initial Blight and registers its shroud-exit cursor cleanup. */
 function initializeHarbingerRuntime(context: NecromancerSchedulerContext): void {
-  const core = professionCoreState(context);
-  // Seed the chart before the first cast so initial Blight contributes throughout the observation window.
-  emitBlightState(context, harbingerState.from(context), context.state.time);
+  // Direct simulation configs still need Alchemic Vigor in the display conversion; the percentage pool is unchanged.
   if (!professionStaticRulesApplied(context.config)) {
-    const alchemicVigorProfile = requireBalanceProfileFromContext(context, PROFILE.alchemicVigor);
-    // Alchemic Vigor's vitality changes the physical life-force pool even though the normalized meter remains stable.
-    const vitality = balanceProfileNumber(alchemicVigorProfile, 'attributeBonus');
-    core.maximumHealth += vitality * 10;
-    core.lifeForcePoolCapacity = core.maximumHealth * 0.69 * (core.lifeForce.maximum / 100);
+    const vitality =
+      Number(context.config.stats?.vitality ?? 1000) +
+      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.alchemicVigor), 'attributeBonus');
+    professionCoreState(context).lifeForceCostMultiplier = necromancerLifeForceCostMultiplier(
+      {
+        ...context.config,
+        stats: { ...context.config.stats, vitality }
+      },
+      context
+    );
   }
 
+  // Seed the chart before the first cast so initial Blight contributes throughout the observation window.
+  emitBlightState(context, harbingerState.from(context), context.state.time);
   registerNecromancerShroudLifecycle(context, 'harbinger.shroud', {
     onEnter: enterHarbingerShroud,
     onExit: (runtime) => {

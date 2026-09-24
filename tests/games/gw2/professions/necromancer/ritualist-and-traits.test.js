@@ -1284,8 +1284,8 @@ test('signet passives and Soul Battery are profession-owned resources', () => {
 
   assert.equal(signets.planningState.profession.lifeForce.value, 4);
   assert.ok(signets.breakdown.some((entry) => entry.name === 'Signet of Vampirism - Passive Life Siphon'));
-  assert.equal(battery.planningState.profession.lifeForce.maximum, 120);
-  assert.equal(battery.planningState.profession.lifeForce.value, 120);
+  assert.equal(battery.planningState.profession.lifeForce.maximum, 100);
+  assert.equal(battery.planningState.profession.lifeForce.value, 100);
   assert.equal(eternal.planningState.profession.lifeForce.value, 12);
   assert.equal(eternalCap.planningState.profession.lifeForce.value, 66);
   const lifeBlast = perception.resolvedEvents.find(

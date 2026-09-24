@@ -384,10 +384,10 @@ test('NEC-007 strike life force is spendable by the next shroud entry', () => {
     target: { health: 1000000, startingHealthFraction: 0.4 }
   });
   assert.equal(minion.planningState.profession.lifeForce.value, 0);
-  // Percentage gains normalize to the enlarged pool, apply Gluttony once, and cannot overflow its cap.
+  // Percentage gains apply Gluttony once and cannot overflow the meter, including with Soul Battery.
   for (const [initialResource, expected] of [
-    [0, 2.64],
-    [99, 120]
+    [0, 2.2],
+    [99, 100]
   ]) {
     const result = simulate('Core', ['Rending Claws'], {
       initialResource,

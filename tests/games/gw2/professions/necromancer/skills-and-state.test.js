@@ -1,5 +1,6 @@
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
@@ -713,32 +714,68 @@ test('Death and Reaper shrouds drain a percentage of the maximum life-force pool
       selectedTraitIds: [TRAIT.SOUL_BATTERY]
     }).planningState.profession.lifeForce.value;
 
-  assert.equal(drainAfterOneSecond('Core', 'Death Shroud', 'End Death Shroud'), 116.4);
-  assert.equal(drainAfterOneSecond('Reaper', "Reaper's Shroud", "Exit Reaper's Shroud"), 115.2);
+  assert.equal(drainAfterOneSecond('Core', 'Death Shroud', 'End Death Shroud'), 97);
+  assert.equal(drainAfterOneSecond('Reaper', "Reaper's Shroud", "Exit Reaper's Shroud"), 96);
 });
 
-test('life-force capacity is 69% of health and Soul Battery increases it by 20%', () => {
-  const base = simulate('Core', [], {
-    initialResource: 100,
-    stats: { vitality: 1000 }
-  }).planningState.profession;
-  const battery = simulate('Core', [], {
-    initialResource: 100,
-    stats: { vitality: 1000 },
-    selectedTraitIds: [TRAIT.SOUL_BATTERY]
-  }).planningState.profession;
-
-  assert.equal(base.maximumHealth, 19212);
-  assert.equal(base.lifeForcePoolCapacity, 19212 * 0.69);
-  assert.equal(battery.lifeForcePoolCapacity, base.lifeForcePoolCapacity * 1.2);
+// Build capacity bonuses change fixed costs, never the meaning of the configured starting percentage.
+test('every Necromancer specialization starts with a percentage life-force meter', () => {
+  for (const specialization of ['Core', 'Reaper', 'Scourge', 'Harbinger', 'Ritualist']) {
+    const state = simulate(specialization, [], {
+      initialResource: 40,
+      stats: { vitality: 2000 },
+      selectedTraitIds: [TRAIT.SOUL_BATTERY]
+    }).planningState.profession;
+    assert.equal(state.lifeForce.maximum, 100, specialization);
+    assert.equal(state.lifeForce.value, 40, specialization);
+  }
 });
 
-test('Alchemic Vigor increases Harbinger health and its physical life-force pool', () => {
-  const core = simulate('Core', [], { stats: { vitality: 1000 } }).planningState.profession;
-  const harbinger = simulate('Harbinger', [], { stats: { vitality: 1000 } }).planningState.profession;
+// A fixed 4,606-point cost must become cheaper with vitality or Soul Battery in both gating and spending.
+test('Scourge fixed costs preserve build scaling on the percentage meter', () => {
+  for (const vitality of [1000, 2000]) {
+    for (const battery of [false, true]) {
+      const config = { stats: { vitality }, selectedTraitIds: battery ? [TRAIT.SOUL_BATTERY] : [] };
+      const expectedCost = (4606 * 100) / ((9212 + vitality * 10) * 0.69 * (battery ? 1.2 : 1));
+      const allowed = simulate('Scourge', ['Desert Shroud'], { ...config, initialResource: expectedCost + 0.01 });
+      const denied = simulate('Scourge', ['Desert Shroud'], { ...config, initialResource: expectedCost - 0.01 });
+      assert.deepEqual(allowed.warnings, []);
+      assert.ok(Math.abs(allowed.planningState.profession.lifeForce.value - 0.01) < 1e-10);
+      assert.equal(denied.warnings.length, 1);
+      assert.match(denied.warnings[0], /requires .*% life force/);
+      assert.equal(denied.planningState.profession.lifeForce.value, expectedCost - 0.01);
+    }
+  }
+});
 
-  assert.equal(harbinger.maximumHealth, core.maximumHealth + 2400);
-  assert.equal(harbinger.lifeForcePoolCapacity, harbinger.maximumHealth * 0.69);
+// Runtime initialization must replace detached defaults with the active patch's vitality and capacity tuning.
+test('Scourge percentage costs use the selected balance profiles', () => {
+  const run = (capacityMultiplier) =>
+    createProfessionSimulator(
+      withPatchPreview(necromancerProfession, {
+        id: 'scourge-costs',
+        label: 'Scourge costs',
+        professions: {
+          necromancer: {
+            balanceProfiles: {
+              [TRAIT.SOUL_BATTERY]: { fields: { lifeForceCapacityMultiplier: capacityMultiplier } },
+              [TRAIT.SPITEFUL_FORTITUDE]: { fields: { attributeConversion: 0.2 } },
+              [TRAIT.VITAL_PERSISTENCE]: { fields: { attributeBonus: 100 } }
+            }
+          }
+        }
+      }),
+      baseConfig
+    )('Scourge', ['Desert Shroud'], {
+      patchId: 'scourge-costs',
+      initialResource: 50,
+      selectedTraitIds: [TRAIT.SOUL_BATTERY, TRAIT.SPITEFUL_FORTITUDE, TRAIT.VITAL_PERSISTENCE]
+    });
+  const result = run(1.5);
+  const expectedCost = (4606 * 100) / ((9212 + (1000 + 2000 * 0.2 + 100) * 10) * 0.69 * 1.5);
+  assert.deepEqual(result.warnings, []);
+  assert.ok(Math.abs(result.planningState.profession.lifeForce.value - (50 - expectedCost)) < 1e-10);
+  assert.throws(() => run(0), /Life-force capacity multiplier must be positive/);
 });
 
 test('Reaper greatsword chain is ordered and Chilling Scythe recharges Gravedigger', async () => {

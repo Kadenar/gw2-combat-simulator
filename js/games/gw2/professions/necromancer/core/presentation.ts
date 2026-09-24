@@ -20,6 +20,7 @@ import type {
   NecromancerUiSlice
 } from '#gw2/professions/necromancer/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import { actualNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
 
 const LICH_SKILLS: readonly SkillId[] = Object.freeze([
   ID.DEATHLY_CLAWS,
@@ -239,7 +240,7 @@ function necromancerEventLogRow(
   if (event?.type !== 'necromancer.state' && event?.type !== 'necromancer.life-force') return undefined;
   // Summarize only player-facing resource and transform fields from state snapshots.
   const state = event.state || {};
-  const details = [`Life force ${Number(state.lifeForce?.value || 0).toFixed(1)}`];
+  const details = [`Life force ${Number(state.lifeForce?.value || 0).toFixed(1)}%`];
   if (state.activeShroud) details.push(`Shroud ${state.activeShroud}`);
   if (Number(state.blight || 0) > 0) {
     details.push(`Blight ${Number(state.blight)}`);
@@ -298,22 +299,21 @@ export function necromancerSoulShardResourceViews(context: NecromancerUiContext)
     : [];
 }
 
-// Normalize life force into the configured pool capacity and append Core-only Soul Shards.
+// Project whole life-force points from the build multiplier; the resource and starting input remain percentages.
 function necromancerCoreResourceViews(context: NecromancerUiContext): ProfessionResourceView[] {
   const state = necromancerUiState(context);
-  const normalizedMaximum = Math.max(100, Number(state.lifeForce?.maximum || 100));
-  const maximum = Math.round(
-    Math.max(1, Number(state.lifeForcePoolCapacity || context.lifeForcePoolCapacity || normalizedMaximum))
-  );
-  const normalizedValue = Number(state.lifeForce?.value ?? context.value ?? context.initialResource ?? 100);
-  // The UI stores life force as a normalized percentage but renders against the build-specific pool capacity.
+  // Before a simulation supplies its build multiplier, the detached preview can only show the percentage meter.
+  const maximum =
+    state.lifeForceCostMultiplier == null ? 100 : actualNecromancerLifeForceCost(100) / state.lifeForceCostMultiplier;
   const views: ProfessionResourceView[] = [
     {
       id: 'life-force',
       singular: 'life force',
       plural: 'life force',
-      maximum,
-      value: (normalizedValue / normalizedMaximum) * maximum,
+      maximum: Math.round(maximum),
+      value: Math.round(
+        (Number(state.lifeForce?.value ?? context.value ?? context.initialResource ?? 100) * maximum) / 100
+      ),
       startMaximum: 100,
       canStart: true,
       buildKey: 'initialResource',

@@ -22,6 +22,21 @@ import { necromancerCoreCastRules } from '#gw2/professions/necromancer/core/trai
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 
+// Raw Scourge costs are rounded only for display, with the same digit grouping as the in-game facts.
+test('Scourge life-force tooltip costs display whole points', () => {
+  const context = withPatchPreview(necromancerProfession, null).balanceContextFor();
+  for (const [skillId, expected] of [
+    [ID.NEFARIOUS_FAVOR, '1,935'],
+    [ID.SAND_CASCADE, '2,487'],
+    [ID.GARISH_PILLAR, '3,685'],
+    [ID.DESERT_SHROUD, '4,606'],
+    [ID.SANDSTORM_SHROUD, '3,224']
+  ]) {
+    const tooltip = describeSimulationSkill(context, context.catalog.skillsById.get(skillId), necromancerTooltips);
+    assert.equal(tooltip.facts.find(({ name }) => name === 'Life force spent').detail, expected);
+  }
+});
+
 // Qualified attribute, adrenaline, and skill-recharge facts keep the game's matching glyphs.
 test('attribute bonuses, adrenaline, and skill recharge use game CDN icons', async () => {
   const { rangerProfession } = await import('#gw2/professions/ranger/profession.js');

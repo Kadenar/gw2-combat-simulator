@@ -14,7 +14,7 @@ import {
 } from '#gw2/professions/necromancer/build/build.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -36,13 +36,36 @@ const baseConfig = Object.freeze({
 
 const simulate = createProfessionSimulator(necromancerProfession, baseConfig);
 
+// Presentation derives whole points without mutating normalized resources or applying vitality traits twice.
+test('Necromancer displays actual life force while simulation and starting values remain percentages', () => {
+  for (const [specialization, vitality, battery, applied, expectedCapacity] of [
+    ['Core', 1000, false, false, 13256.28],
+    ['Scourge', 1000, true, false, 15907.536],
+    ['Scourge', 2000, false, false, 20156.28],
+    ['Harbinger', 1000, false, false, 14912.28],
+    ['Harbinger', 1240, false, true, 14912.28]
+  ]) {
+    const state = simulate(specialization, [], {
+      initialResource: 80,
+      stats: { vitality },
+      selectedTraitIds: battery ? [TRAIT.SOUL_BATTERY] : [],
+      attributeProvenance: { professionStaticRulesApplied: applied }
+    }).planningState.profession;
+    const view = necromancerProfession.ui.resourceViews({ specialization, professionState: state })[0];
+    assert.equal(view.maximum, Math.round(expectedCapacity), specialization);
+    assert.equal(view.value, Math.round(expectedCapacity * 0.8), specialization);
+    assert.equal(view.startMaximum, 100);
+    assert.equal(state.lifeForce.maximum, 100);
+    assert.equal(state.lifeForce.value, 80);
+  }
+});
+
 test('Necromancer resources and palette change with specialization state', () => {
   const harbingerResources = necromancerProfession.ui.resourceViews({
     specialization: 'Harbinger',
     professionState: {
       lifeForce: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
 
-      lifeForcePoolCapacity: 13256.28,
       blight: 12,
       cascadingCorruptionStacks: 7
     }
@@ -91,8 +114,8 @@ test('Necromancer resources and palette change with specialization state', () =>
     assert.equal(mechanicGroup.resourcePlacement, 'beside', specialization);
   }
 
-  assert.equal(harbingerResources[0].maximum, 13256);
-  assert.equal(harbingerResources[0].value, 13256 * 0.8);
+  assert.equal(harbingerResources[0].maximum, 100);
+  assert.equal(harbingerResources[0].value, 80);
   assert.equal(harbingerResources[0].startMaximum, 100);
   assert.equal(harbingerResources[2].value, 7);
   assert.equal(harbingerResources[2].buildKey, 'initialCascadingCorruptionStacks');

@@ -1,10 +1,7 @@
 import { resourceReadyAt } from '#gw2/platform/combat/resources/resource-policy.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import {
-  actualNecromancerLifeForceCost,
-  normalizedNecromancerLifeForceCost
-} from '#gw2/professions/necromancer/core/state.js';
+import { normalizedNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { denySkillCast as deny, selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
@@ -180,15 +177,14 @@ function baselineGate(
     return deny(skill, 'necromancer.in-shroud', `cannot cast in ${activeShroud} shroud.`);
   }
 
-  if (
-    skill.lifeForceCost &&
-    Number(state.lifeForce.value || 0) < normalizedNecromancerLifeForceCost(state, skill.lifeForceCost)
-  ) {
+  // Availability, retry timing, and spending use the same build-scaled percentage cost.
+  const lifeForceCost = normalizedNecromancerLifeForceCost(state, skill.lifeForceCost ?? 0);
+  if (Number(state.lifeForce.value || 0) < lifeForceCost) {
     return deny(
       skill,
       'necromancer.insufficient-life-force',
-      `requires ${Math.round(actualNecromancerLifeForceCost(skill.lifeForceCost))} life force.`,
-      resourceReadyAt(context, 'lifeForce', normalizedNecromancerLifeForceCost(state, skill.lifeForceCost))
+      `requires ${Number(lifeForceCost.toFixed(2))}% life force.`,
+      resourceReadyAt(context, 'lifeForce', lifeForceCost)
     );
   }
 
