@@ -23,7 +23,6 @@ import {
   GW2_MATERIALIZE_EVENT_TASK
 } from '#gw2/platform/execution/gw2-policy/proc-materializer.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
-import { gw2RechargeIntervals } from '#gw2/platform/engine/skills/recharge.js';
 import {
   createGw2ComboMaterializer,
   GW2_COMBO_MATERIALIZE_EVENT_TASK
@@ -250,13 +249,9 @@ export function createGw2SchedulerPolicy(
   );
   const eventPreparer = createGw2EventPreparer();
   const policy: Gw2SchedulerPolicy = {
-    rechargeIntervals(context, skill, start, end) {
-      const audience = skill.rechargeBuffAudience || 'self';
-      const permanent = audience === 'self' && Boolean(config.boons?.alacrity);
-      const history = permanent
-        ? []
-        : [...context.buffEvents('alacrity', audience), ...context.eventsOfType('boon_extension')];
-      return gw2RechargeIntervals(config, history, skill, start, end);
+    rechargeIntervals(_context, skill, start, end) {
+      // Scheduler cooldowns share the materializer's indexed history and replacement invalidation.
+      return materializer.state.query!.timeline.rechargeIntervals(skill, start, end);
     },
     inputReadyAt(context, at) {
       // Only transitions already reached can block an input; future emissions must not block earlier overlaps.

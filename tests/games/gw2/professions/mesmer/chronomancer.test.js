@@ -8,7 +8,6 @@ import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
-import { gw2RechargeIntervals } from '#gw2/platform/engine/skills/recharge.js';
 
 // Rewound passive cooldowns keep their saved work while later Alacrity changes their completion.
 test('Continuum snapshots keep passive cooldown queries aligned with restored recharge', () => {
@@ -16,6 +15,7 @@ test('Continuum snapshots keep passive cooldown queries aligned with restored re
   const skillsById = new Map([[skill.id, skill]]);
   const config = { specialization: 'Chronomancer' };
   const events = [];
+  const timeline = createGw2TimelineIndex({ config, events, skillsById });
   const state = {
     time: 0,
     ammo: new Map(),
@@ -27,7 +27,7 @@ test('Continuum snapshots keep passive cooldown queries aligned with restored re
     state,
     rechargeDuration: () => 10,
     skillFor: (id) => skillsById.get(id),
-    rechargeIntervals: (skill, start, end) => gw2RechargeIntervals(config, events, skill, start, end)
+    rechargeIntervals: timeline.rechargeIntervals
   });
   const continuum = createContinuumController({
     state,
@@ -43,7 +43,6 @@ test('Continuum snapshots keep passive cooldown queries aligned with restored re
   cooldown.startRecharge(skill, 0);
   continuum.beginContinuumSplit({ id: 980001 }, 1);
   continuum.restoreContinuum(4, 'test');
-  const timeline = createGw2TimelineIndex({ config, events, skillsById });
   assert.equal(timeline.skillOnCooldownAt(skill.id, 11), true);
   events.push({
     type: 'buff',

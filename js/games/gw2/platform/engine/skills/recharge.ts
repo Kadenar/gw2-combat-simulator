@@ -1,7 +1,6 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { boonIntervals } from '#gw2/platform/combat/boons.js';
+import { boonIntervalsFromWindows, type BoonWindow, type Gw2BuffAudience } from '#gw2/platform/combat/boons.js';
 
 /** Remaining base-recharge seconds anchored to a timestamp, independent of the current recharge rate. */
 export interface RechargeProgress {
@@ -45,24 +44,28 @@ function gw2AlacrityRechargeRate(config: Gw2Config, skill: Skill): number {
 /** Scheduler and resolver integrate the same audience-specific Alacrity history, including extensions. */
 export function* gw2RechargeIntervals(
   config: Gw2Config,
-  events: readonly SimulationEvent[],
+  alacrityWindows: (audience: Gw2BuffAudience) => readonly BoonWindow[],
   skill: Skill,
   start: number,
   end: number
 ): Iterable<RechargeInterval> {
+  if (end <= start) return;
   if (skill.name === 'Swap Weapons') {
     yield { start, end, rate: 1 };
     return;
   }
 
   const audience = skill.rechargeBuffAudience || 'self';
-  for (const interval of boonIntervals(
-    events,
-    'alacrity',
+  // Constant-rate assumptions need no history; other skills reuse their timeline's audience-specific windows.
+  if (audience === 'self' && config.boons?.alacrity) {
+    yield { start, end, rate: gw2AlacrityRechargeRate(config, skill) };
+    return;
+  }
+
+  for (const interval of boonIntervalsFromWindows(
+    alacrityWindows(audience === 'self' ? 'all' : 'summon'),
     start,
-    end,
-    audience === 'self' && Boolean(config.boons?.alacrity),
-    audience === 'self' ? 'all' : 'summon'
+    end
   )) {
     yield {
       start: interval.start,

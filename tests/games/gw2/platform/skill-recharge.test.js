@@ -9,6 +9,40 @@ import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 
+test('scheduler recharge sees reentrant grants and same-length replacements before the next cast', () => {
+  // A nested grant is indexed before its observation callback runs, and replacing it must invalidate cached windows.
+  const skill = { id: 990020, name: 'Cached recharge', castTimeMs: 0, cooldown: 10, effects: [] };
+  let grant;
+  let nestedReadyAt;
+  const owner = { source: 'fixture', sourceId: 'fixture', actorType: 'player' };
+  const profession = defineProfession({
+    id: 'cached-recharge',
+    name: 'Cached Recharge',
+    catalog: createCanonicalCatalog({ generated: [skill] }),
+    schedulerHooks: {
+      onEventScheduled(context, event) {
+        if (event.type !== 'marker' || event.action !== 'grant-alacrity') return;
+        grant = context.emit({ ...owner, type: 'buff', kind: 'alacrity', at: 2, duration: 4, stacks: 1 });
+        context.cooldownController.refresh(2);
+        nestedReadyAt = context.state.cooldowns.get(skill.id);
+      }
+    }
+  });
+  const scheduler = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() });
+  scheduler.cast({ type: 'cast', skillId: skill.id });
+  scheduler.advanceTo(2);
+  assert.equal(scheduler.state.cooldowns.get(skill.id), 10);
+  scheduler.context.emit({ ...owner, type: 'marker', action: 'grant-alacrity', at: 2 });
+  assert.equal(nestedReadyAt, 9);
+  grant = scheduler.context.replaceEvent(grant, { cancelled: true });
+  scheduler.context.cooldownController.refresh(2);
+  assert.equal(scheduler.state.cooldowns.get(skill.id), 10);
+  scheduler.context.replaceEvent(grant, { cancelled: false, duration: 8 });
+  scheduler.context.cooldownController.refresh(2);
+  assert.equal(scheduler.state.cooldowns.get(skill.id), 8.4);
+  assert.deepEqual(scheduler.warnings, []);
+});
+
 // Minimal recharges isolate boon-rate integration and tick detection from profession rotations.
 test('cooldowns and serial ammo integrate intermittent Alacrity before checking the absolute tick', () => {
   const profession = defineProfession({

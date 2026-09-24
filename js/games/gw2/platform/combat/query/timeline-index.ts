@@ -1,15 +1,16 @@
-import type { Gw2BuffAudience } from '#gw2/platform/combat/boons.js';
+import type { BoonWindow, Gw2BuffAudience } from '#gw2/platform/combat/boons.js';
 import {
   boonApplicationsAt,
   buffApplicationStacks,
   buffMatchesAudience,
   isDurationStackingBoon,
   isStandardBoon,
-  normalizeBoonDuration
+  normalizeBoonDuration,
+  prepareBoonWindows
 } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
+import type { RechargeInterval, RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 import { gw2RechargeIntervals, projectRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
@@ -76,6 +77,9 @@ export function createGw2TimelineIndex({
   // retain one argument combination per kind; cache variants if mixed-audience sampling dominates.
   const buffCache = new Map<string, CachedBuffStacks>();
   const cooldownCache = new Map<SkillId, boolean>();
+  // Prepared recharge history survives clock changes and unrelated appends, but belongs only to this phase's timeline.
+  const alacrityHistory: SimulationEvent[] = [];
+  const alacrityWindows = new Map<Gw2BuffAudience, readonly BoonWindow[]>();
   let cachedTime: number | undefined;
   // Sampling repeatedly asks for the same facts; retain only the current time's answers within this timeline.
   const clearQueryCache = (): void => {
@@ -90,6 +94,8 @@ export function createGw2TimelineIndex({
     for (const values of Object.values(indexed)) values.length = 0;
     indexedBuffs.clear();
     indexedCooldowns.clear();
+    alacrityHistory.length = 0;
+    alacrityWindows.clear();
     indexedLength = 0;
     hasExtensions = false;
   };
@@ -124,6 +130,16 @@ export function createGw2TimelineIndex({
     clearQueryCache();
     while (indexedLength < events.length) {
       const event = events[indexedLength++];
+      if (
+        (event.type === 'buff' && String(event.kind).toLowerCase() === 'alacrity') ||
+        (event.type === 'boon_extension' &&
+          (!event.kind || event.kind === 'alacrity') &&
+          event.excludedKind !== 'alacrity')
+      ) {
+        alacrityHistory.push(event);
+        alacrityWindows.clear();
+      }
+
       if (event.type === 'boon_extension') hasExtensions = true;
       if (event.type === 'buff') {
         indexBuff(event);
@@ -154,6 +170,21 @@ export function createGw2TimelineIndex({
       cachedTime = time;
     }
   };
+
+  const getAlacrityWindows = (audience: Gw2BuffAudience): readonly BoonWindow[] => {
+    // Inspect appends before reuse, including emissions whose reentrant observation callbacks have not run yet.
+    refreshIndex();
+    let windows = alacrityWindows.get(audience);
+    if (!windows) {
+      windows = prepareBoonWindows(alacrityHistory, 'alacrity', audience);
+      alacrityWindows.set(audience, windows);
+    }
+
+    return windows;
+  };
+
+  const rechargeIntervals = (skill: Skill, start: number, end: number): Iterable<RechargeInterval> =>
+    gw2RechargeIntervals(config, getAlacrityWindows, skill, start, end);
 
   const calculateBuffStacks = (
     kind: string,
@@ -298,9 +329,7 @@ export function createGw2TimelineIndex({
       // Reintegrate committed work instead of trusting the deadline predicted at cast or rewind time.
       const skill = skillsById?.get(skillId);
       if (!skill) throw new Error(`Missing skill ${skillId} for passive recharge query.`);
-      readyAt = gw2CooldownReadyAt(
-        projectRecharge(progress, gw2RechargeIntervals(config, events, skill, progress.startedAt, Infinity))
-      );
+      readyAt = gw2CooldownReadyAt(projectRecharge(progress, rechargeIntervals(skill, progress.startedAt, Infinity)));
     }
 
     const value = readyAt === Infinity || canonicalTime(readyAt) > time;
@@ -328,14 +357,16 @@ export function createGw2TimelineIndex({
     activeWeaponSetAt,
     activeSigilSetAt,
     skillOnCooldownAt,
+    rechargeIntervals,
     rechargeReadyAt(skill: Skill, progress: RechargeProgress): number {
       // Resolver history contains only executed events, independently of optional reporting.
-      return projectRecharge(progress, gw2RechargeIntervals(config, events, skill, progress.startedAt, Infinity));
+      return projectRecharge(progress, rechargeIntervals(skill, progress.startedAt, Infinity));
     }
   });
 }
 
 export interface Gw2TimelineIndex {
+  rechargeIntervals(skill: Skill, start: number, end: number): Iterable<RechargeInterval>;
   rechargeReadyAt(skill: Skill, progress: RechargeProgress): number;
   /** Invalidates indexed history after the source owner replaces an event. */
   onEventReplaced(previous: SimulationEvent, replacement: SimulationEvent): void;

@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { recordBuffApplication, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
-import { applyBoonExtension, boonApplicationsAt, boonIntervals } from '#gw2/platform/combat/boons.js';
+import {
+  applyBoonExtension,
+  boonApplicationsAt,
+  boonIntervals,
+  prepareBoonWindows,
+  boonIntervalsFromWindows
+} from '#gw2/platform/combat/boons.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { assertSimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -49,6 +55,64 @@ const remaining = (applications, at, audience = 'includesSelf') =>
 function check(name, actual, expected) {
   test(name, () => assert.deepEqual(actual, expected));
 }
+
+test('prepared boon windows preserve capped pools, extension expiry, recipients, and resource boundaries', () => {
+  // A chronological sweep must preserve the same application boundaries even while the boon stays active.
+  const events = [
+    buff(1, 50, self, 'alacrity'),
+    buff(0, 2, self, 'alacrity'),
+    { ...buff(2, 5), type: 'boon_extension', kind: 'alacrity' },
+    { ...buff(32, 3), type: 'boon_extension', kind: 'alacrity' },
+    buff(33, 0.01, self, 'alacrity'),
+    { ...buff(0.5, 50, self, 'alacrity'), cancelled: true },
+    buff(0, 10, { ...shared, includesSelf: false }, 'alacrity')
+  ];
+  const windows = prepareBoonWindows(events, 'alacrity', 'all');
+  assert.deepEqual(
+    [...boonIntervalsFromWindows(windows, -2, 34)],
+    [
+      { start: -2, end: 0, active: false },
+      { start: 0, end: 1, active: true },
+      { start: 1, end: 2, active: true },
+      { start: 2, end: 32, active: true },
+      { start: 32, end: 33, active: false },
+      { start: 33, end: 33.04, active: true },
+      { start: 33.04, end: 34, active: false }
+    ]
+  );
+  assert.deepEqual([...boonIntervalsFromWindows(windows, 34, Infinity)], [{ start: 34, end: Infinity, active: false }]);
+  assert.deepEqual([...boonIntervalsFromWindows(windows, 0.5, 1)], [{ start: 0.5, end: 1, active: true }]);
+  assert.deepEqual([...boonIntervalsFromWindows(windows, 2, 1)], []);
+  assert.deepEqual(
+    [...boonIntervalsFromWindows(prepareBoonWindows([], 'alacrity', 'all'), -1, 1)],
+    [{ start: -1, end: 1, active: false }]
+  );
+  assert.deepEqual(
+    [...boonIntervalsFromWindows(prepareBoonWindows(events, 'alacrity', 'summon'), 0, 11)],
+    [
+      { start: 0, end: 10, active: true },
+      { start: 10, end: 11, active: false }
+    ]
+  );
+});
+
+test('prepared windows respect causal order for grants and extensions sharing a timestamp', () => {
+  // An earlier extension cannot create a pool; an extension after the grant can lengthen it.
+  const grant = { ...buff(0, 2, self, 'alacrity'), eventOrder: 1 };
+  const extension = { ...buff(0, 3), type: 'boon_extension', kind: 'alacrity', eventOrder: 2 };
+  for (const [eventOrder, expiry] of [
+    [0, 2],
+    [2, 5]
+  ]) {
+    assert.deepEqual(
+      [...boonIntervalsFromWindows(prepareBoonWindows([{ ...extension, eventOrder }, grant], 'alacrity', 'all'), 0, 6)],
+      [
+        { start: 0, end: expiry, active: true },
+        { start: expiry, end: 6, active: false }
+      ]
+    );
+  }
+});
 
 test('permanent self-boon windows bypass event history for integration and readiness', () => {
   // A fixed boon rate must stay independent of the rotation's growing history.

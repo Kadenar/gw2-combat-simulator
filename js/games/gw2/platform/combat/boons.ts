@@ -171,6 +171,29 @@ export function standardBoonPresentation(kind: unknown): StandardBoonPresentatio
   return { ...STANDARD_BOON_DEFINITIONS[normalized] };
 }
 
+const normalizeDurationPool = (value: number): number => (value === Infinity ? Infinity : canonicalTime(value));
+
+/** Share capped, tick-rounded grants between point queries and prepared windows; extensions cannot revive a pool. */
+function addDurationStack<T extends DurationStackApplication>(
+  remaining: number,
+  application: T,
+  appliedAt: number,
+  maximum: number,
+  duration?: (application: T) => number
+): number {
+  if (application.extension && remaining <= 0) return remaining;
+  const applicationDuration = duration
+    ? Number(duration(application))
+    : application.duration == null
+      ? Number(application.expiresAt) - appliedAt
+      : Number(application.duration);
+  const stacks = application.stacks == null ? 1 : Math.max(0, Number(application.stacks));
+  remaining = normalizeDurationPool(
+    Math.min(Math.max(0, Number(maximum)), remaining + Math.max(0, applicationDuration) * stacks)
+  );
+  return remaining > 0 ? normalizeDurationPool(gw2EffectExpiresAt(appliedAt, remaining) - appliedAt) : remaining;
+}
+
 /**
  * Returns the remaining duration pool after chronological applications have
  * added their seconds and the active pool has drained at one second per second.
@@ -181,8 +204,7 @@ export function remainingDurationStackSeconds<T extends DurationStackApplication
   { includes = () => true, duration, maximum = Infinity, ordered = false }: DurationStackOptions<T> = {}
 ): number {
   // Pool depletion uses the same precision as availability, so an expired pool cannot be revived by numeric noise.
-  const normalize = (value: number): number => (value === Infinity ? Infinity : canonicalTime(value));
-  time = normalize(time);
+  time = normalizeDurationPool(time);
   // Ordered indexes can stream recipient filtering without allocating and sorting another history for each query.
   const matching = ordered
     ? applications
@@ -193,27 +215,12 @@ export function remainingDurationStackSeconds<T extends DurationStackApplication
     if (ordered && !includes(application)) continue;
     const appliedAt = canonicalTime(Number(application.at));
     if (appliedAt > time) break;
-    remaining = normalize(Math.max(0, remaining - Math.max(0, appliedAt - previousTime)));
-    // Extensions add seconds only to an existing pool, without resurrecting an expired boon.
-    if (application.extension && remaining <= 0) {
-      previousTime = appliedAt;
-      continue;
-    }
-
-    const applicationDuration = duration
-      ? Number(duration(application))
-      : application.duration == null
-        ? Number(application.expiresAt) - appliedAt
-        : Number(application.duration);
-    const stacks = application.stacks == null ? 1 : Math.max(0, Number(application.stacks));
-    remaining = normalize(
-      Math.min(Math.max(0, Number(maximum)), remaining + Math.max(0, applicationDuration) * stacks)
-    );
-    if (remaining > 0) remaining = normalize(gw2EffectExpiresAt(appliedAt, remaining) - appliedAt);
+    remaining = normalizeDurationPool(Math.max(0, remaining - Math.max(0, appliedAt - previousTime)));
+    remaining = addDurationStack(remaining, application, appliedAt, maximum, duration);
     previousTime = appliedAt;
   }
 
-  return normalize(Math.max(0, remaining - Math.max(0, time - previousTime)));
+  return normalizeDurationPool(Math.max(0, remaining - Math.max(0, time - previousTime)));
 }
 
 /** Returns whether a buff application belongs to the requested actor scope. */
@@ -266,6 +273,64 @@ const SELF: ResolvedEffectAudience = Object.freeze({
   recipientCount: 1
 });
 
+export interface BoonWindow {
+  readonly start: number;
+  readonly end: number;
+  readonly active: boolean;
+}
+
+/** Sweep each audience's pool once, retaining application boundaries for time-dependent resource-rate callbacks. */
+export function prepareBoonWindows(
+  events: readonly SimulationEvent[],
+  kind: string,
+  audience: Gw2BuffAudience
+): readonly BoonWindow[] {
+  const applications = boonApplicationsAt(
+    events.filter((event) => !event.cancelled),
+    kind,
+    Infinity
+  );
+  const windows: BoonWindow[] = [];
+  const maximum = durationStackingBoonCapSeconds(kind);
+  let start = -Infinity;
+  let remaining = 0;
+  const appendUntil = (end: number): void => {
+    if (end <= start) return;
+    const expiresAt = Math.min(end, start + remaining);
+    if (expiresAt > start) windows.push({ start, end: expiresAt, active: true });
+    if (end > expiresAt) windows.push({ start: expiresAt, end, active: false });
+  };
+
+  for (const application of applications) {
+    if (!buffMatchesAudience(application, audience)) continue;
+    const at = application.at;
+    appendUntil(at);
+    remaining = normalizeDurationPool(Math.max(0, remaining - (at - start)));
+    remaining = addDurationStack(remaining, application, at, maximum);
+    start = at;
+  }
+
+  appendUntil(Infinity);
+  return windows;
+}
+
+/** Seek directly to the requested time, then clip prepared windows without replaying boon applications. */
+export function* boonIntervalsFromWindows(windows: readonly BoonWindow[], start: number, end: number) {
+  if (end <= start) return;
+  let low = 0;
+  let high = windows.length;
+  while (low < high) {
+    const middle = (low + high) >>> 1;
+    if (windows[middle].end <= start) low = middle + 1;
+    else high = middle;
+  }
+
+  for (let index = low; index < windows.length && windows[index].start < end; index += 1) {
+    const window = windows[index];
+    yield { start: Math.max(start, window.start), end: Math.min(end, window.end), active: window.active };
+  }
+}
+
 /** Split integration at audience-specific boon applications, extensions, and pooled expiry. */
 export function* boonIntervals(
   events: readonly SimulationEvent[],
@@ -283,25 +348,7 @@ export function* boonIntervals(
     return;
   }
 
-  const applications = boonApplicationsAt(
-    events.filter((event) => !event.cancelled),
-    kind,
-    Infinity
-  ).filter((application) => buffMatchesAudience(application, audience));
-  const boundaries = [
-    ...new Set(applications.map((application) => application.at).filter((at) => at > start && at < end)),
-    end
-  ].sort((a, b) => a - b);
-  for (const boundary of boundaries) {
-    // ponytail: replay this boon history per boundary; cache windows if long rotations make it costly.
-    const remaining = remainingDurationStackSeconds(applications, start, {
-      maximum: durationStackingBoonCapSeconds(kind)
-    });
-    const expiresAt = Math.min(boundary, start + remaining);
-    if (expiresAt > start) yield { start, end: expiresAt, active: true };
-    if (boundary > expiresAt) yield { start: expiresAt, end: boundary, active: false };
-    start = boundary;
-  }
+  yield* boonIntervalsFromWindows(prepareBoonWindows(events, kind, audience), start, end);
 }
 
 /** Apply extensions at their own timestamp, keeping past observations and other recipients unchanged. */
