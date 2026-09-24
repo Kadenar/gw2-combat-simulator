@@ -303,7 +303,7 @@ function emitAutonomousSkill(context: RangerSchedulerContext, skillId: SkillId, 
   }
 }
 
-export function handleRangerPetAutoEffectTask(
+function handleRangerPetAutoEffectTask(
   context: RangerSchedulerContext,
   task: ScheduledTask<PetAutoEffectTaskPayload>
 ): void {
@@ -492,7 +492,7 @@ export function setRangerPetActive(context: RangerSchedulerContext, active: bool
 
 // Commit a delayed pet command's true cooldown and busy window, then restart the
 // autonomous loop after command recovery.
-export function handleRangerPetCommandStartTask(
+function handleRangerPetCommandStartTask(
   context: RangerSchedulerContext,
   task: ScheduledTask<PetCommandStartTaskPayload>
 ): void {

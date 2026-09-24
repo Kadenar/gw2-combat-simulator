@@ -16,7 +16,7 @@ import {
 } from '#gw2/platform/combat/resources/endurance.js';
 
 /** Resolves Elementalist's profile-aware endurance rate while leaving shared arithmetic to the GW2 primitive. */
-export function elementalistEnduranceRegenerationRate(context: ElementalistSchedulerContext, vigor: boolean): number {
+function elementalistEnduranceRegenerationRate(context: ElementalistSchedulerContext, vigor: boolean): number {
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const regeneration = balanceProfileNumber(resourcesProfile, 'enduranceRegenerationPerSecond');
   const vigorMultiplier = balanceProfileNumber(resourcesProfile, 'vigorRegenerationMultiplier');

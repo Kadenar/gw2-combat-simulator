@@ -16,7 +16,7 @@ const BEGUILING_HAZE_SKILL: Partial<Skill> = {
   peithaImpactDelayMs: 280,
   castTimeMs: 200,
   cooldown: 10,
-  recharge: 0,
+  ammoCastLockout: 0,
   ammo: 1,
   ammoRecharge: 10,
   energyCost: 20,

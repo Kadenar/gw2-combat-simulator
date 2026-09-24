@@ -8,54 +8,147 @@
     "petCadenceSource": "EVTC Juvenile Tiger Slash, Bite, and Maul activation timeline"
   },
   "rotation": [
-    { "name": "\"Strength of the Pack!\"", "skillId": 12516 },
-    { "name": "\"We Heal As One!\"", "skillId": 31914 },
-    { "name": "\"Sic 'Em!\"", "skillId": 12633 },
-    { "name": "Furious Pounce", "skillId": 31451 },
+    {
+      "type": "cast",
+      "skillId": 12516
+    },
+    {
+      "type": "cast",
+      "skillId": 31914
+    },
+    {
+      "type": "cast",
+      "skillId": 12633
+    },
+    {
+      "type": "cast",
+      "skillId": 31451
+    },
     "__combat_start",
-    { "name": "Enveloping Haze", "skillId": 63094 },
-    { "name": "Venomous Outburst", "skillId": 63209 },
-    { "name": "Rending Vines", "skillId": 63258 },
+    {
+      "type": "cast",
+      "skillId": 63094
+    },
+    {
+      "type": "cast",
+      "skillId": 63209
+    },
+    {
+      "type": "cast",
+      "skillId": 63258
+    },
     "Unleash Ranger",
-    { "name": "Exploding Spores", "skillId": 63157 },
+    {
+      "type": "cast",
+      "skillId": 63157
+    },
     "Unleashed Savage Shock Wave",
     "Unleashed Wild Swing",
     "Relentless Whirl",
     {
-      "name": "Unleashed Overbearing Smash",
+      "type": "cast",
       "skillId": 63197,
-      "interruptMs": 280
+      "interruptAfterMs": 280
     },
     "Swap Weapons",
-    { "name": "Path of Scars", "skillId": 12638 },
-    { "name": "Pounce", "skillId": 69203 },
-    { "name": "Serpent's Strike", "skillId": 12482 },
+    {
+      "type": "cast",
+      "skillId": 12638
+    },
+    {
+      "type": "cast",
+      "skillId": 69203
+    },
+    {
+      "type": "cast",
+      "skillId": 12482
+    },
     "Whirling Defense",
-    { "name": "Unleash Pet", "skillId": 63344, "concurrentOffsetMs": 2200 },
-    { "name": "Venomous Outburst", "skillId": 63209 },
-    { "name": "Rending Vines", "skillId": 63258 },
+    {
+      "type": "cast",
+      "skillId": 63344,
+      "concurrentOffsetMs": 2200
+    },
+    {
+      "type": "cast",
+      "skillId": 63209
+    },
+    {
+      "type": "cast",
+      "skillId": 63258
+    },
     "Unleash Ranger",
-    { "name": "Slash", "skillId": 12471 },
-    { "name": "Crippling Thrust", "skillId": 12472 },
-    { "name": "Precision Swipe", "skillId": 12473 },
-    { "name": "Slash", "skillId": 12471 },
-    { "name": "Crippling Thrust", "skillId": 12472 },
-    { "name": "Precision Swipe", "skillId": 12473 },
-    { "name": "Pounce", "skillId": 69203 },
-    { "name": "Furious Pounce", "skillId": 31451 },
-    { "name": "Unleash Pet", "skillId": 63344, "concurrentOffsetMs": 0 },
+    {
+      "type": "cast",
+      "skillId": 12471
+    },
+    {
+      "type": "cast",
+      "skillId": 12472
+    },
+    {
+      "type": "cast",
+      "skillId": 12473
+    },
+    {
+      "type": "cast",
+      "skillId": 12471
+    },
+    {
+      "type": "cast",
+      "skillId": 12472
+    },
+    {
+      "type": "cast",
+      "skillId": 12473
+    },
+    {
+      "type": "cast",
+      "skillId": 69203
+    },
+    {
+      "type": "cast",
+      "skillId": 31451
+    },
+    {
+      "type": "cast",
+      "skillId": 63344,
+      "concurrentOffsetMs": 0
+    },
     "Unleash Ranger",
     "Deft Strike",
-    { "name": "Serpent's Strike", "skillId": 12482 },
-    { "name": "Path of Scars", "skillId": 12638 },
+    {
+      "type": "cast",
+      "skillId": 12482
+    },
+    {
+      "type": "cast",
+      "skillId": 12638
+    },
     "Swap Weapons",
     "Unleashed Savage Shock Wave",
     "Unleashed Wild Swing",
-    { "name": "Unleashed Overbearing Smash", "skillId": 63197 },
-    { "name": "Unleash Pet", "skillId": 63344, "concurrentOffsetMs": 560 },
-    { "name": "Enveloping Haze", "skillId": 63094 },
-    { "name": "Venomous Outburst", "skillId": 63209 },
-    { "name": "Rending Vines", "skillId": 63258 },
+    {
+      "type": "cast",
+      "skillId": 63197
+    },
+    {
+      "type": "cast",
+      "skillId": 63344,
+      "concurrentOffsetMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 63094
+    },
+    {
+      "type": "cast",
+      "skillId": 63209
+    },
+    {
+      "type": "cast",
+      "skillId": 63258
+    },
     "Unleash Ranger",
     "Hammer Strike",
     "Hammer Slam",
@@ -66,60 +159,151 @@
     "Hammer Strike",
     "Hammer Slam",
     "Heavy Smash",
-    { "name": "Exploding Spores", "skillId": 63157 },
+    {
+      "type": "cast",
+      "skillId": 63157
+    },
     "Unleashed Wild Swing",
     "Unleashed Thump",
     "Hammer Strike",
     "Hammer Slam",
     "Heavy Smash",
-    { "name": "Unleash Pet", "skillId": 63344, "concurrentOffsetMs": 0 },
-    { "name": "Venomous Outburst", "skillId": 63209 },
-    { "name": "Rending Vines", "skillId": 63258 },
+    {
+      "type": "cast",
+      "skillId": 63344,
+      "concurrentOffsetMs": 0
+    },
+    {
+      "type": "cast",
+      "skillId": 63209
+    },
+    {
+      "type": "cast",
+      "skillId": 63258
+    },
     "Unleash Ranger",
     "Relentless Whirl",
-    { "name": "Unleashed Overbearing Smash", "skillId": 63197 },
+    {
+      "type": "cast",
+      "skillId": 63197
+    },
     "Unleashed Savage Shock Wave",
     "Unleashed Wild Swing",
-    { "name": "Furious Pounce", "skillId": 31451 },
+    {
+      "type": "cast",
+      "skillId": 31451
+    },
     "Swap Weapons",
-    { "name": "Path of Scars", "skillId": 12638 },
-    { "name": "Pounce", "skillId": 69203 },
-    { "name": "Serpent's Strike", "skillId": 12482 },
+    {
+      "type": "cast",
+      "skillId": 12638
+    },
+    {
+      "type": "cast",
+      "skillId": 69203
+    },
+    {
+      "type": "cast",
+      "skillId": 12482
+    },
     "Whirling Defense",
-    { "name": "Unleash Pet", "skillId": 63344, "concurrentOffsetMs": 1360 },
-    { "name": "Enveloping Haze", "skillId": 63094 },
-    { "name": "Venomous Outburst", "skillId": 63209 },
-    { "name": "Rending Vines", "skillId": 63258 },
+    {
+      "type": "cast",
+      "skillId": 63344,
+      "concurrentOffsetMs": 1360
+    },
+    {
+      "type": "cast",
+      "skillId": 63094
+    },
+    {
+      "type": "cast",
+      "skillId": 63209
+    },
+    {
+      "type": "cast",
+      "skillId": 63258
+    },
     "Unleash Ranger",
-    { "name": "Slash", "skillId": 12471 },
-    { "name": "Crippling Thrust", "skillId": 12472 },
-    { "name": "Precision Swipe", "skillId": 12473 },
-    { "name": "Slash", "skillId": 12471 },
-    { "name": "Crippling Thrust", "skillId": 12472 },
-    { "name": "Precision Swipe", "skillId": 12473 },
-    { "name": "Pounce", "skillId": 69203 },
-    { "name": "Unleash Pet", "skillId": 63344, "concurrentOffsetMs": 0 },
+    {
+      "type": "cast",
+      "skillId": 12471
+    },
+    {
+      "type": "cast",
+      "skillId": 12472
+    },
+    {
+      "type": "cast",
+      "skillId": 12473
+    },
+    {
+      "type": "cast",
+      "skillId": 12471
+    },
+    {
+      "type": "cast",
+      "skillId": 12472
+    },
+    {
+      "type": "cast",
+      "skillId": 12473
+    },
+    {
+      "type": "cast",
+      "skillId": 69203
+    },
+    {
+      "type": "cast",
+      "skillId": 63344,
+      "concurrentOffsetMs": 0
+    },
     "Unleash Ranger",
     "Deft Strike",
-    { "name": "Serpent's Strike", "skillId": 12482 },
-    { "name": "Path of Scars", "skillId": 12638 },
+    {
+      "type": "cast",
+      "skillId": 12482
+    },
+    {
+      "type": "cast",
+      "skillId": 12638
+    },
     "Swap Weapons",
     "Unleashed Wild Swing",
     "Unleashed Savage Shock Wave",
-    { "name": "Unleashed Overbearing Smash", "skillId": 63197 },
-    { "name": "Unleash Pet", "skillId": 63344, "concurrentOffsetMs": 200 },
-    { "name": "Venomous Outburst", "skillId": 63209 },
-    { "name": "Rending Vines", "skillId": 63258 },
+    {
+      "type": "cast",
+      "skillId": 63197
+    },
+    {
+      "type": "cast",
+      "skillId": 63344,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 63209
+    },
+    {
+      "type": "cast",
+      "skillId": 63258
+    },
     "Unleash Ranger",
     "Hammer Strike",
     "Hammer Slam",
     "Heavy Smash",
     "Unleashed Thump",
-    { "name": "Furious Pounce", "skillId": 31451 },
+    {
+      "type": "cast",
+      "skillId": 31451
+    },
     "Hammer Strike",
     "Hammer Slam",
     "Heavy Smash",
-    { "name": "Exploding Spores", "skillId": 63157 },
+    {
+      "type": "cast",
+      "skillId": 63157
+    },
     "Unleashed Wild Swing",
     "Hammer Strike",
     "Hammer Slam",
@@ -127,44 +311,128 @@
     "Hammer Strike",
     "Hammer Slam",
     "Heavy Smash",
-    { "name": "Unleash Pet", "skillId": 63344, "concurrentOffsetMs": 40 },
-    { "name": "Enveloping Haze", "skillId": 63094 },
-    { "name": "Venomous Outburst", "skillId": 63209 },
-    { "name": "Rending Vines", "skillId": 63258 },
+    {
+      "type": "cast",
+      "skillId": 63344,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 63094
+    },
+    {
+      "type": "cast",
+      "skillId": 63209
+    },
+    {
+      "type": "cast",
+      "skillId": 63258
+    },
     "Unleash Ranger",
     "Relentless Whirl",
-    { "name": "Unleashed Overbearing Smash", "skillId": 63197 },
+    {
+      "type": "cast",
+      "skillId": 63197
+    },
     "Unleashed Wild Swing",
     "Unleashed Savage Shock Wave",
     "Swap Weapons",
-    { "name": "Path of Scars", "skillId": 12638 },
-    { "name": "Pounce", "skillId": 69203 },
-    { "name": "Serpent's Strike", "skillId": 12482 },
-    { "name": "Slash", "skillId": 12471 },
-    { "name": "Crippling Thrust", "skillId": 12472 },
+    {
+      "type": "cast",
+      "skillId": 12638
+    },
+    {
+      "type": "cast",
+      "skillId": 69203
+    },
+    {
+      "type": "cast",
+      "skillId": 12482
+    },
+    {
+      "type": "cast",
+      "skillId": 12471
+    },
+    {
+      "type": "cast",
+      "skillId": 12472
+    },
     "Whirling Defense",
-    { "name": "Unleash Pet", "skillId": 63344, "concurrentOffsetMs": 1200 },
-    { "name": "Venomous Outburst", "skillId": 63209 },
-    { "name": "Rending Vines", "skillId": 63258 },
+    {
+      "type": "cast",
+      "skillId": 63344,
+      "concurrentOffsetMs": 1200
+    },
+    {
+      "type": "cast",
+      "skillId": 63209
+    },
+    {
+      "type": "cast",
+      "skillId": 63258
+    },
     "Unleash Ranger",
     "Deft Strike",
-    { "name": "Furious Pounce", "skillId": 31451 },
-    { "name": "Pounce", "skillId": 69203 },
-    { "name": "Slash", "skillId": 12471 },
-    { "name": "Crippling Thrust", "skillId": 12472 },
-    { "name": "Precision Swipe", "skillId": 12473 },
-    { "name": "Slash", "skillId": 12471 },
-    { "name": "Crippling Thrust", "skillId": 12472 },
-    { "name": "Serpent's Strike", "skillId": 12482 },
-    { "name": "Path of Scars", "skillId": 12638 },
+    {
+      "type": "cast",
+      "skillId": 31451
+    },
+    {
+      "type": "cast",
+      "skillId": 69203
+    },
+    {
+      "type": "cast",
+      "skillId": 12471
+    },
+    {
+      "type": "cast",
+      "skillId": 12472
+    },
+    {
+      "type": "cast",
+      "skillId": 12473
+    },
+    {
+      "type": "cast",
+      "skillId": 12471
+    },
+    {
+      "type": "cast",
+      "skillId": 12472
+    },
+    {
+      "type": "cast",
+      "skillId": 12482
+    },
+    {
+      "type": "cast",
+      "skillId": 12638
+    },
     "Swap Weapons",
     "Unleashed Wild Swing",
     "Unleashed Savage Shock Wave",
-    { "name": "Unleashed Overbearing Smash", "skillId": 63197 },
-    { "name": "Unleash Pet", "skillId": 63344, "concurrentOffsetMs": 40 },
-    { "name": "Enveloping Haze", "skillId": 63094 },
-    { "name": "Venomous Outburst", "skillId": 63209 },
-    { "name": "Rending Vines", "skillId": 63258 },
+    {
+      "type": "cast",
+      "skillId": 63197
+    },
+    {
+      "type": "cast",
+      "skillId": 63344,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 63094
+    },
+    {
+      "type": "cast",
+      "skillId": 63209
+    },
+    {
+      "type": "cast",
+      "skillId": 63258
+    },
     "Unleash Ranger",
     "Hammer Strike",
     "Hammer Slam",
@@ -173,8 +441,14 @@
     "Hammer Strike",
     "Hammer Slam",
     "Heavy Smash",
-    { "name": "Exploding Spores", "skillId": 63157 },
-    { "name": "Furious Pounce", "skillId": 31451 },
+    {
+      "type": "cast",
+      "skillId": 63157
+    },
+    {
+      "type": "cast",
+      "skillId": 31451
+    },
     "Unleashed Wild Swing",
     "Hammer Strike",
     "Hammer Slam",
@@ -182,36 +456,105 @@
     "Hammer Strike",
     "Hammer Slam",
     "Heavy Smash",
-    { "name": "Unleash Pet", "skillId": 63344, "concurrentOffsetMs": 0 },
-    { "name": "Venomous Outburst", "skillId": 63209 },
-    { "name": "Rending Vines", "skillId": 63258 },
+    {
+      "type": "cast",
+      "skillId": 63344,
+      "concurrentOffsetMs": 0
+    },
+    {
+      "type": "cast",
+      "skillId": 63209
+    },
+    {
+      "type": "cast",
+      "skillId": 63258
+    },
     "Unleash Ranger",
     "Relentless Whirl",
-    { "name": "Unleashed Overbearing Smash", "skillId": 63197 },
+    {
+      "type": "cast",
+      "skillId": 63197
+    },
     "Unleashed Wild Swing",
     "Unleashed Savage Shock Wave",
-    { "name": "\"Sic 'Em!\"", "skillId": 12633 },
+    {
+      "type": "cast",
+      "skillId": 12633
+    },
     "Swap Weapons",
-    { "name": "Path of Scars", "skillId": 12638 },
-    { "name": "Pounce", "skillId": 69203 },
-    { "name": "Serpent's Strike", "skillId": 12482 },
+    {
+      "type": "cast",
+      "skillId": 12638
+    },
+    {
+      "type": "cast",
+      "skillId": 69203
+    },
+    {
+      "type": "cast",
+      "skillId": 12482
+    },
     "Whirling Defense",
-    { "name": "Unleash Pet", "skillId": 63344, "concurrentOffsetMs": 1520 },
-    { "name": "Enveloping Haze", "skillId": 63094 },
-    { "name": "Venomous Outburst", "skillId": 63209 },
-    { "name": "Rending Vines", "skillId": 63258 },
+    {
+      "type": "cast",
+      "skillId": 63344,
+      "concurrentOffsetMs": 1520
+    },
+    {
+      "type": "cast",
+      "skillId": 63094
+    },
+    {
+      "type": "cast",
+      "skillId": 63209
+    },
+    {
+      "type": "cast",
+      "skillId": 63258
+    },
     "Unleash Ranger",
-    { "name": "Slash", "skillId": 12471 },
-    { "name": "Crippling Thrust", "skillId": 12472 },
-    { "name": "Precision Swipe", "skillId": 12473 },
-    { "name": "Slash", "skillId": 12471 },
-    { "name": "Crippling Thrust", "skillId": 12472 },
-    { "name": "Precision Swipe", "skillId": 12473 },
-    { "name": "Unleash Pet", "skillId": 63344, "concurrentOffsetMs": 0 },
+    {
+      "type": "cast",
+      "skillId": 12471
+    },
+    {
+      "type": "cast",
+      "skillId": 12472
+    },
+    {
+      "type": "cast",
+      "skillId": 12473
+    },
+    {
+      "type": "cast",
+      "skillId": 12471
+    },
+    {
+      "type": "cast",
+      "skillId": 12472
+    },
+    {
+      "type": "cast",
+      "skillId": 12473
+    },
+    {
+      "type": "cast",
+      "skillId": 63344,
+      "concurrentOffsetMs": 0
+    },
     "Unleash Ranger",
     "Deft Strike",
-    { "name": "Furious Pounce", "skillId": 31451 },
-    { "name": "Pounce", "skillId": 69203 },
-    { "name": "Serpent's Strike", "skillId": 12482 }
+    {
+      "type": "cast",
+      "skillId": 31451
+    },
+    {
+      "type": "cast",
+      "skillId": 69203
+    },
+    {
+      "type": "cast",
+      "skillId": 12482
+    }
   ]
 }

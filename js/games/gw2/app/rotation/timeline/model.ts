@@ -395,7 +395,7 @@ export function rotationEntryName(entry: RotationCommand): string {
   return '__cooldown_reset';
 }
 
-export function timelineRows(
+function timelineRows(
   rotation: readonly RotationCommand[] = [],
   {
     startingWeaponSet = 1,
@@ -450,7 +450,7 @@ export function timelineRows(
   return rows;
 }
 
-export function eventTimelineMarkers(
+function eventTimelineMarkers(
   result: Gw2SimulationResult | null | undefined,
   rotationLength: number,
   predicate: (event: SimulationEvent) => boolean = (event) => event.type === 'marker'

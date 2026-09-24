@@ -23,7 +23,7 @@ export interface WarriorCoreState {
 }
 
 /** Declares the Core fields exposed by every Warrior end-state projection. */
-export const WARRIOR_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
+const WARRIOR_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'adrenaline',
   'maximumAdrenaline',
   'endurance',

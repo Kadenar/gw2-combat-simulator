@@ -43,7 +43,7 @@ import {
   HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID
 } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 
-export const MELTDOWN_ICON = 'https://wiki.guildwars2.com/wiki/Special:FilePath/Meltdown.png';
+const MELTDOWN_ICON = 'https://wiki.guildwars2.com/wiki/Special:FilePath/Meltdown.png';
 
 const CASCADING_CORRUPTION_EFFECT: NecromancerSkill = Object.freeze({
   id: ID.CASCADING_CORRUPTION,

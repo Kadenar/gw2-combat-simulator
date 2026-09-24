@@ -17,25 +17,25 @@ import { clamp } from '#kernel/core/numeric.js';
 export const DEFAULT_RANDOM_DISTRIBUTION_TRIALS = 500;
 
 /** Maximum accepted trial count for one complete distribution. */
-export const MAX_RANDOM_DISTRIBUTION_TRIALS = 10_000;
+const MAX_RANDOM_DISTRIBUTION_TRIALS = 10_000;
 
 /** Maximum number of distribution workers used by the application shell. */
-export const MAX_RANDOM_DISTRIBUTION_WORKERS = 8;
+const MAX_RANDOM_DISTRIBUTION_WORKERS = 8;
 
 /** Conservative worker count when the browser does not expose CPU capacity. */
-export const DEFAULT_RANDOM_DISTRIBUTION_WORKERS = 4;
+const DEFAULT_RANDOM_DISTRIBUTION_WORKERS = 4;
 
 /** Combined event/tick score where RNG simulations begin using moderate parallelism. */
-export const MEDIUM_RANDOM_DISTRIBUTION_WORKLOAD = 4_000;
+const MEDIUM_RANDOM_DISTRIBUTION_WORKLOAD = 4_000;
 
 /** Combined event/tick score where RNG simulations retain the conservative worker cap. */
-export const HEAVY_RANDOM_DISTRIBUTION_WORKLOAD = 12_000;
+const HEAVY_RANDOM_DISTRIBUTION_WORKLOAD = 12_000;
 
 /** Worker cap for moderately event-heavy simulations. */
-export const MAX_MEDIUM_RANDOM_DISTRIBUTION_WORKERS = 4;
+const MAX_MEDIUM_RANDOM_DISTRIBUTION_WORKERS = 4;
 
 /** Worker cap for the heaviest simulations. */
-export const MAX_HEAVY_RANDOM_DISTRIBUTION_WORKERS = 2;
+const MAX_HEAVY_RANDOM_DISTRIBUTION_WORKERS = 2;
 
 const EXPLANATION_COHORT_PERCENT = 10;
 const MAX_EXPLANATION_DRIVERS = 5;
@@ -64,7 +64,7 @@ function workloadCount(value: unknown): number {
 }
 
 /** Estimates per-worker allocation and queue pressure from the complete baseline timeline shape. */
-export function randomDistributionWorkloadScore(workload: RandomDistributionWorkload = {}): number {
+function randomDistributionWorkloadScore(workload: RandomDistributionWorkload = {}): number {
   return (
     workloadCount(workload.scheduledEvents) +
     workloadCount(workload.resolvedEvents) +

@@ -2,21 +2,24 @@
   "rotation": [
     "Overload Air",
     {
-      "name": "__combat_start",
-      "offset": 3120
+      "type": "combat-start",
+      "concurrentOffsetMs": 3120
     },
     {
-      "name": "Flame Barrage",
-      "offset": 3120
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 3120
     },
     {
-      "name": "Feel the Burn!",
-      "offset": 40
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 40
     },
     "Fulgor",
     {
-      "name": "Fire Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 40
     },
     "Etching: Volcano",
     "Meteor",
@@ -24,14 +27,16 @@
     "Seethe",
     "Volcano",
     {
-      "name": "Air Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 200
     },
     "Etching: Derecho",
     "Twister",
     {
-      "name": "Energize",
-      "offset": 320
+      "type": "cast",
+      "skillId": 73037,
+      "concurrentOffsetMs": 320
     },
     "Lightning Javelin",
     "Derecho",
@@ -39,28 +44,32 @@
     "Lightning Javelin",
     "Overload Air",
     {
-      "name": "Earth Attunement",
-      "offset": 3160
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 3160
     },
     "Fissure",
     "Earthen Spear",
     {
-      "name": "Air Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 200
     },
     "Fulgor",
     "Glyph of Storms (Air)",
     {
-      "name": "Flame Barrage",
-      "offset": 360
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 360
     },
     "Lightning Javelin",
     "Lightning Javelin",
     "Overload Air",
     "Fulgor",
     {
-      "name": "Fire Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 160
     },
     "Etching: Volcano",
     "Meteor",
@@ -68,36 +77,42 @@
     "Seethe",
     "Volcano",
     {
-      "name": "Air Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 200
     },
     "Etching: Derecho",
     {
-      "name": "Feel the Burn!",
-      "offset": 80
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 80
     },
     "Twister",
     {
-      "name": "Energize",
-      "offset": 280
+      "type": "cast",
+      "skillId": 73037,
+      "concurrentOffsetMs": 280
     },
     "Lightning Javelin",
     "Derecho",
     "Fulgor",
     "Overload Air",
     {
-      "name": "Flame Barrage",
-      "offset": 800
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 800
     },
     {
-      "name": "Earth Attunement",
-      "offset": 2360
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 2360
     },
     "Fissure",
     "Earthen Spear",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     "Fulgor",
     "Lightning Javelin",
@@ -107,27 +122,31 @@
     "Overload Air",
     "Fulgor",
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     "Etching: Volcano",
     "Meteor",
     "Blazing Barrage",
     {
-      "name": "Flame Barrage",
-      "offset": 360
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 360
     },
     "Seethe",
     "Volcano",
     {
-      "name": "Air Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 200
     },
     "Etching: Derecho",
     "Twister",
     {
-      "name": "Energize",
-      "offset": 360
+      "type": "cast",
+      "skillId": 73037,
+      "concurrentOffsetMs": 360
     },
     "Lightning Javelin",
     "Derecho",
@@ -135,36 +154,41 @@
     "Lightning Javelin",
     "Overload Air",
     {
-      "name": "Feel the Burn!",
-      "offset": 120
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Earth Attunement",
-      "offset": 3160
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 3160
     },
     "Fissure",
     "Earthen Spear",
     {
-      "name": "Air Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 200
     },
     "Fulgor",
     "Lightning Javelin",
     "Lightning Javelin",
     "Lightning Javelin",
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Flame Barrage",
-      "offset": 320
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 320
     },
     "Overload Air",
     "Fulgor",
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     "Etching: Volcano",
     "Meteor",
@@ -172,14 +196,16 @@
     "Seethe",
     "Volcano",
     {
-      "name": "Air Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 200
     },
     "Etching: Derecho",
     "Twister",
     {
-      "name": "Energize",
-      "offset": 320
+      "type": "cast",
+      "skillId": 73037,
+      "concurrentOffsetMs": 320
     },
     "Lightning Javelin",
     "Derecho",
@@ -187,22 +213,26 @@
     "Lightning Javelin",
     "Overload Air",
     {
-      "name": "Flame Barrage",
-      "offset": 2400
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 2400
     },
     {
-      "name": "Earth Attunement",
-      "offset": 760
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 760
     },
     "Fissure",
     "Earthen Spear",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Feel the Burn!",
-      "offset": 400
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 400
     },
     "Fulgor",
     "Glyph of Storms (Air)",
@@ -211,8 +241,9 @@
     "Overload Air",
     "Fulgor",
     {
-      "name": "Fire Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 160
     },
     "Etching: Volcano",
     "Meteor",
@@ -220,32 +251,37 @@
     "Seethe",
     "Volcano",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     "Etching: Derecho",
     "Twister",
     {
-      "name": "Flame Barrage",
-      "offset": 280
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Energize",
-      "offset": 80
+      "type": "cast",
+      "skillId": 73037,
+      "concurrentOffsetMs": 80
     },
     "Lightning Javelin",
     "Derecho",
     "Fulgor",
     "Overload Air",
     {
-      "name": "Earth Attunement",
-      "offset": 3120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 3120
     },
     "Fissure",
     "Earthen Spear",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     "Fulgor",
     "Lightning Javelin",
@@ -255,13 +291,15 @@
     "Feel the Burn!",
     "Overload Air",
     {
-      "name": "Flame Barrage",
-      "offset": 1560
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 1560
     },
     "Fulgor",
     {
-      "name": "Fire Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 160
     },
     "Etching: Volcano",
     "Meteor",
@@ -269,14 +307,16 @@
     "Seethe",
     "Volcano",
     {
-      "name": "Air Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 200
     },
     "Etching: Derecho",
     "Twister",
     {
-      "name": "Energize",
-      "offset": 280
+      "type": "cast",
+      "skillId": 73037,
+      "concurrentOffsetMs": 280
     },
     "Lightning Javelin",
     "Derecho",
@@ -284,8 +324,9 @@
     "Lightning Javelin",
     "Overload Air",
     {
-      "name": "Earth Attunement",
-      "offset": 3120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 3120
     },
     "Fissure",
     "Earthen Spear"

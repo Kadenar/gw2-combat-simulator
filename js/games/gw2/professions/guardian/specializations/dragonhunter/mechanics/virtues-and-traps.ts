@@ -23,7 +23,7 @@ import { dragonhunterState } from '#gw2/professions/guardian/specializations/dra
 
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 
-export const dragonhunterModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const dragonhunterModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'guardian.dragonhunter.pure-of-sight',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -112,7 +112,7 @@ const shieldOfCourage = timedEffect<GuardianSchedulerContext, object>({
   }
 });
 
-export function updateDragonhunterCastState(context: GuardianCastContext, skill: GuardianSkill): void {
+function updateDragonhunterCastState(context: GuardianCastContext, skill: GuardianSkill): void {
   if (skill.slot === 'Elite' && hasTrait(context, GUARDIAN_TRAIT_IDS.HUNTERS_DETERMINATION)) {
     const core = professionCoreState(context);
     const huntersDeterminationProfile = requireBalanceProfileFromContext(context, PROFILE.huntersDetermination);

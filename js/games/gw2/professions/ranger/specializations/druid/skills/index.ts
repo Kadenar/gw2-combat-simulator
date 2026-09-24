@@ -40,7 +40,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         duration: 4
       }
     ],
-    recharge: 4,
+
     cooldown: 4,
     castTimeMs: 0,
     canCastConcurrently: true,
@@ -61,7 +61,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         ]
       }
     ],
-    recharge: 8,
+
     cooldown: 8,
     // Match the measured Quickness animation from the condition Druid EVTC.
     castTimeMs: 920,
@@ -162,7 +162,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         audience: { recipients: 'party' as const, maximumRecipients: 5 }
       }))
     ]),
-    recharge: 10,
+
     cooldown: 10,
     castTimeMs: 2080,
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.

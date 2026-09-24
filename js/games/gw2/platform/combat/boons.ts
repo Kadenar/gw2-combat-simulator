@@ -26,8 +26,8 @@ interface DurationStackOptions<T> {
   readonly ordered?: boolean;
 }
 
-export const GW2_BOON_DURATION_CAP_SECONDS = 30;
-export const GW2_SWIFTNESS_DURATION_CAP_SECONDS = 60;
+const GW2_BOON_DURATION_CAP_SECONDS = 30;
+const GW2_SWIFTNESS_DURATION_CAP_SECONDS = 60;
 // Standard metadata is shared by combat stacking and presentation; Aegis and Stability keep their existing treatment.
 const STANDARD_BOON_DEFINITIONS: Readonly<Record<string, StandardBoonPresentation>> = Object.freeze({
   aegis: Object.freeze({ name: 'Aegis' }),

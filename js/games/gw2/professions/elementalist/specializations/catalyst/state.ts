@@ -12,12 +12,12 @@ import type { ElementalistConfig } from '#gw2/professions/elementalist/build/typ
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Default ceiling for the Jade Sphere energy resource before balance profiles retune it. */
-export const CATALYST_MAXIMUM_ENERGY = requireBalanceNumber(
+const CATALYST_MAXIMUM_ENERGY = requireBalanceNumber(
   CATALYST_BALANCE_PROFILES.find((profile) => profile.id === PROFILE.resources)!.maximumStacks,
   'Catalyst resources maximumStacks'
 );
 /** Default ceiling on concurrent Elemental Empowerment stacks. */
-export const CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS = requireBalanceNumber(
+const CATALYST_MAXIMUM_ELEMENTAL_EMPOWERMENT_STACKS = requireBalanceNumber(
   CATALYST_BALANCE_PROFILES.find((profile) => profile.id === PROFILE.elementalEmpowerment)!.maximumStacks,
   'Elemental Empowerment maximumStacks'
 );

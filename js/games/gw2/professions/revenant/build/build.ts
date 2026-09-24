@@ -17,8 +17,8 @@ import { createCommonBuildDefaults } from '#gw2/professions/shared/build-default
  * starting Energy.
  */
 
-export const REVENANT_BUILD_SCHEMA_VERSION = 3;
-export const REVENANT_PROFESSION_ID = 'revenant';
+const REVENANT_BUILD_SCHEMA_VERSION = 3;
+const REVENANT_PROFESSION_ID = 'revenant';
 
 // Seed a schema-current Revenant preset with a legal legend pair, complete
 // resources, assumptions, equipment, and rotation fields.

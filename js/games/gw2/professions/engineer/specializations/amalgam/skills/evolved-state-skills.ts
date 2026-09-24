@@ -47,7 +47,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     cooldown: 40,
     ammo: 2,
     // The traited action has a short between-cast recharge and a separate per-charge recovery.
-    recharge: 1,
+    ammoCastLockout: 1,
     ammoRecharge: 40,
     effects: [],
     mechanicSlot: 5

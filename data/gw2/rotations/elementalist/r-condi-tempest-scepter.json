@@ -3,21 +3,24 @@
     "Rock Barrier",
     "Overload Earth",
     {
-      "name": "__combat_start",
-      "offset": 2760
+      "type": "combat-start",
+      "concurrentOffsetMs": 2760
     },
     {
-      "name": "Flame Barrage",
-      "offset": 2760
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 2760
     },
     "Dust Storm",
     {
-      "name": "Hurl",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     "Phoenix",
     "Signet of Fire",
@@ -35,8 +38,9 @@
     "Flamestrike",
     "Signet of Fire",
     {
-      "name": "Flame Barrage",
-      "offset": 200
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 200
     },
     "Flamestrike",
     "Dragon's Tooth",
@@ -55,14 +59,16 @@
     "Dust Storm",
     "Rock Barrier",
     {
-      "name": "Flame Barrage",
-      "offset": 120
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
     },
     "Hurl",
     "Signet of Fire",
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     "Phoenix",
     "Wildfire",
@@ -79,8 +85,9 @@
     "Signet of Fire",
     "Flamestrike",
     {
-      "name": "Flame Barrage",
-      "offset": 600
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 600
     },
     "Flamestrike",
     "Flamestrike",
@@ -94,8 +101,9 @@
     "Dust Devil",
     "Stone Shards",
     {
-      "name": "Stone Shards",
-      "interruptMs": 720
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 720
     },
     "Overload Earth",
     "Dust Storm",
@@ -103,13 +111,15 @@
     "Hurl",
     "Signet of Fire",
     {
-      "name": "Fire Attunement",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 440
     },
     "Phoenix",
     {
-      "name": "Flame Barrage",
-      "offset": 320
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 320
     },
     "Wildfire",
     "Dragon's Tooth",
@@ -128,15 +138,17 @@
     "Flamestrike",
     "Dragon's Tooth",
     {
-      "name": "Flame Barrage",
-      "offset": 160
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 160
     },
     "Flamestrike",
     "Flamestrike",
     "Phoenix",
     {
-      "name": "Earth Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 120
     },
     "Rock Barrier",
     "Hurl",
@@ -154,8 +166,9 @@
     "Dragon's Tooth",
     "Flamestrike",
     {
-      "name": "Flame Barrage",
-      "offset": 80
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 80
     },
     "Flamestrike",
     "Overload Fire",
@@ -173,8 +186,9 @@
     "Flamestrike",
     "Flamestrike",
     {
-      "name": "Flame Barrage",
-      "offset": 440
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 440
     },
     "Phoenix",
     "Earth Attunement",
@@ -183,8 +197,9 @@
     "Dust Devil",
     "Stone Shards",
     {
-      "name": "Stone Shards",
-      "interruptMs": 720
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 720
     },
     "Overload Earth",
     "Dust Storm",
@@ -192,8 +207,9 @@
     "Hurl",
     "Signet of Fire",
     {
-      "name": "Fire Attunement",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 440
     },
     "Phoenix",
     "Wildfire",

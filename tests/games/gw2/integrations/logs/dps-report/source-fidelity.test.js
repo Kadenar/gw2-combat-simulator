@@ -30,7 +30,7 @@ test('native saved rotations keep their manual preparation without receiving the
       this.onload();
     }
   };
-  const rotation = [{ name: 'Enter Radiant Forge', skillId: 77073 }];
+  const rotation = [{ type: 'cast', skillId: 77073 }];
   const preview = await previewRotationFile(
     { name: 'manual.json', type: 'application/json', text: async () => JSON.stringify(rotation) },
     { activeCatalog: guardianCatalog }

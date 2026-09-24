@@ -19,8 +19,8 @@ import { createCommonBuildDefaults } from '#gw2/professions/shared/build-default
  * and rejects weapon sets that cannot supply a legal dual-wield slot-3 skill.
  */
 
-export const THIEF_BUILD_SCHEMA_VERSION = 3;
-export const THIEF_PROFESSION_ID = 'thief';
+const THIEF_BUILD_SCHEMA_VERSION = 3;
+const THIEF_PROFESSION_ID = 'thief';
 
 const THIEF_DODGES = Object.freeze(['Dodge', 'Lotus Training', 'Bounding Dodger', 'Unhindered Combatant'] as const);
 

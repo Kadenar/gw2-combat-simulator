@@ -13,7 +13,7 @@ export const VINDICATOR_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   forerunnerOfDeathUntil: 0
 } satisfies Partial<VindicatorState>);
 
-export function createVindicatorState(): VindicatorState {
+function createVindicatorState(): VindicatorState {
   return {
     // Timestamp-based flags: 0 means inactive; compared against event.at so 0 is safely "never".
     reaversCurseUntil: 0,

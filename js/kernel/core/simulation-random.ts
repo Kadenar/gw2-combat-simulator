@@ -25,7 +25,7 @@ export const SIMULATION_RANDOMNESS_MODES = Object.freeze({
   STOCHASTIC: 'stochastic'
 } as const);
 
-export const MAX_SIMULATION_SEED = 0xffff_ffff;
+const MAX_SIMULATION_SEED = 0xffff_ffff;
 
 export const DEFAULT_SIMULATION_RANDOMNESS = Object.freeze({
   mode: SIMULATION_RANDOMNESS_MODES.DETERMINISTIC,

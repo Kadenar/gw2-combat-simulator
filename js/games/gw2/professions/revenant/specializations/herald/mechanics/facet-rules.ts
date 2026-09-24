@@ -49,7 +49,7 @@ import {
   modifyHeraldPassiveAttributes
 } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
 
-export const heraldModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const heraldModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'revenant.forceful-persistence',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -116,7 +116,7 @@ export const heraldCastRules = Object.freeze({
 const HERALD_SHARED_EMPOWERMENT_TASK = 'revenant.herald-shared-empowerment';
 
 /** Selects observed candidates and applies the local reaction using canonical impact facts. */
-export const sharedEmpowermentReaction = eventReaction<RevenantSchedulerContext, SimulationEvent>({
+const sharedEmpowermentReaction = eventReaction<RevenantSchedulerContext, SimulationEvent>({
   id: 'revenant.herald-shared-empowerment',
   order: 20,
   missingEvent: 'skip',

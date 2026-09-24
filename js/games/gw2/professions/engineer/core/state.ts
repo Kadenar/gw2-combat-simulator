@@ -24,7 +24,7 @@ export interface EngineerCoreState {
 }
 
 // Core owns the stable public fields that exist for every Engineer runtime.
-export const ENGINEER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
+const ENGINEER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'endurance',
   'maximumEndurance',
   'activeKit',

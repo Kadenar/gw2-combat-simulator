@@ -4,6 +4,7 @@ import test from 'node:test';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import {
   activeBoonStacks,
   boonActive,
@@ -18,6 +19,9 @@ import {
   vulnerabilityStacks
 } from '#gw2/platform/combat/query/runtime-query.js';
 
+// Query fixtures need a canonical catalog even when no skill-specific behavior is exercised.
+const catalog = createCanonicalCatalog();
+
 function context(overrides = {}) {
   return {
     time: 5,
@@ -29,7 +33,7 @@ function context(overrides = {}) {
 // A sampled zero must bypass a fresh lookup without changing the independent Vulnerability reporting query.
 test('condition damage consumes supplied Vulnerability while standalone queries retain their own state', () => {
   const query = createGw2CombatQuery({
-    profession: { id: 'sample-test', modifyConditionDamage: (_context, multiplier) => multiplier },
+    profession: { id: 'sample-test', catalog, modifyConditionDamage: (_context, multiplier) => multiplier },
     config: { target: { conditions: { Vulnerability: 25 } } }
   });
   const sample = { vulnerabilityStacks: 0, modifierValues: new Map() };
@@ -154,6 +158,7 @@ test('additive damage uses the live weapon set before and after a same-time swap
   const query = createGw2CombatQuery({
     profession: {
       id: 'test',
+      catalog,
       ...createModifierHooks({
         rules: [
           {
@@ -189,6 +194,7 @@ test('additive damage uses the live weapon set before and after a same-time swap
 test('Force and Bursting neither boost nor dilute independent companion damage', () => {
   const profession = {
     id: 'companion-sigil-test',
+    catalog,
     ...createModifierHooks({
       rules: [
         {
@@ -246,6 +252,7 @@ test('boon-dependent damage sees same-time buffs only after their live applicati
   const query = createGw2CombatQuery({
     profession: {
       id: 'test',
+      catalog,
       ...createModifierHooks({
         rules: [
           {

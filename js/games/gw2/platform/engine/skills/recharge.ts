@@ -15,7 +15,7 @@ export interface RechargeInterval {
   readonly rate: number;
 }
 
-type Gw2RechargeSkill = Pick<Skill, 'ammo' | 'ammoRecharge' | 'cooldown' | 'recharge'>;
+type Gw2RechargeSkill = Pick<Skill, 'ammo' | 'ammoRecharge' | 'cooldown'>;
 
 function finiteRecharge(value: number | null | undefined): number | null {
   if (value == null) return null;
@@ -27,7 +27,7 @@ function finiteRecharge(value: number | null | undefined): number | null {
 export function gw2BaseRecharge(skill: Gw2RechargeSkill): number {
   const ammoRecharge = finiteRecharge(skill.ammoRecharge);
   if (Number(skill.ammo) > 0 && ammoRecharge != null && ammoRecharge > 0) return ammoRecharge;
-  return finiteRecharge(skill.cooldown) ?? finiteRecharge(skill.recharge) ?? 0;
+  return finiteRecharge(skill.cooldown) ?? 0;
 }
 
 export const GW2_ALACRITY_RECHARGE_RATE = 1.25;

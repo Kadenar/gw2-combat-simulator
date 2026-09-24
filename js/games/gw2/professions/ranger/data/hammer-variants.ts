@@ -12,7 +12,7 @@ export const RANGER_HAMMER_VARIANT_PAIRS: readonly (readonly [number, number])[]
   Object.freeze([ID.THUMP, ID.UNLEASHED_THUMP]) as readonly [number, number]
 ]);
 
-export const DEFAULT_RANGER_HAMMER_SKILL_IDS: readonly number[] = Object.freeze(
+const DEFAULT_RANGER_HAMMER_SKILL_IDS: readonly number[] = Object.freeze(
   RANGER_HAMMER_VARIANT_PAIRS.map(([standard]) => standard)
 );
 

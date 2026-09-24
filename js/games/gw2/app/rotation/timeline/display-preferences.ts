@@ -1,5 +1,5 @@
 /** Owns persisted timeline size, timing emphasis, and idle-time visibility. */
-export const ROTATION_TIMELINE_SIZE_STORAGE_KEY = 'gw2-rotation-timeline-size';
+const ROTATION_TIMELINE_SIZE_STORAGE_KEY = 'gw2-rotation-timeline-size';
 export const ROTATION_DEAD_TIME_STORAGE_KEY = 'gw2-rotation-dead-time';
 const TRANSITION_DELAY_VISIBILITY_KEY = 'gw2-rotation-transition-delays';
 const TIMING_DISPLAY_STORAGE_KEY = 'gw2-rotation-timing-display';
@@ -55,7 +55,7 @@ function storeSize(root: Document, size: RotationTimelineSize): void {
   }
 }
 
-export function readStoredRotationDeadTimeVisibility(root: Document): boolean {
+function readStoredRotationDeadTimeVisibility(root: Document): boolean {
   try {
     return normalizeRotationDeadTimeVisibility(root.defaultView?.localStorage.getItem(ROTATION_DEAD_TIME_STORAGE_KEY));
   } catch {

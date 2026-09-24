@@ -7,7 +7,10 @@
   },
   "rotation": [
     "Throw Mine",
-    { "name": "__wait", "waitMs": 5000 },
+    {
+      "type": "wait",
+      "durationMs": 5000
+    },
     "Bomb Kit",
     "Big Ol' Bomb",
     "Magnetic Bomb",
@@ -15,27 +18,58 @@
     "Galvanic Bomb",
     "Stow Bomb Kit",
     "Thunderclap",
-    { "name": "__combat_start", "offset": 160 },
+    {
+      "type": "combat-start",
+      "concurrentOffsetMs": 160
+    },
     "Electro-whirl",
-    { "name": "Detonate", "offset": 120 },
-    { "name": "Grenade Kit", "offset": 240 },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 240
+    },
     "Shrapnel Grenade",
     "Freeze Grenade",
     "Poison Grenade",
     "Function Gyro",
     "Grenade Barrage",
     "Throw Mine",
-    { "name": "Stow Grenade Kit", "offset": 80 },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 80
+    },
     "Positive Strike",
-    { "name": "Detonate", "offset": 40 },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
+    },
     "Negative Bash",
     "Equalizing Blow",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 400 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 400
+    },
     "Shrapnel Grenade",
-    { "name": "Bomb Kit", "offset": 160 },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 160
+    },
     "Fire Bomb",
-    { "name": "Elite Mortar Kit", "offset": 40 },
+    {
+      "type": "cast",
+      "skillId": 30800,
+      "concurrentOffsetMs": 40
+    },
     "Poison Gas Shell",
     "Stow Elite Mortar Kit",
     "Positive Strike",
@@ -45,76 +79,160 @@
     "Negative Bash",
     "Equalizing Blow",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 360 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 360
+    },
     "Shrapnel Grenade",
-    { "name": "Bomb Kit", "offset": 200 },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 200
+    },
     "Galvanic Bomb",
     "Medic Gyro",
     "Big Ol' Bomb",
     "Magnetic Bomb",
     "Throw Mine",
     "Mine Field",
-    { "name": "Detonate", "offset": 40 },
-    { "name": "Stow Bomb Kit", "offset": 360 },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 360
+    },
     "Thunderclap",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 280 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 280
+    },
     "Shrapnel Grenade",
     "Freeze Grenade",
     "Poison Grenade",
-    { "name": "Bomb Kit", "offset": 200 },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 200
+    },
     "Fire Bomb",
-    { "name": "Elite Mortar Kit", "offset": 80 },
+    {
+      "type": "cast",
+      "skillId": 30800,
+      "concurrentOffsetMs": 80
+    },
     "Poison Gas Shell",
-    { "name": "Stow Elite Mortar Kit", "offset": 520 },
+    {
+      "type": "cast",
+      "skillId": -301,
+      "concurrentOffsetMs": 520
+    },
     "Positive Strike",
     "Negative Bash",
     "Equalizing Blow",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 360 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 360
+    },
     "Shrapnel Grenade",
     "Function Gyro",
     "Grenade Barrage",
-    { "name": "Stow Grenade Kit", "offset": 560 },
+    {
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 560
+    },
     "Positive Strike",
     "Negative Bash",
     "Equalizing Blow",
     "Throw Mine",
     "Positive Strike",
-    { "name": "Detonate", "offset": 40 },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
+    },
     "Negative Bash",
     "Equalizing Blow",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 240 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 240
+    },
     "Shrapnel Grenade",
-    { "name": "Bomb Kit", "offset": 240 },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 240
+    },
     "Galvanic Bomb",
     "Medic Gyro",
     "Big Ol' Bomb",
     "Magnetic Bomb",
-    { "name": "Elite Mortar Kit", "offset": 240 },
+    {
+      "type": "cast",
+      "skillId": 30800,
+      "concurrentOffsetMs": 240
+    },
     "Poison Gas Shell",
     "Mine Field",
-    { "name": "Stow Elite Mortar Kit", "offset": 200 },
+    {
+      "type": "cast",
+      "skillId": -301,
+      "concurrentOffsetMs": 200
+    },
     "Thunderclap",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 280 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 280
+    },
     "Shrapnel Grenade",
     "Freeze Grenade",
     "Poison Grenade",
-    { "name": "Bomb Kit", "offset": 280 },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 280
+    },
     "Fire Bomb",
     "Throw Mine",
-    { "name": "Stow Bomb Kit", "offset": 80 },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 80
+    },
     "Positive Strike",
-    { "name": "Detonate", "offset": 40 },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
+    },
     "Negative Bash",
     "Equalizing Blow",
     "Positive Strike",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 440 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 440
+    },
     "Shrapnel Grenade",
-    { "name": "Elite Mortar Kit", "offset": 240 },
+    {
+      "type": "cast",
+      "skillId": 30800,
+      "concurrentOffsetMs": 240
+    },
     "Poison Gas Shell",
     "Stow Elite Mortar Kit",
     "Positive Strike",
@@ -125,9 +243,17 @@
     "Equalizing Blow",
     "Function Gyro",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 360 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 360
+    },
     "Shrapnel Grenade",
-    { "name": "Bomb Kit", "offset": 240 },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 240
+    },
     "Galvanic Bomb",
     "Medic Gyro",
     "Big Ol' Bomb",
@@ -135,67 +261,135 @@
     "Throw Mine",
     "Detonate",
     "Mine Field",
-    { "name": "Stow Bomb Kit", "offset": 360 },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 360
+    },
     "Thunderclap",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 360 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 360
+    },
     "Shrapnel Grenade",
     "Freeze Grenade",
     "Poison Grenade",
     "Grenade Barrage",
-    { "name": "Elite Mortar Kit", "offset": 200 },
+    {
+      "type": "cast",
+      "skillId": 30800,
+      "concurrentOffsetMs": 200
+    },
     "Poison Gas Shell",
     "Stow Elite Mortar Kit",
     "Positive Strike",
     "Negative Bash",
     "Equalizing Blow",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 320 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 320
+    },
     "Shrapnel Grenade",
-    { "name": "Bomb Kit", "offset": 240 },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 240
+    },
     "Fire Bomb",
-    { "name": "Stow Bomb Kit", "offset": 520 },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 520
+    },
     "Positive Strike",
     "Negative Bash",
     "Equalizing Blow",
     "Throw Mine",
     "Positive Strike",
-    { "name": "Detonate", "offset": 40 },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
+    },
     "Negative Bash",
     "Equalizing Blow",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 240 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 240
+    },
     "Shrapnel Grenade",
-    { "name": "Bomb Kit", "offset": 200 },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 200
+    },
     "Galvanic Bomb",
     "Medic Gyro",
     "Big Ol' Bomb",
     "Magnetic Bomb",
     "Fire Bomb",
     "Mine Field",
-    { "name": "Stow Bomb Kit", "offset": 240 },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 240
+    },
     "Thunderclap",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 280 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 280
+    },
     "Shrapnel Grenade",
     "Freeze Grenade",
     "Poison Grenade",
-    { "name": "Elite Mortar Kit", "offset": 320 },
+    {
+      "type": "cast",
+      "skillId": 30800,
+      "concurrentOffsetMs": 320
+    },
     "Poison Gas Shell",
     "Throw Mine",
-    { "name": "Stow Elite Mortar Kit", "offset": 80 },
+    {
+      "type": "cast",
+      "skillId": -301,
+      "concurrentOffsetMs": 80
+    },
     "Positive Strike",
-    { "name": "Detonate", "offset": 40 },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
+    },
     "Negative Bash",
     "Equalizing Blow",
     "Function Gyro",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 280 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 280
+    },
     "Shrapnel Grenade",
-    { "name": "Bomb Kit", "offset": 120 },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 120
+    },
     "Fire Bomb",
     "Grenade Barrage",
-    { "name": "Stow Bomb Kit", "offset": 240 },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 240
+    },
     "Positive Strike",
     "Negative Bash",
     "Equalizing Blow",
@@ -203,34 +397,70 @@
     "Negative Bash",
     "Equalizing Blow",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 200 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 200
+    },
     "Shrapnel Grenade",
-    { "name": "Bomb Kit", "offset": 240 },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 240
+    },
     "Galvanic Bomb",
     "Medic Gyro",
     "Big Ol' Bomb",
     "Magnetic Bomb",
     "Throw Mine",
     "Mine Field",
-    { "name": "Detonate", "offset": 40 },
-    { "name": "Stow Bomb Kit", "offset": 320 },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 320
+    },
     "Thunderclap",
     "Positive Strike",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 200 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 200
+    },
     "Shrapnel Grenade",
     "Freeze Grenade",
     "Poison Grenade",
-    { "name": "Bomb Kit", "offset": 160 },
+    {
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 160
+    },
     "Fire Bomb",
-    { "name": "Elite Mortar Kit", "offset": 240 },
+    {
+      "type": "cast",
+      "skillId": 30800,
+      "concurrentOffsetMs": 240
+    },
     "Poison Gas Shell",
-    { "name": "Stow Elite Mortar Kit", "offset": 520 },
+    {
+      "type": "cast",
+      "skillId": -301,
+      "concurrentOffsetMs": 520
+    },
     "Positive Strike",
     "Negative Bash",
     "Equalizing Blow",
     "Electro-whirl",
-    { "name": "Grenade Kit", "offset": 320 },
+    {
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 320
+    },
     "Shrapnel Grenade",
     "Stow Grenade Kit",
     "Positive Strike",
@@ -238,7 +468,11 @@
     "Equalizing Blow",
     "Throw Mine",
     "Positive Strike",
-    { "name": "Detonate", "offset": 40 },
+    {
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
+    },
     "Negative Bash"
   ]
 }

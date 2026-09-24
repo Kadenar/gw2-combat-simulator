@@ -54,7 +54,7 @@ test('the shared timeline keeps tied shroud attacks between entry and exit for e
             })),
             1000 + Math.min(0, offset),
             null,
-            { commandFor: ({ name, skillId }) => ({ name, skillId }) }
+            { commandFor: ({ skillId }) => ({ type: 'cast', skillId }) }
           );
           const ids = rotation.filter((command) => command.skillId != null).map((command) => command.skillId);
           assert.equal(
@@ -87,13 +87,13 @@ test('the shared timeline orders simultaneous instant stunbreaks before blocked 
         })),
         0,
         null,
-        { commandFor: ({ name, skillId }) => ({ name, skillId }) }
+        { commandFor: ({ skillId }) => ({ type: 'cast', skillId }) }
       );
       assert.deepEqual(
-        rotation.map(({ name }) => name),
-        offset === 0 ? ['Stunbreak', 'Mind Stab'] : ['Mind Stab', 'Stunbreak']
+        rotation.map(({ skillId }) => skillId),
+        offset === 0 ? [2000, 1000] : [1000, 2000]
       );
-      assert.equal(rotation.find(({ name }) => name === 'Stunbreak').offset, offset || undefined);
+      assert.equal(rotation.find(({ skillId }) => skillId === 2000).concurrentOffsetMs, offset || undefined);
     }
   }
 });
@@ -141,7 +141,7 @@ test('both importers place tied weapon casts on the correct side of an attunemen
           const swapIndex = imported.rotation.findIndex((command) => command.skillId === 5495);
           const outgoingTie = skillId === 5508 && swapOffset === 0;
           assert.equal(castIndex < swapIndex, outgoingTie);
-          if (outgoingTie) assert.equal(imported.rotation[swapIndex].offset, 0);
+          if (outgoingTie) assert.equal(imported.rotation[swapIndex].concurrentOffsetMs, 0);
           const result = simulateGw2({
             profession: elementalistProfession,
             rotation: imported.rotation,
@@ -268,8 +268,8 @@ test('both importers order tied legend swaps before weapon swaps without reversi
         revenantCatalog
       );
       for (const result of [evtc, report]) {
-        const legendIndex = result.rotation.findIndex((command) => command.name === 'Swap Legends');
-        const weaponIndex = result.rotation.findIndex((command) => command.name === 'Swap Weapons');
+        const legendIndex = result.rotation.findIndex((command) => command.skillId === -4);
+        const weaponIndex = result.rotation.findIndex((command) => command.skillId === -3);
         assert.ok(legendIndex >= 0 && weaponIndex >= 0);
         assert.equal(legendIndex < weaponIndex, legendOffset === 0);
       }
@@ -330,12 +330,12 @@ test('both importers allow swaps during retained lockout and count only subseque
     );
     for (const result of [evtc, report]) {
       assert.deepEqual(
-        result.rotation.filter((command) => command.name !== '__combat_start'),
+        result.rotation.filter((command) => command.type !== 'combat-start'),
         [
-          { name: attack.name, skillId: attack.id, interruptMs: duration },
-          { name: 'Swap Weapons', skillId: -3 },
-          ...(idle ? [{ name: '__wait', waitMs: idle }] : []),
-          { name: 'Follow-up', skillId: 1001 }
+          { type: 'cast', skillId: attack.id, interruptAfterMs: duration },
+          { type: 'cast', skillId: -3 },
+          ...(idle ? [{ type: 'wait', durationMs: idle }] : []),
+          { type: 'cast', skillId: 1001 }
         ]
       );
     }
@@ -393,11 +393,11 @@ for (const [professionCode, professionName] of [
               { skills }
             );
       assert.deepEqual(
-        result.rotation.filter((command) => command.name !== '__combat_start'),
+        result.rotation.filter((command) => command.type !== 'combat-start'),
         [
-          { name: attack.name, skillId: attack.id, interruptMs: 40 },
-          { name: '__wait', waitMs: 40 },
-          { name: 'Follow-up', skillId: 1001 }
+          { type: 'cast', skillId: attack.id, interruptAfterMs: 40 },
+          { type: 'wait', durationMs: 40 },
+          { type: 'cast', skillId: 1001 }
         ]
       );
     });
@@ -471,7 +471,7 @@ test('EVTC and dps.report produce the same replay timing for equivalent cast evi
   assert.deepEqual(evtc.rotation, report.rotation);
   // Both import paths preserve the observed-aftercast mismatch on 40 ms action ticks.
   assert.deepEqual(
-    report.rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
+    report.rotation.filter((command) => command.type === 'wait').map((command) => command.durationMs),
     [200, 240, 240]
   );
 });
@@ -484,12 +484,12 @@ test('the shared timeline preserves unsupported durations, idle gaps, and concur
     { start: 800, end: 900, eventIndex: 2, skill: null, name: 'Unknown', skillId: 9_000 }
   ];
 
-  assert.deepEqual(buildReplayTimeline(actions, 0, 100, { commandFor: ({ name, skillId }) => ({ name, skillId }) }), [
-    { name: 'Mind Stab', skillId: 1_000 },
-    { name: '__combat_start', offset: 120 },
-    { name: 'Instant', skillId: 2_000, offset: 200 },
-    { name: '__wait', waitMs: 400 },
-    { name: '__wait', waitMs: 100 }
+  assert.deepEqual(buildReplayTimeline(actions, 0, 100, { commandFor: ({ skillId }) => ({ type: 'cast', skillId }) }), [
+    { type: 'cast', skillId: 1_000 },
+    { type: 'combat-start', concurrentOffsetMs: 120 },
+    { type: 'cast', skillId: 2_000, concurrentOffsetMs: 200 },
+    { type: 'wait', durationMs: 400 },
+    { type: 'wait', durationMs: 100 }
   ]);
 });
 
@@ -506,10 +506,10 @@ test('weapon swaps retain their observed overlap with dodge through an interveni
     ].map((action, eventIndex) => ({ ...action, eventIndex, name: action.skill.name, skillId: action.skill.id }));
     const rotation = buildReplayTimeline(actions, 0, null, {
       alignWaitsToSimulatorTiming: true,
-      commandFor: ({ name, skillId }) => ({ name, skillId })
+      commandFor: ({ skillId }) => ({ type: 'cast', skillId })
     });
     assert.equal(
-      rotation.find((command) => command.name === 'Swap Weapons').offset,
+      rotation.find((command) => command.skillId === -3).concurrentOffsetMs,
       name === 'Dodge' ? 100 : undefined
     );
   }
@@ -537,14 +537,11 @@ test('the shared timeline rounds combat offsets relative to the skill, including
       ],
       start,
       start + elapsed,
-      { commandFor: ({ name, skillId }) => ({ name, skillId }) }
+      { commandFor: ({ skillId }) => ({ type: 'cast', skillId }) }
     );
     assert.deepEqual(
-      rotation.find((command) => command.name === '__combat_start'),
-      {
-        name: '__combat_start',
-        offset: expected
-      }
+      rotation.find((command) => command.type === 'combat-start'),
+      { type: 'combat-start', concurrentOffsetMs: expected }
     );
   }
 });
@@ -555,8 +552,8 @@ test('the shared timeline preserves explicit aftercast mismatches without adding
       [{ start: 0, end: durationMs, eventIndex: 0, skill, name: skill.name, skillId: skill.id }],
       0,
       null,
-      { commandFor: ({ name, skillId }) => ({ name, skillId }) }
-    ).find((command) => command.name === '__wait')?.waitMs ?? 0;
+      { commandFor: ({ skillId }) => ({ type: 'cast', skillId }) }
+    ).find((command) => command.type === 'wait')?.durationMs ?? 0;
 
   assert.equal(waitFor(420), 0);
   assert.equal(waitFor(421), 21);
@@ -574,13 +571,13 @@ test('the shared timeline preserves idle after an uninterrupted retained-lockout
     ],
     0,
     null,
-    { commandFor: ({ name, skillId }) => ({ name, skillId }) }
+    { commandFor: ({ skillId }) => ({ type: 'cast', skillId }) }
   );
 
   assert.deepEqual(rotation, [
-    { name: 'Mind Stab', skillId: 1_000 },
-    { name: '__wait', waitMs: 41 },
-    { name: 'Next Cast', skillId: 2_000 }
+    { type: 'cast', skillId: 1_000 },
+    { type: 'wait', durationMs: 41 },
+    { type: 'cast', skillId: 2_000 }
   ]);
 });
 
@@ -596,15 +593,15 @@ test('the shared timeline subtracts accumulated simulator cast overruns from a l
     null,
     {
       alignWaitsToSimulatorTiming: true,
-      commandFor: ({ name, skillId }) => ({ name, skillId })
+      commandFor: ({ skillId }) => ({ type: 'cast', skillId })
     }
   );
 
   assert.deepEqual(rotation, [
-    { name: 'Mind Stab', skillId: 1_000 },
-    { name: 'Mind Stab', skillId: 1_000 },
-    { name: '__wait', waitMs: 40 },
-    { name: 'Mind Stab', skillId: 1_000 }
+    { type: 'cast', skillId: 1_000 },
+    { type: 'cast', skillId: 1_000 },
+    { type: 'wait', durationMs: 40 },
+    { type: 'cast', skillId: 1_000 }
   ]);
 });
 
@@ -636,15 +633,15 @@ test('skipped aftercast jitter does not shift subsequent source timing', () => {
     null,
     {
       alignWaitsToSimulatorTiming: true,
-      commandFor: ({ name, skillId, eventIndex }) => ({
-        name,
+      commandFor: ({ skillId, eventIndex }) => ({
+        type: 'cast',
         skillId,
-        ...(eventIndex === 0 ? { interruptMs: 400 } : {})
+        ...(eventIndex === 0 ? { interruptAfterMs: 400 } : {})
       })
     }
   );
   assert.deepEqual(
-    rotation.filter(({ name }) => name === '__wait').map(({ waitMs }) => waitMs),
+    rotation.filter(({ type }) => type === 'wait').map(({ durationMs }) => durationMs),
     [120]
   );
 });
@@ -661,13 +658,13 @@ test('runtime alignment preserves mechanic-owned occupied intervals without addi
     {
       alignWaitsToSimulatorTiming: true,
       hasObservedCastTime: ({ eventIndex }) => eventIndex !== 0,
-      commandFor: ({ name, skillId }) => ({ name, skillId })
+      commandFor: ({ skillId }) => ({ type: 'cast', skillId })
     }
   );
 
   assert.deepEqual(rotation, [
-    { name: 'Mind Stab', skillId: 1_000 },
-    { name: 'Mind Stab', skillId: 1_000 }
+    { type: 'cast', skillId: 1_000 },
+    { type: 'cast', skillId: 1_000 }
   ]);
 });
 
@@ -686,10 +683,10 @@ test('runtime alignment budgets resolved cast variants instead of counting their
   }));
   const rotation = buildReplayTimeline(actions, 0, null, {
     alignWaitsToSimulatorTiming: true,
-    commandFor: ({ name, skillId }) => ({ name, skillId })
+    commandFor: ({ skillId }) => ({ type: 'cast', skillId })
   });
   assert.deepEqual(
-    rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
+    rotation.filter((command) => command.type === 'wait').map((command) => command.durationMs),
     [200, 200]
   );
 });
@@ -706,15 +703,15 @@ test('the shared timeline subtracts concurrent progress from an observed instant
   ];
 
   const rotation = buildReplayTimeline(actions, 0, null, {
-    commandFor: ({ name, skillId }) => ({ name, skillId })
+    commandFor: ({ skillId }) => ({ type: 'cast', skillId })
   });
 
   assert.deepEqual(rotation.slice(0, 5), [
-    { name: 'Channel', skillId: 2_001 },
-    { name: 'Instant', skillId: 2_000, offset: 360 },
-    { name: 'Instant', skillId: 2_000, offset: 40 },
-    { name: 'Instant', skillId: 2_000, offset: 240 },
-    { name: '__wait', waitMs: 560 }
+    { type: 'cast', skillId: 2_001 },
+    { type: 'cast', skillId: 2_000, concurrentOffsetMs: 360 },
+    { type: 'cast', skillId: 2_000, concurrentOffsetMs: 40 },
+    { type: 'cast', skillId: 2_000, concurrentOffsetMs: 240 },
+    { type: 'wait', durationMs: 560 }
   ]);
 });
 

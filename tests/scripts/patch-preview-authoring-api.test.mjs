@@ -39,7 +39,7 @@ test('patch authoring serializer emits the typed active preview module', () => {
   assert.match(source, /import type \{ PatchPreview \} from "\.\/authoring\/patches\.js"/);
   assert.match(source, /export const activePatchPreview: PatchPreview = \{/);
   assert.match(source, /"august-preview"/);
-  assert.match(source, /export default activePatchPreview;/);
+  assert.doesNotMatch(source, /export default/);
 });
 
 test('patch authoring API loads the compiled GW2 runtime', async () => {

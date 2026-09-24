@@ -2,12 +2,14 @@
   "rotation": [
     "Overload Air",
     {
-      "name": "Flame Barrage",
-      "offset": 0
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 0
     },
     {
-      "name": "Feel the Burn!",
-      "offset": 40
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 40
     },
     "Fire Attunement",
     "Ring of Fire",
@@ -15,14 +17,16 @@
     "Fire Grab",
     "Flame Uprising",
     {
-      "name": "Air Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 40
     },
     "Glyph of Storms (Air)",
     "Ride the Lightning",
     {
-      "name": "Charged Strike",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 44681,
+      "interruptAfterMs": 40
     },
     "Quantum Strike",
     "Charged Strike",
@@ -32,27 +36,31 @@
     "Polaric Slash",
     "Overload Air",
     {
-      "name": "Flame Barrage",
-      "offset": 2120
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 2120
     },
     "Ride the Lightning",
     {
-      "name": "Charged Strike",
-      "interruptMs": 200
+      "type": "cast",
+      "skillId": 44681,
+      "interruptAfterMs": 200
     },
     "Fire Attunement",
     "Ring of Fire",
     "Cauterizing Strike",
     "Flame Uprising",
     {
-      "name": "Earth Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 280
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
     },
     "Charged Strike",
     "Polaric Slash",
@@ -63,33 +71,39 @@
     "Call Lightning",
     "Ride the Lightning",
     {
-      "name": "Charged Strike",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 44681,
+      "interruptAfterMs": 120
     },
     "Overload Air",
     {
-      "name": "Feel the Burn!",
-      "offset": 320
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Flame Barrage",
-      "offset": 2800
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 2800
     },
     {
-      "name": "Fire Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Fire Strike",
-      "interruptMs": 160
+      "type": "cast",
+      "skillId": 39964,
+      "interruptAfterMs": 160
     },
     "Ring of Fire",
     "Cauterizing Strike",
     "Fire Grab",
     "Flame Uprising",
     {
-      "name": "Air Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 40
     },
     "Charged Strike",
     "Polaric Slash",
@@ -102,26 +116,30 @@
     "Charged Strike",
     "Overload Air",
     {
-      "name": "Fire Attunement",
-      "offset": 3120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 3120
     },
     "Fire Strike",
     "Ring of Fire",
     "Cauterizing Strike",
     "Flame Uprising",
     {
-      "name": "Earth Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Flame Barrage",
-      "offset": 80
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 80
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
     },
     "Ride the Lightning",
     "Charged Strike",
@@ -132,8 +150,9 @@
     "Call Lightning",
     "Quantum Strike",
     {
-      "name": "Feel the Burn!",
-      "offset": 360
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 360
     },
     "Overload Air",
     "Ride the Lightning",
@@ -141,19 +160,22 @@
     "Ring of Fire",
     "Cauterizing Strike",
     {
-      "name": "Fire Strike",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 39964,
+      "interruptAfterMs": 80
     },
     "Fire Grab",
     "Flame Uprising",
     {
-      "name": "Air Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 40
     },
     "Charged Strike",
     {
-      "name": "Flame Barrage",
-      "offset": 200
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 200
     },
     "Polaric Slash",
     "Call Lightning",
@@ -164,40 +186,46 @@
     "Polaric Slash",
     "Ride the Lightning",
     {
-      "name": "Call Lightning",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 45216,
+      "interruptAfterMs": 40
     },
     "Overload Air",
     "Quantum Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     "Ring of Fire",
     "Cauterizing Strike",
     "Flame Uprising",
     {
-      "name": "Earth Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 160
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     "Glyph of Storms (Air)",
     {
-      "name": "Flame Barrage",
-      "offset": 720
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 720
     },
     "Ride the Lightning",
     "Charged Strike",
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Feel the Burn!",
-      "offset": 480
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 480
     },
     "Charged Strike",
     "Polaric Slash",
@@ -205,16 +233,18 @@
     "Overload Air",
     "Quantum Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 80
     },
     "Ring of Fire",
     "Cauterizing Strike",
     "Fire Grab",
     "Flame Uprising",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     "Ride the Lightning",
     "Charged Strike",
@@ -222,8 +252,9 @@
     "Call Lightning",
     "Charged Strike",
     {
-      "name": "Flame Barrage",
-      "offset": 360
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 360
     },
     "Polaric Slash",
     "Call Lightning",
@@ -233,21 +264,24 @@
     "Ride the Lightning",
     "Charged Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 80
     },
     "Ring of Fire",
     "Cauterizing Strike",
     "Flame Uprising",
     {
-      "name": "Earth Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 120
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
     },
     "Feel the Burn!",
     "Charged Strike",
@@ -256,27 +290,31 @@
     "Charged Strike",
     "Polaric Slash",
     {
-      "name": "Flame Barrage",
-      "offset": 40
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 40
     },
     "Call Lightning",
     "Ride the Lightning",
     "Overload Air",
     {
-      "name": "Fire Attunement",
-      "offset": 3160
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 3160
     },
     {
-      "name": "Fire Strike",
-      "interruptMs": 160
+      "type": "cast",
+      "skillId": 39964,
+      "interruptAfterMs": 160
     },
     "Ring of Fire",
     "Cauterizing Strike",
     "Fire Grab",
     "Flame Uprising",
     {
-      "name": "Air Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
     },
     "Charged Strike",
     "Polaric Slash",
@@ -289,36 +327,42 @@
     "Charged Strike",
     "Overload Air",
     {
-      "name": "Flame Barrage",
-      "offset": 640
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 640
     },
     {
-      "name": "Fire Attunement",
-      "offset": 2520
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 2520
     },
     "Fire Strike",
     "Ring of Fire",
     "Cauterizing Strike",
     {
-      "name": "Fire Strike",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 39964,
+      "interruptAfterMs": 40
     },
     "Flame Uprising",
     {
-      "name": "Earth Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 120
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
     },
     "Ride the Lightning",
     "Charged Strike",
     {
-      "name": "Feel the Burn!",
-      "offset": 400
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 400
     },
     "Polaric Slash",
     "Call Lightning",
@@ -327,30 +371,35 @@
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Charged Strike",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 44681,
+      "interruptAfterMs": 40
     },
     "Overload Air",
     {
-      "name": "Flame Barrage",
-      "offset": 1560
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 1560
     },
     "Ride the Lightning",
     {
-      "name": "Fire Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 40
     },
     "Ring of Fire",
     "Cauterizing Strike",
     {
-      "name": "Fire Strike",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 39964,
+      "interruptAfterMs": 40
     },
     "Fire Grab",
     "Flame Uprising",
     {
-      "name": "Air Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
     },
     "Glyph of Storms (Air)",
     "Charged Strike",
@@ -359,33 +408,38 @@
     "Charged Strike",
     "Polaric Slash",
     {
-      "name": "Call Lightning",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 45216,
+      "interruptAfterMs": 40
     },
     "Quantum Strike",
     "Overload Air",
     "Ride the Lightning",
     {
-      "name": "Fire Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 40
     },
     "Fire Strike",
     "Ring of Fire",
     "Cauterizing Strike",
     "Flame Uprising",
     {
-      "name": "Earth Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 200
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Feel the Burn!",
-      "offset": 760
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 760
     }
   ]
 }

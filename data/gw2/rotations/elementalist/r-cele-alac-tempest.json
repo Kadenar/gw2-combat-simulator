@@ -2,104 +2,121 @@
   "rotation": [
     "Wildfire",
     {
-      "name": "Flame Barrage",
-      "offset": 0
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 0
     },
     "Dragon's Tooth",
     "Signet of Fire",
     "Overload Fire",
     {
-      "name": "Feel the Burn!",
-      "offset": 320
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 320
     },
     "Phoenix",
     "Heat Sync",
     "Dragon's Tooth",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Lightning Strike",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 320
     },
     "Lightning Orb",
     "Cyclone",
     {
-      "name": "Water Attunement",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 440
     },
     "Water Trident",
     "Shatterstone",
     "Tidal Surge",
     {
-      "name": "Earth Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 40
     },
     "Rock Barrier",
     "Dust Storm",
     {
-      "name": "Hurl",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 120
     },
     "Sand Squall",
     {
-      "name": "Flame Barrage",
-      "offset": 480
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 480
     },
     "Signet of Fire",
     "Stone Shards",
     {
-      "name": "Stone Shards",
-      "interruptMs": 160
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 160
     },
     "Overload Earth",
     "Rock Barrier",
     "Dust Devil",
     {
-      "name": "Hurl",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Stone Shards",
-      "interruptMs": 280
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 280
     },
     "Water Attunement",
     "Shatterstone",
     {
-      "name": "Ice Shards",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5693,
+      "interruptAfterMs": 40
     },
     "Water Trident",
     "Water Globe",
     "Water Trident",
     "Shatterstone",
     {
-      "name": "Fire Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 200
     },
     "Dragon's Tooth",
     "Phoenix",
     {
-      "name": "Feel the Burn!",
-      "offset": 360
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 360
     },
     "Flamestrike",
     "Flamestrike",
     "Flamestrike",
     {
-      "name": "Flame Barrage",
-      "offset": 0
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 0
     },
     {
-      "name": "Flamestrike",
-      "interruptMs": 160
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 160
     },
     "Signet of Fire",
     "Wildfire",
     {
-      "name": "Flamestrike",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 120
     },
     "Dragon's Tooth",
     "Overload Fire",
@@ -107,53 +124,62 @@
     "Heat Sync",
     "Dragon's Tooth",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Lightning Strike",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 240
     },
     "Lightning Orb",
     "Cyclone",
     {
-      "name": "Water Attunement",
-      "offset": 560
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 560
     },
     "Water Trident",
     "Shatterstone",
     "Tidal Surge",
     {
-      "name": "Earth Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 240
     },
     "Rock Barrier",
     "Dust Storm",
     {
-      "name": "Hurl",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Flame Barrage",
-      "offset": 240
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 240
     },
     "Signet of Fire",
     "Stone Shards",
     "Sand Squall",
     {
-      "name": "Stone Shards",
-      "interruptMs": 400
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 400
     },
     "Overload Earth",
     "Rock Barrier",
     "Dust Devil",
     {
-      "name": "Hurl",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Stone Shards",
-      "interruptMs": 440
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 440
     },
     "Feel the Burn!",
     "Water Attunement",
@@ -161,17 +187,20 @@
     "Water Trident",
     "Ice Shards",
     {
-      "name": "Ice Shards",
-      "interruptMs": 160
+      "type": "cast",
+      "skillId": 5693,
+      "interruptAfterMs": 160
     },
     "Water Trident",
     {
-      "name": "Fire Attunement",
-      "offset": 680
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 680
     },
     {
-      "name": "Flamestrike",
-      "interruptMs": 240
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 240
     },
     "Phoenix",
     "Flamestrike"

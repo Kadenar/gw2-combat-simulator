@@ -67,7 +67,7 @@ export interface NecromancerCoreState {
 }
 
 /** Declares the Core fields exposed by every Necromancer end-state projection. */
-export const NECROMANCER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
+const NECROMANCER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'lifeForce',
   'maximumLifeForce',
   'maximumHealth',
@@ -89,7 +89,7 @@ export const NECROMANCER_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
   defaults: {}
 });
 
-export const NECROMANCER_BASE_HEALTH = 9212;
+const NECROMANCER_BASE_HEALTH = 9212;
 
 /** Calculates maximum health after Core vitality traits that were not already applied by the build layer. */
 export function necromancerMaximumHealth(

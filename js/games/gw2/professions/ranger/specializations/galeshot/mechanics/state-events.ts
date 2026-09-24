@@ -9,7 +9,7 @@ import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
-export function handleGaleshotState(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+function handleGaleshotState(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = galeshotState.from(context);
   // Re-clamp on ingestion: the event value is already bounded, but resolver
   // state is reconstructed from log entries that may predate the cap.

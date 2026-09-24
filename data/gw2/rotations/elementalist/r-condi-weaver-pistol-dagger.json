@@ -10,45 +10,51 @@
   "rotation": [
     "Weave Self",
     {
-      "name": "Primordial Stance (Earth)",
-      "offset": 200
+      "type": "cast",
+      "skillId": -1169,
+      "concurrentOffsetMs": 200
     },
     "Signet of Fire",
     {
-      "name": "__combat_start",
-      "offset": 400
+      "type": "combat-start",
+      "concurrentOffsetMs": 400
     },
     "Shattering Stone",
     "Boulder Blast",
     {
-      "name": "Fire Attunement",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 440
     },
     "Scorching Shot",
     "Churning Earth",
     "Molten Meteor",
     {
-      "name": "Fire Attunement",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 400
     },
     "Signet of Earth",
     "Searing Salvo",
     "Raging Ricochet",
     {
-      "name": "Primordial Stance (Fire)",
-      "offset": 120
+      "type": "cast",
+      "skillId": 40183,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Earth Attunement",
-      "offset": 520
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 520
     },
     "Ring of Fire",
     "Shattering Stone",
     "Fire Grab",
     "Piercing Pebble",
     {
-      "name": "Earth Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 200
     },
     "Earthquake",
     "Piercing Pebble",
@@ -58,61 +64,70 @@
     "Shattering Stone",
     "Boulder Blast",
     {
-      "name": "Air Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
     },
     "Signet of Fire",
     "Dazing Discharge",
     "Enervating Earth",
     {
-      "name": "Fire Attunement",
-      "offset": 520
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 520
     },
     "Raging Ricochet",
     "Purblinding Plasma",
     "Ride the Lightning",
     "Scorching Shot",
     {
-      "name": "Fire Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
     },
     "Searing Salvo",
     "Scorching Shot",
     "Ring of Fire",
     "Scorching Shot",
     {
-      "name": "Earth Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 40
     },
     "Shattering Stone",
     {
-      "name": "Primordial Stance (Earth)",
-      "offset": 440
+      "type": "cast",
+      "skillId": -1169,
+      "concurrentOffsetMs": 440
     },
     "Molten Meteor",
     "Signet of Earth",
     {
-      "name": "Earth Attunement",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 440
     },
     "Churning Earth",
     "Earthquake",
     "Boulder Blast",
     {
-      "name": "Water Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 320
     },
     "Echoing Erosion",
     "Frigid Flurry",
     {
-      "name": "Unravel",
-      "offset": 720
+      "type": "cast",
+      "skillId": 80231,
+      "concurrentOffsetMs": 720
     },
     "Frozen Fusillade",
     "Signet of Fire",
     {
-      "name": "Fire Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 40
     },
     "Fire Grab",
     "Searing Salvo",
@@ -121,8 +136,9 @@
     "Scorching Shot",
     "Ring of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 200
     },
     "Piercing Pebble",
     "Piercing Pebble",
@@ -132,8 +148,9 @@
     "Shattering Stone",
     "Piercing Pebble",
     {
-      "name": "Fire Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 160
     },
     "Molten Meteor",
     "Raging Ricochet",
@@ -141,8 +158,9 @@
     "Signet of Earth",
     "Churning Earth",
     {
-      "name": "Fire Attunement",
-      "offset": 560
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 560
     },
     "Signet of Fire",
     "Searing Salvo",
@@ -152,8 +170,9 @@
     "Raging Ricochet",
     "Ring of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 40
     },
     "Shattering Stone",
     "Fire Grab",
@@ -161,14 +180,16 @@
     "Piercing Pebble",
     "Piercing Pebble",
     {
-      "name": "Primordial Stance (Earth)",
-      "offset": 40
+      "type": "cast",
+      "skillId": -1169,
+      "concurrentOffsetMs": 40
     },
     "Piercing Pebble",
     "Molten Meteor",
     {
-      "name": "Earth Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 360
     },
     "Boulder Blast",
     "Shattering Stone",
@@ -179,27 +200,31 @@
     "Water Attunement",
     "Echoing Erosion",
     {
-      "name": "Unravel",
-      "offset": 200
+      "type": "cast",
+      "skillId": 80231,
+      "concurrentOffsetMs": 200
     },
     "Frozen Fusillade",
     "Frigid Flurry",
     {
-      "name": "Fire Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 80
     },
     "Signet of Earth",
     "Searing Salvo",
     "Ring of Fire",
     "Raging Ricochet",
     {
-      "name": "Primordial Stance (Fire)",
-      "offset": 440
+      "type": "cast",
+      "skillId": 40183,
+      "concurrentOffsetMs": 440
     },
     "Scorching Shot",
     {
-      "name": "Earth Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 360
     },
     "Churning Earth",
     "Boulder Blast",
@@ -208,8 +233,9 @@
     "Piercing Pebble",
     "Piercing Pebble",
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     "Molten Meteor",
     "Raging Ricochet",
@@ -218,8 +244,9 @@
     "Scorching Shot",
     "Scorching Shot",
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     "Fire Grab",
     "Searing Salvo",
@@ -228,8 +255,9 @@
     "Raging Ricochet",
     "Ring of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 480
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 480
     },
     "Shattering Stone",
     "Signet of Earth",
@@ -240,8 +268,9 @@
     "Piercing Pebble",
     "Molten Meteor",
     {
-      "name": "Earth Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 320
     },
     "Boulder Blast",
     "Shattering Stone",
@@ -249,33 +278,38 @@
     "Earthquake",
     "Signet of Fire",
     {
-      "name": "Water Attunement",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 400
     },
     "Echoing Erosion",
     "Frigid Flurry",
     {
-      "name": "Unravel",
-      "offset": 200
+      "type": "cast",
+      "skillId": 80231,
+      "concurrentOffsetMs": 200
     },
     "Frozen Fusillade",
     {
-      "name": "Fire Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 80
     },
     "Ring of Fire",
     "Searing Salvo",
     "Fire Grab",
     "Raging Ricochet",
     {
-      "name": "Primordial Stance (Fire)",
-      "offset": 200
+      "type": "cast",
+      "skillId": 40183,
+      "concurrentOffsetMs": 200
     },
     "Scorching Shot",
     "Scorching Shot",
     {
-      "name": "Earth Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 40
     },
     "Boulder Blast",
     "Shattering Stone",
@@ -283,34 +317,39 @@
     "Signet of Earth",
     "Piercing Pebble",
     {
-      "name": "Fire Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 320
     },
     "Raging Ricochet",
     "Scorching Shot",
     "Earthquake",
     {
-      "name": "Fire Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 360
     },
     "Signet of Fire",
     "Searing Salvo",
     "Scorching Shot",
     {
-      "name": "Earth Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 120
     },
     "Shattering Stone",
     "Molten Meteor",
     "Ring of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 360
     },
     "Churning Earth",
     {
-      "name": "Primordial Stance (Earth)",
-      "offset": 400
+      "type": "cast",
+      "skillId": -1169,
+      "concurrentOffsetMs": 400
     },
     "Boulder Blast",
     "Piercing Pebble",
@@ -319,43 +358,50 @@
     "Piercing Pebble",
     "Shattering Stone",
     {
-      "name": "Fire Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 360
     },
     "Raging Ricochet",
     "Scorching Shot",
     "Scorching Shot",
     {
-      "name": "Fire Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 40
     },
     "Fire Grab",
     "Searing Salvo",
     "Signet of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 440
     },
     "Piercing Pebble",
     "Shattering Stone",
     "Piercing Pebble",
     "Molten Meteor",
     {
-      "name": "Fire Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 280
     },
     "Raging Ricochet",
     {
-      "name": "Fire Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Unravel",
-      "offset": 240
+      "type": "cast",
+      "skillId": 80231,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Earth Attunement",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 440
     },
     "Earthquake"
   ]

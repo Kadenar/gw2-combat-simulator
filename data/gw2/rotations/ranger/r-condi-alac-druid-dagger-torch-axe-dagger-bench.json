@@ -10,14 +10,37 @@
   "rotation": [
     "Sharpening Stone",
     "Viper's Nest",
-    { "name": "Celestial Avatar", "offset": 200 },
-    { "name": "Poisonous Cloud", "offset": 200 },
+    {
+      "type": "cast",
+      "skillId": 31869,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 12675,
+      "concurrentOffsetMs": 200
+    },
     "Natural Convergence",
-    { "name": "__combat_start", "offset": 440 },
-    { "name": "Seed of Life", "offset": 600 },
+    {
+      "type": "combat-start",
+      "concurrentOffsetMs": 440
+    },
+    {
+      "type": "cast",
+      "skillId": 31406,
+      "concurrentOffsetMs": 600
+    },
     "Lunar Impact",
-    { "name": "Swap Pets", "offset": 240 },
-    { "name": "Jacaranda's Embrace", "offset": 240 },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 44980,
+      "concurrentOffsetMs": 240
+    },
     "Rejuvenating Tides",
     "Seed of Life",
     "Release Celestial Avatar",
@@ -38,7 +61,11 @@
     "Splitblade",
     "Celestial Avatar",
     "Natural Convergence",
-    { "name": "Seed of Life", "offset": 720 },
+    {
+      "type": "cast",
+      "skillId": 31406,
+      "concurrentOffsetMs": 720
+    },
     "Lunar Impact",
     "Rejuvenating Tides",
     "Seed of Life",
@@ -53,7 +80,11 @@
     "Instinctive Engage",
     "Throw Torch",
     "Groundwork Gouge",
-    { "name": "Jacaranda's Embrace", "offset": 160 },
+    {
+      "type": "cast",
+      "skillId": 44980,
+      "concurrentOffsetMs": 160
+    },
     "Leading Swipe",
     "Serpent Stab",
     "Deadly Delivery",
@@ -62,13 +93,25 @@
     "Serpent Stab",
     "Deadly Delivery",
     "Bonfire",
-    { "name": "Swap Pets", "offset": 160 },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 160
+    },
     "Double Arc",
     "Celestial Avatar",
     "Natural Convergence",
-    { "name": "Seed of Life", "offset": 640 },
+    {
+      "type": "cast",
+      "skillId": 31406,
+      "concurrentOffsetMs": 640
+    },
     "Lunar Impact",
-    { "name": "Poisonous Cloud", "offset": 200 },
+    {
+      "type": "cast",
+      "skillId": 12675,
+      "concurrentOffsetMs": 200
+    },
     "Sun Spirit",
     "Rejuvenating Tides",
     "Seed of Life",
@@ -90,7 +133,11 @@
     "Splitblade",
     "Celestial Avatar",
     "Natural Convergence",
-    { "name": "Seed of Life", "offset": 600 },
+    {
+      "type": "cast",
+      "skillId": 31406,
+      "concurrentOffsetMs": 600
+    },
     "Lunar Impact",
     "Rejuvenating Tides",
     "Seed of Life",
@@ -102,8 +149,16 @@
     "Double Arc",
     "Throw Torch",
     "Instinctive Engage",
-    { "name": "Swap Pets", "offset": 480 },
-    { "name": "Jacaranda's Embrace", "offset": 160 },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 44980,
+      "concurrentOffsetMs": 160
+    },
     "Sun Spirit",
     "Bonfire",
     "Groundwork Gouge",
@@ -117,7 +172,11 @@
     "Double Arc",
     "Celestial Avatar",
     "Natural Convergence",
-    { "name": "Seed of Life", "offset": 600 },
+    {
+      "type": "cast",
+      "skillId": 31406,
+      "concurrentOffsetMs": 600
+    },
     "Lunar Impact",
     "Rejuvenating Tides",
     "Seed of Life",
@@ -139,16 +198,32 @@
     "Splitblade",
     "Celestial Avatar",
     "Natural Convergence",
-    { "name": "Seed of Life", "offset": 560 },
+    {
+      "type": "cast",
+      "skillId": 31406,
+      "concurrentOffsetMs": 560
+    },
     "Lunar Impact",
-    { "name": "Jacaranda's Embrace", "offset": 80 },
+    {
+      "type": "cast",
+      "skillId": 44980,
+      "concurrentOffsetMs": 80
+    },
     "Sun Spirit",
     "Rejuvenating Tides",
     "Seed of Life",
     "Release Celestial Avatar",
     "Stalker's Strike",
-    { "name": "Swap Pets", "offset": 320 },
-    { "name": "Poisonous Cloud", "offset": 120 },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 12675,
+      "concurrentOffsetMs": 120
+    },
     "Winter's Bite",
     "Splitblade",
     "Swap Weapons",
@@ -168,7 +243,11 @@
     "Double Arc",
     "Celestial Avatar",
     "Natural Convergence",
-    { "name": "Seed of Life", "offset": 600 },
+    {
+      "type": "cast",
+      "skillId": 31406,
+      "concurrentOffsetMs": 600
+    },
     "Lunar Impact",
     "Viper's Nest",
     "Rejuvenating Tides",
@@ -191,9 +270,21 @@
     "Splitblade",
     "Celestial Avatar",
     "Natural Convergence",
-    { "name": "Swap Pets", "offset": 480 },
-    { "name": "Seed of Life", "offset": 120 },
-    { "name": "Jacaranda's Embrace", "offset": 40 },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 31406,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 44980,
+      "concurrentOffsetMs": 40
+    },
     "Lunar Impact",
     "Rejuvenating Tides",
     "Seed of Life",
@@ -218,7 +309,11 @@
     "Double Arc",
     "Celestial Avatar",
     "Natural Convergence",
-    { "name": "Seed of Life", "offset": 600 },
+    {
+      "type": "cast",
+      "skillId": 31406,
+      "concurrentOffsetMs": 600
+    },
     "Lunar Impact",
     "Sun Spirit",
     "Seed of Life",

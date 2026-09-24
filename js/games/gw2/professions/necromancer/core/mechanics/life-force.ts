@@ -313,7 +313,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
 }
 
 /** Applies a completed skill's fixed and trait-dependent life-force gains. */
-export function applySkillLifeForceGain(context: NecromancerCastContext, skill: NecromancerSkill): void {
+function applySkillLifeForceGain(context: NecromancerCastContext, skill: NecromancerSkill): void {
   let amount = Number(skill.lifeForceGain || 0);
   if (skill.categories?.includes('Mark') && hasTrait(context, TRAIT.SOUL_MARKS)) {
     amount += balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SOUL_MARKS), 'lifeForceGain');

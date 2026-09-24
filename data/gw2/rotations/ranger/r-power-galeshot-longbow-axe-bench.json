@@ -9,17 +9,31 @@
   },
   "rotation": [
     "Barrage",
-    { "name": "Summon Cyclone Bow", "offset": 0 },
+    {
+      "type": "cast",
+      "skillId": 76787,
+      "concurrentOffsetMs": 0
+    },
     "Bluster",
     "Poisonous Cloud",
-    { "name": "__combat_start", "offset": -440 },
+    {
+      "type": "combat-start",
+      "concurrentOffsetMs": -440
+    },
     "Quarry's Peril",
     "Supersonic Arrow",
     "Perfect Storm",
     "Mistral",
-    { "name": "Swap Pets", "offset": 0 },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 0
+    },
     "Bluster",
-    { "name": "Narcotic Spores", "skillId": 45262 },
+    {
+      "type": "cast",
+      "skillId": 45262
+    },
     "Hawkeye",
     "Dismiss Cyclone Bow",
     "Rapid Fire",
@@ -48,9 +62,17 @@
     "Swap Weapons",
     "Point-Blank Shot",
     "Rapid Fire",
-    { "name": "Narcotic Spores", "skillId": 45262, "offset": 720 },
+    {
+      "type": "cast",
+      "skillId": 45262,
+      "concurrentOffsetMs": 720
+    },
     "Barrage",
-    { "name": "Summon Cyclone Bow", "offset": 0 },
+    {
+      "type": "cast",
+      "skillId": 76787,
+      "concurrentOffsetMs": 0
+    },
     "Bluster",
     "Quarry's Peril",
     "Supersonic Arrow",
@@ -79,7 +101,11 @@
     "Bluster",
     "Hawkeye",
     "Dismiss Cyclone Bow",
-    { "name": "Swap Pets", "offset": 0 },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 0
+    },
     "Splitblade",
     "Poisonous Cloud",
     "Winter's Bite",
@@ -87,7 +113,11 @@
     "Point-Blank Shot",
     "Rapid Fire",
     "Barrage",
-    { "name": "Summon Cyclone Bow", "offset": 0 },
+    {
+      "type": "cast",
+      "skillId": 76787,
+      "concurrentOffsetMs": 0
+    },
     "Bluster",
     "Perfect Storm",
     "Quarry's Peril",
@@ -123,7 +153,11 @@
     "Point-Blank Shot",
     "Rapid Fire",
     "Barrage",
-    { "name": "Summon Cyclone Bow", "offset": 0 },
+    {
+      "type": "cast",
+      "skillId": 76787,
+      "concurrentOffsetMs": 0
+    },
     "Bluster",
     "Quarry's Peril",
     "Mistral",
@@ -140,7 +174,11 @@
     "Path of Scars (Max Range)",
     "Summon Cyclone Bow",
     "Bluster",
-    { "name": "Swap Pets", "offset": 0 },
+    {
+      "type": "cast",
+      "skillId": -4,
+      "concurrentOffsetMs": 0
+    },
     "Fleeting Zephyr",
     "Keen Shot",
     "Keen Shot",
@@ -152,7 +190,10 @@
     "Keen Shot",
     "Keen Shot",
     "Bluster",
-    { "name": "Narcotic Spores", "skillId": 45262 },
+    {
+      "type": "cast",
+      "skillId": 45262
+    },
     "Hawkeye",
     "Dismiss Cyclone Bow",
     "Splitblade",
@@ -161,7 +202,11 @@
     "Point-Blank Shot",
     "Rapid Fire",
     "Barrage",
-    { "name": "Summon Cyclone Bow", "offset": 0 },
+    {
+      "type": "cast",
+      "skillId": 76787,
+      "concurrentOffsetMs": 0
+    },
     "Bluster",
     "Perfect Storm",
     "Quarry's Peril",

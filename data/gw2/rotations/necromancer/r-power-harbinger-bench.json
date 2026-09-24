@@ -4,8 +4,9 @@
     "Harbinger Shroud",
     "Exit Harbinger Shroud",
     {
-      "name": "Grasping Darkness",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 29740,
+      "interruptAfterMs": 120
     },
     "Nightfall",
     "__combat_start",
@@ -49,8 +50,9 @@
     "Perforate",
     "Swap Weapons",
     {
-      "name": "Grasping Darkness",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 29740,
+      "interruptAfterMs": 120
     },
     "Nightfall",
     "Death Spiral",
@@ -93,8 +95,9 @@
     "Perforate",
     "Well of Suffering",
     {
-      "name": "Distress",
-      "offset": 120
+      "type": "cast",
+      "skillId": 73116,
+      "concurrentOffsetMs": 120
     },
     "Perforate",
     "Harbinger Shroud",
@@ -127,16 +130,18 @@
     "Perforate",
     "Elixir of Promise",
     {
-      "name": "Distress",
-      "offset": 120
+      "type": "cast",
+      "skillId": 73116,
+      "concurrentOffsetMs": 120
     },
     "Perforate",
     "Swap Weapons",
     "Well of Darkness",
     "Well of Suffering",
     {
-      "name": "Grasping Darkness",
-      "interruptMs": 200
+      "type": "cast",
+      "skillId": 29740,
+      "interruptAfterMs": 200
     },
     "Nightfall",
     "Death Spiral",
@@ -171,8 +176,9 @@
     "Well of Darkness",
     "Well of Suffering",
     {
-      "name": "Grasping Darkness",
-      "interruptMs": 200
+      "type": "cast",
+      "skillId": 29740,
+      "interruptAfterMs": 200
     },
     "Swap Weapons",
     "Addle",

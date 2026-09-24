@@ -17,7 +17,7 @@ export const OPTIMIZER_RESULT_FILTERS = {
 export type OptimizerResultFilter = keyof typeof OPTIMIZER_RESULT_FILTERS;
 export type OptimizerGroupedFilter = Exclude<OptimizerResultFilter, 'none'>;
 export type OptimizerResultGroups = Record<OptimizerGroupedFilter, OptimizerCandidate[]>;
-export const OPTIMIZER_FILTER_LIMIT = 100;
+const OPTIMIZER_FILTER_LIMIT = 100;
 
 /** Match actual gear choices, ignoring object order and equivalent infusion entry ordering, rather than matching DPS. */
 export function optimizerEquipmentIdentity(equipment: OptimizerEquipment): string {

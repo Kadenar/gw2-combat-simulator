@@ -18,7 +18,7 @@ export interface MesmerMirageState {
   mirrors: MesmerMirageMirror[];
 }
 
-export function createMirageState(_config: Partial<MesmerConfig> = {}): MesmerMirageState {
+function createMirageState(_config: Partial<MesmerConfig> = {}): MesmerMirageState {
   return {
     // Mirage starts with two dodges' worth of continuously regenerating endurance.
     endurance: 100,

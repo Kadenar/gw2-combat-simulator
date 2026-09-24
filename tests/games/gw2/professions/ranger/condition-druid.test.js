@@ -65,7 +65,7 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
 
   const doubleArc = rangerCatalog.skillsById.get(ID.DOUBLE_ARC);
 
-  assert.equal(doubleArc.recharge, 6);
+  assert.equal(doubleArc.cooldown, 6);
   assert.equal(doubleArc.effects.find(({ type }) => type === 'strike').coefficient, 1.6);
   assert.equal(
     doubleArc.effects.filter(({ type }) => type === 'condition').find(({ condition }) => condition === 'Bleeding')
@@ -85,7 +85,7 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
 
   const bonfire = rangerCatalog.skillsById.get(ID.BONFIRE);
 
-  assert.equal(bonfire.recharge, 25);
+  assert.equal(bonfire.cooldown, 25);
   assert.equal(bonfire.comboFields[0].fieldType, 'Fire');
   assert.equal(bonfire.effects.find(({ type }) => type === 'strike').ticks.length, 9);
 
@@ -147,7 +147,7 @@ test('condition Druid weapon timings and packets use configured profiles', () =>
 
   const sunSpirit = rangerCatalog.skillsById.get(ID.SUN_SPIRIT);
 
-  assert.equal(sunSpirit.recharge, 20);
+  assert.equal(sunSpirit.cooldown, 20);
   assert.equal(sunSpirit.castTimeMs, 360);
   assert.deepEqual(
     [
@@ -360,7 +360,7 @@ test('Jacaranda AI and Beast command expose the requested pulses', () => {
 
   const callLightning = rangerCatalog.skillsById.get(ID.JACARANDA_CALL_LIGHTNING);
 
-  assert.equal(callLightning.recharge, 15);
+  assert.equal(callLightning.cooldown, 15);
   assert.equal(callLightning.effects[0].ticks.length, 5);
   assert.equal(
     callLightning.effects[0].ticks.reduce((total, tick) => total + tick.coefficient, 0),
@@ -476,7 +476,7 @@ test('Poisonous Cloud uses six player packets across its fixed field window', ()
   const poison = packets.filter(({ type }) => type === 'condition');
   const skill = rangerCatalog.skillsById.get(ID.POISONOUS_CLOUD);
 
-  assert.equal(skill.recharge, 30);
+  assert.equal(skill.cooldown, 30);
   assert.equal(strikes.length, 6);
   assert.ok(strikes.every(({ coefficient }) => coefficient === 0.2));
   assert.ok(strikes.every(({ actorType }) => actorType === 'player'));
@@ -504,7 +504,7 @@ test('Poisonous Cloud uses six player packets across its fixed field window', ()
     0.3
   );
   assert.equal(twinDarts.effects[0].comboFinishers[0].chance, 0.2);
-  assert.equal(tailLash.recharge, 20);
+  assert.equal(tailLash.cooldown, 20);
   assert.equal(tailLash.effects[0].coefficient, 0.5);
 });
 

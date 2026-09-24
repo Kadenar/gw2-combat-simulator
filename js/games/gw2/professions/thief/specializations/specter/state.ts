@@ -14,7 +14,7 @@ export interface SpecterState {
 }
 
 /** Track Shadow Force as a percentage; incoming damage and its health-scaled pool are outside simulation scope. */
-export function createSpecterState(config: ThiefConfig = {}): SpecterState {
+function createSpecterState(config: ThiefConfig = {}): SpecterState {
   return {
     shadowClock: {
       value: boundedNumber(config.initialShadowForce || 0, 0, 0, 100),

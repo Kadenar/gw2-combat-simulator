@@ -3,76 +3,89 @@
     "Rock Barrier",
     "Fire Attunement",
     {
-      "name": "__wait",
-      "waitMs": 5500
+      "type": "wait",
+      "durationMs": 5500
     },
     "__combat_start",
     "Dragon's Tooth",
     {
-      "name": "Zap",
-      "offset": 120
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 120
     },
     "Elemental Procession",
     "Rejuvenate",
     "Ring of Fire",
     {
-      "name": "Zap",
-      "offset": 40
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 40
     },
     "Phoenix",
     "Fire Grab",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Lightning Strike",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Blinding Flash",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5694,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Zap",
-      "offset": 160
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 160
     },
     "Fox's Fury",
     "Ride the Lightning",
     "Lightning Blitz",
     {
-      "name": "Earth Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 200
     },
     "Earthquake",
     {
-      "name": "Hurl",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 320
     },
     "Dust Devil",
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Lightning Strike",
-      "offset": 920
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 920
     },
     "Glyph of Storms (Air)",
     {
-      "name": "Zap",
-      "offset": 360
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 360
     },
     "Blinding Flash",
     {
-      "name": "Water Attunement",
-      "offset": 600
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 600
     },
     "Shatterstone",
     {
-      "name": "Frost Aura",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 280
     },
     "Water Trident",
     "Ice Shards",
@@ -80,26 +93,30 @@
     "Water Trident",
     "Shatterstone",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     "Zap",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 240
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 240
     },
     "Lightning Strike",
     "Blinding Flash",
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 200
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 200
     },
     "Fire Attunement",
     "Dragon's Tooth",
     {
-      "name": "Zap",
-      "offset": 280
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 280
     },
     "Ring of Fire",
     "Lightning Blitz",
@@ -112,53 +129,63 @@
     "Fire Grab",
     "Dragon's Tooth",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Lightning Strike",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Zap",
-      "offset": 120
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 120
     },
     "Blinding Flash",
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 800
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 800
     },
     "Earth Attunement",
     "Earthquake",
     "Rock Barrier",
     {
-      "name": "Zap",
-      "offset": 120
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 120
     },
     "Dust Devil",
     {
-      "name": "Hurl",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 280
     },
     "Fox's Fury",
     {
-      "name": "Air Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Lightning Strike",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 960
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 960
     },
     "Water Attunement",
     "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 200
     },
     "Zap",
     "Shatterstone",
@@ -167,26 +194,30 @@
     "Ice Shards",
     "Ice Shards",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     "Lightning Strike",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 40
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 200
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 200
     },
     "Fire Attunement",
     "Dragon's Tooth",
     "Ring of Fire",
     "Flamestrike",
     {
-      "name": "Zap",
-      "offset": 560
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 560
     },
     "Rejuvenate",
     "Zap",
@@ -197,96 +228,115 @@
     "Fire Grab",
     "Dragon's Tooth",
     {
-      "name": "Air Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Lightning Strike",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Blinding Flash",
-      "offset": 0
+      "type": "cast",
+      "skillId": 5694,
+      "concurrentOffsetMs": 0
     },
     {
-      "name": "Zap",
-      "offset": 200
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 280
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 280
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 120
     },
     "Lightning Blitz",
     {
-      "name": "Earth Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 160
     },
     "Earthquake",
     "Rock Barrier",
     "Dust Devil",
     {
-      "name": "Hurl",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 240
     },
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Zap",
-      "offset": 200
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Lightning Strike",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 360
     },
     "Blinding Flash",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 600
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 600
     },
     "Water Attunement",
     "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 200
     },
     "Zap",
     "Shatterstone",
     "Ice Shards",
     "Water Trident",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Lightning Strike",
-      "offset": 480
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 480
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 240
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 240
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 80
     },
     "Fox's Fury",
     {
-      "name": "Fire Attunement",
-      "offset": 520
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 520
     },
     "Dragon's Tooth",
     {
-      "name": "Zap",
-      "offset": 280
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 280
     },
     "Ring of Fire",
     "Lightning Blitz",
@@ -296,47 +346,56 @@
     "Flamestrike",
     "Flamestrike",
     {
-      "name": "Flamestrike",
-      "interruptMs": 200
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 200
     },
     "Fire Grab",
     "Dragon's Tooth",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Lightning Strike",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Blinding Flash",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5694,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Zap",
-      "offset": 160
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 160
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 1000
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 1000
     },
     "Earth Attunement",
     "Earthquake",
     "Rock Barrier",
     "Dust Devil",
     {
-      "name": "Hurl",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Air Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 1440
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 1440
     },
     "Zap",
     "Lightning Strike",
@@ -344,8 +403,9 @@
     "Water Attunement",
     "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 200
     },
     "Zap",
     "Shatterstone",
@@ -353,130 +413,154 @@
     "Lightning Blitz",
     "Ice Shards",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 40
     },
     "Lightning Strike",
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 40
     },
     "Elemental Procession",
     "Fire Attunement",
     {
-      "name": "Flamestrike",
-      "interruptMs": 200
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 200
     },
     "Dragon's Tooth",
     "Ring of Fire",
     "Fox's Fury",
     "Zap",
     {
-      "name": "Flamestrike",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 80
     },
     "Rejuvenate",
     "Zap",
     "Phoenix",
     {
-      "name": "Flamestrike",
-      "interruptMs": 160
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 160
     },
     "Glyph of Storms (Fire)",
     {
-      "name": "Flamestrike",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 120
     },
     "Fire Grab",
     "Dragon's Tooth",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Lightning Strike",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Blinding Flash",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5694,
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Zap",
-      "offset": 560
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 560
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 360
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 360
     },
     "Lightning Blitz",
     {
-      "name": "Earth Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 320
     },
     "Earthquake",
     "Rock Barrier",
     "Dust Devil",
     "Churning Earth",
     {
-      "name": "Hurl",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Air Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Zap",
-      "offset": 400
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Lightning Strike",
-      "offset": 520
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 520
     },
     "Blinding Flash",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 720
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 720
     },
     "Water Attunement",
     "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Zap",
-      "offset": 360
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 360
     },
     "Shatterstone",
     "Ice Shards",
     "Water Trident",
     "Ice Shards",
     {
-      "name": "Air Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Lightning Strike",
-      "offset": 520
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 520
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 400
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 400
     },
     "Fire Attunement",
     "Dragon's Tooth",
     {
-      "name": "Zap",
-      "offset": 320
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 320
     },
     "Ring of Fire",
     "Flamestrike",
@@ -488,91 +572,109 @@
     "Fire Grab",
     "Dragon's Tooth",
     {
-      "name": "Air Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Lightning Strike",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Zap",
-      "offset": 120
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Blinding Flash",
-      "offset": 560
+      "type": "cast",
+      "skillId": 5694,
+      "concurrentOffsetMs": 560
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 400
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 400
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 520
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 520
     },
     "Earth Attunement",
     "Earthquake",
     "Rock Barrier",
     {
-      "name": "Zap",
-      "offset": 240
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 240
     },
     "Dust Devil",
     {
-      "name": "Hurl",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Air Attunement",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 440
     },
     {
-      "name": "Lightning Strike",
-      "offset": 720
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 720
     },
     {
-      "name": "Blinding Flash",
-      "offset": 720
+      "type": "cast",
+      "skillId": 5694,
+      "concurrentOffsetMs": 720
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 1200
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 1200
     },
     "Zap",
     "Water Attunement",
     "Lightning Blitz",
     "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 240
     },
     "Shatterstone",
     "Ice Shards",
     "Ice Shards",
     {
-      "name": "Air Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 200
     },
     "Lightning Strike",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 40
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 40
     },
     "Glyph of Storms (Air)",
     {
-      "name": "Fire Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Zap",
-      "offset": 680
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 680
     },
     "Dragon's Tooth",
     "Ring of Fire",
@@ -584,87 +686,104 @@
     "Fire Grab",
     "Dragon's Tooth",
     {
-      "name": "Air Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Lightning Strike",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Blinding Flash",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5694,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Zap",
-      "offset": 560
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 560
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 40
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 760
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 760
     },
     "Earth Attunement",
     "Earthquake",
     "Rock Barrier",
     "Dust Devil",
     {
-      "name": "Hurl",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 200
     },
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Zap",
-      "offset": 280
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Lightning Strike",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 440
     },
     "Fox's Fury",
     {
-      "name": "Water Attunement",
-      "offset": 480
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 480
     },
     {
-      "name": "Ice Shards",
-      "interruptMs": 160
+      "type": "cast",
+      "skillId": 5693,
+      "interruptAfterMs": 160
     },
     "Lightning Blitz",
     "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 400
     },
     "Shatterstone",
     "Ice Shards",
     "Water Trident",
     {
-      "name": "Air Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Zap",
-      "offset": 160
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 160
     },
     "Lightning Strike",
     "Blinding Flash",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 80
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 640
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 640
     },
     "Fire Attunement",
     "Zap",
@@ -679,21 +798,25 @@
     "Fire Grab",
     "Dragon's Tooth",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Lightning Strike",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Zap",
-      "offset": 160
+      "type": "cast",
+      "skillId": 77370,
+      "concurrentOffsetMs": 160
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 760
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 760
     },
     "Earth Attunement",
     "Earthquake",

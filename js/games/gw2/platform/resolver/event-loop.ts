@@ -93,8 +93,8 @@ export function runGw2ResolverEventLoop(
 
   const queue = ctx.queue;
   const hp = targetHealth(ctx);
-  // Infinity is the internal unbounded-horizon sentinel, never an authored timestamp.
-  const horizon = ctx.horizon === Infinity ? Infinity : canonicalTime(ctx.horizon);
+  // Observation policies supply a finite boundary for all resolver work.
+  const horizon = canonicalTime(ctx.horizon);
   const combatStart = ctx.combatStartTime == null ? null : canonicalTime(ctx.combatStartTime);
   let lethalActivationKey: string | null = null;
   // A zero-health start is already lethal and must not grant a free opening hit.

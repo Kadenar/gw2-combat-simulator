@@ -50,7 +50,7 @@ export const chronomancerCastRules = Object.freeze({
   }
 });
 
-export const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'mesmer.time-catches-up',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -96,7 +96,7 @@ export const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.free
   }
 ]);
 
-export function handleContinuumExpiryTask(
+function handleContinuumExpiryTask(
   context: MesmerSchedulerContext,
   task: MesmerSchedulerTask<'continuumExpire'>
 ): void {
@@ -130,7 +130,7 @@ function observeChronomancerEvent(context: MesmerSchedulerContext, event: Simula
   runtime.addTraitProc('Danger Time', event.at, skillName);
 }
 
-export const chronomancerSchedulerHooks = Object.freeze({
+const chronomancerSchedulerHooks = Object.freeze({
   onCastComplete: {
     id: 'mesmer.chronomancer.time-bomb',
     order: 20,

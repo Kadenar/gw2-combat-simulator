@@ -1,596 +1,759 @@
 {
   "rotation": [
     {
-      "name": "Phantasmal Disenchanter",
+      "type": "cast",
       "skillId": 10267
     },
     {
-      "name": "Bladeturn Requiem",
+      "type": "cast",
       "skillId": 62597,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Mind the Gap"
+      "type": "cast",
+      "skillId": 73093
     },
     {
-      "name": "__combat_start",
-      "offset": 320
+      "type": "combat-start",
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Phantasmal Lancer"
+      "type": "cast",
+      "skillId": 72946
     },
     {
-      "name": "Power Spike",
-      "offset": 40
+      "type": "cast",
+      "skillId": 10212,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Mental Collapse",
+      "type": "cast",
       "skillId": 72957
     },
     {
-      "name": "Thousand Cuts",
-      "offset": 40
+      "type": "cast",
+      "skillId": 24755,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Mind the Gap"
+      "type": "cast",
+      "skillId": 73093
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Phantasmal Berserker"
+      "type": "cast",
+      "skillId": 10221
     },
     {
-      "name": "Signet of the Ether"
+      "type": "cast",
+      "skillId": 21750
     },
     {
-      "name": "Phantasmal Berserker"
+      "type": "cast",
+      "skillId": 10221
     },
     {
-      "name": "Mind Stab"
+      "type": "cast",
+      "skillId": 10218
     },
     {
-      "name": "Mirror Blade",
+      "type": "cast",
       "skillId": 10333
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 62617
     },
     {
-      "name": "Rain of Swords"
+      "type": "cast",
+      "skillId": 45425
     },
     {
-      "name": "Phantasmal Disenchanter"
+      "type": "cast",
+      "skillId": 10267
     },
     {
-      "name": "Bladesong Sorrow"
+      "type": "cast",
+      "skillId": 62616
     },
     {
-      "name": "Spatial Surge"
+      "type": "cast",
+      "skillId": 10219
     },
     {
-      "name": "Spatial Surge"
+      "type": "cast",
+      "skillId": 10219
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212
     },
     {
-      "name": "Mirror Blade"
+      "type": "cast",
+      "skillId": 10333
     },
     {
-      "name": "Spatial Surge"
+      "type": "cast",
+      "skillId": 10219
     },
     {
-      "name": "Spatial Surge"
+      "type": "cast",
+      "skillId": 10219
     },
     {
-      "name": "Spatial Surge"
+      "type": "cast",
+      "skillId": 10219
     },
     {
-      "name": "Spatial Surge"
+      "type": "cast",
+      "skillId": 10219
     },
     {
-      "name": "Mind Stab"
+      "type": "cast",
+      "skillId": 10218
     },
     {
-      "name": "Bladesong Dissonance",
+      "type": "cast",
       "skillId": 62602
     },
     {
-      "name": "Phantasmal Berserker"
+      "type": "cast",
+      "skillId": 10221
     },
     {
-      "name": "Mirror Blade"
+      "type": "cast",
+      "skillId": 10333
     },
     {
-      "name": "Swap Weapons"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Phantasmal Lancer"
+      "type": "cast",
+      "skillId": 72946
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 62617
     },
     {
-      "name": "Imaginary Inversion"
+      "type": "cast",
+      "skillId": 73152
     },
     {
-      "name": "Bladesong Distortion",
-      "offset": 80
+      "type": "cast",
+      "skillId": 68273,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212
     },
     {
-      "name": "Psycut"
+      "type": "cast",
+      "skillId": 73154
     },
     {
-      "name": "Psystrike"
+      "type": "cast",
+      "skillId": 73066
     },
     {
-      "name": "Mind Pierce"
+      "type": "cast",
+      "skillId": 73095
     },
     {
-      "name": "Psycut"
+      "type": "cast",
+      "skillId": 73154
     },
     {
-      "name": "Psystrike"
+      "type": "cast",
+      "skillId": 73066
     },
     {
-      "name": "Mind Pierce"
+      "type": "cast",
+      "skillId": 73095
     },
     {
-      "name": "Mind the Gap"
-    },
-    {
-      "name": "Mental Collapse"
-    },
-    {
-      "name": "Mind the Gap"
-    },
-    {
-      "name": "Psycut"
-    },
-    {
-      "name": "Psystrike"
-    },
-    {
-      "name": "Mind Pierce"
-    },
-    {
-      "name": "Psycut"
-    },
-    {
-      "name": "Bladeturn Requiem",
-      "offset": 240
-    },
-    {
-      "name": "Phantasmal Disenchanter"
-    },
-    {
-      "name": "Phantasmal Lancer"
-    },
-    {
-      "name": "Power Spike",
-      "offset": 360
-    },
-    {
-      "name": "Imaginary Inversion",
-      "skillId": 73152
-    },
-    {
-      "name": "Mind the Gap"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Phantasmal Berserker"
-    },
-    {
-      "name": "Signet of the Ether"
-    },
-    {
-      "name": "Phantasmal Berserker"
-    },
-    {
-      "name": "Mind Stab"
-    },
-    {
-      "name": "Mirror Blade",
-      "skillId": 10333
-    },
-    {
-      "name": "Bladesong Harmony"
-    },
-    {
-      "name": "Rain of Swords"
-    },
-    {
-      "name": "Phantasmal Disenchanter"
-    },
-    {
-      "name": "Bladesong Sorrow"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Power Spike",
-      "offset": 360
-    },
-    {
-      "name": "Mirror Blade"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Mind Stab"
-    },
-    {
-      "name": "Bladesong Dissonance",
-      "skillId": 62602
-    },
-    {
-      "name": "Phantasmal Berserker"
-    },
-    {
-      "name": "Mirror Blade"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Phantasmal Lancer"
-    },
-    {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Imaginary Inversion"
+      "type": "cast",
+      "skillId": 72957
     },
     {
-      "name": "Bladesong Harmony"
-    },
-    {
-      "name": "Power Spike",
-      "offset": 200
-    },
-    {
-      "name": "Psycut"
-    },
-    {
-      "name": "Psystrike"
-    },
-    {
-      "name": "Mind Pierce"
-    },
-    {
-      "name": "Psycut"
-    },
-    {
-      "name": "Psystrike"
-    },
-    {
-      "name": "Mind Pierce"
-    },
-    {
-      "name": "Mind the Gap"
-    },
-    {
-      "name": "Mental Collapse"
-    },
-    {
-      "name": "Mind the Gap"
-    },
-    {
-      "name": "Psycut"
-    },
-    {
-      "name": "Psystrike"
-    },
-    {
-      "name": "Mind Pierce"
-    },
-    {
-      "name": "Psycut"
-    },
-    {
-      "name": "Bladeturn Requiem",
-      "offset": 80
-    },
-    {
-      "name": "Thousand Cuts",
-      "offset": 320
-    },
-    {
-      "name": "Phantasmal Disenchanter"
-    },
-    {
-      "name": "Phantasmal Lancer"
-    },
-    {
-      "name": "Power Spike",
-      "offset": 320
-    },
-    {
-      "name": "Imaginary Inversion",
-      "skillId": 73152
-    },
-    {
-      "name": "Mind the Gap"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Phantasmal Berserker"
-    },
-    {
-      "name": "Signet of the Ether"
-    },
-    {
-      "name": "Phantasmal Berserker"
-    },
-    {
-      "name": "Mind Stab"
-    },
-    {
-      "name": "Mirror Blade",
-      "skillId": 10333
-    },
-    {
-      "name": "Bladesong Harmony"
-    },
-    {
-      "name": "Rain of Swords"
-    },
-    {
-      "name": "Phantasmal Disenchanter"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Bladesong Sorrow"
-    },
-    {
-      "name": "Power Spike",
-      "offset": 120
-    },
-    {
-      "name": "Mirror Blade"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Mind Stab"
-    },
-    {
-      "name": "Bladesong Dissonance",
-      "skillId": 62602
-    },
-    {
-      "name": "Phantasmal Berserker"
-    },
-    {
-      "name": "Mirror Blade"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Phantasmal Lancer"
-    },
-    {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": 73154
     },
     {
-      "name": "Imaginary Inversion"
+      "type": "cast",
+      "skillId": 73066
     },
     {
-      "name": "Bladesong Distortion",
-      "offset": 40
+      "type": "cast",
+      "skillId": 73095
     },
     {
-      "name": "Power Spike",
-      "offset": 240
+      "type": "cast",
+      "skillId": 73154
     },
     {
-      "name": "Psycut"
+      "type": "cast",
+      "skillId": 62597,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Psystrike"
+      "type": "cast",
+      "skillId": 10267
     },
     {
-      "name": "Mind Pierce"
+      "type": "cast",
+      "skillId": 72946
     },
     {
-      "name": "Psycut"
+      "type": "cast",
+      "skillId": 10212,
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Psystrike"
-    },
-    {
-      "name": "Mind Pierce"
-    },
-    {
-      "name": "Mind the Gap"
-    },
-    {
-      "name": "Mental Collapse"
-    },
-    {
-      "name": "Mind the Gap"
-    },
-    {
-      "name": "Psycut"
-    },
-    {
-      "name": "Psystrike"
-    },
-    {
-      "name": "Mind Pierce"
-    },
-    {
-      "name": "Psycut"
-    },
-    {
-      "name": "Bladeturn Requiem",
-      "offset": 120
-    },
-    {
-      "name": "Phantasmal Disenchanter"
-    },
-    {
-      "name": "Phantasmal Lancer"
-    },
-    {
-      "name": "Power Spike",
-      "offset": 360
-    },
-    {
-      "name": "Imaginary Inversion",
+      "type": "cast",
       "skillId": 73152
     },
     {
-      "name": "Mind the Gap"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Phantasmal Berserker"
-    },
-    {
-      "name": "Signet of the Ether"
-    },
-    {
-      "name": "Phantasmal Berserker"
-    },
-    {
-      "name": "Mind Stab"
-    },
-    {
-      "name": "Mirror Blade",
-      "skillId": 10333
-    },
-    {
-      "name": "Bladesong Harmony"
-    },
-    {
-      "name": "Rain of Swords"
-    },
-    {
-      "name": "Phantasmal Disenchanter"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Bladesong Sorrow"
-    },
-    {
-      "name": "Power Spike",
-      "offset": 120
-    },
-    {
-      "name": "Mirror Blade"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Spatial Surge"
-    },
-    {
-      "name": "Mind Stab"
-    },
-    {
-      "name": "Bladesong Dissonance",
-      "skillId": 62602
-    },
-    {
-      "name": "Phantasmal Berserker"
-    },
-    {
-      "name": "Mirror Blade"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Phantasmal Lancer"
-    },
-    {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Bladesong Harmony"
+      "type": "cast",
+      "skillId": -3
     },
     {
-      "name": "Mental Collapse"
+      "type": "cast",
+      "skillId": 10221
     },
     {
-      "name": "Power Spike",
-      "offset": 360
+      "type": "cast",
+      "skillId": 21750
     },
     {
-      "name": "Mind the Gap"
+      "type": "cast",
+      "skillId": 10221
     },
     {
-      "name": "Imaginary Inversion"
+      "type": "cast",
+      "skillId": 10218
     },
     {
-      "name": "Power Spike",
-      "offset": 160
+      "type": "cast",
+      "skillId": 10333
+    },
+    {
+      "type": "cast",
+      "skillId": 62617
+    },
+    {
+      "type": "cast",
+      "skillId": 45425
+    },
+    {
+      "type": "cast",
+      "skillId": 10267
+    },
+    {
+      "type": "cast",
+      "skillId": 62616
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10212,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 10333
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10218
+    },
+    {
+      "type": "cast",
+      "skillId": 62602
+    },
+    {
+      "type": "cast",
+      "skillId": 10221
+    },
+    {
+      "type": "cast",
+      "skillId": 10333
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 72946
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 73152
+    },
+    {
+      "type": "cast",
+      "skillId": 62617
+    },
+    {
+      "type": "cast",
+      "skillId": 10212,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 73095
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 73095
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 72957
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 73095
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 62597,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 24755,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 10267
+    },
+    {
+      "type": "cast",
+      "skillId": 72946
+    },
+    {
+      "type": "cast",
+      "skillId": 10212,
+      "concurrentOffsetMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 73152
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 10221
+    },
+    {
+      "type": "cast",
+      "skillId": 21750
+    },
+    {
+      "type": "cast",
+      "skillId": 10221
+    },
+    {
+      "type": "cast",
+      "skillId": 10218
+    },
+    {
+      "type": "cast",
+      "skillId": 10333
+    },
+    {
+      "type": "cast",
+      "skillId": 62617
+    },
+    {
+      "type": "cast",
+      "skillId": 45425
+    },
+    {
+      "type": "cast",
+      "skillId": 10267
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 62616
+    },
+    {
+      "type": "cast",
+      "skillId": 10212,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10333
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10218
+    },
+    {
+      "type": "cast",
+      "skillId": 62602
+    },
+    {
+      "type": "cast",
+      "skillId": 10221
+    },
+    {
+      "type": "cast",
+      "skillId": 10333
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 72946
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 62617
+    },
+    {
+      "type": "cast",
+      "skillId": 73152
+    },
+    {
+      "type": "cast",
+      "skillId": 68273,
+      "concurrentOffsetMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 10212,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 73095
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 73095
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 72957
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 73095
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 62597,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10267
+    },
+    {
+      "type": "cast",
+      "skillId": 72946
+    },
+    {
+      "type": "cast",
+      "skillId": 10212,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 73152
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 10221
+    },
+    {
+      "type": "cast",
+      "skillId": 21750
+    },
+    {
+      "type": "cast",
+      "skillId": 10221
+    },
+    {
+      "type": "cast",
+      "skillId": 10218
+    },
+    {
+      "type": "cast",
+      "skillId": 10333
+    },
+    {
+      "type": "cast",
+      "skillId": 62617
+    },
+    {
+      "type": "cast",
+      "skillId": 45425
+    },
+    {
+      "type": "cast",
+      "skillId": 10267
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 62616
+    },
+    {
+      "type": "cast",
+      "skillId": 10212,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10333
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10219
+    },
+    {
+      "type": "cast",
+      "skillId": 10218
+    },
+    {
+      "type": "cast",
+      "skillId": 62602
+    },
+    {
+      "type": "cast",
+      "skillId": 10221
+    },
+    {
+      "type": "cast",
+      "skillId": 10333
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 72946
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 62617
+    },
+    {
+      "type": "cast",
+      "skillId": 72957
+    },
+    {
+      "type": "cast",
+      "skillId": 10212,
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 73152
+    },
+    {
+      "type": "cast",
+      "skillId": 10212,
+      "concurrentOffsetMs": 160
     }
   ]
 }

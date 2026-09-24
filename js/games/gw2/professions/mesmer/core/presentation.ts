@@ -31,7 +31,7 @@ export interface MesmerUiResourceDefinition {
   readonly pipStyle?: string;
 }
 
-export function mesmerUiSpecialization(context: MesmerUiContext = {}): string {
+function mesmerUiSpecialization(context: MesmerUiContext = {}): string {
   return context.specialization || context.config?.specialization || 'Core';
 }
 
@@ -123,7 +123,7 @@ const MESMER_EVENT_ROWS: Readonly<Record<string, (event: MesmerResolverEvent) =>
     })
   });
 
-export function mesmerEventLogRow(
+function mesmerEventLogRow(
   _context: MesmerUiContext,
   event: MesmerResolverEvent
 ): ProfessionEventLogDescriptor | undefined {

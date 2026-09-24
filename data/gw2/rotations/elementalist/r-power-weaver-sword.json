@@ -10,109 +10,124 @@
   "rotation": [
     "Air Attunement",
     {
-      "name": "__wait",
-      "waitMs": 480
+      "type": "wait",
+      "durationMs": 480
     },
     "Weave Self",
     {
-      "name": "__wait",
-      "waitMs": 720
+      "type": "wait",
+      "durationMs": 720
     },
     "Glyph of Storms (Air)",
     {
-      "name": "__combat_start",
-      "offset": 880
+      "type": "combat-start",
+      "concurrentOffsetMs": 880
     },
     {
-      "name": "Primordial Stance (Air)",
-      "offset": 1040
+      "type": "cast",
+      "skillId": -1168,
+      "concurrentOffsetMs": 1040
     },
     "Quantum Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 80
     },
     "Flame Uprising",
     "Ride the Lightning",
     "Pyro Vortex",
     {
-      "name": "Arcane Blast",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Fire Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 80
     },
     "Fire Grab",
     "Cauterizing Strike",
     "Ring of Fire",
     "Fire Strike",
     {
-      "name": "Earth Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 80
     },
     "Fire Swipe",
     {
-      "name": "Primordial Stance (Earth)",
-      "offset": 80
+      "type": "cast",
+      "skillId": -1169,
+      "concurrentOffsetMs": 80
     },
     "Searing Slash",
     "Lava Skin",
     {
-      "name": "Fire Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
     },
     "Earthquake",
     "Churning Earth",
     "Flame Uprising",
     {
-      "name": "Air Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
     },
     "Charged Strike",
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Air Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 280
     },
     "Charged Strike",
     "Polaric Slash",
     "Call Lightning",
     "Quantum Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Arcane Blast",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 160
     },
     "Pyro Vortex",
     "Ride the Lightning",
     "Fire Strike",
     {
-      "name": "Arcane Blast",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 120
     },
     "Fire Swipe",
     {
-      "name": "Fire Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 40
     },
     "Searing Slash",
     "Cauterizing Strike",
     "Flame Uprising",
     {
-      "name": "Water Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 160
     },
     "Ring of Fire",
     "Fire Grab",
     "Twin Strike",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     "Shearing Edge",
     "Charged Strike",
@@ -121,8 +136,9 @@
     "Charged Strike",
     "Polaric Slash",
     {
-      "name": "Air Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
     },
     "Call Lightning",
     "Charged Strike",
@@ -132,41 +148,48 @@
     "Fire Attunement",
     "Ride the Lightning",
     {
-      "name": "Fire Strike",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 39964,
+      "interruptAfterMs": 40
     },
     "Flame Uprising",
     "Pyro Vortex",
     {
-      "name": "Primordial Stance (Fire)",
-      "offset": 400
+      "type": "cast",
+      "skillId": 40183,
+      "concurrentOffsetMs": 400
     },
     "Fire Strike",
     {
-      "name": "Arcane Blast",
-      "offset": 0
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 0
     },
     "Fire Swipe",
     "Searing Slash",
     "Fire Strike",
     {
-      "name": "Earth Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Fire Swipe",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 40326,
+      "interruptAfterMs": 40
     },
     "Lava Skin",
     {
-      "name": "Unravel",
-      "offset": 160
+      "type": "cast",
+      "skillId": 80231,
+      "concurrentOffsetMs": 160
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Fire Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 160
     },
     "Cauterizing Strike",
     "Ring of Fire",
@@ -174,12 +197,14 @@
     "Flame Uprising",
     "Fire Strike",
     {
-      "name": "Air Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Fire Swipe",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 40326,
+      "interruptAfterMs": 40
     },
     "Ride the Lightning",
     "Charged Strike",
@@ -190,19 +215,22 @@
     "Call Lightning",
     "Quantum Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 160
     },
     "Pyro Vortex",
     "Fire Strike",
     {
-      "name": "Fire Swipe",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 40326,
+      "interruptAfterMs": 40
     },
     "Flame Uprising",
     {
-      "name": "Primordial Stance (Fire)",
-      "offset": 600
+      "type": "cast",
+      "skillId": 40183,
+      "concurrentOffsetMs": 600
     },
     "Fire Strike",
     "Fire Swipe",
@@ -210,8 +238,9 @@
     "Searing Slash",
     "Fire Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 80
     },
     "Fire Swipe",
     "Cauterizing Strike",
@@ -220,13 +249,15 @@
     "Fire Swipe",
     "Searing Slash",
     {
-      "name": "Fire Strike",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 39964,
+      "interruptAfterMs": 80
     },
     "Flame Uprising",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     "Fire Grab",
     "Charged Strike",
@@ -235,8 +266,9 @@
     "Charged Strike",
     "Polaric Slash",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     "Call Lightning",
     "Charged Strike",
@@ -246,36 +278,42 @@
     "Fire Attunement",
     "Ride the Lightning",
     {
-      "name": "Fire Strike",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 39964,
+      "interruptAfterMs": 80
     },
     "Flame Uprising",
     "Pyro Vortex",
     "Glyph of Storms (Fire)",
     {
-      "name": "Primordial Stance (Fire)",
-      "offset": 440
+      "type": "cast",
+      "skillId": 40183,
+      "concurrentOffsetMs": 440
     },
     {
-      "name": "Arcane Blast",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 400
     },
     "Fire Strike",
     "Fire Swipe",
     {
-      "name": "Earth Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 360
     },
     "Lava Skin",
     {
-      "name": "Unravel",
-      "offset": 200
+      "type": "cast",
+      "skillId": 80231,
+      "concurrentOffsetMs": 200
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Fire Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 160
     },
     "Cauterizing Strike",
     "Ring of Fire",
@@ -284,8 +322,9 @@
     "Fire Grab",
     "Fire Strike",
     {
-      "name": "Air Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
     },
     "Ride the Lightning",
     "Charged Strike",
@@ -296,8 +335,9 @@
     "Call Lightning",
     "Quantum Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
     },
     "Pyro Vortex",
     "Flame Uprising",
@@ -307,8 +347,9 @@
     "Ride the Lightning",
     "Fire Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     "Fire Swipe",
     "Cauterizing Strike",
@@ -317,128 +358,149 @@
     "Fire Swipe",
     "Searing Slash",
     {
-      "name": "Fire Strike",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 39964,
+      "interruptAfterMs": 80
     },
     "Flame Uprising",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     "Charged Strike",
     "Polaric Slash",
     {
-      "name": "Call Lightning",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 45216,
+      "interruptAfterMs": 120
     },
     "Weave Self",
     "Call Lightning",
     "Charged Strike",
     {
-      "name": "Air Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 200
     },
     "Ride the Lightning",
     {
-      "name": "Polaric Slash",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 45259,
+      "interruptAfterMs": 80
     },
     "Glyph of Storms (Air)",
     "Quantum Strike",
     {
-      "name": "Primordial Stance (Air)",
-      "offset": 40
+      "type": "cast",
+      "skillId": -1168,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Fire Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 200
     },
     "Pyro Vortex",
     {
-      "name": "Arcane Blast",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 120
     },
     "Flame Uprising",
     {
-      "name": "Fire Attunement",
-      "offset": 680
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 680
     },
     "Fire Grab",
     "Cauterizing Strike",
     "Ring of Fire",
     "Fire Strike",
     {
-      "name": "Earth Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 240
     },
     "Fire Swipe",
     "Searing Slash",
     "Lava Skin",
     {
-      "name": "Fire Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 360
     },
     "Fire Strike",
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Primordial Stance (Fire)",
-      "offset": 920
+      "type": "cast",
+      "skillId": 40183,
+      "concurrentOffsetMs": 920
     },
     "Flame Uprising",
     {
-      "name": "Air Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 280
     },
     "Charged Strike",
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Air Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 360
     },
     "Charged Strike",
     "Polaric Slash",
     "Call Lightning",
     "Quantum Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Arcane Blast",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 320
     },
     "Pyro Vortex",
     "Ride the Lightning",
     "Fire Strike",
     {
-      "name": "Arcane Blast",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 80
     },
     "Fire Swipe",
     {
-      "name": "Fire Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 160
     },
     "Searing Slash",
     "Flame Uprising",
     "Cauterizing Strike",
     {
-      "name": "Water Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 160
     },
     "Twin Strike",
     "Ring of Fire",
     "Fire Grab",
     {
-      "name": "Air Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 280
     },
     "Shearing Edge",
     {
-      "name": "Unravel",
-      "offset": 200
+      "type": "cast",
+      "skillId": 80231,
+      "concurrentOffsetMs": 200
     }
   ]
 }

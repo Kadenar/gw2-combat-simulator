@@ -10,1045 +10,1045 @@
   },
   "rotation": [
     {
-      "name": "Etching: Derecho",
+      "type": "cast",
       "skillId": 72915
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Glyph of Storms (Air)",
+      "type": "cast",
       "skillId": 5737
     },
     {
-      "name": "__combat_start",
-      "offset": 880
+      "type": "combat-start",
+      "concurrentOffsetMs": 880
     },
     {
-      "name": "Twister",
+      "type": "cast",
       "skillId": 72998
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
+      "type": "cast",
       "skillId": 62940,
-      "offset": 40
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Fulgor",
+      "type": "cast",
       "skillId": 73091
     },
     {
-      "name": "Derecho",
+      "type": "cast",
       "skillId": 73092
     },
     {
-      "name": "Fire Attunement",
+      "type": "cast",
       "skillId": 5492,
-      "offset": 200
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Deploy Jade Sphere (Fire)",
+      "type": "cast",
       "skillId": 62813,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Relentless Fire",
+      "type": "cast",
       "skillId": 62965
     },
     {
-      "name": "Etching: Volcano",
+      "type": "cast",
       "skillId": 73054
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088,
-      "interruptMs": 40
+      "interruptAfterMs": 40
     },
     {
-      "name": "Meteor",
+      "type": "cast",
       "skillId": 72988
     },
     {
-      "name": "Blazing Barrage",
+      "type": "cast",
       "skillId": 73080
     },
     {
-      "name": "Seethe",
+      "type": "cast",
       "skillId": 73137
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088,
-      "interruptMs": 80
+      "interruptAfterMs": 80
     },
     {
-      "name": "Volcano",
+      "type": "cast",
       "skillId": 73044
     },
     {
-      "name": "Elemental Celerity",
+      "type": "cast",
       "skillId": 62725
     },
     {
-      "name": "Etching: Volcano",
+      "type": "cast",
       "skillId": 73054
     },
     {
-      "name": "Blazing Barrage",
+      "type": "cast",
       "skillId": 73080
     },
     {
-      "name": "Meteor",
+      "type": "cast",
       "skillId": 72988
     },
     {
-      "name": "Seethe",
+      "type": "cast",
       "skillId": 73137
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088,
-      "interruptMs": 40
+      "interruptAfterMs": 40
     },
     {
-      "name": "Volcano",
+      "type": "cast",
       "skillId": 73044
     },
     {
-      "name": "Earth Attunement",
+      "type": "cast",
       "skillId": 5495,
-      "offset": 240
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Etching: Haboob",
+      "type": "cast",
       "skillId": 72900
     },
     {
-      "name": "Fissure",
+      "type": "cast",
       "skillId": 73010
     },
     {
-      "name": "Harden",
+      "type": "cast",
       "skillId": 73019
     },
     {
-      "name": "Earthen Spear",
+      "type": "cast",
       "skillId": 72905
     },
     {
-      "name": "Haboob",
+      "type": "cast",
       "skillId": 73017
     },
     {
-      "name": "Water Attunement",
+      "type": "cast",
       "skillId": 5493,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Etching: Jökulhlaup",
+      "type": "cast",
       "skillId": 72982
     },
     {
-      "name": "Undertow",
+      "type": "cast",
       "skillId": 73148
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
+      "type": "cast",
       "skillId": 62723,
-      "offset": 280
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Ice Beam",
+      "type": "cast",
       "skillId": 73061
     },
     {
-      "name": "Shattering Ice",
+      "type": "cast",
       "skillId": 62698
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Jökulhlaup",
+      "type": "cast",
       "skillId": 73140
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Fulgor",
+      "type": "cast",
       "skillId": 73091
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Etching: Derecho",
+      "type": "cast",
       "skillId": 72915
     },
     {
-      "name": "Twister",
+      "type": "cast",
       "skillId": 72998
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Fulgor",
+      "type": "cast",
       "skillId": 73091
     },
     {
-      "name": "Derecho",
+      "type": "cast",
       "skillId": 73092
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
+      "type": "cast",
       "skillId": 62940,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Fire Attunement",
+      "type": "cast",
       "skillId": 5492,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Deploy Jade Sphere (Fire)",
+      "type": "cast",
       "skillId": 62813,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Blazing Barrage",
+      "type": "cast",
       "skillId": 73080
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Etching: Volcano",
+      "type": "cast",
       "skillId": 73054
     },
     {
-      "name": "Relentless Fire",
+      "type": "cast",
       "skillId": 62965
     },
     {
-      "name": "Meteor",
+      "type": "cast",
       "skillId": 72988
     },
     {
-      "name": "Seethe",
+      "type": "cast",
       "skillId": 73137
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088,
-      "interruptMs": 40
+      "interruptAfterMs": 40
     },
     {
-      "name": "Volcano",
+      "type": "cast",
       "skillId": 73044
     },
     {
-      "name": "Blazing Barrage",
+      "type": "cast",
       "skillId": 73080
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088,
-      "interruptMs": 560
+      "interruptAfterMs": 560
     },
     {
-      "name": "Earth Attunement",
+      "type": "cast",
       "skillId": 5495,
-      "offset": 80
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "__wait",
-      "waitMs": 80
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Fissure",
+      "type": "cast",
       "skillId": 73010
     },
     {
-      "name": "Earthen Spear",
+      "type": "cast",
       "skillId": 72905
     },
     {
-      "name": "Water Attunement",
+      "type": "cast",
       "skillId": 5493,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Ice Beam",
+      "type": "cast",
       "skillId": 73061
     },
     {
-      "name": "Undertow",
+      "type": "cast",
       "skillId": 73148
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
+      "type": "cast",
       "skillId": 62723,
-      "offset": 200
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Shattering Ice",
+      "type": "cast",
       "skillId": 62698
     },
     {
-      "name": "Fulgor",
+      "type": "cast",
       "skillId": 73091
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Etching: Derecho",
+      "type": "cast",
       "skillId": 72915
     },
     {
-      "name": "Twister",
+      "type": "cast",
       "skillId": 72998
     },
     {
-      "name": "Fulgor",
+      "type": "cast",
       "skillId": 73091
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Derecho",
+      "type": "cast",
       "skillId": 73092
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
+      "type": "cast",
       "skillId": 62940,
-      "offset": 240
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Fire Attunement",
+      "type": "cast",
       "skillId": 5492,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Deploy Jade Sphere (Fire)",
+      "type": "cast",
       "skillId": 62813,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088,
-      "interruptMs": 40
+      "interruptAfterMs": 40
     },
     {
-      "name": "Blazing Barrage",
+      "type": "cast",
       "skillId": 73080
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Etching: Volcano",
+      "type": "cast",
       "skillId": 73054
     },
     {
-      "name": "Relentless Fire",
+      "type": "cast",
       "skillId": 62965
     },
     {
-      "name": "Meteor",
+      "type": "cast",
       "skillId": 72988
     },
     {
-      "name": "Seethe",
+      "type": "cast",
       "skillId": 73137
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088,
-      "interruptMs": 40
+      "interruptAfterMs": 40
     },
     {
-      "name": "Volcano",
+      "type": "cast",
       "skillId": 73044
     },
     {
-      "name": "Blazing Barrage",
+      "type": "cast",
       "skillId": 73080
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Earth Attunement",
+      "type": "cast",
       "skillId": 5495,
-      "offset": 40
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Etching: Haboob",
+      "type": "cast",
       "skillId": 72900
     },
     {
-      "name": "Fissure",
+      "type": "cast",
       "skillId": 73010
     },
     {
-      "name": "Harden",
+      "type": "cast",
       "skillId": 73019
     },
     {
-      "name": "Stone Strike",
+      "type": "cast",
       "skillId": 72910,
-      "interruptMs": 40
+      "interruptAfterMs": 40
     },
     {
-      "name": "Earthen Spear",
+      "type": "cast",
       "skillId": 72905
     },
     {
-      "name": "Stone Strike",
+      "type": "cast",
       "skillId": 72910,
-      "interruptMs": 40
+      "interruptAfterMs": 40
     },
     {
-      "name": "Haboob",
+      "type": "cast",
       "skillId": 73017
     },
     {
-      "name": "Water Attunement",
+      "type": "cast",
       "skillId": 5493,
-      "offset": 200
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Etching: Jökulhlaup",
+      "type": "cast",
       "skillId": 72982
     },
     {
-      "name": "Undertow",
+      "type": "cast",
       "skillId": 73148
     },
     {
-      "name": "Ice Beam",
+      "type": "cast",
       "skillId": 73061
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
+      "type": "cast",
       "skillId": 62723,
-      "offset": 480
+      "concurrentOffsetMs": 480
     },
     {
-      "name": "Shattering Ice",
+      "type": "cast",
       "skillId": 62698
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Jökulhlaup",
+      "type": "cast",
       "skillId": 73140
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Fulgor",
+      "type": "cast",
       "skillId": 73091
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Etching: Derecho",
+      "type": "cast",
       "skillId": 72915
     },
     {
-      "name": "Twister",
+      "type": "cast",
       "skillId": 72998
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Fulgor",
+      "type": "cast",
       "skillId": 73091
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124,
-      "interruptMs": 560
+      "interruptAfterMs": 560
     },
     {
-      "name": "__wait",
-      "waitMs": 80
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Derecho",
+      "type": "cast",
       "skillId": 73092
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
+      "type": "cast",
       "skillId": 62940,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Fire Attunement",
+      "type": "cast",
       "skillId": 5492,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Deploy Jade Sphere (Fire)",
+      "type": "cast",
       "skillId": 62813,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Blazing Barrage",
+      "type": "cast",
       "skillId": 73080
     },
     {
-      "name": "Glyph of Storms (Fire)",
+      "type": "cast",
       "skillId": 5736
     },
     {
-      "name": "Etching: Volcano",
+      "type": "cast",
       "skillId": 73054
     },
     {
-      "name": "Relentless Fire",
+      "type": "cast",
       "skillId": 62965
     },
     {
-      "name": "Meteor",
+      "type": "cast",
       "skillId": 72988
     },
     {
-      "name": "Seethe",
+      "type": "cast",
       "skillId": 73137
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088,
-      "interruptMs": 80
+      "interruptAfterMs": 80
     },
     {
-      "name": "Volcano",
+      "type": "cast",
       "skillId": 73044
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Blazing Barrage",
+      "type": "cast",
       "skillId": 73080
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Earth Attunement",
+      "type": "cast",
       "skillId": 5495,
-      "offset": 80
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Fissure",
+      "type": "cast",
       "skillId": 73010
     },
     {
-      "name": "Earthen Spear",
+      "type": "cast",
       "skillId": 72905
     },
     {
-      "name": "Water Attunement",
+      "type": "cast",
       "skillId": 5493,
-      "offset": 200
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Ice Beam",
+      "type": "cast",
       "skillId": 73061
     },
     {
-      "name": "Undertow",
+      "type": "cast",
       "skillId": 73148
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
+      "type": "cast",
       "skillId": 62723,
-      "offset": 280
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Shattering Ice",
+      "type": "cast",
       "skillId": 62698
     },
     {
-      "name": "Fulgor",
+      "type": "cast",
       "skillId": 73091
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Etching: Derecho",
+      "type": "cast",
       "skillId": 72915
     },
     {
-      "name": "Twister",
+      "type": "cast",
       "skillId": 72998
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Fulgor",
+      "type": "cast",
       "skillId": 73091
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124,
-      "interruptMs": 560
+      "interruptAfterMs": 560
     },
     {
-      "name": "__wait",
-      "waitMs": 80
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Derecho",
+      "type": "cast",
       "skillId": 73092
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
+      "type": "cast",
       "skillId": 62940,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Fire Attunement",
+      "type": "cast",
       "skillId": 5492,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Deploy Jade Sphere (Fire)",
+      "type": "cast",
       "skillId": 62813,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Blazing Barrage",
+      "type": "cast",
       "skillId": 73080
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Etching: Volcano",
+      "type": "cast",
       "skillId": 73054
     },
     {
-      "name": "Relentless Fire",
+      "type": "cast",
       "skillId": 62965
     },
     {
-      "name": "Meteor",
+      "type": "cast",
       "skillId": 72988
     },
     {
-      "name": "Seethe",
+      "type": "cast",
       "skillId": 73137
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088,
-      "interruptMs": 80
+      "interruptAfterMs": 80
     },
     {
-      "name": "Volcano",
+      "type": "cast",
       "skillId": 73044
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Blazing Barrage",
+      "type": "cast",
       "skillId": 73080
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088
     },
     {
-      "name": "Earth Attunement",
+      "type": "cast",
       "skillId": 5495
     },
     {
-      "name": "Stone Strike",
+      "type": "cast",
       "skillId": 72910
     },
     {
-      "name": "Etching: Haboob",
+      "type": "cast",
       "skillId": 72900
     },
     {
-      "name": "Stone Strike",
+      "type": "cast",
       "skillId": 72910,
-      "interruptMs": 80
+      "interruptAfterMs": 80
     },
     {
-      "name": "Fissure",
+      "type": "cast",
       "skillId": 73010
     },
     {
-      "name": "Harden",
+      "type": "cast",
       "skillId": 73019
     },
     {
-      "name": "__wait",
-      "waitMs": 160
+      "type": "wait",
+      "durationMs": 160
     },
     {
-      "name": "Earthen Spear",
+      "type": "cast",
       "skillId": 72905
     },
     {
-      "name": "Haboob",
+      "type": "cast",
       "skillId": 73017
     },
     {
-      "name": "Water Attunement",
+      "type": "cast",
       "skillId": 5493,
-      "offset": 240
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Etching: Jökulhlaup",
+      "type": "cast",
       "skillId": 72982
     },
     {
-      "name": "Undertow",
+      "type": "cast",
       "skillId": 73148
     },
     {
-      "name": "Ice Beam",
+      "type": "cast",
       "skillId": 73061
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
+      "type": "cast",
       "skillId": 62723,
-      "offset": 480
+      "concurrentOffsetMs": 480
     },
     {
-      "name": "Shattering Ice",
+      "type": "cast",
       "skillId": 62698
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Jökulhlaup",
+      "type": "cast",
       "skillId": 73140
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Fulgor",
+      "type": "cast",
       "skillId": 73091
     },
     {
-      "name": "Glyph of Storms (Air)",
+      "type": "cast",
       "skillId": 5737
     },
     {
-      "name": "Etching: Derecho",
+      "type": "cast",
       "skillId": 72915
     },
     {
-      "name": "Twister",
+      "type": "cast",
       "skillId": 72998
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Fulgor",
+      "type": "cast",
       "skillId": 73091
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
+      "type": "cast",
       "skillId": 62940,
-      "offset": 480
+      "concurrentOffsetMs": 480
     },
     {
-      "name": "Lightning Javelin",
+      "type": "cast",
       "skillId": 73124,
-      "interruptMs": 80
+      "interruptAfterMs": 80
     },
     {
-      "name": "Derecho",
+      "type": "cast",
       "skillId": 73092
     },
     {
-      "name": "Fire Attunement",
+      "type": "cast",
       "skillId": 5492,
-      "offset": 200
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Deploy Jade Sphere (Fire)",
+      "type": "cast",
       "skillId": 62813,
-      "offset": 200
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Flame Spear",
+      "type": "cast",
       "skillId": 73088,
-      "interruptMs": 400
+      "interruptAfterMs": 400
     },
     {
-      "name": "Etching: Volcano",
+      "type": "cast",
       "skillId": 73054
     },
     {
-      "name": "Relentless Fire",
+      "type": "cast",
       "skillId": 62965
     },
     {
-      "name": "Meteor",
+      "type": "cast",
       "skillId": 72988
     },
     {
-      "name": "Blazing Barrage",
+      "type": "cast",
       "skillId": 73080
     },
     {
-      "name": "Seethe",
+      "type": "cast",
       "skillId": 73137
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Volcano",
+      "type": "cast",
       "skillId": 73044
     },
     {
-      "name": "Elemental Celerity",
+      "type": "cast",
       "skillId": 62725
     },
     {
-      "name": "Etching: Volcano",
+      "type": "cast",
       "skillId": 73054
     },
     {
-      "name": "Blazing Barrage",
+      "type": "cast",
       "skillId": 73080
     },
     {
-      "name": "Meteor",
+      "type": "cast",
       "skillId": 72988
     },
     {
-      "name": "Seethe",
+      "type": "cast",
       "skillId": 73137
     },
     {
-      "name": "Volcano",
+      "type": "cast",
       "skillId": 73044
     },
     {
-      "name": "Earth Attunement",
+      "type": "cast",
       "skillId": 5495,
-      "offset": 320
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Fissure",
+      "type": "cast",
       "skillId": 73010
     },
     {
-      "name": "Earthen Spear",
+      "type": "cast",
       "skillId": 72905
     },
     {
-      "name": "Water Attunement",
+      "type": "cast",
       "skillId": 5493,
-      "offset": 360
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Ice Beam",
+      "type": "cast",
       "skillId": 73061
     }
   ]

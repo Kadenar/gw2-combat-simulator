@@ -42,7 +42,7 @@ function validateContentEntries(value: unknown): asserts value is readonly Playa
 }
 
 /** Checks the coarse game contract at its lazy-loading boundary. */
-export function validateGamePlugin(value: unknown): asserts value is GamePlugin {
+function validateGamePlugin(value: unknown): asserts value is GamePlugin {
   assertRecord(value, 'GamePlugin');
   assertId(value.id, 'GamePlugin.id');
   assertText(value.name, 'GamePlugin.name');
@@ -79,7 +79,7 @@ export const gameRegistry = defineGameRegistry([
 ]);
 
 /** Lazily resolves and validates a game, returning null for an unknown ID. */
-export async function loadGame(
+async function loadGame(
   gameId: string,
   registry: readonly GameRegistryEntry[] = gameRegistry
 ): Promise<GamePlugin | null> {

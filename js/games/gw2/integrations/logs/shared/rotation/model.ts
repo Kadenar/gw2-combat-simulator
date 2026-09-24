@@ -1,3 +1,4 @@
+import type { RotationCommand } from '#gw2/platform/execution/types.js';
 export type RotationActionKind =
   'weapon-skill' | 'profession-skill' | 'utility' | 'heal' | 'elite' | 'dodge' | 'weapon-swap' | 'action' | 'unknown';
 
@@ -36,37 +37,6 @@ export interface RotationSourceAction {
   readonly castOrigin?: 'skill' | 'trait' | 'gear' | 'unconditional';
 }
 
-export interface ReconstructedRotationCommand {
-  readonly name: string;
-  readonly skillId?: string | number;
-  readonly offTarget?: boolean;
-  readonly offset?: number;
-  readonly interruptMs?: number;
-  readonly initialStateDurationMs?: number;
-  readonly doubleEdgeOutcome?: 'success' | 'backfire';
-  readonly releaseAtCharges?: number;
-}
-
-export interface ReconstructedCombatStartCommand {
-  readonly name: '__combat_start';
-  readonly offset?: number;
-}
-
-export interface ReconstructedWaitCommand {
-  readonly name: '__wait';
-  readonly waitMs: number;
-}
-
-export interface ReconstructedCooldownResetCommand {
-  readonly name: '__cooldown_reset';
-}
-
-export type ReconstructedCommand =
-  | ReconstructedRotationCommand
-  | ReconstructedCombatStartCommand
-  | ReconstructedWaitCommand
-  | ReconstructedCooldownResetCommand;
-
 export interface RotationPlayerIdentity {
   readonly character: string;
   readonly account: string;
@@ -100,6 +70,6 @@ export interface RotationReconstructionBase<
   readonly combatStartTimestampMs: number | null;
   readonly actions: readonly Action[];
   readonly sourceActions?: readonly RotationSourceAction[];
-  readonly rotation: readonly ReconstructedCommand[];
+  readonly rotation: readonly RotationCommand[];
   readonly warnings: readonly string[];
 }

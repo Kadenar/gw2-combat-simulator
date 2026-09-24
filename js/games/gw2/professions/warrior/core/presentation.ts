@@ -26,7 +26,7 @@ import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 /** Signet Mastery caps at 5 stacks, each granting +100 ferocity. */
 const SIGNET_MASTERY_MAX_STACKS = 5;
 
-export const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze({
+const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze({
   Axe: ID.EVISCERATE,
   Dagger: ID.BREACHING_STRIKE,
   Greatsword: ID.ARCING_SLICE,
@@ -43,7 +43,7 @@ export function warriorUiState(context: WarriorUiContext = {}): Partial<WarriorS
   return flattenProfessionState(context.state?.profession || context.professionState) as Partial<WarriorState>;
 }
 
-export function warriorUiSpecialization(context: WarriorUiContext = {}): string {
+function warriorUiSpecialization(context: WarriorUiContext = {}): string {
   return context.specialization || context.config?.specialization || 'Core';
 }
 

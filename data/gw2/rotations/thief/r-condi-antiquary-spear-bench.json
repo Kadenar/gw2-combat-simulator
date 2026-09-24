@@ -8,8 +8,8 @@
   "rotation": [
     "Prepare Thousand Needles",
     {
-      "name": "__wait",
-      "waitMs": 30000
+      "type": "wait",
+      "durationMs": 30000
     },
     "__combat_start",
     "Caltrops",
@@ -121,8 +121,9 @@
     "Skritt Swipe",
     "Falling Spider",
     {
-      "name": "Thousand Needles",
-      "offset": 280
+      "type": "cast",
+      "skillId": 56898,
+      "concurrentOffsetMs": 280
     },
     "Summon Kryptis Turret",
     "Holo-Dancer Decoy",
@@ -133,8 +134,9 @@
     "Entangling Asp",
     "Falling Spider",
     {
-      "name": "Chak Shield",
-      "offset": 200
+      "type": "cast",
+      "skillId": 76816,
+      "concurrentOffsetMs": 200
     },
     "Distracting Throw",
     "Entangling Asp",

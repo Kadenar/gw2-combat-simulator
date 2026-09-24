@@ -191,7 +191,7 @@ function modifyHarbingerRechargeDuration(context: NecromancerSkillModifierContex
     : duration;
 }
 
-export const harbingerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const harbingerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'necromancer.wicked-corruption-blight',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,

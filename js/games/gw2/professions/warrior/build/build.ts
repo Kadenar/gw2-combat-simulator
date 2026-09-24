@@ -5,8 +5,8 @@ import type { WarriorCanonicalBuild } from '#gw2/professions/warrior/types.js';
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 
-export const WARRIOR_BUILD_SCHEMA_VERSION = 3;
-export const WARRIOR_PROFESSION_ID = 'warrior';
+const WARRIOR_BUILD_SCHEMA_VERSION = 3;
+const WARRIOR_PROFESSION_ID = 'warrior';
 
 // Seed a complete, schema-current Warrior preset with resources, equipment,
 // assumptions, selected skills, and specialization fields.

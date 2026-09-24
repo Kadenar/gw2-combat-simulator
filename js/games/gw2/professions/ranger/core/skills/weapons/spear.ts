@@ -42,6 +42,8 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
   [ID.PANTHERS_PROWL]: {
     ammo: 2,
     ammoRecharge: 10,
+    // The API omits this skill's ammo count; keep its between-cast lockout with the authored charges.
+    ammoCastLockout: 0.5,
     effects: [
       {
         type: 'buff',
@@ -142,7 +144,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     // Both EVTC animation segments are one attack; cancellation drops pending hits, not earlier contacts.
     castTimeMs: 1000,
     interruptMode: 'per-packet',
-    recharge: 5,
+
     cooldown: 5,
     flipParentId: ID.MONGOOSES_FRENZY,
     stealthAttack: true,
@@ -173,7 +175,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     slot: 'Weapon_3',
     castTimeMs: 500,
     interruptMode: 'per-packet',
-    recharge: 7,
+
     cooldown: 7,
     flipParentId: ID.FALCONS_STOOP,
     stealthAttack: true,
@@ -209,7 +211,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     slot: 'Weapon_4',
     castTimeMs: 960,
     interruptMode: 'per-packet',
-    recharge: 12,
+
     cooldown: 12,
     flipParentId: ID.WARCLAWS_ENGAGE,
     stealthAttack: true,
@@ -243,7 +245,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     slot: 'Weapon_5',
     castTimeMs: 333,
     interruptMode: 'per-packet',
-    recharge: 20,
+
     cooldown: 20,
     flipParentId: ID.PANTHERS_PROWL,
     stealthAttack: true,

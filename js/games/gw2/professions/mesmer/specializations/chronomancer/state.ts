@@ -28,7 +28,7 @@ export interface MesmerChronomancerState {
   timeBombUntil: number;
 }
 
-export function createChronomancerState(_config: Partial<MesmerConfig> = {}): MesmerChronomancerState {
+function createChronomancerState(_config: Partial<MesmerConfig> = {}): MesmerChronomancerState {
   return {
     continuum: null,
     timeBombUntil: 0

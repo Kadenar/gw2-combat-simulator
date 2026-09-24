@@ -95,8 +95,7 @@ function breakdownDisplayName(
 const eventIdentity = (id: SkillId | null | undefined, name: string): string =>
   id == null ? '' : `${String(id)}|${name}`;
 
-export const skillBreakdownKey = (group: 'Player' | 'Entities' | 'Environment', name: string): string =>
-  `${group}|${name}`;
+const skillBreakdownKey = (group: 'Player' | 'Entities' | 'Environment', name: string): string => `${group}|${name}`;
 
 interface ResolvedLookup {
   readonly resolvedByName: Map<string, Gw2ResolverEvent>;

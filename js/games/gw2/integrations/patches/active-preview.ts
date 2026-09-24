@@ -5,5 +5,3 @@ import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.j
  * upcoming patch is intentionally authored; historical notes are not data.
  */
 export const activePatchPreview: PatchPreview | null = null;
-
-export default activePatchPreview;

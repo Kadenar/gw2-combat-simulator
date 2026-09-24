@@ -83,24 +83,18 @@ export const CONDITION_DURATION_ATTRIBUTES = Object.freeze([
   'Poison Duration'
 ]);
 
-export const BOON_DURATION_ATTRIBUTES = Object.freeze(['Quickness Duration', 'Might Duration', 'Fury Duration']);
+const BOON_DURATION_ATTRIBUTES = Object.freeze(['Quickness Duration', 'Might Duration', 'Fury Duration']);
 
-export const SPECIFIC_DURATION_ATTRIBUTES = Object.freeze([
-  ...CONDITION_DURATION_ATTRIBUTES,
-  ...BOON_DURATION_ATTRIBUTES
-]);
+const SPECIFIC_DURATION_ATTRIBUTES = Object.freeze([...CONDITION_DURATION_ATTRIBUTES, ...BOON_DURATION_ATTRIBUTES]);
 
 /** Adds a nonzero numeric contribution to an attribute accumulator. */
-export function addAttribute(target: Gw2NumericAttributes, key: string, value: number): void {
+function addAttribute(target: Gw2NumericAttributes, key: string, value: number): void {
   // Zero values do not need entries; negative deltas remain valid.
   if (value) target[key] = (target[key] || 0) + value;
 }
 
 /** Merges every numeric contribution from one attribute map into another. */
-export function addAttributes(
-  target: Gw2NumericAttributes,
-  source: Readonly<Gw2NumericAttributes> | null | undefined
-): void {
+function addAttributes(target: Gw2NumericAttributes, source: Readonly<Gw2NumericAttributes> | null | undefined): void {
   for (const [key, value] of Object.entries(source || {})) {
     addAttribute(target, key, value);
   }

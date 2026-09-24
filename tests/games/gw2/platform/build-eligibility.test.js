@@ -8,13 +8,13 @@ import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profes
 test('shared eligibility precedes profession filters and cast state changes', () => {
   let stateChecks = 0;
   let filterChecks = 0;
-  const weapon = { id: 1, name: 'Elite weapon', type: 'Weapon', specialization: 'Elite', recharge: 10, effects: [] };
+  const weapon = { id: 1, name: 'Elite weapon', type: 'Weapon', specialization: 'Elite', cooldown: 10, effects: [] };
   const excluded = {
     id: 2,
     name: 'Automatic effect',
     type: 'Utility',
     simulatorExcluded: true,
-    recharge: 10,
+    cooldown: 10,
     effects: []
   };
   const wrongSpecialization = { id: -3, name: 'Elite action', type: 'Action', specialization: 'Elite', effects: [] };

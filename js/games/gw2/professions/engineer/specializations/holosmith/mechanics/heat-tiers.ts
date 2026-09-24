@@ -53,7 +53,7 @@ const HEAT_STRIKE_PROFILES: ReadonlyMap<string, SkillId> = new Map([
 ]);
 
 /** Captures activation heat and ECSU selection so delayed packets retain their original tier. */
-export function snapshotHolosmithHeat(context: unknown): HolosmithHeatSnapshot {
+function snapshotHolosmithHeat(context: unknown): HolosmithHeatSnapshot {
   const source = context as { readonly config?: EngineerConfig };
   return Object.freeze({
     heat: Number(holosmithState.from(context).heat || 0),

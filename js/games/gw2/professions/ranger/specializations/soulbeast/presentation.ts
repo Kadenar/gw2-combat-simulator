@@ -90,7 +90,7 @@ function soulbeastStateSnapshot(context: RangerUiContext): RotationStateSnapshot
     : [];
 }
 
-export const soulbeastUi: RangerUiSlice = Object.freeze({
+const soulbeastUi: RangerUiSlice = Object.freeze({
   paletteGroups,
   paletteSkillAvailability: availability,
   rotationStateSnapshot: soulbeastStateSnapshot,

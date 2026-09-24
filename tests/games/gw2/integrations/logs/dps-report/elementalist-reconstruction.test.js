@@ -140,6 +140,6 @@ test('preserves report cast status and duration without inventing skill commit m
     result.actions.map((action) => action.status),
     ['completed', 'completed']
   );
-  assert.equal(result.rotation.find((command) => command.name === 'Flamestrike').interruptMs, 320);
-  assert.equal(result.rotation.find((command) => command.name === 'Arc Lightning').interruptMs, 2_000);
+  assert.equal(result.rotation.find((command) => command.skillId === ID.FLAMESTRIKE).interruptAfterMs, 320);
+  assert.equal(result.rotation.find((command) => command.skillId === ID.ARC_LIGHTNING).interruptAfterMs, 2_000);
 });

@@ -7,9 +7,15 @@
   },
   "rotation": [
     "Deadeye's Mark",
-    { "name": "__combat_start" },
+    {
+      "type": "combat-start"
+    },
     "Steal Time",
-    { "name": "Slice", "interruptMs": 0 },
+    {
+      "type": "cast",
+      "skillId": 13009,
+      "interruptAfterMs": 0
+    },
     "Shadow Flare",
     "Flawless Execution",
     "Shadow Swap",
@@ -17,14 +23,22 @@
     "Steal Time",
     "Flawless Execution",
     "Flawless Execution",
-    { "name": "Mercy", "offset": 120 },
+    {
+      "type": "cast",
+      "skillId": 41372,
+      "concurrentOffsetMs": 120
+    },
     "Steal Time",
     "Deadeye's Mark",
     "Flawless Execution",
     "Steal Time",
     "Flawless Execution",
     "Flawless Execution",
-    { "name": "Mercy", "offset": 40 },
+    {
+      "type": "cast",
+      "skillId": 41372,
+      "concurrentOffsetMs": 40
+    },
     "Steal Time",
     "Deadeye's Mark",
     "Flawless Execution",
@@ -68,7 +82,11 @@
     "Deadeye's Mark",
     "Steal Time",
     "Flawless Execution",
-    { "name": "Mercy", "offset": 600 },
+    {
+      "type": "cast",
+      "skillId": 41372,
+      "concurrentOffsetMs": 600
+    },
     "Steal Time",
     "Deadeye's Mark",
     "Flawless Execution",
@@ -114,7 +132,11 @@
     "Flawless Execution",
     "Steal Time",
     "Flawless Execution",
-    { "name": "Mercy", "offset": 80 },
+    {
+      "type": "cast",
+      "skillId": 41372,
+      "concurrentOffsetMs": 80
+    },
     "Steal Time",
     "Deadeye's Mark",
     "Flawless Execution",
@@ -158,7 +180,11 @@
     "Deadeye's Mark",
     "Steal Time",
     "Flawless Execution",
-    { "name": "Mercy", "offset": 720 },
+    {
+      "type": "cast",
+      "skillId": 41372,
+      "concurrentOffsetMs": 720
+    },
     "Steal Time",
     "Deadeye's Mark",
     "Flawless Execution",
@@ -192,11 +218,19 @@
     "Flawless Execution",
     "Flawless Execution",
     "Flawless Execution",
-    { "name": "Mercy", "offset": 720 },
+    {
+      "type": "cast",
+      "skillId": 41372,
+      "concurrentOffsetMs": 720
+    },
     "Steal Time",
     "Deadeye's Mark",
     "Flawless Execution",
-    { "name": "Slice", "offset": 0 },
+    {
+      "type": "cast",
+      "skillId": 13009,
+      "concurrentOffsetMs": 0
+    },
     "Flawless Execution",
     "Steal Time",
     "Malicious Tactical Strike",

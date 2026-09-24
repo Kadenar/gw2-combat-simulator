@@ -1,3 +1,4 @@
+import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 /** Applies Core Mesmer availability, recharge, and shatter-ammunition policy. */
 import {
   requireBalanceProfileFromContext,
@@ -15,7 +16,7 @@ import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mes
  *
  * Mesmer-adjusted recharge duration.
  */
-export function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDuration: number): number {
+function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDuration: number): number {
   const { skill } = context;
   if (context.ammoCastLockout) return sharedDuration;
   if (skill.id === ID.SWAP_WEAPONS) {
@@ -42,7 +43,7 @@ export function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDurat
   if (shatter?.rechargeReductionPerSource) {
     const clones = mesmerRuntimeFor(context).actions.currentResource();
     const reduction = Number(shatter.rechargeReductionPerSource) * (clones + 1);
-    const baseCooldown = Number(skill.cooldown ?? skill.recharge ?? 0);
+    const baseCooldown = gw2BaseRecharge(skill);
     return Math.max(0, baseCooldown * multiplier - reduction) / rechargeRate;
   }
 
@@ -55,7 +56,7 @@ export function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDurat
  *
  * Mesmer-adjusted maximum charge count.
  */
-export function modifyMesmerMaximumAmmo(context: MesmerMaximumAmmoContext, maximum: number): number {
+function modifyMesmerMaximumAmmo(context: MesmerMaximumAmmoContext, maximum: number): number {
   const id = context.skill.id;
   const runtime = mesmerRuntimeFor(context);
   const isSlot1 = runtime.shatters[id]?.slot === 1 || runtime.instruments[id]?.slot === 1;

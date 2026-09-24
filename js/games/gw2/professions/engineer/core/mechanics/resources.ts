@@ -15,7 +15,7 @@ import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/cor
 import type { EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
 
 /** Calculates an interval's endurance rate after Vigor and Adrenal Implant modifiers. */
-export function engineerEnduranceRegenerationRate(context: EngineerSchedulerContext, vigor: boolean): number {
+function engineerEnduranceRegenerationRate(context: EngineerSchedulerContext, vigor: boolean): number {
   const resourcesProfile = requireBalanceProfileFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources);
   const multiplier =
     1 +

@@ -5,12 +5,13 @@
     "__cooldown_reset",
     "Blood Is Power",
     {
-      "name": "__combat_start",
-      "offset": 560
+      "type": "combat-start",
+      "concurrentOffsetMs": 560
     },
     {
-      "name": "\"Suffer!\"",
-      "offset": 880
+      "type": "cast",
+      "skillId": 30670,
+      "concurrentOffsetMs": 880
     },
     "Well of Darkness",
     "Isolate",
@@ -34,8 +35,9 @@
     "Life Siphon",
     "Blood Is Power",
     {
-      "name": "\"Suffer!\"",
-      "offset": 880
+      "type": "cast",
+      "skillId": 30670,
+      "concurrentOffsetMs": 880
     },
     "Hungering Maelstrom",
     "Devouring Visage",
@@ -63,8 +65,9 @@
     "Perforate",
     "Blood Is Power",
     {
-      "name": "\"Suffer!\"",
-      "offset": 880
+      "type": "cast",
+      "skillId": 30670,
+      "concurrentOffsetMs": 880
     },
     "Distress",
     "Perforate",
@@ -115,8 +118,9 @@
     "Perforate",
     "Blood Is Power",
     {
-      "name": "\"Suffer!\"",
-      "offset": 880
+      "type": "cast",
+      "skillId": 30670,
+      "concurrentOffsetMs": 880
     },
     "Distress",
     "Perforate",
@@ -170,8 +174,9 @@
     "Dark Slash",
     "Blood Is Power",
     {
-      "name": "\"Suffer!\"",
-      "offset": 880
+      "type": "cast",
+      "skillId": 30670,
+      "concurrentOffsetMs": 880
     },
     "Reaper's Shroud",
     "Executioner's Scythe",

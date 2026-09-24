@@ -16,7 +16,7 @@ for (const mode of ['preview', 'absent', 'invalid']) {
     await page.route('**/integrations/patches/active-preview.ts', (route) =>
       route.fulfill({
         contentType: 'text/javascript',
-        body: `export const activePatchPreview = ${JSON.stringify(preview)}; export default activePatchPreview;`
+        body: `export const activePatchPreview = ${JSON.stringify(preview)};`
       })
     );
     await page.route('**/composition-test', (route) =>

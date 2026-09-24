@@ -11,940 +11,940 @@
   },
   "rotation": [
     {
-      "name": "Crashing Courage",
+      "type": "cast",
       "skillId": 62648
     },
     {
-      "name": "__wait",
-      "waitMs": 2000
+      "type": "wait",
+      "durationMs": 2000
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168
     },
     {
-      "name": "Flowing Resolve",
+      "type": "cast",
       "skillId": 62603
     },
     {
-      "name": "Advancing Strike",
+      "type": "cast",
       "skillId": 62650
     },
     {
-      "name": "__combat_start",
-      "offset": 200
+      "type": "combat-start",
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Symbol of Blades",
+      "type": "cast",
       "skillId": 9097
     },
     {
-      "name": "Executioner's Calling",
+      "type": "cast",
       "skillId": 62525
     },
     {
-      "name": "Zealot's Defense",
+      "type": "cast",
       "skillId": 9107,
-      "interruptMs": 1160
+      "interruptAfterMs": 1160
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 160
+      "type": "wait",
+      "durationMs": 160
     },
     {
-      "name": "Symbol of Resolution",
+      "type": "cast",
       "skillId": 9146,
-      "interruptMs": 240
+      "interruptAfterMs": 240
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137,
-      "interruptMs": 40
+      "interruptAfterMs": 40
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     {
-      "name": "Flash Combo",
+      "type": "cast",
       "skillId": 62608
     },
     {
-      "name": "Binding Blade",
+      "type": "cast",
       "skillId": 9147
     },
     {
-      "name": "Leap of Faith",
+      "type": "cast",
       "skillId": 9080
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139,
-      "interruptMs": 520
+      "interruptAfterMs": 520
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168,
-      "interruptMs": 480
+      "interruptAfterMs": 480
     },
     {
-      "name": "Flowing Resolve",
+      "type": "cast",
       "skillId": 62603
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "Symbol of Resolution",
+      "type": "cast",
       "skillId": 9146,
-      "interruptMs": 240
+      "interruptAfterMs": 240
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Symbol of Blades",
+      "type": "cast",
       "skillId": 9097
     },
     {
-      "name": "Executioner's Calling",
+      "type": "cast",
       "skillId": 62525
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168
     },
     {
-      "name": "Advancing Strike",
+      "type": "cast",
       "skillId": 62650
     },
     {
-      "name": "Zealot's Defense",
+      "type": "cast",
       "skillId": 9107
     },
     {
-      "name": "Sword of Wrath",
+      "type": "cast",
       "skillId": 9105
     },
     {
-      "name": "Sword Arc",
+      "type": "cast",
       "skillId": 9106
     },
     {
-      "name": "Sword Wave",
+      "type": "cast",
       "skillId": 9227,
-      "interruptMs": 640
+      "interruptAfterMs": 640
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168,
-      "interruptMs": 480
+      "interruptAfterMs": 480
     },
     {
-      "name": "Crashing Courage",
+      "type": "cast",
       "skillId": 62648
     },
     {
-      "name": "Symbol of Blades",
+      "type": "cast",
       "skillId": 9097,
-      "interruptMs": 400
+      "interruptAfterMs": 400
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Symbol of Resolution",
+      "type": "cast",
       "skillId": 9146
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137,
-      "interruptMs": 120
+      "interruptAfterMs": 120
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     {
-      "name": "Leap of Faith",
+      "type": "cast",
       "skillId": 9080
     },
     {
-      "name": "Flash Combo",
+      "type": "cast",
       "skillId": 62608
     },
     {
-      "name": "Binding Blade",
+      "type": "cast",
       "skillId": 9147
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139,
-      "interruptMs": 560
+      "interruptAfterMs": 560
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168,
-      "interruptMs": 480
+      "interruptAfterMs": 480
     },
     {
-      "name": "Flowing Resolve",
+      "type": "cast",
       "skillId": 62603
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "Symbol of Resolution",
+      "type": "cast",
       "skillId": 9146,
-      "interruptMs": 240
+      "interruptAfterMs": 240
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Symbol of Blades",
+      "type": "cast",
       "skillId": 9097
     },
     {
-      "name": "Executioner's Calling",
+      "type": "cast",
       "skillId": 62525
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     {
-      "name": "Advancing Strike",
+      "type": "cast",
       "skillId": 62650
     },
     {
-      "name": "Zealot's Defense",
+      "type": "cast",
       "skillId": 9107
     },
     {
-      "name": "Sword of Wrath",
+      "type": "cast",
       "skillId": 9105
     },
     {
-      "name": "Sword Arc",
+      "type": "cast",
       "skillId": 9106
     },
     {
-      "name": "Sword Wave",
+      "type": "cast",
       "skillId": 9227
     },
     {
-      "name": "Sword of Wrath",
+      "type": "cast",
       "skillId": 9105
     },
     {
-      "name": "Sword Arc",
+      "type": "cast",
       "skillId": 9106
     },
     {
-      "name": "Sword Wave",
+      "type": "cast",
       "skillId": 9227,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Flowing Resolve",
+      "type": "cast",
       "skillId": 62603
     },
     {
-      "name": "Symbol of Blades",
+      "type": "cast",
       "skillId": 9097,
-      "interruptMs": 400
+      "interruptAfterMs": 400
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137,
-      "interruptMs": 40
+      "interruptAfterMs": 40
     },
     {
-      "name": "Symbol of Resolution",
+      "type": "cast",
       "skillId": 9146,
-      "interruptMs": 280
+      "interruptAfterMs": 280
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     {
-      "name": "Leap of Faith",
+      "type": "cast",
       "skillId": 9080
     },
     {
-      "name": "Flash Combo",
+      "type": "cast",
       "skillId": 62608
     },
     {
-      "name": "Binding Blade",
+      "type": "cast",
       "skillId": 9147
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139,
-      "interruptMs": 560
+      "interruptAfterMs": 560
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168,
-      "interruptMs": 480
+      "interruptAfterMs": 480
     },
     {
-      "name": "Crashing Courage",
+      "type": "cast",
       "skillId": 62648
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137,
-      "interruptMs": 40
+      "interruptAfterMs": 40
     },
     {
-      "name": "Symbol of Resolution",
+      "type": "cast",
       "skillId": 9146,
-      "interruptMs": 240
+      "interruptAfterMs": 240
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Symbol of Blades",
+      "type": "cast",
       "skillId": 9097
     },
     {
-      "name": "Executioner's Calling",
+      "type": "cast",
       "skillId": 62525
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     {
-      "name": "Advancing Strike",
+      "type": "cast",
       "skillId": 62650
     },
     {
-      "name": "Zealot's Defense",
+      "type": "cast",
       "skillId": 9107
     },
     {
-      "name": "Sword of Wrath",
+      "type": "cast",
       "skillId": 9105
     },
     {
-      "name": "Sword Arc",
+      "type": "cast",
       "skillId": 9106
     },
     {
-      "name": "Sword Wave",
+      "type": "cast",
       "skillId": 9227
     },
     {
-      "name": "Sword of Wrath",
+      "type": "cast",
       "skillId": 9105
     },
     {
-      "name": "Sword Arc",
+      "type": "cast",
       "skillId": 9106
     },
     {
-      "name": "Sword Wave",
+      "type": "cast",
       "skillId": 9227,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Flowing Resolve",
+      "type": "cast",
       "skillId": 62603
     },
     {
-      "name": "Symbol of Blades",
+      "type": "cast",
       "skillId": 9097,
-      "interruptMs": 400
+      "interruptAfterMs": 400
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Symbol of Resolution",
+      "type": "cast",
       "skillId": 9146
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     {
-      "name": "Leap of Faith",
+      "type": "cast",
       "skillId": 9080
     },
     {
-      "name": "Flash Combo",
+      "type": "cast",
       "skillId": 62608
     },
     {
-      "name": "Binding Blade",
+      "type": "cast",
       "skillId": 9147
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139,
-      "interruptMs": 560
+      "interruptAfterMs": 560
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168,
-      "interruptMs": 480
+      "interruptAfterMs": 480
     },
     {
-      "name": "Flowing Resolve",
+      "type": "cast",
       "skillId": 62603
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137,
-      "interruptMs": 40
+      "interruptAfterMs": 40
     },
     {
-      "name": "Symbol of Resolution",
+      "type": "cast",
       "skillId": 9146
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Symbol of Blades",
+      "type": "cast",
       "skillId": 9097
     },
     {
-      "name": "Executioner's Calling",
+      "type": "cast",
       "skillId": 62525
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     {
-      "name": "Advancing Strike",
+      "type": "cast",
       "skillId": 62650
     },
     {
-      "name": "Zealot's Defense",
+      "type": "cast",
       "skillId": 9107
     },
     {
-      "name": "Sword of Wrath",
+      "type": "cast",
       "skillId": 9105
     },
     {
-      "name": "Sword Arc",
+      "type": "cast",
       "skillId": 9106
     },
     {
-      "name": "Sword Wave",
+      "type": "cast",
       "skillId": 9227
     },
     {
-      "name": "Sword of Wrath",
+      "type": "cast",
       "skillId": 9105
     },
     {
-      "name": "Sword Arc",
+      "type": "cast",
       "skillId": 9106
     },
     {
-      "name": "Sword Wave",
+      "type": "cast",
       "skillId": 9227
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Crashing Courage",
+      "type": "cast",
       "skillId": 62648
     },
     {
-      "name": "Symbol of Blades",
+      "type": "cast",
       "skillId": 9097,
-      "interruptMs": 440
+      "interruptAfterMs": 440
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 80
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137,
-      "interruptMs": 40
+      "interruptAfterMs": 40
     },
     {
-      "name": "Symbol of Resolution",
+      "type": "cast",
       "skillId": 9146,
-      "interruptMs": 280
+      "interruptAfterMs": 280
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081,
-      "interruptMs": 1440
+      "interruptAfterMs": 1440
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     {
-      "name": "Leap of Faith",
+      "type": "cast",
       "skillId": 9080
     },
     {
-      "name": "Flash Combo",
+      "type": "cast",
       "skillId": 62608
     },
     {
-      "name": "Binding Blade",
+      "type": "cast",
       "skillId": 9147
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139,
-      "interruptMs": 560
+      "interruptAfterMs": 560
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168,
-      "interruptMs": 520
+      "interruptAfterMs": 520
     },
     {
-      "name": "Flowing Resolve",
+      "type": "cast",
       "skillId": 62603
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "Symbol of Resolution",
+      "type": "cast",
       "skillId": 9146,
-      "interruptMs": 240
+      "interruptAfterMs": 240
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Symbol of Blades",
+      "type": "cast",
       "skillId": 9097
     },
     {
-      "name": "Executioner's Calling",
+      "type": "cast",
       "skillId": 62525
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     {
-      "name": "Advancing Strike",
+      "type": "cast",
       "skillId": 62650
     },
     {
-      "name": "Zealot's Defense",
+      "type": "cast",
       "skillId": 9107
     },
     {
-      "name": "Sword of Wrath",
+      "type": "cast",
       "skillId": 9105
     },
     {
-      "name": "Sword Arc",
+      "type": "cast",
       "skillId": 9106
     },
     {
-      "name": "Sword Wave",
+      "type": "cast",
       "skillId": 9227
     },
     {
-      "name": "Sword of Wrath",
+      "type": "cast",
       "skillId": 9105
     },
     {
-      "name": "Sword Arc",
+      "type": "cast",
       "skillId": 9106
     },
     {
-      "name": "Sword Wave",
+      "type": "cast",
       "skillId": 9227,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Flowing Resolve",
+      "type": "cast",
       "skillId": 62603
     },
     {
-      "name": "Symbol of Blades",
+      "type": "cast",
       "skillId": 9097,
-      "interruptMs": 400
+      "interruptAfterMs": 400
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Symbol of Resolution",
+      "type": "cast",
       "skillId": 9146,
-      "interruptMs": 280
+      "interruptAfterMs": 280
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     {
-      "name": "Leap of Faith",
+      "type": "cast",
       "skillId": 9080
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137,
-      "interruptMs": 200
+      "interruptAfterMs": 200
     },
     {
-      "name": "Flash Combo",
+      "type": "cast",
       "skillId": 62608
     },
     {
-      "name": "Binding Blade",
+      "type": "cast",
       "skillId": 9147
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139,
-      "interruptMs": 560
+      "interruptAfterMs": 560
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168,
-      "interruptMs": 440
+      "interruptAfterMs": 440
     },
     {
-      "name": "Crashing Courage",
+      "type": "cast",
       "skillId": 62648
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "Symbol of Resolution",
+      "type": "cast",
       "skillId": 9146,
-      "interruptMs": 240
+      "interruptAfterMs": 240
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Symbol of Blades",
+      "type": "cast",
       "skillId": 9097
     },
     {
-      "name": "Executioner's Calling",
+      "type": "cast",
       "skillId": 62525
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168
     },
     {
-      "name": "Advancing Strike",
+      "type": "cast",
       "skillId": 62650
     },
     {
-      "name": "Zealot's Defense",
+      "type": "cast",
       "skillId": 9107
     },
     {
-      "name": "Sword of Wrath",
+      "type": "cast",
       "skillId": 9105
     },
     {
-      "name": "Sword Arc",
+      "type": "cast",
       "skillId": 9106
     },
     {
-      "name": "Sword Wave",
+      "type": "cast",
       "skillId": 9227,
-      "interruptMs": 600
+      "interruptAfterMs": 600
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168,
-      "interruptMs": 560
+      "interruptAfterMs": 560
     },
     {
-      "name": "Flowing Resolve",
+      "type": "cast",
       "skillId": 62603
     },
     {
-      "name": "Symbol of Blades",
+      "type": "cast",
       "skillId": 9097,
-      "interruptMs": 400
+      "interruptAfterMs": 400
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 80
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137,
-      "interruptMs": 40
+      "interruptAfterMs": 40
     },
     {
-      "name": "Symbol of Resolution",
+      "type": "cast",
       "skillId": 9146,
-      "interruptMs": 280
+      "interruptAfterMs": 280
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "Leap of Faith",
+      "type": "cast",
       "skillId": 9080
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137,
-      "interruptMs": 160
+      "interruptAfterMs": 160
     },
     {
-      "name": "Flash Combo",
+      "type": "cast",
       "skillId": 62608
     },
     {
-      "name": "Binding Blade",
+      "type": "cast",
       "skillId": 9147
     },
     {
-      "name": "Strike",
+      "type": "cast",
       "skillId": 9137
     },
     {
-      "name": "Vengeful Strike",
+      "type": "cast",
       "skillId": 9138
     },
     {
-      "name": "Wrathful Strike",
+      "type": "cast",
       "skillId": 9139,
-      "interruptMs": 560
+      "interruptAfterMs": 560
     },
     {
-      "name": "Sword of Justice",
+      "type": "cast",
       "skillId": 9168,
-      "interruptMs": 520
+      "interruptAfterMs": 520
     },
     {
-      "name": "Flowing Resolve",
+      "type": "cast",
       "skillId": 62603
     },
     {
-      "name": "Whirling Wrath",
+      "type": "cast",
       "skillId": 9081
     },
     {
-      "name": "Symbol of Resolution",
+      "type": "cast",
       "skillId": 9146,
-      "interruptMs": 240
+      "interruptAfterMs": 240
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Symbol of Blades",
+      "type": "cast",
       "skillId": 9097
     },
     {
-      "name": "Executioner's Calling",
+      "type": "cast",
       "skillId": 62525
     },
     {
-      "name": "Advancing Strike",
+      "type": "cast",
       "skillId": 62650
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     {
-      "name": "Zealot's Defense",
+      "type": "cast",
       "skillId": 9107
     },
     {
-      "name": "Sword of Wrath",
+      "type": "cast",
       "skillId": 9105
     }
   ]

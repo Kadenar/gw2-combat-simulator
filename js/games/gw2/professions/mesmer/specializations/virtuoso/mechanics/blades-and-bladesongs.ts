@@ -72,7 +72,7 @@ function applyVirtuosoAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   };
 }
 
-export const virtuosoModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const virtuosoModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'mesmer.virtuoso.phantasmal-fury-critical-chance',
     target: MODIFIER_TARGET.CRITICAL_CHANCE,
@@ -130,7 +130,7 @@ export const virtuosoModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
-export function handleBladeSpendTask(context: MesmerSchedulerContext, task: MesmerSchedulerTask<'bladeSpend'>): void {
+function handleBladeSpendTask(context: MesmerSchedulerContext, task: MesmerSchedulerTask<'bladeSpend'>): void {
   const runtime = mesmerRuntimeFor(context);
   const details = runtime.castDetails.get(task.payload.reservationId);
   if (!details || details.shatterSpendCommitted) return;
@@ -162,7 +162,7 @@ export const infiniteForge = timedEffect({
   }
 });
 
-export const virtuosoSchedulerHooks = Object.freeze({
+const virtuosoSchedulerHooks = Object.freeze({
   onEventScheduled: Object.freeze([
     deadlyBladesReaction.onEventScheduled,
     bloodsongReaction.onEventScheduled,

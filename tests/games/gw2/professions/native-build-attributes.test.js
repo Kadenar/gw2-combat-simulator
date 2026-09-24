@@ -30,7 +30,6 @@ import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attr
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
 import { createCalculateAttributes, resolveAttributeEffects } from '#gw2/platform/builds/attributes.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
 
@@ -267,27 +266,6 @@ test('shared attribute provenance applies profession static rules once', () => {
 
   assert.equal(revenantDirect, 1.15);
   assert.equal(revenantBrowser, revenantDirect);
-
-  // Marauder's Resilience is Daredevil-owned, so compare provenance after the composed runtime initializes.
-  const simulateDaredevil = (config) =>
-    simulateGw2({
-      profession: thiefProfession,
-      rotation: [],
-      config: {
-        ...config,
-        specialization: 'Daredevil',
-        selectedTraitIds: [THIEF_TRAIT_IDS.MARAUDERS_RESILIENCE]
-      }
-    }).planningState.profession;
-  const thiefDirect = simulateDaredevil({
-    stats: { vitality: 1000, power: 1000 }
-  });
-  const thiefBrowser = simulateDaredevil({
-    ...applied,
-    stats: { vitality: 1070, power: 1000 }
-  });
-
-  assert.equal(thiefBrowser.maximumHealth, thiefDirect.maximumHealth);
 });
 
 test('Engineer exposes current unconditional trait attributes', () => {

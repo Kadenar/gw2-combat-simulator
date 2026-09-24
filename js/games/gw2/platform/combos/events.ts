@@ -116,7 +116,7 @@ export function selectComboFieldForFinisher(
 }
 
 /** Normalizes and validates a finisher-to-field binding declaration. */
-export function normalizeComboFieldBinding(value: unknown): ComboFieldBinding {
+function normalizeComboFieldBinding(value: unknown): ComboFieldBinding {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError('Combo finisher fieldBinding is required.');
   }

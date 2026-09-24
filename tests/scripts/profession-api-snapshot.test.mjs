@@ -236,6 +236,27 @@ test('API snapshots emit canonical records for reviewed aliases only', () => {
   assert.equal(snapshot.skills.find((skill) => skill.id === 44946).flipSkillId, null);
 });
 
+// API recharge facts become independent canonical cooldown and ammo-lockout values at generation time.
+test('skill snapshots separate count recharge from ammo cast lockout', () => {
+  const ordinary = skillSnapshot({ id: 1, name: 'Ordinary', facts: [{ type: 'Recharge', value: 12 }] });
+  const ammo = skillSnapshot({
+    id: 2,
+    name: 'Ammo',
+    facts: [
+      { type: 'Recharge', value: 1 },
+      { text: 'Maximum Count', value: 2 },
+      { text: 'Count Recharge', duration: 16 }
+    ]
+  });
+  assert.equal(ordinary.cooldown, 12);
+  assert.equal(ordinary.ammoCastLockout, undefined);
+  assert.equal(ammo.cooldown, 16);
+  assert.equal(ammo.ammoCastLockout, 1);
+  assert.equal(ammo.ammoRecharge, 16);
+  assert.equal(Object.hasOwn(ordinary, 'recharge'), false);
+  assert.equal(Object.hasOwn(ammo, 'recharge'), false);
+});
+
 test('API snapshot fetches are English, fixture-backed, and profession-generic', async () => {
   const requests = [];
   const fetchImpl = createFixtureFetch(requests);

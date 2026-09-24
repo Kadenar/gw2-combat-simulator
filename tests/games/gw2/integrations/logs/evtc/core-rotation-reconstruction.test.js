@@ -80,7 +80,7 @@ test('incomplete imports keep unsupported diagnostics and receive exactly one op
   assert.equal(out.warnings.filter((w) => w === LOG_OPENER_WARNING).length, 1);
   assert.ok(out.warnings.some((w) => w.includes('not present')));
   assert.ok(out.warnings.some((w) => w.includes('no matching stop')));
-  assert.ok(out.rotation.some((command) => command.name === '__wait'));
+  assert.ok(out.rotation.some((command) => command.type === 'wait'));
 });
 
 test('binary parsing retains canonical skill labels', () => {
@@ -104,7 +104,7 @@ test("EVTC Mushroom King's Blessing buff gains become cooldown resets", () => {
   );
 
   assert.ok(out.sourceActions.some((action) => action.rawSkillId === MUSHROOM_KINGS_BLESSING_SKILL_ID));
-  assert.ok(out.rotation.some((command) => command.name === '__cooldown_reset'));
+  assert.ok(out.rotation.some((command) => command.type === 'cooldown-reset'));
   assert.ok(out.warnings.every((warning) => !warning.includes('not present')));
 });
 

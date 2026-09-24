@@ -10,622 +10,681 @@
   },
   "rotation": [
     {
-      "name": "Head Butt"
+      "type": "cast",
+      "skillId": 30343
     },
     {
-      "name": "__combat_start",
-      "offset": 720
+      "type": "combat-start",
+      "concurrentOffsetMs": 720
     },
     {
-      "name": "Berserk",
+      "type": "cast",
       "skillId": 30185
     },
     {
-      "name": "Decapitate"
-    },
-    {
-      "name": "Wild Blow"
-    },
-    {
-      "name": "Decapitate"
-    },
-    {
-      "name": "Crushing Blow"
-    },
-    {
-      "name": "Outrage"
-    },
-    {
-      "name": "Decapitate"
-    },
-    {
-      "name": "Tremor"
-    },
-    {
-      "name": "Cyclone Axe"
-    },
-    {
-      "name": "Crushing Blow"
-    },
-    {
-      "name": "Decapitate"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Fierce Blow"
-    },
-    {
-      "name": "Hammer Shock"
-    },
-    {
-      "name": "Staggering Blow"
-    },
-    {
-      "name": "Rupturing Smash"
-    },
-    {
-      "name": "Blood Reckoning"
-    },
-    {
-      "name": "Rupturing Smash"
-    },
-    {
-      "name": "Hammer Swing"
-    },
-    {
-      "name": "Hammer Bash"
-    },
-    {
-      "name": "Hammer Smash"
-    },
-    {
-      "name": "Fierce Blow"
-    },
-    {
-      "name": "Backbreaker"
-    },
-    {
-      "name": "Fierce Blow"
-    },
-    {
-      "name": "Rupturing Smash"
-    },
-    {
-      "name": "Hammer Shock"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Cyclone Axe"
-    },
-    {
-      "name": "Decapitate"
-    },
-    {
-      "name": "Crushing Blow"
-    },
-    {
-      "name": "Outrage",
-      "offset": 120
-    },
-    {
-      "name": "Decapitate"
-    },
-    {
-      "name": "Wild Blow"
-    },
-    {
-      "name": "Decapitate"
-    },
-    {
-      "name": "Head Butt"
-    },
-    {
-      "name": "Decapitate"
-    },
-    {
-      "name": "Throw Axe"
-    },
-    {
-      "name": "Tremor"
-    },
-    {
-      "name": "Cyclone Axe"
-    },
-    {
-      "name": "Crushing Blow"
-    },
-    {
-      "name": "Decapitate"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Fierce Blow"
-    },
-    {
-      "name": "Hammer Shock"
-    },
-    {
-      "name": "Outrage",
-      "offset": 120
-    },
-    {
-      "name": "Rupturing Smash"
-    },
-    {
-      "name": "Staggering Blow"
-    },
-    {
-      "name": "Hammer Swing"
-    },
-    {
-      "name": "Hammer Bash"
-    },
-    {
-      "name": "Hammer Smash"
-    },
-    {
-      "name": "Hammer Swing"
-    },
-    {
-      "name": "Hammer Bash"
-    },
-    {
-      "name": "Hammer Smash"
-    },
-    {
-      "name": "Fierce Blow"
-    },
-    {
-      "name": "Rupturing Smash"
-    },
-    {
-      "name": "Hammer Shock"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Cyclone Axe"
-    },
-    {
-      "name": "Decapitate"
-    },
-    {
-      "name": "Crushing Blow",
-      "skillId": 14518
-    },
-    {
-      "name": "Outrage",
-      "skillId": 30258,
-      "offset": 120
-    },
-    {
-      "name": "Decapitate",
+      "type": "cast",
       "skillId": 30851
     },
     {
-      "name": "Throw Axe",
-      "skillId": 14398
-    },
-    {
-      "name": "Wild Blow",
+      "type": "cast",
       "skillId": 29941
     },
     {
-      "name": "Decapitate",
+      "type": "cast",
       "skillId": 30851
     },
     {
-      "name": "Head Butt",
-      "skillId": 30343
-    },
-    {
-      "name": "Decapitate",
-      "skillId": 30851
-    },
-    {
-      "name": "Tremor",
-      "skillId": 14415
-    },
-    {
-      "name": "Cyclone Axe",
-      "skillId": 14421
-    },
-    {
-      "name": "Crushing Blow",
+      "type": "cast",
       "skillId": 14518
     },
     {
-      "name": "Decapitate",
-      "skillId": 30851
-    },
-    {
-      "name": "Swap Weapons",
-      "skillId": -3
-    },
-    {
-      "name": "Fierce Blow",
-      "skillId": 14386
-    },
-    {
-      "name": "Hammer Shock",
-      "skillId": 14482
-    },
-    {
-      "name": "Staggering Blow",
-      "skillId": 14359
-    },
-    {
-      "name": "Rupturing Smash",
-      "skillId": 30879
-    },
-    {
-      "name": "Blood Reckoning",
-      "skillId": 30189
-    },
-    {
-      "name": "Rupturing Smash",
-      "skillId": 30879
-    },
-    {
-      "name": "Hammer Swing",
-      "skillId": 14358
-    },
-    {
-      "name": "Hammer Bash",
-      "skillId": 14384
-    },
-    {
-      "name": "Hammer Smash",
-      "skillId": 14385
-    },
-    {
-      "name": "Fierce Blow",
-      "skillId": 14386
-    },
-    {
-      "name": "Backbreaker",
-      "skillId": 14511
-    },
-    {
-      "name": "Fierce Blow",
-      "skillId": 14386
-    },
-    {
-      "name": "Rupturing Smash",
-      "skillId": 30879
-    },
-    {
-      "name": "Hammer Shock",
-      "skillId": 14482
-    },
-    {
-      "name": "Swap Weapons",
-      "skillId": -3
-    },
-    {
-      "name": "Cyclone Axe",
-      "skillId": 14421
-    },
-    {
-      "name": "Decapitate",
-      "skillId": 30851
-    },
-    {
-      "name": "Crushing Blow",
-      "skillId": 14518
-    },
-    {
-      "name": "Outrage",
-      "skillId": 30258,
-      "offset": 120
-    },
-    {
-      "name": "Decapitate",
-      "skillId": 30851
-    },
-    {
-      "name": "Wild Blow",
-      "skillId": 29941
-    },
-    {
-      "name": "Decapitate",
-      "skillId": 30851
-    },
-    {
-      "name": "Head Butt",
-      "skillId": 30343
-    },
-    {
-      "name": "Decapitate",
-      "skillId": 30851
-    },
-    {
-      "name": "Tremor",
-      "skillId": 14415
-    },
-    {
-      "name": "Cyclone Axe",
-      "skillId": 14421
-    },
-    {
-      "name": "Throw Axe",
-      "skillId": 14398
-    },
-    {
-      "name": "Crushing Blow",
-      "skillId": 14518
-    },
-    {
-      "name": "Decapitate",
-      "skillId": 30851
-    },
-    {
-      "name": "Swap Weapons",
-      "skillId": -3
-    },
-    {
-      "name": "Fierce Blow",
-      "skillId": 14386
-    },
-    {
-      "name": "Hammer Shock",
-      "skillId": 14482
-    },
-    {
-      "name": "Outrage",
+      "type": "cast",
       "skillId": 30258
     },
     {
-      "name": "Rupturing Smash",
-      "skillId": 30879
-    },
-    {
-      "name": "Staggering Blow",
-      "skillId": 14359
-    },
-    {
-      "name": "Hammer Swing",
-      "skillId": 14358
-    },
-    {
-      "name": "Hammer Bash",
-      "skillId": 14384
-    },
-    {
-      "name": "Hammer Smash",
-      "skillId": 14385
-    },
-    {
-      "name": "Hammer Swing",
-      "skillId": 14358
-    },
-    {
-      "name": "Hammer Bash",
-      "skillId": 14384
-    },
-    {
-      "name": "Hammer Smash",
-      "skillId": 14385
-    },
-    {
-      "name": "Fierce Blow",
-      "skillId": 14386
-    },
-    {
-      "name": "Rupturing Smash",
-      "skillId": 30879
-    },
-    {
-      "name": "Hammer Shock",
-      "skillId": 14482
-    },
-    {
-      "name": "Swap Weapons",
-      "skillId": -3
-    },
-    {
-      "name": "Cyclone Axe",
-      "skillId": 14421
-    },
-    {
-      "name": "Decapitate",
+      "type": "cast",
       "skillId": 30851
     },
     {
-      "name": "Crushing Blow",
-      "skillId": 14518
-    },
-    {
-      "name": "Outrage",
-      "skillId": 30258,
-      "offset": 120
-    },
-    {
-      "name": "Decapitate",
-      "skillId": 30851
-    },
-    {
-      "name": "Throw Axe",
-      "skillId": 14398
-    },
-    {
-      "name": "Wild Blow",
-      "skillId": 29941
-    },
-    {
-      "name": "Decapitate",
-      "skillId": 30851
-    },
-    {
-      "name": "Head Butt",
-      "skillId": 30343
-    },
-    {
-      "name": "Decapitate",
-      "skillId": 30851
-    },
-    {
-      "name": "Tremor",
+      "type": "cast",
       "skillId": 14415
     },
     {
-      "name": "Throw Axe",
-      "skillId": 14398
-    },
-    {
-      "name": "Cyclone Axe",
+      "type": "cast",
       "skillId": 14421
     },
     {
-      "name": "Crushing Blow",
+      "type": "cast",
       "skillId": 14518
     },
     {
-      "name": "Decapitate",
+      "type": "cast",
       "skillId": 30851
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "Fierce Blow",
+      "type": "cast",
       "skillId": 14386
     },
     {
-      "name": "Hammer Shock",
+      "type": "cast",
       "skillId": 14482
     },
     {
-      "name": "Staggering Blow",
+      "type": "cast",
       "skillId": 14359
     },
     {
-      "name": "Rupturing Smash",
+      "type": "cast",
       "skillId": 30879
     },
     {
-      "name": "Blood Reckoning",
+      "type": "cast",
       "skillId": 30189
     },
     {
-      "name": "Rupturing Smash",
+      "type": "cast",
       "skillId": 30879
     },
     {
-      "name": "Hammer Swing",
+      "type": "cast",
       "skillId": 14358
     },
     {
-      "name": "Hammer Bash",
+      "type": "cast",
       "skillId": 14384
     },
     {
-      "name": "Hammer Smash",
+      "type": "cast",
       "skillId": 14385
     },
     {
-      "name": "Fierce Blow",
+      "type": "cast",
       "skillId": 14386
     },
     {
-      "name": "Backbreaker",
+      "type": "cast",
       "skillId": 14511
     },
     {
-      "name": "Fierce Blow",
+      "type": "cast",
       "skillId": 14386
     },
     {
-      "name": "Rupturing Smash",
+      "type": "cast",
       "skillId": 30879
     },
     {
-      "name": "Hammer Shock",
+      "type": "cast",
       "skillId": 14482
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "Cyclone Axe",
+      "type": "cast",
       "skillId": 14421
     },
     {
-      "name": "Decapitate",
+      "type": "cast",
       "skillId": 30851
     },
     {
-      "name": "Crushing Blow",
+      "type": "cast",
       "skillId": 14518
     },
     {
-      "name": "Outrage",
+      "type": "cast",
       "skillId": 30258,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Decapitate",
+      "type": "cast",
       "skillId": 30851
     },
     {
-      "name": "Throw Axe",
-      "skillId": 14398
-    },
-    {
-      "name": "Wild Blow",
+      "type": "cast",
       "skillId": 29941
     },
     {
-      "name": "Decapitate",
+      "type": "cast",
       "skillId": 30851
     },
     {
-      "name": "Throw Axe",
-      "skillId": 14398
-    },
-    {
-      "name": "Head Butt",
+      "type": "cast",
       "skillId": 30343
     },
     {
-      "name": "Decapitate",
+      "type": "cast",
       "skillId": 30851
     },
     {
-      "name": "Tremor",
+      "type": "cast",
+      "skillId": 14398
+    },
+    {
+      "type": "cast",
       "skillId": 14415
     },
     {
-      "name": "Cyclone Axe",
+      "type": "cast",
       "skillId": 14421
     },
     {
-      "name": "Crushing Blow",
+      "type": "cast",
       "skillId": 14518
     },
     {
-      "name": "Decapitate",
+      "type": "cast",
       "skillId": 30851
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "Fierce Blow",
+      "type": "cast",
       "skillId": 14386
     },
     {
-      "name": "Hammer Shock",
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": 30258,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 30879
+    },
+    {
+      "type": "cast",
+      "skillId": 14359
+    },
+    {
+      "type": "cast",
+      "skillId": 14358
+    },
+    {
+      "type": "cast",
+      "skillId": 14384
+    },
+    {
+      "type": "cast",
+      "skillId": 14385
+    },
+    {
+      "type": "cast",
+      "skillId": 14358
+    },
+    {
+      "type": "cast",
+      "skillId": 14384
+    },
+    {
+      "type": "cast",
+      "skillId": 14385
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 30879
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14421
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
+    {
+      "type": "cast",
+      "skillId": 30258,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 14398
+    },
+    {
+      "type": "cast",
+      "skillId": 29941
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 30343
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 14415
+    },
+    {
+      "type": "cast",
+      "skillId": 14421
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": 14359
+    },
+    {
+      "type": "cast",
+      "skillId": 30879
+    },
+    {
+      "type": "cast",
+      "skillId": 30189
+    },
+    {
+      "type": "cast",
+      "skillId": 30879
+    },
+    {
+      "type": "cast",
+      "skillId": 14358
+    },
+    {
+      "type": "cast",
+      "skillId": 14384
+    },
+    {
+      "type": "cast",
+      "skillId": 14385
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 14511
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 30879
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14421
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
+    {
+      "type": "cast",
+      "skillId": 30258,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 29941
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 30343
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 14415
+    },
+    {
+      "type": "cast",
+      "skillId": 14421
+    },
+    {
+      "type": "cast",
+      "skillId": 14398
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": 30258
+    },
+    {
+      "type": "cast",
+      "skillId": 30879
+    },
+    {
+      "type": "cast",
+      "skillId": 14359
+    },
+    {
+      "type": "cast",
+      "skillId": 14358
+    },
+    {
+      "type": "cast",
+      "skillId": 14384
+    },
+    {
+      "type": "cast",
+      "skillId": 14385
+    },
+    {
+      "type": "cast",
+      "skillId": 14358
+    },
+    {
+      "type": "cast",
+      "skillId": 14384
+    },
+    {
+      "type": "cast",
+      "skillId": 14385
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 30879
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14421
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
+    {
+      "type": "cast",
+      "skillId": 30258,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 14398
+    },
+    {
+      "type": "cast",
+      "skillId": 29941
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 30343
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 14415
+    },
+    {
+      "type": "cast",
+      "skillId": 14398
+    },
+    {
+      "type": "cast",
+      "skillId": 14421
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": 14359
+    },
+    {
+      "type": "cast",
+      "skillId": 30879
+    },
+    {
+      "type": "cast",
+      "skillId": 30189
+    },
+    {
+      "type": "cast",
+      "skillId": 30879
+    },
+    {
+      "type": "cast",
+      "skillId": 14358
+    },
+    {
+      "type": "cast",
+      "skillId": 14384
+    },
+    {
+      "type": "cast",
+      "skillId": 14385
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 14511
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
+      "skillId": 30879
+    },
+    {
+      "type": "cast",
+      "skillId": 14482
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14421
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
+    {
+      "type": "cast",
+      "skillId": 30258,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 14398
+    },
+    {
+      "type": "cast",
+      "skillId": 29941
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 14398
+    },
+    {
+      "type": "cast",
+      "skillId": 30343
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": 14415
+    },
+    {
+      "type": "cast",
+      "skillId": 14421
+    },
+    {
+      "type": "cast",
+      "skillId": 14518
+    },
+    {
+      "type": "cast",
+      "skillId": 30851
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 14386
+    },
+    {
+      "type": "cast",
       "skillId": 14482
     }
   ]

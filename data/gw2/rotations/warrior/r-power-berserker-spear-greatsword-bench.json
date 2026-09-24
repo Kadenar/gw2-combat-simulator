@@ -10,19 +10,19 @@
   },
   "rotation": [
     {
-      "name": "Head Butt",
+      "type": "cast",
       "skillId": 30343
     },
     {
-      "name": "__combat_start",
-      "offset": 800
+      "type": "combat-start",
+      "concurrentOffsetMs": 800
     },
     {
-      "name": "Outrage",
+      "type": "cast",
       "skillId": 30258
     },
     {
-      "name": "Berserk",
+      "type": "cast",
       "skillId": 30185
     },
     "Spearmarshal's Support",

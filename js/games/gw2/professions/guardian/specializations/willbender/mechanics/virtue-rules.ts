@@ -41,7 +41,7 @@ function lethalTempoStacks(context: Gw2ModifierContext): number {
   return activeLethalTempo(willbenderState.from(context), context.time);
 }
 
-export const willbenderModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const willbenderModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'guardian.willbender.lethal-tempo-strike',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -347,7 +347,7 @@ function handleWillbenderFlameActivation(
 }
 
 // Same-virtue fields overlap; switching virtue cancels their shared lifetime group.
-export const willbenderFlames = timedEffect<
+const willbenderFlames = timedEffect<
   GuardianSchedulerContext,
   {
     activationId: string;
@@ -406,7 +406,7 @@ export const willbenderFlames = timedEffect<
 });
 
 /** Capture observation-time data and apply local state changes only when the queue reaches the impact. */
-export const willbenderVirtueHitReaction = scheduledReaction<
+const willbenderVirtueHitReaction = scheduledReaction<
   GuardianSchedulerContext,
   SimulationEvent,
   {

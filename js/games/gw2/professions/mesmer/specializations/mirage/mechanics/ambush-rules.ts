@@ -226,7 +226,7 @@ function observeMirageEvent(context: MesmerSchedulerContext, event: SimulationEv
   Object.assign(state, grantEndurance(state, 50, event.at, state.maximumEndurance));
 }
 
-export const mirageModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const mirageModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'mesmer.nomads-endurance',
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],

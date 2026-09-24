@@ -18,7 +18,7 @@ import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/
 
 const AMBUSH_SKILL_IDS = new Set<number>([ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
 
-export function handleUntamedState(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+function handleUntamedState(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   // Sync the resolver's independent copy of rangerUnleashed from the scheduler-emitted event.
   untamedState.from(context).rangerUnleashed = event.rangerUnleashed === true;
 }

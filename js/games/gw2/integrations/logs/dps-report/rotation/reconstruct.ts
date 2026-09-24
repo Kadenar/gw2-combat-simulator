@@ -1,3 +1,4 @@
+import type { CastCommand, CooldownResetCommand, RotationCommand } from '#gw2/platform/execution/types.js';
 import { isMushroomKingsBlessing, LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import {
   actionKind,
@@ -7,12 +8,7 @@ import {
   skillIdentity
 } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import type { RotationCatalog } from '#gw2/integrations/logs/shared/rotation/catalog.js';
-import type {
-  ReconstructedCommand,
-  ReconstructedCooldownResetCommand,
-  ReconstructedRotationCommand,
-  RotationActionStatus
-} from '#gw2/integrations/logs/shared/rotation/model.js';
+import type { RotationActionStatus } from '#gw2/integrations/logs/shared/rotation/model.js';
 import { ROTATION_PROFILES, type RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
@@ -171,19 +167,12 @@ function observedInterruptMs(action: ResolvedLogAction): number | null {
   return sourceDurationMs > 0 && interruptMs < runtimeDurationMs ? interruptMs : null;
 }
 
-function actionCommand(action: ResolvedLogAction): ReconstructedRotationCommand | ReconstructedCooldownResetCommand {
-  if (isMushroomKingsBlessing(action)) return { name: '__cooldown_reset' };
-  const command: {
-    name: string;
-    skillId: string | number;
-    offset?: number;
-    interruptMs?: number;
-    doubleEdgeOutcome?: 'success' | 'backfire';
-    releaseAtCharges?: number;
-  } = { name: action.name, skillId: action.skillId };
+function actionCommand(action: ResolvedLogAction): CastCommand | CooldownResetCommand {
+  if (isMushroomKingsBlessing(action)) return { type: 'cooldown-reset' };
+  const command: { -readonly [Key in keyof CastCommand]: CastCommand[Key] } = { type: 'cast', skillId: action.skillId };
   const interruptMs = action.replayInterruptMs ?? observedInterruptMs(action);
   // Keep cancelled inputs explicit so their elapsed time survives without replaying a full damaging cast.
-  if (interruptMs != null) command.interruptMs = interruptMs;
+  if (interruptMs != null) command.interruptAfterMs = interruptMs;
   if (action.doubleEdgeOutcome != null) command.doubleEdgeOutcome = action.doubleEdgeOutcome;
   if (action.releaseAtCharges != null) command.releaseAtCharges = action.releaseAtCharges;
 
@@ -249,7 +238,7 @@ function buildRotation(
   origin: number,
   combatStart: number,
   completeReportedAftercast: boolean
-): ReconstructedCommand[] {
+): RotationCommand[] {
   return buildReplayTimeline(actions, origin, combatStart, {
     // Idle gaps and concurrent offsets, including legend swaps, share observed casts' 40 ms precision.
     quantizeMs: quantizeGw2ActionTimingMs,

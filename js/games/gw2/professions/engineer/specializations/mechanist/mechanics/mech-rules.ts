@@ -73,7 +73,7 @@ function selectedSignet(context: Gw2ModifierContext, name: string): boolean {
   return selectedSkillNameSet(context.config?.selectedSkills).has(name);
 }
 
-export const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const mechanistModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'engineer.force-signet',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,

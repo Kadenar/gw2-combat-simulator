@@ -9,7 +9,7 @@ export interface MesmerTroubadourState {
   lastInstrument: string;
 }
 
-export function createTroubadourState(_config: Partial<MesmerConfig> = {}): MesmerTroubadourState {
+function createTroubadourState(_config: Partial<MesmerConfig> = {}): MesmerTroubadourState {
   return {
     numericResource: 0,
     instruments: {},

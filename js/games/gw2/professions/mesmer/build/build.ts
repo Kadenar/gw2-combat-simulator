@@ -19,7 +19,7 @@ import { createCommonBuildDefaults } from '#gw2/professions/shared/build-default
  */
 
 export const BUILD_SCHEMA_VERSION = 3;
-export const PROFESSION_ID = 'mesmer';
+const PROFESSION_ID = 'mesmer';
 
 // Seed a schema-current Mesmer preset with complete equipment, assumptions,
 // specialization, weapon, and rotation fields for migration and UI consumers.

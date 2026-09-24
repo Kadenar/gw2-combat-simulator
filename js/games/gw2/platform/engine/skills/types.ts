@@ -195,7 +195,6 @@ export interface Skill extends CatalogEntity {
   readonly rechargeAnchor?: 'castStart' | 'castEnd';
   readonly rechargeOffsetMs?: number;
   readonly cooldown?: number;
-  readonly recharge?: number;
   /** Which actor's active boons determine recharge-rate modifiers. */
   readonly rechargeBuffAudience?: 'self' | 'summon';
   /**

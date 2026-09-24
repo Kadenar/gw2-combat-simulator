@@ -64,8 +64,7 @@ export function modifyConduitRechargeDuration(context: RevenantRechargeContext, 
     // Enhanced Embodiment reduces the legend swap cooldown to 60%; read from skill data, not the incoming duration,
     // because the duration may already have been modified by alacrity at this point.
     return (
-      Math.max(0, Number(skill.cooldown ?? skill.recharge ?? duration)) *
-      Math.max(0, balanceProfileNumber(profile, 'rechargeMultiplier'))
+      Math.max(0, Number(skill.cooldown ?? duration)) * Math.max(0, balanceProfileNumber(profile, 'rechargeMultiplier'))
     );
   }
 

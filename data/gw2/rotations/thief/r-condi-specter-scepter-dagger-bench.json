@@ -8,8 +8,8 @@
   "rotation": [
     "Prepare Thousand Needles",
     {
-      "name": "__wait",
-      "waitMs": 3000
+      "type": "wait",
+      "durationMs": 3000
     },
     "__cooldown_reset",
     "Spider Venom",
@@ -65,8 +65,9 @@
     "Twilight Combo",
     "Spider Venom",
     {
-      "name": "Shadow Bolt",
-      "interruptMs": 160
+      "type": "cast",
+      "skillId": 63066,
+      "interruptAfterMs": 160
     },
     "Prepare Thousand Needles",
     "Shadow Bolt",
@@ -74,8 +75,9 @@
     "Triple Bolt",
     "Twilight Combo",
     {
-      "name": "Shadow Bolt",
-      "interruptMs": 320
+      "type": "cast",
+      "skillId": 63066,
+      "interruptAfterMs": 320
     },
     "Enter Shadow Shroud",
     "Grasping Shadows",
@@ -92,8 +94,9 @@
     "Twilight Combo",
     "Shadow Bolt",
     {
-      "name": "Thousand Needles",
-      "offset": 160
+      "type": "cast",
+      "skillId": 56898,
+      "concurrentOffsetMs": 160
     },
     "Double Bolt",
     "Triple Bolt",
@@ -119,12 +122,14 @@
     "Shadow Bolt",
     "Double Bolt",
     {
-      "name": "Triple Bolt",
-      "interruptMs": 360
+      "type": "cast",
+      "skillId": 63134,
+      "interruptAfterMs": 360
     },
     {
-      "name": "Spider Venom",
-      "offset": 80
+      "type": "cast",
+      "skillId": 13037,
+      "concurrentOffsetMs": 80
     },
     "Prepare Thousand Needles",
     "Well of Sorrow",
@@ -140,12 +145,14 @@
     "Twilight Combo",
     "Twilight Combo",
     {
-      "name": "Shadow Bolt",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 63066,
+      "interruptAfterMs": 120
     },
     {
-      "name": "Thousand Needles",
-      "offset": 40
+      "type": "cast",
+      "skillId": 56898,
+      "concurrentOffsetMs": 40
     },
     "Siphon",
     "Twilight Combo",
@@ -173,8 +180,9 @@
     "Twilight Combo",
     "Shadow Bolt",
     {
-      "name": "Double Bolt",
-      "interruptMs": 240
+      "type": "cast",
+      "skillId": 63182,
+      "interruptAfterMs": 240
     },
     "Enter Shadow Shroud",
     "Grasping Shadows",
@@ -187,8 +195,9 @@
     "Swap Weapons",
     "Prepare Thousand Needles",
     {
-      "name": "Spider Venom",
-      "offset": 200
+      "type": "cast",
+      "skillId": 13037,
+      "concurrentOffsetMs": 200
     },
     "Twilight Combo",
     "Twilight Combo",
@@ -197,8 +206,9 @@
     "Double Bolt",
     "Triple Bolt",
     {
-      "name": "Thousand Needles",
-      "offset": 320
+      "type": "cast",
+      "skillId": 56898,
+      "concurrentOffsetMs": 320
     },
     "Shadow Bolt",
     "Double Bolt",
@@ -207,8 +217,9 @@
     "Eternal Night",
     "Haunt Shot",
     {
-      "name": "Siphon",
-      "offset": 40
+      "type": "cast",
+      "skillId": 63067,
+      "concurrentOffsetMs": 40
     },
     "Haunt Shot",
     "Haunt Shot",
@@ -240,20 +251,23 @@
     "Shadow Bolt",
     "Double Bolt",
     {
-      "name": "Spider Venom",
-      "offset": 520
+      "type": "cast",
+      "skillId": 13037,
+      "concurrentOffsetMs": 520
     },
     "Prepare Thousand Needles",
     "Triple Bolt",
     "Twilight Combo",
     {
-      "name": "Shadow Bolt",
-      "interruptMs": 240
+      "type": "cast",
+      "skillId": 63066,
+      "interruptAfterMs": 240
     },
     "Well of Sorrow",
     {
-      "name": "Shadow Bolt",
-      "interruptMs": 160
+      "type": "cast",
+      "skillId": 63066,
+      "interruptAfterMs": 160
     },
     "Thousand Needles",
     "Enter Shadow Shroud",

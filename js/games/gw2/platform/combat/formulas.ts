@@ -45,9 +45,7 @@ export const CONDITION_FORMULAS = Object.freeze({
   // Fear enters this formula only when a profession explicitly schedules it
   // as damaging; ordinary control-only fear events never enter this table.
   Fear: Object.freeze({ base: 444, scaling: 0.4 }),
-  // Both names are accepted because older skill data used "Poison".
   Poisoned: Object.freeze({ base: 33.5, scaling: 0.06 }),
-  Poison: Object.freeze({ base: 33.5, scaling: 0.06 }),
   Torment: Object.freeze({
     base: 22,
     scaling: 0.06,
@@ -93,14 +91,14 @@ export interface ConditionFormula {
 // constants are derived so display attributes cannot drift from combat rules.
 const PERCENT_SCALE = 100;
 
-export const LEVEL_80_BASE_PRECISION = 1000;
-export const BASE_CRITICAL_CHANCE_FRACTION = 0.05;
+const LEVEL_80_BASE_PRECISION = 1000;
+const BASE_CRITICAL_CHANCE_FRACTION = 0.05;
 export const PRECISION_PER_CRITICAL_CHANCE_FRACTION = 2100;
 
-export const BASE_CRITICAL_DAMAGE_MULTIPLIER = 1.5;
+const BASE_CRITICAL_DAMAGE_MULTIPLIER = 1.5;
 export const FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER = 1500;
 
-export const EXPERTISE_PER_CONDITION_DURATION_MULTIPLIER = 1500;
+const EXPERTISE_PER_CONDITION_DURATION_MULTIPLIER = 1500;
 
 const ZERO_CRITICAL_CHANCE_PRECISION =
   LEVEL_80_BASE_PRECISION - BASE_CRITICAL_CHANCE_FRACTION * PRECISION_PER_CRITICAL_CHANCE_FRACTION;

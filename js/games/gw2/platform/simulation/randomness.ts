@@ -9,7 +9,7 @@ import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js'
 
 export type SimulationRandomnessAssumptions = Record<string, unknown>;
 
-export const SIMULATION_RANDOMNESS_ASSUMPTION_KEYS = Object.freeze({
+const SIMULATION_RANDOMNESS_ASSUMPTION_KEYS = Object.freeze({
   MODE: 'simulationMode'
 });
 

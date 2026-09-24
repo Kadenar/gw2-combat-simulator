@@ -27,20 +27,7 @@ export const WARRIOR_NATIVE_CATALOG_OPTIONS = Object.freeze({
 const flipParentById = createFlipParentMap(allSkills);
 
 const generated: readonly Skill[] = Object.freeze(
-  allSkills.map((skill) => {
-    // Select recharge before stripping the legacy field, which independently supplies ammo cast lockout.
-    const { recharge: legacyRecharge, ...sourceSkill } = normalizeGeneratedSkill(
-      skill,
-      flipParentById.get(skill.id) ?? null
-    );
-    const maximumAmmo = Number(skill.ammo || 0);
-    const ammoCastLockout = maximumAmmo > 0 ? Number(skill.ammoCastLockout ?? legacyRecharge ?? 0) : 0;
-
-    return {
-      ...sourceSkill,
-      ...(ammoCastLockout > 0 ? { ammoCastLockout } : {})
-    };
-  })
+  allSkills.map((skill) => normalizeGeneratedSkill(skill, flipParentById.get(skill.id) ?? null))
 );
 
 const WEAPON_DATA = defineProfessionWeapons({

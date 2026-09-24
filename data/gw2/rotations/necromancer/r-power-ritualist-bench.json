@@ -1,600 +1,791 @@
 {
   "rotation": [
     {
-      "name": "Summon Blood Fiend"
+      "type": "cast",
+      "skillId": 10547
     },
     {
-      "name": "Summon Flesh Golem"
+      "type": "cast",
+      "skillId": 10646
     },
     {
-      "name": "Summon Bone Minions"
+      "type": "cast",
+      "skillId": 10541
     },
     {
-      "name": "Nightmare Weapon"
+      "type": "cast",
+      "skillId": 76739
     },
     {
-      "name": "Splinter Weapon"
+      "type": "cast",
+      "skillId": 76975
     },
     {
-      "name": "Grasping Darkness",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 29740,
+      "interruptAfterMs": 120
     },
     {
-      "name": "Ritualist's Shroud"
+      "type": "cast",
+      "skillId": 77238
     },
     {
-      "name": "__combat_start",
-      "offset": 120
+      "type": "combat-start",
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Anguish"
+      "type": "cast",
+      "skillId": 76864
     },
     {
-      "name": "Innervate Anguish"
+      "type": "cast",
+      "skillId": 77003
     },
     {
-      "name": "Wanderlust"
+      "type": "cast",
+      "skillId": 76961
     },
     {
-      "name": "Preservation"
+      "type": "cast",
+      "skillId": 76684
     },
     {
-      "name": "Innervate Preservation"
+      "type": "cast",
+      "skillId": 76602
     },
     {
-      "name": "Essence Blast"
+      "type": "cast",
+      "skillId": 77061
     },
     {
-      "name": "Essence Blast"
+      "type": "cast",
+      "skillId": 77061
     },
     {
-      "name": "Essence Blast"
+      "type": "cast",
+      "skillId": 77061
     },
     {
-      "name": "Summon Spirits"
+      "type": "cast",
+      "skillId": 76607
     },
     {
-      "name": "Essence Blast"
+      "type": "cast",
+      "skillId": 77061
     },
     {
-      "name": "Essence Blast"
+      "type": "cast",
+      "skillId": 77061
     },
     {
-      "name": "Essence Blast"
+      "type": "cast",
+      "skillId": 77061
     },
     {
-      "name": "Anguish"
+      "type": "cast",
+      "skillId": 76864
     },
     {
-      "name": "Exit Ritualist's Shroud"
+      "type": "cast",
+      "skillId": 76933
     },
     {
-      "name": "Nightfall"
+      "type": "cast",
+      "skillId": 29855
     },
     {
-      "name": "Death Spiral"
-    },
-    {
-      "name": "Gravedigger"
-    },
-    {
-      "name": "Dusk Strike"
-    },
-    {
-      "name": "Innervate Anguish"
-    },
-    {
-      "name": "Fading Twilight"
-    },
-    {
-      "name": "Chilling Scythe"
-    },
-    {
-      "name": "Gravedigger"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Addle"
-    },
-    {
-      "name": "Isolate"
-    },
-    {
-      "name": "Extirpate"
-    },
-    {
-      "name": "Perforate"
-    },
-    {
-      "name": "Distress"
-    },
-    {
-      "name": "Perforate"
-    },
-    {
-      "name": "Nightmare Weapon"
-    },
-    {
-      "name": "Splinter Weapon"
-    },
-    {
-      "name": "Ritualist's Shroud"
-    },
-    {
-      "name": "Anguish"
-    },
-    {
-      "name": "Innervate Wanderlust"
-    },
-    {
-      "name": "Wanderlust"
-    },
-    {
-      "name": "Innervate Anguish"
-    },
-    {
-      "name": "Preservation"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Summon Spirits"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Anguish"
-    },
-    {
-      "name": "Exit Ritualist's Shroud"
-    },
-    {
-      "name": "Addle"
-    },
-    {
-      "name": "Isolate"
-    },
-    {
-      "name": "Perforate"
-    },
-    {
-      "name": "Distress"
-    },
-    {
-      "name": "Perforate"
-    },
-    {
-      "name": "Innervate Anguish"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Grasping Darkness",
-      "interruptMs": 200
-    },
-    {
-      "name": "Nightfall"
-    },
-    {
-      "name": "Death Spiral"
-    },
-    {
-      "name": "Gravedigger"
-    },
-    {
-      "name": "Dusk Strike"
-    },
-    {
-      "name": "Fading Twilight"
-    },
-    {
-      "name": "Chilling Scythe"
-    },
-    {
-      "name": "Gravedigger"
-    },
-    {
-      "name": "Dusk Strike"
-    },
-    {
-      "name": "Fading Twilight"
-    },
-    {
-      "name": "Nightmare Weapon"
-    },
-    {
-      "name": "Splinter Weapon"
-    },
-    {
-      "name": "Ritualist's Shroud"
-    },
-    {
-      "name": "Anguish"
-    },
-    {
-      "name": "Innervate Wanderlust"
-    },
-    {
-      "name": "Wanderlust"
-    },
-    {
-      "name": "Innervate Anguish"
-    },
-    {
-      "name": "Preservation"
-    },
-    {
-      "name": "Innervate Preservation"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Summon Spirits"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Anguish"
-    },
-    {
-      "name": "Exit Ritualist's Shroud"
-    },
-    {
-      "name": "Death Spiral"
-    },
-    {
-      "name": "Gravedigger"
-    },
-    {
-      "name": "Dusk Strike"
-    },
-    {
-      "name": "Fading Twilight"
-    },
-    {
-      "name": "Innervate Anguish"
-    },
-    {
-      "name": "Chilling Scythe"
-    },
-    {
-      "name": "Nightfall"
-    },
-    {
-      "name": "Gravedigger"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Addle"
-    },
-    {
-      "name": "Isolate"
-    },
-    {
-      "name": "Extirpate"
-    },
-    {
-      "name": "Perforate"
-    },
-    {
-      "name": "Distress"
-    },
-    {
-      "name": "Dark Slash"
-    },
-    {
-      "name": "Perforate"
-    },
-    {
-      "name": "Nightmare Weapon"
-    },
-    {
-      "name": "Splinter Weapon"
-    },
-    {
-      "name": "Ritualist's Shroud"
-    },
-    {
-      "name": "Anguish"
-    },
-    {
-      "name": "Innervate Wanderlust"
-    },
-    {
-      "name": "Wanderlust"
-    },
-    {
-      "name": "Innervate Anguish"
-    },
-    {
-      "name": "Preservation"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Summon Spirits"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Anguish"
-    },
-    {
-      "name": "Exit Ritualist's Shroud"
-    },
-    {
-      "name": "Addle"
-    },
-    {
-      "name": "Isolate"
-    },
-    {
-      "name": "Perforate"
-    },
-    {
-      "name": "Distress"
-    },
-    {
-      "name": "Perforate"
-    },
-    {
-      "name": "Innervate Anguish"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Gravedigger"
-    },
-    {
-      "name": "Grasping Darkness",
-      "interruptMs": 200
-    },
-    {
-      "name": "Nightfall"
-    },
-    {
-      "name": "Death Spiral"
-    },
-    {
-      "name": "Gravedigger"
-    },
-    {
-      "name": "Gravedigger"
-    },
-    {
-      "name": "Gravedigger"
-    },
-    {
-      "name": "Gravedigger"
-    },
-    {
-      "name": "Nightmare Weapon"
-    },
-    {
-      "name": "Splinter Weapon"
-    },
-    {
-      "name": "Ritualist's Shroud"
-    },
-    {
-      "name": "Anguish"
-    },
-    {
-      "name": "Innervate Wanderlust"
-    },
-    {
-      "name": "Wanderlust"
-    },
-    {
-      "name": "Innervate Anguish"
-    },
-    {
-      "name": "Preservation"
-    },
-    {
-      "name": "Innervate Preservation"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Summon Spirits"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Anguish"
-    },
-    {
-      "name": "Exit Ritualist's Shroud"
-    },
-    {
-      "name": "Death Spiral"
-    },
-    {
-      "name": "Gravedigger"
-    },
-    {
-      "name": "Gravedigger"
-    },
-    {
-      "name": "Innervate Anguish"
-    },
-    {
-      "name": "Gravedigger"
-    },
-    {
-      "name": "Nightfall"
-    },
-    {
-      "name": "Gravedigger"
-    },
-    {
-      "name": "Swap Weapons"
-    },
-    {
-      "name": "Addle"
-    },
-    {
-      "name": "Isolate"
-    },
-    {
-      "name": "Extirpate"
-    },
-    {
-      "name": "Perforate"
-    },
-    {
-      "name": "Distress"
-    },
-    {
-      "name": "Perforate"
-    },
-    {
-      "name": "Nightmare Weapon"
-    },
-    {
-      "name": "Dark Slash"
-    },
-    {
-      "name": "Splinter Weapon"
-    },
-    {
-      "name": "Ritualist's Shroud"
-    },
-    {
-      "name": "Anguish"
-    },
-    {
-      "name": "Innervate Wanderlust"
-    },
-    {
-      "name": "Wanderlust"
-    },
-    {
-      "name": "Innervate Anguish"
-    },
-    {
-      "name": "Preservation"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Summon Spirits"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Essence Blast"
-    },
-    {
-      "name": "Anguish"
-    },
-    {
-      "name": "Exit Ritualist's Shroud"
-    },
-    {
-      "name": "Addle"
-    },
-    {
-      "name": "Isolate"
-    },
-    {
-      "name": "Perforate"
-    },
-    {
-      "name": "Distress"
-    },
-    {
-      "name": "Perforate"
-    },
-    {
-      "name": "Swap Weapons",
-      "skillId": -3
-    },
-    {
-      "name": "Death Spiral",
+      "type": "cast",
       "skillId": 30860
     },
     {
-      "name": "Innervate Anguish",
-      "skillId": 77003,
-      "offset": 120
+      "type": "cast",
+      "skillId": 30163
     },
     {
-      "name": "Gravedigger",
+      "type": "cast",
+      "skillId": 29705
+    },
+    {
+      "type": "cast",
+      "skillId": 77003
+    },
+    {
+      "type": "cast",
+      "skillId": 30799
+    },
+    {
+      "type": "cast",
+      "skillId": 29867
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73007
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 76739
+    },
+    {
+      "type": "cast",
+      "skillId": 76975
+    },
+    {
+      "type": "cast",
+      "skillId": 77238
+    },
+    {
+      "type": "cast",
+      "skillId": 76864
+    },
+    {
+      "type": "cast",
+      "skillId": 76732
+    },
+    {
+      "type": "cast",
+      "skillId": 76961
+    },
+    {
+      "type": "cast",
+      "skillId": 77003
+    },
+    {
+      "type": "cast",
+      "skillId": 76684
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 76607
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 76864
+    },
+    {
+      "type": "cast",
+      "skillId": 76933
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 77003
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 29740,
+      "interruptAfterMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 29855
+    },
+    {
+      "type": "cast",
+      "skillId": 30860
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": 29705
+    },
+    {
+      "type": "cast",
+      "skillId": 30799
+    },
+    {
+      "type": "cast",
+      "skillId": 29867
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": 29705
+    },
+    {
+      "type": "cast",
+      "skillId": 30799
+    },
+    {
+      "type": "cast",
+      "skillId": 76739
+    },
+    {
+      "type": "cast",
+      "skillId": 76975
+    },
+    {
+      "type": "cast",
+      "skillId": 77238
+    },
+    {
+      "type": "cast",
+      "skillId": 76864
+    },
+    {
+      "type": "cast",
+      "skillId": 76732
+    },
+    {
+      "type": "cast",
+      "skillId": 76961
+    },
+    {
+      "type": "cast",
+      "skillId": 77003
+    },
+    {
+      "type": "cast",
+      "skillId": 76684
+    },
+    {
+      "type": "cast",
+      "skillId": 76602
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 76607
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 76864
+    },
+    {
+      "type": "cast",
+      "skillId": 76933
+    },
+    {
+      "type": "cast",
+      "skillId": 30860
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": 29705
+    },
+    {
+      "type": "cast",
+      "skillId": 30799
+    },
+    {
+      "type": "cast",
+      "skillId": 77003
+    },
+    {
+      "type": "cast",
+      "skillId": 29867
+    },
+    {
+      "type": "cast",
+      "skillId": 29855
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73007
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73012
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 76739
+    },
+    {
+      "type": "cast",
+      "skillId": 76975
+    },
+    {
+      "type": "cast",
+      "skillId": 77238
+    },
+    {
+      "type": "cast",
+      "skillId": 76864
+    },
+    {
+      "type": "cast",
+      "skillId": 76732
+    },
+    {
+      "type": "cast",
+      "skillId": 76961
+    },
+    {
+      "type": "cast",
+      "skillId": 77003
+    },
+    {
+      "type": "cast",
+      "skillId": 76684
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 76607
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 76864
+    },
+    {
+      "type": "cast",
+      "skillId": 76933
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 77003
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": 29740,
+      "interruptAfterMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 29855
+    },
+    {
+      "type": "cast",
+      "skillId": 30860
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": 76739
+    },
+    {
+      "type": "cast",
+      "skillId": 76975
+    },
+    {
+      "type": "cast",
+      "skillId": 77238
+    },
+    {
+      "type": "cast",
+      "skillId": 76864
+    },
+    {
+      "type": "cast",
+      "skillId": 76732
+    },
+    {
+      "type": "cast",
+      "skillId": 76961
+    },
+    {
+      "type": "cast",
+      "skillId": 77003
+    },
+    {
+      "type": "cast",
+      "skillId": 76684
+    },
+    {
+      "type": "cast",
+      "skillId": 76602
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 76607
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 76864
+    },
+    {
+      "type": "cast",
+      "skillId": 76933
+    },
+    {
+      "type": "cast",
+      "skillId": 30860
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": 77003
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": 29855
+    },
+    {
+      "type": "cast",
+      "skillId": 30163
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73007
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 76739
+    },
+    {
+      "type": "cast",
+      "skillId": 73012
+    },
+    {
+      "type": "cast",
+      "skillId": 76975
+    },
+    {
+      "type": "cast",
+      "skillId": 77238
+    },
+    {
+      "type": "cast",
+      "skillId": 76864
+    },
+    {
+      "type": "cast",
+      "skillId": 76732
+    },
+    {
+      "type": "cast",
+      "skillId": 76961
+    },
+    {
+      "type": "cast",
+      "skillId": 77003
+    },
+    {
+      "type": "cast",
+      "skillId": 76684
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 76607
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 77061
+    },
+    {
+      "type": "cast",
+      "skillId": 76864
+    },
+    {
+      "type": "cast",
+      "skillId": 76933
+    },
+    {
+      "type": "cast",
+      "skillId": 73013
+    },
+    {
+      "type": "cast",
+      "skillId": 73107
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": 73116
+    },
+    {
+      "type": "cast",
+      "skillId": 73068
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 30860
+    },
+    {
+      "type": "cast",
+      "skillId": 77003,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
       "skillId": 30163
     }
   ]

@@ -61,7 +61,7 @@ function handleJusticePulse(context: GuardianResolverContext, event: GuardianRes
   );
 }
 
-export function reactToDragonhunterJusticeHit(
+function reactToDragonhunterJusticeHit(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
   dependencies: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}
@@ -128,7 +128,7 @@ export function reactToDragonhunterJusticeHit(
   );
 }
 
-export function reactToDragonhunterControl(context: GuardianResolverContext, event: GuardianResolverEvent): void {
+function reactToDragonhunterControl(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   const state = dragonhunterState.from(context);
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.DULLED_SENSES)) {
     const dulledSensesProfile = requireBalanceProfileFromContext(context, PROFILE.dulledSenses);

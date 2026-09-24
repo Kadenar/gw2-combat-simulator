@@ -13,7 +13,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 0,
+
     cooldown: 0,
     petSkill: true,
     petFamilySkill: true,
@@ -29,7 +29,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 8,
+
     cooldown: 8,
     petSkill: true,
     petFamilySkill: true,
@@ -45,7 +45,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 16,
+
     cooldown: 16,
     petSkill: true,
     petFamilySkill: true,
@@ -61,7 +61,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 0,
+
     cooldown: 0,
     petSkill: true,
     petFamilySkill: true,
@@ -77,7 +77,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petFamilySkill: true,
@@ -93,7 +93,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 0,
+
     cooldown: 0,
     petSkill: true,
     petFamilySkill: true,
@@ -109,7 +109,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 10,
+
     cooldown: 10,
     petSkill: true,
     petFamilySkill: true,
@@ -125,7 +125,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 15,
+
     cooldown: 15,
     petSkill: true,
     petFamilySkill: false,
@@ -141,7 +141,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 0,
+
     cooldown: 0,
     petSkill: true,
     petFamilySkill: true,
@@ -156,7 +156,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Jungle Stalker']
@@ -170,7 +170,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Boar']
@@ -184,7 +184,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Lynx']
@@ -198,7 +198,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Krytan Drakehound']
@@ -212,7 +212,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Brown Bear']
@@ -226,7 +226,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 30,
+
     cooldown: 30,
     petSkill: true,
     petNames: ['Brown Bear']
@@ -240,7 +240,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 30,
+
     cooldown: 30,
     petSkill: true,
     petNames: ['Carrion Devourer']
@@ -254,7 +254,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 30,
+
     cooldown: 30,
     petSkill: true,
     petFamilySkill: true,
@@ -270,7 +270,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Salamander Drake']
@@ -284,7 +284,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 30,
+
     cooldown: 30,
     petSkill: true,
     petNames: ['Salamander Drake']
@@ -298,7 +298,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Alpine Wolf']
@@ -312,7 +312,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Snow Leopard']
@@ -326,7 +326,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Snow Leopard']
@@ -340,7 +340,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 18,
+
     cooldown: 18,
     petSkill: true,
     petNames: ['Raven', 'White Raven']
@@ -355,7 +355,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Jaguar']
@@ -369,7 +369,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Marsh Drake']
@@ -383,7 +383,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Marsh Drake']
@@ -397,7 +397,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Blue Moa']
@@ -411,7 +411,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Pink Moa']
@@ -425,7 +425,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Black Moa']
@@ -439,7 +439,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Red Moa']
@@ -453,7 +453,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Ice Drake']
@@ -467,7 +467,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Ice Drake']
@@ -481,7 +481,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['River Drake']
@@ -495,7 +495,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 30,
+
     cooldown: 30,
     petSkill: true,
     petNames: ['River Drake']
@@ -509,7 +509,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Murellow']
@@ -523,7 +523,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Murellow']
@@ -537,7 +537,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 45,
+
     cooldown: 45,
     petSkill: true,
     petNames: ['Shark']
@@ -551,7 +551,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Fern Hound']
@@ -565,7 +565,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Black Bear']
@@ -579,7 +579,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Black Bear']
@@ -593,7 +593,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 30,
+
     cooldown: 30,
     petSkill: true,
     petNames: ['Polar Bear']
@@ -607,7 +607,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 30,
+
     cooldown: 30,
     petSkill: true,
     petNames: ['Polar Bear']
@@ -621,7 +621,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 15,
+
     cooldown: 15,
     petSkill: true,
     petNames: ['Arctodus']
@@ -635,7 +635,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Whiptail Devourer']
@@ -649,7 +649,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Whiptail Devourer']
@@ -663,7 +663,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 60,
+
     cooldown: 60,
     petSkill: true,
     petNames: ['Lashtail Devourer']
@@ -677,7 +677,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Lashtail Devourer']
@@ -691,7 +691,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 30,
+
     cooldown: 30,
     petSkill: true,
     petNames: ['Hyena']
@@ -705,7 +705,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 30,
+
     cooldown: 30,
     petSkill: true,
     petNames: ['Wolf']
@@ -719,7 +719,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Owl']
@@ -733,7 +733,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Eagle']
@@ -747,7 +747,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Forest Spider']
@@ -761,7 +761,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Jungle Spider', 'Black Widow Spider']
@@ -775,7 +775,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Cave Spider']
@@ -789,7 +789,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Warthog']
@@ -803,7 +803,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Siamoth']
@@ -817,7 +817,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Pig']
@@ -831,7 +831,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 40,
+
     cooldown: 40,
     petSkill: true,
     petNames: ['Armor Fish']
@@ -845,7 +845,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 30,
+
     cooldown: 30,
     petSkill: true,
     petNames: ['Blue Jellyfish', 'Rainbow Jellyfish']
@@ -859,7 +859,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 30,
+
     cooldown: 30,
     petSkill: true,
     petNames: ['Red Jellyfish']
@@ -873,7 +873,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Hawk']
@@ -887,7 +887,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Reef Drake']
@@ -901,7 +901,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 45,
+
     cooldown: 45,
     petSkill: true,
     petNames: ['Reef Drake']
@@ -915,7 +915,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Smokescale']
@@ -929,7 +929,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Tiger']
@@ -943,7 +943,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 30,
+
     cooldown: 30,
     petSkill: true,
     petNames: ['Electric Wyvern']
@@ -958,7 +958,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Fire Wyvern']
@@ -972,7 +972,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Bristleback']
@@ -986,7 +986,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Cheetah']
@@ -1000,7 +1000,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Sand Lion']
@@ -1014,7 +1014,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 0,
+
     cooldown: 0,
     petSkill: true,
     petFamilySkill: true,
@@ -1030,7 +1030,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 15,
+
     cooldown: 15,
     petSkill: true,
     petFamilySkill: true,
@@ -1046,7 +1046,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Jacaranda']
@@ -1060,7 +1060,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Rock Gazelle']
@@ -1074,7 +1074,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petFamilySkill: true,
@@ -1090,7 +1090,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['White Tiger']
@@ -1104,7 +1104,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Wallow']
@@ -1118,7 +1118,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Phoenix']
@@ -1132,7 +1132,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 30,
+
     cooldown: 30,
     petSkill: true,
     petNames: ['Siege Turtle']
@@ -1146,7 +1146,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Aether Hunter']
@@ -1160,7 +1160,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Sky-Chak Striker']
@@ -1174,7 +1174,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Spinegazer']
@@ -1188,7 +1188,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Warclaw']
@@ -1202,7 +1202,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 25,
+
     cooldown: 25,
     petSkill: true,
     petNames: ['Janthiri Bee']
@@ -1216,7 +1216,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 20,
+
     cooldown: 20,
     petSkill: true,
     petNames: ['Raptor Swiftwing']
@@ -1230,7 +1230,7 @@ export const RANGER_PET_SKILLS: readonly RangerSkill[] = Object.freeze([
     slot: 'Profession_2',
     categories: ['Pet'],
     specialization: '',
-    recharge: 24,
+
     cooldown: 24,
     petSkill: true,
     petNames: ['River Otter']

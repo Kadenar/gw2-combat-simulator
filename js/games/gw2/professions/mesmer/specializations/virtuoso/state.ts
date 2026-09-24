@@ -6,7 +6,7 @@ export interface MesmerVirtuosoState {
 }
 
 // Infinite Forge timing belongs to recurring scheduler tasks, not specialization state.
-export function createVirtuosoState(): MesmerVirtuosoState {
+function createVirtuosoState(): MesmerVirtuosoState {
   return {
     numericResource: 0,
     bloodsongProgress: 0

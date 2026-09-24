@@ -6,7 +6,7 @@ import { strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Emits Form of the Dervish's normal or elite triggered attack. */
-export function emitDervishFormAttack(
+function emitDervishFormAttack(
   context: RevenantCastContext,
   skill: RevenantSkill,
   { elite = false }: { readonly elite?: boolean } = {}

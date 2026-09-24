@@ -16,7 +16,7 @@ export interface GuardianWillbenderState {
   triggeredVirtueEffects: number;
 }
 
-export function createWillbenderState(): GuardianWillbenderState {
+function createWillbenderState(): GuardianWillbenderState {
   return {
     flameVirtue: null,
     pendingWeaponCooldownReduction: {}, // keyed by reservationId; accumulates in-flight reductions and cleared on cast-complete

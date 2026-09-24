@@ -61,7 +61,7 @@ function rangerUnleashed(context: Gw2ModifierContext): boolean {
   return untamedModifierState(context).rangerUnleashed === true;
 }
 
-export const untamedModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const untamedModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'ranger.vow-of-the-untamed',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,

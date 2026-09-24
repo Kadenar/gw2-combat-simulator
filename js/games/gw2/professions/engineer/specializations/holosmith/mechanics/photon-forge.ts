@@ -132,7 +132,7 @@ export const enhancedCapacityMight = timedEffect<EngineerSchedulerContext, objec
 });
 
 /** Replaces Solar Focusing Lens charges and opens their profiled activation window. */
-export function grantSolarFocusingLens(context: EngineerSchedulerContext, at: number, stacks: number): void {
+function grantSolarFocusingLens(context: EngineerSchedulerContext, at: number, stacks: number): void {
   if (!hasTrait(context.config, TRAIT.SOLAR_FOCUSING_LENS)) return;
   const solarFocusingLensProfile = requireBalanceProfileFromContext(context, PROFILE.solarFocusingLens);
   // Grants cross into the resolver at their activation time; only impacts spend charges.

@@ -18,19 +18,19 @@
     "\"To the Limit!\"",
     "Winds of Disenchantment",
     {
-      "name": "Breaching Strike",
-      "skillId": 69297,
-      "interruptMs": 800
+      "type": "cast",
+      "skillId": 45252,
+      "interruptAfterMs": 800
     },
     {
-      "name": "__combat_start",
-      "offset": 760
+      "type": "combat-start",
+      "concurrentOffsetMs": 760
     },
     "Swap Weapons",
     "Staggering Blow",
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     "Bull's Charge",
     "Earthshaker",
@@ -38,16 +38,17 @@
     "Fierce Blow",
     "Backbreaker",
     {
-      "name": "Fierce Blow",
-      "interruptMs": 680
+      "type": "cast",
+      "skillId": 14386,
+      "interruptAfterMs": 680
     },
     "Swap Weapons",
     "Crushing Blow",
     "Tremor",
     "Crushing Blow",
     {
-      "name": "Breaching Strike",
-      "skillId": 69297
+      "type": "cast",
+      "skillId": 45252
     },
     "Disrupting Stab",
     "Precise Cut",
@@ -56,8 +57,9 @@
     "Precise Cut",
     "Focused Slash",
     {
-      "name": "Keen Strike",
-      "interruptMs": 320
+      "type": "cast",
+      "skillId": 40275,
+      "interruptAfterMs": 320
     },
     "Swap Weapons",
     "Earthshaker",
@@ -69,19 +71,20 @@
     "Hammer Swing",
     "Hammer Bash",
     {
-      "name": "Hammer Smash",
-      "interruptMs": 360
+      "type": "cast",
+      "skillId": 14385,
+      "interruptAfterMs": 360
     },
     {
-      "name": "__wait",
-      "waitMs": 80
+      "type": "wait",
+      "durationMs": 80
     },
     "Staggering Blow",
     "Swap Weapons",
     "Crushing Blow",
     {
-      "name": "Breaching Strike",
-      "skillId": 69297
+      "type": "cast",
+      "skillId": 45252
     },
     "Disrupting Stab",
     "Precise Cut",
@@ -93,13 +96,15 @@
     "Precise Cut",
     "Focused Slash",
     {
-      "name": "Keen Strike",
-      "interruptMs": 360
+      "type": "cast",
+      "skillId": 40275,
+      "interruptAfterMs": 360
     },
     "Swap Weapons",
     {
-      "name": "Hammer Swing",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 14358,
+      "interruptAfterMs": 40
     },
     "Earthshaker",
     "Bull's Charge",
@@ -108,16 +113,16 @@
     "Backbreaker",
     "Fierce Blow",
     {
-      "name": "__wait",
-      "waitMs": 160
+      "type": "wait",
+      "durationMs": 160
     },
     "Swap Weapons",
     "Crushing Blow",
     "Tremor",
     "Crushing Blow",
     {
-      "name": "Breaching Strike",
-      "skillId": 69297
+      "type": "cast",
+      "skillId": 45252
     },
     "Disrupting Stab",
     "Precise Cut",
@@ -126,8 +131,9 @@
     "Precise Cut",
     "Focused Slash",
     {
-      "name": "Keen Strike",
-      "interruptMs": 360
+      "type": "cast",
+      "skillId": 40275,
+      "interruptAfterMs": 360
     },
     "Swap Weapons",
     "Earthshaker",
@@ -140,18 +146,20 @@
     "Hammer Swing",
     "Hammer Bash",
     {
-      "name": "Hammer Smash",
-      "interruptMs": 360
+      "type": "cast",
+      "skillId": 14385,
+      "interruptAfterMs": 360
     },
     "Swap Weapons",
     {
-      "name": "Precise Cut",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 42745,
+      "interruptAfterMs": 40
     },
     "Crushing Blow",
     {
-      "name": "Breaching Strike",
-      "skillId": 69297
+      "type": "cast",
+      "skillId": 45252
     },
     "Disrupting Stab",
     "Precise Cut",
@@ -163,8 +171,9 @@
     "Precise Cut",
     "Focused Slash",
     {
-      "name": "Keen Strike",
-      "interruptMs": 320
+      "type": "cast",
+      "skillId": 40275,
+      "interruptAfterMs": 320
     },
     "Swap Weapons",
     "Earthshaker",
@@ -179,8 +188,8 @@
     "Tremor",
     "Crushing Blow",
     {
-      "name": "Breaching Strike",
-      "skillId": 69297
+      "type": "cast",
+      "skillId": 45252
     },
     "Disrupting Stab",
     "Precise Cut",
@@ -189,8 +198,9 @@
     "Precise Cut",
     "Focused Slash",
     {
-      "name": "Keen Strike",
-      "interruptMs": 360
+      "type": "cast",
+      "skillId": 40275,
+      "interruptAfterMs": 360
     },
     "Swap Weapons",
     "Earthshaker",
@@ -202,20 +212,22 @@
     "Hammer Swing",
     "Hammer Bash",
     {
-      "name": "Hammer Smash",
-      "interruptMs": 360
+      "type": "cast",
+      "skillId": 14385,
+      "interruptAfterMs": 360
     },
     "Swap Weapons",
     {
-      "name": "Breaching Strike",
-      "skillId": 69297
+      "type": "cast",
+      "skillId": 45252
     },
     "Crushing Blow",
     "Precise Cut",
     "Focused Slash",
     {
-      "name": "Keen Strike",
-      "interruptMs": 400
+      "type": "cast",
+      "skillId": 40275,
+      "interruptAfterMs": 400
     },
     "Disrupting Stab",
     "Precise Cut",
@@ -224,8 +236,9 @@
     "Precise Cut",
     "Focused Slash",
     {
-      "name": "Keen Strike",
-      "interruptMs": 360
+      "type": "cast",
+      "skillId": 40275,
+      "interruptAfterMs": 360
     },
     "Swap Weapons",
     "Earthshaker",
@@ -235,19 +248,21 @@
     "Fierce Blow",
     "Backbreaker",
     {
-      "name": "Fierce Blow",
-      "interruptMs": 680
+      "type": "cast",
+      "skillId": 14386,
+      "interruptAfterMs": 680
     },
     "Swap Weapons",
     {
-      "name": "Breaching Strike",
-      "skillId": 69297
+      "type": "cast",
+      "skillId": 45252
     },
     "Crushing Blow",
     "Tremor",
     {
-      "name": "Crushing Blow",
-      "interruptMs": 520
+      "type": "cast",
+      "skillId": 14518,
+      "interruptAfterMs": 520
     },
     "Disrupting Stab",
     "Precise Cut",
@@ -256,8 +271,9 @@
     "Precise Cut",
     "Focused Slash",
     {
-      "name": "Keen Strike",
-      "interruptMs": 320
+      "type": "cast",
+      "skillId": 40275,
+      "interruptAfterMs": 320
     },
     "Swap Weapons",
     "Earthshaker",
@@ -269,18 +285,19 @@
     "Hammer Swing",
     "Hammer Bash",
     {
-      "name": "Hammer Smash",
-      "interruptMs": 360
+      "type": "cast",
+      "skillId": 14385,
+      "interruptAfterMs": 360
     },
     {
-      "name": "__wait",
-      "waitMs": 80
+      "type": "wait",
+      "durationMs": 80
     },
     "Staggering Blow",
     "Swap Weapons",
     {
-      "name": "Breaching Strike",
-      "skillId": 69297
+      "type": "cast",
+      "skillId": 45252
     },
     "Crushing Blow",
     "Disrupting Stab",
@@ -293,8 +310,9 @@
     "Precise Cut",
     "Focused Slash",
     {
-      "name": "Keen Strike",
-      "interruptMs": 320
+      "type": "cast",
+      "skillId": 40275,
+      "interruptAfterMs": 320
     },
     "Swap Weapons",
     "Earthshaker",
@@ -305,8 +323,8 @@
     "Fierce Blow",
     "Swap Weapons",
     {
-      "name": "Breaching Strike",
-      "skillId": 69297
+      "type": "cast",
+      "skillId": 45252
     },
     "Crushing Blow",
     "Tremor",

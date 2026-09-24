@@ -19,7 +19,7 @@ export const BERSERKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 
 // kingOfFiresCriticalProgress accumulates fractional crit probability in
 // deterministic mode so that expected crits fire at the statistically correct rate.
-export function createBerserkerState(): BerserkerState {
+function createBerserkerState(): BerserkerState {
   return {
     berserkActive: false,
     berserkUntil: 0,

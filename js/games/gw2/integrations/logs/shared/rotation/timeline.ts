@@ -1,11 +1,7 @@
+import type { CastCommand, CooldownResetCommand, RotationCommand } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { actionKind } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
-import type {
-  ReconstructedCommand,
-  ReconstructedCooldownResetCommand,
-  ReconstructedRotationCommand
-} from '#gw2/integrations/logs/shared/rotation/model.js';
 import { quantizeGw2ActionTimingMs, referenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 
 const OBSERVED_CAST_TOLERANCE_MS = 20;
@@ -37,7 +33,7 @@ export interface ReplayTimelinePolicy<Action extends ReplayTimelineAction> {
   /** Limits runtime correction to observed casts, preserving command occupancy owned by profession mechanics. */
   readonly hasObservedCastTime?: (action: Action) => boolean;
   readonly compareSimultaneousActions?: (left: Action, right: Action) => number;
-  readonly commandFor: (action: Action) => ReconstructedRotationCommand | ReconstructedCooldownResetCommand;
+  readonly commandFor: (action: Action) => CastCommand | CooldownResetCommand;
   readonly canEmit?: (action: Action) => boolean;
   readonly isBoundaryTransition?: (action: Action, activeCastEnd: number, previousCastStart: number | null) => boolean;
 }
@@ -46,10 +42,8 @@ function identityMilliseconds(value: number): number {
   return Math.max(0, value);
 }
 
-function isCooldownResetCommand(
-  command: ReconstructedRotationCommand | ReconstructedCooldownResetCommand
-): command is ReconstructedCooldownResetCommand {
-  return command.name === '__cooldown_reset';
+function isCooldownResetCommand(command: CastCommand | CooldownResetCommand): command is CooldownResetCommand {
+  return command.type === 'cooldown-reset';
 }
 
 /** Preserves overlong explicit casts while leaving autoattack chains to model their own cadence. */
@@ -59,13 +53,13 @@ function observedAftercastWaitMs(action: ReplayTimelineAction, replayEnd: number
   return excessMs > OBSERVED_CAST_TOLERANCE_MS ? excessMs : 0;
 }
 
-/** Converts one normalized action timeline into executable commands so both log sources preserve the same gaps and overlaps. */
+/** Converts one normalized action timeline into canonical scheduler commands so both log sources preserve the same gaps and overlaps. */
 export function buildReplayTimeline<Action extends ReplayTimelineAction>(
   actions: readonly Action[],
   origin: number,
   combatStart: number | null,
   policy: ReplayTimelinePolicy<Action>
-): ReconstructedCommand[] {
+): RotationCommand[] {
   const timingToleranceMs = policy.timingToleranceMs ?? 50;
   const minimumWaitMs = Math.max(0, Number(policy.minimumWaitMs || 0));
   const quantizeMs = policy.quantizeMs ?? identityMilliseconds;
@@ -167,7 +161,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
     weaponSwapIndices.delete(entry.action.start);
   }
 
-  const rotation: ReconstructedCommand[] = [];
+  const rotation: RotationCommand[] = [];
   let activeCastEnd = origin;
   let activeCast: Action | null = null;
   let retainedCastEnd = origin;
@@ -183,7 +177,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
 
   const appendWait = (waitMs: number): void => {
     if (!(waitMs > 0)) return;
-    rotation.push({ name: '__wait', waitMs });
+    rotation.push({ type: 'wait', durationMs: waitMs });
     if (alignWaitsToSimulatorTiming) {
       projectedTime = Math.max(projectedTime, projectedReservedEnd) + waitMs;
     }
@@ -231,13 +225,13 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       if (previousCastStart != null && overlapping) {
         // Round combat offsets relative to the skill, retaining exact packet-proven boundaries so opening hits stay observable.
         const offset = quantizeGw2ActionTimingMs(at - previousCastStart);
-        rotation.push({ name: '__combat_start', offset });
+        rotation.push({ type: 'combat-start', concurrentOffsetMs: offset });
         if (alignWaitsToSimulatorTiming && projectedPreviousCastStart != null) {
           projectedTime = Math.max(projectedTime, projectedPreviousCastStart + offset);
         }
       } else {
         appendObservedIdle(at);
-        rotation.push({ name: '__combat_start' });
+        rotation.push({ type: 'combat-start' });
         if (alignWaitsToSimulatorTiming) projectedTime = Math.max(projectedTime, projectedReservedEnd);
       }
 
@@ -284,9 +278,9 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       (independent || action.concurrentTimeline === true || (instant && action.skill?.canCastConcurrently !== false));
     const boundaryTransition = policy.isBoundaryTransition?.(action, blockingEnd, previousCastStart) === true;
     if (independent && previousCastStart != null && at >= previousCastStart) {
-      command.offset = quantizeMs(at - previousCastStart);
+      command.concurrentOffsetMs = quantizeMs(at - previousCastStart);
     } else if (previousCastStart != null && ((concurrent && overlapping) || boundaryTransition)) {
-      command.offset = quantizeMs(at - previousCastStart);
+      command.concurrentOffsetMs = quantizeMs(at - previousCastStart);
     } else {
       appendObservedIdle(at);
     }
@@ -308,15 +302,15 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
         (action.skill && policy.hasObservedCastTime?.(action) !== false
           ? referenceCastTimeMs(action.skill)
           : actionReplayEnd - at);
-      const interruptMs = command.interruptMs ?? action.skill?.defaultInterruptMs;
+      const interruptMs = command.interruptAfterMs ?? action.skill?.defaultInterruptMs;
       const effectiveRuntimeMs = interruptMs == null ? runtimeMs : Math.min(runtimeMs, Math.max(0, interruptMs));
       const retainedRuntimeMs =
         effectiveRuntimeMs < runtimeMs && retainsReplayCastLockout(action.skill, effectiveRuntimeMs)
           ? runtimeMs
           : effectiveRuntimeMs;
       const projectedStart: number =
-        command.offset != null && projectedPreviousCastStart != null
-          ? Math.max(projectedTime, projectedPreviousCastStart + command.offset)
+        command.concurrentOffsetMs != null && projectedPreviousCastStart != null
+          ? Math.max(projectedTime, projectedPreviousCastStart + command.concurrentOffsetMs)
           : independent
             ? Math.max(projectedTime, projectedIndependentReadyAt)
             : instant
@@ -350,7 +344,7 @@ export function buildReplayTimeline<Action extends ReplayTimelineAction>(
       if (!instant && actionReplayEnd >= activeCastEnd) activeCast = action;
       activeCastEnd = Math.max(activeCastEnd, instant ? at : actionReplayEnd);
       // Only an interrupted command uses the retained lane; idle after a completed cast remains explicit.
-      if (command.interruptMs != null && retainsReplayCastLockout(action.skill, command.interruptMs)) {
+      if (command.interruptAfterMs != null && retainsReplayCastLockout(action.skill, command.interruptAfterMs)) {
         retainedCastEnd = Math.max(retainedCastEnd, actionReplayEnd);
       }
     }

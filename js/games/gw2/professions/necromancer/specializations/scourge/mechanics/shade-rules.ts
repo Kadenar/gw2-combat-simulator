@@ -127,7 +127,7 @@ export const scourgeSchedulerHooks = Object.freeze({
   }
 });
 
-export const scourgeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const scourgeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'necromancer.fell-beacon',
     target: MODIFIER_TARGET.CONDITION_DAMAGE,

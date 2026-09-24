@@ -60,7 +60,7 @@ export function thiefInitiativeRegenerationRate(state: Pick<ThiefCoreState, 'kne
   );
 }
 
-export function thiefEnduranceRegenerationRate(
+function thiefEnduranceRegenerationRate(
   context: ThiefResourceContext,
   at = Number(context.start ?? context.state?.time ?? 0),
   vigorActive = Boolean(context.config?.boons?.vigor || context.hasBuff?.('vigor', at))

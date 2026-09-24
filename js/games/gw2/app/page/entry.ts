@@ -214,7 +214,7 @@ async function renderLoaderArtwork(root: Document): Promise<void> {
  * present. A missing card grid is allowed so the same entry point can run on
  * landing and simulator pages.
  */
-export function bindProfessionSelector(root: Document = document): void {
+function bindProfessionSelector(root: Document = document): void {
   void renderLoaderArtwork(root);
   mountGw2IconFallback(root);
   mountLegalFooter(root);

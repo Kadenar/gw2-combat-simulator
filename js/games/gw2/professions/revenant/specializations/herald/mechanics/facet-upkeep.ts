@@ -27,7 +27,7 @@ interface HeraldFacetPulsePayload {
   readonly skillId: SkillId;
 }
 
-export const HERALD_ELEVATED_COMPASSION_TASK = 'revenant.herald-elevated-compassion';
+const HERALD_ELEVATED_COMPASSION_TASK = 'revenant.herald-elevated-compassion';
 const ELEVATED_COMPASSION_TASK_OWNER = 'revenant.herald-elevated-compassion';
 
 function elevatedCompassionProfile(context: RevenantSchedulerContext) {
@@ -162,7 +162,7 @@ export function consumeRevenantFacet(context: RevenantCastContext, skill: Revena
   emitRevenantStateSnapshot(context, at, 'facet-consumed');
 }
 
-export function heraldFacetConsumeId(skill: RevenantSkill, activeLegendId: string): SkillId | undefined {
+function heraldFacetConsumeId(skill: RevenantSkill, activeLegendId: string): SkillId | undefined {
   if (skill.id === ID.FACET_OF_NATURE) {
     return (MECHANICS.trueNatureConsumeByLegendId as Readonly<Record<string, SkillId>>)[activeLegendId];
   }

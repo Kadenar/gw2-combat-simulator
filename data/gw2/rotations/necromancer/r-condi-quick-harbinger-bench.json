@@ -10,14 +10,15 @@
   },
   "rotation": [
     {
-      "name": "Elixir of Promise",
+      "type": "cast",
+      "skillId": 62667,
       "offTarget": true
     },
     "Harbinger Shroud",
     "Voracious Arc",
     {
-      "name": "__combat_start",
-      "offset": 800
+      "type": "combat-start",
+      "concurrentOffsetMs": 800
     },
     "Devouring Cut",
     "Dark Barrage",

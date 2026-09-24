@@ -86,7 +86,7 @@ function modifyDeadeyeAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   return result;
 }
 
-export const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'thief.iron-sight',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,

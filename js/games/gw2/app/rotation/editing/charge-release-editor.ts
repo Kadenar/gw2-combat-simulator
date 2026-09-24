@@ -39,7 +39,7 @@ export function chargeReleaseRowLabel(row: ChargeReleaseEditorRow, combatReferen
   );
 }
 
-export function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): FloatingEditorHandle {
+function openChargeReleaseEditor(options: ChargeReleaseEditorOptions): FloatingEditorHandle {
   const editor = document.createElement('div');
   editor.className = 'rotation-charge-release-editor';
   editor.setAttribute('role', 'dialog');

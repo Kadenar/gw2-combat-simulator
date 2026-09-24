@@ -21,8 +21,8 @@ interface BuildScheduledEventStreamOptions {
 /**
  * Versioned handoff format between scheduler and resolver.
  */
-export const SCHEDULED_EVENT_STREAM_KIND = 'gw2.simulation.events' as const;
-export const SCHEDULED_EVENT_STREAM_VERSION = 1 as const;
+const SCHEDULED_EVENT_STREAM_KIND = 'gw2.simulation.events' as const;
+const SCHEDULED_EVENT_STREAM_VERSION = 1 as const;
 
 /**
  * Builds the immutable stream consumed by resolver pipelines and tests.

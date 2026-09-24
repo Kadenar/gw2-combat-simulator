@@ -83,7 +83,6 @@ export function serializeActivePatchPreview(preview) {
  */
 export const activePatchPreview: PatchPreview = ${JSON.stringify(preview, null, 2)};
 
-export default activePatchPreview;
 `;
 }
 

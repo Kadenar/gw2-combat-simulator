@@ -80,7 +80,10 @@ test('both log adapters quantize channel and atomic cancellations to the same ac
                   }),
                   catalog
                 );
-          const replay = createScheduler({ profession }).run([...imported.rotation, { name: '__wait', waitMs: 1000 }]);
+          const replay = createScheduler({ profession }).run([
+            ...imported.rotation,
+            { type: 'wait', durationMs: 1000 }
+          ]);
           const rounded = Math.round(duration / 40) * 40;
           const label = `${source}, ${interruptMode}, duration ${duration}, gap ${gap}`;
           const channel = replay.steps.find((step) => step.skillId === 1000);
@@ -97,7 +100,7 @@ test('both log adapters quantize channel and atomic cancellations to the same ac
             label
           );
           assert.deepEqual(
-            imported.rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
+            imported.rotation.filter((command) => command.type === 'wait').map((command) => command.durationMs),
             gap ? [gap] : [],
             label
           );

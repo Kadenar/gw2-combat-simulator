@@ -363,11 +363,20 @@ test('Mesmer modules expose isolated balance-profile authoring', () => {
   assert.equal(CLONE_ATTACKS.Sword.firstAttackDelay, 2.48);
 });
 
-test('Mesmer and Guardian API catalogs use the same skill record shape', () => {
-  const expectedKeys = Object.keys(GUARDIAN_API_SKILLS[0]).sort();
+test('Mesmer and Guardian API catalogs share common fields and explicit ammo lockouts', () => {
+  const expectedKeys = Object.keys(GUARDIAN_API_SKILLS[0])
+    .filter((key) => key !== 'ammoCastLockout')
+    .sort();
 
-  for (const skill of SKILLS) {
-    assert.deepEqual(Object.keys(skill).sort(), expectedKeys, skill.name);
+  for (const skill of [...SKILLS, ...GUARDIAN_API_SKILLS]) {
+    assert.deepEqual(
+      Object.keys(skill)
+        .filter((key) => key !== 'ammoCastLockout')
+        .sort(),
+      expectedKeys,
+      skill.name
+    );
+    assert.equal(Object.hasOwn(skill, 'ammoCastLockout'), skill.ammo > 0, skill.name);
   }
 });
 

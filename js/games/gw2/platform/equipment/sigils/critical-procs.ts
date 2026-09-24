@@ -19,7 +19,7 @@ export interface CriticalSigilDecision {
 }
 
 /** Authored trigger membership also determines resolver ownership, including Blight. */
-export function isCriticalSigil(name: string): boolean {
+function isCriticalSigil(name: string): boolean {
   return PROCS[name]?.trigger === 'crit';
 }
 

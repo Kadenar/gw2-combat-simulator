@@ -3,7 +3,7 @@ import type { ThiefScheduledTask, ThiefSchedulerContext } from '#gw2/professions
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { deadeyeMaliceReaction } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
 
-export function expireDeadeyesMark(
+function expireDeadeyesMark(
   context: ThiefSchedulerContext,
   task: ThiefScheduledTask<{ readonly generation?: number }>
 ): void {

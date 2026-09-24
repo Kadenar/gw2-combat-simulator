@@ -21,6 +21,8 @@ import { recordRotationHistory, undoRotation } from '#gw2/app/rotation/editing/h
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/baseline-simulation-runner.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/modifier-contribution-runner.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/random-distribution-runner.js';
+import { loadBuild } from '#gw2/app/build/state/persistence.js';
+import { previewRotationFile } from '#gw2/app/io/rotation-import-dialog.js';
 
 function storage(t, initial = {}) {
   const values = new Map(Object.entries(initial));
@@ -30,6 +32,81 @@ function storage(t, initial = {}) {
   });
   return values;
 }
+
+// Downloads, the old single-build slot, tabs, reset targets, and My Builds share the same legacy command migration.
+test('saved legacy rotations load canonically from every persistence boundary', async (t) => {
+  const values = storage(t);
+  stubGlobal(
+    t,
+    'FileReader',
+    class {
+      async readAsText(file) {
+        this.result = await file.text();
+        this.onload();
+      }
+    }
+  );
+  for (const profession of [
+    'elementalist',
+    'engineer',
+    'guardian',
+    'mesmer',
+    'necromancer',
+    'ranger',
+    'revenant',
+    'thief',
+    'warrior'
+  ]) {
+    const adapter = await loadProfessionAppAdapter(profession);
+    const skill = adapter.profession.catalog.skillsByName.values().next().value;
+    const rotation = [
+      { name: skill.name, offset: 120, interruptMs: 80 },
+      { name: '__wait', waitMs: 250 },
+      { name: '__combat_start', offset: -40 },
+      { name: '__cooldown_reset' }
+    ];
+    const expected = [
+      { type: 'cast', skillId: skill.id, concurrentOffsetMs: 120, interruptAfterMs: 80 },
+      { type: 'wait', durationMs: 250 },
+      { type: 'combat-start', concurrentOffsetMs: -40 },
+      { type: 'cooldown-reset' }
+    ];
+    const saved = { ...adapter.profession.createBuildDefaults(), rotation };
+    values.set(adapter.storageKey, JSON.stringify(saved));
+    assert.deepEqual(loadBuild(adapter).rotation, expected, profession);
+    assert.deepEqual(loadBuildWorkspace(adapter).tabs[0].build.rotation, expected, profession);
+    values.set(
+      workspaceStorageKey(adapter),
+      JSON.stringify({
+        version: 1,
+        activeTabId: 'saved',
+        tabs: [{ id: 'saved', name: 'Saved', build: saved, templateBuild: saved }]
+      })
+    );
+    const workspace = loadBuildWorkspace(adapter);
+    assert.deepEqual(workspace.tabs[0].build.rotation, expected, profession);
+    assert.deepEqual(workspace.tabs[0].templateBuild.rotation, expected, profession);
+    values.set(
+      myBuildsStorageKey(adapter),
+      JSON.stringify({
+        version: 1,
+        builds: [{ id: 'saved', name: 'Saved', build: saved }]
+      })
+    );
+    assert.deepEqual(loadMyBuilds(adapter)[0].build.rotation, expected, profession);
+    const file = new File([JSON.stringify({ rotation })], 'saved-rotation.json', { type: 'application/json' });
+    const preview = await previewRotationFile(file, { activeCatalog: adapter.profession.catalog });
+    assert.deepEqual(preview.rotation, expected, profession);
+    saveBuildWorkspace({
+      adapter,
+      profession: adapter.profession,
+      workspace,
+      build: workspace.tabs[0].build,
+      patchId: 'current'
+    });
+    assert.deepEqual(JSON.parse(values.get(workspaceStorageKey(adapter))).tabs[0].build.rotation, expected, profession);
+  }
+});
 
 function stubGlobal(t, name, value) {
   const previous = Object.getOwnPropertyDescriptor(globalThis, name);

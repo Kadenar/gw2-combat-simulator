@@ -14,8 +14,8 @@ import { createCommonBuildDefaults } from '#gw2/professions/shared/build-default
  * Harbinger blight.
  */
 
-export const NECROMANCER_BUILD_SCHEMA_VERSION = 3;
-export const NECROMANCER_PROFESSION_ID = 'necromancer';
+const NECROMANCER_BUILD_SCHEMA_VERSION = 3;
+const NECROMANCER_PROFESSION_ID = 'necromancer';
 
 /** Creates the schema-current Necromancer preset used for new builds and migration fallbacks. */
 export function createNecromancerBuildDefaults(): NecromancerCanonicalBuild {

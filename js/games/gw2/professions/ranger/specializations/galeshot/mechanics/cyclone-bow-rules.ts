@@ -131,7 +131,7 @@ export const galeshotSchedulerHooks = Object.freeze({
 
 // Gate Galeshot casts by Cyclone Bow ownership, arrows, Wind Force, and the
 // Perilous Skies replacement before the shared Ranger checks run.
-export function galeshotCastAvailability(context: RangerCastContext, skill: RangerSkill): AvailabilityResult {
+function galeshotCastAvailability(context: RangerCastContext, skill: RangerSkill): AvailabilityResult {
   const state = galeshotState.from(context);
   if (skill.cycloneBowSkill && !state.cycloneBowActive) {
     return deny(skill, 'ranger.cyclone-bow-inactive', 'summon the Cyclone Bow first.');

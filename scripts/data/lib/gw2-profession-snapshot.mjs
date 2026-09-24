@@ -108,6 +108,10 @@ export function skillSnapshot(skill, { weapon = '', specialization = '' } = {}) 
     skill,
     (fact) => fact.text === 'Number of Casts' || fact.text === 'Maximum Count' || fact.text === 'Casts'
   );
+  // Store charge recovery and the between-cast lockout separately so runtime skills need no recharge alias.
+  const ammo = Number(casts?.value || 0);
+  const ammoRecharge = Number(countRecharge?.duration || countRecharge?.value || 0);
+  const castRecharge = Number(recharge?.value || recharge?.duration || 0);
 
   return {
     id: skill.id,
@@ -121,9 +125,10 @@ export function skillSnapshot(skill, { weapon = '', specialization = '' } = {}) 
     ...(skill.attunement ? { attunement: skill.attunement } : {}),
     specialization,
     categories: skill.categories || [],
-    recharge: Number(recharge?.value || recharge?.duration || 0),
-    ammo: Number(casts?.value || 0),
-    ammoRecharge: Number(countRecharge?.duration || countRecharge?.value || 0),
+    cooldown: ammo > 0 && ammoRecharge > 0 ? ammoRecharge : castRecharge,
+    ...(ammo > 0 ? { ammoCastLockout: castRecharge } : {}),
+    ammo,
+    ammoRecharge,
     nextChainId: canonicalSkillId(skill.next_chain) ?? null,
     flipSkillId: canonicalSkillId(skill.flip_skill) ?? null
   };

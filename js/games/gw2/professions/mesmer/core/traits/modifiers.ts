@@ -271,7 +271,7 @@ export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze
   }
 ]);
 
-export function compileMesmerModifierRules(rules: readonly Gw2ModifierRule[]): ReturnType<typeof createModifierHooks> {
+function compileMesmerModifierRules(rules: readonly Gw2ModifierRule[]): ReturnType<typeof createModifierHooks> {
   return createModifierHooks({
     rules,
     damageBuckets: {

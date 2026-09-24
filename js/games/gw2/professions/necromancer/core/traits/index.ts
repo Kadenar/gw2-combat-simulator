@@ -78,7 +78,7 @@ function updateNecromancerCastState(context: NecromancerCastContext, skill: Necr
         state.availableFlips,
         flip.id,
         context.effectiveEnd,
-        context.rechargeStart + Math.max(1, Number(skill.flipDuration ?? skill.cooldown ?? skill.recharge ?? 5))
+        context.rechargeStart + Math.max(1, Number(skill.flipDuration ?? skill.cooldown ?? 5))
       );
     }
   }

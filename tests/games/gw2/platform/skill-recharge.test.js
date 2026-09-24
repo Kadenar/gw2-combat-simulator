@@ -137,19 +137,19 @@ test('ordinary and ammo cooldowns wait for their detection tick even one microse
 });
 
 test('GW2 base recharge selects positive ammo recharge before cooldown fields', () => {
-  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: 8, cooldown: 10, recharge: 12 }), 8);
-  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: 0, cooldown: 10, recharge: 12 }), 10);
-  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: -8, cooldown: 10, recharge: 12 }), 10);
-  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: Number.POSITIVE_INFINITY, recharge: 12 }), 12);
-  assert.equal(gw2BaseRecharge({ ammo: 0, ammoRecharge: 8, cooldown: 10, recharge: 12 }), 10);
+  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: 8, cooldown: 10 }), 8);
+  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: 0, cooldown: 10 }), 10);
+  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: -8, cooldown: 10 }), 10);
+  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: Number.POSITIVE_INFINITY, cooldown: 12 }), 12);
+  assert.equal(gw2BaseRecharge({ ammo: 0, ammoRecharge: 8, cooldown: 10 }), 10);
 });
 
-test('GW2 base recharge prefers finite canonical cooldown and then legacy recharge', () => {
-  assert.equal(gw2BaseRecharge({ cooldown: 10, recharge: 12 }), 10);
-  assert.equal(gw2BaseRecharge({ cooldown: 0, recharge: 12 }), 0);
-  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: 0, cooldown: 0, recharge: 12 }), 0);
-  assert.equal(gw2BaseRecharge({ cooldown: Number.NaN, recharge: 12 }), 12);
-  assert.equal(gw2BaseRecharge({ cooldown: Number.POSITIVE_INFINITY, recharge: Number.NaN }), 0);
+test('GW2 base recharge accepts finite cooldowns and defaults missing or invalid values to zero', () => {
+  assert.equal(gw2BaseRecharge({ cooldown: 10 }), 10);
+  assert.equal(gw2BaseRecharge({ cooldown: 0 }), 0);
+  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: 0, cooldown: 0 }), 0);
+  assert.equal(gw2BaseRecharge({ cooldown: Number.NaN }), 0);
+  assert.equal(gw2BaseRecharge({ cooldown: Number.POSITIVE_INFINITY }), 0);
   assert.equal(gw2BaseRecharge({}), 0);
 });
 
@@ -158,14 +158,14 @@ test('scheduler recharge queries share base selection and preserve independent a
   const { context } = createScheduler({
     profession: defineProfession({ id: 'recharge-query', name: 'Recharge Query' })
   });
-  const skill = { id: 990021, ammo: 2, ammoRecharge: 8, cooldown: 10, recharge: 12, ammoCastLockout: 0.5 };
+  const skill = { id: 990021, ammo: 2, ammoRecharge: 8, cooldown: 10, ammoCastLockout: 0.5 };
   assert.equal(context.rechargeDurationFor(skill), 8);
   assert.equal(context.rechargeDurationFor(skill, 0, { ammoCastLockout: true }), 0.5);
   assert.equal(context.rechargeDurationFor({ ...skill, ammoRecharge: Infinity }), 10);
 });
 
-// Warrior's legacy recharge remains a cast lockout while each spent charge recovers independently of it.
-test('Warrior ammo normalization preserves charge recovery and the legacy-derived cast lockout', () => {
+// Each spent charge recovers independently of the between-cast lockout.
+test('Warrior ammo preserves charge recovery and its independent cast lockout', () => {
   const scheduler = createScheduler({
     profession: warriorProfession,
     config: { selectedSkills: ['Throw Bolas'] }
@@ -207,7 +207,7 @@ test('declarative ammo consumes and recharges shared charges', () => {
         type: 'Utility',
         castTimeMs: 0,
         cooldown: 0.25,
-        recharge: 0.25,
+        ammoCastLockout: 0.25,
         ammo: 2,
         ammoRecharge: 5,
         effects: [{ type: 'strike', coefficient: 1 }]
@@ -227,14 +227,14 @@ test('declarative ammo consumes and recharges shared charges', () => {
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'damage').length, 2);
   assert.deepEqual(
     result.events.filter((event) => event.type === 'action').map((event) => event.at),
-    [0, 0.25]
+    [0, 0.28]
   );
   assert.deepEqual(result.planningState.ammo['Fixture Ammo'], {
     charges: 1,
     maximum: 2,
     rechargeWork: 5,
     nextRechargeAt: 10,
-    lockoutReadyAt: 0.5
+    lockoutReadyAt: 0.56
   });
 });
 
@@ -287,8 +287,8 @@ test('end state projects ammo and cooldowns at the resolution boundary', () => {
   }
 });
 
-// Cooldown and ammo lockout deadlines retain exact wall time, so retries need no action-tick padding.
-test("shared scheduler waits until a skill's exact cooldown expiry", () => {
+// Deadlines retain exact wall time while the next activation waits for its detection tick.
+test("shared scheduler detects a skill's cooldown expiry on the next action tick", () => {
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -314,13 +314,13 @@ test("shared scheduler waits until a skill's exact cooldown expiry", () => {
 
   assert.deepEqual(
     actions.map((event) => event.at),
-    [0, 0.3]
+    [0, 0.32]
   );
   assert.deepEqual(
     result.steps.map((step) => step.start),
-    [0, 300]
+    [0, 320]
   );
-  assert.equal(result.planningState.atSeconds * 1000, 300);
-  assert.equal(result.planningState.cooldowns['Fixture Cooldown'].readyAt, 600);
+  assert.equal(result.planningState.atSeconds * 1000, 320);
+  assert.equal(result.planningState.cooldowns['Fixture Cooldown'].readyAt, 640);
   assert.deepEqual(result.warnings, []);
 });

@@ -142,7 +142,7 @@ function queueSplinterWeapon(
 }
 
 /** Resolves a precomputed allied-player weapon-spell trigger without consuming player charges. */
-export function handleNecromancerWeaponSpellAllyTrigger(
+function handleNecromancerWeaponSpellAllyTrigger(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {

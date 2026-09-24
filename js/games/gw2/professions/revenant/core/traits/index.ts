@@ -33,7 +33,7 @@ export function modifyRevenantRechargeDuration(context: RevenantRechargeContext,
   const skill = context.skill;
   if (skill && ([ID.SWAP_LEGENDS, ID.SWAP_WEAPONS] as readonly number[]).includes(Number(skill.id))) {
     if (duration === 0) return 0;
-    return Math.max(0, Number(skill.cooldown ?? skill.recharge ?? duration));
+    return Math.max(0, Number(skill.cooldown ?? duration));
   }
 
   return duration;

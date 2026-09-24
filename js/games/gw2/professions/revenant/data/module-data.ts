@@ -35,7 +35,7 @@ const normalize = (skill: Skill): Skill => ({
         patchAuthoringExcluded: true
       }
     : {}),
-  ...(skill.recharge == null && skill.ammoRecharge == null
+  ...(skill.cooldown == null && skill.ammoRecharge == null
     ? {}
     : {
         cooldown: gw2BaseRecharge(skill)

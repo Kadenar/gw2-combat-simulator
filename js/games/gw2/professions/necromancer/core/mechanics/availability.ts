@@ -206,7 +206,7 @@ const CAST_STATE_GATES: readonly CastStateGate[] = Object.freeze([
  * Permanent build gating: nothing here can become valid by advancing time, so
  * failures deny the current command without advertising a retry timestamp.
  */
-export function necromancerBuildAvailability(
+function necromancerBuildAvailability(
   context: NecromancerPrecastContext,
   skill: NecromancerSkill
 ): Readonly<AvailabilityResult> {
@@ -225,7 +225,7 @@ export function necromancerBuildAvailability(
  * Structured state/resource availability. Returns {ready:true} or a denial with
  * a specific reason and code, replacing the former monolithic boolean ladder.
  */
-export function necromancerCastAvailability(
+function necromancerCastAvailability(
   context: NecromancerPrecastContext,
   skill: NecromancerSkill
 ): Readonly<AvailabilityResult> {

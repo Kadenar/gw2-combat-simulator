@@ -213,7 +213,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         duration: 5
       }
     ],
-    recharge: 20,
+
     cooldown: 20,
     // Use the measured Quickness animation so later casts begin at the logged time.
     castTimeMs: 360,

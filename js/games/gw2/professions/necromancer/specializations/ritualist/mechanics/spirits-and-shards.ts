@@ -60,7 +60,7 @@ function modifyRitualistAttributes(context: Gw2ModifierContext, attributes: Gw2S
   return result;
 }
 
-export const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'necromancer.essence-blast-active-spirits',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,

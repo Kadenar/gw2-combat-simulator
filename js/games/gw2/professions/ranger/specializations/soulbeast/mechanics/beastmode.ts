@@ -137,7 +137,7 @@ function modifySoulbeastAttributes(context: RangerModifierContext, attributes: G
   return result;
 }
 
-export function soulbeastCastAvailability(context: RangerCastContext, skill: RangerSkill): AvailabilityResult {
+function soulbeastCastAvailability(context: RangerCastContext, skill: RangerSkill): AvailabilityResult {
   const state = soulbeastState.from(context);
   const toggle = skill.id === ID.BEASTMODE || skill.id === ID.LEAVE_BEASTMODE;
   // Wrong-pet check must precede the beastmode-active check: a skill can be a beastmodeSkill

@@ -36,7 +36,7 @@ export interface ProfessionTraitDataOptions<TSourceTrait, TTrait> {
  * Invalid or missing selections produce NaN entries, which are ignored by
  * active-trait resolution.
  */
-export function parseTraitChoices(value?: string | null): readonly number[] {
+function parseTraitChoices(value?: string | null): readonly number[] {
   return String(value || '')
     .split('-')
     .map(Number);

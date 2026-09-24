@@ -1235,7 +1235,7 @@ test('Rigor Mortis is instant and fires two immobilizing projectile finishers', 
       event.type === 'damage' && [3633, 3644].includes(event.skillId) && event.at * 1000 > preservedRigorStep.start
   );
 
-  assert.equal(necromancerCatalog.skillsByName.get('Rigor Mortis').recharge, 50);
+  assert.equal(necromancerCatalog.skillsByName.get('Rigor Mortis').cooldown, 50);
   assert.equal(rigorStep.fullCastMs, 0);
   assert.deepEqual(
     attacks.map((event) => [event.coefficient, event.comboFinishers[0].chance]),

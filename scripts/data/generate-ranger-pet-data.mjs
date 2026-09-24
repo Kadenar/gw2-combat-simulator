@@ -270,7 +270,6 @@ export async function generateRangerPetData({ skills: apiSkills }) {
     slot: "Profession_2",
     categories: ["Pet"],
     specialization: "",
-    recharge: ${Number(recharge)},
     cooldown: ${Number(recharge)},
     petSkill: true,
     petFamilySkill: ${AUTONOMOUS_PET_SKILL_IDS.has(skill.id)},

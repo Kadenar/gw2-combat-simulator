@@ -7,7 +7,7 @@ import {
 } from '#gw2/platform/skills/timing.js';
 
 /** A shortened atomic input cancels unless a declared skill or effect cutoff has been reached. */
-export function isUncommittedCast(skill: Skill | null, durationMs: number): boolean {
+function isUncommittedCast(skill: Skill | null, durationMs: number): boolean {
   if (skill?.interruptMode === 'per-packet') return false;
   const elapsedMs = quantizeGw2ActionTimingMs(durationMs);
   if (elapsedMs >= referenceCastTimeMs(skill)) return false;

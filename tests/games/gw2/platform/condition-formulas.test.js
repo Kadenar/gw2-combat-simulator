@@ -3,13 +3,12 @@ import test from 'node:test';
 import { conditionTickDamage } from '#gw2/platform/combat/formulas.js';
 
 test('condition damage uses the canonical combat-domain formulas', () => {
-  // One row per formula branch keeps coefficients, aliases, and edge behavior explicit.
+  // One row per canonical formula branch keeps coefficients and edge behavior explicit.
   const cases = [
     ['Bleeding', 1000, undefined, 82],
     ['Burning', 1000, undefined, 286],
     ['Confusion', 1000, undefined, 68.25],
     ['Fear', 1000, undefined, 844],
-    ['Poison', 1000, undefined, 93.5],
     ['Poisoned', 1000, undefined, 93.5],
     ['Torment', 1000, undefined, 121.8],
     ['Torment', 1000, { stationary: false }, 82],

@@ -5,7 +5,7 @@ import {
 } from '#gw2/professions/mesmer/core/traits/index.js';
 import type { MesmerResolverContext, MesmerResolverEvent } from '#gw2/professions/mesmer/types.js';
 
-export function handleMesmerControlEvent(ctx: MesmerResolverContext, event: MesmerResolverEvent): void {
+function handleMesmerControlEvent(ctx: MesmerResolverContext, event: MesmerResolverEvent): void {
   if (!ctx.config.target?.activatingSkills) {
     return;
   }
@@ -13,7 +13,7 @@ export function handleMesmerControlEvent(ctx: MesmerResolverContext, event: Mesm
   triggerIneptitudeFromInterrupt(ctx, event);
 }
 
-export function handleMesmerBlindEvent(ctx: MesmerResolverContext, event: MesmerResolverEvent): void {
+function handleMesmerBlindEvent(ctx: MesmerResolverContext, event: MesmerResolverEvent): void {
   triggerIneptitudeFromBlind(ctx, event);
 }
 

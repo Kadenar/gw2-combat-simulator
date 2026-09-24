@@ -89,7 +89,7 @@ function selectedNames(context: EngineerUiContext = {}): Set<string> {
 }
 
 /** Returns selected heal, utility, and elite skill names in their fixed slot order. */
-export function selectedNamesInSlotOrder(context: EngineerUiContext = {}): (string | undefined)[] {
+function selectedNamesInSlotOrder(context: EngineerUiContext = {}): (string | undefined)[] {
   const source: Gw2SelectedSkillLoadout = context.config?.selectedSkills || context.build?.selectedSkills || [];
   if (Array.isArray(source)) return [...normalizeSelectedSkillNames(source)];
   const slots = source as Readonly<Record<string, unknown>>;
@@ -97,7 +97,7 @@ export function selectedNamesInSlotOrder(context: EngineerUiContext = {}): (stri
 }
 
 /** Lists equipped kits in the stable display order used by palette groups. */
-export function selectedKitNames(context: EngineerUiContext): string[] {
+function selectedKitNames(context: EngineerUiContext): string[] {
   return [
     ...new Set(
       engineerSkills
@@ -125,7 +125,7 @@ export function uniqueIdsBySkillName(skillIds: readonly SkillId[]): SkillId[] {
 }
 
 /** Deduplicates skill records by name for palette and profession-bar presentation. */
-export function uniqueSkillsByName(skills: readonly EngineerSkill[]): EngineerSkill[] {
+function uniqueSkillsByName(skills: readonly EngineerSkill[]): EngineerSkill[] {
   return [...new Map(skills.map((skill) => [skill.name, skill])).values()];
 }
 
@@ -144,7 +144,7 @@ function usesToolsTraitline(context: EngineerUiContext): boolean {
 
 // toolbelt skill is the non-Detonate variant — each parent has both a toolbelt skill and a detonate flip
 /** Resolves an equipped slot skill to its non-detonate toolbelt skill. */
-export function toolbeltSkillId(parentName: string | undefined): SkillId | null {
+function toolbeltSkillId(parentName: string | undefined): SkillId | null {
   if (!parentName) return null;
   return (
     uniqueSkillsByName(
@@ -166,17 +166,17 @@ export function engineerToolbeltSkillIds(context: EngineerUiContext): (SkillId |
 }
 
 /** Returns the fixed Core Engineer profession-skill slots for the active loadout. */
-export function professionSkillSlots(context: EngineerUiContext): (SkillId | null)[] {
+function professionSkillSlots(context: EngineerUiContext): (SkillId | null)[] {
   return engineerToolbeltSkillIds(context);
 }
 
 /** Returns populated Core profession-skill IDs for palette and bar consumers. */
-export function professionSkills(context: EngineerUiContext): SkillId[] {
+function professionSkills(context: EngineerUiContext): SkillId[] {
   return professionSkillSlots(context).filter((id) => id != null);
 }
 
 /** Explains whether a Core Engineer skill is usable in the currently displayed state. */
-export function engineerCorePaletteSkillAvailability(
+function engineerCorePaletteSkillAvailability(
   context: EngineerUiContext = {},
   skill: EngineerSkill
 ): PaletteSkillAvailability {
@@ -232,7 +232,7 @@ export function engineerCorePaletteSkillAvailability(
 }
 
 /** Suppresses internal Engineer events whose visible effects already have dedicated result rows. */
-export function engineerEventLogRow(
+function engineerEventLogRow(
   context: EngineerUiContext,
   event: EngineerResolverEvent
 ): ProfessionEventLogDescriptor | null | undefined {
@@ -272,7 +272,7 @@ export function engineerEventLogRow(
   return undefined;
 }
 
-export const engineerCoreUi: EngineerUiSlice = Object.freeze({
+const engineerCoreUi: EngineerUiSlice = Object.freeze({
   assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   // Builds one stacked palette group per selected kit, plus Core's profession-skill group.
   paletteGroups: (context: EngineerUiContext) => {

@@ -51,7 +51,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
     type: 'Bundle',
     slot: 'Weapon_2',
     specialization: 'Druid',
-    recharge: 4,
+
     cooldown: 4,
     celestialAvatarSkill: true
   },
@@ -63,7 +63,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
     type: 'Bundle',
     slot: 'Weapon_3',
     specialization: 'Druid',
-    recharge: 8,
+
     cooldown: 8,
     celestialAvatarSkill: true
   },
@@ -75,7 +75,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
     type: 'Bundle',
     slot: 'Weapon_4',
     specialization: 'Druid',
-    recharge: 8,
+
     cooldown: 8,
     celestialAvatarSkill: true
   },
@@ -87,7 +87,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
     type: 'Bundle',
     slot: 'Weapon_5',
     specialization: 'Druid',
-    recharge: 10,
+
     cooldown: 10,
     celestialAvatarSkill: true
   },
@@ -111,7 +111,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
     type: 'Bundle',
     slot: 'Weapon_1',
     specialization: 'Galeshot',
-    recharge: 1,
+
     cooldown: 1,
     cycloneBowSkill: true,
     arrowCost: 0,
@@ -125,7 +125,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
     type: 'Bundle',
     slot: 'Weapon_2',
     specialization: 'Galeshot',
-    recharge: 3,
+
     cooldown: 3,
     cycloneBowSkill: true,
     arrowCost: 1,
@@ -139,7 +139,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
     type: 'Bundle',
     slot: 'Weapon_3',
     specialization: 'Galeshot',
-    recharge: 8,
+
     cooldown: 8,
     cycloneBowSkill: true,
     arrowCost: 1,
@@ -153,7 +153,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
     type: 'Bundle',
     slot: 'Weapon_4',
     specialization: 'Galeshot',
-    recharge: 12,
+
     cooldown: 12,
     cycloneBowSkill: true,
     arrowCost: 2,
@@ -183,7 +183,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
     type: 'Bundle',
     slot: 'Weapon_5',
     specialization: 'Galeshot',
-    recharge: 25,
+
     cooldown: 25,
     cycloneBowSkill: true,
     arrowCost: 3,

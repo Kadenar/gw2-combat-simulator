@@ -189,7 +189,7 @@ test('snaps reconstructed dps.report waits to the nearest 40 ms action tick', ()
   });
 
   assert.deepEqual(
-    result.rotation.filter((command) => command.name === '__wait').map((command) => command.waitMs),
+    result.rotation.filter((command) => command.type === 'wait').map((command) => command.durationMs),
     [120]
   );
 });
@@ -219,7 +219,7 @@ test("dps.report Mushroom King's Blessing casts become cooldown resets", () => {
   });
   const result = reconstructDpsReportRotation(report, catalogFixture());
 
-  assert.ok(result.rotation.some((command) => command.name === '__cooldown_reset'));
+  assert.ok(result.rotation.some((command) => command.type === 'cooldown-reset'));
   assert.ok(result.warnings.every((warning) => !warning.includes('could not be matched')));
 });
 
@@ -253,10 +253,10 @@ test('quantizes shortened per-packet cast durations from dps.report', () => {
       })
     ]
   });
-  const casts = result.rotation.filter((command) => command.name === 'Whirling Wrath');
+  const casts = result.rotation.filter((command) => command.skillId === 9_081);
 
-  assert.equal(casts[0].interruptMs, undefined);
-  assert.equal(casts[1].interruptMs, 1_400);
+  assert.equal(casts[0].interruptAfterMs, undefined);
+  assert.equal(casts[1].interruptAfterMs, 1_400);
 });
 
 test('shortened report inputs preserve elapsed time and obey scheduler cancellation contracts', () => {
@@ -367,14 +367,14 @@ test('preserves cancelled and shortened autoattack inputs at their observed dura
 
   assert.deepEqual(
     result.rotation
-      .filter((command) => ['Fragmentation Shot', 'Flame Jet', 'Bomb'].includes(command.name))
-      .map((command) => [command.name, command.interruptMs]),
+      .filter((command) => [5827, 5928, 5842].includes(command.skillId))
+      .map((command) => [command.skillId, command.interruptAfterMs]),
     [
-      ['Fragmentation Shot', 240],
-      ['Fragmentation Shot', 360],
-      ['Flame Jet', 80],
-      ['Flame Jet', 400],
-      ['Bomb', 80]
+      [5827, 240],
+      [5827, 360],
+      [5928, 80],
+      [5928, 400],
+      [5842, 80]
     ]
   );
 });
@@ -395,7 +395,7 @@ test('restores legacy EI Devastator pseudo-casts without hiding true interrupts'
 
   const result = reconstructDpsReportRotation(parseDpsReport(fixture), engineerCatalog);
   const actions = result.actions.filter((action) => action.name === 'Devastator');
-  const commands = result.rotation.filter((command) => command.name === 'Devastator');
+  const commands = result.rotation.filter((command) => command.skillId === 72974);
 
   // Source evidence remains intact while only EI's known reduced pseudo-cast becomes catalog-complete.
   assert.deepEqual(
@@ -410,7 +410,7 @@ test('restores legacy EI Devastator pseudo-casts without hiding true interrupts'
     ]
   );
   assert.deepEqual(
-    commands.map((command) => command.interruptMs),
+    commands.map((command) => command.interruptAfterMs),
     [undefined, 80]
   );
 });
@@ -456,7 +456,7 @@ test('keeps Vent Exhaust trait-proc rows out of Engineer rotations without relyi
     false
   );
   assert.equal(
-    result.rotation.some((command) => command.name === 'Vent Exhaust'),
+    result.rotation.some((command) => command.skillId === 43630),
     false
   );
 });
@@ -491,7 +491,7 @@ test('ties a jittered Engineer kit transition after its outgoing weapon cast', (
   };
 
   const result = reconstructDpsReportRotation(parseDpsReport(fixture), engineerCatalog);
-  const names = result.rotation.map((command) => command.name);
+  const names = result.rotation.map((command) => engineerCatalog.skillsById.get(command.skillId)?.name);
   const electroIndex = names.indexOf('Electro-whirl');
   const kitIndex = names.indexOf('Grenade Kit');
   const grenadeIndex = names.indexOf('Shrapnel Grenade');
@@ -503,7 +503,7 @@ test('ties a jittered Engineer kit transition after its outgoing weapon cast', (
     result.actions.find((action) => action.name === 'Electro-whirl').timestampMs,
     result.actions.find((action) => action.name === 'Grenade Kit').timestampMs
   );
-  assert.equal(result.rotation.find((command) => command.name === 'Rocket Charge').interruptMs, undefined);
+  assert.equal(result.rotation.find((command) => command.skillId === 30665).interruptAfterMs, undefined);
 });
 
 test('Forge replaces an equipped kit without a redundant stow or cancelling overlapping toolbelt casts', () => {
@@ -538,7 +538,7 @@ test('Forge replaces an equipped kit without a redundant stow or cancelling over
     [2500]
   );
   for (const id of [42938, 41123, 45219]) assert.ok(result.rotation.some((command) => command.skillId === id));
-  assert.equal(result.rotation.find((command) => command.skillId === 1000).interruptMs, undefined);
+  assert.equal(result.rotation.find((command) => command.skillId === 1000).interruptAfterMs, undefined);
 });
 
 test('imports reported Mechanist commands and Overclock without replaying passive Rocket Punch', async () => {
@@ -597,7 +597,7 @@ test('keeps simulator-generated Engineer packets out of imported rotations', () 
     false
   );
   assert.equal(
-    result.rotation.some((command) => command.name === 'Focused Devastation'),
+    result.rotation.some((command) => command.skillId === 73064),
     false
   );
 });

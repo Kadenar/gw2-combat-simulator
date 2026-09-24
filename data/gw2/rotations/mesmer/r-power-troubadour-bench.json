@@ -7,217 +7,829 @@
     "source": "EVTC activation order reconstructed from the supplied benchmark"
   },
   "rotation": [
-    { "name": "Mimic", "skillId": 29578 },
-    { "name": "Unstable Bladestorm", "skillId": 62607 },
-    { "name": "__combat_start" },
-    { "name": "Phantasmal Swordsman", "skillId": 10174 },
-    { "name": "Flustering Flute", "skillId": 76746 },
-    { "name": "Bladecall", "skillId": 62560 },
-    { "name": "Swap Weapons", "skillId": -3 },
-
-    { "name": "Lively Lute", "skillId": 76552 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Phantasmal Lancer", "skillId": 72946 },
-    { "name": "Tale of the Tortured Mastermind", "skillId": 77066 },
-    { "name": "Harmonious Harp", "skillId": 77077, "interruptMs": 480 },
-    { "name": "Imaginary Inversion", "skillId": 73152 },
-    { "name": "Power Spike", "skillId": 10212 },
-    { "name": "Tale of the Tortured Mastermind", "skillId": 77066 },
-    { "name": "Deafening Drum", "skillId": 77079 },
-    { "name": "Crescendo", "skillId": 76931 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Mental Collapse", "skillId": 72957 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Psycut", "skillId": 73154 },
-    { "name": "Psystrike", "skillId": 73066 },
-    { "name": "Mind Pierce", "skillId": 73095 },
-    { "name": "Psycut", "skillId": 73154 },
-    { "name": "Psystrike", "skillId": 73066 },
-    { "name": "Mind Pierce", "skillId": 73095 },
-    { "name": "Lively Lute", "skillId": 76552 },
-    { "name": "Psycut", "skillId": 73154 },
-    { "name": "Phantasmal Lancer", "skillId": 72946 },
-    { "name": "Power Spike", "skillId": 10212 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Swap Weapons", "skillId": -3 },
-
-    { "name": "Phantasmal Swordsman", "skillId": 10174 },
-    { "name": "Bladecall", "skillId": 62560 },
-    { "name": "Unstable Bladestorm", "skillId": 62607 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flustering Flute", "skillId": 76746 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Bladecall", "skillId": 62560 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Tale of the Tortured Mastermind", "skillId": 77066 },
-    { "name": "Power Spike", "skillId": 10212 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Lively Lute", "skillId": 76552 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Bladecall", "skillId": 62560 },
-    { "name": "Flying Cutter", "skillId": 62510, "interruptMs": 160 },
-    { "name": "Phantasmal Swordsman", "skillId": 10174 },
-    { "name": "Unstable Bladestorm", "skillId": 62607 },
-    { "name": "Swap Weapons", "skillId": -3 },
-
-    { "name": "Phantasmal Lancer", "skillId": 72946 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Deafening Drum", "skillId": 77079 },
-    { "name": "Imaginary Inversion", "skillId": 73152 },
-    { "name": "Psycut", "skillId": 73154 },
-    { "name": "Harmonious Harp", "skillId": 77077, "interruptMs": 480 },
-    { "name": "Psycut", "skillId": 73154 },
-    { "name": "__wait", "waitMs": 160 },
-    { "name": "Power Spike", "skillId": 10212 },
-    { "name": "Psystrike", "skillId": 73066 },
-    { "name": "Mind Pierce", "skillId": 73095 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Mental Collapse", "skillId": 72957 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Lively Lute", "skillId": 76552 },
-    { "name": "Psycut", "skillId": 73154 },
-    { "name": "Psystrike", "skillId": 73066 },
-    { "name": "Mind Pierce", "skillId": 73095 },
-    { "name": "Crescendo", "skillId": 76931 },
-    { "name": "Phantasmal Lancer", "skillId": 72946 },
-    { "name": "Flustering Flute", "skillId": 76746 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Swap Weapons", "skillId": -3 },
-
-    { "name": "__wait", "waitMs": 120 },
-    { "name": "Power Spike", "skillId": 10212 },
-    { "name": "Phantasmal Swordsman", "skillId": 10174 },
-    { "name": "Bladecall", "skillId": 62560 },
-    { "name": "Unstable Bladestorm", "skillId": 62607 },
-    { "name": "Mimic", "skillId": 29578 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Lively Lute", "skillId": 76552 },
-    { "name": "Bladecall", "skillId": 62560 },
-    { "name": "Tale of the Tortured Mastermind", "skillId": 77066 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510, "interruptMs": 80 },
-    { "name": "Tale of the Tortured Mastermind", "skillId": 77066 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Power Spike", "skillId": 10212 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Deafening Drum", "skillId": 77079 },
-    { "name": "Bladecall", "skillId": 62560 },
-    { "name": "Phantasmal Swordsman", "skillId": 10174 },
-    { "name": "Unstable Bladestorm", "skillId": 62607 },
-    { "name": "Swap Weapons", "skillId": -3 },
-
-    { "name": "Phantasmal Lancer", "skillId": 72946 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Harmonious Harp", "skillId": 77077, "interruptMs": 480 },
-    { "name": "Imaginary Inversion", "skillId": 73152 },
-    { "name": "Psycut", "skillId": 73154 },
-    { "name": "Psystrike", "skillId": 73066 },
-    { "name": "Mind Pierce", "skillId": 73095 },
-    { "name": "Flustering Flute", "skillId": 76746 },
-    { "name": "Psycut", "skillId": 73154 },
-    { "name": "Power Spike", "skillId": 10212 },
-    { "name": "Psystrike", "skillId": 73066 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Mental Collapse", "skillId": 72957 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Lively Lute", "skillId": 76552 },
-    { "name": "Psycut", "skillId": 73154 },
-    { "name": "Psystrike", "skillId": 73066 },
-    { "name": "Mind Pierce", "skillId": 73095 },
-    { "name": "Psycut", "skillId": 73154 },
-    { "name": "Psystrike", "skillId": 73066 },
-    { "name": "Phantasmal Lancer", "skillId": 72946 },
-    { "name": "Imaginary Inversion", "skillId": 73152 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Swap Weapons", "skillId": -3 },
-
-    { "name": "Phantasmal Swordsman", "skillId": 10174 },
-    { "name": "Power Spike", "skillId": 10212 },
-    { "name": "Bladecall", "skillId": 62560 },
-    { "name": "Unstable Bladestorm", "skillId": 62607 },
-    { "name": "Flying Cutter", "skillId": 62510, "interruptMs": 80 },
-    { "name": "Crescendo", "skillId": 76931 },
-    { "name": "Tale of the Tortured Mastermind", "skillId": 77066 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510, "interruptMs": 280 },
-    { "name": "Lively Lute", "skillId": 76552 },
-    { "name": "Bladecall", "skillId": 62560 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Deafening Drum", "skillId": 77079 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Power Spike", "skillId": 10212 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Bladecall", "skillId": 62560 },
-    { "name": "Phantasmal Swordsman", "skillId": 10174 },
-    { "name": "Unstable Bladestorm", "skillId": 62607 },
-    { "name": "Swap Weapons", "skillId": -3 },
-
-    { "name": "Phantasmal Lancer", "skillId": 72946 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Flustering Flute", "skillId": 76746 },
-    { "name": "Imaginary Inversion", "skillId": 73152 },
-    { "name": "Mimic", "skillId": 29578 },
-    { "name": "Harmonious Harp", "skillId": 77077, "interruptMs": 480 },
-    { "name": "Psycut", "skillId": 73154 },
-    { "name": "Psystrike", "skillId": 73066 },
-    { "name": "Mind Pierce", "skillId": 73095 },
-    { "name": "Psycut", "skillId": 73154, "interruptMs": 240 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Mental Collapse", "skillId": 72957 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Lively Lute", "skillId": 76552 },
-    { "name": "Tale of the Tortured Mastermind", "skillId": 77066 },
-    { "name": "Power Spike", "skillId": 10212 },
-    { "name": "Psycut", "skillId": 73154 },
-    { "name": "Psystrike", "skillId": 73066 },
-    { "name": "Mind Pierce", "skillId": 73095 },
-    { "name": "Tale of the Tortured Mastermind", "skillId": 77066 },
-    { "name": "Phantasmal Lancer", "skillId": 72946 },
-    { "name": "Imaginary Inversion", "skillId": 73152 },
-    { "name": "Mind the Gap", "skillId": 73093 },
-    { "name": "Swap Weapons", "skillId": -3 },
-
-    { "name": "Bladecall", "skillId": 62560 },
-    { "name": "Phantasmal Swordsman", "skillId": 10174 },
-    { "name": "Unstable Bladestorm", "skillId": 62607 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Deafening Drum", "skillId": 77079 },
-    { "name": "Bladecall", "skillId": 62560 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Flying Cutter", "skillId": 62510 },
-    { "name": "Lively Lute", "skillId": 76552 },
-    { "name": "Flustering Flute", "skillId": 76746 },
-    { "name": "Power Spike", "skillId": 10212 },
-    { "name": "Crescendo", "skillId": 76931 }
+    {
+      "type": "cast",
+      "skillId": 29578
+    },
+    {
+      "type": "cast",
+      "skillId": 62607
+    },
+    {
+      "type": "combat-start"
+    },
+    {
+      "type": "cast",
+      "skillId": 10174
+    },
+    {
+      "type": "cast",
+      "skillId": 76746
+    },
+    {
+      "type": "cast",
+      "skillId": 62560
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 76552
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 72946
+    },
+    {
+      "type": "cast",
+      "skillId": 77066
+    },
+    {
+      "type": "cast",
+      "skillId": 77077,
+      "interruptAfterMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 73152
+    },
+    {
+      "type": "cast",
+      "skillId": 10212
+    },
+    {
+      "type": "cast",
+      "skillId": 77066
+    },
+    {
+      "type": "cast",
+      "skillId": 77079
+    },
+    {
+      "type": "cast",
+      "skillId": 76931
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 72957
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 73095
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 73095
+    },
+    {
+      "type": "cast",
+      "skillId": 76552
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 72946
+    },
+    {
+      "type": "cast",
+      "skillId": 10212
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 10174
+    },
+    {
+      "type": "cast",
+      "skillId": 62560
+    },
+    {
+      "type": "cast",
+      "skillId": 62607
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 76746
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62560
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 77066
+    },
+    {
+      "type": "cast",
+      "skillId": 10212
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 76552
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62560
+    },
+    {
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 10174
+    },
+    {
+      "type": "cast",
+      "skillId": 62607
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 72946
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 77079
+    },
+    {
+      "type": "cast",
+      "skillId": 73152
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 77077,
+      "interruptAfterMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 10212
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 73095
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 72957
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 76552
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 73095
+    },
+    {
+      "type": "cast",
+      "skillId": 76931
+    },
+    {
+      "type": "cast",
+      "skillId": 72946
+    },
+    {
+      "type": "cast",
+      "skillId": 76746
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 10212
+    },
+    {
+      "type": "cast",
+      "skillId": 10174
+    },
+    {
+      "type": "cast",
+      "skillId": 62560
+    },
+    {
+      "type": "cast",
+      "skillId": 62607
+    },
+    {
+      "type": "cast",
+      "skillId": 29578
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 76552
+    },
+    {
+      "type": "cast",
+      "skillId": 62560
+    },
+    {
+      "type": "cast",
+      "skillId": 77066
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 77066
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 10212
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 77079
+    },
+    {
+      "type": "cast",
+      "skillId": 62560
+    },
+    {
+      "type": "cast",
+      "skillId": 10174
+    },
+    {
+      "type": "cast",
+      "skillId": 62607
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 72946
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 77077,
+      "interruptAfterMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 73152
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 73095
+    },
+    {
+      "type": "cast",
+      "skillId": 76746
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 10212
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 72957
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 76552
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 73095
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 72946
+    },
+    {
+      "type": "cast",
+      "skillId": 73152
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 10174
+    },
+    {
+      "type": "cast",
+      "skillId": 10212
+    },
+    {
+      "type": "cast",
+      "skillId": 62560
+    },
+    {
+      "type": "cast",
+      "skillId": 62607
+    },
+    {
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 76931
+    },
+    {
+      "type": "cast",
+      "skillId": 77066
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510,
+      "interruptAfterMs": 280
+    },
+    {
+      "type": "cast",
+      "skillId": 76552
+    },
+    {
+      "type": "cast",
+      "skillId": 62560
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 77079
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 10212
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62560
+    },
+    {
+      "type": "cast",
+      "skillId": 10174
+    },
+    {
+      "type": "cast",
+      "skillId": 62607
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 72946
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 76746
+    },
+    {
+      "type": "cast",
+      "skillId": 73152
+    },
+    {
+      "type": "cast",
+      "skillId": 29578
+    },
+    {
+      "type": "cast",
+      "skillId": 77077,
+      "interruptAfterMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 73095
+    },
+    {
+      "type": "cast",
+      "skillId": 73154,
+      "interruptAfterMs": 240
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 72957
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": 76552
+    },
+    {
+      "type": "cast",
+      "skillId": 77066
+    },
+    {
+      "type": "cast",
+      "skillId": 10212
+    },
+    {
+      "type": "cast",
+      "skillId": 73154
+    },
+    {
+      "type": "cast",
+      "skillId": 73066
+    },
+    {
+      "type": "cast",
+      "skillId": 73095
+    },
+    {
+      "type": "cast",
+      "skillId": 77066
+    },
+    {
+      "type": "cast",
+      "skillId": 72946
+    },
+    {
+      "type": "cast",
+      "skillId": 73152
+    },
+    {
+      "type": "cast",
+      "skillId": 73093
+    },
+    {
+      "type": "cast",
+      "skillId": -3
+    },
+    {
+      "type": "cast",
+      "skillId": 62560
+    },
+    {
+      "type": "cast",
+      "skillId": 10174
+    },
+    {
+      "type": "cast",
+      "skillId": 62607
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 77079
+    },
+    {
+      "type": "cast",
+      "skillId": 62560
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 62510
+    },
+    {
+      "type": "cast",
+      "skillId": 76552
+    },
+    {
+      "type": "cast",
+      "skillId": 76746
+    },
+    {
+      "type": "cast",
+      "skillId": 10212
+    },
+    {
+      "type": "cast",
+      "skillId": 76931
+    }
   ]
 }

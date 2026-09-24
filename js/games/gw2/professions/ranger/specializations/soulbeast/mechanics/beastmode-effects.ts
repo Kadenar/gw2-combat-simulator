@@ -25,7 +25,7 @@ import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/range
 import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { grantMaulAttackOfOpportunity } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 
-export function handleSoulbeastModeEvent(context: RangerResolverContext, event: Gw2ResolverEvent): void {
+function handleSoulbeastModeEvent(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   soulbeastState.from(context).beastmodeActive = event.active === true;
 }
 

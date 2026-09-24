@@ -79,7 +79,7 @@ export function applyStreamlinedKits(context: EngineerCastContext, skill: Engine
 }
 
 /** Grants Optimized Activation vigor for a completed toolbelt cast. */
-export function applyOptimizedActivation(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
+function applyOptimizedActivation(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.OPTIMIZED_ACTIVATION)) return;
   const optimizedActivationProfile = requireBalanceProfileFromContext(context, PROFILE.optimizedActivation);
   const optimizedActivationVigor = requireEffect(optimizedActivationProfile, 'boon', 'vigor');
@@ -98,7 +98,7 @@ export function applyOptimizedActivation(context: EngineerSchedulerContext, skil
 }
 
 /** Queues Static Discharge from a completed toolbelt cast. */
-export function applyStaticDischarge(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
+function applyStaticDischarge(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.STATIC_DISCHARGE)) return;
   const staticDischargeProfile = requireBalanceProfileFromContext(context, PROFILE.staticDischarge);
   const staticDischargeStrike = requireEffect(staticDischargeProfile, 'strike', 'Static Discharge');
@@ -127,7 +127,7 @@ export function applyStaticDischarge(context: EngineerSchedulerContext, skill: E
 }
 
 /** Advances Kinetic Battery and emits its fifth-cast buff package plus a state snapshot. */
-export function applyKineticBattery(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
+function applyKineticBattery(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
   if (!hasTrait(context.config, TRAIT.KINETIC_BATTERY)) return;
   const state = professionCoreState(context);
   const kineticBatteryProfile = requireBalanceProfileFromContext(context, PROFILE.kineticBattery);

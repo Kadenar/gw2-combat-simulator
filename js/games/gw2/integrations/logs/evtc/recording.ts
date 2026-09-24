@@ -7,7 +7,7 @@ const TIMED_STATE_CHANGES = new Set([
   83, 84
 ]);
 
-export function hasEvtcTime(event: ParsedEvtcEvent): boolean {
+function hasEvtcTime(event: ParsedEvtcEvent): boolean {
   return TIMED_STATE_CHANGES.has(event.stateChange);
 }
 

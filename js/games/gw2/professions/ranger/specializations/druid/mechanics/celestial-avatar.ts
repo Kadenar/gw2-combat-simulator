@@ -26,7 +26,7 @@ import { druidState } from '#gw2/professions/ranger/specializations/druid/state.
 
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 
-export const DRUID_AVATAR_EXIT_TASK = 'ranger.druid-avatar-exit';
+const DRUID_AVATAR_EXIT_TASK = 'ranger.druid-avatar-exit';
 
 function applyNaturalBalance(context: RangerCastContext | RangerSchedulerContext, at: number): void {
   if (!hasTrait(context, TRAIT.NATURAL_BALANCE)) return;

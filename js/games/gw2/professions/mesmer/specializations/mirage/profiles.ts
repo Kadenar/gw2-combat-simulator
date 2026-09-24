@@ -92,7 +92,7 @@ function ambushStrikeEffect(attack: MesmerAmbushStrike, source: 'Player' | 'Clon
 }
 
 /** Builds the patchable balance profile for one Mirage player/clone ambush pair. */
-export function mesmerAmbushProfile(id: string, attack: MesmerAmbushAttack): BalanceProfile {
+function mesmerAmbushProfile(id: string, attack: MesmerAmbushAttack): BalanceProfile {
   return variant(id, attack.id, `${attack.name} - Ambush`, {
     effects: [
       ambushStrikeEffect(attack.player, 'Player'),

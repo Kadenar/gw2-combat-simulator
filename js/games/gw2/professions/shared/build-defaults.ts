@@ -4,10 +4,10 @@ import { createDefaultTargetConditions } from '#gw2/platform/builds/default-targ
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 
-export const DEFAULT_TARGET_HEALTH = 4_000_000;
-export const DEFAULT_TARGET_STARTING_HEALTH_PERCENT = 100;
-export const DEFAULT_TARGET_ARMOR = 2597;
-export const DEFAULT_STARTING_WEAPON_SET = 1;
+const DEFAULT_TARGET_HEALTH = 4_000_000;
+const DEFAULT_TARGET_STARTING_HEALTH_PERCENT = 100;
+const DEFAULT_TARGET_ARMOR = 2597;
+const DEFAULT_STARTING_WEAPON_SET = 1;
 
 /**
  * Additional or overridden assumptions supplied by an individual profession.
@@ -31,9 +31,7 @@ export type ProfessionAssumptionOverrides = Readonly<Record<string, unknown>>;
  * Profession-specific assumptions are applied last and may intentionally
  * override a common default.
  */
-export function createDefaultSimulationAssumptions(
-  overrides: ProfessionAssumptionOverrides = {}
-): ProfessionBuildAssumptions {
+function createDefaultSimulationAssumptions(overrides: ProfessionAssumptionOverrides = {}): ProfessionBuildAssumptions {
   return {
     ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
     ...DEFAULT_PERMANENT_COMBO_FIELD_ASSUMPTIONS,

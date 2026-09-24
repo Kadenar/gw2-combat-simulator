@@ -12,8 +12,8 @@
   "rotation": [
     "Blood Is Power",
     {
-      "name": "__combat_start",
-      "offset": 360
+      "type": "combat-start",
+      "concurrentOffsetMs": 360
     },
     "Elixir of Risk",
     "Blood Is Power",
@@ -22,17 +22,20 @@
     "Harrowing Wave",
     "Oppressive Collapse",
     {
-      "name": "Elixir of Ambition",
-      "interruptMs": 400
+      "type": "cast",
+      "skillId": 62655,
+      "interruptAfterMs": 400
     },
     "Harbinger Shroud",
     {
-      "name": "Devouring Cut",
-      "interruptMs": 400
+      "type": "cast",
+      "skillId": 62672,
+      "interruptAfterMs": 400
     },
     {
-      "name": "Dark Barrage",
-      "interruptMs": 800
+      "type": "cast",
+      "skillId": 62621,
+      "interruptAfterMs": 800
     },
     "Vital Draw",
     "Voracious Arc",
@@ -42,8 +45,9 @@
     "Tainted Bolts",
     "Tainted Bolts",
     {
-      "name": "Devouring Cut",
-      "interruptMs": 400
+      "type": "cast",
+      "skillId": 62672,
+      "interruptAfterMs": 400
     },
     "Dark Barrage",
     "Tainted Bolts",
@@ -55,14 +59,16 @@
     "Voracious Arc",
     "Devouring Cut",
     {
-      "name": "Dark Barrage",
-      "interruptMs": 800
+      "type": "cast",
+      "skillId": 62621,
+      "interruptAfterMs": 800
     },
     "Exit Harbinger Shroud",
     "Weeping Shots",
     {
-      "name": "Elixir of Risk",
-      "interruptMs": 440
+      "type": "cast",
+      "skillId": 62530,
+      "interruptAfterMs": 440
     },
     "Elixir of Promise",
     "Blood Is Power",
@@ -87,8 +93,9 @@
     "Tainted Bolts",
     "Tainted Bolts",
     {
-      "name": "Devouring Cut",
-      "interruptMs": 400
+      "type": "cast",
+      "skillId": 62672,
+      "interruptAfterMs": 400
     },
     "Dark Barrage",
     "Tainted Bolts",
@@ -100,28 +107,32 @@
     "Voracious Arc",
     "Devouring Cut",
     {
-      "name": "Dark Barrage",
-      "interruptMs": 800
+      "type": "cast",
+      "skillId": 62621,
+      "interruptAfterMs": 800
     },
     "Exit Harbinger Shroud",
     "Dark Pact",
     "Life Siphon",
     {
-      "name": "Enfeebling Blood",
-      "interruptMs": 640
+      "type": "cast",
+      "skillId": 10706,
+      "interruptAfterMs": 640
     },
     "Swap Weapons",
     "Weeping Shots",
     {
-      "name": "Elixir of Risk",
-      "interruptMs": 440
+      "type": "cast",
+      "skillId": 62530,
+      "interruptAfterMs": 440
     },
     "Elixir of Promise",
     "Blood Is Power",
     "Vile Blast",
     {
-      "name": "Plague Signet",
-      "offset": 0
+      "type": "cast",
+      "skillId": 10562,
+      "concurrentOffsetMs": 0
     },
     "Harrowing Wave",
     "Oppressive Collapse",
@@ -129,8 +140,9 @@
     "Harbinger Shroud",
     "Devouring Cut",
     {
-      "name": "Dark Barrage",
-      "interruptMs": 800
+      "type": "cast",
+      "skillId": 62621,
+      "interruptAfterMs": 800
     },
     "Vital Draw",
     "Voracious Arc",
@@ -149,12 +161,14 @@
     "Tainted Bolts",
     "Voracious Arc",
     {
-      "name": "Devouring Cut",
-      "interruptMs": 400
+      "type": "cast",
+      "skillId": 62672,
+      "interruptAfterMs": 400
     },
     {
-      "name": "Dark Barrage",
-      "interruptMs": 800
+      "type": "cast",
+      "skillId": 62621,
+      "interruptAfterMs": 800
     },
     "Exit Harbinger Shroud",
     "Weeping Shots",
@@ -174,8 +188,9 @@
     "Harbinger Shroud",
     "Devouring Cut",
     {
-      "name": "Dark Barrage",
-      "interruptMs": 800
+      "type": "cast",
+      "skillId": 62621,
+      "interruptAfterMs": 800
     },
     "Vital Draw",
     "Voracious Arc",
@@ -185,8 +200,9 @@
     "Tainted Bolts",
     "Tainted Bolts",
     {
-      "name": "Devouring Cut",
-      "interruptMs": 400
+      "type": "cast",
+      "skillId": 62672,
+      "interruptAfterMs": 400
     },
     "Dark Barrage",
     "Tainted Bolts",
@@ -198,8 +214,9 @@
     "Voracious Arc",
     "Devouring Cut",
     {
-      "name": "Dark Barrage",
-      "interruptMs": 800
+      "type": "cast",
+      "skillId": 62621,
+      "interruptAfterMs": 800
     },
     "Exit Harbinger Shroud",
     "Elixir of Risk",
@@ -207,13 +224,15 @@
     "Life Siphon",
     "Blood Is Power",
     {
-      "name": "Swap Weapons",
-      "offset": 600
+      "type": "cast",
+      "skillId": -3,
+      "concurrentOffsetMs": 600
     },
     "Vile Blast",
     {
-      "name": "Plague Signet",
-      "offset": 80
+      "type": "cast",
+      "skillId": 10562,
+      "concurrentOffsetMs": 80
     },
     "Harrowing Wave",
     "Oppressive Collapse",

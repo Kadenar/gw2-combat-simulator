@@ -97,7 +97,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
         atMs: 0
       }
     ],
-    recharge: 6,
+
     cooldown: 6,
     castTimeMs: 600,
     // Double Arc arms the pet's next two attacks; the weapon hit does not poison directly.
@@ -181,7 +181,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
         duration: 8
       }
     ],
-    recharge: 12,
+
     cooldown: 12,
     castTimeMs: 840
   }

@@ -10,7 +10,7 @@ import { clamp } from '#kernel/core/numeric.js';
 
 const SERVER_DELAY_MS = 10;
 const STANDARD_DODGE_ANIMATION_ID = 23275;
-export const WEAPON_STOW_ANIMATION_ID = 23285;
+const WEAPON_STOW_ANIMATION_ID = 23285;
 
 /** Match .NET Math.Round's ties-to-even behavior for EI duration and acceleration metadata. */
 function roundEven(value: number): number {

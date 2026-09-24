@@ -314,8 +314,8 @@ test('EI missile finders preserve creation evidence and suppress duplicate proje
     engineerCatalog,
     { includeCombatStart: false }
   );
-  assert.ok(imported.rotation.some((command) => command.name === 'Blade Burst'));
-  assert.ok(imported.rotation.some((command) => command.name === 'Particle Accelerator'));
+  assert.ok(imported.rotation.some((command) => command.skillId === 42163));
+  assert.ok(imported.rotation.some((command) => command.skillId === 45732));
   assert.ok(imported.warnings.some((warning) => warning.includes('3 instant casts')));
 });
 
@@ -379,7 +379,7 @@ test('both importers retain the Forge exit but exclude the generated Overheat in
     engineerCatalog
   );
   for (const imported of [evtc, report]) {
-    assert.ok(imported.rotation.some((command) => command.name === 'Deactivate Photon Forge'));
+    assert.ok(imported.rotation.some((command) => command.skillId === 41123));
     assert.equal(
       imported.rotation.some((command) => command.skillId === 43937),
       false
@@ -405,11 +405,11 @@ test('EVTC Forge bundle changes replace an equipped kit without replaying swaps 
     ]
   });
   const result = reconstructEvtcRotation(fixture, engineerCatalog, { includeCombatStart: false });
-  assert.ok(result.rotation.some((command) => command.name === 'Bomb Kit'));
-  assert.ok(result.rotation.some((command) => command.name === 'Engage Photon Forge'));
-  assert.ok(result.rotation.some((command) => command.name === 'Deactivate Photon Forge'));
+  assert.ok(result.rotation.some((command) => command.skillId === 5812));
+  assert.ok(result.rotation.some((command) => command.skillId === 42938));
+  assert.ok(result.rotation.some((command) => command.skillId === 41123));
   assert.equal(
-    result.rotation.some((command) => command.name === 'Swap Weapons' || command.name === 'Stow Bomb Kit'),
+    result.rotation.some((command) => command.skillId === -3 || command.skillId === 6111),
     false
   );
 });

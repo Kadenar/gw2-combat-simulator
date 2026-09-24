@@ -20,7 +20,7 @@ export type ElementalistAttunement = (typeof ELEMENTALIST_ATTUNEMENTS)[number];
 
 // A negative entry time makes the configured starting attunement pre-dwelled
 // while preserving time zero as a real attunement-entry timestamp.
-export const PRE_DWELLED_ATTUNEMENT_ENTERED_AT = -999999;
+const PRE_DWELLED_ATTUNEMENT_ENTERED_AT = -999999;
 
 /** One live aura application: what it is, when it landed, and which skill produced it. */
 export interface ElementalistAuraState {
@@ -229,7 +229,7 @@ export function resetElementalistAttunementCooldowns(context: ElementalistAttune
 }
 
 // Core declares only the public fields present in every Elementalist runtime.
-export const ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
+const ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'primaryAttunement',
   'attunementEnteredAt',
   'attunementReadyAt',

@@ -330,7 +330,7 @@ export function createGw2SchedulerPolicy(
       const boon = effect.boon || effect.kind || effect.name;
       // Generic positive buffs have fixed durations. Concentration and boon-
       // duration bonuses apply only to authored standard-boon applications.
-      if (effect.fixedDuration === true || effect.type !== 'boon' || !isStandardBoon(boon)) {
+      if (effect.type !== 'boon' || !isStandardBoon(boon)) {
         return baseDuration;
       }
 

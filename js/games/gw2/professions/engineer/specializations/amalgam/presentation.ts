@@ -189,7 +189,7 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
 }
 
 /** Supplies Amalgam-specific skill-bar, palette, snapshot, and event-log presentation behavior. */
-export const amalgamUi: EngineerUiSlice = Object.freeze({
+const amalgamUi: EngineerUiSlice = Object.freeze({
   eventLogRow: (_context: EngineerUiContext, event: EngineerResolverEvent) =>
     event?.type === 'engineer.state' ? null : undefined,
   assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,

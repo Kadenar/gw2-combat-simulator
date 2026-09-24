@@ -48,7 +48,7 @@ export function rangerUiState(context: RangerUiContext): Partial<RangerState> {
   return flattenProfessionState<Partial<RangerState>>(context.state?.profession || context.professionState || {});
 }
 
-export function rangerUiSpecialization(context: RangerUiContext): string {
+function rangerUiSpecialization(context: RangerUiContext): string {
   return context.specialization || context.config?.specialization || 'Core';
 }
 
@@ -109,7 +109,7 @@ export function selectedRangerUiPet(context: RangerUiContext, slot: 1 | 2 = 1) {
   return RANGER_PETS.find((pet) => pet.name === selected) || RANGER_PETS[0];
 }
 
-export function activeRangerUiPet(context: RangerUiContext) {
+function activeRangerUiPet(context: RangerUiContext) {
   const activePet = String(rangerUiState(context).activePet || selectedRangerUiPet(context)?.name || '');
   return RANGER_PETS.find((pet) => pet.name === activePet) || RANGER_PETS[0];
 }
@@ -217,7 +217,7 @@ function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSk
   };
 }
 
-export const rangerCoreUi: RangerUiSlice = Object.freeze({
+const rangerCoreUi: RangerUiSlice = Object.freeze({
   assumptionControls: [
     ...RANGER_ASSUMPTION_CONTROLS,
     ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,

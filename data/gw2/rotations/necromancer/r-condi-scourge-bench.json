@@ -3,27 +3,30 @@
     "Summon Shadow Fiend",
     "Manifest Sand Shade",
     {
-      "name": "__wait",
-      "waitMs": 520
+      "type": "wait",
+      "durationMs": 520
     },
     "Blood Is Power",
     {
-      "name": "__combat_start",
-      "offset": 520
+      "type": "combat-start",
+      "concurrentOffsetMs": 520
     },
     {
-      "name": "Haunt",
-      "offset": 600
+      "type": "cast",
+      "skillId": 10590,
+      "concurrentOffsetMs": 600
     },
     {
-      "name": "Desert Shroud",
-      "offset": 80
+      "type": "cast",
+      "skillId": 44663,
+      "concurrentOffsetMs": 80
     },
     "Vile Blast",
     "Weeping Shots",
     {
-      "name": "Nefarious Favor",
-      "offset": 360
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 360
     },
     "Swap Weapons",
     "Devouring Darkness",
@@ -32,8 +35,9 @@
     "Harrowing Wave",
     "Signet of Spite",
     {
-      "name": "Nefarious Favor",
-      "offset": 320
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 320
     },
     "Plaguelands",
     "Blood Curse",
@@ -41,8 +45,9 @@
     "Putrid Curse",
     "Blood Curse",
     {
-      "name": "Nefarious Favor",
-      "offset": 360
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 360
     },
     "Rending Curse",
     "Putrid Curse",
@@ -52,27 +57,31 @@
     "Manifest Sand Shade",
     "Devouring Darkness",
     {
-      "name": "Nefarious Favor",
-      "offset": 120
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 120
     },
     "Grasping Dead",
     "Swap Weapons",
     "Weeping Shots",
     {
-      "name": "Desert Shroud",
-      "offset": 800
+      "type": "cast",
+      "skillId": 44663,
+      "concurrentOffsetMs": 800
     },
     "Vile Blast",
     "Blood Is Power",
     {
-      "name": "Nefarious Favor",
-      "offset": 880
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 880
     },
     "Vicious Shot",
     "Vicious Shot",
     {
-      "name": "Haunt",
-      "offset": 160
+      "type": "cast",
+      "skillId": 10590,
+      "concurrentOffsetMs": 160
     },
     "Vicious Shot",
     "Vicious Shot",
@@ -80,8 +89,9 @@
     "Vicious Shot",
     "Vicious Shot",
     {
-      "name": "Nefarious Favor",
-      "offset": 240
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 240
     },
     "Weeping Shots",
     "Oppressive Collapse",
@@ -90,8 +100,9 @@
     "Vicious Shot",
     "Manifest Sand Shade",
     {
-      "name": "Nefarious Favor",
-      "offset": 80
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 80
     },
     "Vicious Shot",
     "Vicious Shot",
@@ -99,22 +110,25 @@
     "Vile Blast",
     "Weeping Shots",
     {
-      "name": "Nefarious Favor",
-      "offset": 720
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 720
     },
     "Swap Weapons",
     "Devouring Darkness",
     "Grasping Dead",
     {
-      "name": "Desert Shroud",
-      "offset": 600
+      "type": "cast",
+      "skillId": 44663,
+      "concurrentOffsetMs": 600
     },
     "Blood Is Power",
     "Blood Curse",
     "Rending Curse",
     {
-      "name": "Nefarious Favor",
-      "offset": 360
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 360
     },
     "Putrid Curse",
     "Manifest Sand Shade",
@@ -123,13 +137,15 @@
     "Blood Curse",
     "Rending Curse",
     {
-      "name": "Haunt",
-      "offset": 520
+      "type": "cast",
+      "skillId": 10590,
+      "concurrentOffsetMs": 520
     },
     "Putrid Curse",
     {
-      "name": "Nefarious Favor",
-      "offset": 440
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 440
     },
     "Blood Curse",
     "Rending Curse",
@@ -138,8 +154,9 @@
     "Blood Curse",
     "Grasping Dead",
     {
-      "name": "Nefarious Favor",
-      "offset": 680
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 680
     },
     "Swap Weapons",
     "Weeping Shots",
@@ -148,21 +165,24 @@
     "Signet of Spite",
     "Manifest Sand Shade",
     {
-      "name": "Nefarious Favor",
-      "offset": 520
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 520
     },
     "Blood Is Power",
     {
-      "name": "Desert Shroud",
-      "offset": 800
+      "type": "cast",
+      "skillId": 44663,
+      "concurrentOffsetMs": 800
     },
     "Vicious Shot",
     "Vicious Shot",
     "Vicious Shot",
     "Weeping Shots",
     {
-      "name": "Nefarious Favor",
-      "offset": 800
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 800
     },
     "Vicious Shot",
     "Harrowing Wave",
@@ -172,22 +192,25 @@
     "Vicious Shot",
     "Vicious Shot",
     {
-      "name": "Nefarious Favor",
-      "offset": 120
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 120
     },
     "Vicious Shot",
     "Vile Blast",
     {
-      "name": "Haunt",
-      "offset": 120
+      "type": "cast",
+      "skillId": 10590,
+      "concurrentOffsetMs": 120
     },
     "Weeping Shots",
     "Swap Weapons",
     "Devouring Darkness",
     "Grasping Dead",
     {
-      "name": "Nefarious Favor",
-      "offset": 440
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 440
     },
     "Manifest Sand Shade",
     "Blood Curse",
@@ -196,21 +219,24 @@
     "Blood Curse",
     "Rending Curse",
     {
-      "name": "Nefarious Favor",
-      "offset": 520
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 520
     },
     "Putrid Curse",
     {
-      "name": "Desert Shroud",
-      "offset": 520
+      "type": "cast",
+      "skillId": 44663,
+      "concurrentOffsetMs": 520
     },
     "Oppressive Collapse",
     "Blood Is Power",
     "Plaguelands",
     "Manifest Sand Shade",
     {
-      "name": "Nefarious Favor",
-      "offset": 440
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 440
     },
     "Harrowing Wave",
     "Devouring Darkness",
@@ -220,8 +246,9 @@
     "Weeping Shots",
     "Vile Blast",
     {
-      "name": "Nefarious Favor",
-      "offset": 280
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 280
     },
     "Vicious Shot",
     "Vicious Shot",
@@ -229,13 +256,15 @@
     "Vicious Shot",
     "Vicious Shot",
     {
-      "name": "Haunt",
-      "offset": 280
+      "type": "cast",
+      "skillId": 10590,
+      "concurrentOffsetMs": 280
     },
     "Vicious Shot",
     {
-      "name": "Nefarious Favor",
-      "offset": 200
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 200
     },
     "Vicious Shot",
     "Vicious Shot",
@@ -244,12 +273,14 @@
     "Blood Is Power",
     "Vicious Shot",
     {
-      "name": "Desert Shroud",
-      "offset": 80
+      "type": "cast",
+      "skillId": 44663,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Nefarious Favor",
-      "offset": 200
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 200
     },
     "Vicious Shot",
     "Vicious Shot",
@@ -258,8 +289,9 @@
     "Vile Blast",
     "Weeping Shots",
     {
-      "name": "Nefarious Favor",
-      "offset": 520
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 520
     },
     "Swap Weapons",
     "Devouring Darkness",
@@ -268,8 +300,9 @@
     "Signet of Spite",
     "Blood Curse",
     {
-      "name": "Nefarious Favor",
-      "offset": 80
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 80
     },
     "Rending Curse",
     "Putrid Curse",
@@ -278,29 +311,33 @@
     "Rending Curse",
     "Putrid Curse",
     {
-      "name": "Nefarious Favor",
-      "offset": 440
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 440
     },
     "Blood Curse",
     "Rending Curse",
     {
-      "name": "Haunt",
-      "offset": 80
+      "type": "cast",
+      "skillId": 10590,
+      "concurrentOffsetMs": 80
     },
     "Putrid Curse",
     "Blood Curse",
     "Blood Is Power",
     "Devouring Darkness",
     {
-      "name": "Desert Shroud",
-      "offset": 120
+      "type": "cast",
+      "skillId": 44663,
+      "concurrentOffsetMs": 120
     },
     "Grasping Dead",
     "Swap Weapons",
     "Weeping Shots",
     {
-      "name": "Nefarious Favor",
-      "offset": 80
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 80
     },
     "Vile Blast",
     "Harrowing Wave",
@@ -308,8 +345,9 @@
     "Vicious Shot",
     "Vicious Shot",
     {
-      "name": "Nefarious Favor",
-      "offset": 560
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 560
     },
     "Vicious Shot",
     "Manifest Sand Shade",
@@ -318,8 +356,9 @@
     "Weeping Shots",
     "Oppressive Collapse",
     {
-      "name": "Nefarious Favor",
-      "offset": 360
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 360
     },
     "Vicious Shot",
     "Vicious Shot",
@@ -331,12 +370,14 @@
     "Vile Blast",
     "Weeping Shots",
     {
-      "name": "Haunt",
-      "offset": 0
+      "type": "cast",
+      "skillId": 10590,
+      "concurrentOffsetMs": 0
     },
     {
-      "name": "Nefarious Favor",
-      "offset": 320
+      "type": "cast",
+      "skillId": 40813,
+      "concurrentOffsetMs": 320
     },
     "Swap Weapons",
     "Devouring Darkness",

@@ -41,7 +41,7 @@ export const AMALGAM_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 } satisfies Partial<AmalgamState>);
 
 /** Creates an isolated Amalgam protocol and strain state from the selected morph configuration. */
-export function createAmalgamState(config: EngineerConfig = {}): AmalgamState {
+function createAmalgamState(config: EngineerConfig = {}): AmalgamState {
   return {
     // IDs for the three selected Morph (F2/F3/F4) protocol skills.
     selectedMorphSkillIds: [...(config.selectedMorphSkillIds || [])],

@@ -31,7 +31,7 @@ const INSTRUMENT_SKILL_IDS = new Set<number>([
  * Assigns handlers only when packet emission itself is runtime-dependent.
  * Fixed effects remain scheduler-owned even when Mesmer's cast hook changes profession state.
  */
-export function mesmerHandlerIdFor(skill: MesmerSkillCatalogFragment): string | null {
+function mesmerHandlerIdFor(skill: MesmerSkillCatalogFragment): string | null {
   const id = Number(skill.id);
   const resource =
     skill.resource && typeof skill.resource === 'object' ? (skill.resource as { readonly mode?: string }) : null;

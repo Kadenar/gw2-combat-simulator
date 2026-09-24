@@ -7,19 +7,33 @@
     "note": "Healing Signet, Signet of Might, Kick, Signet of Fury, Winds of Disenchantment, and Breaching Strike are precast; Combat Start uses the supplied 750 ms offset."
   },
   "rotation": [
-    { "name": "Healing Signet", "skillId": 14389 },
-    { "name": "Signet of Might", "skillId": 14404 },
-    { "name": "Kick", "skillId": 14502 },
-    { "name": "Signet of Fury", "skillId": 14410 },
+    {
+      "type": "cast",
+      "skillId": 14389
+    },
+    {
+      "type": "cast",
+      "skillId": 14404
+    },
+    {
+      "type": "cast",
+      "skillId": 14502
+    },
+    {
+      "type": "cast",
+      "skillId": 14410
+    },
     "Winds of Disenchantment",
     "Breaching Strike",
-    { "name": "__combat_start", "offset": 760 },
+    {
+      "type": "combat-start",
+      "concurrentOffsetMs": 760
+    },
     "Crushing Blow",
     "Tremor",
     "Crushing Blow",
     "Disrupting Stab",
     "Swap Weapons",
-
     "Bloodthirster",
     "Wastrel's Ruin",
     "Rend",
@@ -34,7 +48,6 @@
     "Sever Artery",
     "Kick",
     "Swap Weapons",
-
     "Breaching Strike",
     "Precise Cut",
     "Focused Slash",
@@ -62,7 +75,6 @@
     "Tremor",
     "Crushing Blow",
     "Swap Weapons",
-
     "Bloodthirster",
     "Wastrel's Ruin",
     "Rend",
@@ -80,7 +92,6 @@
     "Gash",
     "Hamstring",
     "Swap Weapons",
-
     "Breaching Strike",
     "Disrupting Stab",
     "Precise Cut",
@@ -108,7 +119,6 @@
     "Tremor",
     "Crushing Blow",
     "Swap Weapons",
-
     "Bloodthirster",
     "Wastrel's Ruin",
     "Rend",
@@ -125,7 +135,6 @@
     "Hamstring",
     "Sever Artery",
     "Swap Weapons",
-
     "Breaching Strike",
     "Disrupting Stab",
     "Precise Cut",
@@ -153,7 +162,6 @@
     "Tremor",
     "Crushing Blow",
     "Swap Weapons",
-
     "Bloodthirster",
     "Wastrel's Ruin",
     "Rend",
@@ -171,7 +179,6 @@
     "Gash",
     "Hamstring",
     "Swap Weapons",
-
     "Breaching Strike",
     "Disrupting Stab",
     "Precise Cut",
@@ -199,7 +206,6 @@
     "Tremor",
     "Crushing Blow",
     "Swap Weapons",
-
     "Bloodthirster",
     "Wastrel's Ruin",
     "Rend",
@@ -216,7 +222,6 @@
     "Sever Artery",
     "Hushblade",
     "Swap Weapons",
-
     "Breaching Strike",
     "Disrupting Stab",
     "Precise Cut",
@@ -243,9 +248,12 @@
     "Breaching Strike",
     "Tremor",
     "Crushing Blow",
-    { "name": "Precise Cut", "interruptMs": 40 },
+    {
+      "type": "cast",
+      "skillId": 42745,
+      "interruptAfterMs": 40
+    },
     "Swap Weapons",
-
     "Bloodthirster",
     "Wastrel's Ruin",
     "Rend",
@@ -263,7 +271,6 @@
     "Gash",
     "Hamstring",
     "Swap Weapons",
-
     "Breaching Strike",
     "Disrupting Stab",
     "Precise Cut",
@@ -291,7 +298,6 @@
     "Tremor",
     "Crushing Blow",
     "Swap Weapons",
-
     "Bloodthirster",
     "Wastrel's Ruin",
     "Rend"

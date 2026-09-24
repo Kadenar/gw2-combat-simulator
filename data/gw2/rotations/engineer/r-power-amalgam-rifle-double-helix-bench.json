@@ -10,134 +10,150 @@
   "rotation": [
     "Throw Mine",
     {
-      "name": "__wait",
-      "waitMs": 5000
+      "type": "wait",
+      "durationMs": 5000
     },
     "Bomb Kit",
     "Big Ol' Bomb",
     "Magnetic Bomb",
     {
-      "name": "Evolve",
-      "skillId": 76642
+      "type": "cast",
+      "skillId": 76651
     },
     "Fire Bomb",
     "Galvanic Bomb",
     {
-      "name": "__combat_start",
-      "offset": 520
+      "type": "combat-start",
+      "concurrentOffsetMs": 520
     },
     "Stow Bomb Kit",
     "Flux State",
     {
-      "name": "Defensive Protocol: Thorns",
+      "type": "cast",
       "skillId": 77104,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Detonate",
-      "offset": 360
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Offensive Protocol: Obliterate",
+      "type": "cast",
       "skillId": 76705
     },
     "Blunderbuss",
     {
-      "name": "Grenade Kit",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 160
     },
     "Shrapnel Grenade",
     "Poison Grenade",
     "Freeze Grenade",
     {
-      "name": "Offensive Protocol: Demolish",
+      "type": "cast",
       "skillId": 76927
     },
     {
-      "name": "Stow Grenade Kit",
-      "offset": 360
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 360
     },
     "Throw Mine",
     "Detonate",
     "Jump Shot",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 640
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 640
     },
     "Blunderbuss",
     {
-      "name": "Bomb Kit",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 200
     },
     "Fire Bomb",
     {
-      "name": "Grenade Kit",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Shrapnel Grenade",
-      "interruptMs": 480
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 480
     },
     "Stow Grenade Kit",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 600
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 600
     },
     "Overcharged Shot",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 640
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 640
     },
     "Net Shot",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 640
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 640
     },
     {
-      "name": "Bomb Kit",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 400
     },
     "Bomb",
     "Stow Bomb Kit",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 640
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 640
     },
     "Blunderbuss",
     {
-      "name": "Grenade Kit",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 280
     },
     "Shrapnel Grenade",
     {
-      "name": "Bomb Kit",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 320
     },
     "Big Ol' Bomb",
     "Magnetic Bomb",
     "Fire Bomb",
     "Galvanic Bomb",
     {
-      "name": "Defensive Protocol: Thorns",
+      "type": "cast",
       "skillId": 77104,
-      "offset": 240
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Evolve",
-      "skillId": 76642
+      "type": "cast",
+      "skillId": 76651
     },
     "Throw Mine",
     {
-      "name": "Offensive Protocol: Obliterate",
+      "type": "cast",
       "skillId": 76705
     },
     {
-      "name": "Detonate",
-      "offset": 40
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Stow Bomb Kit",
-      "offset": 400
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 400
     },
     "Blunderbuss",
     "Grenade Kit",
@@ -145,105 +161,121 @@
     "Poison Grenade",
     "Freeze Grenade",
     {
-      "name": "Offensive Protocol: Demolish",
+      "type": "cast",
       "skillId": 76927
     },
     {
-      "name": "Stow Grenade Kit",
-      "offset": 320
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 320
     },
     "Jump Shot",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 680
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 680
     },
     "Blunderbuss",
     {
-      "name": "Bomb Kit",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 160
     },
     "Fire Bomb",
     {
-      "name": "Grenade Kit",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Shrapnel Grenade",
-      "interruptMs": 480
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 480
     },
     "Stow Grenade Kit",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 680
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 680
     },
     "Overcharged Shot",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 680
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 680
     },
     "Throw Mine",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 680
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 680
     },
     {
-      "name": "Detonate",
-      "offset": 80
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 80
     },
     "Net Shot",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 640
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 640
     },
     "Blunderbuss",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 680
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 680
     },
     {
-      "name": "Grenade Kit",
-      "offset": 560
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 560
     },
     "Shrapnel Grenade",
     {
-      "name": "Bomb Kit",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 280
     },
     "Big Ol' Bomb",
     "Magnetic Bomb",
     {
-      "name": "Defensive Protocol: Thorns",
+      "type": "cast",
       "skillId": 77104
     },
     "Fire Bomb",
     "Galvanic Bomb",
     {
-      "name": "Evolve",
-      "skillId": 76642
+      "type": "cast",
+      "skillId": 76651
     },
     {
-      "name": "Offensive Protocol: Obliterate",
+      "type": "cast",
       "skillId": 76705
     },
     {
-      "name": "Stow Bomb Kit",
-      "offset": 280
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 280
     },
     "Blunderbuss",
     {
-      "name": "Grenade Kit",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 280
     },
     "Shrapnel Grenade",
     "Poison Grenade",
     "Freeze Grenade",
     {
-      "name": "Offensive Protocol: Demolish",
+      "type": "cast",
       "skillId": 76927
     },
     {
-      "name": "Stow Grenade Kit",
-      "offset": 560
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 560
     },
     "Throw Mine",
     "Detonate",
@@ -251,277 +283,318 @@
     "Flux State",
     "Blunderbuss",
     {
-      "name": "Bomb Kit",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 160
     },
     "Fire Bomb",
     {
-      "name": "Grenade Kit",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Shrapnel Grenade",
-      "interruptMs": 480
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 480
     },
     "Stow Grenade Kit",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 640
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 640
     },
     "Overcharged Shot",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 640
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 640
     },
     "Net Shot",
     "Rifle Burst",
     {
-      "name": "Bomb Kit",
-      "offset": 480
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 480
     },
     "Bomb",
     "Stow Bomb Kit",
     "Rifle Burst",
     "Blunderbuss",
     {
-      "name": "Grenade Kit",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 240
     },
     "Shrapnel Grenade",
     {
-      "name": "Bomb Kit",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 320
     },
     "Big Ol' Bomb",
     "Magnetic Bomb",
     {
-      "name": "Defensive Protocol: Thorns",
+      "type": "cast",
       "skillId": 77104,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     "Fire Bomb",
     "Galvanic Bomb",
     {
-      "name": "Evolve",
-      "skillId": 76642
+      "type": "cast",
+      "skillId": 76651
     },
     "Throw Mine",
     {
-      "name": "Offensive Protocol: Obliterate",
+      "type": "cast",
       "skillId": 76705
     },
     {
-      "name": "Detonate",
-      "offset": 40
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Stow Bomb Kit",
-      "offset": 280
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 280
     },
     "Blunderbuss",
     {
-      "name": "Grenade Kit",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 280
     },
     "Shrapnel Grenade",
     "Poison Grenade",
     "Freeze Grenade",
     {
-      "name": "Offensive Protocol: Demolish",
+      "type": "cast",
       "skillId": 76927
     },
     {
-      "name": "Stow Grenade Kit",
-      "offset": 360
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 360
     },
     "Jump Shot",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 600
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 600
     },
     "Blunderbuss",
     {
-      "name": "Bomb Kit",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 240
     },
     "Fire Bomb",
     {
-      "name": "Grenade Kit",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Shrapnel Grenade",
-      "interruptMs": 480
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 480
     },
     "Stow Grenade Kit",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 600
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 600
     },
     "Overcharged Shot",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 680
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 680
     },
     "Throw Mine",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 640
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 640
     },
     {
-      "name": "Detonate",
-      "offset": 80
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 80
     },
     "Net Shot",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 640
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 640
     },
     "Blunderbuss",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 640
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 640
     },
     {
-      "name": "Grenade Kit",
-      "offset": 480
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 480
     },
     "Shrapnel Grenade",
     {
-      "name": "Bomb Kit",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 280
     },
     "Big Ol' Bomb",
     {
-      "name": "Defensive Protocol: Thorns",
+      "type": "cast",
       "skillId": 77104,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     "Magnetic Bomb",
     "Fire Bomb",
     "Galvanic Bomb",
     {
-      "name": "Evolve",
-      "skillId": 76642
+      "type": "cast",
+      "skillId": 76651
     },
     {
-      "name": "Offensive Protocol: Obliterate",
+      "type": "cast",
       "skillId": 76705
     },
     {
-      "name": "Stow Bomb Kit",
-      "offset": 280
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 280
     },
     "Blunderbuss",
     {
-      "name": "Grenade Kit",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 320
     },
     "Shrapnel Grenade",
     "Poison Grenade",
     "Freeze Grenade",
     {
-      "name": "Offensive Protocol: Demolish",
+      "type": "cast",
       "skillId": 76927
     },
     {
-      "name": "Stow Grenade Kit",
-      "offset": 400
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 400
     },
     "Throw Mine",
     "Jump Shot",
     {
-      "name": "Detonate",
-      "offset": 40
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 40
     },
     "Blunderbuss",
     "Bomb Kit",
     "Fire Bomb",
     {
-      "name": "Grenade Kit",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Shrapnel Grenade",
-      "interruptMs": 480
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 480
     },
     "Stow Grenade Kit",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 600
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 600
     },
     "Overcharged Shot",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 640
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 640
     },
     "Net Shot",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 560
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 560
     },
     {
-      "name": "Bomb Kit",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 240
     },
     "Bomb",
     "Stow Bomb Kit",
     {
-      "name": "Rifle Burst",
-      "interruptMs": 680
+      "type": "cast",
+      "skillId": 6003,
+      "interruptAfterMs": 680
     },
     "Blunderbuss",
     {
-      "name": "Grenade Kit",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 200
     },
     "Shrapnel Grenade",
     "Flux State",
     {
-      "name": "Defensive Protocol: Thorns",
+      "type": "cast",
       "skillId": 77104,
-      "offset": 80
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Bomb Kit",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5812,
+      "concurrentOffsetMs": 160
     },
     "Big Ol' Bomb",
     {
-      "name": "Evolve",
-      "skillId": 76642
+      "type": "cast",
+      "skillId": 76651
     },
     "Magnetic Bomb",
     "Fire Bomb",
     "Galvanic Bomb",
     {
-      "name": "Stow Bomb Kit",
-      "offset": 200
+      "type": "cast",
+      "skillId": 6111,
+      "concurrentOffsetMs": 200
     },
     "Throw Mine",
     {
-      "name": "Offensive Protocol: Obliterate",
+      "type": "cast",
       "skillId": 76705
     },
     {
-      "name": "Detonate",
-      "offset": 80
+      "type": "cast",
+      "skillId": 6162,
+      "concurrentOffsetMs": 80
     },
     "Blunderbuss",
     {
-      "name": "Grenade Kit",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5805,
+      "concurrentOffsetMs": 160
     },
     "Shrapnel Grenade",
     "Poison Grenade",
     "Freeze Grenade",
     {
-      "name": "Offensive Protocol: Demolish",
+      "type": "cast",
       "skillId": 76927
     },
     {
-      "name": "Stow Grenade Kit",
-      "offset": 320
+      "type": "cast",
+      "skillId": 6110,
+      "concurrentOffsetMs": 320
     }
   ]
 }

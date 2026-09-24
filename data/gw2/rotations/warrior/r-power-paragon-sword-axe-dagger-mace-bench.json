@@ -8,19 +8,30 @@
     "note": "Seven Sword/Axe windows and six full Dagger/Mace loops follow the supplied activation sequence; the EVTC ended during the final Whirling Axe."
   },
   "rotation": [
-    { "name": "Healing Signet", "skillId": 14389 },
+    {
+      "type": "cast",
+      "skillId": 14389
+    },
     "Signet of Rage",
-    { "name": "Chant of Action", "skillId": 77342 },
+    {
+      "type": "cast",
+      "skillId": 77342
+    },
     "Signet of Fury",
     "Bull's Charge",
-    { "name": "__combat_start", "offset": 640 },
+    {
+      "type": "combat-start",
+      "concurrentOffsetMs": 640
+    },
     "Breaching Strike",
     "Crushing Blow",
     "Tremor",
-    { "name": "__wait", "waitMs": 83 },
+    {
+      "type": "wait",
+      "durationMs": 83
+    },
     "Crushing Blow",
     "Swap Weapons",
-
     "Bloodthirster",
     "Dual Strike",
     "Rend",
@@ -32,7 +43,6 @@
     "Gash",
     "Hamstring",
     "Swap Weapons",
-
     "Breaching Strike",
     "Disrupting Stab",
     "Precise Cut",
@@ -62,7 +72,6 @@
     "Tremor",
     "Crushing Blow",
     "Swap Weapons",
-
     "Bloodthirster",
     "Dual Strike",
     "Rend",
@@ -74,7 +83,6 @@
     "Gash",
     "Hamstring",
     "Swap Weapons",
-
     "Breaching Strike",
     "Disrupting Stab",
     "Precise Cut",
@@ -103,7 +111,6 @@
     "Tremor",
     "Crushing Blow",
     "Swap Weapons",
-
     "Bloodthirster",
     "Dual Strike",
     "Rend",
@@ -116,7 +123,6 @@
     "Gash",
     "Hamstring",
     "Swap Weapons",
-
     "Breaching Strike",
     "Disrupting Stab",
     "Precise Cut",
@@ -146,7 +152,6 @@
     "Tremor",
     "Crushing Blow",
     "Swap Weapons",
-
     "Bloodthirster",
     "Dual Strike",
     "Rend",
@@ -158,7 +163,6 @@
     "Gash",
     "Hamstring",
     "Swap Weapons",
-
     "Breaching Strike",
     "Disrupting Stab",
     "Precise Cut",
@@ -187,7 +191,6 @@
     "Tremor",
     "Crushing Blow",
     "Swap Weapons",
-
     "Bloodthirster",
     "Dual Strike",
     "Rend",
@@ -199,7 +202,6 @@
     "Gash",
     "Hamstring",
     "Swap Weapons",
-
     "Breaching Strike",
     "Disrupting Stab",
     "Precise Cut",
@@ -230,7 +232,6 @@
     "Tremor",
     "Crushing Blow",
     "Swap Weapons",
-
     "Bloodthirster",
     "Dual Strike",
     "Rend",
@@ -242,7 +243,6 @@
     "Gash",
     "Hamstring",
     "Swap Weapons",
-
     "Breaching Strike",
     "Disrupting Stab",
     "Precise Cut",
@@ -271,7 +271,6 @@
     "Tremor",
     "Crushing Blow",
     "Swap Weapons",
-
     "Bloodthirster",
     "Dual Strike",
     "Rend",

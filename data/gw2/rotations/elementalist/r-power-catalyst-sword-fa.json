@@ -5,58 +5,68 @@
     "__combat_start",
     "Glyph of Storms (Air)",
     {
-      "name": "Flame Barrage",
-      "offset": 0
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 0
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 920
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 920
     },
     "Polaric Leap",
     "Ride the Lightning",
     "Quantum Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 480
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 480
     },
     "Relentless Fire",
     "Fire Strike",
     {
-      "name": "Arcane Blast",
-      "offset": 0
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 0
     },
     "Ring of Fire",
     "Fire Grab",
     {
-      "name": "Arcane Blast",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 360
     },
     "Cauterizing Strike",
     "Flame Uprising",
     {
-      "name": "Air Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Arcane Blast",
-      "offset": 520
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 520
     },
     "Charged Strike",
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Earth Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 360
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     "Charged Strike",
     "Polaric Slash",
@@ -66,41 +76,49 @@
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Flame Barrage",
-      "offset": 640
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 640
     },
     "Charged Strike",
     "Polaric Slash",
     {
-      "name": "Water Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 280
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Air Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 360
     },
     "Call Lightning",
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 560
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 560
     },
     {
-      "name": "Charged Strike",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 44681,
+      "interruptAfterMs": 120
     },
     "Polaric Leap",
     "Quantum Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 440
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 440
     },
     "Cauterizing Strike",
     "Ring of Fire",
@@ -109,8 +127,9 @@
     "Fire Swipe",
     "Fire Grab",
     {
-      "name": "Air Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 200
     },
     "Ride the Lightning",
     "Charged Strike",
@@ -118,25 +137,29 @@
     "Call Lightning",
     "Relentless Fire",
     {
-      "name": "Arcane Blast",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 160
     },
     "Charged Strike",
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Earth Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 280
     },
     "Earthquake",
     "Rust Frenzy",
     {
-      "name": "Air Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Flame Barrage",
-      "offset": 1120
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 1120
     },
     "Charged Strike",
     "Polaric Slash",
@@ -146,20 +169,24 @@
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Water Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 280
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Air Attunement",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 720
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 720
     },
     "Charged Strike",
     "Polaric Slash",
@@ -167,16 +194,18 @@
     "Polaric Leap",
     "Quantum Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
     },
     "Cauterizing Strike",
     "Ring of Fire",
     "Flame Uprising",
     "Fire Grab",
     {
-      "name": "Air Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
     },
     "Ride the Lightning",
     "Charged Strike",
@@ -186,22 +215,26 @@
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Flame Barrage",
-      "offset": 80
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Earth Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 280
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Arcane Blast",
-      "offset": 760
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 760
     },
     "Charged Strike",
     "Polaric Slash",
@@ -210,38 +243,45 @@
     "Charged Strike",
     "Polaric Slash",
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 200
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 200
     },
     "Call Lightning",
     {
-      "name": "Water Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 360
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Air Attunement",
-      "offset": 480
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 480
     },
     "Charged Strike",
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Charged Strike",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 44681,
+      "interruptAfterMs": 40
     },
     "Polaric Leap",
     "Quantum Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 400
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 400
     },
     "Relentless Fire",
     "Cauterizing Strike",
@@ -249,54 +289,63 @@
     "Flame Uprising",
     "Fire Grab",
     {
-      "name": "Air Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
     },
     "Ride the Lightning",
     "Charged Strike",
     "Polaric Slash",
     {
-      "name": "Flame Barrage",
-      "offset": 200
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 200
     },
     "Call Lightning",
     "Charged Strike",
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Earth Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 360
     },
     "Earthquake",
     "Rust Frenzy",
     {
-      "name": "Air Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 320
     },
     "Glyph of Storms (Air)",
     {
-      "name": "Charged Strike",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 44681,
+      "interruptAfterMs": 40
     },
     "Ride the Lightning",
     "Charged Strike",
     "Polaric Slash",
     {
-      "name": "Arcane Blast",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 80
     },
     "Call Lightning",
     {
-      "name": "Water Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 240
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Air Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 360
     },
     "Charged Strike",
     "Polaric Slash",
@@ -304,24 +353,28 @@
     "Polaric Leap",
     "Quantum Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 520
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 520
     },
     "Cauterizing Strike",
     "Ring of Fire",
     "Flame Uprising",
     {
-      "name": "Flame Barrage",
-      "offset": 560
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 560
     },
     "Fire Grab",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     "Ride the Lightning",
     "Charged Strike",
@@ -332,14 +385,16 @@
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Earth Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 320
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 200
     },
     "Charged Strike",
     "Polaric Slash",
@@ -349,45 +404,53 @@
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Water Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 240
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Air Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 640
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 640
     },
     "Charged Strike",
     "Polaric Slash",
     {
-      "name": "Arcane Blast",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 80
     },
     "Call Lightning",
     "Polaric Leap",
     "Quantum Strike",
     {
-      "name": "Flame Barrage",
-      "offset": 0
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 0
     },
     {
-      "name": "Fire Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
     },
     "Cauterizing Strike",
     "Ring of Fire",
     "Flame Uprising",
     "Fire Grab",
     {
-      "name": "Air Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
     },
     "Ride the Lightning",
     "Charged Strike",
@@ -397,18 +460,21 @@
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Earth Attunement",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Crystal Slash",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 43616,
+      "interruptAfterMs": 80
     },
     "Earthquake",
     "Rust Frenzy",
     {
-      "name": "Air Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
     },
     "Charged Strike",
     "Polaric Slash",
@@ -416,52 +482,61 @@
     "Ride the Lightning",
     "Charged Strike",
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 200
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 200
     },
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Water Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 320
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Air Attunement",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 440
     },
     "Charged Strike",
     {
-      "name": "Flame Barrage",
-      "offset": 0
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 0
     },
     "Polaric Slash",
     "Call Lightning",
     "Polaric Leap",
     "Quantum Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 360
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 360
     },
     "Relentless Fire",
     {
-      "name": "Arcane Blast",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 80
     },
     "Cauterizing Strike",
     "Ring of Fire",
     "Flame Uprising",
     "Fire Grab",
     {
-      "name": "Air Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
     },
     "Ride the Lightning",
     "Charged Strike",
@@ -471,14 +546,16 @@
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Earth Attunement",
-      "offset": 640
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 640
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     "Charged Strike",
     "Polaric Slash",
@@ -486,22 +563,26 @@
     "Ride the Lightning",
     "Charged Strike",
     {
-      "name": "Flame Barrage",
-      "offset": 0
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 0
     },
     "Polaric Slash",
     "Call Lightning",
     {
-      "name": "Water Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 240
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Air Attunement",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 400
     },
     "Charged Strike",
     "Polaric Slash",
@@ -509,28 +590,33 @@
     "Polaric Leap",
     "Quantum Strike",
     {
-      "name": "Fire Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 280
     },
     "Cauterizing Strike",
     "Ring of Fire",
     "Flame Uprising",
     {
-      "name": "Fire Strike",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 39964,
+      "interruptAfterMs": 40
     },
     "Fire Grab",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 480
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 480
     },
     {
-      "name": "Charged Strike",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 44681,
+      "interruptAfterMs": 40
     },
     "Ride the Lightning",
     "Charged Strike"

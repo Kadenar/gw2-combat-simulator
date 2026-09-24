@@ -1,623 +1,623 @@
 {
   "rotation": [
     {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "__combat_start",
-      "offset": 3120
+      "type": "combat-start",
+      "concurrentOffsetMs": 3120
     },
     {
-      "name": "Fire Attunement",
+      "type": "cast",
       "skillId": 5492
     },
     {
-      "name": "Ring of Fire",
+      "type": "cast",
       "skillId": 5691
     },
     {
-      "name": "Feel the Burn!",
+      "type": "cast",
       "skillId": 30662,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Flame Barrage",
+      "type": "cast",
       "skillId": 2662,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Fire Grab",
+      "type": "cast",
       "skillId": 5557
     },
     {
-      "name": "Burning Speed",
+      "type": "cast",
       "skillId": 5644
     },
     {
-      "name": "Drake's Breath",
+      "type": "cast",
       "skillId": 5496
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Convergence",
+      "type": "cast",
       "skillId": 5646
     },
     {
-      "name": "Transmute Lightning",
+      "type": "cast",
       "skillId": 51662
     },
     {
-      "name": "Ride the Lightning",
+      "type": "cast",
       "skillId": 5529
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Earth Attunement",
+      "type": "cast",
       "skillId": 5495
     },
     {
-      "name": "Earthquake",
+      "type": "cast",
       "skillId": 5690
     },
     {
-      "name": "Churning Earth",
+      "type": "cast",
       "skillId": 5522
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Glyph of Storms (Air)",
+      "type": "cast",
       "skillId": 5737
     },
     {
-      "name": "Convergence",
+      "type": "cast",
       "skillId": 5646
     },
     {
-      "name": "Transmute Lightning",
+      "type": "cast",
       "skillId": 51662
     },
     {
-      "name": "Ride the Lightning",
+      "type": "cast",
       "skillId": 5529
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Flame Barrage",
+      "type": "cast",
       "skillId": 2662,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Fire Attunement",
+      "type": "cast",
       "skillId": 5492
     },
     {
-      "name": "Ring of Fire",
+      "type": "cast",
       "skillId": 5691
     },
     {
-      "name": "Fire Grab",
+      "type": "cast",
       "skillId": 5557
     },
     {
-      "name": "Burning Speed",
+      "type": "cast",
       "skillId": 5644
     },
     {
-      "name": "Drake's Breath",
+      "type": "cast",
       "skillId": 5496
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Convergence",
+      "type": "cast",
       "skillId": 5646
     },
     {
-      "name": "Transmute Lightning",
+      "type": "cast",
       "skillId": 51662
     },
     {
-      "name": "Ride the Lightning",
+      "type": "cast",
       "skillId": 5529
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Feel the Burn!",
+      "type": "cast",
       "skillId": 30662,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Earth Attunement",
+      "type": "cast",
       "skillId": 5495
     },
     {
-      "name": "Earthquake",
+      "type": "cast",
       "skillId": 5690
     },
     {
-      "name": "Earthen Rush",
+      "type": "cast",
       "skillId": 5559
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Convergence",
+      "type": "cast",
       "skillId": 5646
     },
     {
-      "name": "Flame Barrage",
+      "type": "cast",
       "skillId": 2662,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Transmute Lightning",
+      "type": "cast",
       "skillId": 51662
     },
     {
-      "name": "Ride the Lightning",
+      "type": "cast",
       "skillId": 5529
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Fire Attunement",
+      "type": "cast",
       "skillId": 5492
     },
     {
-      "name": "Ring of Fire",
+      "type": "cast",
       "skillId": 5691
     },
     {
-      "name": "Fire Grab",
+      "type": "cast",
       "skillId": 5557
     },
     {
-      "name": "Burning Speed",
+      "type": "cast",
       "skillId": 5644
     },
     {
-      "name": "Drake's Breath",
+      "type": "cast",
       "skillId": 5496
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Convergence",
+      "type": "cast",
       "skillId": 5646
     },
     {
-      "name": "Transmute Lightning",
+      "type": "cast",
       "skillId": 51662
     },
     {
-      "name": "Ride the Lightning",
+      "type": "cast",
       "skillId": 5529
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Flame Barrage",
+      "type": "cast",
       "skillId": 2662,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Earth Attunement",
+      "type": "cast",
       "skillId": 5495
     },
     {
-      "name": "Earthquake",
+      "type": "cast",
       "skillId": 5690
     },
     {
-      "name": "Churning Earth",
+      "type": "cast",
       "skillId": 5522
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Convergence",
+      "type": "cast",
       "skillId": 5646
     },
     {
-      "name": "Feel the Burn!",
+      "type": "cast",
       "skillId": 30662,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Transmute Lightning",
+      "type": "cast",
       "skillId": 51662
     },
     {
-      "name": "Ride the Lightning",
+      "type": "cast",
       "skillId": 5529
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Fire Attunement",
+      "type": "cast",
       "skillId": 5492
     },
     {
-      "name": "Ring of Fire",
+      "type": "cast",
       "skillId": 5691
     },
     {
-      "name": "Fire Grab",
+      "type": "cast",
       "skillId": 5557
     },
     {
-      "name": "Burning Speed",
+      "type": "cast",
       "skillId": 5644
     },
     {
-      "name": "Drake's Breath",
+      "type": "cast",
       "skillId": 5496
     },
     {
-      "name": "Flame Barrage",
+      "type": "cast",
       "skillId": 2662,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Convergence",
+      "type": "cast",
       "skillId": 5646
     },
     {
-      "name": "Transmute Lightning",
+      "type": "cast",
       "skillId": 51662
     },
     {
-      "name": "Ride the Lightning",
+      "type": "cast",
       "skillId": 5529
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Earth Attunement",
+      "type": "cast",
       "skillId": 5495
     },
     {
-      "name": "Earthquake",
+      "type": "cast",
       "skillId": 5690
     },
     {
-      "name": "Earthen Rush",
+      "type": "cast",
       "skillId": 5559
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Convergence",
+      "type": "cast",
       "skillId": 5646
     },
     {
-      "name": "Transmute Lightning",
+      "type": "cast",
       "skillId": 51662
     },
     {
-      "name": "Ride the Lightning",
+      "type": "cast",
       "skillId": 5529
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Fire Attunement",
+      "type": "cast",
       "skillId": 5492
     },
     {
-      "name": "Ring of Fire",
+      "type": "cast",
       "skillId": 5691
     },
     {
-      "name": "Fire Grab",
+      "type": "cast",
       "skillId": 5557
     },
     {
-      "name": "Burning Speed",
+      "type": "cast",
       "skillId": 5644
     },
     {
-      "name": "Drake's Breath",
+      "type": "cast",
       "skillId": 5496
     },
     {
-      "name": "Flame Barrage",
+      "type": "cast",
       "skillId": 2662,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Feel the Burn!",
+      "type": "cast",
       "skillId": 30662
     },
     {
-      "name": "Convergence",
+      "type": "cast",
       "skillId": 5646
     },
     {
-      "name": "Transmute Lightning",
+      "type": "cast",
       "skillId": 51662
     },
     {
-      "name": "Ride the Lightning",
+      "type": "cast",
       "skillId": 5529
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Earth Attunement",
+      "type": "cast",
       "skillId": 5495
     },
     {
-      "name": "Earthquake",
+      "type": "cast",
       "skillId": 5690
     },
     {
-      "name": "Churning Earth",
+      "type": "cast",
       "skillId": 5522
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Convergence",
+      "type": "cast",
       "skillId": 5646
     },
     {
-      "name": "Transmute Lightning",
+      "type": "cast",
       "skillId": 51662
     },
     {
-      "name": "Ride the Lightning",
+      "type": "cast",
       "skillId": 5529
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Flame Barrage",
+      "type": "cast",
       "skillId": 2662,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Fire Attunement",
+      "type": "cast",
       "skillId": 5492
     },
     {
-      "name": "Fire Grab",
+      "type": "cast",
       "skillId": 5557
     },
     {
-      "name": "Ring of Fire",
+      "type": "cast",
       "skillId": 5691
     },
     {
-      "name": "Burning Speed",
+      "type": "cast",
       "skillId": 5644
     },
     {
-      "name": "Drake's Breath",
+      "type": "cast",
       "skillId": 5496
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Convergence",
+      "type": "cast",
       "skillId": 5646
     },
     {
-      "name": "Transmute Lightning",
+      "type": "cast",
       "skillId": 51662
     },
     {
-      "name": "Ride the Lightning",
+      "type": "cast",
       "skillId": 5529
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Lightning Whip",
+      "type": "cast",
       "skillId": 5489
     },
     {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Earth Attunement",
+      "type": "cast",
       "skillId": 5495
     },
     {
-      "name": "Earthquake",
+      "type": "cast",
       "skillId": 5690
     },
     {
-      "name": "Earthen Rush",
+      "type": "cast",
       "skillId": 5559
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Glyph of Storms (Air)",
+      "type": "cast",
       "skillId": 5737
     },
     {
-      "name": "Feel the Burn!",
+      "type": "cast",
       "skillId": 30662,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Flame Barrage",
+      "type": "cast",
       "skillId": 2662,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Convergence",
+      "type": "cast",
       "skillId": 5646
     },
     {
-      "name": "Transmute Lightning",
+      "type": "cast",
       "skillId": 51662
     },
     {
-      "name": "Ride the Lightning",
+      "type": "cast",
       "skillId": 5529
     },
     {
-      "name": "Fire Attunement",
+      "type": "cast",
       "skillId": 5492
     },
     {
-      "name": "Ring of Fire",
+      "type": "cast",
       "skillId": 5691
     }
   ]

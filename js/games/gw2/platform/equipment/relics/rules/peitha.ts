@@ -6,7 +6,7 @@ import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { defineRelic, timedStrikeBuff } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 /** Activation-to-impact delay for qualifying skills without a measured `peithaImpactDelayMs`. */
-export const PEITHA_DEFAULT_IMPACT_DELAY_MS = 240;
+const PEITHA_DEFAULT_IMPACT_DELAY_MS = 240;
 
 export const peitha = defineRelic({
   createState: () => ({ readyAt: 0, buffFrom: 0, buffUntil: 0 }),

@@ -10,15 +10,15 @@
   },
   "rotation": [
     {
-      "name": "Jurisdiction",
+      "type": "cast",
       "skillId": 71817
     },
     {
-      "name": "__combat_start",
-      "offset": 640
+      "type": "combat-start",
+      "concurrentOffsetMs": 640
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     "Purging Flames",
@@ -26,35 +26,35 @@
     "Swap Weapons",
     "Symbol of Ignition",
     {
-      "name": "Zealot's Flame",
+      "type": "cast",
       "skillId": 9104,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     "Peacekeeper",
     "Zealot's Fire",
     {
-      "name": "Crashing Courage",
+      "type": "cast",
       "skillId": 62648
     },
     "Whirling Light",
     "Peacekeeper",
     "Cleansing Flame",
     {
-      "name": "Zealot's Flame",
+      "type": "cast",
       "skillId": 9104,
-      "offset": 520
+      "concurrentOffsetMs": 520
     },
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     "Symbol of Ignition",
     "Zealot's Fire",
     "Peacekeeper",
     {
-      "name": "Zealot's Flame",
+      "type": "cast",
       "skillId": 9104,
-      "offset": 360
+      "concurrentOffsetMs": 360
     },
     "Zealot's Fire",
     "Swap Weapons",
@@ -63,14 +63,14 @@
     "Flowing Resolve",
     "Hail of Justice",
     {
-      "name": "Jurisdiction",
+      "type": "cast",
       "skillId": 71817
     },
     "Orb of Wrath",
     "Orb of Wrath",
     "Purging Flames",
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     "Whirling Light",
@@ -79,22 +79,22 @@
     "Swap Weapons",
     "Symbol of Ignition",
     {
-      "name": "Zealot's Flame",
+      "type": "cast",
       "skillId": 9104,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     "Peacekeeper",
     "Zealot's Fire",
     "Flowing Resolve",
     "Cleansing Flame",
     {
-      "name": "Zealot's Flame",
+      "type": "cast",
       "skillId": 9104,
-      "offset": 2480
+      "concurrentOffsetMs": 2480
     },
     "Zealot's Fire",
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     "Through the Heart",
@@ -104,11 +104,11 @@
     "Symbol of Punishment",
     "Hail of Justice",
     {
-      "name": "Crashing Courage",
+      "type": "cast",
       "skillId": 62648
     },
     {
-      "name": "Jurisdiction",
+      "type": "cast",
       "skillId": 71817
     },
     "Orb of Wrath",
@@ -116,7 +116,7 @@
     "Purging Flames",
     "Whirling Light",
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     "Orb of Wrath",
@@ -125,23 +125,23 @@
     "Swap Weapons",
     "Symbol of Ignition",
     {
-      "name": "Zealot's Flame",
+      "type": "cast",
       "skillId": 9104,
-      "offset": 240
+      "concurrentOffsetMs": 240
     },
     "Peacekeeper",
     "Zealot's Fire",
     "Flowing Resolve",
     "Cleansing Flame",
     {
-      "name": "Zealot's Flame",
+      "type": "cast",
       "skillId": 9104,
-      "offset": 2040
+      "concurrentOffsetMs": 2040
     },
     "Zealot's Fire",
     "Through the Heart",
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     "Symbol of Ignition",
@@ -151,7 +151,7 @@
     "Hail of Justice",
     "Flowing Resolve",
     {
-      "name": "Jurisdiction",
+      "type": "cast",
       "skillId": 71817
     },
     "Hail of Justice",
@@ -161,33 +161,33 @@
     "Whirling Light",
     "Symbol of Punishment",
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     "Hail of Justice",
     "Swap Weapons",
     "Symbol of Ignition",
     {
-      "name": "Zealot's Flame",
+      "type": "cast",
       "skillId": 9104,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     "Peacekeeper",
     "Zealot's Fire",
     {
-      "name": "Crashing Courage",
+      "type": "cast",
       "skillId": 62648
     },
     "Cleansing Flame",
     {
-      "name": "Zealot's Flame",
+      "type": "cast",
       "skillId": 9104,
-      "offset": 1560
+      "concurrentOffsetMs": 1560
     },
     "Zealot's Fire",
     "Through the Heart",
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     "Symbol of Ignition",
@@ -197,7 +197,7 @@
     "Hail of Justice",
     "Flowing Resolve",
     {
-      "name": "Jurisdiction",
+      "type": "cast",
       "skillId": 71817
     },
     "Orb of Wrath",
@@ -206,7 +206,7 @@
     "Whirling Light",
     "Orb of Wrath",
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     "Orb of Wrath",
@@ -214,24 +214,24 @@
     "Swap Weapons",
     "Symbol of Ignition",
     {
-      "name": "Zealot's Flame",
+      "type": "cast",
       "skillId": 9104,
-      "offset": 240
+      "concurrentOffsetMs": 240
     },
     "Peacekeeper",
     "Zealot's Fire",
     "Flowing Resolve",
     "Cleansing Flame",
     {
-      "name": "Zealot's Flame",
+      "type": "cast",
       "skillId": 9104,
-      "offset": 1440
+      "concurrentOffsetMs": 1440
     },
     "Zealot's Fire",
     "Through the Heart",
     "Symbol of Ignition",
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     "Peacekeeper",
@@ -239,12 +239,12 @@
     "Symbol of Punishment",
     "Hail of Justice",
     {
-      "name": "Crashing Courage",
+      "type": "cast",
       "skillId": 62648
     },
     "Whirling Light",
     {
-      "name": "Jurisdiction",
+      "type": "cast",
       "skillId": 71817
     },
     "Hail of Justice",
@@ -253,31 +253,31 @@
     "Orb of Wrath",
     "Symbol of Punishment",
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     "Hail of Justice",
     "Swap Weapons",
     "Symbol of Ignition",
     {
-      "name": "Zealot's Flame",
+      "type": "cast",
       "skillId": 9104,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     "Peacekeeper",
     "Zealot's Fire",
     "Flowing Resolve",
     "Cleansing Flame",
     {
-      "name": "Zealot's Flame",
+      "type": "cast",
       "skillId": 9104,
-      "offset": 1280
+      "concurrentOffsetMs": 1280
     },
     "Zealot's Fire",
     "Peacekeeper",
     "Symbol of Ignition",
     {
-      "name": "Rushing Justice",
+      "type": "cast",
       "skillId": 62668
     },
     "Whirling Light"

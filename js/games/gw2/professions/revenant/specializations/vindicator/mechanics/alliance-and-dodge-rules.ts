@@ -34,7 +34,7 @@ function enduranceNotFull(context: Gw2ModifierContext): boolean {
   return maximum > 0 && Number(state.endurance || 0) < maximum - 1e-9;
 }
 
-export const vindicatorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const vindicatorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'revenant.leviathan-strength',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,

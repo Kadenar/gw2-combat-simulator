@@ -20,7 +20,7 @@ import type { ThiefPrecastContext } from '#gw2/professions/thief/types.js';
 
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 
-export const antiquaryTaskHandlers = Object.freeze({
+const antiquaryTaskHandlers = Object.freeze({
   ...forgedSurfer.taskHandlers,
   ...skrittScuffle.taskHandlers
 });

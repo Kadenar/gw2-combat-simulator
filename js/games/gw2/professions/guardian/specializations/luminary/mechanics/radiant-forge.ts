@@ -1,3 +1,4 @@
+import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import {
@@ -13,12 +14,6 @@ import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/engine/e
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
 import { castWasInterrupted, projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
-/**
- * @fileoverview Implements Luminary Radiant Forge cast validation, mode
- * transitions, radiant-weapon effects, forge expiry, and resolver state
- * replay.
- */
-
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { selectedGuardianSpecialization } from '#gw2/professions/guardian/core/mechanics/availability.js';
 import { buildGuardianStrike, emitGuardianEvent } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
@@ -363,7 +358,7 @@ function finalizeRadiantForgeCooldown(context: GuardianSchedulerContext, at: num
     ['hammer', 'staff', 'blade', 'bulwark'].includes(weapon)
   ).length;
 
-  const baseRecharge = Math.max(0, Number(enter.cooldown ?? enter.recharge ?? 10));
+  const baseRecharge = Math.max(0, gw2BaseRecharge(enter));
   const adjustedBase = Math.max(
     0,
     baseRecharge -

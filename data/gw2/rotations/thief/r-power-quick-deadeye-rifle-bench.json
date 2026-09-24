@@ -9,7 +9,9 @@
   "rotation": [
     "Kneel",
     "Deadeye's Mark",
-    { "name": "__combat_start" },
+    {
+      "type": "combat-start"
+    },
     "Steal Time",
     "Shadow Flare",
     "Three Round Burst",
@@ -18,14 +20,22 @@
     "Steal Time",
     "Malicious Death's Judgment",
     "Three Round Burst",
-    { "name": "Mercy", "offset": 320 },
+    {
+      "type": "cast",
+      "skillId": 41372,
+      "concurrentOffsetMs": 320
+    },
     "Steal Time",
     "Deadeye's Mark",
     "Three Round Burst",
     "Three Round Burst",
     "Steal Time",
     "Malicious Death's Judgment",
-    { "name": "Mercy", "offset": 320 },
+    {
+      "type": "cast",
+      "skillId": 41372,
+      "concurrentOffsetMs": 320
+    },
     "Three Round Burst",
     "Steal Time",
     "Deadeye's Mark",
@@ -73,7 +83,11 @@
     "Three Round Burst",
     "Steal Time",
     "Malicious Death's Judgment",
-    { "name": "Mercy", "offset": 320 },
+    {
+      "type": "cast",
+      "skillId": 41372,
+      "concurrentOffsetMs": 320
+    },
     "Three Round Burst",
     "Steal Time",
     "Deadeye's Mark",
@@ -120,7 +134,11 @@
     "Three Round Burst",
     "Steal Time",
     "Malicious Death's Judgment",
-    { "name": "Mercy", "offset": 320 },
+    {
+      "type": "cast",
+      "skillId": 41372,
+      "concurrentOffsetMs": 320
+    },
     "Three Round Burst",
     "Steal Time",
     "Deadeye's Mark",
@@ -166,7 +184,11 @@
     "Three Round Burst",
     "Steal Time",
     "Malicious Death's Judgment",
-    { "name": "Mercy", "offset": 440 },
+    {
+      "type": "cast",
+      "skillId": 41372,
+      "concurrentOffsetMs": 440
+    },
     "Three Round Burst",
     "Steal Time",
     "Deadeye's Mark",
@@ -196,8 +218,16 @@
     "Steal Time",
     "Malicious Death's Judgment",
     "Three Round Burst",
-    { "name": "Mercy", "offset": 80 },
-    { "name": "Assassin's Signet", "offset": 80 },
+    {
+      "type": "cast",
+      "skillId": 41372,
+      "concurrentOffsetMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 13046,
+      "concurrentOffsetMs": 80
+    },
     "Deadly Aim",
     "Steal Time",
     "Deadeye's Mark",

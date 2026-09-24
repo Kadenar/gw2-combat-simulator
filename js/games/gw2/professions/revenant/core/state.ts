@@ -87,7 +87,7 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
 }
 
 // Core publishes only state shared by every Revenant build; elite state is projected by its owning module.
-export const REVENANT_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantCoreState)[] = Object.freeze([
+const REVENANT_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantCoreState)[] = Object.freeze([
   'energy',
   'maximumEnergy',
   'activeLegendId',

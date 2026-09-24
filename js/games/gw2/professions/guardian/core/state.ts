@@ -72,7 +72,7 @@ export function activeSymbolicAvengerExpirations(state: Partial<GuardianCoreStat
 }
 
 /** Declares the Core-owned portion of Guardian's stable public end-state contract. */
-export const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianCoreState)[] = Object.freeze([
+const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianCoreState)[] = Object.freeze([
   'endurance',
   'maximumEndurance',
   'justiceActiveArmed',

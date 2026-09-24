@@ -47,7 +47,7 @@ function rotationEntryName(entry: unknown, context: RevenantUiContext): string {
 
 // Select the timeline icon from the currently active legend, falling back safely
 // when projected runtime state is incomplete.
-export function revenantTimelineSkillIcon(context: RevenantUiContext = {}): string {
+function revenantTimelineSkillIcon(context: RevenantUiContext = {}): string {
   const skill = context.skill as RevenantSkill | undefined;
   if (skill?.name !== 'Swap Legends') return '';
   const selected = context.build?.selectedLegends || [];
@@ -60,7 +60,7 @@ export function revenantTimelineSkillIcon(context: RevenantUiContext = {}): stri
   return revenantLegend(destination || '')?.icon || '';
 }
 
-export function revenantEventLogRow(
+function revenantEventLogRow(
   _context: RevenantUiContext,
   event: RevenantResolverEvent
 ): ProfessionEventLogDescriptor | undefined {

@@ -21,7 +21,7 @@ import type {
 
 let guardianCatalog: Readonly<CanonicalCatalog>;
 
-export function guardianUiSpecialization(context: GuardianUiContext = {}): string {
+function guardianUiSpecialization(context: GuardianUiContext = {}): string {
   return context.specialization || context.config?.specialization || 'Core';
 }
 
@@ -95,7 +95,7 @@ export function guardianUiSkillsByMode(property: keyof GuardianSkill, value: unk
 
 // Render Guardian-specific virtue and state events while delegating ordinary
 // combat events to the shared log formatter.
-export function guardianEventLogRow(
+function guardianEventLogRow(
   _context: GuardianUiContext,
   event: GuardianResolverEvent
 ): ProfessionEventLogDescriptor | null | undefined {

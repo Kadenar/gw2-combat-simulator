@@ -3,45 +3,52 @@
     "Rock Barrier",
     "Air Attunement",
     {
-      "name": "__wait",
-      "waitMs": 5000
+      "type": "wait",
+      "durationMs": 5000
     },
     "Overload Air",
     {
-      "name": "__combat_start",
-      "offset": 3120
+      "type": "combat-start",
+      "concurrentOffsetMs": 3120
     },
     {
-      "name": "Flame Barrage",
-      "offset": 3120
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 3120
     },
     {
-      "name": "Lightning Strike",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 40
     },
     "Feel the Burn!",
     "Ride the Lightning",
     {
-      "name": "Earth Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Stone Shards",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 80
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Hurl",
-      "offset": 0
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 0
     },
     {
-      "name": "Fire Attunement",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 440
     },
     "Phoenix",
     "Ring of Fire",
@@ -56,8 +63,9 @@
     "Flamestrike",
     "Flamestrike",
     {
-      "name": "Flame Barrage",
-      "offset": 480
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 480
     },
     "Flamestrike",
     "Flamestrike",
@@ -70,49 +78,59 @@
     "Phoenix",
     "Fire Grab",
     {
-      "name": "Air Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Lightning Strike",
-      "offset": 520
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 520
     },
     "Signet of Fire",
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 2320
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 2320
     },
     {
-      "name": "Feel the Burn!",
-      "offset": 1520
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 1520
     },
     "Overload Air",
     {
-      "name": "Lightning Strike",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Flame Barrage",
-      "offset": 2720
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 2720
     },
     {
-      "name": "Earth Attunement",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 440
     },
     {
-      "name": "Stone Shards",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 80
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Fire Attunement",
-      "offset": 800
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 800
     },
     {
-      "name": "Flamestrike",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 40
     },
     "Phoenix",
     "Ring of Fire",
@@ -127,8 +145,9 @@
     "Flamestrike",
     "Flamestrike",
     {
-      "name": "Flame Barrage",
-      "offset": 280
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 280
     },
     "Flamestrike",
     "Flamestrike",
@@ -139,43 +158,51 @@
     "Flamestrike",
     "Phoenix",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     "Feel the Burn!",
     "Signet of Fire",
     {
-      "name": "Lightning Strike",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 200
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 2440
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 2440
     },
     "Overload Air",
     {
-      "name": "Lightning Strike",
-      "offset": 480
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 480
     },
     "Earth Attunement",
     {
-      "name": "Stone Shards",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 120
     },
     "Earthquake",
     {
-      "name": "Flame Barrage",
-      "offset": 640
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 640
     },
     "Churning Earth",
     {
-      "name": "Fire Attunement",
-      "offset": 760
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 760
     },
     {
-      "name": "Flamestrike",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 80
     },
     "Phoenix",
     "Ring of Fire",
@@ -192,19 +219,22 @@
     "Flamestrike",
     "Flamestrike",
     {
-      "name": "Flame Barrage",
-      "offset": 200
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Flamestrike",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 40
     },
     "Ring of Fire",
     "Dragon's Tooth",
     "Flamestrike",
     {
-      "name": "Feel the Burn!",
-      "offset": 400
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 400
     },
     "Flamestrike",
     "Flamestrike",
@@ -212,39 +242,46 @@
     "Phoenix",
     "Fire Grab",
     {
-      "name": "Air Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
     },
     "Lightning Strike",
     "Signet of Fire",
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 2280
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 2280
     },
     "Overload Air",
     {
-      "name": "Lightning Strike",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 400
     },
     "Earth Attunement",
     {
-      "name": "Stone Shards",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 80
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Flame Barrage",
-      "offset": 80
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Fire Attunement",
-      "offset": 760
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 760
     },
     {
-      "name": "Flamestrike",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 80
     },
     "Phoenix",
     "Ring of Fire",
@@ -258,19 +295,22 @@
     "Flamestrike",
     "Flamestrike",
     {
-      "name": "Feel the Burn!",
-      "offset": 400
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 400
     },
     "Flamestrike",
     "Flamestrike",
     {
-      "name": "Flamestrike",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 40
     },
     "Ring of Fire",
     {
-      "name": "Flame Barrage",
-      "offset": 280
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 280
     },
     "Dragon's Tooth",
     "Flamestrike",
@@ -278,46 +318,55 @@
     "Flamestrike",
     "Flamestrike",
     {
-      "name": "Flamestrike",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 80
     },
     "Phoenix",
     {
-      "name": "Air Attunement",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 400
     },
     "Signet of Fire",
     {
-      "name": "Lightning Strike",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 240
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 2640
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 2640
     },
     "Overload Air",
     {
-      "name": "Lightning Strike",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Earth Attunement",
-      "offset": 3160
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 3160
     },
     {
-      "name": "Stone Shards",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 40
     },
     "Earthquake",
     "Churning Earth",
     {
-      "name": "Flame Barrage",
-      "offset": 680
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 680
     },
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     "Phoenix",
     "Ring of Fire",

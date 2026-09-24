@@ -19,7 +19,7 @@ export interface DeadeyeState extends ThiefStealthAttackChargeState {
   deadeyeRelicUntil: number;
 }
 
-export function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
+function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
   const traits = selectedThiefTraits(config);
   return {
     markedTargetId: null,

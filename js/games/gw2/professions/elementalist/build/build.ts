@@ -18,7 +18,7 @@ import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/b
 /** Bumped whenever the persisted build shape changes, so older saves are migrated on load. */
 export const ELEMENTALIST_BUILD_SCHEMA_VERSION = 4;
 /** Canonical profession key stamped into saved builds and used for registry lookups. */
-export const ELEMENTALIST_PROFESSION_ID = 'elementalist';
+const ELEMENTALIST_PROFESSION_ID = 'elementalist';
 
 const ATTUNEMENT_VALUES = Object.freeze(['Fire', 'Water', 'Air', 'Earth'] as const);
 

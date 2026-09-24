@@ -27,7 +27,7 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<
         ]
       }
     ]),
-    recharge: 25,
+
     cooldown: 25,
     // Match the measured Quickness animation from the benchmark EVTC.
     castTimeMs: 560,
@@ -58,7 +58,7 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<
         duration: 3
       }
     ],
-    recharge: 1,
+
     cooldown: 15,
     ammo: 2,
     ammoRecharge: 15,

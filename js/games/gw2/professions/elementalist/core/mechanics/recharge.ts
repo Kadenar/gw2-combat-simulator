@@ -23,7 +23,7 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professio
  * Calculates persistent attunement and skill recharge rules without spending
  * next-cast empowerments, including when queried for bulk cooldown reductions.
  */
-export function modifyElementalistRechargeDuration(
+function modifyElementalistRechargeDuration(
   context: ElementalistSchedulerContext & ElementalistRechargeQuery,
   duration: number
 ): number {

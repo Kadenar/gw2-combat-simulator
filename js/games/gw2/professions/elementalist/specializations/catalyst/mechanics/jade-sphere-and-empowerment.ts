@@ -391,7 +391,7 @@ function scheduleBaseElementalEmpowerment(context: ElementalistSchedulerContext,
 
 // Folds an observed empowerment buff into the timed stack list at its original
 // application time rather than the time the task runs.
-export const externalEmpowermentReaction = scheduledReaction<
+const externalEmpowermentReaction = scheduledReaction<
   ElementalistSchedulerContext,
   SimulationEvent,
   { readonly applicationAt: number; readonly duration: number; readonly stacks: number }
@@ -574,7 +574,7 @@ function applyCatalystComboTraits(context: ElementalistSchedulerContext, event: 
 
 // Grants the Vicious Empowerment stacks for a control or immobilize proc, ignoring
 // pre-combat events and honouring the shared internal cooldown.
-export const viciousEmpowermentReaction = scheduledReaction<
+const viciousEmpowermentReaction = scheduledReaction<
   ElementalistSchedulerContext,
   SimulationEvent,
   { readonly applicationAt: number }
@@ -621,7 +621,7 @@ export const viciousEmpowermentReaction = scheduledReaction<
 
 // Damaging hits restore energy, but an active Jade Sphere suppresses the gain unless
 // Sphere Specialist is taken.
-export const catalystEnergyReaction = scheduledReaction<
+const catalystEnergyReaction = scheduledReaction<
   ElementalistSchedulerContext,
   SimulationEvent,
   { readonly sourceId: SimulationEvent['sourceId']; readonly skillName: string }

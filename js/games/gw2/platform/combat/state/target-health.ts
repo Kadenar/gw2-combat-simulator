@@ -15,12 +15,12 @@ export function playerDamageTotal(state: Gw2TargetDamageState | null | undefined
 }
 
 /** Returns non-player damage dealt by the configured encounter environment. */
-export function environmentDamageTotal(state: Gw2TargetDamageState | null | undefined): number {
+function environmentDamageTotal(state: Gw2TargetDamageState | null | undefined): number {
   return Number(state?.environmentDamage || 0);
 }
 
 /** Central target-health damage total includes both player output and environment-owned damage. */
-export function combinedTargetDamage(state: Gw2TargetDamageState | null | undefined): number {
+function combinedTargetDamage(state: Gw2TargetDamageState | null | undefined): number {
   return playerDamageTotal(state) + environmentDamageTotal(state);
 }
 

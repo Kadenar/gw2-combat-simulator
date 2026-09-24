@@ -188,7 +188,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     handlerId: 'revenant.abyssal-raze',
     castTimeMs: 600,
     cooldown: 1,
-    recharge: 1,
+    ammoCastLockout: 1,
     ammo: 3,
     ammoRecharge: 15,
     energyCost: 8,

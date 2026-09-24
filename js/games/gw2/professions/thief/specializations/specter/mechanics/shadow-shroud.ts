@@ -20,7 +20,7 @@ import type { ThiefCastContext, ThiefSchedulerContext, ThiefSkill } from '#gw2/p
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
 
-export const SHADOW_SHROUD_DEPLETION_TASK = 'thief.shadow-shroud-depleted';
+const SHADOW_SHROUD_DEPLETION_TASK = 'thief.shadow-shroud-depleted';
 
 /** Gains replace the shared zero-crossing deadline; exiting retires its lifetime. */
 export const shadowDepletion = resourceDepletion({

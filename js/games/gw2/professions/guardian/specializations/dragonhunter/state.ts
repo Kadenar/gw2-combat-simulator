@@ -8,7 +8,7 @@ export interface GuardianDragonhunterState {
   heavyLightReadyAt: number;
 }
 
-export function createDragonhunterState(): GuardianDragonhunterState {
+function createDragonhunterState(): GuardianDragonhunterState {
   return {
     tetherUntil: 0, // sim time at which the Spear of Justice tether expires; 0 = no tether
     heavyLightReadyAt: 0 // internal cooldown gate for Heavy Light stability proc

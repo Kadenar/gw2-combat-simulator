@@ -37,7 +37,7 @@ export const GALESHOT_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   missileHits: 0
 } satisfies Partial<RangerState>);
 
-export function createGaleshotState(config: RangerConfig = {}): GaleshotState {
+function createGaleshotState(config: RangerConfig = {}): GaleshotState {
   return {
     cycloneBowActive: false,
     arrows: boundedNumber(config.initialArrows ?? 8, 8, 0, 8), // clamped so a bad preset can't exceed the cap

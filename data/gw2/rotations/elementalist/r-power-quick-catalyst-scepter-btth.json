@@ -5,68 +5,79 @@
     "Frost Aura",
     "Fire Attunement",
     {
-      "name": "__wait",
-      "waitMs": 5000
+      "type": "wait",
+      "durationMs": 5000
     },
     "Dragon's Tooth",
     {
-      "name": "__combat_start",
-      "offset": 600
+      "type": "combat-start",
+      "concurrentOffsetMs": 600
     },
     "Glyph of Storms (Fire)",
     {
-      "name": "Flame Barrage",
-      "offset": 0
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 0
     },
     "Relentless Fire",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 120
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Flamestrike",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 40
     },
     "Phoenix",
     "Fire Grab",
     "Ring of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 120
     },
     "Deploy Jade Sphere (Earth)",
     "Earthquake",
     {
-      "name": "Hurl",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 120
     },
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Lightning Strike",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 240
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 240
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 520
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 520
     },
     "Water Attunement",
     "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 400
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 400
     },
     "Shatterstone",
     "Ice Shards",
@@ -78,25 +89,29 @@
     "Ice Shards",
     "Shatterstone",
     {
-      "name": "Fire Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
     },
     "Dragon's Tooth",
     "Flamestrike",
     {
-      "name": "Flame Barrage",
-      "offset": 600
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 600
     },
     "Flamestrike",
     {
-      "name": "Flamestrike",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5508,
+      "interruptAfterMs": 40
     },
     "Ring of Fire",
     "Flamestrike",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 400
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 400
     },
     "Flamestrike",
     "Flamestrike",
@@ -104,43 +119,50 @@
     "Fire Grab",
     "Dragon's Tooth",
     {
-      "name": "Earth Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 120
     },
     "Earthquake",
     {
-      "name": "Deploy Jade Sphere (Earth)",
-      "offset": 120
+      "type": "cast",
+      "skillId": 62837,
+      "concurrentOffsetMs": 120
     },
     "Rock Barrier",
     "Relentless Fire",
     {
-      "name": "Hurl",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     "Ride the Lightning",
     {
-      "name": "Lightning Strike",
+      "type": "cast",
       "skillId": 5561
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 1240
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 1240
     },
     "Deploy Jade Sphere (Air)",
     "Water Attunement",
     "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 480
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 480
     },
     "Shatterstone",
     "Ice Shards",
@@ -150,20 +172,22 @@
     "Water Trident",
     "Shatterstone",
     {
-      "name": "Flame Barrage",
-      "offset": 120
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Fire Attunement",
+      "type": "cast",
       "skillId": 5492,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     "Dragon's Tooth",
     "Ring of Fire",
     "Glyph of Storms (Fire)",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 120
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 120
     },
     "Flamestrike",
     "Flamestrike",
@@ -173,64 +197,75 @@
     "Fire Grab",
     "Dragon's Tooth",
     {
-      "name": "Earth Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 120
     },
     "Earthquake",
     {
-      "name": "Deploy Jade Sphere (Earth)",
-      "offset": 120
+      "type": "cast",
+      "skillId": 62837,
+      "concurrentOffsetMs": 120
     },
     "Rock Barrier",
     "Dust Devil",
     {
-      "name": "Hurl",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 120
     },
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 320
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Lightning Strike",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 360
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 600
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 600
     },
     "Water Attunement",
     "Deploy Jade Sphere (Water)",
     "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 80
     },
     "Shatterstone",
     "Ice Shards",
     "Ice Shards",
     {
-      "name": "Flame Barrage",
-      "offset": 120
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
     },
     "Ice Shards",
     "Ice Shards",
     "Ice Shards",
     "Shatterstone",
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     "Dragon's Tooth",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 360
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 360
     },
     "Relentless Fire",
     "Ring of Fire",
@@ -243,48 +278,56 @@
     "Fire Grab",
     "Dragon's Tooth",
     {
-      "name": "Earth Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 120
     },
     "Earthquake",
     {
-      "name": "Deploy Jade Sphere (Earth)",
-      "offset": 120
+      "type": "cast",
+      "skillId": 62837,
+      "concurrentOffsetMs": 120
     },
     "Rock Barrier",
     {
-      "name": "Stone Shards",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 120
     },
     "Hurl",
     "Dust Devil",
     {
-      "name": "Air Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
     },
     "Lightning Strike",
     "Ride the Lightning",
     {
-      "name": "Deploy Jade Sphere (Air)",
+      "type": "cast",
       "skillId": 62940
     },
     "Glyph of Storms (Air)",
     {
-      "name": "Water Attunement",
-      "offset": 720
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 720
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 120
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 120
     },
     "Water Trident",
     {
-      "name": "Flame Barrage",
-      "offset": 240
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Frost Aura",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 120
     },
     "Shatterstone",
     "Ice Shards",
@@ -293,21 +336,24 @@
     "Ice Shards",
     "Ice Shards",
     {
-      "name": "Ice Shards",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 5693,
+      "interruptAfterMs": 40
     },
     "Shatterstone",
     {
-      "name": "Fire Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 280
     },
     "Dragon's Tooth",
     "Ring of Fire",
     "Flamestrike",
     "Flamestrike",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 320
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 320
     },
     "Flamestrike",
     "Flamestrike",
@@ -317,8 +363,9 @@
     "Fire Grab",
     "Dragon's Tooth",
     {
-      "name": "Earth Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 160
     },
     "Deploy Jade Sphere (Earth)",
     "Earthquake",
@@ -327,32 +374,38 @@
     "Dust Devil",
     "Churning Earth",
     {
-      "name": "Flame Barrage",
-      "offset": 120
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Lightning Strike",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 320
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 320
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 560
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 560
     },
     "Water Attunement",
     "Deploy Jade Sphere (Water)",
     "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 80
     },
     "Shatterstone",
     "Ice Shards",
@@ -362,8 +415,9 @@
     "Water Trident",
     "Shatterstone",
     {
-      "name": "Fire Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 320
     },
     "Dragon's Tooth",
     "Ring of Fire",
@@ -371,8 +425,9 @@
     "Flamestrike",
     "Flamestrike",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 120
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 120
     },
     "Flamestrike",
     "Flamestrike",
@@ -380,45 +435,52 @@
     "Fire Grab",
     "Dragon's Tooth",
     {
-      "name": "Earth Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 120
     },
     "Relentless Fire",
     "Deploy Jade Sphere (Earth)",
     "Earthquake",
     {
-      "name": "Flame Barrage",
-      "offset": 80
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 80
     },
     "Rock Barrier",
     "Dust Devil",
     {
-      "name": "Hurl",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Lightning Strike",
+      "type": "cast",
       "skillId": 5561
     },
     "Ride the Lightning",
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 40
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Arc Lightning",
-      "interruptMs": 1240
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 1240
     },
     "Water Attunement",
     "Deploy Jade Sphere (Water)",
     "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 80
     },
     "Shatterstone",
     "Ice Shards",
@@ -428,14 +490,16 @@
     "Ice Shards",
     "Shatterstone",
     {
-      "name": "Fire Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
     },
     "Dragon's Tooth",
     "Ring of Fire",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 360
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 360
     },
     "Flamestrike",
     "Flamestrike",
@@ -445,53 +509,63 @@
     "Phoenix",
     "Fire Grab",
     {
-      "name": "Flame Barrage",
-      "offset": 120
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
     },
     "Dragon's Tooth",
     {
-      "name": "Earth Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Deploy Jade Sphere (Earth)",
-      "offset": 120
+      "type": "cast",
+      "skillId": 62837,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Stone Shards",
-      "interruptMs": 240
+      "type": "cast",
+      "skillId": 5500,
+      "interruptAfterMs": 240
     },
     "Earthquake",
     "Rock Barrier",
     "Dust Devil",
     {
-      "name": "Hurl",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 160
     },
     "Churning Earth",
     {
-      "name": "Air Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 200
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Lightning Strike",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5561,
+      "concurrentOffsetMs": 240
     },
     "Ride the Lightning",
     {
-      "name": "Arc Lightning",
-      "interruptMs": 560
+      "type": "cast",
+      "skillId": 5526,
+      "interruptAfterMs": 560
     },
     "Water Attunement",
     "Deploy Jade Sphere (Water)",
     "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 80
     },
     "Shatterstone",
     "Ice Shards",
@@ -501,13 +575,15 @@
     "Ice Shards",
     "Shatterstone",
     {
-      "name": "Fire Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 40
     },
     "Dragon's Tooth",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 400
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 400
     },
     "Relentless Fire",
     "Ring of Fire",
@@ -515,48 +591,55 @@
     "Flamestrike",
     "Flamestrike",
     {
-      "name": "Flame Barrage",
-      "offset": 80
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 80
     },
     "Flamestrike",
     "Phoenix",
     "Fire Grab",
     "Dragon's Tooth",
     {
-      "name": "Earth Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 120
     },
     "Earthquake",
     "Deploy Jade Sphere (Earth)",
     "Rock Barrier",
     "Dust Devil",
     {
-      "name": "Hurl",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     "Ride the Lightning",
     {
-      "name": "Lightning Strike",
+      "type": "cast",
       "skillId": 5561
     },
     "Glyph of Storms (Air)",
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 120
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Water Attunement",
-      "offset": 960
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 960
     },
     "Deploy Jade Sphere (Water)",
     "Water Trident",
     {
-      "name": "Frost Aura",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 80
     },
     "Shatterstone",
     "Ice Shards",
@@ -567,19 +650,22 @@
     "Ice Shards",
     "Shatterstone",
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     "Dragon's Tooth",
     "Ring of Fire",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 240
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 240
     },
     "Flamestrike",
     {
-      "name": "Flame Barrage",
-      "offset": 120
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
     },
     "Flamestrike",
     "Flamestrike",
@@ -588,16 +674,16 @@
     "Phoenix",
     "Fire Grab",
     {
-      "name": "Earth Attunement",
+      "type": "cast",
       "skillId": 5495,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Churning Earth",
+      "type": "cast",
       "skillId": 5522
     },
     {
-      "name": "Earthquake",
+      "type": "cast",
       "skillId": 5690
     }
   ]

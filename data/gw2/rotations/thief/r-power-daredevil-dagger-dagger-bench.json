@@ -11,8 +11,9 @@
     "__combat_start",
     "Cloak and Dagger",
     {
-      "name": "Backstab",
-      "interruptMs": 280
+      "type": "cast",
+      "skillId": 13005,
+      "interruptAfterMs": 280
     },
     "Dodge",
     "Fist Flurry",
@@ -30,8 +31,9 @@
     "Lotus Strike",
     "Cloak and Dagger",
     {
-      "name": "Backstab",
-      "interruptMs": 280
+      "type": "cast",
+      "skillId": 13005,
+      "interruptAfterMs": 280
     },
     "Steal",
     "Dodge",
@@ -53,8 +55,9 @@
     "Dodge",
     "Cloak and Dagger",
     {
-      "name": "Backstab",
-      "interruptMs": 280
+      "type": "cast",
+      "skillId": 13005,
+      "interruptAfterMs": 280
     },
     "Dodge",
     "Double Strike",
@@ -65,8 +68,9 @@
     "Lotus Strike",
     "Cloak and Dagger",
     {
-      "name": "Backstab",
-      "interruptMs": 280
+      "type": "cast",
+      "skillId": 13005,
+      "interruptAfterMs": 280
     },
     "Dodge",
     "Double Strike",
@@ -77,8 +81,9 @@
     "Lotus Strike",
     "Cloak and Dagger",
     {
-      "name": "Backstab",
-      "interruptMs": 280
+      "type": "cast",
+      "skillId": 13005,
+      "interruptAfterMs": 280
     },
     "Dodge",
     "Double Strike",
@@ -148,8 +153,9 @@
     "Dodge",
     "Cloak and Dagger",
     {
-      "name": "Backstab",
-      "interruptMs": 280
+      "type": "cast",
+      "skillId": 13005,
+      "interruptAfterMs": 280
     },
     "Dodge",
     "Double Strike",
@@ -210,8 +216,9 @@
     "Fist Flurry",
     "Impairing Daggers",
     {
-      "name": "Assassin's Signet",
-      "offset": 360
+      "type": "cast",
+      "skillId": 13046,
+      "concurrentOffsetMs": 360
     },
     "Palm Strike",
     "Dodge",
@@ -222,8 +229,9 @@
     "Heartseeker",
     "Double Strike",
     {
-      "name": "Wild Strike",
-      "interruptMs": 240
+      "type": "cast",
+      "skillId": 13087,
+      "interruptAfterMs": 240
     }
   ]
 }

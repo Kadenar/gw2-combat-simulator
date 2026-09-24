@@ -6,7 +6,7 @@ import type {
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
 
-export const MAX_MODIFIER_CONTRIBUTION_WORKERS = 3;
+const MAX_MODIFIER_CONTRIBUTION_WORKERS = 3;
 
 export function modifierContributionWorkerCount(comparisonCount: unknown, hardwareConcurrency = 0): number {
   const comparisons = Math.max(0, Math.trunc(Number(comparisonCount) || 0));

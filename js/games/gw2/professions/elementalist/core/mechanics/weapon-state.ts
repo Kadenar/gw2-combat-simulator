@@ -25,7 +25,7 @@ import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/typ
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 
 /** How long an advanced Aerial Agility stage stays offered before its chain resets. */
-export const AERIAL_AGILITY_FLIP_WINDOW_SECONDS = 5;
+const AERIAL_AGILITY_FLIP_WINDOW_SECONDS = 5;
 
 function ready(): AvailabilityResult {
   return { ready: true };

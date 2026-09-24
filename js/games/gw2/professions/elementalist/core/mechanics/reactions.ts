@@ -265,10 +265,7 @@ export function applyElementalistResolvedCondition(
   context: ElementalistResolverContext,
   event: Gw2ResolverEvent
 ): void {
-  if (
-    ['Immobilize', 'Immobilized'].includes(String(event.condition)) &&
-    (context.combatStartTime == null || event.at >= context.combatStartTime)
-  ) {
+  if (event.condition === 'Immobilized' && (context.combatStartTime == null || event.at >= context.combatStartTime)) {
     applyStrengthOfStone(context, event);
   }
 

@@ -100,7 +100,7 @@ function holosmithEventLogRow(
 }
 
 /** Supplies Holosmith skill-bar, palette, heat-resource, and event-log presentation behavior. */
-export const holosmithUi: EngineerUiSlice = Object.freeze({
+const holosmithUi: EngineerUiSlice = Object.freeze({
   eventLogRow: holosmithEventLogRow,
   // Photon Forge changes weapon presentation only while the Holosmith slice is active.
   timelineWeaponLineTransition: (context: EngineerUiContext) => {

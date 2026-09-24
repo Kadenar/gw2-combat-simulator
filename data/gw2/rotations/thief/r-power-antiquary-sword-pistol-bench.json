@@ -8,16 +8,18 @@
   "rotation": [
     "Skritt Swipe",
     {
-      "name": "__combat_start",
-      "offset": 0
+      "type": "combat-start",
+      "concurrentOffsetMs": 0
     },
     {
-      "name": "Stone Summit Cannon",
+      "type": "cast",
+      "skillId": 76725,
       "doubleEdgeOutcome": "success"
     },
     {
-      "name": "Stone Summit Cannon",
-      "interruptMs": 0,
+      "type": "cast",
+      "skillId": 76725,
+      "interruptAfterMs": 0,
       "doubleEdgeOutcome": "backfire"
     },
     "Mistburn Mortar",
@@ -28,8 +30,9 @@
     "Summon Kryptis Turret",
     "Flawless Execution",
     {
-      "name": "Canach-Coin Toss",
-      "offset": 120,
+      "type": "cast",
+      "skillId": 77230,
+      "concurrentOffsetMs": 120,
       "doubleEdgeOutcome": "success"
     },
     "Flawless Execution",
@@ -42,7 +45,8 @@
     "Flawless Execution",
     "Tactical Strike",
     {
-      "name": "Stone Summit Cannon",
+      "type": "cast",
+      "skillId": 76725,
       "doubleEdgeOutcome": "backfire"
     },
     "Holo-Dancer Decoy",
@@ -50,13 +54,15 @@
     "Assassin's Signet",
     "Flawless Execution",
     {
-      "name": "Stone Summit Cannon",
+      "type": "cast",
+      "skillId": 76725,
       "doubleEdgeOutcome": "backfire"
     },
     "Mistburn Mortar",
     {
-      "name": "Canach-Coin Toss",
-      "offset": 400,
+      "type": "cast",
+      "skillId": 77230,
+      "concurrentOffsetMs": 400,
       "doubleEdgeOutcome": "backfire"
     },
     "Flawless Execution",
@@ -72,25 +78,29 @@
     "Tactical Strike",
     "Flawless Execution",
     {
-      "name": "Stone Summit Cannon",
+      "type": "cast",
+      "skillId": 76725,
       "doubleEdgeOutcome": "backfire"
     },
     "Slice",
     "Slash",
     "Crippling Strike",
     {
-      "name": "Stone Summit Cannon",
+      "type": "cast",
+      "skillId": 76725,
       "doubleEdgeOutcome": "backfire"
     },
     "Flawless Execution",
     "Flawless Execution",
     {
-      "name": "Canach-Coin Toss",
+      "type": "cast",
+      "skillId": 77230,
       "doubleEdgeOutcome": "backfire"
     },
     "Flawless Execution",
     {
-      "name": "Canach-Coin Toss",
+      "type": "cast",
+      "skillId": 77230,
       "doubleEdgeOutcome": "backfire"
     },
     "Flawless Execution",
@@ -109,14 +119,16 @@
     "Skritt Scuffle",
     "Flawless Execution",
     {
-      "name": "Stone Summit Cannon",
+      "type": "cast",
+      "skillId": 76725,
       "doubleEdgeOutcome": "backfire"
     },
     "Metal Legion Guitar",
     "Tactical Strike",
     "Mistburn Mortar",
     {
-      "name": "Stone Summit Cannon",
+      "type": "cast",
+      "skillId": 76725,
       "doubleEdgeOutcome": "backfire"
     },
     "Tactical Strike",
@@ -133,13 +145,15 @@
     "Mistburn Mortar",
     "Flawless Execution",
     {
-      "name": "Stone Summit Cannon",
+      "type": "cast",
+      "skillId": 76725,
       "doubleEdgeOutcome": "backfire"
     },
     "Skritt Swipe",
     "Flawless Execution",
     {
-      "name": "Stone Summit Cannon",
+      "type": "cast",
+      "skillId": 76725,
       "doubleEdgeOutcome": "backfire"
     },
     "Forged Surfer Dash",
@@ -147,12 +161,14 @@
     "Flawless Execution",
     "Flawless Execution",
     {
-      "name": "Canach-Coin Toss",
+      "type": "cast",
+      "skillId": 77230,
       "doubleEdgeOutcome": "backfire"
     },
     "Flawless Execution",
     {
-      "name": "Canach-Coin Toss",
+      "type": "cast",
+      "skillId": 77230,
       "doubleEdgeOutcome": "backfire"
     },
     "Flawless Execution",
@@ -170,16 +186,19 @@
     "Slash",
     "Crippling Strike",
     {
-      "name": "Stone Summit Cannon",
+      "type": "cast",
+      "skillId": 76725,
       "doubleEdgeOutcome": "backfire"
     },
     "Flawless Execution",
     {
-      "name": "Stone Summit Cannon",
+      "type": "cast",
+      "skillId": 76725,
       "doubleEdgeOutcome": "backfire"
     },
     {
-      "name": "Canach-Coin Toss",
+      "type": "cast",
+      "skillId": 77230,
       "doubleEdgeOutcome": "backfire"
     },
     "Flawless Execution",

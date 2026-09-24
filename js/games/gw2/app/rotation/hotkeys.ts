@@ -5,7 +5,7 @@ import { ensureDocumentStyles, shouldIgnoreHotkey } from '#ui/shared/dom.js';
 export const ROTATION_HOTKEY_STORAGE_KEY = 'gw2-rotation-hotkeys-v1';
 export const ROTATION_HOTKEY_ENABLED_STORAGE_KEY = 'gw2-rotation-hotkeys-enabled-v1';
 
-export const ROTATION_HOTKEY_ACTIONS = Object.freeze([
+const ROTATION_HOTKEY_ACTIONS = Object.freeze([
   { id: 'weapon-swap', label: 'Weapon swap', group: 'Weapon', code: 'Backquote' },
   { id: 'weapon-1', label: 'Weapon skill 1', group: 'Weapon', code: 'Digit1' },
   { id: 'weapon-2', label: 'Weapon skill 2', group: 'Weapon', code: 'Digit2' },

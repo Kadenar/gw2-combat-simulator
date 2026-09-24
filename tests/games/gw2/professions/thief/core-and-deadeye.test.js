@@ -1090,13 +1090,6 @@ test('Daredevil capacity and every dodge replacement resolve explicitly', () => 
     }
   }
 
-  const resilient = simulate('Daredevil', [], {
-    selectedTraitIds: [TRAIT.MARAUDERS_RESILIENCE],
-    stats: { power: 2000, vitality: 1000 }
-  });
-
-  assert.equal(resilient.planningState.profession.maximumHealth, 13045);
-
   const impalingLotus = simulate('Daredevil', ['Dodge'], {
     selectedDodge: 'Lotus Training',
     selectedTraitIds: [TRAIT.LOTUS_TRAINING]

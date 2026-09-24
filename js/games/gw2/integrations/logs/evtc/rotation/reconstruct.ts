@@ -1,3 +1,4 @@
+import type { CastCommand, CooldownResetCommand, RotationCommand } from '#gw2/platform/execution/types.js';
 import { isMushroomKingsBlessing, LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
@@ -37,12 +38,7 @@ import { evtcRotationProfile } from '#gw2/integrations/logs/evtc/rotation/profil
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
 import type { EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
-import type {
-  ReconstructedCommand,
-  ReconstructedCooldownResetCommand,
-  ReconstructedRotationCommand,
-  RotationReconstructionBase
-} from '#gw2/integrations/logs/shared/rotation/model.js';
+import type { RotationReconstructionBase } from '#gw2/integrations/logs/shared/rotation/model.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
 import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
@@ -189,24 +185,13 @@ function resolveAction(
   };
 }
 
-function actionCommand(action: ResolvedAction): ReconstructedRotationCommand | ReconstructedCooldownResetCommand {
-  if (isMushroomKingsBlessing(action)) return { name: '__cooldown_reset' };
-  const command: {
-    name: string;
-    skillId?: string | number;
-    offTarget?: boolean;
-    offset?: number;
-    interruptMs?: number;
-    doubleEdgeOutcome?: 'success' | 'backfire';
-    releaseAtCharges?: number;
-  } = {
-    name: action.name,
-    skillId: action.skillId
-  };
+function actionCommand(action: ResolvedAction): CastCommand | CooldownResetCommand {
+  if (isMushroomKingsBlessing(action)) return { type: 'cooldown-reset' };
+  const command: { -readonly [Key in keyof CastCommand]: CastCommand[Key] } = { type: 'cast', skillId: action.skillId };
   if (action.offTarget === true) command.offTarget = true;
   const interruptMs = observedInterruptMs(action, action.skill);
   // Keep cancelled inputs explicit instead of replaying them as full damaging casts.
-  if (interruptMs != null) command.interruptMs = interruptMs;
+  if (interruptMs != null) command.interruptAfterMs = interruptMs;
 
   if (action.doubleEdgeOutcome != null) {
     command.doubleEdgeOutcome = action.doubleEdgeOutcome;
@@ -238,7 +223,7 @@ function buildRotation(
   actions: readonly ResolvedAction[],
   origin: number,
   combatStart: number | null
-): ReconstructedCommand[] {
+): RotationCommand[] {
   return buildReplayTimeline(actions, origin, combatStart, {
     timingToleranceMs: TIMING_TOLERANCE_MS,
     quantizeMs: quantizeGw2ActionTimingMs,

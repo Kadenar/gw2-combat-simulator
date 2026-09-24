@@ -34,8 +34,8 @@ import type {
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
 
-export const RENEGADE_CRITICAL_TRAITS_TASK = 'revenant.renegade-critical-traits';
-export const RENEGADE_RAZORCLAW_PROC_TASK = 'revenant.razorclaw-proc';
+const RENEGADE_CRITICAL_TRAITS_TASK = 'revenant.renegade-critical-traits';
+const RENEGADE_RAZORCLAW_PROC_TASK = 'revenant.razorclaw-proc';
 
 function criticalCount(context: RevenantSchedulerContext, event: SimulationEvent): number {
   const state = renegadeState.from(context);

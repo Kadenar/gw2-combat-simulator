@@ -1,596 +1,627 @@
 {
   "rotation": [
     {
-      "name": "Flame Wheel"
+      "type": "cast",
+      "skillId": 62758
     },
     {
-      "name": "Air Attunement"
+      "type": "cast",
+      "skillId": 5494
     },
     {
-      "name": "__wait",
-      "waitMs": 6000
+      "type": "wait",
+      "durationMs": 6000
     },
     {
-      "name": "Overload Air"
-    },
-    {
-      "name": "Crescent Wind",
-      "offset": 120
-    },
-    {
-      "name": "__combat_start",
-      "offset": 3040
-    },
-    {
-      "name": "Shock Blast"
-    },
-    {
-      "name": "Flame Barrage",
-      "offset": 120
-    },
-    {
-      "name": "Fire Attunement",
-      "offset": 120
-    },
-    {
-      "name": "Triple Sear"
-    },
-    {
-      "name": "Feel the Burn!",
-      "offset": 120
-    },
-    {
-      "name": "Air Attunement",
-      "offset": 120
-    },
-    {
-      "name": "Glyph of Storms (Air)"
-    },
-    {
-      "name": "Arcane Blast",
-      "offset": 120
-    },
-    {
-      "name": "Hurricane of Pain"
-    },
-    {
-      "name": "Arcane Blast",
-      "offset": 120
-    },
-    {
-      "name": "Arcane Blast",
-      "offset": 120
-    },
-    {
-      "name": "Overload Air"
-    },
-    {
-      "name": "Earth Attunement"
-    },
-    {
-      "name": "Ground Pound"
-    },
-    {
-      "name": "Rocky Loop",
-      "offset": 120
-    },
-    {
-      "name": "Whirling Stones"
-    },
-    {
-      "name": "Air Attunement",
-      "offset": 120
-    },
-    {
-      "name": "Wind Slam"
-    },
-    {
-      "name": "Wind Slam"
-    },
-    {
-      "name": "Wind Slam"
-    },
-    {
-      "name": "Overload Air"
-    },
-    {
-      "name": "Hurricane of Pain"
-    },
-    {
-      "name": "Flame Barrage",
-      "offset": 120
-    },
-    {
-      "name": "Water Attunement",
-      "offset": 120
-    },
-    {
-      "name": "Icy Coil",
-      "offset": 120
-    },
-    {
-      "name": "Air Attunement",
-      "offset": 120
-    },
-    {
-      "name": "Shock Blast"
-    },
-    {
-      "name": "Wind Slam",
-      "skillId": 62747
-    },
-    {
-      "name": "Arcane Blast",
-      "skillId": 5539,
-      "offset": 120
-    },
-    {
-      "name": "Grand Finale",
-      "skillId": 62876
-    },
-    {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Feel the Burn!",
-      "skillId": 30662,
-      "offset": 120
-    },
-    {
-      "name": "Crescent Wind",
+      "type": "cast",
       "skillId": 62887,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Fire Attunement",
-      "skillId": 5492
+      "type": "combat-start",
+      "concurrentOffsetMs": 3040
     },
     {
-      "name": "Triple Sear",
-      "skillId": 62807
-    },
-    {
-      "name": "Flame Wheel",
-      "skillId": 62758,
-      "offset": 120
-    },
-    {
-      "name": "Molten End",
-      "skillId": 62910
-    },
-    {
-      "name": "Air Attunement",
-      "skillId": 5494,
-      "offset": 120
-    },
-    {
-      "name": "Wind Slam",
-      "skillId": 62747
-    },
-    {
-      "name": "Hurricane of Pain",
-      "skillId": 62812
-    },
-    {
-      "name": "Overload Air",
-      "skillId": 29719
-    },
-    {
-      "name": "Flame Barrage",
-      "skillId": 2662,
-      "offset": 120
-    },
-    {
-      "name": "Earth Attunement",
-      "skillId": 5495
-    },
-    {
-      "name": "Ground Pound",
-      "skillId": 62778
-    },
-    {
-      "name": "Rocky Loop",
-      "skillId": 62975,
-      "offset": 120
-    },
-    {
-      "name": "Whirling Stones",
-      "skillId": 62976
-    },
-    {
-      "name": "Air Attunement",
-      "skillId": 5494,
-      "offset": 120
-    },
-    {
-      "name": "Wind Slam",
-      "skillId": 62747
-    },
-    {
-      "name": "Wind Slam",
-      "skillId": 62747
-    },
-    {
-      "name": "Wind Slam",
-      "skillId": 62747
-    },
-    {
-      "name": "Overload Air",
-      "skillId": 29719
-    },
-    {
-      "name": "Arcane Blast",
-      "skillId": 5539,
-      "offset": 120
-    },
-    {
-      "name": "Hurricane of Pain",
-      "skillId": 62812
-    },
-    {
-      "name": "Water Attunement",
-      "skillId": 5493,
-      "offset": 120
-    },
-    {
-      "name": "Icy Coil",
-      "skillId": 62834,
-      "offset": 120
-    },
-    {
-      "name": "Air Attunement",
-      "skillId": 5494,
-      "offset": 120
-    },
-    {
-      "name": "Shock Blast",
+      "type": "cast",
       "skillId": 62716
     },
     {
-      "name": "Wind Slam",
-      "skillId": 62747
-    },
-    {
-      "name": "Flame Barrage",
+      "type": "cast",
       "skillId": 2662,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Grand Finale",
-      "skillId": 62876
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Overload Air",
-      "skillId": 29719
-    },
-    {
-      "name": "Crescent Wind",
-      "skillId": 62887,
-      "offset": 120
-    },
-    {
-      "name": "Fire Attunement",
-      "skillId": 5492
-    },
-    {
-      "name": "Triple Sear",
+      "type": "cast",
       "skillId": 62807
     },
     {
-      "name": "Flame Wheel",
-      "skillId": 62758,
-      "offset": 120
-    },
-    {
-      "name": "Molten End",
-      "skillId": 62910
-    },
-    {
-      "name": "Air Attunement",
-      "skillId": 5494,
-      "offset": 120
-    },
-    {
-      "name": "Wind Slam",
-      "skillId": 62747
-    },
-    {
-      "name": "Feel the Burn!",
+      "type": "cast",
       "skillId": 30662,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Hurricane of Pain",
-      "skillId": 62812
-    },
-    {
-      "name": "Overload Air",
-      "skillId": 29719
-    },
-    {
-      "name": "Arcane Blast",
-      "skillId": 5539,
-      "offset": 120
-    },
-    {
-      "name": "Earth Attunement",
-      "skillId": 5495
-    },
-    {
-      "name": "Ground Pound",
-      "skillId": 62778
-    },
-    {
-      "name": "Rocky Loop",
-      "skillId": 62975
-    },
-    {
-      "name": "Whirling Stones",
-      "skillId": 62976
-    },
-    {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Flame Barrage",
-      "skillId": 2662,
-      "offset": 120
-    },
-    {
-      "name": "Glyph of Storms (Air)",
+      "type": "cast",
       "skillId": 5737
     },
     {
-      "name": "Wind Slam",
-      "skillId": 62747
-    },
-    {
-      "name": "__wait",
-      "waitMs": 100
-    },
-    {
-      "name": "Overload Air",
-      "skillId": 29719
-    },
-    {
-      "name": "Hurricane of Pain",
-      "skillId": 62812
-    },
-    {
-      "name": "Water Attunement",
-      "skillId": 5493,
-      "offset": 120
-    },
-    {
-      "name": "Icy Coil",
-      "skillId": 62834,
-      "offset": 120
-    },
-    {
-      "name": "Air Attunement",
-      "skillId": 5494,
-      "offset": 120
-    },
-    {
-      "name": "Shock Blast",
-      "skillId": 62716
-    },
-    {
-      "name": "Wind Slam",
-      "skillId": 62747
-    },
-    {
-      "name": "Grand Finale",
-      "skillId": 62876
-    },
-    {
-      "name": "Overload Air",
-      "skillId": 29719
-    },
-    {
-      "name": "Crescent Wind",
-      "skillId": 62887,
-      "offset": 120
-    },
-    {
-      "name": "Fire Attunement",
-      "skillId": 5492
-    },
-    {
-      "name": "Triple Sear",
-      "skillId": 62807
-    },
-    {
-      "name": "Flame Wheel",
-      "skillId": 62758,
-      "offset": 120
-    },
-    {
-      "name": "Molten End",
-      "skillId": 62910
-    },
-    {
-      "name": "Air Attunement",
-      "skillId": 5494,
-      "offset": 120
-    },
-    {
-      "name": "Wind Slam",
-      "skillId": 62747
-    },
-    {
-      "name": "Hurricane of Pain",
-      "skillId": 62812
-    },
-    {
-      "name": "Feel the Burn!",
-      "skillId": 30662,
-      "offset": 120
-    },
-    {
-      "name": "Flame Barrage",
-      "skillId": 2662,
-      "offset": 120
-    },
-    {
-      "name": "Arcane Blast",
+      "type": "cast",
       "skillId": 5539,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Overload Air",
+      "type": "cast",
+      "skillId": 62812
+    },
+    {
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Earth Attunement",
+      "type": "cast",
       "skillId": 5495
     },
     {
-      "name": "Ground Pound",
+      "type": "cast",
       "skillId": 62778
     },
     {
-      "name": "Rocky Loop",
+      "type": "cast",
       "skillId": 62975,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Whirling Stones",
+      "type": "cast",
       "skillId": 62976
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Wind Slam",
+      "type": "cast",
       "skillId": 62747
     },
     {
-      "name": "Wind Slam",
+      "type": "cast",
       "skillId": 62747
     },
     {
-      "name": "Wind Slam",
+      "type": "cast",
       "skillId": 62747
     },
     {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Flame Barrage",
-      "skillId": 2662,
-      "offset": 120
-    },
-    {
-      "name": "Hurricane of Pain",
+      "type": "cast",
       "skillId": 62812
     },
     {
-      "name": "Water Attunement",
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
       "skillId": 5493,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Icy Coil",
+      "type": "cast",
       "skillId": 62834,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Arcane Blast",
-      "skillId": 5539,
-      "offset": 120
-    },
-    {
-      "name": "Shock Blast",
+      "type": "cast",
       "skillId": 62716
     },
     {
-      "name": "Wind Slam",
+      "type": "cast",
       "skillId": 62747
     },
     {
-      "name": "Grand Finale",
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
       "skillId": 62876
     },
     {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Crescent Wind",
-      "skillId": 62887,
-      "offset": 120
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Fire Attunement",
+      "type": "cast",
+      "skillId": 62887,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
       "skillId": 5492
     },
     {
-      "name": "Triple Sear",
+      "type": "cast",
       "skillId": 62807
     },
     {
-      "name": "Flame Wheel",
+      "type": "cast",
       "skillId": 62758,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Molten End",
+      "type": "cast",
       "skillId": 62910
     },
     {
-      "name": "Air Attunement",
+      "type": "cast",
       "skillId": 5494,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Wind Slam",
+      "type": "cast",
       "skillId": 62747
     },
     {
-      "name": "Feel the Burn!",
-      "skillId": 30662,
-      "offset": 120
-    },
-    {
-      "name": "Hurricane of Pain",
+      "type": "cast",
       "skillId": 62812
     },
     {
-      "name": "Overload Air",
+      "type": "cast",
       "skillId": 29719
     },
     {
-      "name": "Flame Barrage",
+      "type": "cast",
       "skillId": 2662,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Earth Attunement",
+      "type": "cast",
       "skillId": 5495
     },
     {
-      "name": "Ground Pound",
+      "type": "cast",
       "skillId": 62778
     },
     {
-      "name": "Rocky Loop",
+      "type": "cast",
       "skillId": 62975,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Grand Finale",
+      "type": "cast",
+      "skillId": 62976
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
+    {
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
+    {
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62834,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62716
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62876
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
+    {
+      "type": "cast",
+      "skillId": 62887,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 62807
+    },
+    {
+      "type": "cast",
+      "skillId": 62758,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62910
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
+    {
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5495
+    },
+    {
+      "type": "cast",
+      "skillId": 62778
+    },
+    {
+      "type": "cast",
+      "skillId": 62975
+    },
+    {
+      "type": "cast",
+      "skillId": 62976
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5737
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "wait",
+      "durationMs": 100
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
+    {
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62834,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62716
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62876
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
+    {
+      "type": "cast",
+      "skillId": 62887,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 62807
+    },
+    {
+      "type": "cast",
+      "skillId": 62758,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62910
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
+    {
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
+    {
+      "type": "cast",
+      "skillId": 5495
+    },
+    {
+      "type": "cast",
+      "skillId": 62778
+    },
+    {
+      "type": "cast",
+      "skillId": 62975,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62976
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
+    {
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
+    {
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62834,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5539,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62716
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 62876
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
+    {
+      "type": "cast",
+      "skillId": 62887,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5492
+    },
+    {
+      "type": "cast",
+      "skillId": 62807
+    },
+    {
+      "type": "cast",
+      "skillId": 62758,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62910
+    },
+    {
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62747
+    },
+    {
+      "type": "cast",
+      "skillId": 30662,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62812
+    },
+    {
+      "type": "cast",
+      "skillId": 29719
+    },
+    {
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 5495
+    },
+    {
+      "type": "cast",
+      "skillId": 62778
+    },
+    {
+      "type": "cast",
+      "skillId": 62975,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
       "skillId": 62876
     }
   ]

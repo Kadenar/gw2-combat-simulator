@@ -53,7 +53,7 @@ export function necromancerUiState(context: NecromancerUiContext = {}): Partial<
 }
 
 /** Resolves the specialization name used to select Necromancer UI groups and rules. */
-export function necromancerUiSpecialization(context: NecromancerUiContext = {}): string {
+function necromancerUiSpecialization(context: NecromancerUiContext = {}): string {
   return context.specialization || context.config?.specialization || 'Core';
 }
 
@@ -216,7 +216,7 @@ function necromancerCorePaletteAvailability(
 }
 
 /** Formats Necromancer-specific state events while hiding internal lifecycle packets. */
-export function necromancerEventLogRow(
+function necromancerEventLogRow(
   _context: NecromancerUiContext,
   event: NecromancerSimulationEvent
 ): ProfessionEventLogDescriptor | null | undefined {
@@ -329,7 +329,7 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
 }
 
 /** Defines the Core Necromancer UI projections and delegates transform-specific groups to shared builders. */
-export const necromancerCoreUi: NecromancerUiSlice = Object.freeze({
+const necromancerCoreUi: NecromancerUiSlice = Object.freeze({
   assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   // Core owns both labels because the effects remain available across Necromancer specializations.
   effectPresentations: () => [...NECROMANCER_EFFECT_PRESENTATIONS],

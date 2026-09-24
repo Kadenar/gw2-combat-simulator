@@ -29,7 +29,7 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementa
  * that lack them contribute nothing.
  */
 // Familiar's Prowess buffs strike for Air element, condition for Fire — damage type bonus is element-gated
-export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'elementalist.fiery-might',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -86,7 +86,7 @@ export const evokerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
  * Air Evoker, and might-scaled condition damage on a Fire Evoker.
  */
 // ferocity and conditionDamage added here rather than as modifier rules because they must feed into crit-damage and condition scaling before those are computed
-export function modifyEvokerAttributes(context: ElementalistModifierContext, attributes: Gw2Stats): Gw2Stats {
+function modifyEvokerAttributes(context: ElementalistModifierContext, attributes: Gw2Stats): Gw2Stats {
   const modified: Gw2MutableStats = { ...attributes };
   if (
     context.config?.evokerElement === 'Air' &&

@@ -184,7 +184,8 @@ test('profession transitions use their own entry and exit settings without charg
 
 test('automatic shroud depletion and forge expiry apply exit recovery at the transition timestamp', () => {
   for (const [profession, specialization, entry, waitMs, resource] of [
-    [thiefProfession, 'Specter', 'Enter Shadow Shroud', 500, { initialShadowForce: 1 }],
+    // Observe depletion on the first 40 ms tick at or after the 500 ms zero crossing.
+    [thiefProfession, 'Specter', 'Enter Shadow Shroud', 520, { initialShadowForce: 1 }],
     [guardianProfession, 'Luminary', 'Enter Radiant Forge', 20000, {}],
     [necromancerProfession, 'Core', 'Death Shroud', 30000, { initialResource: 10 }]
   ]) {
@@ -257,7 +258,8 @@ test('automatic exit during final entry recovery extends only the overlapping de
       transitionDelays: { shroudEntryMs: 600, shroudExitMs: 200 }
     }
   });
-  assert.equal(result.schedulerState.time, 0.7);
+  // Depletion at 520 ms adds 200 ms exit recovery, overlapping the 600 ms entry recovery.
+  assert.equal(result.schedulerState.time, 0.72);
   assert.equal(result.planningState.profession.shadowShroudActive, false);
   assert.deepEqual(result.warnings, []);
 });

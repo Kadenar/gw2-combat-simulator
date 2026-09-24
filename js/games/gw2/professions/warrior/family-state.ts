@@ -73,7 +73,7 @@ export function gainWarriorAdrenaline(context: WarriorSchedulerContext, amount: 
 }
 
 /** Routes a resource spend to the slice that owns the active profession mechanic. */
-export function spendWarriorAdrenaline(context: WarriorCastContext, skill: WarriorSkill): number {
+function spendWarriorAdrenaline(context: WarriorCastContext, skill: WarriorSkill): number {
   switch (specializationKind(context)) {
     case 'Berserker':
       return spendBerserkerAdrenaline(context, skill);

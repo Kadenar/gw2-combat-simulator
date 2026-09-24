@@ -13,7 +13,7 @@ const SLOT_LAYOUT = Object.freeze([
   { slot: 'Elite', type: 'Elite', paletteIndex: 8 }
 ]);
 
-export const GW2_BUILD_TEMPLATE_WEAPON_NAMES: Readonly<Record<number, string>> = Object.freeze({
+const GW2_BUILD_TEMPLATE_WEAPON_NAMES: Readonly<Record<number, string>> = Object.freeze({
   5: 'Axe',
   35: 'Longbow',
   47: 'Dagger',

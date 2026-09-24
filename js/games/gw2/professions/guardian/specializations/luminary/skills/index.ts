@@ -16,7 +16,5 @@ export const LUMINARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
 
 export {
   LUMINARY_EXTRA_SKILLS,
-  LUMINARY_INITIAL_LIGHT_AURA_SKILL_ID,
   LUMINARY_INITIAL_STATE_SKILL_IDS
 } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
-export { PIERCING_STANCE_IMPACT_MS } from '#gw2/professions/guardian/specializations/luminary/skills/stance-skills.js';

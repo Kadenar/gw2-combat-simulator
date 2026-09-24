@@ -410,7 +410,7 @@ test('simulation config stays inside the viewport after scrolling and hides in A
   await expect(config).toBeHidden();
 });
 
-// A palette drop and a timeline edit must share the authored wait duration through rerenders.
+// A palette drop and a timeline edit must preserve valid 40 ms wait increments through rerenders.
 test('a palette wait drop opens its editor and the timeline can edit the inserted wait', async ({ page }) => {
   await openSimulator(page);
   const timeline = page.locator('#rotation-timeline');
@@ -425,18 +425,18 @@ test('a palette wait drop opens its editor and the timeline can edit the inserte
 
   const addWait = page.getByRole('dialog', { name: 'Add wait' });
   await expect(addWait).toBeVisible();
-  await addWait.getByLabel('Duration', { exact: true }).fill('333');
+  await addWait.getByLabel('Duration', { exact: true }).fill('320');
   await addWait.getByRole('button', { name: 'Apply' }).click();
-  await expect(timeline.locator('.rot-wait-badge')).toContainText('333ms');
+  await expect(timeline.locator('.rot-wait-badge')).toContainText('320ms');
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
 
   await timeline.locator('.rot-skill[data-idx="0"]').hover();
   await timeline.getByRole('button', { name: 'Edit Wait duration' }).click();
   const editWait = page.getByRole('dialog', { name: 'Edit wait' });
-  await expect(editWait.getByLabel('Duration', { exact: true })).toHaveValue('333');
-  await editWait.getByLabel('Duration', { exact: true }).fill('125');
+  await expect(editWait.getByLabel('Duration', { exact: true })).toHaveValue('320');
+  await editWait.getByLabel('Duration', { exact: true }).fill('120');
   await editWait.getByRole('button', { name: 'Apply' }).click();
-  await expect(timeline.locator('.rot-wait-badge')).toContainText('125ms');
+  await expect(timeline.locator('.rot-wait-badge')).toContainText('120ms');
 });
 
 test('timing skill selection submits the picker and details expand below DPS', async ({ page }) => {

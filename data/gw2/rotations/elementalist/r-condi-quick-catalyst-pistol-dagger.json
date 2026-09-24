@@ -2,19 +2,22 @@
   "rotation": [
     "Elemental Explosion",
     {
-      "name": "Flame Barrage",
-      "offset": 0
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 0
     },
     "Deploy Jade Sphere (Earth)",
     "Boulder Blast",
     "Shattering Stone",
     {
-      "name": "Fire Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 480
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 480
     },
     "Ring of Fire",
     "Raging Ricochet",
@@ -25,50 +28,59 @@
     "Scorching Shot",
     "Scorching Shot",
     {
-      "name": "Scorching Shot",
-      "interruptMs": 240
+      "type": "cast",
+      "skillId": 71929,
+      "interruptAfterMs": 240
     },
     "Raging Ricochet",
     "Searing Salvo",
     {
-      "name": "Water Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 320
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Frost Aura",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 400
     },
     "Frigid Flurry",
     "Arcane Brilliance",
     {
-      "name": "Air Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 200
     },
     "Ride the Lightning",
     "Aerial Agility",
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 40
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 40
     },
     "Aerial Agility (chain)",
     "Aerial Agility (dash)",
     {
-      "name": "Earth Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 120
     },
     "Shattering Stone",
     "Earthquake",
     {
-      "name": "Flame Barrage",
-      "offset": 120
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
     },
     "Churning Earth",
     "Deploy Jade Sphere (Earth)",
@@ -76,18 +88,21 @@
     "Boulder Blast",
     "Piercing Pebble",
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 40
     },
     "Shattering Stone",
     {
-      "name": "Fire Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 320
     },
     "Ring of Fire",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 200
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 200
     },
     "Raging Ricochet",
     "Fire Grab",
@@ -101,41 +116,49 @@
     "Raging Ricochet",
     "Searing Salvo",
     {
-      "name": "Water Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 320
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Frost Aura",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 320
     },
     "Frigid Flurry",
     {
-      "name": "Air Attunement",
-      "offset": 760
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 760
     },
     "Ride the Lightning",
     "Aerial Agility",
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 80
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Flame Barrage",
-      "offset": 120
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 120
     },
     "Aerial Agility (chain)",
     "Aerial Agility (dash)",
     {
-      "name": "Earth Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 40
     },
     "Shattering Stone",
     "Earthquake",
@@ -144,18 +167,21 @@
     "Elemental Explosion",
     "Boulder Blast",
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 40
     },
     "Shattering Stone",
     {
-      "name": "Fire Attunement",
-      "offset": 480
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 480
     },
     "Ring of Fire",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 360
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 360
     },
     "Raging Ricochet",
     "Fire Grab",
@@ -165,49 +191,58 @@
     "Scorching Shot",
     "Scorching Shot",
     {
-      "name": "Scorching Shot",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 71929,
+      "interruptAfterMs": 120
     },
     "Raging Ricochet",
     "Searing Salvo",
     {
-      "name": "Water Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Flame Barrage",
-      "offset": 160
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 240
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Frost Aura",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 400
     },
     "Frigid Flurry",
     {
-      "name": "Air Attunement",
-      "offset": 760
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 760
     },
     "Aerial Agility",
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 200
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 200
     },
     "Ride the Lightning",
     "Aerial Agility (chain)",
     "Aerial Agility (dash)",
     "Signet of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 200
     },
     "Deploy Jade Sphere (Earth)",
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 80
     },
     "Shattering Stone",
     "Earthquake",
@@ -216,32 +251,37 @@
     "Piercing Pebble",
     "Piercing Pebble",
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 240
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 240
     },
     "Shattering Stone",
     {
-      "name": "Fire Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
     },
     "Ring of Fire",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 40
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 40
     },
     "Raging Ricochet",
     "Fire Grab",
     {
-      "name": "Scorching Shot",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 71929,
+      "interruptAfterMs": 80
     },
     "Signet of Earth",
     "Scorching Shot",
     "Scorching Shot",
     "Scorching Shot",
     {
-      "name": "Flame Barrage",
-      "offset": 40
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 40
     },
     "Scorching Shot",
     "Scorching Shot",
@@ -249,39 +289,46 @@
     "Raging Ricochet",
     "Searing Salvo",
     {
-      "name": "Water Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 400
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Frost Aura",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 440
     },
     "Frigid Flurry",
     "Arcane Brilliance",
     {
-      "name": "Air Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 600
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 600
     },
     "Ride the Lightning",
     "Aerial Agility",
     "Aerial Agility (chain)",
     "Aerial Agility (dash)",
     {
-      "name": "Earth Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 240
     },
     "Deploy Jade Sphere (Earth)",
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 120
     },
     "Shattering Stone",
     "Earthquake",
@@ -290,22 +337,26 @@
     "Piercing Pebble",
     "Piercing Pebble",
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 80
     },
     "Shattering Stone",
     {
-      "name": "Fire Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 280
     },
     "Ring of Fire",
     {
-      "name": "Flame Barrage",
-      "offset": 40
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 80
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 80
     },
     "Raging Ricochet",
     "Signet of Fire",
@@ -315,44 +366,52 @@
     "Scorching Shot",
     "Scorching Shot",
     {
-      "name": "Scorching Shot",
-      "interruptMs": 200
+      "type": "cast",
+      "skillId": 71929,
+      "interruptAfterMs": 200
     },
     "Raging Ricochet",
     "Searing Salvo",
     {
-      "name": "Water Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 280
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Frost Aura",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 280
     },
     "Frigid Flurry",
     {
-      "name": "Air Attunement",
-      "offset": 720
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 720
     },
     "Aerial Agility",
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 160
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 160
     },
     "Ride the Lightning",
     "Aerial Agility (chain)",
     "Aerial Agility (dash)",
     {
-      "name": "Earth Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 280
     },
     "Deploy Jade Sphere (Earth)",
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 160
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 160
     },
     "Shattering Stone",
     "Earthquake",
@@ -360,18 +419,21 @@
     "Elemental Explosion",
     "Boulder Blast",
     {
-      "name": "Flame Barrage",
-      "offset": 400
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 400
     },
     "Shattering Stone",
     {
-      "name": "Fire Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 280
     },
     "Ring of Fire",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 200
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 200
     },
     "Raging Ricochet",
     "Scorching Shot",
@@ -385,67 +447,79 @@
     "Raging Ricochet",
     "Searing Salvo",
     {
-      "name": "Water Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 320
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Frost Aura",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 320
     },
     "Frigid Flurry",
     {
-      "name": "Air Attunement",
-      "offset": 720
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 720
     },
     "Ride the Lightning",
     "Aerial Agility",
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 80
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 80
     },
     "Aerial Agility (chain)",
     "Aerial Agility (dash)",
     "Signet of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 80
     },
     "Deploy Jade Sphere (Earth)",
     "Shattering Stone",
     "Earthquake",
     {
-      "name": "Flame Barrage",
-      "offset": 40
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 40
     },
     "Churning Earth",
     "Boulder Blast",
     "Piercing Pebble",
     "Piercing Pebble",
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 200
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 200
     },
     "Shattering Stone",
     {
-      "name": "Fire Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Scorching Shot",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 71929,
+      "interruptAfterMs": 40
     },
     "Ring of Fire",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 160
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 160
     },
     "Raging Ricochet",
     "Fire Grab",
@@ -458,42 +532,50 @@
     "Raging Ricochet",
     "Searing Salvo",
     {
-      "name": "Water Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 440
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 440
     },
     {
-      "name": "Frost Aura",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 440
     },
     "Frigid Flurry",
     {
-      "name": "Flame Barrage",
-      "offset": 680
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 680
     },
     "Arcane Brilliance",
     {
-      "name": "Air Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
     },
     "Ride the Lightning",
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 80
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 80
     },
     "Aerial Agility",
     "Aerial Agility (chain)",
     "Aerial Agility (dash)",
     {
-      "name": "Earth Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 120
     },
     "Deploy Jade Sphere (Earth)",
     "Shattering Stone",
@@ -503,18 +585,21 @@
     "Piercing Pebble",
     "Piercing Pebble",
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 120
     },
     "Shattering Stone",
     {
-      "name": "Fire Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 320
     },
     "Ring of Fire",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 80
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 80
     },
     "Raging Ricochet",
     "Signet of Fire",
@@ -525,47 +610,56 @@
     "Scorching Shot",
     "Scorching Shot",
     {
-      "name": "Flame Barrage",
-      "offset": 240
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Scorching Shot",
-      "interruptMs": 200
+      "type": "cast",
+      "skillId": 71929,
+      "interruptAfterMs": 200
     },
     "Raging Ricochet",
     "Searing Salvo",
     {
-      "name": "Water Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Deploy Jade Sphere (Water)",
-      "offset": 400
+      "type": "cast",
+      "skillId": 62723,
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Frost Aura",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 400
     },
     "Frigid Flurry",
     {
-      "name": "Air Attunement",
-      "offset": 880
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 880
     },
     "Aerial Agility",
     {
-      "name": "Deploy Jade Sphere (Air)",
-      "offset": 160
+      "type": "cast",
+      "skillId": 62940,
+      "concurrentOffsetMs": 160
     },
     "Ride the Lightning",
     "Aerial Agility (chain)",
     "Aerial Agility (dash)",
     {
-      "name": "Earth Attunement",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 200
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 200
     },
     "Deploy Jade Sphere (Earth)",
     "Shattering Stone",
@@ -574,23 +668,27 @@
     "Elemental Explosion",
     "Boulder Blast",
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 80
     },
     "Shattering Stone",
     {
-      "name": "Fire Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 320
     },
     "Ring of Fire",
     {
-      "name": "Deploy Jade Sphere (Fire)",
-      "offset": 280
+      "type": "cast",
+      "skillId": 62813,
+      "concurrentOffsetMs": 280
     },
     "Raging Ricochet",
     {
-      "name": "Scorching Shot",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 71929,
+      "interruptAfterMs": 80
     },
     "Fire Grab",
     "Searing Salvo",

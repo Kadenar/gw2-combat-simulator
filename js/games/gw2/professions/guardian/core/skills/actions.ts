@@ -16,7 +16,7 @@ export const GUARDIAN_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     weapon: '',
     specialization: undefined,
     categories: [],
-    recharge: 10,
+
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,

@@ -46,7 +46,7 @@ export const TROUBADOUR_INSTRUMENT_PROFILE_IDS: Readonly<Record<number, string>>
 });
 
 /** Builds the patchable balance profile for one Troubadour instrument. */
-export function mesmerInstrumentProfile(
+function mesmerInstrumentProfile(
   id: string,
   parentId: SkillId,
   name: string,

@@ -32,932 +32,932 @@
   "rotation": [
     "Throw Mine",
     {
-      "name": "__wait",
-      "waitMs": 5000
+      "type": "wait",
+      "durationMs": 5000
     },
     "Bomb Kit",
     "Big Ol' Bomb",
     "Magnetic Bomb",
     {
-      "name": "Evolve (Double Helix)",
+      "type": "cast",
       "skillId": 76651
     },
     "Fire Bomb",
     {
-      "name": "Galvanic Bomb",
+      "type": "cast",
       "skillId": 5822
     },
     {
-      "name": "__combat_start",
-      "offset": 520
+      "type": "combat-start",
+      "concurrentOffsetMs": 520
     },
     "Stow Bomb Kit",
     {
-      "name": "Flux State",
+      "type": "cast",
       "skillId": 76993
     },
     {
-      "name": "Detonate",
+      "type": "cast",
       "skillId": 6162,
-      "offset": 240
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Defensive Protocol: Thorns",
+      "type": "cast",
       "skillId": 77104,
-      "offset": 0
+      "concurrentOffsetMs": 0
     },
     {
-      "name": "Thunderclap",
+      "type": "cast",
       "skillId": 30713
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Offensive Protocol: Obliterate",
+      "type": "cast",
       "skillId": 76705
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 360
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807
     },
     {
-      "name": "Poison Grenade",
+      "type": "cast",
       "skillId": 5806
     },
     {
-      "name": "Freeze Grenade",
+      "type": "cast",
       "skillId": 5809
     },
     {
-      "name": "Offensive Protocol: Demolish",
+      "type": "cast",
       "skillId": 76927
     },
     {
-      "name": "Bomb Kit",
+      "type": "cast",
       "skillId": 5812,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Fire Bomb",
+      "type": "cast",
       "skillId": 5823
     },
     {
-      "name": "Stow Bomb Kit",
+      "type": "cast",
       "skillId": 6111,
-      "offset": 280
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Throw Mine",
+      "type": "cast",
       "skillId": 6161
     },
     {
-      "name": "Detonate",
+      "type": "cast",
       "skillId": 6162,
-      "offset": 400
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "__wait",
-      "waitMs": 200
+      "type": "wait",
+      "durationMs": 200
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 360
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807
     },
     {
-      "name": "Bomb Kit",
+      "type": "cast",
       "skillId": 5812,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Bomb",
+      "type": "cast",
       "skillId": 5842
     },
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Stow Bomb Kit",
+      "type": "cast",
       "skillId": 6111
     },
     {
-      "name": "__wait",
-      "waitMs": 160
+      "type": "wait",
+      "durationMs": 160
     },
     {
-      "name": "Positive Strike",
+      "type": "cast",
       "skillId": 30501
     },
     {
-      "name": "Negative Bash",
+      "type": "cast",
       "skillId": 29785
     },
     {
-      "name": "Equalizing Blow",
+      "type": "cast",
       "skillId": 30489
     },
     {
-      "name": "Rocket Charge",
+      "type": "cast",
       "skillId": 30665
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 320
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807
     },
     {
-      "name": "Bomb Kit",
+      "type": "cast",
       "skillId": 5812,
-      "offset": 200
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Big Ol' Bomb",
+      "type": "cast",
       "skillId": 5813
     },
     {
-      "name": "Magnetic Bomb",
+      "type": "cast",
       "skillId": 76530
     },
     {
-      "name": "Fire Bomb",
+      "type": "cast",
       "skillId": 5823
     },
     {
-      "name": "Galvanic Bomb",
+      "type": "cast",
       "skillId": 5822
     },
     {
-      "name": "Defensive Protocol: Thorns",
+      "type": "cast",
       "skillId": 77104,
-      "offset": 400
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Evolve (Double Helix)",
+      "type": "cast",
       "skillId": 76651
     },
     {
-      "name": "Stow Bomb Kit",
+      "type": "cast",
       "skillId": 6111,
-      "offset": 280
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Throw Mine",
+      "type": "cast",
       "skillId": 6161
     },
     {
-      "name": "Thunderclap",
+      "type": "cast",
       "skillId": 30713
     },
     {
-      "name": "Detonate",
+      "type": "cast",
       "skillId": 6162,
-      "offset": 40
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Offensive Protocol: Obliterate",
+      "type": "cast",
       "skillId": 76705
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 440
+      "concurrentOffsetMs": 440
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807
     },
     {
-      "name": "Poison Grenade",
+      "type": "cast",
       "skillId": 5806
     },
     {
-      "name": "Freeze Grenade",
+      "type": "cast",
       "skillId": 5809
     },
     {
-      "name": "Offensive Protocol: Demolish",
+      "type": "cast",
       "skillId": 76927
     },
     {
-      "name": "Stow Grenade Kit",
+      "type": "cast",
       "skillId": 6110,
-      "offset": 400
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Positive Strike",
+      "type": "cast",
       "skillId": 30501
     },
     {
-      "name": "Negative Bash",
+      "type": "cast",
       "skillId": 29785
     },
     {
-      "name": "Equalizing Blow",
+      "type": "cast",
       "skillId": 30489
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Bomb Kit",
+      "type": "cast",
       "skillId": 5812,
-      "offset": 200
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Fire Bomb",
+      "type": "cast",
       "skillId": 5823
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 80
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807,
-      "interruptMs": 480
+      "interruptAfterMs": 480
     },
     {
-      "name": "Stow Grenade Kit",
+      "type": "cast",
       "skillId": 6110,
-      "offset": 480
+      "concurrentOffsetMs": 480
     },
     {
-      "name": "Positive Strike",
+      "type": "cast",
       "skillId": 30501
     },
     {
-      "name": "Negative Bash",
+      "type": "cast",
       "skillId": 29785
     },
     {
-      "name": "Equalizing Blow",
+      "type": "cast",
       "skillId": 30489
     },
     {
-      "name": "Throw Mine",
+      "type": "cast",
       "skillId": 6161
     },
     {
-      "name": "Positive Strike",
+      "type": "cast",
       "skillId": 30501
     },
     {
-      "name": "Detonate",
+      "type": "cast",
       "skillId": 6162,
-      "offset": 40
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Negative Bash",
+      "type": "cast",
       "skillId": 29785
     },
     {
-      "name": "Equalizing Blow",
+      "type": "cast",
       "skillId": 30489
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 280
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807
     },
     {
-      "name": "Bomb Kit",
+      "type": "cast",
       "skillId": 5812,
-      "offset": 200
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Big Ol' Bomb",
+      "type": "cast",
       "skillId": 5813
     },
     {
-      "name": "Magnetic Bomb",
+      "type": "cast",
       "skillId": 76530
     },
     {
-      "name": "Fire Bomb",
+      "type": "cast",
       "skillId": 5823
     },
     {
-      "name": "Defensive Protocol: Thorns",
+      "type": "cast",
       "skillId": 77104,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Galvanic Bomb",
+      "type": "cast",
       "skillId": 5822
     },
     {
-      "name": "Evolve (Double Helix)",
+      "type": "cast",
       "skillId": 76651
     },
     {
-      "name": "Stow Bomb Kit",
+      "type": "cast",
       "skillId": 6111,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Thunderclap",
+      "type": "cast",
       "skillId": 30713
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Offensive Protocol: Obliterate",
+      "type": "cast",
       "skillId": 76705
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 320
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807
     },
     {
-      "name": "Poison Grenade",
+      "type": "cast",
       "skillId": 5806
     },
     {
-      "name": "Freeze Grenade",
+      "type": "cast",
       "skillId": 5809
     },
     {
-      "name": "Offensive Protocol: Demolish",
+      "type": "cast",
       "skillId": 76927
     },
     {
-      "name": "Stow Grenade Kit",
+      "type": "cast",
       "skillId": 6110,
-      "offset": 480
+      "concurrentOffsetMs": 480
     },
     {
-      "name": "Throw Mine",
+      "type": "cast",
       "skillId": 6161
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Detonate",
+      "type": "cast",
       "skillId": 6162
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Flux State",
+      "type": "cast",
       "skillId": 76993
     },
     {
-      "name": "__wait",
-      "waitMs": 120
+      "type": "wait",
+      "durationMs": 120
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Bomb Kit",
+      "type": "cast",
       "skillId": 5812,
-      "offset": 320
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Fire Bomb",
+      "type": "cast",
       "skillId": 5823
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 240
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807,
-      "interruptMs": 480
+      "interruptAfterMs": 480
     },
     {
-      "name": "Stow Grenade Kit",
+      "type": "cast",
       "skillId": 6110,
-      "offset": 480
+      "concurrentOffsetMs": 480
     },
     {
-      "name": "Positive Strike",
+      "type": "cast",
       "skillId": 30501
     },
     {
-      "name": "Negative Bash",
+      "type": "cast",
       "skillId": 29785
     },
     {
-      "name": "Equalizing Blow",
+      "type": "cast",
       "skillId": 30489
     },
     {
-      "name": "Rocket Charge",
+      "type": "cast",
       "skillId": 30665
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 360
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807
     },
     {
-      "name": "Bomb Kit",
+      "type": "cast",
       "skillId": 5812,
-      "offset": 240
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Big Ol' Bomb",
+      "type": "cast",
       "skillId": 5813
     },
     {
-      "name": "Magnetic Bomb",
+      "type": "cast",
       "skillId": 76530
     },
     {
-      "name": "Defensive Protocol: Thorns",
+      "type": "cast",
       "skillId": 77104,
-      "offset": 400
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Fire Bomb",
+      "type": "cast",
       "skillId": 5823
     },
     {
-      "name": "Galvanic Bomb",
+      "type": "cast",
       "skillId": 5822
     },
     {
-      "name": "Evolve (Double Helix)",
+      "type": "cast",
       "skillId": 76651
     },
     {
-      "name": "Stow Bomb Kit",
+      "type": "cast",
       "skillId": 6111,
-      "offset": 200
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Throw Mine",
+      "type": "cast",
       "skillId": 6161
     },
     {
-      "name": "Thunderclap",
+      "type": "cast",
       "skillId": 30713
     },
     {
-      "name": "Detonate",
+      "type": "cast",
       "skillId": 6162,
-      "offset": 40
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Offensive Protocol: Obliterate",
+      "type": "cast",
       "skillId": 76705
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 400
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807
     },
     {
-      "name": "Poison Grenade",
+      "type": "cast",
       "skillId": 5806
     },
     {
-      "name": "Freeze Grenade",
+      "type": "cast",
       "skillId": 5809
     },
     {
-      "name": "Offensive Protocol: Demolish",
+      "type": "cast",
       "skillId": 76927
     },
     {
-      "name": "Stow Grenade Kit",
+      "type": "cast",
       "skillId": 6110,
-      "offset": 440
+      "concurrentOffsetMs": 440
     },
     {
-      "name": "Positive Strike",
+      "type": "cast",
       "skillId": 30501
     },
     {
-      "name": "Negative Bash",
+      "type": "cast",
       "skillId": 29785
     },
     {
-      "name": "Equalizing Blow",
+      "type": "cast",
       "skillId": 30489
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Bomb Kit",
+      "type": "cast",
       "skillId": 5812,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Fire Bomb",
+      "type": "cast",
       "skillId": 5823
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807,
-      "interruptMs": 440
+      "interruptAfterMs": 440
     },
     {
-      "name": "Stow Grenade Kit",
+      "type": "cast",
       "skillId": 6110,
-      "offset": 440
+      "concurrentOffsetMs": 440
     },
     {
-      "name": "Positive Strike",
+      "type": "cast",
       "skillId": 30501
     },
     {
-      "name": "Negative Bash",
+      "type": "cast",
       "skillId": 29785
     },
     {
-      "name": "Equalizing Blow",
+      "type": "cast",
       "skillId": 30489
     },
     {
-      "name": "Throw Mine",
+      "type": "cast",
       "skillId": 6161
     },
     {
-      "name": "Positive Strike",
+      "type": "cast",
       "skillId": 30501
     },
     {
-      "name": "Detonate",
+      "type": "cast",
       "skillId": 6162,
-      "offset": 40
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Negative Bash",
+      "type": "cast",
       "skillId": 29785
     },
     {
-      "name": "Equalizing Blow",
+      "type": "cast",
       "skillId": 30489
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 280
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807
     },
     {
-      "name": "Bomb Kit",
+      "type": "cast",
       "skillId": 5812,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Big Ol' Bomb",
+      "type": "cast",
       "skillId": 5813
     },
     {
-      "name": "Defensive Protocol: Thorns",
+      "type": "cast",
       "skillId": 77104,
-      "offset": 80
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Magnetic Bomb",
+      "type": "cast",
       "skillId": 76530
     },
     {
-      "name": "Fire Bomb",
+      "type": "cast",
       "skillId": 5823
     },
     {
-      "name": "Galvanic Bomb",
+      "type": "cast",
       "skillId": 5822
     },
     {
-      "name": "Evolve (Double Helix)",
+      "type": "cast",
       "skillId": 76651
     },
     {
-      "name": "Stow Bomb Kit",
+      "type": "cast",
       "skillId": 6111,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Thunderclap",
+      "type": "cast",
       "skillId": 30713
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Offensive Protocol: Obliterate",
+      "type": "cast",
       "skillId": 76705
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 320
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807
     },
     {
-      "name": "Poison Grenade",
+      "type": "cast",
       "skillId": 5806
     },
     {
-      "name": "Freeze Grenade",
+      "type": "cast",
       "skillId": 5809
     },
     {
-      "name": "Offensive Protocol: Demolish",
+      "type": "cast",
       "skillId": 76927
     },
     {
-      "name": "Bomb Kit",
+      "type": "cast",
       "skillId": 5812,
-      "offset": 360
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Fire Bomb",
+      "type": "cast",
       "skillId": 5823
     },
     {
-      "name": "Stow Bomb Kit",
+      "type": "cast",
       "skillId": 6111,
-      "offset": 240
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Throw Mine",
+      "type": "cast",
       "skillId": 6161
     },
     {
-      "name": "Detonate",
+      "type": "cast",
       "skillId": 6162,
-      "offset": 400
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "__wait",
-      "waitMs": 200
+      "type": "wait",
+      "durationMs": 200
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 320
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807
     },
     {
-      "name": "Bomb Kit",
+      "type": "cast",
       "skillId": 5812,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Bomb",
+      "type": "cast",
       "skillId": 5842
     },
     {
-      "name": "__wait",
-      "waitMs": 80
+      "type": "wait",
+      "durationMs": 80
     },
     {
-      "name": "Stow Bomb Kit",
+      "type": "cast",
       "skillId": 6111
     },
     {
-      "name": "__wait",
-      "waitMs": 160
+      "type": "wait",
+      "durationMs": 160
     },
     {
-      "name": "Positive Strike",
+      "type": "cast",
       "skillId": 30501
     },
     {
-      "name": "Negative Bash",
+      "type": "cast",
       "skillId": 29785
     },
     {
-      "name": "Equalizing Blow",
+      "type": "cast",
       "skillId": 30489
     },
     {
-      "name": "Rocket Charge",
+      "type": "cast",
       "skillId": 30665
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Flux State",
+      "type": "cast",
       "skillId": 76993
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807
     },
     {
-      "name": "Defensive Protocol: Thorns",
+      "type": "cast",
       "skillId": 77104,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Bomb Kit",
+      "type": "cast",
       "skillId": 5812,
-      "offset": 80
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Big Ol' Bomb",
+      "type": "cast",
       "skillId": 5813
     },
     {
-      "name": "Fire Bomb",
+      "type": "cast",
       "skillId": 5823
     },
     {
-      "name": "Galvanic Bomb",
+      "type": "cast",
       "skillId": 5822
     },
     {
-      "name": "Evolve (Double Helix)",
+      "type": "cast",
       "skillId": 76651
     },
     {
-      "name": "Stow Bomb Kit",
+      "type": "cast",
       "skillId": 6111,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Throw Mine",
+      "type": "cast",
       "skillId": 6161
     },
     {
-      "name": "Thunderclap",
+      "type": "cast",
       "skillId": 30713
     },
     {
-      "name": "Detonate",
+      "type": "cast",
       "skillId": 6162,
-      "offset": 40
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "__wait",
-      "waitMs": 40
+      "type": "wait",
+      "durationMs": 40
     },
     {
-      "name": "Offensive Protocol: Obliterate",
+      "type": "cast",
       "skillId": 76705
     },
     {
-      "name": "Electro-whirl",
+      "type": "cast",
       "skillId": 30088
     },
     {
-      "name": "Grenade Kit",
+      "type": "cast",
       "skillId": 5805,
-      "offset": 280
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Shrapnel Grenade",
+      "type": "cast",
       "skillId": 5807
     },
     {
-      "name": "Poison Grenade",
+      "type": "cast",
       "skillId": 5806
     },
     {
-      "name": "Freeze Grenade",
+      "type": "cast",
       "skillId": 5809
     },
     {
-      "name": "Offensive Protocol: Demolish",
+      "type": "cast",
       "skillId": 76927
     },
     {
-      "name": "Stow Grenade Kit",
+      "type": "cast",
       "skillId": 6110,
-      "offset": 400
+      "concurrentOffsetMs": 400
     }
   ]
 }

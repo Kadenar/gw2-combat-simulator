@@ -26,874 +26,874 @@
   },
   "rotation": [
     {
-      "name": "Phantasmal Disenchanter",
+      "type": "cast",
       "skillId": 10267
     },
     {
-      "name": "Phantasmal Swordsman",
+      "type": "cast",
       "skillId": 10174
     },
     {
-      "name": "Unstable Bladestorm",
+      "type": "cast",
       "skillId": 62607
     },
     {
-      "name": "__combat_start"
+      "type": "combat-start"
     },
     {
-      "name": "Bladecall",
+      "type": "cast",
       "skillId": 69311
     },
     {
-      "name": "Time Sink",
+      "type": "cast",
       "skillId": 56873,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Continuum Split",
+      "type": "cast",
       "skillId": 29830,
-      "offset": 560
+      "concurrentOffsetMs": 560
     },
     {
-      "name": "Phantasmal Lancer",
+      "type": "cast",
       "skillId": 72946
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212
     },
     {
-      "name": "Mental Collapse",
+      "type": "cast",
       "skillId": 72957
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Well of Calamity",
+      "type": "cast",
       "skillId": 30525
     },
     {
-      "name": "Split Second",
+      "type": "cast",
       "skillId": 56930,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Rewinder",
+      "type": "cast",
       "skillId": 56928,
-      "offset": 400
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Gravity Well",
+      "type": "cast",
       "skillId": 30359
     },
     {
-      "name": "Imaginary Inversion",
+      "type": "cast",
       "skillId": 73152
     },
     {
-      "name": "Continuum Shift",
+      "type": "cast",
       "skillId": -4,
-      "offset": 40
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212
     },
     {
-      "name": "Phantasmal Lancer",
+      "type": "cast",
       "skillId": 72946
     },
     {
-      "name": "Split Second",
+      "type": "cast",
       "skillId": 56930,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Mental Collapse",
+      "type": "cast",
       "skillId": 72957
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Rewinder",
+      "type": "cast",
       "skillId": 56928
     },
     {
-      "name": "Well of Calamity",
+      "type": "cast",
       "skillId": 30525
     },
     {
-      "name": "Signet of the Ether",
+      "type": "cast",
       "skillId": 21750
     },
     {
-      "name": "Phantasmal Lancer",
+      "type": "cast",
       "skillId": 72946
     },
     {
-      "name": "Psycut",
+      "type": "cast",
       "skillId": 73154
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "Phantasmal Swordsman",
+      "type": "cast",
       "skillId": 10174
     },
     {
-      "name": "Bladecall",
+      "type": "cast",
       "skillId": 69311
     },
     {
-      "name": "Unstable Bladestorm",
+      "type": "cast",
       "skillId": 62607
     },
     {
-      "name": "Phantasmal Disenchanter",
+      "type": "cast",
       "skillId": 10267
     },
     {
-      "name": "Gravity Well",
+      "type": "cast",
       "skillId": 30359
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212,
-      "offset": 240
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Split Second",
+      "type": "cast",
       "skillId": 56930,
-      "offset": 200
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Bladecall",
+      "type": "cast",
       "skillId": 69311
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Illusionary Riposte",
+      "type": "cast",
       "skillId": 10280
     },
     {
-      "name": "Counter Blade",
+      "type": "cast",
       "skillId": 10358
     },
     {
-      "name": "Bladecall",
+      "type": "cast",
       "skillId": 69311
     },
     {
-      "name": "Phantasmal Swordsman",
+      "type": "cast",
       "skillId": 10174
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212,
-      "offset": 760
+      "concurrentOffsetMs": 760
     },
     {
-      "name": "Unstable Bladestorm",
+      "type": "cast",
       "skillId": 62607,
-      "interruptMs": 320
+      "interruptAfterMs": 320
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Phantasmal Lancer",
+      "type": "cast",
       "skillId": 72946
     },
     {
-      "name": "Well of Calamity",
+      "type": "cast",
       "skillId": 30525,
-      "interruptMs": 720
+      "interruptAfterMs": 720
     },
     {
-      "name": "Split Second",
+      "type": "cast",
       "skillId": 56930,
-      "offset": 200
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Imaginary Inversion",
+      "type": "cast",
       "skillId": 73152
     },
     {
-      "name": "Psycut",
+      "type": "cast",
       "skillId": 73154
     },
     {
-      "name": "Psystrike",
+      "type": "cast",
       "skillId": 73066
     },
     {
-      "name": "Mind Pierce",
+      "type": "cast",
       "skillId": 73095
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Mental Collapse",
+      "type": "cast",
       "skillId": 72957
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Rewinder",
+      "type": "cast",
       "skillId": 56928,
-      "offset": 240
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Phantasmal Disenchanter",
+      "type": "cast",
       "skillId": 10267
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212,
-      "offset": 560
+      "concurrentOffsetMs": 560
     },
     {
-      "name": "Psycut",
+      "type": "cast",
       "skillId": 73154
     },
     {
-      "name": "Psystrike",
+      "type": "cast",
       "skillId": 73066
     },
     {
-      "name": "Mind Pierce",
+      "type": "cast",
       "skillId": 73095
     },
     {
-      "name": "Psycut",
+      "type": "cast",
       "skillId": 73154
     },
     {
-      "name": "Psystrike",
+      "type": "cast",
       "skillId": 73066
     },
     {
-      "name": "Phantasmal Lancer",
+      "type": "cast",
       "skillId": 72946
     },
     {
-      "name": "Split Second",
+      "type": "cast",
       "skillId": 56930,
-      "offset": 320
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "Phantasmal Swordsman",
+      "type": "cast",
       "skillId": 10174
     },
     {
-      "name": "Signet of the Ether",
+      "type": "cast",
       "skillId": 21750
     },
     {
-      "name": "Phantasmal Swordsman",
+      "type": "cast",
       "skillId": 10174
     },
     {
-      "name": "Time Sink",
+      "type": "cast",
       "skillId": 56873,
-      "offset": 640
+      "concurrentOffsetMs": 640
     },
     {
-      "name": "Bladecall",
+      "type": "cast",
       "skillId": 69311
     },
     {
-      "name": "Unstable Bladestorm",
+      "type": "cast",
       "skillId": 62607
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212
     },
     {
-      "name": "Phantasmal Disenchanter",
+      "type": "cast",
       "skillId": 10267
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Well of Calamity",
+      "type": "cast",
       "skillId": 30525
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Bladecall",
+      "type": "cast",
       "skillId": 69311
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Split Second",
+      "type": "cast",
       "skillId": 56930,
-      "offset": 360
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Illusionary Riposte",
+      "type": "cast",
       "skillId": 10280,
-      "interruptMs": 120
+      "interruptAfterMs": 120
     },
     {
-      "name": "Counter Blade",
+      "type": "cast",
       "skillId": 10358
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212
     },
     {
-      "name": "Bladecall",
+      "type": "cast",
       "skillId": 69311
     },
     {
-      "name": "Rewinder",
+      "type": "cast",
       "skillId": 56928,
-      "offset": 280
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Phantasmal Swordsman",
+      "type": "cast",
       "skillId": 10174
     },
     {
-      "name": "Unstable Bladestorm",
+      "type": "cast",
       "skillId": 62607,
-      "interruptMs": 280
+      "interruptAfterMs": 280
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "Phantasmal Lancer",
+      "type": "cast",
       "skillId": 72946
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Imaginary Inversion",
+      "type": "cast",
       "skillId": 73152
     },
     {
-      "name": "Psycut",
+      "type": "cast",
       "skillId": 73154
     },
     {
-      "name": "Psystrike",
+      "type": "cast",
       "skillId": 73066
     },
     {
-      "name": "Mind Pierce",
+      "type": "cast",
       "skillId": 73095
     },
     {
-      "name": "Psycut",
+      "type": "cast",
       "skillId": 73154
     },
     {
-      "name": "Split Second",
+      "type": "cast",
       "skillId": 56930,
-      "offset": 320
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Psystrike",
+      "type": "cast",
       "skillId": 73066
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Mental Collapse",
+      "type": "cast",
       "skillId": 72957
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Phantasmal Disenchanter",
+      "type": "cast",
       "skillId": 10267
     },
     {
-      "name": "Well of Calamity",
+      "type": "cast",
       "skillId": 30525
     },
     {
-      "name": "Psycut",
+      "type": "cast",
       "skillId": 73154
     },
     {
-      "name": "Psystrike",
+      "type": "cast",
       "skillId": 73066
     },
     {
-      "name": "Phantasmal Lancer",
+      "type": "cast",
       "skillId": 72946
     },
     {
-      "name": "Imaginary Inversion",
+      "type": "cast",
       "skillId": 73152
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Phantasmal Swordsman",
+      "type": "cast",
       "skillId": 10174
     },
     {
-      "name": "Signet of the Ether",
+      "type": "cast",
       "skillId": 21750
     },
     {
-      "name": "Split Second",
+      "type": "cast",
       "skillId": 56930,
-      "offset": 400
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Phantasmal Swordsman",
+      "type": "cast",
       "skillId": 10174
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212,
-      "offset": 720
+      "concurrentOffsetMs": 720
     },
     {
-      "name": "Bladecall",
+      "type": "cast",
       "skillId": 69311
     },
     {
-      "name": "Unstable Bladestorm",
+      "type": "cast",
       "skillId": 62607
     },
     {
-      "name": "Gravity Well",
+      "type": "cast",
       "skillId": 30359
     },
     {
-      "name": "Phantasmal Disenchanter",
+      "type": "cast",
       "skillId": 10267
     },
     {
-      "name": "Rewinder",
+      "type": "cast",
       "skillId": 56928,
-      "offset": 40
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Bladecall",
+      "type": "cast",
       "skillId": 69311
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Split Second",
+      "type": "cast",
       "skillId": 56930,
-      "offset": 280
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Illusionary Riposte",
+      "type": "cast",
       "skillId": 10280,
-      "interruptMs": 120
+      "interruptAfterMs": 120
     },
     {
-      "name": "Counter Blade",
+      "type": "cast",
       "skillId": 10358
     },
     {
-      "name": "Bladecall",
+      "type": "cast",
       "skillId": 69311
     },
     {
-      "name": "Phantasmal Swordsman",
+      "type": "cast",
       "skillId": 10174
     },
     {
-      "name": "Unstable Bladestorm",
+      "type": "cast",
       "skillId": 62607,
-      "interruptMs": 200
+      "interruptAfterMs": 200
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "Phantasmal Lancer",
+      "type": "cast",
       "skillId": 72946
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Well of Calamity",
+      "type": "cast",
       "skillId": 30525
     },
     {
-      "name": "Imaginary Inversion",
+      "type": "cast",
       "skillId": 73152
     },
     {
-      "name": "Psycut",
+      "type": "cast",
       "skillId": 73154
     },
     {
-      "name": "Psystrike",
+      "type": "cast",
       "skillId": 73066
     },
     {
-      "name": "Mind Pierce",
+      "type": "cast",
       "skillId": 73095
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212
     },
     {
-      "name": "Psycut",
+      "type": "cast",
       "skillId": 73154
     },
     {
-      "name": "Rewinder",
+      "type": "cast",
       "skillId": 56928,
-      "offset": 240
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Mental Collapse",
+      "type": "cast",
       "skillId": 72957
     },
     {
-      "name": "Split Second",
+      "type": "cast",
       "skillId": 56930,
-      "offset": 120
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Phantasmal Disenchanter",
+      "type": "cast",
       "skillId": 10267
     },
     {
-      "name": "Psycut",
+      "type": "cast",
       "skillId": 73154
     },
     {
-      "name": "Psystrike",
+      "type": "cast",
       "skillId": 73066
     },
     {
-      "name": "Mind Pierce",
+      "type": "cast",
       "skillId": 73095
     },
     {
-      "name": "Phantasmal Lancer",
+      "type": "cast",
       "skillId": 72946
     },
     {
-      "name": "Imaginary Inversion",
+      "type": "cast",
       "skillId": 73152
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "Phantasmal Swordsman",
+      "type": "cast",
       "skillId": 10174
     },
     {
-      "name": "Continuum Split",
+      "type": "cast",
       "skillId": 29830,
-      "offset": 600
+      "concurrentOffsetMs": 600
     },
     {
-      "name": "Signet of the Ether",
+      "type": "cast",
       "skillId": 21750
     },
     {
-      "name": "Time Sink",
+      "type": "cast",
       "skillId": 56873,
-      "offset": 200
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212
     },
     {
-      "name": "Phantasmal Swordsman",
+      "type": "cast",
       "skillId": 10174
     },
     {
-      "name": "Bladecall",
+      "type": "cast",
       "skillId": 69311
     },
     {
-      "name": "Unstable Bladestorm",
+      "type": "cast",
       "skillId": 62607
     },
     {
-      "name": "Split Second",
+      "type": "cast",
       "skillId": 56930,
-      "offset": 200
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Continuum Shift",
+      "type": "cast",
       "skillId": -4,
-      "offset": 280
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Bladecall",
+      "type": "cast",
       "skillId": 69311
     },
     {
-      "name": "Unstable Bladestorm",
+      "type": "cast",
       "skillId": 62607
     },
     {
-      "name": "Phantasmal Swordsman",
+      "type": "cast",
       "skillId": 10174
     },
     {
-      "name": "Time Sink",
+      "type": "cast",
       "skillId": 56873,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Signet of the Ether",
+      "type": "cast",
       "skillId": 21750
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212
     },
     {
-      "name": "Phantasmal Swordsman",
+      "type": "cast",
       "skillId": 10174
     },
     {
-      "name": "Phantasmal Disenchanter",
+      "type": "cast",
       "skillId": 10267
     },
     {
-      "name": "Bladecall",
+      "type": "cast",
       "skillId": 69311
     },
     {
-      "name": "Well of Calamity",
+      "type": "cast",
       "skillId": 30525
     },
     {
-      "name": "Split Second",
+      "type": "cast",
       "skillId": 56930,
-      "offset": 320
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Flying Cutter",
+      "type": "cast",
       "skillId": 62510
     },
     {
-      "name": "Swap Weapons",
+      "type": "cast",
       "skillId": -3
     },
     {
-      "name": "Phantasmal Lancer",
+      "type": "cast",
       "skillId": 72946
     },
     {
-      "name": "Mind the Gap",
+      "type": "cast",
       "skillId": 73093
     },
     {
-      "name": "Rewinder",
+      "type": "cast",
       "skillId": 56928,
-      "offset": 160
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Power Spike",
+      "type": "cast",
       "skillId": 10212
     },
     {
-      "name": "Mental Collapse",
+      "type": "cast",
       "skillId": 72957
     }
   ]

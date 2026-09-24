@@ -113,7 +113,7 @@ export function renderAttributeStats(
 }
 
 /** Share attribute formatting and breakdowns between the editor and isolated optimizer previews. */
-export function attributesHtml(
+function attributesHtml(
   data: NonNullable<ProfessionAppState['attributeData']>,
   baseline?: NonNullable<ProfessionAppState['attributeData']>,
   durationDetails = false

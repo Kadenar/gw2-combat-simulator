@@ -916,7 +916,7 @@ export function createCanonicalCatalog({
 /**
  * Enforces referential integrity and shape rules for a canonical catalog.
  */
-export function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
+function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
   const validWeaponHands = new Set(['mh', 'oh', 'mh+oh', '2h', '-']);
   for (const [weapon, wielding] of catalog?.weaponHands || []) {
     if (!catalog.weapons?.has(weapon)) {

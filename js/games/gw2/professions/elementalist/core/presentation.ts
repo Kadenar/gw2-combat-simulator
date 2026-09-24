@@ -463,7 +463,7 @@ function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSna
  * The Core Elementalist half of the shared profession UI contract, merged with
  * the family and specialization contracts by the module registry.
  */
-export const elementalistCoreUi: ElementalistUiSlice = Object.freeze({
+const elementalistCoreUi: ElementalistUiSlice = Object.freeze({
   assumptionControls: [...ELEMENTALIST_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
   paletteGroups: elementalistPaletteGroups,
   paletteActionSkills,

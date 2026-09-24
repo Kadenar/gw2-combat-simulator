@@ -9,22 +9,35 @@
     "Bomb Kit",
     "Big Ol' Bomb",
     "Magnetic Bomb",
-    { "name": "Evolve", "skillId": 76642 },
+    {
+      "type": "cast",
+      "skillId": 76651
+    },
     "Fire Bomb",
     "Flux State",
-    { "name": "__combat_start", "offset": 520 },
+    {
+      "type": "combat-start",
+      "concurrentOffsetMs": 520
+    },
     "Stow Bomb Kit",
     "Lightning Rod",
     "Conduit Surge",
     "Grenade Kit",
     "Shrapnel Grenade",
-    { "name": "Defensive Protocol: Thorns", "skillId": 77104, "offset": 160 },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 160
+    },
     "Poison Grenade",
     "Flamethrower",
     "Stoke the Flames",
     "Bomb Kit",
     "Galvanic Bomb",
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
     "Stow Bomb Kit",
     "Devastator",
     "Electric Artillery",
@@ -33,11 +46,21 @@
     "Shrapnel Grenade",
     "Bomb Kit",
     "Fire Bomb",
-    { "name": "Evolve", "skillId": 76642 },
+    {
+      "type": "cast",
+      "skillId": 76651
+    },
     "Flamethrower",
-    { "name": "Flame Blast", "interruptMs": 440 },
+    {
+      "type": "cast",
+      "skillId": 5931,
+      "interruptAfterMs": 440
+    },
     "Air Blast",
-    { "name": "Offensive Protocol: Shred", "skillId": 77103 },
+    {
+      "type": "cast",
+      "skillId": 77103
+    },
     "Napalm",
     "Stow Flamethrower",
     "Lightning Rod",
@@ -56,12 +79,19 @@
     "Conduit Surge",
     "Grenade Kit",
     "Shrapnel Grenade",
-    { "name": "Defensive Protocol: Thorns", "skillId": 77104, "offset": 80 },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 80
+    },
     "Poison Grenade",
     "Flamethrower",
     "Stoke the Flames",
     "Flame Blast",
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
     "Stow Flamethrower",
     "Devastator",
     "Lightning Rod",
@@ -74,12 +104,19 @@
     "Flamethrower",
     "Air Blast",
     "Flame Blast",
-    { "name": "Offensive Protocol: Shred", "skillId": 77103 },
+    {
+      "type": "cast",
+      "skillId": 77103
+    },
     "Stow Flamethrower",
     "Electric Artillery",
     "Conduit Surge",
     "Grenade Kit",
-    { "name": "Shrapnel Grenade", "interruptMs": 560 },
+    {
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 560
+    },
     "Stow Grenade Kit",
     "Puncturing Jab",
     "Rending Strike",
@@ -97,25 +134,42 @@
     "Conduit Surge",
     "Grenade Kit",
     "Shrapnel Grenade",
-    { "name": "Defensive Protocol: Thorns", "skillId": 77104, "offset": 160 },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 160
+    },
     "Poison Grenade",
     "Flamethrower",
     "Stoke the Flames",
     "Flame Blast",
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
     "Stow Flamethrower",
     "Devastator",
     "Electric Artillery",
     "Conduit Surge",
     "Grenade Kit",
     "Shrapnel Grenade",
-    { "name": "Evolve", "skillId": 76642 },
+    {
+      "type": "cast",
+      "skillId": 76651
+    },
     "Flux State",
     "Bomb Kit",
-    { "name": "Fire Bomb", "interruptMs": 520 },
+    {
+      "type": "cast",
+      "skillId": 5823,
+      "interruptAfterMs": 520
+    },
     "Flamethrower",
     "Air Blast",
-    { "name": "Offensive Protocol: Shred", "skillId": 77103 },
+    {
+      "type": "cast",
+      "skillId": 77103
+    },
     "Napalm",
     "Stow Flamethrower",
     "Lightning Rod",
@@ -131,7 +185,11 @@
     "Big Ol' Bomb",
     "Stow Bomb Kit",
     "Electric Artillery",
-    { "name": "Defensive Protocol: Thorns", "skillId": 77104, "offset": 240 },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 240
+    },
     "Conduit Surge",
     "Grenade Kit",
     "Shrapnel Grenade",
@@ -139,7 +197,10 @@
     "Flamethrower",
     "Stoke the Flames",
     "Flame Blast",
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
     "Stow Flamethrower",
     "Devastator",
     "Lightning Rod",
@@ -152,12 +213,19 @@
     "Flamethrower",
     "Air Blast",
     "Flame Blast",
-    { "name": "Offensive Protocol: Shred", "skillId": 77103 },
+    {
+      "type": "cast",
+      "skillId": 77103
+    },
     "Stow Flamethrower",
     "Electric Artillery",
     "Conduit Surge",
     "Grenade Kit",
-    { "name": "Shrapnel Grenade", "interruptMs": 520 },
+    {
+      "type": "cast",
+      "skillId": 5807,
+      "interruptAfterMs": 520
+    },
     "Stow Grenade Kit",
     "Puncturing Jab",
     "Rending Strike",
@@ -169,7 +237,11 @@
     "Bomb Kit",
     "Fire Bomb",
     "Galvanic Bomb",
-    { "name": "Defensive Protocol: Thorns", "skillId": 77104, "offset": 360 },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 360
+    },
     "Big Ol' Bomb",
     "Stow Bomb Kit",
     "Lightning Rod",
@@ -180,7 +252,10 @@
     "Flamethrower",
     "Stoke the Flames",
     "Flame Blast",
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
     "Stow Flamethrower",
     "Devastator",
     "Electric Artillery",
@@ -189,11 +264,21 @@
     "Shrapnel Grenade",
     "Bomb Kit",
     "Fire Bomb",
-    { "name": "Evolve", "skillId": 76642 },
+    {
+      "type": "cast",
+      "skillId": 76651
+    },
     "Flamethrower",
-    { "name": "Flame Blast", "interruptMs": 480 },
+    {
+      "type": "cast",
+      "skillId": 5931,
+      "interruptAfterMs": 480
+    },
     "Air Blast",
-    { "name": "Offensive Protocol: Shred", "skillId": 77103 },
+    {
+      "type": "cast",
+      "skillId": 77103
+    },
     "Napalm",
     "Stow Flamethrower",
     "Lightning Rod",
@@ -204,7 +289,11 @@
     "Flux State",
     "Bomb Kit",
     "Fire Bomb",
-    { "name": "Defensive Protocol: Thorns", "skillId": 77104, "offset": 440 },
+    {
+      "type": "cast",
+      "skillId": 77104,
+      "concurrentOffsetMs": 440
+    },
     "Galvanic Bomb",
     "Big Ol' Bomb",
     "Stow Bomb Kit",
@@ -216,7 +305,10 @@
     "Flamethrower",
     "Stoke the Flames",
     "Flame Blast",
-    { "name": "Offensive Protocol: Obliterate", "skillId": 76705 },
+    {
+      "type": "cast",
+      "skillId": 76705
+    },
     "Stow Flamethrower",
     "Devastator"
   ]

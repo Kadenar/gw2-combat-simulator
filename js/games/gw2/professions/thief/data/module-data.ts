@@ -119,7 +119,7 @@ const normalize = (skill: ThiefSkill): ThiefSkill => ({
   ...skill,
   ...scepterAutoattackMetadata(skill),
   ...spearWeaponBarMetadata(skill),
-  ...(skill.recharge == null && skill.ammoRecharge == null
+  ...(skill.cooldown == null && skill.ammoRecharge == null
     ? {}
     : {
         cooldown: gw2BaseRecharge(skill)

@@ -15,8 +15,8 @@ import {
 import type { RangerCanonicalBuild } from '#gw2/professions/ranger/types.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 
-export const RANGER_BUILD_SCHEMA_VERSION = 4;
-export const RANGER_PROFESSION_ID = 'ranger';
+const RANGER_BUILD_SCHEMA_VERSION = 4;
+const RANGER_PROFESSION_ID = 'ranger';
 
 function keepRangerRotationCommand(command: RangerCanonicalBuild['rotation'][number]): boolean {
   if (command.type !== 'cast') return true;

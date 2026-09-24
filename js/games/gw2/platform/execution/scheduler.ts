@@ -268,7 +268,7 @@ export function createScheduler<TProfessionState extends object = object>({
       0,
       details.ammoCastLockout
         ? Number(skill.ammo || 0) > 0
-          ? (skill.ammoCastLockout ?? skill.recharge ?? 0)
+          ? (skill.ammoCastLockout ?? 0)
           : 0
         : gw2BaseRecharge(skill)
     );

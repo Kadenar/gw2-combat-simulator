@@ -29,7 +29,6 @@ export interface ThiefCoreState {
   endurance: number;
   maximumEndurance: number;
   enduranceUpdatedAt: number;
-  maximumHealth: number;
   leadAttacksStacks: number;
   leadAttackExpirations: number[];
   fluidStrikesUntil: number;
@@ -51,16 +50,9 @@ export interface ThiefCoreState {
   traitProcReadyAt: Record<string, number>;
 }
 
-export const THIEF_BASE_HEALTH = 1645;
-
 export function selectedThiefTraits(config: ThiefConfig = {}): Set<string | number> {
   // State initialization normalizes the canonical trait-ID selection once.
   return normalizeSelectedTraitIds(config.selectedTraitIds);
-}
-
-export function thiefBaseMaximumHealth(config: ThiefConfig = {}): number {
-  const vitality = Number(config.stats?.vitality ?? 1000);
-  return THIEF_BASE_HEALTH + Math.max(0, vitality) * 10;
 }
 
 // Initialize bounded initiative and endurance plus complete stealth, venom,
@@ -83,7 +75,6 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     endurance: 100,
     maximumEndurance: 100,
     enduranceUpdatedAt: 0,
-    maximumHealth: thiefBaseMaximumHealth(config),
     leadAttacksStacks: 0,
     leadAttackExpirations: [],
     fluidStrikesUntil: 0,
@@ -107,7 +98,7 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
 }
 
 // Core publishes only base-profession state; the family projector composes elite manifests separately.
-export const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[] = Object.freeze([
+const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[] = Object.freeze([
   'initiative',
   'maximumInitiative',
   'stealthStartedAt',
@@ -117,7 +108,6 @@ export const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[]
   'storedStolenSkillIds',
   'storedStolenSkillCount',
   'kneeling',
-  'maximumHealth',
   'endurance',
   'maximumEndurance',
   'leadAttacksStacks',

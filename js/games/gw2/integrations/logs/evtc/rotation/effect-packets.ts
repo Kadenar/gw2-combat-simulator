@@ -7,7 +7,7 @@ import type {
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
-export const EFFECT_PACKET_TOLERANCE_MS = 80;
+const EFFECT_PACKET_TOLERANCE_MS = 80;
 
 export interface StrikePacketValidation {
   readonly allObserved: boolean;
@@ -32,7 +32,7 @@ export interface StrikePacketMatcherOptions {
 
 export { normalized };
 
-export function skillForAction(
+function skillForAction(
   context: EvtcProfessionReconstructionContext,
   action: EvtcRecordedRotationAction
 ): Skill | null {

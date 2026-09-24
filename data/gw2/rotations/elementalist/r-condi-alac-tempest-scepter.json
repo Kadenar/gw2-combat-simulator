@@ -2,19 +2,22 @@
   "rotation": [
     "Rock Barrier",
     {
-      "name": "Flame Barrage",
-      "offset": 0
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 0
     },
     "Dust Storm",
     "Overload Earth",
     {
-      "name": "Hurl",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5780,
+      "concurrentOffsetMs": 120
     },
     "Sand Squall",
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     "Glyph of Elemental Power (Fire)",
     "Phoenix",
@@ -25,8 +28,9 @@
     "Flamestrike",
     "Overload Fire",
     {
-      "name": "Flame Barrage",
-      "offset": 2760
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 2760
     },
     "Phoenix",
     "Dragon's Tooth",
@@ -43,8 +47,9 @@
     "Phoenix",
     "Signet of Earth",
     {
-      "name": "Earth Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 160
     },
     "Rock Barrier",
     "Hurl",
@@ -52,8 +57,9 @@
     "Dust Storm",
     "Stone Shards",
     {
-      "name": "Flame Barrage",
-      "offset": 1360
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 1360
     },
     "Sand Squall",
     "Overload Earth",
@@ -61,8 +67,9 @@
     "Hurl",
     "Signet of Fire",
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     "Phoenix",
     "Wildfire",
@@ -74,8 +81,9 @@
     "Flamestrike",
     "Overload Fire",
     {
-      "name": "Flame Barrage",
-      "offset": 2120
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 2120
     },
     "Phoenix",
     "Dragon's Tooth",
@@ -91,8 +99,9 @@
     "Flamestrike",
     "Phoenix",
     {
-      "name": "Earth Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 120
     },
     "Rock Barrier",
     "Hurl",
@@ -101,16 +110,18 @@
     "Sand Squall",
     "Stone Shards",
     {
-      "name": "Flame Barrage",
-      "offset": 400
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 400
     },
     "Overload Earth",
     "Rock Barrier",
     "Hurl",
     "Signet of Fire",
     {
-      "name": "Fire Attunement",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 440
     },
     "Phoenix",
     "Signet of Earth",
@@ -122,8 +133,9 @@
     "Flamestrike",
     "Overload Fire",
     {
-      "name": "Flame Barrage",
-      "offset": 2000
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 2000
     },
     "Phoenix",
     "Dragon's Tooth",
@@ -139,8 +151,9 @@
     "Flamestrike",
     "Phoenix",
     {
-      "name": "Earth Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 120
     },
     "Rock Barrier",
     "Hurl",
@@ -149,8 +162,9 @@
     "Sand Squall",
     "Stone Shards",
     {
-      "name": "Flame Barrage",
-      "offset": 360
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 360
     },
     "Overload Earth",
     "Rock Barrier",
@@ -167,8 +181,9 @@
     "Flamestrike",
     "Overload Fire",
     {
-      "name": "Flame Barrage",
-      "offset": 1840
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 1840
     },
     "Phoenix",
     "Dragon's Tooth",

@@ -86,7 +86,7 @@ function conditionDurationMultiplier(
 }
 
 /** Removes expired or not-yet-active self-condition applications and returns the remaining active set. */
-export function purgeNecromancerSelfConditions(state: NecromancerCoreState, at: number): NecromancerSelfCondition[] {
+function purgeNecromancerSelfConditions(state: NecromancerCoreState, at: number): NecromancerSelfCondition[] {
   state.selfConditions = (state.selfConditions || []).filter((application) =>
     isTimeInWindow(at, application.appliedAt, application.expiresAt)
   );
@@ -110,7 +110,7 @@ export function removeNecromancerSelfCondition(
 }
 
 /** Records a duration-scaled self-condition and emits the canonical state event used by later transfers. */
-export function applyNecromancerSelfCondition(
+function applyNecromancerSelfCondition(
   context: NecromancerCastContext,
   skill: NecromancerSkill,
   condition: string,
@@ -180,7 +180,7 @@ function emitTransferredApplication(
 }
 
 /** Transfers eligible active self-conditions to the target and removes the source applications. */
-export function transferNecromancerSelfConditions(
+function transferNecromancerSelfConditions(
   context: NecromancerEmissionContext,
   skill: NecromancerSkill,
   maximumConditionTypes: number,

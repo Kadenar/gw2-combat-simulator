@@ -29,7 +29,7 @@ import type {
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 
 /** Reads Core Necromancer state from a resolver-side modifier context. */
-export function necromancerRuntimeCoreState(context: Gw2ModifierContext): Partial<NecromancerCoreState> {
+function necromancerRuntimeCoreState(context: Gw2ModifierContext): Partial<NecromancerCoreState> {
   return readProfessionCoreState<NecromancerCoreState>(context.runtime?.profession);
 }
 
@@ -186,7 +186,7 @@ export function modifyNecromancerCoreAttributes(context: Gw2ModifierContext, att
   return result;
 }
 
-export const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'necromancer.life-siphon-bleeding-target',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,

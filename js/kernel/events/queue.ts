@@ -3,7 +3,6 @@
  * ordered by timestamp, priority, causal placement (untagged last), then stable
  * insertion order. Missing or nonfinite causal metadata shares the untagged tier.
  */
-export { EPSILON } from '#kernel/core/clock.js';
 import { ACTION_SAFETY_LIMIT, canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 export interface QueuedEvent {

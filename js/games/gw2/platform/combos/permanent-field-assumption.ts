@@ -5,7 +5,7 @@ import type { SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
-export const PERMANENT_COMBO_FIELD_ASSUMPTION_KEYS = Object.freeze({
+const PERMANENT_COMBO_FIELD_ASSUMPTION_KEYS = Object.freeze({
   FIELD_TYPE: 'permanentComboField'
 });
 

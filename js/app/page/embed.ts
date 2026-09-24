@@ -21,7 +21,7 @@
 const EMBED_PARAM = 'embed';
 
 /** Message type emitted to the host frame for auto-resize. */
-export const EMBED_HEIGHT_MESSAGE = 'gw2sim:height';
+const EMBED_HEIGHT_MESSAGE = 'gw2sim:height';
 
 /**
  * Target origin for `postMessage`. `*` works for any host; tighten to the
@@ -186,7 +186,7 @@ function setupResizeReporter(root: Document): void {
  * embed flag) so a host can always size the frame. Chrome hiding requires the
  * embed flag; internal links preserve both embed and standalone flags.
  */
-export function initEmbed(root: Document = document): void {
+function initEmbed(root: Document = document): void {
   if (isFramed()) setupResizeReporter(root);
   if (isEmbedded()) root.documentElement.classList.add('embed');
   if (isEmbedded() && isFramed()) trackVisibleTop(root);

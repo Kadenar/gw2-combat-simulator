@@ -17,17 +17,6 @@ import {
 } from '#gw2/professions/engineer/core/traits/index.js';
 import { resetExplosiveEntrance } from '#gw2/professions/engineer/core/traits/explosives.js';
 
-/** Re-exports Core resolver helpers used by Engineer traits and specialization reactions. */
-export {
-  activeBoonStacks,
-  applyEngineerDerivedCondition,
-  procState,
-  queueBuff,
-  queueDamage,
-  recordTrait,
-  resolverSkill
-} from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
-
 // event handlers fire when a specific event type is dequeued during resolution
 export const engineerCoreResolverEventHandlers = Object.freeze({
   'engineer.air-blast': handleAirBlast,

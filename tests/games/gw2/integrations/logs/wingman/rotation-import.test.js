@@ -103,13 +103,13 @@ test('fetches a gw2wingman log and reconstructs it through the exact dps.report 
   const result = reconstructDpsReportRotation(report, {
     skills: [skill(9_081, 'Whirling Wrath', { type: 'weapon', castTimeMs: 1_480, interruptMode: 'per-packet' })]
   });
-  const casts = result.rotation.filter((command) => command.name === 'Whirling Wrath');
+  const casts = result.rotation.filter((command) => command.skillId === 9_081);
 
-  assert.equal(casts[0].interruptMs, undefined);
-  assert.equal(casts[1].interruptMs, 1_400);
+  assert.equal(casts[0].interruptAfterMs, undefined);
+  assert.equal(casts[1].interruptAfterMs, 1_400);
   // The trait-proc entry (id 90001) is filtered out, exactly like an automatic proc from dps.report.
   assert.equal(
-    result.rotation.some((command) => command.name === 'Automatic Proc'),
+    result.rotation.some((command) => command.skillId === 90001),
     false
   );
 });

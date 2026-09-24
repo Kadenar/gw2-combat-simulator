@@ -3,6 +3,7 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 import test from 'node:test';
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { aggregateSigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { sigilOptionLabel, utilityOptionLabel } from '#gw2/app/build/equipment-option-labels.js';
@@ -11,6 +12,8 @@ import { sigilOptionLabel, utilityOptionLabel } from '#gw2/app/build/equipment-o
 test('slaying bonuses multiply strikes outside the shared additive bucket and follow the active weapon set', () => {
   const profession = {
     id: 'test',
+    // Equipment-only queries still require the canonical catalog contract.
+    catalog: createCanonicalCatalog(),
     ...createModifierHooks({
       rules: [
         {

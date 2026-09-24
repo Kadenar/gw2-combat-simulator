@@ -22,7 +22,7 @@ interface Gw2WeaponSwapContext {
  * Applies the GW2-wide weapon-set transition before invoking profession-owned
  * follow-up behavior, so every profession shares state, event, and hook order.
  */
-export function performGw2WeaponSwap(context: object, skill: Skill): boolean {
+function performGw2WeaponSwap(context: object, skill: Skill): boolean {
   const swapContext = context as Gw2WeaponSwapContext;
   const weaponSet = swapContext.state.activeWeaponSet === 1 ? 2 : 1;
   swapContext.state.activeWeaponSet = weaponSet;

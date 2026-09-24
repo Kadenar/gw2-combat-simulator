@@ -87,7 +87,7 @@ function modifySpecterAttributes(context: Gw2ModifierContext, attributes: Gw2Res
   return result;
 }
 
-export const specterModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const specterModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'thief.strength-of-shadows',
     target: MODIFIER_TARGET.CONDITION_DAMAGE,

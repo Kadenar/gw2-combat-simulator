@@ -2,26 +2,30 @@
   "rotation": [
     "Rejuvenate",
     {
-      "name": "Flame Barrage",
-      "offset": 0
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 0
     },
     {
-      "name": "Ignite",
-      "offset": 400
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 400
     },
     "Fox's Fury",
     "Signet of Earth",
     {
-      "name": "Ignite",
-      "offset": 120
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 120
     },
     "Signet of Fire",
     "Searing Salvo",
     "Raging Ricochet",
     "Ring of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 120
     },
     "Ignite",
     "Shattering Stone",
@@ -30,188 +34,222 @@
     "Boulder Blast",
     "Churning Earth",
     {
-      "name": "Fire Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 80
     },
     "Fire Grab",
     "Raging Ricochet",
     {
-      "name": "Water Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Ignite",
-      "offset": 280
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 280
     },
     "Frozen Fusillade",
     "Frost Aura",
     "Frigid Flurry",
     {
-      "name": "Fire Attunement",
-      "offset": 520
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 520
     },
     "Elemental Explosion",
     "Scorching Shot",
     {
-      "name": "Scorching Shot",
-      "interruptMs": 200
+      "type": "cast",
+      "skillId": 71929,
+      "interruptAfterMs": 200
     },
     "Searing Salvo",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     "Ignite",
     "Ride the Lightning",
     {
-      "name": "Electric Exposure",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 71904,
+      "interruptAfterMs": 80
     },
     "Dazing Discharge",
     {
-      "name": "Flame Barrage",
-      "offset": 400
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 400
     },
     "Signet of Fire",
     {
-      "name": "Fire Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
     },
     "Raging Ricochet",
     "Scorching Shot",
     "Ring of Fire",
     "Signet of Earth",
     {
-      "name": "Earth Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Ignite",
-      "offset": 400
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 400
     },
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 80
     },
     "Boulder Blast",
     "Shattering Stone",
     "Conflagration",
     "Earthquake",
     {
-      "name": "Fire Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 160
     },
     "Fox's Fury",
     "Raging Ricochet",
     {
-      "name": "Water Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Soothing Splash",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 72033,
+      "interruptAfterMs": 40
     },
     "Frigid Flurry",
     {
-      "name": "Frost Aura",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 240
     },
     "Soothing Splash",
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     {
-      "name": "Ignite",
-      "offset": 440
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 440
     },
     "Searing Salvo",
     "Scorching Shot",
     "Fire Grab",
     {
-      "name": "Air Attunement",
-      "offset": 160
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 160
     },
     "Ride the Lightning",
     {
-      "name": "Electric Exposure",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 71904,
+      "interruptAfterMs": 40
     },
     "Dazing Discharge",
     "Ignite",
     {
-      "name": "Electric Exposure",
-      "interruptMs": 240
+      "type": "cast",
+      "skillId": 71904,
+      "interruptAfterMs": 240
     },
     "Rejuvenate",
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     "Scorching Shot",
     {
-      "name": "Ignite",
-      "offset": 120
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 120
     },
     "Raging Ricochet",
     "Signet of Fire",
     {
-      "name": "Flame Barrage",
-      "offset": 240
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 240
     },
     "Ring of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 360
     },
     "Conflagration",
     "Boulder Blast",
     "Churning Earth",
     {
-      "name": "Fire Attunement",
-      "offset": 480
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 480
     },
     "Raging Ricochet",
     {
-      "name": "Scorching Shot",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 71929,
+      "interruptAfterMs": 120
     },
     "Signet of Earth",
     {
-      "name": "Water Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Ignite",
-      "offset": 440
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 440
     },
     "Frozen Fusillade",
     "Frigid Flurry",
     {
-      "name": "Fire Attunement",
-      "offset": 600
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 600
     },
     "Searing Salvo",
     "Scorching Shot",
     {
-      "name": "Air Attunement",
-      "offset": 520
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 520
     },
     "Electric Exposure",
     "Ride the Lightning",
     {
-      "name": "Electric Exposure",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 71904,
+      "interruptAfterMs": 80
     },
     "Dazing Discharge",
     "Elemental Explosion",
     {
-      "name": "Ignite",
-      "offset": 480
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 480
     },
     {
-      "name": "Fire Attunement",
-      "offset": 440
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 440
     },
     "Raging Ricochet",
     "Scorching Shot",
@@ -220,134 +258,159 @@
     "Ring of Fire",
     "Fire Grab",
     {
-      "name": "Earth Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 280
     },
     "Boulder Blast",
     {
-      "name": "Flame Barrage",
-      "offset": 80
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Ignite",
-      "offset": 200
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 200
     },
     "Shattering Stone",
     "Earthquake",
     {
-      "name": "Fire Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 80
     },
     {
-      "name": "Scorching Shot",
-      "interruptMs": 160
+      "type": "cast",
+      "skillId": 71929,
+      "interruptAfterMs": 160
     },
     "Conflagration",
     "Raging Ricochet",
     {
-      "name": "Water Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 320
     },
     {
-      "name": "Soothing Splash",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 72033,
+      "interruptAfterMs": 120
     },
     "Frigid Flurry",
     {
-      "name": "Frost Aura",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Fire Attunement",
-      "offset": 1000
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 1000
     },
     "Searing Salvo",
     {
-      "name": "Ignite",
-      "offset": 240
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 240
     },
     "Signet of Earth",
     {
-      "name": "Air Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 120
     },
     "Ride the Lightning",
     {
-      "name": "Electric Exposure",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 71904,
+      "interruptAfterMs": 80
     },
     "Dazing Discharge",
     "Electric Exposure",
     {
-      "name": "Fire Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 280
     },
     {
-      "name": "Scorching Shot",
-      "interruptMs": 200
+      "type": "cast",
+      "skillId": 71929,
+      "interruptAfterMs": 200
     },
     "Raging Ricochet",
     "Scorching Shot",
     {
-      "name": "Ignite",
-      "offset": 120
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 120
     },
     "Rejuvenate",
     "Signet of Fire",
     {
-      "name": "Ignite",
-      "offset": 600
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 600
     },
     "Ring of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 320
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 320
     },
     "Conflagration",
     "Boulder Blast",
     "Churning Earth",
     {
-      "name": "Fire Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 360
     },
     "Raging Ricochet",
     {
-      "name": "Flame Barrage",
-      "offset": 200
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 200
     },
     "Water Attunement",
     "Frozen Fusillade",
     {
-      "name": "Ignite",
-      "offset": 280
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 280
     },
     "Frigid Flurry",
     {
-      "name": "Fire Attunement",
-      "offset": 680
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 680
     },
     "Elemental Explosion",
     "Searing Salvo",
     {
-      "name": "Air Attunement",
-      "offset": 480
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 480
     },
     "Fox's Fury",
     "Ride the Lightning",
     {
-      "name": "Electric Exposure",
-      "interruptMs": 160
+      "type": "cast",
+      "skillId": 71904,
+      "interruptAfterMs": 160
     },
     "Dazing Discharge",
     {
-      "name": "Fire Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 360
     },
     "Scorching Shot",
     "Raging Ricochet",
     {
-      "name": "Ignite",
-      "offset": 200
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 200
     },
     "Fire Grab",
     "Signet of Earth",
@@ -355,138 +418,163 @@
     "Signet of Fire",
     "Ring of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 280
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 280
     },
     "Boulder Blast",
     {
-      "name": "Ignite",
-      "offset": 360
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 360
     },
     "Shattering Stone",
     "Earthquake",
     {
-      "name": "Fire Attunement",
-      "offset": 80
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 80
     },
     "Conflagration",
     "Raging Ricochet",
     {
-      "name": "Water Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Soothing Splash",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 72033,
+      "interruptAfterMs": 40
     },
     "Frigid Flurry",
     {
-      "name": "Frost Aura",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 200
     },
     "Fire Attunement",
     "Scorching Shot",
     {
-      "name": "Flame Barrage",
-      "offset": 440
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 440
     },
     "Searing Salvo",
     {
-      "name": "Ignite",
-      "offset": 200
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Air Attunement",
-      "offset": 520
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 520
     },
     "Electric Exposure",
     "Ride the Lightning",
     "Dazing Discharge",
     {
-      "name": "Fire Attunement",
-      "offset": 560
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 560
     },
     "Scorching Shot",
     {
-      "name": "Scorching Shot",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 71929,
+      "interruptAfterMs": 120
     },
     "Raging Ricochet",
     {
-      "name": "Scorching Shot",
-      "interruptMs": 240
+      "type": "cast",
+      "skillId": 71929,
+      "interruptAfterMs": 240
     },
     "Ignite",
     "Rejuvenate",
     "Scorching Shot",
     {
-      "name": "Ignite",
-      "offset": 160
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 160
     },
     "Scorching Shot",
     {
-      "name": "Scorching Shot",
-      "interruptMs": 80
+      "type": "cast",
+      "skillId": 71929,
+      "interruptAfterMs": 80
     },
     "Signet of Fire",
     "Conflagration",
     "Ring of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 40
     },
     "Boulder Blast",
     "Churning Earth",
     {
-      "name": "Fire Attunement",
-      "offset": 720
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 720
     },
     "Fox's Fury",
     "Raging Ricochet",
     "Signet of Earth",
     {
-      "name": "Water Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 200
     },
     "Frozen Fusillade",
     {
-      "name": "Ignite",
-      "offset": 320
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 320
     },
     "Frigid Flurry",
     {
-      "name": "Fire Attunement",
-      "offset": 560
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 560
     },
     "Searing Salvo",
     "Fire Grab",
     {
-      "name": "Flame Barrage",
-      "offset": 240
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Air Attunement",
-      "offset": 40
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 40
     },
     {
-      "name": "Electric Exposure",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 71904,
+      "interruptAfterMs": 120
     },
     "Ride the Lightning",
     "Electric Exposure",
     {
-      "name": "Ignite",
-      "offset": 80
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 80
     },
     "Dazing Discharge",
     "Elemental Explosion",
     {
-      "name": "Fire Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 240
     },
     "Raging Ricochet",
     "Scorching Shot",
@@ -495,92 +583,109 @@
     "Scorching Shot",
     "Ring of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 40
     },
     "Boulder Blast",
     "Shattering Stone",
     {
-      "name": "Ignite",
-      "offset": 360
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 40
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 40
     },
     "Earthquake",
     {
-      "name": "Fire Attunement",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 200
     },
     "Conflagration",
     "Raging Ricochet",
     {
-      "name": "Water Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5493,
+      "concurrentOffsetMs": 240
     },
     "Frigid Flurry",
     {
-      "name": "Frost Aura",
-      "offset": 200
+      "type": "cast",
+      "skillId": 5520,
+      "concurrentOffsetMs": 200
     },
     {
-      "name": "Fire Attunement",
-      "offset": 1000
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 1000
     },
     "Searing Salvo",
     "Signet of Earth",
     {
-      "name": "Air Attunement",
-      "offset": 240
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 240
     },
     {
-      "name": "Electric Exposure",
-      "interruptMs": 200
+      "type": "cast",
+      "skillId": 71904,
+      "interruptAfterMs": 200
     },
     "Ride the Lightning",
     "Ignite",
     {
-      "name": "Electric Exposure",
-      "interruptMs": 160
+      "type": "cast",
+      "skillId": 71904,
+      "interruptAfterMs": 160
     },
     "Dazing Discharge",
     "Fox's Fury",
     {
-      "name": "Fire Attunement",
-      "offset": 120
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 120
     },
     "Raging Ricochet",
     {
-      "name": "Flame Barrage",
-      "offset": 240
+      "type": "cast",
+      "skillId": 2662,
+      "concurrentOffsetMs": 240
     },
     "Rejuvenate",
     "Scorching Shot",
     {
-      "name": "Ignite",
-      "offset": 40
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 40
     },
     "Fire Grab",
     "Signet of Fire",
     "Ring of Fire",
     {
-      "name": "Earth Attunement",
-      "offset": 400
+      "type": "cast",
+      "skillId": 5495,
+      "concurrentOffsetMs": 400
     },
     "Boulder Blast",
     {
-      "name": "Piercing Pebble",
-      "interruptMs": 240
+      "type": "cast",
+      "skillId": 71893,
+      "interruptAfterMs": 240
     },
     "Churning Earth",
     {
-      "name": "Fire Attunement",
-      "offset": 600
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 600
     },
     "Ignite",
     "Raging Ricochet",
@@ -588,34 +693,40 @@
     "Frozen Fusillade",
     "Frigid Flurry",
     {
-      "name": "Fire Attunement",
-      "offset": 680
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 680
     },
     "Conflagration",
     "Elemental Explosion",
     "Searing Salvo",
     {
-      "name": "Air Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5494,
+      "concurrentOffsetMs": 360
     },
     "Ride the Lightning",
     {
-      "name": "Electric Exposure",
-      "interruptMs": 120
+      "type": "cast",
+      "skillId": 71904,
+      "interruptAfterMs": 120
     },
     "Dazing Discharge",
     "Electric Exposure",
     {
-      "name": "Ignite",
-      "offset": 160
+      "type": "cast",
+      "skillId": 76643,
+      "concurrentOffsetMs": 160
     },
     {
-      "name": "Fire Attunement",
-      "offset": 360
+      "type": "cast",
+      "skillId": 5492,
+      "concurrentOffsetMs": 360
     },
     {
-      "name": "Scorching Shot",
-      "interruptMs": 160
+      "type": "cast",
+      "skillId": 71929,
+      "interruptAfterMs": 160
     },
     "Raging Ricochet"
   ]

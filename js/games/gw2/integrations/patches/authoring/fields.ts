@@ -7,7 +7,6 @@ type MutableRecord = Record<string, unknown>;
 export const PATCHABLE_SKILL_NUMERIC_FIELDS = Object.freeze([
   // Recharge and ammo.
   'cooldown',
-  'recharge',
   'rechargeMultiplier', // fraction of recharge duration retained
   'rechargeReduction', // flat seconds removed from recharge
   'rechargePenalty',
@@ -121,6 +120,8 @@ const AUTHORING_RUNTIME_ONLY_NUMERIC_FIELDS = new Set([
 /** Profiles also expose named summon inheritance values without widening castable skill fields. */
 export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   ...PATCHABLE_SKILL_NUMERIC_FIELDS,
+  // Profession resource profiles still own recharge values independent of skill cooldowns.
+  'recharge',
   // Shade strikes gate Dhuumfire independently of other shade-triggered traits.
   'dhuumfireInterval',
   'baseAttribute',
@@ -164,7 +165,7 @@ export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   'duration'
 ]);
 
-export const ADVANCED_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
+const ADVANCED_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   'baseExtraBlades',
   'basePacketCount',
   'basePower',

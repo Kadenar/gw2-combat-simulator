@@ -27,7 +27,7 @@ export function thiefStealthAttackChargeState(context: ThiefSchedulerContext): P
   return context.state.profession.specialization.state as Partial<ThiefStealthAttackChargeState>;
 }
 
-export const THIEF_BREAK_STEALTH_TASK = 'thief.break-stealth-on-strike';
+const THIEF_BREAK_STEALTH_TASK = 'thief.break-stealth-on-strike';
 
 interface BreakStealthTaskPayload {
   readonly skillId: ThiefSkill['id'];

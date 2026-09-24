@@ -25,7 +25,7 @@ type GuardianSkillModifierContext = GuardianSchedulerContext & {
   readonly skill?: GuardianSkill;
 };
 
-export function guardianRuntimeState(context: Gw2ModifierContext): Partial<GuardianState> {
+function guardianRuntimeState(context: Gw2ModifierContext): Partial<GuardianState> {
   return readProfessionCoreState<GuardianState>(context.runtime?.profession);
 }
 
@@ -70,7 +70,7 @@ export function guardianTargetDisabled(context: Gw2ModifierContext): boolean {
   );
 }
 
-export const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'guardian.zealous-blade-power',
     label: 'Zealous Blade',

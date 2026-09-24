@@ -8,16 +8,43 @@
   },
   "rotation": [
     "One Wolf Pack",
-    { "name": "Frost Trap", "skillId": 12492 },
-    { "name": "Overbearing Smash", "skillId": 69262, "interruptMs": 480 },
-    { "name": "__combat_start", "offset": 360 },
-    { "name": "Worldly Impact", "skillId": 40729 },
-    { "name": "\"Sic 'Em!\"", "skillId": 12633, "offset": 320 },
+    {
+      "type": "cast",
+      "skillId": 12492
+    },
+    {
+      "type": "cast",
+      "skillId": 69262,
+      "interruptAfterMs": 480
+    },
+    {
+      "type": "combat-start",
+      "concurrentOffsetMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 40729
+    },
+    {
+      "type": "cast",
+      "skillId": 12633,
+      "concurrentOffsetMs": 320
+    },
     "Unleashed Savage Shock Wave",
-    { "name": "Unleashed Wild Swing", "interruptMs": 440 },
+    {
+      "type": "cast",
+      "skillId": 63335,
+      "interruptAfterMs": 440
+    },
     "Swap Weapons",
-    { "name": "Maul", "skillId": 41406 },
-    { "name": "Path of Scars (Max Range)", "skillId": -1001 },
+    {
+      "type": "cast",
+      "skillId": 41406
+    },
+    {
+      "type": "cast",
+      "skillId": -1001
+    },
     "Winter's Bite",
     "Splitblade",
     "Whirling Defense",
@@ -30,9 +57,16 @@
     "Winter's Bite",
     "Ricochet",
     "Ricochet",
-    { "name": "Maul", "skillId": 41406 },
+    {
+      "type": "cast",
+      "skillId": 41406
+    },
     "Path of Scars",
-    { "name": "Splitblade", "interruptMs": 480 },
+    {
+      "type": "cast",
+      "skillId": 12480,
+      "interruptAfterMs": 480
+    },
     "Swap Weapons",
     "Unleashed Savage Shock Wave",
     "Unleashed Wild Swing",
@@ -56,12 +90,22 @@
     "Heavy Smash",
     "Frost Trap",
     "Worldly Impact",
-    { "name": "\"Sic 'Em!\"", "skillId": 12633, "offset": 400 },
-    { "name": "Maul", "skillId": 41406 },
+    {
+      "type": "cast",
+      "skillId": 12633,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 41406
+    },
     "Unleashed Savage Shock Wave",
     "Unleashed Wild Swing",
     "Swap Weapons",
-    { "name": "Path of Scars (Max Range)", "skillId": -1001 },
+    {
+      "type": "cast",
+      "skillId": -1001
+    },
     "Winter's Bite",
     "Splitblade",
     "Whirling Defense",
@@ -73,10 +117,17 @@
     "Ricochet",
     "Winter's Bite",
     "Ricochet",
-    { "name": "Maul", "skillId": 41406 },
+    {
+      "type": "cast",
+      "skillId": 41406
+    },
     "Ricochet",
     "Path of Scars",
-    { "name": "Splitblade", "interruptMs": 480 },
+    {
+      "type": "cast",
+      "skillId": 12480,
+      "interruptAfterMs": 480
+    },
     "Swap Weapons",
     "Unleashed Wild Swing",
     "Unleashed Savage Shock Wave",
@@ -101,12 +152,22 @@
     "Frost Trap",
     "One Wolf Pack",
     "Worldly Impact",
-    { "name": "\"Sic 'Em!\"", "skillId": 12633, "offset": 440 },
+    {
+      "type": "cast",
+      "skillId": 12633,
+      "concurrentOffsetMs": 440
+    },
     "Unleashed Savage Shock Wave",
     "Unleashed Wild Swing",
     "Swap Weapons",
-    { "name": "Maul", "skillId": 41406 },
-    { "name": "Path of Scars (Max Range)", "skillId": -1001 },
+    {
+      "type": "cast",
+      "skillId": 41406
+    },
+    {
+      "type": "cast",
+      "skillId": -1001
+    },
     "Winter's Bite",
     "Splitblade",
     "Whirling Defense",
@@ -119,9 +180,16 @@
     "Winter's Bite",
     "Ricochet",
     "Ricochet",
-    { "name": "Maul", "skillId": 41406 },
+    {
+      "type": "cast",
+      "skillId": 41406
+    },
     "Path of Scars",
-    { "name": "Splitblade", "interruptMs": 520 },
+    {
+      "type": "cast",
+      "skillId": 12480,
+      "interruptAfterMs": 520
+    },
     "Swap Weapons",
     "Unleashed Savage Shock Wave",
     "Unleashed Wild Swing",
@@ -145,12 +213,22 @@
     "Heavy Smash",
     "Frost Trap",
     "Worldly Impact",
-    { "name": "\"Sic 'Em!\"", "skillId": 12633, "offset": 400 },
-    { "name": "Maul", "skillId": 41406 },
+    {
+      "type": "cast",
+      "skillId": 12633,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 41406
+    },
     "Unleashed Savage Shock Wave",
     "Unleashed Wild Swing",
     "Swap Weapons",
-    { "name": "Path of Scars (Max Range)", "skillId": -1001 },
+    {
+      "type": "cast",
+      "skillId": -1001
+    },
     "Winter's Bite",
     "Splitblade",
     "Whirling Defense",
@@ -162,10 +240,17 @@
     "Ricochet",
     "Winter's Bite",
     "Ricochet",
-    { "name": "Maul", "skillId": 41406 },
+    {
+      "type": "cast",
+      "skillId": 41406
+    },
     "Ricochet",
     "Path of Scars",
-    { "name": "Splitblade", "interruptMs": 520 },
+    {
+      "type": "cast",
+      "skillId": 12480,
+      "interruptAfterMs": 520
+    },
     "Swap Weapons",
     "Unleashed Wild Swing",
     "Unleashed Savage Shock Wave",

@@ -15,8 +15,8 @@
     "Winds of Disenchantment",
     "Breaching Strike",
     {
-      "name": "__combat_start",
-      "offset": 120
+      "type": "combat-start",
+      "concurrentOffsetMs": 120
     },
     "Crushing Blow",
     "Tremor",
@@ -31,8 +31,9 @@
     "Gash",
     "Hamstring",
     {
-      "name": "Kick",
-      "interruptMs": 560
+      "type": "cast",
+      "skillId": 14502,
+      "interruptAfterMs": 560
     },
     "Swap Weapons",
     "Breaching Strike",

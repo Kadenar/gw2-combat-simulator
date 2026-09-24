@@ -8,8 +8,8 @@
   "rotation": [
     "Prepare Thousand Needles",
     {
-      "name": "__wait",
-      "waitMs": 30000
+      "type": "wait",
+      "durationMs": 30000
     },
     "__combat_start",
     "Caltrops",
