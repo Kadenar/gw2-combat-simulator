@@ -97,7 +97,7 @@ export function applyElementalistResolverAura(context: ElementalistResolverConte
     skillName
   };
   professionCoreState(context).activeAuras.push(auraState);
-  if (event.elementalistResolverGeneratedAura === true) context.resolved.push(event);
+  if (context.reporting && event.elementalistResolverGeneratedAura === true) context.resolved.push(event);
   if (context.combatStartTime != null && event.at < context.combatStartTime) return;
 
   if (event.elementalistResolverGeneratedAura === true || event.type === 'aura') {

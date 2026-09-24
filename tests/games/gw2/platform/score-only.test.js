@@ -4,6 +4,49 @@ import { loadProfession } from '#gw2/app/profession-registry.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { MAX_SCHEDULER_REFINEMENT_PASSES } from '#gw2/platform/simulation/pipeline.js';
+import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
+import { applyElementalistResolverAura } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
+
+test('combo and aura handlers skip score report rows while preserving state and reactions', () => {
+  // Check the internal buffer: score output alone hides accidentally retained report rows.
+  for (const reporting of [false, true]) {
+    const dispatched = [];
+    const context = {
+      reporting,
+      resolved: [],
+      traits: new Set(),
+      profession: { core: { activeAuras: [] } },
+      dispatchReaction: (name, event) => dispatched.push([name, event])
+    };
+    const handlers = createGw2ComboResolution({
+      reactions: { dispatch: (name, ctx, event) => ctx.dispatchReaction(name, event) }
+    });
+    const combo = { type: 'combo', at: 1 };
+    const aura = { type: 'aura', at: 1 };
+    const generatedAura = {
+      type: 'elementalist.aura',
+      at: 1,
+      aura: 'Fire',
+      duration: 4,
+      skillName: 'Fixture Aura',
+      elementalistResolverGeneratedAura: true
+    };
+
+    handlers.combo(context, combo);
+    handlers.aura(context, aura);
+    applyElementalistResolverAura(context, generatedAura);
+
+    assert.deepEqual(context.resolved, reporting ? [combo, aura, generatedAura] : []);
+    assert.deepEqual(dispatched, [
+      ['combo.resolved', combo],
+      ['aura.applied', aura],
+      ['aura.applied', generatedAura]
+    ]);
+    assert.deepEqual(context.profession.core.activeAuras, [
+      { type: 'Fire', appliedAt: 1, expiresAt: 5, skillName: 'Fixture Aura' }
+    ]);
+  }
+});
 
 test('feedback reports exhausted refinement but accepts convergence on the final allowed pass', () => {
   // A bounded synthetic feedback rule distinguishes slow convergence from a permanently unstable schedule.
