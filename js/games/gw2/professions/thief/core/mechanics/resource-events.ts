@@ -1,5 +1,4 @@
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
+import { grantResource } from '#gw2/platform/combat/resources/resource-policy.js';
 
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import type { ThiefSchedulerContext, ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -21,8 +20,12 @@ export function emitThiefShroudSwap(context: ThiefSchedulerContext, skill: Thief
 }
 
 export function gainThiefInitiative(context: ThiefSchedulerContext, amount: number, at: number, reason: string): void {
-  const state = professionCoreState(context);
-  state.initiative = grantCapped(state.initiative, amount, state.maximumInitiative);
+  if (at > context.state.time) {
+    thiefResourceGrant.onEventScheduled.handler(context, { amount, at, reason, key: 'initiative' });
+    return;
+  }
+
+  grantResource(context, 'initiative', amount);
   // Publish the grant through the shared Thief envelope so observers see the updated state immediately.
   emitThiefStateSnapshot(context, at, reason);
 }
@@ -30,7 +33,7 @@ export function gainThiefInitiative(context: ThiefSchedulerContext, amount: numb
 export function gainThiefEndurance(context: ThiefSchedulerContext, amount: number, at: number, reason: string): void {
   // Cast authoring may request a future grant; execute it only when its owning task reaches the clock.
   if (at > context.state.time) {
-    thiefEnduranceGrant.onEventScheduled.handler(context, { amount, at, reason });
+    thiefResourceGrant.onEventScheduled.handler(context, { amount, at, reason, key: 'endurance' });
     return;
   }
 
@@ -41,16 +44,17 @@ export function gainThiefEndurance(context: ThiefSchedulerContext, amount: numbe
 }
 
 /** Deferred grants retain activation ownership and publish snapshots only after the resource changes. */
-export const thiefEnduranceGrant = scheduledReaction<
+export const thiefResourceGrant = scheduledReaction<
   ThiefSchedulerContext,
-  { amount: number; at: number; reason: string },
-  { amount: number; reason: string }
+  { amount: number; at: number; reason: string; key: 'initiative' | 'endurance' },
+  { amount: number; reason: string; key: 'initiative' | 'endurance' }
 >({
-  id: 'thief.endurance-grant',
+  id: 'thief.resource-grant',
   select: (context, grant) => ({
     at: grant.at,
     ownerId: 'reservationId' in context ? String(context.reservationId) : null,
-    payload: { amount: grant.amount, reason: grant.reason }
+    payload: { amount: grant.amount, reason: grant.reason, key: grant.key }
   }),
-  execute: (context, at, grant) => gainThiefEndurance(context, grant.amount, at, grant.reason)
+  execute: (context, at, grant) =>
+    (grant.key === 'initiative' ? gainThiefInitiative : gainThiefEndurance)(context, grant.amount, at, grant.reason)
 });

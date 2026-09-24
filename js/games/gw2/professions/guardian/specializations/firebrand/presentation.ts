@@ -142,7 +142,7 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog>): GuardianUi
       }
 
       const pageCost = Number(skill.pageCost ?? 1);
-      if (skill.tome && Number(state.tomePages || 0) < pageCost) {
+      if (skill.tome && Number(state.tomePages?.value || 0) < pageCost) {
         return {
           available: false,
           message: `Requires ${pageCost} tome pages`
@@ -162,7 +162,8 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog>): GuardianUi
       const state = professionState(context);
       // Preview capacity follows the selected catalog even before a simulation supplies resource state.
       const maximum =
-        state.maximumTomePages ??
+        state.tomePages?.maximum ??
+        context.resources?.tomePages?.maximum ??
         balanceProfileNumber(
           requireBalanceProfileFromContext(
             context,
@@ -186,7 +187,7 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog>): GuardianUi
           singular: 'page',
           plural: 'pages',
           maximum,
-          value: Number(state.tomePages ?? maximum),
+          value: Number(state.tomePages?.value ?? maximum),
           // Pages regen passively; the user cannot manually start regeneration.
           canStart: false,
           shortLabel: 'Pgs',

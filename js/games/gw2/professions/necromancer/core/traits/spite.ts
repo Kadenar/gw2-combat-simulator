@@ -154,7 +154,7 @@ export function predictSpitefulFortitude(
     boundaryGrantCounts.set(context.state, claimed + 1);
   }
 
-  predictNecromancerLifeForceGain(context, event.at, spitefulFortitudeLifeForceGain(context));
+  predictNecromancerLifeForceGain(context, event, spitefulFortitudeLifeForceGain(context));
 }
 
 export function applyChillOfDeath(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {

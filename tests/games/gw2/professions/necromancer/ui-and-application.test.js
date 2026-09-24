@@ -40,8 +40,8 @@ test('Necromancer resources and palette change with specialization state', () =>
   const harbingerResources = necromancerProfession.ui.resourceViews({
     specialization: 'Harbinger',
     professionState: {
-      lifeForce: 80,
-      maximumLifeForce: 100,
+      lifeForce: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
+
       lifeForcePoolCapacity: 13256.28,
       blight: 12,
       cascadingCorruptionStacks: 7
@@ -53,8 +53,8 @@ test('Necromancer resources and palette change with specialization state', () =>
       weapons: ['Spear', '']
     },
     professionState: {
-      lifeForce: 80,
-      maximumLifeForce: 100,
+      lifeForce: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
+
       soulShardGrant: { charges: 4, expiresAt: 10 },
       shades: [10, 20]
     }
@@ -156,8 +156,8 @@ test('Necromancer resources and palette change with specialization state', () =>
           alternateWeapons: ['Spear', '']
         },
         professionState: {
-          lifeForce: 80,
-          maximumLifeForce: 100,
+          lifeForce: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
+
           blight: 12,
           soulShardGrant: { charges: 4, expiresAt: 10 }
         }
@@ -261,8 +261,8 @@ test('Necromancer renders life force above its F-skills', async () => {
   app.results = {
     planningState: {
       profession: {
-        lifeForce: 80,
-        maximumLifeForce: 100,
+        lifeForce: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
+
         soulShardGrant: { charges: 0, expiresAt: 10 },
         shades: [10, 20]
       }
@@ -365,7 +365,7 @@ test('Necromancer state events have a real event-log presentation', () => {
           at: 1,
           reason: 'shroud-enter',
           state: {
-            lifeForce: 82.5,
+            lifeForce: { value: 82.5, maximum: 100, updatedAt: 0, rate: 0 },
             activeShroud: 'reaper',
             blight: 3,
             soulShardGrant: { charges: 2, expiresAt: 10 }

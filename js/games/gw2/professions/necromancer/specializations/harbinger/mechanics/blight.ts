@@ -1,4 +1,8 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
+import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
+import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
+import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -70,6 +74,15 @@ const BLIGHT_EFFECT: NecromancerSkill = Object.freeze({
  * which is when the count would reach zero if nothing further touched it.
  */
 export function emitBlightState(context: NecromancerSchedulerContext, state: HarbingerState, at: number): void {
+  // Blight's own clock publishes only its specialization, never an unrelated resource or summon slice.
+  context.emit({
+    type: 'necromancer.blight',
+    at,
+    source: 'necromancer',
+    sourceId: ID.HARBINGER_SHROUD,
+    actorType: 'player',
+    state: structuredClone(state)
+  });
   const expiries = state.blightExpiries || [];
   emitSkillBuff(context, BLIGHT_EFFECT, {
     at,
@@ -99,15 +112,9 @@ export function advanceHarbingerBlight(context: NecromancerSchedulerContext, tar
     return;
   }
 
-  const start = Number(coreState.lastResourceAt || 0);
-  const end = Math.max(start, Number(target || 0));
-  // Life force drains at 5% of maximum per second inside Harbinger Shroud.
   const resources = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const drainRate =
-    (Number(coreState.maximumLifeForce || 100) * balanceProfileNumber(resources, 'lifeForceDrain')) / 100;
-  // exitAt is the moment life force would hit 0 — Blight stops accruing if shroud exits before `end`.
-  const exitAt =
-    drainRate > 0 && drainRate * (end - start) >= coreState.lifeForce ? start + coreState.lifeForce / drainRate : end;
+  // The shared drain segment keeps the zero crossing stable across intermediate observations.
+  const exitAt = Math.min(target, resourceDepletionAt(coreState.lifeForce));
   // Doom Approaches doubles the passive Blight gain rate (2 → 4 stacks/s).
   const stacksPerSecond = balanceProfileNumber(
     hasTrait(context, TRAIT.DOOM_APPROACHES)
@@ -129,7 +136,7 @@ export function advanceHarbingerBlight(context: NecromancerSchedulerContext, tar
 
 /** Accumulates consumed Blight and emits Meltdown whenever Cascading Corruption crosses its threshold. */
 function applyCascadingCorruption(
-  context: NecromancerCastContext,
+  context: NecromancerSchedulerContext,
   skill: NecromancerSkill,
   consumed: number,
   at: number
@@ -156,6 +163,7 @@ function applyCascadingCorruption(
   state.cascadingCorruptionStacks -= threshold;
   // Meltdown lasts 10 s and grants the Cascading Corruption damage bonus during that window.
   if (meltdown) state.meltdownUntil = at + effectNumber(profile, meltdown, 'duration');
+  emitBlightState(context, state, at);
   context.emit({
     type: 'proc',
     procType: 'trait',
@@ -170,7 +178,8 @@ function applyCascadingCorruption(
   });
   if (strike)
     emitSkillDamage(context, CASCADING_CORRUPTION_EFFECT, {
-      at,
+      // The explosion follows Meltdown activation; modifiers resolve against its later impact state.
+      at: canonicalTime(at + quantizeGw2ActionTimingMs(effectNumber(profile, strike, 'atMs')) / 1000),
       source: 'Trait',
       sourceId: TRAIT.CASCADING_CORRUPTION,
       actorType: 'effect',
@@ -180,7 +189,7 @@ function applyCascadingCorruption(
   if (torment)
     emitSkillCondition(context, {
       skill: CASCADING_CORRUPTION_EFFECT,
-      at,
+      at: canonicalTime(at + quantizeGw2ActionTimingMs(effectNumber(profile, torment, 'atMs')) / 1000),
       source: 'Trait',
       sourceId: TRAIT.CASCADING_CORRUPTION,
       actorType: 'effect',
@@ -193,7 +202,7 @@ function applyCascadingCorruption(
 
 /** Materializes a base or empowered elixir profile while preserving Blight metadata and boon routing. */
 function emitElixirEffects(
-  context: NecromancerCastContext,
+  context: NecromancerSchedulerContext,
   skill: NecromancerSkill,
   source: NecromancerSkill | BalanceProfile,
   impactAt: number,
@@ -242,19 +251,27 @@ function emitElixirEffects(
   }
 }
 
-/** Commits an elixir throw, consumes empowerment Blight, emits its profile, then grants fresh Blight. */
+/** Schedules the throw and impact separately so neither exposes future Blight during cast planning. */
 function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
-  const at = context.effectiveEnd;
+  // The interruption cutoff controls whether the cast survives, never when its resource events occur.
+  if (cancelledBeforeInterruptCommit(skill, context.start, context.fullEnd, context.effectiveEnd)) return true;
   // Read the base strike's authored timing so empowered profiles retain the same projectile impact.
   const strike = skill.effects?.find((effect) => effect.type === 'strike');
   const timing = strike ? (context.schedulerPolicy.effectTiming?.(context, skill, strike) ?? strike) : undefined;
   const impactAnchor = timing?.timingAnchor === 'castStart' ? context.start : context.fullEnd;
-  const impactAt = timing?.atMs == null ? context.fullEnd : impactAnchor + Number(timing.atMs) / 1000;
-  const commitAt = skill.interruptCommitMs == null ? impactAt : context.start + Number(skill.interruptCommitMs) / 1000;
-  // A canceled throw must reach its launch/impact commit before it can consume Blight or apply any effects.
-  if (Math.round((at - context.start) * 1000) < Math.round((commitAt - context.start) * 1000)) return true;
-  // Reconcile timed resources before checking empowerment or spending at completion.
-  advanceHarbingerBlight(context, at);
+  const impactAt =
+    timing?.atMs == null
+      ? context.fullEnd
+      : canonicalTime(impactAnchor + quantizeGw2ActionTimingMs(Number(timing.atMs)) / 1000);
+  // Every elixir consumes Blight on the ninth 40 ms tick, independently of its impact timing.
+  const consumeAt = canonicalTime(context.start + 0.36);
+  blightCommit.onEventScheduled.handler(context, { skillId: skill.id, at: consumeAt, impactAt });
+  return true;
+}
+
+/** Launch consumes empowerment Blight; fresh Blight belongs to the surviving projectile's later impact. */
+function commitElixir(context: NecromancerSchedulerContext, skill: NecromancerSkill, impactAt: number): void {
+  const at = context.state.time;
   const state = harbingerState.from(context);
   const empoweredProfile = requireBalanceProfileFromContext(
     context,
@@ -277,7 +294,7 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
   const protection = bolsteringBrew && requireEffect(bolsteringBrew, 'boon', 'protection');
   if (bolsteringBrew && protection) {
     emitSkillBuff(context, skill, {
-      at: context.effectiveEnd,
+      at,
       kind: String(protection.boon),
       duration: effectNumber(bolsteringBrew, protection, 'duration'),
       stacks: effectNumber(bolsteringBrew, protection, 'stacks'),
@@ -285,14 +302,32 @@ function elixir(context: NecromancerCastContext, skill: NecromancerSkill): boole
     });
   }
 
-  emitElixirEffects(context, skill, empowered ? empoweredProfile : skill, impactAt, boonOptions, state.blight);
+  elixirImpact.onEventScheduled.handler(context, { skillId: skill.id, at: impactAt, empowered, blight: state.blight });
+}
+
+/** Publish impact gains before the payload, retaining the existing post-cost damage snapshot from launch. */
+function impactElixir(
+  context: NecromancerSchedulerContext,
+  skill: NecromancerSkill,
+  empowered: boolean,
+  blight: number
+): void {
+  const at = context.state.time;
+  const state = harbingerState.from(context);
+  const empoweredProfile = requireBalanceProfileFromContext(
+    context,
+    HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(skill.id)]
+  );
+  const boonOptions = hasTrait(context, TRAIT.TWISTED_MEDICINE)
+    ? { audience: { recipients: 'party' as const, maximumRecipients: 5 } }
+    : undefined;
   // Elixir of Ambition's profile grants more Blight than other elixirs, consistent with its higher threshold.
   addBlight(state, balanceProfileNumber(empoweredProfile, 'blightGain'), at);
   emitBlightState(context, state, at);
   emitNecromancerStateSnapshot(context, at, 'blight-gained', {
     dedupeAcrossSourceIds: true
   });
-  return true;
+  emitElixirEffects(context, skill, empowered ? empoweredProfile : skill, at, boonOptions, blight);
 }
 
 /** Resolves a Harbinger shroud skill from its base or Blight-empowered balance profile. */
@@ -305,9 +340,17 @@ function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): 
 
   // Blight skills have mid-cast hit frames; these fractions come from wiki frame data, not approximations.
   const impactProgress = skill.id === ID.DEVOURING_CUT ? 0.75 : skill.id === ID.VORACIOUS_ARC ? 20 / 21 : 1;
-  const impactAt = context.start + (context.fullEnd - context.start) * impactProgress;
-  // Earlier shroud ticks must land before this spend, including when the cast crosses a tick boundary.
-  advanceHarbingerBlight(context, at);
+  const impactAt = canonicalTime(
+    context.start + quantizeGw2ActionTimingMs((context.fullEnd - context.start) * impactProgress * 1000) / 1000
+  );
+  // A surviving attack samples and consumes Blight when it hits, after earlier passive ticks.
+  if (impactAt <= at + EPSILON)
+    blightCommit.onEventScheduled.handler(context, { skillId: skill.id, at: impactAt, impactAt });
+  return true;
+}
+
+function commitBlightSkill(context: NecromancerSchedulerContext, skill: NecromancerSkill, impactAt: number): void {
+  const at = context.state.time;
   const state = harbingerState.from(context);
   const empoweredProfile = requireBalanceProfileFromContext(
     context,
@@ -355,9 +398,39 @@ function blightSkill(context: NecromancerCastContext, skill: NecromancerSkill): 
       controlKind: hasTrait(context, TRAIT.DOOM_APPROACHES) ? 'fear' : 'daze'
     });
   }
-
-  return true;
 }
+
+/** The queue owns commitment and cast lineage; planning captures timing without changing live Blight. */
+const blightCommit = scheduledReaction<
+  NecromancerSchedulerContext,
+  { skillId: NecromancerSkill['id']; at: number; impactAt: number },
+  { skillId: NecromancerSkill['id']; impactAt: number }
+>({
+  id: 'necromancer.harbinger-blight-commit',
+  select: (_context, { at, ...payload }) => ({ at, priority: -90, payload }),
+  execute(context, _at, { skillId, impactAt }) {
+    const skill = context.catalog.skillsById.get(skillId);
+    if (!skill) return;
+    if (skill.handlerId === 'necromancer.elixir') commitElixir(context, skill, impactAt);
+    else commitBlightSkill(context, skill, impactAt);
+  }
+});
+
+// Committed projectiles retain their empowerment while the queue delays their resource grant until impact.
+const elixirImpact = scheduledReaction<
+  NecromancerSchedulerContext,
+  { skillId: NecromancerSkill['id']; at: number; empowered: boolean; blight: number },
+  { skillId: NecromancerSkill['id']; empowered: boolean; blight: number }
+>({
+  id: 'necromancer.harbinger-elixir-impact',
+  select: (_context, { at, ...payload }) => ({ at, priority: -90, payload }),
+  execute(context, _at, { skillId, empowered, blight }) {
+    const skill = context.catalog.skillsById.get(skillId);
+    if (skill) impactElixir(context, skill, empowered, blight);
+  }
+});
+
+export const harbingerBlightTaskHandlers = { ...blightCommit.taskHandlers, ...elixirImpact.taskHandlers };
 
 export const necromancerBlightSkillHandlers = Object.freeze({
   'necromancer.elixir': elixir,

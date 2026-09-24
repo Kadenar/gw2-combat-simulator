@@ -143,8 +143,8 @@ function thiefCoreEventLogRow(context: ThiefUiContext, event: ThiefSimulationEve
   const logState = context.eventLogState as Map<string, { at: number; value: number }> | undefined;
   // Show resource changes (including endurance) and suppress unchanged regeneration checkpoints.
   const resources = (['initiative', 'endurance'] as const).flatMap((key) => {
-    const value = Number(state[key] || 0);
-    const at = Number(state[key === 'initiative' ? 'initiativeUpdatedAt' : 'enduranceUpdatedAt'] ?? event.at);
+    const value = Number(key === 'initiative' ? (state.initiative?.value ?? 0) : state.endurance || 0);
+    const at = Number((key === 'initiative' ? state.initiative?.updatedAt : state.enduranceUpdatedAt) ?? event.at);
     const previous = logState?.get(key);
     // Completion snapshots may carry resources from cast start; never report those as spending.
     if (previous && at < previous.at) return [];
@@ -277,9 +277,9 @@ export const thiefCoreUi = Object.freeze({
         id: 'initiative',
         singular: 'initiative',
         plural: 'initiative',
-        maximum: Number(state.maximumInitiative || 12),
-        value: Number(state.initiative ?? context.initialInitiative ?? 12),
-        startMaximum: 15,
+        maximum: Number(state.initiative?.maximum ?? context.resources?.initiative?.maximum ?? 12),
+        value: Number(state.initiative?.value ?? context.initialInitiative ?? 12),
+        startMaximum: Number(context.resources?.initiative?.maximum ?? state.initiative?.maximum ?? 15),
         canStart: true,
         buildKey: 'initialInitiative',
         step: 1,

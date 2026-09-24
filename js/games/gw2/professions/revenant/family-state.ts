@@ -1,3 +1,4 @@
+import { spendResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   composePublicStateProjections,
   flattenProfessionState,
@@ -137,8 +138,7 @@ export function spendRevenantEnergy(
   at = context.start
 ): void {
   if (([ID.SWAP_LEGENDS, ID.DODGE] as readonly number[]).includes(Number(skill.id))) return;
-  const state = professionCoreState(context);
-  state.energy = Math.max(0, state.energy - cost);
+  spendResource(context, 'energy', cost);
   if (cost > 0) {
     emitRevenantStateSnapshot(context, at, 'energy-spent');
   }

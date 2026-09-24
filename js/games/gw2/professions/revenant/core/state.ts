@@ -1,3 +1,4 @@
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { normalizeRevenantLegendIds } from '#gw2/professions/revenant/data/legends.js';
@@ -23,11 +24,7 @@ export interface RevenantSelfCondition {
 }
 
 export interface RevenantCoreState {
-  energy: number;
-  maximumEnergy: number;
-  energyUpdatedAt: number;
-  // Preserve the elapsed-time baseline across scheduler reads until Energy, upkeep, or its cap changes.
-  energyAccrual?: ResourceClock;
+  energy: ResourceClock;
   activeLegendId: string;
   activeLoadoutId: string;
   selectedLegendIds: string[];
@@ -58,9 +55,12 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
     ? configuredStartingLegend
     : selectedLegendIds[0] || '';
   return {
-    energy: boundedNumber(config.initialEnergy ?? 50, 50, 0, 100),
-    maximumEnergy: 100,
-    energyUpdatedAt: 0,
+    energy: {
+      ...createResourceClock(boundedNumber(config.initialEnergy ?? 50, 50, 0, 100)),
+      maximum: 100,
+      rate: 5,
+      recoveryMaximum: 50
+    },
     activeLegendId,
     activeLoadoutId: activeLegendId,
     selectedLegendIds,
@@ -89,7 +89,6 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
 // Core publishes only state shared by every Revenant build; elite state is projected by its owning module.
 const REVENANT_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantCoreState)[] = Object.freeze([
   'energy',
-  'maximumEnergy',
   'activeLegendId',
   'activeLoadoutId',
   'selectedLegendIds',

@@ -218,9 +218,9 @@ test('Lich Form expires exactly once and preserves its last live microsecond', (
   scheduler.advanceTo(deadline);
   assert.equal(state.activeShroud, '');
   assert.equal(state.availableFlips[N.EXIT_LICH_FORM], undefined);
-  const lifeForce = state.lifeForce;
+  const lifeForce = state.lifeForce.value;
   scheduler.advanceTo(deadline + 0.000001);
-  assert.equal(state.lifeForce, lifeForce);
+  assert.equal(state.lifeForce.value, lifeForce);
 });
 
 test('minion command control includes its deadline but excludes the following microsecond', () => {

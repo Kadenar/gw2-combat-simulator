@@ -17,6 +17,23 @@ import {
   projectNecromancerPlanningState
 } from '#gw2/professions/necromancer/family-state.js';
 import { createHarbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
+import { necromancerCoreResolverEventHandlers } from '#gw2/professions/necromancer/core/mechanics/reactions.js';
+
+// A pool update must preserve resolver-owned traits and specialization state, and detach its retained value.
+test('life-force observations update only the pool', () => {
+  const core = createNecromancerCoreState();
+  const harbinger = createHarbingerState({ initialBlight: 12 });
+  core.activeShroud = 'harbinger';
+  harbinger.meltdownUntil = 10;
+  const profession = { core, specialization: { kind: 'Harbinger', state: harbinger } };
+  const before = structuredClone(profession);
+  const event = { type: 'necromancer.life-force', at: 1, state: { lifeForce: { ...core.lifeForce, value: 42 } } };
+  necromancerCoreResolverEventHandlers['necromancer.life-force']({ profession }, event);
+  before.core.lifeForce.value = 42;
+  assert.deepEqual(profession, before);
+  core.lifeForce.value = 0;
+  assert.equal(event.state.lifeForce.value, 42);
+});
 
 test('state restoration copies primitives directly while detaching objects and rejecting uncloneable values', (t) => {
   // Preserve exact primitive values without clone calls, including undefined keys and signed zero.
@@ -41,7 +58,7 @@ test('Necromancer snapshot candidates normalize resources without mutating live 
   // Harbinger normalization must remain local even when emission no longer clones its input in advance.
   const core = createNecromancerCoreState();
   const harbinger = createHarbingerState();
-  core.lifeForce = 150;
+  core.lifeForce.value = 150;
   harbinger.blightExpiries = Array.from({ length: 27 }, (_, index) => index);
   const profession = { core, specialization: { kind: 'Harbinger', state: harbinger } };
   const events = [];
@@ -54,7 +71,7 @@ test('Necromancer snapshot candidates normalize resources without mutating live 
     }
   };
   const event = emitNecromancerStateSnapshot(context, 0, 'update');
-  assert.equal(event.state.lifeForce, 100);
+  assert.equal(event.state.lifeForce.value, 100);
   assert.equal(event.state.blight, 25);
   assert.deepEqual(event.state.blightExpiries, harbinger.blightExpiries.slice(-25));
   assert.equal(emitNecromancerStateSnapshot(context, 0, 'update'), null);
@@ -62,7 +79,7 @@ test('Necromancer snapshot candidates normalize resources without mutating live 
   planning.blightExpiries.push(99);
   core.activeMinions.fixture = 1;
   assert.deepEqual(event.state.activeMinions, {});
-  assert.equal(core.lifeForce, 150);
+  assert.equal(core.lifeForce.value, 150);
   assert.equal(harbinger.blight, 0);
   assert.equal(harbinger.blightExpiries.length, 27);
   assert.equal(event.state.blightExpiries.length, 25);
@@ -119,7 +136,7 @@ test('Core and Reaper snapshots retain resolver clocks and carapace multipliciti
   const snapshot = structuredClone({
     ...core,
     ...reaper,
-    lifeForce: 42,
+    lifeForce: { value: 42, maximum: 100, updatedAt: 0, rate: 0 },
     chillingVictoryReadyAt: 7,
     carapaceExpiries: [10, 10, 20]
   });
@@ -133,7 +150,7 @@ test('Core and Reaper snapshots retain resolver clocks and carapace multipliciti
 
   for (const at of [1, 2]) {
     handleNecromancerStateEvent(context, { at, state: snapshot });
-    assert.equal(core.lifeForce, 42);
+    assert.equal(core.lifeForce.value, 42);
     assert.equal(core.targetChilledUntil, 12);
     assert.deepEqual(core.traitProcReadyAt, { proc: 8 });
     assert.deepEqual(core.carapaceExpiries, [10, 10, 20, 20]);

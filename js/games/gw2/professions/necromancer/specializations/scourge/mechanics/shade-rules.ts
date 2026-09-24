@@ -1,3 +1,4 @@
+import { eventReaction } from '#gw2/platform/execution/scheduler-reactions.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
   requireBalanceProfileFromContext,
@@ -95,23 +96,30 @@ function scourgeBuildAvailability(context: NecromancerPrecastContext, skill: Nec
   return CAST_READY;
 }
 
-// Observe scheduled shade and barrier events to update Scourge trait state only
-// after their canonical timestamps and ownership are known.
-function onScourgeEventScheduled(context: NecromancerSchedulerContext, event: NecromancerSimulationEvent): void {
-  const state = scourgeState.from(context);
-  if (
-    event.type !== 'condition' ||
-    event.condition !== 'Burning' ||
-    !hasTrait(context, TRAIT.NOURISHING_ASHES) ||
-    !isInternalCooldownReady(event.at, state.nourishingAshesReadyAt)
-  ) {
-    return;
+/** Nourishing Ashes claims its existing cooldown only when the causal Burning application survives. */
+export const nourishingAshes = eventReaction<NecromancerSchedulerContext, NecromancerSimulationEvent>({
+  id: 'necromancer.scourge.nourishing-ashes',
+  missingEvent: 'skip',
+  order: 10,
+  select(_context, event) {
+    return event.type === 'condition' && event.condition === 'Burning'
+      ? { at: event.at, payload: { eventOrder: Number(event.eventOrder) } }
+      : null;
+  },
+  execute(context, event) {
+    const state = scourgeState.from(context);
+    if (
+      event.cancelled ||
+      event.offTarget ||
+      !hasTrait(context, TRAIT.NOURISHING_ASHES) ||
+      !isInternalCooldownReady(event.at, state.nourishingAshesReadyAt)
+    )
+      return;
+    const profile = requireBalanceProfileFromContext(context, PROFILE.nourishingAshes);
+    state.nourishingAshesReadyAt = event.at + balanceProfileNumber(profile, 'cooldown');
+    gainNecromancerLifeForce(context, balanceProfileNumber(profile, 'lifeForceGain'), event.at, 'nourishing-ashes');
   }
-
-  const profile = requireBalanceProfileFromContext(context, PROFILE.nourishingAshes);
-  state.nourishingAshesReadyAt = event.at + balanceProfileNumber(profile, 'cooldown');
-  gainNecromancerLifeForce(context, balanceProfileNumber(profile, 'lifeForceGain'), event.at, 'nourishing-ashes');
-}
+});
 
 export const scourgeSchedulerHooks = Object.freeze({
   advance: {
@@ -120,11 +128,8 @@ export const scourgeSchedulerHooks = Object.freeze({
     handler: (context: NecromancerSchedulerContext, target: number) =>
       purgeScourgeTimedState(scourgeState.from(context), target)
   },
-  onEventScheduled: {
-    id: 'scourge.nourishing-ashes',
-    order: 10,
-    handler: onScourgeEventScheduled
-  }
+  onEventScheduled: nourishingAshes.onEventScheduled,
+  taskHandlers: nourishingAshes.taskHandlers
 });
 
 const scourgeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([

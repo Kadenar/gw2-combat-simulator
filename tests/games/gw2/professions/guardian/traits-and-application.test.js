@@ -874,8 +874,7 @@ test('elite specializations expose their profession mechanics', () => {
       specialization: 'Firebrand',
       professionState: {
         activeTome: 'justice',
-        tomePages: 5,
-        maximumTomePages: 5
+        tomePages: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity }
       }
     })
     .flatMap((group) => group.skillIds);
@@ -883,8 +882,8 @@ test('elite specializations expose their profession mechanics', () => {
     specialization: 'Firebrand',
     simulationTime: 10,
     professionState: {
-      tomePages: 3,
-      maximumTomePages: 5,
+      tomePages: { value: 3, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity },
+
       tomeDormantReadyAt: { justice: 20, resolve: 10, courage: 0 }
     }
   });

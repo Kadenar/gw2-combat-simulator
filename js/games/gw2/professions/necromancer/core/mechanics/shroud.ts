@@ -1,3 +1,4 @@
+import { refreshResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import {
@@ -24,7 +25,7 @@ import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/famil
  */
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import { advanceNecromancerState, leaveShroud } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import { leaveShroud, lichLifetime } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { addCarapace, gainNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { runNecromancerShroudEnter } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
@@ -95,7 +96,7 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
   state.activeShroud = shroud;
   state.activeShroudEntryId = skill.id;
   state.activeShroudProfileId = String(skill.shroudProfileId || PROFILE.shroud);
-  state.lastResourceAt = at;
+  refreshResource(context, 'lifeForce', true, at);
   const exitSkill = [...context.catalog.skillsById.values()].find((candidate) => candidate.shroudExit === shroud);
   state.activeShroudExitId = exitSkill?.id ?? null;
   if (exitSkill) armSkillFlip(state.availableFlips, exitSkill.id, at);
@@ -195,7 +196,6 @@ function activateShroud(context: NecromancerCastContext, skill: NecromancerSkill
 
 // Route transform skills through entry or the shared life-force shroud exit path.
 function shroud(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
-  advanceNecromancerState(context, context.start);
   if (skill.shroudEntry) return activateShroud(context, skill);
   if (skill.shroudExit) {
     leaveShroud(context, context.effectiveEnd);
@@ -213,7 +213,8 @@ function lich(context: NecromancerCastContext, skill: NecromancerSkill): boolean
     state.activeShroud = 'lich';
     // Form lifetime is exact; resource advancement and the exit flip share this deadline.
     state.lichEndsAt = canonicalTime(at + 20);
-    state.lastResourceAt = at;
+    lichLifetime.start(context, { key: 'lich', times: [state.lichEndsAt], captured: {} });
+    refreshResource(context, 'lifeForce', true, at);
     armSkillFlip(state.availableFlips, ID.EXIT_LICH_FORM, at, state.lichEndsAt);
     emitNecromancerStateSnapshot(context, at, 'lich-enter', {
       dedupeAcrossSourceIds: true
@@ -221,6 +222,8 @@ function lich(context: NecromancerCastContext, skill: NecromancerSkill): boolean
   } else {
     state.activeShroud = '';
     state.lichEndsAt = 0;
+    lichLifetime.cancelKey(context, 'lich');
+    refreshResource(context, 'lifeForce', true, at);
     consumeSkillFlip(state.availableFlips, ID.EXIT_LICH_FORM);
     gainNecromancerLifeForce(context, 15, at);
     emitNecromancerStateSnapshot(context, at, 'lich-exit', {

@@ -1,3 +1,4 @@
+import { resourceReadyAt } from '#gw2/platform/combat/resources/resource-policy.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import {
@@ -65,7 +66,7 @@ function devouringGate(
 // Validate shroud ownership, current transform state, and minimum life force
 // before an entry skill can begin.
 function shroudEntryGate(
-  _context: NecromancerPrecastContext,
+  context: NecromancerPrecastContext,
   skill: NecromancerSkill,
   { state, activeShroud, spec }: AvailabilityEnvironment
 ): AvailabilityVerdict {
@@ -80,9 +81,14 @@ function shroudEntryGate(
   }
 
   const minimumPercent = Number(skill.minimumShroudLifeForcePercent ?? 10);
-  const minimumLifeForce = Number(state.maximumLifeForce || 100) * (minimumPercent / 100);
-  if (Number(state.lifeForce || 0) < minimumLifeForce) {
-    return deny(skill, 'necromancer.insufficient-life-force', `requires ${minimumPercent} life force.`);
+  const minimumLifeForce = Number(state.lifeForce.maximum || 100) * (minimumPercent / 100);
+  if (Number(state.lifeForce.value || 0) < minimumLifeForce) {
+    return deny(
+      skill,
+      'necromancer.insufficient-life-force',
+      `requires ${minimumPercent} life force.`,
+      resourceReadyAt(context, 'lifeForce', minimumLifeForce)
+    );
   }
 
   return READY;
@@ -176,12 +182,13 @@ function baselineGate(
 
   if (
     skill.lifeForceCost &&
-    Number(state.lifeForce || 0) < normalizedNecromancerLifeForceCost(state, skill.lifeForceCost)
+    Number(state.lifeForce.value || 0) < normalizedNecromancerLifeForceCost(state, skill.lifeForceCost)
   ) {
     return deny(
       skill,
       'necromancer.insufficient-life-force',
-      `requires ${Math.round(actualNecromancerLifeForceCost(skill.lifeForceCost))} life force.`
+      `requires ${Math.round(actualNecromancerLifeForceCost(skill.lifeForceCost))} life force.`,
+      resourceReadyAt(context, 'lifeForce', normalizedNecromancerLifeForceCost(state, skill.lifeForceCost))
     );
   }
 

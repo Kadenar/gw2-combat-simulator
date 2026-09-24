@@ -226,6 +226,7 @@ function necromancerEventLogRow(
       // Scheduler feedback is internal observation data, not a player action.
       'necromancer.target-condition-count',
       'necromancer.life-force-gain',
+      'necromancer.blight',
       'necromancer.summon-attack',
       'necromancer.taste-for-blood-grant',
       'necromancer.taste-for-blood-allied-hit',
@@ -235,10 +236,10 @@ function necromancerEventLogRow(
     return null;
   }
 
-  if (event?.type !== 'necromancer.state') return undefined;
+  if (event?.type !== 'necromancer.state' && event?.type !== 'necromancer.life-force') return undefined;
   // Summarize only player-facing resource and transform fields from state snapshots.
   const state = event.state || {};
-  const details = [`Life force ${Number(state.lifeForce || 0).toFixed(1)}`];
+  const details = [`Life force ${Number(state.lifeForce?.value || 0).toFixed(1)}`];
   if (state.activeShroud) details.push(`Shroud ${state.activeShroud}`);
   if (Number(state.blight || 0) > 0) {
     details.push(`Blight ${Number(state.blight)}`);
@@ -300,11 +301,11 @@ export function necromancerSoulShardResourceViews(context: NecromancerUiContext)
 // Normalize life force into the configured pool capacity and append Core-only Soul Shards.
 function necromancerCoreResourceViews(context: NecromancerUiContext): ProfessionResourceView[] {
   const state = necromancerUiState(context);
-  const normalizedMaximum = Math.max(100, Number(state.maximumLifeForce || 100));
+  const normalizedMaximum = Math.max(100, Number(state.lifeForce?.maximum || 100));
   const maximum = Math.round(
     Math.max(1, Number(state.lifeForcePoolCapacity || context.lifeForcePoolCapacity || normalizedMaximum))
   );
-  const normalizedValue = Number(state.lifeForce ?? context.value ?? context.initialResource ?? 100);
+  const normalizedValue = Number(state.lifeForce?.value ?? context.value ?? context.initialResource ?? 100);
   // The UI stores life force as a normalized percentage but renders against the build-specific pool capacity.
   const views: ProfessionResourceView[] = [
     {

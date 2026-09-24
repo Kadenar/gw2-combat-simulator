@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { advanceNecromancerState } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { createProfessionPassSimulator, createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import {
@@ -22,6 +23,141 @@ const baseConfig = {
 const simulate = createProfessionSimulator(necromancerProfession, baseConfig);
 const simulateWithPasses = createProfessionPassSimulator(necromancerProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
+
+// Planning an elixir must not expose future Blight or Meltdown to intervening resource observations.
+test('elixir state commits chronologically and cancelled throws leave it untouched', () => {
+  const safeInterruptMs = necromancerCatalog.skillsById.get(ID.ELIXIR_OF_RISK).interruptCommitMs;
+  for (const interruptAfterMs of [undefined, 1, safeInterruptMs - 40, safeInterruptMs]) {
+    const config = {
+      ...baseConfig,
+      specialization: 'Harbinger',
+      initialResource: 100,
+      initialBlight: 20,
+      selectedSkills: { utility1: 'Elixir of Risk' },
+      selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
+    };
+    const scheduler = createScheduler({
+      profession: necromancerProfession,
+      config,
+      schedulerPolicy: createGw2SchedulerPolicy(config)
+    });
+    const state = scheduler.state.profession.specialization.state;
+    state.cascadingCorruptionStacks = 15;
+    assert.equal(
+      scheduler.cast({ skillId: ID.ELIXIR_OF_RISK, ...(interruptAfterMs == null ? {} : { interruptAfterMs }) }),
+      true
+    );
+    assert.equal(state.blight, 20);
+    assert.equal(state.meltdownUntil, 0);
+    if (interruptAfterMs != null && interruptAfterMs < safeInterruptMs) {
+      scheduler.advanceTo(1);
+      assert.equal(state.blight, 20);
+      assert.equal(state.cascadingCorruptionStacks, 15);
+      assert.equal(state.meltdownUntil, 0);
+      assert.ok(!scheduler.events.some((event) => event.type === 'damage'));
+      continue;
+    }
+
+    const commitAt = scheduler.context.tasks.nextAt('necromancer.harbinger-blight-commit');
+    // Resource timing stays at its measured frame regardless of the safe-interruption cutoff.
+    assert.equal(commitAt, 9 * 0.04);
+    scheduler.advanceTo(commitAt / 2);
+    assert.equal(state.blight, 20);
+    assert.equal(state.meltdownUntil, 0);
+    const observations = scheduler.events.filter((event) => event.type === 'necromancer.life-force');
+    assert.ok(observations.length > 0);
+    assert.ok(observations.every((event) => Object.keys(event.state).join() === 'lifeForce'));
+    scheduler.advanceTo(commitAt);
+    assert.equal(state.blight, 15);
+    assert.equal(state.cascadingCorruptionStacks, 0);
+    assert.ok(state.meltdownUntil > commitAt);
+    assert.equal(scheduler.events.find((event) => event.name === 'Meltdown').at, commitAt);
+    const impactAt = scheduler.context.tasks.nextAt('necromancer.harbinger-elixir-impact');
+    assert.ok(impactAt > commitAt);
+    scheduler.advanceTo((commitAt + impactAt) / 2);
+    assert.equal(state.blight, 15);
+    scheduler.advanceTo(impactAt);
+    assert.equal(state.blight, 25);
+    scheduler.advanceTo(1);
+    const strike = scheduler.events.find((event) => event.type === 'damage' && event.skillId === ID.ELIXIR_OF_RISK);
+    assert.equal(strike.at, impactAt);
+    const gain = scheduler.events.find((event) => event.reason === 'blight-gained');
+    assert.equal(gain.at, impactAt);
+    assert.ok(gain.eventOrder < strike.eventOrder);
+    assert.equal(strike.metadata.necromancerBlight, 15);
+    assert.deepEqual(scheduler.warnings, []);
+  }
+});
+
+// Meltdown activates with consumption, but its explosion observes later resources and the observation horizon.
+test('Cascading Corruption delays its packets while Meltdown applies to the triggering strike', () => {
+  const config = {
+    initialResource: 100,
+    initialBlight: 20,
+    initialCascadingCorruptionStacks: 15,
+    selectedTraitIds: [TRAIT.CASCADING_CORRUPTION, TRAIT.WICKED_CORRUPTION]
+  };
+  const rotation = ['Harbinger Shroud', 'Devouring Cut'];
+  const clipped = simulate('Harbinger', rotation, config);
+  const result = simulate('Harbinger', rotation, config, { kind: 'tail', durationMs: 1000 });
+  assert.deepEqual(result.warnings, []);
+  const proc = result.events.find((event) => event.name === 'Meltdown');
+  const trigger = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.DEVOURING_CUT);
+  const packets = result.resolvedEvents.filter(
+    (event) => event.skillId === ID.CASCADING_CORRUPTION && ['damage', 'condition'].includes(event.type)
+  );
+  assert.equal(proc.at, trigger.at);
+  const publication = result.events.find(
+    (event) => event.type === 'necromancer.blight' && event.at === proc.at && event.state.meltdownUntil > proc.at
+  );
+  assert.ok(publication.eventOrder < trigger.eventOrder);
+  assert.equal(packets.length, 2);
+  assert.ok(packets.every((event) => Math.round((event.at - proc.at) * 1000) === 17 * 40));
+  assert.ok(
+    result.events.some(
+      (event) =>
+        event.kind === 'harbinger-blight' && event.at > proc.at && event.at < packets[0].at && event.stacks === 17
+    )
+  );
+  // The trigger uses its post-cost 15 stacks; the explosion includes the intervening two-stack shroud tick.
+  const expectedDamage = (packet, blight) =>
+    Math.floor(
+      ((baseConfig.stats.power * packet.resolvedWeaponStrength * packet.coefficient) / baseConfig.target.armor) *
+        (1 + 0.1 + blight * 0.01) *
+        (1 + packet.criticalChance * (packet.criticalDamage - 1))
+    );
+  assert.equal(trigger.damage, expectedDamage(trigger, 15));
+  const explosion = packets.find((event) => event.type === 'damage');
+  assert.equal(explosion.damage, expectedDamage(explosion, 17));
+  assert.ok(!clipped.resolvedEvents.some((event) => event.skillId === ID.CASCADING_CORRUPTION));
+});
+
+// Replacement must keep the old spirit's generation and readiness live until the summon completes.
+test('spirit replacement changes generation and busy state only at completion', () => {
+  const config = { ...baseConfig, specialization: 'Ritualist', initialResource: 100 };
+  const scheduler = createScheduler({
+    profession: necromancerProfession,
+    config,
+    schedulerPolicy: createGw2SchedulerPolicy(config)
+  });
+  scheduler.cast({ skillId: ID.RITUALISTS_SHROUD });
+  const state = scheduler.state.profession.specialization.state;
+  for (const generation of [1, 2]) {
+    scheduler.context.cooldownController.clear(ID.WANDERLUST);
+    const previousBusy = state.spiritBusyUntil.wanderlust;
+    assert.equal(scheduler.cast({ skillId: ID.WANDERLUST }), true);
+    const action = scheduler.events.filter((event) => event.type === 'action').at(-1);
+    scheduler.advanceTo((action.at + action.endsAt) / 2);
+    assert.equal(state.spiritGenerations.wanderlust || 0, generation - 1);
+    assert.equal(state.spiritBusyUntil.wanderlust, previousBusy);
+    scheduler.advanceTo(action.endsAt);
+    assert.equal(state.spiritGenerations.wanderlust, generation);
+    assert.equal(state.activeSpirits.wanderlust, true);
+    assert.ok(state.spiritBusyUntil.wanderlust >= action.endsAt);
+  }
+
+  assert.deepEqual(scheduler.warnings, []);
+});
 
 // Cap refreshes keep their positions, and expiry must preserve the order used by later spends.
 test('Blight cap refreshes survive spending from the end of the stack array', () => {
@@ -98,31 +234,22 @@ test('shroud exits before combat leave entry ready without weakening combat rech
 
 // Direct clock checks include repeated timestamps that a rotation can collapse away.
 function advance(config, targets) {
-  const events = [];
-  const context = {
+  const { context } = createScheduler({
+    profession: necromancerProfession,
     config,
-    catalog: necromancerCatalog,
-    state: {
-      profession: necromancerProfession.resolveRuntime(config).createProfessionState(config),
-      cooldowns: new Map()
-    },
-    events,
-    emit: (event) => {
-      events.push(event);
-      return event;
-    }
-  };
-  for (const at of targets) advanceNecromancerState(context, at);
+    schedulerPolicy: createGw2SchedulerPolicy(config)
+  });
+  for (const at of targets) context.advanceTo(at);
   return context.state.profession.core;
 }
 
 test('NEC-001 Eternal Life preserves earned resources and caps only its own regeneration', () => {
   for (const targets of [[0], [0.1], [1, 1, 2]]) {
     const state = advance({ initialResource: 100, selectedTraitIds: [TRAIT.ETERNAL_LIFE] }, targets);
-    assert.equal(state.lifeForce, 100);
+    assert.equal(state.lifeForce.value, 100);
   }
 
-  assert.equal(advance({ initialResource: 65, selectedTraitIds: [TRAIT.ETERNAL_LIFE] }, [1, 2]).lifeForce, 66);
+  assert.equal(advance({ initialResource: 65, selectedTraitIds: [TRAIT.ETERNAL_LIFE] }, [1, 2]).lifeForce.value, 66);
 });
 
 test('NEC-002 transformed follow-ups require an unexpired, unconsumed parent activation', () => {
@@ -188,7 +315,7 @@ test('NEC-006 condition scaling observes live distinct conditions and their expi
     const observations = result.resolvedEvents.filter((event) => event.type === 'necromancer.target-condition-count');
     assert.equal(observations[0].conditionCount, expected);
     // The completion-time resource query includes conditions present at that gain boundary.
-    assert.equal(result.planningState.profession.lifeForce, 8 + observations.at(-1).conditionCount);
+    assert.equal(result.planningState.profession.lifeForce.value, 8 + observations.at(-1).conditionCount);
   }
 
   const torch = simulate('Core', ['Blood Curse', 'Oppressive Collapse'], {
@@ -245,7 +372,7 @@ test('NEC-007 strike life force is spendable by the next shroud entry', () => {
       target: { health: 1000000, startingHealthFraction }
     });
     assert.equal(result.planningState.profession.activeShroud === 'death', accepted);
-    assert.equal(result.planningState.profession.lifeForce, accepted ? 11 : 9);
+    assert.equal(result.planningState.profession.lifeForce.value, accepted ? 11 : 9);
     if (accepted) assert.deepEqual(result.warnings, []);
     else assert.match(result.warnings.join(' '), /requires 10 life force/);
   }
@@ -256,7 +383,7 @@ test('NEC-007 strike life force is spendable by the next shroud entry', () => {
     selectedTraitIds: [TRAIT.SPITEFUL_FORTITUDE],
     target: { health: 1000000, startingHealthFraction: 0.4 }
   });
-  assert.equal(minion.planningState.profession.lifeForce, 0);
+  assert.equal(minion.planningState.profession.lifeForce.value, 0);
   // Percentage gains normalize to the enlarged pool, apply Gluttony once, and cannot overflow its cap.
   for (const [initialResource, expected] of [
     [0, 2.64],
@@ -268,7 +395,7 @@ test('NEC-007 strike life force is spendable by the next shroud entry', () => {
       selectedTraitIds: [TRAIT.SPITEFUL_FORTITUDE, TRAIT.GLUTTONY, TRAIT.SOUL_BATTERY],
       target: { health: 1000000, startingHealthFraction: 0.4 }
     });
-    assert.ok(Math.abs(result.planningState.profession.lifeForce - expected) < 1e-8);
+    assert.ok(Math.abs(result.planningState.profession.lifeForce.value - expected) < 1e-8);
   }
 });
 
@@ -289,7 +416,7 @@ test('NEC-007 resource gains preserve Harbinger damage observations before the B
   assert.ok(strikes(baseline).length > 0);
   assert.deepEqual(strikes(feedback), strikes(baseline));
   assert.equal(feedback.planningState.profession.blight, baseline.planningState.profession.blight);
-  assert.ok(feedback.planningState.profession.lifeForce > baseline.planningState.profession.lifeForce);
+  assert.ok(feedback.planningState.profession.lifeForce.value > baseline.planningState.profession.lifeForce.value);
 });
 
 const spitefulFortitude = (config) => ({ initialResource: 0, selectedTraitIds: [TRAIT.SPITEFUL_FORTITUDE], ...config });
@@ -326,7 +453,7 @@ test('Spiteful Fortitude predictions start at the strike that crosses half healt
   );
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'necromancer.life-force-gain').length, 1);
   assert.equal(passes, 2);
-  assert.equal(result.planningState.profession.lifeForce, 1);
+  assert.equal(result.planningState.profession.lifeForce.value, 1);
 });
 
 // Delayed packets land after the observation end, where neither the resolver nor the resource clock reaches them.
@@ -338,7 +465,7 @@ test('hit life force beyond the observation end does not force a replay pass', (
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(passes, 2);
-  assert.equal(result.planningState.profession.lifeForce, 2);
+  assert.equal(result.planningState.profession.lifeForce.value, 2);
 });
 
 // The resolver observes no strike after target death, so predictions stop there instead of forcing a replay.
@@ -346,7 +473,7 @@ test('Spiteful Fortitude predictions stop at target death', () => {
   const config = (health) =>
     spitefulFortitude({ primaryWeapon: 'Axe', target: { health, startingHealthFraction: 0.4 } });
   // A surviving target shows both strikes qualify; the lethal first strike leaves the second unresolved.
-  assert.equal(simulate('Core', ['Rending Claws'], config(1000000)).planningState.profession.lifeForce, 2);
+  assert.equal(simulate('Core', ['Rending Claws'], config(1000000)).planningState.profession.lifeForce.value, 2);
   const { result, passes } = simulateWithPasses('Core', ['Rending Claws'], config(1000));
   const strikes = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillId === ID.RENDING_CLAWS
@@ -355,7 +482,7 @@ test('Spiteful Fortitude predictions stop at target death', () => {
   assert.equal(strikes.length, 1);
   assert.equal(result.deathTime, strikes[0].at);
   assert.equal(passes, 2);
-  assert.equal(result.planningState.profession.lifeForce, 1);
+  assert.equal(result.planningState.profession.lifeForce.value, 1);
 });
 
 // Gravedigger's reset moves every later strike; predicting from the new schedule avoids replaying the old timestamps.
@@ -417,7 +544,12 @@ test('NEC-010 Lich grants its ending life force exactly once', () => {
   ]) {
     const result = simulate('Core', ['Lich Form', ...actions], config);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.lifeForce, lifeForce);
+    assert.equal(result.planningState.profession.lifeForce.value, lifeForce);
+    // Expiry must publish the form transition even though resource events carry only life force.
+    assert.equal(
+      result.events.filter((event) => event.type === 'necromancer.state').at(-1).state.activeShroud,
+      lifeForce ? '' : 'lich'
+    );
   }
 });
 
@@ -440,11 +572,13 @@ test('NEC-012 passive gains, cap, and depletion are invariant under wait partiti
       const split = simulate('Core', ['Death Shroud', ...[1000, 2000, 1000, 1000, 1000, 2000].map(wait)], config);
       assert.deepEqual(whole.warnings, []);
       assert.deepEqual(split.warnings, []);
-      assert.ok(Math.abs(whole.planningState.profession.lifeForce - split.planningState.profession.lifeForce) < 1e-8);
+      assert.ok(
+        Math.abs(whole.planningState.profession.lifeForce.value - split.planningState.profession.lifeForce.value) < 1e-8
+      );
       assert.equal(whole.planningState.profession.activeShroud, split.planningState.profession.activeShroud);
     }
   }
 
   const config = { initialResource: 0, selectedSkills: { utility1: 'Signet of Undeath' } };
-  assert.equal(advance(config, [3, 3]).lifeForce, advance(config, [3]).lifeForce);
+  assert.equal(advance(config, [3, 3]).lifeForce.value, advance(config, [3]).lifeForce.value);
 });

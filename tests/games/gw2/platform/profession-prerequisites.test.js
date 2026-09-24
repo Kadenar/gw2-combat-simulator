@@ -688,7 +688,7 @@ test('Engineer and Thief contracts present state and suppress known packet event
           type: 'thief.state',
           at: 2,
           reason: 'initiative-spent',
-          state: { initiative: 7, malice: 2 }
+          state: { initiative: { value: 7, maximum: 12, updatedAt: 0, rate: 1 }, malice: 2 }
         }
       ],
       resolvedEvents: [],
@@ -807,7 +807,7 @@ test('Guardian and Necromancer classify every known custom event', () => {
             type: 'necromancer.state',
             at: 0,
             reason: 'shroud-entered',
-            state: { lifeForce: 75, activeShroud: 'reaper' }
+            state: { lifeForce: { value: 75, maximum: 100, updatedAt: 0, rate: 0 }, activeShroud: 'reaper' }
           },
           { type: 'necromancer.summon-attack', at: 3 }
         ],

@@ -1,3 +1,4 @@
+import { grantResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import {
   requireBalanceProfileFromContext,
@@ -12,7 +13,6 @@ import { specterCastAvailability } from '#gw2/professions/thief/specializations/
 import {
   advanceSpecterResources,
   shadowDepletion,
-  gainShadowForce,
   spendSpecterResources
 } from '#gw2/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
@@ -36,7 +36,7 @@ export const specterSchedulerHooks = Object.freeze({
     // The training-area reset refills Shadow Force without forcing Specter out of Shadow Shroud.
     handler: (context: ThiefSchedulerContext): void => {
       const state = specterState.from(context);
-      gainShadowForce(context, state.shadowClock.maximum);
+      grantResource(context, 'shadowForce', state.shadowClock.maximum);
       emitThiefStateSnapshot(context, context.state.time, 'cooldown-reset');
     }
   },

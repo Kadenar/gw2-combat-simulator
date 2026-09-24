@@ -12,6 +12,8 @@ import { harbingerState } from '#gw2/professions/necromancer/specializations/har
 import { bindHarbingerUi } from '#gw2/professions/necromancer/specializations/harbinger/presentation.js';
 import { HARBINGER_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/harbinger/skills/index.js';
 import { HARBINGER_BALANCE_PROFILES } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
+import { restoreNecromancerStateSlice } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
+import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 export const harbingerModule = defineNativeModule({
   id: 'Harbinger',
@@ -29,6 +31,13 @@ export const harbingerModule = defineNativeModule({
       hooks: harbingerSchedulerHooks
     },
     resolution: {
+      hooks: {
+        eventHandlers: {
+          // Passive Blight updates cannot overwrite Core resources or shroud transitions.
+          'necromancer.blight': (context: NecromancerResolverContext, event: NecromancerResolverEvent) =>
+            restoreNecromancerStateSlice(harbingerState.from(context), event.state || {})
+        }
+      },
       reactions: [
         onResolvedDamage({
           id: 'necromancer.harbinger.damage',

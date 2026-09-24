@@ -1,5 +1,5 @@
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
-import { advanceDiscreteResource } from '#gw2/platform/combat/resources/clock.js';
+import { grantResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -37,36 +37,6 @@ const MISSILE_SKILL_IDS = new Set<number>([
   ID.SUPERSONIC_ARROW,
   ID.PIERCING_GALES
 ]);
-
-export function advanceGaleshotArrows(context: RangerSchedulerContext, target: number): void {
-  const state = galeshotState.from(context);
-  state.maximumArrows = balanceProfileNumber(
-    requireBalanceProfileFromContext(context, PROFILE.resources),
-    'maximumStacks'
-  );
-  state.arrows = Math.min(state.maximumArrows, state.arrows);
-  // Arrows share the fixed, tick-aligned regeneration clock used by tome pages; Alacrity has no effect.
-  const interval = balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'pulseInterval');
-  const recharge = advanceDiscreteResource(
-    state.arrows,
-    state.maximumArrows,
-    state.nextArrowAt ?? interval,
-    interval,
-    target
-  );
-  state.arrows = recharge.value;
-  state.nextArrowAt = recharge.nextAt;
-}
-
-/** Restores arrows against the current profile cap without discarding fractional gains. */
-export function restoreArrow(context: RangerSchedulerContext, amount = 1): void {
-  const state = galeshotState.from(context);
-  state.maximumArrows = balanceProfileNumber(
-    requireBalanceProfileFromContext(context, PROFILE.resources),
-    'maximumStacks'
-  );
-  state.arrows = Math.min(state.maximumArrows, state.arrows + amount);
-}
 
 export function observeGaleshotEvent(context: RangerSchedulerContext, event: SimulationEvent): void {
   if (event.type === 'ranger.pet-swapped') {
@@ -155,7 +125,7 @@ export const galeshotMissileReaction = scheduledReaction<
     // Subtract rather than reset so any overshoot from burst windows is preserved.
     state.missileHits -= threshold;
     // The arrow refund is independent of the strike, so it survives strike removal.
-    restoreArrow(context, balanceProfileNumber(profile, 'resourceGain'));
+    grantResource(context, 'arrows', balanceProfileNumber(profile, 'resourceGain'));
     const strike = requireEffect(profile, 'strike', 'Strike');
     if (!strike) return;
     const hits = effectNumber(profile, strike, 'hits');
@@ -298,7 +268,7 @@ export const galeshotDisableReaction = scheduledReaction<
     // 0.25 s ICD prevents one multi-hit ability from restoring more than one arrow.
     const profile = requireBalanceProfileFromContext(context, PROFILE.thrillOfTheCatch);
     state.thrillOfTheCatchReadyAt = context.state.time + balanceProfileNumber(profile, 'internalCooldown');
-    restoreArrow(context, balanceProfileNumber(profile, 'resourceGain'));
+    grantResource(context, 'arrows', balanceProfileNumber(profile, 'resourceGain'));
   }
 });
 

@@ -836,7 +836,7 @@ test('Galeshot regenerates one arrow every five seconds regardless of permanent 
         initialArrows: 0,
         boons: { alacrity }
       });
-      assert.equal(result.planningState.profession.arrows, arrows);
+      assert.equal(result.planningState.profession.arrows.value, arrows);
     }
   }
 });

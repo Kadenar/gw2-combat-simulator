@@ -83,7 +83,7 @@ test('resource presentation shows endurance changes and skips unchanged snapshot
     type: 'thief.state',
     at,
     reason,
-    state: { initiative: 15, endurance }
+    state: { initiative: { value: 15, maximum: 12, updatedAt: 0, rate: 1 }, endurance }
   });
   const log = simulationEventLogRows(
     {
@@ -91,7 +91,14 @@ test('resource presentation shows endurance changes and skips unchanged snapshot
         snapshot(0, 'resources', 100),
         snapshot(0, 'resources', 100),
         snapshot(1, 'resources', 105),
-        { ...snapshot(1, 'daredevil-dodge', 100), state: { initiative: 15, endurance: 100, enduranceUpdatedAt: 0 } },
+        {
+          ...snapshot(1, 'daredevil-dodge', 100),
+          state: {
+            initiative: { value: 15, maximum: 12, updatedAt: 0, rate: 1 },
+            endurance: 100,
+            enduranceUpdatedAt: 0
+          }
+        },
         snapshot(2, 'prepare-thousand-needles', 105)
       ]
     },

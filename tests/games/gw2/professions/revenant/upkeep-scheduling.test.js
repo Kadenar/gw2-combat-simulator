@@ -55,7 +55,7 @@ test('Conduit upkeep resources are independent of wait segmentation', () => {
     assert.equal(result.planningState.profession.affinity, 4);
   }
 
-  assert.equal(results[0].planningState.profession.energy, results[1].planningState.profession.energy);
+  assert.equal(results[0].planningState.profession.energy.value, results[1].planningState.profession.energy.value);
 });
 
 test('Conduit upkeep snapshots use the due tick timestamp', () => {

@@ -154,7 +154,8 @@ export function createGw2TriggerMaterializer(
     state,
     initialize(context) {
       state.traits = traits || selectedGw2TraitValues(config, context.profession.catalog);
-      state.state = context.state;
+      // Combat queries read live profession state so resource-dependent traits also govern proc decisions.
+      state.profession = context.state.profession;
       state.activeWeaponSet = context.state.activeWeaponSet;
       state.query = createGw2CombatQuery({
         profession: context.profession,

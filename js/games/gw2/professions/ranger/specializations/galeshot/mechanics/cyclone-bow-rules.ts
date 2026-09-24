@@ -20,7 +20,6 @@ import type { RangerCastContext, RangerSkill } from '#gw2/professions/ranger/typ
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import {
-  advanceGaleshotArrows,
   completeGaleshotSkill,
   galeshotDisableReaction,
   galeshotMissileReaction,
@@ -107,11 +106,6 @@ export function applyGaleshotCycloneBowTraits(context: RangerCastContext, skill:
 }
 
 export const galeshotSchedulerHooks = Object.freeze({
-  advance: {
-    id: 'ranger.galeshot-arrows',
-    order: 20,
-    handler: advanceGaleshotArrows
-  },
   onCastComplete: {
     id: 'ranger.galeshot-traits',
     order: 20,
@@ -145,7 +139,7 @@ function galeshotCastAvailability(context: RangerCastContext, skill: RangerSkill
     return deny(skill, 'ranger.cyclone-bow-inactive', 'the Cyclone Bow is not active.');
   }
 
-  if (Number(skill.arrowCost || 0) > state.arrows) {
+  if (Number(skill.arrowCost || 0) > state.arrows.value) {
     return deny(skill, 'ranger.arrows', `requires ${skill.arrowCost} arrows.`);
   }
 

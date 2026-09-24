@@ -65,6 +65,8 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         type: 'strike',
         coefficient: 4.5,
         hits: 1,
+        // The explosion lands 17 action ticks after Meltdown activates.
+        atMs: 680,
         actorType: 'effect'
       },
       {
@@ -73,6 +75,7 @@ export const HARBINGER_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         condition: 'Torment',
         stacks: 6,
         duration: 6,
+        atMs: 680,
         actorType: 'effect'
       }
     ]

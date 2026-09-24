@@ -1,3 +1,4 @@
+import { resourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-contract.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 /**
@@ -110,6 +111,7 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
     weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
     catalog: composeModuleCatalog(genericModules),
     resources: {
+      ...Object.assign({}, ...genericModules.map(({ module }) => resourcePolicies(module.resources || {}))),
       // The selected elite replaces Core's policy as one capability; grants are never composed twice.
       endurance: [...genericModules].reverse().find(({ module }) => module.resources?.endurance)?.module.resources
         ?.endurance,
@@ -224,6 +226,7 @@ export function defineProfessionFamily<TProfessionState extends object = object,
         definition.id,
         createProfessionFamilyUi({
           resourcesFor: (specialization) => ({
+            ...resourcePolicies(resolveRuntime({ specialization }).resources),
             endurance: resolveRuntime({ specialization }).resources.endurance ?? undefined
           }),
           catalog: definition.catalog,

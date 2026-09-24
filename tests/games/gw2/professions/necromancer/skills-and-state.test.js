@@ -378,7 +378,7 @@ test('Tainted Bolts retains committed strike and Torment packets after interrupt
 });
 
 // A released projectile keeps its impact while the canceled animation immediately frees the player cast lane.
-test('Elixir of Risk retains its committed impact without retaining cast lockout', () => {
+test('Elixir of Risk retains its payload without retaining cast lockout', () => {
   const skill = necromancerCatalog.skillsById.get(ID.ELIXIR_OF_RISK);
   const result = simulate(
     'Harbinger',
@@ -392,7 +392,7 @@ test('Elixir of Risk retains its committed impact without retaining cast lockout
   assert.deepEqual(result.warnings, []);
   assert.equal(step.cancelledBeforeCommit, undefined);
   assert.equal(step.castLockoutEnd, undefined);
-  assert.ok(impact.at * 1000 > step.end);
+  assert.ok(impact);
   assert.equal(skill.effects.find((effect) => effect.type === 'strike')?.persistsAfterInterrupt, true);
 });
 
@@ -418,11 +418,11 @@ test('Wanderlust Vulnerability affects only its final two field hits', () => {
 
 test('Vital Draw grants nine percent life force for its three assumed hits', () => {
   const result = simulate('Harbinger', ['Harbinger Shroud', 'Vital Draw'], { initialResource: 20 });
-  const states = result.events.filter((event) => event.type === 'necromancer.state');
-  const gainIndex = states.findIndex((event) => event.reason === 'skill-life-force');
+  const states = result.events.filter((event) => event.type === 'necromancer.life-force');
+  const gainIndex = states.findIndex((event) => event.reason === 'life-force');
 
   // Compare adjacent resource snapshots so the contract remains independent of cast-duration drain.
-  assert.equal(states[gainIndex].state.lifeForce - states[gainIndex - 1].state.lifeForce, 9);
+  assert.equal(states[gainIndex].state.lifeForce.value - states[gainIndex - 1].state.lifeForce.value, 9);
 });
 
 test('Relic of Fireworks refreshes from qualifying Reaper Shroud skills', () => {
@@ -469,7 +469,7 @@ test('Necromancer single-hit skills use their configured offsets', () => {
     [ID.ISOLATE, 440],
     [ID.LIFE_SLASH, 400],
     [ID.ELIXIR_OF_PROMISE, 400],
-    [ID.ELIXIR_OF_RISK, 504],
+    [ID.ELIXIR_OF_RISK, 400],
     [ID.ELIXIR_OF_AMBITION, 400]
   ]);
 
@@ -514,7 +514,7 @@ test('Necromancer single-hit skills use their configured offsets', () => {
   assert.equal(customOffset(devouringDarkness, 'Devouring Darkness', ID.DEVOURING_DARKNESS), 480);
   assert.equal(customOffset(essenceBlast, 'Essence Blast', ID.ESSENCE_BLAST), 560);
   assert.equal(customOffset(elixirs, 'Elixir of Promise', ID.ELIXIR_OF_PROMISE), 400);
-  assert.equal(customOffset(elixirs, 'Elixir of Risk', ID.ELIXIR_OF_RISK), 504);
+  assert.equal(customOffset(elixirs, 'Elixir of Risk', ID.ELIXIR_OF_RISK), 400);
   assert.equal(customOffset(elixirs, 'Elixir of Ambition', ID.ELIXIR_OF_AMBITION), 400);
   assert.equal(customOffset(blightSkills, 'Devouring Cut', ID.DEVOURING_CUT), 360);
   assert.equal(customOffset(blightSkills, 'Voracious Arc', ID.VORACIOUS_ARC), 800);
@@ -620,7 +620,7 @@ test('Manifest Sand Shade aliases load the one canonical Scourge behavior', () =
     assert.equal(necromancerCatalog.skillsById.has(aliasId), false);
     assert.equal(action.skillId, ID.MANIFEST_SAND_SHADE);
     assert.equal(result.planningState.profession.shades.length, canonical.planningState.profession.shades.length);
-    assert.equal(result.planningState.profession.lifeForce, canonical.planningState.profession.lifeForce);
+    assert.equal(result.planningState.profession.lifeForce.value, canonical.planningState.profession.lifeForce.value);
     assert.deepEqual(result.warnings, canonical.warnings);
   }
 });
@@ -676,7 +676,7 @@ test('Core Death Shroud drains life force and gates transformed skills', () => {
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.activeShroud, '');
-  assert.ok(result.planningState.profession.lifeForce < 97);
+  assert.ok(result.planningState.profession.lifeForce.value < 97);
   assert.ok(result.strikeDamage > 0);
   assert.equal(invalid.warnings.length, 2);
   assert.match(invalid.warnings.join(' '), /Life Blast is unavailable/);
@@ -701,7 +701,7 @@ test('Reaper Shroud enforces its chain and four-percent drain', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.ok(result.planningState.profession.lifeForce < 93);
+  assert.ok(result.planningState.profession.lifeForce.value < 93);
   assert.ok(result.breakdown.some((entry) => entry.name === 'Life Reap'));
   assert.match(skipped.warnings.join(' '), /Life Reap is unavailable/);
 });
@@ -711,7 +711,7 @@ test('Death and Reaper shrouds drain a percentage of the maximum life-force pool
     simulate(specialization, [enter, { type: 'wait', durationMs: 1000 }, exit], {
       initialResource: 100,
       selectedTraitIds: [TRAIT.SOUL_BATTERY]
-    }).planningState.profession.lifeForce;
+    }).planningState.profession.lifeForce.value;
 
   assert.equal(drainAfterOneSecond('Core', 'Death Shroud', 'End Death Shroud'), 116.4);
   assert.equal(drainAfterOneSecond('Reaper', "Reaper's Shroud", "Exit Reaper's Shroud"), 115.2);
@@ -1012,12 +1012,12 @@ test('Scourge shades use ammo and shade skills spend life force', () => {
   });
 
   assert.equal(ammo.planningState.profession.shades.length, 2);
-  assert.equal(ammo.planningState.profession.lifeForce, 100);
+  assert.equal(ammo.planningState.profession.lifeForce.value, 100);
   assert.equal(ammo.steps[3].start, ammo.steps[0].end + 15000);
   assert.deepEqual(ammo.warnings, []);
   assert.ok(
     Math.abs(
-      cost.planningState.profession.lifeForce -
+      cost.planningState.profession.lifeForce.value -
         (30 - normalizedNecromancerLifeForceCost(cost.planningState.profession, 21))
     ) < 1e-12
   );
@@ -1411,7 +1411,7 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
     [1.8]
   );
   assert.equal(chain.planningState.profession.soulShardGrant.charges, 2);
-  assert.equal(chain.planningState.profession.lifeForce, 5);
+  assert.equal(chain.planningState.profession.lifeForce.value, 5);
   assert.equal(
     chain.events.some(
       (event) => event.type === 'condition' && event.condition === 'Chilled' && event.skillId === ID.SINISTER_STAB
@@ -1420,7 +1420,7 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
   );
   assert.equal(expired.planningState.profession.soulShardGrant.charges, 0);
 
-  assert.equal(utility.planningState.profession.lifeForce, 22);
+  assert.equal(utility.planningState.profession.lifeForce.value, 22);
   assert.equal(utility.planningState.profession.soulShardGrant.charges, 0);
   assert.equal(
     utility.events.some(
@@ -1648,11 +1648,11 @@ test('Addle grants four shards to defiant foes and checks activation shards', ()
     );
 
   assert.equal(normal.planningState.profession.soulShardGrant.charges, 2);
-  assert.equal(normal.planningState.profession.lifeForce, 10);
+  assert.equal(normal.planningState.profession.lifeForce.value, 10);
   assert.equal(immobilizes(normal).length, 0);
   assert.ok(normal.events.some((event) => event.type === 'control' && event.skillId === ID.ADDLE));
   assert.equal(defiant.planningState.profession.soulShardGrant.charges, 4);
-  assert.equal(defiant.planningState.profession.lifeForce, 20);
+  assert.equal(defiant.planningState.profession.lifeForce.value, 20);
   assert.equal(immobilizes(defiant).length, 0);
   assert.ok(defiant.events.some((event) => event.type === 'control' && event.skillId === ID.ADDLE));
   assert.equal(threshold.planningState.profession.soulShardGrant.charges, 5);

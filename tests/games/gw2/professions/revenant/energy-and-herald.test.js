@@ -201,7 +201,11 @@ test('Revenant upkeep releases require an armed flip in the active legend', () =
   for (const release of revenantCatalog.skills.filter((skill) => skill.handlerId === 'revenant.upkeep-release')) {
     const context = {
       specialization: release.specialization || 'Core',
-      professionState: { activeLegendId: release.legendId, energy: 0, availableFlips: {} }
+      professionState: {
+        activeLegendId: release.legendId,
+        energy: { value: 0, maximum: 100, updatedAt: 0, rate: 5 },
+        availableFlips: {}
+      }
     };
     const available = () => revenantProfession.ui.paletteSkillAvailability(context, release).available;
     assert.equal(available(), false, release.name);
@@ -219,7 +223,11 @@ test('Soulcleave stays on its parent tile at zero Energy until its release is ar
   const release = revenantCatalog.skillsById.get(SKILL.DISMISS_LIEUTENANT_SOULCLEAVE);
   for (const activeLegendId of [LEGEND.ASSASSIN, LEGEND.RENEGADE]) {
     for (const energy of [0, 4, 5]) {
-      const professionState = { activeLegendId, energy, availableFlips: {} };
+      const professionState = {
+        activeLegendId,
+        energy: { value: energy, maximum: 100, rate: 5, updatedAt: 0 },
+        availableFlips: {}
+      };
       const app = {
         profession: revenantProfession,
         skills: revenantCatalog.skills,
@@ -245,7 +253,7 @@ test('energy accumulates fractionally with elapsed time and skills pay their exp
   const result = simulate('Core', ['Phase Traversal', { type: 'wait', durationMs: 1000 }]);
 
   // Energy accrues at five per second throughout the cast and the explicit wait.
-  assert.equal(result.planningState.profession.energy, 20 + result.planningState.atSeconds * 5);
+  assert.equal(result.planningState.profession.energy.value, 20 + result.planningState.atSeconds * 5);
   const denied = simulate('Core', ['Jade Winds'], { initialEnergy: 34 });
 
   assert.match(denied.warnings[0], /requires 35 energy/);
@@ -273,7 +281,7 @@ test('energy accumulates fractionally with elapsed time and skills pay their exp
     [1000, 5]
   ]) {
     const ticked = simulate('Core', ['__combat_start', { type: 'wait', durationMs }], { initialEnergy: 0 });
-    assert.equal(ticked.planningState.profession.energy, energy, `${durationMs} ms`);
+    assert.equal(ticked.planningState.profession.energy.value, energy, `${durationMs} ms`);
   }
 });
 
@@ -328,7 +336,7 @@ test('Revenant energy regenerates up to 50 out of combat and up to 100 in combat
   // Precombat uses the same elapsed-time regeneration, capped at 50.
   const ticked = simulate('Core', [{ type: 'wait', durationMs: 550 }, '__combat_start'], { initialEnergy: 0 });
 
-  assert.equal(ticked.planningState.profession.energy, 2.75);
+  assert.equal(ticked.planningState.profession.energy.value, 2.75);
 
   for (const specialization of ['Core', 'Renegade', 'Conduit']) {
     const legends =
@@ -343,7 +351,7 @@ test('Revenant energy regenerates up to 50 out of combat and up to 100 in combat
       initialEnergy: 0
     });
 
-    assert.equal(precombat.planningState.profession.energy, 50, specialization);
+    assert.equal(precombat.planningState.profession.energy.value, 50, specialization);
 
     const inCombat = simulate(
       specialization,
@@ -351,14 +359,14 @@ test('Revenant energy regenerates up to 50 out of combat and up to 100 in combat
       { ...legends, initialEnergy: 0 }
     );
 
-    assert.equal(inCombat.planningState.profession.energy, 55, specialization);
+    assert.equal(inCombat.planningState.profession.energy.value, 55, specialization);
 
     const capped = simulate(specialization, ['__combat_start', { type: 'wait', durationMs: 30000 }], {
       ...legends,
       initialEnergy: 0
     });
 
-    assert.equal(capped.planningState.profession.energy, 100, specialization);
+    assert.equal(capped.planningState.profession.energy.value, 100, specialization);
   }
 });
 
@@ -371,7 +379,7 @@ test('non-damaging Revenant heals do not enter combat', () => {
   assert.equal(buffOnly.totalDamage, 0);
   assert.equal(buffOnly.firstHitTime, null);
   assert.equal(buffOnly.planningState.profession.combatBeganAt, null);
-  assert.equal(buffOnly.planningState.profession.energy, 50);
+  assert.equal(buffOnly.planningState.profession.energy.value, 50);
 
   const breakrazor = simulate('Renegade', ["Breakrazor's Bastion", { type: 'wait', durationMs: 20000 }], {
     selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
@@ -381,7 +389,7 @@ test('non-damaging Revenant heals do not enter combat', () => {
   assert.equal(breakrazor.totalDamage, 0);
   assert.equal(breakrazor.firstHitTime, null);
   assert.equal(breakrazor.planningState.profession.combatBeganAt, null);
-  assert.equal(breakrazor.planningState.profession.energy, 50);
+  assert.equal(breakrazor.planningState.profession.energy.value, 50);
   assert.equal(
     breakrazor.events.some(
       (event) =>
@@ -401,7 +409,7 @@ test('non-damaging Revenant heals do not enter combat', () => {
 
   assert.ok(followedByDamage.totalDamage > 0);
   assert.equal(followedByDamage.planningState.profession.combatBeganAt, followedByDamage.firstHitTime);
-  assert.ok(followedByDamage.planningState.profession.energy > 50);
+  assert.ok(followedByDamage.planningState.profession.energy.value > 50);
 });
 
 test('legend swap replaces the fixed bar, resets energy, and triggers sigils', () => {
@@ -475,32 +483,32 @@ test('legend swaps use the destination legend icon', () => {
 test('Charged Mists uses the low-energy legend reset', () => {
   const normal = simulate('Core', ['Swap Legends'], { initialEnergy: 5 });
 
-  assert.equal(normal.planningState.profession.energy, 50);
+  assert.equal(normal.planningState.profession.energy.value, 50);
   const charged = simulate('Core', ['Swap Legends'], {
     initialEnergy: 5,
     selectedTraitIds: [TRAIT.CHARGED_MISTS]
   });
 
-  assert.equal(charged.planningState.profession.energy, 75);
+  assert.equal(charged.planningState.profession.energy.value, 75);
   // The threshold is inclusive; a swap at exactly 10 must receive the bonus.
   const chargedAtThreshold = simulate('Core', ['Swap Legends'], {
     initialEnergy: 10,
     selectedTraitIds: [TRAIT.CHARGED_MISTS]
   });
 
-  assert.equal(chargedAtThreshold.planningState.profession.energy, 75);
+  assert.equal(chargedAtThreshold.planningState.profession.energy.value, 75);
   const chargedFractional = simulate('Core', ['Swap Legends'], {
     initialEnergy: 10.7,
     selectedTraitIds: [TRAIT.CHARGED_MISTS]
   });
 
-  assert.equal(chargedFractional.planningState.profession.energy, 75);
+  assert.equal(chargedFractional.planningState.profession.energy.value, 75);
   const aboveThreshold = simulate('Core', ['Swap Legends'], {
     initialEnergy: 11,
     selectedTraitIds: [TRAIT.CHARGED_MISTS]
   });
 
-  assert.equal(aboveThreshold.planningState.profession.energy, 50);
+  assert.equal(aboveThreshold.planningState.profession.energy.value, 50);
 });
 
 test('legend invocation traits resolve after swap effects', () => {
@@ -1020,18 +1028,18 @@ test('Embrace activation empowers once and later empowerment waits for a paid ca
 test('upkeep drains net energy and cancels exactly on starvation', () => {
   const draining = simulate('Core', ['__combat_start', 'Impossible Odds', { type: 'wait', durationMs: 20000 }]);
 
-  assert.equal(draining.planningState.profession.energy, 25);
+  assert.equal(draining.planningState.profession.energy.value, 25);
   assert.equal(draining.planningState.profession.activeUpkeeps.length, 1);
 
   const starved = simulate('Core', ['__combat_start', 'Impossible Odds', { type: 'wait', durationMs: 50000 }]);
 
   assert.equal(starved.planningState.profession.activeUpkeeps.length, 0);
-  assert.equal(starved.planningState.profession.energy, 25);
+  assert.equal(starved.planningState.profession.energy.value, 25);
 
   const precombat = simulate('Core', ['Impossible Odds', { type: 'wait', durationMs: 60000 }, '__combat_start']);
 
   assert.equal(precombat.planningState.profession.activeUpkeeps.length, 0);
-  assert.equal(precombat.planningState.profession.energy, 50);
+  assert.equal(precombat.planningState.profession.energy.value, 50);
 });
 
 test('upkeep Energy drain begins when its cast completes', () => {
@@ -1043,7 +1051,7 @@ test('upkeep Energy drain begins when its cast completes', () => {
   const completion = result.steps.find((step) => step.skill === 'Embrace the Darkness').end / 1000;
 
   // Activation spends 5 Energy; the full windup regenerates before sustained drain starts.
-  assert.ok(Math.abs(result.planningState.profession.energy - (45 + 5 * completion)) < 1e-9);
+  assert.ok(Math.abs(result.planningState.profession.energy.value - (45 + 5 * completion)) < 1e-9);
   assert.equal(result.planningState.profession.activeUpkeeps[0].startsAt, completion);
 });
 
@@ -1058,7 +1066,7 @@ test('Soulcleave spends Energy at activation completion after out-of-combat rege
 
   // The full bar stays at 50 through the windup; the committed activation then pays five Energy.
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.energy, 45);
+  assert.equal(result.planningState.profession.energy.value, 45);
   assert.deepEqual(
     result.events
       .filter((event) => event.type === 'revenant.state' && event.reason === 'energy-spent')
@@ -1067,9 +1075,9 @@ test('Soulcleave spends Energy at activation completion after out-of-combat rege
   );
   // Five Energy per second of upkeep offsets the five-per-second regeneration even out of combat.
   assert.equal(sustained.planningState.profession.combatBeganAt, null);
-  assert.equal(sustained.planningState.profession.energy, 45);
+  assert.equal(sustained.planningState.profession.energy.value, 45);
   assert.equal(sustained.planningState.profession.activeUpkeeps.length, 1);
-  assert.equal(cancelled.planningState.profession.energy, 50);
+  assert.equal(cancelled.planningState.profession.energy.value, 50);
 });
 
 test('out-of-combat upkeep drain continues after activation', () => {
@@ -1081,7 +1089,7 @@ test('out-of-combat upkeep drain continues after activation', () => {
   // The 5-Energy activation leaves 45; upkeep then drains eight per second against five regeneration.
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.combatBeganAt, null);
-  assert.equal(result.planningState.profession.energy, 39);
+  assert.equal(result.planningState.profession.energy.value, 39);
 });
 
 test('upkeep release settles the old drain rate before resuming regeneration', () => {
@@ -1098,7 +1106,7 @@ test('upkeep release settles the old drain rate before resuming regeneration', (
     { initialEnergy: 6.1 }
   );
   assert.deepEqual(result.warnings, []);
-  assert.ok(Math.abs(result.planningState.profession.energy - 1.45) < 1e-9);
+  assert.ok(Math.abs(result.planningState.profession.energy.value - 1.45) < 1e-9);
 });
 
 test('starvation waits for the absolute action tick and preserves its boundary across reads', () => {
@@ -1118,7 +1126,7 @@ test('starvation waits for the absolute action tick and preserves its boundary a
     } else {
       assert.equal(starved.at, 0.12);
       assert.equal(result.schedulerState.cooldowns.get(SKILL.IMPOSSIBLE_ODDS), 4.12);
-      assert.ok(Math.abs(result.planningState.profession.energy - 5 * (elapsedMs / 1000 - 0.12)) < 1e-9);
+      assert.ok(Math.abs(result.planningState.profession.energy.value - 5 * (elapsedMs / 1000 - 0.12)) < 1e-9);
     }
   }
 });
@@ -1144,7 +1152,7 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
     ...context,
     professionState: {
       ...context.professionState,
-      energy: 4.9,
+      energy: { value: 4.9, maximum: 100, updatedAt: 0, rate: 5 },
       activeUpkeeps: [],
       availableFlips: {}
     }
@@ -1325,7 +1333,7 @@ test('Nature survives swaps into every legend and switches its consume without r
     );
     assert.deepEqual(Object.keys(active.planningState.profession.availableFlips), [String(consumeId)]);
     assert.equal(active.planningState.profession.availableFlips[consumeId].expiresAt, null);
-    assert.equal(active.planningState.profession.energy, 56);
+    assert.equal(active.planningState.profession.energy.value, 56);
 
     const consumed = simulate('Herald', [...rotation, { skillId: consumeId }], config);
     assert.deepEqual(consumed.warnings, [], legend);

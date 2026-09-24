@@ -1,3 +1,4 @@
+import { astralForce } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { onConditionApplied, onResolvedControl } from '#gw2/platform/profession-definition/mechanics.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
@@ -18,6 +19,7 @@ import { DRUID_BALANCE_PROFILES } from '#gw2/professions/ranger/specializations/
 
 export const druidModule = defineNativeModule({
   id: 'Druid',
+  resources: { astralForce },
   data: createRangerModuleData('Druid', {
     skillMechanics: DRUID_BASE_SKILL_MECHANICS,
     balanceProfiles: DRUID_BALANCE_PROFILES

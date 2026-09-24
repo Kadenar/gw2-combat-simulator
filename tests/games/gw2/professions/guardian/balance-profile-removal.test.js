@@ -195,7 +195,7 @@ for (const [type, name] of [
     ]);
     assert.equal(has(result, 'guardian.ashes-granted', 'skillName', 'Epilogue: Ashes of the Just'), false);
     assert.equal(result.planningState.profession.ashes.charges, 0);
-    assert.equal(result.planningState.profession.tomePages, 4);
+    assert.equal(result.planningState.profession.tomePages.value, 4);
     assert.ok(has(result, 'buff', 'kind', 'might'));
   });
 }
@@ -209,7 +209,7 @@ test('Weighty Terms keeps its page refund when Slow is removed', () => {
     { initialTomePages: 1, selectedSkills: ['Mantra of Flame'] }
   );
   assert.equal(has(result, 'condition', 'condition', 'Slow'), false);
-  assert.equal(result.planningState.profession.tomePages, 3);
+  assert.equal(result.planningState.profession.tomePages.value, 3);
 });
 
 test('Radiant Forge removal leaves no active form, expiry, or exit flip', () => {
@@ -289,9 +289,9 @@ test('patched resource caps and zero recurrence survive initialization and prese
     'Chapter 1: Searing Spell',
     { type: 'wait', durationMs: 20000 }
   ]);
-  assert.equal(result.planningState.profession.maximumTomePages, 2);
-  assert.equal(result.planningState.profession.tomePages, 1);
-  assert.equal(result.planningState.profession.nextTomePageAt, Infinity);
+  assert.equal(result.planningState.profession.tomePages.maximum, 2);
+  assert.equal(result.planningState.profession.tomePages.value, 1);
+  assert.equal(result.planningState.profession.tomePages.nextAt, Infinity);
   const catalog = applyBalanceProfilePatch(guardianCatalog, { balanceProfiles: edits });
   assert.equal(firebrandUi.resourceViews({ catalog, config: {} })[0].maximum, 2);
   const tempoCatalog = applyBalanceProfilePatch(guardianCatalog, {

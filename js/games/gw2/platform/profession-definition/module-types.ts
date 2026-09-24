@@ -1,3 +1,4 @@
+import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import type {
@@ -167,7 +168,7 @@ export interface NativeModuleDefinition<
   readonly id: TId;
   readonly data: NativeModuleCatalogData;
   readonly state: NativeStateDefinition<TSchedulerState, TResolverState, TProjectOptions, TProjectedState>;
-  readonly resources?: { readonly endurance?: EndurancePolicy };
+  readonly resources?: ResourcePolicies & { readonly endurance?: EndurancePolicy };
   readonly mechanics?: NativeMechanicsDefinition<
     TModifierEscape,
     TCastRulesEscape,

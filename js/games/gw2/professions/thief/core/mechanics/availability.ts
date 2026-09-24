@@ -1,9 +1,8 @@
+import { resourceReadyAt } from '#gw2/platform/combat/resources/resource-policy.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { thiefInitiativeRegenerationRate } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import { thiefTrapCastAvailability } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import { storedStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
@@ -127,15 +126,15 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
     return deny(skill, 'thief.stolen-skill', 'steal this skill before using it.');
   }
 
-  if (Number(skill.initiativeCost || 0) > state.initiative + EPSILON) {
-    const missing = Number(skill.initiativeCost || 0) - Number(state.initiative || 0);
+  const initiativeCost = Number(skill.initiativeCost || 0);
+  const initiativeReadyAt =
+    initiativeCost > 0 ? resourceReadyAt(context, 'initiative', initiativeCost, context.start) : context.start;
+  if (
+    initiativeCost > state.initiative.value + EPSILON ||
+    (initiativeReadyAt != null && initiativeReadyAt > context.start + EPSILON)
+  ) {
     // Retain fractional initiative while waiting for the tick that detects affordability.
-    return deny(
-      skill,
-      'thief.initiative',
-      `requires ${skill.initiativeCost} initiative.`,
-      gw2CooldownReadyAt(context.start + Math.max(0, missing) / thiefInitiativeRegenerationRate(state, context))
-    );
+    return deny(skill, 'thief.initiative', `requires ${skill.initiativeCost} initiative.`, initiativeReadyAt);
   }
 
   return { ready: true };

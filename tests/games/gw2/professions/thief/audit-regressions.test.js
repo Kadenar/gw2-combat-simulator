@@ -1,3 +1,4 @@
+import { advanceProfessionResources } from '#gw2/platform/combat/resources/resource-policy.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
@@ -67,7 +68,7 @@ test("Sniper's Cover spends four initiative and opens a five-second smoke field 
   assert.deepEqual(result.warnings, []);
   const spentIndex = result.events.findLastIndex((event) => event.reason === 'initiative-spent');
   const before = result.events.slice(0, spentIndex).findLast((event) => event.type === 'thief.state');
-  near(before.state.initiative - result.events[spentIndex].state.initiative, 4);
+  near(before.state.initiative.value - result.events[spentIndex].state.initiative.value, 4);
   const field = result.events.find((event) => event.type === 'combo_field' && event.skillId === ID.SNIPERS_COVER);
   assert.equal(field.fieldType, 'Smoke');
   near(field.expiresAt - field.at, 5);
@@ -86,20 +87,20 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
     const scheduled = scheduler('Core', { selectedSkills, initialInitiative: 0 });
     const result = scheduled.run(rotation);
     assert.deepEqual(result.warnings, []);
-    assert.equal(scheduled.context.state.profession.core.initiative, 11);
+    assert.equal(scheduled.context.state.profession.core.initiative.value, 11);
     assert.equal(result.events.find((event) => event.reason === 'infiltrators-signet').at, 10);
   }
 
   const unequipped = scheduler('Core', { selectedSkills: [], initialInitiative: 0 });
   unequipped.run([wait(10000)]);
-  assert.equal(unequipped.context.state.profession.core.initiative, 10);
+  assert.equal(unequipped.context.state.profession.core.initiative.value, 10);
   const capped = scheduler('Core', { selectedSkills });
   capped.run([wait(20000)]);
-  assert.equal(capped.context.state.profession.core.initiative, 12);
+  assert.equal(capped.context.state.profession.core.initiative.value, 12);
 
   const active = scheduler('Core', { selectedSkills, initialInitiative: 0 });
   active.run(["Infiltrator's Signet", wait(10000)]);
-  assert.equal(active.context.state.profession.core.initiative, 10);
+  assert.equal(active.context.state.profession.core.initiative.value, 10);
   assert.equal(active.context.state.cooldowns.get(ID.INFILTRATORS_SIGNET), 20);
   assert.equal(active.context.tasks.nextAt('thief.infiltrators-signet'), 30);
   const reset = scheduler('Core', { selectedSkills, initialInitiative: 0 });
@@ -198,7 +199,11 @@ test('Thief resource grants preserve snapshot identity, deduplication, and passi
   // Grants follow passive recovery at the scheduler clock and cannot change earlier snapshots.
   const { context } = scheduler('Core', { boons: { vigor: false } });
   const state = context.state.profession.core;
-  Object.assign(state, { initiative: 3, initiativeUpdatedAt: 1, endurance: 10, enduranceUpdatedAt: 1 });
+  Object.assign(state, {
+    initiative: { value: 3, maximum: 12, updatedAt: 1, rate: 1 },
+    endurance: 10,
+    enduranceUpdatedAt: 1
+  });
   context.advanceTo(2);
   gainThiefInitiative(context, 2, 2, 'initiative-grant');
   const initiative = context.events.at(-1);
@@ -224,8 +229,8 @@ test('Thief resource grants preserve snapshot identity, deduplication, and passi
   assert.equal(state.enduranceUpdatedAt, 2);
   advanceThiefCoreResources(context, 2);
   assert.equal(state.endurance, 22);
-  assert.equal(state.initiative, 6);
-  assert.equal(initiative.state.initiative, 6);
+  assert.equal(state.initiative.value, 6);
+  assert.equal(initiative.state.initiative.value, 6);
   assert.equal(initiative.state.endurance, 15);
   assert.equal(endurance.state.endurance, 22);
 });
@@ -260,13 +265,14 @@ test('empty Thief endurance windows still advance initiative, expire temporary s
     Object.assign(state, {
       endurance: 10,
       enduranceUpdatedAt,
-      initiative: 0,
-      initiativeUpdatedAt: 0,
+      initiative: { value: 0, maximum: 12, updatedAt: 0, rate: 1 },
+
       leadAttackExpirations: [1, 4],
       availableFlips: { [ID.SHADOW_SWAP]: armSkillFlip({}, 0, 0, 2) },
       activeThievesGuild: { expiresAt: 2 }
     });
     addVenomCharges(state, ID.SPIDER_VENOM, 0, 2, 2);
+    advanceProfessionResources(context, 2);
     advanceThiefCoreResources(
       {
         ...context,
@@ -281,8 +287,8 @@ test('empty Thief endurance windows still advance initiative, expire temporary s
     );
     assert.equal(state.endurance, 10);
     assert.equal(state.enduranceUpdatedAt, enduranceUpdatedAt);
-    assert.equal(state.initiative, 2);
-    assert.equal(state.initiativeUpdatedAt, 2);
+    assert.equal(state.initiative.value, 2);
+    assert.equal(state.initiative.updatedAt, 2);
     assert.deepEqual(state.leadAttackExpirations, [4]);
     assert.equal(state.leadAttacksStacks, 1);
     assert.deepEqual(state.availableFlips, {});

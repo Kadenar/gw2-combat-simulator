@@ -10,7 +10,6 @@ export interface DruidState {
   astralClock: ResourceClock;
   celestialAvatarActive: boolean;
   celestialAvatarEndsAt: number;
-  naturalMenderReadyAt: number;
 }
 
 // Druid owns its public Celestial Avatar resource projection.
@@ -30,9 +29,7 @@ export function createDruidState(config: RangerConfig = {}): DruidState {
       rate: 0
     },
     celestialAvatarActive: false,
-    celestialAvatarEndsAt: 0,
-    // Natural Mender ticks every 3s; start at 3 so the first tick happens at t=3 not t=0
-    naturalMenderReadyAt: 3
+    celestialAvatarEndsAt: 0
   };
 }
 

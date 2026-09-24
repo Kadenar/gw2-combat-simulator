@@ -1,3 +1,4 @@
+import { refreshResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -121,6 +122,8 @@ export function consumeRevenantFacet(context: RevenantCastContext, skill: Revena
   const facet = facetId == null ? undefined : context.catalog.skillsById.get(facetId);
   const wasActive = state.activeUpkeeps.some((upkeep) => upkeep.skillId === facet?.id);
   state.activeUpkeeps = state.activeUpkeeps.filter((upkeep) => upkeep.skillId !== facet?.id);
+  // Consuming removes upkeep immediately; the parent recharge still begins at completion.
+  refreshResource(context, 'energy');
   // Remove the consume flip itself from availableFlips so it can't be cast a second time.
   consumeSkillFlip(state.availableFlips, skill.id);
   if (facet) {

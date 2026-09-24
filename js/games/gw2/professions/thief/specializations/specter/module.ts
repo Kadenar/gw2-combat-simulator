@@ -1,3 +1,4 @@
+import { shadowForce } from '#gw2/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { onConditionApplied } from '#gw2/platform/profession-definition/mechanics.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
@@ -15,6 +16,7 @@ import { SPECTER_BALANCE_PROFILES } from '#gw2/professions/thief/specializations
 
 export const specterModule = defineNativeModule({
   id: 'Specter',
+  resources: { shadowForce },
   data: createThiefModuleData('Specter', {
     skillMechanics: SPECTER_SKILL_MECHANICS,
     balanceProfiles: SPECTER_BALANCE_PROFILES

@@ -2,13 +2,12 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { resourceValueAt, resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { refreshResource, type ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
+import { resourceDepletion } from '#gw2/platform/profession-definition/mechanics.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { clearRevenantLegendFlips } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 
-import { quantizeGw2ActionDurationUp } from '#gw2/platform/skills/timing.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 /**
@@ -21,7 +20,6 @@ import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import type {
   RevenantEnergyCostInput,
-  RevenantPrecastContext,
   RevenantSchedulerContext,
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
@@ -29,23 +27,8 @@ import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js'
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 import { advanceProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
-function roundedResourceValue(value: number): number {
-  return Math.round(value * 1e9) / 1e9;
-}
-
 function resourceProfile(context: RevenantSchedulerContext) {
   return requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.resources);
-}
-
-function syncRevenantCombatState(context: RevenantSchedulerContext, state: RevenantCoreState): void {
-  const sharedAt = context.schedulerPolicy.combatBeganAt?.();
-  if (sharedAt == null) return;
-  const at = Number(sharedAt);
-  if (Number.isFinite(at)) state.combatBeganAt = at;
-}
-
-function accruedEnergy(accrual: NonNullable<RevenantCoreState['energyAccrual']>, at: number): number {
-  return roundedResourceValue(resourceValueAt(accrual, at));
 }
 
 function activeUpkeepCost(state: RevenantCoreState, at: number): number {
@@ -74,102 +57,46 @@ export function revenantEnduranceRegenerationRate(
   );
 }
 
-/** Keeps regeneration-funded casts on the absolute 40 ms grid without rounding the stored Energy. */
-export function revenantEnergyReadyAt(context: RevenantPrecastContext, cost: number): number | null {
-  const state = professionCoreState(context);
-  const regeneration = balanceProfileNumber(resourceProfile(context), 'energyRegenerationPerSecond');
-  const rate = regeneration - activeUpkeepCost(state, context.start);
-  const accrual = state.energyAccrual;
-  const enough = state.energy + EPSILON >= cost;
-  // Immediate refunds and an already sufficient pool do not introduce an Energy wait.
-  if (enough && (!accrual || accrual.rate <= 0 || accrual.value + EPSILON >= cost)) return context.start;
-  if (rate <= 0 || cost > state.maximumEnergy + EPSILON || (!enough && state.combatBeganAt == null)) return null;
-  const threshold = accrual
-    ? accrual.updatedAt + (cost - accrual.value) / rate
-    : context.start + (cost - state.energy) / rate;
-  return quantizeGw2ActionDurationUp(threshold * 1000) / 1000;
+/** Resources advance centrally; this observer publishes Energy alongside existing endurance recovery. */
+export function advanceRevenantEnergy(context: RevenantSchedulerContext, target: number): void {
+  advanceProfessionEndurance(context, target);
+  emitRevenantStateSnapshot(context, target, 'energy');
 }
 
-function advanceRevenantEnergyInterval(
-  context: RevenantSchedulerContext,
-  state: RevenantCoreState,
-  from: number,
-  target: number,
-  regeneration: number
-): void {
-  const rate = regeneration - activeUpkeepCost(state, from);
-  const combatActive = state.combatBeganAt != null && from >= state.combatBeganAt;
-  const maximum = combatActive ? state.maximumEnergy : Math.max(50, state.energy);
-  const previousEnergy = state.energy;
-  let accrual = state.energyAccrual;
-  // Spending, refunds, and rate changes start a new segment; ordinary reads retain the original threshold times.
-  if (
-    !accrual ||
-    accruedEnergy(accrual, from) !== state.energy ||
-    accrual.rate !== rate ||
-    accrual.maximum !== maximum
-  ) {
-    accrual = state.energyAccrual = { updatedAt: from, value: state.energy, rate, maximum };
-  }
-
-  const starvedAt = quantizeGw2ActionDurationUp(resourceDepletionAt(accrual) * 1000) / 1000;
-  if (starvedAt <= target) {
-    state.energy = 0;
+/** Upkeep starvation is a consequence of the engine's zero-crossing task. */
+export const energyDepletion = resourceDepletion({
+  id: 'revenant.energy-depleted',
+  priority: -300,
+  clock: (context: RevenantSchedulerContext) => professionCoreState(context).energy,
+  depleted(context: RevenantSchedulerContext, at: number) {
+    const state = professionCoreState(context);
     for (const active of state.activeUpkeeps) {
       const skill = context.catalog.skillsById.get(active.skillId);
       const cooldown = Math.max(0, Number(skill?.starvationCooldown || 0));
-      if (skill && cooldown > 0) {
-        // Sample recharge modifiers at exhaustion, even when an advance observes starvation later.
-        context.cooldownController.startRecharge({ ...skill, cooldown }, starvedAt);
-      }
-
+      if (skill && cooldown > 0) context.cooldownController.startRecharge({ ...skill, cooldown }, at);
       context.tasks.cancelOwner(`revenant.upkeep:${active.skillId}`);
     }
 
     state.activeUpkeeps = [];
     clearRevenantLegendFlips(context);
-    state.energyUpdatedAt = starvedAt;
-    emitRevenantStateSnapshot(context, starvedAt, 'upkeep-starved');
-    state.energyAccrual = { updatedAt: starvedAt, value: 0, rate: regeneration, maximum };
-    state.energy = accruedEnergy(state.energyAccrual, target);
-    state.energyUpdatedAt = target;
-    emitRevenantStateSnapshot(context, target, 'energy');
-    return;
+    refreshResource(context, 'energy');
+    emitRevenantStateSnapshot(context, at, 'upkeep-starved');
   }
+});
 
-  state.energy = accruedEnergy(accrual, target);
-  state.energyUpdatedAt = target;
-  if (state.energy !== previousEnergy) {
-    emitRevenantStateSnapshot(context, target, 'energy');
-  }
-}
-
-/**
- * Advances Energy, endurance, upkeep drain, and starvation.
- */
-export function advanceRevenantEnergy(context: RevenantSchedulerContext, target: number): void {
-  const regeneration = balanceProfileNumber(resourceProfile(context), 'energyRegenerationPerSecond');
-  const state = professionCoreState(context);
-  syncRevenantCombatState(context, state);
-  const from = Number(state.energyUpdatedAt || 0);
-  const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
-  if (target > enduranceFrom) {
-    advanceProfessionEndurance(context, target);
-  }
-
-  // Integrate once per rate/cap change, including upkeeps reserved for a future cast completion.
-  const boundaries = [
-    ...new Set([...state.activeUpkeeps.map((active) => Number(active.startsAt || 0)), state.combatBeganAt ?? from])
-  ]
-    .filter((at) => at > from && at < target)
-    .sort((left, right) => left - right);
-  let intervalStart = from;
-  for (const at of [...boundaries, target]) {
-    if (at < intervalStart) continue;
-    advanceRevenantEnergyInterval(context, state, intervalStart, at, regeneration);
-    intervalStart = at;
-  }
-}
+/** Capacity is distinct from the precombat recovery ceiling, which never discards larger grants. */
+export const revenantEnergy: ResourcePolicy<RevenantSchedulerContext> = {
+  kind: 'continuous',
+  state: (context) => professionCoreState(context).energy,
+  maximum: () => 100,
+  initial: (context) => Number(context.config.initialEnergy ?? 50),
+  recovery: (context) =>
+    balanceProfileNumber(resourceProfile(context), 'energyRegenerationPerSecond') -
+    activeUpkeepCost(professionCoreState(context), context.state.time),
+  recoveryMaximum: (context) => (professionCoreState(context).combatBeganAt == null ? 50 : 100),
+  depletion: energyDepletion,
+  changed: (context, at) => emitRevenantStateSnapshot(context, at, 'energy')
+};
 
 /** Resolves the shared upkeep-aware base cost before an elite specialization applies its own policy. */
 export function baseRevenantEnergyCost({ state }: RevenantEnergyCostInput, skill: RevenantSkill): number {

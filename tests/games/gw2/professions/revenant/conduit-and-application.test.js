@@ -476,7 +476,7 @@ test('Pain Absorption grants its base boons and changes cost and recharge only i
         ['resolution', 5]
       ]
     );
-    assert.ok(Math.abs(base.planningState.profession.energy - base.planningState.atSeconds * 5) < 1e-9);
+    assert.ok(Math.abs(base.planningState.profession.energy.value - base.planningState.atSeconds * 5) < 1e-9);
     assert.match(simulate('Conduit', [skillId], { ...config, initialEnergy: 29 }).warnings[0], /requires 30 energy/);
     assert.match(
       simulate('Conduit', ['Cosmic Wisdom', skillId], { ...config, initialEnergy: 9 }).warnings[0],
@@ -500,7 +500,7 @@ test('Pain Absorption grants its base boons and changes cost and recharge only i
       assert.equal(actions.length, 2);
       assert.ok(Math.abs(actions[1].at - actions[0].rechargeReadyAt) < 1e-9);
       assert.ok(
-        Math.abs(formed.planningState.profession.energy - (10 - 20 + formed.planningState.atSeconds * 5)) < 1e-9
+        Math.abs(formed.planningState.profession.energy.value - (10 - 20 + formed.planningState.atSeconds * 5)) < 1e-9
       );
     }
 
@@ -512,7 +512,7 @@ test('Pain Absorption grants its base boons and changes cost and recharge only i
       null
     );
     assert.ok(
-      Math.abs(expired.planningState.profession.energy - (20 + (expired.planningState.atSeconds - 7) * 5)) < 1e-9
+      Math.abs(expired.planningState.profession.energy.value - (20 + (expired.planningState.atSeconds - 7) * 5)) < 1e-9
     );
   }
 });
@@ -526,7 +526,7 @@ test('Empowering Misery and its alias cost one energy in Mesmer form', () => {
       initialEnergy: 1
     });
     assert.deepEqual(result.warnings, []);
-    assert.ok(Math.abs(result.planningState.profession.energy - result.planningState.atSeconds * 5) < 1e-9);
+    assert.ok(Math.abs(result.planningState.profession.energy.value - result.planningState.atSeconds * 5) < 1e-9);
   }
 });
 
@@ -611,7 +611,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
   assert.deepEqual(
     anguish.events
       .filter((event) => event.type === 'revenant.state' && event.reason === 'energy-spent')
-      .map((event) => Number(event.state.energy.toFixed(9))),
+      .map((event) => Number(event.state.energy.value.toFixed(9))),
     [0, 3]
   );
 
@@ -816,7 +816,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
   assert.equal(beguilingAmmo.nextRechargeAt, beguiling.planningState.profession.beguilingHazeReadyAt);
   // Above the precombat cap, regeneration resumes only when the first hit starts combat.
   const combatDuration = beguiling.steps.at(-1).end / 1000 - beguiling.planningState.profession.combatBeganAt;
-  assert.ok(Math.abs(beguiling.planningState.profession.energy - (80 + 5 * combatDuration)) < 1e-9);
+  assert.ok(Math.abs(beguiling.planningState.profession.energy.value - (80 + 5 * combatDuration)) < 1e-9);
 
   const recharged = simulate(
     'Conduit',
@@ -1255,7 +1255,10 @@ test('Conduit affinity traits distinguish legend and weapon energy costs', () =>
   });
 
   assert.equal(expanded.planningState.profession.affinity, 5);
-  assert.ok(Math.abs(expanded.planningState.profession.energy - ordinary.planningState.profession.energy - 15) < 1e-9);
+  assert.ok(
+    Math.abs(expanded.planningState.profession.energy.value - ordinary.planningState.profession.energy.value - 15) <
+      1e-9
+  );
 });
 
 test('Conduit affinity gains only after combat starts', () => {
@@ -1429,8 +1432,8 @@ test('Alacrity changes cooldowns but never passive energy regeneration', () => {
     boons: { alacrity: true }
   });
 
-  assert.equal(without.planningState.profession.energy, 25);
-  assert.equal(withAlacrity.planningState.profession.energy, 25);
+  assert.equal(without.planningState.profession.energy.value, 25);
+  assert.equal(withAlacrity.planningState.profession.energy.value, 25);
 });
 
 test('Alacrity does not reduce Revenant legend or weapon swap cooldowns', () => {
@@ -1466,7 +1469,7 @@ test('Revenant state events use the shared event-log row contract', () => {
           type: 'revenant.state',
           at: 1.02,
           reason: 'kallas-fervor',
-          state: { energy: 30.9 }
+          state: { energy: { value: 30.9, maximum: 100, updatedAt: 0, rate: 5 } }
         }
       ],
       resolvedEvents: [],

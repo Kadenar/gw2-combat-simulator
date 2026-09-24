@@ -1,3 +1,5 @@
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { grantResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import {
@@ -6,7 +8,6 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -31,7 +32,6 @@ export function gainConduitAffinity(context: RevenantMechanicContext, amount: nu
   // Affinity is combat-only, so explicit precasts may spend Energy or swap legends without building it.
   if (context.config.specialization !== 'Conduit' || !revenantCombatActive(context)) return;
   const state = conduitState.from(context);
-  const coreState = professionCoreState(context);
   const affinityProfile = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.affinity);
   const maximum = Math.max(1, balanceProfileNumber(affinityProfile, 'maximumStacks'));
   state.affinityMaximum = maximum;
@@ -39,11 +39,7 @@ export function gainConduitAffinity(context: RevenantMechanicContext, amount: nu
   state.affinity = grantCapped(previous, amount, maximum);
   if (previous < maximum && state.affinity === maximum && hasTrait(context, TRAIT.EXPANDED_CONSCIOUSNESS)) {
     const expanded = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.expandedConsciousness);
-    coreState.energy = grantCapped(
-      coreState.energy,
-      balanceProfileNumber(expanded, 'resourceGain'),
-      coreState.maximumEnergy
-    );
+    grantResource(context, 'energy', balanceProfileNumber(expanded, 'resourceGain'));
   }
 
   if (state.affinity !== previous) {

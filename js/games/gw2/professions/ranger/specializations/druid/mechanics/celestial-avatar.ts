@@ -1,13 +1,15 @@
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
-import { resourceDepletion } from '#gw2/platform/profession-definition/mechanics.js';
 import {
-  advanceDiscreteResource,
-  advanceResourceClock,
-  setResourceRate
-} from '#gw2/platform/combat/resources/clock.js';
+  grantResource,
+  refreshResource,
+  spendResource,
+  resourceReadyAt,
+  type ResourcePolicy
+} from '#gw2/platform/combat/resources/resource-policy.js';
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
+import { resourceDepletion } from '#gw2/platform/profession-definition/mechanics.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
-import { EPSILON } from '#kernel/core/clock.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -77,12 +79,8 @@ export function enterAvatar(context: RangerCastContext, skill: RangerSkill): voi
   );
   state.celestialAvatarActive = true;
   state.celestialAvatarEndsAt = context.start + avatarDuration;
-  // Reset so advance() doesn't count force drained before CA activated
-  state.astralClock.updatedAt = context.start;
-  // Stop the scheduler at expiry or depletion so exit effects and later force recovery run on time.
-  const maximum = balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks');
-  setResourceRate(state.astralClock, context.start, -maximum / avatarDuration);
-  avatarDepletion.refresh(context);
+  // Entry settles the previous segment before arming drain and its deadline.
+  refreshResource(context, 'astralForce');
   // Release Celestial Avatar is a flip skill; storing endsAt lets the UI show it as expiring automatically
   armSkillFlip(
     professionCoreState(context).availableFlips,
@@ -104,20 +102,17 @@ export function leaveAvatar(
 ): void {
   const state = druidState.from(context);
   if (!state.celestialAvatarActive) return;
-  // Manual exit cancels the old deadline, including when another Avatar is entered later.
-  avatarDepletion.stop(context);
-  setResourceRate(state.astralClock, at, 0);
-  // Exhausted (timer or force depleted) zeroes force; manual exit retains half
-  state.astralClock.value = exhausted
+  // Stop drain before consuming the amount lost on exit; manual exits retain the authored fraction.
+  state.celestialAvatarActive = false;
+  state.celestialAvatarEndsAt = 0;
+  refreshResource(context, 'astralForce');
+  const retained = exhausted
     ? 0
-    : state.astralClock.value *
-      balanceProfileNumber(
+    : balanceProfileNumber(
         requireBalanceProfileFromContext(context, PROFILE.resources),
         'astralForceRetentionMultiplier'
       );
-  state.celestialAvatarActive = false;
-  state.celestialAvatarEndsAt = 0;
-  state.astralClock.updatedAt = at;
+  spendResource(context, 'astralForce', state.astralClock.value * (1 - retained));
   // Remove the flip so Release Celestial Avatar no longer appears as available
   consumeSkillFlip(professionCoreState(context).availableFlips, ID.RELEASE_CELESTIAL_AVATAR);
   applyNaturalBalance(context, at);
@@ -131,90 +126,52 @@ export function leaveAvatar(
 export const avatarDepletion = resourceDepletion({
   id: DRUID_AVATAR_EXIT_TASK,
   clock: (context: RangerSchedulerContext) => druidState.from(context).astralClock,
-  endsAt: (context: RangerSchedulerContext) => druidState.from(context).celestialAvatarEndsAt,
+  endsAt: (context: RangerSchedulerContext) =>
+    druidState.from(context).celestialAvatarActive ? druidState.from(context).celestialAvatarEndsAt : Infinity,
   depleted: (context: RangerSchedulerContext, at: number) => leaveAvatar(context, true, at)
 });
 
-export function advanceDruidState(context: RangerSchedulerContext, target: number): void {
-  const state = druidState.from(context);
-  const maximum = balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks');
-  const naturalMenderInterval = balanceProfileNumber(
+/** Natural Mender keeps a fixed authored cadence even while Avatar suppresses its grants. */
+export const naturalMender = timedEffect<RangerSchedulerContext, { deadline: number; interval: number }>({
+  id: 'ranger.natural-mender',
+  // Settle a pulse before same-time Avatar exit so suppressed ticks cannot become post-exit grants.
+  priority: -1,
+  effectsAt(context) {
+    if (!druidState.from(context).celestialAvatarActive)
+      grantResource(
+        context,
+        'astralForce',
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.naturalMender), 'resourceGain')
+      );
+  },
+  nextAt(_context, _at, captured) {
+    captured.deadline += captured.interval;
+    return gw2CooldownReadyAt(captured.deadline);
+  }
+});
+export function initializeNaturalMender(context: RangerSchedulerContext): void {
+  if (!hasTrait(context, TRAIT.NATURAL_MENDER)) return;
+  const interval = balanceProfileNumber(
     requireBalanceProfileFromContext(context, PROFILE.naturalMender),
     'pulseInterval'
   );
-  const naturalMenderForce = balanceProfileNumber(
-    requireBalanceProfileFromContext(context, PROFILE.naturalMender),
-    'resourceGain'
-  );
-  state.astralClock.maximum = maximum;
-  state.astralClock.value = Math.min(maximum, state.astralClock.value);
-  if (state.astralClock.updatedAt === 0 && state.naturalMenderReadyAt === 3) {
-    state.naturalMenderReadyAt = naturalMenderInterval;
-  }
-
-  if (state.celestialAvatarActive) {
-    advanceResourceClock(state.astralClock, target);
-    // Advance Natural Mender clock even during CA so ticks resume at the right time after exit
-    state.naturalMenderReadyAt = advanceDiscreteResource(
-      0,
-      0,
-      state.naturalMenderReadyAt,
-      naturalMenderInterval,
-      target
-    ).nextAt;
-
-    return;
-  }
-
-  state.astralClock.updatedAt = target;
-  if (
-    !hasTrait(context, TRAIT.NATURAL_MENDER) ||
-    state.astralClock.value >= state.astralClock.maximum ||
-    target < gw2CooldownReadyAt(state.naturalMenderReadyAt)
-  ) {
-    return;
-  }
-
-  // Natural Mender uses the same tick-detected fixed cadence as other regenerating resources.
-  const applications = advanceDiscreteResource(0, Infinity, state.naturalMenderReadyAt, naturalMenderInterval, target);
-  state.astralClock.value = Math.min(
-    state.astralClock.maximum,
-    state.astralClock.value + applications.value * naturalMenderForce
-  );
-  state.naturalMenderReadyAt = applications.nextAt;
+  if (interval > 0)
+    naturalMender.start(context, {
+      key: 'natural-mender',
+      at: gw2CooldownReadyAt(interval),
+      captured: { deadline: interval, interval }
+    });
 }
 
+/** Affordability waits on the next known grant without predicting unlanded attacks. */
 export function astralForceReadyAt(context: RangerCastContext): number | null {
-  const state = druidState.from(context);
-  const maximum = balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks');
-  state.astralClock.maximum = maximum;
-  state.astralClock.value = Math.min(maximum, state.astralClock.value);
-  const naturalMenderForce = balanceProfileNumber(
-    requireBalanceProfileFromContext(context, PROFILE.naturalMender),
-    'resourceGain'
-  );
-  const naturalMenderInterval = balanceProfileNumber(
-    requireBalanceProfileFromContext(context, PROFILE.naturalMender),
-    'pulseInterval'
-  );
-  const naturalMender = hasTrait(context, TRAIT.NATURAL_MENDER);
-  if (state.astralClock.value >= maximum - EPSILON) return context.start;
-  // Without Natural Mender, force only accumulates from damage events; no predictable ready time
-  if (!naturalMender) return null;
-  const applications = Math.ceil((maximum - state.astralClock.value) / naturalMenderForce);
-  // naturalMenderReadyAt may already be in the past if advance() hasn't run yet; clamp to now
-  return gw2CooldownReadyAt(
-    Math.max(context.start, state.naturalMenderReadyAt) + (applications - 1) * naturalMenderInterval
-  );
+  return resourceReadyAt(context, 'astralForce', druidState.from(context).astralClock.maximum, context.start);
 }
 
 /** Capture observation-time data and apply local state changes only when the queue reaches the impact. */
-export const druidAstralForceReaction = scheduledReaction<
-  RangerSchedulerContext,
-  SimulationEvent,
-  Record<string, never>
->({
+export const druidAstralForceReaction = eventReaction<RangerSchedulerContext, SimulationEvent, { eventOrder: number }>({
   id: 'ranger.druid-astral-force-damage',
+  missingEvent: 'skip',
   order: 0,
   select(_context, event) {
     // Only player-sourced hits generate astral force; pet strikes and independent summon hits are excluded
@@ -228,15 +185,16 @@ export const druidAstralForceReaction = scheduledReaction<
       return null;
     }
 
-    // Deferred task so all damage events at the same timestamp are coalesced into one force update
+    // Each surviving hit grants force at its own causal timestamp.
     return {
       at: event.at,
       priority: 20,
       ownerId: 'ranger.druid-astral-force',
-      payload: {}
+      payload: { eventOrder: Number(event.eventOrder) }
     };
   },
-  execute(context) {
+  execute(context, event) {
+    if (event.cancelled || event.offTarget) return;
     const state = druidState.from(context);
     // Force doesn't accumulate while CA is active (it's draining instead)
     if (state.celestialAvatarActive) return;
@@ -249,13 +207,29 @@ export const druidAstralForceReaction = scheduledReaction<
       requireBalanceProfileFromContext(context, PROFILE.resources),
       'coefficientMultiplier'
     );
-    state.astralClock.maximum = balanceProfileNumber(
-      requireBalanceProfileFromContext(context, PROFILE.resources),
-      'maximumStacks'
-    );
-    state.astralClock.value = Math.min(
-      state.astralClock.maximum,
-      state.astralClock.value + directDamageForce * (hasTrait(context, TRAIT.ECLIPSE) ? eclipseMultiplier : 1)
+    grantResource(
+      context,
+      'astralForce',
+      directDamageForce * (hasTrait(context, TRAIT.ECLIPSE) ? eclipseMultiplier : 1)
     );
   }
 });
+
+/** Avatar rules own the rate; the engine owns force recovery and depletion scheduling. */
+export const astralForce: ResourcePolicy<RangerSchedulerContext> = {
+  kind: 'continuous',
+  state: (context) => druidState.from(context).astralClock,
+  maximum: (context) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks'),
+  initial: (context, maximum) => Number(context.config.initialAstralForce ?? maximum),
+  recovery(context) {
+    const profile = requireBalanceProfileFromContext(context, PROFILE.resources);
+    const duration = balanceProfileNumber(profile, 'durationMultiplier');
+    return druidState.from(context).celestialAvatarActive && duration > 0
+      ? -balanceProfileNumber(profile, 'maximumStacks') / duration
+      : 0;
+  },
+  depletion: avatarDepletion,
+  nextChange: (context) =>
+    Math.min(naturalMender.nextAt(context, 'natural-mender'), context.tasks.nextAt('ranger.druid-astral-force-damage'))
+};

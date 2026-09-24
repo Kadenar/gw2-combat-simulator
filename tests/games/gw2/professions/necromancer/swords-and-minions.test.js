@@ -147,7 +147,7 @@ test('Dark Pact inflicts conditions without gaining life force against the boonl
     boonless.events.find((event) => event.type === 'damage' && event.skillId === ID.DARK_PACT)?.coefficient,
     2.4
   );
-  assert.equal(boonless.planningState.profession.lifeForce, 0);
+  assert.equal(boonless.planningState.profession.lifeForce.value, 0);
   assert.deepEqual([targetCondition('Bleeding')?.stacks, targetCondition('Bleeding')?.duration], [2, 10]);
   assert.deepEqual([selfBleeding?.stacks, selfBleeding?.duration], [2, 10]);
   assert.equal(targetCondition('Immobilized')?.duration, 6);
@@ -481,7 +481,7 @@ test('main-hand sword skills use their complete PvE effects', () => {
   assert.equal(necromancerCatalog.skillsById.get(ID.PATH_OF_GLUTTONY).comboFinishers[0].finisherType, 'Leap');
   assert.equal(damage(ID.GORGE)?.coefficient, 2);
   assert.equal(necromancerCatalog.skillsById.get(ID.GORGE).comboFinishers[0].finisherType, 'Leap');
-  assert.equal(result.planningState.profession.lifeForce, 12);
+  assert.equal(result.planningState.profession.lifeForce.value, 12);
 });
 
 test('Satiate expires after three seconds and base sword cooldowns continue during follow-ups', () => {
@@ -792,7 +792,7 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
       .map((event) => event.coefficient),
     [1.3]
   );
-  assert.equal(grasp.planningState.profession.lifeForce, 10);
+  assert.equal(grasp.planningState.profession.lifeForce.value, 10);
   assert.equal(
     grasp.events.some(
       (event) => event.type === 'condition' && event.condition === 'Chilled' && event.skillId === ID.GRASPING_DARKNESS
@@ -829,7 +829,7 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
     ).length,
     4
   );
-  assert.equal(nightfall.planningState.profession.lifeForce, 28);
+  assert.equal(nightfall.planningState.profession.lifeForce.value, 28);
   assert.deepEqual(
     nightfallEffects(interruptedNightfall).map(({ type, at, coefficient, condition, fieldType }) => ({
       type,
@@ -846,7 +846,7 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
       fieldType
     }))
   );
-  assert.equal(interruptedNightfall.planningState.profession.lifeForce, 28);
+  assert.equal(interruptedNightfall.planningState.profession.lifeForce.value, 28);
 });
 
 test('Lich Form swaps its bar and grants life force on exit', () => {
@@ -858,7 +858,7 @@ test('Lich Form swaps its bar and grants life force on exit', () => {
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.activeShroud, '');
-  assert.ok(result.planningState.profession.lifeForce >= 15);
+  assert.ok(result.planningState.profession.lifeForce.value >= 15);
   assert.ok(result.breakdown.some((entry) => entry.name === 'Deathly Claws'));
   assert.match(invalid.warnings.join(' '), /Rending Claws is unavailable/);
 });
@@ -1680,7 +1680,10 @@ test("Shadow Fiend reports Slash and Haunt's full command effects", () => {
   assert.equal(blind.duration, 5);
   assert.equal(conditionDuration('Chilled'), 3);
   assert.equal(conditionDuration('Weakness'), 5);
-  assert.equal(result.planningState.profession.lifeForce - summonOnly.planningState.profession.lifeForce, 10);
+  assert.equal(
+    result.planningState.profession.lifeForce.value - summonOnly.planningState.profession.lifeForce.value,
+    10
+  );
 });
 
 test('Sinister Shroud reduces shroud-skill recharge by fifteen percent', () => {

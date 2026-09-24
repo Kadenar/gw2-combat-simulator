@@ -1,3 +1,4 @@
+import { spendResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
@@ -27,10 +28,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
  * `necromancerShadeSkillHandlers`.
  */
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import {
-  normalizedNecromancerLifeForceCost,
-  syncNecromancerResources
-} from '#gw2/professions/necromancer/core/state.js';
+import { normalizedNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
 import { removeNecromancerSelfCondition } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
@@ -107,9 +105,10 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     }
   } else {
     const coreState = professionCoreState(context);
-    coreState.lifeForce = Math.max(
-      0,
-      coreState.lifeForce - normalizedNecromancerLifeForceCost(coreState, Number(skill.lifeForceCost || 0))
+    spendResource(
+      context,
+      'lifeForce',
+      normalizedNecromancerLifeForceCost(coreState, Number(skill.lifeForceCost || 0))
     );
     if (
       // Plague Sending only triggers on F4/F5 shade skills, not on Manifest or the three minor F-skills
@@ -130,7 +129,6 @@ function shade(context: NecromancerCastContext, skill: NecromancerSkill): boolea
     }
   }
 
-  syncNecromancerResources(professionCoreState(context));
   emitNecromancerStateSnapshot(context, at, 'shade', {
     dedupeAcrossSourceIds: true
   });

@@ -271,7 +271,7 @@ describe('Galeshot Cyclone Bow', () => {
     assert.deepEqual(result.warnings, []);
     assert.equal(result.planningState.profession.cycloneBowActive, true);
     assert.equal(result.planningState.profession.windForce, 0);
-    assert.equal(result.planningState.profession.arrows < 8, true);
+    assert.equal(result.planningState.profession.arrows.value < 8, true);
     assert.equal(result.totalDamage > 0, true);
 
     const keenBlocked = simulate('Galeshot', [

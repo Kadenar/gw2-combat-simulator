@@ -1,3 +1,5 @@
+import { createResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { ChargePool } from '#gw2/platform/combat/resources/charges.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -15,9 +17,7 @@ export interface ThievesGuildState {
 }
 
 export interface ThiefCoreState {
-  initiative: number;
-  maximumInitiative: number;
-  initiativeUpdatedAt: number;
+  initiative: ResourceClock;
   stealthStartedAt: number;
   stealthUntil: number;
   hiddenKillerUntil: number;
@@ -61,9 +61,11 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
   const traits = selectedThiefTraits(config);
   const maximumInitiative = hasTrait(traits, TRAIT.PREPAREDNESS) ? 15 : 12;
   return {
-    initiative: boundedNumber(config.initialInitiative, 12, 0, maximumInitiative),
-    maximumInitiative,
-    initiativeUpdatedAt: 0,
+    initiative: {
+      ...createResourceClock(boundedNumber(config.initialInitiative, 12, 0, maximumInitiative)),
+      maximum: maximumInitiative,
+      rate: 1
+    },
     stealthStartedAt: 0,
     stealthUntil: 0,
     hiddenKillerUntil: 0,
@@ -100,7 +102,6 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
 // Core publishes only base-profession state; the family projector composes elite manifests separately.
 const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[] = Object.freeze([
   'initiative',
-  'maximumInitiative',
   'stealthStartedAt',
   'stealthUntil',
   'revealedUntil',

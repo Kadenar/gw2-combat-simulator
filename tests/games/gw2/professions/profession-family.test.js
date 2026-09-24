@@ -790,9 +790,6 @@ const guardianInactiveStateKeys = Object.freeze({
   Firebrand: [
     'activeTome',
     'tomePages',
-    'maximumTomePages',
-    'tomePageInterval',
-    'nextTomePageAt',
     'ashes',
     'tomeDormantReadyAt',
     'swiftScholarTome',
@@ -944,7 +941,7 @@ test('Guardian presentation and public projection preserve their contracts', () 
   });
 
   assert.equal(result.planningState.profession.activeTome, '');
-  assert.equal(result.planningState.profession.tomePages, 5);
+  assert.equal(result.planningState.profession.tomePages.value, 5);
   assert.equal(result.planningState.profession.radiantForge, false);
   assert.deepEqual(result.planningState.profession.radiantWeaponsUsed, {});
 });

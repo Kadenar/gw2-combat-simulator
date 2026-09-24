@@ -159,8 +159,8 @@ function assertEventDescriptors(entry, profession) {
     state: {
       energy: 40,
       heat: 25,
-      initiative: 8,
-      lifeForce: 75
+      initiative: { value: 8, maximum: 12, updatedAt: 0, rate: 1 },
+      lifeForce: { value: 75, maximum: 100, updatedAt: 0, rate: 0 }
     },
     name: 'Synthetic Event',
     skillName: 'Synthetic Skill',

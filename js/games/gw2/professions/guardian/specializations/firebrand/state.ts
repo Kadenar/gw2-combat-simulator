@@ -1,3 +1,8 @@
+import {
+  createDiscreteResourceClock,
+  type DiscreteResourceClock,
+  type ResourcePolicy
+} from '#gw2/platform/combat/resources/resource-policy.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
   requireBalanceProfileFromContext,
@@ -21,10 +26,7 @@ import { clamp } from '#kernel/core/numeric.js';
 
 export interface GuardianFirebrandState {
   activeTome: string;
-  tomePages: number;
-  maximumTomePages: number;
-  tomePageInterval: number;
-  nextTomePageAt: number;
+  tomePages: DiscreteResourceClock;
   ashes: ChargeGrant;
   ashesBurnDuration: number;
   tomeDormantReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
@@ -51,10 +53,12 @@ function initialTomePageState(
     archivistOfWhispers && configuredInitialPages === defaultMaximum ? traitMaximum : configuredInitialPages;
   const tomePages = clamp(initialPages, 0, maximumTomePages);
   return {
-    tomePages,
-    maximumTomePages,
-    tomePageInterval,
-    nextTomePageAt: tomePages < maximumTomePages && tomePageInterval > 0 ? tomePageInterval : Number.POSITIVE_INFINITY
+    tomePages: {
+      ...createDiscreteResourceClock(tomePages),
+      maximum: maximumTomePages,
+      interval: tomePageInterval,
+      nextAt: tomePages < maximumTomePages && tomePageInterval > 0 ? tomePageInterval : Infinity
+    }
   };
 }
 
@@ -103,10 +107,7 @@ export function createFirebrandState(config: GuardianConfig = {}): GuardianFireb
 /** Keeps Firebrand projection ownership beside the state that produces it. */
 export const FIREBRAND_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   activeTome: '',
-  tomePages: 5,
-  maximumTomePages: 5,
-  tomePageInterval: 8,
-  nextTomePageAt: Number.POSITIVE_INFINITY,
+  tomePages: { ...createDiscreteResourceClock(5), interval: 8 },
   ashes: grantCharges(0, 0),
   tomeDormantReadyAt: { justice: 0, resolve: 0, courage: 0 },
   swiftScholarTome: '',
@@ -117,10 +118,18 @@ export const FIREBRAND_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   mantraRechargeReadyAt: {}
 } satisfies Partial<GuardianFirebrandState>);
 
-// Derive page capacity, regeneration cadence, starting pages, and Ashes duration
-// from the selected traits while respecting explicit build overrides.
+// Ashes remains a profession-owned charge effect; page initialization belongs to its resource policy.
 export function initializeFirebrandBalanceState(context: GuardianSchedulerContext): void {
   const state = firebrandState.from(context);
+  const ashesProfile = requireBalanceProfileFromContext(context, PROFILE.ashes);
+  const burn = requireEffect(ashesProfile, 'condition', 'Burning');
+  state.ashesBurnDuration = burn ? effectNumber(ashesProfile, burn, 'duration') : 0;
+}
+
+export const firebrandState = defineProfessionSpecializationState('Firebrand', createFirebrandState);
+
+/** Keeps page tuning local while the platform owns recovery, grants and spending. */
+function pageTuning(context: GuardianSchedulerContext) {
   const archivistOfWhispers = hasTrait(context, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS);
 
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
@@ -131,13 +140,18 @@ export function initializeFirebrandBalanceState(context: GuardianSchedulerContex
   const interval = hasTrait(context, GUARDIAN_TRAIT_IDS.LOREMASTER)
     ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.loremaster), 'pulseInterval')
     : balanceProfileNumber(resourcesProfile, 'pulseInterval');
-  Object.assign(
-    state,
-    initialTomePageState(context.config, archivistOfWhispers, defaultMaximum, traitMaximum, interval)
-  );
-  const ashesProfile = requireBalanceProfileFromContext(context, PROFILE.ashes);
-  const burn = requireEffect(ashesProfile, 'condition', 'Burning');
-  state.ashesBurnDuration = burn ? effectNumber(ashesProfile, burn, 'duration') : 0;
+  const initial = Number(context.config.initialTomePages ?? traitMaximum);
+  return {
+    maximum: Math.max(traitMaximum, Number(context.config.maximumTomePages ?? traitMaximum)),
+    initial: archivistOfWhispers && initial === defaultMaximum ? traitMaximum : initial,
+    interval
+  };
 }
 
-export const firebrandState = defineProfessionSpecializationState('Firebrand', createFirebrandState);
+export const firebrandPages: ResourcePolicy<GuardianSchedulerContext> = {
+  kind: 'discrete',
+  state: (context) => firebrandState.from(context).tomePages,
+  maximum: (context) => pageTuning(context).maximum,
+  initial: (context) => pageTuning(context).initial,
+  recovery: (context) => ({ interval: pageTuning(context).interval, amount: 1, start: 'first-spend' })
+};

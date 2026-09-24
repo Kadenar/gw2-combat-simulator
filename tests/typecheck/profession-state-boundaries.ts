@@ -1,3 +1,4 @@
+import { createDiscreteResourceClock } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   composePublicStateProjections,
   definePublicStateDefaults,
@@ -92,7 +93,9 @@ defineProfessionSpecializationState('ArrayState', () => []);
 defineProfessionSpecializationState('PrimitiveState', () => 1);
 
 // Projection metadata preserves the declared literal keys and checks fallback fields against their owner.
-const firebrandProjection = definePublicStateDefaults({ tomePages: 5 } satisfies Partial<GuardianFirebrandState>);
+const firebrandProjection = definePublicStateDefaults({
+  tomePages: createDiscreteResourceClock(5)
+} satisfies Partial<GuardianFirebrandState>);
 const familyProjection = composePublicStateProjections([{ keys: ['activeTome'], defaults: {} }, firebrandProjection]);
 export type PublicProjectionKeyAssertions = [
   Assert<Rejects<typeof firebrandProjection.defaults, 'activeTome'>>,

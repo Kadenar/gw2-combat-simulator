@@ -1,3 +1,5 @@
+import type { SchedulerConfig, SchedulerContext } from '#gw2/platform/execution/types.js';
+import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 /**
  * Profession UI composition. Combines Core, active-specialization, and family
  * UI slices without leaking runtime ownership policy into the application.
@@ -40,7 +42,9 @@ interface UiSelectionCandidate {
 type UiSlice = Partial<ProfessionUiContract>;
 
 export interface ProfessionFamilyUiDefinition {
-  readonly resourcesFor?: (specialization: string) => Pick<ProfessionResourceDefinition, 'endurance'>;
+  readonly resourcesFor?: (
+    specialization: string
+  ) => Pick<ProfessionResourceDefinition, 'endurance'> & ResourcePolicies;
   readonly catalog: CanonicalCatalog;
   readonly core: UiSlice;
   readonly specializations: Readonly<Record<string, UiSlice>>;
@@ -206,20 +210,27 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
   for (const name of UI_LIST_CALLBACK_NAMES) {
     ui[name] = (context: unknown) => {
       const selected = active(context);
-      // Resource meters use the same selected capacity as simulation, including before the first run.
-      const endurance =
-        name === 'resourceViews' ? definition.resourcesFor?.(uiSpecialization(selected.context)).endurance : undefined;
-      const callbackContext = endurance
+      // Preview capacity uses selected policies and the active catalog without starting gameplay tasks.
+      const policies =
+        name === 'resourceViews' ? definition.resourcesFor?.(uiSpecialization(selected.context)) : undefined;
+      const callbackContext = policies
         ? {
             ...(selected.context as object),
-            resources: {
-              endurance: {
-                maximum: endurance.maximum({
-                  ...(selected.context as object),
-                  catalog: (selected.context as UiSelectionCandidate).catalog ?? definition.catalog
-                })
-              }
-            }
+            resources: Object.fromEntries(
+              Object.entries(policies)
+                .filter(([, policy]) => policy != null)
+                .map(([key, policy]) => [
+                  key,
+                  {
+                    maximum: policy!.maximum({
+                      ...(selected.context as object),
+                      config: ((selected.context as UiSelectionCandidate).config ??
+                        selected.context) as SchedulerConfig,
+                      catalog: (selected.context as UiSelectionCandidate).catalog ?? definition.catalog
+                    } as SchedulerContext)
+                  }
+                ])
+            )
           }
         : selected.context;
       const values = mergeUiList([...selected.slices, family], name, [callbackContext]);

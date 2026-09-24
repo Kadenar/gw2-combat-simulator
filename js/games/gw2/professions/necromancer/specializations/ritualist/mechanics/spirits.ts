@@ -1,3 +1,5 @@
+import { refreshResource } from '#gw2/platform/combat/resources/resource-policy.js';
+import { ritualistLifeForceDepletion } from '#gw2/professions/necromancer/specializations/ritualist/traits/summon-reactions.js';
 import { actorLoop } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import {
@@ -82,12 +84,19 @@ export const ritualistSchedulerHooks = Object.freeze({
     order: 10,
     handler: initializeRitualistSummonTraits
   },
-  onCastComplete: {
-    id: 'ritualist.soul-twisting-refund',
-    order: 10,
-    handler: refundRitualistSoulTwisting
-  },
-  taskHandlers: spiritActions.taskHandlers
+  onCastComplete: [
+    {
+      id: 'ritualist.commit-spirit',
+      order: -20,
+      handler: (context: NecromancerCastContext, skill: NecromancerSkill) => {
+        // Replacement generations and busy windows begin at commitment, preserving the old spirit during the cast.
+        if (skill.handlerId === 'necromancer.ritualist' && skill.id !== ID.ESSENCE_BLAST) ritualist(context, skill);
+        if (skill.handlerId === 'necromancer.innervate') innervate(context, skill);
+      }
+    },
+    { id: 'ritualist.soul-twisting-refund', order: 10, handler: refundRitualistSoulTwisting }
+  ],
+  taskHandlers: { ...spiritActions.taskHandlers, ...ritualistLifeForceDepletion.taskHandlers }
 });
 
 // Each spirit declares only the attacks it owns; named packets keep their role after a sibling is removed.
@@ -379,11 +388,6 @@ function emitWanderlustInitial(
     throw new Error('Wanderlust requires explicit initial strike timelines.');
   }
 
-  emitSkillDamage(context, skill, {
-    at: context.start + Number(swing.atMs) / 1000,
-    coefficient: Number(swing.coefficient),
-    ...activePrimaryWeaponFields(context)
-  });
   const fieldAt = at + Number(spirit.lingeringTicks[0].atMs) / 1000;
   // The field shares a fixed shroud-strength roll that is independent from the equipped-weapon opening roll.
   const fieldActivationId = context.createActivationId('effect');
@@ -452,6 +456,7 @@ function summonSpirit(
 ): void {
   const state = ritualistState.from(context);
   state.activeSpirits[spirit.key] = true;
+  refreshResource(context, 'lifeForce', true, at);
   state.spiritGenerations[spirit.key] = Number(state.spiritGenerations[spirit.key] || 0) + 1;
   // Replacing one spirit cancels its old generation; its opening animation can make it miss a shared pulse.
   const initialDuration = spirit.initialBusyMs / 1000;
@@ -635,6 +640,21 @@ function emitSpiritBoons(context: NecromancerCastContext, skill: NecromancerSkil
 
 /** Exposes Ritualist profession-skill and Innervate casts through the shared skill-handler contract. */
 export const necromancerSpiritSkillHandlers = Object.freeze({
-  'necromancer.ritualist': ritualist,
-  'necromancer.innervate': innervate
+  // Essence Blast snapshots its activation-time spirit count; summons and Innervate are committed by the hook.
+  'necromancer.ritualist': (context: NecromancerCastContext, skill: NecromancerSkill) => {
+    if (skill.id === ID.ESSENCE_BLAST) return ritualist(context, skill);
+    // The player's opening swing precedes the summon and does not mutate its generation or busy window.
+    if (skill.id === ID.WANDERLUST) {
+      const swing = spiritDefinition(context, skill.id)?.summonTicks[0];
+      if (swing)
+        emitSkillDamage(context, skill, {
+          at: context.start + Number(swing.atMs) / 1000,
+          coefficient: Number(swing.coefficient),
+          ...activePrimaryWeaponFields(context)
+        });
+    }
+
+    return true;
+  },
+  'necromancer.innervate': () => true
 });

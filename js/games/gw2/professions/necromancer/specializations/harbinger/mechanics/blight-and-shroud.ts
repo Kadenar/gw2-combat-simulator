@@ -15,6 +15,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { gainNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import {
   advanceHarbingerBlight,
+  harbingerBlightTaskHandlers,
   emitBlightState
 } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight.js';
 import { harbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
@@ -44,10 +45,11 @@ function initializeHarbingerRuntime(context: NecromancerSchedulerContext): void 
     // Alchemic Vigor's vitality changes the physical life-force pool even though the normalized meter remains stable.
     const vitality = balanceProfileNumber(alchemicVigorProfile, 'attributeBonus');
     core.maximumHealth += vitality * 10;
-    core.lifeForcePoolCapacity = core.maximumHealth * 0.69 * (core.maximumLifeForce / 100);
+    core.lifeForcePoolCapacity = core.maximumHealth * 0.69 * (core.lifeForce.maximum / 100);
   }
 
   registerNecromancerShroudLifecycle(context, 'harbinger.shroud', {
+    onEnter: enterHarbingerShroud,
     onExit: (runtime) => {
       harbingerState.from(runtime).nextBlightAt = Number.POSITIVE_INFINITY;
     }
@@ -56,7 +58,7 @@ function initializeHarbingerRuntime(context: NecromancerSchedulerContext): void 
 
 /** Shares Deathly Haste grants while retaining the triggering skill's completion time and attribution. */
 function emitDeathlyHaste(
-  context: NecromancerCastContext,
+  context: NecromancerSchedulerContext,
   skill: NecromancerSkill,
   attribution: { source?: string; sourceId?: NecromancerSkill['id'] } = {}
 ): void {
@@ -66,7 +68,7 @@ function emitDeathlyHaste(
     const effect = requireEffect(profile, 'boon', name);
     if (!effect) continue;
     emitSkillBuff(context, skill, {
-      at: context.effectiveEnd,
+      at: context.state.time,
       kind: String(effect.boon),
       duration: effectNumber(profile, effect, 'duration'),
       stacks: effectNumber(profile, effect, 'stacks'),
@@ -76,12 +78,10 @@ function emitDeathlyHaste(
   }
 }
 
-/** Advances Blight and applies Harbinger shroud-entry and Dark Barrage cast traits. */
-function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): void {
+/** Entry gains commit with the transform, before an empty life-force pool can trigger depletion. */
+function enterHarbingerShroud(context: NecromancerSchedulerContext, skill: NecromancerSkill): void {
   const state = harbingerState.from(context);
-  const at = context.effectiveEnd;
-  // Advance blight ticks that elapsed during the cast before checking entrance bonuses.
-  advanceHarbingerBlight(context, at);
+  const at = context.state.time;
   if (skill.id === ID.HARBINGER_SHROUD && professionCoreState(context).activeShroud === 'harbinger') {
     // Reset the per-second cursor to the next whole second so blight ticks don't accumulate a fractional offset over time.
     state.nextBlightAt = Math.floor(at) + 1;
@@ -112,10 +112,6 @@ function afterCast(context: NecromancerCastContext, skill: NecromancerSkill): vo
       }
     }
   }
-
-  if (skill.id === ID.DARK_BARRAGE && hasTrait(context, TRAIT.DEATHLY_HASTE)) {
-    emitDeathlyHaste(context, skill, { source: 'Trait', sourceId: TRAIT.DEATHLY_HASTE });
-  }
 }
 
 export const harbingerSchedulerHooks = Object.freeze({
@@ -130,11 +126,16 @@ export const harbingerSchedulerHooks = Object.freeze({
     order: -10,
     handler: advanceHarbingerBlight
   },
-  afterCast: {
-    id: 'harbinger.after-cast',
+  onCastComplete: {
+    id: 'harbinger.complete-cast',
     order: -10,
-    handler: afterCast
-  }
+    handler: (context: NecromancerCastContext, skill: NecromancerSkill) => {
+      if (!context.action.cancelled && skill.id === ID.DARK_BARRAGE && hasTrait(context, TRAIT.DEATHLY_HASTE)) {
+        emitDeathlyHaste(context, skill, { source: 'Trait', sourceId: TRAIT.DEATHLY_HASTE });
+      }
+    }
+  },
+  taskHandlers: harbingerBlightTaskHandlers
 });
 
 /** Applies Harbinger vitality and vitality-derived conversions when the build layer has not. */

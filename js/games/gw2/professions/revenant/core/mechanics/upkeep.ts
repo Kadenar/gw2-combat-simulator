@@ -1,3 +1,4 @@
+import { refreshResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
@@ -83,6 +84,7 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
   if (index >= 0) {
     state.activeUpkeeps.splice(index, 1);
     context.tasks.cancelOwner(`revenant.upkeep:${skill.id}`);
+    refreshResource(context, 'energy', true, at);
     emitRevenantStateSnapshot(context, at, 'upkeep-disabled');
     return;
   }
@@ -95,6 +97,7 @@ export function toggleRevenantUpkeep(context: RevenantCastContext, skill: Revena
     empoweredNextPulse: false
   };
   state.activeUpkeeps.push(active);
+  refreshResource(context, 'energy', true, at);
   const release = skill.flipSkillId == null ? null : context.catalog.skillsById.get(skill.flipSkillId);
   if (release) armSkillFlip(state.availableFlips, release.id, at);
   if (skill.id === ID.EMBRACE_THE_DARKNESS) {
@@ -126,6 +129,7 @@ export function releaseRevenantUpkeep(context: RevenantCastContext, skill: Reven
   const parent = skill.flipParentId == null ? null : context.catalog.skillsById.get(skill.flipParentId);
   if (!parent) return;
   state.activeUpkeeps = state.activeUpkeeps.filter((upkeep) => upkeep.skillId !== parent.id);
+  refreshResource(context, 'energy', true, at);
   consumeSkillFlip(state.availableFlips, skill.id);
   context.tasks.cancelOwner(`revenant.upkeep:${parent.id}`);
   const cooldown = Math.max(0, Number(parent.manualReleaseCooldown || 0));

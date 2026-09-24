@@ -67,7 +67,7 @@ function revenantEventLogRow(
   if (event?.type !== 'revenant.state') return undefined;
   return {
     type: event.type,
-    description: `${event.reason || 'State'} - ` + `Energy ${displayedRevenantEnergy(event.state?.energy)}`,
+    description: `${event.reason || 'State'} - ` + `Energy ${displayedRevenantEnergy(event.state?.energy?.value)}`,
     className: 'resource',
     order: 30,
     flags: []
@@ -140,7 +140,7 @@ export function revenantCorePaletteSkillAvailability(
   }
 
   // Check player energy and compare it against the effective energy cost of the skill, also check if the skill is on cooldown
-  const energy = Number(state.energy);
+  const energy = Number(state.energy?.value);
   // Supply the palette projection and resolved selection explicitly to the shared cost calculation.
   const cost = effectiveRevenantEnergyCost(
     {
@@ -239,7 +239,7 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
         singular: 'energy',
         plural: 'energy',
         maximum: 100,
-        value: displayedRevenantEnergy(state.energy ?? context.initialEnergy ?? 50),
+        value: displayedRevenantEnergy(state.energy?.value ?? context.initialEnergy ?? 50),
         startMaximum: 100,
         canStart: true,
         buildKey: 'initialEnergy' as const,

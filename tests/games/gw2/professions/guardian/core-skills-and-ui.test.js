@@ -857,7 +857,7 @@ test('Guardian palettes keep inactive tome and forge skills visible', () => {
     specialization: 'Firebrand',
     professionState: {
       activeTome: '',
-      tomePages: 5,
+      tomePages: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity },
       radiantForge: false
     }
   };
@@ -944,7 +944,10 @@ test('Guardian palette availability follows the active tome or forge', () => {
   assert.equal(
     paletteSkillAvailability(
       {
-        professionState: { activeTome: '', tomePages: 5 }
+        professionState: {
+          activeTome: '',
+          tomePages: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity }
+        }
       },
       trueStrike
     ).available,
@@ -953,7 +956,10 @@ test('Guardian palette availability follows the active tome or forge', () => {
   assert.equal(
     paletteSkillAvailability(
       {
-        professionState: { activeTome: '', tomePages: 5 }
+        professionState: {
+          activeTome: '',
+          tomePages: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity }
+        }
       },
       searingSpell
     ).available,
@@ -962,7 +968,10 @@ test('Guardian palette availability follows the active tome or forge', () => {
   assert.equal(
     paletteSkillAvailability(
       {
-        professionState: { activeTome: 'justice', tomePages: 5 }
+        professionState: {
+          activeTome: 'justice',
+          tomePages: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity }
+        }
       },
       trueStrike
     ).available,
@@ -971,7 +980,10 @@ test('Guardian palette availability follows the active tome or forge', () => {
   assert.equal(
     paletteSkillAvailability(
       {
-        professionState: { activeTome: 'justice', tomePages: 5 }
+        professionState: {
+          activeTome: 'justice',
+          tomePages: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity }
+        }
       },
       searingSpell
     ).available,
@@ -980,7 +992,10 @@ test('Guardian palette availability follows the active tome or forge', () => {
   assert.equal(
     paletteSkillAvailability(
       {
-        professionState: { activeTome: 'justice', tomePages: 5 }
+        professionState: {
+          activeTome: 'justice',
+          tomePages: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity }
+        }
       },
       desertBloom
     ).available,

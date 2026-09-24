@@ -27,6 +27,7 @@ import { createProfessionSimulator } from '#tests/helpers/profession-simulation.
 import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { thiefCoreCastAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
+import { refreshResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import { beginStealthAttack, stealthBreakingReaction } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { completeSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
 
@@ -119,7 +120,11 @@ test('Endurance Thief is Daredevil-owned and commits between Core resource and f
       assert.equal(context.catalog.balanceProfilesById.has(TRAIT.ENDURANCE_THIEF), active);
       assert.equal(typeof context.onThiefStealComplete === 'function', active);
       const core = context.state.profession.core;
-      Object.assign(core, { initiative: 3, endurance: 10, enduranceUpdatedAt: 2 });
+      Object.assign(core, {
+        initiative: { value: 3, maximum: 12, updatedAt: 2, rate: 1 },
+        endurance: 10,
+        enduranceUpdatedAt: 2
+      });
       context.state.time = 2;
       const catalog = active
         ? applyBalanceProfilePatch(context.catalog, {
@@ -140,7 +145,7 @@ test('Endurance Thief is Daredevil-owned and commits between Core resource and f
       assert.equal(core.enduranceUpdatedAt, 2);
       for (const snapshot of snapshots) {
         assert.equal(snapshot.at, 2);
-        assert.equal(snapshot.state.initiative, 5);
+        assert.equal(snapshot.state.initiative.value, 5);
         assert.equal(snapshot.state.storedStolenSkillCount, 1);
         assert.equal(snapshot.state.endurance, snapshot.reason === 'kleptomaniac' ? 10 : core.endurance);
       }
@@ -463,8 +468,7 @@ test('Thief resources use profession-specific initiative and malice pips', () =>
   const displayedInitiative = resourceDisplayViews(thiefProfession, {
     specialization: 'Core',
     professionState: {
-      initiative: 4.9,
-      maximumInitiative: 12
+      initiative: { value: 4.9, maximum: 12, updatedAt: 0, rate: 1 }
     }
   })[0];
 
@@ -589,7 +593,10 @@ test('initiative regenerates at exact boundaries and ignores Alacrity', () => {
 
   assert.equal(boundary.warnings.length, 0);
   assert.equal(boundary.steps[0].start, 1000);
-  assert.equal(boundary.planningState.profession.initiative, (boundary.steps[0].end - boundary.steps[0].start) / 1000);
+  assert.equal(
+    boundary.planningState.profession.initiative.value,
+    (boundary.steps[0].end - boundary.steps[0].start) / 1000
+  );
 
   for (const alacrity of [false, true]) {
     const result = simulate('Core', [{ type: 'wait', durationMs: 5000 }], {
@@ -597,7 +604,7 @@ test('initiative regenerates at exact boundaries and ignores Alacrity', () => {
       boons: { alacrity }
     });
 
-    assert.equal(result.planningState.profession.initiative, 5);
+    assert.equal(result.planningState.profession.initiative.value, 5);
   }
 
   const kneeling = simulate('Deadeye', ['Kneel', { type: 'wait', durationMs: 3000 }], {
@@ -607,7 +614,9 @@ test('initiative regenerates at exact boundaries and ignores Alacrity', () => {
   });
 
   assert.equal(kneeling.warnings.length, 0);
-  assert.ok(Math.abs(kneeling.planningState.profession.initiative - (kneeling.planningState.atSeconds * 4) / 3) < 1e-9);
+  assert.ok(
+    Math.abs(kneeling.planningState.profession.initiative.value - (kneeling.planningState.atSeconds * 4) / 3) < 1e-9
+  );
 });
 
 test('Unload refunds 2 initiative on completion but not cancellation', () => {
@@ -620,7 +629,9 @@ test('Unload refunds 2 initiative on completion but not cancellation', () => {
   assert.equal(completed.steps[0].interrupted, false);
   assert.ok(refundIndex > 0);
   // Compare adjacent resource snapshots to isolate the refund from passive regeneration and cast duration.
-  assert.ok(Math.abs(states[refundIndex].state.initiative - states[refundIndex - 1].state.initiative - 2) < 1e-9);
+  assert.ok(
+    Math.abs(states[refundIndex].state.initiative.value - states[refundIndex - 1].state.initiative.value - 2) < 1e-9
+  );
 
   const interrupted = simulate('Core', [{ name: 'Unload', interruptMs: 1 }], config);
 
@@ -641,7 +652,7 @@ test('weapon swap preserves shared initiative', () => {
 
   assert.equal(result.warnings.length, 0);
   assert.equal(result.planningState.activeWeaponSet, 2);
-  assert.ok(Math.abs(result.planningState.profession.initiative - (7 + result.planningState.atSeconds)) < 1e-9);
+  assert.ok(Math.abs(result.planningState.profession.initiative.value - (7 + result.planningState.atSeconds)) < 1e-9);
   assert.ok(result.events.some((event) => event.type === 'weapon_set'));
 
   const resetChain = simulate('Core', ['Double Strike', 'Swap Weapons', 'Double Strike'], {
@@ -1460,8 +1471,9 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
   const mercyIndex = earlyMercyStates.findIndex((event) => event.reason === 'mercy');
   // Two malice stacks refund five initiative independently of the preceding regeneration wait.
   assert.ok(
-    Math.abs(earlyMercyStates[mercyIndex].state.initiative - earlyMercyStates[mercyIndex - 1].state.initiative - 5) <
-      1e-9
+    Math.abs(
+      earlyMercyStates[mercyIndex].state.initiative.value - earlyMercyStates[mercyIndex - 1].state.initiative.value - 5
+    ) < 1e-9
   );
   assert.equal(earlyMercy.planningState.profession.malice, 2);
 
@@ -1648,4 +1660,37 @@ test('Deadeye rifle stance rejects every inactive replacement', () => {
 
     assert.match(result.warnings[0], /kneel|rifle skill/i, skill);
   }
+});
+
+// A fractional observation must not bypass the recovery threshold's detection tick.
+test('initiative-funded casts retain readiness across intermediate observations', () => {
+  const { context } = createScheduler({ profession: thiefProfession, config: { ...baseConfig, initialInitiative: 0 } });
+  const skill = { ...context.catalog.skillsById.get(ID.DOUBLE_STRIKE), initiativeCost: 0.1 };
+  context.advanceTo(0.1);
+  const waiting = thiefCoreCastAvailability({ ...context, start: 0.1 }, skill);
+  assert.equal(waiting.ready, false);
+  assert.equal(waiting.retryAt, 0.12);
+  context.advanceTo(0.12);
+  assert.equal(thiefCoreCastAvailability({ ...context, start: 0.12 }, skill).ready, true);
+});
+
+// Known signet pulses remain affordability boundaries when ordinary recovery is disabled.
+test('initiative availability waits for a signet grant with zero regeneration', () => {
+  const { context } = createScheduler({
+    profession: thiefProfession,
+    config: { ...baseConfig, initialInitiative: 0, selectedSkills: ["Infiltrator's Signet"] }
+  });
+  context.catalog = { ...context.catalog, balanceProfilesById: new Map(context.catalog.balanceProfilesById) };
+  const profileId = THIEF_CORE_BALANCE_PROFILE_IDS.resources;
+  context.catalog.balanceProfilesById.set(profileId, {
+    ...context.catalog.balanceProfilesById.get(profileId),
+    resourceGain: 0
+  });
+  refreshResource(context, 'initiative');
+  const skill = { ...context.catalog.skillsById.get(ID.DOUBLE_STRIKE), initiativeCost: 1 };
+  const waiting = thiefCoreCastAvailability({ ...context, start: 0 }, skill);
+  assert.equal(waiting.ready, false);
+  assert.equal(waiting.retryAt, 10);
+  context.advanceTo(10);
+  assert.equal(thiefCoreCastAvailability({ ...context, start: 10 }, skill).ready, true);
 });

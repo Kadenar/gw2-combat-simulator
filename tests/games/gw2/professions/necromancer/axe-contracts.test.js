@@ -26,9 +26,9 @@ test('Ghastly Claws grants life force on each landed packet and preserves partia
   const completed = simulate('Core', ['Ghastly Claws']);
   const cancelled = simulate('Core', [{ name: 'Ghastly Claws', interruptMs: ticks[0].atMs / 2 }, wait(3000)]);
 
-  assert.equal(interrupted.planningState.profession.lifeForce, 4.5);
-  assert.equal(completed.planningState.profession.lifeForce, 12);
-  assert.equal(cancelled.planningState.profession.lifeForce, 0);
+  assert.equal(interrupted.planningState.profession.lifeForce.value, 4.5);
+  assert.equal(completed.planningState.profession.lifeForce.value, 12);
+  assert.equal(cancelled.planningState.profession.lifeForce.value, 0);
   for (const result of [interrupted, completed, cancelled]) {
     const gains = result.resolvedEvents.filter((event) => event.type === 'necromancer.life-force-gain');
     const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === ID.GHASTLY_CLAWS);
@@ -46,7 +46,7 @@ test('Ghastly Claws life force converges in its scheduling pass', () => {
   const { result, passes } = simulateWithPasses('Core', ['Ghastly Claws']);
   assert.deepEqual(result.warnings, []);
   assert.equal(passes, 1);
-  assert.equal(result.planningState.profession.lifeForce, 12);
+  assert.equal(result.planningState.profession.lifeForce.value, 12);
 });
 
 // Compare one isolated packet so ordinary Vulnerability and the skill-specific bonus must multiply.

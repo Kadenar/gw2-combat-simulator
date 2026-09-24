@@ -12,12 +12,13 @@ import {
   firebrandSchedulerHooks
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes-and-mantras.js';
 import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/index.js';
-import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import { firebrandState, firebrandPages } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
 import { FIREBRAND_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 
 export const firebrandModule = defineNativeModule({
   id: 'Firebrand',
+  resources: { tomePages: firebrandPages },
   data: createGuardianModuleData('Firebrand', {
     skillMechanics: FIREBRAND_SKILL_MECHANICS,
     balanceProfiles: FIREBRAND_BALANCE_PROFILES

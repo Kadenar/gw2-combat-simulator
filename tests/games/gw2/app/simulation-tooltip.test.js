@@ -568,7 +568,7 @@ test('Necromancer condition handlers and tooltips share selected skill and profi
   assert.equal(torment.stacks, 2);
   assert.equal(torment.duration, 7);
   // Completion counts both the existing Chilled and the newly applied Torment, using the patched gain.
-  assert.equal(darkness.planningState.profession.lifeForce, 12);
+  assert.equal(darkness.planningState.profession.lifeForce.value, 12);
   const corruption = simulate('Core', ['Blood Is Power'], {
     patchId: 'condition-tooltips',
     selectedSkills: ['Blood Is Power']

@@ -1,3 +1,4 @@
+import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
 import {
   composePublicStateProjections,
   flattenProfessionState,
@@ -9,10 +10,7 @@ import type {
   StateSnapshotEmissionOptions
 } from '#gw2/platform/engine/events/state-snapshots.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import {
-  NECROMANCER_CORE_PUBLIC_STATE_PROJECTION,
-  syncNecromancerResources
-} from '#gw2/professions/necromancer/core/state.js';
+import { NECROMANCER_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/necromancer/core/state.js';
 import {
   HARBINGER_PUBLIC_STATE_PROJECTION,
   syncHarbingerState
@@ -20,14 +18,33 @@ import {
 import { RITUALIST_PUBLIC_STATE_PROJECTION } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { SCOURGE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import type {
+  NecromancerSchedulerContext,
   NecromancerPlanningStateProjectionOptions,
   NecromancerState
 } from '#gw2/professions/necromancer/types.js';
+import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+
+/** Resource observations carry only their pool, so they cannot publish unrelated cast state. */
+export function emitNecromancerLifeForce(context: NecromancerSchedulerContext, at: number, reason: string): void {
+  context.emit({
+    type: 'necromancer.life-force',
+    at,
+    source: 'necromancer',
+    sourceId: 'necromancer.life-force',
+    actorType: 'player',
+    reason,
+    state: { lifeForce: { ...professionCoreState(context).lifeForce } }
+  });
+}
 
 /** Normalize a shallow candidate; emission and public projection detach only the state they retain. */
 function flattenNecromancerState(state: unknown): NecromancerState {
   const flattened = flattenProfessionState<NecromancerState>(state);
-  syncNecromancerResources(flattened);
+  // Reporting clamps a detached pool without rewriting the live resource or its accrual anchor.
+  flattened.lifeForce = {
+    ...flattened.lifeForce,
+    value: cappedResource(flattened.lifeForce.value, flattened.lifeForce.maximum)
+  };
   if (Object.hasOwn(flattened, 'blightExpiries')) syncHarbingerState(flattened);
   return flattened;
 }

@@ -1,6 +1,6 @@
+import { grantResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
-import { gainShadowForce } from '#gw2/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import {
   requireBalanceProfileFromContext,
@@ -143,7 +143,7 @@ export const larcenousTormentReaction = scheduledReaction<
     if (!(stacks > 0)) return;
 
     const larcenousTormentProfile = requireBalanceProfileFromContext(context, PROFILE.larcenousTorment);
-    gainShadowForce(context, stacks * balanceProfileNumber(larcenousTormentProfile, 'resourceGain'));
+    grantResource(context, 'shadowForce', stacks * balanceProfileNumber(larcenousTormentProfile, 'resourceGain'));
     emitThiefStateSnapshot(context, taskAt, 'larcenous-torment');
   }
 });

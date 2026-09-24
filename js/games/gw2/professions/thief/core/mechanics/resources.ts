@@ -1,3 +1,4 @@
+import { spendResource, type ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { pruneSkillFlips } from '#gw2/platform/engine/skills/skill-flips.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
@@ -69,15 +70,10 @@ function thiefEnduranceRegenerationRate(
   return Math.min(balanceProfileNumber(resourcesProfile, 'threshold'), base * (vigorActive ? vigorMultiplier : 1));
 }
 
-// Advance initiative and endurance regeneration while pruning expired Lead
-// Attacks, venom, guild summon, and flip state at the same target timestamp.
+// Advance endurance and prune expired effects after the engine settles initiative.
 export function advanceThiefCoreResources(context: ThiefSchedulerContext, target: number): void {
   const state = professionCoreState(context);
 
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  state.maximumInitiative = hasTrait(context.config, TRAIT.PREPAREDNESS)
-    ? balanceProfileNumber(resourcesProfile, 'minimumStacks')
-    : balanceProfileNumber(resourcesProfile, 'maximumStacks');
   state.leadAttackExpirations = purgeExpiredStacks(state.leadAttackExpirations || [], target);
   state.leadAttacksStacks = state.leadAttackExpirations.length;
   // Ground axes expire independently, including while waiting or using another weapon.
@@ -90,15 +86,6 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
 
   pruneSkillFlips(state.availableFlips, target);
 
-  const initiativeFrom = Number(state.initiativeUpdatedAt || 0);
-  if (target > initiativeFrom) {
-    state.initiative = Math.min(
-      state.maximumInitiative,
-      state.initiative + (target - initiativeFrom) * thiefInitiativeRegenerationRate(state, context)
-    );
-    state.initiativeUpdatedAt = target;
-  }
-
   // Integrate shared Vigor windows so waits cannot change recovery; permanent Vigor needs no history replay.
   advanceProfessionEndurance(context, target);
 
@@ -108,10 +95,9 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
 // Spend initiative at cast start and apply Signets of Power's immediate refund
 // for qualifying signet activations.
 export function spendThiefCoreResources(context: ThiefPrecastContext, skill: ThiefSkill): void {
-  const state = professionCoreState(context);
   const cost = Number(skill.initiativeCost || 0);
   if (cost > 0) {
-    state.initiative = Math.max(0, state.initiative - cost);
+    spendResource(context, 'initiative', cost);
     emitThiefStateSnapshot(context, context.start, 'initiative-spent');
   }
 
@@ -172,4 +158,23 @@ export const thiefEndurance: EndurancePolicy<ThiefSchedulerContext> = {
   state: (context) => professionCoreState(context),
   maximum: () => 100,
   regenerationRate: (context, vigor, at) => thiefEnduranceRegenerationRate(context, at, vigor)
+};
+
+/** Initiative shares the platform lifecycle while kneeling and Preparedness remain Thief rules. */
+export const thiefInitiative: ResourcePolicy<ThiefSchedulerContext> = {
+  kind: 'continuous',
+  state: (context) => professionCoreState(context).initiative,
+  maximum: (context) =>
+    balanceProfileNumber(
+      requireBalanceProfileFromContext(context, PROFILE.resources),
+      hasTrait(context.config, TRAIT.PREPAREDNESS) ? 'minimumStacks' : 'maximumStacks'
+    ),
+  initial: (context) => Number(context.config.initialInitiative ?? 12),
+  recovery: (context) => thiefInitiativeRegenerationRate(professionCoreState(context), context),
+  // Queued grants can fund a cast even when passive regeneration is disabled.
+  nextChange: (context) =>
+    Math.min(
+      infiltratorsSignetPassive.nextAt(context, 'thief.infiltrators-signet'),
+      context.tasks.nextAt('thief.resource-grant')
+    )
 };

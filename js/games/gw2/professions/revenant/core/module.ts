@@ -17,7 +17,7 @@ import {
 import { REVENANT_CORE_BALANCE_PROFILES } from '#gw2/professions/revenant/core/profiles.js';
 import { revenantCoreSkillHandlers } from '#gw2/professions/revenant/core/execution/index.js';
 import { revenantSchedulerHooks } from '#gw2/professions/revenant/core/execution/hooks.js';
-import { revenantEndurance } from '#gw2/professions/revenant/core/mechanics/energy.js';
+import { revenantEndurance, revenantEnergy } from '#gw2/professions/revenant/core/mechanics/energy.js';
 
 export const revenantCoreModule = defineNativeModule({
   id: 'Core',
@@ -26,7 +26,7 @@ export const revenantCoreModule = defineNativeModule({
     extraSkills: REVENANT_CORE_EXTRA_SKILLS,
     balanceProfiles: REVENANT_CORE_BALANCE_PROFILES
   }),
-  resources: { endurance: revenantEndurance },
+  resources: { endurance: revenantEndurance, energy: revenantEnergy },
   state: {
     scheduler: createRevenantCoreState,
     resolver: createRevenantCoreState,

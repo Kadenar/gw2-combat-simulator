@@ -1,4 +1,9 @@
 import {
+  initializeProfessionResources,
+  advanceProfessionResources,
+  resourceTaskHandlers
+} from '#gw2/platform/combat/resources/resource-policy.js';
+import {
   createCastLifecycle,
   activationScopedOperations,
   CORE_CAST_COMPLETE
@@ -331,6 +336,7 @@ export function createScheduler<TProfessionState extends object = object>({
   }
 
   const taskHandlers: Record<string, RegisteredTaskHandler<SchedulerContext<TProfessionState>>> = {
+    ...resourceTaskHandlers,
     [CORE_CAST_COMPLETE]: lifecycle.completeReservation,
     'platform.combat-start': (_context, task) => emitCombatStart(task.at)
   };
@@ -408,6 +414,7 @@ export function createScheduler<TProfessionState extends object = object>({
       // timestamp. Tasks created by a handler are drained before moving on.
       refreshSharedState(next);
       schedulerPolicy.advance?.(context, next);
+      advanceProfessionResources(context, next);
       activeProfession.advance(context, next);
       state.time = next;
       taskQueue.drainThrough(next, context);
@@ -415,6 +422,7 @@ export function createScheduler<TProfessionState extends object = object>({
 
     refreshSharedState(target);
     schedulerPolicy.advance?.(context, target);
+    advanceProfessionResources(context, target);
     activeProfession.advance(context, target);
     state.time = target;
     // Expiration hooks can enqueue already-due work on this final advance; finish it before checking cast readiness.
@@ -753,6 +761,7 @@ export function createScheduler<TProfessionState extends object = object>({
 
   // The selected runtime catalog supplies resource tuning before gameplay initialization, including patch previews.
   initializeProfessionEndurance(context);
+  initializeProfessionResources(context, true);
   schedulerPolicy.initialize?.(context);
   activeProfession.initialize(context);
 

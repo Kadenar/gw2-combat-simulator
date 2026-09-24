@@ -1,3 +1,4 @@
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { NECROMANCER_CORE_BALANCE_PROFILES } from '#gw2/professions/necromancer/core/profiles.js';
 import {
   requireBalanceProfileFromContext,
@@ -11,7 +12,7 @@ import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js'
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import { boundedNumber, clamp, finiteNumber } from '#kernel/core/numeric.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 export interface NecromancerSelfCondition {
   readonly condition: string;
@@ -30,15 +31,13 @@ export interface NecromancerTasteForBloodApplication {
 }
 
 export interface NecromancerCoreState {
-  lifeForce: number;
-  maximumLifeForce: number;
+  lifeForce: ResourceClock;
   maximumHealth: number;
   lifeForcePoolCapacity: number;
   activeShroud: string;
   activeShroudEntryId?: SkillId | null;
   activeShroudExitId?: SkillId | null;
   activeShroudProfileId?: string;
-  lastResourceAt: number;
   soulShardGrant: ChargeGrant;
   carapaceExpiries: number[];
   activeMinions: Record<string, number>;
@@ -54,8 +53,6 @@ export interface NecromancerCoreState {
   plagueSendingEntrySkillId: SkillId | null;
   lichEndsAt: number;
   pendingShroudEntryId?: SkillId | null;
-  signetNextLifeForceAt: number;
-  vampirismNextAt: number;
   targetChilledUntil: number;
   targetControlledUntil: number;
   dreadUntil: number;
@@ -69,7 +66,6 @@ export interface NecromancerCoreState {
 /** Declares the Core fields exposed by every Necromancer end-state projection. */
 const NECROMANCER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'lifeForce',
-  'maximumLifeForce',
   'maximumHealth',
   'lifeForcePoolCapacity',
   'activeShroud',
@@ -129,19 +125,13 @@ export function normalizedNecromancerLifeForceCost(
 ): number {
   const actualCost = (NECROMANCER_BASE_HEALTH * Math.max(0, Number(baseHealthPercent || 0))) / 100;
   const actualCapacity = Math.max(1, Number(state?.lifeForcePoolCapacity || 1));
-  const normalizedCapacity = Math.max(1, Number(state?.maximumLifeForce || 100));
+  const normalizedCapacity = Math.max(1, Number(state?.lifeForce?.maximum || 100));
   return (actualCost * normalizedCapacity) / actualCapacity;
 }
 
 /** Converts a base-health percentage into its raw life-force pool cost. */
 export function actualNecromancerLifeForceCost(baseHealthPercent: number): number {
   return (NECROMANCER_BASE_HEALTH * Math.max(0, Number(baseHealthPercent || 0))) / 100;
-}
-
-/** Clamps the canonical life-force value to the build's capacity. */
-export function syncNecromancerResources<TState extends NecromancerCoreState>(state: TState): TState {
-  state.lifeForce = boundedNumber(state.lifeForce || 0, 0, 0, finiteNumber(state.maximumLifeForce || 100, 100));
-  return state;
 }
 
 /** Creates fresh Core Necromancer resources, transforms, summons, and trait proc state from a build config. */
@@ -161,16 +151,14 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
   const configuredLifeForce = Number(config.initialResource ?? 100);
   const lifeForce = (maximumLifeForce * clamp(configuredLifeForce, 0, 100)) / 100;
   // Seed every mutable subsystem independently and bound the initial life-force value.
-  const state: NecromancerCoreState = syncNecromancerResources({
-    lifeForce,
-    maximumLifeForce,
+  const state: NecromancerCoreState = {
+    lifeForce: { value: lifeForce, maximum: maximumLifeForce, rate: 0, updatedAt: 0 },
     maximumHealth,
     lifeForcePoolCapacity,
     activeShroud: '',
     activeShroudEntryId: null,
     activeShroudExitId: null,
     activeShroudProfileId: '',
-    lastResourceAt: 0,
     soulShardGrant: grantCharges(0, 0),
     carapaceExpiries: [],
     activeMinions: {},
@@ -184,8 +172,6 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     plagueSendingArmed: false,
     plagueSendingEntrySkillId: null,
     lichEndsAt: 0,
-    signetNextLifeForceAt: 3,
-    vampirismNextAt: 3,
     targetChilledUntil: 0,
     targetControlledUntil: 0,
     dreadUntil: 0,
@@ -194,7 +180,7 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     barbedPrecisionProgress: 0.5,
     traitProcReadyAt: {},
     tasteForBloodBuffs: {}
-  });
+  };
   registerNecromancerResolverFields(state, [
     'targetChilledUntil',
     'targetControlledUntil',

@@ -73,7 +73,7 @@
         "build": "data/gw2/builds/revenant/b-power-vindicator-greatsword-energy.json",
         "rotation": "data/gw2/rotations/revenant/r-power-vindicator-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-vindicator-greatsword-sword-sword",
-        "benchmarkDps": 43694,
+        "benchmarkDps": 43681,
         "upToDate": true
       },
       {

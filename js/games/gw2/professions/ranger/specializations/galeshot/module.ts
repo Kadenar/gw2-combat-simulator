@@ -7,13 +7,14 @@ import {
   galeshotSchedulerHooks
 } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow-rules.js';
 import { GALESHOT_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/galeshot/skills/index.js';
-import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
+import { galeshotState, galeshotArrows } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { bindGaleshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
 import { galeshotEventHandlers } from '#gw2/professions/ranger/specializations/galeshot/mechanics/state-events.js';
 import { GALESHOT_BALANCE_PROFILES } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 
 export const galeshotModule = defineNativeModule({
   id: 'Galeshot',
+  resources: { arrows: galeshotArrows },
   data: createRangerModuleData('Galeshot', {
     skillMechanics: GALESHOT_BASE_SKILL_MECHANICS,
     balanceProfiles: GALESHOT_BALANCE_PROFILES

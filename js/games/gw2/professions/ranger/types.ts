@@ -68,8 +68,6 @@ export type RangerState = RangerCoreState &
         GaleshotState,
         | 'cycloneBowActive'
         | 'arrows'
-        | 'maximumArrows'
-        | 'nextArrowAt'
         | 'windForce'
         | 'galeForceUntil'
         | 'mistralUntil'

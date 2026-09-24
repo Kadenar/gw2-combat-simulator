@@ -5,7 +5,7 @@ import test from 'node:test';
 import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import { thiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
+import { thiefEndurance, thiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { advanceThiefCoreResources } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 import { handleThiefState } from '#gw2/professions/thief/family-state.js';
@@ -106,7 +106,15 @@ test('Hidden Thief checkpoints stay detached and preserve resolver-owned proc de
 // Exercise owner-local claims through their real dispatchers, including synchronous re-entry.
 for (const [name, traitId, invoke, output] of [
   ['Hidden Thief', TRAIT.HIDDEN_THIEF, (c) => emitStealTraitEffects(c), 'emit'],
-  ['Upper Hand', TRAIT.UPPER_HAND, (c) => completeThiefDodge(c), 'emit'],
+  [
+    'Upper Hand',
+    TRAIT.UPPER_HAND,
+    (c) => {
+      c.state.time = c.effectiveEnd;
+      completeThiefDodge(c);
+    },
+    'emit'
+  ],
   [
     'Lotus Poison',
     TRAIT.LOTUS_POISON,
@@ -191,8 +199,13 @@ function traitContext(selectedTraitIds = [], config = {}) {
   const conditions = [];
   const core = createThiefCoreState(fullConfig);
   core.enduranceUpdatedAt = 1;
+  core.initiative.updatedAt = 1;
   const context = {
-    profession: { id: 'thief', catalog: thiefCatalog, resources: { endurance: thiefEndurance } },
+    profession: {
+      id: 'thief',
+      catalog: thiefCatalog,
+      resources: { endurance: thiefEndurance, initiative: thiefInitiative }
+    },
     catalog: thiefCatalog,
     config: fullConfig,
     state: {
@@ -327,7 +340,7 @@ test('Potent Poison adjusts each moved player poison packet', () => {
 test('Kleptomaniac restores initiative on steal completion', () => {
   const { context, core, events } = traitContext([TRAIT.KLEPTOMANIAC], { initialInitiative: 0 });
   applyStealCompletionTraits(context, 1);
-  assert.equal(core.initiative, 2);
+  assert.equal(core.initiative.value, 2);
   assert.equal(events[0].reason, 'kleptomaniac');
 });
 
@@ -603,9 +616,9 @@ test('Shadow Siphoning gates eligible stealth attacks and preserves resolver coo
     assert.equal(siphon.sourceId, TRAIT.SHADOW_SIPHONING);
     assert.equal(siphon.canCrit, false);
     assert.equal(siphon.lifeSiphon, true);
-    const snapshot = { traitProcReadyAt: {}, initiative: 7 };
+    const snapshot = { traitProcReadyAt: {}, initiative: { value: 7, maximum: 12, updatedAt: 0, rate: 1 } };
     handleThiefState(context, { at: 1, state: snapshot });
-    assert.equal(core.initiative, 7);
+    assert.equal(core.initiative.value, 7);
     assert.equal(core.traitProcReadyAt[TRAIT.SHADOW_SIPHONING], 1 + internalCooldown);
     assert.deepEqual(snapshot.traitProcReadyAt, {});
     reactToThiefCoreDamage(context, { ...hit, at: 1 + internalCooldown });

@@ -1,3 +1,4 @@
+import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
@@ -133,6 +134,7 @@ test('resource changes settle accrued progress and replace depletion without adm
   assert.equal(clock.value, 6);
   advanceResourceClock(clock, 3);
   clock.value += 2;
+  anchorResourceClock(clock);
   depletion.refresh(context);
   assert.equal(resourceDepletionAt(clock), 10);
   through(5);
@@ -140,6 +142,7 @@ test('resource changes settle accrued progress and replace depletion without adm
   depletion.stop(context);
   clock.value = 4;
   clock.updatedAt = 6;
+  anchorResourceClock(clock);
   depletion.refresh(context);
   through(10);
   assert.deepEqual(context.events, [10]);

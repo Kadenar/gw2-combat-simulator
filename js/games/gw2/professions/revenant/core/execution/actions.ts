@@ -1,3 +1,4 @@
+import { grantResource } from '#gw2/platform/combat/resources/resource-policy.js';
 /**
  * Owns synthetic Core Revenant action behavior for dodge and Ancient Echo.
  * Action declarations live in `skills/actions.ts`; registration lives in `index.ts`.
@@ -33,6 +34,6 @@ export function gainAncientEchoEnergy(context: RevenantCastContext): void {
     });
   }
 
-  state.energy = Math.min(state.maximumEnergy, state.energy + Number(context.skill.resourceGain || 0));
+  grantResource(context, 'energy', Number(context.skill.resourceGain || 0), at);
   emitRevenantStateSnapshot(context, at, 'ancient-echo');
 }

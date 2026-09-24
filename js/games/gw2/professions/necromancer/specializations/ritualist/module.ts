@@ -1,3 +1,4 @@
+import { ritualistLifeForce } from '#gw2/professions/necromancer/specializations/ritualist/traits/summon-reactions.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
@@ -18,6 +19,7 @@ import { RITUALIST_BALANCE_PROFILES } from '#gw2/professions/necromancer/special
 
 export const ritualistModule = defineNativeModule({
   id: 'Ritualist',
+  resources: { lifeForce: ritualistLifeForce },
   data: createNecromancerModuleData('Ritualist', {
     skillMechanics: RITUALIST_BASE_SKILL_MECHANICS,
     balanceProfiles: RITUALIST_BALANCE_PROFILES

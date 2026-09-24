@@ -1,3 +1,4 @@
+import { setResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { StableEventQueue } from '#kernel/events/queue.js';
@@ -77,7 +78,7 @@ test('Infiltrator signet rearm replaces the pending resource pulse and follows c
     config: { selectedSkills: { utility1: "Infiltrator's Signet" } }
   });
   const { context, state } = scheduler;
-  state.profession.core.initiative = 0;
+  setResource(context, 'initiative', 0);
   state.cooldowns.set(T.INFILTRATORS_SIGNET, 20);
   restartInfiltratorsSignetPassive(context);
   assert.equal(infiltratorsSignetPassive.nextAt(context), 30);
@@ -86,9 +87,13 @@ test('Infiltrator signet rearm replaces the pending resource pulse and follows c
   restartInfiltratorsSignetPassive(context);
   assert.equal(infiltratorsSignetPassive.nextAt(context), 11);
   scheduler.advanceTo(10);
-  const before = state.profession.core.initiative;
+  const before = state.profession.core.initiative.value;
   scheduler.advanceTo(11);
-  assert.equal(state.profession.core.initiative - before, 2, 'one second of regeneration plus one discrete pulse');
+  assert.equal(
+    state.profession.core.initiative.value - before,
+    2,
+    'one second of regeneration plus one discrete pulse'
+  );
   assert.equal(infiltratorsSignetPassive.nextAt(context), 21);
 });
 

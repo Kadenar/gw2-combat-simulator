@@ -147,7 +147,7 @@ test('Thief zero Quick Pockets gain matches a swap without the trait', () => {
   );
   assert.deepEqual(zero.warnings, []);
   assert.ok(zero.events.some((event) => event.reason === 'quick-pockets'));
-  assert.equal(zero.planningState.profession.initiative, baseline.planningState.profession.initiative);
+  assert.equal(zero.planningState.profession.initiative.value, baseline.planningState.profession.initiative.value);
 });
 
 test('Zero periodic intervals disable signet pulses without stalling resource advancement', () => {
@@ -164,6 +164,6 @@ test('Zero periodic intervals disable signet pulses without stalling resource ad
       selectedSkills: ['Signet of Undeath', 'Signet of Vampirism']
     }
   );
-  assert.equal(result.planningState.profession.lifeForce, 0);
+  assert.equal(result.planningState.profession.lifeForce.value, 0);
   assert.equal(result.strikeDamage, 0);
 });

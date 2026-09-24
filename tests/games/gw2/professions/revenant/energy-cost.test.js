@@ -42,7 +42,7 @@ test('Beguiling Haze follow-ups remain available in the palette below their base
   const availability = revenantCorePaletteSkillAvailability(
     {
       specialization: 'Conduit',
-      professionState: { energy: 16, beguilingHazeCharges: 2 }
+      professionState: { energy: { value: 16, maximum: 100, updatedAt: 0, rate: 5 }, beguilingHazeCharges: 2 }
     },
     { id: SKILL.BEGUILING_HAZE, name: 'Beguiling Haze', handlerId: 'revenant.beguiling-haze', energyCost: 20 }
   );
@@ -67,7 +67,7 @@ test("Angsiyah's Trust waives only Energy Meld's energy cost", () => {
 test('Vindicator palette uses resolved traits for Energy Meld affordability', () => {
   const context = {
     specialization: 'Vindicator',
-    professionState: { energy: 0 },
+    professionState: { energy: { value: 0, maximum: 100, updatedAt: 0, rate: 5 } },
     traits: new Set([TRAIT.ANGSIYANS_TRUST])
   };
   const skill = { id: SKILL.ENERGY_MELD, name: 'Energy Meld', energyCost: 10 };
@@ -78,7 +78,7 @@ test('Vindicator palette uses resolved traits for Energy Meld affordability', ()
 test('Configured UI queries resolve selection before calculating Energy costs', () => {
   const context = {
     config: { specialization: 'Vindicator', selectedTraitIds: [TRAIT.ANGSIYANS_TRUST] },
-    professionState: { energy: 0 }
+    professionState: { energy: { value: 0, maximum: 100, updatedAt: 0, rate: 5 } }
   };
   const skill = { id: SKILL.ENERGY_MELD, name: 'Energy Meld', specialization: 'Vindicator', energyCost: 10 };
   assert.equal(revenantProfession.ui.paletteSkillAvailability(context, skill).available, true);

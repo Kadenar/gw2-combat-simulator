@@ -20,7 +20,7 @@ export function predictGhastlyClawsLifeForce(
   if (Number(event.skillId) !== ID.GHASTLY_CLAWS) return;
   predictNecromancerLifeForceGain(
     context,
-    event.at,
+    event,
     Number(context.catalog.skillsById.get(ID.GHASTLY_CLAWS)?.lifeForcePerHit || 0)
   );
 }

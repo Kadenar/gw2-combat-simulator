@@ -1,3 +1,9 @@
+import {
+  initializeProfessionResources,
+  refreshResource,
+  grantResource
+} from '#gw2/platform/combat/resources/resource-policy.js';
+import { firebrandPages } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -21,7 +27,6 @@ import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.j
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
 import { soulbeastAttributeRules } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as SB } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
-import { restoreArrow } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as GALE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { conduitModifierRules } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity-rules.js';
@@ -110,18 +115,19 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
       state: { profession: { specialization: { kind: 'Firebrand', state: second } } }
     };
     initializeFirebrandBalanceState(context);
-    assert.equal(second.tomePages, expected);
-    assert.equal(second.maximumTomePages, 9);
-    assert.equal(second.nextTomePageAt, expected < 9 ? 5 : Infinity);
+    assert.equal(second.tomePages.value, expected);
+    assert.equal(second.tomePages.maximum, 9);
+    assert.equal(second.tomePages.nextAt, expected < 9 ? 5 : Infinity);
     assert.deepEqual(first, second);
     assert.notEqual(first.tomeDormantReadyAt, second.tomeDormantReadyAt);
   }
 
   const config = { selectedTraitIds: [GT.ARCHIVIST_OF_WHISPERS], initialTomePages: 6 };
   const state = createFirebrandState(config);
-  initializeFirebrandBalanceState({
+  initializeProfessionResources({
+    profession: { resources: { tomePages: firebrandPages } },
     config,
-    state: { profession: { specialization: { kind: 'Firebrand', state } } },
+    state: { time: 0, profession: { specialization: { kind: 'Firebrand', state } } },
     catalog: {
       balanceProfilesById: new Map([
         ...guardianCatalog.balanceProfilesById,
@@ -130,9 +136,9 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
       ])
     }
   });
-  assert.equal(state.tomePages, 10);
-  assert.equal(state.nextTomePageAt, Infinity);
-  assert.equal(state.tomePageInterval, 2);
+  assert.equal(state.tomePages.value, 10);
+  assert.equal(state.tomePages.nextAt, Infinity);
+  assert.equal(state.tomePages.interval, 2);
 });
 
 // Canonical normal charges never become final merely because ammo or descriptions say so.
@@ -141,10 +147,11 @@ test('Weighty Terms follows mantra IDs while preserving unfamiliar custom final-
     profession: guardianProfession,
     config: { specialization: 'Firebrand', selectedTraitIds: [GT.WEIGHTY_TERMS] }
   });
+  context.advanceTo(1);
   const state = context.state.profession.specialization.state;
   for (const mantra of MANTRAS) {
     for (const id of [mantra.rootId, mantra.normalId, mantra.finalId]) {
-      state.tomePages = 0;
+      state.tomePages.value = 0;
       const skill = {
         ...context.catalog.skillsById.get(id),
         name: 'Renamed mantra',
@@ -152,7 +159,7 @@ test('Weighty Terms follows mantra IDs while preserving unfamiliar custom final-
         categories: ['Mantra']
       };
       updateFirebrandCastState({ ...context, effectiveEnd: 1, ammo: { charges: 1 } }, skill);
-      assert.equal(state.tomePages, id === mantra.finalId ? 2 : 0);
+      assert.equal(state.tomePages.value, id === mantra.finalId ? 2 : 0);
     }
   }
 
@@ -160,9 +167,9 @@ test('Weighty Terms follows mantra IDs while preserving unfamiliar custom final-
     { id: 999991, name: 'Custom', description: 'Final Charge.' },
     { id: 999992, name: 'Custom', categories: ['Mantra'] }
   ]) {
-    state.tomePages = 0;
+    state.tomePages.value = 0;
     updateFirebrandCastState({ ...context, effectiveEnd: 1, ammo: { charges: 1 } }, skill);
-    assert.equal(state.tomePages, 2);
+    assert.equal(state.tomePages.value, 2);
   }
 });
 
@@ -215,14 +222,18 @@ test('Galeshot arrow restoration preserves fractional gains and uses the current
   const state = context.state.profession.specialization.state;
   const patched = {
     ...context,
-    catalog: { ...context.catalog, balanceProfilesById: new Map([[GALE.resources, { maximumStacks: 4.5 }]]) }
+    catalog: {
+      ...context.catalog,
+      balanceProfilesById: new Map([[GALE.resources, { maximumStacks: 4.5, pulseInterval: 5 }]])
+    }
   };
-  state.arrows = 2.25;
-  restoreArrow(patched, 0.5);
-  assert.equal(state.arrows, 2.75);
-  restoreArrow(patched, 10);
-  assert.equal(state.arrows, 4.5);
-  assert.equal(state.maximumArrows, 4.5);
+  state.arrows.value = 2.25;
+  refreshResource(patched, 'arrows');
+  grantResource(patched, 'arrows', 0.5);
+  assert.equal(state.arrows.value, 2.75);
+  grantResource(patched, 'arrows', 10);
+  assert.equal(state.arrows.value, 4.5);
+  assert.equal(state.arrows.maximum, 4.5);
 });
 
 test('Fervor counting preserves start, expiry, and cap boundaries on readonly partial state', () => {

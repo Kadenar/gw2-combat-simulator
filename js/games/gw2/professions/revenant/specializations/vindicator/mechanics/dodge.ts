@@ -1,7 +1,7 @@
+import { grantResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
 /**
  * Revenant dodge execution.
@@ -44,7 +44,6 @@ export function selectedDodgeSkill(context: RevenantSchedulerContext): RevenantS
 /** Applies Energy Meld's selected Vindicator trait package. */
 export function performEnergyMeld(context: RevenantCastContext, skill: RevenantSkill): void {
   const state = vindicatorState.from(context);
-  const coreState = professionCoreState(context);
   const at = context.effectiveEnd;
   const songOfArboreum = hasTrait(context.config, TRAIT.SONG_OF_ARBOREUM)
     ? requireBalanceProfileFromContext(context, VINDICATOR_BALANCE_PROFILE_IDS.songOfArboreum)
@@ -69,10 +68,7 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
     revenantCombatActive(context, at)
   ) {
     const angsiyansTrust = requireBalanceProfileFromContext(context, VINDICATOR_BALANCE_PROFILE_IDS.angsiyansTrust);
-    coreState.energy = Math.min(
-      coreState.maximumEnergy,
-      coreState.energy + Math.max(0, balanceProfileNumber(angsiyansTrust, 'resourceGain'))
-    );
+    grantResource(context, 'energy', Math.max(0, balanceProfileNumber(angsiyansTrust, 'resourceGain')), at);
   }
 
   const vigor = songOfArboreum && requireEffect(songOfArboreum, 'boon', 'vigor');

@@ -1,5 +1,4 @@
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
-import type { SchedulerState } from '#gw2/platform/execution/types.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { createCanonicalTargetConditionStateMap } from '#gw2/platform/combat/state/targets.js';
@@ -13,7 +12,7 @@ export interface MaterializerState {
   config: Gw2Config;
   traits: ReadonlySet<string | number> | null;
   query: Readonly<Gw2CombatQuery> | null;
-  state: SchedulerState | null;
+  profession: object | null;
   activeWeaponSet: number;
   combatActive: boolean;
   combatBeganAt: number | null;
@@ -40,7 +39,7 @@ export function createMaterializerState(
     config,
     traits,
     query: null,
-    state: null,
+    profession: null,
     activeWeaponSet: Number(config.startingWeaponSet) === 2 ? 2 : 1,
     combatActive: false,
     combatBeganAt: null,

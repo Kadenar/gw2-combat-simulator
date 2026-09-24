@@ -1,8 +1,7 @@
+import { grantResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 /** Renegade runtime state machines backed by declarative skill profiles. */
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
@@ -229,8 +228,7 @@ export function beginBandTogether(context: RevenantCastContext, skill: RevenantS
   state.bandTogetherExpiresAt = 0;
   if (enhanced && hasTrait(context, TRAIT.ALL_FOR_ONE)) {
     const allForOne = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.allForOne);
-    const core = professionCoreState(context);
-    core.energy = grantCapped(core.energy, balanceProfileNumber(allForOne, 'resourceGain'), core.maximumEnergy);
+    grantResource(context, 'energy', balanceProfileNumber(allForOne, 'resourceGain'));
     emitRevenantStateSnapshot(context, context.start, 'all-for-one');
   }
 

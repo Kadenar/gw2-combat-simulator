@@ -77,7 +77,7 @@ const HARBINGER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = 
     kind: 'meltdown',
     name: 'Meltdown',
     stateFromEvent: (event) => {
-      if (event.type !== 'necromancer.state') return null;
+      if (event.type !== 'necromancer.state' && event.type !== 'necromancer.blight') return null;
       const expiresAt = Number((event.state as { meltdownUntil?: number })?.meltdownUntil || 0);
       return { stacks: Number(expiresAt > event.at), expiresAt };
     }

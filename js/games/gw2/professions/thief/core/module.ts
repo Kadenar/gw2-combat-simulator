@@ -14,7 +14,7 @@ import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from '#gw2/profes
 import { thiefCoreSkillHandlers } from '#gw2/professions/thief/core/execution/index.js';
 import { THIEF_CORE_BALANCE_PROFILES } from '#gw2/professions/thief/core/profiles.js';
 import { thiefCoreSchedulerHooks } from '#gw2/professions/thief/core/execution/hooks.js';
-import { thiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
+import { thiefEndurance, thiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 
 export const thiefCoreModule = defineNativeModule({
   id: 'Core',
@@ -23,7 +23,7 @@ export const thiefCoreModule = defineNativeModule({
     balanceProfiles: THIEF_CORE_BALANCE_PROFILES,
     extraSkills: THIEF_CORE_EXTRA_SKILLS
   }),
-  resources: { endurance: thiefEndurance },
+  resources: { endurance: thiefEndurance, initiative: thiefInitiative },
   state: {
     scheduler: createThiefCoreState,
     resolver: createThiefCoreState,

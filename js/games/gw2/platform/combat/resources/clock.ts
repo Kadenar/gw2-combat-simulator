@@ -7,11 +7,25 @@ export interface ResourceClock {
   maximum: number;
   updatedAt: number;
   rate: number;
+  /** Positive recovery may stop below capacity without discarding grants above that limit. */
+  recoveryMaximum?: number;
+}
+
+// Runtime observations retain one fixed segment; only resource mutations replace its anchor.
+const resourceAnchors = new WeakMap<ResourceClock, ResourceClock>();
+export function resourceAnchor(clock: ResourceClock): ResourceClock {
+  return resourceAnchors.get(clock) ?? clock;
+}
+
+export function anchorResourceClock(clock: ResourceClock): void {
+  resourceAnchors.set(clock, { ...clock });
 }
 
 /** Queries a fixed accrual anchor without accumulating rounding from intermediate observations. */
 export function resourceValueAt(clock: ResourceClock, at: number): number {
-  return cappedResource(clock.value + (at - clock.updatedAt) * clock.rate, clock.maximum);
+  const anchor = resourceAnchor(clock);
+  const value = cappedResource(anchor.value + (at - anchor.updatedAt) * anchor.rate, anchor.maximum);
+  return anchor.rate > 0 ? Math.min(value, Math.max(anchor.value, anchor.recoveryMaximum ?? anchor.maximum)) : value;
 }
 
 /** Accrues the previous rate before a gain, spend, or rate change; fractional progress survives every boundary. */
@@ -27,11 +41,13 @@ export function setResourceRate(clock: ResourceClock, at: number, rate: number):
   if (!Number.isFinite(rate)) throw new TypeError('Resource rates must be finite.');
   advanceResourceClock(clock, at);
   clock.rate = rate;
+  anchorResourceClock(clock);
 }
 
 /** Returns the next zero crossing; a non-draining resource has no depletion deadline. */
 export function resourceDepletionAt(clock: ResourceClock): number {
-  return clock.rate < 0 ? clock.updatedAt + clock.value / -clock.rate : Infinity;
+  const anchor = resourceAnchor(clock);
+  return anchor.rate < 0 ? anchor.updatedAt + anchor.value / -anchor.rate : Infinity;
 }
 
 /** Credits grants on the first 40 ms tick at or after their deadline, preserving cadence even at the cap. */

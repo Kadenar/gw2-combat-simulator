@@ -19,7 +19,8 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import {
-  advanceDruidState,
+  initializeNaturalMender,
+  naturalMender,
   astralForceReadyAt,
   avatarDepletion,
   druidAstralForceReaction
@@ -162,11 +163,7 @@ export const druidAttributeRules = Object.freeze({
 });
 
 export const druidSchedulerHooks = Object.freeze({
-  advance: {
-    id: 'ranger.druid-advance',
-    order: 20,
-    handler: advanceDruidState
-  },
+  initialize: initializeNaturalMender,
   onEventScheduled: {
     id: 'ranger.druid-astral-force-events',
     order: 20,
@@ -176,6 +173,7 @@ export const druidSchedulerHooks = Object.freeze({
   },
   taskHandlers: {
     ...avatarDepletion.taskHandlers,
+    ...naturalMender.taskHandlers,
     ...druidAstralForceReaction.taskHandlers
   }
 });
@@ -193,7 +191,7 @@ export function druidCastAvailability(context: RangerCastContext, skill: RangerS
 
     if (state.astralClock.value < state.astralClock.maximum) {
       const retryAt = astralForceReadyAt(context);
-      // Provide a retryAt when Natural Mender can predict the ready time so the scheduler waits instead of skipping
+      // Retry known passive or hit boundaries; only executed grants can fund entry.
       if (retryAt != null) {
         return {
           ready: false,
@@ -203,7 +201,7 @@ export function druidCastAvailability(context: RangerCastContext, skill: RangerS
         };
       }
 
-      // No retryAt: force only comes from hits, can't predict when it will be full
+      // No scheduled recovery can currently fund entry.
       return deny(skill, 'ranger.astral-force', 'requires full astral force.');
     }
   }

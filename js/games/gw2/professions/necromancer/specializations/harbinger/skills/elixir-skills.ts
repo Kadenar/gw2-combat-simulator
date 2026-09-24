@@ -23,13 +23,13 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
   [ID.ELIXIR_OF_RISK]: {
     // Risk occupies the same 680 ms Quickness cast lane as the other thrown Harbinger elixirs.
     castTimeMs: 680,
-    // The projectile releases at 440 ms, so canceling the remaining animation retains its later impact.
+    // Safe animation cancellation is independent of Blight consumption and projectile impact.
     interruptCommitMs: 440,
     blightCost: 5,
     blightGain: 10,
     effects: impactEffects(
       // The launched projectile survives an animation cancel and lands on its measured impact frame.
-      { atMs: (680 * 20) / 27, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      { atMs: 400, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 2, hits: 1 },
         { type: 'condition', condition: 'Torment', stacks: 3, duration: 5 },
@@ -55,12 +55,12 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
   },
   [ID.ELIXIR_OF_AMBITION]: {
     castTimeMs: 680,
-    // The thrown elixir commits on its 400 ms impact frame, allowing the remaining animation to be canceled.
+    // Safe animation cancellation is independent of Blight consumption.
     interruptCommitMs: 400,
     blightCost: 10,
     blightGain: 15,
     effects: impactEffects(
-      // The thrown elixir lands when it commits, independently of the cancelable remaining animation.
+      // The committed projectile lands independently of the cancelable remaining animation.
       { atMs: 400, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [
         { type: 'strike', coefficient: 1.5, hits: 1 },
@@ -98,7 +98,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
   },
   [ID.ELIXIR_OF_PROMISE]: {
     castTimeMs: 680,
-    // Promise commits when its thrown projectile reaches the 400 ms impact frame.
+    // Safe animation cancellation is independent of Blight consumption.
     interruptCommitMs: 400,
     blightCost: 5,
     blightGain: 10,

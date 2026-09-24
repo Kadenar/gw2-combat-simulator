@@ -1,4 +1,6 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { refreshResource, type ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
+import { resourceDepletion } from '#gw2/platform/profession-definition/mechanics.js';
+import { necromancerLifeForce, leaveShroud } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -14,11 +16,7 @@ import {
   registerCreatureSummonReaction,
   registerNecromancerCreatureStrikeMultiplier
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { syncNecromancerResources } from '#gw2/professions/necromancer/core/state.js';
-import {
-  registerNecromancerResourceAdvance,
-  registerNecromancerShroudLifecycle
-} from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
+import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import type {
@@ -27,6 +25,7 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
 
 function applyRitualistCreatureSummonTraits(
   context: NecromancerCastContext,
@@ -80,25 +79,6 @@ export function initializeRitualistSummonTraits(context: NecromancerSchedulerCon
       ritualistState.from(runtime).activeSpirits = {};
     }
   });
-  registerNecromancerResourceAdvance(context, 'ritualist.lingering-spirits', (runtime, start, end) => {
-    const core = professionCoreState(runtime);
-    const state = ritualistState.from(runtime);
-    if (core.activeShroud || !Object.keys(state.activeSpirits).length || !hasTrait(runtime, TRAIT.LINGERING_SPIRITS)) {
-      return;
-    }
-
-    const drainPercent = balanceProfileNumber(
-      requireBalanceProfileFromContext(runtime, PROFILE.resources),
-      'lifeForceDrain'
-    );
-    core.lifeForce = Math.max(0, core.lifeForce - core.maximumLifeForce * (drainPercent / 100) * (end - start));
-    if (core.lifeForce <= EPSILON) {
-      core.lifeForce = 0;
-      state.activeSpirits = {};
-    }
-
-    syncNecromancerResources(core);
-  });
 }
 
 /** Refunds the first completed spirit summon after Soul Twisting is armed. */
@@ -130,3 +110,35 @@ export function emitEmpoweringSpirits(context: NecromancerCastContext, skill: Ne
     });
   }
 }
+
+/** Lingering Spirits keep draining after shroud; exhaustion removes spirits once without re-entering the form. */
+export const ritualistLifeForceDepletion = resourceDepletion({
+  id: 'necromancer.ritualist-life-force-depleted',
+  priority: -300,
+  clock: (context: NecromancerSchedulerContext) => professionCoreState(context).lifeForce,
+  depleted(context: NecromancerSchedulerContext, at: number) {
+    if (professionCoreState(context).activeShroud) leaveShroud(context, at, 'life-force-depleted');
+    ritualistState.from(context).activeSpirits = {};
+    refreshResource(context, 'lifeForce');
+    // The resource observation carries only life force, so spirit removal needs its own transition.
+    emitNecromancerStateSnapshot(context, at, 'spirits-depleted', { dedupeAcrossSourceIds: true });
+  }
+});
+export const ritualistLifeForce: ResourcePolicy<NecromancerSchedulerContext> = {
+  ...necromancerLifeForce,
+  depletion: ritualistLifeForceDepletion,
+  recovery(context) {
+    const core = professionCoreState(context);
+    if (
+      !core.activeShroud &&
+      Object.keys(ritualistState.from(context).activeSpirits).length &&
+      hasTrait(context, TRAIT.LINGERING_SPIRITS)
+    )
+      return (
+        (-core.lifeForce.maximum *
+          balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'lifeForceDrain')) /
+        100
+      );
+    return necromancerLifeForce.recovery(context);
+  }
+};

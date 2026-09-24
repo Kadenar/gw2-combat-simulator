@@ -1,3 +1,4 @@
+import { refreshResource } from '#gw2/platform/combat/resources/resource-policy.js';
 /** Owns immediate Core Thief action callbacks; persistent summon behavior lives in mechanics. */
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import {
@@ -17,6 +18,7 @@ export function applyThiefWeaponSwapEffects(context: ThiefCastContext): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
   state.kneeling = false;
+  refreshResource(context, 'initiative');
   emitThiefStateSnapshot(context, at, 'stand');
   const inCombat =
     !context.hasExplicitCombatStart ||
@@ -35,12 +37,14 @@ export function applyThiefWeaponSwapEffects(context: ThiefCastContext): void {
 /** Enters the Kneel stance after its action completes. */
 export function kneel(context: ThiefCastContext): void {
   professionCoreState(context).kneeling = true;
+  refreshResource(context, 'initiative');
   emitThiefStateSnapshot(context, context.effectiveEnd, 'kneel');
 }
 
 /** Leaves the Kneel stance after its action completes. */
 export function stand(context: ThiefCastContext): void {
   professionCoreState(context).kneeling = false;
+  refreshResource(context, 'initiative');
   emitThiefStateSnapshot(context, context.effectiveEnd, 'stand');
 }
 

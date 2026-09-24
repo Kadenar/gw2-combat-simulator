@@ -6,7 +6,7 @@ import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
-import { advanceGaleshotArrows } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
+import { advanceProfessionResources } from '#gw2/platform/combat/resources/resource-policy.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { activeSoulbeastBuff } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
@@ -117,15 +117,15 @@ test('Galeshot arrow regeneration ignores Alacrity gain and expiry across wait p
       const scheduler = schedulerFor({ specialization: 'Galeshot' });
       boon(scheduler, 'alacrity', at, duration);
       const state = galeshotState.from(scheduler.context);
-      for (const time of partition) advanceGaleshotArrows(scheduler.context, time);
-      assert.equal(state.arrows, 0);
-      assert.equal(state.nextArrowAt, 5);
-      advanceGaleshotArrows(scheduler.context, 5);
-      assert.equal(state.arrows, 1);
-      assert.equal(state.nextArrowAt, 10);
-      advanceGaleshotArrows(scheduler.context, 10);
-      assert.equal(state.arrows, 2);
-      assert.equal(state.nextArrowAt, 15);
+      for (const time of partition) advanceProfessionResources(scheduler.context, time);
+      assert.equal(state.arrows.value, 0);
+      assert.equal(state.arrows.nextAt, 5);
+      advanceProfessionResources(scheduler.context, 5);
+      assert.equal(state.arrows.value, 1);
+      assert.equal(state.arrows.nextAt, 10);
+      advanceProfessionResources(scheduler.context, 10);
+      assert.equal(state.arrows.value, 2);
+      assert.equal(state.arrows.nextAt, 15);
     }
   }
 });

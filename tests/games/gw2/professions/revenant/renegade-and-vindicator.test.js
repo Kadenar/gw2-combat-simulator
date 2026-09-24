@@ -25,6 +25,9 @@ import {
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { handleRevenantState } from '#gw2/professions/revenant/family-state.js';
 import { createRenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
+import { spendProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 import {
   activeKallasFervorStacks,
   castHeroicCommand,
@@ -797,6 +800,40 @@ test('Renegade critical traits consume seeded critical outcomes', () => {
   assert.deepEqual([...criticalOutcomes].sort(), [false, true]);
 });
 
+test('Brutal Momentum proc facts follow live endurance while preserving earlier hit facts', () => {
+  // Proc evaluation must read the same profession resource that spending changes.
+  const config = {
+    ...baseConfig,
+    specialization: 'Renegade',
+    selectedTraitIds: [TRAIT.BRUTAL_MOMENTUM],
+    stats: { ...baseConfig.stats, precision: 895 },
+    boons: {}
+  };
+  const policy = createGw2SchedulerPolicy(config);
+  policy.requireCriticalFacts();
+  const scheduler = createScheduler({ profession: revenantProfession, config, schedulerPolicy: policy });
+  const { context } = scheduler;
+  const hit = {
+    type: 'damage',
+    at: 0,
+    source: 'revenant',
+    sourceId: SKILL.PREPARATION_THRUST,
+    skillId: SKILL.PREPARATION_THRUST,
+    skillName: 'Preparation Thrust',
+    actorType: 'player',
+    coefficient: 1
+  };
+  const beforeSpend = context.emit(hit);
+  scheduler.advanceTo(0);
+  assert.equal(policy.critical(context, beforeSpend).chance, 0.33);
+
+  spendProfessionEndurance(context, 50, 0);
+  const afterSpend = context.emit(hit);
+  scheduler.advanceTo(0);
+  assert.equal(policy.critical(context, afterSpend).chance, 0.1);
+  assert.equal(policy.critical(context, beforeSpend).chance, 0.33);
+});
+
 test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () => {
   const context = (traitId, extra = {}) => ({
     config: {
@@ -1090,7 +1127,7 @@ test('All for One refunds Energy and halves only enhanced-skill recharge', () =>
   const traited = simulate('Renegade', rotation, { ...config, selectedTraitIds: [TRAIT.ALL_FOR_ONE] });
   assert.deepEqual(base.warnings, []);
   assert.deepEqual(traited.warnings, []);
-  assert.ok(traited.planningState.profession.energy > base.planningState.profession.energy);
+  assert.ok(traited.planningState.profession.energy.value > base.planningState.profession.energy.value);
   assert.equal(
     traited.planningState.cooldowns["Icerazor's Ire"].remaining,
     base.planningState.cooldowns["Icerazor's Ire"].remaining / 2
@@ -1341,7 +1378,8 @@ test('both Energy Meld variants grant resources only on completed casts', () => 
       assert.equal(meld.length, interruptAfterMs == null ? 1 : 0);
       const passiveEnergy = (5 * result.steps.at(-1).end) / 1000;
       assert.ok(
-        Math.abs(result.planningState.profession.energy - passiveEnergy - (interruptAfterMs == null ? 25 : 0)) < 1e-9
+        Math.abs(result.planningState.profession.energy.value - passiveEnergy - (interruptAfterMs == null ? 25 : 0)) <
+          1e-9
       );
       if (meld.length) assert.equal(meld[0].at, result.steps.at(-1).end / 1000);
     }
@@ -1379,15 +1417,23 @@ test('Vindicator Dodge waits for endurance and Vigor shortens that wait', () => 
 test('Vindicator resource display includes live endurance', () => {
   const core = revenantProfession.ui.resourceViews({
     specialization: 'Core',
-    professionState: { energy: 40.9, endurance: 25, maximumEndurance: 100 }
+    professionState: {
+      energy: { value: 40.9, maximum: 100, updatedAt: 0, rate: 5 },
+      endurance: 25,
+      maximumEndurance: 100
+    }
   });
   const conduit = revenantProfession.ui.resourceViews({
     specialization: 'Conduit',
-    professionState: { energy: 40, affinity: 3 }
+    professionState: { energy: { value: 40, maximum: 100, updatedAt: 0, rate: 5 }, affinity: 3 }
   });
   const vindicator = revenantProfession.ui.resourceViews({
     specialization: 'Vindicator',
-    professionState: { energy: 40, endurance: 25, maximumEndurance: 100 }
+    professionState: {
+      energy: { value: 40, maximum: 100, updatedAt: 0, rate: 5 },
+      endurance: 25,
+      maximumEndurance: 100
+    }
   });
 
   assert.deepEqual(
@@ -1769,19 +1815,22 @@ test('Deathstrike weapon palette keeps the primary skill timing on cooldown', ()
 test('Revenant restoration preserves resolver-owned trait and Soulcleave clocks', () => {
   const revenant = {
     profession: {
-      core: { energy: 10, traitProcReadyAt: { chargedMistsReadyAt: 8 } },
+      core: {
+        energy: { value: 10, maximum: 100, updatedAt: 0, rate: 5 },
+        traitProcReadyAt: { chargedMistsReadyAt: 8 }
+      },
       specialization: { kind: 'Renegade', state: { kallasFervor: 1, soulcleaveReadyAt: 9 } }
     }
   };
   handleRevenantState(revenant, {
     state: {
-      energy: 20,
+      energy: { value: 20, maximum: 100, updatedAt: 0, rate: 5 },
       kallasFervor: 2,
       traitProcReadyAt: { chargedMistsReadyAt: 1 },
       soulcleaveReadyAt: 3
     }
   });
-  assert.equal(revenant.profession.core.energy, 20);
+  assert.equal(revenant.profession.core.energy.value, 20);
   assert.equal(revenant.profession.specialization.state.kallasFervor, 2);
   assert.deepEqual(revenant.profession.core.traitProcReadyAt, { chargedMistsReadyAt: 8 });
   assert.equal(revenant.profession.specialization.state.soulcleaveReadyAt, 9);

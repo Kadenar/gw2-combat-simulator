@@ -1,7 +1,6 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
-import { advanceDiscreteResource } from '#gw2/platform/combat/resources/clock.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { grantResource, spendResource, resourceReadyAt } from '#gw2/platform/combat/resources/resource-policy.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import {
   requireBalanceProfileFromContext,
@@ -95,14 +94,13 @@ export function tomePageAvailability(context: GuardianPrecastContext, skill: Gua
   if (!skill.tome || selectedGuardianSpecialization(context) !== 'Firebrand' || state.activeTome !== skill.tome)
     return CAST_READY;
   const pageCost = Math.max(1, Number(skill.pageCost ?? 1));
-  if (state.tomePages >= pageCost) return CAST_READY;
+  if (state.tomePages.value >= pageCost) return CAST_READY;
   // Pages only ever regenerate upward, so waiting for the scheduled page is a
   // terminating condition. A non-finite next page (regeneration not started)
   // leaves retryAt null so the denial stays final rather than looping forever.
   const reason = `${skill.name} is unavailable — requires ${pageCost} tome page${pageCost === 1 ? '' : 's'}.`;
-  return Number.isFinite(state.nextTomePageAt)
-    ? retryCast(gw2CooldownReadyAt(state.nextTomePageAt), 'guardian.tome-pages', reason)
-    : denyCast('guardian.tome-pages', reason);
+  const readyAt = resourceReadyAt(context, 'tomePages', pageCost);
+  return readyAt != null ? retryCast(readyAt, 'guardian.tome-pages', reason) : denyCast('guardian.tome-pages', reason);
 }
 
 /**
@@ -132,15 +130,11 @@ export function completeTomePage(context: GuardianCastContext, skill: GuardianSk
   if (skill.handlerId !== 'guardian.tome-page' || context.action.cancelled) return;
   const state = firebrandState.from(context);
   const pageCost = Math.max(1, Number(skill.pageCost ?? 1));
-  // The first spend starts regeneration; later spends and refunds preserve its cadence, even at the cap.
-  if (!Number.isFinite(state.nextTomePageAt) && state.tomePageInterval > 0) {
-    state.nextTomePageAt = context.effectiveEnd + state.tomePageInterval;
-  }
-
-  state.tomePages = Math.max(0, state.tomePages - pageCost);
+  // Shared spending starts the first recovery timer and preserves subsequent cadence.
+  spendResource(context, 'tomePages', pageCost);
   const pageGain = Number(context.eventByOrder(Number(context.action.eventOrder))?.tomePageRefund ?? 0);
   if (pageGain > 0) {
-    state.tomePages = Math.min(state.maximumTomePages, state.tomePages + pageGain);
+    grantResource(context, 'tomePages', pageGain);
     context.emit({
       type: 'proc',
       procType: 'trait',
@@ -185,9 +179,9 @@ export function completeTomePage(context: GuardianCastContext, skill: GuardianSk
   emitGuardianEvent(context, skill, 'guardian.tome-page-used', {
     tome: skill.tome,
     pageCost,
-    pagesRemaining: state.tomePages,
+    pagesRemaining: state.tomePages.value,
     activeTome: state.activeTome,
-    nextTomePageAt: state.nextTomePageAt
+    nextTomePageAt: state.tomePages.nextAt
   });
 }
 
@@ -318,10 +312,10 @@ function handleTomeStowed(context: GuardianResolverContext): void {
  * Replays a tome page resource snapshot into resolver state.
  */
 function handleTomePageUsed(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  firebrandState.from(context).tomePages = Number(event.pagesRemaining || 0);
+  firebrandState.from(context).tomePages.value = Number(event.pagesRemaining || 0);
   // Resource snapshots neither close an exhausted tome nor reopen one explicitly stowed during the animation.
-  firebrandState.from(context).nextTomePageAt = Number(
-    event.nextTomePageAt ?? firebrandState.from(context).nextTomePageAt
+  firebrandState.from(context).tomePages.nextAt = Number(
+    event.nextTomePageAt ?? firebrandState.from(context).tomePages.nextAt
   );
 }
 
@@ -354,18 +348,6 @@ export const guardianTomeEventHandlers = Object.freeze({
 export function advanceTomeState(context: GuardianSchedulerContext, target: number): void {
   const state = firebrandState.from(context);
   // A zero authored cadence disables regeneration without disabling spends or refunds.
-  if (state.tomePageInterval > 0) {
-    const pages = advanceDiscreteResource(
-      state.tomePages,
-      state.maximumTomePages,
-      state.nextTomePageAt,
-      state.tomePageInterval,
-      target
-    );
-    state.tomePages = pages.value;
-    state.nextTomePageAt = pages.nextAt;
-  }
-
   // Advancing to the deadline precedes its strikes; retain charges until those have resolved.
   expireCharges(state.ashes, target, true);
 }

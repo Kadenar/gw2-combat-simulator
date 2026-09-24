@@ -1,3 +1,4 @@
+import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import type { ProfessionBuildDefinition, UnvalidatedBuild, BuildValidationResult } from '#gw2/platform/builds/types.js';
@@ -27,7 +28,7 @@ import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 
-export interface ProfessionResourceDefinition<TProfessionState extends object = object> {
+export interface ProfessionResourceDefinition<TProfessionState extends object = object> extends ResourcePolicies {
   readonly endurance?: EndurancePolicy;
   readonly createProfessionState?: (config: Readonly<SchedulerConfig>) => TProfessionState;
   readonly createResolverState?: (config: Readonly<SchedulerConfig>) => object;
@@ -165,7 +166,7 @@ export interface NormalizedProfessionContract<
   TEventHandlers extends object = object,
   TEventReactions extends object = object
 > {
-  readonly resources: { readonly endurance: EndurancePolicy | null };
+  readonly resources: ResourcePolicies & { readonly endurance: EndurancePolicy | null };
   /** One equipment eligibility policy used by simulation and application consumers. */
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   readonly id: string;

@@ -90,7 +90,7 @@ test('Ancient Echo selects exactly the active Core legend package', () => {
       result.events.filter((event) => event.type === 'buff').map((event) => [event.kind, event.duration, event.stacks]),
       [[kind, duration, stacks]]
     );
-    assert.equal(result.planningState.profession.energy, 75 + result.rotationEndTime * 5);
+    assert.equal(result.planningState.profession.energy.value, 75 + result.rotationEndTime * 5);
   }
 });
 
@@ -157,7 +157,10 @@ test('Draconic Echo retains bounded facet pulses without upkeep drain, including
   const consumeAt = consumed.rotationEndTime;
   assert.deepEqual(retained.warnings, []);
   assert.deepEqual(retained.planningState.profession.activeUpkeeps, []);
-  assert.equal(retained.planningState.profession.energy - consumed.planningState.profession.energy, 35);
+  assert.ok(
+    Math.abs(retained.planningState.profession.energy.value - consumed.planningState.profession.energy.value - 35) <
+      1e-9
+  );
   assert.ok(pulses(retained).some((event) => event.at > consumeAt));
   assert.ok(pulses(retained).every((event) => event.at < consumeAt + 6));
   assert.deepEqual(

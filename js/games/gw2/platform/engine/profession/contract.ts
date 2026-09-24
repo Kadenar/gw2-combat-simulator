@@ -1,3 +1,8 @@
+import {
+  initializeProfessionResources,
+  resourcePolicies,
+  validateResourcePolicies
+} from '#gw2/platform/combat/resources/resource-policy.js';
 /**
  * Profession contract normalization. Validates sparse profession definitions
  * and composes deterministic no-op-safe hooks for the neutral engine.
@@ -341,6 +346,7 @@ export function defineProfession<TProfessionState extends object, TBuild extends
 ): Readonly<NormalizedProfessionContract<TProfessionState, object, object>> {
   assertDefinition(definition);
   const resources = definition.resources || {};
+  validateResourcePolicies(resources);
   // A selected resource capability must be complete; absence is the only unsupported-resource representation.
   if (
     resources.endurance &&
@@ -427,13 +433,19 @@ export function defineProfession<TProfessionState extends object, TBuild extends
       initializeProfessionEndurance({
         config,
         catalog: definition.catalog,
-        profession: { resources: { endurance: resources.endurance ?? null } },
+        profession: { resources: { ...resourcePolicies(resources), endurance: resources.endurance ?? null } },
+        state: { time: 0, profession: state }
+      } as SchedulerContext<TProfessionState>);
+      initializeProfessionResources({
+        config,
+        catalog: definition.catalog,
+        profession: { resources },
         state: { time: 0, profession: state }
       } as SchedulerContext<TProfessionState>);
       return state;
     },
     createResolverState: resources.createResolverState || null,
-    resources: Object.freeze({ endurance: resources.endurance ?? null }),
+    resources: Object.freeze({ ...resourcePolicies(resources), endurance: resources.endurance ?? null }),
     taskHandlers: Object.freeze({
       ...(schedulerHooks.taskHandlers || {})
     }),

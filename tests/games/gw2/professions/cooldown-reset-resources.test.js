@@ -21,8 +21,8 @@ test('cooldown reset refills shared life force for every Necromancer specializat
 
     assert.deepEqual(result.warnings, [], specialization);
     assert.equal(
-      result.planningState.profession.lifeForce,
-      result.planningState.profession.maximumLifeForce,
+      result.planningState.profession.lifeForce.value,
+      result.planningState.profession.lifeForce.maximum,
       specialization
     );
     assert.equal(result.planningState.cooldowns.Plaguelands, undefined, specialization);
@@ -55,6 +55,6 @@ test('cooldown reset restores Revenant energy only after combat starts', () => {
   const beforeCombat = simulate([{ type: 'cooldown-reset' }, { type: 'combat-start' }]);
   const inCombat = simulate([{ type: 'combat-start' }, { type: 'cooldown-reset' }]);
 
-  assert.equal(beforeCombat.planningState.profession.energy, 25);
-  assert.equal(inCombat.planningState.profession.energy, 100);
+  assert.equal(beforeCombat.planningState.profession.energy.value, 25);
+  assert.equal(inCombat.planningState.profession.energy.value, 100);
 });

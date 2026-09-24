@@ -1,3 +1,4 @@
+import { scheduleSkillLifeForceGain } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 /** Dispatches Core Necromancer trait lines in their established cross-line reaction order. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -8,7 +9,6 @@ import type {
   NecromancerResolverEvent,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { finalizeNecromancerCast } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import {
   applyBitterChill,
   applyChillingDarkness,
@@ -103,8 +103,7 @@ export function applyNecromancerAfterCastTraits(context: NecromancerCastContext,
   applySignetsOfSuffering(context, skill);
   applyMaliciousSwarm(context, skill);
   applyTransfusion(context, skill);
-  // Shared life-force and skill-specific resource changes run after every completion-gated trait.
-  finalizeNecromancerCast(context, skill);
+  scheduleSkillLifeForceGain(context, skill);
 }
 
 /** Applies all Core Necromancer traits triggered by one resolved player or summon strike. */

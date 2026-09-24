@@ -1,3 +1,4 @@
+import { grantResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
@@ -149,7 +150,7 @@ export function updateFirebrandCastState(context: GuardianCastContext, skill: Gu
     const slow = requireEffect(weightyTermsProfile, 'condition', 'Slow');
     const pageGain = balanceProfileNumber(weightyTermsProfile, 'resourceGain');
     // Refunds refill the pool without resetting its running regeneration timer.
-    state.tomePages = Math.min(state.maximumTomePages, state.tomePages + pageGain);
+    grantResource(context, 'tomePages', pageGain, at);
 
     if (slow) {
       emitSkillCondition(context, {
@@ -178,7 +179,7 @@ export function observeFirebrandScheduledEvent(context: GuardianSchedulerContext
   const state = firebrandState.from(context);
   // The completed Renewed Focus event restores the shared page pool and re-enables tome activation passives.
   if (event.type === 'guardian.virtues-refreshed') {
-    state.tomePages = state.maximumTomePages;
+    grantResource(context, 'tomePages', state.tomePages.maximum, event.at);
     state.tomeDormantReadyAt = { justice: event.at, resolve: event.at, courage: event.at };
     return;
   }

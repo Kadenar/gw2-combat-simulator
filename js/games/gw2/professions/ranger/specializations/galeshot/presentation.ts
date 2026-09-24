@@ -1,3 +1,8 @@
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -61,7 +66,7 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
     return { available: false, message: 'Summon the Cyclone Bow first' };
   }
 
-  if (Number(skill.arrowCost || 0) > Number(state.arrows || 0)) {
+  if (Number(skill.arrowCost || 0) > Number(state.arrows?.value || 0)) {
     return { available: false, message: `Requires ${skill.arrowCost} arrows` };
   }
 
@@ -137,14 +142,21 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog>): RangerUiSli
     },
     resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
       const state = rangerUiState(context);
+      const maximum =
+        state.arrows?.maximum ??
+        context.resources?.arrows?.maximum ??
+        balanceProfileNumber(
+          requireBalanceProfileFromContext({ catalog: context.catalog ?? catalog }, PROFILE.resources),
+          'maximumStacks'
+        );
       return [
         {
           id: 'arrows',
           singular: 'arrow',
           plural: 'arrows',
-          maximum: 8,
-          value: Number(state.arrows ?? context.initialArrows ?? 8),
-          startMaximum: 8,
+          maximum,
+          value: Number(state.arrows?.value ?? context.initialArrows ?? maximum),
+          startMaximum: maximum,
           canStart: true,
           buildKey: 'initialArrows',
           step: 1,

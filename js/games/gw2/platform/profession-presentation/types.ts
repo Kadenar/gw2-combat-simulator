@@ -1,3 +1,4 @@
+import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 /** Defines application presentation callbacks independently of the executable profession runtime. */
 import type { SkillId, Skill, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type { RotationCommand, SchedulerConfig } from '#gw2/platform/execution/types.js';
@@ -224,7 +225,7 @@ export interface ProfessionEffectPresentation {
  */
 export interface ProfessionUiContext<TProfessionState = unknown> {
   /** Policy-derived limits supplied by family composition for resource presentation. */
-  readonly resources?: { readonly endurance?: { readonly maximum: number } };
+  readonly resources?: Readonly<Partial<Record<ResourceKey | 'endurance', { readonly maximum: number }>>>;
   readonly specialization?: string;
   /** Simulation config selection, used when a resolved runtime's UI is queried outside the application. */
   readonly config?: SchedulerConfig;

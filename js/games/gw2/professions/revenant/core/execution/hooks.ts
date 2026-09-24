@@ -1,3 +1,4 @@
+import { grantResource, refreshResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { RevenantSchedulerContext, RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { crushingAbyssSwapReaction } from '#gw2/professions/revenant/core/execution/spear.js';
@@ -26,7 +27,7 @@ import {
   runtimeRevenantEnergyCost,
   spendRevenantEnergy
 } from '#gw2/professions/revenant/family-state.js';
-import { advanceRevenantEnergy } from '#gw2/professions/revenant/core/mechanics/energy.js';
+import { advanceRevenantEnergy, energyDepletion } from '#gw2/professions/revenant/core/mechanics/energy.js';
 import { blossomingAura } from '#gw2/professions/revenant/core/execution/scepter.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { revenantCombatActive } from '#gw2/professions/revenant/core/traits/index.js';
@@ -74,6 +75,16 @@ function advance(context: RevenantSchedulerContext, time: number): void {
 }
 
 function onEventScheduled(context: RevenantSchedulerContext, event: SimulationEvent): void {
+  const core = professionCoreState(context);
+  if (core.combatBeganAt == null && ['combat_start', 'damage', 'condition', 'control', 'blind'].includes(event.type)) {
+    // Read the shared combat observer after this event's facts have actually committed.
+    context.tasks.schedule({
+      type: 'revenant.combat-energy',
+      at: Math.max(context.state.time, event.at),
+      priority: -59
+    });
+  }
+
   dropTheHammerReaction.onEventScheduled.handler(context, event);
   crushingAbyssSwapReaction.onEventScheduled.handler(context, event);
   observeRevenantEvent(context, event);
@@ -95,14 +106,21 @@ export const revenantSchedulerHooks = Object.freeze({
   onCooldownReset: (context: RevenantSchedulerContext): void => {
     const state = professionCoreState(context);
     if (!revenantCombatActive(context)) return;
-    state.energy = state.maximumEnergy;
-    state.energyUpdatedAt = context.state.time;
-    state.energyAccrual = undefined;
+    grantResource(context, 'energy', state.energy.maximum);
     emitRevenantStateSnapshot(context, context.state.time, 'cooldown-reset');
   },
   onEventScheduled,
   taskHandlers: Object.freeze({
     ...assassinsPresence.taskHandlers,
+    ...energyDepletion.taskHandlers,
+    'revenant.combat-energy': (context: RevenantSchedulerContext) => {
+      const core = professionCoreState(context);
+      const at = context.schedulerPolicy.combatBeganAt?.();
+      if (core.combatBeganAt == null && at != null) {
+        core.combatBeganAt = at;
+        refreshResource(context, 'energy');
+      }
+    },
     ...blossomingAura.taskHandlers,
     ...abyssalRazeRechargeReaction.taskHandlers,
     'revenant.crushing-abyss-gain': handleCrushingAbyssGain,

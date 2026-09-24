@@ -1,5 +1,5 @@
 import { resourceDepletion } from '#gw2/platform/profession-definition/mechanics.js';
-import { advanceResourceClock, setResourceRate } from '#gw2/platform/combat/resources/clock.js';
+import { grantResource, refreshResource, type ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import {
   requireBalanceProfileFromContext,
@@ -31,21 +31,14 @@ export const shadowDepletion = resourceDepletion({
     const state = specterState.from(context);
     if (!state.shadowShroudActive) return;
     state.shadowClock.value = 0;
-    state.shadowClock.rate = 0;
+
     emitTransitionLockout(context, 'shroudExitMs', at);
     state.shadowShroudActive = false;
+    refreshResource(context, 'shadowForce');
     emitThiefShroudSwap(context, { id: SHADOW_SHROUD_DEPLETION_TASK, name: 'Exit Shadow Shroud' }, at);
     emitThiefStateSnapshot(context, at, 'shadow-shroud-depleted');
   }
 });
-
-/** Advance before applying a gain and immediately replace the active drain boundary. */
-export function gainShadowForce(context: ThiefSchedulerContext, amount: number): void {
-  const state = specterState.from(context);
-  advanceResourceClock(state.shadowClock, context.state.time);
-  state.shadowClock.value = Math.min(state.shadowClock.maximum, state.shadowClock.value + amount);
-  if (state.shadowShroudActive) shadowDepletion.refresh(context);
-}
 
 export function completeSiphon(context: ThiefCastContext): void {
   // Cancellation preserves shadow force and stored-skill state.
@@ -64,7 +57,7 @@ export function completeSiphon(context: ThiefCastContext): void {
     gain *= 1 + balanceProfileNumber(improvisationProfile, 'lifeForceGain');
   }
 
-  gainShadowForce(context, gain);
+  grantResource(context, 'shadowForce', gain);
   // Siphon is a profession skill, not a steal; null clears any stored stolen skill.
   completeStealWithStoredSkills(context, []);
 }
@@ -79,14 +72,7 @@ export function enterShadowShroud(context: ThiefCastContext, skill: ThiefSkill):
   state.shadowShroudActive = true;
   // Manual exit waits half a second; depletion continues to force an immediate exit.
   state.shadowShroudExitReadyAt = at + 0.5;
-  state.shadowClock.updatedAt = at;
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  setResourceRate(
-    state.shadowClock,
-    at,
-    -state.shadowClock.maximum * balanceProfileNumber(resourcesProfile, 'lifeForceDrain')
-  );
-  shadowDepletion.refresh(context);
+  refreshResource(context, 'shadowForce');
   // Enter Shadow Shroud barriers one tethered ally, not the caster or whole party.
   const alliedRecipients = Math.min(
     balanceProfileNumber(enterShadowShroudProfile, 'maximumTargets'),
@@ -122,8 +108,7 @@ export function exitShadowShroud(context: ThiefCastContext, skill: ThiefSkill): 
   emitTransitionLockout(context, 'shroudExitMs', context.effectiveEnd, skill);
   const at = context.effectiveEnd;
   specterState.from(context).shadowShroudActive = false;
-  shadowDepletion.stop(context);
-  setResourceRate(specterState.from(context).shadowClock, at, 0);
+  refreshResource(context, 'shadowForce');
   emitThiefShroudSwap(context, skill, at);
   emitThiefStateSnapshot(context, at, 'exit-shadow-shroud');
 }
@@ -135,17 +120,26 @@ export function spendSpecterResources(context: ThiefCastContext, skill: ThiefSki
   if (!(cost > 0)) return;
 
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  gainShadowForce(context, cost * balanceProfileNumber(resourcesProfile, 'resourceGain'));
+  grantResource(context, 'shadowForce', cost * balanceProfileNumber(resourcesProfile, 'resourceGain'));
   // Emit at cast start so the resource timeline reflects the gain immediately.
   emitThiefStateSnapshot(context, context.start, 'shadow-force');
 }
 
 export function advanceSpecterResources(context: ThiefSchedulerContext, target: number): void {
-  const state = specterState.from(context);
-
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  state.shadowClock.maximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
-  state.shadowClock.value = Math.min(state.shadowClock.maximum, state.shadowClock.value);
-  advanceResourceClock(state.shadowClock, target);
   emitThiefStateSnapshot(context, target, 'resources');
 }
+
+/** Specter supplies drain and capacity; the shared lifecycle advances and replaces depletion deadlines. */
+export const shadowForce: ResourcePolicy<ThiefSchedulerContext> = {
+  kind: 'continuous',
+  state: (context) => specterState.from(context).shadowClock,
+  maximum: (context) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks'),
+  initial: (context) => Number(context.config.initialShadowForce ?? 0),
+  recovery: (context) =>
+    specterState.from(context).shadowShroudActive
+      ? -balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks') *
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'lifeForceDrain')
+      : 0,
+  depletion: shadowDepletion
+};

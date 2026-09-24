@@ -2,10 +2,9 @@ import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
-import {
-  gainNecromancerLifeForceOnHit,
-  scheduleNecromancerLifeForceGain
-} from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { gainNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { eventReaction } from '#gw2/platform/execution/scheduler-reactions.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
   NecromancerCastContext,
   NecromancerConfig,
@@ -39,21 +38,40 @@ const predictedLifeForceGains = new WeakMap<object, LifeForceGainRecord[]>();
  */
 export function predictNecromancerLifeForceGain(
   context: NecromancerSchedulerContext,
-  at: number,
+  event: SimulationEvent,
   amount: number
 ): void {
+  const at = event.at;
   const feedback = context.config._schedulerFeedback as NecromancerSchedulerFeedback | undefined;
   // A replaying pass already queued the resolver's gains; predicting as well would grant each hit twice.
   if (feedback?.lifeForceGains || (feedback?.targetDeathAt != null && at > feedback.targetDeathAt)) return;
-  let predictions = predictedLifeForceGains.get(context.state);
-  if (!predictions) {
-    predictions = [];
-    predictedLifeForceGains.set(context.state, predictions);
-  }
-
-  predictions.push({ at, amount });
-  gainNecromancerLifeForceOnHit(context, at, amount);
+  lifeForceHitReaction.onEventScheduled.handler(context, { ...event, amount });
 }
+
+/** Apply only surviving hits at their causal timestamp; canceled casts cannot cancel an already committed projectile. */
+export const lifeForceHitReaction = eventReaction<
+  NecromancerSchedulerContext,
+  SimulationEvent,
+  { eventOrder: number; amount: number }
+>({
+  id: 'necromancer.life-force-hit',
+  missingEvent: 'skip',
+  select: (_context, event) => ({
+    at: event.at,
+    payload: { eventOrder: Number(event.eventOrder), amount: Number(event.amount) }
+  }),
+  execute(context, event, at, { amount }) {
+    if (event.cancelled || event.offTarget) return;
+    let predictions = predictedLifeForceGains.get(context.state);
+    if (!predictions) {
+      predictions = [];
+      predictedLifeForceGains.set(context.state, predictions);
+    }
+
+    predictions.push({ at, amount });
+    gainNecromancerLifeForce(context, amount, at);
+  }
+});
 
 /** Compares gain multisets; emission order and resolution order can differ for gains at one timestamp. */
 function sameLifeForceGains(left: readonly LifeForceGainRecord[], right: readonly LifeForceGainRecord[]): boolean {
@@ -167,7 +185,7 @@ export function refineNecromancerSchedulerConfig(
 /** Queues resolver-observed gains for a replaying pass; the resource clock applies each at its hit timestamp. */
 export function replayNecromancerLifeForceGains(context: NecromancerSchedulerContext): void {
   const feedback = context.config._schedulerFeedback as NecromancerSchedulerFeedback | undefined;
-  for (const gain of feedback?.lifeForceGains || []) scheduleNecromancerLifeForceGain(context, gain.at, gain.amount);
+  for (const gain of feedback?.lifeForceGains || []) gainNecromancerLifeForce(context, gain.amount, gain.at);
 }
 
 /** Observe live conditions only when they can change the caller's capped result. */

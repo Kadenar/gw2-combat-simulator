@@ -1,3 +1,4 @@
+import { setResource, refreshResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -25,18 +26,18 @@ export { revenantCombatActive };
 export function swapRevenantLegend(context: RevenantCastContext, skill: RevenantSkill): void {
   const state = professionCoreState(context);
   const at = context.effectiveEnd;
-  const previousEnergy = state.energy;
+  const previousEnergy = state.energy.value;
   const other = state.selectedLegendIds.find((id) => id !== state.activeLegendId);
   state.activeLegendId = other || state.activeLegendId;
   state.activeLoadoutId = state.activeLegendId;
   const chargedMists = hasTrait(context.config, TRAIT.CHARGED_MISTS)
     ? requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.chargedMists)
     : undefined;
-  state.energy =
+  const energy =
     chargedMists && Math.floor(previousEnergy) <= balanceProfileNumber(chargedMists, 'threshold')
       ? balanceProfileNumber(chargedMists, 'resourceGain')
       : Number(skill.resourceGain || 0);
-  state.energyUpdatedAt = at;
+  setResource(context, 'energy', energy, at);
   clearRevenantLegendFlips(context);
   // Cross-legend upkeeps keep draining Energy and expose the destination legend's consume.
   state.activeUpkeeps = state.activeUpkeeps.filter((active) => {
@@ -50,6 +51,7 @@ export function swapRevenantLegend(context: RevenantCastContext, skill: Revenant
     context.tasks.cancelOwner(`revenant.upkeep:${active.skillId}`);
     return false;
   });
+  refreshResource(context, 'energy', true, at);
   context.emit({
     type: 'sigil_swap',
     at,

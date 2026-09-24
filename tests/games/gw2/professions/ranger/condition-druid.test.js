@@ -839,7 +839,9 @@ test('Astral Force follows landed direct damage and excludes pet damage', () => 
     selectedTraitIds: [TRAIT.ECLIPSE]
   });
 
-  assert.equal(eclipseDamage.steps.find(({ skill }) => skill === 'Celestial Avatar').start, 600);
+  // Eclipse doubles each landed grant; the second pulse funds entry without a skipped-cast warning.
+  assert.deepEqual(eclipseDamage.warnings, []);
+  assert.equal(eclipseDamage.steps.find(({ skill }) => skill === 'Celestial Avatar').start, 2400);
 });
 
 test('Celestial Avatar transitions trigger swap mechanics and weapon lines', () => {

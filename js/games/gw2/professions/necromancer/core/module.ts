@@ -1,3 +1,4 @@
+import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
 import {
@@ -23,6 +24,7 @@ import { necromancerSchedulerHooks } from '#gw2/professions/necromancer/core/exe
 
 export const necromancerCoreModule = defineNativeModule({
   id: 'Core',
+  resources: { lifeForce: necromancerLifeForce },
   data: createNecromancerModuleData('Core', {
     skillMechanics: NECROMANCER_CORE_BASE_SKILL_MECHANICS,
     extraSkills: NECROMANCER_CORE_EXTRA_SKILLS,

@@ -1,3 +1,4 @@
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
@@ -15,7 +16,7 @@ import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { reactToAshesHit } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
 import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
+import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { applyMaliciousSwarm } from '#gw2/professions/necromancer/core/traits/spite.js';
 import { applyDarkDefense } from '#gw2/professions/necromancer/core/traits/death-magic.js';
@@ -24,8 +25,6 @@ import {
   reactToNecromancerBlind
 } from '#gw2/professions/necromancer/core/traits/index.js';
 import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
-import { scourgeSchedulerHooks } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-rules.js';
-import { createScourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
@@ -368,22 +367,28 @@ test('Guardian charge procs stay blocked at the exact ICD boundary', () => {
 });
 
 test('Necromancer condition traits stay blocked at the exact ICD boundary', () => {
-  const state = createScourgeState();
-  state.nourishingAshesReadyAt = READY_AT;
-  const config = { initialResource: 0, selectedTraitIds: [NECROMANCER_TRAIT_IDS.NOURISHING_ASHES] };
-  const { context } = professionContext({
-    id: 'necromancer',
-    catalog: necromancerCatalog,
-    core: createNecromancerCoreState(config),
-    specialization: state,
-    kind: 'Scourge',
-    config
+  const { context } = createScheduler({
+    profession: necromancerProfession,
+    config: {
+      specialization: 'Scourge',
+      initialResource: 0,
+      selectedTraitIds: [NECROMANCER_TRAIT_IDS.NOURISHING_ASHES]
+    }
   });
-  const event = { type: 'condition', condition: 'Burning', at: READY_AT };
-
-  scourgeSchedulerHooks.onEventScheduled.handler(context, event);
-  assert.equal(state.nourishingAshesReadyAt, READY_AT);
-
-  scourgeSchedulerHooks.onEventScheduled.handler(context, { ...event, at: AFTER_READY_AT });
-  assert.ok(state.nourishingAshesReadyAt > AFTER_READY_AT);
+  const state = context.state.profession.specialization.state;
+  state.nourishingAshesReadyAt = READY_AT;
+  for (const at of [READY_AT, AFTER_READY_AT]) {
+    context.emit({
+      type: 'condition',
+      condition: 'Burning',
+      stacks: 1,
+      duration: 1,
+      at,
+      source: 'test',
+      sourceId: 'burning',
+      actorType: 'player'
+    });
+    context.advanceTo(at);
+    assert.equal(state.nourishingAshesReadyAt > READY_AT, at === AFTER_READY_AT);
+  }
 });

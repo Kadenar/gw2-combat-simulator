@@ -1,4 +1,4 @@
-import { restoreArrow } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
+import { spendResource, grantResource } from '#gw2/platform/combat/resources/resource-policy.js';
 /** Registers scheduler-phase skill activations for this module. */
 import { canonicalTime } from '#kernel/core/clock.js';
 import {
@@ -75,7 +75,7 @@ export const galeshotSkillHandlers = Object.freeze({
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
       const state = galeshotState.from(context);
-      state.arrows = Math.max(0, state.arrows - Number(skill.arrowCost || 0));
+      spendResource(context, 'arrows', Number(skill.arrowCost || 0));
       if (skill.id === ID.HAWKEYE) {
         // Hawkeye consumes all five stacks; windForce resets to 0 on cast.
         state.windForce = 0;
@@ -101,7 +101,7 @@ export const galeshotSkillHandlers = Object.freeze({
   'ranger.galeshot-arrows': {
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
-      restoreArrow(context, Number(skill.arrowsRestored || 0));
+      grantResource(context, 'arrows', Number(skill.arrowsRestored || 0));
       emitGaleshotState(context, skill, context.start);
     }
   },
@@ -109,7 +109,7 @@ export const galeshotSkillHandlers = Object.freeze({
     mode: 'augment' as const,
     afterEffects(context: RangerCastContext, skill: RangerSkill) {
       const state = galeshotState.from(context);
-      restoreArrow(context, Number(skill.arrowsRestored || 0));
+      grantResource(context, 'arrows', Number(skill.arrowsRestored || 0));
       // Missile eligibility uses an exact inclusive deadline shared with the state event.
       state.mistralUntil = canonicalTime(
         context.start +

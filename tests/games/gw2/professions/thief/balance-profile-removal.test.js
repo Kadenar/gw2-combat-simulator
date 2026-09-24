@@ -181,7 +181,7 @@ test('core steal removals preserve sibling conditions, boons, and initiative', (
   assert.ok(result.events.some((event) => event.kind === 'Might'));
   assert.equal(packet(result, 'damage', TRAIT.MUG).length, 0);
   assert.equal(packet(result, 'control', TRAIT.SLEIGHT_OF_HAND).length, 0);
-  assert.ok(result.planningState.profession.initiative >= 2);
+  assert.ok(result.planningState.profession.initiative.value >= 2);
 });
 
 test('Uncatchable conditions own independent pulses and dodge still spends endurance', () => {
