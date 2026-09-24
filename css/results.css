@@ -469,21 +469,8 @@
   font-size: 14px;
 }
 
-.rng-raw-data > summary {
-  width: fit-content;
-  margin-left: auto;
-  color: var(--text-dim);
-  font-size: 10px;
-  cursor: pointer;
-}
-
-.rng-raw-data[open] > summary {
-  margin-bottom: 10px;
-}
-
 .rng-chart-scroll:focus-visible,
-.rng-table-scroll:focus-visible,
-.rng-raw-data > summary:focus-visible {
+.rng-table-scroll:focus-visible {
   outline: 2px solid var(--health);
   outline-offset: 2px;
 }
@@ -521,40 +508,31 @@
   border-radius: 4px;
 }
 
-.rng-driver-table,
-.rng-data-table {
+.rng-driver-table {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
 
-.rng-driver-table {
-  min-width: 640px;
-}
-
 .rng-driver-table th,
-.rng-driver-table td,
-.rng-data-table th,
-.rng-data-table td {
+.rng-driver-table td {
   padding: 7px 9px;
   text-align: right;
   border-bottom: 1px solid var(--border);
 }
 
-.rng-driver-table th:first-child,
-.rng-data-table th:first-child {
+.rng-driver-table th:first-child {
   text-align: left;
 }
 
-.rng-driver-table thead,
-.rng-data-table thead {
+.rng-driver-table thead {
   color: var(--text-dim);
   background: var(--bg-panel);
 }
 
-.rng-driver-table th,
-.rng-data-table th {
+.rng-driver-table th {
   font-weight: 500;
 }
 

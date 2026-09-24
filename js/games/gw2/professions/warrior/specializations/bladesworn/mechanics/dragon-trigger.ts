@@ -3,7 +3,8 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON, timeKey } from '#kernel/core/clock.js';
+import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
 
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -44,6 +45,7 @@ export interface DragonChargeTick {
   readonly at: number;
   readonly charges: number;
   readonly flowAfter: number;
+  readonly flowSpent: number;
   readonly granted: boolean;
 }
 
@@ -55,9 +57,15 @@ export function projectDragonFlow(
   flowRateSegments: readonly DragonFlowRateSegment[]
 ): number {
   if (!(to > from)) return clamp(flow, 0, maximumFlow);
+  // Credit regeneration on the shared 40 ms grid, including the ending tick only.
+  // Counting absolute ticks keeps fragmented advancement and charge previews in sync.
   const gained = flowRateSegments.reduce((total, segment) => {
-    const overlap = Math.min(to, segment.end) - Math.max(from, segment.start);
-    return overlap > 0 ? total + overlap * segment.flowPerSecond : total;
+    const start = Math.max(from, segment.start);
+    const end = Math.min(to, segment.end);
+    if (end <= start) return total;
+    const ticks =
+      Math.floor(timeKey(end) / (GW2_ACTION_TICK_MS * 1000)) - Math.floor(timeKey(start) / (GW2_ACTION_TICK_MS * 1000));
+    return total + ticks * (GW2_ACTION_TICK_MS / 1000) * segment.flowPerSecond;
   }, 0);
   return clamp(flow + gained, 0, maximumFlow);
 }
@@ -74,13 +82,15 @@ export function projectDragonCharges(input: DragonChargeProjectionInput): readon
   const deadline = Number.isFinite(input.deadline) ? canonicalTime(input.deadline) : input.deadline;
   while (at <= deadline && charges < input.maximumCharges) {
     flow = projectDragonFlow(flow, input.maximumFlow, previousAt, at, input.flowRateSegments);
-    const granted = flow + EPSILON >= input.flowPerInterval;
+    // Trial model: entry covers the first charge interval; only subsequent intervals spend Flow.
+    const cost = tickIndex === 1 ? 0 : input.flowPerInterval;
+    const granted = flow + EPSILON >= cost;
     if (granted) {
-      flow = Math.max(0, flow - input.flowPerInterval);
+      flow = Math.max(0, flow - cost);
       charges = Math.min(input.maximumCharges, charges + input.chargesPerInterval);
     }
 
-    ticks.push({ at, charges, flowAfter: flow, granted });
+    ticks.push({ at, charges, flowAfter: flow, flowSpent: granted ? cost : 0, granted });
     previousAt = at;
     tickIndex += 1;
     at = canonicalTime(input.tickAt(tickIndex));

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-// The range remains readable for clustered or identical outcomes and exposes the same data by keyboard.
-test('RNG range and impact table fit the workspace and disclose percentile data', async ({ page }) => {
+// The chart exposes percentile data and remains readable for clustered or identical outcomes.
+test('RNG range and impact table fit the workspace without a percentile table', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   // This supplied-data layout needs the results styles, not a profession simulation.
   await page.goto('/', { waitUntil: 'domcontentloaded' });
@@ -54,11 +54,8 @@ test('RNG range and impact table fit the workspace and disclose percentile data'
   await render();
   const panel = page.locator('#rotation-results .rng-distribution');
   await expect(panel.getByRole('img')).toHaveAttribute('aria-label', /Expected DPS 42,407/);
-  await panel.locator('.rng-raw-data > summary').focus();
-  await page.keyboard.press('Enter');
-  await expect(panel.getByRole('table', { name: 'Randomized DPS summary' })).toBeVisible();
-  await page.keyboard.press('Enter');
-  await expect(panel.getByRole('table', { name: 'Randomized DPS summary' })).toBeHidden();
+  await expect(panel.getByText('View as table')).toHaveCount(0);
+  await expect(panel.getByRole('table', { name: 'Randomized DPS summary' })).toHaveCount(0);
   await panel.getByRole('button', { name: 'Recalculate' }).click();
   expect(await page.evaluate(() => window.rngRecalculated)).toBe(true);
   for (const equal of [false, true]) {

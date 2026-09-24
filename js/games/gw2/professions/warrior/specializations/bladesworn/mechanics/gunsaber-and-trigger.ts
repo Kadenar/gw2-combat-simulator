@@ -131,9 +131,7 @@ export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSk
     state.tacticalReloadUntil > 0 && context.effectiveEnd <= state.tacticalReloadUntil ? 2 : 1;
   if (state.dragonChargesPerInterval > 1) state.tacticalReloadUntil = 0;
   state.dragonChargeTickCount = 0;
-  state.nextDragonChargeAt =
-    context.effectiveEnd +
-    dragonChargeTickOffsetSeconds(1, maximumDragonCharges(context), state.dragonChargesPerInterval);
+  state.nextDragonChargeAt = context.effectiveEnd + dragonChargeTickOffsetSeconds(1);
   state.dragonTriggerRotationIndex = context.commandIndex;
   state.dragonTriggerFlowSpent = 0;
   state.dragonTriggerEventActivationId = context.reservationId;
@@ -149,12 +147,11 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
   const minimum = Number(skill.dragonSlashMinimumCoefficient || 0);
   const maximum = Number(skill.dragonSlashMaximumCoefficient ?? minimum);
   const coefficient = dragonSlashCoefficient(minimum, maximum, charges, maximumCharges);
-  // Dragon Slash Force lands 720ms after release to match its observed damage packet;
-  // all other Dragon Slash variants hit at cast end.
+  // The declaration owns impact timing for both the strike and its charge-scaled secondary effects.
   const impactAt =
-    skill.id === ID.DRAGON_SLASH_FORCE || skill.id === ID.SHARP_DRAGON_SLASH_FORCE
-      ? context.start + 0.72
-      : context.effectiveEnd;
+    skill.dragonSlashImpactOffsetMs == null
+      ? context.effectiveEnd
+      : context.start + skill.dragonSlashImpactOffsetMs / 1000;
   const adrenalineSpent = dragonChargesToAdrenalineSpent(charges);
   const burstMasteryProfile = requireBalanceProfileFromContext(context, PROFILE.burstMastery);
   applyWarriorBurstSpendTraits(context, skill, adrenalineSpent, {
@@ -180,6 +177,8 @@ export function useDragonSlash(context: WarriorCastContext, skill: WarriorSkill)
     maximumCharges,
     chargesReached: charges,
     chargingSeconds: Math.max(0, context.start - state.dragonTriggerStartedAt),
+    // Holding Dragon Trigger beyond its full-charge window is idle time, even if Flow stalled.
+    maximumChargingSeconds: dragonChargeTickOffsetSeconds(Math.ceil(maximumCharges / state.dragonChargesPerInterval)),
     flowSpent: state.dragonTriggerFlowSpent,
     adrenalineBarsSpent: adrenalineSpent / 10
   });
@@ -295,7 +294,7 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
 }
 
 // Split a time range at every Flow modifier boundary so Dragon Trigger projection
-// can integrate the exact piecewise regeneration rate. Base regeneration only runs in combat,
+// can credit each 40 ms regeneration tick at its applicable rate. Base regeneration only runs in combat,
 // while Positive Flow keeps granting Flow before combat so precombat Flow Stabilizers carry over.
 function dragonFlowRateSegments(
   context: WarriorSchedulerContext,
@@ -446,9 +445,7 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
     chargesPerInterval: state.dragonChargesPerInterval,
     flowPerInterval,
     initialTickIndex: state.dragonChargeTickCount + 1,
-    tickAt: (tickIndex) =>
-      state.dragonTriggerStartedAt +
-      dragonChargeTickOffsetSeconds(tickIndex, maximumCharges, state.dragonChargesPerInterval),
+    tickAt: (tickIndex) => state.dragonTriggerStartedAt + dragonChargeTickOffsetSeconds(tickIndex),
     flowRateSegments: dragonFlowRateSegments(context, state.flowUpdatedAt, chargeThrough),
     deadline: chargeThrough
   });
@@ -457,9 +454,7 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
     state.flow = tick.flowAfter;
     state.dragonCharges = tick.charges;
     state.flowUpdatedAt = tick.at;
-    if (tick.granted) {
-      state.dragonTriggerFlowSpent += flowPerInterval;
-    }
+    state.dragonTriggerFlowSpent += tick.flowSpent;
 
     context.emit({
       type: 'resource',
@@ -476,6 +471,7 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
       reason: DRAGON_TRIGGER_TICK_RESOURCE_REASON,
       rotationIndex: state.dragonTriggerRotationIndex,
       flowAfter: tick.flowAfter,
+      flowSpent: tick.flowSpent,
       granted: tick.granted,
       deadline: state.dragonTriggerChargeDeadline
     });
@@ -483,8 +479,7 @@ export function advanceBladesworn(context: WarriorSchedulerContext, target: numb
 
   state.dragonChargeTickCount += ticks.length;
   state.nextDragonChargeAt =
-    state.dragonTriggerStartedAt +
-    dragonChargeTickOffsetSeconds(state.dragonChargeTickCount + 1, maximumCharges, state.dragonChargesPerInterval);
+    state.dragonTriggerStartedAt + dragonChargeTickOffsetSeconds(state.dragonChargeTickCount + 1);
 
   gainPassiveFlow(context, state.flowUpdatedAt, target);
   state.flowUpdatedAt = target;

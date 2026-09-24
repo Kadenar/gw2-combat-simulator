@@ -133,7 +133,8 @@ export const SKILL_COLS: readonly ResultColumn[] = [
   { key: 'strike', label: 'Strike', numeric: true },
   { key: 'condition', label: 'Condition', numeric: true, className: 'condi' },
   { key: 'total', label: 'Total', numeric: true, className: 'total' },
-  { key: 'damagePercent', label: '% Damage', numeric: true, format: (value) => `${Number(value).toFixed(2)}%` },
+  // Share includes strike and condition damage as a percentage of damage across all skill rows.
+  { key: 'damagePercent', label: 'Share', numeric: true, format: (value) => `${Number(value).toFixed(2)}%` },
   { key: 'dps', label: 'DPS', numeric: true, className: 'dps' },
   { key: 'average', label: 'Avg/Cast', numeric: true },
   { key: 'dct', label: 'DCT', numeric: true },
@@ -235,7 +236,7 @@ function randomDriverNumber(value: unknown, unit: 'count' | 'stacks' | 'value'):
   });
 }
 
-/** Plots the existing percentiles on one DPS scale, with separate label lanes when values cluster. */
+/** Shows percentiles in the range chart, with separate label lanes to keep clustered values readable. */
 function randomDistributionRangeHtml(distribution: RandomDistributionSummary): string {
   const markers = [
     { label: '1st pct', value: distribution.p01, className: 'rng-tail' },
@@ -265,15 +266,6 @@ function randomDistributionRangeHtml(distribution: RandomDistributionSummary): s
   const halfRange = (distribution.p90 - distribution.p10) / 2;
   const percent = distribution.mean > 0 ? (halfRange / distribution.mean) * 100 : 0;
   return `<div class="rng-range-panel">
-    <details class="rng-raw-data">
-      <summary>View as table</summary>
-      <div class="rng-table-scroll" tabindex="0" role="region" aria-label="DPS percentile data">
-        <table class="rng-data-table"><caption>Randomized DPS summary</caption>
-          <thead><tr><th scope="col">Statistic</th><th scope="col">DPS</th></tr></thead>
-          <tbody>${markers.map((marker) => `<tr><th scope="row">${marker.label}</th><td>${number(marker.value)}</td></tr>`).join('')}</tbody>
-        </table>
-      </div>
-    </details>
     <div class="rng-chart-scroll" tabindex="0" role="region" aria-label="Randomized DPS range chart">
       <svg class="rng-range-chart" viewBox="0 0 1000 ${axisY + 40}" role="img" aria-label="Expected DPS ${number(distribution.mean)}; median ${number(distribution.p50)}; P10 to P90 ${number(distribution.p10)} to ${number(distribution.p90)}; 1st percentile ${number(distribution.p01)}; 99th percentile ${number(distribution.p99)}">
         <line class="rng-axis" x1="25" x2="975" y1="${axisY}" y2="${axisY}" />
@@ -560,7 +552,7 @@ export function mountRotationResults(
   const summaryPlaceholder = model.summaryPlaceholder === true;
   const showSummary = model.showSummary !== false;
   const breakpoints = model.breakpoints || [];
-  // Conditions already belong to skill totals; use one denominator across all damage sources without double counting.
+  // Skill and condition Share columns use total damage across all sources without counting conditions twice.
   const totalDamage = (model.skillRows || []).reduce((sum, row) => sum + Number(row.total || 0), 0);
   const damagePercent = (damage: number): number => (totalDamage > 0 ? (damage / totalDamage) * 100 : 0);
   const skillRows: ResultRow[] = (model.skillRows || []).map((row) => ({
@@ -696,7 +688,7 @@ export function mountRotationResults(
             (group) => `<div class="res-condition-group${group.damaging ? '' : ' res-condition-group-utility'}">
           <div class="res-condition-group-title">${group.label}</div>
           <div class="res-hdr cond-hdr">
-            <span>Condition</span>${group.damaging ? '<span>Damage</span><span>% Damage</span><span>DPS</span>' : ''}<span>Avg Stacks</span>
+            <span>Condition</span>${group.damaging ? '<span>Damage</span><span>Share</span><span>DPS</span>' : ''}<span>Avg Stacks</span>
           </div>
           ${group.conditions
             .map((condition) => {

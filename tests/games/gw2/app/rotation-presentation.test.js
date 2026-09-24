@@ -17,13 +17,16 @@ import {
   formatTimelineDuration,
   formatTimelineSkillTooltip,
   rotationEntryName,
+  shatterResourceSpends,
   timelineDeadTimeMarkers,
   timelineSkillCastOrdinals,
+  timelineStepsWithChargeFills,
   timelineTargetImpactDetails,
   timelineWeaponRowGroups,
   timelineWeaponRows
 } from '#gw2/app/rotation/timeline/model.js';
 import { bindTimelineInteractions, getSkillDropInsertionIndex } from '#gw2/app/rotation/timeline/interactions.js';
+import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
 
 // GW2 rotation views preserve editing, palette interactions, and timeline presentation.
 test('activation editor suggests and validates manual interruption times', () => {
@@ -133,6 +136,42 @@ test('timeline dead time includes explicit waits and excludes concurrent casts a
   assert.equal(formatTimelineDuration(1250), '1.25s');
   assert.equal(formatTimelineDuration(12_500), '12.5s');
   assert.equal(formatTimelineDuration(100_000), '100s');
+});
+
+test('Dragon Trigger excludes only its charge window from timeline gaps and total idle time', () => {
+  // Exercise early release, exact full charge, and overholding from a nonzero entry timestamp.
+  for (const maximumChargingSeconds of [1.2, 2.48]) {
+    for (const chargingSeconds of [0.5, maximumChargingSeconds, maximumChargingSeconds + 0.8]) {
+      const start = Math.round(1000 + chargingSeconds * 1000);
+      const result = {
+        steps: [
+          { ri: 0, skill: 'Dragon Trigger', start: 1000, end: 1000 },
+          { ri: 1, skill: 'Dragon Slash', start, end: start + 500 }
+        ],
+        events: [
+          {
+            type: 'resource',
+            reason: 'profession mechanic',
+            rotationIndex: 1,
+            chargingSeconds,
+            maximumChargingSeconds
+          }
+        ],
+        resolvedEvents: []
+      };
+      const markers = timelineDeadTimeMarkers(
+        timelineStepsWithChargeFills(result.steps, shatterResourceSpends(result))
+      );
+      const overheld = chargingSeconds > maximumChargingSeconds;
+      assert.deepEqual(
+        markers,
+        overheld
+          ? [{ insertionIndex: 1, start: 1000 + maximumChargingSeconds * 1000, end: start, durationMs: 800 }]
+          : []
+      );
+      assert.equal(timelineIdleTimeMetric(result).value, overheld ? '800ms' : '0ms');
+    }
+  }
 });
 
 test('timeline dead time precedes simultaneous instant and non-instant casts', () => {

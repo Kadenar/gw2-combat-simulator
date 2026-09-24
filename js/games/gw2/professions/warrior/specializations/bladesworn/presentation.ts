@@ -186,17 +186,19 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
       });
     }
 
-    if (positiveFlowSources.length) {
-      const stacks = positiveFlowSources.reduce((total, source) => total + source.stacks, 0);
-      const remaining = Math.min(...positiveFlowSources.map((source) => source.expiresAt)) - at;
-      const stackLabel = `${stacks} ${stacks === 1 ? 'stack' : 'stacks'}`;
-      items.push({
-        id: 'positive-flow',
-        label: 'Positive Flow',
-        value: `${stackLabel} · ${formatSecondsRemaining(remaining)}`,
-        title: `Positive Flow active (${stackLabel}; time until the next stack expires)`
-      });
-    }
+    // Keep Flow visible after temporary stacks expire; the base stack starts at the combat boundary.
+    const baseStacks = result?.hasExplicitCombatStart && at < (result.combatStartTime ?? Infinity) ? 0 : 1;
+    const stacks = positiveFlowSources.reduce((total, source) => total + source.stacks, baseStacks);
+    const remaining = positiveFlowSources.length
+      ? Math.min(...positiveFlowSources.map((source) => source.expiresAt)) - at
+      : null;
+    const stackLabel = `${stacks} ${stacks === 1 ? 'stack' : 'stacks'}`;
+    items.push({
+      id: 'positive-flow',
+      label: 'Positive Flow',
+      value: remaining == null ? stackLabel : `${stackLabel} · ${formatSecondsRemaining(remaining)}`,
+      title: `Positive Flow (${stackLabel}${remaining == null ? '' : '; time until the next temporary stack expires'})`
+    });
 
     return items;
   }

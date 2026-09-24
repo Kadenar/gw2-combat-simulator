@@ -211,12 +211,7 @@ function availability(context: WarriorCastContext, skill: WarriorSkill): Availab
       const nextChargeAt =
         state.nextDragonChargeAt > context.start + EPSILON
           ? state.nextDragonChargeAt
-          : state.dragonTriggerStartedAt +
-            dragonChargeTickOffsetSeconds(
-              state.dragonChargeTickCount + 1,
-              maximumCharges,
-              state.dragonChargesPerInterval
-            );
+          : state.dragonTriggerStartedAt + dragonChargeTickOffsetSeconds(state.dragonChargeTickCount + 1);
       // Even the next possible tick would land after the deadline — stop waiting.
       if (canonicalTime(nextChargeAt) > state.dragonTriggerChargeDeadline) {
         return {

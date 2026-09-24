@@ -91,7 +91,7 @@ export function dragonChargeReleaseProjection(context: {
     maximumFlow: Number(entry.maximumFlow),
     maximumCharges,
     chargesPerInterval,
-    tickAt: (tickIndex) => startTime + dragonChargeTickOffsetSeconds(tickIndex, maximumCharges, chargesPerInterval),
+    tickAt: (tickIndex) => startTime + dragonChargeTickOffsetSeconds(tickIndex),
     flowPerInterval: Number(entry.flowPerInterval),
     flowRateSegments: flowRateSegments(entry.flowRateSegments),
     deadline
@@ -109,7 +109,7 @@ export function dragonChargeReleaseProjection(context: {
   return {
     rows: chargeLevels.map((charges, index) => {
       const tick = projection.find((candidate) => candidate.granted && candidate.charges === charges);
-      const earliestAt = startTime + dragonChargeTickOffsetSeconds(index + 1, maximumCharges, chargesPerInterval);
+      const earliestAt = startTime + dragonChargeTickOffsetSeconds(index + 1);
       const pastDeadline = canonicalTime(earliestAt) > deadline;
       return {
         charges,

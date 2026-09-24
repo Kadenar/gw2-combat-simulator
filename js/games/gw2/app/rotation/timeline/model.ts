@@ -766,6 +766,7 @@ export interface ShatterResourceSpend {
   readonly maximumCharges?: number;
   readonly chargesReached?: number;
   readonly chargingSeconds?: number;
+  readonly maximumChargingSeconds?: number;
   readonly flowSpent?: number;
 }
 
@@ -787,6 +788,7 @@ export function shatterResourceSpends(
       ...(event.maximumCharges == null ? {} : { maximumCharges: Number(event.maximumCharges) }),
       ...(event.chargesReached == null ? {} : { chargesReached: Number(event.chargesReached) }),
       ...(event.chargingSeconds == null ? {} : { chargingSeconds: Number(event.chargingSeconds) }),
+      ...(event.maximumChargingSeconds == null ? {} : { maximumChargingSeconds: Number(event.maximumChargingSeconds) }),
       ...(event.flowSpent == null ? {} : { flowSpent: Number(event.flowSpent) })
     });
   }
@@ -804,21 +806,22 @@ export interface TimelineChargeFillStep extends SchedulerStep {
 /**
  * Charging casts such as Dragon Slash occupy the character from the moment
  * their charge window opens, well before the cast bar begins. Surfacing that
- * window as a partial fill keeps the charge time from being counted as dead
- * time on the timeline.
+ * window as a partial fill excludes charging from dead time, but holding past
+ * full charge remains idle. Keep the fill anchored to entry, not release.
  */
 export function timelineStepsWithChargeFills(
   steps: readonly SchedulerStep[],
   resourceSpends: ReadonlyMap<number, ShatterResourceSpend>
 ): TimelineChargeFillStep[] {
   return steps.map((step) => {
-    const chargingMs = Math.round(Number(resourceSpends.get(step.ri)?.chargingSeconds || 0) * 1000);
+    const spend = resourceSpends.get(step.ri);
+    const chargingMs = Math.round(Number(spend?.chargingSeconds || 0) * 1000);
     if (chargingMs <= 0) return step;
     return {
       ...step,
       partialFill: {
         startMs: step.start - chargingMs,
-        durationMs: chargingMs
+        durationMs: Math.min(chargingMs, Math.round(Number(spend?.maximumChargingSeconds ?? Infinity) * 1000))
       }
     };
   });

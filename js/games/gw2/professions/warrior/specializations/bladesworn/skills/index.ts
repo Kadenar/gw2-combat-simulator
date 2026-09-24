@@ -297,6 +297,8 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   [ID.DRAGON_SLASH_FORCE]: {
     effects: [],
     castTimeMs: 1040,
+    // Force hits during its animation so expiring buffs are evaluated before recovery ends.
+    dragonSlashImpactOffsetMs: 520,
     burst: true,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber',

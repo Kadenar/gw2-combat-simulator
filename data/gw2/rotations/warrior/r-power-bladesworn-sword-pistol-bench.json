@@ -4,187 +4,809 @@
     "benchmarkDurationSeconds": 95.644,
     "benchmarkDamage": 3972566,
     "benchmarkDps": 41534.92116599055,
-    "timingSource": "EVTC animation activations, state changes, and direct instant-skill effects",
-    "note": "Sword/Pistol follows the supplied EVTC, including reconstructed idle waits and overlapping instant casts."
+    "timingSource": "User-adjusted EVTC reconstruction",
+    "note": "Includes precombat Fierce as Fire stacking and a cooldown reset, with the 80 ms wait before Overcharged Cartridges to preserve its buff window."
   },
   "rotation": [
-    { "name": "Unsheathe Gunsaber", "skillId": 62745 },
-    { "name": "Break Step", "skillId": 62885 },
-    { "name": "Sheathe Gunsaber", "skillId": 62861 },
-    { "name": "Overcharged Cartridges", "skillId": 68085 },
-    { "name": "Flow Stabilizer", "skillId": 62967 },
-    { "name": "Tactical Reload", "skillId": 62901 },
-    { "name": "Mending", "skillId": 14401 },
-    { "name": "Flow Stabilizer", "skillId": 62967 },
-    { "name": "Overcharged Cartridges", "skillId": 68085 },
-    { "name": "Dragon's Roar", "skillId": 62800 },
-    { "name": "__combat_start", "offset": 480 },
-    { "name": "Dragon Trigger", "skillId": 62803 },
-    { "name": "Triggerguard", "skillId": 62893, "offset": 360 },
-    { "name": "Flow Stabilizer", "skillId": 62967, "offset": 40 },
-    { "name": "Flicker Step", "skillId": 62926, "offset": 240 },
-    { "name": "Dragon Slash—Force", "skillId": 62797 },
-    { "name": "Dragonspike Mine", "skillId": 62960 },
-    { "name": "__wait", "waitMs": 160 },
-    { "name": "Dragon Trigger", "skillId": 62803 },
-    { "name": "Flicker Step", "skillId": 62926 },
-    { "name": "Dragon Slash—Force", "skillId": 62797 },
-    { "name": "Cyclone Trigger", "skillId": 62789 },
-    { "name": "Artillery Slash", "skillId": 62732 },
-    { "name": "Blooming Fire", "skillId": 62930 },
-    { "name": "Cyclone Trigger", "skillId": 62789 },
-    { "name": "Swift Cut", "skillId": 62966 },
-    { "name": "Steel Divide", "skillId": 62772 },
-    { "name": "Explosive Thrust", "skillId": 62918 },
-    { "name": "__wait", "waitMs": 120 },
-    { "name": "Mending", "skillId": 14401 },
-    { "name": "Overcharged Cartridges", "skillId": 68085 },
-    { "name": "Sheathe Gunsaber", "skillId": 62861, "offset": 480 },
-    { "name": "__wait", "waitMs": 40 },
-    { "name": "Dragon Trigger", "skillId": 62803 },
-    { "name": "Flicker Step", "skillId": 62926 },
-    { "name": "Dragon Slash—Force", "skillId": 62797 },
-    { "name": "Blooming Fire", "skillId": 62930 },
-    { "name": "Sheathe Gunsaber", "skillId": 62861 },
-    { "name": "__wait", "waitMs": 160 },
-    { "name": "Dragon's Roar", "skillId": 62800 },
-    { "name": "Rend", "skillId": 80247 },
-    { "name": "Sever Artery", "skillId": 14364 },
-    { "name": "Gash", "skillId": 14365 },
-    { "name": "Hamstring", "skillId": 14363 },
-    { "name": "Overcharged Cartridges", "skillId": 68085 },
-    { "name": "__wait", "waitMs": 80 },
-    { "name": "Sever Artery", "skillId": 14364 },
-    { "name": "Gash", "skillId": 14365 },
-    { "name": "__wait", "waitMs": 200 },
-    { "name": "Dragon Trigger", "skillId": 62803 },
-    { "name": "Flow Stabilizer", "skillId": 62967, "offset": 520 },
-    { "name": "Flicker Step", "skillId": 62926 },
-    { "name": "Dragon Slash—Force", "skillId": 62797 },
-    { "name": "Dragonspike Mine", "skillId": 62960 },
-    { "name": "Tactical Reload", "skillId": 62901 },
-    { "name": "Flow Stabilizer", "skillId": 62967 },
-    { "name": "Dragon Trigger", "skillId": 62803 },
-    { "name": "Dragon Slash—Force", "skillId": 62797 },
-    { "name": "Cyclone Trigger", "skillId": 62789 },
-    { "name": "__wait", "waitMs": 40 },
-    { "name": "Artillery Slash", "skillId": 62732 },
-    { "name": "Blooming Fire", "skillId": 62930 },
-    { "name": "Cyclone Trigger", "skillId": 62789 },
-    { "name": "Swift Cut", "skillId": 62966 },
-    { "name": "Steel Divide", "skillId": 62772 },
-    { "name": "Explosive Thrust", "skillId": 62918 },
-    { "name": "__wait", "waitMs": 80 },
-    { "name": "Blooming Fire", "skillId": 62930 },
-    { "name": "Overcharged Cartridges", "skillId": 68085 },
-    { "name": "Sheathe Gunsaber", "skillId": 62861 },
-    { "name": "__wait", "waitMs": 360 },
-    { "name": "Dragon Trigger", "skillId": 62803 },
-    { "name": "Flicker Step", "skillId": 62926 },
-    { "name": "Dragon Slash—Force", "skillId": 62797 },
-    { "name": "Swift Cut", "skillId": 62966 },
-    { "name": "Sheathe Gunsaber", "skillId": 62861 },
-    { "name": "__wait", "waitMs": 120 },
-    { "name": "Dragon's Roar", "skillId": 62800 },
-    { "name": "Rend", "skillId": 80247 },
-    { "name": "Sever Artery", "skillId": 14364 },
-    { "name": "Gash", "skillId": 14365 },
-    { "name": "Hamstring", "skillId": 14363 },
-    { "name": "Sever Artery", "skillId": 14364 },
-    { "name": "Gash", "skillId": 14365 },
-    { "name": "Hamstring", "skillId": 14363 },
-    { "name": "Overcharged Cartridges", "skillId": 68085 },
-    { "name": "__wait", "waitMs": 80 },
-    { "name": "Dragon Trigger", "skillId": 62803 },
-    { "name": "Flicker Step", "skillId": 62926, "offset": 1600 },
-    { "name": "Dragon Slash—Force", "skillId": 62797 },
-    { "name": "Flow Stabilizer", "skillId": 62967, "offset": 680 },
-    { "name": "Dragonspike Mine", "skillId": 62960 },
-    { "name": "__wait", "waitMs": 120 },
-    { "name": "Dragon Trigger", "skillId": 62803 },
-    { "name": "Flicker Step", "skillId": 62926 },
-    { "name": "Dragon Slash—Force", "skillId": 62797 },
-    { "name": "Tactical Reload", "skillId": 62901 },
-    { "name": "Flow Stabilizer", "skillId": 62967 },
-    { "name": "Cyclone Trigger", "skillId": 62789 },
-    { "name": "Artillery Slash", "skillId": 62732 },
-    { "name": "Blooming Fire", "skillId": 62930 },
-    { "name": "Cyclone Trigger", "skillId": 62789 },
-    { "name": "Swift Cut", "skillId": 62966 },
-    { "name": "Steel Divide", "skillId": 62772 },
-    { "name": "Explosive Thrust", "skillId": 62918 },
-    { "name": "__wait", "waitMs": 80 },
-    { "name": "Blooming Fire", "skillId": 62930 },
-    { "name": "Overcharged Cartridges", "skillId": 68085 },
-    { "name": "Sheathe Gunsaber", "skillId": 62861 },
-    { "name": "__wait", "waitMs": 160 },
-    { "name": "Dragon Trigger", "skillId": 62803 },
-    { "name": "Flicker Step", "skillId": 62926, "offset": 1040 },
-    { "name": "Dragon Slash—Force", "skillId": 62797 },
-    { "name": "Swift Cut", "skillId": 62966 },
-    { "name": "Steel Divide", "skillId": 62772 },
-    { "name": "Explosive Thrust", "skillId": 62918 },
-    { "name": "__wait", "waitMs": 200 },
-    { "name": "Sheathe Gunsaber", "skillId": 62861 },
-    { "name": "__wait", "waitMs": 120 },
-    { "name": "Dragon's Roar", "skillId": 62800 },
-    { "name": "Rend", "skillId": 80247 },
-    { "name": "Sever Artery", "skillId": 14364 },
-    { "name": "Gash", "skillId": 14365 },
-    { "name": "Hamstring", "skillId": 14363 },
-    { "name": "Overcharged Cartridges", "skillId": 68085 },
-    { "name": "__wait", "waitMs": 80 },
-    { "name": "Dragon Trigger", "skillId": 62803 },
-    { "name": "Dragon Slash—Force", "skillId": 62797 },
-    { "name": "Dragonspike Mine", "skillId": 62960 },
-    { "name": "__wait", "waitMs": 200 },
-    { "name": "Dragon Trigger", "skillId": 62803 },
-    { "name": "Flow Stabilizer", "skillId": 62967, "offset": 1760 },
-    { "name": "Flicker Step", "skillId": 62926 },
-    { "name": "Dragon Slash—Force", "skillId": 62797 },
-    { "name": "Cyclone Trigger", "skillId": 62789 },
-    { "name": "Artillery Slash", "skillId": 62732 },
-    { "name": "Blooming Fire", "skillId": 62930 },
-    { "name": "Swift Cut", "skillId": 62966 },
-    { "name": "Steel Divide", "skillId": 62772 },
-    { "name": "Explosive Thrust", "skillId": 62918 },
-    { "name": "__wait", "waitMs": 80 },
-    { "name": "Blooming Fire", "skillId": 62930 },
-    { "name": "__wait", "waitMs": 80 },
-    { "name": "Tactical Reload", "skillId": 62901 },
-    { "name": "Overcharged Cartridges", "skillId": 68085 },
-    { "name": "Flow Stabilizer", "skillId": 62967, "offset": 200 },
-    { "name": "Sheathe Gunsaber", "skillId": 62861, "offset": 320 },
-    { "name": "__wait", "waitMs": 240 },
-    { "name": "Dragon Trigger", "skillId": 62803 },
-    { "name": "Triggerguard", "skillId": 62893, "offset": 800 },
-    { "name": "Flicker Step", "skillId": 62926, "offset": 320 },
-    { "name": "Dragon Slash—Force", "skillId": 62797 },
-    { "name": "Blooming Fire", "skillId": 62930 },
-    { "name": "Artillery Slash", "skillId": 62732 },
-    { "name": "Cyclone Trigger", "skillId": 62789 },
-    { "name": "__wait", "waitMs": 200 },
-    { "name": "Sheathe Gunsaber", "skillId": 62861 },
-    { "name": "__wait", "waitMs": 120 },
-    { "name": "Dragon's Roar", "skillId": 62800 },
-    { "name": "Rend", "skillId": 80247 },
-    { "name": "Sever Artery", "skillId": 14364 },
-    { "name": "Gash", "skillId": 14365 },
-    { "name": "Hamstring", "skillId": 14363 },
-    { "name": "Overcharged Cartridges", "skillId": 68085 },
-    { "name": "Dragon Trigger", "skillId": 62803 },
-    { "name": "Dragon Slash—Force", "skillId": 62797 },
-    { "name": "Dragonspike Mine", "skillId": 62960 },
-    { "name": "__wait", "waitMs": 160 },
-    { "name": "Dragon Trigger", "skillId": 62803 },
-    { "name": "Flicker Step", "skillId": 62926 },
-    { "name": "Dragon Slash—Force", "skillId": 62797 },
-    { "name": "Cyclone Trigger", "skillId": 62789 },
-    { "name": "Artillery Slash", "skillId": 62732 },
-    { "name": "Blooming Fire", "skillId": 62930 },
-    { "name": "Flow Stabilizer", "skillId": 62967, "offset": 480 },
-    { "name": "Swift Cut", "skillId": 62966 },
-    { "name": "Steel Divide", "skillId": 62772 },
-    { "name": "Explosive Thrust", "skillId": 62918 }
+    {
+      "type": "cast",
+      "skillId": 62745
+    },
+    {
+      "type": "cast",
+      "skillId": 62930
+    },
+    {
+      "type": "cast",
+      "skillId": 62789
+    },
+    {
+      "type": "cast",
+      "skillId": 62885
+    },
+    {
+      "type": "cast",
+      "skillId": 62789
+    },
+    {
+      "type": "cast",
+      "skillId": 62930
+    },
+    {
+      "type": "cast",
+      "skillId": 62885
+    },
+    {
+      "type": "cooldown-reset"
+    },
+    {
+      "type": "cast",
+      "skillId": 62861
+    },
+    {
+      "type": "cast",
+      "skillId": 68085
+    },
+    {
+      "type": "cast",
+      "skillId": 62967,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62901
+    },
+    {
+      "type": "cast",
+      "skillId": 14401
+    },
+    {
+      "type": "cast",
+      "skillId": 68085
+    },
+    {
+      "type": "cast",
+      "skillId": 62967,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62800
+    },
+    {
+      "type": "combat-start",
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 62803
+    },
+    {
+      "type": "cast",
+      "skillId": 62967,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 62893,
+      "concurrentOffsetMs": 400
+    },
+    {
+      "type": "cast",
+      "skillId": 62926
+    },
+    {
+      "type": "cast",
+      "skillId": 62797,
+      "releaseAtCharges": 10
+    },
+    {
+      "type": "cast",
+      "skillId": 62960
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 62803
+    },
+    {
+      "type": "cast",
+      "skillId": 62893,
+      "concurrentOffsetMs": 1680
+    },
+    {
+      "type": "cast",
+      "skillId": 62926,
+      "concurrentOffsetMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 62797,
+      "releaseAtCharges": 10
+    },
+    {
+      "type": "cast",
+      "skillId": 62789
+    },
+    {
+      "type": "cast",
+      "skillId": 62732
+    },
+    {
+      "type": "cast",
+      "skillId": 62930
+    },
+    {
+      "type": "cast",
+      "skillId": 62789
+    },
+    {
+      "type": "cast",
+      "skillId": 62966
+    },
+    {
+      "type": "cast",
+      "skillId": 62772
+    },
+    {
+      "type": "cast",
+      "skillId": 62918
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 14401
+    },
+    {
+      "type": "cast",
+      "skillId": 68085,
+      "interruptAfterMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 62861
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 62803
+    },
+    {
+      "type": "cast",
+      "skillId": 62926,
+      "concurrentOffsetMs": 2400
+    },
+    {
+      "type": "cast",
+      "skillId": 62797,
+      "releaseAtCharges": 10
+    },
+    {
+      "type": "cast",
+      "skillId": 62930
+    },
+    {
+      "type": "cast",
+      "skillId": 62861
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 62800
+    },
+    {
+      "type": "cast",
+      "skillId": 80247
+    },
+    {
+      "type": "cast",
+      "skillId": 14364
+    },
+    {
+      "type": "cast",
+      "skillId": 14365
+    },
+    {
+      "type": "cast",
+      "skillId": 14363
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 68085
+    },
+    {
+      "type": "cast",
+      "skillId": 14364
+    },
+    {
+      "type": "cast",
+      "skillId": 14365
+    },
+    {
+      "type": "wait",
+      "durationMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 62803
+    },
+    {
+      "type": "cast",
+      "skillId": 62967
+    },
+    {
+      "type": "cast",
+      "skillId": 62926,
+      "concurrentOffsetMs": 2400
+    },
+    {
+      "type": "cast",
+      "skillId": 62797,
+      "releaseAtCharges": 10
+    },
+    {
+      "type": "cast",
+      "skillId": 62960
+    },
+    {
+      "type": "cast",
+      "skillId": 62901,
+      "interruptAfterMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 62967
+    },
+    {
+      "type": "cast",
+      "skillId": 62803
+    },
+    {
+      "type": "cast",
+      "skillId": 62893
+    },
+    {
+      "type": "cast",
+      "skillId": 62797,
+      "releaseAtCharges": 10
+    },
+    {
+      "type": "cast",
+      "skillId": 62789
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
+      "type": "cast",
+      "skillId": 62732
+    },
+    {
+      "type": "cast",
+      "skillId": 62930
+    },
+    {
+      "type": "cast",
+      "skillId": 62789
+    },
+    {
+      "type": "cast",
+      "skillId": 62966
+    },
+    {
+      "type": "cast",
+      "skillId": 62772
+    },
+    {
+      "type": "cast",
+      "skillId": 62918
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 62930
+    },
+    {
+      "type": "cast",
+      "skillId": 68085
+    },
+    {
+      "type": "cast",
+      "skillId": 62861
+    },
+    {
+      "type": "wait",
+      "durationMs": 360
+    },
+    {
+      "type": "cast",
+      "skillId": 62803
+    },
+    {
+      "type": "cast",
+      "skillId": 62893
+    },
+    {
+      "type": "cast",
+      "skillId": 62926,
+      "concurrentOffsetMs": 2400
+    },
+    {
+      "type": "cast",
+      "skillId": 62797,
+      "releaseAtCharges": 10
+    },
+    {
+      "type": "cast",
+      "skillId": 62966
+    },
+    {
+      "type": "cast",
+      "skillId": 62861
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62800
+    },
+    {
+      "type": "cast",
+      "skillId": 80247
+    },
+    {
+      "type": "cast",
+      "skillId": 14364
+    },
+    {
+      "type": "cast",
+      "skillId": 14365
+    },
+    {
+      "type": "cast",
+      "skillId": 14363
+    },
+    {
+      "type": "cast",
+      "skillId": 14364
+    },
+    {
+      "type": "cast",
+      "skillId": 14365
+    },
+    {
+      "type": "cast",
+      "skillId": 14363
+    },
+    {
+      "type": "cast",
+      "skillId": 68085
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 62803
+    },
+    {
+      "type": "cast",
+      "skillId": 62926,
+      "concurrentOffsetMs": 1200
+    },
+    {
+      "type": "cast",
+      "skillId": 62797,
+      "releaseAtCharges": 10
+    },
+    {
+      "type": "cast",
+      "skillId": 62967,
+      "concurrentOffsetMs": 680
+    },
+    {
+      "type": "cast",
+      "skillId": 62960
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62803
+    },
+    {
+      "type": "cast",
+      "skillId": 62926,
+      "concurrentOffsetMs": 2240
+    },
+    {
+      "type": "cast",
+      "skillId": 62797,
+      "releaseAtCharges": 10
+    },
+    {
+      "type": "cast",
+      "skillId": 62901
+    },
+    {
+      "type": "cast",
+      "skillId": 62967
+    },
+    {
+      "type": "cast",
+      "skillId": 62789
+    },
+    {
+      "type": "cast",
+      "skillId": 62732
+    },
+    {
+      "type": "cast",
+      "skillId": 62930
+    },
+    {
+      "type": "cast",
+      "skillId": 62789
+    },
+    {
+      "type": "cast",
+      "skillId": 62966
+    },
+    {
+      "type": "cast",
+      "skillId": 62772
+    },
+    {
+      "type": "cast",
+      "skillId": 62918
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 62930
+    },
+    {
+      "type": "cast",
+      "skillId": 68085,
+      "interruptAfterMs": 560
+    },
+    {
+      "type": "cast",
+      "skillId": 62861
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 62803
+    },
+    {
+      "type": "cast",
+      "skillId": 62893
+    },
+    {
+      "type": "cast",
+      "skillId": 62926,
+      "concurrentOffsetMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 62797,
+      "releaseAtCharges": 10
+    },
+    {
+      "type": "cast",
+      "skillId": 62966
+    },
+    {
+      "type": "cast",
+      "skillId": 62772
+    },
+    {
+      "type": "cast",
+      "skillId": 62918
+    },
+    {
+      "type": "wait",
+      "durationMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 62861
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62800
+    },
+    {
+      "type": "cast",
+      "skillId": 80247
+    },
+    {
+      "type": "cast",
+      "skillId": 14364
+    },
+    {
+      "type": "cast",
+      "skillId": 14365
+    },
+    {
+      "type": "cast",
+      "skillId": 14363
+    },
+    {
+      "type": "cast",
+      "skillId": 68085
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 62803
+    },
+    {
+      "type": "cast",
+      "skillId": 62893
+    },
+    {
+      "type": "cast",
+      "skillId": 62797,
+      "releaseAtCharges": 10
+    },
+    {
+      "type": "cast",
+      "skillId": 62960
+    },
+    {
+      "type": "wait",
+      "durationMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 62803
+    },
+    {
+      "type": "cast",
+      "skillId": 62967,
+      "concurrentOffsetMs": 1760
+    },
+    {
+      "type": "cast",
+      "skillId": 62926,
+      "concurrentOffsetMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 62797,
+      "releaseAtCharges": 10
+    },
+    {
+      "type": "cast",
+      "skillId": 62789
+    },
+    {
+      "type": "cast",
+      "skillId": 62732
+    },
+    {
+      "type": "cast",
+      "skillId": 62930
+    },
+    {
+      "type": "cast",
+      "skillId": 62966
+    },
+    {
+      "type": "cast",
+      "skillId": 62772
+    },
+    {
+      "type": "cast",
+      "skillId": 62918
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 62930
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
+      "type": "cast",
+      "skillId": 62901
+    },
+    {
+      "type": "cast",
+      "skillId": 68085,
+      "interruptAfterMs": 520
+    },
+    {
+      "type": "cast",
+      "skillId": 62967,
+      "concurrentOffsetMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 62861
+    },
+    {
+      "type": "wait",
+      "durationMs": 320
+    },
+    {
+      "type": "cast",
+      "skillId": 62803
+    },
+    {
+      "type": "cast",
+      "skillId": 62893
+    },
+    {
+      "type": "cast",
+      "skillId": 62926,
+      "concurrentOffsetMs": 720
+    },
+    {
+      "type": "cast",
+      "skillId": 62797,
+      "releaseAtCharges": 10
+    },
+    {
+      "type": "cast",
+      "skillId": 62930
+    },
+    {
+      "type": "cast",
+      "skillId": 62732
+    },
+    {
+      "type": "cast",
+      "skillId": 62789
+    },
+    {
+      "type": "wait",
+      "durationMs": 200
+    },
+    {
+      "type": "cast",
+      "skillId": 62861
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
+      "type": "cast",
+      "skillId": 62800
+    },
+    {
+      "type": "cast",
+      "skillId": 80247
+    },
+    {
+      "type": "cast",
+      "skillId": 14364
+    },
+    {
+      "type": "cast",
+      "skillId": 14365
+    },
+    {
+      "type": "cast",
+      "skillId": 14363
+    },
+    {
+      "type": "cast",
+      "skillId": 68085
+    },
+    {
+      "type": "cast",
+      "skillId": 62803
+    },
+    {
+      "type": "cast",
+      "skillId": 62893
+    },
+    {
+      "type": "cast",
+      "skillId": 62797,
+      "releaseAtCharges": 10
+    },
+    {
+      "type": "cast",
+      "skillId": 62960
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
+    },
+    {
+      "type": "cast",
+      "skillId": 62803
+    },
+    {
+      "type": "cast",
+      "skillId": 62926,
+      "concurrentOffsetMs": 2280
+    },
+    {
+      "type": "cast",
+      "skillId": 62797,
+      "releaseAtCharges": 10
+    },
+    {
+      "type": "cast",
+      "skillId": 62789
+    },
+    {
+      "type": "cast",
+      "skillId": 62732
+    },
+    {
+      "type": "cast",
+      "skillId": 62930
+    },
+    {
+      "type": "cast",
+      "skillId": 62967,
+      "concurrentOffsetMs": 480
+    },
+    {
+      "type": "cast",
+      "skillId": 62966
+    },
+    {
+      "type": "cast",
+      "skillId": 62772
+    },
+    {
+      "type": "cast",
+      "skillId": 62918
+    },
+    {
+      "type": "cast",
+      "skillId": 62861
+    }
   ]
 }

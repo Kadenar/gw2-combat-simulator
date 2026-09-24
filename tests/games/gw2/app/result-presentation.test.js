@@ -595,9 +595,11 @@ test('damage contribution percentages share a denominator and handle empty damag
     conditions: [{ name: 'Burning', damage: 30, dps: 3, averageStacks: 1 }],
     conditionTotal: { damage: 30, dps: 3 }
   });
-  assert.match(container.innerHTML, /Player % Damage: 60\.00%/);
-  assert.match(container.innerHTML, /Entities % Damage: 30\.00%/);
-  assert.match(container.innerHTML, /Environment % Damage: 10\.00%/);
+  assert.match(container.innerHTML, /data-sort-col="damagePercent"[^>]*>Share/);
+  assert.match(container.innerHTML, /<span>Condition<\/span><span>Damage<\/span><span>Share<\/span>/);
+  assert.match(container.innerHTML, /Player Share: 60\.00%/);
+  assert.match(container.innerHTML, /Entities Share: 30\.00%/);
+  assert.match(container.innerHTML, /Environment Share: 10\.00%/);
   assert.match(
     container.innerHTML,
     /102849\.png" alt="" \/>Burning<\/span>\s*<span class="condi">30<\/span>\s*<span>30\.00%<\/span>/

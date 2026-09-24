@@ -1,5 +1,6 @@
 import type { BalanceProfile } from '#gw2/platform/engine/skills/types.js';
 import { defineTraitProfile as trait } from '#gw2/platform/profession-definition/balance-profiles.js';
+import { DRAGON_TRIGGER_CHARGE_INTERVAL_MS } from '#gw2/professions/warrior/data/dragon-charges.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 export const BLADESWORN_BALANCE_PROFILE_IDS = Object.freeze({
@@ -65,7 +66,7 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     minimumStacks: 5,
     threshold: 15,
     resourceCost: 5,
-    pulseInterval: 0.25,
+    pulseInterval: DRAGON_TRIGGER_CHARGE_INTERVAL_MS / 1000,
     cooldown: 30,
     effects: []
   },
@@ -132,7 +133,7 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     internalCooldown: 4,
     effects: [
       { name: 'might', type: 'boon', boon: 'might', stacks: 2, duration: 8 },
-      { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 1, duration: 5 }
+      { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 2, duration: 5 }
     ]
   }),
   trait(BLADESWORN_BALANCE_PROFILE_IDS.dragonscaleDefense, 'Dragonscale Defense', {

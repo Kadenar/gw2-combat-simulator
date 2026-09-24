@@ -55,6 +55,8 @@ export interface WarriorSkill extends Skill {
   readonly dragonTriggerSkill?: boolean;
   readonly movementSkill?: boolean;
   readonly dragonSlash?: boolean;
+  /** Fixed impact offset from release; slashes without an offset hit at cast end. */
+  readonly dragonSlashImpactOffsetMs?: number;
   readonly dragonSlashMinimumCoefficient?: number;
   readonly dragonSlashMaximumCoefficient?: number;
   readonly dragonSlashMinimumBurningDuration?: number;

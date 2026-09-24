@@ -426,6 +426,27 @@ test('Dragon Trigger charge time is excluded from timeline dead time', () => {
   assert.equal(rawDeadTime - chargeAwareDeadTime, chargingMs);
 });
 
+test('Dragon Trigger charge fills stop at full charge when the slash is delayed', () => {
+  for (const [setup, expectedDurationMs] of [
+    [[], 2480],
+    [[ID.TACTICAL_RELOAD], 1200]
+  ]) {
+    const result = simulate(
+      'Bladesworn',
+      [...setup, ID.DRAGON_TRIGGER, { type: 'wait', durationMs: 4000 }, ID.DRAGON_SLASH_FORCE],
+      { initialResource: 100 }
+    );
+    assert.deepEqual(result.warnings, []);
+    const entry = result.events.find((event) => event.reason === 'dragon trigger entry');
+    const slash = timelineStepsWithChargeFills(result.steps, shatterResourceSpends(result)).find(
+      (step) => step.skillId === ID.DRAGON_SLASH_FORCE
+    );
+    // The charge fill starts at entry and leaves the held remainder outside its occupied interval.
+    assert.deepEqual(slash.partialFill, { startMs: Math.round(entry.at * 1000), durationMs: expectedDurationMs });
+    assert.ok(slash.start > slash.partialFill.startMs + slash.partialFill.durationMs);
+  }
+});
+
 test('Bladesworn gunsaber autos follow the standard autoattack chain display', () => {
   const chain = [ID.SWIFT_CUT, ID.STEEL_DIVIDE, ID.EXPLOSIVE_THRUST];
 
