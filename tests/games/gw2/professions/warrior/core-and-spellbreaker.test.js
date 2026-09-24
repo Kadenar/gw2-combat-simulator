@@ -428,7 +428,7 @@ test('Dragon Trigger charge time is excluded from timeline dead time', () => {
 
 test('Dragon Trigger charge fills stop at full charge when the slash is delayed', () => {
   for (const [setup, expectedDurationMs] of [
-    [[], 2480],
+    [[], 2400],
     [[ID.TACTICAL_RELOAD], 1200]
   ]) {
     const result = simulate(

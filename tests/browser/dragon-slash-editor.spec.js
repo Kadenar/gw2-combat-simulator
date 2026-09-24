@@ -9,11 +9,14 @@ test('Dragon Slash pencil edits charge release instead of generic cast behavior'
     const saved = await (await fetch('/data/gw2/builds/warrior/b-power-bladesworn-sword-pistol.json')).json();
     app.build = app.adapter.toApplicationBuild({
       ...saved,
+      // Fund Dragon Trigger entry and its release choices independently of the saved preset's opener.
+      initialResource: 100,
       rotation: ['Unsheathe Gunsaber', 'Dragon Trigger', 'Dragon Slash—Force']
     });
     app.changed();
   });
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
 
   const pencil = page.getByRole('button', { name: 'Edit Dragon Slash—Force charge release', exact: true });
   await pencil.focus();
