@@ -362,7 +362,7 @@ function mountHitTimelineLane(
 
     // Show pulse state beside its hit instead of adding a second timeline to the skill details.
     const showEmpowered = group.some((hit) => hit.empowered != null);
-    // Expected-crit runs have no per-hit verdict, so omit the otherwise empty critical column.
+    // Omit the critical column when the selected packets have no per-hit verdict.
     const showCritical = group.some((hit) => hit.crit != null);
     const showAttribution = detailHits.some((hit) => hit.contributions?.length);
     const showTriggeredBy = detailHits.some((hit) => hit.triggeredBy);

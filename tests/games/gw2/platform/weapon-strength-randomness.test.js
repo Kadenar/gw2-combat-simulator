@@ -224,7 +224,7 @@ function fixtureProfession() {
   });
 }
 
-function simulateFixture(mode, seed = 1, casts = 1) {
+function simulateFixture(mode, seed = 1, casts = 1, precision = 0) {
   return simulateGw2({
     profession: fixtureProfession(),
     rotation: Array.from({ length: casts }, () => 'Dagger Flurry'),
@@ -232,7 +232,7 @@ function simulateFixture(mode, seed = 1, casts = 1) {
       primaryWeapon: 'Dagger',
       stats: {
         power: 1000,
-        precision: 0,
+        precision,
         ferocity: 0,
         conditionDamage: 0
       },
@@ -362,4 +362,26 @@ test('unprofiled coefficient packets are rejected instead of receiving legacy fi
       ),
     /requires a resolvable weapon-strength profile or explicit weaponStrength/
   );
+});
+
+// Critical proc rolls must not turn average damage into a random normal/critical damage outcome.
+test('both modes share seeded crit outcomes and average crit damage while deterministic strength stays midpoint', () => {
+  const run = (mode, seed) =>
+    simulateFixture(mode, seed, 10, 1945).resolvedEvents.filter((event) => event.type === 'damage');
+  const deterministic = run('deterministic', 42),
+    repeat = run('deterministic', 42),
+    stochastic = run('stochastic', 42);
+  const flags = (hits) => hits.map((hit) => hit.didCrit);
+  assert.deepEqual(flags(deterministic), flags(repeat));
+  assert.deepEqual(flags(deterministic), flags(stochastic));
+  assert.notDeepEqual(flags(deterministic), flags(run('deterministic', 43)));
+  assert.equal(new Set(flags(deterministic)).size, 2);
+  assert.ok(deterministic.every((hit) => hit.resolvedWeaponStrength === 1000 && !hit.weaponStrengthSampled));
+  for (const hit of [...deterministic, ...stochastic]) {
+    assert.equal(hit.criticalChance, 0.5);
+    assert.equal(hit.damage, Math.floor(((hit.resolvedWeaponStrength * 1000) / 2597) * 1.25));
+  }
+
+  assert.equal(new Set(deterministic.map((hit) => hit.damage)).size, 1);
+  assert.ok(stochastic.every((hit) => hit.weaponStrengthSampled));
 });

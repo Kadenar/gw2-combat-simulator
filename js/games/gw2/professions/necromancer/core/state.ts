@@ -57,7 +57,6 @@ export interface NecromancerCoreState {
   dreadUntil: number;
   fearOfDeathReadyAt: number;
   vampiricPresenceReadyAt: number;
-  barbedPrecisionProgress: number;
   traitProcReadyAt: Record<string, number>;
   tasteForBloodBuffs: Record<string, NecromancerTasteForBloodApplication[]>;
 }
@@ -165,7 +164,6 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     dreadUntil: 0,
     fearOfDeathReadyAt: 0,
     vampiricPresenceReadyAt: 0,
-    barbedPrecisionProgress: 0.5,
     traitProcReadyAt: {},
     tasteForBloodBuffs: {}
   };
@@ -175,7 +173,6 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     'dreadUntil',
     'fearOfDeathReadyAt',
     'vampiricPresenceReadyAt',
-    'barbedPrecisionProgress',
     'traitProcReadyAt',
     'tasteForBloodBuffs'
   ]);

@@ -150,17 +150,15 @@ export const SKILL_COLS: readonly ResultColumn[] = [
   },
   {
     key: 'critChance',
-    label: 'Exp. Crit %',
+    label: 'Crit %',
     numeric: true,
     format: (value) => (value == null ? '—' : `${(Number(value) * 100).toFixed(1)}%`),
     title: (_value, row) => {
       const eligible = Number(row.critEligibleHits || 0);
       if (eligible <= 0) return '';
       const critHits = Number(row.critHits || 0);
-      // Deterministic runs yield fractional expected crits; flag those with ~.
-      const fractional = Math.abs(critHits - Math.round(critHits)) > 1e-6;
-      const critLabel = fractional ? `~${critHits.toFixed(1)}` : String(Math.round(critHits));
-      return `${critLabel} of ${eligible} strike hits critical`;
+      // Both modes count the seeded critical outcomes used by proc reactions.
+      return `${critHits} of ${eligible} strike hits critical`;
     }
   }
 ];

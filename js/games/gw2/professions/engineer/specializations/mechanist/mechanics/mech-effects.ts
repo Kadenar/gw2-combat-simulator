@@ -33,12 +33,6 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
     when: (context, event) =>
       Number(event.coefficient) > 0 && isEngineerMechEvent(context, event) && hasTrait(context, TRAIT.SERRATED_STEEL),
     chanceOnCriticalHit: (context) => procChanceFromContext(context, CORE_PROFILE.serratedSteel),
-    expectedProgress: {
-      get: (context) => Number(procState(context)['serratedSteelProgress.mech'] || 0),
-      set: (context, progress) => {
-        procState(context)['serratedSteelProgress.mech'] = progress;
-      }
-    },
     randomStream: 'engineer.serrated-steel.mech',
     attribution: { kind: 'trait', id: TRAIT.SERRATED_STEEL },
     handler(context, event, _details, application) {
@@ -67,12 +61,6 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
       Number(event.coefficient) > 0 &&
       isEngineerMechEvent(context, event) &&
       hasTrait(context, TRAIT.INCENDIARY_POWDER),
-    expectedProgress: {
-      get: (context) => Number(procState(context)['incendiaryProgress.mech'] || 0),
-      set: (context, progress) => {
-        procState(context)['incendiaryProgress.mech'] = progress;
-      }
-    },
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(
@@ -84,7 +72,6 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
         procState(context)['incendiaryPowder.mech'] = readyAt;
       }
     },
-    progressDuringCooldown: 'accumulate',
     attribution: { kind: 'trait', id: TRAIT.INCENDIARY_POWDER },
     handler(context, event) {
       const incendiaryPowderProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.incendiaryPowder);

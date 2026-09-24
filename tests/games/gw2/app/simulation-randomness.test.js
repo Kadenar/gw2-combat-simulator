@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2SimulationConfig, deterministicSimulationConfig } from '#gw2/app/simulation/config.js';
+import { getBuildExportPayload } from '#gw2/app/io/files.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import {
   calculateRandomDistribution,
@@ -102,7 +103,7 @@ test('every native profession exposes persisted simulation randomness', () => {
       profession.ui.assumptionControls
         .filter((control) => control.section === 'simulation')
         .map((control) => control.key),
-      ['simulationMode', 'permanentComboField']
+      ['simulationMode', 'simulationSeed', 'permanentComboField']
     );
     assert.equal(
       profession.ui.assumptionControls.find((control) => control.key === 'simulationMode')?.label,
@@ -121,6 +122,7 @@ test('every native profession exposes persisted simulation randomness', () => {
 
   for (const build of builds) {
     assert.equal(build.assumptions.simulationMode, 'deterministic');
+    assert.equal(build.assumptions.simulationSeed, 1);
   }
 
   const engineer = createEngineerBuildDefaults();
@@ -158,6 +160,37 @@ test('shared UI assumptions map to the resolver randomness config', () => {
     seed: 1
   });
   assert.equal(Object.hasOwn(config.deterministicChoices, 'simulationMode'), false);
+});
+
+// Saved seed values must survive loading and reach both baseline and comparison configurations.
+test('simulation seeds survive build serialization and configure reproducible runs', () => {
+  const build = createEngineerBuildDefaults();
+  build.assumptions.simulationSeed = 3576928633;
+  const reloaded = migrateEngineerBuild(JSON.parse(JSON.stringify(getBuildExportPayload(build))));
+  assert.equal(validateEngineerBuild(reloaded).valid, true);
+  assert.equal(reloaded.assumptions.simulationSeed, 3576928633);
+  const config = simulationConfig(engineerProfession, reloaded, 'Holosmith');
+  assert.deepEqual(config.randomness, { mode: 'deterministic', seed: 3576928633 });
+  assert.equal(deterministicSimulationConfig(config).randomness.seed, 3576928633);
+  const draw = (value) =>
+    createSimulationRandom(simulationConfig(engineerProfession, value, 'Holosmith').randomness).next('critical:player');
+  assert.equal(draw(build), draw(reloaded));
+  reloaded.assumptions.simulationSeed = 42;
+  assert.notEqual(draw(build), draw(reloaded));
+  for (const seed of [0, 0xffffffff]) {
+    reloaded.assumptions.simulationSeed = seed;
+    assert.equal(validateEngineerBuild(reloaded).valid, true);
+    assert.equal(simulationConfig(engineerProfession, reloaded, 'Holosmith').randomness.seed, seed);
+  }
+
+  for (const seed of [-1, 0x1_0000_0000, Infinity, 'invalid']) {
+    reloaded.assumptions.simulationSeed = seed;
+    assert.equal(validateEngineerBuild(reloaded).valid, false);
+    assert.equal(validateEngineerBuild(migrateEngineerBuild(reloaded)).valid, true);
+  }
+
+  delete reloaded.assumptions.simulationSeed;
+  assert.equal(migrateEngineerBuild(reloaded).assumptions.simulationSeed, 1);
 });
 
 test('RNG distributions report expected and percentile DPS without a UI seed', () => {

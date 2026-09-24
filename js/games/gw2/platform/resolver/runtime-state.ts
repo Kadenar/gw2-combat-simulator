@@ -80,8 +80,8 @@ export function createGw2ResolverRuntimeState({
     // Equipment state belongs to this resolution pass, including repeated runs with the same configuration.
     relic: createRelicRuntime(config.relic),
     profession: professionState,
-    sigil: { severanceUntil: 0, criticalProgress: 0, readyAt: new Map() },
-    food: { criticalProgress: 0, readyAt: 0 },
+    sigil: { severanceUntil: 0, readyAt: new Map() },
+    food: { readyAt: 0 },
     random: createSimulationRandom(config.randomness),
     weaponStrengthRolls: new Map(),
     weaponStrengthActivationOrder: 0,
@@ -194,18 +194,11 @@ export function createGw2ResolverRuntimeState({
       current.damage += damage;
       current[type] += damage;
       current.hits += hits;
-      // Crit accounting only makes sense for strike hits. In stochastic runs
-      // didCrit is a per-event boolean (all hits of the event share it); in
-      // deterministic runs it is null, so expected crits = chance * hits.
+      // Both modes report the seeded critical outcomes used by proc reactions.
       if (type === 'strikeDamage' && critical) {
         const eligible = Number(hits) || 0;
         current.critEligibleHits = (current.critEligibleHits || 0) + eligible;
-        const critShare =
-          critical.didCrit === true
-            ? eligible
-            : critical.didCrit === false
-              ? 0
-              : Number(critical.chance || 0) * eligible;
+        const critShare = critical.didCrit === true ? eligible : 0;
         current.critHits = (current.critHits || 0) + critShare;
       }
 
@@ -262,10 +255,9 @@ export interface Gw2ResolverRuntime {
   profession: object;
   sigil: {
     severanceUntil: number;
-    criticalProgress: number;
     readyAt: Map<string, number>;
   };
-  food: { criticalProgress: number; readyAt: number };
+  food: { readyAt: number };
   random: Readonly<SimulationRandom>;
   weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
   weaponStrengthActivationOrder: number;

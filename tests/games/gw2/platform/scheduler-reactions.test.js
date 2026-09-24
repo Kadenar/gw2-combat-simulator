@@ -70,6 +70,7 @@ test('Ranger stealth follows its strike and skips cancelled, missing, and off-ta
   const tasks = createTaskQueue({ handlers: rangerStealthReaction.taskHandlers });
   const context = {
     tasks,
+    start: 0,
     state: { profession: { core } },
     eventByOrder: (order) => events.get(order)
   };
@@ -149,10 +150,9 @@ test('captured reactions retain payload snapshots and activation lineage indepen
   assert.throws(() => reaction.onEventScheduled.handler(scoped, { callback() {} }), /serializable/);
 });
 
-test('Fresh Air shares one candidate batch with lookahead and consumes replacement critical facts once', () => {
+test('Fresh Air retries pending candidates and consumes each replacement critical fact once', () => {
   const core = {
     primaryAttunement: 'Water',
-    freshAirProgress: 0,
     freshAirCandidates: [],
     attunementReadyAt: { Air: 10 }
   };
@@ -172,6 +172,7 @@ test('Fresh Air shares one candidate batch with lookahead and consumes replaceme
   });
   const context = {
     tasks,
+    start: 0,
     state: { time: 0, cooldowns: new Map(), profession: { core, specialization: { kind: 'Core', state: {} } } },
     config: { selectedTraitIds: ['Fresh Air'], randomness: { mode: 'stochastic' } },
     schedulerPolicy: {
@@ -202,7 +203,6 @@ test('Fresh Air shares one candidate batch with lookahead and consumes replaceme
   }
 
   assert.equal(projectedFreshAirReadyAt(context, 2), 2);
-  assert.equal(core.freshAirProgress, 0);
   tasks.drainThrough(2, context);
   assert.equal(core.attunementReadyAt.Air, 2);
   assert.deepEqual(

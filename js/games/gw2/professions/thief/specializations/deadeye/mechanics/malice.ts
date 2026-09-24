@@ -119,9 +119,7 @@ export const deadeyeMaliceReaction = eventReaction<ThiefSchedulerContext, ThiefS
 function gainInitiativeAttackMalice(context: ThiefSchedulerContext, event: ThiefSimulationEvent): void {
   const state = deadeyeState.from(context);
 
-  const tracker = { progress: state.maliceCriticalProgress, readyAt: 0 };
-  const criticalApplication = advanceScheduledCriticalProc(context, event, { id: 'thief.deadeye.malice' }, tracker);
-  state.maliceCriticalProgress = tracker.progress;
+  const criticalApplication = advanceScheduledCriticalProc(context, event, { id: 'thief.deadeye.malice' });
   const criticalMalice = criticalApplication?.quantity || 0;
 
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);

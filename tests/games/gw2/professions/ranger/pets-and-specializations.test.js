@@ -249,7 +249,7 @@ test('Ranger builds migrate and validate against the canonical catalog', () => {
   assert.equal(Object.hasOwn(defaults.assumptions, 'targetDistance'), false);
   assert.deepEqual(
     rangerProfession.ui.assumptionControls.map((control) => control.key),
-    ['targetDefiant', 'simulationMode', 'permanentComboField']
+    ['targetDefiant', 'simulationMode', 'simulationSeed', 'permanentComboField']
   );
 
   const migrated = migrateRangerBuild({

@@ -76,11 +76,9 @@ export const jaggedMindReaction = eventReaction<MesmerSchedulerContext>({
     const runtime = mesmerRuntimeFor(context);
     const event = { ...canonicalEvent };
     if (!Object.hasOwn(event.metadata ?? {}, 'blade')) event.metadata = { ...event.metadata, blade: true };
-    // Jagged Mind applies fractional expected stacks directly in deterministic
-    // mode, while stochastic mode consumes the canonical sampled critical fact.
+    // Jagged Mind emits whole stacks only when the shared seeded critical roll succeeds.
     const application = advanceScheduledCriticalProc(context, event, {
-      id: 'mesmer.virtuoso.jagged-mind',
-      materialization: 'weighted'
+      id: 'mesmer.virtuoso.jagged-mind'
     });
     if (!application) return;
     const jaggedMindProfile = requireBalanceProfileFromContext(context, TRAIT.JAGGED_MIND);

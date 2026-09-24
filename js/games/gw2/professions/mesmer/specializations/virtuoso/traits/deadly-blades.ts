@@ -57,11 +57,10 @@ export const deadlyBladesReaction = eventReaction<MesmerSchedulerContext>({
     const deadlyBladesProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES);
     const deadlyBlades = requireEffect(deadlyBladesProfile, 'condition', 'Vulnerability');
     if (!deadlyBlades) return;
-    // Vulnerability follows the same sampled-or-weighted critical fact as Jagged
+    // Vulnerability follows the same seeded critical outcome as Jagged
     // Mind, but remains a separate trait-owned condition application.
     const application = advanceScheduledCriticalProc(context, event, {
-      id: 'mesmer.virtuoso.deadly-blades',
-      materialization: 'weighted'
+      id: 'mesmer.virtuoso.deadly-blades'
     });
     if (!application) return;
 

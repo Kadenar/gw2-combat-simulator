@@ -75,3 +75,34 @@ test('transition delay preferences are global and imported waits overlap them', 
   ]);
   expect(warnings.filter((message) => message.includes('UNPRESENTED CUSTOM EVENT'))).toEqual([]);
 });
+
+// The seed belongs to the build, reaches the simulation, and survives workspace reloads.
+test('simulation seed edits persist with the build and reach the result', async ({ page }) => {
+  await page.goto('/elementalist.html');
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.getByRole('button', { name: 'Open simulation config', exact: true }).click();
+  const seed = page.getByRole('spinbutton', { name: 'Simulation seed', exact: true });
+  await expect(seed).toHaveValue('1');
+  await seed.fill('3576928633');
+  await seed.press('Tab');
+  await page.waitForFunction(
+    () =>
+      window.professionApp.resultRevision === window.professionApp.buildRevision &&
+      window.professionApp.results?.randomness.seed === 3576928633
+  );
+  expect(
+    await page.evaluate(() => JSON.parse(JSON.stringify(window.professionApp.build)).assumptions.simulationSeed)
+  ).toBe(3576928633);
+  await page.reload();
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await page.getByRole('button', { name: 'Open simulation config', exact: true }).click();
+  await expect(seed).toHaveValue('3576928633');
+  await page.waitForFunction(() => window.professionApp.results?.randomness.seed === 3576928633);
+  await seed.fill('0');
+  await seed.press('Tab');
+  await page.waitForFunction(
+    () =>
+      window.professionApp.resultRevision === window.professionApp.buildRevision &&
+      window.professionApp.results?.randomness.seed === 0
+  );
+});

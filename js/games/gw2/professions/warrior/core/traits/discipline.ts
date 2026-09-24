@@ -9,7 +9,6 @@ import {
 
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { advanceScheduledCriticalProc } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
@@ -25,21 +24,18 @@ import type {
   WarriorSkill
 } from '#gw2/professions/warrior/types.js';
 
-// Only axe strikes advance this tracker; other weapons cannot bank an axe critical reward.
+// Only sampled axe criticals grant the bonus adrenaline.
 export function applyAxeMastery(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (!hasTrait(context, TRAIT.AXE_MASTERY) || event.offTarget) return;
   const skill = context.catalog.skillsById.get(event.skillId ?? '');
   if ((skill?.skillWeapon || skill?.weapon || event.skillWeapon) !== 'Axe') return;
-  const state = professionCoreState(context);
-  const tracker = { progress: state.axeMasteryProgress, readyAt: 0 };
   const application = advanceScheduledCriticalProc(
     context,
     event,
     { id: 'warrior.core.axe-mastery' },
-    tracker,
+    undefined,
     Math.max(1, Number(event.hits || 1))
   );
-  state.axeMasteryProgress = tracker.progress;
   if (application)
     gainWarriorAdrenaline(
       context,

@@ -365,8 +365,11 @@ test('Fresh Air lookahead preserves a scheduled reset across an intervening attu
     (event) => event.type === 'elementalist.fresh-air' && event.sourceSkill === 'Rocky Loop'
   );
 
-  assert.equal(Math.round(reset.at * 1000), 2000);
-  assert.equal(air.start, 2000);
+  const hit = result.events.find(
+    (event) => event.type === 'damage' && event.skillName === 'Rocky Loop' && event.didCrit
+  );
+  assert.equal(reset.at, hit.at);
+  assert.ok(air.start >= Math.round(reset.at * 1000));
 });
 
 test('attunement swaps start labeled rotation timeline rows', () => {

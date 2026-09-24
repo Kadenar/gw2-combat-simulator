@@ -635,7 +635,7 @@ test('Unstable Bladestorm anchors paired packets to cast start', () => {
   assert.equal(result.planningState.profession.resource, 1);
 });
 
-test('Mesmer critical traits consume seeded hit outcomes in stochastic mode', () => {
+test('Mesmer critical traits consume the same seeded hit outcomes in both modes', () => {
   const defaults = defaultSimulationConfig();
   const rotation = [];
 
@@ -693,8 +693,8 @@ test('Mesmer critical traits consume seeded hit outcomes in stochastic mode', ()
     (event) => event.type === 'condition' && event.name.includes('Jagged Mind')
   );
 
-  assert.equal(expectedJaggedMind.length, hits.length);
-  assert.ok(expectedJaggedMind.every((event) => event.stacks === 0.5));
+  assert.equal(expectedJaggedMind.length, criticals);
+  assert.deepEqual(expectedJaggedMind, jaggedMind);
 });
 
 test('Earth bleeding grants a scheduler-visible Bloodsong blade', () => {

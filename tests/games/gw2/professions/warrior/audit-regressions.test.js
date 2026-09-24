@@ -210,14 +210,15 @@ test('Axe Mastery adds adrenaline only to critical axe hits, including burst and
   }
 });
 
-test('Axe Mastery keeps weapon progress isolated and follows resource caps and Bladesworn conversion', () => {
+test('Axe Mastery rejects other weapons and follows resource caps and Bladesworn conversion', () => {
   const context = paragonContext();
   context.config.selectedTraitIds = [TRAIT.AXE_MASTERY];
   context.schedulerPolicy = { critical: () => ({ chance: 0.5 }) };
-  const hit = { at: 0, skillId: ID.CHOP, coefficient: 1, hits: 1 };
+  const hit = { type: 'damage', at: 0, skillId: ID.CHOP, coefficient: 1, hits: 1, didCrit: true };
   applyAxeMastery(context, { ...hit, skillId: ID.GREATSWORD_SWING });
-  applyAxeMastery(context, hit);
-  assert.equal(context.state.profession.core.axeMasteryProgress, 0.5);
+  const before = context.state.profession.core.adrenaline;
+  applyAxeMastery(context, { ...hit, didCrit: false });
+  assert.equal(context.state.profession.core.adrenaline, before);
   context.state.profession.core.adrenaline = 29;
   applyAxeMastery(context, hit);
   assert.equal(context.state.profession.core.adrenaline, 30);

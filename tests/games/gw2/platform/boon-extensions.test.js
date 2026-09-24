@@ -429,7 +429,10 @@ for (const name of ['Thief', 'Ranger', 'Herald']) {
       check(
         `${label}: Deadeye malice follows resolved critical chance`,
         context.state.profession.specialization.state.malice,
-        enabled ? 4 : 3
+        2 +
+          resolved.resolvedEvents.filter(
+            (event) => event.type === 'damage' && event.actorType === 'player' && event.didCrit
+          ).length
       );
     check(`${label}: native probe has no warnings`, [...scheduled.warnings, ...resolved.warnings], []);
   }
@@ -484,7 +487,7 @@ test('critical boon predictions preserve same-time hit facts and are applied onc
           .criticalChance
     );
     assert.deepEqual(scheduledChances, resolvedChances, mode);
-    if (mode === 'deterministic') assert.deepEqual(resolvedChances, [0.75, 0.75, 1]);
+    assert.deepEqual(resolvedChances, [0.75, 1, 1]);
     assert.ok(result.events.every((event) => event.schedulerBoonPrediction !== true));
     const buffs = result.resolvedEvents.filter((event) => event.type === 'buff');
     // Unrelenting Strikes grants Fury once; its gain triggers Might once, while No Quarter only extends.

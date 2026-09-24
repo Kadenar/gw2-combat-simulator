@@ -129,12 +129,6 @@ export const elementalistCoreCriticalReactions = Object.freeze([
   onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.raging-storm',
     when: (context, event, details) => criticalTraitEligible(context, event, details, 'Raging Storm'),
-    expectedProgress: {
-      get: (context) => Number(professionCoreState(context).criticalProcProgress.ragingStorm || 0),
-      set: (context, progress) => {
-        professionCoreState(context).criticalProcProgress.ragingStorm = progress;
-      }
-    },
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.ragingStorm), 'internalCooldown'),
@@ -143,7 +137,6 @@ export const elementalistCoreCriticalReactions = Object.freeze([
         professionCoreState(context).procReadyAt.ragingStorm = readyAt;
       }
     },
-    progressDuringCooldown: 'accumulate',
     attribution: { kind: 'trait', id: TRAIT.RAGING_STORM },
     handler: applyRagingStorm
   }),
@@ -152,12 +145,6 @@ export const elementalistCoreCriticalReactions = Object.freeze([
     chanceOnCriticalHit: (context) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.arcanePrecision), 'procChance'),
     when: (context, event, details) => criticalTraitEligible(context, event, details, 'Arcane Precision'),
-    expectedProgress: {
-      get: (context) => Number(professionCoreState(context).criticalProcProgress.arcanePrecision || 0),
-      set: (context, progress) => {
-        professionCoreState(context).criticalProcProgress.arcanePrecision = progress;
-      }
-    },
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.arcanePrecision), 'internalCooldown'),
@@ -166,7 +153,6 @@ export const elementalistCoreCriticalReactions = Object.freeze([
         professionCoreState(context).procReadyAt.arcanePrecision = readyAt;
       }
     },
-    progressDuringCooldown: 'accumulate',
     randomStream: 'elementalist.arcane-precision',
     attribution: { kind: 'trait', id: TRAIT.ARCANE_PRECISION },
     handler: applyArcanePrecision
@@ -174,12 +160,6 @@ export const elementalistCoreCriticalReactions = Object.freeze([
   onResolvedCriticalHit<ElementalistResolverContext, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'elementalist.renewing-stamina',
     when: (context, event, details) => criticalTraitEligible(context, event, details, 'Renewing Stamina'),
-    expectedProgress: {
-      get: (context) => Number(professionCoreState(context).criticalProcProgress.renewingStamina || 0),
-      set: (context, progress) => {
-        professionCoreState(context).criticalProcProgress.renewingStamina = progress;
-      }
-    },
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.renewingStamina), 'internalCooldown'),
@@ -188,7 +168,6 @@ export const elementalistCoreCriticalReactions = Object.freeze([
         professionCoreState(context).procReadyAt.renewingStamina = readyAt;
       }
     },
-    progressDuringCooldown: 'accumulate',
     attribution: { kind: 'trait', id: TRAIT.RENEWING_STAMINA },
     handler: applyRenewingStamina
   }),
@@ -196,12 +175,6 @@ export const elementalistCoreCriticalReactions = Object.freeze([
     id: 'elementalist.burning-precision',
     chanceOnCriticalHit: (context) => procChanceFromContext(context, PROFILE.burningPrecision),
     when: (context, event, details) => criticalTraitEligible(context, event, details, 'Burning Precision'),
-    expectedProgress: {
-      get: (context) => professionCoreState(context).burningPrecisionProgress,
-      set: (context, progress) => {
-        professionCoreState(context).burningPrecisionProgress = progress;
-      }
-    },
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.burningPrecision), 'internalCooldown'),
@@ -210,7 +183,6 @@ export const elementalistCoreCriticalReactions = Object.freeze([
         professionCoreState(context).procReadyAt.burningPrecision = readyAt;
       }
     },
-    progressDuringCooldown: 'accumulate',
     randomStream: 'elementalist.burning-precision',
     attribution: { kind: 'trait', id: TRAIT.BURNING_PRECISION },
     handler: applyBurningPrecision

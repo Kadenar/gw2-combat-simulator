@@ -38,15 +38,7 @@ const RENEGADE_CRITICAL_TRAITS_TASK = 'revenant.renegade-critical-traits';
 const RENEGADE_RAZORCLAW_PROC_TASK = 'revenant.razorclaw-proc';
 
 function criticalCount(context: RevenantSchedulerContext, event: SimulationEvent): number {
-  const state = renegadeState.from(context);
-  const tracker = { progress: Number(state.renegadeCriticalProgress || 0), readyAt: 0 };
-  const application = advanceScheduledCriticalProc(
-    context,
-    event,
-    { id: 'revenant.renegade.critical-traits' },
-    tracker
-  );
-  state.renegadeCriticalProgress = tracker.progress;
+  const application = advanceScheduledCriticalProc(context, event, { id: 'revenant.renegade.critical-traits' });
   return application?.quantity || 0;
 }
 

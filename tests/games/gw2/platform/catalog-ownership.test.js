@@ -369,8 +369,8 @@ test('phase-scoped module sections compile without duplicating their canonical c
   assert.deepEqual(calls, ['resolved']);
 });
 
-test('resolved critical-hit helper preserves threshold and stochastic semantics', () => {
-  const state = { progress: 0, readyAt: 0, procs: 0, rolls: 0 };
+test('resolved critical-hit helper shares sampled outcomes and strict ICDs across modes', () => {
+  const state = { readyAt: 0, procs: 0, rolls: 0 };
   const context = {
     random: {
       stochastic: false,
@@ -385,15 +385,8 @@ test('resolved critical-hit helper preserves threshold and stochastic semantics'
   };
   const reaction = onResolvedCriticalHit({
     id: 'fixture.critical',
-    materialization: 'threshold',
     chanceOnCriticalHit: 0.5,
     sourceIds: [7],
-    expectedProgress: {
-      get: () => state.progress,
-      set: (_context, value) => {
-        state.progress = value;
-      }
-    },
     internalCooldown: {
       duration: 1,
       readyAt: () => state.readyAt,
@@ -408,33 +401,32 @@ test('resolved critical-hit helper preserves threshold and stochastic semantics'
     }
   });
   const event = { type: 'damage', at: 0, actorType: 'player', sourceId: 7 };
-  const deterministic = { hitContext: { critical: { chance: 0.5 } } };
+  const deterministic = { hitContext: { critical: { chance: 0.5, didCrit: true } } };
 
   for (let index = 0; index < 8; index += 1) {
     reaction.handler(context, { ...event, at: index / 4 }, deterministic);
   }
 
-  assert.equal(state.procs, 1);
-  assert.equal(state.rolls, 0);
-  assert.equal(state.progress, 0);
+  assert.equal(state.procs, 2);
+  assert.equal(state.rolls, 2);
 
   context.random.stochastic = true;
   reaction.handler(
     context,
-    { ...event, at: 2 },
+    { ...event, at: 3 },
     {
       hitContext: { critical: { chance: 0.5, didCrit: false } }
     }
   );
   reaction.handler(
     context,
-    { ...event, at: 2 },
+    { ...event, at: 3 },
     {
       hitContext: { critical: { chance: 0.5, didCrit: true } }
     }
   );
-  assert.equal(state.procs, 2);
-  assert.equal(state.rolls, 1);
+  assert.equal(state.procs, 3);
+  assert.equal(state.rolls, 3);
   assert.deepEqual(reaction.attribution, { kind: 'trait', id: 99 });
 
   reaction.handler(
@@ -451,7 +443,7 @@ test('resolved critical-hit helper preserves threshold and stochastic semantics'
       hitContext: { critical: { chance: 1, didCrit: true } }
     }
   );
-  assert.equal(state.procs, 2);
+  assert.equal(state.procs, 3);
   assert.equal(reaction.requiresCriticalFacts, true);
 });
 
@@ -465,7 +457,6 @@ test('critical-hit declarations automatically request canonical scheduler facts'
         reactions: [
           onResolvedCriticalHit({
             id: 'fixture.critical-facts',
-            expectedProgress: { get: () => 0, set: () => undefined },
             attribution: { kind: 'trait', id: 99 },
             handler: () => undefined
           })

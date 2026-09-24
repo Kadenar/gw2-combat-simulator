@@ -75,9 +75,7 @@ export function createCriticalSigilDiagnostics() {
             ? 'actual-only'
             : !resolved
               ? 'predicted-only'
-              : expected.readyAt === resolved.readyAt &&
-                  before?.chance === after?.chance &&
-                  before?.criticalProgress === after?.criticalProgress
+              : expected.readyAt === resolved.readyAt && before?.chance === after?.chance
                 ? 'confirmed'
                 : 'changed';
           rows.push({

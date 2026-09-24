@@ -8,7 +8,7 @@ export interface ConditionTickContribution {
 }
 
 // One resolved hit/tick: time (ms, relative to the DPS window), damage, and
-// whether it critically struck (null when deterministic runs use expected crits).
+// whether its seeded critical roll succeeded (null when the packet has no critical outcome).
 export interface SkillHit {
   readonly t: number;
   readonly v: number;

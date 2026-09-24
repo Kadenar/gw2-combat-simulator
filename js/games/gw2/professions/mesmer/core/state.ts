@@ -13,8 +13,6 @@ export interface MesmerCoreState {
   mimicUntil: number;
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
-  sharperImagesProgress: number;
-  masterFencerProgress: number;
   chaosStormCasts: number;
   ineptitudeReadyAt: number;
   clarityUntil: number;
@@ -36,8 +34,6 @@ export function createMesmerCoreState(_config: Partial<MesmerConfig> = {}): Mesm
     mimicUntil: 0,
     availableFlips: {},
     autoattackChains: {},
-    sharperImagesProgress: 0,
-    masterFencerProgress: 0,
     chaosStormCasts: 0,
     ineptitudeReadyAt: 0,
     clarityUntil: 0,

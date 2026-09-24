@@ -257,10 +257,7 @@ function emitFireAura(
 }
 
 function criticalCount(context: WarriorSchedulerContext, event: WarriorSimulationEvent): number {
-  const state = berserkerState.from(context);
-  const tracker = { progress: state.kingOfFiresCriticalProgress, readyAt: 0 };
-  const application = advanceScheduledCriticalProc(context, event, { id: 'warrior.berserker.king-of-fires' }, tracker);
-  state.kingOfFiresCriticalProgress = tracker.progress;
+  const application = advanceScheduledCriticalProc(context, event, { id: 'warrior.berserker.king-of-fires' });
   return application?.quantity || 0;
 }
 

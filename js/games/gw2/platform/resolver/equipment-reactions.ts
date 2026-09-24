@@ -72,11 +72,9 @@ function createResolvedCriticalSigilEffects(
     event,
     gw2SigilSet(ctx.config, ctx.activeWeaponSet).names || [],
     critical,
-    ctx.random.stochastic,
     ctx.sigil
   );
   ctx.sigilDiagnostics?.record('resolution', event, critical.chance, decision);
-  ctx.sigil.criticalProgress = decision.criticalProgress;
   const sourceSkill = event.skillName || '';
   for (const { name, readyAt } of decision.procs) {
     const proc = SIGIL_PROC_LOOKUP[name];
@@ -156,17 +154,10 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
   const criticalFoodReaction = onResolvedCriticalHit<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>(
     {
       id: 'food.critical-strike',
-      materialization: 'threshold',
       chanceOnCriticalHit: (ctx) => criticalFoodProc(ctx)?.chance || 0,
       actorTypes: ['player'],
       when: (ctx, event) =>
         isGw2PlayerActorEvent(event) && Number(event.coefficient) > 0 && criticalFoodProc(ctx) != null,
-      expectedProgress: {
-        get: (ctx) => ctx.food.criticalProgress,
-        set: (ctx, value) => {
-          ctx.food.criticalProgress = value;
-        }
-      },
       internalCooldown: {
         duration: (ctx) => Number(criticalFoodProc(ctx)?.icdMs || 0) / 1000,
         readyAt: (ctx) => ctx.food.readyAt,
@@ -177,7 +168,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       randomStream: 'food.critical-strike',
       attribution: { kind: 'effect', id: 'food.critical-strike' },
       handler: (ctx, event, _details, application) => {
-        // Food procs are discrete events, so materialize every threshold application independently.
+        // Food procs are discrete events, so materialize every successful sampled application independently.
         for (let proc = 0; proc < application.quantity; proc += 1) {
           createCriticalFoodEffect(ctx, event);
         }

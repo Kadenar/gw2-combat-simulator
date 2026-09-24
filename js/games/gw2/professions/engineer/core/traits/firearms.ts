@@ -33,12 +33,6 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     actorTypes: ['player', 'effect', 'unknown'],
     when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.SERRATED_STEEL),
     chanceOnCriticalHit: (context) => procChanceFromContext(context, PROFILE.serratedSteel),
-    expectedProgress: {
-      get: (context) => Number(procState(context).serratedSteelProgress || 0),
-      set: (context, progress) => {
-        procState(context).serratedSteelProgress = progress;
-      }
-    },
     randomStream: 'engineer.serrated-steel',
     attribution: { kind: 'trait', id: TRAIT.SERRATED_STEEL },
     handler(context, event, _details, application) {
@@ -64,12 +58,6 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     id: 'engineer.core.no-scope',
     actorTypes: ['player'],
     when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.NO_SCOPE),
-    expectedProgress: {
-      get: (context) => Number(procState(context).noScopeProgress || 0),
-      set: (context, progress) => {
-        procState(context).noScopeProgress = progress;
-      }
-    },
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.noScope), 'internalCooldown'),
@@ -100,12 +88,6 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
     id: 'engineer.core.incendiary-powder-player',
     actorTypes: ['player'],
     when: (context, event) => Number(event.coefficient) > 0 && hasTrait(context, TRAIT.INCENDIARY_POWDER),
-    expectedProgress: {
-      get: (context) => Number(procState(context)['incendiaryProgress.player'] || 0),
-      set: (context, progress) => {
-        procState(context)['incendiaryProgress.player'] = progress;
-      }
-    },
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.incendiaryPowder), 'internalCooldown'),
@@ -114,8 +96,6 @@ export const engineerCoreCriticalHitDefinitions = Object.freeze([
         procState(context)['incendiaryPowder.player'] = readyAt;
       }
     },
-    // Preserve deterministic banking of expected critical hits during the cooldown.
-    progressDuringCooldown: 'accumulate',
     attribution: { kind: 'trait', id: TRAIT.INCENDIARY_POWDER },
     handler(context, event) {
       const incendiaryPowderProfile = requireBalanceProfileFromContext(context, PROFILE.incendiaryPowder);

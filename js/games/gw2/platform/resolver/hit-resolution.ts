@@ -48,7 +48,7 @@ export function createGw2HitResolution({
     return Math.max(1, Number(ctx.config.target?.armor || STANDARD_TARGET_ARMOR));
   }
 
-  // A shared crit outcome (stochastic) feeds both reactions and on-crit effects.
+  // Both modes share seeded crit outcomes for reactions while retaining average critical damage.
   // Strike damage stays expected-valued, so didCrit only isolates proc RNG.
   function resolveCritical(
     ctx: Gw2ResolverRuntime,
@@ -61,16 +61,15 @@ export function createGw2HitResolution({
         chanceBeforeCap: 0,
         contributors: [],
         damage: 1,
-        didCrit: ctx.random?.stochastic ? false : null
+        didCrit: false
       };
     }
 
     const critical = ctx.query.critical(event, event.at, ctx);
-    critical.didCrit = ctx.random?.stochastic
-      ? typeof event.didCrit === 'boolean'
+    critical.didCrit =
+      typeof event.didCrit === 'boolean'
         ? event.didCrit
-        : ctx.random.roll(critical.chance, `critical:${String(event.actorType || 'player')}`)
-      : null;
+        : ctx.random.roll(critical.chance, `critical:${String(event.actorType || 'player')}`);
     return critical;
   }
 
@@ -103,6 +102,7 @@ export function createGw2HitResolution({
     power: number,
     critical: Gw2HitResolutionContext['critical']
   ): ResolvedStrikeParts {
+    // Damage retains the average crit multiplier; the sampled outcome governs proc eligibility only.
     const criticalMultiplier = expectedCritMultiplier(critical.chance, critical.damage);
     const outgoingMultiplier =
       ctx.query.strikeMultiplier(event, event.at, ctx) *
@@ -232,6 +232,7 @@ export function createGw2HitResolution({
           }
         : {}),
       damage,
+      didCrit: hitContext.critical.didCrit,
       criticalChance: hitContext.critical.chance,
       criticalChanceBeforeCap: hitContext.critical.chanceBeforeCap,
       criticalChanceContributors: hitContext.critical.contributors,
@@ -265,8 +266,7 @@ export interface Gw2DamageBreakdownEntry {
   conditionDamage: number;
   hits: number;
   casts?: number;
-  // Crit accounting is tracked only for strike hits. critHits is the expected
-  // (deterministic) or actual (stochastic) number of critical strikes;
+  // Crit accounting counts seeded critical outcomes in both modes;
   // critEligibleHits is the number of strike hits those crits are drawn from.
   critHits?: number;
   critEligibleHits?: number;

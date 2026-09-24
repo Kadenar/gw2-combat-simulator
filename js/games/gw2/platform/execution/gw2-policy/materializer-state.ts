@@ -24,7 +24,6 @@ export interface MaterializerState {
   random: Readonly<SimulationRandom>;
   sigil: {
     readyAt: Map<string, number>;
-    criticalProgress: number;
     doomPending: boolean;
     severanceUntil: number;
   };
@@ -51,7 +50,6 @@ export function createMaterializerState(
     random: createSimulationRandom(config.randomness),
     sigil: {
       readyAt: new Map(),
-      criticalProgress: 0,
       doomPending: false,
       severanceUntil: 0
     }

@@ -29,7 +29,6 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 export interface MesmerDuelingCriticalContext {
   readonly state: SchedulerState<MesmerRuntimeState>;
   readonly traits: ReadonlySet<number>;
-  readonly stochastic: boolean;
   readonly emitEvent: MesmerEmitDerivedEvent;
   readonly boonDuration: (boon: string, baseDuration: number) => number;
   readonly addTraitProc: MesmerAddTraitProc;
@@ -178,28 +177,22 @@ export function triggerMasterFencer(
     return;
   }
 
-  const core = professionCoreState(context.state);
   // One resolved owner supplies both fury effects and the ICD for this proc attempt.
+  const core = professionCoreState(context.state);
   const masterFencerProfile = requireBalanceProfileFromContext(context, TRAIT.MASTER_FENCER);
   const furyEffects = ['Self Fury', 'Allied Fury'].flatMap((name) => {
     const effect = requireEffect(masterFencerProfile, 'boon', name);
     return effect ? [effect] : [];
   });
   if (!furyEffects.length) return;
-  const tracker = { progress: core.masterFencerProgress, readyAt: 0 };
   const application = advanceCriticalProc(
     criticalOpportunity(chance, typeof event.didCrit === 'boolean' ? event.didCrit : undefined),
     {
       id: 'mesmer.core.master-fencer',
-      at: event.at,
-      stochastic: context.stochastic
-    },
-    tracker
+      at: event.at
+    }
   );
-  core.masterFencerProgress = tracker.progress;
-
-  // Master Fencer historically consumes expected threshold crossings during
-  // its ICD, so cooldown gating remains after the shared progress advance.
+  // Only the canonical critical outcome can claim Master Fencer's cooldown.
   if (!application) return;
 
   if (
@@ -240,21 +233,16 @@ export function triggerSharperImages(
     return;
   }
 
-  const core = professionCoreState(context.state);
   const sharperImagesProfile = requireBalanceProfileFromContext(context, TRAIT.SHARPER_IMAGES);
   const effect = requireEffect(sharperImagesProfile, 'condition', 'Bleeding');
   if (!effect) return;
-  const tracker = { progress: core.sharperImagesProgress, readyAt: 0 };
   const application = advanceCriticalProc(
     criticalOpportunity(chance, typeof event.didCrit === 'boolean' ? event.didCrit : undefined),
     {
       id: 'mesmer.core.sharper-images',
-      at: event.at,
-      stochastic: context.stochastic
-    },
-    tracker
+      at: event.at
+    }
   );
-  core.sharperImagesProgress = tracker.progress;
   if (!application) return;
   const procCount = application.quantity;
 

@@ -1,4 +1,3 @@
-import { timeKey } from '#kernel/core/clock.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 
@@ -9,11 +8,6 @@ export function createCriticalSigilEvent(name: string, proc: Gw2SigilProc, sourc
   if (proc.effect === 'strike') return createSigilStrikeEvent(name, proc, sourceSkill);
   if (proc.effect === 'condition') return createSigilConditionEvent(name, proc, sourceSkill);
   throw new TypeError(`Unsupported critical sigil effect: ${name} (${proc.effect}).`);
-}
-
-/** Lets a sigil retrigger at its exact canonical ICD boundary without opening an early-proc window. */
-export function isSigilInternalCooldownReady(at: number, readyAt = 0): boolean {
-  return timeKey(at) >= timeKey(readyAt);
 }
 
 /** Reports whether an event is a scheduler-only sigil prediction. */

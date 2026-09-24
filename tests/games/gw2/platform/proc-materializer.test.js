@@ -13,7 +13,7 @@ import {
   createGw2TriggerMaterializer,
   GW2_MATERIALIZE_EVENT_TASK
 } from '#gw2/platform/execution/gw2-policy/proc-materializer.js';
-import { isSigilInternalCooldownReady } from '#gw2/platform/equipment/sigils/proc-events.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
 import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
@@ -61,8 +61,8 @@ test('sigil diagnostics correlate same-time causes and retain explicit suppressi
     actorType: 'player',
     eventOrder
   });
-  const proc = { criticalProgress: 0, procs: [{ name: 'Earth', readyAt: 3 }] };
-  const absent = { criticalProgress: 0.5, procs: [] };
+  const proc = { procs: [{ name: 'Earth', readyAt: 3 }] };
+  const absent = { procs: [] };
   for (const id of [1, 2, 3, 4]) diagnostics.record('prediction', event(id), 0.5, id === 3 ? absent : proc);
   diagnostics.record('resolution', event(1), 0.5, proc);
   diagnostics.suppress(event(2), 'target-death');
@@ -145,27 +145,24 @@ test('sigil diagnostics preserve seeded output and explain suppression of a late
   );
 });
 
-test('critical sigil decisions preserve inputs, spend cooldown opportunities, and reject ineligible hits', () => {
-  // Pure decisions update only their returned progress and the cooldowns of emitted intents.
+test('critical sigil decisions use sampled outcomes and strict deadlines without mutating inputs', () => {
   const hit = { type: 'damage', at: 2, source: 'fixture', sourceId: 1, actorType: 'player', coefficient: 1 };
   const state = Object.freeze({
-    criticalProgress: 0.5,
     readyAt: new Map([
       ['Earth', 2],
       ['Air', 3],
       ['Doom', 9]
     ])
   });
-  const decide = (event = hit, chance = 0.5, stochastic = false, didCrit) =>
-    decideCriticalSigils(event, ['Earth', 'Air', 'Earth'], { chance, didCrit }, stochastic, state);
-  assert.deepEqual(decide(), { criticalProgress: 0, procs: [{ name: 'Earth', readyAt: 4 }] });
-  assert.deepEqual(decide({ ...hit, at: 1.999999 }), { criticalProgress: 0, procs: [] });
-  assert.deepEqual(decide(hit, 0.25), { criticalProgress: 0.75, procs: [] });
-  assert.deepEqual(decide({ ...hit, at: 3 }), {
-    criticalProgress: 0,
+  const decide = (event = hit, chance = 0.5, didCrit = true) =>
+    decideCriticalSigils(event, ['Earth', 'Air', 'Earth'], { chance, didCrit }, state);
+  assert.deepEqual(decide(), { procs: [] });
+  assert.deepEqual(decide({ ...hit, at: 2.000001 }), { procs: [{ name: 'Earth', readyAt: 4.000001 }] });
+  assert.deepEqual(decide({ ...hit, at: 3 }), { procs: [{ name: 'Earth', readyAt: 5 }] });
+  assert.deepEqual(decide({ ...hit, at: 3.000001 }), {
     procs: [
-      { name: 'Earth', readyAt: 5 },
-      { name: 'Air', readyAt: 6 }
+      { name: 'Earth', readyAt: 5.000001 },
+      { name: 'Air', readyAt: 6.000001 }
     ]
   });
   for (const change of [
@@ -175,15 +172,11 @@ test('critical sigil decisions preserve inputs, spend cooldown opportunities, an
     { flatDamage: 10 },
     { coefficient: 0 },
     { actorType: 'summon' }
-  ]) {
-    assert.deepEqual(decide({ ...hit, ...change }), { criticalProgress: 0.5, procs: [] });
-  }
-
-  assert.equal(decide({ ...hit, actorType: 'effect', canTriggerCriticalSigils: true }).procs.length, 1);
-  assert.deepEqual(decide(hit, 0), { criticalProgress: 0.5, procs: [] });
-  assert.deepEqual(decide(hit, 0.5, true, false), { criticalProgress: 0.5, procs: [] });
-  assert.deepEqual(decide(hit, 0.5, true, true), { criticalProgress: 0.5, procs: [{ name: 'Earth', readyAt: 4 }] });
-  assert.equal(state.criticalProgress, 0.5);
+  ])
+    assert.deepEqual(decide({ ...hit, at: 4, ...change }), { procs: [] });
+  assert.deepEqual(decide({ ...hit, at: 4 }, 0), { procs: [] });
+  assert.deepEqual(decide({ ...hit, at: 4 }, 0.5, false), { procs: [] });
+  assert.equal(decide({ ...hit, at: 4, actorType: 'effect', canTriggerCriticalSigils: true }).procs.length, 2);
   assert.deepEqual(
     [...state.readyAt],
     [
@@ -305,13 +298,13 @@ test('Blight predictions supply condition-dependent scheduling and expire withou
 });
 
 // Identical short histories expose equipment eligibility without depending on a saved rotation.
-test('critical sigil progress pauses while unequipped and resumes across weapon swaps', () => {
+test('critical sigil cooldowns persist across weapon swaps and cannot proc while unequipped', () => {
   for (const startingWeaponSet of [1, 2]) {
     const otherSet = startingWeaponSet === 1 ? 2 : 1;
     for (const startsEquipped of [false, true]) {
       const profession = defineProfession({
-        id: 'sigil-progress-fixture',
-        name: 'Sigil progress fixture',
+        id: 'sigil-cooldown-fixture',
+        name: 'Sigil cooldown fixture',
         catalog: createCanonicalCatalog(),
         schedulerHooks: {
           initialize(context) {
@@ -330,7 +323,7 @@ test('critical sigil progress pauses while unequipped and resumes across weapon 
       const equippedSet = startsEquipped ? startingWeaponSet : otherSet;
       const config = {
         startingWeaponSet,
-        stats: { power: 1000, precision: 1945 },
+        stats: { power: 1000, precision: 4000 },
         sigilSets: [1, 2].map((set) => ({ names: set === equippedSet ? ['Earth'] : [] }))
       };
       const rotation = [{ type: 'wait', durationMs: 1000 }];
@@ -341,7 +334,7 @@ test('critical sigil progress pauses while unequipped and resumes across weapon 
       for (const events of [scheduled.events, resolved.resolvedEvents]) {
         assert.deepEqual(
           events.filter((event) => event.sourceId === 'sigil.earth').map((event) => event.at),
-          [0.5]
+          [startsEquipped ? 0.1 : 0.3]
         );
       }
     }
@@ -349,10 +342,11 @@ test('critical sigil progress pauses while unequipped and resumes across weapon 
 });
 
 test('sigil cooldown boundaries use exact canonical instants', () => {
-  // A sigil may proc at its boundary, never before it, including across equivalent floating-point expressions.
-  assert.equal(isSigilInternalCooldownReady(5.999999, 6), false);
-  assert.equal(isSigilInternalCooldownReady(6, 6), true);
-  assert.equal(isSigilInternalCooldownReady(0.1 + 0.2, 0.3), true);
+  // Equivalent floating-point timestamps share a blocked deadline; the next canonical instant is ready.
+  assert.equal(isInternalCooldownReady(5.999999, 6), false);
+  assert.equal(isInternalCooldownReady(6, 6), false);
+  assert.equal(isInternalCooldownReady(6.000001, 6), true);
+  assert.equal(isInternalCooldownReady(0.1 + 0.2, 0.3), false);
 });
 
 test('computed combat boundaries admit opening procs but exclude the preceding microsecond', () => {
@@ -632,16 +626,10 @@ test('one critical query supplies trigger decisions and survives same-time boon 
     assert.equal(materializer.critical(hit), observed);
     assert.equal(materializer.critical(canonical), observed);
     assert.equal(queryCritical.mock.callCount(), 1);
-    if (mode === 'stochastic') {
-      assert.equal(roll.mock.callCount(), 1);
-      assert.deepEqual(roll.mock.calls[0].arguments, [observed.chance, 'critical:player']);
-      assert.equal(canonical.didCrit, roll.mock.calls[0].result);
-      assert.notEqual(canonical, hit);
-    } else {
-      assert.equal(roll.mock.callCount(), 0);
-      assert.equal(state.sigil.criticalProgress, 0, 'trait critical facts cannot bank unequipped sigil progress');
-      assert.equal(canonical.didCrit, undefined);
-    }
+    assert.equal(roll.mock.callCount(), 1);
+    assert.deepEqual(roll.mock.calls[0].arguments, [observed.chance, 'critical:player']);
+    assert.equal(canonical.didCrit, roll.mock.calls[0].result);
+    assert.notEqual(canonical, hit);
 
     // Hypothetical copies still query current state, including the later same-time boon.
     assert.equal(materializer.critical({ ...hit }).chance, 1);
@@ -683,7 +671,7 @@ test('critical facts follow weapon swaps without proc sigils', () => {
   assert.ok(hits.every((event) => event.didCrit === true));
 });
 
-test('sigils retrigger on a hit at the exact internal-cooldown boundary', () => {
+test('sigils block a hit at the exact internal-cooldown boundary', () => {
   const defaults = defaultSimulationConfig();
   const result = simulateMesmer(
     [
@@ -701,6 +689,6 @@ test('sigils retrigger on a hit at the exact internal-cooldown boundary', () => 
 
   assert.deepEqual(
     result.procSteps.filter((step) => step.skill === 'Sigil of Torment').map((step) => step.start),
-    [360, 5360]
+    [360]
   );
 });

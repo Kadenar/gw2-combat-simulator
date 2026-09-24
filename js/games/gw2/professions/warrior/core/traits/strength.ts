@@ -61,9 +61,7 @@ const BODY_BLOW_CONTROL_KINDS = new Set(['stun', 'daze', 'knockback', 'pull', 'p
 export function applyForcefulGreatsword(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (!hasTrait(context, TRAIT.FORCEFUL_GREATSWORD) || event.offTarget) return;
 
-  const state = professionCoreState(context);
   const weapons = gw2ConfiguredWeaponSet(context.config, event.weaponSet ?? context.state.activeWeaponSet);
-  const tracker = { progress: state.forcefulGreatswordProgress, readyAt: 0 };
   const forcefulGreatswordProfile = requireBalanceProfileFromContext(context, PROFILE.forcefulGreatsword);
   const application = advanceScheduledCriticalProc(
     context,
@@ -76,10 +74,9 @@ export function applyForcefulGreatsword(context: WarriorSchedulerContext, event:
       ),
       randomStream: 'warrior.forceful-greatsword'
     },
-    tracker,
+    undefined,
     Math.max(1, Number(event.hits || 1))
   );
-  state.forcefulGreatswordProgress = tracker.progress;
   if (!application) return;
   const might = requireEffect(forcefulGreatswordProfile, 'boon', 'might');
   if (might)

@@ -155,19 +155,10 @@ export function applyRangerWeaponSwapTraits(
 export const rangerCoreCriticalReactions = Object.freeze({
   id: 'ranger.sharpened-edges',
   order: 20,
-  materialization: 'threshold',
   chanceOnCriticalHit: 0.33,
   actorTypes: ['player', 'summon'] as const,
   when(context: RangerResolverContext, event: Gw2ResolverEvent): boolean {
     return hasTrait(context, TRAIT.SHARPENED_EDGES) && (event.actorType === 'player' || event.source === 'ranger-pet');
-  },
-  expectedProgress: {
-    get(context: RangerResolverContext): number {
-      return professionCoreState(context).sharpenedEdgesProgress;
-    },
-    set(context: RangerResolverContext, value: number): void {
-      professionCoreState(context).sharpenedEdgesProgress = value;
-    }
   },
   attribution: {
     kind: 'trait' as const,

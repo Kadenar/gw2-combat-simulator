@@ -153,11 +153,9 @@ export const thiefCriticalBoonReaction = eventReaction<ThiefSchedulerContext, Th
       if (!definition) continue;
       const { id, name, boon, duration, stacks, internalCooldown } = definition;
       const tracker = {
-        progress: Number(state.traitProcProgress[traitId] || 0),
         readyAt: Number(state.traitProcReadyAt[traitId] || 0)
       };
       const proc = advanceScheduledCriticalProc(context, event, { id, internalCooldown }, tracker);
-      state.traitProcProgress[traitId] = tracker.progress;
       state.traitProcReadyAt[traitId] = tracker.readyAt;
       if (!proc) continue;
       context.emitDerived(event, {
@@ -181,27 +179,13 @@ export const thiefCriticalBoonReaction = eventReaction<ThiefSchedulerContext, Th
   }
 });
 
-function traitCriticalProgress(context: ThiefResolverContext, traitId: SkillId): number {
-  return Number(professionCoreState(context).traitProcProgress[String(traitId)] || 0);
-}
-
-function setTraitCriticalProgress(context: ThiefResolverContext, traitId: SkillId, value: number): void {
-  professionCoreState(context).traitProcProgress[String(traitId)] = value;
-}
-
 export const unrelentingStrikesCriticalReaction = Object.freeze({
   id: 'thief.unrelenting-strikes',
   order: 10,
-  materialization: 'threshold',
   actorTypes: ['player'] as const,
   when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: NativeResolvedDamageDetails) =>
     Boolean(details.hitContext?.critEligible) &&
     criticalBoonEligible(context, event, TRAIT.UNRELENTING_STRIKES, details.hitContext?.critical?.furyActive === true),
-  expectedProgress: {
-    get: (context: ThiefResolverContext) => traitCriticalProgress(context, TRAIT.UNRELENTING_STRIKES),
-    set: (context: ThiefResolverContext, value: number) =>
-      setTraitCriticalProgress(context, TRAIT.UNRELENTING_STRIKES, value)
-  },
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.UNRELENTING_STRIKES), 'internalCooldown'),
@@ -246,15 +230,10 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
 export const noQuarterCriticalReaction = Object.freeze({
   id: 'thief.no-quarter',
   order: 20,
-  materialization: 'threshold',
   actorTypes: ['player'] as const,
   when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: NativeResolvedDamageDetails) =>
     Boolean(details.hitContext?.critEligible) &&
     criticalBoonEligible(context, event, TRAIT.NO_QUARTER, details.hitContext?.critical?.furyActive === true),
-  expectedProgress: {
-    get: (context: ThiefResolverContext) => traitCriticalProgress(context, TRAIT.NO_QUARTER),
-    set: (context: ThiefResolverContext, value: number) => setTraitCriticalProgress(context, TRAIT.NO_QUARTER, value)
-  },
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.NO_QUARTER), 'internalCooldown'),

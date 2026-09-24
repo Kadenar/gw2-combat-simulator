@@ -25,7 +25,6 @@ export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
 >({
   id: 'necromancer.barbed-precision',
   order: 0,
-  materialization: 'threshold',
   actorTypes: ['player', 'summon', 'unknown'],
   chanceOnCriticalHit: (context) => procChanceFromContext(context, PROFILE.barbedPrecision),
   randomStream: 'necromancer.barbed-precision',
@@ -33,12 +32,6 @@ export const necromancerBarbedPrecisionReaction = onResolvedCriticalHit<
     Number(event.coefficient) > 0 &&
     hasTrait(context, TRAIT.BARBED_PRECISION) &&
     (event.actorType !== 'summon' || event.summonKind === 'spirit'),
-  expectedProgress: {
-    get: (context) => professionCoreState(context).barbedPrecisionProgress,
-    set: (context, value) => {
-      professionCoreState(context).barbedPrecisionProgress = value;
-    }
-  },
   attribution: { kind: 'trait', id: TRAIT.BARBED_PRECISION },
   handler: (context, event, _details, application) => {
     // Barbed Precision emits one condition application per threshold proc.

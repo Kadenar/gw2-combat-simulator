@@ -769,7 +769,7 @@ test('requested Harbinger damage traits apply at their per-hit triggers', () => 
   assert.ok(insidiousDisruption.every((event) => event.duration === 5));
 });
 
-test('Barbed Precision uses centered deterministic expected procs', () => {
+test('Barbed Precision samples its secondary chance on guaranteed critical hits', () => {
   const result = simulate('Harbinger', ['Weeping Shots', { type: 'wait', durationMs: 4100 }], {
     primaryWeapon: 'Pistol',
     stats: { precision: 4000 },
@@ -779,9 +779,8 @@ test('Barbed Precision uses centered deterministic expected procs', () => {
     (event) => event.sourceId === TRAIT.BARBED_PRECISION && event.condition === 'Bleeding'
   );
 
-  // Six guaranteed critical hits have 1.98 expected procs. Centered cumulative
-  // rounding materializes two whole applications instead of flooring to one.
-  assert.equal(applications.length, 2);
+  // The fixed default seed yields one successful secondary roll for these six critical hits.
+  assert.equal(applications.length, 1);
   assert.ok(applications.every((application) => application.duration === 3));
   assert.ok(applications.every((application) => Math.abs(application.effectiveDuration - 3.6) < 1e-12));
 });
@@ -802,9 +801,7 @@ test('Barbed Precision excludes minion strikes but includes Ritualist spirit str
     );
 
   assert.equal(applications(minion).length, 0);
-  assert.equal(minion.combatState.profession.barbedPrecisionProgress, 0.5);
   assert.ok(applications(spirit).length > 0);
-  assert.notEqual(spirit.combatState.profession.barbedPrecisionProgress, 0.5);
 });
 
 test('Devouring Darkness scales torment with distinct target conditions', () => {

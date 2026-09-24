@@ -27,7 +27,7 @@ export interface SkillBreakdownRow {
   // Stable identity shared with the chart's per-hit series (`group|name`), so a
   // clicked breakdown row can highlight its own damage over time.
   readonly key: string;
-  // Average crit chance across this skill's strike hits (0-1), or null when the
+  // Fraction of eligible strikes with successful seeded critical rolls (0-1), or null when the
   // row has no crit-eligible strike hits (pure-condition rows). critHits and
   // critEligibleHits back the hover tooltip.
   readonly critChance: number | null;

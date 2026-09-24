@@ -658,7 +658,7 @@ test('scheduler and canonical simulation normalize family sources', () => {
 });
 
 const inactiveStateKeys = Object.freeze({
-  Reaper: ['chillingNovaProgress', 'chillingNovaReadyAt', 'chillingVictoryReadyAt'],
+  Reaper: ['chillingNovaReadyAt', 'chillingVictoryReadyAt'],
   Scourge: ['shades', 'demonicLoreReadyAt', 'nourishingAshesReadyAt'],
   Harbinger: ['blight', 'blightExpiries', 'nextBlightAt', 'cascadingCorruptionStacks', 'meltdownUntil'],
   Ritualist: [
@@ -1082,7 +1082,7 @@ const revenantSpecializationStateKeys = Object.freeze({
     'bandTogetherReady',
     'bandTogetherExpiresAt',
     'kallasFervor',
-    'renegadeCriticalProgress',
+
     'razorclawsRage',
     'endlessEnmityReadyAt',
     'bloodFuryReadyAt',

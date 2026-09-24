@@ -65,17 +65,11 @@ export interface ElementalistCoreState {
     root: number;
     attunement: ElementalistAttunement;
   } | null;
-  freshAirProgress: number;
   freshAirCandidates: Array<{
     at: number;
-    criticalChance: number;
     eventOrder: number;
-    sourceId: string | number;
-    sourceSkill: string;
   }>;
-  burningPrecisionProgress: number;
   bountifulPowerProgress: number;
-  criticalProcProgress: Record<string, number>;
   endurance: number;
   enduranceUpdatedAt: number;
   activeAuras: ElementalistAuraState[];
@@ -133,11 +127,8 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
     autoattackChains: {},
     autoattackCarryover: null,
     pendingAutoattackCarryover: null,
-    freshAirProgress: 0,
     freshAirCandidates: [],
-    burningPrecisionProgress: 0,
     bountifulPowerProgress: 0,
-    criticalProcProgress: {},
     endurance: BASE_MAXIMUM_ENDURANCE,
     enduranceUpdatedAt: 0,
     activeAuras: [],

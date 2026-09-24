@@ -21,7 +21,6 @@ export interface RangerCoreState {
   winterBiteReady: boolean;
   tailWindReadyAt: number;
   furiousGripReadyAt: number;
-  sharpenedEdgesProgress: number;
   quickDrawReadyAt: number;
   quickDrawUntil: number;
   trapCrippleActivations: Record<string, boolean>;
@@ -81,7 +80,6 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     winterBiteReady: false,
     tailWindReadyAt: 0,
     furiousGripReadyAt: 0,
-    sharpenedEdgesProgress: 0,
     quickDrawReadyAt: 0,
     quickDrawUntil: 0,
     trapCrippleActivations: {},
@@ -127,7 +125,6 @@ export const RANGER_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
   'winterBiteReady',
   'tailWindReadyAt',
   'furiousGripReadyAt',
-  'sharpenedEdgesProgress',
   'quickDrawReadyAt',
   'quickDrawUntil',
   'trapCrippleActivations',

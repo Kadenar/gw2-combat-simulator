@@ -13,7 +13,6 @@ export interface DeadeyeState extends ThiefStealthAttackChargeState {
   markGeneration: number;
   malice: number;
   maximumMalice: number;
-  maliceCriticalProgress: number;
   maliceResolvedActivations: Record<string, boolean>;
   maleficentSevenTriggered: boolean;
   deadeyeRelicUntil: number;
@@ -29,8 +28,6 @@ function createDeadeyeState(config: ThiefConfig = {}): DeadeyeState {
     malice: 0,
     // Maleficent Seven raises the cap from 5 to 7 and must be known at construction time
     maximumMalice: hasTrait(traits, TRAIT.MALEFICENT_SEVEN) ? 7 : 5,
-    // Fractional crit-chance accumulator; whole stacks are drained into malice when they cross 1
-    maliceCriticalProgress: 0,
     // Tracks which activationIds have already had their malice effect applied to prevent multi-hit double-counting
     maliceResolvedActivations: {},
     // Prevents Maleficent Seven from firing more than once per mark application at full malice
@@ -49,7 +46,6 @@ export const DEADEYE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   markGeneration: 0,
   malice: 0,
   maximumMalice: 5,
-  maliceCriticalProgress: 0,
   deadeyeRelicUntil: 0,
   stealthAttackCharges: 0,
   stealthAttackExpiresAt: 0,

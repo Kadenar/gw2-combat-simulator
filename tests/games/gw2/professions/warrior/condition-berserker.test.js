@@ -239,7 +239,12 @@ test('Fan of Fire keeps only cast-time skills behind its retained aftercast', as
   assert.equal(action('Flames of War').at, 0.56);
   assert.deepEqual(
     result.events
-      .filter((event) => event.activationId === fan.activationId && ['damage', 'condition'].includes(event.type))
+      .filter(
+        (event) =>
+          event.activationId === fan.activationId &&
+          event.sourceId === ID.FAN_OF_FIRE &&
+          ['damage', 'condition'].includes(event.type)
+      )
       .map((event) => [event.type, event.at]),
     [
       ['damage', 0.24],
@@ -301,7 +306,7 @@ test('Combustive Shot scales its pulses and field with adrenaline', async () => 
   }
 });
 
-test('a delayed primal-burst critical hit immediately detonates its new fire aura', async () => {
+test('a primal-burst critical hit grants an aura that detonates no earlier than cast completion', async () => {
   const raw = JSON.parse(await readFile(buildUrl, 'utf8'));
   const build = migrateWarriorBuild({
     ...raw,
@@ -327,10 +332,13 @@ test('a delayed primal-burst critical hit immediately detonates its new fire aur
 
   warriorAppAdapter.recalculate(app);
   const result = warriorAppAdapter.runSimulation(app);
-  const scorchedAction = result.events.find((event) => event.type === 'action' && event.skillId === ID.SCORCHED_EARTH);
+  const criticalHit = result.events.find(
+    (event) => event.type === 'damage' && event.skillId === ID.SCORCHED_EARTH && event.didCrit
+  );
   const kingProc = result.procSteps.find((proc) => proc.type === 'trait_proc' && proc.skill === 'King of Fires');
 
-  assert.equal(kingProc.start, Math.round(scorchedAction.at * 1000) + 2320);
+  const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.SCORCHED_EARTH);
+  assert.equal(kingProc.start, Math.round(Math.max(action.endsAt, criticalHit.at) * 1000));
   assert.equal(kingProc.sourceSkill, 'Scorched Earth');
 });
 

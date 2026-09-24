@@ -129,7 +129,7 @@ test('restoration retains unchanged detached flat values but repairs mutations a
 });
 
 test('Core and Reaper snapshots retain resolver clocks and carapace multiplicities', () => {
-  // Scheduler snapshots update resources and Victory while leaving Nova progress and resolver effects intact.
+  // Scheduler snapshots update resources and Victory while leaving Nova cooldown and resolver effects intact.
   const core = createNecromancerCoreState();
   const reaper = createReaperState();
   const context = { profession: { core, specialization: { kind: 'Reaper', state: reaper } } };
@@ -145,7 +145,6 @@ test('Core and Reaper snapshots retain resolver clocks and carapace multipliciti
   core.targetChilledUntil = 12;
   core.traitProcReadyAt = { proc: 8 };
   core.carapaceExpiries = [10, 20, 20];
-  reaper.chillingNovaProgress = 0.75;
   reaper.chillingNovaReadyAt = 9;
 
   for (const at of [1, 2]) {
@@ -154,7 +153,6 @@ test('Core and Reaper snapshots retain resolver clocks and carapace multipliciti
     assert.equal(core.targetChilledUntil, 12);
     assert.deepEqual(core.traitProcReadyAt, { proc: 8 });
     assert.deepEqual(core.carapaceExpiries, [10, 10, 20, 20]);
-    assert.equal(reaper.chillingNovaProgress, 0.75);
     assert.equal(reaper.chillingNovaReadyAt, 9);
     assert.equal(reaper.chillingVictoryReadyAt, 7);
   }

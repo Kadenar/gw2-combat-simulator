@@ -7,12 +7,11 @@ import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import { triggerMesmerCriticalTraits } from '#gw2/professions/mesmer/core/traits/index.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
-test('Master Fencer consumes blocked critical thresholds before its final cooldown claim', () => {
-  // Banking a blocked threshold or gating progress first would change the next Fury opportunity.
+test('Master Fencer only claims its strict ICD on a sampled critical hit', () => {
+  // Both sampled misses and hits during the ICD leave its deadline intact.
   for (const duration of [8, 0]) {
     const core = createMesmerCoreState();
     core.traitReadyAt[TRAIT.MASTER_FENCER] = 2;
-    core.masterFencerProgress = 0.5;
     const events = [];
     const context = {
       state: { profession: { core, specialization: { kind: 'Core', state: {} } } },
@@ -27,25 +26,22 @@ test('Master Fencer consumes blocked critical thresholds before its final cooldo
         events.push(event);
       }
     };
-    const opportunity = (at, chance) =>
-      triggerMesmerCriticalTraits(context, { type: 'damage', actorType: 'player', coefficient: 1, at }, chance);
-    opportunity(1, 0.5);
-    assert.equal(core.masterFencerProgress, 0.5);
+    const opportunity = (at, didCrit = true) =>
+      triggerMesmerCriticalTraits(context, { type: 'damage', actorType: 'player', coefficient: 1, at, didCrit }, 0.5);
+    opportunity(1);
     context.traits.add(TRAIT.MASTER_FENCER);
-    opportunity(1, 0.5);
-    assert.equal(core.masterFencerProgress, 0);
+    opportunity(1);
     assert.equal(events.length, 0);
-    opportunity(2, 1);
-    assert.equal(core.masterFencerProgress, 0);
+    opportunity(2);
     assert.equal(core.traitReadyAt[TRAIT.MASTER_FENCER], 2);
-    opportunity(2.000001, 0.5);
+    opportunity(2.000001, false);
     assert.equal(events.length, 0);
-    opportunity(2.000001, 0.5);
+    opportunity(2.000001);
     assert.equal(events.length, 2);
     assert.equal(core.traitReadyAt[TRAIT.MASTER_FENCER], 2.000001 + duration);
-    opportunity(2.000001 + duration, 1);
+    opportunity(2.000001 + duration);
     assert.equal(events.length, 2);
-    opportunity(2.000002 + duration, 1);
+    opportunity(2.000002 + duration);
     assert.equal(events.length, 4);
   }
 });

@@ -2,7 +2,6 @@ import type { SchedulerState } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
   MesmerAddTraitProc,
-  MesmerConfig,
   MesmerEmitDerivedEvent,
   MesmerRuntime,
   MesmerRuntimeState
@@ -12,7 +11,6 @@ import type { MesmerExpectedProcTracker } from '#gw2/professions/mesmer/core/mec
 
 interface ExpectedProcTrackerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
-  readonly config: MesmerConfig;
   readonly traits: ReadonlySet<number>;
   readonly criticalChance: (event: SimulationEvent) => number;
   readonly emitEvent: MesmerEmitDerivedEvent;
@@ -27,7 +25,6 @@ interface ExpectedProcTrackerOptions {
  */
 export function createExpectedProcTracker({
   state,
-  config,
   traits,
   criticalChance,
   emitEvent,
@@ -38,7 +35,6 @@ export function createExpectedProcTracker({
   const traitContext = {
     state,
     traits,
-    stochastic: config.randomness?.mode === 'stochastic',
     emitEvent,
     boonDuration,
     addTraitProc,

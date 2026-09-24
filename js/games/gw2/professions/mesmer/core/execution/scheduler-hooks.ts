@@ -164,6 +164,10 @@ export const mesmerExpectedProcReaction = eventReaction<
     };
   },
   execute(context, event, _at, captured) {
+    // A queued candidate can be cancelled or rejected as precombat before its critical result is sampled.
+    if (event.type !== 'damage' || event.cancelled === true || missesTarget(event)) return;
+    if (context.hasExplicitCombatStart && (context.combatStartTime == null || event.at < context.combatStartTime))
+      return;
     mesmerRuntimeFor(context).expected.process({ ...event, metadata: { ...captured.metadata, ...event.metadata } });
   }
 });

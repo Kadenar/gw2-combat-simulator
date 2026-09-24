@@ -15,6 +15,7 @@ import type {
  * exception is `updatePaletteControl`, which edits the build's starting stock.
  */
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import {
@@ -471,7 +472,12 @@ function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSna
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog>): ElementalistUiSlice {
   return Object.freeze({
-    assumptionControls: [...ELEMENTALIST_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
+    // Expose the shared seed control alongside Elementalist's own simulation assumptions.
+    assumptionControls: [
+      ...ELEMENTALIST_ASSUMPTION_CONTROLS,
+      ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+      ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
+    ],
     paletteGroups: (context: ElementalistUiContext) => elementalistPaletteGroups(catalog, context),
     paletteActionSkills: (context: ElementalistUiContext, skills: readonly Skill[]) =>
       paletteActionSkills(catalog, context, skills),

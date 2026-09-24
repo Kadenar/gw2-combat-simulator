@@ -1061,7 +1061,7 @@ test('damage and condition breakdowns split only when their container is wide', 
         <div class="res-section-title">Damage Breakdown</div>
         <div class="res-hdr">
           <span>Skill</span><span>Strike</span><span>Condition</span><span>Total</span><span>% Damage</span><span>DPS</span>
-          <span>Avg/Cast</span><span>DCT</span><span>Casts</span><span>Hits</span><span>Exp. Crit %</span>
+          <span>Avg/Cast</span><span>DCT</span><span>Casts</span><span>Hits</span><span>Crit %</span>
         </div>
       </div>
       <div class="res-breakdown-part res-condition-breakdown">Conditions</div>

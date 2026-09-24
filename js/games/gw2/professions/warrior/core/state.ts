@@ -16,10 +16,6 @@ export interface WarriorCoreState {
   burstHitActivations: Record<string, boolean>;
   burstPrecisionDurations: Record<string, number>;
   traitProcReadyAt: Record<string, number>;
-  armsCriticalProgress: number;
-  axeMasteryProgress: number;
-  forcefulGreatswordProgress: number;
-  bloodlustProgress: number;
 }
 
 /** Declares the Core fields exposed by every Warrior end-state projection. */
@@ -56,10 +52,6 @@ export function createWarriorCoreState(config: Gw2Config = {}): WarriorCoreState
     soldierFocusReadyAt: 0,
     burstHitActivations: {},
     burstPrecisionDurations: {},
-    traitProcReadyAt: {},
-    armsCriticalProgress: 0,
-    axeMasteryProgress: 0,
-    forcefulGreatswordProgress: 0,
-    bloodlustProgress: 0
+    traitProcReadyAt: {}
   };
 }

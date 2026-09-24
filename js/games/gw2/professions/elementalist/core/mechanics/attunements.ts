@@ -9,11 +9,7 @@ import {
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type {
-  ElementalistCastContext,
-  ElementalistPrecastContext,
-  ElementalistSchedulerContext
-} from '#gw2/professions/elementalist/types.js';
+import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
@@ -25,10 +21,7 @@ import {
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { combatStarted } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import {
-  applyElementalistAttunementTraits,
-  projectedFreshAirReadyAt
-} from '#gw2/professions/elementalist/core/traits/index.js';
+import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/index.js';
 import {
   inFlightAutoattackCarryover,
   progressedAutoattackCarryover
@@ -133,15 +126,8 @@ export function onAttunementComplete(
           balanceProfileNumber(resourcesProfile, 'initialDelay'),
           at
         );
-      let nextReadyAt = Math.max(existingReadyAt, defaultReadyAt);
-      // Fresh Air can pull Air's ready time in ahead of its scheduled recharge.
-      if (attunement === 'Air' && hasTrait(context, 'Fresh Air')) {
-        const freshAirReadyAt = projectedFreshAirReadyAt(context as unknown as ElementalistPrecastContext, nextReadyAt);
-        if (freshAirReadyAt != null) {
-          nextReadyAt = Math.min(nextReadyAt, freshAirReadyAt);
-        }
-      }
-
+      // Pending hits may reset Air later; they cannot shorten an actual cooldown before resolving.
+      const nextReadyAt = Math.max(existingReadyAt, defaultReadyAt);
       setElementalistAttunementReadyAt(context, attunement, nextReadyAt);
     }
   }

@@ -177,7 +177,7 @@ test("seeded critical sigils consume the hit's single sampled crit outcome", () 
       deterministic.resolvedEvents.filter(
         (event) => event.type === 'condition' && event.skillName === `Sigil of ${sigil}`
       ).length,
-      3
+      expectedProcs
     );
   }
 });

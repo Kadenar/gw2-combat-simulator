@@ -1,6 +1,5 @@
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
-import { EPSILON } from '#kernel/core/clock.js';
 /** Imperative Air trait behavior; dispatch and reaction registration stay with their existing owners. */
 import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import {
@@ -130,106 +129,68 @@ export function applyInscriptionPostCast(context: ElementalistLifecycleContext, 
   emitProfiledBuff(context, context.effectiveEnd, PROFILE.inscription, state.primaryAttunement, skill.name, skill.id);
 }
 
-/** Projects when queued critical candidates will complete Fresh Air's expected proc. */
+/** Retry Air at the next hit candidate; only its resolved critical result can reset the cooldown. */
 export function projectedFreshAirReadyAt(context: ElementalistPrecastContext, upTo: number): number | null {
   if (!hasTrait(context, 'Fresh Air')) return null;
   const state = professionCoreState(context);
   if (state.primaryAttunement === 'Air') return null;
-  let progress = state.freshAirProgress;
-  const candidates = [...state.freshAirCandidates].sort((left, right) => left.at - right.at);
-  for (const candidate of candidates) {
-    if (candidate.at > upTo + EPSILON) break;
-    progress += candidate.criticalChance;
-    if (progress + EPSILON >= 1) return candidate.at;
-  }
-
-  return null;
+  const candidates = state.freshAirCandidates.filter(
+    (candidate) => candidate.at > context.start && candidate.at <= upTo
+  );
+  return candidates.length ? Math.min(...candidates.map((candidate) => candidate.at)) : null;
 }
 
-/** Collects eligible damage packets for ordered Fresh Air critical processing. */
-export const freshAirReaction = scheduledReaction<ElementalistSchedulerContext, SimulationEvent, Record<string, never>>(
-  {
-    id: 'elementalist.fresh-air-critical',
-    initialize(context) {
-      // Register before observation so equipment is not required to materialize critical facts.
-      if (hasTrait(context, 'Fresh Air')) (context.schedulerPolicy as Gw2SchedulerPolicy).requireCriticalFacts();
-    },
-    select(context, event) {
-      if (
-        event.type !== 'damage' ||
-        event.actorType !== 'player' ||
-        event.canCrit === false ||
-        event.noCrit ||
-        !(Number(event.coefficient) > 0) ||
-        !hasTrait(context, 'Fresh Air')
-      )
-        return null;
-
-      const state = professionCoreState(context);
-      const criticalPolicy = context.schedulerPolicy as unknown as {
-        critical?: (
-          schedulerContext: ElementalistSchedulerContext,
-          simulationEvent: SimulationEvent
-        ) => { chance?: number };
-      };
-      state.freshAirCandidates.push({
-        at: event.at,
-        // Lookahead uses expected chance; materialization still uses the canonical event and adapter.
-        criticalChance: Number(criticalPolicy.critical?.(context, event)?.chance || 0),
-        eventOrder: Number(event.eventOrder),
-        sourceId: event.skillId ?? event.sourceId,
-        sourceSkill: String(event.skillName || event.source || '')
-      });
-      // Resolve discrete procs after the materializer stores the hit's shared critical result at priority -60.
-      return {
-        at: Math.max(context.state.time, event.at),
-        priority: -40,
-        payload: {}
-      };
-    },
-    execute: processFreshAirCandidates
-  }
-);
-
-/** Resolves Fresh Air candidates in event order and resets Air on the first successful proc. */
-function processFreshAirCandidates(context: ElementalistSchedulerContext, through: number): void {
-  const state = professionCoreState(context);
-  if (!state.freshAirCandidates.length) return;
-  const pending = [];
-  const candidates = [...state.freshAirCandidates].sort((left, right) => left.at - right.at);
-  for (const candidate of candidates) {
-    if (candidate.at > through + EPSILON) {
-      pending.push(candidate);
-      continue;
-    }
-
-    if (state.primaryAttunement === 'Air') continue;
-
-    const event = context.eventByOrder(candidate.eventOrder);
-    if (!event) throw new Error(`Missing Fresh Air critical event ${String(candidate.eventOrder)}.`);
-    const tracker = { progress: state.freshAirProgress, readyAt: 0 };
-    const application = advanceScheduledCriticalProc(context, event, { id: 'elementalist.core.fresh-air' }, tracker);
-    state.freshAirProgress = tracker.progress;
-    if (!application) continue;
-    if (state.attunementReadyAt.Air > candidate.at + EPSILON) {
-      setElementalistAttunementReadyAt(context, 'Air', candidate.at);
+/** Resolve each candidate after its own materializer task has stored the shared seeded critical result. */
+export const freshAirReaction = scheduledReaction<
+  ElementalistSchedulerContext,
+  SimulationEvent,
+  { eventOrder: number }
+>({
+  id: 'elementalist.fresh-air-critical',
+  initialize(context) {
+    if (hasTrait(context, 'Fresh Air')) (context.schedulerPolicy as Gw2SchedulerPolicy).requireCriticalFacts();
+  },
+  select(context, event) {
+    if (
+      event.type !== 'damage' ||
+      event.actorType !== 'player' ||
+      event.canCrit === false ||
+      event.noCrit ||
+      !(Number(event.coefficient) > 0) ||
+      !hasTrait(context, 'Fresh Air')
+    )
+      return null;
+    const eventOrder = Number(event.eventOrder);
+    professionCoreState(context).freshAirCandidates.push({ at: event.at, eventOrder });
+    return { at: Math.max(context.state.time, event.at), priority: -40, payload: { eventOrder } };
+  },
+  execute(context, _at, { eventOrder }) {
+    const state = professionCoreState(context);
+    state.freshAirCandidates = state.freshAirCandidates.filter((candidate) => candidate.eventOrder !== eventOrder);
+    const event = context.eventByOrder(eventOrder);
+    if (!event) throw new Error(`Missing Fresh Air critical event ${eventOrder}.`);
+    if (
+      state.primaryAttunement === 'Air' ||
+      !advanceScheduledCriticalProc(context, event, { id: 'elementalist.core.fresh-air' })
+    )
+      return;
+    if (state.attunementReadyAt.Air > event.at) {
+      setElementalistAttunementReadyAt(context, 'Air', event.at);
       context.cooldownController.clear(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air);
     }
 
     context.emit({
       type: 'elementalist.fresh-air',
-      at: candidate.at,
+      at: event.at,
       source: 'Fresh Air',
       sourceId: 'Fresh Air',
       actorType: 'effect',
       skillName: 'Fresh Air',
-      sourceSkill: candidate.sourceSkill,
-      triggeringSkillId: candidate.sourceId
+      sourceSkill: String(event.skillName || event.source || ''),
+      triggeringSkillId: event.skillId ?? event.sourceId
     });
   }
-
-  state.freshAirCandidates = pending;
-}
+});
 
 /** Materializes Lightning Rod from a classified player control event. */
 export function applyLightningRod(context: ElementalistSchedulerContext, event: SimulationEvent): void {

@@ -10,7 +10,6 @@ export interface RenegadeState {
   bandTogetherExpiresAt: number;
   kallasFervor: RevenantTimedStack[];
   kallasFervorMaximumStacks: number;
-  renegadeCriticalProgress: number;
   razorclawsRage: ChargeGrant;
   endlessEnmityReadyAt: number;
   bloodFuryReadyAt: number;
@@ -39,8 +38,6 @@ export function createRenegadeState(): RenegadeState {
     kallasFervor: [],
     // synchronized from the active patchable Kalla's Fervor profile
     kallasFervorMaximumStacks: 5,
-    // fractional crit accumulator for deterministic mode: carries forward the leftover probability between events so that expected crit count is preserved across the full simulation
-    renegadeCriticalProgress: 0,
     razorclawsRage: {
       charges: 0,
       expiresAt: 0,

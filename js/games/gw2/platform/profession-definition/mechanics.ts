@@ -9,8 +9,7 @@ import type {
 import {
   advanceCriticalProc,
   criticalOpportunity,
-  type CriticalProcApplication,
-  type CriticalProcMaterialization
+  type CriticalProcApplication
 } from '#gw2/platform/combat/critical-procs.js';
 import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -189,17 +188,11 @@ export interface ResolvedCriticalHitOptions<
   readonly actorTypes?: readonly ('player' | 'summon' | 'effect' | 'environment' | 'unknown')[];
   readonly sourceIds?: readonly SkillId[];
   readonly when?: (context: TContext, event: TEvent, details: TDetails) => boolean;
-  readonly materialization?: CriticalProcMaterialization;
-  readonly expectedProgress?: {
-    readonly get: (context: TContext) => number;
-    readonly set: (context: TContext, value: number) => void;
-  };
   readonly internalCooldown?: {
     readonly duration: number | ((context: TContext) => number);
     readonly readyAt: (context: TContext) => number;
     readonly setReadyAt: (context: TContext, readyAt: number) => void;
   };
-  readonly progressDuringCooldown?: 'ignore' | 'accumulate';
   readonly randomStream?: string;
   readonly attribution: {
     readonly kind: 'trait' | 'skill' | 'effect';
@@ -215,7 +208,7 @@ export interface ResolvedCriticalHitOptions<
 
 /**
  * Runs a resolved critical-hit reaction without rerolling the canonical hit.
- * The phase-neutral critical-proc kernel owns expected progress, stochastic
+ * The phase-neutral critical-proc kernel owns seeded
  * secondary rolls, and ICD behavior; the declaration owns eligibility and the
  * profession-specific effect.
  */
@@ -237,7 +230,7 @@ export function onResolvedCriticalHit<
     order: options.order,
     handler(context, event, details = {} as TDetails) {
       // Reject ineligible actors, sources, and profession predicates before
-      // reading progress or consuming a secondary random stream.
+      // reading cooldowns or consuming a secondary random stream.
       if (!actorTypes.has(event.actorType || 'unknown')) return;
       if (sourceIds && !sourceIds.has(String(event.sourceId ?? ''))) return;
       if (options.when?.(context, event, details) === false) return;
@@ -258,40 +251,23 @@ export function onResolvedCriticalHit<
         : 0;
       const criticalChance = Number(details.hitContext?.critical?.chance ?? details.criticalChance ?? 0);
 
-      // Adapt existing profession-owned scalar fields to the kernel's neutral
-      // tracker shape; weighted reactions intentionally need no progress state.
-      const state =
-        options.expectedProgress || options.internalCooldown
-          ? {
-              progress: options.expectedProgress?.get(context) ?? 0,
-              readyAt: options.internalCooldown?.readyAt(context) ?? 0
-            }
-          : undefined;
-
-      // Stochastic mode consumes the canonical didCrit fact instead of
-      // rerolling the hit. Deterministic mode advances critChance × procChance
-      // according to the declaration's threshold or weighted policy.
+      // Professions own deadlines; both modes consume the canonical seeded critical outcome.
+      const state = options.internalCooldown ? { readyAt: options.internalCooldown.readyAt(context) } : undefined;
       const application = advanceCriticalProc(
         criticalOpportunity(criticalChance, details.hitContext?.critical?.didCrit ?? undefined),
         {
           id: options.id,
           at: event.at,
-          stochastic: context.random.stochastic,
           chanceOnCriticalHit,
-          materialization: options.materialization,
           ...(options.internalCooldown ? { internalCooldown: internalCooldownDuration } : {}),
-          progressDuringCooldown: options.progressDuringCooldown,
           randomStream: options.randomStream,
           roll: (chance, stream) => context.random.roll(chance, stream)
         },
         state
       );
 
-      // Write progress and ICD changes back even when no proc fired: an
-      // eligible deterministic hit may have advanced fractional progress, and
-      // explicit legacy declarations may accumulate it while cooling down.
+      // Commit the claim before the trait emits effects that could cause another reaction.
       if (state) {
-        options.expectedProgress?.set(context, state.progress);
         options.internalCooldown?.setReadyAt(context, state.readyAt);
       }
 

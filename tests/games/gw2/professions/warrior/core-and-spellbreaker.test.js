@@ -1564,7 +1564,7 @@ test('Defense traits apply Merciless Hammer and Stalwart Strength', () => {
   assertFlooredDamageMultiplier(controlledStrikeDamage([TRAIT.STALWART_STRENGTH]), controlledStrikeDamage([]), 1.1);
 });
 
-test('Bloodlust handles deterministic progress and stochastic proc rolls', () => {
+test('Bloodlust uses seeded rolls in both simulation modes', () => {
   const rotation = [
     '__combat_start',
     'Precise Cut',
@@ -1591,31 +1591,15 @@ test('Bloodlust handles deterministic progress and stochastic proc rolls', () =>
       .filter((event) => event.type === 'condition' && event.sourceId === TRAIT.BLOODLUST)
       .reduce((total, event) => total + Number(event.stacks || 0), 0);
 
-  assert.equal(
-    bleedingStacks(
-      simulate('Spellbreaker', rotation, {
-        ...config,
-        randomness: { mode: 'deterministic', seed: 7 }
-      })
-    ),
-    3
-  );
-  assert.equal(
-    bleedingStacks(
-      simulate('Spellbreaker', rotation.slice(0, 8), {
-        ...config,
-        stats: { precision: 1945 },
-        randomness: { mode: 'deterministic', seed: 7 }
-      })
-    ),
-    1
-  );
-
   const seed = 1;
   const random = createSimulationRandom({ mode: 'stochastic', seed });
   const expectedStochasticStacks = Array.from({ length: 12 }, () => random.roll(0.33, 'warrior.bloodlust')).filter(
     Boolean
   ).length;
+  assert.equal(
+    bleedingStacks(simulate('Spellbreaker', rotation, { ...config, randomness: { mode: 'deterministic', seed } })),
+    expectedStochasticStacks
+  );
   const stochastic = simulate('Spellbreaker', rotation, {
     ...config,
     randomness: { mode: 'stochastic', seed }

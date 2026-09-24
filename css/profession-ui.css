@@ -1497,6 +1497,11 @@
   font-family: var(--mono);
 }
 
+/* Keep the full ten-digit seed visible beside the numeric stepper. */
+.boon-control input[data-assumption-key='simulationSeed'] {
+  width: 14ch;
+}
+
 .assumption-icon-control {
   position: relative;
 }

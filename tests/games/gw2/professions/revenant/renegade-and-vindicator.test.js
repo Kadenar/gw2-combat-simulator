@@ -643,11 +643,9 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
     .resolvedEvents.filter((event) => event.skillName === 'Nourishment')
     .at(-1);
 
-  // The deterministic food proc occurs on Citadel Bombardment's second hit,
-  // before that hit grants the second Kalla's Fervor stack. The direct modifier checks
-  // below cover the fully stacked Lasting Legacy multiplier.
-  assert.equal(nourishment.flatStrikeMultiplier, 1.03);
-  assert.equal(nourishment.damage, 334);
+  // The seeded food proc occurs on the first hit before its Kalla's Fervor grant.
+  assert.equal(nourishment.flatStrikeMultiplier, 1);
+  assert.equal(nourishment.damage, 325);
 
   const modifierContext = (selectedTraitIds, condition = null) => ({
     config: { specialization: 'Renegade', selectedTraitIds, boons: {} },
@@ -1264,16 +1262,15 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
     ]
   });
 
-  // Air from the delayed strike lands at the 280 ms ICD boundary and can trigger another follow-up.
+  // The opening seeded critical triggers Air immediately; its same-time strike cannot bypass the Odds ICD.
   const followups = oddsWithAir.resolvedEvents.filter((event) => event.skillName === 'Impossible Odds');
   assert.deepEqual(
     followups.map((event) => event.triggeredBy),
-    ['Phase Traversal', 'Sigil of Air']
+    ['Phase Traversal']
   );
-  assert.equal(Math.round((followups[1].at - followups[0].at) * 1000), 280);
   assert.ok(
     oddsWithAir.resolvedEvents.some(
-      (event) => event.skillName === 'Sigil of Air' && event.triggeredBy === 'Impossible Odds'
+      (event) => event.skillName === 'Sigil of Air' && event.triggeredBy === 'Phase Traversal'
     )
   );
 

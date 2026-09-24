@@ -197,23 +197,24 @@ export function applyBurstPrecision(
   });
 }
 
-// Return sampled critical hits or materialize deterministic critical probability as an integer count.
+// Count the canonical seeded critical outcomes for Arms trait reactions.
 export function warriorArmsCriticalCount(context: WarriorSchedulerContext, event: WarriorSimulationEvent): number {
   const hits = Math.max(1, Number(event.hits || 1));
-  const state = professionCoreState(context);
-  const tracker = { progress: state.armsCriticalProgress, readyAt: 0 };
-  const application = advanceScheduledCriticalProc(context, event, { id: 'warrior.core.arms-critical' }, tracker, hits);
-  state.armsCriticalProgress = tracker.progress;
+  const application = advanceScheduledCriticalProc(
+    context,
+    event,
+    { id: 'warrior.core.arms-critical' },
+    undefined,
+    hits
+  );
   return application?.quantity || 0;
 }
 
-// Apply Bloodlust's own per-critical proc chance without sharing Furious progress.
+// Bloodlust rolls its own chance after the shared critical outcome.
 export function applyBloodlust(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (!hasTrait(context, TRAIT.BLOODLUST)) return;
 
-  const state = professionCoreState(context);
   const hits = Math.max(1, Number(event.hits || 1));
-  const tracker = { progress: state.bloodlustProgress, readyAt: 0 };
   const application = advanceScheduledCriticalProc(
     context,
     event,
@@ -222,10 +223,9 @@ export function applyBloodlust(context: WarriorSchedulerContext, event: WarriorS
       chanceOnCriticalHit: procChanceFromContext(context, PROFILE.bloodlust),
       randomStream: 'warrior.bloodlust'
     },
-    tracker,
+    undefined,
     hits
   );
-  state.bloodlustProgress = tracker.progress;
   const bleeding = application?.quantity || 0;
   if (bleeding <= 0) return;
   const bloodlustProfile = requireBalanceProfileFromContext(context, PROFILE.bloodlust);

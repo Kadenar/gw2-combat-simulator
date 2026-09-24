@@ -96,7 +96,8 @@ test('Harbinger zero Meltdown coefficient emits no strike damage', () => {
       [HARBINGER_PROFILE.cascadingCorruption]: { effects: [{ type: 'strike', coefficient: 0 }] }
     },
     'Harbinger',
-    ['Elixir of Promise'],
+    // Keep the observation open for Meltdown's delayed explosion, even when its coefficient is zero.
+    ['Elixir of Promise', { type: 'wait', durationMs: 1000 }],
     {
       initialBlight: 5,
       initialCascadingCorruptionStacks: 15,
@@ -104,6 +105,7 @@ test('Harbinger zero Meltdown coefficient emits no strike damage', () => {
       selectedTraitIds: [NECROMANCER_TRAIT.CASCADING_CORRUPTION]
     }
   );
+  assert.deepEqual(result.warnings, []);
   const meltdown = result.resolvedEvents.find(
     (event) => event.type === 'damage' && event.sourceId === NECROMANCER_TRAIT.CASCADING_CORRUPTION
   );

@@ -180,11 +180,11 @@ test('Serrated Steel counts critical projectile and effect hits without an explo
     ...config,
     selectedTraitIds: [...config.selectedTraitIds, TRAIT.AIM_ASSISTED_ROCKET]
   });
-  // Three guaranteed critical disks bank 0.99; the fourth critical hit from the rocket earns one bleed.
+  // Guaranteed critical disks and the rocket share the trait's seeded secondary proc stream.
   const serrated = (result) =>
     result.resolvedEvents.filter((event) => event.type === 'condition' && event.skillName === 'Serrated Steel');
-  assert.equal(serrated(withoutRocket).length, 0);
-  assert.equal(serrated(withRocket).length, 1);
+  assert.equal(serrated(withoutRocket).length, 1);
+  assert.equal(serrated(withRocket).length, 2);
   assert.equal(serrated(withRocket)[0].stacks, 1);
 });
 

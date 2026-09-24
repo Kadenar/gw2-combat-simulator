@@ -549,9 +549,9 @@ test('resolver runtimes create isolated state only for the selected relic', () =
   thief.relic.state.stacks = 3;
   assert.equal(anotherThief.relic.state.stacks, 0);
   thief.sigil.readyAt.set('Air', 5);
-  thief.food.criticalProgress = 0.5;
+  thief.food.readyAt = 0.5;
   assert.equal(anotherThief.sigil.readyAt.size, 0);
-  assert.equal(anotherThief.food.criticalProgress, 0);
+  assert.equal(anotherThief.food.readyAt, 0);
 });
 
 test('Severance critical contributions are data-driven and expire exactly', () => {

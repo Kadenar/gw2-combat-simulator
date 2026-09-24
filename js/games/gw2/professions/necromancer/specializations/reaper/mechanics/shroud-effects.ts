@@ -28,17 +28,10 @@ const chillingNovaCriticalHit = onResolvedCriticalHit<
   NativeResolvedDamageDetails
 >({
   id: 'necromancer.chilling-nova',
-  materialization: 'threshold',
   chanceOnCriticalHit: (context) =>
     balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.chillingNova), 'criticalChance'),
   when: (context, event) =>
     Number(event.coefficient) > 0 && hasTrait(context, TRAIT.CHILLING_NOVA) && targetIsChilled(context, event.at),
-  expectedProgress: {
-    get: (context) => reaperState.from(context).chillingNovaProgress,
-    set: (context, value) => {
-      reaperState.from(context).chillingNovaProgress = value;
-    }
-  },
   internalCooldown: {
     duration: (context) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.chillingNova), 'cooldown'),

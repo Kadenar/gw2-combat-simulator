@@ -2,7 +2,6 @@ import { defineProfessionSpecializationState } from '#gw2/platform/engine/profes
 import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
 
 export interface ReaperState {
-  chillingNovaProgress: number;
   chillingNovaReadyAt: number;
   chillingVictoryReadyAt: number;
 }
@@ -10,13 +9,11 @@ export interface ReaperState {
 /** Creates isolated Reaper trait proc state with snapshot-preserved Chilling Nova progress. */
 export function createReaperState(): ReaperState {
   const state: ReaperState = {
-    // Expected-value proc progress and its ICD belong only to Reaper's Chilling Nova reaction.
-    chillingNovaProgress: 0,
     chillingNovaReadyAt: 0,
     chillingVictoryReadyAt: 0
   };
   // Chilling Victory remains scheduler-owned; only Chilling Nova advances in the resolver.
-  registerNecromancerResolverFields(state, ['chillingNovaProgress', 'chillingNovaReadyAt']);
+  registerNecromancerResolverFields(state, ['chillingNovaReadyAt']);
   return state;
 }
 

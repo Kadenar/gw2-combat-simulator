@@ -206,7 +206,6 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
   });
   const expected = createExpectedProcTracker({
     state,
-    config,
     traits,
     criticalChance: (event) => context.schedulerPolicy.critical?.(context, event)?.chance || 0,
     emitEvent: (cause, event) => context.emitDerived(cause, event),

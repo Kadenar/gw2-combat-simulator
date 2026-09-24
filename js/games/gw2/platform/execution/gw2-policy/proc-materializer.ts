@@ -14,10 +14,7 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2TriggerMaterializer, MaterializeEventTaskPayload } from '#gw2/platform/execution/gw2-policy/types.js';
 import { isSchedulerSigilPrediction } from '#gw2/platform/equipment/sigils/proc-events.js';
 import { createGw2CombatObserver } from '#gw2/platform/execution/gw2-policy/combat-observer.js';
-import {
-  hasStochasticCriticalFood,
-  sampleScheduledCritical
-} from '#gw2/platform/execution/gw2-policy/critical-facts.js';
+import { hasCriticalFood, sampleScheduledCritical } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
 import { createMaterializerState } from '#gw2/platform/execution/gw2-policy/materializer-state.js';
 import { createSigilProcEngine, sigilCapabilities } from '#gw2/platform/execution/gw2-policy/sigil-proc-engine.js';
 
@@ -64,7 +61,7 @@ export function createGw2TriggerMaterializer(
   { traits = null, sigilDiagnostics }: CreateGw2TriggerMaterializerOptions = {}
 ): Readonly<Gw2TriggerMaterializer> {
   const sigilSupport = sigilCapabilities(config);
-  const state = createMaterializerState(config, traits, sigilSupport.critical || hasStochasticCriticalFood(config));
+  const state = createMaterializerState(config, traits, sigilSupport.critical || hasCriticalFood(config));
   const observer = createGw2CombatObserver(state);
   const sigils = createSigilProcEngine(config, state, sigilDiagnostics);
   const criticalFacts = new WeakMap<SimulationEvent, ReturnType<NonNullable<typeof state.query>['critical']>>();

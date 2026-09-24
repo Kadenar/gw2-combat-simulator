@@ -10,7 +10,8 @@ import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js'
 export type SimulationRandomnessAssumptions = Record<string, unknown>;
 
 const SIMULATION_RANDOMNESS_ASSUMPTION_KEYS = Object.freeze({
-  MODE: 'simulationMode'
+  MODE: 'simulationMode',
+  SEED: 'simulationSeed'
 });
 
 export const SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS: ReadonlyArray<ProfessionAssumptionControl> =
@@ -24,13 +25,24 @@ export const SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS: ReadonlyArray<Profession
       options: [
         {
           value: SIMULATION_RANDOMNESS_MODES.DETERMINISTIC,
-          label: 'Deterministic expected'
+          label: 'Deterministic seeded'
         },
         {
           value: SIMULATION_RANDOMNESS_MODES.STOCHASTIC,
           label: 'RNG distribution'
         }
       ]
+    },
+    // Persist the seed as a build assumption so shared builds reproduce the same proc rolls.
+    {
+      key: SIMULATION_RANDOMNESS_ASSUMPTION_KEYS.SEED,
+      label: 'Simulation seed',
+      type: 'number',
+      defaultValue: DEFAULT_SIMULATION_RANDOMNESS.seed,
+      minimum: 0,
+      maximum: 0xffff_ffff,
+      step: 1,
+      section: 'simulation'
     }
   ]);
 
@@ -45,7 +57,8 @@ export function simulationRandomnessFromAssumptions(
     mode:
       assumptions[SIMULATION_RANDOMNESS_ASSUMPTION_KEYS.MODE] === SIMULATION_RANDOMNESS_MODES.STOCHASTIC
         ? SIMULATION_RANDOMNESS_MODES.STOCHASTIC
-        : SIMULATION_RANDOMNESS_MODES.DETERMINISTIC
+        : SIMULATION_RANDOMNESS_MODES.DETERMINISTIC,
+    seed: Number(assumptions[SIMULATION_RANDOMNESS_ASSUMPTION_KEYS.SEED] ?? DEFAULT_SIMULATION_RANDOMNESS.seed)
   });
 }
 

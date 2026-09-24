@@ -2,6 +2,7 @@ import type { CriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/di
 import type { SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
@@ -9,8 +10,7 @@ import {
   createSigilConditionEvent,
   createSigilStrikeEvent,
   GW2_SCHEDULER_SIGIL_PREDICTION,
-  createCriticalSigilEvent,
-  isSigilInternalCooldownReady
+  createCriticalSigilEvent
 } from '#gw2/platform/equipment/sigils/proc-events.js';
 import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
 import type { Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
@@ -62,7 +62,7 @@ export function createSigilProcEngine(
   diagnostics?: CriticalSigilDiagnostics
 ): Readonly<SigilProcEngine> {
   const sigilReady = (name: string, at: number): boolean =>
-    isSigilInternalCooldownReady(at, state.sigil.readyAt.get(name) || 0);
+    isInternalCooldownReady(at, state.sigil.readyAt.get(name) || 0);
 
   const armSigil = (name: string, at: number, cooldown: number): void => {
     state.sigil.readyAt.set(name, at + cooldown);
@@ -183,11 +183,9 @@ export function createSigilProcEngine(
         event,
         gw2SigilSet(config, state.activeWeaponSet).names || [],
         { chance: critical.chance, didCrit: typeof event.didCrit === 'boolean' ? event.didCrit : undefined },
-        state.random.stochastic,
         state.sigil
       );
       diagnostics?.record('prediction', event, critical.chance, decision);
-      state.sigil.criticalProgress = decision.criticalProgress;
       for (const { name, readyAt } of decision.procs) {
         state.sigil.readyAt.set(name, readyAt);
         context.emitDerived(event, {
