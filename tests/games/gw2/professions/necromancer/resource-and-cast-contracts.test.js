@@ -11,7 +11,9 @@ import {
   purgeHarbingerTimedState
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { harbingerUi } from '#gw2/professions/necromancer/specializations/harbinger/presentation.js';
+import { bindHarbingerUi } from '#gw2/professions/necromancer/specializations/harbinger/presentation.js';
+
+const harbingerUi = bindHarbingerUi(necromancerCatalog);
 
 const baseConfig = {
   stats: { power: 2000, precision: 1000, conditionDamage: 1000, vitality: 1000 },

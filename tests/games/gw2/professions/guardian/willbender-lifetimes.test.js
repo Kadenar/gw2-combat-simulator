@@ -9,7 +9,9 @@ import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { willbenderSkillHandlers } from '#gw2/professions/guardian/specializations/willbender/execution/virtues.js';
 import { willbenderEventHandlers } from '#gw2/professions/guardian/specializations/willbender/mechanics/virtue-effects.js';
 import { willbenderSchedulerHooks } from '#gw2/professions/guardian/specializations/willbender/mechanics/virtue-rules.js';
-import { willbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
+import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
+
+const willbenderUi = bindWillbenderUi(guardianCatalog);
 
 const virtues = [
   ['justice', 'Rushing Justice'],

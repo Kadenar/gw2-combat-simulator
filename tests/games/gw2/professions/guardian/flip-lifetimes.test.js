@@ -5,7 +5,7 @@ import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/p
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCastAvailability } from '#gw2/professions/guardian/core/mechanics/availability.js';
 import { updateWeaponCastState } from '#gw2/professions/guardian/core/mechanics/weapon-state.js';
-import { bindGuardianCoreUi, guardianUiSkillIdsByName } from '#gw2/professions/guardian/core/presentation.js';
+import { guardianUiSkillIdsByName } from '#gw2/professions/guardian/core/presentation.js';
 import { projectGuardianPlanningState } from '#gw2/professions/guardian/family-state.js';
 import { willbenderSkillMechanicHandlers } from '#gw2/professions/guardian/specializations/willbender/mechanics/virtue-rules.js';
 import { dragonhunterSkillMechanicHandlers } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/virtues-and-traps.js';
@@ -15,7 +15,6 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 function flipContext(specialization = 'Core', selectedTraitIds = []) {
   const config = { specialization, selectedTraitIds };
   const profession = guardianProfession.resolveRuntime(config);
-  bindGuardianCoreUi(guardianCatalog);
   return {
     config,
     profession,
@@ -51,7 +50,9 @@ test('Guardian weapon flips share exact deadlines across cast availability, snap
       assert.equal(Object.hasOwn(projected.availableFlips, flip.id), active);
       assert.equal(flips[flip.id]?.expiresAt, expiresAt, 'projection must not mutate scheduler state');
       assert.equal(
-        guardianUiSkillIdsByName([parent.name], { state: context.state, atSeconds: at }).includes(flip.id),
+        guardianUiSkillIdsByName(guardianCatalog, [parent.name], { state: context.state, atSeconds: at }).includes(
+          flip.id
+        ),
         active
       );
     }

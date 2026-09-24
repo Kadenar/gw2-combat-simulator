@@ -13,7 +13,7 @@ import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/buil
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
-import { guardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
+import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
 import { guardianCoreAttributeRules } from '#gw2/professions/guardian/core/traits/modifiers.js';
 import { reactToZealSymbolTraits } from '#gw2/professions/guardian/core/traits/zeal.js';
 import { updateGuardianTraitCastState } from '#gw2/professions/guardian/core/traits/index.js';
@@ -23,6 +23,8 @@ import {
   reactToJusticeHitWithOptions
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+
+const guardianCoreUi = bindGuardianCoreUi(guardianCatalog);
 
 // Attribute assertions use the same calculator composed into the Guardian adapter.
 const calculateGuardianAttributes = createCalculateAttributes(applyGuardianBuildAttributeRules);

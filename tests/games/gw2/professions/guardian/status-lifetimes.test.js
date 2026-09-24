@@ -27,8 +27,11 @@ import {
   guardianRadiantForgeSkillHandlers
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
 import { luminaryModifierRules } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge-rules.js';
-import { luminaryUi } from '#gw2/professions/guardian/specializations/luminary/presentation.js';
+import { bindLuminaryUi } from '#gw2/professions/guardian/specializations/luminary/presentation.js';
 import { LUMINARY_INITIAL_STATE_SKILL_IDS } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
+import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
+
+const luminaryUi = bindLuminaryUi(guardianCatalog);
 
 // Exercise lifetime owners with real profiles and prepared buff histories, independent of cast speed and cooldowns.
 function contextFor(selectedTraitIds = []) {

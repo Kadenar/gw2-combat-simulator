@@ -7,13 +7,16 @@ import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SKILL_IDS as SKILL, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { lethalTempoParameters } from '#gw2/professions/guardian/specializations/willbender/mechanics/lethal-tempo.js';
-import { willbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
-import { firebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
+import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
+import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
 import { applyProtectorsRestoration } from '#gw2/professions/guardian/core/traits/honor.js';
 import { applyMasterOfConsecrations } from '#gw2/professions/guardian/core/traits/virtues.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { handleEffulgentDetonate } from '#gw2/professions/guardian/specializations/luminary/mechanics/stances.js';
 import { createLuminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
+
+const willbenderUi = bindWillbenderUi(guardianCatalog);
+const firebrandUi = bindFirebrandUi(guardianCatalog);
 
 // Small rotations isolate deletion, surviving edits, and owned state without benchmark-shaped assertions.
 function run(balanceProfiles, specialization, rotation, selectedTraitIds = [], extra = {}) {

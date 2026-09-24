@@ -26,8 +26,9 @@ const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9
 
 // State windows include an open final shroud, close on exit, and refresh Meltdown without stacking it.
 test('Harbinger state uptime uses recorded transitions and clips to the observation window', async () => {
-  const { harbingerUi } = await import('#gw2/professions/necromancer/specializations/harbinger/presentation.js');
-  const presentations = harbingerUi.effectPresentations();
+  const { bindHarbingerUi } = await import('#gw2/professions/necromancer/specializations/harbinger/presentation.js');
+  const { necromancerCatalog } = await import('#gw2/professions/necromancer/catalog.js');
+  const presentations = bindHarbingerUi(necromancerCatalog).effectPresentations();
   const state = (at, activeShroud, meltdownUntil = 0) => ({
     type: 'necromancer.state',
     at,

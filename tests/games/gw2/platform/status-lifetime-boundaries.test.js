@@ -38,7 +38,7 @@ import {
 } from '#gw2/professions/revenant/specializations/vindicator/mechanics/dodge.js';
 import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
 import { galeshotMissileReaction } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
-import { galeshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
+import { bindGaleshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
 import {
   handleNecromancerPainfulBond,
   painfulBondPulses
@@ -54,6 +54,9 @@ import { projectDragonCharges } from '#gw2/professions/warrior/specializations/b
 import { skrittScuffle } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import { nourys } from '#gw2/platform/equipment/relics/rules/nourys.js';
 import { aristocracy } from '#gw2/platform/equipment/relics/rules/aristocracy.js';
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+
+const galeshotUi = bindGaleshotUi(rangerCatalog);
 
 // Real catalogs and state owners; buffer emitted work to isolate the boundary contract of each handler.
 function contextFor(profession, specialization, selectedTraitIds = []) {

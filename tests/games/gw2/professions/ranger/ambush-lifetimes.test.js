@@ -8,10 +8,13 @@ import {
   untamedSchedulerHooks
 } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
-import { untamedUi } from '#gw2/professions/ranger/specializations/untamed/presentation.js';
+import { bindUntamedUi } from '#gw2/professions/ranger/specializations/untamed/presentation.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+
+const untamedUi = bindUntamedUi(rangerCatalog);
 
 // Use the real state and catalog while isolating exact windows from cast speed and pet AI.
 function ambushContext(profession = rangerProfession, patchId) {
