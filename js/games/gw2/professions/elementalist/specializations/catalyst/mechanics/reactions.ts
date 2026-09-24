@@ -32,7 +32,7 @@ import {
   catalystState,
   grantCatalystElementalEmpowerment
 } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+
 import { CATALYST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import {
   empoweringAurasParameters,
@@ -40,6 +40,7 @@ import {
   elementalEpitomeAura,
   elementalSynergyBoon
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/aura-parameters.js';
+import { elementalistEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
 
 /**
  * Convert resolved aura applications into Catalyst aura-stack traits and their
@@ -126,14 +127,14 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
       if (boon) queueElementalistBuff(context, event, boon.kind, boon.stacks, boon.duration, 'Elemental Synergy');
     } else if (attunement === 'Air') {
       const elementalSynergyProfile = requireBalanceProfileFromContext(context, PROFILE.elementalSynergy);
-      const resourcesProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.resources);
+
       Object.assign(
         core,
         grantEndurance(
           core,
           balanceProfileNumber(elementalSynergyProfile, 'resourceGain'),
           event.at,
-          balanceProfileNumber(resourcesProfile, 'maximumStacks')
+          elementalistEndurance.maximum(context)
         )
       );
     }

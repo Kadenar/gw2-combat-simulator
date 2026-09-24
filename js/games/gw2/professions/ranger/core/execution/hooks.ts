@@ -12,7 +12,7 @@ import {
   rangerPetCompanionId,
   rangerPetTaskHandlers
 } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { advanceRangerResources } from '#gw2/professions/ranger/core/mechanics/resources.js';
+
 import { prepareRangerTrapEvent, triggerRangerPrecastTrap } from '#gw2/professions/ranger/core/mechanics/traps.js';
 import {
   completeRangerWeaponSkill,
@@ -20,6 +20,7 @@ import {
   rangerStealthReaction,
   updateRangerWeaponState
 } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
+import { advanceProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 /** Registers ordered Core Ranger hooks while behavior remains owned by pets, resources, weapons, and traits. */
 export const rangerCoreExecutionHooks = Object.freeze({
@@ -38,7 +39,7 @@ export const rangerCoreExecutionHooks = Object.freeze({
   advance: {
     id: 'ranger.core-resources',
     order: 10,
-    handler: advanceRangerResources
+    handler: advanceProfessionEndurance
   },
   onCastStart: {
     id: 'ranger.pet-command',

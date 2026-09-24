@@ -32,7 +32,6 @@ import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   revenantEnduranceRegenerationRate,
-  revenantEnduranceReadyAt,
   advanceRevenantEnergy
 } from '#gw2/professions/revenant/core/mechanics/energy.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
@@ -43,6 +42,7 @@ import {
   consumeBattleScar
 } from '#gw2/professions/revenant/core/traits/devastation.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
+import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 const baseConfig = {
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
@@ -160,7 +160,7 @@ function contextFor(specialization = 'Renegade', selectedTraitIds = []) {
   return {
     config,
     catalog: revenantCatalog,
-    profession: revenantProfession,
+    profession: revenantProfession.resolveRuntime(config),
     start: 0,
     effectiveEnd: 0,
     hasExplicitCombatStart: true,
@@ -549,7 +549,7 @@ test('Enduring Recovery adds to Vigor and funds the next dodge in Core and Vindi
       context.config.boons = { vigor };
       context.state.profession.core.endurance = 0;
       assert.equal(revenantEnduranceRegenerationRate(context), rate);
-      assert.equal(revenantEnduranceReadyAt(context, 50), readyAt);
+      assert.equal(professionEnduranceReadyAt(context, 50), readyAt);
       advanceRevenantEnergy(context, 4);
       assert.equal(context.state.profession.core.endurance, rate * 4);
     }

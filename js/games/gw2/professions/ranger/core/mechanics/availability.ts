@@ -10,12 +10,13 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { RangerCastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { isRangerHammerVariant, normalizeRangerHammerSkillIds } from '#gw2/professions/ranger/data/hammer-variants.js';
-import { rangerEnduranceReadyAt } from '#gw2/professions/ranger/core/mechanics/resources.js';
+
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import {
   RANGER_SPEAR_STEALTH_FLIP_BY_PARENT,
   rangerSpearStealthAvailable
 } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
+import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 // Enforce endurance, pet ownership, selected hammer variants, and timed weapon
 // flips before allowing a core Ranger cast; shared code owns chain ordering.
@@ -29,7 +30,7 @@ export function rangerCoreCastAvailability(context: RangerCastContext, skill: Ra
       ? { ready: true }
       : {
           ready: false,
-          retryAt: rangerEnduranceReadyAt(context, cost),
+          retryAt: professionEnduranceReadyAt(context, cost),
           code: 'ranger.endurance',
           reason: `Dodge requires ${cost} endurance.`
         };

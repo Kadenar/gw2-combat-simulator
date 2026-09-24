@@ -5,7 +5,7 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
-import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -26,11 +26,13 @@ import {
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import type { RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { grantProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
+import { revenantEndurance } from '#gw2/professions/revenant/core/mechanics/energy.js';
 
 // 1e-9 tolerance prevents floating-point drift from falsely reporting endurance as "full" at max.
 function enduranceNotFull(context: Gw2ModifierContext): boolean {
   const state = revenantRuntimeCoreState(context);
-  const maximum = Number(state.maximumEndurance || 0);
+  const maximum = revenantEndurance.maximum(context);
   return maximum > 0 && Number(state.endurance || 0) < maximum - 1e-9;
 }
 
@@ -101,10 +103,7 @@ function observeVindicatorEvent(context: RevenantSchedulerContext, event: Simula
   const song = context.catalog.skillsById.get(ID.CALL_OF_THE_ALLIANCE);
   if (!song) return;
   emitLegendInvocationSkill(context, ID.CALL_OF_THE_ALLIANCE, event.at, TRAIT.SONG_OF_THE_MISTS);
-  Object.assign(
-    coreState,
-    grantEndurance(coreState, Number(song.resourceGain || 0), event.at, coreState.maximumEndurance)
-  );
+  grantProfessionEndurance(context, Number(song.resourceGain || 0), event.at);
 }
 
 export const vindicatorAttributeRules = Object.freeze({

@@ -3,10 +3,7 @@ import { EPSILON } from '#kernel/core/clock.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import {
-  thiefEnduranceReadyAt,
-  thiefInitiativeRegenerationRate
-} from '#gw2/professions/thief/core/mechanics/resources.js';
+import { thiefInitiativeRegenerationRate } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import { thiefTrapCastAvailability } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import { storedStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
@@ -15,6 +12,7 @@ import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { ThiefPrecastContext, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { thiefStealthAttackChargeState } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 function activeWeapons(context: ThiefPrecastContext): readonly [string, string] {
   const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
@@ -32,7 +30,7 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
   if (skill.id === ID.DODGE) {
     return state.endurance + EPSILON >= 50
       ? { ready: true }
-      : deny(skill, 'thief.endurance', 'requires 50 endurance.', thiefEnduranceReadyAt(context, 50));
+      : deny(skill, 'thief.endurance', 'requires 50 endurance.', professionEnduranceReadyAt(context, 50));
   }
 
   if (

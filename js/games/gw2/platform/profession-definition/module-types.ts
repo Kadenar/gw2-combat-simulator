@@ -12,8 +12,8 @@ import type {
   ProfessionAttributeRuleDefinition,
   ProfessionCastRuleDefinition
 } from '#gw2/platform/engine/profession/types.js';
-import type { ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
-import type { Gw2Build } from '#gw2/platform/builds/types.js';
+import type { Gw2Build, ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
+
 import type { SchedulerConfig, SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 import type { Gw2ProfessionContract, Gw2SimulationDefinition } from '#gw2/platform/simulation/types.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
@@ -21,6 +21,7 @@ import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2AutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 export type NativeSkillHandlerRegistry<TContext extends object> =
   ReadonlyMap<string, SkillHandlerStrategy<TContext>> | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
@@ -101,7 +102,6 @@ export interface NativeExecutionMechanicsDefinition<
   TSchedulerHooksEscape extends object,
   TSchedulerMechanics extends readonly NativeSchedulerMechanic[]
 > {
-  /** Runtime implementations selected by declarative skill handler ids. */
   /** A registry may compose handlers with narrower, handler-specific contexts. */
   readonly skillHandlers?: NativeSkillHandlerRegistry<THandlerContext> | NativeSkillHandlerRegistry<never>;
   /** Phase-explicit availability declarations. */
@@ -167,6 +167,7 @@ export interface NativeModuleDefinition<
   readonly id: TId;
   readonly data: NativeModuleCatalogData;
   readonly state: NativeStateDefinition<TSchedulerState, TResolverState, TProjectOptions, TProjectedState>;
+  readonly resources?: { readonly endurance?: EndurancePolicy };
   readonly mechanics?: NativeMechanicsDefinition<
     TModifierEscape,
     TCastRulesEscape,

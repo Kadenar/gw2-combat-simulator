@@ -9,21 +9,11 @@ import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
 import type { Gw2RuntimeConditionEntry } from '#gw2/platform/combat/state/targets.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 
-export interface MaterializerProfessionState {
-  /** Shared resource grants mutate the live core slice; professions may omit unsupported resources. */
-  core?: {
-    maximumEndurance?: number;
-    endurance?: number;
-    enduranceUpdatedAt?: number;
-  };
-}
-
 export interface MaterializerState {
   config: Gw2Config;
   traits: ReadonlySet<string | number> | null;
   query: Readonly<Gw2CombatQuery> | null;
   state: SchedulerState | null;
-  profession: MaterializerProfessionState | null;
   activeWeaponSet: number;
   combatActive: boolean;
   combatBeganAt: number | null;
@@ -51,7 +41,6 @@ export function createMaterializerState(
     traits,
     query: null,
     state: null,
-    profession: null,
     activeWeaponSet: Number(config.startingWeaponSet) === 2 ? 2 : 1,
     combatActive: false,
     combatBeganAt: null,

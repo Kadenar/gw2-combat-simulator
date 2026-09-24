@@ -8,7 +8,7 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { createHeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
-import { advanceRevenantEnergy, revenantEnduranceReadyAt } from '#gw2/professions/revenant/core/mechanics/energy.js';
+import { advanceRevenantEnergy } from '#gw2/professions/revenant/core/mechanics/energy.js';
 import {
   heraldPassiveModifierRules,
   modifyHeraldPassiveAttributes,
@@ -18,6 +18,7 @@ import { revenantCoreAttributeRules } from '#gw2/professions/revenant/core/trait
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
+import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 const base = {
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DRAGON],
@@ -42,6 +43,7 @@ test('Endurance accrual and readiness integrate the same Vigor windows regardles
     core.endurance = 0;
     const context = {
       config: base,
+      profession: revenantProfession.resolveRuntime({ specialization: 'Herald' }),
       catalog: revenantCatalog,
       events,
       start: 0,
@@ -53,7 +55,7 @@ test('Endurance accrual and readiness integrate the same Vigor windows regardles
       schedulerPolicy: {},
       emit() {}
     };
-    assert.equal(revenantEnduranceReadyAt(context, 50), 8);
+    assert.equal(professionEnduranceReadyAt(context, 50), 8);
     for (const at of boundaries) advanceRevenantEnergy(context, at);
     return core.endurance;
   };

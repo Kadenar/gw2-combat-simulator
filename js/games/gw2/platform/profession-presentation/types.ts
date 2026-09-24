@@ -223,6 +223,8 @@ export interface ProfessionEffectPresentation {
  * active elite; `professionState` is the end-state projection of the profession that owns the callback.
  */
 export interface ProfessionUiContext<TProfessionState = unknown> {
+  /** Policy-derived limits supplied by family composition for resource presentation. */
+  readonly resources?: { readonly endurance?: { readonly maximum: number } };
   readonly specialization?: string;
   /** Simulation config selection, used when a resolved runtime's UI is queried outside the application. */
   readonly config?: SchedulerConfig;

@@ -4,14 +4,14 @@
  */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
-import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
+
 import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import type { RevenantCastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { spendProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 /** Pays the profession-wide endurance cost for a dodge. */
 export function performRevenantDodge(context: RevenantCastContext, skill: RevenantSkill, reason = 'dodge'): void {
-  const state = professionCoreState(context);
-  Object.assign(state, spendEndurance(state, Number(skill.resourceCost || 0), context.start, state.maximumEndurance));
+  spendProfessionEndurance(context, Number(skill.resourceCost || 0), context.start);
   emitRevenantStateSnapshot(context, context.start, reason);
 }
 

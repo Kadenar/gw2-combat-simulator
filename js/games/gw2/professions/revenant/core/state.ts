@@ -35,7 +35,7 @@ export interface RevenantCoreState {
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   endurance: number;
-  maximumEndurance: number;
+
   enduranceUpdatedAt: number;
   enchantedDaggers: ChargeGrant;
   battleScars: number[];
@@ -68,7 +68,7 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
     availableFlips: {},
     autoattackChains: {},
     endurance: 100,
-    maximumEndurance: 100,
+
     enduranceUpdatedAt: 0,
     enchantedDaggers: {
       charges: 0,
@@ -97,7 +97,7 @@ const REVENANT_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantCoreState)[] 
   'availableFlips',
   'autoattackChains',
   'endurance',
-  'maximumEndurance',
+
   'enchantedDaggers',
   'battleScars',
   'crushingAbyss',

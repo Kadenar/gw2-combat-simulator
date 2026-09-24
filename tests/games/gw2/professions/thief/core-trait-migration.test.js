@@ -5,6 +5,7 @@ import test from 'node:test';
 import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
+import { thiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { advanceThiefCoreResources } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 import { handleThiefState } from '#gw2/professions/thief/family-state.js';
@@ -189,12 +190,13 @@ function traitContext(selectedTraitIds = [], config = {}) {
   const events = [];
   const conditions = [];
   const core = createThiefCoreState(fullConfig);
+  core.enduranceUpdatedAt = 1;
   const context = {
-    profession: { id: 'thief', catalog: thiefCatalog },
+    profession: { id: 'thief', catalog: thiefCatalog, resources: { endurance: thiefEndurance } },
     catalog: thiefCatalog,
     config: fullConfig,
     state: {
-      time: 0,
+      time: 1,
       activeWeaponSet: 1,
       profession: { core, specialization: { kind: 'Core', state: {} } }
     },

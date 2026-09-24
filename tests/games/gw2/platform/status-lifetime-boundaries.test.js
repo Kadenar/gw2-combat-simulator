@@ -320,6 +320,7 @@ test('Reavers Curse requires an arm, includes the final landing, and cannot be c
       const state = specialization(context);
       if (armed) {
         context.effectiveEnd = 0.001;
+        context.state.time = 0.001;
         performEnergyMeld(context, context.catalog.skillsById.get(R.ENERGY_MELD));
         assert.ok(state.reaversCurseUntil > 0);
       }

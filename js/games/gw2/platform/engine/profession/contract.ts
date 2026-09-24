@@ -3,7 +3,7 @@
  * and composes deterministic no-op-safe hooks for the neutral engine.
  */
 import type { DynamicFields, UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult, SchedulerConfig, SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
 import type {
   NormalizedProfessionContract,
@@ -11,6 +11,7 @@ import type {
   ProfessionSimulationDefinition
 } from '#gw2/platform/engine/profession/types.js';
 import { CAST_READY, foldAvailability } from '#gw2/platform/engine/skills/availability.js';
+import { initializeProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 type ComposableHook = (...args: any[]) => unknown;
 
@@ -340,6 +341,16 @@ export function defineProfession<TProfessionState extends object, TBuild extends
 ): Readonly<NormalizedProfessionContract<TProfessionState, object, object>> {
   assertDefinition(definition);
   const resources = definition.resources || {};
+  // A selected resource capability must be complete; absence is the only unsupported-resource representation.
+  if (
+    resources.endurance &&
+    ['state', 'maximum', 'regenerationRate'].some(
+      (key) => typeof resources.endurance?.[key as keyof typeof resources.endurance] !== 'function'
+    )
+  ) {
+    throw new TypeError('Endurance requires state, maximum, and regenerationRate callbacks.');
+  }
+
   const attributeRules = definition.attributeRules || {};
   const castRules = definition.castRules || {};
   const schedulerHooks = definition.schedulerHooks || {};
@@ -410,8 +421,19 @@ export function defineProfession<TProfessionState extends object, TBuild extends
       specializations: []
     },
     skillHandlerFor: (skill: Skill) => catalogSkillHandlers.get(String(skill?.handlerId || '')) || null,
-    createProfessionState: resources.createProfessionState || (() => ({})),
+    createProfessionState(config: Readonly<SchedulerConfig>) {
+      const state = resources.createProfessionState?.(config) ?? {};
+      // State factories serve simulation and preview; both start with the active policy's capacity.
+      initializeProfessionEndurance({
+        config,
+        catalog: definition.catalog,
+        profession: { resources: { endurance: resources.endurance ?? null } },
+        state: { time: 0, profession: state }
+      } as SchedulerContext<TProfessionState>);
+      return state;
+    },
     createResolverState: resources.createResolverState || null,
+    resources: Object.freeze({ endurance: resources.endurance ?? null }),
     taskHandlers: Object.freeze({
       ...(schedulerHooks.taskHandlers || {})
     }),

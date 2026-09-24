@@ -3,11 +3,12 @@ import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { revenantEnduranceReadyAt, revenantEnergyReadyAt } from '#gw2/professions/revenant/core/mechanics/energy.js';
+import { revenantEnergyReadyAt } from '#gw2/professions/revenant/core/mechanics/energy.js';
 import { runtimeRevenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import { denySkillCast as denyRevenantSkill } from '#gw2/professions/shared/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { RevenantPrecastContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 // Centralize Revenant cast gates for legends, energy, endurance, upkeeps, timed
 // flips, and specialization ownership; shared GW2 code owns chain progression.
@@ -70,7 +71,7 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
           skill,
           'revenant.insufficient-endurance',
           `requires ${cost} endurance.`,
-          revenantEnduranceReadyAt(context, cost)
+          professionEnduranceReadyAt(context, cost)
         );
   }
 

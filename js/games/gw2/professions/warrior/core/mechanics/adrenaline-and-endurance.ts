@@ -4,15 +4,12 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import {
-  advanceEnduranceIntervals,
-  enduranceIntervalsReadyAt,
-  vigorEnduranceIntervals,
-  grantEndurance
-} from '#gw2/platform/combat/resources/endurance.js';
+
 import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
+import { grantProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 function warriorEnduranceRegenerationRate(context: WarriorSchedulerContext, vigor: boolean): number {
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
@@ -22,33 +19,9 @@ function warriorEnduranceRegenerationRate(context: WarriorSchedulerContext, vigo
 }
 
 /** Maps pooled Vigor windows to Warrior rates while shared traversal owns capped recovery and readiness. */
-function enduranceIntervals(context: WarriorSchedulerContext, start: number, end: number) {
-  return vigorEnduranceIntervals(context, start, end, (vigor) => warriorEnduranceRegenerationRate(context, vigor));
-}
-
-export function advanceWarriorResources(context: WarriorSchedulerContext, target: number): void {
-  const state = professionCoreState(context);
-  const from = Number(state.enduranceUpdatedAt || 0);
-  if (target <= from) return;
-  Object.assign(
-    state,
-    advanceEnduranceIntervals(state, enduranceIntervals(context, from, target), state.maximumEndurance)
-  );
-}
-
-export function warriorEnduranceReadyAt(context: WarriorCastContext, cost: number): number | null {
-  const state = professionCoreState(context);
-  return enduranceIntervalsReadyAt(
-    { endurance: state.endurance, enduranceUpdatedAt: context.start },
-    cost,
-    enduranceIntervals(context, context.start, Infinity),
-    state.maximumEndurance
-  );
-}
 
 export function gainWarriorEndurance(context: WarriorSchedulerContext, amount: number, at = context.state.time): void {
-  const state = professionCoreState(context);
-  Object.assign(state, grantEndurance(state, Number(amount || 0), at, state.maximumEndurance));
+  grantProfessionEndurance(context, Number(amount || 0), at);
 }
 
 export function syncWarriorAdrenaline(context: WarriorSchedulerContext): void {
@@ -80,3 +53,10 @@ export function spendCoreWarriorAdrenaline(context: WarriorCastContext, skill: W
 
   return spendWarriorAdrenalineAmount(context, Number(state.adrenaline || 0));
 }
+
+/** Binds shared endurance operations to this module's live pool and balance rules. */
+export const warriorEndurance: EndurancePolicy<WarriorSchedulerContext> = {
+  state: (context) => professionCoreState(context),
+  maximum: () => 100,
+  regenerationRate: (context, vigor) => warriorEnduranceRegenerationRate(context, vigor)
+};

@@ -41,6 +41,7 @@ import {
 } from '#gw2/professions/revenant/specializations/renegade/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { revenantEndurance } from '#gw2/professions/revenant/core/mechanics/energy.js';
 
 function kallasFervorStacks(context: Gw2ModifierContext): number {
   return activeKallasFervorStacks(revenantRuntimeSpecializationState(context, 'Renegade'), context.time);
@@ -117,7 +118,7 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 function modifyRenegadeCriticalChance(context: Gw2ModifierContext, chance: number): number {
   if (!hasTrait(context, TRAIT.BRUTAL_MOMENTUM)) return chance;
   const state = revenantRuntimeCoreState(context);
-  const maximum = Number(state.maximumEndurance || 0);
+  const maximum = revenantEndurance.maximum(context);
   // 1e-9 tolerance handles floating-point endurance values that should be exactly at cap
   const full = maximum > 0 && Number(state.endurance || 0) >= maximum - 1e-9;
   const brutalMomentumProfile = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.brutalMomentum);

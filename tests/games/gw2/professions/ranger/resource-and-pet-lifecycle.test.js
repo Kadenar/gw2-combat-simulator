@@ -5,11 +5,15 @@ import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/pol
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { advanceRangerResources, rangerEnduranceReadyAt } from '#gw2/professions/ranger/core/mechanics/resources.js';
+
 import { advanceGaleshotArrows } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { activeSoulbeastBuff } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import {
+  advanceProfessionEndurance,
+  professionEnduranceReadyAt
+} from '#gw2/platform/combat/resources/endurance-policy.js';
 
 const config = {
   selectedPet: 'Tiger',
@@ -54,9 +58,9 @@ test('Ranger endurance and Dodge readiness are invariant under wait partitions',
     boon(scheduler, 'vigor', 0, 1);
     boon(scheduler, 'vigor', 0.5, 1);
     boon(scheduler, 'vigor', 2, 20, false);
-    for (const at of partition) advanceRangerResources(scheduler.context, at);
+    for (const at of partition) advanceProfessionEndurance(scheduler.context, at);
     close(state.endurance, 25);
-    close(rangerEnduranceReadyAt({ ...scheduler.context, start: 4 }, 50), 9);
+    close(professionEnduranceReadyAt({ ...scheduler.context, start: 4 }, 50), 9);
   }
 
   const run = (waits) => {
@@ -82,7 +86,7 @@ test('Ranger recovery rates reject invalid profiles and reread patched profiles 
       [PROFILE.naturalVigor, { vigorRegenerationMultiplier: 0.25 }]
     ]);
     const context = { ...scheduler.context, catalog: { balanceProfilesById: profiles } };
-    assert.throws(() => rangerEnduranceReadyAt({ ...context, start: 0 }, 30), /Invalid balance data/);
+    assert.throws(() => professionEnduranceReadyAt({ ...context, start: 0 }, 30), /Invalid balance data/);
   }
 
   const scheduler = schedulerFor({ selectedTraitIds: [TRAIT.NATURAL_VIGOR] });
@@ -94,13 +98,13 @@ test('Ranger recovery rates reject invalid profiles and reread patched profiles 
   const context = { ...scheduler.context, catalog: { balanceProfilesById: profiles } };
   state.endurance = 0;
   boon(scheduler, 'vigor', 1, 2);
-  close(rangerEnduranceReadyAt({ ...context, start: 0 }, 30), 4);
-  advanceRangerResources(context, 4);
+  close(professionEnduranceReadyAt({ ...context, start: 0 }, 30), 4);
+  advanceProfessionEndurance(context, 4);
   close(state.endurance, 30);
   profiles.set(PROFILE.resources, { enduranceRegenerationPerSecond: 4, vigorRegenerationMultiplier: 2 });
   profiles.set(PROFILE.naturalVigor, { vigorRegenerationMultiplier: 0.5 });
-  close(rangerEnduranceReadyAt({ ...context, start: 4 }, 36), 5);
-  advanceRangerResources(context, 5);
+  close(professionEnduranceReadyAt({ ...context, start: 4 }, 36), 5);
+  advanceProfessionEndurance(context, 5);
   close(state.endurance, 36);
 });
 
@@ -139,11 +143,11 @@ test('resource integration honors boon extensions and configured permanent boons
     kind: 'vigor',
     duration: 2
   });
-  advanceRangerResources(scheduler.context, 5);
+  advanceProfessionEndurance(scheduler.context, 5);
   close(scheduler.state.profession.core.endurance, 35);
   const permanent = schedulerFor({ boons: { vigor: true }, selectedTraitIds: [TRAIT.NATURAL_VIGOR] });
   permanent.state.profession.core.endurance = 0;
-  advanceRangerResources(permanent.context, 4);
+  advanceProfessionEndurance(permanent.context, 4);
   close(permanent.state.profession.core.endurance, 35);
 });
 

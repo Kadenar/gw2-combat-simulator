@@ -25,8 +25,10 @@ import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 export interface ProfessionResourceDefinition<TProfessionState extends object = object> {
+  readonly endurance?: EndurancePolicy;
   readonly createProfessionState?: (config: Readonly<SchedulerConfig>) => TProfessionState;
   readonly createResolverState?: (config: Readonly<SchedulerConfig>) => object;
   readonly projectPlanningState?: unknown;
@@ -163,6 +165,7 @@ export interface NormalizedProfessionContract<
   TEventHandlers extends object = object,
   TEventReactions extends object = object
 > {
+  readonly resources: { readonly endurance: EndurancePolicy | null };
   /** One equipment eligibility policy used by simulation and application consumers. */
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
   readonly id: string;

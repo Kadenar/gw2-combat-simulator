@@ -151,7 +151,18 @@ export function calculateBuffedAttributes(
         ? specialization.toLowerCase()
         : 'death'
       : '';
-  if ('fullEndurance' in values) core.endurance = values.fullEndurance ? Number(core.maximumEndurance || 100) : 0;
+  if ('fullEndurance' in values && profession.resources.endurance) {
+    const resourceContext = {
+      state: { profession: professionState },
+      config: queryConfig,
+      catalog: profession.catalog
+    };
+    const pool = profession.resources.endurance.state(
+      resourceContext as Parameters<typeof profession.resources.endurance.state>[0]
+    );
+    pool.endurance = values.fullEndurance ? profession.resources.endurance.maximum(resourceContext) : 0;
+  }
+
   for (let index = 0; index < Number(values.instruments || 0); index++) {
     events.push({
       type: 'mesmer.instrument',

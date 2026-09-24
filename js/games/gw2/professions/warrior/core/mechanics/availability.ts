@@ -6,9 +6,10 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { warriorEnduranceReadyAt } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
+
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { WarriorCastContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 // Gate Warrior casts by endurance and adrenaline while projecting a retry time
 // from Signet of Rage's available passive pulses; shared code owns chain order.
@@ -31,7 +32,7 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
       ? { ready: true }
       : {
           ready: false,
-          retryAt: warriorEnduranceReadyAt(context, 50),
+          retryAt: professionEnduranceReadyAt(context, 50),
           code: 'warrior.endurance',
           reason: 'Dodge requires 50 endurance.'
         };

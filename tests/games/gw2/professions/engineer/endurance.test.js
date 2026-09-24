@@ -1,11 +1,10 @@
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  advanceEngineerResources,
-  engineerEnduranceReadyAt
-} from '#gw2/professions/engineer/core/mechanics/resources.js';
+import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/resources.js';
+import { advanceEngineerResources } from '#gw2/professions/engineer/core/mechanics/resources.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
 // Explicit recipients keep another actor's Vigor from changing player recovery.
 const vigor = (at, duration, includesSelf = true) => ({
   type: 'buff',
@@ -18,6 +17,7 @@ const vigor = (at, duration, includesSelf = true) => ({
 function resourceContext(events, config = {}) {
   return {
     catalog: engineerCatalog,
+    profession: { resources: { endurance: engineerEndurance } },
     config,
     events,
     start: 0,
@@ -40,11 +40,11 @@ test('Engineer ignores cancelled Vigor grants and extensions in recovery and rea
         { type: 'boon_extension', at: 3, duration: 2, kind: 'vigor', cancelled: cancelledType === 'boon_extension' }
       ]);
       const readyAt = cancelledType === 'buff' ? 8 : 9;
-      assert.equal(engineerEnduranceReadyAt(context, 50), readyAt);
+      assert.equal(professionEnduranceReadyAt(context, 50), readyAt);
       for (const at of targets) advanceEngineerResources(context, at);
       const state = context.state.profession.core;
       assert.equal(state.endurance, cancelledType === 'buff' ? 50 : 45);
-      assert.equal(engineerEnduranceReadyAt({ ...context, start: 8 }, 50), readyAt);
+      assert.equal(professionEnduranceReadyAt({ ...context, start: 8 }, 50), readyAt);
       advanceEngineerResources(context, readyAt);
       assert.equal(state.endurance, 50);
       assert.equal(state.enduranceUpdatedAt, readyAt);
@@ -56,8 +56,8 @@ test('Engineer ignores cancelled Vigor grants and extensions in recovery and rea
 
 test('Engineer recovery and dodge predictions cross self-Vigor applications and expiry', () => {
   const context = resourceContext([vigor(2, 2), vigor(0, 20, false)]);
-  assert.equal(engineerEnduranceReadyAt(context, 20), 3.36);
-  assert.equal(engineerEnduranceReadyAt(context, 50), 9);
+  assert.equal(professionEnduranceReadyAt(context, 20), 3.36);
+  assert.equal(professionEnduranceReadyAt(context, 50), 9);
   advanceEngineerResources(context, 6);
   assert.equal(context.state.profession.core.endurance, 35);
   advanceEngineerResources(context, 3);
@@ -82,7 +82,7 @@ test('Engineer Vigor pools duration and extensions while respecting the duration
 
 test('Engineer preserves Adrenal Implant, permanent Vigor and the endurance cap', () => {
   const context = resourceContext([vigor(2, 2)], { selectedTraitIds: [TRAIT.ADRENAL_IMPLANT] });
-  assert.equal(engineerEnduranceReadyAt(context, 50), 7.2);
+  assert.equal(professionEnduranceReadyAt(context, 50), 7.2);
   advanceEngineerResources(context, 6);
   assert.equal(context.state.profession.core.endurance, 42.5);
 
@@ -90,7 +90,7 @@ test('Engineer preserves Adrenal Implant, permanent Vigor and the endurance cap'
     selectedTraitIds: [TRAIT.ADRENAL_IMPLANT],
     boons: { vigor: true }
   });
-  assert.equal(engineerEnduranceReadyAt(permanent, 50), 5.72);
+  assert.equal(professionEnduranceReadyAt(permanent, 50), 5.72);
   advanceEngineerResources(permanent, 6);
   assert.equal(permanent.state.profession.core.endurance, 52.5);
   advanceEngineerResources(permanent, 30);

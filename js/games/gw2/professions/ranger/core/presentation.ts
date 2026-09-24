@@ -311,7 +311,7 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog>): RangerUiS
           id: 'endurance',
           singular: 'endurance',
           plural: 'endurance',
-          maximum: Number(state.maximumEndurance || 100),
+          maximum: context.resources!.endurance!.maximum,
           value: Number(state.endurance ?? 100),
           startMaximum: 100,
           canStart: false,

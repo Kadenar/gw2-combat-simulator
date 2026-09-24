@@ -31,6 +31,7 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 import { elementalistCoreSchedulerHooks } from '#gw2/professions/elementalist/core/execution/hooks.js';
 import { applyElementalistResolverConjure } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
+import { elementalistEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
 
 /**
  * Core Elementalist module: binds the shared attunement/endurance state, its
@@ -44,6 +45,7 @@ export const elementalistCoreModule = defineNativeModule({
     extraSkills: ELEMENTALIST_CORE_EXTRA_SKILLS,
     balanceProfiles: ELEMENTALIST_CORE_BALANCE_PROFILES
   }),
+  resources: { endurance: elementalistEndurance },
   state: {
     scheduler: createElementalistCoreState,
     resolver: createElementalistCoreState,

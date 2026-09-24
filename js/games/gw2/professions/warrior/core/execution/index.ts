@@ -11,7 +11,7 @@ import { consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skil
 
 import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
+
 import { augmentSkillHandler, replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
@@ -23,6 +23,7 @@ import {
 } from '#gw2/professions/warrior/core/traits/index.js';
 import type { WarriorCastContext, WarriorSimulationEvent, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
+import { spendProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 function burstTier(context: WarriorCastContext, spent: number): number {
   const burstTiersProfile = requireBalanceProfileFromContext(context, PROFILE.burstTiers);
@@ -271,10 +272,9 @@ function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill)
 }
 
 function performWarriorDodge(context: WarriorCastContext, skill: WarriorSkill): boolean {
-  const state = professionCoreState(context);
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
   const cost = balanceProfileNumber(resourcesProfile, 'resourceCost');
-  Object.assign(state, spendEndurance(state, cost, context.start, state.maximumEndurance));
+  spendProfessionEndurance(context, cost, context.start);
   applyRecklessDodge(context, skill);
   return true;
 }

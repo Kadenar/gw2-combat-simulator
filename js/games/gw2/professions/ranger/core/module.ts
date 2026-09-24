@@ -15,6 +15,7 @@ import { bindRangerCoreUi } from '#gw2/professions/ranger/core/presentation.js';
 import { rangerCoreEventHandlers, rangerCoreEventReactions } from '#gw2/professions/ranger/core/mechanics/reactions.js';
 import { RANGER_CORE_BALANCE_PROFILES } from '#gw2/professions/ranger/core/profiles.js';
 import { rangerCoreExecutionHooks } from '#gw2/professions/ranger/core/execution/hooks.js';
+import { rangerEndurance } from '#gw2/professions/ranger/core/mechanics/resources.js';
 
 export const rangerCoreModule = defineNativeModule({
   id: 'Core',
@@ -23,6 +24,7 @@ export const rangerCoreModule = defineNativeModule({
     balanceProfiles: RANGER_CORE_BALANCE_PROFILES,
     extraSkills: RANGER_CORE_EXTRA_SKILLS
   }),
+  resources: { endurance: rangerEndurance },
   state: {
     scheduler: createRangerCoreState,
     resolver: createRangerCoreState,

@@ -4,14 +4,11 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import {
-  advanceEnduranceIntervals,
-  enduranceIntervalsReadyAt,
-  vigorEnduranceIntervals
-} from '#gw2/platform/combat/resources/endurance.js';
+
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerCastContext, RangerSchedulerContext } from '#gw2/professions/ranger/types.js';
+import type { RangerSchedulerContext } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 /** Reads this invocation's profiles once; only Vigor presence changes while traversing its recovery windows. */
 function rangerEnduranceRegenerationRates(context: RangerSchedulerContext) {
@@ -30,30 +27,9 @@ function rangerEnduranceRegenerationRates(context: RangerSchedulerContext) {
   };
 }
 
-/** Maps shared Vigor windows to invocation-local Ranger rates for both advancement and readiness. */
-function enduranceIntervals(context: RangerSchedulerContext, start: number, end: number) {
-  const rates = rangerEnduranceRegenerationRates(context);
-  return vigorEnduranceIntervals(context, start, end, (vigor) => (vigor ? rates.vigor : rates.base));
-}
-
-export function advanceRangerResources(context: RangerSchedulerContext, target: number): void {
-  const state = professionCoreState(context);
-  const from = Number(state.enduranceUpdatedAt || 0);
-  if (target <= from) return;
-  // Integrate each actual Vigor window so splitting a wait cannot alter regeneration.
-  Object.assign(
-    state,
-    advanceEnduranceIntervals(state, enduranceIntervals(context, from, target), state.maximumEndurance)
-  );
-}
-
-export function rangerEnduranceReadyAt(context: RangerCastContext, cost: number): number | null {
-  // Predict the same integrated recovery used by advancement, including future Vigor expiry.
-  const state = professionCoreState(context);
-  return enduranceIntervalsReadyAt(
-    { endurance: state.endurance, enduranceUpdatedAt: context.start },
-    cost,
-    enduranceIntervals(context, context.start, Infinity),
-    state.maximumEndurance
-  );
-}
+/** Binds shared endurance operations to this module's live pool and balance rules. */
+export const rangerEndurance: EndurancePolicy<RangerSchedulerContext> = {
+  state: (context) => professionCoreState(context),
+  maximum: () => 100,
+  regenerationRate: (context, vigor) => rangerEnduranceRegenerationRates(context)[vigor ? 'vigor' : 'base']
+};

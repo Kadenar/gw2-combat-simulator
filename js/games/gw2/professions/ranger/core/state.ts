@@ -12,7 +12,7 @@ export interface RangerCoreState {
   activePetSkillIds: SkillId[];
   petActive: boolean;
   endurance: number;
-  maximumEndurance: number;
+
   enduranceUpdatedAt: number;
   availableFlips: SkillFlipWindows;
   stealthUntil: number;
@@ -72,7 +72,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     activePetSkillIds: [...(pet?.skillIds || [])],
     petActive: true,
     endurance: 100,
-    maximumEndurance: 100,
+
     enduranceUpdatedAt: 0,
     availableFlips: {},
     stealthUntil: 0,
@@ -119,7 +119,7 @@ export const RANGER_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RangerState)[] =
   'petNames',
   'activePetSkillIds',
   'endurance',
-  'maximumEndurance',
+
   'availableFlips',
   'stealthUntil',
   'revealedUntil',

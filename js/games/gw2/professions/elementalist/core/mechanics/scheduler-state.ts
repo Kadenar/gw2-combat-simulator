@@ -17,7 +17,8 @@ import {
   observeElementalistTraitEvent
 } from '#gw2/professions/elementalist/core/traits/index.js';
 import { observeElementalistElementalEvent } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
-import { updateEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
+
+import { advanceProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 // Observe scheduled combat packets to update aura, attunement, and trait state
 // that depends on the canonical event timeline.
@@ -37,7 +38,7 @@ export function advanceElementalistState(context: ElementalistSchedulerContext, 
       context.state.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[element]) ?? state.attunementReadyAt[element];
   }
 
-  updateEndurance(context, state, at);
+  advanceProfessionEndurance(context, at);
   state.activeAuras = state.activeAuras.filter((aura) => aura.expiresAt > at);
   // Clear expired etchings before casts advance their charge or read their payoff/palette stage.
   for (const [name, progress] of Object.entries(state.etchings)) {

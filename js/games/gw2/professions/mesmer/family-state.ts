@@ -90,7 +90,6 @@ export function projectMesmerPlanningState({
     ...(config.specialization === 'Mirage'
       ? {
           endurance: publicState.endurance,
-          maximumEndurance: publicState.maximumEndurance,
           // Mirror counts use pickup's exact half-open window so palette and scheduler availability agree.
           availableMirrors: (publicState.mirrors || []).filter((mirror) =>
             isTimeInWindow(endTime, mirror.availableAt, mirror.expiresAt)

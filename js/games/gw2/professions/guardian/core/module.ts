@@ -9,7 +9,7 @@ import {
   GUARDIAN_CORE_EXTRA_SKILLS,
   GUARDIAN_CORE_SKILL_MECHANICS
 } from '#gw2/professions/guardian/core/skills/index.js';
-import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
+import { createGuardianCoreState, guardianEndurance } from '#gw2/professions/guardian/core/state.js';
 import { projectGuardianPlanningState } from '#gw2/professions/guardian/family-state.js';
 import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_CORE_BALANCE_PROFILES } from '#gw2/professions/guardian/core/profiles.js';
@@ -23,6 +23,7 @@ export const guardianCoreModule = defineNativeModule({
     extraSkills: GUARDIAN_CORE_EXTRA_SKILLS,
     balanceProfiles: GUARDIAN_CORE_BALANCE_PROFILES
   }),
+  resources: { endurance: guardianEndurance },
   state: {
     scheduler: createGuardianCoreState,
     resolver: createGuardianCoreState,

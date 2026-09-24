@@ -3,6 +3,7 @@ import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data
 import {
   mirageAttributeRules,
   mirageCastRules,
+  mirageEndurance,
   mirageSchedulerHooks,
   mirageSkillMechanicHandlers
 } from '#gw2/professions/mesmer/specializations/mirage/mechanics/ambush-rules.js';
@@ -23,6 +24,7 @@ export const mirageModule = defineNativeModule({
     extraSkills: MESMER_MIRAGE_EXTRA_SKILLS,
     balanceProfiles: MIRAGE_BALANCE_PROFILES
   }),
+  resources: { endurance: mirageEndurance },
   state: {
     scheduler: mirageState.create,
     // Mirage has no resolver-local state; timeline events carry its resolver data.

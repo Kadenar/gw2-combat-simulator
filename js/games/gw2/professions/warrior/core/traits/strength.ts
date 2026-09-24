@@ -34,6 +34,7 @@ import type {
   WarriorSimulationEvent,
   WarriorSkill
 } from '#gw2/professions/warrior/types.js';
+import { eventReaction } from '#gw2/platform/execution/scheduler-reactions.js';
 
 export const BRAVE_STRIDE_MOVEMENT_SKILL_IDS = Object.freeze([
   ID.SAVAGE_LEAP,
@@ -339,7 +340,10 @@ export function applyAggressiveOnslaught(context: WarriorSchedulerContext, event
 export function applyBuildingMomentum(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
   if (!hasTrait(context, TRAIT.BUILDING_MOMENTUM)) return;
   const buildingMomentumProfile = requireBalanceProfileFromContext(context, PROFILE.buildingMomentum);
-  gainWarriorEndurance(context, balanceProfileNumber(buildingMomentumProfile, 'resourceGain'), event.at);
+  buildingMomentumGrant.onEventScheduled.handler(context, {
+    ...event,
+    amount: balanceProfileNumber(buildingMomentumProfile, 'resourceGain')
+  });
 }
 
 // Resolve Strength-owned attributes without hiding their formulas in the cross-line composer.
@@ -408,3 +412,22 @@ export const warriorStrengthModifierRules: readonly Gw2ModifierRule[] = Object.f
     when: (context) => hasTrait(context, TRAIT.PEAK_PERFORMANCE)
   }
 ]);
+
+/** A burst grants endurance when its surviving hit executes, never when a future packet is authored. */
+export const buildingMomentumGrant = eventReaction<
+  WarriorSchedulerContext,
+  WarriorSimulationEvent & { amount: number },
+  { eventOrder: number; amount: number }
+>({
+  id: 'warrior.building-momentum',
+  missingEvent: 'error',
+  select: (_context, event) => ({
+    at: event.at,
+    ownerId: event.activationId,
+    payload: { eventOrder: Number(event.eventOrder), amount: event.amount }
+  }),
+  execute(context, event, at, payload) {
+    if (event.cancelled || event.offTarget) return;
+    gainWarriorEndurance(context, payload.amount, at);
+  }
+});

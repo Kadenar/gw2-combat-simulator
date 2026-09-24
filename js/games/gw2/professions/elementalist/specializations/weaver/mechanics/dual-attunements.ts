@@ -30,7 +30,7 @@ import {
   weaverModifierRules
 } from '#gw2/professions/elementalist/specializations/weaver/traits/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+
 import { triggerBountifulPower } from '#gw2/professions/elementalist/core/traits/index.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import {
@@ -39,7 +39,7 @@ import {
   type ElementalistAttunement
 } from '#gw2/professions/elementalist/core/state.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
 import {
   elementalistEventSkill,
@@ -66,6 +66,7 @@ import {
   WEAVE_SELF_ACTIVATION_TASK
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
 import { primordialStance } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
+import { grantProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 const WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
 
@@ -282,16 +283,8 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
         emitProfiledBuff(context, at, PROFILE.swiftRevenge, 'Air', skill.name, skill.id);
       } else if (element === 'Earth') {
         const swiftRevengeProfile = requireBalanceProfileFromContext(context, PROFILE.swiftRevenge);
-        const resourcesProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.resources);
-        Object.assign(
-          core,
-          grantEndurance(
-            core,
-            balanceProfileNumber(swiftRevengeProfile, 'resourceGain'),
-            at,
-            balanceProfileNumber(resourcesProfile, 'maximumStacks')
-          )
-        );
+
+        grantProfessionEndurance(context, balanceProfileNumber(swiftRevengeProfile, 'resourceGain'), at);
       }
     }
   }

@@ -19,11 +19,12 @@ import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js'
 import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';
 import { grantThiefStealth } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
 import { beginStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
-import { advanceThiefCoreResources, thiefEnduranceReadyAt } from '#gw2/professions/thief/core/mechanics/resources.js';
+import { advanceThiefCoreResources } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { gainThiefEndurance, gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { reactToThiefCoreDamage } from '#gw2/professions/thief/core/traits/index.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 const baseConfig = {
   primaryWeapon: 'Dagger',
@@ -138,7 +139,10 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
       core.endurance = initial;
       const result = scheduled.run(['Signet of Agility']);
       assert.deepEqual(result.warnings, []);
-      assert.equal(core.endurance, Math.min(core.maximumEndurance, initial + 100));
+      assert.equal(
+        core.endurance,
+        Math.min(scheduled.context.profession.resources.endurance.maximum(scheduled.context), initial + 100)
+      );
       assert.equal(scheduled.context.state.cooldowns.get(ID.SIGNET_OF_AGILITY), 30);
       const timeline = createGw2TimelineIndex({ events: result.events, skillsById: thiefCatalog.skillsById });
       for (const professionStaticRulesApplied of [false, true]) {
@@ -191,10 +195,11 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
 });
 
 test('Thief resource grants preserve snapshot identity, deduplication, and passive recovery', () => {
-  // Grants publish immediate state without moving the passive recovery anchor or changing earlier snapshots.
+  // Grants follow passive recovery at the scheduler clock and cannot change earlier snapshots.
   const { context } = scheduler('Core', { boons: { vigor: false } });
   const state = context.state.profession.core;
   Object.assign(state, { initiative: 3, initiativeUpdatedAt: 1, endurance: 10, enduranceUpdatedAt: 1 });
+  context.advanceTo(2);
   gainThiefInitiative(context, 2, 2, 'initiative-grant');
   const initiative = context.events.at(-1);
   gainThiefInitiative(context, 0, 2, 'initiative-grant');
@@ -216,13 +221,13 @@ test('Thief resource grants preserve snapshot identity, deduplication, and passi
     assert.equal(snapshot.at, 2);
   }
 
-  assert.equal(state.enduranceUpdatedAt, 1);
+  assert.equal(state.enduranceUpdatedAt, 2);
   advanceThiefCoreResources(context, 2);
   assert.equal(state.endurance, 22);
   assert.equal(state.initiative, 6);
-  assert.equal(initiative.state.initiative, 5);
-  assert.equal(initiative.state.endurance, 10);
-  assert.equal(endurance.state.endurance, 17);
+  assert.equal(initiative.state.initiative, 6);
+  assert.equal(initiative.state.endurance, 15);
+  assert.equal(endurance.state.endurance, 22);
 });
 
 test('permanent Vigor bypasses history for Thief advancement and readiness', () => {
@@ -239,12 +244,12 @@ test('permanent Vigor bypasses history for Thief advancement and readiness', () 
       }
     })
   };
-  near(thiefEnduranceReadyAt({ ...current, start: 0 }, 50), 6.68);
+  near(professionEnduranceReadyAt({ ...current, start: 0 }, 50), 6.68);
   advanceThiefCoreResources(current, 4);
   assert.equal(state.endurance, 30);
-  near(thiefEnduranceReadyAt({ ...current, start: 4 }, 50), 6.68);
+  near(professionEnduranceReadyAt({ ...current, start: 4 }, 50), 6.68);
   advanceThiefCoreResources(current, 100);
-  assert.equal(state.endurance, state.maximumEndurance);
+  assert.equal(state.endurance, context.profession.resources.endurance.maximum(context));
 });
 
 test('empty Thief endurance windows still advance initiative, expire temporary state, and emit a snapshot', () => {
@@ -429,12 +434,12 @@ test('THF-008: endurance and readiness are invariant across Vigor expiry, extens
         kind: 'vigor',
         duration: 2
       });
-      const readyBefore = thiefEnduranceReadyAt({ ...context, start: 0 }, 50);
+      const readyBefore = professionEnduranceReadyAt({ ...context, start: 0 }, 50);
       for (const target of targets) advanceThiefCoreResources(context, target);
       return {
         endurance: context.state.profession.core.endurance,
         readyBefore,
-        readyAfter: thiefEnduranceReadyAt({ ...context, start: targets.at(-1) }, 50)
+        readyAfter: professionEnduranceReadyAt({ ...context, start: targets.at(-1) }, 50)
       };
     };
 

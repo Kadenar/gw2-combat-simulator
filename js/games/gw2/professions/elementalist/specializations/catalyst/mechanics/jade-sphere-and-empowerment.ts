@@ -27,7 +27,7 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
@@ -53,6 +53,7 @@ import {
   elementalSynergyBoon
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/aura-parameters.js';
 import type { CatalystEmpowermentPool } from '#gw2/professions/elementalist/build/types.js';
+import { grantProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 const CATALYST_BASE_EMPOWERMENT_TASK = 'elementalist.catalyst-base-empowerment';
 
@@ -554,14 +555,10 @@ function applyCatalystComboTraits(context: ElementalistSchedulerContext, event: 
             skillName: 'Elemental Synergy'
           });
       } else if (attunement === 'Air') {
-        Object.assign(
-          core,
-          grantEndurance(
-            core,
-            balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.elementalSynergy), 'resourceGain'),
-            event.at,
-            balanceProfileNumber(requireBalanceProfileFromContext(context, CORE_PROFILE.resources), 'maximumStacks')
-          )
+        grantProfessionEndurance(
+          context,
+          balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.elementalSynergy), 'resourceGain'),
+          event.at
         );
       }
     }

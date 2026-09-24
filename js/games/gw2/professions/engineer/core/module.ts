@@ -16,6 +16,7 @@ import { projectEngineerPlanningState } from '#gw2/professions/engineer/family-s
 import { ENGINEER_CORE_BALANCE_PROFILES } from '#gw2/professions/engineer/core/profiles.js';
 import { bindEngineerCoreUi } from '#gw2/professions/engineer/core/presentation.js';
 import { engineerCoreSchedulerHooks } from '#gw2/professions/engineer/core/execution/hooks.js';
+import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/resources.js';
 
 export const engineerCoreModule = defineNativeModule({
   id: 'Core',
@@ -26,6 +27,7 @@ export const engineerCoreModule = defineNativeModule({
     // RIFLE_BURST_GRENADE is a sub-packet of Rifle Burst, not a standalone chain member
     autoattackChains: { excludeSkillIds: [ID.RIFLE_BURST_GRENADE] }
   }),
+  resources: { endurance: engineerEndurance },
   state: {
     // scheduler and resolver each need an independent initial state instance
     scheduler: createEngineerCoreState,

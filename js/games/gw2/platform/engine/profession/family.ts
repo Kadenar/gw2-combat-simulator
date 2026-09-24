@@ -110,6 +110,9 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
     weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
     catalog: composeModuleCatalog(genericModules),
     resources: {
+      // The selected elite replaces Core's policy as one capability; grants are never composed twice.
+      endurance: [...genericModules].reverse().find(({ module }) => module.resources?.endurance)?.module.resources
+        ?.endurance,
       createProfessionState: (config) => composeStateFragments(genericModules, config, false) as TProfessionState,
       createResolverState: (config) => composeStateFragments(genericModules, config, true),
       ...(projectPlanningState == null ? {} : { projectPlanningState })
@@ -220,6 +223,9 @@ export function defineProfessionFamily<TProfessionState extends object = object,
       return (presentation ??= normalizeProfessionUi(
         definition.id,
         createProfessionFamilyUi({
+          resourcesFor: (specialization) => ({
+            endurance: resolveRuntime({ specialization }).resources.endurance ?? undefined
+          }),
           catalog: definition.catalog,
           core: core.ui || {},
           specializations: Object.fromEntries(

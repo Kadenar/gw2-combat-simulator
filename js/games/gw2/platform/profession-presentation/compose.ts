@@ -15,6 +15,7 @@ import type {
 } from '#gw2/platform/profession-presentation/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+import type { ProfessionResourceDefinition } from '#gw2/platform/engine/profession/types.js';
 
 type UiCallbackName = keyof ProfessionUiContract;
 
@@ -30,6 +31,7 @@ const UI_LIST_CALLBACK_NAMES = Object.freeze([
 
 /** Selection fields composition reads from an arbitrary callback context before choosing slices. */
 interface UiSelectionCandidate {
+  readonly catalog?: CanonicalCatalog;
   readonly specialization?: unknown;
   readonly config?: { readonly specialization?: unknown } | null;
   readonly build?: { readonly specialization?: unknown } | null;
@@ -38,6 +40,7 @@ interface UiSelectionCandidate {
 type UiSlice = Partial<ProfessionUiContract>;
 
 export interface ProfessionFamilyUiDefinition {
+  readonly resourcesFor?: (specialization: string) => Pick<ProfessionResourceDefinition, 'endurance'>;
   readonly catalog: CanonicalCatalog;
   readonly core: UiSlice;
   readonly specializations: Readonly<Record<string, UiSlice>>;
@@ -203,7 +206,23 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
   for (const name of UI_LIST_CALLBACK_NAMES) {
     ui[name] = (context: unknown) => {
       const selected = active(context);
-      const values = mergeUiList([...selected.slices, family], name, [selected.context]);
+      // Resource meters use the same selected capacity as simulation, including before the first run.
+      const endurance =
+        name === 'resourceViews' ? definition.resourcesFor?.(uiSpecialization(selected.context)).endurance : undefined;
+      const callbackContext = endurance
+        ? {
+            ...(selected.context as object),
+            resources: {
+              endurance: {
+                maximum: endurance.maximum({
+                  ...(selected.context as object),
+                  catalog: (selected.context as UiSelectionCandidate).catalog ?? definition.catalog
+                })
+              }
+            }
+          }
+        : selected.context;
+      const values = mergeUiList([...selected.slices, family], name, [callbackContext]);
       return normalizeApplicationUiList(values, name);
     };
   }

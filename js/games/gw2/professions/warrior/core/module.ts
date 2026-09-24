@@ -15,6 +15,7 @@ import { bindWarriorCoreUi } from '#gw2/professions/warrior/core/presentation.js
 import { warriorCoreEventReactions } from '#gw2/professions/warrior/core/mechanics/reactions.js';
 import { WARRIOR_CORE_BALANCE_PROFILES } from '#gw2/professions/warrior/core/profiles.js';
 import { warriorCoreSchedulerHooks } from '#gw2/professions/warrior/core/execution/hooks.js';
+import { warriorEndurance } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
 
 export const warriorCoreModule = defineNativeModule({
   id: 'Core',
@@ -23,6 +24,7 @@ export const warriorCoreModule = defineNativeModule({
     balanceProfiles: WARRIOR_CORE_BALANCE_PROFILES,
     extraSkills: [WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS, WARRIOR_WEAPON_STOW]
   }),
+  resources: { endurance: warriorEndurance },
   state: {
     scheduler: createWarriorCoreState,
     resolver: createWarriorCoreState,

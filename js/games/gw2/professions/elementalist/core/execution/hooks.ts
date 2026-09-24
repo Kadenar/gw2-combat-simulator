@@ -1,9 +1,4 @@
 import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-import {
   elementalistAfterCast,
   elementalistOnCastComplete,
   elementalistOnCastStart
@@ -27,18 +22,7 @@ import {
 
 /** Registers ordered Core Elementalist hooks while implementations stay with their owning concepts. */
 export const elementalistCoreSchedulerHooks = Object.freeze({
-  initialize: Object.freeze([
-    {
-      id: 'elementalist.endurance-initialize',
-      order: 5,
-      handler(context: ElementalistSchedulerContext) {
-        const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-        // Begin at the selected capacity so a patched cap also changes the first dodge's available resource.
-        professionCoreState(context).endurance = balanceProfileNumber(resourcesProfile, 'maximumStacks');
-      }
-    },
-    ...freshAirReaction.initialize
-  ]),
+  initialize: freshAirReaction.initialize,
   taskHandlers: Object.freeze({
     ...elementalistElementalTaskHandlers,
     ...elementalistWeaponStateTaskHandlers,

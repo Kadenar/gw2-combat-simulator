@@ -2,10 +2,11 @@ import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
+import { elementalistEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
 import {
-  elementalistEnduranceReadyAt,
-  updateEndurance
-} from '#gw2/professions/elementalist/core/mechanics/endurance.js';
+  professionEnduranceReadyAt,
+  advanceProfessionEndurance
+} from '#gw2/platform/combat/resources/endurance-policy.js';
 
 // Use explicit self/other recipients to verify that only player Vigor changes recovery.
 const vigor = (at, duration, includesSelf = true) => ({
@@ -22,6 +23,8 @@ test('Elementalist ignores cancelled Vigor grants and extensions in recovery and
     for (const targets of [[8], [2, 3, 4, 6, 8]]) {
       const context = {
         catalog: elementalistCatalog,
+        profession: { resources: { endurance: elementalistEndurance } },
+        state: { time: 0, profession: { core: { endurance: 0, enduranceUpdatedAt: 0 } } },
         config: {},
         events: [
           vigor(0, 20, false),
@@ -30,13 +33,13 @@ test('Elementalist ignores cancelled Vigor grants and extensions in recovery and
           { type: 'boon_extension', at: 3, duration: 2, kind: 'vigor', cancelled: cancelledType === 'boon_extension' }
         ]
       };
-      const state = { endurance: 0, enduranceUpdatedAt: 0 };
+      const state = context.state.profession.core;
       const readyAt = cancelledType === 'buff' ? 8 : 9;
-      assert.equal(elementalistEnduranceReadyAt(context, 0, 50, 0), readyAt);
-      for (const at of targets) updateEndurance(context, state, at);
+      assert.equal(professionEnduranceReadyAt(context, 50, 0), readyAt);
+      for (const at of targets) advanceProfessionEndurance(context, at);
       assert.equal(state.endurance, cancelledType === 'buff' ? 50 : 45);
-      assert.equal(elementalistEnduranceReadyAt(context, state.endurance, 50, 8), readyAt);
-      updateEndurance(context, state, readyAt);
+      assert.equal(professionEnduranceReadyAt(context, 50, 8), readyAt);
+      advanceProfessionEndurance(context, readyAt);
       assert.deepEqual(state, { endurance: 50, enduranceUpdatedAt: readyAt });
     }
   }
@@ -45,49 +48,58 @@ test('Elementalist ignores cancelled Vigor grants and extensions in recovery and
 test('timed Vigor recovery crosses application and expiry boundaries without rewinding', () => {
   const context = {
     catalog: elementalistCatalog,
+    profession: { resources: { endurance: elementalistEndurance } },
+    state: { time: 0, profession: { core: { endurance: 0, enduranceUpdatedAt: 0 } } },
     config: {},
     events: [vigor(2, 2), vigor(0, 20, false)]
   };
-  const state = { endurance: 0, enduranceUpdatedAt: 0 };
+  const state = context.state.profession.core;
 
   // Two base seconds, two Vigor seconds, then two base seconds restore 35 endurance.
-  updateEndurance(context, state, 6);
+  advanceProfessionEndurance(context, 6);
   assert.equal(state.endurance, 35);
-  updateEndurance(context, state, 3);
+  advanceProfessionEndurance(context, 3);
   assert.deepEqual(state, { endurance: 35, enduranceUpdatedAt: 6 });
-  assert.equal(elementalistEnduranceReadyAt(context, 0, 20, 0), 3.36);
-  assert.equal(elementalistEnduranceReadyAt(context, 0, 50, 0), 9);
-  assert.equal(elementalistEnduranceReadyAt(context, 0, 50, 4), 14);
+  Object.assign(state, { endurance: 0, enduranceUpdatedAt: 0 });
+  assert.equal(professionEnduranceReadyAt(context, 20, 0), 3.36);
+  assert.equal(professionEnduranceReadyAt(context, 50, 0), 9);
+  Object.assign(state, { endurance: 0, enduranceUpdatedAt: 4 });
+  assert.equal(professionEnduranceReadyAt(context, 50, 4), 14);
 });
 
 test('Vigor stacks duration without stacking its rate and respects the duration cap', () => {
   const context = {
     catalog: elementalistCatalog,
+    profession: { resources: { endurance: elementalistEndurance } },
+    state: { time: 0, profession: { core: { endurance: 0, enduranceUpdatedAt: 0 } } },
     config: {},
     events: [vigor(3, 2), vigor(2, 2)]
   };
-  const state = { endurance: 0, enduranceUpdatedAt: 0 };
-  updateEndurance(context, state, 8);
+  const state = context.state.profession.core;
+  advanceProfessionEndurance(context, 8);
   assert.equal(state.endurance, 50);
-  assert.equal(elementalistEnduranceReadyAt(context, 0, 50, 0), 8);
+  assert.equal(professionEnduranceReadyAt(context, 50, 8), 8);
 
   context.events = [vigor(0, 20), vigor(0, 20)];
   const afterCap = { endurance: 0, enduranceUpdatedAt: 29 };
-  updateEndurance(context, afterCap, 32);
+  context.state.profession.core = afterCap;
+  advanceProfessionEndurance(context, 32);
   assert.equal(afterCap.endurance, 17.5);
 });
 
 test('permanent Vigor keeps its rate through timed expiry and endurance remains capped', () => {
   const context = {
     catalog: elementalistCatalog,
+    profession: { resources: { endurance: elementalistEndurance } },
+    state: { time: 0, profession: { core: { endurance: 0, enduranceUpdatedAt: 0 } } },
     config: { boons: { vigor: true } },
     events: [vigor(2, 2)]
   };
-  const state = { endurance: 0, enduranceUpdatedAt: 0 };
-  updateEndurance(context, state, 6);
+  const state = context.state.profession.core;
+  advanceProfessionEndurance(context, 6);
   assert.equal(state.endurance, 45);
-  assert.equal(elementalistEnduranceReadyAt(context, 0, 50, 0), 6.68);
-  updateEndurance(context, state, 30);
+  assert.equal(professionEnduranceReadyAt(context, 50, 6), 6.68);
+  advanceProfessionEndurance(context, 30);
   assert.equal(state.endurance, 100);
 });
 

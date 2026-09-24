@@ -15,7 +15,7 @@ import {
  * customize behavior through the profession contract and injected scheduler
  * policy rather than forking this state machine.
  */
-import { ACTION_SAFETY_LIMIT, EPSILON } from '#kernel/core/clock.js';
+import { ACTION_SAFETY_LIMIT, canonicalTime, EPSILON, isTimeInWindow, timeKey } from '#kernel/core/clock.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { castWasInterrupted, retainsInterruptedCastLockout, gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { CAST_READY, denyCast, foldAvailability, retryCast } from '#gw2/platform/engine/skills/availability.js';
@@ -30,7 +30,7 @@ import {
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
 import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { compareQueuedEvents } from '#kernel/events/queue.js';
-import { canonicalTime, isTimeInWindow, timeKey } from '#kernel/core/clock.js';
+
 import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { resolveSkillHandlerMode, SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
@@ -58,6 +58,7 @@ import type {
 } from '#gw2/platform/execution/types.js';
 import type { CanonicalCatalog, SkillMechanicTrigger, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionSource } from '#gw2/platform/engine/profession/types.js';
+import { initializeProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 /** Payload of a declarative skill mechanic trigger scheduled at cast completion. */
 interface SkillMechanicTaskPayload {
@@ -750,6 +751,8 @@ export function createScheduler<TProfessionState extends object = object>({
     return true;
   }
 
+  // The selected runtime catalog supplies resource tuning before gameplay initialization, including patch previews.
+  initializeProfessionEndurance(context);
   schedulerPolicy.initialize?.(context);
   activeProfession.initialize(context);
 

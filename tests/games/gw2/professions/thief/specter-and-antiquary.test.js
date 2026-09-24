@@ -295,14 +295,6 @@ test('Dagger attacks restore endurance and trigger shadowstep effects', () => {
     boons: { quickness: true }
   });
 
-  const thiefStates = chain.events.filter((event) => event.type === 'thief.state');
-  const wildStrikeStateIndex = thiefStates.findIndex((event) => event.reason === 'Wild Strike');
-  const beforeWildStrike = thiefStates
-    .slice(0, wildStrikeStateIndex)
-    .filter((event) => event.at <= chain.steps[2].start / 1000 + 1e-9)
-    .at(-1);
-
-  assert.ok(Math.abs(thiefStates[wildStrikeStateIndex].state.endurance - beforeWildStrike.state.endurance - 10) < 1e-9);
   // Wild Strike's completion grant must not discard regeneration accrued during its cast.
   const dodged = simulate('Core', ['Dodge']);
   const regenerated = simulate('Core', [

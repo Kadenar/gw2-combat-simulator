@@ -10,7 +10,7 @@ import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 
 export interface EngineerCoreState {
   endurance: number;
-  maximumEndurance: number;
+
   enduranceUpdatedAt: number;
   activeKit: string;
   availableFlips: SkillFlipWindows;
@@ -26,7 +26,7 @@ export interface EngineerCoreState {
 // Core owns the stable public fields that exist for every Engineer runtime.
 const ENGINEER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'endurance',
-  'maximumEndurance',
+
   'activeKit',
   'availableFlips',
   'autoattackChains',
@@ -50,7 +50,7 @@ export function selectedEngineerTraits(config: EngineerConfig = {}): Set<SkillId
 export function createEngineerCoreState(_config: EngineerConfig = {}): EngineerCoreState {
   return {
     endurance: BASE_MAXIMUM_ENDURANCE,
-    maximumEndurance: BASE_MAXIMUM_ENDURANCE,
+
     enduranceUpdatedAt: 0,
     activeKit: '',
     availableFlips: {},

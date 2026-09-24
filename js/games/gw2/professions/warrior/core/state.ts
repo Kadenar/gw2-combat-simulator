@@ -7,7 +7,7 @@ export interface WarriorCoreState {
   adrenaline: number;
   maximumAdrenaline: number;
   endurance: number;
-  maximumEndurance: number;
+
   enduranceUpdatedAt: number;
   autoattackChains: Record<string, SkillId>;
   availableFlips: SkillFlipWindows;
@@ -27,7 +27,7 @@ const WARRIOR_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'adrenaline',
   'maximumAdrenaline',
   'endurance',
-  'maximumEndurance',
+
   'autoattackChains',
   'availableFlips'
 ] as const satisfies readonly (keyof WarriorCoreState)[]);
@@ -36,8 +36,7 @@ const WARRIOR_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
 export const WARRIOR_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
   keys: WARRIOR_CORE_PUBLIC_END_STATE_KEYS,
   defaults: Object.freeze({
-    endurance: 100,
-    maximumEndurance: 100
+    endurance: 100
   } satisfies Partial<WarriorCoreState>)
 });
 
@@ -49,7 +48,7 @@ export function createWarriorCoreState(config: Gw2Config = {}): WarriorCoreState
     adrenaline,
     maximumAdrenaline,
     endurance: 100,
-    maximumEndurance: 100,
+
     enduranceUpdatedAt: 0,
     autoattackChains: {},
     availableFlips: {},

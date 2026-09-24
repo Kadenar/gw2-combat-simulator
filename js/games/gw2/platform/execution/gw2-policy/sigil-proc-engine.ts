@@ -3,7 +3,7 @@ import type { SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
 import {
   createSigilConditionEvent,
@@ -17,6 +17,7 @@ import type { Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 import type { MaterializerState } from '#gw2/platform/execution/gw2-policy/materializer-state.js';
+import { grantProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 export type SigilTrigger = 'swap' | 'control' | 'strike';
 
@@ -96,24 +97,9 @@ export function createSigilProcEngine(
   };
 
   const restoreEndurance: SigilEffectHandler = ({ context, cause, name, proc }) => {
-    const resources = state.profession?.core;
-    if (!resources) return;
-    const maximum = Number(resources.maximumEndurance);
-    const current = Number(resources.endurance);
-    if (!Number.isFinite(maximum) || !Number.isFinite(current)) return;
+    // The capability selects Core or specialization state and settles regeneration before the grant.
     const amount = Math.max(0, Number(proc.amount || 0));
-    Object.assign(
-      resources,
-      grantEndurance(
-        {
-          endurance: current,
-          enduranceUpdatedAt: Number(resources.enduranceUpdatedAt ?? cause.at)
-        },
-        amount,
-        cause.at,
-        maximum
-      )
-    );
+    if (!grantProfessionEndurance(context, amount, cause.at)) return;
     context.emitDerived(cause, {
       type: 'resource',
       at: cause.at,

@@ -14,10 +14,7 @@ import {
   updateParagonCast,
   commandEchoes
 } from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-commands.js';
-import {
-  advanceWarriorResources,
-  warriorEnduranceReadyAt
-} from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
+import { warriorEndurance } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
 import { applyAxeMastery } from '#gw2/professions/warrior/core/traits/discipline.js';
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
@@ -25,6 +22,10 @@ import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { modifyWarriorStrengthAttributes } from '#gw2/professions/warrior/core/traits/strength.js';
 import { warriorCoreAttributeRules } from '#gw2/professions/warrior/core/traits/modifiers.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
+import {
+  advanceProfessionEndurance,
+  professionEnduranceReadyAt
+} from '#gw2/platform/combat/resources/endurance-policy.js';
 
 const simulate = createProfessionSimulator(warriorProfession, {
   stats: { power: 2000, precision: 4000, ferocity: 0, conditionDamage: 0, expertise: 0, vitality: 1000 },
@@ -68,6 +69,7 @@ function paragonContext() {
   return {
     config: { selectedTraitIds: [TRAIT.REVERBERATION] },
     catalog: warriorCatalog,
+    profession: { resources: { endurance: warriorEndurance } },
     start: 0,
     effectiveEnd: 0,
     action: {},
@@ -276,6 +278,7 @@ test('mixed Warrior weapon sets keep static bonuses and conversion inputs separa
     modifyWarriorStrengthAttributes(
       {
         catalog: warriorCatalog,
+        profession: { resources: { endurance: warriorEndurance } },
         config: { primaryWeapon: 'Axe', weaponSet2Primary: 'Greatsword' },
         runtime: { activeWeaponSet: weaponSet },
         traits: new Set([TRAIT.FORCEFUL_GREATSWORD]),
@@ -329,14 +332,14 @@ test('endurance integration and Dodge readiness follow pooled Vigor windows', ()
     for (const context of contexts) {
       context.events = events.map((event) => ({ ...event, resolvedAudience: { includesSelf: true } }));
       context.state.profession.core.endurance = 0;
-      assert.equal(warriorEnduranceReadyAt(context, 50), readyAt);
+      assert.equal(professionEnduranceReadyAt(context, 50), readyAt);
     }
 
-    advanceWarriorResources(contexts[0], 10);
-    for (const at of [1, 2, 4, 10]) advanceWarriorResources(contexts[1], at);
+    advanceProfessionEndurance(contexts[0], 10);
+    for (const at of [1, 2, 4, 10]) advanceProfessionEndurance(contexts[1], at);
     for (const context of contexts) {
       assert.equal(context.state.profession.core.endurance, expectedEndurance);
-      advanceWarriorResources(context, 30);
+      advanceProfessionEndurance(context, 30);
       assert.equal(context.state.profession.core.endurance, 100);
     }
   }

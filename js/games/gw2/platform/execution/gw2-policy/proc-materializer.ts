@@ -18,10 +18,7 @@ import {
   hasStochasticCriticalFood,
   sampleScheduledCritical
 } from '#gw2/platform/execution/gw2-policy/critical-facts.js';
-import {
-  createMaterializerState,
-  type MaterializerProfessionState
-} from '#gw2/platform/execution/gw2-policy/materializer-state.js';
+import { createMaterializerState } from '#gw2/platform/execution/gw2-policy/materializer-state.js';
 import { createSigilProcEngine, sigilCapabilities } from '#gw2/platform/execution/gw2-policy/sigil-proc-engine.js';
 
 interface CreateGw2TriggerMaterializerOptions {
@@ -158,7 +155,6 @@ export function createGw2TriggerMaterializer(
     initialize(context) {
       state.traits = traits || selectedGw2TraitValues(config, context.profession.catalog);
       state.state = context.state;
-      state.profession = context.state.profession as MaterializerProfessionState;
       state.activeWeaponSet = context.state.activeWeaponSet;
       state.query = createGw2CombatQuery({
         profession: context.profession,

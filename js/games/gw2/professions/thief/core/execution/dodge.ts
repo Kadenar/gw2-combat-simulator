@@ -8,23 +8,19 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
+
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
 import type { ThiefCastContext } from '#gw2/professions/thief/types.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import { spendProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 // Spend endurance at dodge start and materialize Uncatchable's delayed Lesser
 // Caltrops pulses from the selected balance profile.
 export function performThiefDodge(context: ThiefCastContext): void {
-  const state = professionCoreState(context);
-
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  Object.assign(
-    state,
-    spendEndurance(state, balanceProfileNumber(resourcesProfile, 'resourceCost'), context.start, state.maximumEndurance)
-  );
+  spendProfessionEndurance(context, balanceProfileNumber(resourcesProfile, 'resourceCost'), context.start);
   emitThiefStateSnapshot(context, context.start, 'dodge');
   if (hasTrait(context.config, TRAIT.UNCATCHABLE)) {
     // Each surviving condition owns its pulses; deleting Bleeding cannot remove Crippled.

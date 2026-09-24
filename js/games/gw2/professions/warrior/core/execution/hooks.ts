@@ -9,8 +9,9 @@ import {
   initializeWarriorTraits,
   observeWarriorEvent
 } from '#gw2/professions/warrior/core/traits/index.js';
-import type { WarriorSchedulerContext } from '#gw2/professions/warrior/types.js';
-import { advanceWarriorResources } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
+
+import { buildingMomentumGrant } from '#gw2/professions/warrior/core/traits/strength.js';
+import { advanceProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 /** Registers Core Warrior resources, weapons, traits, and tasks in scheduler order. */
 export const warriorCoreSchedulerHooks = Object.freeze({
@@ -21,9 +22,7 @@ export const warriorCoreSchedulerHooks = Object.freeze({
   advance: {
     id: 'warrior.core-resources-and-traits',
     order: 10,
-    handler: (context: WarriorSchedulerContext, target: number) => {
-      advanceWarriorResources(context, target);
-    }
+    handler: advanceProfessionEndurance
   },
   onEventScheduled: {
     id: 'warrior.adrenaline',
@@ -36,6 +35,7 @@ export const warriorCoreSchedulerHooks = Object.freeze({
     handler: completeWarriorSkill
   },
   taskHandlers: Object.freeze({
+    ...buildingMomentumGrant.taskHandlers,
     ...signetOfRage.taskHandlers,
     ...empowerAllies.taskHandlers,
     ...warriorAdrenalineReaction.taskHandlers,

@@ -8,7 +8,7 @@ import {
   balanceProfileNumber,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { grantEndurance, spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
+
 import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -16,7 +16,7 @@ import { produceGw2OwnedComboEvents } from '#gw2/platform/execution/gw2-policy/c
 import { emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { AURA_TRANSMUTE_SKILLS, CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { onAttunementComplete, targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { updateEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
+
 import { completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import { elementalistRockBarrierMechanicHandlers } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
 import { elementalistSignetMechanicHandlers } from '#gw2/professions/elementalist/core/mechanics/signets.js';
@@ -51,6 +51,11 @@ import {
   scheduleGrandFinaleProfile
 } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { applyPistolState } from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
+import {
+  advanceProfessionEndurance,
+  grantProfessionEndurance,
+  spendProfessionEndurance
+} from '#gw2/platform/combat/resources/endurance-policy.js';
 
 /** Grand Finale owns its per-orb packets through the same replacement registry as other skills. */
 export const elementalistCoreSkillHandlers = Object.freeze({
@@ -162,12 +167,9 @@ function applySpecialSkillProgression(context: ElementalistLifecycleContext, ski
   completeElementalistSpearProgression(context, skill);
 
   if (Number(skill.resourceGain || 0) > 0) {
-    updateEndurance(context, state, at);
-    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-    Object.assign(
-      state,
-      grantEndurance(state, Number(skill.resourceGain), at, balanceProfileNumber(resourcesProfile, 'maximumStacks'))
-    );
+    advanceProfessionEndurance(context, at);
+
+    grantProfessionEndurance(context, Number(skill.resourceGain), at);
   }
 }
 
@@ -230,23 +232,14 @@ export function elementalistOnCastComplete(context: ElementalistLifecycleContext
     return;
   }
 
-  const state = professionCoreState(context);
   applyConjureState(context, skill);
   applySpecialSkillProgression(context, skill);
   shareAttunementVariantRecharge(context, skill);
   // Dodge is modeled as a cast, so endurance is caught up to now before its cost is spent.
   if (Number(skill.id) === ID.DODGE) {
-    updateEndurance(context, state, context.effectiveEnd);
+    advanceProfessionEndurance(context, context.effectiveEnd);
     const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-    Object.assign(
-      state,
-      spendEndurance(
-        state,
-        balanceProfileNumber(resourcesProfile, 'resourceCost'),
-        context.effectiveEnd,
-        balanceProfileNumber(resourcesProfile, 'maximumStacks')
-      )
-    );
+    spendProfessionEndurance(context, balanceProfileNumber(resourcesProfile, 'resourceCost'), context.effectiveEnd);
     triggerEvasiveArcana(context, skill);
   }
 

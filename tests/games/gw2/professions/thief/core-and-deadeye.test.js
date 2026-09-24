@@ -102,7 +102,7 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
 });
 
 test('Endurance Thief is Daredevil-owned and commits between Core resource and final steal snapshots', () => {
-  // Patched grants must retain stolen-skill storage, the passive regeneration anchor.
+  // Patched grants retain stolen-skill storage and run after the scheduler reaches completion.
   for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']) {
     for (const selected of [false, true]) {
       const config = {
@@ -119,7 +119,8 @@ test('Endurance Thief is Daredevil-owned and commits between Core resource and f
       assert.equal(context.catalog.balanceProfilesById.has(TRAIT.ENDURANCE_THIEF), active);
       assert.equal(typeof context.onThiefStealComplete === 'function', active);
       const core = context.state.profession.core;
-      Object.assign(core, { initiative: 3, endurance: 10, enduranceUpdatedAt: 1 });
+      Object.assign(core, { initiative: 3, endurance: 10, enduranceUpdatedAt: 2 });
+      context.state.time = 2;
       const catalog = active
         ? applyBalanceProfilePatch(context.catalog, {
             balanceProfiles: {
@@ -136,7 +137,7 @@ test('Endurance Thief is Daredevil-owned and commits between Core resource and f
         ['kleptomaniac', ...(granted ? ['endurance-thief'] : []), 'steal']
       );
       assert.equal(core.endurance, granted ? 47 : 10);
-      assert.equal(core.enduranceUpdatedAt, 1);
+      assert.equal(core.enduranceUpdatedAt, 2);
       for (const snapshot of snapshots) {
         assert.equal(snapshot.at, 2);
         assert.equal(snapshot.state.initiative, 5);

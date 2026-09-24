@@ -9,7 +9,7 @@ export interface MesmerMirageMirror {
 
 export interface MesmerMirageState {
   endurance: number;
-  maximumEndurance: number;
+
   enduranceUpdatedAt: number;
   ambushUntil: number;
   ambushSource: string;
@@ -22,7 +22,7 @@ function createMirageState(_config: Partial<MesmerConfig> = {}): MesmerMirageSta
   return {
     // Mirage starts with two dodges' worth of continuously regenerating endurance.
     endurance: 100,
-    maximumEndurance: 100,
+
     enduranceUpdatedAt: 0,
     ambushUntil: 0,
     ambushSource: '',

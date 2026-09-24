@@ -19,6 +19,7 @@ import {
   completeEvokerAttunement,
   triggerSpecializedElementEntry
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
+import { elementalistEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
 
 const skill = { id: 1, name: 'Fixture Heal', type: 'Heal' };
 
@@ -33,7 +34,7 @@ function contextFor(kind = 'Core', specialization = {}) {
     hasBuff: () => false,
     schedulerPolicy: { isCombatActive: () => true },
     traits: new Set(),
-    profession,
+    profession: { ...profession, resources: { endurance: elementalistEndurance } },
     state: {
       time: 1,
       activeWeaponSet: 1,
@@ -115,7 +116,12 @@ for (const [trait, key, profile, invoke] of [
 
 test('Catalyst combo claims stay per element, per trait and per phase, including Water', () => {
   for (const duration of [2, 0]) {
-    for (const invoke of [applyCatalystComboTraits, catalystSchedulerHooks.onEventScheduled.handler]) {
+    for (const handler of [applyCatalystComboTraits, catalystSchedulerHooks.onEventScheduled.handler]) {
+      const invoke = (context, event) => {
+        context.state.time = event.at;
+        handler(context, event);
+      };
+
       const state = catalystState.create();
       const { context, core, events } = contextFor('Catalyst', state);
       const profiles = new Map(elementalistCatalog.balanceProfilesById);
@@ -140,7 +146,7 @@ test('Catalyst combo claims stay per element, per trait and per phase, including
         assert.equal(state.elementalSynergyReadyAt[element], 1 + duration + 0.000001 + duration);
       }
 
-      if (invoke === catalystSchedulerHooks.onEventScheduled.handler) {
+      if (handler === catalystSchedulerHooks.onEventScheduled.handler) {
         assert.ok(events.every((event) => event.schedulerPrediction === 'combo-result'));
       }
 

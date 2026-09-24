@@ -1,22 +1,11 @@
-import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
-import {
-  buffMatchesAudience,
-  durationStackingBoonCapSeconds,
-  remainingDurationStackSeconds
-} from '#gw2/platform/combat/boons.js';
+
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
-import {
-  advanceEndurance,
-  enduranceReadyAt,
-  grantEndurance,
-  spendEndurance
-} from '#gw2/platform/combat/resources/endurance.js';
+
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -28,12 +17,18 @@ import {
 } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+
 import type { SkillMechanicTrigger } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { MesmerCastContext, MesmerPrecastContext, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
+import {
+  advanceProfessionEndurance,
+  professionEnduranceReadyAt,
+  spendProfessionEndurance
+} from '#gw2/platform/combat/resources/endurance-policy.js';
 
 type MirageSkillMechanicHandler = (invocation: {
   readonly context: MesmerSchedulerContext;
@@ -56,8 +51,7 @@ export const mirageSkillMechanicHandlers: Readonly<Record<string, MirageSkillMec
     mirageControllerFor(mesmerRuntimeFor(context)).pickUpMirror(at, skill.name);
   },
   'mesmer.mirage.dodge': ({ context, at, skill }) => {
-    const state = mirageState.from(context);
-    Object.assign(state, spendEndurance(state, Number(skill.resourceCost ?? 50), at, state.maximumEndurance));
+    spendProfessionEndurance(context, Number(skill.resourceCost ?? 50), at);
     const runtime = mesmerRuntimeFor(context);
     mirageControllerFor(runtime).grantMirageCloak(at, skill.name);
     if (runtime.traits.has(TRAIT.DECEPTIVE_EVASION)) {
@@ -99,7 +93,7 @@ function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): 
     if (state.endurance >= cost - EPSILON) return { ready: true };
     return {
       ready: false,
-      retryAt: enduranceReadyAt(state.endurance, cost, context.start, mirageEnduranceRate(context, context.start)),
+      retryAt: professionEnduranceReadyAt(context, cost, context.start),
       code: 'mesmer.endurance',
       reason: `Dodge requires ${cost} endurance.`
     };
@@ -157,35 +151,6 @@ function mirageAvailability(context: MesmerPrecastContext, skill: MesmerSkill): 
   };
 }
 
-/** Standard endurance regenerates at five per second, increased by half while Vigor is active. */
-function mirageEnduranceRate(context: MesmerSchedulerContext, at: number): number {
-  return context.config.boons?.vigor || context.hasBuff('vigor', at) ? 7.5 : 5;
-}
-
-/** Vigor boundaries settle regeneration through the scheduler's advance hook and replace the next expiry. */
-const mirageVigorBoundary = scheduledReaction<
-  MesmerSchedulerContext,
-  { readonly at: number; readonly expiry?: boolean },
-  Record<string, never>
->({
-  id: 'mesmer.mirage.vigor-boundary',
-  select: (_context, boundary) => ({
-    at: boundary.at,
-    ownerId: boundary.expiry ? 'mesmer.mirage.vigor-expiry' : null,
-    payload: {}
-  }),
-  execute(context, at) {
-    context.tasks.cancelOwner('mesmer.mirage.vigor-expiry');
-    const remaining = remainingDurationStackSeconds(boonApplicationsAt(context.events, 'vigor', at), at, {
-      includes: (application) => buffMatchesAudience(application, 'all'),
-      maximum: durationStackingBoonCapSeconds('vigor')
-    });
-    if (remaining > EPSILON) {
-      mirageVigorBoundary.onEventScheduled.handler(context, { at: at + remaining, expiry: true });
-    }
-  }
-});
-
 export const mirageCastRules = Object.freeze({
   availability: {
     id: 'mesmer.mirage.availability',
@@ -197,33 +162,9 @@ export const mirageCastRules = Object.freeze({
 /** Regenerates endurance between Vigor boundaries and expires mirrors when their pickup windows close. */
 function advanceMirageScheduler(context: MesmerSchedulerContext, target: number): void {
   const state = mirageState.from(context);
-  Object.assign(
-    state,
-    advanceEndurance(
-      state,
-      target,
-      mirageEnduranceRate(context, (state.enduranceUpdatedAt + target) / 2),
-      state.maximumEndurance
-    )
-  );
+  advanceProfessionEndurance(context, target);
   // Cleanup shares pickup's exclusive deadline so the final live microsecond remains usable.
   state.mirrors = state.mirrors.filter((mirror) => mirror.expiresAt > target);
-}
-
-/** Updates Mirage dodge recovery for timed Vigor and Sigil of Energy's endurance grant. */
-function observeMirageEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
-  // Schedule at the application time so future buffs cannot accelerate recovery early.
-  if (
-    ((event.type === 'buff' && event.kind === 'vigor' && buffMatchesAudience(event, 'all')) ||
-      (event.type === 'boon_extension' && (!event.kind || event.kind === 'vigor') && event.excludedKind !== 'vigor')) &&
-    !context.config.boons?.vigor
-  ) {
-    mirageVigorBoundary.onEventScheduled.handler(context, { at: event.at });
-  }
-
-  if (event.type !== 'proc' || event.sourceId !== 'sigil.energy') return;
-  const state = mirageState.from(context);
-  Object.assign(state, grantEndurance(state, 50, event.at, state.maximumEndurance));
 }
 
 const mirageModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -271,18 +212,17 @@ export const mirageAttributeRules = Object.freeze({
 
 export const mirageSchedulerHooks = Object.freeze({
   initialize: initializeMirageRuntime,
-  taskHandlers: Object.freeze({
-    ...mirageVigorBoundary.taskHandlers
-  }),
   advance: {
     id: 'mesmer.mirage.mirrors',
     order: 20,
     handler: advanceMirageScheduler
   },
-  onCastComplete: completeMirageSkill,
-  onEventScheduled: {
-    id: 'mesmer.mirage.energy-sigil',
-    order: 20,
-    handler: observeMirageEvent
-  }
+  onCastComplete: completeMirageSkill
 });
+
+/** Binds shared endurance operations to this module's live pool and balance rules. */
+export const mirageEndurance: EndurancePolicy<MesmerSchedulerContext> = {
+  state: (context) => mirageState.from(context),
+  maximum: () => 100,
+  regenerationRate: (_context, vigor) => (vigor ? 7.5 : 5)
+};

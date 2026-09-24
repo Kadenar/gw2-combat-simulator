@@ -9,11 +9,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
-import {
-  advanceEnduranceIntervals,
-  enduranceIntervalsReadyAt,
-  vigorEnduranceIntervals
-} from '#gw2/platform/combat/resources/endurance.js';
+
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gainThiefEndurance, gainThiefInitiative } from '#gw2/professions/thief/core/mechanics/resource-events.js';
@@ -28,6 +24,8 @@ import type {
   ThiefSkill
 } from '#gw2/professions/thief/types.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
+import { advanceProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 /** Restart the equipped signet's ten-second pulse after it becomes ready, including cooldown resets. */
 export function restartInfiltratorsSignetPassive(context: ThiefSchedulerContext): void {
@@ -71,23 +69,6 @@ function thiefEnduranceRegenerationRate(
   return Math.min(balanceProfileNumber(resourcesProfile, 'threshold'), base * (vigorActive ? vigorMultiplier : 1));
 }
 
-/** Maps shared Vigor windows to Thief's capped rate for both recovery and dodge readiness. */
-function enduranceIntervals(context: ThiefSchedulerContext, start: number, end: number) {
-  return vigorEnduranceIntervals(context, start, end, (vigor, at) =>
-    thiefEnduranceRegenerationRate(context, at, vigor)
-  );
-}
-
-export function thiefEnduranceReadyAt(context: ThiefPrecastContext, cost: number): number | null {
-  const state = professionCoreState(context);
-  return enduranceIntervalsReadyAt(
-    { endurance: Number(state.endurance || 0), enduranceUpdatedAt: context.start },
-    cost,
-    enduranceIntervals(context, context.start, Infinity),
-    state.maximumEndurance
-  );
-}
-
 // Advance initiative and endurance regeneration while pruning expired Lead
 // Attacks, venom, guild summon, and flip state at the same target timestamp.
 export function advanceThiefCoreResources(context: ThiefSchedulerContext, target: number): void {
@@ -118,12 +99,8 @@ export function advanceThiefCoreResources(context: ThiefSchedulerContext, target
     state.initiativeUpdatedAt = target;
   }
 
-  const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
   // Integrate shared Vigor windows so waits cannot change recovery; permanent Vigor needs no history replay.
-  Object.assign(
-    state,
-    advanceEnduranceIntervals(state, enduranceIntervals(context, enduranceFrom, target), state.maximumEndurance)
-  );
+  advanceProfessionEndurance(context, target);
 
   emitThiefStateSnapshot(context, target, 'resources');
 }
@@ -189,3 +166,10 @@ export function completeThiefCoreResources(context: ThiefCastContext, skill: Thi
     'unload-refund'
   );
 }
+
+/** Binds shared endurance operations to this module's live pool and balance rules. */
+export const thiefEndurance: EndurancePolicy<ThiefSchedulerContext> = {
+  state: (context) => professionCoreState(context),
+  maximum: () => 100,
+  regenerationRate: (context, vigor, at) => thiefEnduranceRegenerationRate(context, at, vigor)
+};

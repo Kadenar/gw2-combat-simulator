@@ -12,7 +12,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+
 import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianTargetDisabled } from '#gw2/professions/guardian/core/traits/modifiers.js';
@@ -22,6 +22,7 @@ import type { GuardianCastContext, GuardianSchedulerContext, GuardianSkill } fro
 import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
+import { grantProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 const dragonhunterModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -113,22 +114,6 @@ const shieldOfCourage = timedEffect<GuardianSchedulerContext, object>({
 });
 
 function updateDragonhunterCastState(context: GuardianCastContext, skill: GuardianSkill): void {
-  if (skill.slot === 'Elite' && hasTrait(context, GUARDIAN_TRAIT_IDS.HUNTERS_DETERMINATION)) {
-    const core = professionCoreState(context);
-    const huntersDeterminationProfile = requireBalanceProfileFromContext(context, PROFILE.huntersDetermination);
-    // Endurance is applied directly to scheduler state (not via an emit) so
-    // the dodge-availability check sees it immediately on the same advance tick.
-    const endurance = balanceProfileNumber(huntersDeterminationProfile, 'resourceGain');
-    Object.assign(core, grantEndurance(core, endurance, context.effectiveEnd, core.maximumEndurance));
-    emitGuardianProc(context, {
-      name: "Hunter's Determination",
-      at: context.effectiveEnd,
-      sourceSkill: skill.name,
-      detail: `${endurance} endurance`,
-      icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.HUNTERS_DETERMINATION)
-    });
-  }
-
   if (skill.categories?.includes('Trap') && hasTrait(context, GUARDIAN_TRAIT_IDS.HUNTERS_PREMONITION)) {
     // Hunter's Premonition fires on any trap cast, not just DH traps;
     // the "Trap" category tag on the skill definition is the only gate.
@@ -168,6 +153,7 @@ export const dragonhunterSkillMechanicHandlers = Object.freeze({
 
 export const dragonhunterSchedulerHooks = Object.freeze({
   taskHandlers: shieldOfCourage.taskHandlers,
+  onCastComplete: { id: 'dragonhunter.endurance', handler: completeDragonhunterEndurance },
   initialize: Object.freeze([
     {
       id: 'guardian.dragonhunter.passive-courage',
@@ -185,3 +171,21 @@ export const dragonhunterSchedulerHooks = Object.freeze({
     }
   ])
 });
+
+/** Apply the elite endurance grant at completion, after passive state has reached the same clock. */
+function completeDragonhunterEndurance(context: GuardianCastContext, skill: GuardianSkill): void {
+  if (skill.slot === 'Elite' && hasTrait(context, GUARDIAN_TRAIT_IDS.HUNTERS_DETERMINATION)) {
+    const huntersDeterminationProfile = requireBalanceProfileFromContext(context, PROFILE.huntersDetermination);
+    // Endurance is applied directly to scheduler state (not via an emit) so
+    // the dodge-availability check sees it immediately on the same advance tick.
+    const endurance = balanceProfileNumber(huntersDeterminationProfile, 'resourceGain');
+    grantProfessionEndurance(context, endurance, context.effectiveEnd);
+    emitGuardianProc(context, {
+      name: "Hunter's Determination",
+      at: context.effectiveEnd,
+      sourceSkill: skill.name,
+      detail: `${endurance} endurance`,
+      icon: guardianTraitIcon(GUARDIAN_TRAIT_IDS.HUNTERS_DETERMINATION)
+    });
+  }
+}

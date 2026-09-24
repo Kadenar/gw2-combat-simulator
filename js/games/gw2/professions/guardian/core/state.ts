@@ -3,10 +3,12 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
+import type { SchedulerContext } from '#gw2/platform/execution/types.js';
 
 export interface GuardianCoreState {
   endurance: number;
-  maximumEndurance: number;
+
   enduranceUpdatedAt: number;
   justiceActiveArmed: boolean;
   justiceHitCount: number;
@@ -36,7 +38,7 @@ export interface GuardianCoreState {
 export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCoreState {
   return {
     endurance: boundedNumber(config.initialEndurance ?? 100, 100, 0, 100),
-    maximumEndurance: 100,
+
     enduranceUpdatedAt: 0,
     justiceActiveArmed: false,
     justiceHitCount: 0,
@@ -74,7 +76,7 @@ export function activeSymbolicAvengerExpirations(state: Partial<GuardianCoreStat
 /** Declares the Core-owned portion of Guardian's stable public end-state contract. */
 const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianCoreState)[] = Object.freeze([
   'endurance',
-  'maximumEndurance',
+
   'justiceActiveArmed',
   'justiceHitCount',
   'justiceActiveBurns',
@@ -99,3 +101,10 @@ export const GUARDIAN_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
   keys: GUARDIAN_CORE_PUBLIC_END_STATE_KEYS,
   defaults: {}
 });
+
+/** Guardian currently tracks grants only; this capability does not add passive dodge simulation. */
+export const guardianEndurance: EndurancePolicy<SchedulerContext<{ core: GuardianCoreState }>> = {
+  state: (context) => context.state.profession.core,
+  maximum: () => 100,
+  regenerationRate: () => 0
+};

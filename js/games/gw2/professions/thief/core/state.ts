@@ -27,7 +27,7 @@ export interface ThiefCoreState {
   storedStolenSkillCount: number;
   kneeling: boolean;
   endurance: number;
-  maximumEndurance: number;
+
   enduranceUpdatedAt: number;
   leadAttacksStacks: number;
   leadAttackExpirations: number[];
@@ -73,7 +73,7 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     storedStolenSkillCount: 0,
     kneeling: false,
     endurance: 100,
-    maximumEndurance: 100,
+
     enduranceUpdatedAt: 0,
     leadAttacksStacks: 0,
     leadAttackExpirations: [],
@@ -109,7 +109,7 @@ const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[] = Obje
   'storedStolenSkillCount',
   'kneeling',
   'endurance',
-  'maximumEndurance',
+
   'leadAttacksStacks',
   'fluidStrikesUntil',
   'quickPocketsReadyAt',

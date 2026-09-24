@@ -19,7 +19,7 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
+
 import {
   conditionEffectTicks,
   effectFirstAtMs,
@@ -29,6 +29,7 @@ import {
 import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/vindicator/profiles.js';
 import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { grantProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 /** Derives the landing profile from Vindicator's grandmaster trait so no separate dodge choice can drift. */
 export function selectedDodgeSkill(context: RevenantSchedulerContext): RevenantSkill | undefined {
@@ -52,7 +53,7 @@ export function performEnergyMeld(context: RevenantCastContext, skill: RevenantS
   const enduranceGain = songOfArboreum
     ? balanceProfileNumber(songOfArboreum, 'resourceGain')
     : Number(skill.resourceGain);
-  Object.assign(coreState, grantEndurance(coreState, enduranceGain, at, coreState.maximumEndurance));
+  grantProfessionEndurance(context, enduranceGain, at);
   if (hasTrait(context.config, TRAIT.REAVERS_CURSE)) {
     const reaversCurse = requireBalanceProfileFromContext(context, VINDICATOR_BALANCE_PROFILE_IDS.reaversCurse);
     const effect = requireEffect(reaversCurse, 'buff', 'reavers-curse');

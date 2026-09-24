@@ -5,6 +5,7 @@ import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.j
 import {
   daredevilAttributeRules,
   daredevilCastRules,
+  daredevilEndurance,
   daredevilSchedulerHooks
 } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodge-rules.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
@@ -19,6 +20,7 @@ export const daredevilModule = defineNativeModule({
     balanceProfiles: DAREDEVIL_BALANCE_PROFILES
   }),
   // Scheduler and resolver each get their own independent DaredevilState instance
+  resources: { endurance: daredevilEndurance },
   state: { scheduler: daredevilState.create, resolver: daredevilState.create },
   mechanics: {
     // Weakness follows the hit that consumes the post-dodge buff.

@@ -98,6 +98,19 @@ export function assertProfessionFamilyConformance({ family, core, specialization
     const expectedCoreState = core.state.scheduler(config);
     const expectedSpecializationState = specialization ? specialization.state.scheduler(config) : {};
 
+    // Composed state applies the active resource policy after the individual state factories.
+    const endurance = runtime.resources.endurance;
+    if (endurance) {
+      const expectedContext = {
+        config,
+        catalog: runtime.catalog,
+        state: {
+          profession: { core: expectedCoreState, specialization: { kind: name, state: expectedSpecializationState } }
+        }
+      };
+      endurance.state(expectedContext).endurance = endurance.maximum(expectedContext);
+    }
+
     assert.deepEqual(Object.keys(state).sort(), ['core', 'specialization']);
     assert.deepEqual(state.core, expectedCoreState, `${family.id}/${name} core state`);
     assert.equal(state.specialization.kind, name);
@@ -155,6 +168,9 @@ export function assertProfessionFamilyConformance({ family, core, specialization
 
     const context = {
       catalog: family.catalog,
+      resources: runtime.resources.endurance
+        ? { endurance: { maximum: runtime.resources.endurance.maximum({ catalog: family.catalog, config }) } }
+        : {},
       config,
       build: { ...family.createBuildDefaults(), specialization: name },
       state: { profession: state },

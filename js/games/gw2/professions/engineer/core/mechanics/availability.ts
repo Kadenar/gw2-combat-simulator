@@ -8,13 +8,14 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
-import { engineerEnduranceReadyAt } from '#gw2/professions/engineer/core/mechanics/resources.js';
+
 import {
   denySkillCast as denyEngineerCast,
   selectedSlotSkillAvailability
 } from '#gw2/professions/shared/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { EngineerPrecastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 /** Enforces Core Engineer resource, kit, flip, and toolbelt prerequisites after shared build eligibility. */
 export function engineerCoreCastAvailability(
@@ -34,7 +35,7 @@ export function engineerCoreCastAvailability(
           skill,
           'engineer.insufficient-endurance',
           `requires ${enduranceCost} endurance.`,
-          engineerEnduranceReadyAt(context, enduranceCost)
+          professionEnduranceReadyAt(context, enduranceCost)
         );
   }
 

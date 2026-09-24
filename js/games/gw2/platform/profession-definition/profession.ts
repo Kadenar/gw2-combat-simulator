@@ -308,6 +308,7 @@ function compileNativeModule(
     id: module.id,
     catalog: fragment,
     resources: {
+      endurance: module.resources?.endurance,
       createProfessionState: module.state.scheduler as (config: Readonly<SchedulerConfig>) => UnvalidatedFields,
       // Resolver state defaults to the scheduler state so simple modules share one state object.
       createResolverState: module.state.resolver || module.state.scheduler,

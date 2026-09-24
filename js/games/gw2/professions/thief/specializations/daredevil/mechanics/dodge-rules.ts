@@ -3,7 +3,7 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -19,14 +19,10 @@ import {
   applyEnduranceThief,
   beginDaredevilTraits
 } from '#gw2/professions/thief/specializations/daredevil/traits/index.js';
+import { thiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
 
 function initializeDaredevilRuntime(context: ThiefSchedulerContext): void {
-  const state = professionCoreState(context);
   context.onThiefStealComplete = applyEnduranceThief;
-  const resourcesProfile = requireBalanceProfileFromContext(context, 'thief.daredevil.resources');
-  // Start with all three dodges available; Power-to-Vitality conversion belongs to build attributes.
-  state.maximumEndurance = balanceProfileNumber(resourcesProfile, 'maximumStacks');
-  state.endurance = state.maximumEndurance;
 }
 
 export const daredevilSchedulerHooks = Object.freeze({
@@ -73,7 +69,7 @@ export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.HAVOC_SPECIALIST) &&
       // Trait activates whenever endurance is not at maximum — any spent dodge qualifies
-      Number(thiefRuntimeState(context).endurance || 0) < Number(thiefRuntimeState(context).maximumEndurance || 100)
+      Number(thiefRuntimeState(context).endurance || 0) < daredevilEndurance.maximum(context)
   },
   {
     id: 'thief.bounding-dodger',
@@ -110,3 +106,10 @@ export const daredevilCastRules = Object.freeze({
     handler: daredevilCastAvailability
   }
 });
+
+/** Daredevil replaces only the capacity rule while retaining Core's pool and regeneration. */
+export const daredevilEndurance = {
+  ...thiefEndurance,
+  maximum: (context: unknown) =>
+    balanceProfileNumber(requireBalanceProfileFromContext(context, 'thief.daredevil.resources'), 'maximumStacks')
+};

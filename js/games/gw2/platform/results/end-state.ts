@@ -51,6 +51,12 @@ export function planningState(
     ammoBySkillId,
     activeWeaponSet: scheduled.state.activeWeaponSet,
     // Projection lets a profession hide resolver-only bookkeeping.
-    profession: structuredClone(projected ?? flattenProfessionState(scheduled.state.profession))
+    profession: {
+      ...structuredClone(projected ?? flattenProfessionState(scheduled.state.profession)),
+      // Capacity is policy-derived reporting data, never duplicated in mutable profession state.
+      ...(profession.resources.endurance
+        ? { maximumEndurance: profession.resources.endurance.maximum(scheduled.context) }
+        : {})
+    }
   };
 }

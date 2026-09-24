@@ -434,7 +434,12 @@ test('ready native professions expose deliberate public end-state keys', async (
     // Multiple slices can publish the same field; the projected object contains each name once.
     assert.deepEqual(
       Object.keys(result.planningState.profession).sort(),
-      [...new Set(PUBLIC_END_STATE_KEYS_BY_PROFESSION[entry.id])].sort(),
+      [
+        ...new Set([
+          ...PUBLIC_END_STATE_KEYS_BY_PROFESSION[entry.id],
+          ...(profession.resolveRuntime({}).resources.endurance ? ['maximumEndurance'] : [])
+        ])
+      ].sort(),
       entry.id
     );
     for (const key of internalKeys[entry.id]) {

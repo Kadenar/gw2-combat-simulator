@@ -7,11 +7,7 @@ import { EPSILON } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { clearRevenantLegendFlips } from '#gw2/professions/revenant/core/mechanics/weapon-state.js';
 import { emitRevenantStateSnapshot } from '#gw2/professions/revenant/family-state.js';
-import {
-  advanceEnduranceIntervals,
-  enduranceIntervalsReadyAt,
-  vigorEnduranceIntervals
-} from '#gw2/platform/combat/resources/endurance.js';
+
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/skills/timing.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -30,6 +26,8 @@ import type {
   RevenantSkill
 } from '#gw2/professions/revenant/types.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
+import { advanceProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 function roundedResourceValue(value: number): number {
   return Math.round(value * 1e9) / 1e9;
@@ -73,24 +71,6 @@ export function revenantEnduranceRegenerationRate(
     10,
     balanceProfileNumber(profile, 'enduranceRegenerationPerSecond') *
       ((vigorActive ? balanceProfileNumber(profile, 'vigorRegenerationMultiplier') : 1) + enduringRecovery)
-  );
-}
-
-/** Share actual Vigor windows between accrual and resource-funded dodge scheduling. */
-function enduranceIntervals(context: RevenantSchedulerContext, start: number, end: number) {
-  return vigorEnduranceIntervals(context, start, end, (vigor, at) =>
-    revenantEnduranceRegenerationRate(context, at, vigor)
-  );
-}
-
-export function revenantEnduranceReadyAt(context: RevenantPrecastContext, cost: number): number | null {
-  const state = professionCoreState(context);
-  // Use capped endurance traversal without changing Revenant's separate energy accrual policy.
-  return enduranceIntervalsReadyAt(
-    { endurance: Number(state.endurance || 0), enduranceUpdatedAt: context.start },
-    cost,
-    enduranceIntervals(context, context.start, Infinity),
-    state.maximumEndurance
   );
 }
 
@@ -174,10 +154,7 @@ export function advanceRevenantEnergy(context: RevenantSchedulerContext, target:
   const from = Number(state.energyUpdatedAt || 0);
   const enduranceFrom = Number(state.enduranceUpdatedAt || 0);
   if (target > enduranceFrom) {
-    Object.assign(
-      state,
-      advanceEnduranceIntervals(state, enduranceIntervals(context, enduranceFrom, target), state.maximumEndurance)
-    );
+    advanceProfessionEndurance(context, target);
   }
 
   // Integrate once per rate/cap change, including upkeeps reserved for a future cast completion.
@@ -200,3 +177,10 @@ export function baseRevenantEnergyCost({ state }: RevenantEnergyCostInput, skill
   if (active) return 0;
   return Math.max(0, Number(skill.energyCost || 0));
 }
+
+/** Binds shared endurance operations to this module's live pool and balance rules. */
+export const revenantEndurance: EndurancePolicy<RevenantSchedulerContext> = {
+  state: (context) => professionCoreState(context),
+  maximum: () => 100,
+  regenerationRate: (context, vigor, at) => revenantEnduranceRegenerationRate(context, at, vigor)
+};

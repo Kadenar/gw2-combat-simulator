@@ -8,7 +8,6 @@ import { selectedThiefTraits } from '#gw2/professions/thief/core/state.js';
 import type { ThiefConfig, ThiefDodge } from '#gw2/professions/thief/types.js';
 
 export interface DaredevilState {
-  enduranceCapacityBonus: number;
   selectedDodge: ThiefDodge;
   boundingDamageUntil: number;
   lotusConditionDamageUntil: number;
@@ -34,7 +33,7 @@ export function createDaredevilState(config: ThiefConfig = {}): DaredevilState {
   const traits = selectedThiefTraits(config);
   return {
     // Daredevil owns the extra dodge capacity even though endurance is spent by the shared Thief resource system.
-    enduranceCapacityBonus: 50,
+
     selectedDodge: selectedDodge(config, traits),
     boundingDamageUntil: 0,
     lotusConditionDamageUntil: 0,

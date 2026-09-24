@@ -3,22 +3,22 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { reduceMatchingCooldowns } from '#gw2/platform/execution/cooldowns.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+
 import { emitEngineerStateSnapshot } from '#gw2/professions/engineer/family-state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
+
 import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/traits/index.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 import type { EngineerCastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import { spendProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 /** Spends dodge endurance, applies dodge-triggered traits, and publishes the resulting Engineer state. */
 export function performEngineerDodge(context: EngineerCastContext, skill: EngineerSkill): void {
-  const state = professionCoreState(context);
   const at = context.start;
   const resourcesProfile = requireBalanceProfileFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources);
   const enduranceCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
-  Object.assign(state, spendEndurance(state, enduranceCost, at, state.maximumEndurance));
+  spendProfessionEndurance(context, enduranceCost, at);
 
   context.emit({
     type: 'engineer.dodge',

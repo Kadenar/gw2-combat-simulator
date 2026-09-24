@@ -270,15 +270,8 @@ export const thiefCoreUi = Object.freeze({
     (context.specialization || context.config?.specialization || 'Core') === 'Core' ? thiefStealPaletteGroups() : [],
   resourceViews: (context: ThiefUiContext) => {
     const state = thiefUiState(context);
-    const enduranceCapacity = Math.max(
-      Number(state.maximumEndurance || 100),
-      100 + Number(state.enduranceCapacityBonus || 0)
-    );
-    const endurance =
-      Number(state.maximumEndurance || 100) < enduranceCapacity &&
-      Number(state.endurance ?? 100) === Number(state.maximumEndurance || 100)
-        ? enduranceCapacity
-        : Number(state.endurance ?? enduranceCapacity);
+    const enduranceCapacity = context.resources!.endurance!.maximum;
+    const endurance = Number(state.endurance ?? enduranceCapacity);
     return [
       {
         id: 'initiative',
@@ -300,7 +293,7 @@ export const thiefCoreUi = Object.freeze({
         id: 'endurance',
         singular: 'endurance',
         plural: 'endurance',
-        // Specializations publish capacity bonuses; Core renders the shared meter without naming their owner.
+        // Family composition supplies the active resource policy without exposing its owner.
         maximum: enduranceCapacity,
         value: endurance,
         canStart: false,

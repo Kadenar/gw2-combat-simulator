@@ -114,7 +114,7 @@ export const vindicatorUi: RevenantUiSlice = Object.freeze({
         id: 'endurance',
         singular: 'endurance',
         plural: 'endurance',
-        maximum: Number(state.maximumEndurance || 100),
+        maximum: context.resources!.endurance!.maximum,
         value: Number(state.endurance ?? 100),
         canStart: false,
         step: 1,

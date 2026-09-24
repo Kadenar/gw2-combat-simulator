@@ -64,7 +64,7 @@ export const mirageUi: MesmerUiSlice = Object.freeze({
       id: 'endurance',
       singular: 'endurance',
       plural: 'endurance',
-      maximum: Number(mesmerUiState(context).maximumEndurance ?? 100),
+      maximum: context.resources!.endurance!.maximum,
       value: Number(mesmerUiState(context).endurance ?? 100),
       canStart: false,
       step: 1,

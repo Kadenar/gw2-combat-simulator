@@ -5,9 +5,12 @@ import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw
 import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { isRangerHammerVariant } from '#gw2/professions/ranger/data/hammer-variants.js';
-import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
-import { advanceRangerResources } from '#gw2/professions/ranger/core/mechanics/resources.js';
+
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import {
+  advanceProfessionEndurance,
+  grantProfessionEndurance
+} from '#gw2/platform/combat/resources/endurance-policy.js';
 
 const WEAPON_FLIP_DURATION_BY_PARENT = Object.freeze({
   [ID.COUNTERATTACK]: 5
@@ -94,12 +97,9 @@ export function completeRangerWeaponSkill(context: RangerCastContext, skill: Ran
     context.cooldownController.clear(ID.MAUL_SOULBEAST);
     context.cooldownController.clear(ID.MAUL_BASE);
   } else if (skill.id === ID.ENDURING_SWING) {
-    advanceRangerResources(context, context.effectiveEnd);
-    const state = professionCoreState(context);
-    Object.assign(
-      state,
-      grantEndurance(state, Number(skill.resourceGain ?? 15), context.effectiveEnd, state.maximumEndurance)
-    );
+    advanceProfessionEndurance(context, context.effectiveEnd);
+
+    grantProfessionEndurance(context, Number(skill.resourceGain ?? 15), context.effectiveEnd);
   }
 }
 

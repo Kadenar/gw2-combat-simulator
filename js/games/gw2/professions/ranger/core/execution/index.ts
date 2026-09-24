@@ -10,7 +10,7 @@ import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-p
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { spendEndurance } from '#gw2/platform/combat/resources/endurance.js';
+
 import { replaceSkill } from '#gw2/platform/profession-definition/mechanics.js';
 import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -19,6 +19,7 @@ import { applyRangerDodgeTraits, applyRangerPetSwapTraits } from '#gw2/professio
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import { spendProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 /** Copy both actors' existing boons from one completion-time snapshot, including merged self-copying. */
 export function completeRangerHealingSkill(context: RangerCastContext, skill: RangerSkill): void {
@@ -66,15 +67,10 @@ export function completeRangerHealingSkill(context: RangerCastContext, skill: Ra
 }
 
 function performRangerDodge(context: RangerCastContext): boolean {
-  const state = professionCoreState(context);
-  Object.assign(
-    state,
-    spendEndurance(
-      state,
-      balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'resourceCost'),
-      context.start,
-      state.maximumEndurance
-    )
+  spendProfessionEndurance(
+    context,
+    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'resourceCost'),
+    context.start
   );
   applyRangerDodgeTraits(context);
   return true;

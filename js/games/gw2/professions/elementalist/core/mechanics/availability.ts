@@ -35,16 +35,17 @@ import {
   hammerOrbMatchesAttunement
 } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { activeAura, etchingChain, skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import {
-  elementalistEnduranceReadyAt,
-  updateEndurance
-} from '#gw2/professions/elementalist/core/mechanics/endurance.js';
+
 import {
   activeSecondaryAttunement,
   isSelectedSlotSkill,
   weaponAttunementAvailable
 } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
+import {
+  advanceProfessionEndurance,
+  professionEnduranceReadyAt
+} from '#gw2/platform/combat/resources/endurance-policy.js';
 
 function ready(): AvailabilityResult {
   return { ready: true };
@@ -87,7 +88,7 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
   // Dodge settles endurance up to the current instant, then either passes or
   // reports the time regeneration covers the cost.
   if (Number(skill.id) === ID.DODGE) {
-    updateEndurance(context, state, context.start);
+    advanceProfessionEndurance(context, context.start);
     const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
     const enduranceCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
     return state.endurance + EPSILON >= enduranceCost
@@ -96,7 +97,7 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
           skill,
           'elementalist.endurance',
           `requires ${enduranceCost} endurance.`,
-          elementalistEnduranceReadyAt(context, state.endurance, enduranceCost, context.start)
+          professionEnduranceReadyAt(context, enduranceCost, context.start)
         );
   }
 
