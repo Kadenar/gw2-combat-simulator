@@ -76,6 +76,7 @@ test('duration editor enforces configured 40 ms increments', () => {
   for (const value of ['', '0', '39', '41', '100', '40.1', 'Infinity']) {
     assert.equal(validateDurationMs(value, 40, null, 40).valid, false, value);
   }
+
   for (const value of [40, 80, 120, 1000]) {
     assert.deepEqual(validateDurationMs(value, 40, null, 40), { valid: true, value });
   }
