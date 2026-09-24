@@ -34,7 +34,7 @@
     },
     {
       "type": "combat-start",
-      "concurrentOffsetMs": 720
+      "concurrentOffsetMs": 520
     },
     {
       "type": "cast",
