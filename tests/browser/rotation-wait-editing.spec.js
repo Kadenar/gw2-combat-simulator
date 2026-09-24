@@ -19,7 +19,9 @@ test('adding, dropping, and editing wait shapes enforces 40 ms increments', asyn
         resolvePaletteDrop(window.professionApp, '__wait', null, 1);
       });
     } else {
-      await page.locator('#rotation-timeline .rot-edit-wait').click();
+      const edit = page.locator('#rotation-timeline .rot-edit-wait');
+      await edit.focus();
+      await edit.press('Enter');
     }
 
     const editor = page.locator('.rotation-duration-editor:visible');
