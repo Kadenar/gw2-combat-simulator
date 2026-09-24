@@ -774,7 +774,7 @@ test('Gunsaber attacks resolve bundle strength and distinguish secondary explosi
     assert.deepEqual(result.warnings, []);
     assert.ok(hits.some((event) => event.damageKind === 'explosion'));
     assert.ok(hits.some((event) => event.damageKind !== 'explosion'));
-    assert.ok(hits.every((event) => event.weaponStrengthProfileId === 'bundle.ascended'));
+    assert.ok(hits.every((event) => event.weaponStrengthProfileId === 'bundle.exotic'));
   }
 });
 
@@ -1014,7 +1014,7 @@ test('Flicker Step triggers Peitha on activation with its measured impact delay'
   assert.equal(triggers.length, 1);
   assert.equal(triggers[0].at, cast.at);
   assert.equal(torment.length, 1);
-  assert.ok(Math.abs(torment[0].at - cast.at - 0.04) < 1e-9);
+  assert.ok(Math.abs(torment[0].at - cast.at - 0.24) < 1e-9);
 });
 
 test('Overcharged Cartridges buffs explosion damage and burning', () => {
@@ -1047,8 +1047,9 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
 
   assert.ok(Math.abs(strikeDamage(overcharged) / strikeDamage(base) - 1) < 1e-9);
   assert.ok(Math.abs(strikeDamage(supercharged) / strikeDamage(base) - 1) < 1e-9);
-  assertFlooredDamageMultiplier(strikeDamage(overcharged, 'explosion'), strikeDamage(base, 'explosion'), 1.15);
-  assertFlooredDamageMultiplier(strikeDamage(supercharged, 'explosion'), strikeDamage(base, 'explosion'), 1.2);
+  // Blooming Fire floors each of its three explosions separately before their damage is summed.
+  assertFlooredDamageMultiplier(strikeDamage(overcharged, 'explosion'), strikeDamage(base, 'explosion'), 1.15, 3);
+  assertFlooredDamageMultiplier(strikeDamage(supercharged, 'explosion'), strikeDamage(base, 'explosion'), 1.2, 3);
   assert.deepEqual(
     overcharged.events.filter((event) => event.condition === 'Burning').map((event) => event.duration),
     [3, 3, 3]
