@@ -13,7 +13,7 @@ import {
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes-and-mantras.js';
 import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/index.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import { firebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
+import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
 import { FIREBRAND_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 
 export const firebrandModule = defineNativeModule({
@@ -42,5 +42,5 @@ export const firebrandModule = defineNativeModule({
       }
     }
   },
-  presentation: firebrandUi
+  presentation: bindFirebrandUi
 });

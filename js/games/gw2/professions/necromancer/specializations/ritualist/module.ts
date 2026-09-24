@@ -12,7 +12,7 @@ import {
   ritualistSchedulerHooks
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits-and-shards.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import { ritualistUi } from '#gw2/professions/necromancer/specializations/ritualist/presentation.js';
+import { bindRitualistUi } from '#gw2/professions/necromancer/specializations/ritualist/presentation.js';
 import { RITUALIST_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/ritualist/skills/index.js';
 import { RITUALIST_BALANCE_PROFILES } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 
@@ -41,5 +41,5 @@ export const ritualistModule = defineNativeModule({
       ]
     }
   },
-  presentation: ritualistUi
+  presentation: bindRitualistUi
 });

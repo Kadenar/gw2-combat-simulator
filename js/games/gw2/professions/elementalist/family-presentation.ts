@@ -27,9 +27,6 @@ const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> = Obje
   Earth: '#a7783f'
 });
 const ATTUNEMENT_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_ATTUNEMENT_SKILL_IDS));
-// Populated once by bindElementalistFamilyUiCatalog so start controls can look up
-// attunement icons without this module importing (and rebuilding) the catalog.
-let elementalistCatalog: Readonly<CanonicalCatalog> | undefined;
 
 // The elite spec name reaches these callbacks either directly or through the
 // simulation config, depending on which shell (build editor or results) is asking.
@@ -58,6 +55,7 @@ function configuredAttunement(context: ElementalistUiContext, key: 'startAttunem
 // Builds one start-control dropdown bound to a build field, offering all four
 // attunements with their in-game skill icons and the selected element's accent color.
 function attunementControl(
+  catalog: Readonly<CanonicalCatalog>,
   context: ElementalistUiContext,
   key: 'startAttunement' | 'secondaryAttunement',
   label: string
@@ -70,7 +68,7 @@ function attunementControl(
     options: ELEMENTALIST_ATTUNEMENTS.map((attunement) => ({
       value: attunement,
       label: attunement,
-      icon: elementalistCatalog?.skillsById.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement])?.icon,
+      icon: catalog.skillsById.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement])?.icon,
       description: `${attunement} attunement`
     })),
     color: ATTUNEMENT_COLORS[value]
@@ -116,24 +114,18 @@ function paletteSkillAvailability(context: ElementalistUiContext, skill: Skill) 
   return { available, message: available ? '' : `Requires ${String(skill.attunement)} attunement.` };
 }
 
-/**
- * The Elementalist family's slice of the profession UI contract, applied under every
- * specialization. Weaver additionally exposes a secondary-attunement start control.
- */
-export const elementalistFamilyUi: ElementalistUiSlice = Object.freeze({
-  startControls: (context: ElementalistUiContext) =>
-    specialization(context) === 'Weaver'
-      ? [
-          attunementControl(context, 'startAttunement', 'Primary attunement'),
-          attunementControl(context, 'secondaryAttunement', 'Secondary attunement')
-        ]
-      : [attunementControl(context, 'startAttunement', 'Start attunement')],
-  paletteSkillAvailability
-});
-
-/** Shares the assembled catalog with family controls without rebuilding profession data. */
-export function bindElementalistFamilyUiCatalog(catalog: Readonly<CanonicalCatalog>): void {
-  elementalistCatalog = catalog;
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindElementalistFamilyUi(catalog: Readonly<CanonicalCatalog>): ElementalistUiSlice {
+  return Object.freeze({
+    startControls: (context: ElementalistUiContext) =>
+      specialization(context) === 'Weaver'
+        ? [
+            attunementControl(catalog, context, 'startAttunement', 'Primary attunement'),
+            attunementControl(catalog, context, 'secondaryAttunement', 'Secondary attunement')
+          ]
+        : [attunementControl(catalog, context, 'startAttunement', 'Start attunement')],
+    paletteSkillAvailability
+  });
 }
 
 /** Keeps the shared attunement bank anchored only when an elite does not replace the profession resource slot. */

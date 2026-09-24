@@ -1,3 +1,4 @@
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
@@ -90,85 +91,88 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
   return { available: true, message: '' };
 }
 
-export const galeshotUi: RangerUiSlice = Object.freeze({
-  // null = suppress the row entirely; undefined = fall through to default rendering.
-  // State-sync events are internal bookkeeping and should not appear in the log.
-  eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
-    event.type === 'ranger.galeshot-state' ? null : undefined,
-  paletteGroups: (context: RangerUiContext): ProfessionPaletteGroup[] => [
-    rangerPetPaletteGroup(context, { stackId: GALESHOT_PALETTE_STACK }),
-    {
-      id: 'ranger-galeshot-profession',
-      label: 'F5',
-      // Declare both sides so the shared projector can render the currently
-      // usable Summon/Dismiss identity as one live F5 tile.
-      skillIds: [ID.SUMMON_CYCLONE_BOW, ID.DISMISS_CYCLONE_BOW],
-      color: '#67b4c4',
-      className: 'ranger-galeshot-f5',
-      resourceIds: ['arrows'],
-      resourcePlacement: 'beside',
-      stackId: GALESHOT_PALETTE_STACK
-    },
-    {
-      id: 'ranger-cyclone-bow',
-      label: 'CB',
-      skillIds: visibleBowSkills(context),
-      color: '#67b4c4',
-      className: 'ranger-cyclone-bow-skills',
-      resourceIds: ['wind-force'],
-      resourcePlacement: 'above',
-      stackId: GALESHOT_PALETTE_STACK
-    }
-  ],
-  timelineWeaponLineTransition: (context: RangerUiContext) => {
-    const skill = context.skill as RangerSkill | undefined;
-    if (skill?.handlerId === 'ranger.cyclone-bow-enter') {
-      return 'Cyclone Bow';
-    }
-
-    if (skill?.handlerId === 'ranger.cyclone-bow-exit') {
-      return null;
-    }
-
-    return undefined;
-  },
-  resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
-    const state = rangerUiState(context);
-    return [
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlice {
+  return Object.freeze({
+    // null = suppress the row entirely; undefined = fall through to default rendering.
+    // State-sync events are internal bookkeeping and should not appear in the log.
+    eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
+      event.type === 'ranger.galeshot-state' ? null : undefined,
+    paletteGroups: (context: RangerUiContext): ProfessionPaletteGroup[] => [
+      rangerPetPaletteGroup(catalog, context, { stackId: GALESHOT_PALETTE_STACK }),
       {
-        id: 'arrows',
-        singular: 'arrow',
-        plural: 'arrows',
-        maximum: 8,
-        value: Number(state.arrows ?? context.initialArrows ?? 8),
-        startMaximum: 8,
-        canStart: true,
-        buildKey: 'initialArrows',
-        step: 1,
-        displayMode: 'pips',
-        pipStyle: 'ranger-arrows',
-        showValue: false,
-        shortLabel: 'Arrows',
-        statusLabel: 'Current'
+        id: 'ranger-galeshot-profession',
+        label: 'F5',
+        // Declare both sides so the shared projector can render the currently
+        // usable Summon/Dismiss identity as one live F5 tile.
+        skillIds: [ID.SUMMON_CYCLONE_BOW, ID.DISMISS_CYCLONE_BOW],
+        color: '#67b4c4',
+        className: 'ranger-galeshot-f5',
+        resourceIds: ['arrows'],
+        resourcePlacement: 'beside',
+        stackId: GALESHOT_PALETTE_STACK
       },
       {
-        id: 'wind-force',
-        singular: 'Wind Force',
-        plural: 'Wind Force',
-        maximum: 5,
-        value: Number(state.windForce || 0),
-        startMaximum: 5,
-        canStart: false,
-        displayMode: 'pips',
-        pipStyle: 'ranger-wind-force',
-        showValue: false,
-        shortLabel: 'WF',
-        // Wind Force is meaningless when the Cyclone Bow isn't summoned, so
-        // the status label reflects bow state rather than a numeric count.
-        statusLabel: state.cycloneBowActive ? 'Cyclone Bow' : 'Inactive'
+        id: 'ranger-cyclone-bow',
+        label: 'CB',
+        skillIds: visibleBowSkills(context),
+        color: '#67b4c4',
+        className: 'ranger-cyclone-bow-skills',
+        resourceIds: ['wind-force'],
+        resourcePlacement: 'above',
+        stackId: GALESHOT_PALETTE_STACK
       }
-    ];
-  },
-  rotationStateSnapshot: galeshotStateSnapshot,
-  paletteSkillAvailability: availability
-});
+    ],
+    timelineWeaponLineTransition: (context: RangerUiContext) => {
+      const skill = context.skill as RangerSkill | undefined;
+      if (skill?.handlerId === 'ranger.cyclone-bow-enter') {
+        return 'Cyclone Bow';
+      }
+
+      if (skill?.handlerId === 'ranger.cyclone-bow-exit') {
+        return null;
+      }
+
+      return undefined;
+    },
+    resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
+      const state = rangerUiState(context);
+      return [
+        {
+          id: 'arrows',
+          singular: 'arrow',
+          plural: 'arrows',
+          maximum: 8,
+          value: Number(state.arrows ?? context.initialArrows ?? 8),
+          startMaximum: 8,
+          canStart: true,
+          buildKey: 'initialArrows',
+          step: 1,
+          displayMode: 'pips',
+          pipStyle: 'ranger-arrows',
+          showValue: false,
+          shortLabel: 'Arrows',
+          statusLabel: 'Current'
+        },
+        {
+          id: 'wind-force',
+          singular: 'Wind Force',
+          plural: 'Wind Force',
+          maximum: 5,
+          value: Number(state.windForce || 0),
+          startMaximum: 5,
+          canStart: false,
+          displayMode: 'pips',
+          pipStyle: 'ranger-wind-force',
+          showValue: false,
+          shortLabel: 'WF',
+          // Wind Force is meaningless when the Cyclone Bow isn't summoned, so
+          // the status label reflects bow state rather than a numeric count.
+          statusLabel: state.cycloneBowActive ? 'Cyclone Bow' : 'Inactive'
+        }
+      ];
+    },
+    rotationStateSnapshot: galeshotStateSnapshot,
+    paletteSkillAvailability: availability
+  });
+}

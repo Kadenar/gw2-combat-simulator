@@ -8,7 +8,7 @@ import {
 } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow-rules.js';
 import { GALESHOT_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/galeshot/skills/index.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-import { galeshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
+import { bindGaleshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
 import { galeshotEventHandlers } from '#gw2/professions/ranger/specializations/galeshot/mechanics/state-events.js';
 import { GALESHOT_BALANCE_PROFILES } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 
@@ -32,5 +32,5 @@ export const galeshotModule = defineNativeModule({
       hooks: { eventHandlers: galeshotEventHandlers }
     }
   },
-  presentation: galeshotUi
+  presentation: bindGaleshotUi
 });

@@ -1,3 +1,4 @@
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import {
   engineerToolbeltSkillIds,
   namedSkillId,
@@ -7,8 +8,8 @@ import type { ProfessionEventLogDescriptor } from '#gw2/platform/profession-pres
 import type { EngineerResolverEvent, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
 
 // First 4 toolbelt slots + Function Gyro as the F5 mechanic skill.
-function scrapperProfessionSkills(context: EngineerUiContext) {
-  return [...engineerToolbeltSkillIds(context).slice(0, 4), namedSkillId('Function Gyro')];
+function scrapperProfessionSkills(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext) {
+  return [...engineerToolbeltSkillIds(catalog, context).slice(0, 4), namedSkillId(catalog, 'Function Gyro')];
 }
 
 // null = hide from the event log; undefined = fall through to default rendering.
@@ -20,17 +21,23 @@ function scrapperEventLogRow(
   return ['engineer.mass-momentum-pulse', 'engineer.state'].includes(event?.type) ? null : undefined;
 }
 
-export const scrapperUi: EngineerUiSlice = Object.freeze({
-  eventLogRow: scrapperEventLogRow,
-  paletteGroups: (context: EngineerUiContext) => [
-    {
-      id: 'engineer-profession',
-      label: 'F',
-      skillIds: uniqueIdsBySkillName(scrapperProfessionSkills(context).filter((id) => id != null)),
-      color: '#b88a35',
-      className: 'engineer-profession-skills',
-      resourceAnchor: true,
-      includeActionSkills: true
-    }
-  ]
-});
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindScrapperUi(catalog: Readonly<CanonicalCatalog>): EngineerUiSlice {
+  return Object.freeze({
+    eventLogRow: scrapperEventLogRow,
+    paletteGroups: (context: EngineerUiContext) => [
+      {
+        id: 'engineer-profession',
+        label: 'F',
+        skillIds: uniqueIdsBySkillName(
+          catalog,
+          scrapperProfessionSkills(catalog, context).filter((id) => id != null)
+        ),
+        color: '#b88a35',
+        className: 'engineer-profession-skills',
+        resourceAnchor: true,
+        includeActionSkills: true
+      }
+    ]
+  });
+}

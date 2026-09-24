@@ -9,7 +9,7 @@ import {
   harbingerSchedulerHooks
 } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight-and-shroud.js';
 import { harbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
-import { harbingerUi } from '#gw2/professions/necromancer/specializations/harbinger/presentation.js';
+import { bindHarbingerUi } from '#gw2/professions/necromancer/specializations/harbinger/presentation.js';
 import { HARBINGER_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/harbinger/skills/index.js';
 import { HARBINGER_BALANCE_PROFILES } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 
@@ -37,5 +37,5 @@ export const harbingerModule = defineNativeModule({
       ]
     }
   },
-  presentation: harbingerUi
+  presentation: bindHarbingerUi
 });

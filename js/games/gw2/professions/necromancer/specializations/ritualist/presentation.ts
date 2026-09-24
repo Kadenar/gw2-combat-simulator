@@ -8,7 +8,7 @@ import type {
   PaletteSkillAvailability,
   ProfessionEventLogDescriptor
 } from '#gw2/platform/profession-presentation/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   NecromancerSimulationEvent,
   NecromancerSkill,
@@ -54,16 +54,19 @@ function ritualistPaletteAvailability(
   };
 }
 
-export const ritualistUi: NecromancerUiSlice = Object.freeze({
-  eventLogRow: ritualistEventLogRow,
-  paletteGroups: (context: NecromancerUiContext) =>
-    necromancerTransformPaletteGroups(context, {
-      entryId: ID.RITUALISTS_SHROUD,
-      exitId: ID.EXIT_RITUALISTS_SHROUD,
-      shroud: 'ritualist',
-      professionSkillIds: Object.values(INNERVATE_BY_SPIRIT),
-      stackId: 'ritualist-profession'
-    }),
-  resourceViews: (context: NecromancerUiContext) => necromancerSoulShardResourceViews(context),
-  paletteSkillAvailability: ritualistPaletteAvailability
-});
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindRitualistUi(catalog: Readonly<CanonicalCatalog>): NecromancerUiSlice {
+  return Object.freeze({
+    eventLogRow: ritualistEventLogRow,
+    paletteGroups: (context: NecromancerUiContext) =>
+      necromancerTransformPaletteGroups(catalog, context, {
+        entryId: ID.RITUALISTS_SHROUD,
+        exitId: ID.EXIT_RITUALISTS_SHROUD,
+        shroud: 'ritualist',
+        professionSkillIds: Object.values(INNERVATE_BY_SPIRIT),
+        stackId: 'ritualist-profession'
+      }),
+    resourceViews: (context: NecromancerUiContext) => necromancerSoulShardResourceViews(context),
+    paletteSkillAvailability: ritualistPaletteAvailability
+  });
+}

@@ -21,9 +21,6 @@ import type {
   EngineerUiSelection,
   EngineerUiSlice
 } from '#gw2/professions/engineer/types.js';
-
-let engineerSkills: readonly EngineerSkill[] = [];
-let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
 // Canonical display order for protocol dropdowns; skills absent from this map
 // sort after all listed entries, then by numeric ID as a tiebreaker.
 const AMALGAM_PROTOCOL_ORDER = new Map<string, number>([
@@ -37,8 +34,8 @@ const AMALGAM_PROTOCOL_ORDER = new Map<string, number>([
 ]);
 
 /** Returns the catalog-backed Morph choices for a mechanic slot in stable UI order. */
-function amalgamProtocolOptions(slot: number): EngineerSkill[] {
-  return engineerSkills
+function amalgamProtocolOptions(catalog: Readonly<CanonicalCatalog>, slot: number): EngineerSkill[] {
+  return catalog.skills
     .filter(
       (skill) =>
         skill.specialization === 'Amalgam' && skill.categories?.includes('Morph') && Number(skill.mechanicSlot) === slot
@@ -58,23 +55,26 @@ function selectedMorphIds(context: EngineerUiContext): number[] {
 }
 
 /** Projects the selected protocols and trait-selected Evolve, preferring the editable build. */
-function amalgamProfessionSkills(context: EngineerUiContext): (SkillId | null)[] {
+function amalgamProfessionSkills(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext): (SkillId | null)[] {
   const traits = context.build?.specializations
     ? new Set(getActiveTraits(context.build.specializations).map((trait) => trait.id))
     : context.config;
   return [
-    engineerToolbeltSkillIds(context)[0],
+    engineerToolbeltSkillIds(catalog, context)[0],
     ...selectedMorphIds(context).slice(0, 3),
     resolveAmalgamSkillId(traits, ID.EVOLVE_BASE)
   ];
 }
 
 /** Builds only editable protocol selectors; fixed F1 and F5 skills stay in the palette. */
-function amalgamSkillBarGroups(context: EngineerUiContext): ProfessionSkillBarGroup[] {
-  const skillIds = amalgamProfessionSkills(context);
+function amalgamSkillBarGroups(
+  catalog: Readonly<CanonicalCatalog>,
+  context: EngineerUiContext
+): ProfessionSkillBarGroup[] {
+  const skillIds = amalgamProfessionSkills(catalog, context);
   // Match pet selectors with concise selected-name headers while dropdowns retain the full protocol names.
   const protocolGroups = [2, 3, 4].flatMap((slot): ProfessionSkillBarGroup[] => {
-    const options = amalgamProtocolOptions(slot);
+    const options = amalgamProtocolOptions(catalog, slot);
     const selected = Number(selectedMorphIds(context)[slot - 2]);
     if (options.some((skill) => skill.id === selected)) skillIds[slot - 1] = selected;
     const skillId = skillIds[slot - 1];
@@ -82,7 +82,7 @@ function amalgamSkillBarGroups(context: EngineerUiContext): ProfessionSkillBarGr
     return [
       {
         id: `engineer-amalgam-protocol-${slot}-selection`,
-        label: engineerSkillsById.get(skillId)?.name.replace(/^(?:Offensive|Defensive) Protocol: /, '') || 'Protocol',
+        label: catalog.skillsById.get(skillId)?.name.replace(/^(?:Offensive|Defensive) Protocol: /, '') || 'Protocol',
         skillIds: [],
         color: '#67aa87',
         className: 'engineer-amalgam-protocol',
@@ -102,11 +102,15 @@ function amalgamSkillBarGroups(context: EngineerUiContext): ProfessionSkillBarGr
 }
 
 /** Validates a protocol selection and swaps duplicate protocol names across mechanic slots. */
-function updateAmalgamSkillBarSelection(context: EngineerUiContext, selection: EngineerUiSelection): boolean {
+function updateAmalgamSkillBarSelection(
+  catalog: Readonly<CanonicalCatalog>,
+  context: EngineerUiContext,
+  selection: EngineerUiSelection
+): boolean {
   if (selection.key !== 'selectedMorphSkillIds') return false;
   const index = Number(selection.index);
   const slot = index + 2;
-  const nextSkill = engineerSkillsById.get(Number(selection.skillId));
+  const nextSkill = catalog.skillsById.get(Number(selection.skillId));
   if (
     !context.build ||
     ![0, 1, 2].includes(index) ||
@@ -120,15 +124,17 @@ function updateAmalgamSkillBarSelection(context: EngineerUiContext, selection: E
   const current = Array.isArray(context.build.selectedMorphSkillIds)
     ? [...context.build.selectedMorphSkillIds].map(Number)
     : [];
-  const previousSkill = engineerSkillsById.get(current[index]);
+  const previousSkill = catalog.skillsById.get(current[index]);
   // Detect if the chosen protocol name is already selected in a different slot.
   // If so, swap: move the previously-selected protocol into the conflicting slot
   // (using the slot-appropriate skill ID), preventing duplicate protocol names.
   const conflictIndex = current.findIndex(
-    (skillId, candidateIndex) => candidateIndex !== index && engineerSkillsById.get(skillId)?.name === nextSkill.name
+    (skillId, candidateIndex) => candidateIndex !== index && catalog.skillsById.get(skillId)?.name === nextSkill.name
   );
   if (conflictIndex >= 0 && previousSkill) {
-    const replacement = amalgamProtocolOptions(conflictIndex + 2).find((skill) => skill.name === previousSkill.name);
+    const replacement = amalgamProtocolOptions(catalog, conflictIndex + 2).find(
+      (skill) => skill.name === previousSkill.name
+    );
     if (!replacement) return false;
     current[conflictIndex] = Number(replacement.id);
   }
@@ -188,30 +194,29 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
   return items;
 }
 
-/** Supplies Amalgam-specific skill-bar, palette, snapshot, and event-log presentation behavior. */
-const amalgamUi: EngineerUiSlice = Object.freeze({
-  eventLogRow: (_context: EngineerUiContext, event: EngineerResolverEvent) =>
-    event?.type === 'engineer.state' ? null : undefined,
-  assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,
-  rotationStateSnapshot: amalgamStateSnapshot,
-  skillBarGroups: amalgamSkillBarGroups,
-  updateSkillBarSelection: updateAmalgamSkillBarSelection,
-  paletteGroups: (context: EngineerUiContext) => [
-    {
-      id: 'engineer-profession',
-      label: 'F',
-      skillIds: uniqueIdsBySkillName(amalgamProfessionSkills(context).filter((id) => id != null)),
-      color: '#67aa87',
-      className: 'engineer-profession-skills',
-      resourceAnchor: true,
-      includeActionSkills: true
-    }
-  ]
-});
-
-/** Binds canonical skills used by Amalgam UI projections and returns the shared UI contract. */
-export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog>): typeof amalgamUi {
-  engineerSkills = catalog.skills as readonly EngineerSkill[];
-  engineerSkillsById = catalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;
-  return amalgamUi;
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog>): EngineerUiSlice {
+  return Object.freeze({
+    eventLogRow: (_context: EngineerUiContext, event: EngineerResolverEvent) =>
+      event?.type === 'engineer.state' ? null : undefined,
+    assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,
+    rotationStateSnapshot: amalgamStateSnapshot,
+    skillBarGroups: (context: EngineerUiContext) => amalgamSkillBarGroups(catalog, context),
+    updateSkillBarSelection: (context: EngineerUiContext, selection: EngineerUiSelection) =>
+      updateAmalgamSkillBarSelection(catalog, context, selection),
+    paletteGroups: (context: EngineerUiContext) => [
+      {
+        id: 'engineer-profession',
+        label: 'F',
+        skillIds: uniqueIdsBySkillName(
+          catalog,
+          amalgamProfessionSkills(catalog, context).filter((id) => id != null)
+        ),
+        color: '#67aa87',
+        className: 'engineer-profession-skills',
+        resourceAnchor: true,
+        includeActionSkills: true
+      }
+    ]
+  });
 }

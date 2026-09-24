@@ -21,8 +21,6 @@ import type {
 } from '#gw2/professions/necromancer/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
-let necromancerCatalog: Readonly<CanonicalCatalog>;
-
 const LICH_SKILLS: readonly SkillId[] = Object.freeze([
   ID.DEATHLY_CLAWS,
   ID.LICHS_GAZE,
@@ -58,8 +56,8 @@ function necromancerUiSpecialization(context: NecromancerUiContext = {}): string
 }
 
 // Order the live shroud palette by slot, keeping each flip skill after its parent.
-function shroudSkillIds(shroud: string): SkillId[] {
-  return necromancerCatalog.skills
+function shroudSkillIds(catalog: Readonly<CanonicalCatalog>, shroud: string): SkillId[] {
+  return catalog.skills
     .filter((skill) => skill.shroud === shroud && !skill.simulatorExcluded)
     .sort((left, right) => {
       const slotOrder = Number(left.shroudSlot || 0) - Number(right.shroudSlot || 0);
@@ -73,6 +71,7 @@ function shroudSkillIds(shroud: string): SkillId[] {
 
 /** Builds profession, shroud, Lich, and shared-action palette groups for a Necromancer transform. */
 export function necromancerTransformPaletteGroups(
+  catalog: Readonly<CanonicalCatalog>,
   context: NecromancerUiContext,
   {
     entryId,
@@ -105,7 +104,7 @@ export function necromancerTransformPaletteGroups(
     }
   ];
   // Active transform bars stack with the profession group while Lich is projected from runtime state.
-  const shroudSkills = shroud ? shroudSkillIds(shroud) : [];
+  const shroudSkills = shroud ? shroudSkillIds(catalog, shroud) : [];
   if (shroudSkills.length) {
     groups.push({
       id: 'shroud',
@@ -328,28 +327,24 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
   return views;
 }
 
-/** Defines the Core Necromancer UI projections and delegates transform-specific groups to shared builders. */
-const necromancerCoreUi: NecromancerUiSlice = Object.freeze({
-  assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
-  // Core owns both labels because the effects remain available across Necromancer specializations.
-  effectPresentations: () => [...NECROMANCER_EFFECT_PRESENTATIONS],
-  eventLogRow: necromancerEventLogRow,
-  targetHealthThresholds: necromancerCoreTargetHealthThresholds,
-  paletteGroups: (context: NecromancerUiContext) =>
-    necromancerUiSpecialization(context) === 'Core'
-      ? necromancerTransformPaletteGroups(context, {
-          entryId: ID.DEATH_SHROUD,
-          exitId: ID.END_DEATH_SHROUD,
-          shroud: 'death',
-          stackId: 'core-profession'
-        })
-      : [],
-  resourceViews: necromancerCoreResourceViews,
-  paletteSkillAvailability: necromancerCorePaletteAvailability
-});
-
-/** Binds the canonical catalog used by transform group builders and returns the Core UI contract. */
-export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog>): typeof necromancerCoreUi {
-  necromancerCatalog = catalog;
-  return necromancerCoreUi;
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog>): NecromancerUiSlice {
+  return Object.freeze({
+    assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
+    // Core owns both labels because the effects remain available across Necromancer specializations.
+    effectPresentations: () => [...NECROMANCER_EFFECT_PRESENTATIONS],
+    eventLogRow: necromancerEventLogRow,
+    targetHealthThresholds: necromancerCoreTargetHealthThresholds,
+    paletteGroups: (context: NecromancerUiContext) =>
+      necromancerUiSpecialization(context) === 'Core'
+        ? necromancerTransformPaletteGroups(catalog, context, {
+            entryId: ID.DEATH_SHROUD,
+            exitId: ID.END_DEATH_SHROUD,
+            shroud: 'death',
+            stackId: 'core-profession'
+          })
+        : [],
+    resourceViews: necromancerCoreResourceViews,
+    paletteSkillAvailability: necromancerCorePaletteAvailability
+  });
 }

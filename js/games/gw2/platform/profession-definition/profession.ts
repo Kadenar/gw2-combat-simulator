@@ -377,7 +377,10 @@ export function defineNativeProfession<
         .slice(1)
         .map((module) => [module.id, compileNativeModule(module, assembly.catalog, assembly.fragments.get(module.id)!)])
     ),
-    ui: definition.presentation as Partial<ProfessionUiContract> | undefined,
+    // Bind family controls directly, without relying on a Core UI initialization side effect.
+    ui: (typeof definition.presentation === 'function'
+      ? definition.presentation(assembly.catalog)
+      : definition.presentation) as Partial<ProfessionUiContract> | undefined,
     simulation: definition.simulation
   };
   const family = defineProfessionFamily<NativeProfessionRuntimeState<TModules>, TBuild>(engineDefinition);

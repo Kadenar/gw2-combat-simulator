@@ -1,3 +1,4 @@
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { getActiveTraits } from '#gw2/professions/necromancer/data/traits-data.js';
 import {
@@ -83,48 +84,51 @@ const HARBINGER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = 
   }
 ]);
 
-export const harbingerUi: NecromancerUiSlice = Object.freeze({
-  effectPresentations: () => [...HARBINGER_EFFECT_PRESENTATIONS],
-  paletteGroups: (context: NecromancerUiContext) =>
-    necromancerTransformPaletteGroups(context, {
-      entryId: ID.HARBINGER_SHROUD,
-      exitId: ID.EXIT_HARBINGER_SHROUD,
-      shroud: 'harbinger',
-      stackId: 'harbinger-profession'
-    }),
-  rotationStateSnapshot: harbingerStateSnapshot,
-  resourceViews: (context: NecromancerUiContext): ProfessionResourceView[] => [
-    {
-      id: 'blight',
-      singular: 'blight',
-      plural: 'blight',
-      maximum: 25,
-      value: Number(necromancerUiState(context).blight ?? context.initialBlight ?? 0),
-      canStart: true,
-      buildKey: 'initialBlight',
-      step: 1,
-      displayMode: 'bar',
-      shortLabel: 'Blt',
-      statusLabel: 'Current',
-      showInPalette: false
-    },
-    {
-      id: 'cascading-corruption',
-      singular: 'Cascading Corruption stack',
-      plural: 'Cascading Corruption stacks',
-      // Maximum is 19, not 20: entering a simulation with 20 stacks would immediately proc Meltdown before any action.
-      maximum: 19,
-      value: Number(
-        necromancerUiState(context).cascadingCorruptionStacks ?? context.initialCascadingCorruptionStacks ?? 0
-      ),
-      canStart: true,
-      buildKey: 'initialCascadingCorruptionStacks',
-      step: 1,
-      displayMode: 'counter',
-      shortLabel: 'CC',
-      statusLabel: 'Current',
-      showInPalette: false
-    },
-    ...necromancerSoulShardResourceViews(context)
-  ]
-});
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog>): NecromancerUiSlice {
+  return Object.freeze({
+    effectPresentations: () => [...HARBINGER_EFFECT_PRESENTATIONS],
+    paletteGroups: (context: NecromancerUiContext) =>
+      necromancerTransformPaletteGroups(catalog, context, {
+        entryId: ID.HARBINGER_SHROUD,
+        exitId: ID.EXIT_HARBINGER_SHROUD,
+        shroud: 'harbinger',
+        stackId: 'harbinger-profession'
+      }),
+    rotationStateSnapshot: harbingerStateSnapshot,
+    resourceViews: (context: NecromancerUiContext): ProfessionResourceView[] => [
+      {
+        id: 'blight',
+        singular: 'blight',
+        plural: 'blight',
+        maximum: 25,
+        value: Number(necromancerUiState(context).blight ?? context.initialBlight ?? 0),
+        canStart: true,
+        buildKey: 'initialBlight',
+        step: 1,
+        displayMode: 'bar',
+        shortLabel: 'Blt',
+        statusLabel: 'Current',
+        showInPalette: false
+      },
+      {
+        id: 'cascading-corruption',
+        singular: 'Cascading Corruption stack',
+        plural: 'Cascading Corruption stacks',
+        // Maximum is 19, not 20: entering a simulation with 20 stacks would immediately proc Meltdown before any action.
+        maximum: 19,
+        value: Number(
+          necromancerUiState(context).cascadingCorruptionStacks ?? context.initialCascadingCorruptionStacks ?? 0
+        ),
+        canStart: true,
+        buildKey: 'initialCascadingCorruptionStacks',
+        step: 1,
+        displayMode: 'counter',
+        shortLabel: 'CC',
+        statusLabel: 'Current',
+        showInPalette: false
+      },
+      ...necromancerSoulShardResourceViews(context)
+    ]
+  });
+}

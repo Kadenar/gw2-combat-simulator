@@ -36,10 +36,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import {
-  bindElementalistFamilyUiCatalog,
-  elementalistAttunementResourceAnchor
-} from '#gw2/professions/elementalist/family-presentation.js';
+import { elementalistAttunementResourceAnchor } from '#gw2/professions/elementalist/family-presentation.js';
 
 const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> = Object.freeze({
   Fire: '#d94c35',
@@ -71,8 +68,6 @@ const PISTOL_BULLETS = Object.freeze([
     skillName: 'Piercing Pebble'
   }
 ] as const);
-
-let elementalistCatalog: Readonly<CanonicalCatalog>;
 
 // The palette is inspected both mid-rotation (live scheduler state) and after a
 // run (projected end state); accept either shape.
@@ -107,7 +102,10 @@ function elementalistPistolEquipped(context: ElementalistUiContext): boolean {
 
 // Render the four bullets as toggle controls: `active` shows the current stock,
 // `pressed` the starting stock the user can click to change.
-function pistolBulletPaletteGroup(context: ElementalistUiContext): ProfessionPaletteGroup | null {
+function pistolBulletPaletteGroup(
+  catalog: Readonly<CanonicalCatalog>,
+  context: ElementalistUiContext
+): ProfessionPaletteGroup | null {
   if (!elementalistPistolEquipped(context)) return null;
   const state = elementalistUiState(context);
   const configured = configuredPistolBullets(context);
@@ -131,7 +129,7 @@ function pistolBulletPaletteGroup(context: ElementalistUiContext): ProfessionPal
       return {
         id: `${PISTOL_BULLET_CONTROL_PREFIX}${element}`,
         label,
-        icon: elementalistCatalog.skillsByName.get(skillName)?.icon,
+        icon: catalog.skillsByName.get(skillName)?.icon,
         title: `${label}: ${currentStocked ? 'currently stocked' : 'not currently stocked'}; starts ${startsStocked ? 'stocked' : 'not stocked'}. Click to toggle starting stock.`,
         color: ATTUNEMENT_COLORS[element],
         className: 'pistol-bullet',
@@ -148,7 +146,11 @@ function pistolBulletPaletteGroup(context: ElementalistUiContext): ProfessionPal
 // are visible: the live etching stage in spear slot 5, and Elemental Explosion
 // standing in for the current attunement's pistol autoattack once all four
 // bullets are stocked.
-function paletteWeaponSkills(context: ElementalistUiContext, skills: readonly Skill[]): Skill[] {
+function paletteWeaponSkills(
+  catalog: Readonly<CanonicalCatalog>,
+  context: ElementalistUiContext,
+  skills: readonly Skill[]
+): Skill[] {
   const state = elementalistUiState(context);
   // Each spear etching occupies slot 5 throughout its lesser/full progression;
   // expose only the stage represented by the live etching state.
@@ -164,7 +166,7 @@ function paletteWeaponSkills(context: ElementalistUiContext, skills: readonly Sk
   if (!elementalistPistolEquipped(context)) return projectedSkills;
   const explosion =
     projectedSkills.find((skill) => skill.name === 'Elemental Explosion') ||
-    elementalistCatalog.skillsByName.get('Elemental Explosion');
+    catalog.skillsByName.get('Elemental Explosion');
   const ordinarySkills = projectedSkills.filter((skill) => skill.name !== 'Elemental Explosion');
   if (!explosion || !ELEMENTALIST_ATTUNEMENTS.every((element) => displayedPistolBullets(context)[element])) {
     return ordinarySkills;
@@ -208,7 +210,10 @@ function updatePaletteControl(context: ElementalistUiContext, controlId: string)
 
 // Build the shared palette in mechanic order, including only stateful weapon
 // groups that are meaningful for the current build and attunement.
-function elementalistPaletteGroups(context: ElementalistUiContext): ProfessionPaletteGroup[] {
+function elementalistPaletteGroups(
+  catalog: Readonly<CanonicalCatalog>,
+  context: ElementalistUiContext
+): ProfessionPaletteGroup[] {
   const state = elementalistUiState(context);
   const groups: ProfessionPaletteGroup[] = [
     {
@@ -230,7 +235,7 @@ function elementalistPaletteGroups(context: ElementalistUiContext): ProfessionPa
   // Selected conjures keep a stable bar below utilities even when their bundle is not currently wielded.
   const conjures = new Set(
     Object.entries(CONJURE_SKILLS)
-      .filter(([id]) => selectedSkills.has(elementalistCatalog.skillsById.get(Number(id))?.name || ''))
+      .filter(([id]) => selectedSkills.has(catalog.skillsById.get(Number(id))?.name || ''))
       .map(([, weapon]) => weapon)
   );
   if (conjureEquipped) conjures.add(conjureEquipped);
@@ -239,20 +244,24 @@ function elementalistPaletteGroups(context: ElementalistUiContext): ProfessionPa
       id: `elementalist-conjure-weapon-${weapon.toLowerCase().replaceAll(' ', '-')}`,
       label: weapon === 'Lightning Hammer' ? 'LH' : weapon,
       placement: 'utility',
-      skillIds: elementalistCatalog.skills
+      skillIds: catalog.skills
         .filter((skill) => skill.type === 'Weapon' && (skill.weapon || skill.skillWeapon) === weapon)
         .map((skill) => skill.id),
       color: '#d4a43f'
     });
   }
 
-  const pistolBullets = pistolBulletPaletteGroup(context);
+  const pistolBullets = pistolBulletPaletteGroup(catalog, context);
   if (pistolBullets) groups.push(pistolBullets);
   return groups;
 }
 
 // Put available conjure controls beside Dodge in ACT, keeping the equipped weapon bar below utilities.
-function paletteActionSkills(context: ElementalistUiContext, skills: readonly Skill[]): Skill[] {
+function paletteActionSkills(
+  catalog: Readonly<CanonicalCatalog>,
+  context: ElementalistUiContext,
+  skills: readonly Skill[]
+): Skill[] {
   const state = elementalistUiState(context);
   const now = Number(context.time || 0);
   const actionNames = [
@@ -264,7 +273,7 @@ function paletteActionSkills(context: ElementalistUiContext, skills: readonly Sk
   return [
     ...skills,
     ...actionNames.flatMap((name) => {
-      const skill = elementalistCatalog.skillsByName.get(name);
+      const skill = catalog.skillsByName.get(name);
       return skill ? [skill] : [];
     })
   ];
@@ -459,30 +468,20 @@ function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSna
   ];
 }
 
-/**
- * The Core Elementalist half of the shared profession UI contract, merged with
- * the family and specialization contracts by the module registry.
- */
-const elementalistCoreUi: ElementalistUiSlice = Object.freeze({
-  assumptionControls: [...ELEMENTALIST_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
-  paletteGroups: elementalistPaletteGroups,
-  paletteActionSkills,
-  paletteWeaponSkills,
-  updatePaletteControl,
-  paletteSkillAvailability: paletteAvailability,
-  rotationStateSnapshot,
-  timelineWeaponLineTransition,
-  eventLogRow,
-  weaponSwapChangesSet: false
-});
-
-/**
- * Module presentation entry point: captures the canonical catalog these
- * projections need before returning the Core UI contract.
- */
-export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog>): typeof elementalistCoreUi {
-  elementalistCatalog = catalog;
-  bindElementalistFamilyUiCatalog(catalog);
-  void elementalistCatalog;
-  return elementalistCoreUi;
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog>): ElementalistUiSlice {
+  return Object.freeze({
+    assumptionControls: [...ELEMENTALIST_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
+    paletteGroups: (context: ElementalistUiContext) => elementalistPaletteGroups(catalog, context),
+    paletteActionSkills: (context: ElementalistUiContext, skills: readonly Skill[]) =>
+      paletteActionSkills(catalog, context, skills),
+    paletteWeaponSkills: (context: ElementalistUiContext, skills: readonly Skill[]) =>
+      paletteWeaponSkills(catalog, context, skills),
+    updatePaletteControl,
+    paletteSkillAvailability: paletteAvailability,
+    rotationStateSnapshot,
+    timelineWeaponLineTransition,
+    eventLogRow,
+    weaponSwapChangesSet: false
+  });
 }

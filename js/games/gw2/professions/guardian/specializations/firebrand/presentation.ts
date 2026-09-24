@@ -1,3 +1,4 @@
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import {
   requireBalanceProfileFromContext,
@@ -16,7 +17,8 @@ import type {
   GuardianResolverEvent,
   GuardianSkill,
   GuardianState,
-  GuardianUiContext
+  GuardianUiContext,
+  GuardianUiSlice
 } from '#gw2/professions/guardian/types.js';
 
 function firebrandEventLogRow(
@@ -72,135 +74,138 @@ function dormantTomeClasses(context: GuardianUiContext): string {
     .join(' ');
 }
 
-export const firebrandUi = Object.freeze({
-  eventLogRow: firebrandEventLogRow,
-  timelineWeaponLineTransition: (context: GuardianUiContext) => {
-    const skill = context.skill as GuardianSkill | undefined;
-    if (/^Tome of (Justice|Resolve|Courage)$/.test(skill?.name || '')) {
-      // Returning undefined means "no transition" (already in this tome);
-      // returning the skill name triggers the timeline lane switch.
-      return context.weaponLine === skill?.name ? undefined : skill?.name;
-    }
-
-    if (skill?.name === 'Stow Tome') {
-      // null signals "end of a named weapon line" to the timeline renderer;
-      // undefined means there was no active tome line to close.
-      return /^Tome of /.test(String(context.weaponLine || '')) ? null : undefined;
-    }
-
-    return undefined;
-  },
-  paletteGroups: (context: GuardianUiContext): ProfessionPaletteGroup[] => [
-    {
-      id: 'profession',
-      label: 'F',
-      skillIds: guardianUiSkillIdsByName(TOME_PALETTE_NAMES, context),
-      color: '#2f7eb8',
-      className: `guardian-tome-f-keys ${dormantTomeClasses(context)}`.trim(),
-      // resourceAnchor attaches the tome-pages resource view to this group's
-      // position while the unattached dormancy view follows the Tome row.
-      resourceAnchor: true,
-      resourceIds: ['pages'],
-      resourcePlacement: 'above'
-    },
-    ...[
-      ['justice', 'F1', '#d26b46'],
-      ['resolve', 'F2', '#5dad7d'],
-      ['courage', 'F3', '#6d96ce']
-    ].map(([tome, label, color]) => ({
-      id: `tome-${tome}`,
-      label,
-      skillIds: guardianUiSkillsByMode('tome', tome),
-      color
-    }))
-  ],
-  paletteSkillAvailability: (context: GuardianUiContext, skill: GuardianSkill): PaletteSkillAvailability => {
-    const state = professionState(context);
-    if (skill.type === 'Weapon' && state.activeTome) {
-      return {
-        available: false,
-        message: 'Weapon skills are unavailable while a tome is equipped'
-      };
-    }
-
-    if (skill.tome && !state.activeTome) {
-      return {
-        available: false,
-        message: 'Equip this tome to use its chapter skills'
-      };
-    }
-
-    if (skill.tome && state.activeTome !== skill.tome) {
-      return {
-        available: false,
-        message: `Currently using the ${state.activeTome} tome`
-      };
-    }
-
-    const pageCost = Number(skill.pageCost ?? 1);
-    if (skill.tome && Number(state.tomePages || 0) < pageCost) {
-      return {
-        available: false,
-        message: `Requires ${pageCost} tome pages`
-      };
-    }
-
-    if (skill.name === 'Stow Tome' && !state.activeTome) {
-      return {
-        available: false,
-        message: 'No tome is currently equipped'
-      };
-    }
-
-    return { available: true, message: '' };
-  },
-  resourceViews: (context: GuardianUiContext) => {
-    const state = professionState(context);
-    // Preview capacity follows the selected catalog even before a simulation supplies resource state.
-    const maximum =
-      state.maximumTomePages ??
-      balanceProfileNumber(
-        requireBalanceProfileFromContext(
-          context,
-          hasTrait(context.config, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS)
-            ? PROFILE.archivistOfWhispers
-            : PROFILE.resources
-        ),
-        'maximumStacks'
-      );
-    const simulationTime = Number(context.simulationTime || 0);
-    const readyAt = state.tomeDormantReadyAt || { justice: 0, resolve: 0, courage: 0 };
-    // Keep passive readiness visible without adding three more resource bars.
-    const virtueStatuses = TOME_DORMANCY_LABELS.map(([virtue, label]) => {
-      const remaining = Math.max(0, Number(readyAt[virtue] || 0) - simulationTime);
-      const valueLabel = remaining > 0 ? `Dormant ${remaining.toFixed(1)}s` : 'Ready';
-      return { id: virtue, label, valueLabel, title: `${label}: ${valueLabel}` };
-    });
-    return [
-      {
-        id: 'pages',
-        singular: 'page',
-        plural: 'pages',
-        maximum,
-        value: Number(state.tomePages ?? maximum),
-        // Pages regen passively; the user cannot manually start regeneration.
-        canStart: false,
-        shortLabel: 'Pgs',
-        statusLabel: 'Current'
-      },
-      {
-        id: 'tome-dormancy',
-        singular: 'dormancy',
-        plural: 'dormancy',
-        maximum: 1,
-        value: 0,
-        canStart: false,
-        shortLabel: 'Dormancy',
-        statusLabel: 'Tome dormancy',
-        displayMode: 'status',
-        statusItems: virtueStatuses,
-        showValue: false
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog>): GuardianUiSlice {
+  return Object.freeze({
+    eventLogRow: firebrandEventLogRow,
+    timelineWeaponLineTransition: (context: GuardianUiContext) => {
+      const skill = context.skill as GuardianSkill | undefined;
+      if (/^Tome of (Justice|Resolve|Courage)$/.test(skill?.name || '')) {
+        // Returning undefined means "no transition" (already in this tome);
+        // returning the skill name triggers the timeline lane switch.
+        return context.weaponLine === skill?.name ? undefined : skill?.name;
       }
-    ];
-  }
-});
+
+      if (skill?.name === 'Stow Tome') {
+        // null signals "end of a named weapon line" to the timeline renderer;
+        // undefined means there was no active tome line to close.
+        return /^Tome of /.test(String(context.weaponLine || '')) ? null : undefined;
+      }
+
+      return undefined;
+    },
+    paletteGroups: (context: GuardianUiContext): ProfessionPaletteGroup[] => [
+      {
+        id: 'profession',
+        label: 'F',
+        skillIds: guardianUiSkillIdsByName(catalog, TOME_PALETTE_NAMES, context),
+        color: '#2f7eb8',
+        className: `guardian-tome-f-keys ${dormantTomeClasses(context)}`.trim(),
+        // resourceAnchor attaches the tome-pages resource view to this group's
+        // position while the unattached dormancy view follows the Tome row.
+        resourceAnchor: true,
+        resourceIds: ['pages'],
+        resourcePlacement: 'above'
+      },
+      ...[
+        ['justice', 'F1', '#d26b46'],
+        ['resolve', 'F2', '#5dad7d'],
+        ['courage', 'F3', '#6d96ce']
+      ].map(([tome, label, color]) => ({
+        id: `tome-${tome}`,
+        label,
+        skillIds: guardianUiSkillsByMode(catalog, 'tome', tome),
+        color
+      }))
+    ],
+    paletteSkillAvailability: (context: GuardianUiContext, skill: GuardianSkill): PaletteSkillAvailability => {
+      const state = professionState(context);
+      if (skill.type === 'Weapon' && state.activeTome) {
+        return {
+          available: false,
+          message: 'Weapon skills are unavailable while a tome is equipped'
+        };
+      }
+
+      if (skill.tome && !state.activeTome) {
+        return {
+          available: false,
+          message: 'Equip this tome to use its chapter skills'
+        };
+      }
+
+      if (skill.tome && state.activeTome !== skill.tome) {
+        return {
+          available: false,
+          message: `Currently using the ${state.activeTome} tome`
+        };
+      }
+
+      const pageCost = Number(skill.pageCost ?? 1);
+      if (skill.tome && Number(state.tomePages || 0) < pageCost) {
+        return {
+          available: false,
+          message: `Requires ${pageCost} tome pages`
+        };
+      }
+
+      if (skill.name === 'Stow Tome' && !state.activeTome) {
+        return {
+          available: false,
+          message: 'No tome is currently equipped'
+        };
+      }
+
+      return { available: true, message: '' };
+    },
+    resourceViews: (context: GuardianUiContext) => {
+      const state = professionState(context);
+      // Preview capacity follows the selected catalog even before a simulation supplies resource state.
+      const maximum =
+        state.maximumTomePages ??
+        balanceProfileNumber(
+          requireBalanceProfileFromContext(
+            context,
+            hasTrait(context.config, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS)
+              ? PROFILE.archivistOfWhispers
+              : PROFILE.resources
+          ),
+          'maximumStacks'
+        );
+      const simulationTime = Number(context.simulationTime || 0);
+      const readyAt = state.tomeDormantReadyAt || { justice: 0, resolve: 0, courage: 0 };
+      // Keep passive readiness visible without adding three more resource bars.
+      const virtueStatuses = TOME_DORMANCY_LABELS.map(([virtue, label]) => {
+        const remaining = Math.max(0, Number(readyAt[virtue] || 0) - simulationTime);
+        const valueLabel = remaining > 0 ? `Dormant ${remaining.toFixed(1)}s` : 'Ready';
+        return { id: virtue, label, valueLabel, title: `${label}: ${valueLabel}` };
+      });
+      return [
+        {
+          id: 'pages',
+          singular: 'page',
+          plural: 'pages',
+          maximum,
+          value: Number(state.tomePages ?? maximum),
+          // Pages regen passively; the user cannot manually start regeneration.
+          canStart: false,
+          shortLabel: 'Pgs',
+          statusLabel: 'Current'
+        },
+        {
+          id: 'tome-dormancy',
+          singular: 'dormancy',
+          plural: 'dormancy',
+          maximum: 1,
+          value: 0,
+          canStart: false,
+          shortLabel: 'Dormancy',
+          statusLabel: 'Tome dormancy',
+          displayMode: 'status',
+          statusItems: virtueStatuses,
+          showValue: false
+        }
+      ];
+    }
+  });
+}

@@ -275,7 +275,8 @@ export interface NativeProfessionDefinition<
   readonly name: string;
   readonly modules: TModules;
   readonly build?: ProfessionBuildDefinition<TBuild>;
-  readonly presentation?: TPresentation;
+  /** Family presentation factories receive the same assembled catalog as module presentation factories. */
+  readonly presentation?: TPresentation | ((catalog: Readonly<CanonicalCatalog>) => TPresentation);
   readonly simulation?: TSimulation | null;
   readonly catalog?: NativeCatalogOptions;
   /** Profession-specific exceptions and observers for the automatically installed GW2 chain controller. */

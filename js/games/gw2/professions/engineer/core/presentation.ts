@@ -24,7 +24,7 @@ import type {
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { CanonicalCatalog, CatalogEntity, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   EngineerResolverEvent,
   EngineerSkill,
@@ -68,11 +68,6 @@ const CORE_STATE_REASONS = new Set<string>([
   'deploy-turret'
 ]);
 
-// module-level; populated once at catalog-bind time (bindEngineerCoreUi) and stable for the session
-let engineerSkills: readonly EngineerSkill[] = [];
-let engineerSkillsById: ReadonlyMap<SkillId, EngineerSkill> = new Map();
-let engineerTraits: readonly CatalogEntity[] = [];
-
 /** Flattens Core and active-specialization state for Engineer UI consumers. */
 export function engineerUiState(context: EngineerUiContext = {}): Partial<EngineerState> {
   return flattenProfessionState(context.state?.profession || context.professionState);
@@ -97,10 +92,10 @@ function selectedNamesInSlotOrder(context: EngineerUiContext = {}): (string | un
 }
 
 /** Lists equipped kits in the stable display order used by palette groups. */
-function selectedKitNames(context: EngineerUiContext): string[] {
+function selectedKitNames(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext): string[] {
   return [
     ...new Set(
-      engineerSkills
+      (catalog.skills as readonly EngineerSkill[])
         .filter((skill) => skill.handlerId === 'engineer.kit-equip' && selectedNames(context).has(skill.name))
         .map((skill) => skill.kitName || skill.name)
     )
@@ -113,11 +108,11 @@ function selectedKitNames(context: EngineerUiContext): string[] {
 
 // deduplicates by skill name — some skills have multiple IDs (different specs); keep the first
 /** Deduplicates skill IDs by canonical skill name while preserving first occurrence order. */
-export function uniqueIdsBySkillName(skillIds: readonly SkillId[]): SkillId[] {
+export function uniqueIdsBySkillName(catalog: Readonly<CanonicalCatalog>, skillIds: readonly SkillId[]): SkillId[] {
   return [
     ...new Map(
       skillIds.map((id) => {
-        const skill = engineerSkillsById.get(id);
+        const skill = catalog.skillsById.get(id);
         return [skill?.name || id, id];
       })
     ).values()
@@ -135,20 +130,20 @@ export function hasActiveTrait(context: EngineerUiContext, name: string): boolea
 }
 
 /** Detects the Tools trait line even when programmatic contexts omit build specialization metadata. */
-function usesToolsTraitline(context: EngineerUiContext): boolean {
+function usesToolsTraitline(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext): boolean {
   if ((context.build?.specializations || []).some((selection) => selection?.name === 'Tools')) return true;
   // Programmatic UI contexts may omit build specialization metadata, so infer
   // the Tools line from the canonical trait selection.
-  return engineerTraits.some((trait) => trait.specialization === 'Tools' && hasTrait(context, trait.id));
+  return catalog.traits.some((trait) => trait.specialization === 'Tools' && hasTrait(context, trait.id));
 }
 
 // toolbelt skill is the non-Detonate variant — each parent has both a toolbelt skill and a detonate flip
 /** Resolves an equipped slot skill to its non-detonate toolbelt skill. */
-function toolbeltSkillId(parentName: string | undefined): SkillId | null {
+function toolbeltSkillId(catalog: Readonly<CanonicalCatalog>, parentName: string | undefined): SkillId | null {
   if (!parentName) return null;
   return (
     uniqueSkillsByName(
-      engineerSkills.filter(
+      catalog.skills.filter(
         (skill) => skill.toolbeltParentName === parentName && !String(skill.name || '').startsWith('Detonate')
       )
     )[0]?.id ?? null
@@ -156,23 +151,30 @@ function toolbeltSkillId(parentName: string | undefined): SkillId | null {
 }
 
 /** Finds the first named Engineer skill that satisfies an optional metadata predicate. */
-export function namedSkillId(name: string, predicate: (skill: EngineerSkill) => boolean = () => true): SkillId | null {
-  return engineerSkills.find((skill) => skill.name === name && predicate(skill))?.id ?? null;
+export function namedSkillId(
+  catalog: Readonly<CanonicalCatalog>,
+  name: string,
+  predicate: (skill: EngineerSkill) => boolean = () => true
+): SkillId | null {
+  return catalog.skills.find((skill) => skill.name === name && predicate(skill))?.id ?? null;
 }
 
 /** Maps the selected slot-skill loadout to its ordered Engineer toolbelt bar. */
-export function engineerToolbeltSkillIds(context: EngineerUiContext): (SkillId | null)[] {
-  return selectedNamesInSlotOrder(context).map(toolbeltSkillId);
+export function engineerToolbeltSkillIds(
+  catalog: Readonly<CanonicalCatalog>,
+  context: EngineerUiContext
+): (SkillId | null)[] {
+  return selectedNamesInSlotOrder(context).map((name) => toolbeltSkillId(catalog, name));
 }
 
 /** Returns the fixed Core Engineer profession-skill slots for the active loadout. */
-function professionSkillSlots(context: EngineerUiContext): (SkillId | null)[] {
-  return engineerToolbeltSkillIds(context);
+function professionSkillSlots(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext): (SkillId | null)[] {
+  return engineerToolbeltSkillIds(catalog, context);
 }
 
 /** Returns populated Core profession-skill IDs for palette and bar consumers. */
-function professionSkills(context: EngineerUiContext): SkillId[] {
-  return professionSkillSlots(context).filter((id) => id != null);
+function professionSkills(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext): SkillId[] {
+  return professionSkillSlots(catalog, context).filter((id) => id != null);
 }
 
 /** Explains whether a Core Engineer skill is usable in the currently displayed state. */
@@ -272,128 +274,124 @@ function engineerEventLogRow(
   return undefined;
 }
 
-const engineerCoreUi: EngineerUiSlice = Object.freeze({
-  assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
-  // Builds one stacked palette group per selected kit, plus Core's profession-skill group.
-  paletteGroups: (context: EngineerUiContext) => {
-    const groups: ProfessionPaletteGroup[] = [];
-    // Each selected kit gets a stable slot-ordered group in the shared kit stack.
-    for (const kit of selectedKitNames(context)) {
-      const kitSkills = uniqueSkillsByName(engineerSkills.filter((skill) => skill.kit === kit));
-      groups.push({
-        id: `engineer-kit-${kit.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-        label: kit.replace(' Kit', '').slice(0, 4),
-        skillIds: kitSkills
-          .sort(
-            (left, right) =>
-              Number(String(left.slot || '').split('_')[1] || 99) - Number(String(right.slot || '').split('_')[1] || 99)
-          )
-          .map((skill) => skill.id),
-        color: '#9d762e',
-        stackId: 'engineer-kits',
-        // Kits belong to the active weapon bar regardless of the selected starting equipment set.
-        placement: 'active-weapon'
-      });
-    }
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog>): EngineerUiSlice {
+  return Object.freeze({
+    assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
+    // Builds one stacked palette group per selected kit, plus Core's profession-skill group.
+    paletteGroups: (context: EngineerUiContext) => {
+      const groups: ProfessionPaletteGroup[] = [];
+      // Each selected kit gets a stable slot-ordered group in the shared kit stack.
+      for (const kit of selectedKitNames(catalog, context)) {
+        const kitSkills = uniqueSkillsByName(catalog.skills.filter((skill) => skill.kit === kit));
+        groups.push({
+          id: `engineer-kit-${kit.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+          label: kit.replace(' Kit', '').slice(0, 4),
+          skillIds: kitSkills
+            .sort(
+              (left, right) =>
+                Number(String(left.slot || '').split('_')[1] || 99) -
+                Number(String(right.slot || '').split('_')[1] || 99)
+            )
+            .map((skill) => skill.id),
+          color: '#9d762e',
+          stackId: 'engineer-kits',
+          // Kits belong to the active weapon bar regardless of the selected starting equipment set.
+          placement: 'active-weapon'
+        });
+      }
 
-    // Specializations own their profession group; Core contributes its toolbelt group only when active.
-    if (engineerUiSpecialization(context) === 'Core') {
-      groups.push({
-        id: 'engineer-profession',
-        label: 'F',
-        skillIds: uniqueIdsBySkillName(professionSkills(context)),
-        color: '#b88a35',
-        className: 'engineer-profession-skills',
-        resourceAnchor: true,
-        includeActionSkills: true
-      });
-    }
+      // Specializations own their profession group; Core contributes its toolbelt group only when active.
+      if (engineerUiSpecialization(context) === 'Core') {
+        groups.push({
+          id: 'engineer-profession',
+          label: 'F',
+          skillIds: uniqueIdsBySkillName(catalog, professionSkills(catalog, context)),
+          color: '#b88a35',
+          className: 'engineer-profession-skills',
+          resourceAnchor: true,
+          includeActionSkills: true
+        });
+      }
 
-    return groups;
-  },
-  // Tracks kit equip and stow operations as timeline weapon-line transitions.
-  timelineWeaponLineTransition: (context: EngineerUiContext) => {
-    const skill = context.skill;
-    if (skill?.handlerId === 'engineer.kit-equip') {
-      return skill.kitName || skill.name;
-    }
+      return groups;
+    },
+    // Tracks kit equip and stow operations as timeline weapon-line transitions.
+    timelineWeaponLineTransition: (context: EngineerUiContext) => {
+      const skill = context.skill;
+      if (skill?.handlerId === 'engineer.kit-equip') {
+        return skill.kitName || skill.name;
+      }
 
-    if (skill?.handlerId === 'engineer.kit-stow' || (context.weaponLine && skill?.name === 'Swap Weapons')) {
-      return null;
-    }
+      if (skill?.handlerId === 'engineer.kit-stow' || (context.weaponLine && skill?.name === 'Swap Weapons')) {
+        return null;
+      }
 
-    return undefined;
-  },
-  // Shows endurance only when the Tools line makes dodge resource management relevant.
-  resourceViews: (context: EngineerUiContext) => {
-    const state = engineerUiState(context);
-    if (!usesToolsTraitline(context)) return [];
-    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-    const maximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
-    const endurance: ProfessionResourceView = {
-      id: 'endurance',
-      singular: 'endurance',
-      plural: 'endurance',
-      maximum,
-      value: Number(state.endurance ?? maximum),
-      startMaximum: maximum,
-      canStart: false,
-      displayMode: 'bar',
-      shortLabel: 'End',
-      statusLabel: 'Current',
-      // Keep the conditional Tools endurance meter with the Dodge action that
-      // spends it, matching the shared palette placement used by professions.
-      paletteSkillId: ID.DODGE
-    };
-    return [endurance];
-  },
-  // Keep battery progress and its active buff timer together at the inspected rotation point.
-  rotationStateSnapshot: (context: EngineerUiContext): RotationStateSnapshotItem[] => {
-    const items: RotationStateSnapshotItem[] = [];
-    if (hasTrait(context, TRAIT.KINETIC_BATTERY) || hasActiveTrait(context, 'Kinetic Battery')) {
-      items.push({
-        id: 'engineer-kinetic-charges',
-        label: 'Kinetic Charges',
-        value: `${Number(engineerUiState(context).kineticCharges || 0)}/5`
-      });
-    }
+      return undefined;
+    },
+    // Shows endurance only when the Tools line makes dodge resource management relevant.
+    resourceViews: (context: EngineerUiContext) => {
+      const state = engineerUiState(context);
+      if (!usesToolsTraitline(catalog, context)) return [];
+      const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
+      const maximum = balanceProfileNumber(resourcesProfile, 'maximumStacks');
+      const endurance: ProfessionResourceView = {
+        id: 'endurance',
+        singular: 'endurance',
+        plural: 'endurance',
+        maximum,
+        value: Number(state.endurance ?? maximum),
+        startMaximum: maximum,
+        canStart: false,
+        displayMode: 'bar',
+        shortLabel: 'End',
+        statusLabel: 'Current',
+        // Keep the conditional Tools endurance meter with the Dodge action that
+        // spends it, matching the shared palette placement used by professions.
+        paletteSkillId: ID.DODGE
+      };
+      return [endurance];
+    },
+    // Keep battery progress and its active buff timer together at the inspected rotation point.
+    rotationStateSnapshot: (context: EngineerUiContext): RotationStateSnapshotItem[] => {
+      const items: RotationStateSnapshotItem[] = [];
+      if (hasTrait(context, TRAIT.KINETIC_BATTERY) || hasActiveTrait(context, 'Kinetic Battery')) {
+        items.push({
+          id: 'engineer-kinetic-charges',
+          label: 'Kinetic Charges',
+          value: `${Number(engineerUiState(context).kineticCharges || 0)}/5`
+        });
+      }
 
-    const buff = timedBuffAt(
-      context.result as Gw2SimulationResult | null | undefined,
-      'kinetic-battery',
-      Number(context.atSeconds || 0)
-    );
-    if (buff) {
-      items.push({
-        id: 'engineer-kinetic-battery',
-        label: 'Kinetic Battery',
-        value: `${buff.remaining.toFixed(1)}s`,
-        title: 'Kinetic Battery is active; time remaining'
-      });
-    }
+      const buff = timedBuffAt(
+        context.result as Gw2SimulationResult | null | undefined,
+        'kinetic-battery',
+        Number(context.atSeconds || 0)
+      );
+      if (buff) {
+        items.push({
+          id: 'engineer-kinetic-battery',
+          label: 'Kinetic Battery',
+          value: `${buff.remaining.toFixed(1)}s`,
+          title: 'Kinetic Battery is active; time remaining'
+        });
+      }
 
-    return items;
-  },
-  paletteSkillAvailability: engineerCorePaletteSkillAvailability,
-  // Excludes contextual flips and palette-only kit controls from loadout slots.
-  isSlotSkillSelectable(_context: EngineerUiContext, skill: EngineerSkill): boolean {
-    return (
-      skill.slotSelectable !== false &&
-      // Stow and flip skills live in the palette but are not placed in loadout slots.
-      skill.handlerId !== 'engineer.kit-stow' &&
-      skill.flipParentId == null &&
-      !String(skill.name || '').startsWith('Detonate')
-    );
-  },
-  // engineer weapon swap exits a kit, not a true weapon set change — sigil system must know this
-  weaponSwapChangesSet: false,
-  eventLogRow: engineerEventLogRow
-});
-
-/** Binds canonical Engineer catalog data to the stable Core UI contract. */
-export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog>): typeof engineerCoreUi {
-  engineerSkills = catalog.skills as readonly EngineerSkill[];
-  engineerSkillsById = catalog.skillsById as ReadonlyMap<SkillId, EngineerSkill>;
-  engineerTraits = catalog.traits;
-  return engineerCoreUi;
+      return items;
+    },
+    paletteSkillAvailability: engineerCorePaletteSkillAvailability,
+    // Excludes contextual flips and palette-only kit controls from loadout slots.
+    isSlotSkillSelectable(_context: EngineerUiContext, skill: EngineerSkill): boolean {
+      return (
+        skill.slotSelectable !== false &&
+        // Stow and flip skills live in the palette but are not placed in loadout slots.
+        skill.handlerId !== 'engineer.kit-stow' &&
+        skill.flipParentId == null &&
+        !String(skill.name || '').startsWith('Detonate')
+      );
+    },
+    // engineer weapon swap exits a kit, not a true weapon set change — sigil system must know this
+    weaponSwapChangesSet: false,
+    eventLogRow: engineerEventLogRow
+  });
 }

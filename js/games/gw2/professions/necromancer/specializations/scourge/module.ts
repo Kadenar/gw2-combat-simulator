@@ -9,7 +9,7 @@ import {
   scourgeSchedulerHooks
 } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-rules.js';
 import { scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
-import { scourgeUi } from '#gw2/professions/necromancer/specializations/scourge/presentation.js';
+import { bindScourgeUi } from '#gw2/professions/necromancer/specializations/scourge/presentation.js';
 import { SCOURGE_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/scourge/skills/index.js';
 import { SCOURGE_BALANCE_PROFILES } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 
@@ -37,5 +37,5 @@ export const scourgeModule = defineNativeModule({
       ]
     }
   },
-  presentation: scourgeUi
+  presentation: bindScourgeUi
 });

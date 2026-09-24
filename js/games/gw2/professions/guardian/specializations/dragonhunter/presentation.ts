@@ -1,3 +1,4 @@
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
@@ -8,7 +9,7 @@ import type {
   ProfessionEventLogDescriptor,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { GuardianResolverEvent, GuardianUiContext } from '#gw2/professions/guardian/types.js';
+import type { GuardianResolverEvent, GuardianUiContext, GuardianUiSlice } from '#gw2/professions/guardian/types.js';
 
 function dragonhunterEventLogRow(
   _context: GuardianUiContext,
@@ -36,16 +37,19 @@ function dragonhunterStateSnapshot(context: GuardianUiContext): RotationStateSna
     : [];
 }
 
-export const dragonhunterUi = Object.freeze({
-  eventLogRow: dragonhunterEventLogRow,
-  rotationStateSnapshot: dragonhunterStateSnapshot,
-  paletteGroups: (context: GuardianUiContext) => [
-    {
-      id: 'profession',
-      label: 'F',
-      skillIds: guardianUiSkillIdsByName(VIRTUE_NAMES, context),
-      color: '#2f7eb8',
-      resourceAnchor: true // anchors the virtue tether/resource bar to this palette group
-    }
-  ]
-});
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindDragonhunterUi(catalog: Readonly<CanonicalCatalog>): GuardianUiSlice {
+  return Object.freeze({
+    eventLogRow: dragonhunterEventLogRow,
+    rotationStateSnapshot: dragonhunterStateSnapshot,
+    paletteGroups: (context: GuardianUiContext) => [
+      {
+        id: 'profession',
+        label: 'F',
+        skillIds: guardianUiSkillIdsByName(catalog, VIRTUE_NAMES, context),
+        color: '#2f7eb8',
+        resourceAnchor: true // anchors the virtue tether/resource bar to this palette group
+      }
+    ]
+  });
+}

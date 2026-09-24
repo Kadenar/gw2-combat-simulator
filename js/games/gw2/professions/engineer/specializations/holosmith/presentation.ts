@@ -35,9 +35,6 @@ const HOLOSMITH_PACKET_EVENTS = new Set<string>([
   'engineer.refraction-cutter-extra-blades'
 ]);
 
-// Populated by bindHolosmithUi at module init time; safe to read thereafter.
-let engineerSkills: readonly HolosmithSkill[] = [];
-
 /** Projects Forge replacement rules and the kit lockout into palette availability. */
 function holosmithPaletteAvailability(context: EngineerUiContext, skill: HolosmithSkill): PaletteSkillAvailability {
   const state = engineerUiState(context);
@@ -99,80 +96,77 @@ function holosmithEventLogRow(
   };
 }
 
-/** Supplies Holosmith skill-bar, palette, heat-resource, and event-log presentation behavior. */
-const holosmithUi: EngineerUiSlice = Object.freeze({
-  eventLogRow: holosmithEventLogRow,
-  // Photon Forge changes weapon presentation only while the Holosmith slice is active.
-  timelineWeaponLineTransition: (context: EngineerUiContext) => {
-    if (context.skill?.handlerId === 'engineer.photon-forge-enter') return 'Photon Forge';
-    if (context.skill?.handlerId === 'engineer.photon-forge-exit') return null;
-    return undefined;
-  },
-  paletteGroups: (context: EngineerUiContext) => {
-    const storm = hasActiveTrait(context, 'Crystal Configuration: Storm');
-    // Keep profession toggles and Forge weapon skills in separate stacked palette groups.
-    return [
-      {
-        id: 'engineer-profession',
-        label: 'F',
-        skillIds: uniqueIdsBySkillName(
-          [
-            ...engineerToolbeltSkillIds(context).slice(0, 4),
-            namedSkillId('Engage Photon Forge'),
-            namedSkillId('Deactivate Photon Forge')
-          ].filter((skillId): skillId is SkillId => skillId != null)
-        ),
-        color: '#b88a35',
-        className: 'compact-resource-palette engineer-profession-skills',
-        resourceAnchor: true,
-        stackId: 'holosmith-profession',
-        includeActionSkills: true
-      },
-      {
-        id: 'engineer-forge',
-        label: 'Forge',
-        skillIds: engineerSkills
-          .filter((skill) => {
-            if (!skill.forgeSkill) return false;
-            // Include only the base or Storm autoattack variant selected by the active trait.
-            if (skill.slot !== 'Weapon_1') return true;
-            return skill.name.endsWith('—Storm') === storm;
-          })
-          // Display Forge weapons in slot order regardless of canonical catalog ordering.
-          .sort((left, right) => String(left.slot).localeCompare(String(right.slot)))
-          .map((skill) => skill.id),
-        color: '#e5a72d',
-        className: 'engineer-forge-skills',
-        stackId: 'holosmith-profession'
-      }
-    ];
-  },
-  resourceViews: (context: EngineerUiContext): ProfessionResourceView[] => {
-    const state = engineerUiState(context);
-    const maximum = Number(state.maximumHeat || 100);
-    return [
-      {
-        id: 'heat',
-        singular: 'heat',
-        plural: 'heat',
-        maximum,
-        value: Number(state.heat ?? context.initialHeat ?? 0),
-        startMaximum: maximum,
-        canStart: true,
-        buildKey: 'initialHeat',
-        step: 1,
-        displayMode: 'bar',
-        pipStyle: 'compact-profession-resource-holosmith-heat',
-        shortLabel: 'Heat',
-        statusLabel: state.overheated ? 'Overheated' : 'Current'
-      }
-    ];
-  },
-  paletteSkillAvailability: holosmithPaletteAvailability
-});
-
-/** Binds canonical skills used by Holosmith UI projections and returns the shared UI contract. */
-export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog>): typeof holosmithUi {
-  engineerSkills = catalog.skills;
-  return holosmithUi;
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog>): EngineerUiSlice {
+  return Object.freeze({
+    eventLogRow: holosmithEventLogRow,
+    // Photon Forge changes weapon presentation only while the Holosmith slice is active.
+    timelineWeaponLineTransition: (context: EngineerUiContext) => {
+      if (context.skill?.handlerId === 'engineer.photon-forge-enter') return 'Photon Forge';
+      if (context.skill?.handlerId === 'engineer.photon-forge-exit') return null;
+      return undefined;
+    },
+    paletteGroups: (context: EngineerUiContext) => {
+      const storm = hasActiveTrait(context, 'Crystal Configuration: Storm');
+      // Keep profession toggles and Forge weapon skills in separate stacked palette groups.
+      return [
+        {
+          id: 'engineer-profession',
+          label: 'F',
+          skillIds: uniqueIdsBySkillName(
+            catalog,
+            [
+              ...engineerToolbeltSkillIds(catalog, context).slice(0, 4),
+              namedSkillId(catalog, 'Engage Photon Forge'),
+              namedSkillId(catalog, 'Deactivate Photon Forge')
+            ].filter((skillId): skillId is SkillId => skillId != null)
+          ),
+          color: '#b88a35',
+          className: 'compact-resource-palette engineer-profession-skills',
+          resourceAnchor: true,
+          stackId: 'holosmith-profession',
+          includeActionSkills: true
+        },
+        {
+          id: 'engineer-forge',
+          label: 'Forge',
+          skillIds: catalog.skills
+            .filter((skill) => {
+              if (!skill.forgeSkill) return false;
+              // Include only the base or Storm autoattack variant selected by the active trait.
+              if (skill.slot !== 'Weapon_1') return true;
+              return skill.name.endsWith('—Storm') === storm;
+            })
+            // Display Forge weapons in slot order regardless of canonical catalog ordering.
+            .sort((left, right) => String(left.slot).localeCompare(String(right.slot)))
+            .map((skill) => skill.id),
+          color: '#e5a72d',
+          className: 'engineer-forge-skills',
+          stackId: 'holosmith-profession'
+        }
+      ];
+    },
+    resourceViews: (context: EngineerUiContext): ProfessionResourceView[] => {
+      const state = engineerUiState(context);
+      const maximum = Number(state.maximumHeat || 100);
+      return [
+        {
+          id: 'heat',
+          singular: 'heat',
+          plural: 'heat',
+          maximum,
+          value: Number(state.heat ?? context.initialHeat ?? 0),
+          startMaximum: maximum,
+          canStart: true,
+          buildKey: 'initialHeat',
+          step: 1,
+          displayMode: 'bar',
+          pipStyle: 'compact-profession-resource-holosmith-heat',
+          shortLabel: 'Heat',
+          statusLabel: state.overheated ? 'Overheated' : 'Current'
+        }
+      ];
+    },
+    paletteSkillAvailability: holosmithPaletteAvailability
+  });
 }

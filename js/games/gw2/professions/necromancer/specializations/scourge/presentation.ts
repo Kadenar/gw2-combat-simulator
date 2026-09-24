@@ -1,3 +1,4 @@
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import {
   necromancerTransformPaletteGroups,
@@ -34,30 +35,33 @@ function scourgePaletteAvailability(context: NecromancerUiContext, skill: Necrom
   return { available: true, message: '' };
 }
 
-export const scourgeUi: NecromancerUiSlice = Object.freeze({
-  paletteGroups: (context: NecromancerUiContext) =>
-    necromancerTransformPaletteGroups(context, {
-      professionSkillIds: SCOURGE_SKILLS
-    }),
-  resourceViews: (context: NecromancerUiContext): ProfessionResourceView[] => [
-    ...necromancerSoulShardResourceViews(context),
-    {
-      id: 'active-shades',
-      singular: 'active shade',
-      plural: 'active shades',
-      // Hard-coded at 3 even with Sand Savant; Sand Savant trades count for power but
-      // the resource display cap stays at 3 pips to keep the UI consistent
-      maximum: 3,
-      // shades array holds expiry timestamps; its length is the live count
-      value: necromancerUiState(context).shades?.length || 0,
-      canStart: false,
-      step: 1,
-      displayMode: 'counter',
-      pipStyle: 'necromancer-scourge-shades',
-      shortLabel: 'Shade',
-      statusLabel: 'Current',
-      showValue: false
-    }
-  ],
-  paletteSkillAvailability: scourgePaletteAvailability
-});
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindScourgeUi(catalog: Readonly<CanonicalCatalog>): NecromancerUiSlice {
+  return Object.freeze({
+    paletteGroups: (context: NecromancerUiContext) =>
+      necromancerTransformPaletteGroups(catalog, context, {
+        professionSkillIds: SCOURGE_SKILLS
+      }),
+    resourceViews: (context: NecromancerUiContext): ProfessionResourceView[] => [
+      ...necromancerSoulShardResourceViews(context),
+      {
+        id: 'active-shades',
+        singular: 'active shade',
+        plural: 'active shades',
+        // Hard-coded at 3 even with Sand Savant; Sand Savant trades count for power but
+        // the resource display cap stays at 3 pips to keep the UI consistent
+        maximum: 3,
+        // shades array holds expiry timestamps; its length is the live count
+        value: necromancerUiState(context).shades?.length || 0,
+        canStart: false,
+        step: 1,
+        displayMode: 'counter',
+        pipStyle: 'necromancer-scourge-shades',
+        shortLabel: 'Shade',
+        statusLabel: 'Current',
+        showValue: false
+      }
+    ],
+    paletteSkillAvailability: scourgePaletteAvailability
+  });
+}

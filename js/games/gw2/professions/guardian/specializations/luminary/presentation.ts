@@ -1,3 +1,4 @@
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { timedBuffAt } from '#gw2/platform/results/query.js';
 import {
@@ -17,7 +18,8 @@ import type {
   GuardianResolverEvent,
   GuardianSkill,
   GuardianState,
-  GuardianUiContext
+  GuardianUiContext,
+  GuardianUiSlice
 } from '#gw2/professions/guardian/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 
@@ -147,59 +149,62 @@ function luminaryEffectPresentations(): ProfessionEffectPresentation[] {
   ];
 }
 
-export const luminaryUi = Object.freeze({
-  effectPresentations: luminaryEffectPresentations,
-  eventLogRow: luminaryEventLogRow,
-  rotationStateSnapshot: luminaryStateSnapshot,
-  paletteGroups: (context: GuardianUiContext) => [
-    {
-      id: 'profession',
-      label: 'F',
-      skillIds: guardianUiSkillIdsByName(VIRTUE_NAMES, context),
-      color: '#2f7eb8',
-      resourceAnchor: true,
-      stackId: 'luminary-profession'
-    },
-    {
-      id: 'radiant-forge',
-      label: 'RF',
-      skillIds: guardianUiSkillsByMode('radiantForgeSkill'),
-      color: '#d6b85c',
-      // Same stackId as the F-key group so these two groups share a single
-      // palette column; they are mutually exclusive at runtime.
-      stackId: 'luminary-profession'
-    }
-  ],
-  paletteSkillAvailability: (context: GuardianUiContext, skill: GuardianSkill): PaletteSkillAvailability => {
-    const state = professionState(context);
-    if (skill.type === 'Weapon' && state.radiantForge) {
-      return {
-        available: false,
-        message: 'Weapon skills are unavailable during Radiant Forge'
-      };
-    }
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog>): GuardianUiSlice {
+  return Object.freeze({
+    effectPresentations: luminaryEffectPresentations,
+    eventLogRow: luminaryEventLogRow,
+    rotationStateSnapshot: luminaryStateSnapshot,
+    paletteGroups: (context: GuardianUiContext) => [
+      {
+        id: 'profession',
+        label: 'F',
+        skillIds: guardianUiSkillIdsByName(catalog, VIRTUE_NAMES, context),
+        color: '#2f7eb8',
+        resourceAnchor: true,
+        stackId: 'luminary-profession'
+      },
+      {
+        id: 'radiant-forge',
+        label: 'RF',
+        skillIds: guardianUiSkillsByMode(catalog, 'radiantForgeSkill'),
+        color: '#d6b85c',
+        // Same stackId as the F-key group so these two groups share a single
+        // palette column; they are mutually exclusive at runtime.
+        stackId: 'luminary-profession'
+      }
+    ],
+    paletteSkillAvailability: (context: GuardianUiContext, skill: GuardianSkill): PaletteSkillAvailability => {
+      const state = professionState(context);
+      if (skill.type === 'Weapon' && state.radiantForge) {
+        return {
+          available: false,
+          message: 'Weapon skills are unavailable during Radiant Forge'
+        };
+      }
 
-    if (skill.radiantForgeSkill && !state.radiantForge) {
-      return {
-        available: false,
-        message: 'Enter Radiant Forge to use this skill'
-      };
-    }
+      if (skill.radiantForgeSkill && !state.radiantForge) {
+        return {
+          available: false,
+          message: 'Enter Radiant Forge to use this skill'
+        };
+      }
 
-    if (skill.name === 'Enter Radiant Forge' && state.radiantForge) {
-      return {
-        available: false,
-        message: 'Radiant Forge is already active'
-      };
-    }
+      if (skill.name === 'Enter Radiant Forge' && state.radiantForge) {
+        return {
+          available: false,
+          message: 'Radiant Forge is already active'
+        };
+      }
 
-    if (skill.name === 'Exit Radiant Forge' && !state.radiantForge) {
-      return {
-        available: false,
-        message: 'Radiant Forge is not active'
-      };
-    }
+      if (skill.name === 'Exit Radiant Forge' && !state.radiantForge) {
+        return {
+          available: false,
+          message: 'Radiant Forge is not active'
+        };
+      }
 
-    return { available: true, message: '' };
-  }
-});
+      return { available: true, message: '' };
+    }
+  });
+}

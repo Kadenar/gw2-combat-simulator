@@ -13,8 +13,6 @@ import type {
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 
-// Populated lazily at bind time from the catalog; can't be a const because the catalog isn't available at module load.
-let beastmodeSkillIds = new Set<SkillId>();
 const BEASTMODE_TOGGLE_IDS = new Set<SkillId>([ID.BEASTMODE, ID.LEAVE_BEASTMODE]);
 const SOULBEAST_HIDDEN_EVENT_TYPES = new Set(['ranger.beastmode', 'ranger.boon-extension', 'ranger.shared-stance-hit']);
 
@@ -23,38 +21,7 @@ function beastmodeActive(context: RangerUiContext): boolean {
   return rangerUiState(context).beastmodeActive !== false;
 }
 
-function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
-  const active = beastmodeActive(context);
-  if (skill.petSkill && active) {
-    return { available: false, message: 'Leave Beastmode first' };
-  }
-
-  const selectedSkillIds = selectedRangerUiPet(context)?.beastmodeSkillIds || [];
-  // A beast skill exists in the catalog for every pet, but only the selected pet's
-  // merged skills should be usable — block the rest before checking the mode flag.
-  if (beastmodeSkillIds.has(skill.id) && !BEASTMODE_TOGGLE_IDS.has(skill.id) && !selectedSkillIds.includes(skill.id)) {
-    return {
-      available: false,
-      message: 'Select the pet that grants this merged Beast skill'
-    };
-  }
-
-  if (skill.beastmodeSkill && !active && skill.id !== ID.BEASTMODE) {
-    return { available: false, message: 'Enter Beastmode first' };
-  }
-
-  if (skill.id === ID.BEASTMODE && active) {
-    return { available: false, message: 'Beastmode is already active' };
-  }
-
-  if (skill.id === ID.LEAVE_BEASTMODE && !active) {
-    return { available: false, message: 'Beastmode is not active' };
-  }
-
-  return { available: true, message: '' };
-}
-
-function paletteGroups(context: RangerUiContext): ProfessionPaletteGroup[] {
+function paletteGroups(catalog: Readonly<CanonicalCatalog>, context: RangerUiContext): ProfessionPaletteGroup[] {
   const active = beastmodeActive(context);
   const groups: ProfessionPaletteGroup[] = [
     {
@@ -71,7 +38,7 @@ function paletteGroups(context: RangerUiContext): ProfessionPaletteGroup[] {
     }
   ];
   // Pet palette is only meaningful when unmerged — in Beastmode the pet's skills are subsumed into beast skills.
-  if (!active) groups.push(rangerPetPaletteGroup(context));
+  if (!active) groups.push(rangerPetPaletteGroup(catalog, context));
   return groups;
 }
 
@@ -90,16 +57,51 @@ function soulbeastStateSnapshot(context: RangerUiContext): RotationStateSnapshot
     : [];
 }
 
-const soulbeastUi: RangerUiSlice = Object.freeze({
-  paletteGroups,
-  paletteSkillAvailability: availability,
-  rotationStateSnapshot: soulbeastStateSnapshot,
-  // Return null (suppress) for internal bookkeeping events that have no meaningful display to the user.
-  eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
-    SOULBEAST_HIDDEN_EVENT_TYPES.has(String(event.type)) ? null : undefined
-});
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindSoulbeastUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlice {
+  const beastmodeSkillIds = new Set(catalog.skills.filter((skill) => skill.beastmodeSkill).map((skill) => skill.id));
 
-export function bindSoulbeastUi(catalog: Readonly<CanonicalCatalog>) {
-  beastmodeSkillIds = new Set(catalog.skills.filter((skill) => skill.beastmodeSkill).map((skill) => skill.id));
-  return soulbeastUi;
+  function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
+    const active = beastmodeActive(context);
+    if (skill.petSkill && active) {
+      return { available: false, message: 'Leave Beastmode first' };
+    }
+
+    const selectedSkillIds = selectedRangerUiPet(context)?.beastmodeSkillIds || [];
+    // A beast skill exists in the catalog for every pet, but only the selected pet's
+    // merged skills should be usable — block the rest before checking the mode flag.
+    if (
+      beastmodeSkillIds.has(skill.id) &&
+      !BEASTMODE_TOGGLE_IDS.has(skill.id) &&
+      !selectedSkillIds.includes(skill.id)
+    ) {
+      return {
+        available: false,
+        message: 'Select the pet that grants this merged Beast skill'
+      };
+    }
+
+    if (skill.beastmodeSkill && !active && skill.id !== ID.BEASTMODE) {
+      return { available: false, message: 'Enter Beastmode first' };
+    }
+
+    if (skill.id === ID.BEASTMODE && active) {
+      return { available: false, message: 'Beastmode is already active' };
+    }
+
+    if (skill.id === ID.LEAVE_BEASTMODE && !active) {
+      return { available: false, message: 'Beastmode is not active' };
+    }
+
+    return { available: true, message: '' };
+  }
+
+  return Object.freeze({
+    paletteGroups: (context: RangerUiContext) => paletteGroups(catalog, context),
+    paletteSkillAvailability: availability,
+    rotationStateSnapshot: soulbeastStateSnapshot,
+    // Return null (suppress) for internal bookkeeping events that have no meaningful display to the user.
+    eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
+      SOULBEAST_HIDDEN_EVENT_TYPES.has(String(event.type)) ? null : undefined
+  });
 }

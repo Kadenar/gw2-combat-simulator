@@ -19,8 +19,6 @@ import type {
   GuardianUiSlice
 } from '#gw2/professions/guardian/types.js';
 
-let guardianCatalog: Readonly<CanonicalCatalog>;
-
 function guardianUiSpecialization(context: GuardianUiContext = {}): string {
   return context.specialization || context.config?.specialization || 'Core';
 }
@@ -60,16 +58,20 @@ function guardianCoreStateSnapshot(context: GuardianUiContext): RotationStateSna
 
 // Resolve named Guardian mechanic skills to their currently active flip faces for
 // stable skill-bar and palette projection.
-export function guardianUiSkillIdsByName(names: readonly string[], context: GuardianUiContext = {}): SkillId[] {
+export function guardianUiSkillIdsByName(
+  catalog: Readonly<CanonicalCatalog>,
+  names: readonly string[],
+  context: GuardianUiContext = {}
+): SkillId[] {
   const activeFlips =
     (flattenProfessionState(context.state?.profession || context.professionState).availableFlips as SkillFlipWindows) ||
     {};
   return names.flatMap((name) => {
-    const id = guardianCatalog.skillsByName.get(name)?.id;
+    const id = catalog.skillsByName.get(name)?.id;
     if (id == null) return [];
-    const skill = guardianCatalog.skillsById.get(id);
+    const skill = catalog.skillsById.get(id);
     const flipId = skill?.flipSkillId;
-    const flip = flipId == null ? undefined : guardianCatalog.skillsById.get(flipId);
+    const flip = flipId == null ? undefined : catalog.skillsById.get(flipId);
     // Direct UI callers may supply an older snapshot, so apply the same expiry gate as cast availability.
     return flipId != null &&
       flip?.flipParentId === id &&
@@ -79,9 +81,13 @@ export function guardianUiSkillIdsByName(names: readonly string[], context: Guar
   });
 }
 
-export function guardianUiSkillsByMode(property: keyof GuardianSkill, value: unknown = true): SkillId[] {
+export function guardianUiSkillsByMode(
+  catalog: Readonly<CanonicalCatalog>,
+  property: keyof GuardianSkill,
+  value: unknown = true
+): SkillId[] {
   // Keep each root before its same-slot flip so the inactive UI defaults to the root face.
-  return guardianCatalog.skills
+  return catalog.skills
     .filter((skill) => skill[property] === value)
     .sort((left, right) => {
       const slotOrder = String(left.slot).localeCompare(String(right.slot));
@@ -144,28 +150,26 @@ const GUARDIAN_CORE_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[
   }
 ]);
 
-export const guardianCoreUi: GuardianUiSlice = Object.freeze({
-  assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
-  // Inspiring Virtue is a binary Core effect shared by every Guardian specialization.
-  effectPresentations: () => [...GUARDIAN_CORE_EFFECT_PRESENTATIONS],
-  eventLogRow: guardianEventLogRow,
-  rotationStateSnapshot: guardianCoreStateSnapshot,
-  paletteWeaponSkills: guardianPaletteWeaponSkills,
-  paletteGroups: (context: GuardianUiContext) =>
-    guardianUiSpecialization(context) === 'Core'
-      ? [
-          {
-            id: 'profession',
-            label: 'F',
-            skillIds: guardianUiSkillIdsByName(CORE_VIRTUE_NAMES, context),
-            color: '#2f7eb8',
-            resourceAnchor: true
-          }
-        ]
-      : []
-});
-
-export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog>): typeof guardianCoreUi {
-  guardianCatalog = catalog;
-  return guardianCoreUi;
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog>): GuardianUiSlice {
+  return Object.freeze({
+    assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
+    // Inspiring Virtue is a binary Core effect shared by every Guardian specialization.
+    effectPresentations: () => [...GUARDIAN_CORE_EFFECT_PRESENTATIONS],
+    eventLogRow: guardianEventLogRow,
+    rotationStateSnapshot: guardianCoreStateSnapshot,
+    paletteWeaponSkills: guardianPaletteWeaponSkills,
+    paletteGroups: (context: GuardianUiContext) =>
+      guardianUiSpecialization(context) === 'Core'
+        ? [
+            {
+              id: 'profession',
+              label: 'F',
+              skillIds: guardianUiSkillIdsByName(catalog, CORE_VIRTUE_NAMES, context),
+              color: '#2f7eb8',
+              resourceAnchor: true
+            }
+          ]
+        : []
+  });
 }

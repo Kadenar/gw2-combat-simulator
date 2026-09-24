@@ -1,3 +1,4 @@
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
 import type { PaletteSkillAvailability, ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
@@ -47,49 +48,52 @@ function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkil
   return { available: true, message: '' };
 }
 
-export const druidUi: RangerUiSlice = Object.freeze({
-  paletteGroups: (context: RangerUiContext) => [
-    rangerPetPaletteGroup(context),
-    {
-      id: 'ranger-druid-profession',
-      label: 'Avatar',
-      skillIds: [ID.CELESTIAL_AVATAR, ID.RELEASE_CELESTIAL_AVATAR, ...AVATAR_SKILLS],
-      color: '#75c5c5',
-      resourceAnchor: true
-    }
-  ],
-  timelineWeaponLineTransition: (context: RangerUiContext) => {
-    const skill = context.skill as RangerSkill | undefined;
-    if (skill?.handlerId === 'ranger.celestial-avatar-enter') {
-      return 'Celestial Avatar';
-    }
-
-    if (skill?.handlerId === 'ranger.celestial-avatar-exit') {
-      // null signals end of CA section on the timeline without starting a new named line
-      return null;
-    }
-
-    return undefined;
-  },
-  resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
-    const state = rangerUiState(context);
-    return [
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindDruidUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlice {
+  return Object.freeze({
+    paletteGroups: (context: RangerUiContext) => [
+      rangerPetPaletteGroup(catalog, context),
       {
-        id: 'astral-force',
-        singular: 'astral force',
-        plural: 'astral force',
-        maximum: 100,
-        value: Number(state.astralClock?.value ?? context.initialAstralForce ?? 100),
-        startMaximum: 100,
-        canStart: true,
-        // buildKey links this value to the config field that persists initial force across sessions
-        buildKey: 'initialAstralForce',
-        step: 1,
-        displayMode: 'bar',
-        shortLabel: 'Astral Force',
-        statusLabel: state.celestialAvatarActive ? 'Celestial Avatar' : 'Current'
+        id: 'ranger-druid-profession',
+        label: 'Avatar',
+        skillIds: [ID.CELESTIAL_AVATAR, ID.RELEASE_CELESTIAL_AVATAR, ...AVATAR_SKILLS],
+        color: '#75c5c5',
+        resourceAnchor: true
       }
-    ];
-  },
-  paletteSkillAvailability: availability
-});
+    ],
+    timelineWeaponLineTransition: (context: RangerUiContext) => {
+      const skill = context.skill as RangerSkill | undefined;
+      if (skill?.handlerId === 'ranger.celestial-avatar-enter') {
+        return 'Celestial Avatar';
+      }
+
+      if (skill?.handlerId === 'ranger.celestial-avatar-exit') {
+        // null signals end of CA section on the timeline without starting a new named line
+        return null;
+      }
+
+      return undefined;
+    },
+    resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
+      const state = rangerUiState(context);
+      return [
+        {
+          id: 'astral-force',
+          singular: 'astral force',
+          plural: 'astral force',
+          maximum: 100,
+          value: Number(state.astralClock?.value ?? context.initialAstralForce ?? 100),
+          startMaximum: 100,
+          canStart: true,
+          // buildKey links this value to the config field that persists initial force across sessions
+          buildKey: 'initialAstralForce',
+          step: 1,
+          displayMode: 'bar',
+          shortLabel: 'Astral Force',
+          statusLabel: state.celestialAvatarActive ? 'Celestial Avatar' : 'Current'
+        }
+      ];
+    },
+    paletteSkillAvailability: availability
+  });
+}

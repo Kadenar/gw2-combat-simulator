@@ -16,7 +16,7 @@ import {
   LUMINARY_SKILL_MECHANICS
 } from '#gw2/professions/guardian/specializations/luminary/skills/index.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import { luminaryUi } from '#gw2/professions/guardian/specializations/luminary/presentation.js';
+import { bindLuminaryUi } from '#gw2/professions/guardian/specializations/luminary/presentation.js';
 import { LUMINARY_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 
 export const luminaryModule = defineNativeModule({
@@ -46,5 +46,5 @@ export const luminaryModule = defineNativeModule({
       hooks: { eventHandlers: luminaryEventHandlers }
     }
   },
-  presentation: luminaryUi
+  presentation: bindLuminaryUi
 });

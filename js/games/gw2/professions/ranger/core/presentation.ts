@@ -31,8 +31,6 @@ import {
   rangerSpearStealthAvailable
 } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
 
-let rangerCatalog: Readonly<CanonicalCatalog>;
-
 const RANGER_HIDDEN_EVENT_TYPES = new Set([
   'ranger.pet-active',
   'ranger.beast-skill-used',
@@ -61,14 +59,14 @@ function activePetSkillIds(context: RangerUiContext): SkillId[] {
   return [...(selectedRangerUiPet(context)?.skillIds || [])];
 }
 
-function commandableSkillIds(skillIds: readonly SkillId[]): SkillId[] {
+function commandableSkillIds(catalog: Readonly<CanonicalCatalog>, skillIds: readonly SkillId[]): SkillId[] {
   return skillIds.filter(
-    (skillId) => !(rangerCatalog.skillsById.get(skillId) as RangerSkill | undefined)?.petAutonomousSkill
+    (skillId) => !(catalog.skillsById.get(skillId) as RangerSkill | undefined)?.petAutonomousSkill
   );
 }
 
-function commandablePetSkillIds(context: RangerUiContext): SkillId[] {
-  return commandableSkillIds(activePetSkillIds(context));
+function commandablePetSkillIds(catalog: Readonly<CanonicalCatalog>, context: RangerUiContext): SkillId[] {
+  return commandableSkillIds(catalog, activePetSkillIds(context));
 }
 
 interface RangerPetPaletteGroupOptions {
@@ -77,6 +75,7 @@ interface RangerPetPaletteGroupOptions {
 }
 
 export function rangerPetPaletteGroup(
+  catalog: Readonly<CanonicalCatalog>,
   context: RangerUiContext,
   options: RangerPetPaletteGroupOptions = {}
 ): ProfessionPaletteGroup {
@@ -84,7 +83,7 @@ export function rangerPetPaletteGroup(
   return {
     id: 'ranger-pet',
     label: 'Pet',
-    skillIds: [...commandablePetSkillIds(context), ID.PET_SWAP],
+    skillIds: [...commandablePetSkillIds(catalog, context), ID.PET_SWAP],
     color: '#7ca64a',
     resourceAnchor: options.resourceAnchor === true,
     stackId: options.stackId,
@@ -166,14 +165,18 @@ function updateRangerCoreSelection(context: RangerUiContext, selection: RangerUi
 
 // Project runtime hammer, weapon-flip, and active-pet gates into palette state so
 // unavailable alternatives remain visible with an actionable explanation.
-function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
+function rangerCorePaletteAvailability(
+  catalog: Readonly<CanonicalCatalog>,
+  context: RangerUiContext,
+  skill: RangerSkill
+): PaletteSkillAvailability {
   if (isRangerHammerVariant(skill.id) && !selectedHammerSkillIds(context).includes(Number(skill.id))) {
     return { available: false, message: 'Select this Hammer variant first' };
   }
 
   const state = rangerUiState(context);
   const availableFlips = state.availableFlips || {};
-  const flipParent = skill.flipParentId == null ? null : rangerCatalog.skillsById.get(Number(skill.flipParentId));
+  const flipParent = skill.flipParentId == null ? null : catalog.skillsById.get(Number(skill.flipParentId));
   const spearStealthFlipId = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];
   const isSpearStealthAttack = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
   // Share the scheduler's spear gate so ordinary stealth and Hunter's Prowess produce the same palette.
@@ -217,113 +220,112 @@ function rangerCorePaletteAvailability(context: RangerUiContext, skill: RangerSk
   };
 }
 
-const rangerCoreUi: RangerUiSlice = Object.freeze({
-  assumptionControls: [
-    ...RANGER_ASSUMPTION_CONTROLS,
-    ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-    ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
-  ],
-  skillBarGroups: (context: RangerUiContext) => {
-    const pet = selectedRangerUiPet(context);
-    const pet2 = selectedRangerUiPet(context, 2);
-    const specialization = rangerUiSpecialization(context);
-    const petOptions = RANGER_PETS.map((option) => ({
-      value: option.name,
-      label: option.name,
-      icon: option.icon,
-      description: option.description
-    }));
-    // Each specialization gets a stable layout hook without Core naming specific elite mechanics.
-    const layout =
-      specialization === 'Core'
-        ? 'ranger-mechanics'
-        : `ranger-mechanics ranger-${specialization.toLowerCase()}-mechanics`;
-    // Name each pet selector with the chosen pet and leave combat skills to the rotation palette.
-    const groups: ProfessionSkillBarGroup[] = [
-      {
-        id: 'ranger-pet-1-selection',
-        label: pet?.name || 'Pet 1',
-        skillIds: [],
-        selections: [
-          {
-            optionEntries: petOptions,
-            filterPlaceholder: 'Filter pets...',
-            selectionValue: pet?.name || '',
-            selectionKey: 'selectedPet',
-            selectionIndex: 0
-          }
-        ],
-        color: '#7ca64a',
-        className: 'ranger-pet ranger-pet-1',
-        layout
-      },
-      {
-        id: 'ranger-pet-2-selection',
-        label: pet2?.name || 'Pet 2',
-        skillIds: [],
-        selections: [
-          {
-            optionEntries: petOptions,
-            filterPlaceholder: 'Filter pets...',
-            selectionValue: pet2?.name || '',
-            selectionKey: 'selectedPet2',
-            selectionIndex: 1
-          }
-        ],
-        color: '#7ca64a',
-        className: 'ranger-pet ranger-pet-2',
-        layout
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlice {
+  return Object.freeze({
+    assumptionControls: [
+      ...RANGER_ASSUMPTION_CONTROLS,
+      ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+      ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
+    ],
+    skillBarGroups: (context: RangerUiContext) => {
+      const pet = selectedRangerUiPet(context);
+      const pet2 = selectedRangerUiPet(context, 2);
+      const specialization = rangerUiSpecialization(context);
+      const petOptions = RANGER_PETS.map((option) => ({
+        value: option.name,
+        label: option.name,
+        icon: option.icon,
+        description: option.description
+      }));
+      // Each specialization gets a stable layout hook without Core naming specific elite mechanics.
+      const layout =
+        specialization === 'Core'
+          ? 'ranger-mechanics'
+          : `ranger-mechanics ranger-${specialization.toLowerCase()}-mechanics`;
+      // Name each pet selector with the chosen pet and leave combat skills to the rotation palette.
+      const groups: ProfessionSkillBarGroup[] = [
+        {
+          id: 'ranger-pet-1-selection',
+          label: pet?.name || 'Pet 1',
+          skillIds: [],
+          selections: [
+            {
+              optionEntries: petOptions,
+              filterPlaceholder: 'Filter pets...',
+              selectionValue: pet?.name || '',
+              selectionKey: 'selectedPet',
+              selectionIndex: 0
+            }
+          ],
+          color: '#7ca64a',
+          className: 'ranger-pet ranger-pet-1',
+          layout
+        },
+        {
+          id: 'ranger-pet-2-selection',
+          label: pet2?.name || 'Pet 2',
+          skillIds: [],
+          selections: [
+            {
+              optionEntries: petOptions,
+              filterPlaceholder: 'Filter pets...',
+              selectionValue: pet2?.name || '',
+              selectionKey: 'selectedPet2',
+              selectionIndex: 1
+            }
+          ],
+          color: '#7ca64a',
+          className: 'ranger-pet ranger-pet-2',
+          layout
+        }
+      ];
+      if (hasHammerEquipped(context)) {
+        const selected = selectedHammerSkillIds(context);
+        groups.push({
+          id: 'ranger-hammer-selection',
+          label: 'Hammer',
+          skillIds: [],
+          selections: RANGER_HAMMER_VARIANT_PAIRS.map((pair, index) => ({
+            skillId: selected[index],
+            optionSkillIds: pair,
+            selectionKey: 'selectedHammerSkillIds',
+            selectionIndex: index
+          })),
+          color: '#7ca64a',
+          className: 'ranger-hammer'
+        });
       }
-    ];
-    if (hasHammerEquipped(context)) {
-      const selected = selectedHammerSkillIds(context);
-      groups.push({
-        id: 'ranger-hammer-selection',
-        label: 'Hammer',
-        skillIds: [],
-        selections: RANGER_HAMMER_VARIANT_PAIRS.map((pair, index) => ({
-          skillId: selected[index],
-          optionSkillIds: pair,
-          selectionKey: 'selectedHammerSkillIds',
-          selectionIndex: index
-        })),
-        color: '#7ca64a',
-        className: 'ranger-hammer'
-      });
-    }
 
-    return groups;
-  },
-  updateSkillBarSelection: updateRangerCoreSelection,
-  paletteGroups: (context: RangerUiContext) => {
-    if (rangerUiSpecialization(context) !== 'Core') return [];
-    return [rangerPetPaletteGroup(context, { resourceAnchor: true })];
-  },
-  resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
-    const state = rangerUiState(context);
-    return [
-      {
-        id: 'endurance',
-        singular: 'endurance',
-        plural: 'endurance',
-        maximum: Number(state.maximumEndurance || 100),
-        value: Number(state.endurance ?? 100),
-        startMaximum: 100,
-        canStart: false,
-        step: 1,
-        displayMode: 'bar',
-        shortLabel: 'End',
-        statusLabel: 'Current',
-        paletteSkillId: ID.DODGE
-      }
-    ];
-  },
-  paletteSkillAvailability: rangerCorePaletteAvailability,
-  eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
-    RANGER_HIDDEN_EVENT_TYPES.has(String(event.type)) ? null : undefined
-});
-
-export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog>) {
-  rangerCatalog = catalog;
-  return rangerCoreUi;
+      return groups;
+    },
+    updateSkillBarSelection: updateRangerCoreSelection,
+    paletteGroups: (context: RangerUiContext) => {
+      if (rangerUiSpecialization(context) !== 'Core') return [];
+      return [rangerPetPaletteGroup(catalog, context, { resourceAnchor: true })];
+    },
+    resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
+      const state = rangerUiState(context);
+      return [
+        {
+          id: 'endurance',
+          singular: 'endurance',
+          plural: 'endurance',
+          maximum: Number(state.maximumEndurance || 100),
+          value: Number(state.endurance ?? 100),
+          startMaximum: 100,
+          canStart: false,
+          step: 1,
+          displayMode: 'bar',
+          shortLabel: 'End',
+          statusLabel: 'Current',
+          paletteSkillId: ID.DODGE
+        }
+      ];
+    },
+    paletteSkillAvailability: (context: RangerUiContext, skill: RangerSkill) =>
+      rangerCorePaletteAvailability(catalog, context, skill),
+    eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
+      RANGER_HIDDEN_EVENT_TYPES.has(String(event.type)) ? null : undefined
+  });
 }

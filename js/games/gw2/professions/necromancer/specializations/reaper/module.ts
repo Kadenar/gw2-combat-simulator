@@ -12,7 +12,7 @@ import {
   reaperSchedulerHooks
 } from '#gw2/professions/necromancer/specializations/reaper/mechanics/reaper-shroud.js';
 import { reaperState } from '#gw2/professions/necromancer/specializations/reaper/state.js';
-import { reaperUi } from '#gw2/professions/necromancer/specializations/reaper/presentation.js';
+import { bindReaperUi } from '#gw2/professions/necromancer/specializations/reaper/presentation.js';
 import { REAPER_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/reaper/skills/index.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { REAPER_BALANCE_PROFILES } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
@@ -52,5 +52,5 @@ export const reaperModule = defineNativeModule({
       ]
     }
   },
-  presentation: reaperUi
+  presentation: bindReaperUi
 });

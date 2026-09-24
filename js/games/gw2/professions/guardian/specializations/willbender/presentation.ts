@@ -1,3 +1,4 @@
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
@@ -14,7 +15,7 @@ import type {
   ProfessionEventLogDescriptor,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { GuardianResolverEvent, GuardianUiContext } from '#gw2/professions/guardian/types.js';
+import type { GuardianResolverEvent, GuardianUiContext, GuardianUiSlice } from '#gw2/professions/guardian/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 
 function willbenderEventLogRow(
@@ -85,17 +86,20 @@ function willbenderEffectPresentations(context: GuardianUiContext): ProfessionEf
   ];
 }
 
-export const willbenderUi = Object.freeze({
-  effectPresentations: willbenderEffectPresentations,
-  eventLogRow: willbenderEventLogRow,
-  rotationStateSnapshot: willbenderStateSnapshot,
-  paletteGroups: (context: GuardianUiContext) => [
-    {
-      id: 'profession',
-      label: 'F',
-      skillIds: guardianUiSkillIdsByName(VIRTUE_NAMES, context),
-      color: '#2f7eb8',
-      resourceAnchor: true
-    }
-  ]
-});
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindWillbenderUi(catalog: Readonly<CanonicalCatalog>): GuardianUiSlice {
+  return Object.freeze({
+    effectPresentations: willbenderEffectPresentations,
+    eventLogRow: willbenderEventLogRow,
+    rotationStateSnapshot: willbenderStateSnapshot,
+    paletteGroups: (context: GuardianUiContext) => [
+      {
+        id: 'profession',
+        label: 'F',
+        skillIds: guardianUiSkillIdsByName(catalog, VIRTUE_NAMES, context),
+        color: '#2f7eb8',
+        resourceAnchor: true
+      }
+    ]
+  });
+}

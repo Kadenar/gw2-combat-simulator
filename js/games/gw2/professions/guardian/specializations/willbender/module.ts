@@ -9,7 +9,7 @@ import {
 } from '#gw2/professions/guardian/specializations/willbender/mechanics/virtue-rules.js';
 import { WILLBENDER_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/willbender/skills/index.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
-import { willbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
+import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
 import { WILLBENDER_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 
 export const willbenderModule = defineNativeModule({
@@ -35,5 +35,5 @@ export const willbenderModule = defineNativeModule({
       hooks: { eventHandlers: willbenderEventHandlers }
     }
   },
-  presentation: willbenderUi
+  presentation: bindWillbenderUi
 });

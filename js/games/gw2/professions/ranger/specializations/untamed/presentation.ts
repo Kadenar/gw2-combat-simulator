@@ -9,18 +9,14 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 
-// Module-level cache populated once in bindUntamedUi; avoids filtering the catalog on every render.
-let petSkillIds: SkillId[] = [];
-let untamedCatalog: Readonly<CanonicalCatalog>;
-
 function initialUntamedState(context: RangerUiContext): 'Pet' | 'Ranger' {
   return context.build?.initialUntamedState === 'Ranger' || context.config?.initialUntamedState === 'Ranger'
     ? 'Ranger'
     : 'Pet';
 }
 
-function stateOption(value: 'Pet' | 'Ranger', skillId: SkillId) {
-  const skill = untamedCatalog.skillsById.get(skillId);
+function stateOption(catalog: Readonly<CanonicalCatalog>, value: 'Pet' | 'Ranger', skillId: SkillId) {
+  const skill = catalog.skillsById.get(skillId);
   return {
     value,
     label: `Unleashed ${value}`,
@@ -99,35 +95,33 @@ function untamedStateSnapshot(context: RangerUiContext): RotationStateSnapshotIt
   return items;
 }
 
-export const untamedUi: RangerUiSlice = Object.freeze({
-  startControls: (context: RangerUiContext) => [
-    {
-      label: 'Start unleashed',
-      buildKey: 'initialUntamedState',
-      value: initialUntamedState(context),
-      options: [stateOption('Pet', ID.UNLEASH_PET), stateOption('Ranger', ID.UNLEASH_RANGER)],
-      color: '#3f9b64'
-    }
-  ],
-  paletteGroups: (context: RangerUiContext) => [
-    rangerPetPaletteGroup(context),
-    {
-      id: 'ranger-untamed-profession',
-      label: 'Unleash',
-      skillIds: [ID.UNLEASH_RANGER, ID.UNLEASH_PET, ...petSkillIds],
-      color: '#3f9b64',
-      resourceAnchor: true
-    }
-  ],
-  paletteSkillAvailability: availability,
-  rotationStateSnapshot: untamedStateSnapshot,
-  // Unleash synchronization is internal state bookkeeping, not a player-facing combat event.
-  eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
-    event.type === 'ranger.untamed-state' ? null : undefined
-});
-
-export function bindUntamedUi(catalog: Readonly<CanonicalCatalog>) {
-  untamedCatalog = catalog;
-  petSkillIds = catalog.skills.filter((skill) => skill.unleashedPetSkill).map((skill) => skill.id);
-  return untamedUi;
+/** Captures this UI's catalog so other profession instances cannot change its projections. */
+export function bindUntamedUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlice {
+  const petSkillIds = catalog.skills.filter((skill) => skill.unleashedPetSkill).map((skill) => skill.id);
+  return Object.freeze({
+    startControls: (context: RangerUiContext) => [
+      {
+        label: 'Start unleashed',
+        buildKey: 'initialUntamedState',
+        value: initialUntamedState(context),
+        options: [stateOption(catalog, 'Pet', ID.UNLEASH_PET), stateOption(catalog, 'Ranger', ID.UNLEASH_RANGER)],
+        color: '#3f9b64'
+      }
+    ],
+    paletteGroups: (context: RangerUiContext) => [
+      rangerPetPaletteGroup(catalog, context),
+      {
+        id: 'ranger-untamed-profession',
+        label: 'Unleash',
+        skillIds: [ID.UNLEASH_RANGER, ID.UNLEASH_PET, ...petSkillIds],
+        color: '#3f9b64',
+        resourceAnchor: true
+      }
+    ],
+    paletteSkillAvailability: availability,
+    rotationStateSnapshot: untamedStateSnapshot,
+    // Unleash synchronization is internal state bookkeeping, not a player-facing combat event.
+    eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
+      event.type === 'ranger.untamed-state' ? null : undefined
+  });
 }

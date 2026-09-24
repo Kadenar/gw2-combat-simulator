@@ -13,7 +13,7 @@ import {
 } from '#gw2/professions/ranger/specializations/druid/traits/blood-moon.js';
 import { DRUID_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/druid/skills/index.js';
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
-import { druidUi } from '#gw2/professions/ranger/specializations/druid/presentation.js';
+import { bindDruidUi } from '#gw2/professions/ranger/specializations/druid/presentation.js';
 import { DRUID_BALANCE_PROFILES } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 
 export const druidModule = defineNativeModule({
@@ -47,5 +47,5 @@ export const druidModule = defineNativeModule({
       ]
     }
   },
-  presentation: druidUi
+  presentation: bindDruidUi
 });

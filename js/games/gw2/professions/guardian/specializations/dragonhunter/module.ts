@@ -12,7 +12,7 @@ import {
 } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/virtues-and-traps.js';
 import { DRAGONHUNTER_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/dragonhunter/skills/index.js';
 import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
-import { dragonhunterUi } from '#gw2/professions/guardian/specializations/dragonhunter/presentation.js';
+import { bindDragonhunterUi } from '#gw2/professions/guardian/specializations/dragonhunter/presentation.js';
 import { DRAGONHUNTER_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 
 export const dragonhunterModule = defineNativeModule({
@@ -39,5 +39,5 @@ export const dragonhunterModule = defineNativeModule({
       hooks: { eventHandlers: dragonhunterEventHandlers }
     }
   },
-  presentation: dragonhunterUi
+  presentation: bindDragonhunterUi
 });

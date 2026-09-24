@@ -18,7 +18,7 @@ import {
 import { SCRAPPER_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/scrapper/skills/index.js';
 import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
 import { SCRAPPER_BALANCE_PROFILES } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
-import { scrapperUi } from '#gw2/professions/engineer/specializations/scrapper/presentation.js';
+import { bindScrapperUi } from '#gw2/professions/engineer/specializations/scrapper/presentation.js';
 
 export const scrapperModule = defineNativeModule({
   id: 'Scrapper',
@@ -60,5 +60,5 @@ export const scrapperModule = defineNativeModule({
       }
     }
   },
-  presentation: scrapperUi
+  presentation: bindScrapperUi
 });
