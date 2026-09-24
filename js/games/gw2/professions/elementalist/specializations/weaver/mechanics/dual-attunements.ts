@@ -245,22 +245,22 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   const dualAttunements = weaverDualAttunements(skill);
   // An attunement cast pushes the old main-hand element into the off hand
   // (under Unravel both hands land on the target instead) and puts all four
-  // attunements on one shared dual recharge, shortened by Flow State and then by
-  // the usual Core recharge adjustments.
+  // attunements on one shared dual recharge, with trait reductions and recharge
+  // speed applied in order by the shared attunement-duration calculation.
   const target = targetAttunement(skill);
   if (target) {
     const previous = core.primaryAttunement;
     state.secondaryAttunement = state.unravelUntil > at ? target : previous;
-    const baseRecharge = Math.max(
-      0,
-      WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS -
-        (hasTrait(context, 'Flow State')
-          ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.flowState), 'rechargeReduction')
-          : 0)
-    );
     onAttunementComplete(context, skill, target, {
       secondaryAttunement: state.secondaryAttunement,
-      rechargeDuration: elementalistAttunementRechargeDuration(context, baseRecharge)
+      rechargeDuration: elementalistAttunementRechargeDuration(
+        context,
+        skill,
+        state.weaveSelfUntil > at
+          ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'initialDelay')
+          : WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS,
+        at
+      )
     });
     // Claim the transition so Core does not also run its single-attunement swap.
     context.elementalistAttunementHandled = true;

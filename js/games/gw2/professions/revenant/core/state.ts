@@ -31,7 +31,6 @@ export interface RevenantCoreState {
   activeLegendId: string;
   activeLoadoutId: string;
   selectedLegendIds: string[];
-  legendSwapReadyAt: number;
   activeUpkeeps: RevenantUpkeepState[];
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
@@ -65,7 +64,6 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
     activeLegendId,
     activeLoadoutId: activeLegendId,
     selectedLegendIds,
-    legendSwapReadyAt: 0,
     activeUpkeeps: [],
     availableFlips: {},
     autoattackChains: {},
@@ -95,7 +93,6 @@ export const REVENANT_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantCoreSt
   'activeLegendId',
   'activeLoadoutId',
   'selectedLegendIds',
-  'legendSwapReadyAt',
   'activeUpkeeps',
   'availableFlips',
   'autoattackChains',

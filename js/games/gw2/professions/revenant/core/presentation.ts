@@ -102,15 +102,13 @@ export function revenantCorePaletteSkillAvailability(
   }
 
   if (skill.id === SKILL.SWAP_LEGENDS || skill.paletteLegendId) {
-    // The visible tile targets the inactive legend, but both destinations share
-    // the combat-only legend-swap timer stored in profession state.
-    const now = Number(context.time || 0);
-    const readyAt = Number(state.legendSwapReadyAt || 0);
-    if (readyAt > now) {
+    // Both destination tiles use the scheduler's remaining recharge, including temporary Alacrity.
+    const remaining = Number(context.cooldowns?.['Swap Legends']?.remaining || 0);
+    if (remaining > 0) {
       return {
         available: false,
         message: 'Legend swap is recharging',
-        retryAt: readyAt
+        retryAt: Number(context.time || 0) + remaining / 1000
       };
     }
   }

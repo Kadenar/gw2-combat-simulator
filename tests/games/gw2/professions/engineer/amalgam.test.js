@@ -399,7 +399,7 @@ test('Mercurial Tendencies reduces Evolve recharge after control', () => {
   });
   const evolveStart = (result) => result.steps.filter((step) => step.skillId === ID.EVOLVE_BASE)[1].start;
 
-  assert.equal(evolveStart(baseline) - evolveStart(reduced), 2500);
+  assert.equal(evolveStart(baseline) - evolveStart(reduced), 2480);
   const proc = reduced.events.find((event) => event.type === 'proc' && event.name === 'Mercurial Tendencies');
   assert.equal(proc.cooldownReduction, 2.5);
 });

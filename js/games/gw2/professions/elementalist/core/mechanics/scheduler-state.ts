@@ -7,7 +7,10 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import type { ElementalistRechargeQuery, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS
+} from '#gw2/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
 import {
   extendPersistingFlamesField,
@@ -28,6 +31,12 @@ export function observeElementalistEvent(context: ElementalistSchedulerContext, 
 // auras, orbs, chains, and conjures at the requested scheduler timestamp.
 export function advanceElementalistState(context: ElementalistSchedulerContext, at: number): void {
   const state = professionCoreState(context);
+  // Attunement availability mirrors the shared recharge projection after each Alacrity segment.
+  for (const element of ELEMENTALIST_ATTUNEMENTS) {
+    state.attunementReadyAt[element] =
+      context.state.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[element]) ?? state.attunementReadyAt[element];
+  }
+
   updateEndurance(context, state, at);
   state.activeAuras = state.activeAuras.filter((aura) => aura.expiresAt > at);
   // Clear expired etchings before casts advance their charge or read their payoff/palette stage.
@@ -63,7 +72,11 @@ export function advanceElementalistState(context: ElementalistSchedulerContext, 
     const root = context.catalog.skillsById.get(ID.ROCK_BARRIER);
     if (root) {
       const releaseQuery: ElementalistRechargeQuery = { rockBarrierRelease: true };
-      context.state.cooldowns.set(root.id, expiresAt + context.rechargeDurationFor(root, expiresAt, releaseQuery));
+      context.cooldownController.startRecharge(
+        root,
+        expiresAt,
+        context.rechargeDurationFor(root, expiresAt, releaseQuery) * context.cooldownController.rate(root, expiresAt)
+      );
       resetAutoattackChains(context, [root.id]);
     }
   }

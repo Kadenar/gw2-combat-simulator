@@ -106,7 +106,7 @@ export function refundRitualistSoulTwisting(context: NecromancerCastContext, ski
   if (castWasInterrupted(context)) return;
   const state = ritualistState.from(context);
   if (state.pendingSoulTwistSkill !== skill.id) return;
-  context.state.cooldowns.delete(skill.id);
+  context.cooldownController.clear(skill.id);
   delete state.pendingSoulTwistSkill;
 }
 

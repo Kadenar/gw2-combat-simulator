@@ -1,5 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON, timeKey } from '#kernel/core/clock.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
 
 /** Quickness increases action rate by 50%, so duration is divided by 1.5. */
@@ -38,6 +38,12 @@ export function quantizeGw2ActionDurationUp(value: number, interval = GW2_ACTION
   if (!(value > 0)) return 0;
   // The epsilon keeps an exact boundary from rounding into the next action tick.
   return Math.ceil(value / interval - 1e-9) * interval;
+}
+
+/** Cooldowns become usable on the next absolute action tick, including negative precast timestamps. */
+export function gw2CooldownReadyAt(at: number): number {
+  if (!Number.isFinite(at)) return at;
+  return canonicalTime((Math.ceil(timeKey(at) / (GW2_ACTION_TICK_MS * 1000)) * GW2_ACTION_TICK_MS) / 1000);
 }
 
 /** Expires temporary effects on the next absolute action tick without changing their stored duration. */

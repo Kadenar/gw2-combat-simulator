@@ -12,6 +12,7 @@ import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState, ProfessionRotationDragState, RotationActionOptions } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
 import { openDurationEditor } from '#ui/rotation/editing/duration-editor.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
@@ -180,6 +181,8 @@ export function dispatchPaletteActivation(
       icon: WAIT_ICON,
       label: 'Duration',
       value: 1000,
+      minimumMs: GW2_ACTION_TICK_MS,
+      stepMs: GW2_ACTION_TICK_MS,
       onApply(waitMs) {
         app.addRotation(name, { durationMs: waitMs });
       }
@@ -335,6 +338,8 @@ export function resolvePaletteDrop(
       icon: WAIT_ICON,
       label: 'Duration',
       value: 1000,
+      minimumMs: GW2_ACTION_TICK_MS,
+      stepMs: GW2_ACTION_TICK_MS,
       onApply: (durationMs) => insert({ durationMs })
     });
     return null;

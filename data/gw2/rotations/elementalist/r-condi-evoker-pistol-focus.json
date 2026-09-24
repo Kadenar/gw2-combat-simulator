@@ -629,7 +629,7 @@
     {
       "name": "Frigid Flurry",
       "skillId": 72028,
-      "interruptMs": 997
+      "interruptMs": 1000
     },
     {
       "name": "Frozen Fusillade",
@@ -768,7 +768,7 @@
     {
       "name": "Frigid Flurry",
       "skillId": 72028,
-      "interruptMs": 997
+      "interruptMs": 1000
     },
     {
       "name": "Fire Attunement",
@@ -906,7 +906,7 @@
     {
       "name": "Frigid Flurry",
       "skillId": 72028,
-      "interruptMs": 999
+      "interruptMs": 1000
     },
     {
       "name": "Fire Attunement",

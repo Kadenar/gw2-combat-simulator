@@ -37,6 +37,7 @@ import {
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
 import { emitLesserEnchantedDaggers } from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
 import { completeBeguilingHaze } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { runtimeRevenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
 import { emitLegendInvocationProfile } from '#gw2/professions/revenant/core/traits/index.js';
@@ -174,8 +175,13 @@ const RELEASE_POTENTIAL_IDS = new Set(Object.values(REVENANT_RELEASE_POTENTIAL_S
 
 function conduitCastAvailability(context: RevenantPrecastContext, skill: RevenantSkill) {
   const state = conduitState.from(context);
-  // Beguiling Haze has a custom dual-mode cooldown tracked in ConduitState; the platform's ammo/cooldown system
-  // is kept in sync but the authoritative gate is the state fields checked here.
+  // Both skill identities share the main recharge; project its progress after any Alacrity changes.
+  if (skill.handlerId === 'revenant.beguiling-haze' && state.beguilingHazeRecharge) {
+    state.beguilingHazeReadyAt = gw2CooldownReadyAt(
+      context.cooldownController.project(skill, state.beguilingHazeRecharge)
+    );
+  }
+
   if (
     skill.handlerId === 'revenant.beguiling-haze' &&
     Number(state.beguilingHazeCharges || 0) <= 0 &&
@@ -388,6 +394,7 @@ export const conduitSchedulerHooks = Object.freeze({
     // On a full cooldown reset (e.g. phase end), treat Beguiling Haze as immediately available.
     handler: (context: RevenantSchedulerContext): void => {
       conduitState.from(context).beguilingHazeReadyAt = context.state.time;
+      conduitState.from(context).beguilingHazeRecharge = null;
     }
   },
   taskHandlers: Object.freeze({

@@ -1,3 +1,4 @@
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
@@ -34,12 +35,18 @@ function lifetimeContext(element = 'Fire') {
   const queued = [];
   const queue = createTaskQueue({ handlers: elementalistElementalTaskHandlers });
   let sequence = 0;
-  return {
+  const context = {
     ...scheduled,
     config,
     profession,
     catalog: profession.catalog,
-    state: { time: 0, profession: profession.createProfessionState(config), cooldowns: new Map() },
+    state: {
+      time: 0,
+      profession: profession.createProfessionState(config),
+      cooldowns: new Map(),
+      rechargeProgress: new Map(),
+      ammo: new Map()
+    },
     queued,
     start: 0,
     effectiveEnd: 0.1 + 0.201,
@@ -56,6 +63,12 @@ function lifetimeContext(element = 'Fire') {
       }
     }
   };
+  context.cooldownController = createCooldownController({
+    state: context.state,
+    rechargeDuration: context.rechargeDurationFor,
+    skillFor: (id) => context.catalog.skillsById.get(id)
+  });
+  return context;
 }
 
 const openBarrier = elementalistRockBarrierMechanicHandlers['elementalist.core.open-rock-barrier'];

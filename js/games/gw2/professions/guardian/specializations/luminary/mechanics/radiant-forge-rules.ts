@@ -162,7 +162,7 @@ export const luminarySkillMechanicHandlers = Object.freeze({
     context: GuardianSchedulerContext;
     skill: GuardianSkill;
   }): void => {
-    context.state.cooldowns.delete(skill.id);
+    context.cooldownController.clear(skill.id);
   }
 });
 

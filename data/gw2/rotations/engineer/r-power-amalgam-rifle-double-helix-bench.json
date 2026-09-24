@@ -24,18 +24,18 @@
     "Galvanic Bomb",
     {
       "name": "__combat_start",
-      "offset": 521
+      "offset": 520
     },
     "Stow Bomb Kit",
     "Flux State",
     {
       "name": "Defensive Protocol: Thorns",
       "skillId": 77104,
-      "offset": 163
+      "offset": 160
     },
     {
       "name": "Detonate",
-      "offset": 357
+      "offset": 360
     },
     {
       "name": "Offensive Protocol: Obliterate",
@@ -44,7 +44,7 @@
     "Blunderbuss",
     {
       "name": "Grenade Kit",
-      "offset": 159
+      "offset": 160
     },
     "Shrapnel Grenade",
     "Poison Grenade",
@@ -62,56 +62,56 @@
     "Jump Shot",
     {
       "name": "Rifle Burst",
-      "interruptMs": 638
+      "interruptMs": 640
     },
     "Blunderbuss",
     {
       "name": "Bomb Kit",
-      "offset": 202
+      "offset": 200
     },
     "Fire Bomb",
     {
       "name": "Grenade Kit",
-      "offset": 359
+      "offset": 360
     },
     {
       "name": "Shrapnel Grenade",
-      "interruptMs": 481
+      "interruptMs": 480
     },
     "Stow Grenade Kit",
     {
       "name": "Rifle Burst",
-      "interruptMs": 601
+      "interruptMs": 600
     },
     "Overcharged Shot",
     {
       "name": "Rifle Burst",
-      "interruptMs": 643
+      "interruptMs": 640
     },
     "Net Shot",
     {
       "name": "Rifle Burst",
-      "interruptMs": 643
+      "interruptMs": 640
     },
     {
       "name": "Bomb Kit",
-      "offset": 401
+      "offset": 400
     },
     "Bomb",
     "Stow Bomb Kit",
     {
       "name": "Rifle Burst",
-      "interruptMs": 641
+      "interruptMs": 640
     },
     "Blunderbuss",
     {
       "name": "Grenade Kit",
-      "offset": 279
+      "offset": 280
     },
     "Shrapnel Grenade",
     {
       "name": "Bomb Kit",
-      "offset": 318
+      "offset": 320
     },
     "Big Ol' Bomb",
     "Magnetic Bomb",
@@ -120,7 +120,7 @@
     {
       "name": "Defensive Protocol: Thorns",
       "skillId": 77104,
-      "offset": 238
+      "offset": 240
     },
     {
       "name": "Evolve",
@@ -133,11 +133,11 @@
     },
     {
       "name": "Detonate",
-      "offset": 41
+      "offset": 40
     },
     {
       "name": "Stow Bomb Kit",
-      "offset": 403
+      "offset": 400
     },
     "Blunderbuss",
     "Grenade Kit",
@@ -150,7 +150,7 @@
     },
     {
       "name": "Stow Grenade Kit",
-      "offset": 323
+      "offset": 320
     },
     "Jump Shot",
     {
@@ -160,7 +160,7 @@
     "Blunderbuss",
     {
       "name": "Bomb Kit",
-      "offset": 159
+      "offset": 160
     },
     "Fire Bomb",
     {
@@ -169,22 +169,22 @@
     },
     {
       "name": "Shrapnel Grenade",
-      "interruptMs": 483
+      "interruptMs": 480
     },
     "Stow Grenade Kit",
     {
       "name": "Rifle Burst",
-      "interruptMs": 677
+      "interruptMs": 680
     },
     "Overcharged Shot",
     {
       "name": "Rifle Burst",
-      "interruptMs": 679
+      "interruptMs": 680
     },
     "Throw Mine",
     {
       "name": "Rifle Burst",
-      "interruptMs": 678
+      "interruptMs": 680
     },
     {
       "name": "Detonate",
@@ -193,21 +193,21 @@
     "Net Shot",
     {
       "name": "Rifle Burst",
-      "interruptMs": 642
+      "interruptMs": 640
     },
     "Blunderbuss",
     {
       "name": "Rifle Burst",
-      "interruptMs": 683
+      "interruptMs": 680
     },
     {
       "name": "Grenade Kit",
-      "offset": 564
+      "offset": 560
     },
     "Shrapnel Grenade",
     {
       "name": "Bomb Kit",
-      "offset": 279
+      "offset": 280
     },
     "Big Ol' Bomb",
     "Magnetic Bomb",
@@ -232,7 +232,7 @@
     "Blunderbuss",
     {
       "name": "Grenade Kit",
-      "offset": 284
+      "offset": 280
     },
     "Shrapnel Grenade",
     "Poison Grenade",
@@ -243,7 +243,7 @@
     },
     {
       "name": "Stow Grenade Kit",
-      "offset": 561
+      "offset": 560
     },
     "Throw Mine",
     "Detonate",
@@ -252,32 +252,32 @@
     "Blunderbuss",
     {
       "name": "Bomb Kit",
-      "offset": 159
+      "offset": 160
     },
     "Fire Bomb",
     {
       "name": "Grenade Kit",
-      "offset": 324
+      "offset": 320
     },
     {
       "name": "Shrapnel Grenade",
-      "interruptMs": 478
+      "interruptMs": 480
     },
     "Stow Grenade Kit",
     {
       "name": "Rifle Burst",
-      "interruptMs": 639
+      "interruptMs": 640
     },
     "Overcharged Shot",
     {
       "name": "Rifle Burst",
-      "interruptMs": 642
+      "interruptMs": 640
     },
     "Net Shot",
     "Rifle Burst",
     {
       "name": "Bomb Kit",
-      "offset": 481
+      "offset": 480
     },
     "Bomb",
     "Stow Bomb Kit",
@@ -285,19 +285,19 @@
     "Blunderbuss",
     {
       "name": "Grenade Kit",
-      "offset": 239
+      "offset": 240
     },
     "Shrapnel Grenade",
     {
       "name": "Bomb Kit",
-      "offset": 322
+      "offset": 320
     },
     "Big Ol' Bomb",
     "Magnetic Bomb",
     {
       "name": "Defensive Protocol: Thorns",
       "skillId": 77104,
-      "offset": 161
+      "offset": 160
     },
     "Fire Bomb",
     "Galvanic Bomb",
@@ -312,11 +312,11 @@
     },
     {
       "name": "Detonate",
-      "offset": 43
+      "offset": 40
     },
     {
       "name": "Stow Bomb Kit",
-      "offset": 278
+      "offset": 280
     },
     "Blunderbuss",
     {
@@ -332,7 +332,7 @@
     },
     {
       "name": "Stow Grenade Kit",
-      "offset": 361
+      "offset": 360
     },
     "Jump Shot",
     {
@@ -342,12 +342,12 @@
     "Blunderbuss",
     {
       "name": "Bomb Kit",
-      "offset": 242
+      "offset": 240
     },
     "Fire Bomb",
     {
       "name": "Grenade Kit",
-      "offset": 284
+      "offset": 280
     },
     {
       "name": "Shrapnel Grenade",
@@ -356,46 +356,46 @@
     "Stow Grenade Kit",
     {
       "name": "Rifle Burst",
-      "interruptMs": 598
+      "interruptMs": 600
     },
     "Overcharged Shot",
     {
       "name": "Rifle Burst",
-      "interruptMs": 684
+      "interruptMs": 680
     },
     "Throw Mine",
     {
       "name": "Rifle Burst",
-      "interruptMs": 638
+      "interruptMs": 640
     },
     {
       "name": "Detonate",
-      "offset": 79
+      "offset": 80
     },
     "Net Shot",
     {
       "name": "Rifle Burst",
-      "interruptMs": 644
+      "interruptMs": 640
     },
     "Blunderbuss",
     {
       "name": "Rifle Burst",
-      "interruptMs": 643
+      "interruptMs": 640
     },
     {
       "name": "Grenade Kit",
-      "offset": 482
+      "offset": 480
     },
     "Shrapnel Grenade",
     {
       "name": "Bomb Kit",
-      "offset": 282
+      "offset": 280
     },
     "Big Ol' Bomb",
     {
       "name": "Defensive Protocol: Thorns",
       "skillId": 77104,
-      "offset": 125
+      "offset": 120
     },
     "Magnetic Bomb",
     "Fire Bomb",
@@ -410,12 +410,12 @@
     },
     {
       "name": "Stow Bomb Kit",
-      "offset": 281
+      "offset": 280
     },
     "Blunderbuss",
     {
       "name": "Grenade Kit",
-      "offset": 321
+      "offset": 320
     },
     "Shrapnel Grenade",
     "Poison Grenade",
@@ -426,34 +426,34 @@
     },
     {
       "name": "Stow Grenade Kit",
-      "offset": 403
+      "offset": 400
     },
     "Throw Mine",
     "Jump Shot",
     {
       "name": "Detonate",
-      "offset": 41
+      "offset": 40
     },
     "Blunderbuss",
     "Bomb Kit",
     "Fire Bomb",
     {
       "name": "Grenade Kit",
-      "offset": 321
+      "offset": 320
     },
     {
       "name": "Shrapnel Grenade",
-      "interruptMs": 481
+      "interruptMs": 480
     },
     "Stow Grenade Kit",
     {
       "name": "Rifle Burst",
-      "interruptMs": 602
+      "interruptMs": 600
     },
     "Overcharged Shot",
     {
       "name": "Rifle Burst",
-      "interruptMs": 641
+      "interruptMs": 640
     },
     "Net Shot",
     {
@@ -462,18 +462,18 @@
     },
     {
       "name": "Bomb Kit",
-      "offset": 245
+      "offset": 240
     },
     "Bomb",
     "Stow Bomb Kit",
     {
       "name": "Rifle Burst",
-      "interruptMs": 681
+      "interruptMs": 680
     },
     "Blunderbuss",
     {
       "name": "Grenade Kit",
-      "offset": 201
+      "offset": 200
     },
     "Shrapnel Grenade",
     "Flux State",
@@ -496,7 +496,7 @@
     "Galvanic Bomb",
     {
       "name": "Stow Bomb Kit",
-      "offset": 199
+      "offset": 200
     },
     "Throw Mine",
     {
@@ -505,12 +505,12 @@
     },
     {
       "name": "Detonate",
-      "offset": 81
+      "offset": 80
     },
     "Blunderbuss",
     {
       "name": "Grenade Kit",
-      "offset": 162
+      "offset": 160
     },
     "Shrapnel Grenade",
     "Poison Grenade",
@@ -521,7 +521,7 @@
     },
     {
       "name": "Stow Grenade Kit",
-      "offset": 322
+      "offset": 320
     }
   ]
 }

@@ -7,6 +7,64 @@ import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { gw2RechargeIntervals } from '#gw2/platform/engine/skills/recharge.js';
+
+// Rewound passive cooldowns keep their saved work while later Alacrity changes their completion.
+test('Continuum snapshots keep passive cooldown queries aligned with restored recharge', () => {
+  const skill = { id: 980000, name: 'Signet', cooldown: 10 };
+  const skillsById = new Map([[skill.id, skill]]);
+  const config = { specialization: 'Chronomancer' };
+  const events = [];
+  const state = {
+    time: 0,
+    ammo: new Map(),
+    rechargeProgress: new Map(),
+    cooldowns: new Map(),
+    profession: { core: { autoattackChains: {} }, specialization: { kind: 'Chronomancer', state: { continuum: null } } }
+  };
+  const cooldown = createCooldownController({
+    state,
+    rechargeDuration: () => 10,
+    skillFor: (id) => skillsById.get(id),
+    rechargeIntervals: (skill, start, end) => gw2RechargeIntervals(config, events, skill, start, end)
+  });
+  const continuum = createContinuumController({
+    state,
+    cooldownController: cooldown,
+    unaffectedCooldownIds: new Set(),
+    skillsById,
+    refreshAmmo: cooldown.refreshAmmo,
+    consumeResources: () => 0,
+    triggerShatterTraits: () => {},
+    addEvent: (event) => events.push(event),
+    durationPerSource: 3
+  });
+  cooldown.startRecharge(skill, 0);
+  continuum.beginContinuumSplit({ id: 980001 }, 1);
+  continuum.restoreContinuum(4, 'test');
+  const timeline = createGw2TimelineIndex({ config, events, skillsById });
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 11), true);
+  events.push({
+    type: 'buff',
+    kind: 'alacrity',
+    at: 5,
+    duration: 4,
+    stacks: 1,
+    resolvedAudience: {
+      includesSelf: true,
+      includesSummons: false,
+      alliedPlayerCount: 0,
+      companionIds: [],
+      recipientCount: 1
+    }
+  });
+  cooldown.refresh(11);
+  assert.equal(state.cooldowns.get(skill.id), 11);
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 10.999999), true);
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 11), false);
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 4), true);
+});
 
 // A rewind preserves the remaining cast lockout even when recharge reduction subsequently returns a charge.
 test('Continuum Split restores ammo recharge and cast lockout deadlines independently', () => {
@@ -14,12 +72,14 @@ test('Continuum Split restores ammo recharge and cast lockout deadlines independ
   const state = {
     time: 0,
     ammo: new Map(),
+    rechargeProgress: new Map(),
     cooldowns: new Map(),
     profession: { core: { autoattackChains: {} }, specialization: { kind: 'Chronomancer', state: { continuum: null } } }
   };
   const cooldown = createCooldownController({ state, rechargeDuration: () => 10 });
   const continuum = createContinuumController({
     state,
+    cooldownController: cooldown,
     unaffectedCooldownIds: new Set(),
     skillsById: new Map([[skill.id, skill]]),
     refreshAmmo: cooldown.refreshAmmo,
@@ -32,23 +92,31 @@ test('Continuum Split restores ammo recharge and cast lockout deadlines independ
   cooldown.spendAmmo(skill, 0);
   cooldown.setAmmoLockout(skill, 5, 0);
   continuum.beginContinuumSplit({ id: 980001 }, 1);
-  cooldown.reduceAmmoRecharge(skill, 20, 2);
+  cooldown.reduceSkillRecharge(skill, 20, 2);
   continuum.restoreContinuum(4, 'test');
 
   // Checkpoint-only fields must not leak into the canonical live ammo schema.
   assert.deepEqual(state.ammo.get(skill.id), {
     charges: 0,
     maximum: 2,
-    rechargeDuration: 10,
+    rechargeWork: 10,
+    rechargeProgress: { startedAt: 4, work: 9 },
+    lockoutProgress: { startedAt: 4, work: 4 },
     nextRechargeAt: 13,
     lockoutReadyAt: 8
   });
-  cooldown.reduceAmmoRecharge(skill, 10, 4);
+  cooldown.reduceSkillRecharge(skill, 10, 4);
   continuum.restoreContinuum(5, 'already restored');
   assert.equal(state.ammo.get(skill.id).charges, 1);
   assert.equal(state.cooldowns.get(skill.id), 8);
   cooldown.refreshAmmo(skill, 8);
   assert.equal(state.cooldowns.has(skill.id), false);
+
+  // An expired lockout must stay ready when a later rewind occurs between action ticks.
+  continuum.beginContinuumSplit({ id: 980001 }, 9);
+  continuum.restoreContinuum(10.01, 'test');
+  assert.equal(state.cooldowns.has(skill.id), false);
+  assert.equal(state.ammo.get(skill.id).lockoutReadyAt, 0);
 });
 
 test('Continuum restoration projects ammo without checkpoint-relative fields', () => {
@@ -242,7 +310,7 @@ test('a cooldown-delayed Continuum Split still excludes a skill that remains in 
   const firstSwordsman = result.steps.find((step) => step.ri === 4);
   const restoredSwordsman = result.steps.find((step) => step.ri === 7);
 
-  assert.equal(delayedSplit.start, 70001);
+  assert.equal(delayedSplit.start, 70040);
   assert.equal(restoredSwordsman.start, firstSwordsman.end);
 });
 

@@ -44,13 +44,9 @@ import type {
 } from '#gw2/professions/necromancer/types.js';
 
 import { observeTargetConditionCount } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import { castWasInterrupted, gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 
-function alacrityRecharge(context: NecromancerSchedulerContext, duration: number, at: number): number {
-  return duration / (context.hasBuff?.('alacrity', at) ? 1.25 : 1);
-}
-
-// Start the entry skill's post-exit recharge, applying alacrity at the exit timestamp.
+// Start the entry skill's post-exit recharge in base units so later Alacrity changes affect it.
 function setShroudRecharge(
   context: NecromancerSchedulerContext,
   entryId: SkillId | null | undefined,
@@ -59,11 +55,12 @@ function setShroudRecharge(
   if (entryId != null) {
     // Precombat shroud toggles prepare traits without imposing an artificial wait before the opener.
     if (context.hasExplicitCombatStart && (context.combatStartTime == null || at < context.combatStartTime)) {
-      context.state.cooldowns.delete(entryId);
+      context.cooldownController.clear(entryId);
       return;
     }
 
-    context.state.cooldowns.set(entryId, at + alacrityRecharge(context, 10, at));
+    const skill = context.catalog.skillsById.get(entryId);
+    if (skill) context.cooldownController.startRecharge(skill, at, 10);
   }
 }
 
@@ -86,7 +83,7 @@ export function leaveShroud(context: NecromancerSchedulerContext, at: number, re
 
   // Specialization callbacks run before shared exit traits and the visible weapon transition.
   runNecromancerShroudExit(context);
-  context.state.cooldowns.delete(ID.ISOLATE);
+  context.cooldownController.clear(ID.ISOLATE);
   setShroudRecharge(context, entryId, at);
   if (hasTrait(context, TRAIT.SOUL_BARBS)) {
     emitSkillBuff(context, {
@@ -221,7 +218,9 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
       eternalLife && !state.activeShroud && regenerationInterval > 0
         ? (Math.floor((at + EPSILON) / regenerationInterval) + 1) * regenerationInterval
         : Infinity;
-    // Stop at the earliest event or the requested end, including the exact instant drain would exhaust life force.
+    // Drain retains fractional progress; depletion is detected on the next 40 ms tick.
+    const depletedAt = rate > 0 ? gw2CooldownReadyAt(at + state.lifeForce / rate) : Infinity;
+    // Stop at the earliest event or the requested end, including the depletion detection tick.
     // Math.max prevents a stale pulse cursor from moving time backward; its branch below advances that cursor.
     const next = Math.max(
       at,
@@ -231,7 +230,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
         nextVampirism,
         nextRegeneration,
         state.activeShroud === 'lich' ? state.lichEndsAt : Infinity,
-        rate > 0 ? at + state.lifeForce / rate : Infinity,
+        depletedAt,
         nextNecromancerLifeForceGainAt(context)
       )
     );
@@ -241,7 +240,7 @@ export function advanceNecromancerState(context: NecromancerSchedulerContext, ta
     state.lifeForce = Math.max(0, state.lifeForce - rate * (next - at));
     syncNecromancerResources(state);
     // Depletion takes precedence over a simultaneous pulse: later gains do not automatically re-enter shroud.
-    if (rate > 0 && state.lifeForce <= EPSILON) {
+    if (rate > 0 && depletedAt <= next) {
       state.lifeForce = 0;
       leaveShroud(context, next, 'life-force-depleted');
     }
@@ -340,7 +339,7 @@ export function finalizeNecromancerCast(context: NecromancerCastContext, skill: 
   applySkillLifeForceGain(context, skill);
   const state = professionCoreState(context);
   if (state.pendingShroudEntryId === skill.id) {
-    context.state.cooldowns.set(skill.id, Number.POSITIVE_INFINITY);
+    context.cooldownController.setReadyAt(skill.id, Number.POSITIVE_INFINITY);
     delete state.pendingShroudEntryId;
   }
 

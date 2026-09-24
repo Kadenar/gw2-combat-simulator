@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { recordBuffApplication, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
-import { applyBoonExtension, boonApplicationsAt, selfBoonIntervals } from '#gw2/platform/combat/boons.js';
+import { applyBoonExtension, boonApplicationsAt, boonIntervals } from '#gw2/platform/combat/boons.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { assertSimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -54,10 +54,10 @@ test('permanent self-boon windows bypass event history for integration and readi
   // A fixed boon rate must stay independent of the rotation's growing history.
   const events = new Proxy([], { get: () => assert.fail('Permanent boons must not read event history') });
   for (const end of [5, Infinity]) {
-    assert.deepEqual([...selfBoonIntervals(events, 'vigor', 2, end, true)], [{ start: 2, end, active: true }]);
+    assert.deepEqual([...boonIntervals(events, 'vigor', 2, end, true)], [{ start: 2, end, active: true }]);
   }
 
-  assert.deepEqual([...selfBoonIntervals(events, 'alacrity', 2, 2, true)], []);
+  assert.deepEqual([...boonIntervals(events, 'alacrity', 2, 2, true)], []);
 });
 
 test('empty and reversed self-boon windows bypass history with or without permanent boons', () => {
@@ -69,7 +69,7 @@ test('empty and reversed self-boon windows bypass history with or without perman
       [2, 1],
       [Infinity, Infinity]
     ]) {
-      assert.deepEqual([...selfBoonIntervals(events, 'vigor', start, end, permanent)], []);
+      assert.deepEqual([...boonIntervals(events, 'vigor', start, end, permanent)], []);
     }
   }
 });

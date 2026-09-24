@@ -486,7 +486,7 @@ test('Thief Dodge waits for endurance and Vigor accelerates the queue', () => {
   assert.deepEqual(withVigor.warnings, []);
   assert.deepEqual(
     withVigor.steps.map((step) => step.start),
-    [0, 800, 6667]
+    [0, 800, 6680]
   );
 });
 
@@ -1462,11 +1462,13 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
       selectedSkills: ['Mercy']
     }
   );
-  const earlyMercyState = earlyMercy.events.find(
-    (event) => event.type === 'thief.state' && event.reason === 'mercy'
-  ).state;
-
-  assert.ok(Math.abs(earlyMercyState.initiative - 5.133333333333333) < 1e-9);
+  const earlyMercyStates = earlyMercy.events.filter((event) => event.type === 'thief.state');
+  const mercyIndex = earlyMercyStates.findIndex((event) => event.reason === 'mercy');
+  // Two malice stacks refund five initiative independently of the preceding regeneration wait.
+  assert.ok(
+    Math.abs(earlyMercyStates[mercyIndex].state.initiative - earlyMercyStates[mercyIndex - 1].state.initiative - 5) <
+      1e-9
+  );
   assert.equal(earlyMercy.planningState.profession.malice, 2);
 
   const rifleRotation = ["Deadeye's Mark", 'Kneel', 'Three Round Burst', 'Shadow Meld', "Malicious Death's Judgment"];

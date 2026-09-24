@@ -12,7 +12,6 @@ import {
 } from '#gw2/platform/combat/resources/charges.js';
 import {
   advanceResourceClock,
-  advanceResourceRecharge,
   advanceDiscreteResource,
   resourceDepletionAt,
   resourceValueAt,
@@ -176,19 +175,47 @@ test('actor replacement and command recovery stop autonomous work while preservi
   ]);
 });
 
-test('anchored accrual queries and discrete recharge preserve progress through changing rates and the cap', () => {
+test('anchored accrual queries retain their original anchor', () => {
   const anchor = { value: 10, maximum: 100, rate: 3, updatedAt: 1 };
   resourceValueAt(anchor, 2);
   assert.equal(resourceValueAt(anchor, 4), 19);
   assert.equal(anchor.value, 10, 'queries must retain the original accrual anchor');
-  const intervals = [
-    { start: 0, end: 2, rate: 1 },
-    { start: 2, end: 4, rate: 1.5 }
-  ];
-  const full = advanceResourceRecharge(8, 8, 1, 5, intervals);
-  assert.deepEqual(full, { value: 8, progress: 1 });
-  const spent = advanceResourceRecharge(7, 8, full.progress, 5, [{ start: 4, end: 8, rate: 1 }]);
-  assert.deepEqual(spent, { value: 8, progress: 0 });
+});
+
+test('discrete resources grant on 40 ms ticks without early tolerance or cadence drift', () => {
+  // An off-grid cadence retains its phase across observations, cap overflow, and later spending.
+  assert.deepEqual(advanceDiscreteResource(0, 8, 5, 5, 4.99999), { value: 0, nextAt: 5 });
+  assert.deepEqual(advanceDiscreteResource(0, 8, 5, 5, 5), { value: 1, nextAt: 10 });
+  assert.deepEqual(advanceDiscreteResource(8, 8, Infinity, 5, 10), { value: 8, nextAt: Infinity });
+  for (const partition of [[0.2], [0.07, 0.08, 0.119, 0.12, 0.2]]) {
+    let state = { value: 0, nextAt: 0.05 };
+    for (const at of partition) state = advanceDiscreteResource(state.value, 8, state.nextAt, 0.05, at);
+    assert.deepEqual(state, { value: 4, nextAt: 0.25 });
+  }
+
+  assert.deepEqual(advanceDiscreteResource(0, 8, 0.05, 0.05, 0.079), { value: 0, nextAt: 0.05 });
+  const full = advanceDiscreteResource(8, 8, 0.05, 0.05, 0.08);
+  assert.deepEqual(full, { value: 8, nextAt: 0.1 });
+  assert.deepEqual(advanceDiscreteResource(7, 8, full.nextAt, 0.05, 0.1), { value: 7, nextAt: 0.1 });
+  assert.deepEqual(advanceDiscreteResource(7, 8, full.nextAt, 0.05, 0.12), { value: 8, nextAt: 0.15 });
+});
+
+test('resource depletion waits for the next tick while retaining fractional drain', () => {
+  const clock = { value: 1, maximum: 10, rate: -3, updatedAt: 0 };
+  const depletion = resourceDepletion({
+    id: 'tick-depletion',
+    clock: () => clock,
+    depleted: (context, at) => context.events.push(at)
+  });
+  const { context, queue, through } = harness(depletion, (at) => advanceResourceClock(clock, at));
+  depletion.refresh(context);
+  assert.equal(queue.nextAt(), 0.36);
+  advanceResourceClock(clock, 0.1);
+  assert.equal(clock.value, 0.7);
+  through(0.359);
+  assert.deepEqual(context.events, []);
+  through(0.36);
+  assert.deepEqual(context.events, [0.36]);
 });
 
 // Fractional recovery deadlines must settle on the queue clock, including replacement inside a callback.

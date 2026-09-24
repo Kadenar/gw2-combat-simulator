@@ -17,10 +17,11 @@ import {
  */
 import { ACTION_SAFETY_LIMIT, EPSILON } from '#kernel/core/clock.js';
 import { clamp } from '#kernel/core/numeric.js';
-import { castWasInterrupted, retainsInterruptedCastLockout } from '#gw2/platform/skills/timing.js';
+import { castWasInterrupted, retainsInterruptedCastLockout, gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { CAST_READY, denyCast, foldAvailability, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { createScheduledEvents } from '#gw2/platform/execution/scheduled-events.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
+import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import {
   normalizeObservationPolicy,
   observationEndTime,
@@ -262,21 +263,14 @@ export function createScheduler<TProfessionState extends object = object>({
       start: Number(details.start ?? at),
       at
     };
-    const ammoRecharge = Number(skill.ammoRecharge || 0);
-    // Ammo skills have two independent timings: per-charge recharge and an
-    // optional post-cast lockout. `recharge` remains a fallback for catalogs
-    // that have not migrated to the explicit ammo field yet.
+    // Share base recharge selection with catalogs and tooltips; ammo cast lockouts are independent.
     const baseDuration = Math.max(
       0,
-      Number(
-        details.ammoCastLockout
-          ? Number(skill.ammo || 0) > 0
-            ? (skill.ammoCastLockout ?? skill.recharge ?? 0)
-            : 0
-          : Number(skill.ammo || 0) > 0 && ammoRecharge > 0
-            ? ammoRecharge
-            : (skill.cooldown ?? skill.recharge ?? 0)
-      )
+      details.ammoCastLockout
+        ? Number(skill.ammo || 0) > 0
+          ? (skill.ammoCastLockout ?? skill.recharge ?? 0)
+          : 0
+        : gw2BaseRecharge(skill)
     );
     const sharedDuration = schedulerPolicy.rechargeDuration?.(rechargeContext, skill, baseDuration) ?? baseDuration;
     return Math.max(0, Number(activeProfession.modifyRechargeDuration(rechargeContext, sharedDuration) || 0));
@@ -291,8 +285,10 @@ export function createScheduler<TProfessionState extends object = object>({
   const cooldownController = createCooldownController({
     state,
     rechargeDuration: rechargeDurationFor,
-    rechargeReduction: (skill, reduction, at) =>
-      schedulerPolicy.rechargeReduction?.({ ...context, skill, at }, skill, reduction) ?? reduction,
+    rechargeIntervals: schedulerPolicy.rechargeIntervals
+      ? (skill, start, end) => schedulerPolicy.rechargeIntervals!(context, skill, start, end)
+      : undefined,
+    skillFor,
     maximumAmmo: maximumAmmoFor
   });
   context.cooldownController = cooldownController;
@@ -396,10 +392,7 @@ export function createScheduler<TProfessionState extends object = object>({
   });
 
   function refreshSharedState(at: number): void {
-    for (const skillId of state.ammo.keys()) {
-      const skill = skillFor(skillId);
-      if (skill) cooldownController.refreshAmmo(skill, at);
-    }
+    cooldownController.refresh(at);
   }
 
   function advanceTo(time: number): void {
@@ -425,30 +418,36 @@ export function createScheduler<TProfessionState extends object = object>({
     state.time = target;
     // Expiration hooks can enqueue already-due work on this final advance; finish it before checking cast readiness.
     taskQueue.drainThrough(target, context);
+    refreshSharedState(target);
   }
 
   function engineAvailability(skill: Skill, at: number): { ammo: AmmoState | null; result: AvailabilityResult } {
+    cooldownController.refresh(at);
     const ammo = cooldownController.refreshAmmo(skill, at);
-    const readyAt = state.cooldowns.get(skill.id) || 0;
+    // Preserve fractional recharge progress in state; only readiness is observed on the action tick.
+    const readyAt = gw2CooldownReadyAt(state.cooldowns.get(skill.id) || 0);
     const active = inFlight.get(skill.id);
     const activeReservations = active?.size
       ? [...active].map((id) => lifecycle.reservation(id)).filter((reservation) => reservation != null)
       : [];
     const reservedUntil = activeReservations.length
       ? Math.max(
-          ...activeReservations.map((reservation) => reservation.rechargeReadyAt ?? reservation.effectiveEnd ?? at)
+          ...activeReservations.map((reservation) => {
+            const readyAt = lifecycle.rechargeReadyAt(reservation);
+            return readyAt == null ? reservation.effectiveEnd : gw2CooldownReadyAt(readyAt);
+          })
         )
       : 0;
     // rechargeReadyAt is preferred to effectiveEnd because a concurrent cast
     // cannot reuse the same skill while its reservation still owns recharge.
     const result: AvailabilityResult[] = [];
-    if ((readyAt > at + EPSILON && skill.usableWhileRecharging !== true) || (ammo && ammo.charges <= 0)) {
+    if ((readyAt > at && skill.usableWhileRecharging !== true) || (ammo && ammo.charges <= 0)) {
       result.push(
         unavailable(`${skill.name} is on cooldown until ${readyAt.toFixed(3)}.`, 'platform.cooldown', readyAt)
       );
     }
 
-    if (reservedUntil > at + EPSILON && skill.independentCastCanOverlap !== true) {
+    if (reservedUntil > at && skill.independentCastCanOverlap !== true) {
       result.push(
         unavailable(
           `${skill.name} is already being cast until ${reservedUntil.toFixed(3)}.`,
@@ -656,7 +655,7 @@ export function createScheduler<TProfessionState extends object = object>({
       interrupted && skill.interruptMode !== 'per-packet' && interruptCommitCutoffs(skill).length === 0;
     const reservation = lifecycle.reserve(castContext, fullEnd, effectiveEnd, cancelledBeforeCommit);
     const reservationId = reservation.id;
-    const { rechargeReadyAt } = reservation;
+    const rechargeReadyAt = lifecycle.rechargeReadyAt(reservation);
     if (command.offTarget === true) offTargetActivationIds.add(reservationId);
     if (Number(command.impactDelayMs) > 0) {
       impactDelayByActivationId.set(reservationId, Number(command.impactDelayMs) / 1000);
@@ -677,6 +676,10 @@ export function createScheduler<TProfessionState extends object = object>({
       endsAt: effectiveEnd,
       fullEndsAt: fullEnd,
       rechargeReadyAt,
+      // Preserve ordinary recharge work for historical passive checks as boon coverage changes.
+      ...(!reservation.ammo && reservation.rechargeWork > 0
+        ? { rechargeProgress: { startedAt: reservation.rechargeStart, work: reservation.rechargeWork } }
+        : {}),
       interrupted,
       // Carry skill evade metadata into the action timeline for shared evade-triggered effects.
       ...(skill.evades ? { evades: true } : {}),
@@ -793,6 +796,7 @@ export function createScheduler<TProfessionState extends object = object>({
         const at = Math.max(state.time, serialReadyAt, latestReservedEnd);
         advanceTo(at);
         state.cooldowns.clear();
+        state.rechargeProgress.clear();
         state.ammo.clear();
         state.lockouts.clear();
         activeProfession.onCooldownReset(context);
@@ -923,6 +927,7 @@ function createSchedulerState<TProfessionState extends object = object>({
   return {
     time: Number(startingTime || 0),
     cooldowns: new Map(),
+    rechargeProgress: new Map(),
     ammo: new Map(),
     lockouts: new Map(),
     activeWeaponSet: Math.max(1, Number(activeWeaponSet || 1)),

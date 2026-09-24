@@ -90,7 +90,7 @@ function settleSkillFlips(context: MesmerCastContext, skill: MesmerSkill, at: nu
   if (armedFlip && context.maximumAmmoFor(armedFlip)) {
     armSkillFlip(professionCoreState(state).availableFlips, armedFlip.id, at);
     state.ammo.delete(armedFlip.id);
-    state.cooldowns.delete(armedFlip.id);
+    context.cooldownController.clear(armedFlip.id);
     context.cooldownController.ensureAmmo(armedFlip, at);
   } else if (armedFlip) {
     // Canonical exact deadlines keep flip availability and expiry tasks on the same clock; Abstraction starts at creation.
@@ -119,7 +119,7 @@ function settleSkillFlips(context: MesmerCastContext, skill: MesmerSkill, at: nu
     if (flipAmmo.charges <= 0) {
       consumeSkillFlip(professionCoreState(state).availableFlips, skill.id);
       state.ammo.delete(skill.id);
-      state.cooldowns.delete(skill.id);
+      context.cooldownController.clear(skill.id);
     }
   } else {
     consumeSkillFlip(professionCoreState(state).availableFlips, skill.id);
@@ -129,9 +129,15 @@ function settleSkillFlips(context: MesmerCastContext, skill: MesmerSkill, at: nu
     const parent = runtime.skillsById.get(flipParentId);
     const parentReadyAt = parent ? state.cooldowns.get(parent.id) : null;
     if (parent && parentReadyAt != null) {
-      state.cooldowns.set(
-        parent.id,
-        parentReadyAt + context.rechargeDurationFor(parent, at) * Number(skill.parentCooldownIncrease)
+      const progress = state.rechargeProgress.get(parent.id);
+      const rate = context.cooldownController.rate(parent, at);
+      const work = progress
+        ? context.cooldownController.remaining(parent, progress, at)
+        : Math.max(0, parentReadyAt - at) * rate;
+      context.cooldownController.startRecharge(
+        parent,
+        at,
+        work + context.rechargeDurationFor(parent, at) * Number(skill.parentCooldownIncrease) * rate
       );
     }
   }

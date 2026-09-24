@@ -94,7 +94,7 @@
     "Well of Suffering",
     {
       "name": "Distress",
-      "offset": 100
+      "offset": 120
     },
     "Perforate",
     "Harbinger Shroud",
@@ -128,7 +128,7 @@
     "Elixir of Promise",
     {
       "name": "Distress",
-      "offset": 100
+      "offset": 120
     },
     "Perforate",
     "Swap Weapons",

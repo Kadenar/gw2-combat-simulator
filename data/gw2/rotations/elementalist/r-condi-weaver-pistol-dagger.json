@@ -16,20 +16,20 @@
     "Signet of Fire",
     {
       "name": "__combat_start",
-      "offset": 398
+      "offset": 400
     },
     "Shattering Stone",
     "Boulder Blast",
     {
       "name": "Fire Attunement",
-      "offset": 444
+      "offset": 440
     },
     "Scorching Shot",
     "Churning Earth",
     "Molten Meteor",
     {
       "name": "Fire Attunement",
-      "offset": 401
+      "offset": 400
     },
     "Signet of Earth",
     "Searing Salvo",
@@ -40,7 +40,7 @@
     },
     {
       "name": "Earth Attunement",
-      "offset": 525
+      "offset": 520
     },
     "Ring of Fire",
     "Shattering Stone",
@@ -48,7 +48,7 @@
     "Piercing Pebble",
     {
       "name": "Earth Attunement",
-      "offset": 204
+      "offset": 200
     },
     "Earthquake",
     "Piercing Pebble",
@@ -59,14 +59,14 @@
     "Boulder Blast",
     {
       "name": "Air Attunement",
-      "offset": 79
+      "offset": 80
     },
     "Signet of Fire",
     "Dazing Discharge",
     "Enervating Earth",
     {
       "name": "Fire Attunement",
-      "offset": 526
+      "offset": 520
     },
     "Raging Ricochet",
     "Purblinding Plasma",
@@ -82,37 +82,37 @@
     "Scorching Shot",
     {
       "name": "Earth Attunement",
-      "offset": 44
+      "offset": 40
     },
     "Shattering Stone",
     {
       "name": "Primordial Stance (Earth)",
-      "offset": 444
+      "offset": 440
     },
     "Molten Meteor",
     "Signet of Earth",
     {
       "name": "Earth Attunement",
-      "offset": 433
+      "offset": 440
     },
     "Churning Earth",
     "Earthquake",
     "Boulder Blast",
     {
       "name": "Water Attunement",
-      "offset": 322
+      "offset": 320
     },
     "Echoing Erosion",
     "Frigid Flurry",
     {
       "name": "Unravel",
-      "offset": 719
+      "offset": 720
     },
     "Frozen Fusillade",
     "Signet of Fire",
     {
       "name": "Fire Attunement",
-      "offset": 39
+      "offset": 40
     },
     "Fire Grab",
     "Searing Salvo",
@@ -133,7 +133,7 @@
     "Piercing Pebble",
     {
       "name": "Fire Attunement",
-      "offset": 158
+      "offset": 160
     },
     "Molten Meteor",
     "Raging Ricochet",
@@ -153,7 +153,7 @@
     "Ring of Fire",
     {
       "name": "Earth Attunement",
-      "offset": 39
+      "offset": 40
     },
     "Shattering Stone",
     "Fire Grab",
@@ -162,13 +162,13 @@
     "Piercing Pebble",
     {
       "name": "Primordial Stance (Earth)",
-      "offset": 39
+      "offset": 40
     },
     "Piercing Pebble",
     "Molten Meteor",
     {
       "name": "Earth Attunement",
-      "offset": 363
+      "offset": 360
     },
     "Boulder Blast",
     "Shattering Stone",
@@ -180,13 +180,13 @@
     "Echoing Erosion",
     {
       "name": "Unravel",
-      "offset": 199
+      "offset": 200
     },
     "Frozen Fusillade",
     "Frigid Flurry",
     {
       "name": "Fire Attunement",
-      "offset": 82
+      "offset": 80
     },
     "Signet of Earth",
     "Searing Salvo",
@@ -194,12 +194,12 @@
     "Raging Ricochet",
     {
       "name": "Primordial Stance (Fire)",
-      "offset": 444
+      "offset": 440
     },
     "Scorching Shot",
     {
       "name": "Earth Attunement",
-      "offset": 365
+      "offset": 360
     },
     "Churning Earth",
     "Boulder Blast",
@@ -209,7 +209,7 @@
     "Piercing Pebble",
     {
       "name": "Fire Attunement",
-      "offset": 117
+      "offset": 120
     },
     "Molten Meteor",
     "Raging Ricochet",
@@ -219,7 +219,7 @@
     "Scorching Shot",
     {
       "name": "Fire Attunement",
-      "offset": 124
+      "offset": 120
     },
     "Fire Grab",
     "Searing Salvo",
@@ -229,7 +229,7 @@
     "Ring of Fire",
     {
       "name": "Earth Attunement",
-      "offset": 481
+      "offset": 480
     },
     "Shattering Stone",
     "Signet of Earth",
@@ -241,7 +241,7 @@
     "Molten Meteor",
     {
       "name": "Earth Attunement",
-      "offset": 322
+      "offset": 320
     },
     "Boulder Blast",
     "Shattering Stone",
@@ -250,18 +250,18 @@
     "Signet of Fire",
     {
       "name": "Water Attunement",
-      "offset": 396
+      "offset": 400
     },
     "Echoing Erosion",
     "Frigid Flurry",
     {
       "name": "Unravel",
-      "offset": 207
+      "offset": 200
     },
     "Frozen Fusillade",
     {
       "name": "Fire Attunement",
-      "offset": 79
+      "offset": 80
     },
     "Ring of Fire",
     "Searing Salvo",
@@ -269,7 +269,7 @@
     "Raging Ricochet",
     {
       "name": "Primordial Stance (Fire)",
-      "offset": 202
+      "offset": 200
     },
     "Scorching Shot",
     "Scorching Shot",
@@ -284,7 +284,7 @@
     "Piercing Pebble",
     {
       "name": "Fire Attunement",
-      "offset": 327
+      "offset": 320
     },
     "Raging Ricochet",
     "Scorching Shot",
@@ -298,19 +298,19 @@
     "Scorching Shot",
     {
       "name": "Earth Attunement",
-      "offset": 124
+      "offset": 120
     },
     "Shattering Stone",
     "Molten Meteor",
     "Ring of Fire",
     {
       "name": "Earth Attunement",
-      "offset": 362
+      "offset": 360
     },
     "Churning Earth",
     {
       "name": "Primordial Stance (Earth)",
-      "offset": 403
+      "offset": 400
     },
     "Boulder Blast",
     "Piercing Pebble",
@@ -320,21 +320,21 @@
     "Shattering Stone",
     {
       "name": "Fire Attunement",
-      "offset": 368
+      "offset": 360
     },
     "Raging Ricochet",
     "Scorching Shot",
     "Scorching Shot",
     {
       "name": "Fire Attunement",
-      "offset": 34
+      "offset": 40
     },
     "Fire Grab",
     "Searing Salvo",
     "Signet of Fire",
     {
       "name": "Earth Attunement",
-      "offset": 437
+      "offset": 440
     },
     "Piercing Pebble",
     "Shattering Stone",
@@ -342,16 +342,16 @@
     "Molten Meteor",
     {
       "name": "Fire Attunement",
-      "offset": 276
+      "offset": 280
     },
     "Raging Ricochet",
     {
       "name": "Fire Attunement",
-      "offset": 238
+      "offset": 240
     },
     {
       "name": "Unravel",
-      "offset": 239
+      "offset": 240
     },
     {
       "name": "Earth Attunement",

@@ -157,7 +157,7 @@ function resetRadiantWeaponCooldowns(context: GuardianSchedulerContext, virtue: 
       : virtue === 'resolve'
         ? [RADIANT_WEAPON_SKILLS.staff]
         : [RADIANT_WEAPON_SKILLS.blade, RADIANT_WEAPON_SKILLS.shield];
-  for (const id of ids) context.state.cooldowns.delete(id);
+  for (const id of ids) context.cooldownController.clear(id);
   return ids.length > 0;
 }
 

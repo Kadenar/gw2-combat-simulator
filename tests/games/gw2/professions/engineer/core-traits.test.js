@@ -555,7 +555,10 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
     boons: { vigor: true }
   });
 
-  assert.equal(adrenal.planningState.cooldowns['Grenade Barrage'].readyAt, adrenal.steps[0].end + 20250);
+  assert.equal(
+    adrenal.planningState.cooldowns['Grenade Barrage'].readyAt,
+    Math.ceil((adrenal.steps[0].end + 20250) / 40) * 40
+  );
   assert.equal(adrenal.planningState.profession.endurance, 65.75);
 
   const streamlined = simulate('Core', ['Grenade Kit'], {

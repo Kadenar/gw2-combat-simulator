@@ -629,7 +629,7 @@ test('Ranger pet commands require Alacrity on the active pet', () => {
   };
 
   assert.equal(rechargeMs(playerAlacrity), 15000);
-  assert.equal(rechargeMs(petAlacrity), 12000);
+  assert.equal(rechargeMs(petAlacrity), 14900);
   const petAlacrityApplication = petAlacrity.events.find(
     (event) => event.type === 'buff' && event.kind === 'alacrity' && event.resolvedAudience.includesSummons
   );
@@ -825,19 +825,20 @@ test('Ranger autonomous pet cooldowns use only pet Alacrity', () => {
   assert.equal(tailLashes(petAlacrity), 2);
 });
 
-test("Galeshot passive arrow recharge uses the player's Alacrity", () => {
-  const rotation = [{ type: 'wait', durationMs: 4000 }];
-  const baseline = simulate('Galeshot', rotation, {
-    initialArrows: 0,
-    boons: { alacrity: false }
-  });
-  const alacrity = simulate('Galeshot', rotation, {
-    initialArrows: 0,
-    boons: { alacrity: true }
-  });
-
-  assert.equal(baseline.planningState.profession.arrows, 0);
-  assert.equal(alacrity.planningState.profession.arrows, 1);
+test('Galeshot regenerates one arrow every five seconds regardless of permanent Alacrity', () => {
+  for (const alacrity of [false, true]) {
+    for (const [durationMs, arrows] of [
+      [4000, 0],
+      [5000, 1],
+      [10000, 2]
+    ]) {
+      const result = simulate('Galeshot', [{ type: 'wait', durationMs }], {
+        initialArrows: 0,
+        boons: { alacrity }
+      });
+      assert.equal(result.planningState.profession.arrows, arrows);
+    }
+  }
 });
 
 test('Ranger palette groups the active pet, command, swap, and Dodge endurance', () => {

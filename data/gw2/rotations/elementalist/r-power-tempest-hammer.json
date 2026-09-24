@@ -15,51 +15,51 @@
     },
     {
       "name": "Crescent Wind",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "__combat_start",
-      "offset": 3020
+      "offset": 3040
     },
     {
       "name": "Shock Blast"
     },
     {
       "name": "Flame Barrage",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Fire Attunement",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Triple Sear"
     },
     {
       "name": "Feel the Burn!",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Air Attunement",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Glyph of Storms (Air)"
     },
     {
       "name": "Arcane Blast",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Hurricane of Pain"
     },
     {
       "name": "Arcane Blast",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Arcane Blast",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Overload Air"
@@ -72,14 +72,14 @@
     },
     {
       "name": "Rocky Loop",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Whirling Stones"
     },
     {
       "name": "Air Attunement",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Wind Slam"
@@ -98,19 +98,19 @@
     },
     {
       "name": "Flame Barrage",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Water Attunement",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Icy Coil",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Air Attunement",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Shock Blast"
@@ -122,7 +122,7 @@
     {
       "name": "Arcane Blast",
       "skillId": 5539,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Grand Finale",
@@ -135,12 +135,12 @@
     {
       "name": "Feel the Burn!",
       "skillId": 30662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Crescent Wind",
       "skillId": 62887,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Fire Attunement",
@@ -153,7 +153,7 @@
     {
       "name": "Flame Wheel",
       "skillId": 62758,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Molten End",
@@ -162,7 +162,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Wind Slam",
@@ -179,7 +179,7 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Earth Attunement",
@@ -192,7 +192,7 @@
     {
       "name": "Rocky Loop",
       "skillId": 62975,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Whirling Stones",
@@ -201,7 +201,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Wind Slam",
@@ -222,7 +222,7 @@
     {
       "name": "Arcane Blast",
       "skillId": 5539,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Hurricane of Pain",
@@ -231,17 +231,17 @@
     {
       "name": "Water Attunement",
       "skillId": 5493,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Icy Coil",
       "skillId": 62834,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Shock Blast",
@@ -254,7 +254,7 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Grand Finale",
@@ -267,7 +267,7 @@
     {
       "name": "Crescent Wind",
       "skillId": 62887,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Fire Attunement",
@@ -280,7 +280,7 @@
     {
       "name": "Flame Wheel",
       "skillId": 62758,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Molten End",
@@ -289,7 +289,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Wind Slam",
@@ -298,7 +298,7 @@
     {
       "name": "Feel the Burn!",
       "skillId": 30662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Hurricane of Pain",
@@ -311,7 +311,7 @@
     {
       "name": "Arcane Blast",
       "skillId": 5539,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Earth Attunement",
@@ -332,12 +332,12 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Glyph of Storms (Air)",
@@ -362,17 +362,17 @@
     {
       "name": "Water Attunement",
       "skillId": 5493,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Icy Coil",
       "skillId": 62834,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Shock Blast",
@@ -393,7 +393,7 @@
     {
       "name": "Crescent Wind",
       "skillId": 62887,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Fire Attunement",
@@ -406,7 +406,7 @@
     {
       "name": "Flame Wheel",
       "skillId": 62758,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Molten End",
@@ -415,7 +415,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Wind Slam",
@@ -428,17 +428,17 @@
     {
       "name": "Feel the Burn!",
       "skillId": 30662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Arcane Blast",
       "skillId": 5539,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Overload Air",
@@ -455,7 +455,7 @@
     {
       "name": "Rocky Loop",
       "skillId": 62975,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Whirling Stones",
@@ -464,7 +464,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Wind Slam",
@@ -485,7 +485,7 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Hurricane of Pain",
@@ -494,22 +494,22 @@
     {
       "name": "Water Attunement",
       "skillId": 5493,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Icy Coil",
       "skillId": 62834,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Arcane Blast",
       "skillId": 5539,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Shock Blast",
@@ -530,7 +530,7 @@
     {
       "name": "Crescent Wind",
       "skillId": 62887,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Fire Attunement",
@@ -543,7 +543,7 @@
     {
       "name": "Flame Wheel",
       "skillId": 62758,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Molten End",
@@ -552,7 +552,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Wind Slam",
@@ -561,7 +561,7 @@
     {
       "name": "Feel the Burn!",
       "skillId": 30662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Hurricane of Pain",
@@ -574,7 +574,7 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Earth Attunement",
@@ -587,7 +587,7 @@
     {
       "name": "Rocky Loop",
       "skillId": 62975,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Grand Finale",

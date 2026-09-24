@@ -30,6 +30,14 @@ export const rangerAppAdapter = definePatchedProfessionApp({
     }
   },
   isSkillAvailable(skill, context = {}) {
+    // Greatsword Maul changes recipient when Soulbeast merges, so expose the matching skill ID.
+    if (skill.id === ID.MAUL_SOULBEAST || skill.id === ID.MAUL_BASE) {
+      const merged =
+        context.specialization === 'Soulbeast' &&
+        flattenProfessionState(context.professionState).beastmodeActive !== false;
+      return skill.id === (merged ? ID.MAUL_SOULBEAST : ID.MAUL_BASE);
+    }
+
     if (skill.unleashedAmbushSkill && context.specialization !== 'Untamed') {
       return false;
     }

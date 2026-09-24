@@ -419,6 +419,17 @@ test('NEC-010 Lich grants its ending life force exactly once', () => {
   }
 });
 
+test('shroud depletion waits for its 40 ms detection tick across fractional observations', () => {
+  for (const waits of [[3360], [3340, 10, 10]]) {
+    const result = simulate('Core', ['Death Shroud', ...waits.map(wait)], { initialResource: 10 });
+    assert.deepEqual(result.warnings, []);
+    const exit = result.events.find(
+      (event) => event.sourceId === 'necromancer.life-force-depleted' && event.type === 'weapon_set'
+    );
+    assert.equal(exit?.at, 3.36);
+  }
+});
+
 test('NEC-012 passive gains, cap, and depletion are invariant under wait partitioning', () => {
   for (const initialResource of [100, 10]) {
     for (const selectedTraitIds of [[], [TRAIT.ETERNAL_LIFE]]) {

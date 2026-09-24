@@ -9,7 +9,7 @@
     "Skritt Swipe",
     {
       "name": "__combat_start",
-      "offset": 1
+      "offset": 0
     },
     {
       "name": "Stone Summit Cannon",
@@ -29,7 +29,7 @@
     "Flawless Execution",
     {
       "name": "Canach-Coin Toss",
-      "offset": 139,
+      "offset": 120,
       "doubleEdgeOutcome": "success"
     },
     "Flawless Execution",
@@ -56,7 +56,7 @@
     "Mistburn Mortar",
     {
       "name": "Canach-Coin Toss",
-      "offset": 399,
+      "offset": 400,
       "doubleEdgeOutcome": "backfire"
     },
     "Flawless Execution",

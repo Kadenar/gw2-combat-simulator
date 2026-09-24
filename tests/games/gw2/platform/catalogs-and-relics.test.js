@@ -231,7 +231,7 @@ test('summon-owned cooldowns require Alacrity applied to summons', () => {
   });
 
   assert.equal(playerAlacrity.planningState.cooldowns['Summon Skill'].readyAt, 20000);
-  assert.equal(summonAlacrity.planningState.cooldowns['Summon Skill'].readyAt, 16000);
+  assert.equal(summonAlacrity.planningState.cooldowns['Summon Skill'].readyAt, 17520);
 });
 
 test('canonical augmenting skill handlers observe declarative effects', () => {

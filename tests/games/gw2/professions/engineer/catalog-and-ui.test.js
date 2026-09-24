@@ -1016,8 +1016,8 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
 
   assert.equal(healing.planningState.cooldowns['Healing Turret'], undefined);
   assert.deepEqual(healing.planningState.cooldowns['Detonate Healing Turret'], {
-    readyAt: healing.steps[0].end + 500,
-    remaining: 500
+    readyAt: Math.ceil((healing.steps[0].end + 500) / 40) * 40,
+    remaining: Math.ceil((healing.steps[0].end + 500) / 40) * 40 - healing.steps[0].end
   });
   assert.ok(
     healing.events.some(
@@ -1041,7 +1041,7 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
   const [firstTurret, detonation, secondTurret, cleansingBurst] = turretCycle.steps.filter((step) =>
     ['Healing Turret', 'Detonate Healing Turret', 'Cleansing Burst'].includes(step.skill)
   );
-  assert.equal(detonation.start - firstTurret.end, 500);
+  assert.equal(detonation.start, Math.ceil((firstTurret.end + 500) / 40) * 40);
   assert.equal(secondTurret.start - detonation.end, 20000);
   assert.equal(cleansingBurst.start - secondTurret.end, 10240);
 

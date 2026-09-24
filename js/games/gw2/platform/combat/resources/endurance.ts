@@ -1,8 +1,9 @@
 import { EPSILON } from '#kernel/core/clock.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 /** The shared endurance fields read by, and returned from, standard GW2 endurance arithmetic. */
 
 import { cappedResource, grantCapped } from '#gw2/platform/combat/resources/pool.js';
-import { selfBoonIntervals } from '#gw2/platform/combat/boons.js';
+import { boonIntervals } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
@@ -25,7 +26,7 @@ export function* vigorEnduranceIntervals(
   end: number,
   rateAt: (vigor: boolean, at: number) => number
 ): Generator<Gw2EnduranceInterval> {
-  for (const interval of selfBoonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
+  for (const interval of boonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
     yield { start: interval.start, end: interval.end, rate: rateAt(interval.active, interval.start) };
   }
 }
@@ -81,8 +82,8 @@ export function grantEndurance(
   };
 }
 
-/** Returns the first retry time for an endurance cost, or null when the effective rate cannot satisfy it. */
-export function enduranceReadyAt(
+/** Finds the fractional threshold before applying tick detection, so boon boundaries cannot change earned progress. */
+function enduranceThresholdAt(
   currentEndurance: number,
   cost: number,
   at: number,
@@ -91,6 +92,17 @@ export function enduranceReadyAt(
   const missing = Math.max(0, Math.max(0, cost) - currentEndurance);
   if (missing <= Math.max(0, EPSILON)) return at;
   return regenerationPerSecond > 0 ? at + missing / regenerationPerSecond : null;
+}
+
+/** Regeneration-funded costs become available on the next 40 ms tick; an already funded cost needs no wait. */
+export function enduranceReadyAt(
+  currentEndurance: number,
+  cost: number,
+  at: number,
+  regenerationPerSecond: number
+): number | null {
+  const threshold = enduranceThresholdAt(currentEndurance, cost, at, regenerationPerSecond);
+  return threshold == null || threshold === at ? threshold : gw2CooldownReadyAt(threshold);
 }
 
 /** Integrates chronological windows without mutating the caller, accruing gaps, or replaying settled time. */
@@ -129,8 +141,9 @@ export function enduranceIntervalsReadyAt(
   for (const interval of intervals) {
     const start = Math.max(current.enduranceUpdatedAt, interval.start);
     if (interval.end <= start) continue;
-    const readyAt = enduranceReadyAt(current.endurance, cost, start, interval.rate);
-    if (readyAt != null && Number.isFinite(readyAt) && readyAt <= interval.end) return readyAt;
+    const readyAt = enduranceThresholdAt(current.endurance, cost, start, interval.rate);
+    if (readyAt != null && Number.isFinite(readyAt) && readyAt <= interval.end)
+      return readyAt === state.enduranceUpdatedAt ? readyAt : gw2CooldownReadyAt(readyAt);
     if (interval.end === Infinity) return null;
     current = advanceEndurance(
       { endurance: current.endurance, enduranceUpdatedAt: start },

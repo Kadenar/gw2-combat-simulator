@@ -9,6 +9,7 @@ export interface DurationEditorOptions {
   readonly value: number;
   readonly minimumMs?: number;
   readonly maximumMs?: number | null;
+  readonly stepMs?: number;
   readonly onApply: (durationMs: number) => void;
 }
 
@@ -18,7 +19,8 @@ export type DurationValidation =
 export function validateDurationMs(
   rawValue: string | number,
   minimumMs = 1,
-  maximumMs: number | null = null
+  maximumMs: number | null = null,
+  stepMs?: number
 ): DurationValidation {
   const parsed = Number(rawValue);
   const minimum = Math.max(1, Math.round(Number(minimumMs) || 1));
@@ -27,6 +29,11 @@ export function validateDurationMs(
       valid: false,
       error: `Enter a duration of at least ${minimum} ms.`
     };
+  }
+
+  // Validate typed values before rounding so fractional inputs cannot bypass the configured duration grid.
+  if (stepMs != null && parsed % stepMs !== 0) {
+    return { valid: false, error: `Enter a duration divisible by ${stepMs} ms.` };
   }
 
   const value = Math.round(parsed);
@@ -84,6 +91,7 @@ export function openDurationEditor(options: DurationEditorOptions): FloatingEdit
   label.textContent = options.label;
   input.value = String(Math.round(Number(options.value) || 0));
   input.min = String(Math.max(1, Math.round(Number(options.minimumMs) || 1)));
+  input.step = String(options.stepMs ?? 1);
   const maximum = Math.round(Number(options.maximumMs));
   if (options.maximumMs != null && Number.isFinite(maximum)) {
     input.max = String(maximum);
@@ -96,7 +104,7 @@ export function openDurationEditor(options: DurationEditorOptions): FloatingEdit
   const handle = mountFloatingEditor(editor, options.anchor);
 
   const applyChanges = (): void => {
-    const validation = validateDurationMs(input.value, options.minimumMs, options.maximumMs);
+    const validation = validateDurationMs(input.value, options.minimumMs, options.maximumMs, options.stepMs);
     if (!validation.valid) {
       error.textContent = validation.error;
       input.focus();

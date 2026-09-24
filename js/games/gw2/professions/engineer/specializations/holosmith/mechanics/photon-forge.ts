@@ -153,7 +153,7 @@ function applyToolbeltOverheatPenalty(context: EngineerSchedulerContext, at: num
   for (const skill of context.catalog.skills) {
     if (!skill.toolbeltParentName || HOLOSMITH_FORGE_TOGGLE_SKILL_IDS.has(Number(skill.id))) continue;
     const existingReadyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-    context.state.cooldowns.set(skill.id, Math.max(existingReadyAt, at + seconds));
+    context.cooldownController.setReadyAt(skill.id, Math.max(existingReadyAt, at + seconds));
   }
 }
 

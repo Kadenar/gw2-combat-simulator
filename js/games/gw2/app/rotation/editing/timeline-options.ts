@@ -22,6 +22,7 @@ import {
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { SchedulerStep } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
 import { openDurationEditor } from '#ui/rotation/editing/duration-editor.js';
 
 /** Uses the simulated duration when available so runtime instant-cast conversions get the correct editor mode. */
@@ -37,7 +38,7 @@ function timelineFullCastMs(
   return Math.max(0, Math.round(Number(skill?.castTimeMs) || 0));
 }
 
-// Waits keep free millisecond durations; concurrent offsets use the activation editor's GW2 action-tick validation.
+// Wait edits use the GW2 action-tick grid for both typed values and native number stepping.
 // Each editor also checks command identity on Apply because an open popover can outlive its captured index.
 function editRotationDuration(app: ProfessionAppState, index: number, event?: Event): boolean {
   const entry = app.build.rotation[index];
@@ -55,7 +56,9 @@ function editRotationDuration(app: ProfessionAppState, index: number, event?: Ev
     name: 'Wait',
     icon: anchor.closest('.rot-skill')?.querySelector<HTMLImageElement>('img')?.src || WAIT_ICON,
     label: 'Duration',
-    value: Number(item.durationMs) || 1,
+    value: Number(item.durationMs) || GW2_ACTION_TICK_MS,
+    minimumMs: GW2_ACTION_TICK_MS,
+    stepMs: GW2_ACTION_TICK_MS,
     onApply(durationMs) {
       const currentEntry = app.build.rotation[index];
       if (currentEntry !== entry) return;

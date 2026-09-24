@@ -297,7 +297,7 @@
     {
       "type": "cast",
       "skillId": -4,
-      "concurrentOffsetMs": 604
+      "concurrentOffsetMs": 600
     },
     {
       "type": "cast",
@@ -327,7 +327,7 @@
     {
       "type": "cast",
       "skillId": 27107,
-      "concurrentOffsetMs": 683
+      "concurrentOffsetMs": 680
     },
     {
       "type": "cast",
@@ -567,7 +567,7 @@
     {
       "type": "cast",
       "skillId": -4,
-      "concurrentOffsetMs": 564
+      "concurrentOffsetMs": 560
     },
     {
       "type": "cast",
@@ -597,7 +597,7 @@
     {
       "type": "cast",
       "skillId": 27107,
-      "concurrentOffsetMs": 728
+      "concurrentOffsetMs": 720
     },
     {
       "type": "cast",
@@ -868,7 +868,7 @@
     {
       "type": "cast",
       "skillId": 27107,
-      "concurrentOffsetMs": 679
+      "concurrentOffsetMs": 680
     },
     {
       "type": "cast",

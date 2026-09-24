@@ -9,16 +9,21 @@ import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-eve
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { gw2RechargeRate } from '#gw2/platform/skills/recharge.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
-import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
+import {
+  spellbreakerState,
+  type SpellbreakerState
+} from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import type {
   WarriorResolverContext,
   WarriorResolverEvent,
   WarriorSchedulerContext,
-  WarriorSimulationEvent
+  WarriorSimulationEvent,
+  WarriorSkill
 } from '#gw2/professions/warrior/types.js';
 
 // Kick grants 2 Attacker's Insight stacks instead of 1 against defiant targets.
@@ -55,22 +60,26 @@ function attackerInsightApplications(
 
 function triggerMagebaneTether(
   context: WarriorSchedulerContext | WarriorResolverContext,
-  state: {
-    magebaneTetherUntil: number;
-    magebaneTetherReadyAt: number;
-  },
+  state: SpellbreakerState,
+  skill: WarriorSkill,
   at: number
 ): boolean {
-  if (!isInternalCooldownReady(at, state.magebaneTetherReadyAt)) return false;
+  // Both execution stages use engine-owned progress so transient Alacrity updates the entire recharge.
+  const project = (progress: RechargeProgress): number =>
+    'cooldownController' in context
+      ? context.cooldownController.project(skill, progress)
+      : context.query.timeline.rechargeReadyAt(skill, progress);
+  if (state.magebaneTetherRecharge) state.magebaneTetherReadyAt = project(state.magebaneTetherRecharge);
+  if (at < gw2CooldownReadyAt(state.magebaneTetherReadyAt) || !isInternalCooldownReady(at, state.magebaneTetherReadyAt))
+    return false;
 
   const magebaneTetherProfile = requireBalanceProfileFromContext(context, PROFILE.magebaneTether);
   const effect = requireEffect(magebaneTetherProfile, 'buff', 'magebane-tether');
   // A removed tether must not activate its damage window.
   if (!effect) return false;
   state.magebaneTetherUntil = at + effectNumber(magebaneTetherProfile, effect, 'duration');
-  // Divide by recharge rate so alacrity reduces the internal cooldown.
-  state.magebaneTetherReadyAt =
-    at + balanceProfileNumber(magebaneTetherProfile, 'cooldown') / gw2RechargeRate(context.config);
+  state.magebaneTetherRecharge = { startedAt: at, work: balanceProfileNumber(magebaneTetherProfile, 'cooldown') };
+  state.magebaneTetherReadyAt = project(state.magebaneTetherRecharge);
   return true;
 }
 
@@ -121,7 +130,7 @@ export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event
   if (!hasTrait(context, TRAIT.MAGEBANE_TETHER)) return;
   const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
   if (skill?.burst) {
-    triggerMagebaneTether(context, spellbreakerState.from(context), event.at);
+    triggerMagebaneTether(context, spellbreakerState.from(context), skill, event.at);
   }
 }
 
@@ -144,7 +153,7 @@ export function reactToSpellbreakerDamage(context: WarriorResolverContext, event
   }
 
   const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
-  if (skill?.burst && triggerMagebaneTether(context, spellbreakerState.from(context), event.at)) {
+  if (skill?.burst && triggerMagebaneTether(context, spellbreakerState.from(context), skill, event.at)) {
     context.recordProc('trait', 'Magebane Tether', event.at, event.skillName, '15% strike damage for 8 seconds');
   }
 }

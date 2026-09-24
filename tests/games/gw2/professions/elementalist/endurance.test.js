@@ -55,7 +55,7 @@ test('timed Vigor recovery crosses application and expiry boundaries without rew
   assert.equal(state.endurance, 35);
   updateEndurance(context, state, 3);
   assert.deepEqual(state, { endurance: 35, enduranceUpdatedAt: 6 });
-  assert.equal(elementalistEnduranceReadyAt(context, 0, 20, 0), 2 + 10 / 7.5);
+  assert.equal(elementalistEnduranceReadyAt(context, 0, 20, 0), 3.36);
   assert.equal(elementalistEnduranceReadyAt(context, 0, 50, 0), 9);
   assert.equal(elementalistEnduranceReadyAt(context, 0, 50, 4), 14);
 });
@@ -86,7 +86,7 @@ test('permanent Vigor keeps its rate through timed expiry and endurance remains 
   const state = { endurance: 0, enduranceUpdatedAt: 0 };
   updateEndurance(context, state, 6);
   assert.equal(state.endurance, 45);
-  assert.equal(elementalistEnduranceReadyAt(context, 0, 50, 0), 50 / 7.5);
+  assert.equal(elementalistEnduranceReadyAt(context, 0, 50, 0), 6.68);
   updateEndurance(context, state, 30);
   assert.equal(state.endurance, 100);
 });
@@ -110,7 +110,8 @@ test('Phoenix Vigor contributes to recovery and the next dodge after expiry', ()
   const retry = runNative({ ...options, rotation: ['Dodge', 'Dodge', 'Phoenix', 'Dodge'] });
   const nextDodge = retry.events.filter((event) => event.type === 'action' && event.skillName === 'Dodge').at(-1);
   assert.deepEqual(retry.warnings, []);
-  const expectedReadyAt = firstDodge.endsAt + (50 - buff.duration * 2.5) / 5;
+  const threshold = firstDodge.endsAt + (50 - buff.duration * 2.5) / 5;
+  const expectedReadyAt = Math.ceil(threshold * 25) / 25;
   assert.ok(expectedReadyAt > buff.at + buff.duration);
   assert.ok(Math.abs(nextDodge.at - expectedReadyAt) < 1e-6);
 });

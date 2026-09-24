@@ -1,11 +1,11 @@
-import { EPSILON } from '#kernel/core/clock.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { replaceAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 /**
  * Chronomancer-owned Continuum Split checkpoints and restoration.
  */
-import type { SchedulerState } from '#gw2/platform/execution/types.js';
+import type { SchedulerState, CooldownController } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerAddEvent, MesmerRefreshAmmo, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
@@ -16,6 +16,7 @@ import type { MesmerContinuumController } from '#gw2/professions/mesmer/speciali
 
 interface ContinuumControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
+  readonly cooldownController: CooldownController;
   readonly unaffectedCooldownIds: ReadonlySet<SkillId>;
   readonly skillsById: ReadonlyMap<SkillId, MesmerSkill>;
   readonly refreshAmmo: MesmerRefreshAmmo;
@@ -29,6 +30,7 @@ interface ContinuumControllerOptions {
 
 export function createContinuumController({
   state,
+  cooldownController,
   unaffectedCooldownIds,
   skillsById,
   refreshAmmo,
@@ -51,10 +53,15 @@ export function createContinuumController({
     state.cooldowns = new Map([
       ...unaffectedCooldowns,
       ...[...continuum.remainingCooldowns]
-        .filter(([, remaining]) => remaining > EPSILON)
+        .filter(([, remaining]) => remaining > 0)
         .map(([id, remaining]): [SkillId, number] => [id, at + remaining])
     ]);
     if (splitReady) state.cooldowns.set(continuum.splitId, at + splitReady - openAt);
+    // Restore base progress under the current boon timeline, not the checkpoint's old recharge speed.
+    state.rechargeProgress = new Map([
+      ...[...state.rechargeProgress].filter(([id]) => unaffectedCooldownIds.has(id)),
+      ...[...continuum.remainingRechargeWork].map(([id, work]) => [id, { startedAt: at, work }] as const)
+    ]);
     state.ammo = new Map(
       [...continuum.ammo].map(([id, ammo]) => [
         id,
@@ -62,14 +69,21 @@ export function createContinuumController({
           // Relative deadlines belong to the checkpoint; live ammo only stores absolute deadlines.
           charges: ammo.charges,
           maximum: ammo.maximum,
-          rechargeDuration: ammo.rechargeDuration,
+          rechargeWork: ammo.rechargeWork,
+          ...(ammo.pendingRechargeWork == null
+            ? {}
+            : { rechargeProgress: { startedAt: at, work: ammo.pendingRechargeWork } }),
+          ...(ammo.pendingLockoutWork == null
+            ? {}
+            : { lockoutProgress: { startedAt: at, work: ammo.pendingLockoutWork } }),
           nextRechargeAt: ammo.nextRechargeRemaining == null ? null : at + ammo.nextRechargeRemaining,
           // Rewind the cast lockout independently of the next charge's recharge.
-          lockoutReadyAt: at + ammo.lockoutRemaining
+          lockoutReadyAt: ammo.lockoutRemaining > 0 ? at + ammo.lockoutRemaining : 0
         }
       ])
     );
     replaceAutoattackChains(state, continuum.autoattackChains || {});
+    cooldownController.refresh(at);
     for (const [id] of state.ammo) {
       const ammoSkill = skillsById.get(id);
       if (ammoSkill) refreshAmmo(ammoSkill, at);
@@ -84,7 +98,9 @@ export function createContinuumController({
     addEvent({
       type: 'cooldown_snapshot',
       at,
-      cooldowns: Object.fromEntries(state.cooldowns)
+      cooldowns: Object.fromEntries(state.cooldowns),
+      // Passive queries must resume the checkpoint's work under future boon coverage too.
+      rechargeProgressBySkillId: structuredClone(Object.fromEntries(state.rechargeProgress))
     });
     chronomancer.continuum = null;
   };
@@ -101,13 +117,29 @@ export function createContinuumController({
         .filter(([id]) => id !== skill.id && !unaffectedCooldownIds.has(id))
         .map(([id, ready]) => [id, ready - at])
     );
+    const remainingRechargeWork = new Map(
+      [...state.rechargeProgress].flatMap(([id, progress]) => {
+        const cooldownSkill = skillsById.get(id);
+        return cooldownSkill &&
+          !unaffectedCooldownIds.has(id) &&
+          gw2CooldownReadyAt(cooldownController.project(cooldownSkill, progress)) > at
+          ? [[id, cooldownController.remaining(cooldownSkill, progress, at)] as const]
+          : [];
+      })
+    );
     const ammo = new Map(
       [...state.ammo].map(([id, value]) => [
         id,
         {
           charges: value.charges,
           maximum: value.maximum,
-          rechargeDuration: value.rechargeDuration,
+          rechargeWork: value.rechargeWork,
+          ...(value.rechargeProgress && skillsById.has(id)
+            ? { pendingRechargeWork: cooldownController.remaining(skillsById.get(id)!, value.rechargeProgress, at) }
+            : {}),
+          ...(value.lockoutProgress && gw2CooldownReadyAt(value.lockoutReadyAt ?? 0) > at && skillsById.has(id)
+            ? { pendingLockoutWork: cooldownController.remaining(skillsById.get(id)!, value.lockoutProgress, at) }
+            : {}),
           nextRechargeRemaining: value.nextRechargeAt == null ? null : Math.max(0, value.nextRechargeAt - at),
           lockoutRemaining: Math.max(0, (value.lockoutReadyAt ?? 0) - at)
         }
@@ -121,6 +153,7 @@ export function createContinuumController({
       splitReady: state.cooldowns.get(skill.id),
       openAt: at,
       remainingCooldowns,
+      remainingRechargeWork,
       ammo,
       autoattackChains: { ...professionCoreState(state).autoattackChains },
       expiresAt: at + duration

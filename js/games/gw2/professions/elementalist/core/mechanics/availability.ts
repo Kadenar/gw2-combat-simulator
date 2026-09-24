@@ -1,5 +1,6 @@
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 /**
  * Core Elementalist cast availability.
  *
@@ -75,10 +76,10 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
       return unavailable(skill, 'elementalist.same-attunement', `already attuned to ${target}.`);
     }
 
-    const naturalReadyAt = Number(state.attunementReadyAt[target] || 0);
+    const naturalReadyAt = gw2CooldownReadyAt(Number(state.attunementReadyAt[target] || 0));
     const freshAirReadyAt = target === 'Air' ? projectedFreshAirReadyAt(context, naturalReadyAt) : null;
     const readyAt = freshAirReadyAt == null ? naturalReadyAt : Math.min(naturalReadyAt, freshAirReadyAt);
-    return readyAt > context.start + EPSILON
+    return readyAt > context.start
       ? unavailable(skill, 'elementalist.attunement-recharge', `${target} recharges at ${readyAt.toFixed(3)}.`, readyAt)
       : ready();
   }

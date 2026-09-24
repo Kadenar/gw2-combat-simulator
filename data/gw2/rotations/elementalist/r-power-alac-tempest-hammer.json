@@ -11,11 +11,11 @@
     "Shock Blast",
     {
       "name": "__combat_start",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Crescent Wind",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Flame Barrage",
@@ -24,82 +24,82 @@
     "Overload Air",
     {
       "name": "Arcane Blast",
-      "offset": 236
+      "offset": 240
     },
     {
       "name": "Fire Attunement",
-      "offset": 3124
+      "offset": 3120
     },
     "Triple Sear",
     "Molten End",
     {
       "name": "Air Attunement",
-      "offset": 123
+      "offset": 120
     },
     {
       "name": "Arcane Blast",
-      "offset": 359
+      "offset": 360
     },
     "Glyph of Storms (Air)",
     "Hurricane of Pain",
     {
       "name": "Arcane Blast",
-      "offset": 37
+      "offset": 40
     },
     "Wind Slam",
     {
       "name": "Wind Slam",
-      "interruptMs": 163
+      "interruptMs": 160
     },
     "Overload Air",
     {
       "name": "Flame Barrage",
-      "offset": 2957
+      "offset": 2960
     },
     "Earth Attunement",
     "Stonestrike",
     "Ground Pound",
     {
       "name": "Rocky Loop",
-      "offset": 159
+      "offset": 160
     },
     "Whirling Stones",
     {
       "name": "Air Attunement",
-      "offset": 83
+      "offset": 80
     },
     {
       "name": "Wind Slam",
-      "interruptMs": 41
+      "interruptMs": 40
     },
     "Hurricane of Pain",
     "Shock Blast",
     {
       "name": "Wind Slam",
-      "interruptMs": 39
+      "interruptMs": 40
     },
     "Grand Finale",
     {
       "name": "Arcane Blast",
-      "offset": 361
+      "offset": 360
     },
     "Wind Slam",
     "Overload Air",
     {
       "name": "Crescent Wind",
-      "offset": 884
+      "offset": 880
     },
     {
       "name": "Feel the Burn!",
-      "offset": 2366
+      "offset": 2360
     },
     {
       "name": "Flame Barrage",
-      "offset": 1947
+      "offset": 1960
     },
     {
       "name": "Fire Attunement",
-      "offset": 1215
+      "offset": 1200
     },
     "Singeing Strike",
     "Triple Sear",
@@ -111,11 +111,11 @@
     "Molten End",
     {
       "name": "Air Attunement",
-      "offset": 128
+      "offset": 120
     },
     {
       "name": "Wind Slam",
-      "interruptMs": 279
+      "interruptMs": 280
     },
     "Hurricane of Pain",
     "Wind Slam",
@@ -126,67 +126,67 @@
     "Stonestrike",
     {
       "name": "Flame Barrage",
-      "offset": 546
+      "offset": 560
     },
     "Ground Pound",
     {
       "name": "Rocky Loop",
-      "offset": 164
+      "offset": 160
     },
     "Whirling Stones",
     {
       "name": "Water Attunement",
-      "offset": 362
+      "offset": 360
     },
     {
       "name": "Icy Coil",
-      "offset": 521
+      "offset": 520
     },
     {
       "name": "Air Attunement",
-      "offset": 638
+      "offset": 640
     },
     {
       "name": "Arcane Blast",
-      "offset": 917
+      "offset": 920
     },
     "Hurricane of Pain",
     "Shock Blast",
     {
       "name": "Wind Slam",
-      "interruptMs": 36
+      "interruptMs": 40
     },
     "Grand Finale",
     "Wind Slam",
     {
       "name": "Wind Slam",
-      "interruptMs": 282
+      "interruptMs": 280
     },
     "Overload Air",
     {
       "name": "Crescent Wind",
-      "offset": 278
+      "offset": 280
     },
     "Fire Attunement",
     "Singeing Strike",
     "Triple Sear",
     {
       "name": "Flame Wheel",
-      "offset": 163
+      "offset": 160
     },
     "Surging Flames",
     {
       "name": "Flame Barrage",
-      "offset": 550
+      "offset": 560
     },
     "Molten End",
     {
       "name": "Air Attunement",
-      "offset": 37
+      "offset": 40
     },
     {
       "name": "Feel the Burn!",
-      "offset": 157
+      "offset": 160
     },
     "Hurricane of Pain",
     "Wind Slam",
@@ -206,23 +206,23 @@
     "Whirling Stones",
     {
       "name": "Water Attunement",
-      "offset": 396
+      "offset": 400
     },
     {
       "name": "Icy Coil",
-      "offset": 518
+      "offset": 520
     },
     {
       "name": "Air Attunement",
-      "offset": 635
+      "offset": 640
     },
     {
       "name": "Flame Barrage",
-      "offset": 721
+      "offset": 720
     },
     {
       "name": "Arcane Blast",
-      "offset": 192
+      "offset": 200
     },
     "Hurricane of Pain",
     "Glyph of Storms (Air)",
@@ -231,7 +231,7 @@
     "Overload Air",
     {
       "name": "Crescent Wind",
-      "offset": 1158
+      "offset": 1160
     },
     "Fire Attunement",
     "Singeing Strike",
@@ -244,21 +244,21 @@
     "Molten End",
     {
       "name": "Air Attunement",
-      "offset": 45
+      "offset": 40
     },
     "Wind Slam",
     "Hurricane of Pain",
     {
       "name": "Feel the Burn!",
-      "offset": 211
+      "offset": 200
     },
     {
       "name": "Flame Barrage",
-      "offset": 917
+      "offset": 920
     },
     {
       "name": "Arcane Blast",
-      "offset": 524
+      "offset": 520
     },
     "Wind Slam",
     "Wind Slam",
@@ -269,91 +269,91 @@
     "Ground Pound",
     {
       "name": "Rocky Loop",
-      "offset": 157
+      "offset": 160
     },
     "Whirling Stones",
     {
       "name": "Water Attunement",
-      "offset": 362
+      "offset": 360
     },
     {
       "name": "Icy Coil",
-      "offset": 518
+      "offset": 520
     },
     {
       "name": "Air Attunement",
-      "offset": 642
+      "offset": 640
     },
     "Hurricane of Pain",
     "Shock Blast",
     {
       "name": "Wind Slam",
-      "interruptMs": 82
+      "interruptMs": 80
     },
     "Grand Finale",
     {
       "name": "Flame Barrage",
-      "offset": 524
+      "offset": 520
     },
     "Wind Slam",
     "Wind Slam",
     "Overload Air",
     {
       "name": "Crescent Wind",
-      "offset": 321
+      "offset": 320
     },
     {
       "name": "Fire Attunement",
-      "offset": 3163
+      "offset": 3160
     },
     "Triple Sear",
     {
       "name": "Flame Wheel",
-      "offset": 158
+      "offset": 160
     },
     "Surging Flames",
     "Air Attunement",
     "Wind Slam",
     {
       "name": "Arcane Blast",
-      "offset": 278
+      "offset": 280
     },
     "Hurricane of Pain",
     {
       "name": "Feel the Burn!",
-      "offset": 1123
+      "offset": 1120
     },
     "Wind Slam",
     "Wind Slam",
     "Wind Slam",
     {
       "name": "Wind Slam",
-      "interruptMs": 79
+      "interruptMs": 80
     },
     "Overload Air",
     {
       "name": "Flame Barrage",
-      "offset": 363
+      "offset": 360
     },
     "Earth Attunement",
     "Stonestrike",
     "Ground Pound",
     {
       "name": "Rocky Loop",
-      "offset": 156
+      "offset": 160
     },
     "Whirling Stones",
     {
       "name": "Water Attunement",
-      "offset": 402
+      "offset": 400
     },
     {
       "name": "Icy Coil",
-      "offset": 562
+      "offset": 560
     },
     {
       "name": "Air Attunement",
-      "offset": 679
+      "offset": 680
     },
     "Shock Blast",
     "Hurricane of Pain",
@@ -361,16 +361,16 @@
     "Wind Slam",
     {
       "name": "Wind Slam",
-      "interruptMs": 282
+      "interruptMs": 280
     },
     "Overload Air",
     {
       "name": "Crescent Wind",
-      "offset": 279
+      "offset": 280
     },
     {
       "name": "Arcane Blast",
-      "offset": 921
+      "offset": 920
     },
     {
       "name": "Flame Barrage",
@@ -381,35 +381,35 @@
     "Triple Sear",
     {
       "name": "Flame Wheel",
-      "offset": 161
+      "offset": 160
     },
     "Surging Flames",
     "Molten End",
     {
       "name": "Air Attunement",
-      "offset": 82
+      "offset": 80
     },
     "Wind Slam",
     "Hurricane of Pain",
     {
       "name": "Feel the Burn!",
-      "offset": 1004
+      "offset": 1000
     },
     "Glyph of Storms (Air)",
     "Wind Slam",
     "Overload Air",
     {
       "name": "Earth Attunement",
-      "offset": 3163
+      "offset": 3160
     },
     {
       "name": "Stonestrike",
-      "interruptMs": 115
+      "interruptMs": 120
     },
     "Ground Pound",
     {
       "name": "Rocky Loop",
-      "offset": 163
+      "offset": 160
     },
     "Whirling Stones",
     {
@@ -418,21 +418,21 @@
     },
     {
       "name": "Icy Coil",
-      "offset": 601
+      "offset": 600
     },
     {
       "name": "Air Attunement",
-      "offset": 719
+      "offset": 720
     },
     "Shock Blast",
     {
       "name": "Wind Slam",
-      "interruptMs": 36
+      "interruptMs": 40
     },
     "Hurricane of Pain",
     {
       "name": "Arcane Blast",
-      "offset": 359
+      "offset": 360
     },
     "Grand Finale",
     "Wind Slam"

@@ -59,7 +59,7 @@ function useBloodReckoning(context: WarriorCastContext, skill: WarriorSkill): vo
   // An interrupted heal must leave existing primal-burst recharge intact.
   if (context.action.cancelled) return;
   for (const candidate of context.catalog.skills) {
-    if (candidate.primalBurst) context.state.cooldowns.delete(candidate.id);
+    if (candidate.primalBurst) context.cooldownController.clear(candidate.id);
   }
 }
 

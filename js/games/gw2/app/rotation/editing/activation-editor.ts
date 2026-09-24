@@ -4,7 +4,6 @@ import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
 import { mountFloatingEditor, type FloatingEditorHandle } from '#ui/rotation/editing/floating-editor.js';
 import type { DurationValidation } from '#ui/rotation/editing/duration-editor.js';
 
-const ACTIVATION_INTERRUPT_INTERVAL_MS = 20;
 const DEFAULT_IMPACT_DELAY_MS = 1000;
 
 /** How a precast's hostile packets reach the target: normally, later by a travel delay, or not at all. */
@@ -90,16 +89,16 @@ export function activationDamageCommitWarning(
   return '';
 }
 
-/** Accepts 20 ms interruption intervals plus exact full completion so catalog cast times remain directly usable. */
+/** Requires action-tick interruption times so manual edits match the scheduler's timing grid. */
 export function validateActivationInterruptMs(
   rawValue: string | number,
   fullCastMs: number | null | undefined = null
 ): DurationValidation {
   const parsed = Number(rawValue);
-  if (!Number.isFinite(parsed) || parsed < ACTIVATION_INTERRUPT_INTERVAL_MS) {
+  if (!Number.isFinite(parsed) || parsed < GW2_ACTION_TICK_MS) {
     return {
       valid: false,
-      error: `Enter an interruption time of at least ${ACTIVATION_INTERRUPT_INTERVAL_MS} ms.`
+      error: `Enter an interruption time of at least ${GW2_ACTION_TICK_MS} ms.`
     };
   }
 
@@ -112,10 +111,10 @@ export function validateActivationInterruptMs(
 
   const value = parsed;
   const fullDuration = Math.round(Number(fullCastMs) || 0);
-  if (value !== fullDuration && value % ACTIVATION_INTERRUPT_INTERVAL_MS !== 0) {
+  if (value % GW2_ACTION_TICK_MS !== 0) {
     return {
       valid: false,
-      error: `Enter an interruption time divisible by ${ACTIVATION_INTERRUPT_INTERVAL_MS} ms.`
+      error: `Enter an interruption time divisible by ${GW2_ACTION_TICK_MS} ms.`
     };
   }
 
@@ -129,7 +128,7 @@ export function validateActivationInterruptMs(
   return { valid: true, value };
 }
 
-/** Accepts action-tick offsets for skills and arbitrary whole milliseconds for signed combat-start offsets. */
+/** Requires action-tick offsets, including signed offsets that position Combat Start. */
 export function validateActivationConcurrentOffsetMs(
   rawValue: string | number,
   minimumMs: number | null = 0
@@ -150,13 +149,10 @@ export function validateActivationConcurrentOffsetMs(
     };
   }
 
-  if (!Number.isInteger(parsed) || (normalizedMinimum != null && parsed % GW2_ACTION_TICK_MS !== 0)) {
+  if (!Number.isInteger(parsed) || parsed % GW2_ACTION_TICK_MS !== 0) {
     return {
       valid: false,
-      error:
-        normalizedMinimum == null
-          ? 'Enter a whole-millisecond offset.'
-          : `Enter an offset divisible by ${GW2_ACTION_TICK_MS} ms.`
+      error: `Enter an offset divisible by ${GW2_ACTION_TICK_MS} ms.`
     };
   }
 
@@ -215,19 +211,16 @@ export function openActivationEditor(options: ActivationEditorOptions): Floating
   const minimumMs = isConcurrentBehavior
     ? options.minimumConcurrentOffsetMs === null
       ? null
-      : Math.round(Number(options.minimumConcurrentOffsetMs) || 0)
-    : ACTIVATION_INTERRUPT_INTERVAL_MS;
-  const inputStep = isConcurrentBehavior
-    ? minimumMs == null
-      ? 1
-      : GW2_ACTION_TICK_MS
-    : ACTIVATION_INTERRUPT_INTERVAL_MS;
+      : Math.ceil((Number(options.minimumConcurrentOffsetMs) || 0) / GW2_ACTION_TICK_MS) * GW2_ACTION_TICK_MS
+    : GW2_ACTION_TICK_MS;
+  // Native number stepping snaps off-grid values in either direction; align its minimum to the same tick grid.
+  const inputStep = GW2_ACTION_TICK_MS;
   const suggestedFloor = minimumMs ?? Number.NEGATIVE_INFINITY;
   const suggestedMs = Number.isFinite(rawSuggestedMs)
     ? Math.max(suggestedFloor, Math.round(rawSuggestedMs / inputStep) * inputStep)
     : isConcurrentBehavior
       ? Math.max(suggestedFloor, 120)
-      : ACTIVATION_INTERRUPT_INTERVAL_MS;
+      : GW2_ACTION_TICK_MS;
   const inputMinimum = minimumMs == null ? '' : ` min="${minimumMs}"`;
   const editor = document.createElement('div');
   editor.className = 'rotation-activation-editor';

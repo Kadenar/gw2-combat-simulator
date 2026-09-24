@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import {
@@ -29,10 +30,18 @@ function contextFor(kind = 'Core', specialization = {}) {
   const context = {
     catalog: elementalistCatalog,
     config: {},
+    hasBuff: () => false,
     schedulerPolicy: { isCombatActive: () => true },
     traits: new Set(),
     profession,
-    state: { time: 1, activeWeaponSet: 1, cooldowns: new Map(), profession },
+    state: {
+      time: 1,
+      activeWeaponSet: 1,
+      cooldowns: new Map(),
+      ammo: new Map(),
+      rechargeProgress: new Map(),
+      profession
+    },
     effectiveEnd: 1,
     inFlight: new Map(),
     events,
@@ -52,6 +61,8 @@ function contextFor(kind = 'Core', specialization = {}) {
       }
     }
   };
+  // Attunement completion delegates recharge speed and timers to the shared controller.
+  context.cooldownController = createCooldownController({ state: context.state, rechargeDuration: () => 0 });
   return { context, core, events };
 }
 

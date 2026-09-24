@@ -26,11 +26,8 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import {
-  GW2_ALACRITY_RECHARGE_RATE,
-  gw2BuffActiveForAudience,
-  gw2SchedulerBoonDuration
-} from '#gw2/platform/execution/gw2-policy/policy.js';
+import { gw2BuffActiveForAudience, gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
+import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/engine/skills/recharge.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { AvailabilityResult, ScheduledTask } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -647,7 +644,7 @@ function expireElemental(
   const glyph = glyphSkillForElement(context, element);
   if (glyph) {
     const summonedElementalProfile = requireBalanceProfileFromContext(context, PROFILE.summonedElemental);
-    context.state.cooldowns.set(glyph.id, at + balanceProfileNumber(summonedElementalProfile, 'recharge'));
+    context.cooldownController.startRecharge(glyph, at, balanceProfileNumber(summonedElementalProfile, 'recharge'));
   }
 }
 

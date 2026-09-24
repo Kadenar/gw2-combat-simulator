@@ -29,8 +29,12 @@ export function completeMimicCast(context: MesmerCastContext, skill: MesmerSkill
 
   // Mimic resets the independent cast lockout as well as the visible cooldown.
   const ammo = context.state.ammo.get(skill.id);
-  if (ammo) ammo.lockoutReadyAt = 0;
-  context.state.cooldowns.delete(skill.id);
+  if (ammo) {
+    ammo.lockoutReadyAt = 0;
+    delete ammo.lockoutProgress;
+  }
+
+  context.cooldownController.clear(skill.id);
   core.mimicUntil = 0;
   mesmerRuntimeFor(context).addEvent({
     type: 'proc',
@@ -42,6 +46,6 @@ export function completeMimicCast(context: MesmerCastContext, skill: MesmerSkill
     name: 'Mimic',
     targetSkillId: skill.id,
     targetSkillName: skill.name,
-    reduction: context.rechargeDuration
+    reduction: context.rechargeWork / context.cooldownController.rate(skill, at)
   });
 }

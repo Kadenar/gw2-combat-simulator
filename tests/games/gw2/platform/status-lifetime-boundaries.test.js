@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { createScheduledEvents } from '#gw2/platform/execution/scheduled-events.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -64,11 +65,19 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
     return event;
   };
 
-  return {
+  const context = {
     config,
+    hasBuff: () => false,
     profession: runtime,
     catalog: runtime.catalog,
-    state: { time: 0, activeWeaponSet: 1, profession: runtime.createProfessionState(config), cooldowns: new Map() },
+    state: {
+      time: 0,
+      activeWeaponSet: 1,
+      profession: runtime.createProfessionState(config),
+      cooldowns: new Map(),
+      ammo: new Map(),
+      rechargeProgress: new Map()
+    },
     events,
     emit,
     emitDerived: (_cause, event) => emit(event),
@@ -85,6 +94,9 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
     horizon: 0,
     observationEndTime: 0
   };
+  // Handler tests use the same recharge owner as the scheduler, with no active recharge-speed boons.
+  context.cooldownController = createCooldownController({ state: context.state, rechargeDuration: () => 0 });
+  return context;
 }
 
 const specialization = (context) => context.state.profession.specialization.state;

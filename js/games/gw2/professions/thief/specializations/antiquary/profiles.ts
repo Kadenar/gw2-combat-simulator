@@ -58,7 +58,7 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     id: ANTIQUARY_BALANCE_PROFILE_IDS.forgedSurfer,
     name: 'Forged Surfer Dash',
     profileKind: 'skill-variant',
-    parentId: ID.FORGED_SURFER_DASH_ID_76633,
+    parentId: ID.FORGED_SURFER_DASH,
     initialDelay: 1,
     pulseInterval: 3,
     maximumStacks: 5,
@@ -73,7 +73,7 @@ export const ANTIQUARY_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
     id: ANTIQUARY_BALANCE_PROFILE_IDS.forgedSurferMeticulous,
     name: 'Forged Surfer Dash - Meticulous',
     profileKind: 'skill-variant',
-    parentId: ID.FORGED_SURFER_DASH_ID_76633,
+    parentId: ID.FORGED_SURFER_DASH,
     effects: [
       { type: 'strike', name: 'Dash', coefficient: 2.8, hits: 1 },
       { type: 'condition', name: 'Dash', condition: 'Burning', stacks: 2, duration: 12 },

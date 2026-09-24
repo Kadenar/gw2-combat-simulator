@@ -13,7 +13,7 @@
     "Signet of Earth",
     {
       "name": "Ignite",
-      "offset": 242
+      "offset": 240
     },
     "Signet of Fire",
     "Searing Salvo",
@@ -26,14 +26,14 @@
     "Dust Storm",
     {
       "name": "Ignite",
-      "offset": 75
+      "offset": 80
     },
     "Shattering Stone",
     "Conflagration",
     "Boulder Blast",
     {
       "name": "Fire Attunement",
-      "offset": 83
+      "offset": 80
     },
     "Scorching Shot",
     "Scorching Shot",
@@ -46,28 +46,28 @@
     "Frigid Flurry",
     {
       "name": "Fire Attunement",
-      "offset": 526
+      "offset": 520
     },
     {
       "name": "Ignite",
-      "offset": 199
+      "offset": 200
     },
     "Elemental Explosion",
     "Scorching Shot",
     {
       "name": "Scorching Shot",
-      "interruptMs": 83
+      "interruptMs": 80
     },
     "Searing Salvo",
     {
       "name": "Air Attunement",
-      "offset": 325
+      "offset": 320
     },
     "Lightning Orb",
     "Dazing Discharge",
     {
       "name": "Flame Barrage",
-      "offset": 166
+      "offset": 160
     },
     "Signet of Fire",
     {
@@ -79,26 +79,26 @@
     "Ignite",
     {
       "name": "Scorching Shot",
-      "interruptMs": 116
+      "interruptMs": 120
     },
     "Signet of Earth",
     {
       "name": "Earth Attunement",
-      "offset": 359
+      "offset": 360
     },
     {
       "name": "Piercing Pebble",
-      "interruptMs": 242
+      "interruptMs": 240
     },
     "Boulder Blast",
     "Shattering Stone",
     {
       "name": "Fire Attunement",
-      "offset": 517
+      "offset": 520
     },
     {
       "name": "Scorching Shot",
-      "interruptMs": 124
+      "interruptMs": 120
     },
     "Fox's Fury",
     "Scorching Shot",
@@ -106,7 +106,7 @@
     "Raging Ricochet",
     {
       "name": "Water Attunement",
-      "offset": 242
+      "offset": 240
     },
     "Frigid Flurry",
     {
@@ -122,17 +122,17 @@
     },
     {
       "name": "Electric Exposure",
-      "interruptMs": 167
+      "interruptMs": 160
     },
     "Conflagration",
     {
       "name": "Electric Exposure",
-      "interruptMs": 33
+      "interruptMs": 40
     },
     "Dazing Discharge",
     {
       "name": "Electric Exposure",
-      "interruptMs": 42
+      "interruptMs": 40
     },
     "Cyclone",
     {
@@ -143,58 +143,58 @@
     "Raging Ricochet",
     {
       "name": "Scorching Shot",
-      "interruptMs": 42
+      "interruptMs": 40
     },
     "Wildfire",
     {
       "name": "Flame Barrage",
-      "offset": 524
+      "offset": 520
     },
     {
       "name": "Earth Attunement",
-      "offset": 76
+      "offset": 80
     },
     "Ignite",
     "Boulder Blast",
     "Dust Storm",
     {
       "name": "Fire Attunement",
-      "offset": 700
+      "offset": 720
     },
     "Scorching Shot",
     "Raging Ricochet",
     "Signet of Earth",
     {
       "name": "Water Attunement",
-      "offset": 429
+      "offset": 440
     },
     "Frozen Fusillade",
     "Frigid Flurry",
     {
       "name": "Fire Attunement",
-      "offset": 642
+      "offset": 640
     },
     "Scorching Shot",
     {
       "name": "Ignite",
-      "offset": 242
+      "offset": 240
     },
     "Searing Salvo",
     "Rejuvenate",
     {
       "name": "Air Attunement",
-      "offset": 201
+      "offset": 200
     },
     "Electric Exposure",
     {
       "name": "Ignite",
-      "offset": 242
+      "offset": 240
     },
     "Dazing Discharge",
     "Lightning Orb",
     {
       "name": "Fire Attunement",
-      "offset": 325
+      "offset": 320
     },
     "Conflagration",
     "Elemental Explosion",
@@ -202,99 +202,99 @@
     "Fox's Fury",
     {
       "name": "Earth Attunement",
-      "offset": 401
+      "offset": 400
     },
     "Signet of Fire",
     "Boulder Blast",
     "Shattering Stone",
     {
       "name": "Fire Attunement",
-      "offset": 159
+      "offset": 160
     },
     "Scorching Shot",
     {
       "name": "Flame Barrage",
-      "offset": 246
+      "offset": 240
     },
     "Scorching Shot",
     {
       "name": "Ignite",
-      "offset": 283
+      "offset": 280
     },
     "Scorching Shot",
     "Scorching Shot",
     "Raging Ricochet",
     {
       "name": "Water Attunement",
-      "offset": 117
+      "offset": 120
     },
     "Frigid Flurry",
     {
       "name": "Fire Attunement",
-      "offset": 926
+      "offset": 920
     },
     "Signet of Earth",
     "Searing Salvo",
     {
       "name": "Air Attunement",
-      "offset": 325
+      "offset": 320
     },
     "Dazing Discharge",
     "Electric Exposure",
     {
       "name": "Ignite",
-      "offset": 117
+      "offset": 120
     },
     "Electric Exposure",
     "Cyclone",
     {
       "name": "Fire Attunement",
-      "offset": 367
+      "offset": 360
     },
     "Raging Ricochet",
     {
       "name": "Scorching Shot",
-      "interruptMs": 199
+      "interruptMs": 200
     },
     "Wildfire",
     {
       "name": "Earth Attunement",
-      "offset": 401
+      "offset": 400
     },
     "Signet of Fire",
     "Boulder Blast",
     "Dust Storm",
     {
       "name": "Fire Attunement",
-      "offset": 242
+      "offset": 240
     },
     {
       "name": "Ignite",
-      "offset": 517
+      "offset": 520
     },
     "Scorching Shot",
     "Scorching Shot",
     "Raging Ricochet",
     {
       "name": "Flame Barrage",
-      "offset": 451
+      "offset": 440
     },
     {
       "name": "Water Attunement",
-      "offset": 33
+      "offset": 40
     },
     "Conflagration",
     "Frozen Fusillade",
     "Frigid Flurry",
     {
       "name": "Fire Attunement",
-      "offset": 284
+      "offset": 280
     },
     "Elemental Explosion",
     "Searing Salvo",
     {
       "name": "Air Attunement",
-      "offset": 483
+      "offset": 480
     },
     "Fox's Fury",
     "Dazing Discharge",
@@ -304,85 +304,85 @@
     },
     {
       "name": "Electric Exposure",
-      "interruptMs": 75
+      "interruptMs": 80
     },
     "Lightning Orb",
     {
       "name": "Fire Attunement",
-      "offset": 325
+      "offset": 320
     },
     {
       "name": "Scorching Shot",
-      "interruptMs": 241
+      "interruptMs": 240
     },
     "Raging Ricochet",
     {
       "name": "Scorching Shot",
-      "interruptMs": 125
+      "interruptMs": 120
     },
     "Signet of Earth",
     "Scorching Shot",
     "Signet of Fire",
     {
       "name": "Earth Attunement",
-      "offset": 43
+      "offset": 40
     },
     "Boulder Blast",
     "Shattering Stone",
     "Ignite",
     {
       "name": "Piercing Pebble",
-      "interruptMs": 41
+      "interruptMs": 40
     },
     "Rejuvenate",
     {
       "name": "Fire Attunement",
-      "offset": 479
+      "offset": 480
     },
     "Scorching Shot",
     {
       "name": "Ignite",
-      "offset": 316
+      "offset": 320
     },
     {
       "name": "Scorching Shot",
-      "interruptMs": 236
+      "interruptMs": 240
     },
     "Raging Ricochet",
     {
       "name": "Water Attunement",
-      "offset": 409
+      "offset": 400
     },
     "Soothing Splash",
     "Frigid Flurry",
     {
       "name": "Fire Attunement",
-      "offset": 767
+      "offset": 760
     },
     {
       "name": "Scorching Shot",
-      "interruptMs": 83
+      "interruptMs": 80
     },
     "Conflagration",
     {
       "name": "Flame Barrage",
-      "offset": 312
+      "offset": 320
     },
     {
       "name": "Scorching Shot",
-      "interruptMs": 159
+      "interruptMs": 160
     },
     "Searing Salvo",
     {
       "name": "Air Attunement",
-      "offset": 442
+      "offset": 440
     },
     "Electric Exposure",
     "Dazing Discharge",
     "Electric Exposure",
     {
       "name": "Fire Attunement",
-      "offset": 358
+      "offset": 360
     },
     "Scorching Shot",
     {
@@ -395,62 +395,62 @@
     "Scorching Shot",
     {
       "name": "Earth Attunement",
-      "offset": 367
+      "offset": 360
     },
     "Signet of Fire",
     "Boulder Blast",
     "Dust Storm",
     {
       "name": "Fire Attunement",
-      "offset": 209
+      "offset": 200
     },
     "Raging Ricochet",
     {
       "name": "Ignite",
-      "offset": 483
+      "offset": 480
     },
     "Fox's Fury",
     "Signet of Earth",
     {
       "name": "Water Attunement",
-      "offset": 284
+      "offset": 280
     },
     {
       "name": "Soothing Splash",
-      "interruptMs": 75
+      "interruptMs": 80
     },
     "Frozen Fusillade",
     "Frigid Flurry",
     {
       "name": "Fire Attunement",
-      "offset": 567
+      "offset": 560
     },
     "Searing Salvo",
     {
       "name": "Air Attunement",
-      "offset": 284
+      "offset": 280
     },
     "Dazing Discharge",
     "Cyclone",
     {
       "name": "Fire Attunement",
-      "offset": 517
+      "offset": 520
     },
     {
       "name": "Flame Barrage",
-      "offset": 221
+      "offset": 240
     },
     "Elemental Explosion",
     {
       "name": "Ignite",
-      "offset": 558
+      "offset": 560
     },
     "Raging Ricochet",
     "Scorching Shot",
     "Conflagration",
     {
       "name": "Earth Attunement",
-      "offset": 616
+      "offset": 600
     },
     "Piercing Pebble",
     "Boulder Blast",
@@ -465,59 +465,59 @@
     "Raging Ricochet",
     {
       "name": "Water Attunement",
-      "offset": 409
+      "offset": 400
     },
     {
       "name": "Soothing Splash",
-      "interruptMs": 116
+      "interruptMs": 120
     },
     "Frigid Flurry",
     {
       "name": "Ignite",
-      "offset": 359
+      "offset": 360
     },
     "Soothing Splash",
     {
       "name": "Fire Attunement",
-      "offset": 242
+      "offset": 240
     },
     "Rejuvenate",
     "Scorching Shot",
     {
       "name": "Ignite",
-      "offset": 75
+      "offset": 80
     },
     "Searing Salvo",
     {
       "name": "Air Attunement",
-      "offset": 284
+      "offset": 280
     },
     "Signet of Earth",
     "Dazing Discharge",
     "Lightning Orb",
     {
       "name": "Fire Attunement",
-      "offset": 201
+      "offset": 200
     },
     {
       "name": "Scorching Shot",
-      "interruptMs": 117
+      "interruptMs": 120
     },
     "Raging Ricochet",
     "Ignite",
     {
       "name": "Scorching Shot",
-      "interruptMs": 83
+      "interruptMs": 80
     },
     "Fox's Fury",
     "Wildfire",
     {
       "name": "Flame Barrage",
-      "offset": 8
+      "offset": 0
     },
     {
       "name": "Earth Attunement",
-      "offset": 482
+      "offset": 480
     },
     "Conflagration",
     "Boulder Blast",
@@ -525,40 +525,40 @@
     "Dust Storm",
     {
       "name": "Fire Attunement",
-      "offset": 242
+      "offset": 240
     },
     "Signet of Fire",
     "Raging Ricochet",
     {
       "name": "Water Attunement",
-      "offset": 250
+      "offset": 240
     },
     "Frozen Fusillade",
     "Frigid Flurry",
     {
       "name": "Fire Attunement",
-      "offset": 642
+      "offset": 640
     },
     {
       "name": "Ignite",
-      "offset": 158
+      "offset": 160
     },
     "Elemental Explosion",
     "Searing Salvo",
     {
       "name": "Air Attunement",
-      "offset": 442
+      "offset": 440
     },
     {
       "name": "Electric Exposure",
-      "interruptMs": 116
+      "interruptMs": 120
     },
     "Dazing Discharge",
     "Electric Exposure",
     "Electric Exposure",
     {
       "name": "Fire Attunement",
-      "offset": 42
+      "offset": 40
     },
     "Raging Ricochet",
     "Ignite",

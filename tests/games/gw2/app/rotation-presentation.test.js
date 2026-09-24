@@ -38,20 +38,22 @@ test('activation editor suggests and validates manual interruption times', () =>
     value: 640
   });
   assert.match(validateActivationInterruptMs('640.4', 920).error, /whole-millisecond/);
-  assert.deepEqual(validateActivationInterruptMs('620', 920), { valid: true, value: 620 });
-  assert.match(validateActivationInterruptMs('630', 920).error, /divisible by 20 ms/);
+  assert.match(validateActivationInterruptMs('620', 920).error, /divisible by 40 ms/);
+  assert.match(validateActivationInterruptMs('630', 920).error, /divisible by 40 ms/);
+  assert.equal(validateActivationInterruptMs(20, 920).valid, false);
   assert.equal(validateActivationInterruptMs('', 920).valid, false);
   assert.equal(validateActivationInterruptMs(0, 920).valid, false);
   assert.deepEqual(validateActivationInterruptMs(920, 920), { valid: true, value: 920 });
-  assert.deepEqual(validateActivationInterruptMs(657, 657), { valid: true, value: 657 });
+  assert.match(validateActivationInterruptMs(657, 657).error, /divisible by 40 ms/);
   assert.equal(validateActivationInterruptMs(921, 920).valid, false);
   assert.deepEqual(validateActivationConcurrentOffsetMs(0), { valid: true, value: 0 });
   assert.deepEqual(validateActivationConcurrentOffsetMs(120), { valid: true, value: 120 });
   assert.match(validateActivationConcurrentOffsetMs('100.4').error, /divisible by 40 ms/);
   assert.match(validateActivationConcurrentOffsetMs(100).error, /divisible by 40 ms/);
   assert.deepEqual(validateActivationConcurrentOffsetMs(-440, null), { valid: true, value: -440 });
-  assert.deepEqual(validateActivationConcurrentOffsetMs(681, null), { valid: true, value: 681 });
-  assert.match(validateActivationConcurrentOffsetMs('681.5', null).error, /whole-millisecond/);
+  assert.match(validateActivationConcurrentOffsetMs(681, null).error, /divisible by 40 ms/);
+  assert.match(validateActivationConcurrentOffsetMs(-441, null).error, /divisible by 40 ms/);
+  assert.match(validateActivationConcurrentOffsetMs('681.5', null).error, /divisible by 40 ms/);
   assert.equal(validateActivationConcurrentOffsetMs('').valid, false);
   assert.equal(validateActivationConcurrentOffsetMs(-1).valid, false);
   assert.equal(

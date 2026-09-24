@@ -23,7 +23,7 @@ function chillingScythe(
   event: NecromancerSimulationEvent
 ): void {
   if (event?.type !== 'damage') return;
-  context.state.cooldowns.delete(ID.GRAVEDIGGER);
+  context.cooldownController.clear(ID.GRAVEDIGGER);
 }
 
 // Projects an authored base-cast offset onto the active cast duration before testing interruption commitment.
@@ -125,7 +125,7 @@ export const necromancerGreatswordSkillMechanicHandlers = Object.freeze({
     const schedulerFeedback = context.config._schedulerFeedback as { readonly targetBelowHalfAt?: number } | undefined;
     const targetBelowHalfAt = Number(schedulerFeedback?.targetBelowHalfAt);
     if (Number.isFinite(targetBelowHalfAt) && at > targetBelowHalfAt + EPSILON) {
-      context.state.cooldowns.delete(ID.GRAVEDIGGER);
+      context.cooldownController.clear(ID.GRAVEDIGGER);
     }
   }
 });

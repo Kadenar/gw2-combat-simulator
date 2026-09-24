@@ -266,13 +266,14 @@ const SELF: ResolvedEffectAudience = Object.freeze({
   recipientCount: 1
 });
 
-/** Split resource integration at self-boon applications, extensions, and pooled expiry. */
-export function* selfBoonIntervals(
+/** Split integration at audience-specific boon applications, extensions, and pooled expiry. */
+export function* boonIntervals(
   events: readonly SimulationEvent[],
   kind: string,
   start: number,
   end: number,
-  permanent = false
+  permanent = false,
+  audience: Gw2BuffAudience = 'all'
 ) {
   // Empty or reversed resource windows cannot accrue a boon, so avoid preparing their history.
   if (end <= start) return;
@@ -286,7 +287,7 @@ export function* selfBoonIntervals(
     events.filter((event) => !event.cancelled),
     kind,
     Infinity
-  ).filter((application) => buffMatchesAudience(application, 'all'));
+  ).filter((application) => buffMatchesAudience(application, audience));
   const boundaries = [
     ...new Set(applications.map((application) => application.at).filter((at) => at > start && at < end)),
     end

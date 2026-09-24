@@ -6,7 +6,7 @@ import {
   chronomancerCastRules,
   chronomancerRuntimeHooks,
   chronomancerSkillMechanicHandlers
-} from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split-rules.js';
+} from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/chronomancer-rules.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import { chronomancerUi } from '#gw2/professions/mesmer/specializations/chronomancer/presentation.js';
 import {

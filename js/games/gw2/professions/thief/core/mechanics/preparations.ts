@@ -51,11 +51,12 @@ export function activateTrap(context: ThiefCastContext, skill: ThiefSkill): void
   if (!trap) return;
   const state = professionCoreState(context) as ThiefCoreState;
   consumeSkillFlip(state.availableFlips, trap.triggerId);
-  if (context.rechargeReadyAt != null) {
-    context.state.cooldowns.set(
-      trap.prepareId,
-      Math.max(Number(context.state.cooldowns.get(trap.prepareId) || 0), context.rechargeReadyAt)
-    );
+  if (
+    context.rechargeReadyAt != null &&
+    context.rechargeReadyAt > Number(context.state.cooldowns.get(trap.prepareId) || 0)
+  ) {
+    const placement = context.catalog.skillsById.get(trap.prepareId);
+    if (placement) context.cooldownController.startRecharge(placement, context.rechargeStart, context.rechargeWork);
   }
 
   emitThiefStateSnapshot(context, context.effectiveEnd, trap.reason);

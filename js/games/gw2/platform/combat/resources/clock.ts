@@ -1,4 +1,6 @@
 import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
+import { timeKey } from '#kernel/core/clock.js';
+import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
 
 export interface ResourceClock {
   value: number;
@@ -32,7 +34,7 @@ export function resourceDepletionAt(clock: ResourceClock): number {
   return clock.rate < 0 ? clock.updatedAt + clock.value / -clock.rate : Infinity;
 }
 
-/** Credits all discrete grants while continuing the cadence at the cap. */
+/** Credits grants on the first 40 ms tick at or after their deadline, preserving cadence even at the cap. */
 export function advanceDiscreteResource(
   value: number,
   maximum: number,
@@ -42,22 +44,12 @@ export function advanceDiscreteResource(
 ) {
   if (!(interval > 0) || !Number.isFinite(interval))
     throw new TypeError('Resource intervals must be finite and positive.');
-  const count = nextAt <= target ? Math.floor((target - nextAt) / interval) + 1 : 0;
-  return { value: cappedResource(value + count, maximum), nextAt: nextAt + count * interval };
-}
-
-/** Carries partial discrete recharge through explicit rate windows, even while the resource is capped. */
-export function advanceResourceRecharge(
-  value: number,
-  maximum: number,
-  progress: number,
-  period: number,
-  intervals: Iterable<{ readonly start: number; readonly end: number; readonly rate: number }>,
-  tolerance = 0
-): { value: number; progress: number } {
-  if (!(period > 0) || !Number.isFinite(period))
-    throw new TypeError('Resource recharge periods must be finite and positive.');
-  for (const interval of intervals) progress += (interval.end - interval.start) * interval.rate;
-  const generated = Math.floor((progress + tolerance) / period);
-  return { value: cappedResource(value + generated, maximum), progress: Math.max(0, progress - generated * period) };
+  if (nextAt === Infinity) return { value: cappedResource(value, maximum), nextAt };
+  const period = timeKey(interval);
+  if (period <= 0) throw new RangeError('Resource intervals must span at least one clock unit.');
+  const tick = GW2_ACTION_TICK_MS * 1000;
+  const through = Math.floor(timeKey(target) / tick) * tick;
+  const next = timeKey(nextAt);
+  const count = Math.max(0, Math.floor((through - next) / period) + 1);
+  return { value: cappedResource(value + count, maximum), nextAt: (next + count * period) / 1_000_000 };
 }

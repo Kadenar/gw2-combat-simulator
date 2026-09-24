@@ -62,6 +62,7 @@ test('Illuminating Inspiration delegates capped reductions for the three radiant
       time: 10,
       profession: guardianProfession.resolveRuntime(settings).createProfessionState(settings),
       ammo: new Map(),
+      rechargeProgress: new Map(),
       cooldowns: new Map([
         [ids.RADIANT_JUSTICE, 20],
         [ids.RADIANT_RESOLVE, 12],

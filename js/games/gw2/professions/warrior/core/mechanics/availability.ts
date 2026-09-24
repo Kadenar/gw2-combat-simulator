@@ -1,6 +1,7 @@
 import { signetOfRage } from '#gw2/professions/warrior/core/traits/index.js';
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
@@ -46,7 +47,8 @@ export function warriorCastAvailability(context: WarriorCastContext, skill: Warr
     let passiveReadyAt: number | null = null;
     if (selected.has('Signet of Rage') && Number.isFinite(nextPulseAt) && nextPulseAt > context.start) {
       const skippedPulses = Math.max(0, Math.ceil((signetCooldown - nextPulseAt - EPSILON) / 3));
-      passiveReadyAt = nextPulseAt + (skippedPulses + passivePulses - 1) * 3;
+      // Passive adrenaline funds the queued skill on the tick that detects the final required pulse.
+      passiveReadyAt = gw2CooldownReadyAt(nextPulseAt + (skippedPulses + passivePulses - 1) * 3);
     }
 
     return {

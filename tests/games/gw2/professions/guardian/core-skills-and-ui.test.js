@@ -849,7 +849,7 @@ test('weapon swap ignores Alacrity and Relic of the Warrior reduces its recharge
       .map((step) => step.start);
 
   assert.deepEqual(swapStarts({ boons: { alacrity: true } }), [0, 10000]);
-  assert.deepEqual(swapStarts({ boons: { alacrity: true }, relic: 'Warrior' }), [0, 7500]);
+  assert.deepEqual(swapStarts({ boons: { alacrity: true }, relic: 'Warrior' }), [0, 7520]);
 });
 
 test('Guardian palettes keep inactive tome and forge skills visible', () => {

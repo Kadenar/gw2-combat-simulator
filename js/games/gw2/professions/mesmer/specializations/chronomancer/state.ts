@@ -5,9 +5,11 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 export interface MesmerContinuumAmmo {
   charges: number;
   maximum: number;
-  rechargeDuration: number;
+  rechargeWork: number;
   nextRechargeRemaining: number | null;
   lockoutRemaining: number;
+  pendingRechargeWork?: number;
+  pendingLockoutWork?: number;
 }
 
 export interface MesmerContinuumSnapshot {
@@ -15,6 +17,7 @@ export interface MesmerContinuumSnapshot {
   splitReady: number | undefined;
   openAt: number;
   remainingCooldowns: Map<SkillId, number>;
+  remainingRechargeWork: Map<SkillId, number>;
   ammo: Map<SkillId, MesmerContinuumAmmo>;
   autoattackChains: Record<string, SkillId>;
   expiresAt: number;

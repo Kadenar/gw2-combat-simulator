@@ -1,3 +1,4 @@
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { boonApplicationsAt, normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
@@ -43,12 +44,18 @@ function contextFor(selectedTraitIds = []) {
     return prepared;
   };
 
-  return {
+  const context = {
     config,
     profession,
     catalog: profession.catalog,
     events,
-    state: { profession: profession.createProfessionState(config), time: 0, cooldowns: new Map() },
+    state: {
+      profession: profession.createProfessionState(config),
+      time: 0,
+      cooldowns: new Map(),
+      rechargeProgress: new Map(),
+      ammo: new Map()
+    },
     action: {},
     command: {},
     start: 0,
@@ -61,6 +68,12 @@ function contextFor(selectedTraitIds = []) {
     helpers: { skillsById: profession.catalog.skillsById },
     rechargeDurationFor: (skill) => skill.cooldown
   };
+  context.cooldownController = createCooldownController({
+    state: context.state,
+    rechargeDuration: context.rechargeDurationFor,
+    skillFor: (id) => context.catalog.skillsById.get(id)
+  });
+  return context;
 }
 
 test('Empowered Armaments refreshes its live remainder and shares the displayed capped deadline', () => {

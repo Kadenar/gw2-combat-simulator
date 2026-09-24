@@ -1,5 +1,5 @@
 import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
+import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import {
   createNativeModuleData,
   type NativeModuleDataSelection

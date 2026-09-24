@@ -1,5 +1,5 @@
 import { skillFlipReady, consumeSkillFlip, armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import { EPSILON } from '#kernel/core/clock.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 /**
  * Owns Firebrand mantra preparation, charge, flip, and recharge state.
  * Declarative mantra fragments live in `skills/mantra-skills.ts`.
@@ -49,12 +49,12 @@ function armMantra(context: GuardianSchedulerContext, definition: MantraDefiniti
   // Wipe any in-flight ammo/cooldown before ensureAmmo so it doesn't treat
   // this as a "refill" and add to an existing count.
   context.state.ammo.delete(normal.id);
-  context.state.cooldowns.delete(normal.id);
+  context.cooldownController.clear(normal.id);
   context.cooldownController.ensureAmmo(normal, at);
   // Remove the root prepare skill's cooldown so it shows as castable again
   // immediately after the auto-rearm, and record when it was last armed so
   // advanceFirebrandMantras can detect future rearm triggers.
-  context.state.cooldowns.delete(definition.rootId);
+  context.cooldownController.clear(definition.rootId);
   firebrandState.from(context).mantraRechargeReadyAt[definition.rootId] = at;
 }
 
@@ -86,10 +86,9 @@ function startFullRecharge(context: GuardianSchedulerContext, definition: Mantra
   consumeSkillFlip(flips, definition.normalId);
   consumeSkillFlip(flips, definition.finalId);
   context.state.ammo.delete(normal.id);
-  context.state.cooldowns.delete(normal.id);
-  const readyAt = at + context.rechargeDurationFor(root, at);
+  context.cooldownController.clear(normal.id);
+  const readyAt = context.cooldownController.startRecharge(root, at);
   // Put the root on cooldown so advanceFirebrandMantras knows when to auto-arm.
-  context.state.cooldowns.set(root.id, readyAt);
   firebrandState.from(context).mantraRechargeReadyAt[root.id] = readyAt;
 }
 
@@ -103,11 +102,11 @@ export function initializeFirebrandMantras(context: GuardianSchedulerContext): v
 /** Refreshes individual charges and automatically prepares a fully recharged mantra. */
 export function advanceFirebrandMantras(context: GuardianSchedulerContext, target: number): void {
   for (const definition of MANTRAS) {
-    const readyAt = Number(firebrandState.from(context).mantraRechargeReadyAt[definition.rootId]);
+    const readyAt = gw2CooldownReadyAt(Number(context.state.cooldowns.get(definition.rootId) || 0));
     // readyAt === 0 means "already armed at sim start", not "due now"; skip it.
     // The cooldowns guard prevents double-arming if advance is called twice for
     // the same tick.
-    if (readyAt > 0 && readyAt <= target + EPSILON && context.state.cooldowns.has(definition.rootId)) {
+    if (readyAt > 0 && readyAt <= target && context.state.cooldowns.has(definition.rootId)) {
       armMantra(context, definition, readyAt);
     }
 
@@ -129,11 +128,11 @@ export function firebrandMantraAvailability(context: GuardianPrecastContext, ski
   const definition = normal || final;
   if (!definition) return CAST_READY;
   const expectedId = normal ? definition.normalId : definition.finalId;
-  const preparedAt = Number(firebrandState.from(context).mantraRechargeReadyAt[definition.rootId]);
+  const preparedAt = gw2CooldownReadyAt(Number(context.state.cooldowns.get(definition.rootId) || 0));
   // preparedAt > start means the mantra is currently in full-recharge (not yet
   // armed), so give the scheduler a concrete retry time rather than blocking
   // forever with retryAt: null.
-  if (preparedAt > context.start + EPSILON) {
+  if (preparedAt > context.start) {
     return retryCast(
       preparedAt,
       'guardian.mantra-charge',
@@ -142,8 +141,8 @@ export function firebrandMantraAvailability(context: GuardianPrecastContext, ski
   }
 
   // The final flip shares the normal charge's Alacrity-scaled ammo cooldown.
-  const chargeReadyAt = Number(context.state.cooldowns.get(definition.normalId) || 0);
-  if (final && chargeReadyAt > context.start + EPSILON) {
+  const chargeReadyAt = gw2CooldownReadyAt(Number(context.state.cooldowns.get(definition.normalId) || 0));
+  if (final && chargeReadyAt > context.start) {
     return retryCast(chargeReadyAt, 'guardian.mantra-charge', `${skill.name} is waiting for its charge cooldown.`);
   }
 

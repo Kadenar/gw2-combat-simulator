@@ -32,6 +32,9 @@ export function completeBeguilingHaze(context: RevenantCastContext, skill: Reven
       CONDUIT_BALANCE_PROFILE_IDS.beguilingHazeFollowUp
     );
     state.beguilingHazeCharges = Math.max(0, balanceProfileNumber(followUpProfile, 'maximumStacks'));
+    state.beguilingHazeRecharge = structuredClone(
+      context.state.rechargeProgress.get(skill.id) ?? context.state.ammo.get(skill.id)?.rechargeProgress ?? null
+    );
     state.beguilingHazeReadyAt = Number(
       context.state.cooldowns.get(skill.id) ?? context.state.ammo.get(skill.id)?.nextRechargeAt ?? context.effectiveEnd
     );
@@ -43,13 +46,17 @@ export function completeBeguilingHaze(context: RevenantCastContext, skill: Reven
       ammo.maximum = state.beguilingHazeCharges;
       ammo.charges = state.beguilingHazeCharges;
       ammo.nextRechargeAt = null;
-      context.state.cooldowns.delete(skill.id);
+      delete ammo.rechargeProgress;
+      context.cooldownController.clear(skill.id);
     } else {
       ammo.maximum = 1;
       ammo.charges = 0;
-      ammo.rechargeDuration = Math.max(0, state.beguilingHazeReadyAt - context.effectiveEnd);
-      ammo.nextRechargeAt = state.beguilingHazeReadyAt;
-      context.state.cooldowns.set(skill.id, state.beguilingHazeReadyAt);
+      if (!state.beguilingHazeRecharge) throw new Error('Beguiling Haze follow-ups require a main-cast recharge.');
+      ammo.rechargeProgress = { ...state.beguilingHazeRecharge };
+      ammo.rechargeWork = ammo.rechargeProgress.work;
+      ammo.nextRechargeAt = context.cooldownController.project(skill, ammo.rechargeProgress);
+      state.beguilingHazeReadyAt = ammo.nextRechargeAt;
+      context.cooldownController.refreshAmmo(skill, context.effectiveEnd);
     }
   }
 

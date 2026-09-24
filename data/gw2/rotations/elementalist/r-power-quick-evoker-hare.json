@@ -10,14 +10,14 @@
     "Dragon's Tooth",
     {
       "name": "Zap",
-      "offset": 100
+      "offset": 120
     },
     "Elemental Procession",
     "Rejuvenate",
     "Ring of Fire",
     {
       "name": "Zap",
-      "offset": 27
+      "offset": 40
     },
     "Phoenix",
     "Fire Grab",
@@ -27,52 +27,52 @@
     },
     {
       "name": "Lightning Strike",
-      "offset": 121
+      "offset": 120
     },
     {
       "name": "Blinding Flash",
-      "offset": 39
+      "offset": 40
     },
     {
       "name": "Zap",
-      "offset": 161
+      "offset": 160
     },
     "Fox's Fury",
     "Ride the Lightning",
     "Lightning Blitz",
     {
       "name": "Earth Attunement",
-      "offset": 203
+      "offset": 200
     },
     "Earthquake",
     {
       "name": "Hurl",
-      "offset": 302
+      "offset": 320
     },
     "Dust Devil",
     "Churning Earth",
     {
       "name": "Air Attunement",
-      "offset": 245
+      "offset": 240
     },
     {
       "name": "Lightning Strike",
-      "offset": 924
+      "offset": 920
     },
     "Glyph of Storms (Air)",
     {
       "name": "Zap",
-      "offset": 356
+      "offset": 360
     },
     "Blinding Flash",
     {
       "name": "Water Attunement",
-      "offset": 597
+      "offset": 600
     },
     "Shatterstone",
     {
       "name": "Frost Aura",
-      "offset": 277
+      "offset": 280
     },
     "Water Trident",
     "Ice Shards",
@@ -81,25 +81,25 @@
     "Shatterstone",
     {
       "name": "Air Attunement",
-      "offset": 244
+      "offset": 240
     },
     "Zap",
     {
       "name": "Arc Lightning",
-      "interruptMs": 243
+      "interruptMs": 240
     },
     "Lightning Strike",
     "Blinding Flash",
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 197
+      "interruptMs": 200
     },
     "Fire Attunement",
     "Dragon's Tooth",
     {
       "name": "Zap",
-      "offset": 284
+      "offset": 280
     },
     "Ring of Fire",
     "Lightning Blitz",
@@ -113,28 +113,28 @@
     "Dragon's Tooth",
     {
       "name": "Air Attunement",
-      "offset": 121
+      "offset": 120
     },
     {
       "name": "Lightning Strike",
-      "offset": 116
+      "offset": 120
     },
     {
       "name": "Zap",
-      "offset": 121
+      "offset": 120
     },
     "Blinding Flash",
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 802
+      "interruptMs": 800
     },
     "Earth Attunement",
     "Earthquake",
     "Rock Barrier",
     {
       "name": "Zap",
-      "offset": 125
+      "offset": 120
     },
     "Dust Devil",
     {
@@ -144,15 +144,15 @@
     "Fox's Fury",
     {
       "name": "Air Attunement",
-      "offset": 88
+      "offset": 80
     },
     {
       "name": "Lightning Strike",
-      "offset": 401
+      "offset": 400
     },
     {
       "name": "Arc Lightning",
-      "interruptMs": 961
+      "interruptMs": 960
     },
     "Water Attunement",
     "Water Trident",
@@ -168,17 +168,17 @@
     "Ice Shards",
     {
       "name": "Air Attunement",
-      "offset": 242
+      "offset": 240
     },
     "Lightning Strike",
     {
       "name": "Arc Lightning",
-      "interruptMs": 38
+      "interruptMs": 40
     },
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 198
+      "interruptMs": 200
     },
     "Fire Attunement",
     "Dragon's Tooth",
@@ -186,7 +186,7 @@
     "Flamestrike",
     {
       "name": "Zap",
-      "offset": 562
+      "offset": 560
     },
     "Rejuvenate",
     "Zap",
@@ -198,11 +198,11 @@
     "Dragon's Tooth",
     {
       "name": "Air Attunement",
-      "offset": 81
+      "offset": 80
     },
     {
       "name": "Lightning Strike",
-      "offset": 156
+      "offset": 160
     },
     {
       "name": "Blinding Flash",
@@ -210,16 +210,16 @@
     },
     {
       "name": "Zap",
-      "offset": 198
+      "offset": 200
     },
     {
       "name": "Arc Lightning",
-      "interruptMs": 287
+      "interruptMs": 280
     },
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 130
+      "interruptMs": 120
     },
     "Lightning Blitz",
     {
@@ -231,25 +231,25 @@
     "Dust Devil",
     {
       "name": "Hurl",
-      "offset": 242
+      "offset": 240
     },
     "Churning Earth",
     {
       "name": "Air Attunement",
-      "offset": 55
+      "offset": 40
     },
     {
       "name": "Zap",
-      "offset": 213
+      "offset": 200
     },
     {
       "name": "Lightning Strike",
-      "offset": 340
+      "offset": 360
     },
     "Blinding Flash",
     {
       "name": "Arc Lightning",
-      "interruptMs": 603
+      "interruptMs": 600
     },
     "Water Attunement",
     "Water Trident",
@@ -263,7 +263,7 @@
     "Water Trident",
     {
       "name": "Air Attunement",
-      "offset": 233
+      "offset": 240
     },
     {
       "name": "Lightning Strike",
@@ -276,17 +276,17 @@
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 79
+      "interruptMs": 80
     },
     "Fox's Fury",
     {
       "name": "Fire Attunement",
-      "offset": 536
+      "offset": 520
     },
     "Dragon's Tooth",
     {
       "name": "Zap",
-      "offset": 278
+      "offset": 280
     },
     "Ring of Fire",
     "Lightning Blitz",
@@ -297,30 +297,30 @@
     "Flamestrike",
     {
       "name": "Flamestrike",
-      "interruptMs": 197
+      "interruptMs": 200
     },
     "Fire Grab",
     "Dragon's Tooth",
     {
       "name": "Air Attunement",
-      "offset": 241
+      "offset": 240
     },
     {
       "name": "Lightning Strike",
-      "offset": 76
+      "offset": 80
     },
     {
       "name": "Blinding Flash",
-      "offset": 41
+      "offset": 40
     },
     {
       "name": "Zap",
-      "offset": 161
+      "offset": 160
     },
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 998
+      "interruptMs": 1000
     },
     "Earth Attunement",
     "Earthquake",
@@ -328,15 +328,15 @@
     "Dust Devil",
     {
       "name": "Hurl",
-      "offset": 77
+      "offset": 80
     },
     {
       "name": "Air Attunement",
-      "offset": 278
+      "offset": 280
     },
     {
       "name": "Arc Lightning",
-      "interruptMs": 1438
+      "interruptMs": 1440
     },
     "Zap",
     "Lightning Strike",
@@ -345,7 +345,7 @@
     "Water Trident",
     {
       "name": "Frost Aura",
-      "offset": 201
+      "offset": 200
     },
     "Zap",
     "Shatterstone",
@@ -354,7 +354,7 @@
     "Ice Shards",
     {
       "name": "Air Attunement",
-      "offset": 241
+      "offset": 240
     },
     {
       "name": "Arc Lightning",
@@ -364,13 +364,13 @@
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 42
+      "interruptMs": 40
     },
     "Elemental Procession",
     "Fire Attunement",
     {
       "name": "Flamestrike",
-      "interruptMs": 197
+      "interruptMs": 200
     },
     "Dragon's Tooth",
     "Ring of Fire",
@@ -378,33 +378,33 @@
     "Zap",
     {
       "name": "Flamestrike",
-      "interruptMs": 82
+      "interruptMs": 80
     },
     "Rejuvenate",
     "Zap",
     "Phoenix",
     {
       "name": "Flamestrike",
-      "interruptMs": 159
+      "interruptMs": 160
     },
     "Glyph of Storms (Fire)",
     {
       "name": "Flamestrike",
-      "interruptMs": 122
+      "interruptMs": 120
     },
     "Fire Grab",
     "Dragon's Tooth",
     {
       "name": "Air Attunement",
-      "offset": 241
+      "offset": 240
     },
     {
       "name": "Lightning Strike",
-      "offset": 363
+      "offset": 360
     },
     {
       "name": "Blinding Flash",
-      "offset": 363
+      "offset": 360
     },
     {
       "name": "Zap",
@@ -413,12 +413,12 @@
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 357
+      "interruptMs": 360
     },
     "Lightning Blitz",
     {
       "name": "Earth Attunement",
-      "offset": 338
+      "offset": 320
     },
     "Earthquake",
     "Rock Barrier",
@@ -430,30 +430,30 @@
     },
     {
       "name": "Air Attunement",
-      "offset": 199
+      "offset": 200
     },
     {
       "name": "Zap",
-      "offset": 401
+      "offset": 400
     },
     {
       "name": "Lightning Strike",
-      "offset": 522
+      "offset": 520
     },
     "Blinding Flash",
     {
       "name": "Arc Lightning",
-      "interruptMs": 721
+      "interruptMs": 720
     },
     "Water Attunement",
     "Water Trident",
     {
       "name": "Frost Aura",
-      "offset": 197
+      "offset": 200
     },
     {
       "name": "Zap",
-      "offset": 363
+      "offset": 360
     },
     "Shatterstone",
     "Ice Shards",
@@ -461,22 +461,22 @@
     "Ice Shards",
     {
       "name": "Air Attunement",
-      "offset": 156
+      "offset": 160
     },
     {
       "name": "Lightning Strike",
-      "offset": 516
+      "offset": 520
     },
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 398
+      "interruptMs": 400
     },
     "Fire Attunement",
     "Dragon's Tooth",
     {
       "name": "Zap",
-      "offset": 321
+      "offset": 320
     },
     "Ring of Fire",
     "Flamestrike",
@@ -489,11 +489,11 @@
     "Dragon's Tooth",
     {
       "name": "Air Attunement",
-      "offset": 162
+      "offset": 160
     },
     {
       "name": "Lightning Strike",
-      "offset": 161
+      "offset": 160
     },
     {
       "name": "Zap",
@@ -510,19 +510,19 @@
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 517
+      "interruptMs": 520
     },
     "Earth Attunement",
     "Earthquake",
     "Rock Barrier",
     {
       "name": "Zap",
-      "offset": 238
+      "offset": 240
     },
     "Dust Devil",
     {
       "name": "Hurl",
-      "offset": 279
+      "offset": 280
     },
     {
       "name": "Air Attunement",
@@ -530,15 +530,15 @@
     },
     {
       "name": "Lightning Strike",
-      "offset": 718
+      "offset": 720
     },
     {
       "name": "Blinding Flash",
-      "offset": 718
+      "offset": 720
     },
     {
       "name": "Arc Lightning",
-      "interruptMs": 1199
+      "interruptMs": 1200
     },
     "Zap",
     "Water Attunement",
@@ -546,33 +546,33 @@
     "Water Trident",
     {
       "name": "Frost Aura",
-      "offset": 239
+      "offset": 240
     },
     "Shatterstone",
     "Ice Shards",
     "Ice Shards",
     {
       "name": "Air Attunement",
-      "offset": 206
+      "offset": 200
     },
     "Lightning Strike",
     {
       "name": "Arc Lightning",
-      "interruptMs": 37
+      "interruptMs": 40
     },
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 41
+      "interruptMs": 40
     },
     "Glyph of Storms (Air)",
     {
       "name": "Fire Attunement",
-      "offset": 281
+      "offset": 280
     },
     {
       "name": "Zap",
-      "offset": 679
+      "offset": 680
     },
     "Dragon's Tooth",
     "Ring of Fire",
@@ -585,28 +585,28 @@
     "Dragon's Tooth",
     {
       "name": "Air Attunement",
-      "offset": 165
+      "offset": 160
     },
     {
       "name": "Lightning Strike",
-      "offset": 322
+      "offset": 320
     },
     {
       "name": "Blinding Flash",
-      "offset": 322
+      "offset": 320
     },
     {
       "name": "Zap",
-      "offset": 550
+      "offset": 560
     },
     {
       "name": "Arc Lightning",
-      "interruptMs": 41
+      "interruptMs": 40
     },
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 758
+      "interruptMs": 760
     },
     "Earth Attunement",
     "Earthquake",
@@ -614,29 +614,29 @@
     "Dust Devil",
     {
       "name": "Hurl",
-      "offset": 206
+      "offset": 200
     },
     "Churning Earth",
     {
       "name": "Air Attunement",
-      "offset": 123
+      "offset": 120
     },
     {
       "name": "Zap",
-      "offset": 279
+      "offset": 280
     },
     {
       "name": "Lightning Strike",
-      "offset": 442
+      "offset": 440
     },
     "Fox's Fury",
     {
       "name": "Water Attunement",
-      "offset": 479
+      "offset": 480
     },
     {
       "name": "Ice Shards",
-      "interruptMs": 161
+      "interruptMs": 160
     },
     "Lightning Blitz",
     "Water Trident",
@@ -649,22 +649,22 @@
     "Water Trident",
     {
       "name": "Air Attunement",
-      "offset": 279
+      "offset": 280
     },
     {
       "name": "Zap",
-      "offset": 157
+      "offset": 160
     },
     "Lightning Strike",
     "Blinding Flash",
     {
       "name": "Arc Lightning",
-      "interruptMs": 77
+      "interruptMs": 80
     },
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 636
+      "interruptMs": 640
     },
     "Fire Attunement",
     "Zap",
@@ -680,11 +680,11 @@
     "Dragon's Tooth",
     {
       "name": "Air Attunement",
-      "offset": 117
+      "offset": 120
     },
     {
       "name": "Lightning Strike",
-      "offset": 121
+      "offset": 120
     },
     {
       "name": "Zap",
@@ -693,7 +693,7 @@
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 756
+      "interruptMs": 760
     },
     "Earth Attunement",
     "Earthquake",

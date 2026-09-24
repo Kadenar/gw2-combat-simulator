@@ -66,7 +66,7 @@
     "Spider Venom",
     {
       "name": "Shadow Bolt",
-      "interruptMs": 167
+      "interruptMs": 160
     },
     "Prepare Thousand Needles",
     "Shadow Bolt",
@@ -75,7 +75,7 @@
     "Twilight Combo",
     {
       "name": "Shadow Bolt",
-      "interruptMs": 318
+      "interruptMs": 320
     },
     "Enter Shadow Shroud",
     "Grasping Shadows",
@@ -93,7 +93,7 @@
     "Shadow Bolt",
     {
       "name": "Thousand Needles",
-      "offset": 167
+      "offset": 160
     },
     "Double Bolt",
     "Triple Bolt",
@@ -120,11 +120,11 @@
     "Double Bolt",
     {
       "name": "Triple Bolt",
-      "interruptMs": 367
+      "interruptMs": 360
     },
     {
       "name": "Spider Venom",
-      "offset": 83
+      "offset": 80
     },
     "Prepare Thousand Needles",
     "Well of Sorrow",
@@ -141,11 +141,11 @@
     "Twilight Combo",
     {
       "name": "Shadow Bolt",
-      "interruptMs": 117
+      "interruptMs": 120
     },
     {
       "name": "Thousand Needles",
-      "offset": 34
+      "offset": 40
     },
     "Siphon",
     "Twilight Combo",
@@ -174,7 +174,7 @@
     "Shadow Bolt",
     {
       "name": "Double Bolt",
-      "interruptMs": 251
+      "interruptMs": 240
     },
     "Enter Shadow Shroud",
     "Grasping Shadows",
@@ -188,7 +188,7 @@
     "Prepare Thousand Needles",
     {
       "name": "Spider Venom",
-      "offset": 201
+      "offset": 200
     },
     "Twilight Combo",
     "Twilight Combo",
@@ -198,7 +198,7 @@
     "Triple Bolt",
     {
       "name": "Thousand Needles",
-      "offset": 317
+      "offset": 320
     },
     "Shadow Bolt",
     "Double Bolt",
@@ -208,7 +208,7 @@
     "Haunt Shot",
     {
       "name": "Siphon",
-      "offset": 33
+      "offset": 40
     },
     "Haunt Shot",
     "Haunt Shot",
@@ -241,19 +241,19 @@
     "Double Bolt",
     {
       "name": "Spider Venom",
-      "offset": 517
+      "offset": 520
     },
     "Prepare Thousand Needles",
     "Triple Bolt",
     "Twilight Combo",
     {
       "name": "Shadow Bolt",
-      "interruptMs": 233
+      "interruptMs": 240
     },
     "Well of Sorrow",
     {
       "name": "Shadow Bolt",
-      "interruptMs": 169
+      "interruptMs": 160
     },
     "Thousand Needles",
     "Enter Shadow Shroud",

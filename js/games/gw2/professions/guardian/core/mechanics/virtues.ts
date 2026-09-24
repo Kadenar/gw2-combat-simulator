@@ -64,7 +64,7 @@ function renewedFocus(context: GuardianCastContext, skill: GuardianSkill): void 
   for (const virtue of context.catalog.skills.filter(
     (candidate) => candidate.categories?.includes('Virtue') && /^Profession_[1-3]$/.test(String(candidate.slot || ''))
   )) {
-    context.state.cooldowns.delete(virtue.id);
+    context.cooldownController.clear(virtue.id);
     context.cooldownController.restoreAmmo(virtue, Number.POSITIVE_INFINITY, context.effectiveEnd, 'reset');
   }
 

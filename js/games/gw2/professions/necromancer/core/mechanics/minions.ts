@@ -305,7 +305,7 @@ function summonMinion(context: NecromancerCastContext, skill: NecromancerSkill):
   }
 
   if (skill.rechargeOnMinionDeath) {
-    context.state.cooldowns.delete(skill.id);
+    context.cooldownController.clear(skill.id);
   }
 
   // Publish the summon before reactions and autonomous attack scheduling consume the new state.
@@ -462,7 +462,11 @@ function minionCommand(context: NecromancerCastContext, skill: NecromancerSkill)
         const deathQuery: NecromancerRechargeQuery = { minionDeathRecharge: true };
         const recharge = context.rechargeDurationFor(summon, context.effectiveEnd, deathQuery);
         if (recharge > 0) {
-          context.state.cooldowns.set(summon.id, context.effectiveEnd + recharge);
+          context.cooldownController.startRecharge(
+            summon,
+            context.effectiveEnd,
+            recharge * context.cooldownController.rate(summon, context.effectiveEnd)
+          );
         }
       }
     }

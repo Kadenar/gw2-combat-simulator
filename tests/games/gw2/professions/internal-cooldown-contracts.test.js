@@ -1,3 +1,4 @@
+import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -329,6 +330,7 @@ test('Warrior burst traits stay blocked at the exact ICD boundary', () => {
     kind: 'Spellbreaker',
     traits: [WARRIOR_TRAIT_IDS.MAGEBANE_TETHER]
   });
+  context.query = { timeline: createGw2TimelineIndex() };
   context.helpers = { skillsById: new Map([[900001, { id: 900001, name: 'Boundary Burst', burst: true }]]) };
   const event = { type: 'damage', actorType: 'player', coefficient: 1, skillId: 900001, at: READY_AT };
 

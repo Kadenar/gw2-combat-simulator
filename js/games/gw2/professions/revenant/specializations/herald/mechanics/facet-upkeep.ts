@@ -125,9 +125,8 @@ export function consumeRevenantFacet(context: RevenantCastContext, skill: Revena
   consumeSkillFlip(state.availableFlips, skill.id);
   if (facet) {
     // Parent ownership also makes Facet of Nature's 20-second cooldown shared by every legend-specific True Nature ID.
-    const cooldown = Math.max(0, Number(context.rechargeDuration || 0));
-    if (cooldown > 0) {
-      context.state.cooldowns.set(facet.id, at + cooldown);
+    if (context.rechargeWork > 0) {
+      context.cooldownController.startRecharge(facet, at, context.rechargeWork);
     }
 
     // Cancel the recurring upkeep-pulse task; without this the pulse loop would continue firing after the facet is gone.

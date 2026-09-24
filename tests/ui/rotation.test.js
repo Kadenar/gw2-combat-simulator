@@ -71,6 +71,16 @@ test('duration editor validates and rounds millisecond values', () => {
   assert.equal(validateDurationMs('501', 1, 500).valid, false);
 });
 
+// Configured duration grids reject off-grid input instead of silently rounding user edits.
+test('duration editor enforces configured 40 ms increments', () => {
+  for (const value of ['', '0', '39', '41', '100', '40.1', 'Infinity']) {
+    assert.equal(validateDurationMs(value, 40, null, 40).valid, false, value);
+  }
+  for (const value of [40, 80, 120, 1000]) {
+    assert.deepEqual(validateDurationMs(value, 40, null, 40), { valid: true, value });
+  }
+});
+
 test('rotation insertion cursors validate positions and expose accessible gaps', () => {
   assert.equal(normalizeRotationInsertionIndex(0, 3), 0);
   assert.equal(normalizeRotationInsertionIndex(3, 3), 3);

@@ -306,7 +306,7 @@ test('Light on Your Feet applies its six-second buff and shortbow upgrades', () 
     selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
   });
 
-  assert.equal(shortbow.steps[1].start - shortbow.steps[0].end, 6400);
+  assert.equal(shortbow.steps[1].start, Math.ceil((shortbow.steps[0].end + 6400) / 40) * 40);
 
   const upgrades = simulate(['Poison Volley', 'Crippling Shot', 'Concussion Shot'], {
     primaryWeapon: 'Shortbow',

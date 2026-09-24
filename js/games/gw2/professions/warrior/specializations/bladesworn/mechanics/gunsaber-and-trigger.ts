@@ -59,12 +59,10 @@ function emitGunsaberWeaponSwap(context: WarriorCastContext, skill: WarriorSkill
   // Every bar transition locks both sides of the swap button, including Dragon Trigger's implicit Gunsaber entry.
   const swapSkill = skill.id === ID.DRAGON_TRIGGER ? context.catalog.skillsById.get(ID.UNSHEATHE_GUNSABER) : skill;
   if (swapSkill) {
-    const readyAt =
-      skill.id === ID.DRAGON_TRIGGER
-        ? context.effectiveEnd + context.rechargeDurationFor(swapSkill, context.effectiveEnd)
-        : context.rechargeStart + context.rechargeDuration;
-    context.state.cooldowns.set(ID.UNSHEATHE_GUNSABER, readyAt);
-    context.state.cooldowns.set(ID.SHEATHE_GUNSABER, readyAt);
+    if (skill.id === ID.DRAGON_TRIGGER) context.cooldownController.startRecharge(swapSkill, context.effectiveEnd);
+    else context.cooldownController.startRecharge(swapSkill, context.rechargeStart, context.rechargeWork);
+    context.cooldownController.copy(swapSkill.id, ID.UNSHEATHE_GUNSABER);
+    context.cooldownController.copy(swapSkill.id, ID.SHEATHE_GUNSABER);
   }
 
   context.emit({
@@ -84,7 +82,7 @@ function exitDragonTrigger(context: WarriorSchedulerContext, at: number): void {
   const state = bladeswornState.from(context);
   if (!state.dragonTriggerActive) return;
   const skill = context.catalog.skillsById.get(ID.DRAGON_TRIGGER);
-  if (skill) context.state.cooldowns.set(skill.id, at + context.rechargeDurationFor(skill, at));
+  if (skill) context.cooldownController.startRecharge(skill, at);
   state.dragonTriggerActive = false;
   state.dragonTriggerStartedAt = 0;
   state.dragonTriggerChargeDeadline = 0;
@@ -227,7 +225,10 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
   recordBladeswornAmmoSpend(context, charges, charges >= Number(context.ammo?.maximum || skill.ammo || 0));
   if (context.ammo && context.ammo.charges > 1) context.ammo.charges = 1;
   context.replaceEvent(context.action, {
-    rechargeReadyAt: context.rechargeStart + Math.max(context.rechargeDuration, context.ammoLockoutDuration)
+    rechargeReadyAt: context.cooldownController.project(skill, {
+      startedAt: context.rechargeStart,
+      work: Math.max(context.rechargeWork, context.ammoLockoutWork)
+    })
   });
 
   const artilleryProfile = requireBalanceProfileFromContext(
@@ -654,7 +655,7 @@ export const bladeswornSkillMechanicHandlers = Object.freeze({
   },
   'warrior.bladesworn.reset-dragon-trigger': ({ context }: { context: WarriorSchedulerContext }): void => {
     // Dragonspike Mine has no internal cooldown on its Dragon Trigger reset.
-    context.state.cooldowns.delete(ID.DRAGON_TRIGGER);
+    context.cooldownController.clear(ID.DRAGON_TRIGGER);
   }
 });
 

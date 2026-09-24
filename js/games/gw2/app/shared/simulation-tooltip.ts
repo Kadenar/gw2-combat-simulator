@@ -8,7 +8,7 @@ import type {
 } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
-import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
+import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import {
   requireBalanceProfileFromContext,

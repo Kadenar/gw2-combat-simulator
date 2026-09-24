@@ -23,6 +23,7 @@ import {
   GW2_MATERIALIZE_EVENT_TASK
 } from '#gw2/platform/execution/gw2-policy/proc-materializer.js';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
+import { gw2RechargeIntervals } from '#gw2/platform/engine/skills/recharge.js';
 import {
   createGw2ComboMaterializer,
   GW2_COMBO_MATERIALIZE_EVENT_TASK
@@ -43,7 +44,6 @@ import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
 import { gw2StatsForWeaponSet } from '#gw2/platform/combat/query/combat-query.js';
 import { projectCastRelativeEffectTimingMs, summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
-import { gw2TrackedRechargeReduction } from '#gw2/platform/skills/recharge.js';
 import type { CanonicalCatalog, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { CastContext, SchedulerContext } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -68,8 +68,6 @@ type CastBoundTimingContext = SchedulerContext & {
   fullEnd: number;
 };
 
-/** Alacrity increases recharge rate by 25%, so duration is divided by 1.25. */
-export const GW2_ALACRITY_RECHARGE_RATE = 1.25;
 // Bar swaps remain freely available during setup until combat is actually established.
 const OUT_OF_COMBAT_SWAP_SKILLS = new Set(['Swap Weapons', 'Swap Legends', 'Unsheathe Gunsaber', 'Sheathe Gunsaber']);
 const WEAPON_SWAP_SKILL = 'Swap Weapons';
@@ -252,6 +250,14 @@ export function createGw2SchedulerPolicy(
   );
   const eventPreparer = createGw2EventPreparer();
   const policy: Gw2SchedulerPolicy = {
+    rechargeIntervals(context, skill, start, end) {
+      const audience = skill.rechargeBuffAudience || 'self';
+      const permanent = audience === 'self' && Boolean(config.boons?.alacrity);
+      const history = permanent
+        ? []
+        : [...context.buffEvents('alacrity', audience), ...context.eventsOfType('boon_extension')];
+      return gw2RechargeIntervals(config, history, skill, start, end);
+    },
     inputReadyAt(context, at) {
       // Only transitions already reached can block an input; future emissions must not block earlier overlaps.
       return context
@@ -371,20 +377,9 @@ export function createGw2SchedulerPolicy(
         return Math.max(0, baseDuration - relicWeaponSwapRechargeReduction(config.relic));
       }
 
-      const hasAlacrity = gw2BuffActiveForAudience(context, 'alacrity', at, skill.rechargeBuffAudience || 'self');
-      const rate = hasAlacrity ? Number(config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE) : 1;
-      // Alacrity is evaluated when recharge begins, which can differ from cast
-      // start for skills whose recharge anchor is cast end or an effect event.
-      // Recharge speed is a rate, so elapsed duration is divided by it.
-      return baseDuration / Math.max(Number.EPSILON, rate);
-    },
-
-    rechargeReduction(context, skill, baseReduction) {
-      const at = Number(context.at ?? context.state.time ?? 0);
-      const hasAlacrity = gw2BuffActiveForAudience(context, 'alacrity', at, skill.rechargeBuffAudience || 'self');
-      const rate = hasAlacrity ? Number(config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE) : 1;
-      // Flat recharge reductions advance recharge units; only recharge speed converts them to wall time.
-      return gw2TrackedRechargeReduction(baseReduction, rate);
+      const rate = context.cooldownController.rate(skill, at);
+      // Duration queries report the current rate; committed cooldowns retain base work and integrate subsequent changes.
+      return baseDuration / rate;
     }
   };
   return Object.freeze(policy);

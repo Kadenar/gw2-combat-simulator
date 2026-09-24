@@ -74,22 +74,22 @@ test("Nomad's Endurance accelerates dodge recovery across application and expiry
   const dodge = { type: 'cast', skillId: ID.DODGE_MIRAGE_CLOAK };
   const wait = (durationMs) => ({ type: 'wait', durationMs });
   for (const [label, rotation, expected, vigor] of [
-    ['active at dodge', ['Mind Wrack', wait(100), dodge, dodge, dodge, dodge], [100, 100, 8650, 18650], false],
-    ['gained during recovery', [dodge, dodge, wait(1000), 'Mind Wrack', dodge, dodge], [0, 0, 8500, 18500], false],
+    ['active at dodge', ['Mind Wrack', wait(100), dodge, dodge, dodge, dodge], [100, 100, 8680, 18680], false],
+    ['gained during recovery', [dodge, dodge, wait(1000), 'Mind Wrack', dodge, dodge], [0, 0, 8520, 18520], false],
     [
       'stacked duration',
       [dodge, dodge, 'Mind Wrack', wait(1000), 'Cry of Frustration', dodge, dodge],
       [0, 0, 7000, 17000],
       false
     ],
-    ['expired before dodge', ['Mind Wrack', wait(3100), dodge, dodge, dodge], [3100, 3100, 13100], false],
+    ['expired before dodge', ['Mind Wrack', wait(3100), dodge, dodge, dodge], [3100, 3100, 13120], false],
     [
       'long wait across expiry',
       [dodge, dodge, 'Mind Wrack', wait(20000), dodge, dodge, dodge],
       [0, 0, 20000, 20000, 30000],
       false
     ],
-    ['permanent vigor', ['Mind Wrack', dodge, dodge, dodge, dodge], [0, 0, 10000 / 1.5, 20000 / 1.5], true]
+    ['permanent vigor', ['Mind Wrack', dodge, dodge, dodge, dodge], [0, 0, 6680, 13360], true]
   ]) {
     const result = simulateMesmer(rotation, {
       specialization: 'Mirage',

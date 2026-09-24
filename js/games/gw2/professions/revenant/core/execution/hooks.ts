@@ -91,10 +91,9 @@ export const revenantSchedulerHooks = Object.freeze({
   onCastStart,
   onCastComplete,
   afterCast: afterRevenantCast,
-  /** Makes legend swap available and restores in-combat Energy after a global cooldown reset. */
+  /** Restores in-combat Energy after the shared scheduler resets cooldowns. */
   onCooldownReset: (context: RevenantSchedulerContext): void => {
     const state = professionCoreState(context);
-    state.legendSwapReadyAt = context.state.time;
     if (!revenantCombatActive(context)) return;
     state.energy = state.maximumEnergy;
     state.energyUpdatedAt = context.state.time;

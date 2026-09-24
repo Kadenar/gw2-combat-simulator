@@ -170,7 +170,7 @@ function completeMercy(context: ThiefCastContext): void {
   state.malice = 0;
   state.maleficentSevenTriggered = false;
   // Mercy resets Deadeye's Mark cooldown so the player can re-mark immediately
-  context.state.cooldowns.delete(ID.DEADEYES_MARK);
+  context.cooldownController.clear(ID.DEADEYES_MARK);
   // Initiative refund is 3 base + 1 per malice stack consumed
 
   const mercyProfile = requireBalanceProfileFromContext(context, PROFILE.mercy);

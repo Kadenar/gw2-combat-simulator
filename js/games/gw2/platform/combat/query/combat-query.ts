@@ -94,6 +94,7 @@ export function createGw2CombatQuery<TProfessionState extends object = object>({
   const configuredTargetConditionStacks = createPermanentTargetConditionStacks(config);
   const timeline = createGw2TimelineIndex({
     config,
+    skillsById: profession.catalog.skillsById,
     events: resolvedTimelineEvents ?? events,
     resolved: resolvedTimelineEvents != null
   });

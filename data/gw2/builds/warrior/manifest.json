@@ -13,7 +13,7 @@
         "label": "Condition (Sword / Pistol)",
         "build": "data/gw2/builds/warrior/b-condi-bladesworn-sword-pistol.json",
         "rotation": "data/gw2/rotations/warrior/r-condi-bladesworn-sword-pistol-bench.json",
-        "benchmarkDps": 42416,
+        "benchmarkDps": 42351,
         "upToDate": true
       }
     ]
@@ -39,7 +39,7 @@
         "label": "Condition (Longbow + Sword/Torch)",
         "build": "data/gw2/builds/warrior/b-condi-berserker-longbow-sword-torch.json",
         "rotation": "data/gw2/rotations/warrior/r-condi-berserker-longbow-sword-torch-bench.json",
-        "benchmarkDps": 44026,
+        "benchmarkDps": 44181,
         "upToDate": true
       }
     ]
@@ -51,14 +51,14 @@
         "label": "Power (Dagger/Mace + Sword/Axe)",
         "build": "data/gw2/builds/warrior/b-power-spellbreaker-dagger-mace-sword-axe.json",
         "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-dagger-mace-sword-axe-bench.json",
-        "benchmarkDps": 42862,
+        "benchmarkDps": 42793,
         "upToDate": true
       },
       {
         "label": "Power (Dagger/Mace + Sword/Dagger)",
         "build": "data/gw2/builds/warrior/b-power-spellbreaker-dagger-mace-sword-dagger.json",
         "rotation": "data/gw2/rotations/warrior/r-power-spellbreaker-dagger-mace-sword-dagger-bench.json",
-        "benchmarkDps": 43329,
+        "benchmarkDps": 43274,
         "upToDate": true
       },
       {
@@ -77,7 +77,7 @@
         "label": "Power (Sword/Axe + Dagger/Mace)",
         "build": "data/gw2/builds/warrior/b-power-paragon-sword-axe-dagger-mace.json",
         "rotation": "data/gw2/rotations/warrior/r-power-paragon-sword-axe-dagger-mace-bench.json",
-        "benchmarkDps": 42297,
+        "benchmarkDps": 42271,
         "upToDate": true
       }
     ]

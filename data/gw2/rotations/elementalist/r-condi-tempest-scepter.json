@@ -13,11 +13,11 @@
     "Dust Storm",
     {
       "name": "Hurl",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Fire Attunement",
-      "offset": 100
+      "offset": 120
     },
     "Phoenix",
     "Signet of Fire",
@@ -36,7 +36,7 @@
     "Signet of Fire",
     {
       "name": "Flame Barrage",
-      "offset": 180
+      "offset": 200
     },
     "Flamestrike",
     "Dragon's Tooth",
@@ -56,13 +56,13 @@
     "Rock Barrier",
     {
       "name": "Flame Barrage",
-      "offset": 100
+      "offset": 120
     },
     "Hurl",
     "Signet of Fire",
     {
       "name": "Fire Attunement",
-      "offset": 100
+      "offset": 120
     },
     "Phoenix",
     "Wildfire",
@@ -80,7 +80,7 @@
     "Flamestrike",
     {
       "name": "Flame Barrage",
-      "offset": 580
+      "offset": 600
     },
     "Flamestrike",
     "Flamestrike",
@@ -95,7 +95,7 @@
     "Stone Shards",
     {
       "name": "Stone Shards",
-      "interruptMs": 721
+      "interruptMs": 720
     },
     "Overload Earth",
     "Dust Storm",
@@ -104,12 +104,12 @@
     "Signet of Fire",
     {
       "name": "Fire Attunement",
-      "offset": 439
+      "offset": 440
     },
     "Phoenix",
     {
       "name": "Flame Barrage",
-      "offset": 339
+      "offset": 320
     },
     "Wildfire",
     "Dragon's Tooth",
@@ -129,14 +129,14 @@
     "Dragon's Tooth",
     {
       "name": "Flame Barrage",
-      "offset": 140
+      "offset": 160
     },
     "Flamestrike",
     "Flamestrike",
     "Phoenix",
     {
       "name": "Earth Attunement",
-      "offset": 100
+      "offset": 120
     },
     "Rock Barrier",
     "Hurl",
@@ -174,7 +174,7 @@
     "Flamestrike",
     {
       "name": "Flame Barrage",
-      "offset": 420
+      "offset": 440
     },
     "Phoenix",
     "Earth Attunement",
@@ -184,7 +184,7 @@
     "Stone Shards",
     {
       "name": "Stone Shards",
-      "interruptMs": 721
+      "interruptMs": 720
     },
     "Overload Earth",
     "Dust Storm",
@@ -193,7 +193,7 @@
     "Signet of Fire",
     {
       "name": "Fire Attunement",
-      "offset": 439
+      "offset": 440
     },
     "Phoenix",
     "Wildfire",

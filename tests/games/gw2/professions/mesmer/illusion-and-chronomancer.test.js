@@ -62,9 +62,9 @@ test('Lingering Thoughts recharges one ammo count every six seconds', () => {
 
   assert.deepEqual(
     result.steps.map((step) => step.start),
-    [0, 1170, 6920]
+    [0, 1200, 6920]
   );
-  assert.equal(result.planningState.ammo['Lingering Thoughts'].rechargeDuration, 6);
+  assert.equal(result.planningState.ammo['Lingering Thoughts'].rechargeWork, 6);
 });
 
 test('Lingering Thoughts applies its packets and grants its clone 160ms later', () => {
@@ -249,7 +249,7 @@ test('Master of Misdirection reduces shatter cooldowns by 15%', () => {
   );
 
   assert.equal(result.steps[1].start, 2010);
-  assert.equal(result.planningState.cooldowns['Continuum Split'].readyAt, 61510);
+  assert.equal(result.planningState.cooldowns['Continuum Split'].readyAt, 61520);
 });
 
 test('Chronomancer shatter-boon traits count the mesmer and scale per shattered clone', () => {
@@ -476,7 +476,7 @@ test('Shift+click timeline form casts an instant skill 100ms into the prior cast
   assert.equal(result.steps[1].start, 100);
   assert.equal(result.steps[1].end, 100);
   assert.equal(result.planningState.atSeconds * 1000, 440);
-  assert.equal(result.planningState.cooldowns['Bladesong Distortion'].readyAt, 40100);
+  assert.equal(result.planningState.cooldowns['Bladesong Distortion'].readyAt, 40120);
 });
 
 test('shift-queued Rewinder waits past its parent cast for cooldown expiry', () => {
@@ -610,7 +610,7 @@ test('Confusing Images starts its cooldown after its channel ends', () => {
 
   assert.equal(full.steps[0].end, 1920);
   assert.equal(full.steps[1].start, 9120);
-  assert.equal(interrupted.planningState.cooldowns['Confusing Images'].readyAt, 7450);
+  assert.equal(interrupted.planningState.cooldowns['Confusing Images'].readyAt, 7480);
 });
 
 test('Phantasmal Swordsman registers its player hit before a later overlapping action', () => {

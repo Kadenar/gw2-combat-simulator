@@ -54,7 +54,7 @@ const METAL_LEGION_GUITAR_SKILL: Partial<Skill> = {
 export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.METAL_LEGION_GUITAR]: METAL_LEGION_GUITAR_SKILL,
   [ID.METAL_LEGION_GUITAR_ID_76591]: METAL_LEGION_GUITAR_SKILL,
-  [ID.FORGED_SURFER_DASH_ID_76633]: {
+  [ID.FORGED_SURFER_DASH]: {
     movementSkill: true,
     // Custom: Replaces the cast with its task-driven movement/strike sequence; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.forged-surfer',
@@ -136,7 +136,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ],
     artifactKind: 'defensive'
   },
-  [ID.EXALTED_HAMMER_ID_76702]: {
+  [ID.EXALTED_HAMMER]: {
     movementSkill: true,
     // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.artifact',
@@ -337,7 +337,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     effects: [],
     backfire: true
   },
-  [ID.SUMMON_KRYPTIS_TURRET_ID_77192]: {
+  [ID.SUMMON_KRYPTIS_TURRET]: {
     // Custom: Consumes the selected Antiquary artifact and updates artifact state; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.artifact',
     castTimeMs: 440,
@@ -371,81 +371,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     initiativeCost: 0,
     effects: []
   },
-  [ID.FORGED_SURFER_DASH]: {
-    movementSkill: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    initiativeCost: 0,
-    effects: []
-  },
-  [ID.EXALTED_HAMMER]: {
-    movementSkill: true,
-    castTimeMs: 0,
-    cooldown: 0,
-    initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 1.5 }],
-        name: 'Exalted Hammer',
-        actorType: 'player',
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      },
-      {
-        type: 'boon',
-        boon: 'protection',
-        duration: 5,
-        stacks: 1
-      }
-    ]
-  },
-  [ID.HOLO_DANCER_DECOY_ID_76800]: {
-    castTimeMs: 360,
-    cooldown: 0,
-    initiativeCost: 0,
-    effects: [
-      {
-        type: 'strike',
-        ticks: Array.from({ length: 3 }, (_, index) => ({ atMs: 167 + index * 167, coefficient: 6 / 3 })),
-        name: 'Holo-Dancer Decoy',
-        actorType: 'player',
-        timingAnchor: 'castStart',
-        timingScale: 'cast'
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 8,
-        stacks: 2
-      },
-      {
-        type: 'boon',
-        boon: 'might',
-        duration: 8,
-        stacks: 4
-      },
-      {
-        type: 'boon',
-        boon: 'fury',
-        duration: 8,
-        stacks: 1
-      }
-    ]
-  },
-  [ID.SUMMON_KRYPTIS_TURRET]: {
-    castTimeMs: 0,
-    cooldown: 0,
-    initiativeCost: 0,
-    effects: []
-  },
-  [ID.MISTBURN_MORTAR_ID_77288]: {
-    castTimeMs: 0,
-    cooldown: 0,
-    initiativeCost: 0,
-    effects: []
-  },
-  [ID.CANACH_COIN_TOSS_ID_77230]: {
+  [ID.CANACH_COIN_TOSS]: {
     // Custom: Chooses success/backfire and materializes the selected outcome; see `antiquary/mechanics/artifacts.ts`.
     handlerId: 'thief.double-edge',
     usableWhileRecharging: true,

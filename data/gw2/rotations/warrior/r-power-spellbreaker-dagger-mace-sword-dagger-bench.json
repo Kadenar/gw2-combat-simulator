@@ -13,7 +13,7 @@
     { "name": "Signet of Fury", "skillId": 14410 },
     "Winds of Disenchantment",
     "Breaching Strike",
-    { "name": "__combat_start", "offset": 750 },
+    { "name": "__combat_start", "offset": 760 },
     "Crushing Blow",
     "Tremor",
     "Crushing Blow",
@@ -243,7 +243,7 @@
     "Breaching Strike",
     "Tremor",
     "Crushing Blow",
-    { "name": "Precise Cut", "interruptMs": 25 },
+    { "name": "Precise Cut", "interruptMs": 40 },
     "Swap Weapons",
 
     "Bloodthirster",

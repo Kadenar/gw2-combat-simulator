@@ -698,10 +698,7 @@ test('legend palette shows only the destination legend with the shared swap cool
   const cooldownContext = {
     ...context,
     time: 1,
-    professionState: {
-      ...context.professionState,
-      legendSwapReadyAt: 10
-    }
+    cooldowns: { 'Swap Legends': { readyAt: 10000, remaining: 9000 } }
   };
   const cooldown = revenantProfession.ui.paletteSkillAvailability(cooldownContext, destination);
 
@@ -717,7 +714,7 @@ test('legend palette shows only the destination legend with the shared swap cool
         results: {
           planningState: {
             atSeconds: 1,
-            cooldowns: {},
+            cooldowns: cooldownContext.cooldowns,
             profession: cooldownContext.professionState
           }
         }
@@ -1492,13 +1489,13 @@ test('Abyssal Raze recharge reduction carries overflow into the next count', () 
 
   assert.equal(rechargeProc.cooldownReduction, 1);
   // Verify serial recharge overflow independently of the separate between-cast lockout.
-  const { charges, maximum, rechargeDuration, nextRechargeAt } = result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE);
+  const { charges, maximum, rechargeWork, nextRechargeAt } = result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE);
   assert.deepEqual(
-    { charges, maximum, rechargeDuration, nextRechargeAt },
+    { charges, maximum, rechargeWork, nextRechargeAt },
     {
       charges: 1,
       maximum: 3,
-      rechargeDuration: 15,
+      rechargeWork: 15,
       nextRechargeAt: 29.6
     }
   );

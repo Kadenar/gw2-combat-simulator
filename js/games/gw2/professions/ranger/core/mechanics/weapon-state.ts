@@ -79,9 +79,8 @@ export function completeRangerWeaponSkill(context: RangerCastContext, skill: Ran
   for (const [parentId, flipId] of Object.entries(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT)) {
     const parent = Number(parentId);
     if (parent === ID.PANTHERS_PROWL || (skill.id !== parent && skill.id !== flipId)) continue;
-    const readyAt = Number(context.state.cooldowns.get(skill.id) || context.effectiveEnd);
-    context.state.cooldowns.set(parent, readyAt);
-    context.state.cooldowns.set(flipId, readyAt);
+    context.cooldownController.copy(skill.id, parent);
+    context.cooldownController.copy(skill.id, flipId);
   }
 
   if (castWasInterrupted(context)) return;
@@ -92,8 +91,8 @@ export function completeRangerWeaponSkill(context: RangerCastContext, skill: Ran
   }
 
   if (skill.id === ID.HILT_BASH) {
-    context.state.cooldowns.delete(ID.MAUL);
-    context.state.cooldowns.delete(ID.MAUL_ID_46629);
+    context.cooldownController.clear(ID.MAUL_SOULBEAST);
+    context.cooldownController.clear(ID.MAUL_BASE);
   } else if (skill.id === ID.ENDURING_SWING) {
     advanceRangerResources(context, context.effectiveEnd);
     const state = professionCoreState(context);

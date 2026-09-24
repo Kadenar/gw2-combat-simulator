@@ -19,12 +19,12 @@
     {
       "name": "Feel the Burn!",
       "skillId": 30662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Fire Grab",
@@ -41,7 +41,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Convergence",
@@ -82,7 +82,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Glyph of Storms (Air)",
@@ -107,7 +107,7 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Overload Air",
@@ -136,7 +136,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Convergence",
@@ -157,7 +157,7 @@
     {
       "name": "Feel the Burn!",
       "skillId": 30662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Lightning Whip",
@@ -182,7 +182,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Convergence",
@@ -191,7 +191,7 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Transmute Lightning",
@@ -240,7 +240,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Convergence",
@@ -269,7 +269,7 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Earth Attunement",
@@ -286,7 +286,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Convergence",
@@ -295,7 +295,7 @@
     {
       "name": "Feel the Burn!",
       "skillId": 30662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Transmute Lightning",
@@ -340,12 +340,12 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Convergence",
@@ -386,7 +386,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Convergence",
@@ -439,12 +439,12 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Feel the Burn!",
@@ -489,7 +489,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Convergence",
@@ -518,7 +518,7 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Fire Attunement",
@@ -543,7 +543,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Convergence",
@@ -584,7 +584,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Glyph of Storms (Air)",
@@ -593,12 +593,12 @@
     {
       "name": "Feel the Burn!",
       "skillId": 30662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Convergence",

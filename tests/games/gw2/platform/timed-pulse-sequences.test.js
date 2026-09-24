@@ -95,7 +95,7 @@ test('Infiltrator signet rearm replaces the pending resource pulse and follows c
 test('Forged Surfer replacement retires old bombs independently of the buff expiry', () => {
   const scheduler = createScheduler({ profession: thiefProfession, config: { specialization: 'Antiquary' } });
   const { context, state } = scheduler;
-  const skill = context.catalog.skillsById.get(T.FORGED_SURFER_DASH_ID_76633);
+  const skill = context.catalog.skillsById.get(T.FORGED_SURFER_DASH);
   completeForgedSurfer({ ...context, effectiveEnd: 0 }, skill);
   scheduler.advanceTo(1);
   const oldNext = forgedSurfer.nextAt(context);

@@ -460,8 +460,8 @@ test('Dimensional Aperture adds 50% to Singularity Shot recharge', () => {
   const base = simulateMesmer(['Singularity Shot'], config);
   const aperture = simulateMesmer(['Singularity Shot', 'Dimensional Aperture'], config);
 
-  assert.equal(base.planningState.cooldowns['Singularity Shot'].readyAt, 16333);
-  assert.equal(aperture.planningState.cooldowns['Singularity Shot'].readyAt, 24333);
+  assert.equal(base.planningState.cooldowns['Singularity Shot'].readyAt, 16360);
+  assert.equal(aperture.planningState.cooldowns['Singularity Shot'].readyAt, 24360);
 });
 
 // The image's natural expiry and early detonation must remain mutually exclusive.
@@ -490,7 +490,7 @@ test('Inspiring Imagery grants boons at field expiry and closes Abstraction', ()
       [field.expiresAt, 'fury', 1, 9]
     ]
   );
-  assert.equal(result.planningState.cooldowns['Inspiring Imagery'].readyAt - cast.end, 12000);
+  assert.equal(result.planningState.cooldowns['Inspiring Imagery'].readyAt, Math.ceil((cast.end + 12000) / 40) * 40);
   assert.equal(result.steps.at(-1).invalid, true);
   assert.match(result.warnings[0], /Inspiring Imagery is not active/);
 });

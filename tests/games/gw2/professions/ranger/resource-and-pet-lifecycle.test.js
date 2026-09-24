@@ -104,20 +104,24 @@ test('Ranger recovery rates reject invalid profiles and reread patched profiles 
   close(state.endurance, 36);
 });
 
-test('Galeshot retains normalized partial recharge across Alacrity gain and expiry', () => {
-  for (const [at, duration, before, ready] of [
-    [3, 10, 4, 4.6],
-    [0, 2, 4, 4.5]
+test('Galeshot arrow regeneration ignores Alacrity gain and expiry across wait partitions', () => {
+  for (const [at, duration] of [
+    [3, 10],
+    [0, 2]
   ]) {
-    for (const partition of [[before], [1, 2, 3, before]]) {
+    for (const partition of [[4.9], [1, 2, 3, 4.9]]) {
       const scheduler = schedulerFor({ specialization: 'Galeshot' });
       boon(scheduler, 'alacrity', at, duration);
       const state = galeshotState.from(scheduler.context);
       for (const time of partition) advanceGaleshotArrows(scheduler.context, time);
       assert.equal(state.arrows, 0);
-      advanceGaleshotArrows(scheduler.context, ready);
+      assert.equal(state.nextArrowAt, 5);
+      advanceGaleshotArrows(scheduler.context, 5);
       assert.equal(state.arrows, 1);
-      close(state.arrowRechargeProgress, 0);
+      assert.equal(state.nextArrowAt, 10);
+      advanceGaleshotArrows(scheduler.context, 10);
+      assert.equal(state.arrows, 2);
+      assert.equal(state.nextArrowAt, 15);
     }
   }
 });

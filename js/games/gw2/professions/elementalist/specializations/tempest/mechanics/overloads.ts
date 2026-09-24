@@ -35,9 +35,9 @@ import {
   triggerSunspot
 } from '#gw2/professions/elementalist/core/traits/index.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/state.js';
 import { armElementalistElementalLightningJolt } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
 import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_OVERLOAD_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID
 } from '#gw2/professions/elementalist/data/ids.js';
@@ -207,14 +207,14 @@ function onCastComplete(context: ElementalistCastContext, skill: Skill): void {
   if (!skill.overload) return;
   const state = professionCoreState(context);
   const attunement = String(skill.attunement);
-  // Finishing an overload locks its attunement out until the overload's own recharge ends.
+  // Copy the overload's base progress so later Alacrity changes keep both recharges aligned; retain longer lockouts.
   if (attunement in state.attunementReadyAt) {
     const typedAttunement = attunement as keyof typeof state.attunementReadyAt;
-    setElementalistAttunementReadyAt(
-      context,
-      typedAttunement,
-      Math.max(state.attunementReadyAt[typedAttunement], Number(context.rechargeReadyAt || context.effectiveEnd))
-    );
+    const readyAt = context.state.cooldowns.get(skill.id) ?? context.effectiveEnd;
+    if (readyAt > state.attunementReadyAt[typedAttunement]) {
+      context.cooldownController.copy(skill.id, ELEMENTALIST_ATTUNEMENT_SKILL_IDS[typedAttunement]);
+      state.attunementReadyAt[typedAttunement] = readyAt;
+    }
   }
 
   if (hasTrait(context, 'Unstable Conduit')) {
@@ -333,7 +333,7 @@ function prepareEvent(_context: ElementalistSchedulerContext, event: SimulationE
 function onEventScheduled(context: ElementalistCastContext, event: SimulationEvent): void {
   // Fresh Air re-attunes to Air off cooldown; clear Overload Air's recorded recharge with it.
   if (event.type === 'elementalist.fresh-air') {
-    context.state.cooldowns.delete(ELEMENTALIST_OVERLOAD_SKILL_IDS.Air);
+    context.cooldownController.clear(ELEMENTALIST_OVERLOAD_SKILL_IDS.Air);
     return;
   }
 

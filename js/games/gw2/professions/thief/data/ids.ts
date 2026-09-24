@@ -3,19 +3,6 @@ export const THIEF_SKILL_IDS = Object.freeze({
   DODGE: -5,
 
   // Generated coverage for every skill in the API metadata snapshot.
-  THROW_GUNK: 1110, // Throw Gunk
-  BRANCH_LEAP: 1115, // Branch Leap
-  THROW_CHAIN: 1118, // Throw Chain
-  CONSUME_PLASMA: 1123, // Consume Plasma
-  EAT_EGG: 1125, // Eat Egg
-  ICE_SHARD_STAB: 1129, // Ice Shard Stab
-  MACE_HEAD_CRACK: 1131, // Mace Head Crack
-  HEALING_SEED: 1139, // Healing Seed
-  SKULL_FEAR: 1141, // Skull Fear
-  BLINDING_TUFT: 1148, // Blinding Tuft
-  WHIRLING_AXE: 1162, // Whirling Axe
-  WHIRLING_STRIKE: 1167, // Whirling Strike
-  SHADOWSTEP: 13002, // Shadowstep
   DOUBLE_STRIKE: 13004, // Double Strike
   DEATH_BLOSSOM: 13006, // Death Blossom
   LARCENOUS_STRIKE: 13007, // Larcenous Strike
@@ -36,7 +23,6 @@ export const THIEF_SKILL_IDS = Object.freeze({
   HIDE_IN_SHADOWS: 13027, // Hide in Shadows
   CALTROPS: 13028, // Caltrops
   SPIDER_VENOM: 13037, // Spider Venom
-  PREPARE_SHADOW_PORTAL: 13038, // Prepare Shadow Portal
   SHADOW_SHOT: 13040, // Shadow Shot
   CLUSTER_BOMB: 13041, // Cluster Bomb
   DETONATE_CLUSTER: 13043, // Detonate Cluster
@@ -44,12 +30,9 @@ export const THIEF_SKILL_IDS = Object.freeze({
   ASSASSINS_SIGNET: 13046, // Assassin's Signet
   SIGNET_OF_MALICE: 13050, // Signet of Malice
   SKALE_VENOM: 13055, // Skale Venom
-  PREPARE_SEAL_AREA: 13056, // Prepare Seal Area
   PREPARE_PITFALL: 13057, // Prepare Pitfall
-  SIGNET_OF_SHADOWS: 13060, // Signet of Shadows
   SIGNET_OF_AGILITY: 13062, // Signet of Agility
   INFILTRATORS_SIGNET: 13064, // Infiltrator's Signet
-  SMOKE_SCREEN: 13065, // Smoke Screen
   HASTE: 13066, // Haste
   THIEVES_GUILD: 13082, // Thieves Guild
   DISABLING_SHOT: 13083, // Disabling Shot
@@ -59,7 +42,6 @@ export const THIEF_SKILL_IDS = Object.freeze({
   SLASH: 13088, // Slash
   DEVOURER_VENOM: 13093, // Devourer Venom
   HEARTSEEKER: 13097, // Heartseeker
-  SEAL_AREA: 13099, // Seal Area
   LOTUS_STRIKE: 13108, // Lotus Strike
   TWISTING_FANGS: 13110, // Twisting Fangs
   REPEATER: 13111, // Repeater
@@ -67,11 +49,9 @@ export const THIEF_SKILL_IDS = Object.freeze({
   BLACK_POWDER: 13113, // Black Powder
   SNEAK_ATTACK: 13115, // Sneak Attack
   CRIPPLING_STRIKE: 13116, // Crippling Strike
-  SHADOW_REFUGE: 13117, // Shadow Refuge
   SURPRISE_SHOT: 13129, // Surprise Shot
   BASILISK_VENOM: 13132, // Basilisk Venom
   CLOAK_AND_DAGGER: 16432, // Cloak and Dagger
-  SHADOW_PORTAL: 16435, // Shadow Portal
   SKELK_VENOM: 21778, // Skelk Venom
   IMPACT_STRIKE: 29516, // Impact Strike
   FINISHING_BLOW: 29639, // Finishing Blow
@@ -90,7 +70,6 @@ export const THIEF_SKILL_IDS = Object.freeze({
   BANDITS_DEFENSE: 30661, // Bandit's Defense
   DUST_STRIKE: 30775, // Dust Strike
   FIST_FLURRY: 30868, // Fist Flurry
-  ESSENCE_SAP: 31438, // Essence Sap
   DEATHS_ADVANCE: 40436, // Death's Advance
   KNEEL: 40600, // Kneel
   SHADOW_FLARE: 41158, // Shadow Flare
@@ -105,7 +84,6 @@ export const THIEF_SKILL_IDS = Object.freeze({
   SPOTTERS_SHOT: 44591, // Spotter's Shot
   THREE_ROUND_BURST: 44695, // Three Round Burst
   MALICIOUS_RESTORATION: 45088, // Malicious Restoration
-  THROW_GUNK_ID_45094: 45094, // Throw Gunk
   SHADOW_MELD: 45508, // Shadow Meld
   SHADOW_SWAP: 45672, // Shadow Swap
   SHADOW_GUST: 46335, // Shadow Gust
@@ -143,72 +121,31 @@ export const THIEF_SKILL_IDS = Object.freeze({
   MANTIS_STING: 73041, // Mantis Sting
   VAMPIRIC_SLASH: 73063, // Vampiric Slash
   BARBED_SPEAR: 73145, // Barbed Spear
-  FORGED_SURFER_DASH: 76550, // Forged Surfer Dash
-  EXALTED_HAMMER: 76601, // Exalted Hammer
-  FORGED_SURFER_DASH_ID_76633: 76633, // Forged Surfer Dash
+  FORGED_SURFER_DASH: 76633, // Forged Surfer Dash
   HOLO_DANCER_DECOY: 76674, // Holo-Dancer Decoy
-  EXALTED_HAMMER_ID_76702: 76702, // Exalted Hammer
+  EXALTED_HAMMER: 76702, // Exalted Hammer
   STONE_SUMMIT_CANNON: 76725, // Stone Summit Cannon
-  HOLO_DANCER_DECOY_ID_76800: 76800, // Holo-Dancer Decoy
   CHAK_SHIELD: 76816, // Chak Shield
   ANTIVENOM_DRAUGHT_BACKFIRED: 76881, // Antivenom Draught: Backfired
   ANTIVENOM_DRAUGHT: 76886, // Antivenom Draught
   ZEPHYRITE_SUN_CRYSTAL: 76895, // Zephyrite Sun Crystal
-  SUMMON_KRYPTIS_TURRET: 76900, // Summon Kryptis Turret
   UNSTABLE_SKRITT_BOMB: 76909, // Unstable Skritt Bomb
   RESHUFFLE: 76966, // Reshuffle
   STONE_SUMMIT_CANNON_ID_77092: 77092, // Stone Summit Cannon
-  SUMMON_KRYPTIS_TURRET_ID_77192: 77192, // Summon Kryptis Turret
-  CANACH_COIN_TOSS_ID_77230: 77230, // Canach-Coin Toss
+  SUMMON_KRYPTIS_TURRET: 77192, // Summon Kryptis Turret
+  CANACH_COIN_TOSS: 77230, // Canach-Coin Toss
   SKRITT_SCUFFLE: 77255, // Skritt Scuffle
   MISTBURN_MORTAR: 77277, // Mistburn Mortar
-  MISTBURN_MORTAR_ID_77288: 77288, // Mistburn Mortar
   SKRITT_SWIPE: 77397, // Skritt Swipe
   ZEPHYRITE_SUN_CRYSTAL_ID_78309: 78309, // Zephyrite Sun Crystal
   FLAWLESS_EXECUTION: 80244, // Flawless Execution
 
-  // API-omitted identities from the supplemental catalog.
-  BONE_CRACK: 1113, // Bone Crack
-  BRANCH_BASH: 1114, // Branch Bash
-  DRINK_STOLEN_SKILL: 1116, // Drink (stolen skill)
-  CLUB_SHOCK_WAVE: 1119, // Club Shock Wave
-  THROW_CORAL_SHARD: 1120, // Throw Coral Shard
-  THROW_CRYSTAL_SHARD_STOLEN_SKILL: 1121, // Throw Crystal Shard (stolen skill)
-  THROW_FEATHERS: 1126, // Throw Feathers
-  THROW_GEAR_STOLEN_SKILL: 1127, // Throw Gear (stolen skill)
-  THROW_LAVA_ROCK: 1130, // Throw Lava Rock
-  SHOOT_RIFLE: 1132, // Shoot Rifle
-  THROW_ROCK_STOLEN_SKILL_KNOCKDOWN: 1133, // Throw Rock (stolen skill knockdown)
-  RUSTY_SCRAP_STRIKE: 1134, // Rusty Scrap Strike
-  THROW_SCALE: 1135, // Throw Scale
-  USE_SCEPTER: 1138, // Use Scepter
-  USE_STAFF: 1144, // Use Staff
-  TOOTH_STAB: 1146, // Tooth Stab
-  EXPLODING_VENOM_SACK: 1149, // Exploding Venom Sack
-  THROW_VINE_STOLEN_SKILL: 1150, // Throw Vine (stolen skill)
-  THROW_ROCK_STOLEN_SKILL_DAZE: 1155, // Throw Rock (stolen skill daze)
-  THROW_NET: 1168, // Throw Net
+  // Keep identities for supported skills supplied by the supplemental catalog.
   BACKSTAB: 13005, // Backstab
-  SHADOW_ASSAULT: 13068, // Shadow Assault
-  FLANKING_DIVE: 13069, // Flanking Dive
-  TOW_LINE: 13070, // Tow Line
-  PIERCING_SHOT: 13072, // Piercing Shot
-  DELUGE: 13073, // Deluge
-  ESCAPE: 13074, // Escape
-  CRIPPLING_SHOT_THIEF_HARPOON_GUN_SKILL: 13075, // Crippling Shot (thief harpoon gun skill)
-  INK_SHOT: 13076, // Ink Shot
-  SMOKE_TRAIL: 13078, // Smoke Trail
   STEAL_ID_13109: 13109, // Steal
   TACTICAL_STRIKE: 13114, // Tactical Strike
-  STAB_THIEF_SPEAR_SKILL: 13119, // Stab (thief spear skill)
-  JAB_THIEF_SKILL: 13120, // Jab (thief skill)
-  POISON_TIP_STRIKE: 13121, // Poison Tip Strike
-  NINE_TAILED_STRIKE: 13122, // Nine-Tailed Strike
   INFILTRATORS_RETURN: 13128, // Infiltrator's Return
-  BREAK_STANCE: 13130, // Break Stance
   LESSER_CALTROPS: 14136, // Lesser Caltrops
-  THROW_GUNK_ID_16460: 16460, // Throw Gunk
-  ICE_WURM_VENOM_TRAP: 16746, // Ice Wurm Venom Trap
   LESSER_HASTE: 30239, // Lesser Haste
   PALM_STRIKE: 30693, // Palm Strike
   PULMONARY_IMPACT_TRAIT_SKILL: 30770, // Pulmonary Impact (trait skill)
@@ -223,28 +160,17 @@ export const THIEF_SKILL_IDS = Object.freeze({
   STEAL_STRENGTH: 40904, // Steal Strength
   FREE_ACTION: 41068, // Free Action
   STEAL_TIME: 42863, // Steal Time
-  TRAIL_OF_KNIVES_DOPPELGANGER: 43264, // Trail of Knives (Doppelganger)
-  SOHOTHIN_BLOSSOM: 43306, // Sohothin Blossom
   STEAL_DURABILITY: 43373, // Steal Durability
   STEAL_DEFENSES: 43768, // Steal Defenses
   STEAL_MOBILITY: 44526, // Steal Mobility
-  LIFT_PIN: 47287, // Lift Pin
   SOUL_STONE_VENOM: 49052, // Soul Stone Venom
   DETONATE_PLASMA: 49063, // Detonate Plasma
   THROW_MAGNETIC_BOMB: 49112, // Throw Magnetic Bomb
-  UNSTABLE_ARTIFACT: 49123, // Unstable Artifact
-  HOOKED_SPEAR: 50379, // Hooked Spear
   BURST_OF_SHADOWS: 50408, // Burst of Shadows
   MALICIOUS_SURPRISE_SHOT: 50451, // Malicious Surprise Shot
   MALICIOUS_SNEAK_ATTACK: 50466, // Malicious Sneak Attack
   MALICIOUS_BACKSTAB: 50481, // Malicious Backstab
   MALICIOUS_TACTICAL_STRIKE: 50484, // Malicious Tactical Strike
-  THROW_ENCHANTED_ICE: 59154, // Throw Enchanted Ice
-  THROW_UNSTABLE_REAGENT: 59324, // Throw Unstable Reagent
-  BLESSING_SEED: 59327, // Blessing Seed
-  DRINK_AMBROSIA: 59328, // Drink Ambrosia
-  TIME_IN_A_BOTTLE: 59447, // Time in a Bottle
-  THROW_CURSED_ARTIFACT: 59485, // Throw Cursed Artifact
   SIPHON: 63067, // Siphon
   TRIPLE_BOLT: 63134, // Triple Bolt
   ENTER_SHADOW_SHROUD: 63155, // Enter Shadow Shroud
@@ -263,8 +189,7 @@ export const THIEF_SKILL_IDS = Object.freeze({
   FALLING_SPIDER: 73076, // Falling Spider
   METAL_LEGION_GUITAR: 76582, // Metal Legion Guitar
   METAL_LEGION_GUITAR_ID_76591: 76591, // Metal Legion Guitar
-  ZEPHYRITE_SUN_CRYSTAL_ID_76733: 76733, // Zephyrite Sun Crystal
-  LIFT_PIN_HERO_CHALLENGE: 77935 // Lift Pin (hero challenge)
+  ZEPHYRITE_SUN_CRYSTAL_ID_76733: 76733 // Zephyrite Sun Crystal
 });
 
 export const THIEF_TRAIT_IDS = Object.freeze({

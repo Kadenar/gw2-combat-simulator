@@ -243,7 +243,10 @@ function consumeDragonRoarAmmo(context: WarriorCastContext, skill: WarriorSkill)
 
   if (context.ammo && context.ammo.charges > 1) context.ammo.charges = 1;
   context.replaceEvent(context.action, {
-    rechargeReadyAt: context.rechargeStart + Math.max(context.rechargeDuration, context.ammoLockoutDuration)
+    rechargeReadyAt: context.cooldownController.project(skill, {
+      startedAt: context.rechargeStart,
+      work: Math.max(context.rechargeWork, context.ammoLockoutWork)
+    })
   });
   if (!strike) return;
   // Ammunition changes the packet count, not the coefficient read from this profile.

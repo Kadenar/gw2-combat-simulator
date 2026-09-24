@@ -159,7 +159,7 @@ const perforateReaction = scheduledReaction<
 // Consumes Distress's flip, refreshes Perforate, and applies the simulator's single-target shard bonus.
 function distress(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
   consumeSkillFlip(professionCoreState(context).availableFlips, skill.id);
-  context.state.cooldowns.delete(ID.PERFORATE);
+  context.cooldownController.clear(ID.PERFORATE);
   // The simulator models one target, so Distress receives its three additional shards.
   addShards(context, skill, 6, 'distress');
   return true;

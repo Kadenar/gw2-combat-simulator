@@ -41,7 +41,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 244
+      "offset": 240
     },
     {
       "name": "Glyph of Storms (Air)",
@@ -74,7 +74,7 @@
     {
       "name": "Crystal Slash",
       "skillId": 43616,
-      "interruptMs": 77
+      "interruptMs": 80
     },
     {
       "name": "Earthquake",
@@ -87,7 +87,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 39
+      "offset": 40
     },
     {
       "name": "Ride the Lightning",
@@ -108,12 +108,12 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 681
+      "offset": 680
     },
     {
       "name": "Charged Strike",
       "skillId": 44681,
-      "interruptMs": 38
+      "interruptMs": 40
     },
     {
       "name": "Quantum Strike",
@@ -126,12 +126,12 @@
     {
       "name": "Fire Attunement",
       "skillId": 5492,
-      "offset": 3124
+      "offset": 3120
     },
     {
       "name": "Fire Strike",
       "skillId": 39964,
-      "interruptMs": 79
+      "interruptMs": 80
     },
     {
       "name": "Fire Grab",
@@ -152,7 +152,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 243
+      "offset": 240
     },
     {
       "name": "Ride the Lightning",
@@ -173,7 +173,7 @@
     {
       "name": "Feel the Burn!",
       "skillId": 30662,
-      "offset": 561
+      "offset": 560
     },
     {
       "name": "Charged Strike",
@@ -186,7 +186,7 @@
     {
       "name": "Call Lightning",
       "skillId": 45216,
-      "interruptMs": 157
+      "interruptMs": 160
     },
     {
       "name": "Overload Air",
@@ -199,7 +199,7 @@
     {
       "name": "Crystal Slash",
       "skillId": 43616,
-      "interruptMs": 38
+      "interruptMs": 40
     },
     {
       "name": "Earthquake",
@@ -217,7 +217,7 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 317
+      "offset": 320
     },
     {
       "name": "Ride the Lightning",
@@ -250,12 +250,12 @@
     {
       "name": "Fire Attunement",
       "skillId": 5492,
-      "offset": 3125
+      "offset": 3120
     },
     {
       "name": "Fire Strike",
       "skillId": 39964,
-      "interruptMs": 118
+      "interruptMs": 120
     },
     {
       "name": "Fire Grab",
@@ -272,7 +272,7 @@
     {
       "name": "Fire Strike",
       "skillId": 39964,
-      "interruptMs": 37
+      "interruptMs": 40
     },
     {
       "name": "Flame Uprising",
@@ -281,7 +281,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 123
+      "offset": 120
     },
     {
       "name": "Ride the Lightning",
@@ -310,7 +310,7 @@
     {
       "name": "Call Lightning",
       "skillId": 45216,
-      "interruptMs": 42
+      "interruptMs": 40
     },
     {
       "name": "Overload Air",
@@ -319,7 +319,7 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 1279
+      "offset": 1280
     },
     {
       "name": "Earth Attunement",
@@ -328,7 +328,7 @@
     {
       "name": "Crystal Slash",
       "skillId": 43616,
-      "interruptMs": 81
+      "interruptMs": 80
     },
     {
       "name": "Earthquake",
@@ -346,7 +346,7 @@
     {
       "name": "Feel the Burn!",
       "skillId": 30662,
-      "offset": 403
+      "offset": 400
     },
     {
       "name": "Quantum Strike",
@@ -379,7 +379,7 @@
     {
       "name": "Fire Strike",
       "skillId": 39964,
-      "interruptMs": 118
+      "interruptMs": 120
     },
     {
       "name": "Fire Grab",
@@ -400,7 +400,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 202
+      "offset": 200
     },
     {
       "name": "Ride the Lightning",
@@ -417,7 +417,7 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 198
+      "offset": 200
     },
     {
       "name": "Call Lightning",
@@ -446,7 +446,7 @@
     {
       "name": "Crystal Slash",
       "skillId": 43616,
-      "interruptMs": 42
+      "interruptMs": 40
     },
     {
       "name": "Earthquake",
@@ -455,7 +455,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 521
+      "offset": 520
     },
     {
       "name": "Charged Strike",
@@ -490,7 +490,7 @@
     {
       "name": "Call Lightning",
       "skillId": 45216,
-      "interruptMs": 438
+      "interruptMs": 440
     },
     {
       "name": "Overload Air",
@@ -499,12 +499,12 @@
     {
       "name": "Feel the Burn!",
       "skillId": 30662,
-      "offset": 924
+      "offset": 920
     },
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 1357
+      "offset": 1360
     },
     {
       "name": "Fire Attunement",
@@ -513,7 +513,7 @@
     {
       "name": "Fire Strike",
       "skillId": 39964,
-      "interruptMs": 121
+      "interruptMs": 120
     },
     {
       "name": "Fire Grab",
@@ -534,7 +534,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 202
+      "offset": 200
     },
     {
       "name": "Ride the Lightning",
@@ -571,7 +571,7 @@
     {
       "name": "Crystal Slash",
       "skillId": 43616,
-      "interruptMs": 75
+      "interruptMs": 80
     },
     {
       "name": "Earthquake",
@@ -584,7 +584,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 52
+      "offset": 40
     },
     {
       "name": "Ride the Lightning",
@@ -605,7 +605,7 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 124
+      "offset": 120
     },
     {
       "name": "Charged Strike",
@@ -622,7 +622,7 @@
     {
       "name": "Fire Strike",
       "skillId": 39964,
-      "interruptMs": 122
+      "interruptMs": 120
     },
     {
       "name": "Fire Grab",
@@ -643,12 +643,12 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 242
+      "offset": 240
     },
     {
       "name": "Feel the Burn!",
       "skillId": 30662,
-      "offset": 321
+      "offset": 320
     },
     {
       "name": "Quantum Strike",
@@ -677,12 +677,12 @@
     {
       "name": "Flame Barrage",
       "skillId": 2662,
-      "offset": 2318
+      "offset": 2320
     },
     {
       "name": "Earth Attunement",
       "skillId": 5495,
-      "offset": 803
+      "offset": 800
     },
     {
       "name": "Crystal Slash",
@@ -696,7 +696,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 484
+      "offset": 480
     },
     {
       "name": "Ride the Lightning",
@@ -721,7 +721,7 @@
     {
       "name": "Fire Strike",
       "skillId": 39964,
-      "interruptMs": 42
+      "interruptMs": 40
     },
     {
       "name": "Ring of Fire",
@@ -746,7 +746,7 @@
     {
       "name": "Air Attunement",
       "skillId": 5494,
-      "offset": 284
+      "offset": 280
     },
     {
       "name": "Searing Slash",

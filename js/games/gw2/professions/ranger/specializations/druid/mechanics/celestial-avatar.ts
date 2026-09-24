@@ -1,7 +1,12 @@
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import { resourceDepletion } from '#gw2/platform/profession-definition/mechanics.js';
-import { advanceResourceClock, setResourceRate } from '#gw2/platform/combat/resources/clock.js';
+import {
+  advanceDiscreteResource,
+  advanceResourceClock,
+  setResourceRate
+} from '#gw2/platform/combat/resources/clock.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import {
   requireBalanceProfileFromContext,
@@ -150,11 +155,13 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
   if (state.celestialAvatarActive) {
     advanceResourceClock(state.astralClock, target);
     // Advance Natural Mender clock even during CA so ticks resume at the right time after exit
-    if (target >= state.naturalMenderReadyAt - EPSILON) {
-      const skippedApplications =
-        Math.floor((target - state.naturalMenderReadyAt + EPSILON) / naturalMenderInterval) + 1;
-      state.naturalMenderReadyAt += skippedApplications * naturalMenderInterval;
-    }
+    state.naturalMenderReadyAt = advanceDiscreteResource(
+      0,
+      0,
+      state.naturalMenderReadyAt,
+      naturalMenderInterval,
+      target
+    ).nextAt;
 
     return;
   }
@@ -163,18 +170,18 @@ export function advanceDruidState(context: RangerSchedulerContext, target: numbe
   if (
     !hasTrait(context, TRAIT.NATURAL_MENDER) ||
     state.astralClock.value >= state.astralClock.maximum ||
-    target < state.naturalMenderReadyAt - EPSILON
+    target < gw2CooldownReadyAt(state.naturalMenderReadyAt)
   ) {
     return;
   }
 
-  // Catch up any ticks that were skipped if advance() jumped a large interval
-  const applications = Math.floor((target - state.naturalMenderReadyAt + EPSILON) / naturalMenderInterval) + 1;
+  // Natural Mender uses the same tick-detected fixed cadence as other regenerating resources.
+  const applications = advanceDiscreteResource(0, Infinity, state.naturalMenderReadyAt, naturalMenderInterval, target);
   state.astralClock.value = Math.min(
     state.astralClock.maximum,
-    state.astralClock.value + applications * naturalMenderForce
+    state.astralClock.value + applications.value * naturalMenderForce
   );
-  state.naturalMenderReadyAt += applications * naturalMenderInterval;
+  state.naturalMenderReadyAt = applications.nextAt;
 }
 
 export function astralForceReadyAt(context: RangerCastContext): number | null {
@@ -196,7 +203,9 @@ export function astralForceReadyAt(context: RangerCastContext): number | null {
   if (!naturalMender) return null;
   const applications = Math.ceil((maximum - state.astralClock.value) / naturalMenderForce);
   // naturalMenderReadyAt may already be in the past if advance() hasn't run yet; clamp to now
-  return Math.max(context.start, state.naturalMenderReadyAt) + (applications - 1) * naturalMenderInterval;
+  return gw2CooldownReadyAt(
+    Math.max(context.start, state.naturalMenderReadyAt) + (applications - 1) * naturalMenderInterval
+  );
 }
 
 /** Capture observation-time data and apply local state changes only when the queue reaches the impact. */

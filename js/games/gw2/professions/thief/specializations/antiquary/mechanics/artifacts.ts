@@ -30,7 +30,7 @@ import type {
 import type { AntiquaryState, ThiefArtifactSlot } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
-import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
+import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 
 function allArtifactChoices(): ThiefArtifactSlot[] {
   return [
@@ -184,7 +184,7 @@ function applyArtifactIdentity(context: ThiefCastContext, skill: ThiefSkill, at:
       at + (meticulous ? enhancedDuration : standardDuration)
     );
     state.mistburnGeneration += 1;
-  } else if (skill.id === ID.SUMMON_KRYPTIS_TURRET_ID_77192) {
+  } else if (skill.id === ID.SUMMON_KRYPTIS_TURRET) {
     state.kryptisDamageUntil =
       at +
       (meticulous
@@ -199,7 +199,7 @@ function applyArtifactIdentity(context: ThiefCastContext, skill: ThiefSkill, at:
       ...(state.holoUtilityCooldownReductionExpirations || []),
       expiresAt
     ];
-  } else if (skill.id === ID.FORGED_SURFER_DASH_ID_76633) {
+  } else if (skill.id === ID.FORGED_SURFER_DASH) {
     // The bomb-drop buff has its own duration, independent of how many bombs hit the target.
     state.forgedSurferBombDropUntil = at + (meticulous ? enhancedDuration : standardDuration);
   }
@@ -493,7 +493,7 @@ export function resolveDoubleEdge(context: ThiefCastContext, skill: ThiefSkill):
     }
   }
 
-  if (skill.id === ID.CANACH_COIN_TOSS_ID_77230) {
+  if (skill.id === ID.CANACH_COIN_TOSS) {
     tossCanachCoins(context, at, outcome === 'backfire');
   }
 

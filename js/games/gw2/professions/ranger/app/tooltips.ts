@@ -292,10 +292,12 @@ export const rangerTooltips: ProfessionTooltips = {
   },
   skills: {
     ...Object.fromEntries(
-      [ID.MAUL, ID.MAUL_ID_46629].map((id) => [
+      [ID.MAUL_SOULBEAST, ID.MAUL_BASE].map((id) => [
         id,
         skillTooltip(
-          "Strike and grant Attack of Opportunity after the impact. It empowers your pet's next direct attack, or your next direct attack while merged. Trait and stance damage cannot consume it.",
+          id === ID.MAUL_SOULBEAST
+            ? 'Strike and grant yourself Attack of Opportunity after the impact while merged. It empowers your next direct attack. Trait and stance damage cannot consume it.'
+            : "Strike and grant your pet Attack of Opportunity after the impact. It empowers your pet's next direct attack. Trait and stance damage cannot consume it.",
           (balanceContext) => [
             profileFact(
               balanceContext,
@@ -307,15 +309,8 @@ export const rangerTooltips: ProfessionTooltips = {
             modifierFact(
               balanceContext,
               'ranger.attack-of-opportunity',
-              'petFactor',
-              'Pet next-attack damage',
-              tooltipFactorChange
-            ),
-            modifierFact(
-              balanceContext,
-              'ranger.attack-of-opportunity',
-              'playerFactor',
-              'Merged next-attack damage',
+              id === ID.MAUL_SOULBEAST ? 'playerFactor' : 'petFactor',
+              id === ID.MAUL_SOULBEAST ? 'Player next-attack damage' : 'Pet next-attack damage',
               tooltipFactorChange
             )
           ]

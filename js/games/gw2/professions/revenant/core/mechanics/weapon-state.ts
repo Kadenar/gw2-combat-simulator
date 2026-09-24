@@ -33,7 +33,7 @@ export const dropTheHammerReaction = scheduledReaction<
     };
   },
   execute(context) {
-    context.state.cooldowns.delete(ID.COALESCENCE_OF_RUIN);
+    context.cooldownController.clear(ID.COALESCENCE_OF_RUIN);
   }
 });
 

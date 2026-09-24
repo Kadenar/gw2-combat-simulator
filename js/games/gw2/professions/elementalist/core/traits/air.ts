@@ -213,7 +213,7 @@ function processFreshAirCandidates(context: ElementalistSchedulerContext, throug
     if (!application) continue;
     if (state.attunementReadyAt.Air > candidate.at + EPSILON) {
       setElementalistAttunementReadyAt(context, 'Air', candidate.at);
-      context.state.cooldowns.delete(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air);
+      context.cooldownController.clear(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air);
     }
 
     context.emit({

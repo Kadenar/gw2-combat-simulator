@@ -238,15 +238,13 @@ export const rangerCoreSkillHandlers = Object.freeze({
 export const rangerCoreSkillMechanicHandlers = Object.freeze({
   'ranger.core.sync-path-of-scars-cooldown': ({
     context,
-    skill,
-    at
+    skill
   }: {
     context: RangerSchedulerContext;
     skill: RangerSkill;
     at: number;
   }): void => {
-    const readyAt = Number(context.state.cooldowns.get(skill.id) || at);
-    context.state.cooldowns.set(ID.PATH_OF_SCARS, readyAt);
-    context.state.cooldowns.set(ID.PATH_OF_SCARS_MAX_RANGE, readyAt);
+    context.cooldownController.copy(skill.id, ID.PATH_OF_SCARS);
+    context.cooldownController.copy(skill.id, ID.PATH_OF_SCARS_MAX_RANGE);
   }
 });

@@ -1,3 +1,7 @@
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
+import { planningState } from '#gw2/platform/results/end-state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
@@ -49,6 +53,49 @@ const baseConfig = {
 };
 const simulate = createProfessionSimulator(revenantProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
+
+// Legend inputs and palette tiles must follow the same recharge after Alacrity arrives mid-cooldown and expires.
+test('legend swap and its palette use shared recharge after temporary Alacrity', () => {
+  const scheduler = createScheduler({
+    profession: revenantProfession,
+    config: baseConfig,
+    schedulerPolicy: createGw2SchedulerPolicy(baseConfig)
+  });
+  const scheduled = scheduler.run(['__combat_start', 'Swap Legends']);
+  scheduler.advanceTo(2);
+  scheduler.context.emit({
+    type: 'buff',
+    kind: 'alacrity',
+    at: 2,
+    duration: 4,
+    stacks: 1,
+    source: 'fixture',
+    sourceId: 'fixture',
+    actorType: 'player'
+  });
+  scheduler.advanceTo(8.5);
+  const projected = planningState(scheduled.context.profession, scheduled);
+  const swap = revenantCatalog.skillsById.get(SKILL.SWAP_LEGENDS);
+  assert.equal(projected.cooldowns[swap.name].readyAt, 9000);
+  assert.deepEqual(
+    revenantProfession.ui.paletteSkillAvailability(
+      {
+        time: projected.atSeconds,
+        professionState: projected.profession,
+        cooldowns: projected.cooldowns
+      },
+      swap
+    ),
+    {
+      available: false,
+      message: 'Legend swap is recharging',
+      retryAt: 9
+    }
+  );
+  assert.equal(scheduler.cast({ type: 'cast', skillId: swap.id }), true);
+  assert.equal(scheduler.events.findLast((event) => event.type === 'action').at, 9);
+  assert.deepEqual(scheduler.warnings, []);
+});
 
 // A child consumed during the channel must not make the parent's later expiry claim another activation.
 test('Imperial Guard expiry retains its cast identity after early consumption', () => {
@@ -392,6 +439,12 @@ test('Diminish Solace stops upkeep drain, retires owned tasks, and starts the pa
   const owners = [];
   context.tasks.cancelOwner = (id) => owners.push(id);
   context.rechargeDurationFor = (skill) => skill.cooldown;
+  context.state.rechargeProgress = new Map();
+  context.state.ammo = new Map();
+  context.cooldownController = createCooldownController({
+    state: context.state,
+    rechargeDuration: context.rechargeDurationFor
+  });
   context.effectiveEnd = 1;
   context.state.profession.core.activeUpkeeps.push({ skillId: SKILL.PROTECTIVE_SOLACE, upkeepCost: 8 });
   releaseRevenantUpkeep(context, revenantCatalog.skillsById.get(SKILL.DIMINISH_SOLACE));
@@ -487,16 +540,16 @@ test('Fury reactions respect recipients, source ownership, combat gating, and bo
 
 test('Enduring Recovery adds to Vigor and funds the next dodge in Core and Vindicator', () => {
   for (const specialization of ['Core', 'Vindicator']) {
-    for (const [traits, vigor, rate] of [
-      [[], false, 5],
-      [[TRAIT.ENDURING_RECOVERY], false, 6.25],
-      [[TRAIT.ENDURING_RECOVERY], true, 8.75]
+    for (const [traits, vigor, rate, readyAt] of [
+      [[], false, 5, 10],
+      [[TRAIT.ENDURING_RECOVERY], false, 6.25, 8],
+      [[TRAIT.ENDURING_RECOVERY], true, 8.75, 5.72]
     ]) {
       const context = contextFor(specialization, traits);
       context.config.boons = { vigor };
       context.state.profession.core.endurance = 0;
       assert.equal(revenantEnduranceRegenerationRate(context), rate);
-      assert.equal(revenantEnduranceReadyAt(context, 50), 50 / rate);
+      assert.equal(revenantEnduranceReadyAt(context, 50), readyAt);
       advanceRevenantEnergy(context, 4);
       assert.equal(context.state.profession.core.endurance, rate * 4);
     }

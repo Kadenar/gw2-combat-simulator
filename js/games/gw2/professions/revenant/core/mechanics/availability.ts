@@ -50,7 +50,7 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
     return denyRevenantSkill(skill, 'revenant.weapon-flip-active', 'use or wait out the active follow-up skill.');
   }
 
-  if (skill.id === -4) {
+  if (skill.id === ID.SWAP_LEGENDS) {
     if (
       state.selectedLegendIds.length !== 2 ||
       state.selectedLegendIds.some((legendId) => !isLegalRevenantLegendId(legendId, specialization))
@@ -58,15 +58,7 @@ export function revenantCastAvailability(context: RevenantPrecastContext, skill:
       return denyRevenantSkill(skill, 'revenant.legend-pair', 'select two legal legends.');
     }
 
-    if (context.start < state.legendSwapReadyAt) {
-      return denyRevenantSkill(
-        skill,
-        'revenant.legend-swap-cooldown',
-        'legend swap is recharging.',
-        state.legendSwapReadyAt
-      );
-    }
-
+    // The shared scheduler gates recharge, including changes from temporary Alacrity.
     return { ready: true };
   }
 

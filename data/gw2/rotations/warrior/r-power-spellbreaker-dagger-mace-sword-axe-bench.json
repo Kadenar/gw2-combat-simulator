@@ -16,7 +16,7 @@
     "Breaching Strike",
     {
       "name": "__combat_start",
-      "offset": 100
+      "offset": 120
     },
     "Crushing Blow",
     "Tremor",
@@ -32,7 +32,7 @@
     "Hamstring",
     {
       "name": "Kick",
-      "interruptMs": 559
+      "interruptMs": 560
     },
     "Swap Weapons",
     "Breaching Strike",

@@ -29,7 +29,6 @@ export function swapRevenantLegend(context: RevenantCastContext, skill: Revenant
   const other = state.selectedLegendIds.find((id) => id !== state.activeLegendId);
   state.activeLegendId = other || state.activeLegendId;
   state.activeLoadoutId = state.activeLegendId;
-  state.legendSwapReadyAt = at + Math.max(0, Number(context.rechargeDuration ?? 10));
   const chargedMists = hasTrait(context.config, TRAIT.CHARGED_MISTS)
     ? requireBalanceProfileFromContext(context, REVENANT_CORE_BALANCE_PROFILE_IDS.chargedMists)
     : undefined;

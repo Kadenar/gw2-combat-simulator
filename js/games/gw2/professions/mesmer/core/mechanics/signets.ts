@@ -35,6 +35,7 @@ export function applyMesmerSignetReset(
   if (skill.id === ID.SIGNET_OF_THE_ETHER) {
     for (const phantasmSkill of allSkills.filter((candidate) => candidate.phantasm)) {
       state.cooldowns.delete(phantasmSkill.id);
+      state.rechargeProgress.delete(phantasmSkill.id);
     }
 
     addEvent({ type: 'marker', at, name: 'Signet of the Ether', detail: 'Phantasm skill cooldowns reset' });
@@ -53,6 +54,7 @@ export function applyMesmerSignetReset(
     }
 
     state.cooldowns.delete(target.id);
+    state.rechargeProgress.delete(target.id);
   }
 
   addEvent({
@@ -138,7 +140,8 @@ export const mesmerCoreSignetSkillMechanicHandlers = Object.freeze({
     at: number;
   }): void => {
     const readyAt = at + context.rechargeDurationFor(skill, at);
-    context.state.cooldowns.set(skill.id, Math.max(Number(context.state.cooldowns.get(skill.id) || 0), readyAt));
+    if (readyAt > Number(context.state.cooldowns.get(skill.id) || 0))
+      context.cooldownController.startRecharge(skill, at);
   },
   'mesmer.core.restart-signet-illusions-passive': ({
     context,

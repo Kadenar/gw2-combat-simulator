@@ -9,12 +9,12 @@
     "Overload Earth",
     {
       "name": "Hurl",
-      "offset": 100
+      "offset": 120
     },
     "Sand Squall",
     {
       "name": "Fire Attunement",
-      "offset": 100
+      "offset": 120
     },
     "Glyph of Elemental Power (Fire)",
     "Phoenix",
@@ -26,7 +26,7 @@
     "Overload Fire",
     {
       "name": "Flame Barrage",
-      "offset": 2740
+      "offset": 2760
     },
     "Phoenix",
     "Dragon's Tooth",
@@ -44,7 +44,7 @@
     "Signet of Earth",
     {
       "name": "Earth Attunement",
-      "offset": 140
+      "offset": 160
     },
     "Rock Barrier",
     "Hurl",
@@ -53,7 +53,7 @@
     "Stone Shards",
     {
       "name": "Flame Barrage",
-      "offset": 1340
+      "offset": 1360
     },
     "Sand Squall",
     "Overload Earth",
@@ -62,7 +62,7 @@
     "Signet of Fire",
     {
       "name": "Fire Attunement",
-      "offset": 100
+      "offset": 120
     },
     "Phoenix",
     "Wildfire",
@@ -75,7 +75,7 @@
     "Overload Fire",
     {
       "name": "Flame Barrage",
-      "offset": 2100
+      "offset": 2120
     },
     "Phoenix",
     "Dragon's Tooth",
@@ -92,7 +92,7 @@
     "Phoenix",
     {
       "name": "Earth Attunement",
-      "offset": 100
+      "offset": 120
     },
     "Rock Barrier",
     "Hurl",
@@ -102,7 +102,7 @@
     "Stone Shards",
     {
       "name": "Flame Barrage",
-      "offset": 380
+      "offset": 400
     },
     "Overload Earth",
     "Rock Barrier",
@@ -110,7 +110,7 @@
     "Signet of Fire",
     {
       "name": "Fire Attunement",
-      "offset": 420
+      "offset": 440
     },
     "Phoenix",
     "Signet of Earth",
@@ -123,7 +123,7 @@
     "Overload Fire",
     {
       "name": "Flame Barrage",
-      "offset": 1980
+      "offset": 2000
     },
     "Phoenix",
     "Dragon's Tooth",
@@ -140,7 +140,7 @@
     "Phoenix",
     {
       "name": "Earth Attunement",
-      "offset": 100
+      "offset": 120
     },
     "Rock Barrier",
     "Hurl",
@@ -150,7 +150,7 @@
     "Stone Shards",
     {
       "name": "Flame Barrage",
-      "offset": 340
+      "offset": 360
     },
     "Overload Earth",
     "Rock Barrier",

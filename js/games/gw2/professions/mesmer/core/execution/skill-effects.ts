@@ -9,7 +9,7 @@ import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/professions/mesmer/core/mechanic
 import { applyMesmerClarity, consumeMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
 import { applyMesmerSignetReset } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { triggerMethodOfMadness } from '#gw2/professions/mesmer/core/traits/index.js';
-import type { SchedulerState } from '#gw2/platform/execution/types.js';
+import type { CooldownController, SchedulerState } from '#gw2/platform/execution/types.js';
 import type {
   MesmerAddCondition,
   MesmerAddDamage,
@@ -32,6 +32,7 @@ export interface MesmerSkillSpecialEffectController {
 
 interface SkillSpecialEffectControllerOptions {
   readonly state: SchedulerState<MesmerRuntimeState>;
+  readonly cooldownController: CooldownController;
   readonly traits: ReadonlySet<number>;
   readonly allSkills: readonly MesmerSkill[];
   readonly addEvent: MesmerAddEvent;
@@ -46,6 +47,7 @@ interface SkillSpecialEffectControllerOptions {
 
 export function createSkillSpecialEffectController({
   state,
+  cooldownController,
   traits,
   allSkills,
   addEvent,
@@ -120,7 +122,8 @@ export function createSkillSpecialEffectController({
     if (skill.id === ID.MENTAL_COLLAPSE) {
       const mindTheGap = allSkills.find((candidate) => candidate.id === ID.MIND_THE_GAP);
       if (mindTheGap) {
-        state.cooldowns.delete(mindTheGap.id);
+        // Reset both the ready time and recharge progress through their shared owner.
+        cooldownController.clear(mindTheGap.id);
         addEvent({
           type: 'marker',
           at,

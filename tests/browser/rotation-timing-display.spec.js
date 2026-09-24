@@ -1,5 +1,52 @@
 import { expect, test } from '@playwright/test';
 
+// Native increments must snap saved or typed off-grid timings before applying an edit.
+test('activation timing controls snap and validate 40 ms ticks', async ({ page }) => {
+  await page.goto('/mesmer.html');
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  for (const options of [
+    { interruptMs: 101, fullCastMs: 657 },
+    { behavior: 'concurrent', concurrentOffsetMs: 101 },
+    { behavior: 'concurrent', concurrentOffsetMs: -101, minimumConcurrentOffsetMs: null }
+  ]) {
+    await page.evaluate(async (options) => {
+      const { openActivationEditor } = await import('/js/games/gw2/app/rotation/editing/activation-editor.ts');
+      window.appliedTiming = null;
+      openActivationEditor({
+        anchor: document.querySelector('#rotation-palette'),
+        skillName: 'Timing check',
+        ...options,
+        onApply: (value) => {
+          window.appliedTiming = value;
+        }
+      });
+    }, options);
+    const editor = page.locator('.rotation-activation-editor:visible');
+    const input = editor.locator('.activation-editor-input').first();
+    const signed = options.minimumConcurrentOffsetMs === null;
+    await expect(input).toHaveAttribute('step', '40');
+    await input.press('ArrowUp');
+    await expect(input).toHaveValue(signed ? '-80' : '120');
+    await input.press('ArrowUp');
+    await expect(input).toHaveValue(signed ? '-40' : '160');
+    await input.fill(signed ? '-101' : '101');
+    await input.press('ArrowDown');
+    await expect(input).toHaveValue(signed ? '-120' : '80');
+    await input.evaluate((field) => field.stepDown());
+    await expect(input).toHaveValue(signed ? '-160' : '40');
+    await input.evaluate((field) => field.stepUp());
+    await expect(input).toHaveValue(signed ? '-120' : '80');
+    await input.fill('100');
+    await editor.getByRole('button', { name: 'Apply', exact: true }).click();
+    await expect(editor.locator('.activation-editor-error')).toContainText('divisible by 40 ms');
+    expect(await page.evaluate(() => window.appliedTiming)).toBeNull();
+    await input.press('ArrowUp');
+    await editor.getByRole('button', { name: 'Apply', exact: true }).click();
+    expect(await page.evaluate(() => window.appliedTiming)).toBe(120);
+    await expect(editor).toHaveCount(0);
+  }
+});
+
 // A suppressed opening application must still guide marker placement in both the tooltip and pencil editor.
 test('skill and Combat Start editors expose the scheduled target impact', async ({ page }) => {
   await page.goto('/necromancer.html');

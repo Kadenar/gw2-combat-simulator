@@ -121,7 +121,7 @@ test('Signet of the Ether re-locks 300ms after its cast completes', () => {
   const cast = result.steps[0];
   const cooldown = result.planningState.cooldowns['Signet of the Ether'];
 
-  assert.equal(cooldown.readyAt - cast.end, 30300);
+  assert.equal(cooldown.readyAt, Math.ceil((cast.end + 30300) / 40) * 40);
 });
 
 test('Signet of Illusions passively generates one resource every ten combat seconds', () => {

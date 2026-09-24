@@ -62,7 +62,7 @@ export function shareAttunementVariantRecharge(context: ElementalistCastContext,
   if (readyAt == null && !ammo) return;
   for (const candidate of context.catalog.skills) {
     if (candidate.type === skill.type && attunementVariantBaseName(candidate.name) === baseName) {
-      if (readyAt != null) context.state.cooldowns.set(candidate.id, readyAt);
+      if (readyAt != null) context.cooldownController.copy(skill.id, candidate.id);
       if (ammo) context.state.ammo.set(candidate.id, ammo);
     }
   }
@@ -176,10 +176,7 @@ function updateAerialAgilityFlip(
   if (Number(transition.skill.id) === ID.AERIAL_AGILITY_CHAIN) {
     const root = context.catalog.skillsById.get(ID.AERIAL_AGILITY);
     if (root) {
-      context.state.cooldowns.set(
-        root.id,
-        context.effectiveEnd + context.rechargeDurationFor(root, context.effectiveEnd)
-      );
+      context.cooldownController.startRecharge(root, context.effectiveEnd);
     }
   }
 

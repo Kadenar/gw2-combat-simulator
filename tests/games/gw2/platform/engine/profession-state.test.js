@@ -42,7 +42,7 @@ test('generic scheduler state contains no profession-specific fields', () => {
 
   assert.deepEqual(
     Object.keys(state).sort(),
-    ['activeWeaponSet', 'ammo', 'cooldowns', 'lockouts', 'profession', 'skillUses', 'time'].sort()
+    ['activeWeaponSet', 'ammo', 'cooldowns', 'lockouts', 'profession', 'rechargeProgress', 'skillUses', 'time'].sort()
   );
   assert.deepEqual(state.profession, { charge: 0, controlEvents: 0 });
   assert.equal(Object.hasOwn(state, 'clones'), false);

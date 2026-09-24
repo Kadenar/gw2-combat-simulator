@@ -23,10 +23,9 @@ interface CastReservation<TProfessionState extends object> {
   castContext: CastContext<TProfessionState>;
   fullEnd: number;
   effectiveEnd: number;
-  rechargeDuration: number;
-  ammoLockoutDuration: number;
   rechargeStart: number;
-  rechargeReadyAt: number | null;
+  rechargeWork: number;
+  ammoLockoutWork: number;
   action: SimulationEvent | null;
 }
 
@@ -56,7 +55,7 @@ export function activationScopedOperations<TProfessionState extends object>(
 
 /** Reserves each accepted cast once and commits its cooldowns before completion hooks run. */
 export function createCastLifecycle<TProfessionState extends object>(context: SchedulerContext<TProfessionState>) {
-  const { state, profession: activeProfession, cooldownController, inFlight } = context;
+  const { profession: activeProfession, cooldownController, inFlight } = context;
   const reservations = new Map<string, CastReservation<TProfessionState>>();
   let reservationOrder = 0;
 
@@ -95,23 +94,14 @@ export function createCastLifecycle<TProfessionState extends object>(context: Sc
           {
             ...castContext,
             fullEnd,
-            effectiveEnd,
-            rechargeDuration
+            effectiveEnd
           },
           canonicalRechargeStart
         )
       )
     );
-    const ammoChargeReadyAt =
-      castContext.ammo && castContext.ammo.charges <= 1
-        ? (castContext.ammo.nextRechargeAt ?? rechargeStart + rechargeDuration)
-        : 0;
-    const ammoLockoutReadyAt = castContext.ammo && ammoLockoutDuration > 0 ? rechargeStart + ammoLockoutDuration : 0;
-    const rechargeReadyAt = castContext.ammo
-      ? Math.max(ammoChargeReadyAt, ammoLockoutReadyAt) || null
-      : rechargeDuration > 0
-        ? rechargeStart + rechargeDuration
-        : null;
+    // Store each timer once in base units; deadlines are derived from the current boon timeline.
+    const rechargeRate = cooldownController.rate(skill, effectiveEnd);
     // Register the reservation before lifecycle hooks emit anything. Re-entrant
     // availability checks therefore see this cast as already in flight.
     const reservationId = `cast:${++reservationOrder}`;
@@ -122,10 +112,9 @@ export function createCastLifecycle<TProfessionState extends object>(context: Sc
       castContext,
       fullEnd,
       effectiveEnd,
-      rechargeDuration,
-      ammoLockoutDuration,
       rechargeStart,
-      rechargeReadyAt,
+      rechargeWork: rechargeDuration * rechargeRate,
+      ammoLockoutWork: ammoLockoutDuration * rechargeRate,
       action: null
     };
     reservations.set(reservationId, reservation);
@@ -133,6 +122,17 @@ export function createCastLifecycle<TProfessionState extends object>(context: Sc
     inFlight.get(skill.id)?.add(reservationId);
 
     return reservation;
+  }
+
+  /** Project the reserved cast's availability for both scheduler checks and displayed action deadlines. */
+  function rechargeReadyAt(reservation: CastReservation<TProfessionState>): number | null {
+    const { skill, ammo, rechargeStart, rechargeWork, ammoLockoutWork } = reservation;
+    const project = (work: number) => cooldownController.project(skill, { startedAt: rechargeStart, work });
+    if (!ammo) return rechargeWork > 0 ? project(rechargeWork) : null;
+    // Existing charges only wait for the cast lockout; depletion also waits for the next charge.
+    const chargeReadyAt = ammo.charges <= 1 ? (ammo.nextRechargeAt ?? project(rechargeWork)) : 0;
+    const lockoutReadyAt = ammoLockoutWork > 0 ? project(ammoLockoutWork) : 0;
+    return Math.max(chargeReadyAt, lockoutReadyAt) || null;
   }
 
   /** Keeps cast-hook emissions and tasks attached to the cast's activation lineage. */
@@ -145,10 +145,9 @@ export function createCastLifecycle<TProfessionState extends object>(context: Sc
       action,
       fullEnd,
       effectiveEnd,
-      rechargeDuration,
-      ammoLockoutDuration,
-      rechargeStart,
-      rechargeReadyAt
+      rechargeWork,
+      ammoLockoutWork,
+      rechargeStart
     } = reservation;
     if (!action) throw new Error(`Cast reservation ${reservationId} has no action.`);
 
@@ -157,10 +156,10 @@ export function createCastLifecycle<TProfessionState extends object>(context: Sc
       action,
       fullEnd,
       effectiveEnd,
-      rechargeDuration,
-      ammoLockoutDuration,
+      rechargeWork,
+      ammoLockoutWork,
       rechargeStart,
-      rechargeReadyAt,
+      rechargeReadyAt: rechargeReadyAt(reservation),
       reservationId,
       ...activationScopedOperations(context, reservationId, reservationId)
     };
@@ -174,23 +173,23 @@ export function createCastLifecycle<TProfessionState extends object>(context: Sc
     if (typeof reservationId !== 'string') return;
     const reservation = reservations.get(reservationId);
     if (!reservation) return;
-    const { skill, castContext, fullEnd, effectiveEnd, rechargeDuration, ammoLockoutDuration, rechargeStart } =
-      reservation;
+    const { skill, castContext, fullEnd, effectiveEnd, rechargeWork, ammoLockoutWork, rechargeStart } = reservation;
+    // Project before spending ammo so the deadline describes this reserved cast's charge consumption.
+    const completionContext = createCastLifecycleContext(reservation);
     const active = inFlight.get(skill.id);
     active?.delete(reservation.id);
     if (active?.size === 0) inFlight.delete(skill.id);
     if (reservation.ammo) {
-      cooldownController.spendAmmo(skill, rechargeStart, rechargeDuration);
-      if (ammoLockoutDuration > 0) {
-        cooldownController.setAmmoLockout(skill, rechargeStart + ammoLockoutDuration, rechargeStart);
+      cooldownController.spendAmmo(skill, rechargeStart, rechargeWork);
+      if (ammoLockoutWork > 0) {
+        cooldownController.setAmmoLockout(skill, ammoLockoutWork, rechargeStart);
       }
-    } else if (rechargeDuration) {
-      state.cooldowns.set(skill.id, rechargeStart + rechargeDuration);
+    } else if (rechargeWork) {
+      cooldownController.startRecharge(skill, rechargeStart, rechargeWork);
     }
 
     // Cooldown/ammo commitment precedes the profession completion hook so the
     // hook observes the state players would have immediately after the cast.
-    const completionContext = createCastLifecycleContext(reservation);
     activeProfession.onCastComplete(completionContext, skill);
 
     // Skill metadata owns trigger timing; the task executes profession state
@@ -230,6 +229,7 @@ export function createCastLifecycle<TProfessionState extends object>(context: Sc
 
   return {
     reserve,
+    rechargeReadyAt,
     castContext: createCastLifecycleContext,
     completeReservation,
     reservation: (id: string) => reservations.get(id)

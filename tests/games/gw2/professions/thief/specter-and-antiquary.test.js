@@ -199,9 +199,9 @@ test('Specter automatically leaves Shadow Shroud when shadow force depletes', ()
   assert.deepEqual(result.warnings, []);
   const depleted = result.events.filter((event) => event.sourceId === 'thief.shadow-shroud-depleted');
   assert.equal(depleted.length, 1);
-  assert.equal(depleted[0].at, 0.5);
+  assert.equal(depleted[0].at, 0.52);
   const snapshot = result.events.find((event) => event.reason === 'shadow-shroud-depleted');
-  assert.equal(snapshot.at, 0.5);
+  assert.equal(snapshot.at, 0.52);
   assert.equal(snapshot.state.shadowShroudActive, false);
   assert.equal(snapshot.state.shadowClock.value, 0);
 });
@@ -220,13 +220,13 @@ test('Shadow Shroud depletion executes at the scheduler boundary', () => {
   };
 
   scheduler.run(['Enter Shadow Shroud', { type: 'wait', durationMs: 1000 }]);
-  assert.deepEqual(observed, [0.5]);
+  assert.deepEqual(observed, [0.52]);
 });
 
 test('Shadow Shroud depletion follows force gains and cooldown resets', () => {
   for (const [command, expectedExit] of [
     ['Siphon', 13],
-    [{ type: 'cooldown-reset' }, 50.25]
+    [{ type: 'cooldown-reset' }, 50.28]
   ]) {
     const result = simulate(
       'Specter',
@@ -635,7 +635,10 @@ test('Pitfall placement recharge and trigger rearm expire independently', () => 
       .filter((event) => event.type === 'action' && event.skillId === ID.PREPARE_PITFALL)
       .at(-1);
     assert.deepEqual(result.warnings, []);
-    assert.ok(Math.abs(nextPlacement.at - Math.max(placement.rechargeReadyAt, trigger.rechargeReadyAt)) <= 0.001);
+    assert.equal(
+      Math.round(nextPlacement.at * 1000),
+      Math.ceil((Math.max(placement.rechargeReadyAt, trigger.rechargeReadyAt) * 1000) / 40) * 40
+    );
   }
 });
 

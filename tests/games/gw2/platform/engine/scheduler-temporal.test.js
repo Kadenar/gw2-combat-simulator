@@ -37,7 +37,7 @@ test('scheduler rejects task handlers that shadow core or another category', () 
 test('ammo restoration preserves lockouts and explicitly retains or resets full-pool recharge', () => {
   for (const policy of ['retain', 'reset']) {
     const skill = { id: 980012, ammo: 2 };
-    const state = { time: 0, ammo: new Map(), cooldowns: new Map() };
+    const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
     const controller = createCooldownController({ state, rechargeDuration: () => 10 });
     controller.spendAmmo(skill, 0);
     controller.spendAmmo(skill, 0);
@@ -143,6 +143,7 @@ test('ammo recharge reductions carry overflow until maximum charges', () => {
   const state = {
     time: 0,
     ammo: new Map(),
+    rechargeProgress: new Map(),
     cooldowns: new Map()
   };
   const controller = createCooldownController({
@@ -154,34 +155,28 @@ test('ammo recharge reductions carry overflow until maximum charges', () => {
   controller.spendAmmo(skill, 0);
   controller.spendAmmo(skill, 0);
 
-  const zeroToOne = controller.reduceAmmoRecharge(skill, 1, 11.3);
+  const zeroToOne = controller.reduceSkillRecharge(skill, 1, 11.3);
 
-  assert.equal(zeroToOne.reducedBy, 1);
-  assert.deepEqual(state.ammo.get(skill.id), {
-    charges: 1,
-    maximum: 3,
-    rechargeDuration: 12,
-    nextRechargeAt: 23
-  });
+  assert.equal(zeroToOne, 1);
+  assert.equal(state.ammo.get(skill.id).charges, 0);
+  controller.refreshAmmo(skill, 11.32);
+  assert.equal(state.ammo.get(skill.id).charges, 1);
+  assert.equal(Math.round(state.ammo.get(skill.id).nextRechargeAt * 1000), 23020);
   assert.equal(state.cooldowns.has(skill.id), false);
 
-  const oneToTwo = controller.reduceAmmoRecharge(skill, 5, 20);
+  const oneToTwo = controller.reduceSkillRecharge(skill, 5, 20);
 
-  assert.equal(oneToTwo.reducedBy, 5);
-  assert.deepEqual(state.ammo.get(skill.id), {
-    charges: 2,
-    maximum: 3,
-    rechargeDuration: 12,
-    nextRechargeAt: 30
-  });
+  assert.equal(oneToTwo, 5);
+  assert.equal(state.ammo.get(skill.id).charges, 2);
+  assert.equal(Math.round(state.ammo.get(skill.id).nextRechargeAt * 1000), 30020);
 
-  const twoToThree = controller.reduceAmmoRecharge(skill, 5, 29);
+  const twoToThree = controller.reduceSkillRecharge(skill, 5, 29);
 
-  assert.equal(twoToThree.reducedBy, 1);
+  assert.equal(Math.round(twoToThree * 1000), 1020);
   assert.deepEqual(state.ammo.get(skill.id), {
     charges: 3,
     maximum: 3,
-    rechargeDuration: 12,
+    rechargeWork: 12,
     nextRechargeAt: null
   });
 });
@@ -190,13 +185,13 @@ test('ammo recharge reductions carry overflow until maximum charges', () => {
 test('ammo recharge reduction preserves independent cast lockouts', () => {
   for (const lockout of [0, 5, 10, 15]) {
     const skill = { id: 980000, ammo: 2 };
-    const state = { time: 0, ammo: new Map(), cooldowns: new Map() };
+    const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map() };
     const controller = createCooldownController({ state, rechargeDuration: () => 10 });
     controller.spendAmmo(skill, 0);
     controller.spendAmmo(skill, 0);
     if (lockout) controller.setAmmoLockout(skill, lockout, 0);
 
-    controller.reduceAmmoRecharge(skill, 2, 1);
+    controller.reduceSkillRecharge(skill, 2, 1);
     assert.equal(state.ammo.get(skill.id).charges, 0);
     assert.equal(state.cooldowns.get(skill.id), Math.max(lockout, 8));
 
@@ -230,7 +225,8 @@ test('a recovered ammo charge cannot cast before its lockout expires', () => {
       taskHandlers: {
         'recover-ammo': (context, task) => {
           const skill = catalog.skillsById.get(980000);
-          recoveredCharges = context.cooldownController.reduceAmmoRecharge(skill, 10, task.at).ammo.charges;
+          context.cooldownController.reduceSkillRecharge(skill, 10, task.at);
+          recoveredCharges = context.state.ammo.get(skill.id).charges;
         }
       }
     }
@@ -251,6 +247,7 @@ test('skill recharge reduction routes ordinary and ammo skills through one cappe
   const state = {
     time: 0,
     ammo: new Map(),
+    rechargeProgress: new Map(),
     cooldowns: new Map([[ordinary.id, 10]])
   };
   const controller = createCooldownController({
@@ -271,11 +268,11 @@ test('skill recharge reduction routes ordinary and ammo skills through one cappe
 test('skill recharge reduction accepts game-specific base-to-wall-time conversion', () => {
   const ordinary = { id: 980012, cooldown: 10 };
   const ammo = { id: 980013, ammo: 2, ammoRecharge: 10 };
-  const state = { time: 0, ammo: new Map(), cooldowns: new Map([[ordinary.id, 8]]) };
+  const state = { time: 0, ammo: new Map(), rechargeProgress: new Map(), cooldowns: new Map([[ordinary.id, 8]]) };
   const controller = createCooldownController({
     state,
     rechargeDuration: () => 8,
-    rechargeReduction: (_skill, reduction) => reduction / 1.25
+    rechargeIntervals: (_skill, start, end) => [{ start, end, rate: 1.25 }]
   });
 
   controller.spendAmmo(ammo, 0);
@@ -296,6 +293,7 @@ test('matching cooldown reductions deduplicate tracked skills, filter safely, an
   const state = {
     time: 0,
     ammo: new Map(),
+    rechargeProgress: new Map(),
     cooldowns: new Map([
       [ordinary.id, 3],
       [excluded.id, 10],
@@ -305,7 +303,7 @@ test('matching cooldown reductions deduplicate tracked skills, filter safely, an
   const cooldownController = createCooldownController({
     state,
     rechargeDuration: () => 10,
-    rechargeReduction: (_skill, reduction) => reduction / 2
+    rechargeIntervals: (_skill, start, end) => [{ start, end, rate: 2 }]
   });
   cooldownController.spendAmmo(depleted, 0);
   cooldownController.spendAmmo(depleted, 0);

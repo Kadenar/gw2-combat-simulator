@@ -7,21 +7,21 @@
     {
       "name": "Bladeturn Requiem",
       "skillId": 62597,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Mind the Gap"
     },
     {
       "name": "__combat_start",
-      "offset": 319
+      "offset": 320
     },
     {
       "name": "Phantasmal Lancer"
     },
     {
       "name": "Power Spike",
-      "offset": 35
+      "offset": 40
     },
     {
       "name": "Mental Collapse",
@@ -29,7 +29,7 @@
     },
     {
       "name": "Thousand Cuts",
-      "offset": 41
+      "offset": 40
     },
     {
       "name": "Mind the Gap"
@@ -121,7 +121,7 @@
     },
     {
       "name": "Bladesong Distortion",
-      "offset": 84
+      "offset": 80
     },
     {
       "name": "Power Spike",
@@ -168,7 +168,7 @@
     },
     {
       "name": "Bladeturn Requiem",
-      "offset": 251
+      "offset": 240
     },
     {
       "name": "Phantasmal Disenchanter"
@@ -178,7 +178,7 @@
     },
     {
       "name": "Power Spike",
-      "offset": 341
+      "offset": 360
     },
     {
       "name": "Imaginary Inversion",
@@ -226,7 +226,7 @@
     },
     {
       "name": "Power Spike",
-      "offset": 363
+      "offset": 360
     },
     {
       "name": "Mirror Blade"
@@ -274,7 +274,7 @@
     },
     {
       "name": "Power Spike",
-      "offset": 201
+      "offset": 200
     },
     {
       "name": "Psycut"
@@ -317,11 +317,11 @@
     },
     {
       "name": "Bladeturn Requiem",
-      "offset": 83
+      "offset": 80
     },
     {
       "name": "Thousand Cuts",
-      "offset": 319
+      "offset": 320
     },
     {
       "name": "Phantasmal Disenchanter"
@@ -331,7 +331,7 @@
     },
     {
       "name": "Power Spike",
-      "offset": 321
+      "offset": 320
     },
     {
       "name": "Imaginary Inversion",
@@ -379,7 +379,7 @@
     },
     {
       "name": "Power Spike",
-      "offset": 117
+      "offset": 120
     },
     {
       "name": "Mirror Blade"
@@ -427,11 +427,11 @@
     },
     {
       "name": "Bladesong Distortion",
-      "offset": 42
+      "offset": 40
     },
     {
       "name": "Power Spike",
-      "offset": 236
+      "offset": 240
     },
     {
       "name": "Psycut"
@@ -474,7 +474,7 @@
     },
     {
       "name": "Bladeturn Requiem",
-      "offset": 125
+      "offset": 120
     },
     {
       "name": "Phantasmal Disenchanter"
@@ -532,7 +532,7 @@
     },
     {
       "name": "Power Spike",
-      "offset": 118
+      "offset": 120
     },
     {
       "name": "Mirror Blade"
@@ -580,7 +580,7 @@
     },
     {
       "name": "Power Spike",
-      "offset": 373
+      "offset": 360
     },
     {
       "name": "Mind the Gap"

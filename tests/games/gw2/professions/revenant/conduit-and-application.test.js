@@ -13,6 +13,9 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 
 const revenantAttributeRules = Object.freeze({
   modifyAttributes(context, value) {
@@ -199,8 +202,8 @@ describe('Power Conduit skill profiles', () => {
       [600, 'Deathstrike — Follow-up', 2.67]
     ]);
     assert.deepEqual(deathstrike.planningState.cooldowns.Deathstrike, {
-      readyAt: 12420,
-      remaining: 11700
+      readyAt: 12440,
+      remaining: 11720
     });
     assert.deepEqual(
       damageTimeline(simulate('Conduit', ['Shackling Wave'], config, observationTail(1000)), 'Shackling Wave'),
@@ -574,7 +577,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
   assert.equal(expiringDuringCast.warnings.length, 0);
   assert.deepEqual(
     expiringDuringCast.steps.filter((step) => step.skill === 'Banish Enchantment').map((step) => step.start),
-    [0, 6740, 12180]
+    [0, 6740, 12200]
   );
   assert.deepEqual(
     expiringDuringCast.events
@@ -746,6 +749,40 @@ test('Release Potential strength is independent of the equipped weapon set', () 
       assert.ok(strikes.every((event) => event.resolvedWeaponStrength === strength));
     }
   }
+});
+
+// The profession's shared-identity gate must follow the same accumulated work as the ammo controller.
+test('Beguiling Haze main recharge gains intermittent Alacrity after its follow-ups', () => {
+  const config = {
+    ...baseConfig,
+    specialization: 'Conduit',
+    selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.ENTITY,
+    initialEnergy: 100
+  };
+  const scheduler = createScheduler({
+    profession: revenantProfession,
+    config,
+    schedulerPolicy: createGw2SchedulerPolicy(config)
+  });
+  const skill = scheduler.context.catalog.skillsByName.get('Beguiling Haze');
+  for (let i = 0; i < 3; i++) assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);
+  scheduler.advanceTo(2);
+  const originalReadyAt = scheduler.state.ammo.get(skill.id).nextRechargeAt;
+  scheduler.context.emit({
+    type: 'buff',
+    kind: 'alacrity',
+    at: 2,
+    duration: 4,
+    stacks: 1,
+    source: 'fixture',
+    sourceId: 'fixture',
+    actorType: 'player'
+  });
+  assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);
+  const action = scheduler.events.findLast((event) => event.type === 'action');
+  assert.equal(action.at, gw2CooldownReadyAt(originalReadyAt - 1));
+  assert.deepEqual(scheduler.warnings, []);
 });
 
 test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
@@ -1259,7 +1296,7 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
     selectedTraitIds: [TRAIT.ENHANCED_EMBODIMENT, TRAIT.FOUND_PURPOSE, TRAIT.LINGERING_DETERMINATION, TRAIT.MISTFIRE]
   });
 
-  assert.equal(cosmic.planningState.profession.legendSwapReadyAt, 6);
+  assert.equal(cosmic.planningState.cooldowns['Swap Legends'].readyAt, 6000);
   assert.equal(cosmic.planningState.profession.cosmicWisdomUntil, 8);
   assert.ok(
     cosmic.events.some(

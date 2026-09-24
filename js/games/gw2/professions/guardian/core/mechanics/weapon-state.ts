@@ -21,7 +21,7 @@ import type { GuardianCastContext, GuardianSkill } from '#gw2/professions/guardi
 export function updateWeaponCastState(context: GuardianCastContext, skill: GuardianSkill): void {
   if (context.action.cancelled || (skill.interruptMode === 'per-packet' && context.action.interrupted)) return;
   // Banish fully refreshes Mighty Blow only after Banish completes successfully.
-  if (skill.id === GUARDIAN_SKILL_IDS.BANISH) context.state.cooldowns.delete(GUARDIAN_SKILL_IDS.MIGHTY_BLOW);
+  if (skill.id === GUARDIAN_SKILL_IDS.BANISH) context.cooldownController.clear(GUARDIAN_SKILL_IDS.MIGHTY_BLOW);
 
   // The throw locks out Flame, not another throw. An intervening skill clears the recovery restriction.
   if (skill.id === GUARDIAN_SKILL_IDS.ZEALOTS_FIRE) {

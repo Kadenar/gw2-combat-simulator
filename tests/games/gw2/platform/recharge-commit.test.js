@@ -70,7 +70,7 @@ test('queries and ammo initialization do not commit; overlapping casts retain th
     assert.deepEqual(state.profession.commits, [980001, 980002]);
     assert.equal(state.cooldowns.get(980002), 4.1);
     if (ammo) {
-      assert.equal(state.ammo.get(skill.id).rechargeDuration, 2);
+      assert.equal(state.ammo.get(skill.id).rechargeWork, 2);
       assert.equal(state.ammo.get(skill.id).nextRechargeAt, 3);
       assert.equal(state.ammo.get(skill.id).lockoutReadyAt, 4);
       assert.equal(state.cooldowns.get(skill.id), 4);

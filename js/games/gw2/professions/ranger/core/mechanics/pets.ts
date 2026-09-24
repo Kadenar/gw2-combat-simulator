@@ -6,11 +6,8 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import {
-  GW2_ALACRITY_RECHARGE_RATE,
-  gw2BuffActiveForAudience,
-  gw2SchedulerBoonDuration
-} from '#gw2/platform/execution/gw2-policy/policy.js';
+import { gw2BuffActiveForAudience, gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
+import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/engine/skills/recharge.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -417,6 +414,9 @@ export function beginRangerPetCommand(context: RangerCastContext, skill: RangerS
   if (!state.petActive) return;
   const profile = activeProfile(context);
   if (!profile) return;
+  // Keep the pet's command reservation in step with the shared, boon-adjusted recharge.
+  const recharge = context.state.rechargeProgress.get(skill.id);
+  if (recharge) state.petCommandCooldowns[String(skill.id)] = context.cooldownController.project(skill, recharge);
   const scheduledOpeningEnd =
     state.petAutoOpeningBasic && state.petAutoNextAt > context.start + EPSILON
       ? state.petAutoNextAt + (profile.opening || profile.basic).recovery + Number(profile.openingRecoveryDelay || 0)
@@ -442,6 +442,11 @@ export function beginRangerPetCommand(context: RangerCastContext, skill: RangerS
     endsAt: context.effectiveEnd + delay,
     fullEndsAt: context.fullEnd + delay,
     rechargeReadyAt: provisionalCooldownReadyAt,
+    // Pet commands begin their own recharge when the pet can actually execute them.
+    rechargeProgress: {
+      startedAt: actualStart,
+      work: (provisionalCooldownReadyAt - actualStart) * context.cooldownController.rate(skill, actualStart)
+    },
     source: 'ranger-pet',
     actorType: 'summon',
     icon: skill.icon
@@ -499,9 +504,8 @@ export function handleRangerPetCommandStartTask(
     const key = String(skill.id);
     const provisional = Number(payload.provisionalCooldownReadyAt || 0);
     if (Number(state.petCommandCooldowns[key] || 0) <= provisional) {
-      const readyAt = task.at + context.rechargeDurationFor(skill, task.at, { skill });
+      const readyAt = context.cooldownController.startRecharge(skill, task.at);
       state.petCommandCooldowns[key] = readyAt;
-      context.state.cooldowns.set(skill.id, readyAt);
     }
   }
 

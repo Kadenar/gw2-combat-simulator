@@ -64,7 +64,7 @@ export function scheduleHealingTurretCast(context: EngineerCastContext, _skill: 
   state.healingTurretActivationId = activationId;
   consumeSkillFlip(state.availableFlips, ID.CLEANSING_BURST);
   // Detonation is unavailable briefly after placement so the automatic burst resolves first.
-  context.state.cooldowns.set(ID.DETONATE_HEALING_TURRET, at + INITIAL_DETONATE_LOCKOUT_SECONDS);
+  context.cooldownController.setReadyAt(ID.DETONATE_HEALING_TURRET, at + INITIAL_DETONATE_LOCKOUT_SECONDS);
   emitCleansingBurstPulse(context, pulseAt);
   scheduleCleansingBurstSwap(context, pulseAt);
 }
@@ -78,7 +78,7 @@ export function scheduleHealingTurretDetonate(context: EngineerCastContext, _ski
   consumeSkillFlip(state.availableFlips, ID.CLEANSING_BURST);
   const healingTurret = context.catalog.skillsById.get(ID.HEALING_TURRET);
   if (healingTurret) {
-    context.state.cooldowns.set(ID.HEALING_TURRET, at + context.rechargeDurationFor(healingTurret, at));
+    context.cooldownController.startRecharge(healingTurret, at);
   }
 
   emitEngineerStateSnapshot(context, at, 'healing-turret-detonated');

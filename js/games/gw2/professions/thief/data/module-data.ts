@@ -1,4 +1,4 @@
-import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
+import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
@@ -13,10 +13,11 @@ import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain
 import type { CatalogEntity, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
+// Link dual-wield openers to their follow-ups for flip metadata and opener detection.
 const DUAL_FOLLOWUP_BY_PARENT: Readonly<Record<number, SkillId>> = Object.freeze({
-  13010: 59526,
-  13016: 13007,
-  63267: 63128
+  [ID.SHADOW_STRIKE]: ID.REPEATER_ID_59526,
+  [ID.FLANKING_STRIKE]: ID.LARCENOUS_STRIKE,
+  [ID.MEASURED_SHOT]: ID.ENDLESS_NIGHT
 });
 
 const WEAPON_FLIP_BY_PARENT: Readonly<Record<number, SkillId>> = Object.freeze({
@@ -89,43 +90,6 @@ function spearWeaponBarMetadata(skill: ThiefSkill): Partial<ThiefSkill> {
   };
 }
 
-const SIMULATOR_EXCLUDED_SKILL_NAMES = new Set([
-  'Prepare Seal Area',
-  'Prepare Shadow Portal',
-  'Seal Area',
-  'Shadow Portal',
-  'Shadow Refuge',
-  'Shadow Return',
-  'Shadowstep',
-  // Keep this unsupported utility out of runtime catalogs and skill selectors.
-  'Signet of Shadows',
-  'Smoke Screen'
-]);
-
-// Context-specific variants remain distinct records but are not valid manual simulator selections.
-const SIMULATOR_EXCLUDED_SKILL_IDS = new Set<SkillId>([
-  45094,
-  76550,
-  76601,
-  76800,
-  76900,
-  77288,
-  // Retired base stolen skills remain in generated API metadata but must not re-enter the simulator.
-  ID.THROW_GUNK,
-  ID.BRANCH_LEAP,
-  ID.THROW_CHAIN,
-  ID.CONSUME_PLASMA,
-  ID.EAT_EGG,
-  ID.ICE_SHARD_STAB,
-  ID.MACE_HEAD_CRACK,
-  ID.HEALING_SEED,
-  ID.SKULL_FEAR,
-  ID.BLINDING_TUFT,
-  ID.WHIRLING_AXE,
-  ID.WHIRLING_STRIKE,
-  ID.ESSENCE_SAP
-]);
-
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.STEAL_ID_13109,
   ID.LESSER_CALTROPS,
@@ -139,9 +103,7 @@ const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.METAL_LEGION_GUITAR_ID_76591
 ]);
 
-const generatedSource: readonly ThiefSkill[] = SKILLS.filter(
-  (skill) => !SIMULATOR_EXCLUDED_SKILL_NAMES.has(skill.name) && !SIMULATOR_EXCLUDED_SKILL_IDS.has(skill.id)
-).map((skill) => ({
+const generatedSource: readonly ThiefSkill[] = SKILLS.map((skill) => ({
   ...skill,
   flipSkillId:
     // Supply the missing forward link so the palette can replace the equipped utility.
@@ -150,11 +112,7 @@ const generatedSource: readonly ThiefSkill[] = SKILLS.filter(
     (['Weapon', 'Profession'].includes(skill.type || '') ? null : skill.flipSkillId)
 }));
 
-const supplementalSource: readonly ThiefSkill[] = THIEF_SUPPLEMENTAL_SKILLS.filter(
-  (skill) => !SIMULATOR_EXCLUDED_SKILL_NAMES.has(skill.name)
-);
-
-const allDeclared = [...generatedSource, ...supplementalSource];
+const allDeclared = [...generatedSource, ...THIEF_SUPPLEMENTAL_SKILLS];
 const declaredIds = new Set(allDeclared.map((skill) => skill.id));
 const flipParentById = createFlipParentMap(allDeclared);
 const normalize = (skill: ThiefSkill): ThiefSkill => ({
@@ -186,7 +144,7 @@ const generated: readonly ThiefSkill[] = generatedSource.map((skill) => ({
     : {})
 }));
 
-const supplemental: readonly ThiefSkill[] = supplementalSource.map((skill) => ({
+const supplemental: readonly ThiefSkill[] = THIEF_SUPPLEMENTAL_SKILLS.map((skill) => ({
   ...normalize(skill),
   ...(PATCH_AUTHORING_EXCLUDED_SKILL_IDS.has(skill.id)
     ? {
@@ -210,14 +168,14 @@ const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> =
   ],
   Specter: [ID.ETERNAL_NIGHT, ID.GRASPING_SHADOWS, ID.DAWNS_REPOSE, ID.MIND_SHOCK, ID.HAUNT_SHOT],
   Antiquary: [
-    ID.FORGED_SURFER_DASH_ID_76633,
+    ID.FORGED_SURFER_DASH,
     ID.HOLO_DANCER_DECOY,
-    ID.EXALTED_HAMMER_ID_76702,
+    ID.EXALTED_HAMMER,
     ID.CHAK_SHIELD,
     ID.ZEPHYRITE_SUN_CRYSTAL,
     ID.UNSTABLE_SKRITT_BOMB,
     ID.RESHUFFLE,
-    ID.SUMMON_KRYPTIS_TURRET_ID_77192,
+    ID.SUMMON_KRYPTIS_TURRET,
     ID.MISTBURN_MORTAR,
     ID.SKRITT_SWIPE,
     ID.ZEPHYRITE_SUN_CRYSTAL_ID_78309

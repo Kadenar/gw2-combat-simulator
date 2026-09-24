@@ -12,6 +12,25 @@ import {
   spendEndurance
 } from '#gw2/platform/combat/resources/endurance.js';
 
+test('endurance affordability snaps to ticks without rounding fractional recovery or losing short boon windows', () => {
+  const state = { endurance: 0, enduranceUpdatedAt: 0 };
+  assert.ok(Math.abs(advanceEndurance(state, 0.1, 3, 100).endurance - 0.3) < 1e-12);
+  assert.equal(enduranceReadyAt(0, 1, 0, 3), 0.36);
+  assert.equal(enduranceReadyAt(1, 1, 0.1, 3), 0.1);
+  assert.equal(
+    enduranceIntervalsReadyAt(
+      state,
+      1,
+      [
+        { start: 0, end: 0.34, rate: 3 },
+        { start: 0.34, end: Infinity, rate: 0 }
+      ],
+      100
+    ),
+    0.36
+  );
+});
+
 test('Vigor endurance windows share self-only recovery and readiness with profession rate policy', () => {
   // A cancelled or companion-only grant cannot fund a player dodge; permanent Vigor bypasses history.
   const vigor = {

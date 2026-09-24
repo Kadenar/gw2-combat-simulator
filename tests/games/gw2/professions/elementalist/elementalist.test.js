@@ -37,6 +37,23 @@ import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specia
 
 const applyElementalistPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(elementalistCatalog, patch), patch);
 
+// Flat Flow State reduction follows Elemental Enchantment's multiplier and precedes Alacrity's recharge rate.
+test('attunement recharge applies trait reductions in order and stays free before combat', () => {
+  const context = {
+    catalog: elementalistCatalog,
+    config: { selectedTraitIds: [TRAIT.ELEMENTAL_ENCHANTMENT, TRAIT.FLOW_STATE] },
+    schedulerPolicy: { isCombatActive: () => true },
+    cooldownController: { rate: () => 1.25 }
+  };
+  const skill = elementalistCatalog.skillsById.get(ID.FIRE_ATTUNEMENT);
+  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4, 0), 1.92);
+  // Weave Self's two-second base still receives both selected traits: (2 * 0.85 - 1) / 1.25.
+  assert.ok(Math.abs(elementalistAttunementRechargeDuration(context, skill, 2, 0) - 0.56) < 1e-12);
+  context.schedulerPolicy.isCombatActive = () => false;
+  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4, 0), 0);
+  assert.equal(elementalistAttunementRechargeDuration(context, skill, 2, 0), 0);
+});
+
 // Validate evaluated catalogs so shared/generated packets and direct statuses cannot reintroduce off-grid offsets.
 test('Elementalist authored effect offsets use ordered 40 ms action ticks', () => {
   for (const kind of ['skills', 'balanceProfiles']) {
@@ -189,9 +206,13 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
       {
         catalog: preview,
         config: traitConfig,
+        state: { time: 0 },
+        cooldownController: { rate: () => 1 },
         traits: selectedGw2TraitValues(traitConfig, preview)
       },
-      10
+      preview.skillsById.get(ID.FIRE_ATTUNEMENT),
+      10,
+      0
     ),
     8
   );

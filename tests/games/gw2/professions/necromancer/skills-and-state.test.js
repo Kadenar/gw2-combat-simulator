@@ -1112,7 +1112,7 @@ test('Scourge barrier, shroud, and greater-shade traits trigger precisely', () =
     true
   );
   assert.equal(greaterShade.planningState.profession.shades.length, 0);
-  assert.equal(greaterShade.steps[1].start, greaterShade.steps[0].end + 18750);
+  assert.equal(greaterShade.steps[1].start, Math.ceil((greaterShade.steps[0].end + 18750) / 40) * 40);
   assert.equal(sandstormTorment?.duration, 5);
   assert.equal(sandstormTorment?.at, 3.5);
   assert.equal(

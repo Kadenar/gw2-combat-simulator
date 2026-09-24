@@ -1,3 +1,4 @@
+/** Connects Chronomancer cast rules, trait modifiers, and runtime hooks to the specialization module. */
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -22,7 +23,6 @@ import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
   MesmerPrecastContext,
-  MesmerRechargeContext,
   MesmerSchedulerContext,
   MesmerSchedulerTask
 } from '#gw2/professions/mesmer/types.js';
@@ -42,27 +42,12 @@ function chronomancerAvailability(context: MesmerPrecastContext, skill: MesmerSk
   };
 }
 
-/** Upgrades Alacrity's recharge rate for Chronomancer while preserving Core exclusions. */
-function modifyChronomancerRecharge(context: MesmerRechargeContext, sharedDuration: number): number {
-  if (
-    !context.config.boons?.alacrity ||
-    context.ammoCastLockout ||
-    context.skill.id === ID.SWAP_WEAPONS ||
-    sharedDuration === 0
-  ) {
-    return sharedDuration;
-  }
-
-  return (sharedDuration * 1.25) / 1.5;
-}
-
 export const chronomancerCastRules = Object.freeze({
   availability: {
     id: 'mesmer.chronomancer.availability',
     order: 20,
     handler: chronomancerAvailability
-  },
-  modifyRechargeDuration: modifyChronomancerRecharge
+  }
 });
 
 export const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([

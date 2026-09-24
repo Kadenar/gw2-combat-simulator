@@ -1,6 +1,7 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import { advanceDiscreteResource } from '#gw2/platform/combat/resources/clock.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import {
   requireBalanceProfileFromContext,
@@ -100,7 +101,7 @@ export function tomePageAvailability(context: GuardianPrecastContext, skill: Gua
   // leaves retryAt null so the denial stays final rather than looping forever.
   const reason = `${skill.name} is unavailable — requires ${pageCost} tome page${pageCost === 1 ? '' : 's'}.`;
   return Number.isFinite(state.nextTomePageAt)
-    ? retryCast(state.nextTomePageAt, 'guardian.tome-pages', reason)
+    ? retryCast(gw2CooldownReadyAt(state.nextTomePageAt), 'guardian.tome-pages', reason)
     : denyCast('guardian.tome-pages', reason);
 }
 
@@ -352,8 +353,6 @@ export const guardianTomeEventHandlers = Object.freeze({
  */
 export function advanceTomeState(context: GuardianSchedulerContext, target: number): void {
   const state = firebrandState.from(context);
-  // Loop rather than a single add so multiple pages that matured in the same
-  // advance window are all credited without needing separate advance calls.
   // A zero authored cadence disables regeneration without disabling spends or refunds.
   if (state.tomePageInterval > 0) {
     const pages = advanceDiscreteResource(
@@ -361,7 +360,7 @@ export function advanceTomeState(context: GuardianSchedulerContext, target: numb
       state.maximumTomePages,
       state.nextTomePageAt,
       state.tomePageInterval,
-      target + EPSILON
+      target
     );
     state.tomePages = pages.value;
     state.nextTomePageAt = pages.nextAt;

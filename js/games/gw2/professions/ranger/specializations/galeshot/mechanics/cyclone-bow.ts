@@ -1,5 +1,5 @@
 import { scheduledReaction } from '#gw2/platform/profession-definition/mechanics.js';
-import { advanceResourceRecharge } from '#gw2/platform/combat/resources/clock.js';
+import { advanceDiscreteResource } from '#gw2/platform/combat/resources/clock.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -9,8 +9,7 @@ import {
 import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { selfBoonIntervals } from '#gw2/platform/combat/boons.js';
-import { GW2_ALACRITY_RECHARGE_RATE, gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -41,41 +40,22 @@ const MISSILE_SKILL_IDS = new Set<number>([
 
 export function advanceGaleshotArrows(context: RangerSchedulerContext, target: number): void {
   const state = galeshotState.from(context);
-  if (target <= state.arrowsUpdatedAt) return;
   state.maximumArrows = balanceProfileNumber(
     requireBalanceProfileFromContext(context, PROFILE.resources),
     'maximumStacks'
   );
   state.arrows = Math.min(state.maximumArrows, state.arrows);
-  // Integrate each Alacrity segment before converting baseline recharge progress into whole arrows.
-  const intervals = Array.from(
-    selfBoonIntervals(
-      context.events,
-      'alacrity',
-      state.arrowsUpdatedAt,
-      target,
-      Boolean(context.config.boons?.alacrity)
-    ),
-    (interval) => ({
-      start: interval.start,
-      end: interval.end,
-      rate:
-        context.config.boons?.alacrity || interval.active
-          ? Math.max(Number.EPSILON, Number(context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE))
-          : 1
-    })
-  );
-  const recharge = advanceResourceRecharge(
+  // Arrows share the fixed, tick-aligned regeneration clock used by tome pages; Alacrity has no effect.
+  const interval = balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'pulseInterval');
+  const recharge = advanceDiscreteResource(
     state.arrows,
     state.maximumArrows,
-    state.arrowRechargeProgress,
-    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'pulseInterval'),
-    intervals,
-    EPSILON
+    state.nextArrowAt ?? interval,
+    interval,
+    target
   );
   state.arrows = recharge.value;
-  state.arrowRechargeProgress = recharge.progress;
-  state.arrowsUpdatedAt = target;
+  state.nextArrowAt = recharge.nextAt;
 }
 
 /** Restores arrows against the current profile cap without discarding fractional gains. */

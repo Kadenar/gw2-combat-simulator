@@ -16,6 +16,7 @@ import { handleKingOfFiresDetonationTask } from '#gw2/professions/warrior/specia
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 import { useArtillerySlash } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger.js';
 import { observeSpellbreakerEvent } from '#gw2/professions/warrior/specializations/spellbreaker/traits/index.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 
@@ -290,12 +291,14 @@ test('Artillery Slash keeps ammo variant identity after first-strike removal and
       ammo: { charges, maximum: 2 },
       effectiveEnd: 1,
       rechargeStart: 0,
-      rechargeDuration: 1,
-      ammoLockoutDuration: 1,
+      rechargeWork: 1,
+      ammoLockoutWork: 1,
       reservationId: 'artillery',
       action: {},
       replaceEvent: (event, updates) => ({ ...event, ...updates })
     });
+    Object.assign(context.state, { ammo: new Map(), cooldowns: new Map(), rechargeProgress: new Map() });
+    context.cooldownController = createCooldownController({ state: context.state, rechargeDuration: () => 1 });
     useArtillerySlash(context, context.catalog.skillsById.get(ID.ARTILLERY_SLASH));
     const strike = context.events.find((e) => e.type === 'damage');
     assert.equal(strike?.coefficient, charges === 1 ? undefined : 4);

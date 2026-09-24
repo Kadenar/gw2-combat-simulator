@@ -56,7 +56,7 @@ test('Engineer ignores cancelled Vigor grants and extensions in recovery and rea
 
 test('Engineer recovery and dodge predictions cross self-Vigor applications and expiry', () => {
   const context = resourceContext([vigor(2, 2), vigor(0, 20, false)]);
-  assert.equal(engineerEnduranceReadyAt(context, 20), 2 + 10 / 7.5);
+  assert.equal(engineerEnduranceReadyAt(context, 20), 3.36);
   assert.equal(engineerEnduranceReadyAt(context, 50), 9);
   advanceEngineerResources(context, 6);
   assert.equal(context.state.profession.core.endurance, 35);
@@ -90,7 +90,7 @@ test('Engineer preserves Adrenal Implant, permanent Vigor and the endurance cap'
     selectedTraitIds: [TRAIT.ADRENAL_IMPLANT],
     boons: { vigor: true }
   });
-  assert.equal(engineerEnduranceReadyAt(permanent, 50), 50 / 8.75);
+  assert.equal(engineerEnduranceReadyAt(permanent, 50), 5.72);
   advanceEngineerResources(permanent, 6);
   assert.equal(permanent.state.profession.core.endurance, 52.5);
   advanceEngineerResources(permanent, 30);

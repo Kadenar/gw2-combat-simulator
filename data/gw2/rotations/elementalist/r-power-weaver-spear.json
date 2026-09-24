@@ -5,39 +5,39 @@
     "Glyph of Storms (Air)",
     {
       "name": "Fire Attunement",
-      "offset": 10
+      "offset": 0
     },
     {
       "name": "__combat_start",
-      "offset": 20
+      "offset": 40
     },
     "Galvanize",
     "Derecho",
     {
       "name": "Arcane Blast",
-      "offset": 124
+      "offset": 120
     },
     {
       "name": "Fire Attunement",
-      "offset": 164
+      "offset": 160
     },
     "Etching: Volcano",
     "Blazing Barrage",
     "Meteor",
     {
       "name": "Arcane Blast",
-      "offset": 238
+      "offset": 240
     },
     "Seethe",
     "Earth Attunement",
     "Volcano",
     {
       "name": "Fiery Impact",
-      "offset": 79
+      "offset": 80
     },
     {
       "name": "Earth Attunement",
-      "offset": 282
+      "offset": 280
     },
     "Etching: Haboob",
     "Earthen Spear",
@@ -48,11 +48,11 @@
     "Fissure",
     {
       "name": "Fire Attunement",
-      "offset": 523
+      "offset": 520
     },
     {
       "name": "Flame Spear",
-      "interruptMs": 38
+      "interruptMs": 40
     },
     "Haboob",
     {
@@ -63,7 +63,7 @@
     "Flame Spear",
     {
       "name": "Air Attunement",
-      "offset": 38
+      "offset": 40
     },
     "Fulgor",
     "Lightning Javelin",
@@ -74,18 +74,18 @@
     "Stone Strike",
     {
       "name": "Shale Storm",
-      "offset": 123
+      "offset": 120
     },
     {
       "name": "Earth Attunement",
-      "offset": 323
+      "offset": 320
     },
     "Stone Strike",
     "Stone Strike",
     "Earthen Spear",
     {
       "name": "Fire Attunement",
-      "offset": 202
+      "offset": 200
     },
     "Blazing Barrage",
     "Flame Spear",
@@ -93,7 +93,7 @@
     "Lightning Javelin",
     {
       "name": "Galvanize",
-      "offset": 518
+      "offset": 520
     },
     "Air Attunement",
     "Fulgor",
@@ -101,43 +101,43 @@
     "Lightning Javelin",
     {
       "name": "Lightning Javelin",
-      "interruptMs": 121
+      "interruptMs": 120
     },
     "Etching: Derecho",
     "Lightning Javelin",
     {
       "name": "Fire Attunement",
-      "offset": 158
+      "offset": 160
     },
     "Blazing Barrage",
     {
       "name": "Primordial Stance (Fire)",
-      "offset": 42
+      "offset": 40
     },
     "Derecho",
     {
       "name": "Arcane Blast",
-      "offset": 1
+      "offset": 0
     },
     "Flame Spear",
     {
       "name": "Fire Attunement",
-      "offset": 79
+      "offset": 80
     },
     {
       "name": "Arcane Blast",
-      "offset": 276
+      "offset": 280
     },
     {
       "name": "Flame Spear",
-      "interruptMs": 79
+      "interruptMs": 80
     },
     "Etching: Volcano",
     "Meteor",
     "Seethe",
     {
       "name": "Water Attunement",
-      "offset": 243
+      "offset": 240
     },
     "Volcano",
     {
@@ -148,13 +148,13 @@
     "Restorative Spear",
     {
       "name": "Air Attunement",
-      "offset": 163
+      "offset": 160
     },
     "Etching: Jökulhlaup",
     "Undertow",
     {
       "name": "Elutriate",
-      "offset": 123
+      "offset": 120
     },
     "Fulgor",
     "Lightning Javelin",
@@ -162,11 +162,11 @@
     "Jökulhlaup",
     {
       "name": "Fire Attunement",
-      "offset": 202
+      "offset": 200
     },
     {
       "name": "Galvanize",
-      "offset": 359
+      "offset": 360
     },
     "Blazing Barrage",
     "Flame Spear",
@@ -181,7 +181,7 @@
     "Earthen Spear",
     {
       "name": "Earth Attunement",
-      "offset": 159
+      "offset": 160
     },
     "Etching: Haboob",
     "Fissure",
@@ -191,15 +191,15 @@
     "Haboob",
     {
       "name": "Air Attunement",
-      "offset": 1
+      "offset": 0
     },
     {
       "name": "Shale Storm",
-      "offset": 118
+      "offset": 120
     },
     {
       "name": "Air Attunement",
-      "offset": 319
+      "offset": 320
     },
     "Etching: Derecho",
     "Twister",
@@ -208,25 +208,25 @@
     "Lightning Javelin",
     {
       "name": "Lightning Javelin",
-      "interruptMs": 42
+      "interruptMs": 40
     },
     "Derecho",
     {
       "name": "Primordial Stance (Air)",
-      "offset": 79
+      "offset": 80
     },
     {
       "name": "Fire Attunement",
-      "offset": 363
+      "offset": 360
     },
     "Blazing Barrage",
     {
       "name": "Galvanize",
-      "offset": 38
+      "offset": 40
     },
     {
       "name": "Fire Attunement",
-      "offset": 159
+      "offset": 160
     },
     "Etching: Volcano",
     "Meteor",
@@ -239,7 +239,7 @@
     "Blazing Barrage",
     {
       "name": "Water Attunement",
-      "offset": 1
+      "offset": 0
     },
     {
       "name": "Frostfire Ward",
@@ -247,7 +247,7 @@
     },
     {
       "name": "Water Attunement",
-      "offset": 402
+      "offset": 400
     },
     "Ice Beam",
     "Undertow",
@@ -264,7 +264,7 @@
     "Jökulhlaup",
     {
       "name": "Air Attunement",
-      "offset": 42
+      "offset": 40
     },
     "Lightning Javelin",
     "Twister",
@@ -275,15 +275,15 @@
     "Fulgor",
     {
       "name": "Fire Attunement",
-      "offset": 243
+      "offset": 240
     },
     {
       "name": "Galvanize",
-      "offset": 359
+      "offset": 360
     },
     {
       "name": "Primordial Stance (Fire)",
-      "offset": 359
+      "offset": 360
     },
     "Blazing Barrage",
     "Glyph of Storms (Fire)",
@@ -299,15 +299,15 @@
     "Blazing Barrage",
     {
       "name": "Earth Attunement",
-      "offset": 113
+      "offset": 120
     },
     {
       "name": "Fiery Impact",
-      "offset": 273
+      "offset": 280
     },
     {
       "name": "Earth Attunement",
-      "offset": 473
+      "offset": 480
     },
     "Earthen Spear",
     "Etching: Haboob",
@@ -318,16 +318,16 @@
     "Haboob",
     {
       "name": "Air Attunement",
-      "offset": 84
+      "offset": 80
     },
     {
       "name": "Shale Storm",
-      "offset": 322
+      "offset": 320
     },
     "Fulgor",
     {
       "name": "Air Attunement",
-      "offset": 241
+      "offset": 240
     },
     "Twister",
     "Lightning Javelin",
@@ -340,7 +340,7 @@
     "Fulgor",
     {
       "name": "Fire Attunement",
-      "offset": 244
+      "offset": 240
     },
     {
       "name": "Primordial Stance (Fire)",
@@ -348,17 +348,17 @@
     },
     {
       "name": "Galvanize",
-      "offset": 403
+      "offset": 400
     },
     "Blazing Barrage",
     {
       "name": "Arcane Blast",
-      "offset": 239
+      "offset": 240
     },
     "Derecho",
     {
       "name": "Fire Attunement",
-      "offset": 238
+      "offset": 240
     },
     "Flame Spear",
     "Flame Spear",
@@ -373,13 +373,13 @@
     "Blazing Barrage",
     {
       "name": "Air Attunement",
-      "offset": 83
+      "offset": 80
     },
     "Glyph of Storms (Air)",
     "Fulgor",
     {
       "name": "Fire Attunement",
-      "offset": 121
+      "offset": 120
     },
     {
       "name": "Flame Spear",
@@ -388,7 +388,7 @@
     "Twister",
     {
       "name": "Galvanize",
-      "offset": 122
+      "offset": 120
     },
     "Flame Spear",
     {
@@ -400,19 +400,19 @@
     "Earthen Spear",
     {
       "name": "Earth Attunement",
-      "offset": 119
+      "offset": 120
     },
     "Etching: Haboob",
     "Fissure",
     "Stone Strike",
     {
       "name": "Air Attunement",
-      "offset": 363
+      "offset": 360
     },
     "Fulgor",
     {
       "name": "Shale Storm",
-      "offset": 42
+      "offset": 40
     },
     {
       "name": "Lightning Javelin",
@@ -421,34 +421,34 @@
     "Haboob",
     {
       "name": "Air Attunement",
-      "offset": 42
+      "offset": 40
     },
     "Lightning Javelin",
     "Lightning Javelin",
     "Etching: Derecho",
     {
       "name": "Primordial Stance (Air)",
-      "offset": 159
+      "offset": 160
     },
     {
       "name": "Lightning Javelin",
-      "interruptMs": 281
+      "interruptMs": 280
     },
     "Fire Attunement",
     "Blazing Barrage",
     {
       "name": "Arcane Blast",
-      "offset": 319
+      "offset": 320
     },
     "Flame Spear",
     "Derecho",
     {
       "name": "Arcane Blast",
-      "offset": 121
+      "offset": 120
     },
     {
       "name": "Fire Attunement",
-      "offset": 323
+      "offset": 320
     },
     "Flame Spear",
     {
@@ -459,17 +459,17 @@
     "Etching: Volcano",
     {
       "name": "Flame Spear",
-      "interruptMs": 49
+      "interruptMs": 40
     },
     "Meteor",
     "Seethe",
     {
       "name": "Air Attunement",
-      "offset": 204
+      "offset": 200
     },
     {
       "name": "Lightning Javelin",
-      "interruptMs": 41
+      "interruptMs": 40
     },
     "Volcano",
     {
@@ -478,34 +478,34 @@
     },
     {
       "name": "Air Attunement",
-      "offset": 281
+      "offset": 280
     },
     "Fulgor",
     "Lightning Javelin",
     {
       "name": "Lightning Javelin",
-      "interruptMs": 79
+      "interruptMs": 80
     },
     "Twister",
     {
       "name": "Earth Attunement",
-      "offset": 285
+      "offset": 280
     },
     "Stone Strike",
     {
       "name": "Stone Strike",
-      "interruptMs": 42
+      "interruptMs": 40
     },
     "Earthen Spear",
     {
       "name": "Stone Strike",
-      "interruptMs": 201
+      "interruptMs": 200
     },
     "Fire Attunement",
     "Blazing Barrage",
     {
       "name": "Fiery Impact",
-      "offset": 401
+      "offset": 400
     },
     "Flame Spear",
     "Flame Spear",
@@ -516,39 +516,39 @@
     "Ice Beam",
     {
       "name": "Frostfire Ward",
-      "offset": 42
+      "offset": 40
     },
     "Restorative Spear",
     {
       "name": "Air Attunement",
-      "offset": 559
+      "offset": 560
     },
     "Fulgor",
     {
       "name": "Elutriate",
-      "offset": 42
+      "offset": 40
     },
     "Undertow",
     "Lightning Javelin",
     {
       "name": "Primordial Stance (Air)",
-      "offset": 601
+      "offset": 600
     },
     "Lightning Javelin",
     "Lightning Javelin",
     {
       "name": "Lightning Javelin",
-      "interruptMs": 201
+      "interruptMs": 200
     },
     "Fire Attunement",
     "Blazing Barrage",
     {
       "name": "Galvanize",
-      "offset": 202
+      "offset": 200
     },
     {
       "name": "Fire Attunement",
-      "offset": 362
+      "offset": 360
     }
   ]
 }

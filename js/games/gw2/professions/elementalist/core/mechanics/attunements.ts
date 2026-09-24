@@ -9,14 +9,21 @@ import {
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistCastContext, ElementalistPrecastContext } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistCastContext,
+  ElementalistPrecastContext,
+  ElementalistSchedulerContext
+} from '#gw2/professions/elementalist/types.js';
 import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   setElementalistAttunementReadyAt,
   type ElementalistAttunement
 } from '#gw2/professions/elementalist/core/state.js';
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
 import { combatStarted } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   applyElementalistAttunementTraits,
@@ -51,21 +58,27 @@ export function targetAttunement(skill: Skill): ElementalistAttunement | null {
   );
 }
 
-/** Attunement swaps are free before combat; otherwise apply alacrity, including Weave Self's recharge override. */
-export function elementalistAlacrityAdjustedDuration(context: ElementalistCastContext, seconds: number): number {
+/** Keeps precombat swaps free; Elemental Enchantment scales recharge before Flow State subtracts its flat reduction. */
+export function elementalistAttunementRechargeDuration(
+  context: ElementalistSchedulerContext,
+  skill: Skill,
+  seconds: number,
+  at: number
+): number {
   if ((context.schedulerPolicy as Partial<Gw2SchedulerPolicy> | undefined)?.isCombatActive?.() === false) return 0;
-  return context.config.boons?.alacrity ? seconds / 1.25 : seconds;
-}
-
-/** Resolves the effective attunement recharge after Elemental Enchantment and alacrity. */
-export function elementalistAttunementRechargeDuration(context: ElementalistCastContext, seconds: number): number {
   let adjusted = seconds;
+  // Trait reductions also apply when Weaver supplies Weave Self's shorter base recharge.
   if (hasTrait(context, 'Elemental Enchantment')) {
     const elementalEnchantmentProfile = requireBalanceProfileFromContext(context, PROFILE.elementalEnchantment);
     adjusted *= balanceProfileNumber(elementalEnchantmentProfile, 'rechargeMultiplier');
   }
 
-  return elementalistAlacrityAdjustedDuration(context, adjusted);
+  if (hasTrait(context, TRAIT.FLOW_STATE)) {
+    const flowStateProfile = requireBalanceProfileFromContext(context, TRAIT.FLOW_STATE);
+    adjusted = Math.max(0, adjusted - balanceProfileNumber(flowStateProfile, 'rechargeReduction'));
+  }
+
+  return adjusted / context.cooldownController.rate(skill, at);
 }
 
 /**
@@ -105,14 +118,21 @@ export function onAttunementComplete(
       previous,
       Math.max(
         state.attunementReadyAt[previous],
-        at + elementalistAttunementRechargeDuration(context, balanceProfileNumber(resourcesProfile, 'recharge'))
+        at +
+          elementalistAttunementRechargeDuration(context, skill, balanceProfileNumber(resourcesProfile, 'recharge'), at)
       )
     );
     for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
       if (attunement === target || attunement === previous) continue;
       const existingReadyAt = state.attunementReadyAt[attunement];
       const defaultReadyAt =
-        at + elementalistAttunementRechargeDuration(context, balanceProfileNumber(resourcesProfile, 'initialDelay'));
+        at +
+        elementalistAttunementRechargeDuration(
+          context,
+          skill,
+          balanceProfileNumber(resourcesProfile, 'initialDelay'),
+          at
+        );
       let nextReadyAt = Math.max(existingReadyAt, defaultReadyAt);
       // Fresh Air can pull Air's ready time in ahead of its scheduled recharge.
       if (attunement === 'Air' && hasTrait(context, 'Fresh Air')) {

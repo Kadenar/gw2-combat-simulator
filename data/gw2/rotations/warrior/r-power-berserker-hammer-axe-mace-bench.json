@@ -14,7 +14,7 @@
     },
     {
       "name": "__combat_start",
-      "offset": 700
+      "offset": 720
     },
     {
       "name": "Berserk",
@@ -109,7 +109,7 @@
     },
     {
       "name": "Outrage",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Decapitate"
@@ -152,7 +152,7 @@
     },
     {
       "name": "Outrage",
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Rupturing Smash"
@@ -203,7 +203,7 @@
     {
       "name": "Outrage",
       "skillId": 30258,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Decapitate",
@@ -324,7 +324,7 @@
     {
       "name": "Outrage",
       "skillId": 30258,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Decapitate",
@@ -445,7 +445,7 @@
     {
       "name": "Outrage",
       "skillId": 30258,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Decapitate",
@@ -570,7 +570,7 @@
     {
       "name": "Outrage",
       "skillId": 30258,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Decapitate",

@@ -283,7 +283,7 @@ function activateShatteringIce(context: ElementalistSchedulerContext, skill: Ski
   });
 }
 
-// Reset attunement-matching weapon cooldowns for Elemental Celerity while
+// Reset weapon cooldowns matching Catalyst's single active attunement while
 // preserving exclusions and active ammo-recharge contracts.
 function activateElementalCelerity(context: ElementalistSchedulerContext, skill: Skill, at: number): void {
   const state = catalystState.from(context);
@@ -292,11 +292,9 @@ function activateElementalCelerity(context: ElementalistSchedulerContext, skill:
     if (
       candidate.type === 'Weapon' &&
       Number(candidate.cooldown || 0) > 0 &&
-      String(candidate.attunement || '')
-        .split('+')
-        .includes(core.primaryAttunement)
+      candidate.attunement === core.primaryAttunement
     ) {
-      context.state.cooldowns.set(candidate.id, at);
+      context.cooldownController.setReadyAt(candidate.id, at);
     }
   }
 

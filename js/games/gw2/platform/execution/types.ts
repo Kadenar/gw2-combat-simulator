@@ -1,3 +1,4 @@
+import type { RechargeProgress, RechargeInterval } from '#gw2/platform/engine/skills/recharge.js';
 /** Defines scheduling state, cast commands, and observation contracts used to execute rotations. */
 import type {
   Skill,
@@ -40,8 +41,10 @@ export interface SkillHandlerStrategy<TContext extends object = object> {
 export interface AmmoState {
   charges: number;
   maximum: number;
-  rechargeDuration: number;
+  rechargeWork: number;
   nextRechargeAt: number | null;
+  rechargeProgress?: RechargeProgress;
+  lockoutProgress?: RechargeProgress;
   /** Independent cast lockout; charge recovery must not shorten this deadline. */
   lockoutReadyAt?: number;
 }
@@ -49,6 +52,7 @@ export interface AmmoState {
 export interface SchedulerState<TProfessionState = object> {
   time: number;
   cooldowns: Map<SkillId, number>;
+  rechargeProgress: Map<SkillId, RechargeProgress>;
   ammo: Map<SkillId, AmmoState>;
   lockouts: Map<string, number>;
   activeWeaponSet: number;
@@ -124,7 +128,6 @@ export interface RechargeQueryDetails {
   readonly start?: number;
   readonly fullEnd?: number;
   readonly effectiveEnd?: number;
-  readonly rechargeDuration?: number;
   /** Queries the post-cast ammo lockout instead of the per-charge recharge. */
   readonly ammoCastLockout?: boolean;
 }
@@ -140,15 +143,22 @@ export interface SchedulerConfig {
 }
 
 export interface CooldownController {
-  ammoMaximum(skill: Skill): number;
+  /** Starts a cooldown with base-recharge work; fixed deadlines use setReadyAt instead. */
+  startRecharge(skill: Skill, at: number, work?: number): number;
+  setReadyAt(skillId: SkillId, readyAt: number): void;
+  clear(skillId: SkillId): void;
+  copy(sourceId: SkillId, targetId: SkillId): void;
+  refresh(at: number): void;
+  rate(skill: Skill, at: number): number;
+  project(skill: Skill, progress: RechargeProgress): number;
+  remaining(skill: Skill, progress: RechargeProgress, at: number): number;
   ensureAmmo(skill: Skill, at?: number): AmmoState | null;
-  reduceAmmoRecharge(skill: Skill, reduction: number, at?: number): { ammo: AmmoState | null; reducedBy: number };
-  /** Reduces tracked wall time by the effective equivalent of the supplied base-recharge seconds. */
+  /** Advances base-recharge progress and returns the wall time recovered at the current rate. */
   reduceSkillRecharge(skill: Skill, reduction: number, at?: number): number;
   refreshAmmo(skill: Skill, at: number): AmmoState | null;
   restoreAmmo(skill: Skill, count: number, at: number, whenFull: 'retain' | 'reset'): number;
-  setAmmoLockout(skill: Skill, readyAt: number, at?: number): void;
-  spendAmmo(skill: Skill, at: number, committedRechargeDuration?: number): void;
+  setAmmoLockout(skill: Skill, work: number, at?: number): void;
+  spendAmmo(skill: Skill, at: number, committedRechargeWork?: number): void;
 }
 
 export interface SchedulerTaskAccess {
@@ -159,6 +169,12 @@ export interface SchedulerTaskAccess {
 }
 
 export interface SchedulerPolicy<TProfessionState extends object = object> {
+  readonly rechargeIntervals?: (
+    context: SchedulerContext<TProfessionState>,
+    skill: Skill,
+    start: number,
+    end: number
+  ) => Iterable<RechargeInterval>;
   /** Earliest next input after transition recovery, independent of each skill's cast lane. */
   readonly inputReadyAt?: (context: SchedulerContext<TProfessionState>, at: number) => number;
   readonly initialWeaponSet?: () => number;
@@ -177,11 +193,6 @@ export interface SchedulerPolicy<TProfessionState extends object = object> {
     context: RechargeContext<TProfessionState>,
     skill: Skill,
     duration: number
-  ) => number | undefined;
-  readonly rechargeReduction?: (
-    context: RechargeContext<TProfessionState>,
-    skill: Skill,
-    reduction: number
   ) => number | undefined;
   readonly maximumAmmo?: (
     context: SchedulerContext<TProfessionState> & { skill: Skill },
@@ -268,8 +279,9 @@ export type CastLifecycleContext<TProfessionState extends object = object> = Cas
   readonly action: SimulationEvent;
   readonly fullEnd: number;
   readonly effectiveEnd: number;
-  readonly rechargeDuration: number;
-  readonly ammoLockoutDuration: number;
+  /** Committed base-recharge seconds; Alacrity changes the rate of progress, not these amounts. */
+  readonly rechargeWork: number;
+  readonly ammoLockoutWork: number;
   readonly rechargeStart: number;
   readonly rechargeReadyAt: number | null;
   readonly reservationId: string;

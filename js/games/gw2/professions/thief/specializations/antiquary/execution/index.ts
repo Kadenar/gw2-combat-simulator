@@ -40,7 +40,7 @@ export const antiquarySkillHandlers = Object.freeze({
     resolveMode: (context, skill) =>
       // Cannon and Coin Toss always own their own damage packets; a backfire outcome also replaces to prevent the normal damage from firing
       skill.id === ID.STONE_SUMMIT_CANNON ||
-      skill.id === ID.CANACH_COIN_TOSS_ID_77230 ||
+      skill.id === ID.CANACH_COIN_TOSS ||
       peekDoubleEdgeOutcome(context, skill) === 'backfire'
         ? SKILL_HANDLER_MODES.REPLACE
         : SKILL_HANDLER_MODES.AUGMENT,

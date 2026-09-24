@@ -62,6 +62,7 @@ export function initializeChronomancerRuntime(context: MesmerSchedulerContext): 
   const continuumSplitProfile = requireBalanceProfileFromContext(context, PROFILE.continuumSplit);
   const continuum = createContinuumController({
     state: context.state,
+    cooldownController: context.cooldownController,
     unaffectedCooldownIds: CONTINUUM_UNAFFECTED_COOLDOWN_IDS,
     skillsById: runtime.skillsById,
     refreshAmmo: context.cooldownController.refreshAmmo,

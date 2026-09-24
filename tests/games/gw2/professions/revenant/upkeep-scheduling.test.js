@@ -119,8 +119,8 @@ test('release and reactivation start a fresh Conduit cadence', () => {
   assert.deepEqual(result.warnings, []);
   const activation = result.steps.filter((step) => step.skill === 'Impossible Odds').at(-1).end / 1000;
   assert.deepEqual(
-    affinityTicks(result).map((event) => event.at),
-    [activation + 3, activation + 6]
+    affinityTicks(result).map((event) => Math.round(event.at * 1000)),
+    [Math.round((activation + 3) * 1000), Math.round((activation + 6) * 1000)]
   );
 });
 

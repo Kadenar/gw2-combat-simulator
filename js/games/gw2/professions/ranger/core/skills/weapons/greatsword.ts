@@ -2,14 +2,14 @@
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-// Both Maul IDs share one strike and the same recharge and vulnerability application.
+// Both Maul variants share their strike, timing, recharge, and vulnerability; their bonus recipients differ.
 const maul: Partial<Skill> = {
   cooldown: 4,
   effects: [
     { type: 'strike', coefficient: 2.2, hits: 1 },
     { type: 'condition', condition: 'Vulnerability', stacks: 5, duration: 8 }
   ],
-  castTimeMs: 333
+  castTimeMs: 840
 };
 
 export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -21,7 +21,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 1
       }
     ],
-    castTimeMs: 333
+    castTimeMs: 400
   },
   [ID.HILT_BASH]: {
     cooldown: 20,
@@ -34,7 +34,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       },
       { type: 'control', controlKind: 'Daze' }
     ],
-    castTimeMs: 333
+    castTimeMs: 640
   },
   [ID.SLICE]: {
     effects: [
@@ -44,7 +44,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 1
       }
     ],
-    castTimeMs: 333
+    castTimeMs: 600
   },
   [ID.ENDURING_SWING]: {
     resourceGain: 15,
@@ -55,7 +55,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         hits: 1
       }
     ],
-    castTimeMs: 500
+    castTimeMs: 800
   },
   [ID.SWOOP]: {
     cooldown: 10,
@@ -87,6 +87,6 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     ],
     castTimeMs: 333
   },
-  [ID.MAUL]: maul,
-  [ID.MAUL_ID_46629]: maul
+  [ID.MAUL_SOULBEAST]: maul,
+  [ID.MAUL_BASE]: maul
 });

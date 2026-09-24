@@ -1,12 +1,140 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
-import { gw2EffectiveCooldown } from '#gw2/platform/skills/recharge.js';
+import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
+
+// Minimal recharges isolate boon-rate integration and tick detection from profession rotations.
+test('cooldowns and serial ammo integrate intermittent Alacrity before checking the absolute tick', () => {
+  const profession = defineProfession({
+    id: 'alacrity-recharge',
+    name: 'Alacrity recharge',
+    catalog: createCanonicalCatalog({
+      generated: [
+        { id: 990001, name: 'Cooldown', castTimeMs: 0, cooldown: 10, effects: [] },
+        {
+          id: 990002,
+          name: 'Alacrity',
+          castTimeMs: 0,
+          effects: [{ type: 'boon', boon: 'Alacrity', duration: 4, stacks: 1 }]
+        },
+        { id: 990003, name: 'Ammo', castTimeMs: 0, ammo: 2, ammoRecharge: 10, effects: [] }
+      ]
+    })
+  });
+  const wait = (durationMs) => ({ type: 'wait', durationMs });
+  for (const [rotation, boons, expected] of [
+    [['Cooldown', 'Cooldown'], {}, 10],
+    [['Cooldown', 'Cooldown'], { alacrity: true }, 8],
+    [['Cooldown', wait(2000), 'Alacrity', 'Cooldown'], {}, 9],
+    [['Alacrity', 'Cooldown', 'Cooldown'], {}, 9],
+    [['Cooldown', 'Alacrity', wait(6000), 'Alacrity', 'Cooldown'], {}, 8.4],
+    [['Ammo', 'Ammo', wait(2000), 'Alacrity', 'Ammo'], {}, 9]
+  ]) {
+    const result = simulateGw2({ profession, rotation, config: { boons } });
+    const action = result.events.findLast((event) => event.type === 'action');
+    assert.equal(action.at, expected, JSON.stringify(rotation));
+    assert.deepEqual(result.warnings, []);
+  }
+});
+
+// A boon learned after reservation changes deadlines without changing the cast's committed base amounts.
+test('Alacrity gained during a cast updates reserved recharge and the independent ammo lockout', () => {
+  for (const ammo of [false, true]) {
+    const profession = defineProfession({
+      id: 'reserved-recharge',
+      name: 'Reserved Recharge',
+      catalog: createCanonicalCatalog({
+        generated: [
+          {
+            id: 990011,
+            name: 'Reserved',
+            castTimeMs: 2000,
+            cooldown: 20,
+            effects: [],
+            ...(ammo ? { ammo: 2, ammoRecharge: 20, ammoCastLockout: 5 } : {})
+          }
+        ]
+      })
+    });
+    const scheduler = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() });
+    scheduler.cast({ type: 'cast', skillId: 990011 });
+    scheduler.advanceTo(1);
+    scheduler.context.emit({
+      type: 'buff',
+      kind: 'alacrity',
+      at: 1,
+      duration: 4,
+      stacks: 1,
+      source: 'fixture',
+      sourceId: 'fixture',
+      actorType: 'player'
+    });
+    scheduler.advanceTo(2);
+    if (ammo) {
+      assert.equal(scheduler.state.ammo.get(990011).nextRechargeAt, 21.25);
+      assert.equal(scheduler.state.ammo.get(990011).lockoutReadyAt, 6.25);
+    } else {
+      assert.equal(scheduler.state.cooldowns.get(990011), 21.25);
+    }
+
+    scheduler.cast({ type: 'cast', skillId: 990011 });
+    assert.equal(scheduler.events.findLast((event) => event.type === 'action').at, ammo ? 6.28 : 21.28);
+    assert.deepEqual(scheduler.warnings, []);
+  }
+});
+
+test('cooldown detection uses the exact next tick without an early-readiness epsilon', () => {
+  for (const [raw, expected] of [
+    [0.38, 0.4],
+    [0.4, 0.4],
+    [0.400001, 0.44],
+    [-0.38, -0.36]
+  ]) {
+    assert.equal(gw2CooldownReadyAt(raw), expected);
+  }
+});
+
+// Sub-tick completion never releases a cast early, and each serial charge starts at its detection tick.
+test('ordinary and ammo cooldowns wait for their detection tick even one microsecond before it', () => {
+  for (const ammo of [false, true]) {
+    const skill = {
+      id: 990010,
+      name: 'Tick cooldown',
+      castTimeMs: 0,
+      cooldown: 0.38,
+      ...(ammo ? { ammo: 2, ammoRecharge: 0.38, ammoCastLockout: 0 } : {}),
+      effects: []
+    };
+    const profession = defineProfession({
+      id: 'tick-cooldown',
+      name: 'Tick cooldown',
+      catalog: createCanonicalCatalog({ generated: [skill] })
+    });
+    const result = simulateGw2({
+      profession,
+      rotation: [
+        skill.name,
+        ...(ammo ? [skill.name] : []),
+        { type: 'wait', durationMs: 399.999 },
+        skill.name,
+        skill.name
+      ]
+    });
+    assert.deepEqual(
+      result.events
+        .filter((event) => event.type === 'action')
+        .slice(-2)
+        .map((event) => event.at),
+      [0.4, 0.8]
+    );
+  }
+});
 
 test('GW2 base recharge selects positive ammo recharge before cooldown fields', () => {
   assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: 8, cooldown: 10, recharge: 12 }), 8);
@@ -25,9 +153,15 @@ test('GW2 base recharge prefers finite canonical cooldown and then legacy rechar
   assert.equal(gw2BaseRecharge({}), 0);
 });
 
-test('effective cooldown applies modifiers to the shared ammo-aware base recharge', () => {
-  const skill = { id: 1, name: 'Ammo', ammo: 2, ammoRecharge: 8, cooldown: 10, recharge: 12 };
-  assert.equal(gw2EffectiveCooldown(skill, {}, { cooldownMultiplier: 0.5, rechargeRate: 2 }), 2);
+// Scheduler queries use the same finite base selection without mistaking charge recharge for cast lockout.
+test('scheduler recharge queries share base selection and preserve independent ammo lockouts', () => {
+  const { context } = createScheduler({
+    profession: defineProfession({ id: 'recharge-query', name: 'Recharge Query' })
+  });
+  const skill = { id: 990021, ammo: 2, ammoRecharge: 8, cooldown: 10, recharge: 12, ammoCastLockout: 0.5 };
+  assert.equal(context.rechargeDurationFor(skill), 8);
+  assert.equal(context.rechargeDurationFor(skill, 0, { ammoCastLockout: true }), 0.5);
+  assert.equal(context.rechargeDurationFor({ ...skill, ammoRecharge: Infinity }), 10);
 });
 
 // Warrior's legacy recharge remains a cast lockout while each spent charge recovers independently of it.
@@ -52,14 +186,14 @@ test('Warrior ammo normalization preserves charge recovery and the legacy-derive
 
   assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);
   const second = scheduler.events.findLast((event) => event.type === 'action');
-  assert.equal(second.at, first.endsAt + 1);
+  assert.equal(second.at, gw2CooldownReadyAt(first.endsAt + 1));
   scheduler.advanceTo(second.endsAt);
   assert.equal(ammo.charges, 0);
   assert.equal(state.cooldowns.get(skill.id), first.endsAt + 16);
-  scheduler.advanceTo(first.endsAt + 16);
+  scheduler.advanceTo(gw2CooldownReadyAt(first.endsAt + 16));
   context.cooldownController.refreshAmmo(skill, state.time);
   assert.equal(ammo.charges, 1);
-  assert.equal(ammo.nextRechargeAt, first.endsAt + 32);
+  assert.equal(ammo.nextRechargeAt, gw2CooldownReadyAt(first.endsAt + 16) + 16);
   assert.equal(state.cooldowns.has(skill.id), false);
   assert.deepEqual(scheduler.warnings, []);
 });
@@ -98,7 +232,7 @@ test('declarative ammo consumes and recharges shared charges', () => {
   assert.deepEqual(result.planningState.ammo['Fixture Ammo'], {
     charges: 1,
     maximum: 2,
-    rechargeDuration: 5,
+    rechargeWork: 5,
     nextRechargeAt: 10,
     lockoutReadyAt: 0.56
   });

@@ -2,10 +2,63 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
+
+// Passive cooldown checks must match scheduling as Alacrity starts and expires after the cast.
+test('passive cooldown queries integrate committed recharge and retain historical reset boundaries', () => {
+  const skill = { id: 990001, name: 'Passive skill', castTimeMs: 0, cooldown: 10, effects: [] };
+  const profession = defineProfession({
+    id: 'passive-recharge',
+    name: 'Passive recharge',
+    catalog: createCanonicalCatalog({ generated: [skill] })
+  });
+  const scheduler = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() });
+  scheduler.cast({ type: 'cast', skillId: skill.id });
+  scheduler.advanceTo(2);
+  const { timeline } = createGw2CombatQuery({ profession, events: scheduler.events });
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 9), true);
+  const owner = { source: 'fixture', sourceId: 'fixture', actorType: 'player' };
+  scheduler.context.emit({ ...owner, type: 'buff', kind: 'alacrity', at: 2, duration: 4, stacks: 1 });
+  scheduler.advanceTo(9);
+  assert.equal(scheduler.state.cooldowns.get(skill.id), 9);
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 9), false);
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 8.999999), true);
+  const resolved = createGw2CombatQuery({ profession, resolvedTimelineEvents: scheduler.events }).timeline;
+  assert.equal(resolved.skillOnCooldownAt(skill.id, 0), true);
+  assert.equal(resolved.skillOnCooldownAt(skill.id, 9), false);
+  assert.equal(resolved.skillOnCooldownAt(skill.id, 8.999999), true);
+  scheduler.context.emit({ ...owner, type: 'marker', action: 'cooldown-reset', at: 5 });
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 5), false);
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 4.999999), true);
+});
+
+test('passive cooldown queries honor recharge anchors, boon extensions, and the completion tick', () => {
+  const skill = { id: 990001, name: 'Passive skill', castTimeMs: 2000, cooldown: 10, effects: [] };
+  const profession = defineProfession({
+    id: 'passive-extension',
+    name: 'Passive extension',
+    catalog: createCanonicalCatalog({ generated: [skill] })
+  });
+  const scheduler = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() });
+  scheduler.cast({ type: 'cast', skillId: skill.id });
+  const { timeline } = createGw2CombatQuery({ profession, events: scheduler.events });
+  const owner = { source: 'fixture', sourceId: 'fixture', actorType: 'player' };
+  scheduler.context.emit({ ...owner, type: 'buff', kind: 'alacrity', at: 1, duration: 4, stacks: 1 });
+  scheduler.advanceTo(2);
+  // Only coverage after the committed cast-end anchor accelerates recharge.
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 11.25), true);
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 11.28), false);
+  scheduler.context.emit({ ...owner, type: 'boon_extension', at: 3, duration: 2 });
+  scheduler.advanceTo(10.75);
+  assert.equal(scheduler.state.cooldowns.get(skill.id), 10.75);
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 10.75), true);
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 10.759999), true);
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 10.76), false);
+});
 
 // Adjacent microseconds remain distinct for swaps, actions, snapshots, resets, and recharge deadlines.
 test('timeline state uses canonical instants without admitting future events', () => {

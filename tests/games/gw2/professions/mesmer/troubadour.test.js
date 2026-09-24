@@ -451,7 +451,7 @@ test('Honorable Rogue restores dodge readiness and stops recharge only when the 
       assert.equal(Object.hasOwn(before.planningState.cooldowns, 'Dodge'), dodges === 2);
       assert.equal(Object.hasOwn(after.planningState.cooldowns, 'Dodge'), false);
       // Partial refunds keep the original recharge deadline, including Flute's faster recovery.
-      assert.equal(restoredAmmo.rechargeDuration, flute ? 8 : 10);
+      assert.equal(restoredAmmo.rechargeWork, flute ? 8 : 10);
       assert.equal(restoredAmmo.nextRechargeAt, dodges === 1 ? null : priorAmmo.nextRechargeAt);
       assert.ok(after.planningState.cooldowns['Tale of the Honorable Rogue'].remaining > 0);
     }

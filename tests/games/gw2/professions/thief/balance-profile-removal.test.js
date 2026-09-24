@@ -254,14 +254,10 @@ for (const id of [ANTIQUARY.forgedSurfer, ANTIQUARY.forgedSurferMeticulous]) {
         deterministicChoices: { forgedSurferBombsHit: 1 }
       }
     );
-    const strikes = result.events.filter(
-      (event) => event.type === 'damage' && event.skillId === ID.FORGED_SURFER_DASH_ID_76633
-    );
+    const strikes = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.FORGED_SURFER_DASH);
     assert.ok(strikes.length);
     assert.ok(strikes.every((event) => event.coefficient === 2));
-    assert.ok(
-      result.events.some((event) => event.type === 'condition' && event.skillId === ID.FORGED_SURFER_DASH_ID_76633)
-    );
+    assert.ok(result.events.some((event) => event.type === 'condition' && event.skillId === ID.FORGED_SURFER_DASH));
     assert.equal(result.planningState.profession.artifactUsesRemaining, 0);
   });
 }

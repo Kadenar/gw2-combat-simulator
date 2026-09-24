@@ -8,6 +8,7 @@ import type {
   StrikeEffect
 } from '#gw2/platform/engine/skills/types.js';
 import type { EffectMetadata } from '#gw2/platform/engine/events/events.js';
+import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 
 export type MesmerSummonKind = 'clone' | 'phantasm';
@@ -72,6 +73,7 @@ export interface MesmerEventExtra {
   readonly complete?: boolean;
   readonly summonOwner?: string;
   readonly cooldowns?: Readonly<Record<string, number>>;
+  readonly rechargeProgressBySkillId?: Readonly<Record<string, RechargeProgress>>;
   readonly targetSkillId?: SkillId;
   readonly targetSkillName?: string;
   readonly reduction?: number;

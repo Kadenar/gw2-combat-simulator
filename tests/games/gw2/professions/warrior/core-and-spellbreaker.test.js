@@ -616,7 +616,7 @@ test('Core Warrior weapon swap toggles the active set', () => {
   );
 
   const relic = simulate('Core', ['__combat_start', 'Swap Weapons'], { relic: 'Warrior' });
-  assert.equal(relic.planningState.cooldowns['Swap Weapons'].readyAt, 2500);
+  assert.equal(relic.planningState.cooldowns['Swap Weapons'].readyAt, 2520);
 });
 
 test('Berserker gates primal bursts behind berserk mode', () => {
@@ -1376,7 +1376,7 @@ test('Rifle Butt restores rifle ammunition and readies Kill Shot', () => {
     [2, 2, 2]
   );
   assert.equal(result.planningState.cooldowns['Kill Shot'], undefined);
-  assert.equal(result.planningState.cooldowns['Rifle Butt'].remaining, 12_000);
+  assert.equal(result.planningState.cooldowns['Rifle Butt'].remaining, 12_020);
 });
 
 test('Spellbreaker control grants independent Insight stacks and No Escape', () => {

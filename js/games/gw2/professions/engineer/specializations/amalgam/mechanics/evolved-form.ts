@@ -241,7 +241,7 @@ export function evolveAmalgam(context: EngineerCastContext): void {
     // here misreported it as a single ~43s cooldown reduction (the summed
     // remaining recharge of the three morphs) attributed to Evolve.
     for (const skillId of state.selectedMorphSkillIds) {
-      context.state.cooldowns.delete(Number(skillId));
+      context.cooldownController.clear(Number(skillId));
     }
   }
 

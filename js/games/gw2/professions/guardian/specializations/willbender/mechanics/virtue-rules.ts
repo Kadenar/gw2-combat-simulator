@@ -14,7 +14,7 @@ import { emitSkillBuff, emitSkillCondition } from '#gw2/platform/execution/gw2-p
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { GW2_ALACRITY_RECHARGE_RATE, gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
+import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { buildGuardianStrike } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { emitGuardianProc, guardianTraitIcon } from '#gw2/professions/guardian/core/traits/index.js';
@@ -36,7 +36,6 @@ import { willbenderState } from '#gw2/professions/guardian/specializations/willb
 
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { gw2TrackedRechargeReduction } from '#gw2/platform/skills/recharge.js';
 
 function lethalTempoStacks(context: Gw2ModifierContext): number {
   return activeLethalTempo(willbenderState.from(context), context.time);
@@ -256,19 +255,14 @@ function queueInFlightWeaponCooldownReduction(
     const pending = Number(state.pendingWeaponCooldownReduction[activationId] || 0);
     // Already-accumulated pending reductions are subtracted from the remaining
     // recharge so that multiple virtue triggers during the same cast don't over-reduce.
-    const available = Math.max(0, Number(event.rechargeReadyAt) - at - pending);
+    const rate = context.cooldownController.rate(skill, at);
+    const available = Math.max(0, (Number(event.rechargeReadyAt) - at) * rate - pending);
     const restorativeVirtuesProfile = requireBalanceProfileFromContext(context, PROFILE.restorativeVirtues);
-    // In-flight skills are not in the cooldown controller yet, so project the same base-to-tracked conversion here.
-    const reduction = Math.min(
-      gw2TrackedRechargeReduction(
-        balanceProfileNumber(restorativeVirtuesProfile, 'rechargeReduction'),
-        context.hasBuff('alacrity', at) ? Number(context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE) : 1
-      ),
-      available
-    );
+    // Pending reductions retain base units so an Alacrity change before cast completion cannot change their size.
+    const reduction = Math.min(balanceProfileNumber(restorativeVirtuesProfile, 'rechargeReduction'), available);
     if (reduction <= EPSILON) continue;
     state.pendingWeaponCooldownReduction[activationId] = pending + reduction;
-    reducedBy += reduction;
+    reducedBy += reduction / rate;
   }
 
   return reducedBy;
@@ -298,11 +292,7 @@ function applyPendingWeaponCooldownReduction(context: GuardianCastContext, skill
   // future casts if the skill's own recharge changed between the queue and cast-complete.
   delete state.pendingWeaponCooldownReduction[activationId];
   if (pending <= EPSILON || skill.type !== 'Weapon') return;
-  // Pending values were converted while the cast was in flight, so apply them directly to its committed deadline.
-  const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-  if (readyAt > context.effectiveEnd + EPSILON) {
-    context.state.cooldowns.set(skill.id, Math.max(context.effectiveEnd, readyAt - pending));
-  }
+  context.cooldownController.reduceSkillRecharge(skill, pending, context.effectiveEnd);
 }
 
 // Add or refresh Lethal Tempo at its cap and emit the matching visible buff from

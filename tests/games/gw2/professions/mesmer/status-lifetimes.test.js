@@ -25,6 +25,7 @@ function lifetimeContext(traits = []) {
     gainHandlers,
     start: 0,
     fullEnd: 0,
+    rechargeWork: 0,
     action: {},
     state: {
       time: 0,
@@ -33,7 +34,7 @@ function lifetimeContext(traits = []) {
       cooldowns: new Map(),
       ammo: new Map()
     },
-    cooldownController: { reduceSkillRecharge() {} },
+    cooldownController: { reduceSkillRecharge() {}, clear: (id) => context.state.cooldowns.delete(id), rate: () => 1 },
     hasBuff: () => false,
     tasks: { nextAt: () => Infinity },
     eventsOfType: (type) => events.filter((event) => event.type === type),

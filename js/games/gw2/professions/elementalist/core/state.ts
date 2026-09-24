@@ -8,7 +8,9 @@ import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/c
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { SkillId, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
+import type { CooldownController } from '#gw2/platform/execution/types.js';
+import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 
 /** The four elements, in the canonical order every attunement loop iterates. */
 export const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', 'Earth'] as const);
@@ -104,8 +106,11 @@ interface ElementalistAttunementCooldownContext {
     readonly profession: { readonly core: ElementalistCoreState };
     readonly time?: number;
     readonly cooldowns?: Map<SkillId, number>;
+    readonly rechargeProgress?: Map<SkillId, RechargeProgress>;
   };
   readonly time?: number;
+  readonly cooldownController?: CooldownController;
+  readonly catalog?: CanonicalCatalog;
 }
 
 /** Narrows arbitrary config input to a valid attunement before it reaches state. */
@@ -195,6 +200,19 @@ export function setElementalistAttunementReadyAt(
   const cooldowns = schedulerState?.cooldowns;
   if (!cooldowns) return;
   const skillId = ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement];
+  const at = Number(schedulerState.time || 0);
+  const skill = context.catalog?.skillsById.get(skillId);
+  if (readyAt === cooldowns.get(skillId)) return;
+  if (skill && context.cooldownController && readyAt > at) {
+    state.attunementReadyAt[attunement] = context.cooldownController.startRecharge(
+      skill,
+      at,
+      (readyAt - at) * context.cooldownController.rate(skill, at)
+    );
+    return;
+  }
+
+  context.state.rechargeProgress?.delete(skillId);
   if (readyAt > Number(schedulerState.time || 0)) {
     cooldowns.set(skillId, readyAt);
   } else {

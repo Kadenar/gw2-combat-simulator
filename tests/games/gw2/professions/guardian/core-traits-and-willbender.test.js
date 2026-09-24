@@ -639,7 +639,7 @@ test('Willbender flame replacement and Phoenix Protocol follow virtue triggers',
     ).length;
 
   assert.equal(flameCount(overlapping, GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES), 10);
-  assert.equal(overlapping.steps[1].start - overlapping.steps[0].start, 1020);
+  assert.equal(overlapping.steps[1].start - overlapping.steps[0].start, 1040);
   assert.equal(flameCount(replaced, GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES), 1);
   assert.equal(flameCount(replaced, GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES_ID_62618), 5);
   assert.deepEqual(

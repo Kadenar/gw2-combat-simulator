@@ -1041,7 +1041,7 @@ test('core attunements enforce and report their individual recharge', () => {
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     swaps.map((step) => step.start),
-    [0, 1275, 8500]
+    [0, 1280, 8520]
   );
   assert.equal(result.planningState.profession.primaryAttunement, 'Fire');
   assert.ok(result.planningState.cooldowns['Air Attunement'].remaining > 1000);
@@ -1072,7 +1072,7 @@ test('core attunements enforce and report their individual recharge', () => {
   );
 
   assert.equal(waterView.disabled, true);
-  assert.equal(waterView.cooldownLabel, '8.50s');
+  assert.equal(waterView.cooldownLabel, '8.52s');
 });
 
 test('Ride the Lightning receives its on-hit cooldown reduction', () => {

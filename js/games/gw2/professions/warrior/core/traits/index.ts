@@ -122,14 +122,14 @@ export const warriorCoreSkillMechanicHandlers = Object.freeze({
     // Rifle Butt restores one count to other rifle ammo skills and readies every rifle burst.
     for (const skill of context.catalog.skills) {
       if (skill.weapon === 'Rifle' && skill.ammo) context.cooldownController.restoreAmmo(skill, 1, at, 'reset');
-      if (skill.id === ID.KILL_SHOT || skill.id === ID.GUN_FLAME) context.state.cooldowns.delete(skill.id);
+      if (skill.id === ID.KILL_SHOT || skill.id === ID.GUN_FLAME) context.cooldownController.clear(skill.id);
     }
   },
   'warrior.core.reset-crushing-blow': ({ context }: { context: WarriorSchedulerContext }): void => {
-    context.state.cooldowns.delete(ID.CRUSHING_BLOW);
+    context.cooldownController.clear(ID.CRUSHING_BLOW);
   },
   'warrior.core.reset-fierce-blow': ({ context }: { context: WarriorSchedulerContext }): void => {
-    context.state.cooldowns.delete(ID.FIERCE_BLOW);
+    context.cooldownController.clear(ID.FIERCE_BLOW);
   },
   'warrior.core.restore-endurance': ({
     context,

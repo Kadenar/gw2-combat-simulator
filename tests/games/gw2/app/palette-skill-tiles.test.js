@@ -6,6 +6,8 @@ import { loadProfession, professionOptions } from '#gw2/app/profession-registry.
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 
 function projectionApp(
   profession,
@@ -42,6 +44,32 @@ function projectionApp(
     }
   };
 }
+
+// The palette consumes projected deadlines while recharge storage remains in base seconds.
+test('a used 20-second skill displays 16 seconds under Alacrity', () => {
+  const profession = defineProfession({
+    id: 'palette-recharge',
+    name: 'Palette Recharge',
+    catalog: createCanonicalCatalog({
+      generated: [{ id: 990020, name: 'Recharge', type: 'Utility', castTimeMs: 0, cooldown: 20, effects: [] }]
+    })
+  });
+  const skill = profession.catalog.skillsById.get(990020);
+  for (const [alacrity, label] of [
+    [false, '20.00s'],
+    [true, '16.00s']
+  ]) {
+    const result = simulateGw2({ profession, rotation: [skill.name], config: { boons: { alacrity } } });
+    const app = projectionApp(profession, {
+      time: result.planningState.atSeconds,
+      cooldowns: result.planningState.cooldowns
+    });
+    const view = paletteSkillView(app, skill, true);
+    assert.equal(view.cooldownLabel, label);
+    assert.equal(view.disabled, true);
+    assert.equal(result.schedulerState.rechargeProgress.get(skill.id).work, 20);
+  }
+});
 
 // Tiny catalogs keep family expectations independent of the production grouping algorithm.
 function catalogApp(skills, professionState = {}) {
@@ -342,7 +370,7 @@ test('ammo tile shows its cast lockout before the next charge timer', async () =
   const profession = await loadProfession('mesmer');
   const skill = profession.catalog.skillsByName.get('Split Second');
   const ammoBySkillId = {
-    [skill.id]: { charges: 1, maximum: 2, rechargeDuration: 8, nextRechargeAt: 8 }
+    [skill.id]: { charges: 1, maximum: 2, rechargeWork: 8, nextRechargeAt: 8 }
   };
   const locked = paletteSkillView(
     projectionApp(profession, {

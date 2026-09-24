@@ -45,7 +45,7 @@ export const RANGER_SKILL_IDS = Object.freeze({
   SWOOP: 12521, // Swoop
   COUNTERATTACK: 12522, // Counterattack
   COUNTERATTACK_KICK: 12523, // Counterattack Kick
-  MAUL: 12525, // Maul
+  MAUL_SOULBEAST: 12525, // Maul
   SHARPENING_STONE: 12537, // Sharpening Stone
   SPIRIT_OF_NATURE: 12569, // Spirit of Nature
   HUNTERS_SHOT: 12573, // Hunter's Shot
@@ -136,7 +136,7 @@ export const RANGER_SKILL_IDS = Object.freeze({
   INSTINCTIVE_ENGAGE: 46123, // Instinctive Engage
   TAIL_LASH_ID_46386: 46386, // Tail Lash
   BRUTAL_CHARGE_ID_46432: 46432, // Brutal Charge
-  MAUL_ID_46629: 46629, // Maul
+  MAUL_BASE: 46629, // Maul
   ETERNAL_BOND: 59554, // Eternal Bond
   ENVELOPING_HAZE: 63094, // Enveloping Haze
   HAMMER_STRIKE: 63118, // Hammer Strike

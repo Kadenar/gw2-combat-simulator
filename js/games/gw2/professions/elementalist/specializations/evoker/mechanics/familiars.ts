@@ -21,7 +21,7 @@ import {
   castRelativeEffectTimingScale,
   gw2EffectExpiresAt
 } from '#gw2/platform/skills/timing.js';
-import { gw2BaseRecharge } from '#gw2/platform/skills/recharge.js';
+import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
@@ -400,7 +400,7 @@ function settleFamiliarChargeState(context: ElementalistCastContext, skill: Skil
         requireBalanceProfileFromContext(context, FAMILIAR_PROFILE_BY_BASIC.get(skill.id) ?? skill.id),
         'initialDelay'
       );
-      context.state.cooldowns.set(
+      context.cooldownController.setReadyAt(
         empowered.id,
         Math.max(Number(context.state.cooldowns.get(empowered.id) || 0), at + delay)
       );

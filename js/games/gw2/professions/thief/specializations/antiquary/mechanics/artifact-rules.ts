@@ -36,7 +36,7 @@ const METICULOUS_ARTIFACT_STRIKE_IDS = new Set<number>([
   ID.METAL_LEGION_GUITAR,
   ID.MISTBURN_MORTAR,
   ID.CHAK_SHIELD,
-  ID.SUMMON_KRYPTIS_TURRET_ID_77192,
+  ID.SUMMON_KRYPTIS_TURRET,
   ID.HOLO_DANCER_DECOY
 ]);
 
@@ -54,7 +54,7 @@ function meticulousArtifactStrikeFactor(
 
   if (event?.skillId === ID.MISTBURN_MORTAR) return parameters.mortarFactor;
   if (event?.skillId === ID.CHAK_SHIELD) return parameters.chakFactor;
-  if (event?.skillId === ID.SUMMON_KRYPTIS_TURRET_ID_77192) {
+  if (event?.skillId === ID.SUMMON_KRYPTIS_TURRET) {
     return parameters.kryptisFactor;
   }
 

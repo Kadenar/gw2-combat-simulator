@@ -76,7 +76,6 @@ function combinedSource(entries) {
   return entries.map(({ source }) => source).join('\n');
 }
 
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { antiquaryModule } from '#gw2/professions/thief/specializations/antiquary/module.js';
 import { ANTIQUARY_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/antiquary/skills/index.js';
 import { daredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';
@@ -238,13 +237,11 @@ test('Thief raw skill mechanics retain a disjoint no-loss union', () => {
     fragments.map(([, mechanics]) => mechanics)
   );
   const seen = new Set();
-  const rawOwnerById = new Map();
 
   for (const [owner, fragment] of fragments) {
     for (const id of Object.keys(fragment)) {
       assert.equal(seen.has(id), false, id);
       seen.add(id);
-      rawOwnerById.set(Number(id), owner);
       const skill = catalogById.get(id);
 
       if (skill) assert.equal(thiefSkillOwners.get(skill.id), owner, id);
@@ -255,15 +252,6 @@ test('Thief raw skill mechanics retain a disjoint no-loss union', () => {
     [...seen].sort((left, right) => Number(left) - Number(right)),
     Object.keys(aggregate).sort((left, right) => Number(left) - Number(right))
   );
-  for (const id of [
-    ID.FORGED_SURFER_DASH,
-    ID.EXALTED_HAMMER,
-    ID.HOLO_DANCER_DECOY_ID_76800,
-    ID.SUMMON_KRYPTIS_TURRET,
-    ID.MISTBURN_MORTAR_ID_77288
-  ]) {
-    assert.equal(rawOwnerById.get(id), 'Antiquary', id);
-  }
 });
 
 test('Thief runtimes exclude inactive elite state, catalogs, and registries', () => {

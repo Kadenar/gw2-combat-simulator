@@ -173,8 +173,8 @@ export type MesmerCastContext = MesmerPrecastContext & {
   readonly action: SimulationEvent;
   readonly fullEnd: number;
   readonly effectiveEnd: number;
-  readonly rechargeDuration: number;
-  readonly ammoLockoutDuration: number;
+  readonly rechargeWork: number;
+  readonly ammoLockoutWork: number;
   readonly rechargeStart: number;
   readonly rechargeReadyAt: number | null;
   readonly reservationId: string;
@@ -338,6 +338,9 @@ export type MesmerEmitDerivedEvent = (cause: SimulationEvent, event: SimulationE
 export type MesmerRefreshAmmo = (skill: MesmerSkill, at: number) => AmmoState | null;
 
 export interface MesmerRechargeContext {
+  readonly cooldownController: import('#gw2/platform/execution/types.js').CooldownController;
+  readonly at?: number;
+  readonly start?: number;
   readonly skill: MesmerSkill;
   readonly config: MesmerConfig;
   readonly ammoCastLockout?: boolean;

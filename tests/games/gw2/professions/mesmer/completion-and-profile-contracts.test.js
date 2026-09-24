@@ -134,7 +134,10 @@ test('cancelled Mimic cannot reset the next utility cooldown', () => {
 
   assert.equal(mimic.cancelled, true);
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.cooldowns['Signet of Illusions']?.readyAt, utility.rechargeReadyAt * 1000);
+  assert.equal(
+    result.planningState.cooldowns['Signet of Illusions']?.readyAt,
+    Math.ceil((utility.rechargeReadyAt * 1000) / 40) * 40
+  );
   assert.equal(
     result.events.some((event) => event.type === 'proc' && event.source === 'Mimic'),
     false

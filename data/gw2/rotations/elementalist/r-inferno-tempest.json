@@ -17,31 +17,31 @@
     },
     {
       "name": "Lightning Strike",
-      "offset": 28
+      "offset": 40
     },
     {
       "name": "Arc Lightning",
-      "interruptMs": 38
+      "interruptMs": 40
     },
     "Feel the Burn!",
     "Ride the Lightning",
     {
       "name": "Earth Attunement",
-      "offset": 123
+      "offset": 120
     },
     {
       "name": "Stone Shards",
-      "interruptMs": 86
+      "interruptMs": 80
     },
     "Earthquake",
     "Churning Earth",
     {
       "name": "Hurl",
-      "offset": 1
+      "offset": 0
     },
     {
       "name": "Fire Attunement",
-      "offset": 445
+      "offset": 440
     },
     "Phoenix",
     "Ring of Fire",
@@ -57,7 +57,7 @@
     "Flamestrike",
     {
       "name": "Flame Barrage",
-      "offset": 493
+      "offset": 480
     },
     "Flamestrike",
     "Flamestrike",
@@ -71,44 +71,44 @@
     "Fire Grab",
     {
       "name": "Air Attunement",
-      "offset": 167
+      "offset": 160
     },
     {
       "name": "Lightning Strike",
-      "offset": 521
+      "offset": 520
     },
     "Signet of Fire",
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 2309
+      "interruptMs": 2320
     },
     {
       "name": "Feel the Burn!",
-      "offset": 1521
+      "offset": 1520
     },
     "Overload Air",
     {
       "name": "Lightning Strike",
-      "offset": 281
+      "offset": 280
     },
     {
       "name": "Flame Barrage",
-      "offset": 2735
+      "offset": 2720
     },
     {
       "name": "Earth Attunement",
-      "offset": 435
+      "offset": 440
     },
     {
       "name": "Stone Shards",
-      "interruptMs": 84
+      "interruptMs": 80
     },
     "Earthquake",
     "Churning Earth",
     {
       "name": "Fire Attunement",
-      "offset": 799
+      "offset": 800
     },
     {
       "name": "Flamestrike",
@@ -128,7 +128,7 @@
     "Flamestrike",
     {
       "name": "Flame Barrage",
-      "offset": 281
+      "offset": 280
     },
     "Flamestrike",
     "Flamestrike",
@@ -140,23 +140,23 @@
     "Phoenix",
     {
       "name": "Air Attunement",
-      "offset": 243
+      "offset": 240
     },
     "Feel the Burn!",
     "Signet of Fire",
     {
       "name": "Lightning Strike",
-      "offset": 197
+      "offset": 200
     },
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 2443
+      "interruptMs": 2440
     },
     "Overload Air",
     {
       "name": "Lightning Strike",
-      "offset": 479
+      "offset": 480
     },
     "Earth Attunement",
     {
@@ -166,7 +166,7 @@
     "Earthquake",
     {
       "name": "Flame Barrage",
-      "offset": 638
+      "offset": 640
     },
     "Churning Earth",
     {
@@ -175,7 +175,7 @@
     },
     {
       "name": "Flamestrike",
-      "interruptMs": 76
+      "interruptMs": 80
     },
     "Phoenix",
     "Ring of Fire",
@@ -193,18 +193,18 @@
     "Flamestrike",
     {
       "name": "Flame Barrage",
-      "offset": 202
+      "offset": 200
     },
     {
       "name": "Flamestrike",
-      "interruptMs": 43
+      "interruptMs": 40
     },
     "Ring of Fire",
     "Dragon's Tooth",
     "Flamestrike",
     {
       "name": "Feel the Burn!",
-      "offset": 405
+      "offset": 400
     },
     "Flamestrike",
     "Flamestrike",
@@ -213,38 +213,38 @@
     "Fire Grab",
     {
       "name": "Air Attunement",
-      "offset": 161
+      "offset": 160
     },
     "Lightning Strike",
     "Signet of Fire",
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 2281
+      "interruptMs": 2280
     },
     "Overload Air",
     {
       "name": "Lightning Strike",
-      "offset": 395
+      "offset": 400
     },
     "Earth Attunement",
     {
       "name": "Stone Shards",
-      "interruptMs": 79
+      "interruptMs": 80
     },
     "Earthquake",
     "Churning Earth",
     {
       "name": "Flame Barrage",
-      "offset": 79
+      "offset": 80
     },
     {
       "name": "Fire Attunement",
-      "offset": 761
+      "offset": 760
     },
     {
       "name": "Flamestrike",
-      "interruptMs": 77
+      "interruptMs": 80
     },
     "Phoenix",
     "Ring of Fire",
@@ -259,13 +259,13 @@
     "Flamestrike",
     {
       "name": "Feel the Burn!",
-      "offset": 403
+      "offset": 400
     },
     "Flamestrike",
     "Flamestrike",
     {
       "name": "Flamestrike",
-      "interruptMs": 42
+      "interruptMs": 40
     },
     "Ring of Fire",
     {
@@ -279,27 +279,27 @@
     "Flamestrike",
     {
       "name": "Flamestrike",
-      "interruptMs": 76
+      "interruptMs": 80
     },
     "Phoenix",
     {
       "name": "Air Attunement",
-      "offset": 402
+      "offset": 400
     },
     "Signet of Fire",
     {
       "name": "Lightning Strike",
-      "offset": 241
+      "offset": 240
     },
     "Ride the Lightning",
     {
       "name": "Arc Lightning",
-      "interruptMs": 2641
+      "interruptMs": 2640
     },
     "Overload Air",
     {
       "name": "Lightning Strike",
-      "offset": 317
+      "offset": 320
     },
     {
       "name": "Earth Attunement",
@@ -307,7 +307,7 @@
     },
     {
       "name": "Stone Shards",
-      "interruptMs": 46
+      "interruptMs": 40
     },
     "Earthquake",
     "Churning Earth",
@@ -317,7 +317,7 @@
     },
     {
       "name": "Fire Attunement",
-      "offset": 122
+      "offset": 120
     },
     "Phoenix",
     "Ring of Fire",

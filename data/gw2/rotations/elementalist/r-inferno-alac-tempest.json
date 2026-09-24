@@ -33,7 +33,7 @@
     "Flamestrike",
     {
       "name": "Flame Barrage",
-      "offset": 540
+      "offset": 560
     },
     "Flamestrike",
     "Flamestrike",
@@ -60,7 +60,7 @@
     "Dragon's Tooth",
     {
       "name": "Flame Barrage",
-      "offset": 340
+      "offset": 360
     },
     "Glyph of Storms (Fire)",
     "Signet of Fire",
@@ -79,7 +79,7 @@
     "Signet of Fire",
     {
       "name": "Flame Barrage",
-      "offset": 340
+      "offset": 360
     },
     "Flamestrike",
     "Flamestrike",
@@ -102,7 +102,7 @@
     "Overload Fire",
     {
       "name": "Flame Barrage",
-      "offset": 2580
+      "offset": 2600
     },
     "Dragon's Tooth",
     "Transmute Fire",
@@ -126,7 +126,7 @@
     "Flamestrike",
     {
       "name": "Flame Barrage",
-      "offset": 540
+      "offset": 560
     },
     "Flamestrike",
     "Flamestrike",
@@ -148,7 +148,7 @@
     "Glyph of Storms (Fire)",
     {
       "name": "Flame Barrage",
-      "offset": 780
+      "offset": 800
     },
     "Signet of Fire",
     "Flamestrike",
@@ -173,7 +173,7 @@
     "Dragon's Tooth",
     {
       "name": "Flame Barrage",
-      "offset": 660
+      "offset": 680
     },
     "Signet of Fire",
     "Flamewall",
@@ -194,7 +194,7 @@
     "Flamestrike",
     {
       "name": "Flame Barrage",
-      "offset": 140
+      "offset": 160
     },
     "Flamestrike",
     "Phoenix",
@@ -215,7 +215,7 @@
     "Overload Fire",
     {
       "name": "Flame Barrage",
-      "offset": 2980
+      "offset": 3000
     },
     "Dragon's Tooth",
     "Fire Shield",

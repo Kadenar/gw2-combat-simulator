@@ -59,7 +59,7 @@ export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fr
     vigorRegenerationMultiplier: 1.5,
     effects: []
   },
-  variant(RANGER_CORE_BALANCE_PROFILE_IDS.attackOfOpportunity, ID.MAUL, 'Attack of Opportunity', {
+  variant(RANGER_CORE_BALANCE_PROFILE_IDS.attackOfOpportunity, ID.MAUL_SOULBEAST, 'Attack of Opportunity', {
     durationMultiplier: 10
   }),
   variant(RANGER_CORE_BALANCE_PROFILE_IDS.poisonousStrikes, ID.DOUBLE_ARC, 'Poisonous Strikes', {

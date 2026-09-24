@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import test from 'node:test';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import {
   rangerAttackOfOpportunityModifier,
@@ -21,6 +22,25 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 const strike = (result, id) => result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === id);
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
 
+test('Maul palette selects the player variant only while Soulbeast is merged', () => {
+  for (const [specialization, beastmodeActive, expectedId] of [
+    ['Core', undefined, ID.MAUL_BASE],
+    ['Soulbeast', undefined, ID.MAUL_SOULBEAST],
+    ['Soulbeast', true, ID.MAUL_SOULBEAST],
+    ['Soulbeast', false, ID.MAUL_BASE]
+  ]) {
+    for (const id of [ID.MAUL_SOULBEAST, ID.MAUL_BASE]) {
+      assert.equal(
+        rangerAppAdapter.isSkillAvailable(rangerCatalog.skillsById.get(id), {
+          specialization,
+          professionState: { beastmodeActive }
+        }),
+        id === expectedId
+      );
+    }
+  }
+});
+
 test('Ranger greatsword authors one strike per attack and the supplied recharge and effects', () => {
   for (const [id, coefficient] of [
     [ID.SLASH_ID_12474, 0.88],
@@ -28,8 +48,8 @@ test('Ranger greatsword authors one strike per attack and the supplied recharge 
     [ID.ENDURING_SWING, 1.76],
     [ID.SWOOP, 2.4],
     [ID.HILT_BASH, 2.5],
-    [ID.MAUL, 2.2],
-    [ID.MAUL_ID_46629, 2.2]
+    [ID.MAUL_SOULBEAST, 2.2],
+    [ID.MAUL_BASE, 2.2]
   ]) {
     const strikes = rangerCatalog.skillsById.get(id).effects.filter((effect) => effect.type === 'strike');
     assert.deepEqual(
@@ -39,15 +59,15 @@ test('Ranger greatsword authors one strike per attack and the supplied recharge 
   }
 
   for (const [id, cooldown] of [
-    [ID.MAUL, 4],
-    [ID.MAUL_ID_46629, 4],
+    [ID.MAUL_SOULBEAST, 4],
+    [ID.MAUL_BASE, 4],
     [ID.HILT_BASH, 20],
     [ID.SWOOP, 10]
   ]) {
     assert.equal(rangerCatalog.skillsById.get(id).cooldown, cooldown);
   }
 
-  const maul = rangerCatalog.skillsById.get(ID.MAUL);
+  const maul = rangerCatalog.skillsById.get(ID.MAUL_SOULBEAST);
   const vulnerability = maul.effects.find((effect) => effect.type === 'condition');
   assert.equal(vulnerability.condition, 'Vulnerability');
   assert.equal(vulnerability.stacks, 5);
@@ -80,9 +100,9 @@ test('Hilt Bash dazes normal targets, stuns defiant targets, and triggers player
 });
 
 test('Hilt Bash refreshes either Maul ID only after completing its cast', () => {
-  for (const maulId of [ID.MAUL, ID.MAUL_ID_46629]) {
+  for (const maulId of [ID.MAUL_SOULBEAST, ID.MAUL_BASE]) {
     const normal = simulate('Core', [maulId, maulId]);
-    assert.equal(normal.steps[1].start - normal.steps[0].end, 4000);
+    assert.equal(normal.steps[1].start, Math.ceil((normal.steps[0].end + 4000) / 40) * 40);
     const refreshed = simulate('Core', [maulId, ID.HILT_BASH, maulId]);
     assert.equal(refreshed.steps[2].start, refreshed.steps[1].end);
     const interrupted = simulate('Core', [
@@ -116,14 +136,16 @@ test('Enduring Swing grants 15 capped endurance on completion and none when inte
 
 test('Maul grants the active pet 50% on its next strike without changing later strikes', () => {
   const petStrikes = (result) =>
-    result.resolvedEvents.filter((event) => event.type === 'damage' && event.source === 'ranger-pet');
-  // Equal cast durations and fixed vulnerability keep pet timing and target modifiers identical.
+    result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.source === 'ranger-pet' && event.at >= result.steps.at(-2).end / 1000
+    );
+  // The player variant grants no pet bonus; equal timing and vulnerability isolate the pet variant's charge.
   for (const [specialization, prefix] of [
     ['Core', []],
     ['Soulbeast', [ID.LEAVE_BEASTMODE]]
   ]) {
-    const baseline = petStrikes(simulate(specialization, [...prefix, ID.SLASH_ID_12474, wait(3000)]));
-    const enhanced = petStrikes(simulate(specialization, [...prefix, ID.MAUL, wait(3000)]));
+    const baseline = petStrikes(simulate(specialization, [...prefix, ID.MAUL_SOULBEAST, wait(3000)]));
+    const enhanced = petStrikes(simulate(specialization, [...prefix, ID.MAUL_BASE, wait(3000)]));
     assert.ok(enhanced.length >= 2);
     assertFlooredDamageMultiplier(enhanced[0].damage, baseline[0].damage, 1.5);
     close(enhanced[1].damage / baseline[1].damage, 1);
@@ -136,20 +158,23 @@ test('Maul targets a swapped pet even when it has no autonomous attack profile',
       (event) => event.type === 'damage' && event.skillId === ID.RENDING_POUNCE
     );
   const baseline = run(ID.SLASH_ID_12474);
-  const enhanced = run(ID.MAUL);
+  const enhanced = run(ID.MAUL_BASE);
   // Rending Pounce's two simultaneous packets must consume the replacement pet's bonus once.
   assertFlooredDamageMultiplier(enhanced[0].damage, baseline[0].damage, 1.5);
   close(enhanced[1].damage / baseline[1].damage, 1);
 });
 
-test('Merged Maul grants 25% to the next player strike and expires after ten seconds', () => {
-  for (const maulId of [ID.MAUL, ID.MAUL_ID_46629]) {
+test('Only Soulbeast Maul grants 25% to the next player strike and expires after ten seconds', () => {
+  for (const maulId of [ID.MAUL_SOULBEAST, ID.MAUL_BASE]) {
     for (const [specialization, delay, multiplier] of [
-      ['Soulbeast', 0, 1.25],
+      ['Soulbeast', 0, maulId === ID.MAUL_SOULBEAST ? 1.25 : 1],
       ['Soulbeast', 10000, 1],
       ['Core', 0, 1]
     ]) {
-      const result = simulate(specialization, [maulId, wait(delay), ID.SLASH_ID_12474, ID.SLICE]);
+      // Concentration must not extend this unique buff beyond its ten-second window.
+      const result = simulate(specialization, [maulId, wait(delay), ID.SLASH_ID_12474, ID.SLICE], {
+        stats: { concentration: 1500 }
+      });
       const maul = strike(result, maulId);
       const slash = strike(result, ID.SLASH_ID_12474);
       const slice = strike(result, ID.SLICE);
@@ -159,7 +184,7 @@ test('Merged Maul grants 25% to the next player strike and expires after ten sec
   }
 
   const interrupted = simulate('Soulbeast', [
-    { type: 'cast', skillId: ID.MAUL, interruptAfterMs: 50 },
+    { type: 'cast', skillId: ID.MAUL_SOULBEAST, interruptAfterMs: 50 },
     ID.SLASH_ID_12474,
     ID.SLICE
   ]);

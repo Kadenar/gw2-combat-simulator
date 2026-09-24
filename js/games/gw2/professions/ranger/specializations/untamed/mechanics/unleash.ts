@@ -136,12 +136,12 @@ export const untamedSkillMechanicHandlers = Object.freeze({
     // This shared F5 recharge is fixed and therefore intentionally ignores Alacrity.
     const readyAt =
       castStart + balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'recharge');
-    context.state.cooldowns.set(ID.UNLEASH_RANGER, readyAt);
-    context.state.cooldowns.set(ID.UNLEASH_PET, readyAt);
+    context.cooldownController.setReadyAt(ID.UNLEASH_RANGER, readyAt);
+    context.cooldownController.setReadyAt(ID.UNLEASH_PET, readyAt);
     const action = context.events.find(
       (event) => event.type === 'action' && String(event.activationId || '') === activationId
     );
-    if (action) context.replaceEvent(action, { rechargeReadyAt: readyAt });
+    if (action) context.replaceEvent(action, { rechargeReadyAt: readyAt, rechargeProgress: undefined });
   }
 });
 

@@ -1,5 +1,6 @@
 import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 /**
@@ -259,6 +260,9 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly weaponStrengthProfileId?: string;
   readonly weaponStrength?: number;
   readonly cooldownReduction?: number;
+  /** Committed base work lets passive effects follow subsequent Alacrity changes. */
+  readonly rechargeProgress?: RechargeProgress;
+  readonly rechargeProgressBySkillId?: Readonly<Record<string, RechargeProgress>>;
   readonly audience?: EffectAudience;
   readonly resolvedAudience?: ResolvedEffectAudience;
   readonly metadata?: EffectMetadata;

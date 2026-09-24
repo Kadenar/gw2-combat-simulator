@@ -26,14 +26,14 @@
     },
     {
       "name": "__combat_start",
-      "offset": 900
+      "offset": 920
     },
     {
       "name": "Luminous Staff"
     },
     {
       "name": "Effulgent Stance",
-      "offset": 118
+      "offset": 120
     },
     {
       "name": "Radiant Resolve",
@@ -217,7 +217,7 @@
     {
       "name": "Radiant Resolve",
       "skillId": 78514,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Strike"
@@ -228,7 +228,7 @@
     {
       "name": "Radiant Courage",
       "skillId": 78358,
-      "offset": 285
+      "offset": 280
     },
     {
       "name": "Wrathful Strike"
@@ -250,11 +250,11 @@
     },
     {
       "name": "Effulgent Stance",
-      "offset": 139
+      "offset": 120
     },
     {
       "name": "Radiant Justice",
-      "offset": 125
+      "offset": 120
     },
     {
       "name": "Shining Spin"
@@ -382,7 +382,7 @@
     {
       "name": "Radiant Resolve",
       "skillId": 78514,
-      "offset": 100
+      "offset": 120
     },
     {
       "name": "Piercing Stance"
@@ -466,11 +466,11 @@
     },
     {
       "name": "Radiant Justice",
-      "offset": 118
+      "offset": 120
     },
     {
       "name": "Effulgent Stance",
-      "offset": 90
+      "offset": 80
     },
     {
       "name": "Shining Spin"
@@ -507,7 +507,7 @@
     {
       "name": "Radiant Courage",
       "skillId": 78358,
-      "offset": 201
+      "offset": 200
     },
     {
       "name": "Strike"
@@ -590,11 +590,11 @@
     },
     {
       "name": "Effulgent Stance",
-      "offset": 166
+      "offset": 160
     },
     {
       "name": "Radiant Justice",
-      "offset": 1
+      "offset": 0
     },
     {
       "name": "Luminous Staff"
@@ -614,7 +614,7 @@
     {
       "name": "Radiant Resolve",
       "skillId": 78514,
-      "offset": 202
+      "offset": 200
     },
     {
       "name": "Shining Spin"

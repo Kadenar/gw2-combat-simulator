@@ -11,7 +11,7 @@
     },
     {
       "name": "Feel the Burn!",
-      "offset": 58
+      "offset": 40
     },
     "Fulgor",
     {
@@ -25,13 +25,13 @@
     "Volcano",
     {
       "name": "Air Attunement",
-      "offset": 202
+      "offset": 200
     },
     "Etching: Derecho",
     "Twister",
     {
       "name": "Energize",
-      "offset": 326
+      "offset": 320
     },
     "Lightning Javelin",
     "Derecho",
@@ -40,19 +40,19 @@
     "Overload Air",
     {
       "name": "Earth Attunement",
-      "offset": 3175
+      "offset": 3160
     },
     "Fissure",
     "Earthen Spear",
     {
       "name": "Air Attunement",
-      "offset": 206
+      "offset": 200
     },
     "Fulgor",
     "Glyph of Storms (Air)",
     {
       "name": "Flame Barrage",
-      "offset": 342
+      "offset": 360
     },
     "Lightning Javelin",
     "Lightning Javelin",
@@ -60,7 +60,7 @@
     "Fulgor",
     {
       "name": "Fire Attunement",
-      "offset": 163
+      "offset": 160
     },
     "Etching: Volcano",
     "Meteor",
@@ -69,7 +69,7 @@
     "Volcano",
     {
       "name": "Air Attunement",
-      "offset": 198
+      "offset": 200
     },
     "Etching: Derecho",
     {
@@ -87,17 +87,17 @@
     "Overload Air",
     {
       "name": "Flame Barrage",
-      "offset": 816
+      "offset": 800
     },
     {
       "name": "Earth Attunement",
-      "offset": 2345
+      "offset": 2360
     },
     "Fissure",
     "Earthen Spear",
     {
       "name": "Air Attunement",
-      "offset": 239
+      "offset": 240
     },
     "Fulgor",
     "Lightning Javelin",
@@ -108,26 +108,26 @@
     "Fulgor",
     {
       "name": "Fire Attunement",
-      "offset": 126
+      "offset": 120
     },
     "Etching: Volcano",
     "Meteor",
     "Blazing Barrage",
     {
       "name": "Flame Barrage",
-      "offset": 379
+      "offset": 360
     },
     "Seethe",
     "Volcano",
     {
       "name": "Air Attunement",
-      "offset": 203
+      "offset": 200
     },
     "Etching: Derecho",
     "Twister",
     {
       "name": "Energize",
-      "offset": 358
+      "offset": 360
     },
     "Lightning Javelin",
     "Derecho",
@@ -136,17 +136,17 @@
     "Overload Air",
     {
       "name": "Feel the Burn!",
-      "offset": 122
+      "offset": 120
     },
     {
       "name": "Earth Attunement",
-      "offset": 3159
+      "offset": 3160
     },
     "Fissure",
     "Earthen Spear",
     {
       "name": "Air Attunement",
-      "offset": 199
+      "offset": 200
     },
     "Fulgor",
     "Lightning Javelin",
@@ -158,13 +158,13 @@
     },
     {
       "name": "Flame Barrage",
-      "offset": 301
+      "offset": 320
     },
     "Overload Air",
     "Fulgor",
     {
       "name": "Fire Attunement",
-      "offset": 127
+      "offset": 120
     },
     "Etching: Volcano",
     "Meteor",
@@ -173,7 +173,7 @@
     "Volcano",
     {
       "name": "Air Attunement",
-      "offset": 204
+      "offset": 200
     },
     "Etching: Derecho",
     "Twister",
@@ -188,21 +188,21 @@
     "Overload Air",
     {
       "name": "Flame Barrage",
-      "offset": 2385
+      "offset": 2400
     },
     {
       "name": "Earth Attunement",
-      "offset": 740
+      "offset": 760
     },
     "Fissure",
     "Earthen Spear",
     {
       "name": "Air Attunement",
-      "offset": 243
+      "offset": 240
     },
     {
       "name": "Feel the Burn!",
-      "offset": 403
+      "offset": 400
     },
     "Fulgor",
     "Glyph of Storms (Air)",
@@ -212,7 +212,7 @@
     "Fulgor",
     {
       "name": "Fire Attunement",
-      "offset": 163
+      "offset": 160
     },
     "Etching: Volcano",
     "Meteor",
@@ -221,17 +221,17 @@
     "Volcano",
     {
       "name": "Air Attunement",
-      "offset": 241
+      "offset": 240
     },
     "Etching: Derecho",
     "Twister",
     {
       "name": "Flame Barrage",
-      "offset": 265
+      "offset": 280
     },
     {
       "name": "Energize",
-      "offset": 91
+      "offset": 80
     },
     "Lightning Javelin",
     "Derecho",
@@ -239,13 +239,13 @@
     "Overload Air",
     {
       "name": "Earth Attunement",
-      "offset": 3122
+      "offset": 3120
     },
     "Fissure",
     "Earthen Spear",
     {
       "name": "Air Attunement",
-      "offset": 243
+      "offset": 240
     },
     "Fulgor",
     "Lightning Javelin",
@@ -256,12 +256,12 @@
     "Overload Air",
     {
       "name": "Flame Barrage",
-      "offset": 1545
+      "offset": 1560
     },
     "Fulgor",
     {
       "name": "Fire Attunement",
-      "offset": 159
+      "offset": 160
     },
     "Etching: Volcano",
     "Meteor",
@@ -285,7 +285,7 @@
     "Overload Air",
     {
       "name": "Earth Attunement",
-      "offset": 3118
+      "offset": 3120
     },
     "Fissure",
     "Earthen Spear"

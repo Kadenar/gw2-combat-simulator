@@ -3,7 +3,6 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2EffectiveCooldown, gw2RechargeRate } from '#gw2/platform/skills/recharge.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerMaximumAmmoContext, MesmerRechargeContext } from '#gw2/professions/mesmer/types.js';
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
@@ -17,7 +16,7 @@ import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mes
  * Mesmer-adjusted recharge duration.
  */
 export function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDuration: number): number {
-  const { skill, config } = context;
+  const { skill } = context;
   if (context.ammoCastLockout) return sharedDuration;
   if (skill.id === ID.SWAP_WEAPONS) {
     return sharedDuration === 0 ? 0 : Number(skill.cooldown || 0);
@@ -38,7 +37,7 @@ export function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDurat
     multiplier *= balanceProfileNumber(fencersFinesseProfile, 'rechargeMultiplier');
   }
 
-  const rechargeRate = gw2RechargeRate(config, { alacrityRate: 1.25 });
+  const rechargeRate = context.cooldownController.rate(skill, Number(context.at ?? context.start));
   const shatter = mesmerRuntimeFor(context).shatters[skill.id];
   if (shatter?.rechargeReductionPerSource) {
     const clones = mesmerRuntimeFor(context).actions.currentResource();
@@ -47,10 +46,8 @@ export function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDurat
     return Math.max(0, baseCooldown * multiplier - reduction) / rechargeRate;
   }
 
-  return gw2EffectiveCooldown(skill, config, {
-    cooldownMultiplier: multiplier,
-    rechargeRate
-  });
+  // Shared recharge already uses the owner's current Alacrity rate, including transient grants.
+  return sharedDuration * multiplier;
 }
 
 /**

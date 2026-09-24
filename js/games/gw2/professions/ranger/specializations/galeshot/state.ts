@@ -9,9 +9,8 @@ export interface GaleshotState {
   cycloneBowActive: boolean;
   arrows: number;
   maximumArrows: number;
-  arrowsUpdatedAt: number;
-  /** Accumulated recharge in baseline seconds, independent of the current Alacrity rate. */
-  arrowRechargeProgress: number;
+  /** Next fixed-cadence grant; initialized from the resource profile on first advancement. */
+  nextArrowAt: number | null;
   windForce: number;
   galeForceUntil: number;
   mistralUntil: number;
@@ -28,7 +27,7 @@ export const GALESHOT_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   cycloneBowActive: false,
   arrows: 0,
   maximumArrows: 8,
-  arrowsUpdatedAt: 0,
+  nextArrowAt: null,
   windForce: 0,
   galeForceUntil: 0,
   mistralUntil: 0,
@@ -43,8 +42,7 @@ export function createGaleshotState(config: RangerConfig = {}): GaleshotState {
     cycloneBowActive: false,
     arrows: boundedNumber(config.initialArrows ?? 8, 8, 0, 8), // clamped so a bad preset can't exceed the cap
     maximumArrows: 8,
-    arrowsUpdatedAt: 0,
-    arrowRechargeProgress: 0,
+    nextArrowAt: null,
     windForce: 0,
     galeForceUntil: 0,
     mistralUntil: 0,

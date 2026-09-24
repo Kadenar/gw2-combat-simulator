@@ -12,12 +12,7 @@ import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.j
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { ScheduledTask } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { elementalistAlacrityAdjustedDuration } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import {
-  ELEMENTALIST_ATTUNEMENTS,
-  setElementalistAttunementReadyAt,
-  type ElementalistAttunement
-} from '#gw2/professions/elementalist/core/state.js';
+import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { WEAVER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
@@ -92,14 +87,7 @@ export function applyWeaveSelfAttunement(
   if (!(state.weaveSelfUntil > at)) return;
 
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const recharge = elementalistAlacrityAdjustedDuration(
-    context as never,
-    balanceProfileNumber(resourcesProfile, 'initialDelay')
-  );
-  for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
-    setElementalistAttunementReadyAt(context, attunement, at + recharge);
-  }
-
+  // Attunement completion already applied recharge; this observer only advances Weave Self's buffs and visited elements.
   const visited = new Set(state.weaveSelfVisited);
   visited.add(target);
   state.weaveSelfVisited = [...visited];

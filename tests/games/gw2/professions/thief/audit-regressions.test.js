@@ -140,7 +140,7 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
       assert.deepEqual(result.warnings, []);
       assert.equal(core.endurance, Math.min(core.maximumEndurance, initial + 100));
       assert.equal(scheduled.context.state.cooldowns.get(ID.SIGNET_OF_AGILITY), 30);
-      const timeline = createGw2TimelineIndex({ events: result.events });
+      const timeline = createGw2TimelineIndex({ events: result.events, skillsById: thiefCatalog.skillsById });
       for (const professionStaticRulesApplied of [false, true]) {
         const config = { selectedSkills, attributeProvenance: { professionStaticRulesApplied } };
         const attributes = { ...baseConfig.stats, precision: professionStaticRulesApplied ? 1180 : 1000 };
@@ -180,7 +180,7 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
     { type: 'cooldown-reset' }
   ]);
   assert.deepEqual(reset.warnings, []);
-  const timeline = createGw2TimelineIndex({ events: reset.events });
+  const timeline = createGw2TimelineIndex({ events: reset.events, skillsById: thiefCatalog.skillsById });
   assert.equal(
     thiefCoreAttributeRules.modifyAttributes(
       { catalog: thiefCatalog, config: { selectedSkills }, timeline, time: 2 },
@@ -239,10 +239,10 @@ test('permanent Vigor bypasses history for Thief advancement and readiness', () 
       }
     })
   };
-  near(thiefEnduranceReadyAt({ ...current, start: 0 }, 50), 50 / 7.5);
+  near(thiefEnduranceReadyAt({ ...current, start: 0 }, 50), 6.68);
   advanceThiefCoreResources(current, 4);
   assert.equal(state.endurance, 30);
-  near(thiefEnduranceReadyAt({ ...current, start: 4 }, 50), 4 + 20 / 7.5);
+  near(thiefEnduranceReadyAt({ ...current, start: 4 }, 50), 6.68);
   advanceThiefCoreResources(current, 100);
   assert.equal(state.endurance, state.maximumEndurance);
 });
@@ -319,7 +319,7 @@ test('THF-001: Hidden Killer requires stealth and lingers after either natural e
 });
 
 test('THF-002: Signet of Shadows is excluded from the simulator', () => {
-  assert.equal(thiefCatalog.skillsById.has(ID.SIGNET_OF_SHADOWS), false);
+  assert.equal(thiefCatalog.skillsById.has(13060), false);
   assert.equal(thiefCatalog.skillsByName.has('Signet of Shadows'), false);
 });
 
@@ -565,7 +565,7 @@ test('THF-012: manual shroud exit waits for entry lockout while forced depletion
   assert.equal(manual.planningState.profession.shadowShroudActive, false);
   const depleted = simulate('Specter', ['Enter Shadow Shroud', wait(1000)], { initialShadowForce: 0.5 });
   assert.deepEqual(depleted.warnings, []);
-  assert.equal(depleted.events.find((event) => event.reason === 'shadow-shroud-depleted').at, 0.25);
+  assert.equal(depleted.events.find((event) => event.reason === 'shadow-shroud-depleted').at, 0.28);
   assert.equal(depleted.planningState.profession.shadowShroudActive, false);
 });
 

@@ -13,7 +13,7 @@
     { "name": "Chant of Action", "skillId": 77342 },
     "Signet of Fury",
     "Bull's Charge",
-    { "name": "__combat_start", "offset": 639 },
+    { "name": "__combat_start", "offset": 640 },
     "Breaching Strike",
     "Crushing Blow",
     "Tremor",

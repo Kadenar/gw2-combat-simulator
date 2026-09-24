@@ -1077,7 +1077,7 @@
     {
       "type": "cast",
       "skillId": 29233,
-      "interruptAfterMs": 420
+      "interruptAfterMs": 440
     },
     {
       "type": "wait",

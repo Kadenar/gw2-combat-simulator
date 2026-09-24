@@ -355,7 +355,7 @@ function finalizeRadiantForgeCooldown(context: GuardianSchedulerContext, at: num
   if (!enter || !state.radiantForge) return;
   // Manual exits and timed expiry before combat leave Forge ready for the opener.
   if (context.hasExplicitCombatStart && (context.combatStartTime == null || at < context.combatStartTime)) {
-    context.state.cooldowns.delete(enter.id);
+    context.cooldownController.clear(enter.id);
     return;
   }
 
@@ -375,7 +375,11 @@ function finalizeRadiantForgeCooldown(context: GuardianSchedulerContext, at: num
   // traits still apply proportionally to the adjusted cooldown.
   const fullEffective = context.rechargeDurationFor(enter, at);
   const rechargeScale = baseRecharge > 0 ? fullEffective / baseRecharge : 1;
-  context.state.cooldowns.set(enter.id, at + adjustedBase * rechargeScale);
+  context.cooldownController.startRecharge(
+    enter,
+    at,
+    adjustedBase * rechargeScale * context.cooldownController.rate(enter, at)
+  );
 }
 
 /**

@@ -1172,7 +1172,9 @@ test('Soulcleave procs both damage packets and recharges from dismissal', () => 
 
   assert.equal(
     result.steps.at(-1).start,
-    dismiss.end + revenantCatalog.skillsByName.get("Soulcleave's Summit").manualReleaseCooldown * 1000
+    Math.ceil(
+      (dismiss.end + revenantCatalog.skillsByName.get("Soulcleave's Summit").manualReleaseCooldown * 1000) / 40
+    ) * 40
   );
 });
 

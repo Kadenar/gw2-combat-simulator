@@ -1,6 +1,5 @@
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import {
   requireBalanceProfileFromContext,
@@ -44,16 +43,15 @@ export const rangerAttackOfOpportunityModifier: Gw2ModifierRule = {
   }
 };
 
-/** Grant Maul's next-attack bonus after its own strike resolves, to the selected recipient. */
+/** Each Maul ID grants its own recipient's next-attack bonus after its strike resolves. */
 export function grantMaulAttackOfOpportunity(
   context: RangerResolverContext,
   event: Gw2ResolverEvent,
   recipient: 'pet' | 'player'
 ): void {
-  if (!isPlayerStrike(event) || (event.skillId !== ID.MAUL && event.skillId !== ID.MAUL_ID_46629)) return;
-  queueResolverBoon(
-    context,
-    event,
+  const maulId = recipient === 'player' ? ID.MAUL_SOULBEAST : ID.MAUL_BASE;
+  if (!isPlayerStrike(event) || event.skillId !== maulId) return;
+  context.queue.enqueue(
     buildResolverBuff({
       at: event.at,
       source: 'ranger',

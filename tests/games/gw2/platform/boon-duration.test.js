@@ -437,5 +437,5 @@ test('GW2 duration-stacks Alacrity from repeated grants', () => {
       'Stacked Alacrity Cooldown'
     ]
   });
-  assert.equal(result.planningState.cooldowns['Stacked Alacrity Cooldown'].readyAt, 11000);
+  assert.equal(result.planningState.cooldowns['Stacked Alacrity Cooldown'].readyAt, 12760);
 });

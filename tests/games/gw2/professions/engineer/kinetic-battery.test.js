@@ -29,7 +29,7 @@ test('every mech command retains tool-belt classification and Tools reactions', 
   assert.equal(result.planningState.profession.kineticCharges, 1);
   assert.ok(result.events.some((event) => event.kind === 'vigor'));
   assert.ok(result.resolvedEvents.some((event) => event.name === 'Static Discharge'));
-  assert.equal(result.planningState.cooldowns['Discharge Array'].readyAt, 25500);
+  assert.equal(result.planningState.cooldowns['Discharge Array'].readyAt, 25520);
 });
 
 test('mech command charges count when issued, before the independent animation completes', () => {

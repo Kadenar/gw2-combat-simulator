@@ -38,7 +38,11 @@ export const elementalistRockBarrierMechanicHandlers = Object.freeze({
     const root = context.catalog.skillsById.get(ID.ROCK_BARRIER);
     if (root) {
       const releaseQuery: ElementalistRechargeQuery = { rockBarrierRelease: true };
-      context.state.cooldowns.set(root.id, at + context.rechargeDurationFor(root, at, releaseQuery));
+      context.cooldownController.startRecharge(
+        root,
+        at,
+        context.rechargeDurationFor(root, at, releaseQuery) * context.cooldownController.rate(root, at)
+      );
     }
   }
 });

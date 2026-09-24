@@ -189,6 +189,7 @@ test('Fresh Air shares one candidate batch with lookahead and consumes replaceme
     eventByOrder: (order) => events.get(order),
     emit: (event) => emitted.push(event)
   };
+  context.cooldownController = { clear: (id) => context.state.cooldowns.delete(id) };
   for (const hook of freshAirReaction.initialize) hook.handler(context);
   for (const [eventOrder, at, didCrit] of [
     [1, 3, false],

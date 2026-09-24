@@ -1703,7 +1703,7 @@ test('Sinister Shroud reduces shroud-skill recharge by fifteen percent', () => {
   assert.equal(
     base.steps.filter((step) => step.skill === 'Anguish')[1].start -
       sinister.steps.filter((step) => step.skill === 'Anguish')[1].start,
-    1050
+    1040
   );
 });
 

@@ -565,7 +565,7 @@ test('Photon Forge passive heat restarts its cadence on each entry', () => {
     .map((event) => event.at);
 
   // Each Forge entry owns a fresh 100 ms passive timer; manual exit invalidates the old timer.
-  assert.deepEqual(passiveHeatTimes, [0.35, 1.35]);
+  assert.deepEqual(passiveHeatTimes, [0.35, 1.38]);
 });
 
 test('Overheat blocks Forge and weapon inputs until the rotation exits', () => {
@@ -657,14 +657,14 @@ test('Overheat delays its tool-belt minimum cooldown until the damage effect', (
   );
   assert.deepEqual(
     grenadeBarrageStarts(['Engage Photon Forge', { type: 'wait', durationMs: 6660 }, 'Grenade Barrage']),
-    [21660]
+    [21680]
   );
   assert.deepEqual(
     grenadeBarrageStarts(
       ['Engage Photon Forge', { type: 'wait', durationMs: 6660 }, 'Grenade Barrage'],
       [TRAIT.PHOTONIC_BLASTING_MODULE]
     ),
-    [11660]
+    [11680]
   );
   assert.deepEqual(
     grenadeBarrageStarts([

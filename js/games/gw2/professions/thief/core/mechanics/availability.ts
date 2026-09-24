@@ -1,5 +1,6 @@
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { EPSILON } from '#kernel/core/clock.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import {
@@ -130,11 +131,12 @@ export function thiefCoreCastAvailability(context: ThiefPrecastContext, skill: T
 
   if (Number(skill.initiativeCost || 0) > state.initiative + EPSILON) {
     const missing = Number(skill.initiativeCost || 0) - Number(state.initiative || 0);
+    // Retain fractional initiative while waiting for the tick that detects affordability.
     return deny(
       skill,
       'thief.initiative',
       `requires ${skill.initiativeCost} initiative.`,
-      context.start + Math.max(0, missing) / thiefInitiativeRegenerationRate(state, context)
+      gw2CooldownReadyAt(context.start + Math.max(0, missing) / thiefInitiativeRegenerationRate(state, context))
     );
   }
 

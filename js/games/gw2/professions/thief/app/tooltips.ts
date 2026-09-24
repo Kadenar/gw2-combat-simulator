@@ -178,7 +178,7 @@ const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
         'additional strike with Meticulous Custodian'
       ).facts
     );
-  } else if (entity.id === ID.SUMMON_KRYPTIS_TURRET_ID_77192) {
+  } else if (entity.id === ID.SUMMON_KRYPTIS_TURRET) {
     description += ' Starts a temporary player strike-damage bonus.';
     window(true);
     facts.push(
@@ -580,7 +580,7 @@ export const thiefTooltips: ProfessionTooltips = {
         };
       }
 
-      if (entity.id === ID.CANACH_COIN_TOSS_ID_77230)
+      if (entity.id === ID.CANACH_COIN_TOSS)
         return {
           description: `${description} Coin tosses follow a deterministic alternating sequence. Heads restores more initiative than tails; backfire reduces the initiative returned.`,
           facts: []

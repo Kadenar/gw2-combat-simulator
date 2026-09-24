@@ -40,6 +40,7 @@ import { applyInscriptionAirEntry, applyOneWithAir } from '#gw2/professions/elem
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { evokerState, type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
+import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 
 // Evocation's five-second trait ICD applies to some Fire and Earth entry effects
 const EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES = new Set<Skill['id']>([
@@ -108,6 +109,7 @@ export function applyEvokerAttunementRechargePolicy(
 
   const previous = event.from;
   const target = event.to;
+  const skill = context.catalog.skillsById.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[target])!;
   const commandIndex = Number(event.commandIndex);
   // snapshot captured by availability.ts before the swap; lets us honor shorter cooldowns already in progress
   const preserved = state.pendingOffAttunementRemainingByCommand[commandIndex] || {};
@@ -126,7 +128,12 @@ export function applyEvokerAttunementRechargePolicy(
       Math.max(
         Number(readyAtBefore[previous] || 0),
         event.at +
-          elementalistAttunementRechargeDuration(context as never, balanceProfileNumber(resourcesProfile, 'recharge'))
+          elementalistAttunementRechargeDuration(
+            context,
+            skill,
+            balanceProfileNumber(resourcesProfile, 'recharge'),
+            event.at
+          )
       )
     );
   }
@@ -136,7 +143,12 @@ export function applyEvokerAttunementRechargePolicy(
     const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
     const defaultReadyAt =
       event.at +
-      elementalistAttunementRechargeDuration(context as never, balanceProfileNumber(resourcesProfile, 'recharge'));
+      elementalistAttunementRechargeDuration(
+        context,
+        skill,
+        balanceProfileNumber(resourcesProfile, 'recharge'),
+        event.at
+      );
     const existingReadyAt = Number(readyAtBefore[attunement] || 0);
     const preservedRemaining = Number(preserved[attunement] || 0);
     // if the attunement already had less time left than the new default, keep the shorter timer

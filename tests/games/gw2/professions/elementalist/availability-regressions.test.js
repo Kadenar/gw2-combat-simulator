@@ -1,3 +1,4 @@
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
@@ -30,11 +31,12 @@ test('Arcane Echo requires an armed, unexpired window and consumes it only once'
       [echo.id, 30]
     ]);
     const context = {
-      state: { profession: { core }, cooldowns },
+      state: { time: 0, profession: { core }, cooldowns, rechargeProgress: new Map(), ammo: new Map() },
       catalog: elementalistCatalog,
       effectiveEnd: 0,
-      rechargeDuration: 5
+      rechargeWork: 5
     };
+    context.cooldownController = createCooldownController({ state: context.state, rechargeDuration: () => 5 });
     if (armed) completeArcaneEcho(context, echo);
     context.effectiveEnd = at;
     completeArcaneEcho(context, weapon);

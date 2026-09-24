@@ -8,11 +8,13 @@ import {
   normalizeBoonDuration
 } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
+import { gw2RechargeIntervals, projectRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
+import { gw2CooldownReadyAt, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { insertSorted } from '#kernel/core/collections.js';
 import { eventCausalOrder } from '#kernel/events/queue.js';
@@ -20,6 +22,7 @@ import { eventCausalOrder } from '#kernel/events/queue.js';
 interface CreateGw2TimelineIndexOptions {
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
+  readonly skillsById?: ReadonlyMap<SkillId, Skill>;
   readonly resolved?: boolean;
   readonly sigilSet?: (config: Gw2Config, weaponSet: number) => Gw2SigilSet;
 }
@@ -47,6 +50,7 @@ interface CachedBuffStacks {
 export function createGw2TimelineIndex({
   config = {},
   events = [],
+  skillsById,
   resolved = false,
   sigilSet = gw2SigilSet
 }: CreateGw2TimelineIndexOptions = {}): Readonly<Gw2TimelineIndex> {
@@ -269,22 +273,34 @@ export function createGw2TimelineIndex({
     }
 
     let readyAt = 0;
+    let progress: RechargeProgress | undefined;
     for (let index = low - 1; index >= 0; index -= 1) {
       const event = history[index];
       if (event.type === 'action') {
         // Predictions must not see their own action's cooldown; resolved history contains only completed events.
         if (!resolved && canonicalTime(event.at) === time) continue;
         readyAt = Number(event.rechargeReadyAt || 0);
+        progress = event.rechargeProgress;
       } else if (event.type === 'cooldown_snapshot') {
         // A snapshot replaces prior knowledge for the requested skill.
         const cooldowns = (event.cooldowns || {}) as Readonly<Record<string, unknown>>;
         readyAt = Number(cooldowns[String(skillId)] || 0);
+        progress = event.rechargeProgressBySkillId?.[String(skillId)];
       } else if (event.type === 'marker' && event.action === 'cooldown-reset') {
         // Training-area resets restore signet passives as soon as the scheduler clears their recharge.
         readyAt = 0;
       }
 
       break;
+    }
+
+    if (progress) {
+      // Reintegrate committed work instead of trusting the deadline predicted at cast or rewind time.
+      const skill = skillsById?.get(skillId);
+      if (!skill) throw new Error(`Missing skill ${skillId} for passive recharge query.`);
+      readyAt = gw2CooldownReadyAt(
+        projectRecharge(progress, gw2RechargeIntervals(config, events, skill, progress.startedAt, Infinity))
+      );
     }
 
     const value = readyAt === Infinity || canonicalTime(readyAt) > time;
@@ -311,11 +327,16 @@ export function createGw2TimelineIndex({
     vigorActiveAt,
     activeWeaponSetAt,
     activeSigilSetAt,
-    skillOnCooldownAt
+    skillOnCooldownAt,
+    rechargeReadyAt(skill: Skill, progress: RechargeProgress): number {
+      // Resolver history contains only executed events, independently of optional reporting.
+      return projectRecharge(progress, gw2RechargeIntervals(config, events, skill, progress.startedAt, Infinity));
+    }
   });
 }
 
 export interface Gw2TimelineIndex {
+  rechargeReadyAt(skill: Skill, progress: RechargeProgress): number;
   /** Invalidates indexed history after the source owner replaces an event. */
   onEventReplaced(previous: SimulationEvent, replacement: SimulationEvent): void;
   buffStacksAt(

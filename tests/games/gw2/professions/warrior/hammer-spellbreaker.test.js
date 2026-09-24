@@ -5,6 +5,68 @@ import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/prof
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
+import {
+  observeSpellbreakerEvent,
+  reactToSpellbreakerDamage
+} from '#gw2/professions/warrior/specializations/spellbreaker/traits/index.js';
+
+// Both execution stages must integrate a temporary boon and detect completion on the next 40 ms tick.
+test('Magebane Tether integrates Alacrity gained or lost during its recharge', () => {
+  for (const stage of ['scheduler', 'resolver']) {
+    for (const alacrityAt of [0, 2]) {
+      const config = { specialization: 'Spellbreaker', selectedTraitIds: [TRAIT.MAGEBANE_TETHER] };
+      const profession = warriorProfession.resolveRuntime(config);
+      const events = [];
+      const scheduler = createScheduler({ profession, config, schedulerPolicy: createGw2SchedulerPolicy(config) });
+      const context =
+        stage === 'scheduler'
+          ? scheduler.context
+          : {
+              config,
+              profession,
+              catalog: profession.catalog,
+              helpers: profession.catalog,
+              state: { profession: profession.createProfessionState(config) },
+              query: { timeline: createGw2TimelineIndex({ config, events, resolved: true }) },
+              recordProc() {}
+            };
+      const observe = stage === 'scheduler' ? observeSpellbreakerEvent : reactToSpellbreakerDamage;
+      const alacrity = {
+        type: 'buff',
+        kind: 'alacrity',
+        at: alacrityAt,
+        duration: 4.08,
+        stacks: 1,
+        source: 'fixture',
+        sourceId: 'fixture',
+        actorType: 'player',
+        resolvedAudience: {
+          includesSelf: true,
+          includesSummons: false,
+          alliedPlayerCount: 0,
+          companionIds: [],
+          recipientCount: 1
+        }
+      };
+      const grantAlacrity = () => (stage === 'scheduler' ? context.emit(alacrity) : events.push(alacrity));
+      if (alacrityAt === 0) grantAlacrity();
+      const hit = { type: 'damage', actorType: 'player', coefficient: 1, skillId: ID.BREACHING_STRIKE, at: 0 };
+      observe(context, hit);
+      if (alacrityAt > 0) grantAlacrity();
+      const state = spellbreakerState.from(context);
+      assert.equal(state.magebaneTetherUntil, 8);
+      // 12 seconds of work completes at 10.98; readiness is first detected at 11.00.
+      observe(context, { ...hit, at: 10.99 });
+      assert.equal(state.magebaneTetherUntil, 8, `${stage}: blocked before the tick`);
+      observe(context, { ...hit, at: 11 });
+      assert.equal(state.magebaneTetherUntil, 19, `${stage}: ready at the tick`);
+    }
+  }
+});
 
 const baseConfig = Object.freeze({
   stats: {

@@ -1,4 +1,5 @@
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import type { SchedulerRunResult } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ProfessionContract, Gw2SimulationPlanningState } from '#gw2/platform/simulation/types.js';
@@ -16,18 +17,28 @@ export function planningState(
     [...scheduled.state.cooldowns].map(([id, readyAt]) => [
       skillName(id),
       {
-        readyAt: Math.round(readyAt * 1000),
-        remaining: Math.max(0, Math.round((readyAt - endTime) * 1000))
+        readyAt: Math.round(gw2CooldownReadyAt(readyAt) * 1000),
+        remaining: Math.max(0, Math.round((gw2CooldownReadyAt(readyAt) - endTime) * 1000))
       }
     ])
   );
-  const ammo = Object.fromEntries(
-    [...scheduled.state.ammo].map(([id, value]) => [skillName(id), structuredClone(value)])
+  // UI deadlines report the detection tick while the scheduler retains unrounded recharge progress.
+  const ammoEntries = [...scheduled.state.ammo].map(
+    ([id, value]) =>
+      [
+        id,
+        {
+          charges: value.charges,
+          maximum: value.maximum,
+          rechargeWork: value.rechargeWork,
+          nextRechargeAt: value.nextRechargeAt == null ? null : gw2CooldownReadyAt(value.nextRechargeAt),
+          ...(value.lockoutReadyAt == null ? {} : { lockoutReadyAt: gw2CooldownReadyAt(value.lockoutReadyAt) })
+        }
+      ] as const
   );
+  const ammo = Object.fromEntries(ammoEntries.map(([id, value]) => [skillName(id), value]));
   // Preserve exact skill identities for UI consumers because API variants can share names.
-  const ammoBySkillId = Object.fromEntries(
-    [...scheduled.state.ammo].map(([id, value]) => [String(id), structuredClone(value)])
-  );
+  const ammoBySkillId = Object.fromEntries(ammoEntries.map(([id, value]) => [String(id), structuredClone(value)]));
   // Profession projections receive only scheduler-owned inputs.
   const projected = profession.projectPlanningState({
     schedulerContext: scheduled.context,

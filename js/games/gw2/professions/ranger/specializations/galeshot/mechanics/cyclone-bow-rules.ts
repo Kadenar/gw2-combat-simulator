@@ -102,7 +102,7 @@ export function applyGaleshotCycloneBowTraits(context: RangerCastContext, skill:
     [ID.QUARRYS_PERIL, ID.SUPERSONIC_ARROW].includes(skill.id as typeof ID.QUARRYS_PERIL | typeof ID.SUPERSONIC_ARROW)
   ) {
     // Cloudburst trait: these two skills reset Bluster's cooldown on cast.
-    context.state.cooldowns.delete(ID.BLUSTER);
+    context.cooldownController.clear(ID.BLUSTER);
   }
 }
 

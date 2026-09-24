@@ -29,10 +29,22 @@ export function completeArcaneEcho(context: ElementalistCastContext, skill: Skil
 
   state.arcaneEchoUntil = 0;
   const arcaneEchoProfile = requireBalanceProfileFromContext(context, PROFILE.arcaneEcho);
-  context.state.cooldowns.set(skill.id, context.effectiveEnd + balanceProfileNumber(arcaneEchoProfile, 'recharge'));
+  // Capture the weapon skill's committed base-recharge work before replacing its cooldown with the reset delay.
+  const addedWork = context.state.rechargeProgress.get(skill.id)?.work ?? context.rechargeWork;
+  context.cooldownController.setReadyAt(
+    skill.id,
+    context.effectiveEnd + balanceProfileNumber(arcaneEchoProfile, 'recharge')
+  );
   const arcaneEcho = context.catalog.skillsById.get(ID.ARCANE_ECHO);
   if (arcaneEcho) {
+    // At weapon-cast completion, add that work to Arcane Echo's remaining base-recharge work.
+    // Reprojecting the combined work preserves progress already earned and lets later Alacrity changes affect it.
     const currentReadyAt = Number(context.state.cooldowns.get(arcaneEcho.id) || context.effectiveEnd);
-    context.state.cooldowns.set(arcaneEcho.id, currentReadyAt + context.rechargeDuration);
+    const progress = context.state.rechargeProgress.get(arcaneEcho.id);
+    const work = progress
+      ? context.cooldownController.remaining(arcaneEcho, progress, context.effectiveEnd)
+      : Math.max(0, currentReadyAt - context.effectiveEnd) *
+        context.cooldownController.rate(arcaneEcho, context.effectiveEnd);
+    context.cooldownController.startRecharge(arcaneEcho, context.effectiveEnd, work + addedWork);
   }
 }

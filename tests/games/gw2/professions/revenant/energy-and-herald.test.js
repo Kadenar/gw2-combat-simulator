@@ -410,7 +410,7 @@ test('legend swap replaces the fixed bar, resets energy, and triggers sigils', (
   assert.equal(result.warnings.length, 0);
   assert.equal(result.combatState.profession.activeLegendId, LEGEND.DEMON);
   assert.ok(result.events.some((event) => event.type === 'sigil_swap'));
-  assert.ok(result.planningState.profession.legendSwapReadyAt >= 10);
+  assert.ok(result.planningState.cooldowns['Swap Legends'].readyAt >= 10000);
   assert.ok(result.totalDamage > 0);
 
   const precombat = simulate('Core', ['Swap Legends', 'Swap Legends']);
@@ -420,7 +420,7 @@ test('legend swap replaces the fixed bar, resets energy, and triggers sigils', (
     precombat.steps.map((step) => step.start),
     [0, 0]
   );
-  assert.equal(precombat.planningState.profession.legendSwapReadyAt, 0);
+  assert.equal(precombat.planningState.cooldowns['Swap Legends'], undefined);
 
   const inCombat = simulate('Core', ['__combat_start', 'Swap Legends', 'Swap Legends']);
 
@@ -428,7 +428,7 @@ test('legend swap replaces the fixed bar, resets energy, and triggers sigils', (
     inCombat.steps.filter((step) => step.skill === 'Swap Legends').map((step) => step.start),
     [0, 10000]
   );
-  assert.equal(inCombat.planningState.profession.legendSwapReadyAt, 20);
+  assert.equal(inCombat.planningState.cooldowns['Swap Legends'].readyAt, 20000);
 
   const sigilResult = simulate('Core', ['__combat_start', 'Swap Legends'], {
     sigilSets: [
