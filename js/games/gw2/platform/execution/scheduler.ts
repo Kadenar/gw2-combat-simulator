@@ -16,6 +16,7 @@ import {
  * policy rather than forking this state machine.
  */
 import { ACTION_SAFETY_LIMIT, EPSILON } from '#kernel/core/clock.js';
+import { clamp } from '#kernel/core/numeric.js';
 import { castWasInterrupted, retainsInterruptedCastLockout } from '#gw2/platform/skills/timing.js';
 import { CAST_READY, denyCast, foldAvailability, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import { createScheduledEvents } from '#gw2/platform/execution/scheduled-events.js';
@@ -829,11 +830,11 @@ export function createScheduler<TProfessionState extends object = object>({
         // Match event timestamps before publishing the boundary so decimal residue cannot exclude opening hits.
         combatStartTime = canonicalTime(
           concurrent
-            ? previousCastStart + Number(command.concurrentOffsetMs) / 1000
+            ? clamp(previousCastStart + Number(command.concurrentOffsetMs) / 1000, state.time, Infinity)
             : Math.max(state.time, serialReadyAt, latestReservedEnd)
         );
         // Like a concurrent cast, an explicitly offset combat marker is
-        // anchored to the previous cast start.
+        // anchored to the previous cast start, clamped to prevent backdating combat behind the clock.
         // Publish the boundary before draining tasks so opening hits can trigger
         // combat procs while hits strictly before the marker remain excluded.
         context.combatStartTime = combatStartTime;

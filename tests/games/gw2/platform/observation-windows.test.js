@@ -87,6 +87,38 @@ test('scheduler sigil predictions include the combat boundary and exclude earlie
   }
 });
 
+// A marker after a wait must not retroactively turn already-processed precombat hits into combat hits.
+test('offset combat starts respect the clock and keep sigil procs aligned with resolved hits', () => {
+  for (const concurrentOffsetMs of [500, -500, 2500]) {
+    const result = simulateGw2({
+      profession: testProfession,
+      rotation: [
+        'Fixture Slash',
+        { type: 'wait', durationMs: 1000 },
+        { type: 'combat-start', concurrentOffsetMs },
+        'Fixture Slash'
+      ],
+      config: {
+        stats: { power: 1000, precision: 4000 },
+        target: { armor: 2597 },
+        sigilSets: [{ names: ['Ice'] }]
+      }
+    });
+    const expectedStart = Math.max(2, concurrentOffsetMs / 1000);
+    assert.equal(result.combatStartTime, expectedStart);
+    assert.equal(result.events.find((event) => event.type === 'combat_start').at, expectedStart);
+    assert.equal(result.steps.find((step) => step.skill === 'Combat Start').start, expectedStart * 1000);
+    assert.equal(result.firstHitTime, expectedStart + 1);
+    assert.deepEqual(
+      result.events.filter((event) => event.type === 'proc' && event.name === 'Sigil of Ice').map((event) => event.at),
+      [result.firstHitTime]
+    );
+    assert.ok(
+      result.resolvedEvents.filter((event) => event.type === 'damage').every((event) => event.at >= expectedStart)
+    );
+  }
+});
+
 // Combat starts and target death bound the events and elapsed time used for DPS.
 test('DPS excludes elapsed time before the first hit', () => {
   const result = simulateMesmer(
