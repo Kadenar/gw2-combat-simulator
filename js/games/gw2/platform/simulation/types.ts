@@ -73,6 +73,8 @@ export interface Gw2DeclarativeSimulationOptions {
   readonly rotation: readonly unknown[];
   readonly config?: Gw2Config;
   readonly observationPolicy?: ObservationPolicy;
+  /** Preserve the full rotation's explicit boundary when simulating a prefix without its marker. */
+  readonly combatStartTime?: number;
 }
 
 /** Numeric output deliberately omits histories and end-state projections. */

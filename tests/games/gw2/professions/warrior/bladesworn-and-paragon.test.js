@@ -204,12 +204,13 @@ test('Dragon Slash—Force lands 720ms after release', () => {
   }
 });
 
-test('Dragon Trigger requires 15 Flow and expires after 30 seconds', () => {
+test('Dragon Trigger spends 15 Flow on entry and expires after 30 seconds', () => {
   const blocked = simulate('Bladesworn', ['Dragon Trigger'], {
     initialResource: DRAGON_TRIGGER_FLOW_COST - 1
   });
 
   assert.match(blocked.warnings[0], /requires at least 15 flow/);
+  assert.equal(blocked.planningState.profession.flow, DRAGON_TRIGGER_FLOW_COST - 1);
 
   const active = simulate('Bladesworn', ['Dragon Trigger'], {
     initialResource: DRAGON_TRIGGER_FLOW_COST
@@ -218,6 +219,10 @@ test('Dragon Trigger requires 15 Flow and expires after 30 seconds', () => {
   assert.deepEqual(active.warnings, []);
   const entry = active.events.find((event) => event.type === 'resource' && event.reason === 'dragon trigger entry');
 
+  // Entry consumes the minimum activation pool even before a charge tick is reached.
+  assert.equal(entry.amount, -15);
+  assert.equal(entry.value, 0);
+  assert.equal(active.planningState.profession.flow, 0);
   assert.equal(entry.maximumFlow, 100);
   assert.equal(entry.deadline - entry.at, DRAGON_TRIGGER_DURATION_SECONDS);
 
@@ -227,6 +232,25 @@ test('Dragon Trigger requires 15 Flow and expires after 30 seconds', () => {
 
   assert.equal(expired.planningState.profession.dragonTriggerActive, false);
   assert.equal(expired.planningState.profession.dragonCharges, 0);
+});
+
+test('Dragon Trigger charges spend Flow in addition to the entry cost', () => {
+  // Keep this charge before combat so passive regeneration cannot mask either resource deduction.
+  const result = simulate(
+    'Bladesworn',
+    [
+      ID.DRAGON_TRIGGER,
+      { type: 'wait', durationMs: dragonChargeTickOffsetSeconds(1, 10, 1) * 1000 },
+      { type: 'combat-start' }
+    ],
+    { initialResource: 100 }
+  );
+  assert.deepEqual(result.warnings, []);
+  const entry = result.events.find((event) => event.reason === 'dragon trigger entry');
+  const tick = result.events.find((event) => event.reason === DRAGON_TRIGGER_TICK_RESOURCE_REASON);
+  assert.equal(entry.value, 85);
+  assert.equal(tick.value, 1);
+  assert.equal(tick.flowAfter, 80);
 });
 
 test('Dragon Trigger defers recharge while charging and still blocks re-entry', () => {
@@ -519,7 +543,7 @@ test('Dragon Slash reports unreachable Flow-gated requests', () => {
 
   assert.equal(slash.invalid, true);
   assert.match(slash.invalidReason, /could not reach 4 charges/);
-  assert.match(slash.invalidReason, /it reached 3/);
+  assert.match(slash.invalidReason, /it reached 0/);
   assert.equal(
     result.events.some((event) => event.type === 'damage' && event.skillId === ID.DRAGON_SLASH_FORCE),
     false
@@ -669,6 +693,16 @@ test('Gunsaber attacks resolve bundle strength and distinguish secondary explosi
     assert.ok(hits.some((event) => event.damageKind !== 'explosion'));
     assert.ok(hits.every((event) => event.weaponStrengthProfileId === 'bundle.ascended'));
   }
+});
+
+test('Precombat Positive Flow survives an explicit combat start while base regeneration waits for combat', () => {
+  // The 8 s Positive Flow window grants 4 Flow/s before combat; the 2 Flow/s base rate only starts at the marker.
+  const precombat = simulate('Bladesworn', [ID.FLOW_STABILIZER, { type: 'wait', durationMs: 8500 }, '__combat_start'], {
+    initialResource: 0
+  });
+
+  assert.deepEqual(precombat.warnings, []);
+  assert.equal(precombat.planningState.profession.flow, 32);
 });
 
 test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', () => {
@@ -1158,6 +1192,35 @@ test('Burst Precision duration follows the adrenaline stage', () => {
   assert.ok(Math.abs(followUp.criticalDamage - eviscerate.criticalDamage - 250 / 1500) < 1e-9);
 });
 
+test('two-stack Gunsaber traits grant and display their full Positive Flow rate until expiry', () => {
+  // Trait packets, resource integration, and the state bar must agree on the same two-stack, five-second window.
+  for (const trait of [TRAIT.UNSEEN_SWORD, TRAIT.SHARP_AS_THE_WIND]) {
+    for (const [durationMs, expectedFlow] of [
+      [1000, 6],
+      [6000, 32]
+    ]) {
+      const result = simulate('Bladesworn', ['__combat_start', ID.UNSHEATHE_GUNSABER, { type: 'wait', durationMs }], {
+        initialResource: 0,
+        selectedTraitIds: [trait]
+      });
+      assert.deepEqual(result.warnings, []);
+      const buff = result.events.find((event) => event.kind === 'positive-flow');
+      assert.equal(buff.stacks, 2);
+      assert.equal(buff.duration, 5);
+      assert.equal(result.planningState.profession.flow, expectedFlow);
+      const display = warriorProfession.ui
+        .rotationStateSnapshot({
+          specialization: 'Bladesworn',
+          professionState: result.planningState.profession,
+          atSeconds: result.planningState.atSeconds,
+          result
+        })
+        .find((item) => item.id === 'positive-flow');
+      assert.equal(display?.value, durationMs === 1000 ? '2 stacks · 4.0s' : undefined);
+    }
+  }
+});
+
 test('Bladesworn swap and Dragon Trigger traits use supplied behavior', () => {
   // Without an explicit marker, combat begins at the first hit; an earlier unsheathe is out of combat.
   const outOfCombat = simulate('Bladesworn', ['Unsheathe Gunsaber', { type: 'wait', durationMs: 5000 }], {
@@ -1177,10 +1240,16 @@ test('Bladesworn swap and Dragon Trigger traits use supplied behavior', () => {
     selectedTraitIds: [TRAIT.UNSEEN_SWORD]
   });
   const firstChopHit = afterFirstHit.events.find((event) => event.type === 'damage' && event.skillId === ID.CHOP);
-  const unseenSword = afterFirstHit.events.filter((event) => event.name === 'Unseen Sword');
+  const unseenSword = afterFirstHit.events.filter((event) => event.type === 'damage' && event.name === 'Unseen Sword');
 
   assert.equal(unseenSword.length, 1);
   assert.ok(unseenSword[0].at >= firstChopHit.at);
+  // Trait activations reach the panel with their actual trigger, alongside their separate damage packet.
+  const swordProcs = afterFirstHit.procSteps.filter((proc) => proc.skill === 'Unseen Sword');
+  assert.equal(swordProcs.length, 1);
+  assert.equal(swordProcs[0].type, 'trait_proc');
+  assert.equal(swordProcs[0].sourceSkill, 'Unsheathe Gunsaber');
+  assert.equal(swordProcs[0].start, Math.round(unseenSword[0].at * 1000));
 
   const swap = simulate('Bladesworn', ['__combat_start', 'Unsheathe Gunsaber', { type: 'wait', durationMs: 5000 }], {
     initialResource: 0,
@@ -1191,7 +1260,7 @@ test('Bladesworn swap and Dragon Trigger traits use supplied behavior', () => {
   assert.equal(swap.resolvedEvents.find((event) => event.name === 'Unseen Sword').skillId, 62847);
   assert.equal(skillBreakdownRows(swap).find((entry) => entry.name === 'Unseen Sword').hits, 1);
   assert.equal(swap.events.find((event) => event.kind === 'positive-flow').duration, 5);
-  assert.equal(swap.planningState.profession.flow, 20);
+  assert.equal(swap.planningState.profession.flow, 30);
 
   const combatOnly = simulate(
     'Bladesworn',
@@ -1207,6 +1276,9 @@ test('Bladesworn swap and Dragon Trigger traits use supplied behavior', () => {
     combatOnly.resolvedEvents.filter((event) => event.name === 'Unseen Sword').map((event) => event.at),
     [combatOnly.events.find((event) => event.type === 'combat_start').at]
   );
+  const triggerProcs = combatOnly.procSteps.filter((proc) => proc.skill === 'Unseen Sword');
+  assert.equal(triggerProcs.length, 1);
+  assert.equal(triggerProcs[0].sourceSkill, 'Dragon Trigger');
 
   const trigger = simulate('Bladesworn', ['Dragon Trigger', 'Dragon Slash—Force'], {
     initialResource: 100,

@@ -775,15 +775,9 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
   pointer-events: none;
 }
 
+/* Charge release is edited with the pencil; the badge only reports its setting. */
 .rot-charge-release-badge {
   color: #ffb454;
-  cursor: pointer;
-  pointer-events: all;
-}
-
-.rot-charge-release-badge:hover {
-  background: #a46020;
-  color: #fff;
 }
 
 .rot-double-edge-badge {

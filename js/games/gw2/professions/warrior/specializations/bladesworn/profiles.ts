@@ -118,7 +118,7 @@ export const BLADESWORN_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     // Entry traits declare their own flow window so patches can remove it independently.
     effects: [
       { name: 'Strike', type: 'strike', coefficient: 1.2, hits: 1 },
-      { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 1, duration: 5 }
+      { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 2, duration: 5 }
     ]
   }),
   trait(BLADESWORN_BALANCE_PROFILE_IDS.sharpAsTheWind, 'Sharp as the Wind', {

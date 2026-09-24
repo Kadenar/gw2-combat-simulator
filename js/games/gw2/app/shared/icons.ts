@@ -40,6 +40,12 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Attribute increase': 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
   // Warrior adrenaline facts use the game's Number glyph, shared with attribute increases.
   Adrenaline: 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
+  // Bladesworn passive Flow regeneration increases use the same up-arrow glyph.
+  'Positive Flow': 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
+  'Flow per second': 'https://render.guildwars2.com/file/E1E7C4D3A6E62F3D5C9F627CE8175BFB0C614CBE/156652.png',
+  // Dragon Trigger's per-opportunity Flow spend and channel limit use the game's Flow Drain and Duration glyphs.
+  'Flow cost': 'https://render.guildwars2.com/file/1BA1F3645206FB4BE92C5AD6326054250DC7D0DB/1770205.png',
+  'Trigger duration': 'https://render.guildwars2.com/file/7B2193ACCF77E56C13E608191B082D68AA0FAA71/156659.png',
   'Energy cost': 'https://assets.gw2dat.com/156647.png',
   'Crushing Abyss': 'https://render.guildwars2.com/file/632F757C2309C12BCFE99FCCE4BB761FA59AECEE/3379187.png',
   'Battle Scars': 'https://render.guildwars2.com/file/12FFBBD82F3BB8C057E95AB7E907AD3EACFDF221/2261517.png',
@@ -52,6 +58,9 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   // These temporary Ranger buffs use their granting traits' icons.
   'Quick Draw': 'https://render.guildwars2.com/file/CBCB2EC86BC85CC02DA7AAB25CBFB226B8956D1E/1012648.png',
   'Light on your Feet': 'https://render.guildwars2.com/file/4D37A694088038DA9266F6107C9604AD9CBC2752/1012649.png',
+  // Temporary Warrior damage buffs use their granting traits' icons in tooltip facts.
+  'Peak Performance': 'https://render.guildwars2.com/file/08F60C11F460F3236DE65A445337290B7AAED96F/1012812.png',
+  "Berserker's Power": 'https://render.guildwars2.com/file/A795EE78B8DAA836F3C0650CFC037BB71D3517BA/1012816.png',
   // Control facts use the game's distinct disable glyphs; unspecified controls use the defiance glyph.
   Daze: 'https://render.guildwars2.com/file/9AE125E930C92FEA0DD99E7EBAEDE4CF5EC556B6/433474.png',
   Stun: 'https://render.guildwars2.com/file/1999B9DB355005D2DD19F66DFFBAA6D466057508/522727.png',

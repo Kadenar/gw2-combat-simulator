@@ -20,7 +20,6 @@ export interface TimelineInteractionOptions {
   readonly onRemove?: (index: number, event?: Event) => unknown;
   readonly onTruncate?: (index: number, event?: Event) => unknown;
   readonly onEditActivation?: (index: number, event?: Event) => unknown;
-  readonly onEditReleaseAtCharges?: (index: number, event?: Event) => unknown;
   readonly onEditDoubleEdgeOutcome?: (index: number, event?: Event) => unknown;
   readonly onEditWait?: (index: number, event?: Event) => unknown;
 }
@@ -231,9 +230,8 @@ export function bindTimelineInteractions(
     }
   };
 
-  // Activation pencils and interrupt badges open the same cast-behavior editor.
+  // Pencils select the skill's cast editor; charge badges only display the chosen release threshold.
   bindEdit('.rot-edit-activation, .rot-interrupt-badge', options.onEditActivation);
-  bindEdit('.rot-charge-release-badge', options.onEditReleaseAtCharges);
   bindEdit('.rot-double-edge-badge', options.onEditDoubleEdgeOutcome);
   bindEdit('.rot-edit-wait, .rot-wait-badge', options.onEditWait);
 

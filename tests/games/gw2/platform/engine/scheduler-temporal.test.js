@@ -104,6 +104,40 @@ test('combat-start and cooldown-reset markers declare environment ownership', ()
   }
 });
 
+test('inherited combat boundaries stay pending until reached and precede simultaneous completions', () => {
+  // Prefixes preserve the known boundary without waking combat mechanics or extending their observation window.
+  for (const durationMs of [500, 1000, 1500]) {
+    const scheduler = createScheduler({ profession: testProfession, combatStartTime: 1 });
+    const result = scheduler.run([{ type: 'wait', durationMs }]);
+    assert.equal(result.state.time, durationMs / 1000);
+    assert.equal(result.context.hasExplicitCombatStart, true);
+    assert.equal(result.context.combatStartTime, durationMs < 1000 ? null : 1);
+    assert.equal(result.events.filter((event) => event.type === 'combat_start').length, durationMs < 1000 ? 0 : 1);
+    assert.equal(result.stream.resolverHandoff.combatStartTime, 1);
+  }
+
+  let observedBoundary;
+  const scheduler = createScheduler({
+    profession: testProfession,
+    combatStartTime: 1,
+    schedulerPolicy: {
+      taskHandlers: {
+        'fixture.boundary': (context) => {
+          observedBoundary = context.combatStartTime;
+        }
+      }
+    }
+  });
+  scheduler.context.tasks.schedule({ type: 'fixture.boundary', at: 1, priority: -100 });
+  scheduler.run([{ type: 'wait', durationMs: 1000 }]);
+  assert.equal(observedBoundary, 1);
+  assert.throws(() => createScheduler({ profession: testProfession, combatStartTime: Infinity }), /must be finite/);
+  assert.throws(
+    () => createScheduler({ profession: testProfession, combatStartTime: 1 }).run([{ type: 'combat-start' }]),
+    /cannot be combined/
+  );
+});
+
 test('ammo recharge reductions carry overflow until maximum charges', () => {
   const skill = { id: 980000, ammo: 3, ammoRecharge: 12 };
   const state = {

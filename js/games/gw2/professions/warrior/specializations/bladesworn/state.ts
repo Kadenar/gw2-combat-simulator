@@ -15,6 +15,8 @@ export interface BladeswornState {
   }>;
   traitPositiveFlowStartedAt: number;
   traitPositiveFlowUntil: number;
+  /** Retain the applied trait's stacks so regeneration and its display use the same amount. */
+  traitPositiveFlowStacks: number;
   gunsaberSwapTraitReadyAt: number;
   gunsaberActive: boolean;
   dragonTriggerActive: boolean;
@@ -48,6 +50,7 @@ export const BLADESWORN_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   flowStabilizerWindows: [],
   traitPositiveFlowStartedAt: 0,
   traitPositiveFlowUntil: 0,
+  traitPositiveFlowStacks: 0,
   gunsaberActive: false,
   dragonTriggerActive: false,
   dragonCharges: 0,
@@ -62,6 +65,7 @@ export function createBladeswornState(config: Gw2Config = {}): BladeswornState {
     flowStabilizerWindows: [],
     traitPositiveFlowStartedAt: 0,
     traitPositiveFlowUntil: 0,
+    traitPositiveFlowStacks: 0,
     gunsaberSwapTraitReadyAt: 0,
     gunsaberActive: false,
     dragonTriggerActive: false,

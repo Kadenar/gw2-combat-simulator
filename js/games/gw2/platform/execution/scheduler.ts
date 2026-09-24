@@ -73,6 +73,8 @@ interface CreateSchedulerOptions<TProfessionState extends object> {
   readonly startingTime?: number;
   readonly schedulerPolicy?: SchedulerPolicy<TProfessionState>;
   readonly observationPolicy?: ObservationPolicy;
+  /** An inherited explicit boundary keeps prefix previews in the same combat window as their full rotation. */
+  readonly combatStartTime?: number;
 }
 
 // Shared declarative scheduler. It owns canonical command execution, cooldown
@@ -100,9 +102,14 @@ export function createScheduler<TProfessionState extends object = object>({
   catalog,
   startingTime = 0,
   schedulerPolicy = {},
-  observationPolicy
+  observationPolicy,
+  combatStartTime: inheritedCombatStartTime
 }: CreateSchedulerOptions<TProfessionState> = {}): Scheduler<TProfessionState> {
   if (!profession?.id) throw new TypeError('Scheduler requires a profession.');
+  if (inheritedCombatStartTime != null && !Number.isFinite(inheritedCombatStartTime)) {
+    throw new TypeError('Inherited combat start time must be finite.');
+  }
+
   const activeProfession = resolveProfessionRuntime(profession, config);
   const activeCatalog = catalog ?? activeProfession.catalog;
   const normalizedObservationPolicy = normalizeObservationPolicy(observationPolicy);
@@ -141,7 +148,8 @@ export function createScheduler<TProfessionState extends object = object>({
   // clears it. Stability at cast end prevents the stun from being set at all.
   let selfStunUntil = state.time;
   let hasPreviousCast = false;
-  let combatStartTime: number | null = null;
+  let combatStartTime: number | null =
+    inheritedCombatStartTime == null ? null : canonicalTime(inheritedCombatStartTime);
   let taskQueue: TaskQueue<SchedulerContext<TProfessionState>, object>;
 
   const skillFor = (requestedId: SkillId): Skill | undefined => {
@@ -311,8 +319,22 @@ export function createScheduler<TProfessionState extends object = object>({
     });
   };
 
+  // Publish inherited combat entry only when reached, without advancing a prefix to a future marker.
+  function emitCombatStart(at: number): void {
+    context.combatStartTime = at;
+    context.emit({
+      type: 'combat_start',
+      at,
+      source: 'platform',
+      sourceId: 'combat-start',
+      actorType: 'environment',
+      action: 'combat-start'
+    });
+  }
+
   const taskHandlers: Record<string, RegisteredTaskHandler<SchedulerContext<TProfessionState>>> = {
-    [CORE_CAST_COMPLETE]: lifecycle.completeReservation
+    [CORE_CAST_COMPLETE]: lifecycle.completeReservation,
+    'platform.combat-start': (_context, task) => emitCombatStart(task.at)
   };
   // Every task type has one owner; an extension must never replace cast completion or another category.
   for (const handlers of [
@@ -731,8 +753,19 @@ export function createScheduler<TProfessionState extends object = object>({
     const commands = normalizeRotation(rotation, activeCatalog, {
       strict: true
     });
-    context.hasExplicitCombatStart = commands.some((command) => command.type === 'combat-start');
+    const hasCombatMarker = commands.some((command) => command.type === 'combat-start');
+    if (hasCombatMarker && inheritedCombatStartTime != null) {
+      throw new TypeError('An inherited combat start cannot be combined with a Combat Start command.');
+    }
+
+    context.hasExplicitCombatStart = hasCombatMarker || combatStartTime != null;
     context.combatStartTime = null;
+    if (combatStartTime != null) {
+      if (combatStartTime <= state.time) emitCombatStart(combatStartTime);
+      // Combat is active for cast completions at the boundary, whose priority is -100.
+      else context.tasks.schedule({ type: 'platform.combat-start', at: combatStartTime, priority: -101 });
+    }
+
     if (commands.length > ACTION_SAFETY_LIMIT) {
       throw new Error('Rotation action safety limit exceeded.');
     }
@@ -805,15 +838,7 @@ export function createScheduler<TProfessionState extends object = object>({
         // combat procs while hits strictly before the marker remain excluded.
         context.combatStartTime = combatStartTime;
         advanceTo(combatStartTime);
-        context.emit({
-          type: 'combat_start',
-          at: combatStartTime,
-          source: 'platform',
-          sourceId: 'combat-start',
-          // The encounter boundary is an environment marker, independent of player actions.
-          actorType: 'environment',
-          action: 'combat-start'
-        });
+        emitCombatStart(combatStartTime);
         steps.push({
           ri: index,
           skill: 'Combat Start',

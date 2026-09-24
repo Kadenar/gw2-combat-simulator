@@ -5,6 +5,7 @@ import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { loadProfessionAppAdapter, professionRegistry } from '#gw2/app/profession-registry.js';
 import { palettePlanningState, paletteProfessionState } from '#gw2/app/rotation/context.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 function planningState(overrides = {}) {
   return {
@@ -77,6 +78,82 @@ test('every profession adapter exposes insertion-state previews', async () => {
 
     assert.equal(typeof adapter.rotationPlanningStateAt, 'function', entry.id);
   }
+});
+
+test('precombat insertion previews preserve Flow and the boundary inside an unfinished cast', async () => {
+  const adapter = await loadProfessionAppAdapter('warrior');
+  const build = createDefaultBuild(adapter);
+  build.weapons = ['Axe', 'Axe'];
+  build.initialResource = 0;
+  build.specializations = [{ name: 'Bladesworn', traits: '1-2-2' }];
+  build.assumptions.fury = false;
+  build.selectedSkills.Utility2 = 'Flow Stabilizer';
+  const cast = (name) => ({ type: 'cast', skillId: adapter.profession.catalog.skillsByName.get(name).id });
+
+  // Both a serial marker and one inside Chop must preserve prepull regeneration without counting prepull hits.
+  for (const marker of [{ type: 'combat-start' }, { type: 'combat-start', concurrentOffsetMs: 200 }]) {
+    build.rotation = [
+      cast('Flow Stabilizer'),
+      { type: 'wait', durationMs: 1000 },
+      cast('Chop'),
+      marker,
+      { type: 'wait', durationMs: 1000 }
+    ];
+    const app = {
+      adapter,
+      build,
+      skillByName: adapter.profession.catalog.skillsByName,
+      attributeWeaponSet: 1,
+      results: null
+    };
+    adapter.recalculate(app);
+    const result = adapter.runSimulation(app);
+    assert.deepEqual(result.warnings, []);
+    const beforeHit = adapter.rotationPlanningStateAt(app, 2);
+    assert.equal(beforeHit.atSeconds, 1);
+    assert.equal(beforeHit.profession.flow, 4);
+    const beforeMarker = adapter.rotationPlanningStateAt(app, 3);
+    const afterMarker = adapter.rotationPlanningStateAt(app, 4);
+    assert.equal(beforeMarker.atSeconds, afterMarker.atSeconds);
+    assert.equal(beforeMarker.profession.flow, afterMarker.profession.flow);
+    const expectedFlow = 4 * beforeMarker.atSeconds + 2 * (beforeMarker.atSeconds - result.combatStartTime);
+    assert.ok(Math.abs(beforeMarker.profession.flow - expectedFlow) < 1e-9);
+  }
+});
+
+test('Ranger prefix simulations keep precast traps armed until the inherited boundary', async () => {
+  const adapter = await loadProfessionAppAdapter('ranger');
+  const build = createDefaultBuild(adapter);
+  build.selectedSkills.Utility1 = 'Frost Trap';
+  build.rotation = [
+    { type: 'cast', skillId: adapter.profession.catalog.skillsByName.get('Frost Trap').id },
+    { type: 'wait', durationMs: 1000 },
+    { type: 'combat-start' },
+    { type: 'wait', durationMs: 1000 }
+  ];
+  const app = {
+    adapter,
+    build,
+    skillByName: adapter.profession.catalog.skillsByName,
+    attributeWeaponSet: 1,
+    results: null
+  };
+  adapter.recalculate(app);
+  const result = adapter.runSimulation(app);
+  assert.deepEqual(result.warnings, []);
+  // A future boundary must remain pending: publishing its timestamp early would trigger the trap immediately.
+  const prefix = (length) =>
+    simulateGw2({
+      profession: adapter.profession,
+      rotation: build.rotation.slice(0, length),
+      config: adapter.simulationConfig(app),
+      combatStartTime: result.combatStartTime
+    });
+  const armed = prefix(1);
+  assert.ok(armed.planningState.atSeconds < result.combatStartTime);
+  assert.ok(armed.schedulerState.profession.core.pendingFrostTrapEvents.length > 0);
+  const triggered = prefix(2);
+  assert.equal(triggered.schedulerState.profession.core.pendingFrostTrapEvents.length, 0);
 });
 
 test('native insertion previews project weapon set and cooldown state', async () => {

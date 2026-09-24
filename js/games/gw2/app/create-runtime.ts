@@ -237,7 +237,19 @@ export function createProfessionRuntime({
       return app.results.planningState;
     }
 
-    return simulateBuild(rotation.slice(0, index), baselineSimulationConfig(app), { kind: 'rotation' }).planningState;
+    const config = baselineSimulationConfig(app);
+    // A prefix before the marker still uses the full rotation's boundary, including casts that finish across it.
+    const combatStartTime =
+      index <= rotation.findIndex((command) => command.type === 'combat-start')
+        ? (app.results ?? simulateBuild(rotation, config, { kind: 'rotation' })).combatStartTime
+        : undefined;
+    return simulateGw2({
+      profession,
+      rotation: rotation.slice(0, index),
+      config,
+      observationPolicy: { kind: 'rotation' },
+      combatStartTime: combatStartTime ?? undefined
+    }).planningState;
   }
 
   /** Captures a clone-safe baseline job before later edits can mutate the rotation. */

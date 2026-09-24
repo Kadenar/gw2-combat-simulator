@@ -152,7 +152,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       {
         type: 'strike',
         name: 'Swift Cut — Shot',
-        coefficient: 0.75 * 0.34,
+        coefficient: 0.75 * 0.33,
         hits: 1
       }
     ],
@@ -171,7 +171,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       {
         type: 'strike',
         name: 'Steel Divide — Shot',
-        coefficient: 0.75 * 0.34,
+        coefficient: 0.75 * 0.33,
         hits: 1
       }
     ],
@@ -190,7 +190,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       {
         type: 'strike',
         name: 'Explosive Thrust — Explosion',
-        coefficient: 1.2 * 0.34,
+        coefficient: 1.2 * 0.33,
         hits: 1,
         damageKind: 'explosion'
       }
@@ -341,7 +341,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     gunsaberSkill: true,
     dragonTriggerSkill: true,
     shadowstepSkill: true,
-    peithaImpactDelayMs: 40,
+    peithaImpactDelayMs: 240,
     skillWeapon: 'Gunsaber'
   },
   [ID.TRIGGERGUARD]: {

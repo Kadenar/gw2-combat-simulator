@@ -181,7 +181,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
       }));
     if (Number(state.traitPositiveFlowStartedAt || 0) <= at && Number(state.traitPositiveFlowUntil || 0) > at) {
       positiveFlowSources.push({
-        stacks: 1,
+        stacks: Number(state.traitPositiveFlowStacks),
         expiresAt: Number(state.traitPositiveFlowUntil)
       });
     }

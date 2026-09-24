@@ -488,6 +488,7 @@ export function timelineRowsView(
       const doubleEdgeLabel = doubleEdgeOutcome === 'backfire' ? 'DE!' : 'DE✓';
       // Casts and Combat Start share behavior editing; waits expose their duration through the same pencil affordance.
       const canEditActivation = (item.type === 'cast' && skill != null) || item.type === 'combat-start';
+      const editLabel = skill?.dragonSlash ? 'charge release' : 'cast behavior';
       const canEditWait = item.type === 'wait';
       // Dead time belongs to this boundary, after its insertion cursor and before the next authored skill.
       const deadTimeHtml = [
@@ -509,7 +510,7 @@ export function timelineRowsView(
                     ${
                       !readOnly && canEditActivation
                         ? `<button type="button" class="rot-edit-activation" data-idx="${index}"
-                        title="Edit cast behavior" aria-label="Edit ${esc(display)} cast behavior" aria-haspopup="dialog">&#9998;</button>`
+                        title="Edit ${editLabel}" aria-label="Edit ${esc(display)} ${editLabel}" aria-haspopup="dialog">&#9998;</button>`
                         : !readOnly && canEditWait
                           ? `<button type="button" class="rot-edit-wait" data-idx="${index}"
                         title="Edit wait duration" aria-label="Edit Wait duration" aria-haspopup="dialog">&#9998;</button>`

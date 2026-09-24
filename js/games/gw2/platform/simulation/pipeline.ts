@@ -30,7 +30,8 @@ function simulateDeclarativeGw2Pass({
   profession,
   rotation,
   config = {},
-  observationPolicy
+  observationPolicy,
+  combatStartTime
 }: Gw2DeclarativeSimulationOptions & { output?: 'detailed' | 'score' }): Gw2SimulationResult | Gw2SimulationScore {
   const started = onPhase ? performance.now() : 0;
   // Validate the headless entry path too, before any scheduler or resolver consumes custom probabilities.
@@ -56,7 +57,8 @@ function simulateDeclarativeGw2Pass({
       catalog: runtimeProfession.catalog,
       weaponSkillMatchesSet: runtimeProfession.weaponSkillMatchesSet
     }),
-    observationPolicy
+    observationPolicy,
+    combatStartTime
   }).run(rotation);
   onPhase?.('scheduling', performance.now() - started);
   // Critical sigil predictions remain scheduler-visible for profession state
@@ -117,7 +119,8 @@ export function simulateDeclarativeGw2Score(options: Gw2DeclarativeSimulationOpt
     profession: options.profession,
     rotation: options.rotation,
     config: options.config,
-    observationPolicy: options.observationPolicy
+    observationPolicy: options.observationPolicy,
+    combatStartTime: options.combatStartTime
   });
   const {
     rotationEndTime,

@@ -82,6 +82,19 @@ export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number
         name: 'Unseen Sword',
         coefficient: effectNumber(traitProfile, strike, 'coefficient')
       });
+    // Record the trait activation through the shared proc pipeline so it appears in the procs panel.
+    context.emit({
+      type: 'proc',
+      at,
+      source: 'Trait',
+      sourceId: traitId,
+      actorType: 'effect',
+      skillId: context.skill.id,
+      skillName: context.skill.name,
+      name: 'Unseen Sword',
+      procType: 'trait',
+      sourceSkill: context.skill.name
+    });
   } else if (traitId === TRAIT.SHARP_AS_THE_WIND) {
     const burning = requireEffect(traitProfile, 'condition', 'Burning');
     if (burning)
@@ -133,6 +146,7 @@ export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number
   }
 
   state.traitPositiveFlowUntil = gw2EffectExpiresAt(at, positiveFlowDuration);
+  state.traitPositiveFlowStacks = effectNumber(traitProfile, positiveFlow, 'stacks');
   if (positiveFlow)
     emitSkillBuff(context, {
       at,
@@ -143,7 +157,7 @@ export function applyGunsaberEntryTraits(context: WarriorCastContext, at: number
       skillName: 'Unsheathe Gunsaber',
       name: 'Positive Flow',
       kind: 'positive-flow',
-      stacks: effectNumber(traitProfile, positiveFlow, 'stacks'),
+      stacks: state.traitPositiveFlowStacks,
       duration: positiveFlowDuration
     });
 }

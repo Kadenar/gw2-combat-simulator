@@ -118,6 +118,9 @@ export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSk
   state.dragonTriggerStartedAt = context.effectiveEnd;
 
   const dragonTriggerProfile = requireBalanceProfileFromContext(context, PROFILE.dragonTrigger);
+  // Entry spends the activation cost before charging; subsequent charge ticks pay their own Flow cost.
+  const entryFlowCost = balanceProfileNumber(dragonTriggerProfile, 'threshold');
+  state.flow = Math.max(0, state.flow - entryFlowCost);
   state.dragonTriggerChargeDeadline = canonicalTime(
     context.effectiveEnd + balanceProfileNumber(dragonTriggerProfile, 'cooldown')
   );
@@ -134,7 +137,7 @@ export function enterDragonTrigger(context: WarriorCastContext, skill: WarriorSk
   state.dragonTriggerRotationIndex = context.commandIndex;
   state.dragonTriggerFlowSpent = 0;
   state.dragonTriggerEventActivationId = context.reservationId;
-  emitDragonTriggerEntry(context, skill);
+  emitDragonTriggerEntry(context, skill, entryFlowCost);
   applyDragonTriggerEntryTraits(context, skill);
 }
 
@@ -292,7 +295,8 @@ export function useArtillerySlash(context: WarriorCastContext, skill: WarriorSki
 }
 
 // Split a time range at every Flow modifier boundary so Dragon Trigger projection
-// can integrate the exact piecewise regeneration rate.
+// can integrate the exact piecewise regeneration rate. Base regeneration only runs in combat,
+// while Positive Flow keeps granting Flow before combat so precombat Flow Stabilizers carry over.
 function dragonFlowRateSegments(
   context: WarriorSchedulerContext,
   from: number,
@@ -300,18 +304,18 @@ function dragonFlowRateSegments(
 ): readonly DragonFlowRateSegment[] {
   if (!(to > from)) return [];
   const state = bladeswornState.from(context);
-  const combatStart = context.hasExplicitCombatStart ? context.combatStartTime : from;
-  if (combatStart == null || combatStart >= to) return [];
-  const activeFrom = Math.max(from, Number(combatStart));
+  // An explicit marker that has not been reached yet means combat has not begun within this range.
+  const combatStart = context.hasExplicitCombatStart ? (context.combatStartTime ?? Infinity) : from;
   const boundaries = [
-    activeFrom,
+    from,
     to,
+    combatStart,
     state.traitPositiveFlowStartedAt,
     state.traitPositiveFlowUntil,
     ...state.flowStabilizerWindows.flatMap((window) => [window.startedAt, window.expiresAt])
   ]
-    .filter((at) => at > activeFrom && at < to)
-    .concat(activeFrom, to)
+    .filter((at) => at > from && at < to)
+    .concat(from, to)
     .sort((left, right) => left - right);
   const uniqueBoundaries = [...new Set(boundaries)];
   const segments: DragonFlowRateSegment[] = [];
@@ -325,13 +329,17 @@ function dragonFlowRateSegments(
     const end = Number(uniqueBoundaries[index + 1]);
     const sample = (start + end) / 2;
     const flowPerSecond =
-      baseFlow +
+      (sample >= combatStart ? baseFlow : 0) +
       state.flowStabilizerWindows.reduce(
         (bonus, window) => (sample >= window.startedAt && sample < window.expiresAt ? bonus + stabilizerBonus : bonus),
         0
       ) +
-      (sample >= state.traitPositiveFlowStartedAt && sample < state.traitPositiveFlowUntil ? positiveFlowBonus : 0);
-    segments.push({ start, end, flowPerSecond });
+      // Trait regeneration scales with the same applied stacks shown in its buff and state bar.
+      (sample >= state.traitPositiveFlowStartedAt && sample < state.traitPositiveFlowUntil
+        ? positiveFlowBonus * state.traitPositiveFlowStacks
+        : 0);
+    // Idle precombat spans grant nothing, so they add no projection segment.
+    if (flowPerSecond > 0) segments.push({ start, end, flowPerSecond });
   }
 
   return segments;
@@ -347,7 +355,7 @@ function dragonTriggerEntryEvent(context: WarriorSchedulerContext): WarriorSimul
   ) as WarriorSimulationEvent | undefined;
 }
 
-function emitDragonTriggerEntry(context: WarriorCastContext, skill: WarriorSkill): void {
+function emitDragonTriggerEntry(context: WarriorCastContext, skill: WarriorSkill, entryFlowCost: number): void {
   const state = bladeswornState.from(context);
   context.emit({
     type: 'resource',
@@ -359,7 +367,7 @@ function emitDragonTriggerEntry(context: WarriorCastContext, skill: WarriorSkill
     skillName: skill.name,
     sourceSkill: skill.name,
     activationId: state.dragonTriggerEventActivationId,
-    amount: 0,
+    amount: -entryFlowCost,
     value: state.flow,
     resource: 'flow',
     reason: DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,

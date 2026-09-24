@@ -120,7 +120,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.SPEAR_SWIPE]: {
-    castTimeMs: 500,
+    castTimeMs: 1240,
     effects: [
       {
         type: 'control',

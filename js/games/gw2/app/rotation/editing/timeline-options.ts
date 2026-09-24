@@ -81,7 +81,7 @@ function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Ev
   const eventTarget = event?.currentTarget;
   const anchor =
     (eventTarget instanceof HTMLElement ? eventTarget : null) ||
-    document.querySelector<HTMLElement>(`#rotation-timeline .rot-charge-release-badge[data-idx="${index}"]`);
+    document.querySelector<HTMLElement>(`#rotation-timeline .rot-edit-activation[data-idx="${index}"]`);
   if (!anchor) return false;
   openDragonSlashReleaseEditor({
     app,
@@ -110,6 +110,8 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   if (entry === undefined) return false;
   const item = timelineItem(entry);
   const skill = resolveEntrySkill(app, item.command);
+  // Dragon Slash uses charge release as its cast configuration, so the pencil opens that editor directly.
+  if (skill?.dragonSlash) return editReleaseAtCharges(app, index, event);
   const isCombatStart = item.type === 'combat-start';
   // Away-from-target and delayed-impact casts model precasts, so they apply only before the authored combat marker.
   const combatStartIndex = app.build.rotation.findIndex((command) => command.type === 'combat-start');
@@ -244,7 +246,6 @@ export function timelineInteractionOptions(app: ProfessionAppState): TimelineInt
     onRemove: (index) => app.build.rotation.splice(index, 1),
     onTruncate: (index) => app.build.rotation.splice(index),
     onEditActivation: (index, event) => editRotationActivation(app, index, event),
-    onEditReleaseAtCharges: (index, event) => editReleaseAtCharges(app, index, event),
     onEditDoubleEdgeOutcome: (index, event) => editDoubleEdgeOutcome(app, index, event),
     onEditWait: (index, event) => editRotationDuration(app, index, event)
   };
