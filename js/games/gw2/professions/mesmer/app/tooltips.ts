@@ -404,9 +404,7 @@ export const mesmerTooltips: ProfessionTooltips = {
         ...cloakFacts(balanceContext)
       ]
     }),
-    [ID.DODGE_TROUBADOUR]: skillTooltip(
-      'Spend a dodge charge. Harmonize grants a note. Endurance and ammunition control when another dodge is available.'
-    ),
+    [ID.DODGE_TROUBADOUR]: skillTooltip('Spend 50 endurance to evade. Mayhem reduces Flustering Flute recharge.'),
     ...Object.fromEntries(
       [
         [ID.TALE_OF_THE_HONORABLE_ROGUE, TROUBADOUR.honorableRogue, 'Drum'],
@@ -416,7 +414,7 @@ export const mesmerTooltips: ProfessionTooltips = {
         id,
         skillTooltip(
           `Tell a tale and grant its boons to your party. If ${instrument} is active when the cast begins, gain notes. Raconteur adds protection.` +
-            (id === ID.TALE_OF_THE_HONORABLE_ROGUE ? ' Restore one dodge charge.' : ''),
+            (id === ID.TALE_OF_THE_HONORABLE_ROGUE ? ' Restore 50 endurance.' : ''),
           (balanceContext) => [
             ...simulationEffectFacts(
               tooltipProfile(balanceContext, profileId).effects?.map((effect) => ({
@@ -889,10 +887,16 @@ export const mesmerTooltips: ProfessionTooltips = {
       'Unlock Troubadour, tales, notes, and instruments. Instruments replace shatters and consume notes to extend their playing time.'
     ),
     [TRAIT.SYMPHONIC_RESONANCE]: traitTooltip(
-      'Active instruments grant their corresponding passive bonuses. Lute increases personal damage; Flute speeds dodge recharge.',
+      'Active instruments grant their corresponding passive bonuses. Lute increases personal damage; Flute increases endurance regeneration.',
       (balanceContext, id) => [
         modifierFact(balanceContext, 'mesmer.lute', 'amount', 'Personal strike and condition damage with Lute'),
-        profileFact(balanceContext, id, 'dodgeRechargeSpeed', 'Dodge recharge speed with Flute', tooltipFactorChange)
+        profileFact(
+          balanceContext,
+          id,
+          'enduranceRegenerationMultiplier',
+          'Endurance regeneration with Flute',
+          tooltipFactorChange
+        )
       ]
     ),
     [TRAIT.HARMONIZE]: traitTooltip('Successfully summoning a phantasm grants a note.', (balanceContext, id) => [

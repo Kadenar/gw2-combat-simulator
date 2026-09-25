@@ -426,14 +426,36 @@ test('Tale of the Honorable Rogue owns its Aegis, note gate, and two-charge timi
   assert.ok(aegis.every((event) => event.duration === 4));
 });
 
-test('Honorable Rogue restores dodge readiness and stops recharge only when the pool fills', () => {
+test('Troubadour Dodge spends continuous endurance and waits for regeneration with Vigor', () => {
+  for (const [vigor, readyAt] of [
+    [false, 10000],
+    [true, 6680]
+  ]) {
+    const result = simulateMesmer(['Dodge', 'Dodge', 'Dodge'], {
+      specialization: 'Troubadour',
+      selectedTraitIds: [],
+      boons: { vigor }
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(
+      result.steps.map((step) => step.start),
+      [0, 0, readyAt]
+    );
+    assert.ok(result.planningState.profession.endurance < 0.11);
+    assert.equal(result.planningState.profession.maximumEndurance, 100);
+    assert.equal(result.planningState.ammoBySkillId[ID.DODGE_TROUBADOUR], undefined);
+    assert.equal(Object.hasOwn(result.planningState.cooldowns, 'Dodge'), false);
+  }
+});
+
+test('Honorable Rogue restores 50 endurance, preserving partial regeneration and capping a full pool', () => {
   for (const flute of [false, true]) {
     for (const dodges of [1, 2]) {
       const config = {
         specialization: 'Troubadour',
         initialResource: 3,
         selectedTraitIds: [],
-        boons: { quickness: false, alacrity: false }
+        boons: { quickness: false, alacrity: false, vigor: false }
       };
       const rotation = [
         ...(flute ? ['Flustering Flute'] : []),
@@ -442,20 +464,44 @@ test('Honorable Rogue restores dodge readiness and stops recharge only when the 
       ];
       const before = simulateMesmer(rotation, config);
       const after = simulateMesmer([...rotation, 'Tale of the Honorable Rogue'], config);
-      const priorAmmo = before.planningState.ammoBySkillId[ID.DODGE_TROUBADOUR];
-      const restoredAmmo = after.planningState.ammoBySkillId[ID.DODGE_TROUBADOUR];
       assert.deepEqual(before.warnings, []);
       assert.deepEqual(after.warnings, []);
-      assert.equal(priorAmmo.charges, 2 - dodges);
-      assert.equal(restoredAmmo.charges, 3 - dodges);
-      assert.equal(Object.hasOwn(before.planningState.cooldowns, 'Dodge'), dodges === 2);
+      const rate = flute ? 6.25 : 5;
+      assert.equal(before.planningState.profession.endurance, 100 - 50 * dodges + rate);
+      const tale = after.steps.at(-1);
+      const expected = Math.min(
+        100,
+        before.planningState.profession.endurance + 50 + ((tale.end - tale.start) / 1000) * rate
+      );
+      assert.ok(Math.abs(after.planningState.profession.endurance - expected) < 0.000001);
       assert.equal(Object.hasOwn(after.planningState.cooldowns, 'Dodge'), false);
-      // Partial refunds keep the original recharge deadline, including Flute's faster recovery.
-      assert.equal(restoredAmmo.rechargeWork, flute ? 8 : 10);
-      assert.equal(restoredAmmo.nextRechargeAt, dodges === 1 ? null : priorAmmo.nextRechargeAt);
+      assert.equal(after.planningState.ammoBySkillId[ID.DODGE_TROUBADOUR], undefined);
       assert.ok(after.planningState.cooldowns['Tale of the Honorable Rogue'].remaining > 0);
     }
   }
+});
+
+test('Troubadour uses initial endurance and Energy grants through the shared pool and palette', () => {
+  const result = simulateMesmer(['__combat_start', { type: 'wait', durationMs: 1000 }, 'Swap Weapons'], {
+    specialization: 'Troubadour',
+    selectedTraitIds: [],
+    initialEndurance: 0,
+    boons: { vigor: false },
+    sigilSets: [{ names: ['Energy'] }, { names: ['Energy'] }]
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.planningState.profession.endurance, 55);
+  const view = mesmerProfession.ui
+    .resourceViews({
+      catalog: mesmerCatalog,
+      specialization: 'Troubadour',
+      professionState: result.planningState.profession
+    })
+    .find((resource) => resource.id === 'endurance');
+  assert.equal(view.value, 55);
+  assert.equal(view.maximum, 100);
+  assert.equal(view.displayMode, 'bar');
+  assert.equal(view.paletteSkillId, ID.DODGE_TROUBADOUR);
 });
 
 test('Troubadour instrument note spends retain rotation timeline metadata', () => {
@@ -550,7 +596,9 @@ test('Troubadour adept and support traits emit their modeled effects', () => {
     })
   );
 
-  assert.equal(resonance.steps[3].start, 8560);
+  // Flute and Vigor add to 8.75 endurance/sec; availability is detected on the next server tick.
+  const recoveryMs = resonance.steps[3].start - resonance.steps[1].start;
+  assert.ok(recoveryMs >= 50000 / 8.75 && recoveryMs < 50000 / 8.75 + 40);
 
   const mayhem = simulateMesmer(
     ['Flustering Flute', 'Dodge', 'Flustering Flute'],

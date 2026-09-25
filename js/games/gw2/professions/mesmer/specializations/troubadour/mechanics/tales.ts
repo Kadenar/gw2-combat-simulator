@@ -11,6 +11,7 @@ import { activeTroubadourInstrumentsAt } from '#gw2/professions/mesmer/specializ
 import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { grantProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 interface TroubadourTaleInvocation {
   readonly context: MesmerSchedulerContext;
@@ -33,13 +34,6 @@ const TALE_INSTRUMENTS: Readonly<Record<number, string>> = Object.freeze({
   [ID.TALE_OF_THE_VALIANT_MARSHAL]: 'Harp',
   [ID.TALE_OF_THE_TORTURED_MASTERMIND]: 'Flute'
 });
-
-/** Restores 50 endurance as one dodge charge, stopping recharge when the pool fills. */
-function restoreHonorableRogueEndurance(context: MesmerSchedulerContext, at: number): void {
-  const runtime = mesmerRuntimeFor(context);
-  const dodge = runtime.skillsById.get(ID.DODGE_TROUBADOUR);
-  if (dodge) context.cooldownController.restoreAmmo(dodge, 1, at, 'reset');
-}
 
 /** Resolves a Tale's profile boons, matching-instrument note, and Troubadour trait effects together. */
 export function resolveTroubadourTale({ context, skill, at, castStart, activationId }: TroubadourTaleInvocation): void {
@@ -80,7 +74,8 @@ export function resolveTroubadourTale({ context, skill, at, castStart, activatio
   }
 
   if (skill.id === ID.TALE_OF_THE_HONORABLE_ROGUE) {
-    restoreHonorableRogueEndurance(context, at);
+    // Preserve fractional recovery and cap the grant through the shared endurance pool.
+    grantProfessionEndurance(context, 50, at);
   }
 
   if (runtime.traits.has(TRAIT.RACONTEUR)) {

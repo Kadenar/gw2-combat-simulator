@@ -12,6 +12,19 @@ export interface EndurancePolicy<TContext = SchedulerContext<any>> {
   state(context: TContext): { endurance: number; enduranceUpdatedAt: number };
   maximum(context: unknown): number;
   regenerationRate(context: TContext, vigor: boolean, at: number): number;
+  regenerationBoundaries?(context: TContext): readonly number[];
+}
+
+/** Keep temporary profession bonuses and Vigor on one recovery timeline. */
+function regenerationIntervals(context: SchedulerContext<any>, start: number, end: number) {
+  const policy = context.profession.resources.endurance!;
+  return vigorEnduranceIntervals(
+    context,
+    start,
+    end,
+    (vigor, at) => policy.regenerationRate(context, vigor, at),
+    policy.regenerationBoundaries?.(context)
+  );
 }
 
 /** Reject malformed declared resources instead of silently discarding grants. */
@@ -48,17 +61,11 @@ export function initializeProfessionEndurance(context: SchedulerContext<any>): v
 
 /** Continuous advancement and readiness share the exact same Vigor history and profession rate policy. */
 export function advanceProfessionEndurance(context: SchedulerContext<any>, at: number): void {
-  const { policy, state, maximum } = pool(context);
+  const { state, maximum } = pool(context);
   if (at <= state.enduranceUpdatedAt) return;
   Object.assign(
     state,
-    advanceEnduranceIntervals(
-      state,
-      vigorEnduranceIntervals(context, state.enduranceUpdatedAt, at, (vigor, time) =>
-        policy.regenerationRate(context, vigor, time)
-      ),
-      maximum
-    )
+    advanceEnduranceIntervals(state, regenerationIntervals(context, state.enduranceUpdatedAt, at), maximum)
   );
 }
 
@@ -68,20 +75,13 @@ export function professionEnduranceReadyAt(
   cost: number,
   at = context.start ?? context.state.time
 ): number | null {
-  const { policy, state, maximum } = pool(context);
+  const { state, maximum } = pool(context);
   const advanced = advanceEnduranceIntervals(
     state,
-    vigorEnduranceIntervals(context, state.enduranceUpdatedAt, at, (vigor, time) =>
-      policy.regenerationRate(context, vigor, time)
-    ),
+    regenerationIntervals(context, state.enduranceUpdatedAt, at),
     maximum
   );
-  return enduranceIntervalsReadyAt(
-    advanced,
-    cost,
-    vigorEnduranceIntervals(context, at, Infinity, (vigor, time) => policy.regenerationRate(context, vigor, time)),
-    maximum
-  );
+  return enduranceIntervalsReadyAt(advanced, cost, regenerationIntervals(context, at, Infinity), maximum);
 }
 
 /** Discrete changes execute at the current clock, after preceding regeneration has settled. */

@@ -35,6 +35,7 @@ rotations are resolved at the build-migration boundary.
 Single-target, outgoing-damage focused. Phantasm and clone travel time uses fixed delays. Critical-condition
 applications consume the shared seeded critical-hit facts in both simulation modes. Bloodsong grants blades at each
 five-stack bleeding-application threshold. Ally healing, barriers, control damage, stealth, and defensive effects stay
-outside the damage total; boon/distortion applications are still emitted. Mirage models a 100-point endurance pool,
-50-point dodges, and continuous regeneration at 5/sec or 7.5/sec with Vigor. Troubadour uses dodge charges. Competitive
-(PvP/WvW) splits are out of model.
+outside the damage total; boon/distortion applications are still emitted. Mirage and Troubadour use the shared 100-point
+endurance pool, 50-point dodges, and continuous regeneration at 5/sec or 7.5/sec with Vigor. Troubadour's Flute adds
+1.25 endurance/sec while playing, including when Vigor is active; Honorable Rogue restores 50 endurance without losing
+partial regeneration. Competitive (PvP/WvW) splits are out of model.

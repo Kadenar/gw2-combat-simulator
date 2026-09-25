@@ -17,17 +17,20 @@ import {
 
 import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { isCommittedInterruptedPhantasm } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import type {
-  MesmerCastContext,
-  MesmerRechargeContext,
-  MesmerSchedulerContext
-} from '#gw2/professions/mesmer/types.js';
+import type { MesmerCastContext, MesmerPrecastContext, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
+import { EPSILON } from '#kernel/core/clock.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
+import {
+  advanceProfessionEndurance,
+  professionEnduranceReadyAt,
+  spendProfessionEndurance
+} from '#gw2/platform/combat/resources/endurance-policy.js';
 
 const EMPTY_EVENTS: readonly SimulationEvent[] = Object.freeze([]);
 const instrumentEventIndex = new WeakMap<readonly SimulationEvent[], readonly SimulationEvent[]>();
@@ -134,28 +137,52 @@ function completeTroubadourPhantasm(context: MesmerCastContext, skill: MesmerSki
 
 /** Expires instruments at their exact exclusive deadline, matching damage queries and the palette. */
 function advanceTroubadourScheduler(context: MesmerSchedulerContext, target: number): void {
+  advanceProfessionEndurance(context, target);
   const instruments = troubadourState.from(context).instruments;
   for (const [instrument, expiresAt] of Object.entries(instruments)) {
     if (expiresAt <= target) delete instruments[instrument];
   }
 }
 
-/** Applies Troubadour's Flute endurance-recharge bonus only to its dodge action. */
-function modifyTroubadourRecharge(context: MesmerRechargeContext, sharedDuration: number): number {
-  if (context.ammoCastLockout || context.skill.id !== ID.DODGE_TROUBADOUR) return sharedDuration;
-  const runtime = mesmerRuntimeFor(context);
-  const flutePlaying = troubadourState.from(runtime.context).instruments.Flute > runtime.context.state.time;
-  return (
-    Number(context.skill.cooldown || 0) /
-    (flutePlaying
-      ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.SYMPHONIC_RESONANCE), 'dodgeRechargeSpeed')
-      : 1)
-  );
-}
-
+/** Dodge affordability follows the shared continuous pool rather than skill ammunition. */
 export const troubadourCastRules = Object.freeze({
-  modifyRechargeDuration: modifyTroubadourRecharge
+  availability: {
+    id: 'mesmer.troubadour.endurance',
+    order: 20,
+    handler: (context: MesmerPrecastContext, skill: MesmerSkill) => {
+      const cost = Number(skill.resourceCost ?? 50);
+      if (skill.id !== ID.DODGE_TROUBADOUR || troubadourState.from(context).endurance >= cost - EPSILON)
+        return { ready: true };
+      return {
+        ready: false,
+        retryAt: professionEnduranceReadyAt(context, cost, context.start),
+        code: 'mesmer.endurance',
+        reason: `Dodge requires ${cost} endurance.`
+      };
+    }
+  }
 });
+
+/** Flute adds 25% to base recovery only during its committed playing window, alongside Vigor's 50%. */
+export const troubadourEndurance: EndurancePolicy<MesmerSchedulerContext> = {
+  state: (context) => troubadourState.from(context),
+  maximum: () => 100,
+  regenerationBoundaries: (context) =>
+    context
+      .eventsOfType('mesmer.instrument')
+      .filter((event) => event.instrument === 'Flute')
+      .flatMap((event) => [event.at, Number(event.expiresAt)]),
+  regenerationRate: (context, vigor, at) => {
+    const flutePlaying = activeTroubadourInstrumentsAt(context.eventsOfType('mesmer.instrument'), at).has('Flute');
+    const fluteBonus = flutePlaying
+      ? balanceProfileNumber(
+          requireBalanceProfileFromContext(context, TRAIT.SYMPHONIC_RESONANCE),
+          'enduranceRegenerationMultiplier'
+        ) - 1
+      : 0;
+    return 5 * Math.min(2, 1 + (vigor ? 0.5 : 0) + fluteBonus);
+  }
+};
 
 export const troubadourSchedulerHooks = Object.freeze({
   initialize: initializeTroubadourRuntime,
@@ -196,6 +223,7 @@ export const troubadourSkillMechanicHandlers = Object.freeze({
     skill: MesmerSkill;
     at: number;
   }): void => {
+    spendProfessionEndurance(context, Number(skill.resourceCost ?? 50), at);
     const runtime = mesmerRuntimeFor(context);
     if (!runtime.traits.has(TRAIT.MAYHEM)) return;
     const flute = runtime.skillsById.get(ID.FLUSTERING_FLUTE);

@@ -156,7 +156,7 @@ export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   'dwarfAttributeBonus',
   'entityAttributeBonus',
   'maximumAmmo',
-  'dodgeRechargeSpeed',
+  'enduranceRegenerationMultiplier',
   'resourceCostMultiplier',
   'maximumConditions',
   'lifeForcePerStack',

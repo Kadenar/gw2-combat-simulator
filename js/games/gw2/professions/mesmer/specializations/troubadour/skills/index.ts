@@ -285,9 +285,7 @@ export const MESMER_TROUBADOUR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     slot: 'Action',
     specialization: 'Troubadour',
     castTimeMs: 0,
-    rechargeAnchor: 'castStart',
-    cooldown: 10,
-    ammo: 2,
+    resourceCost: 50,
     // Mayhem reacts to the completed dodge rather than a Core Mesmer skill-id branch.
     mechanicTriggers: [
       {

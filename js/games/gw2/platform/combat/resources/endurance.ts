@@ -24,10 +24,22 @@ export function* vigorEnduranceIntervals(
   context: { readonly events: readonly SimulationEvent[]; readonly config: Pick<Gw2Config, 'boons'> },
   start: number,
   end: number,
-  rateAt: (vigor: boolean, at: number) => number
+  rateAt: (vigor: boolean, at: number) => number,
+  rateBoundaries: readonly number[] = []
 ): Generator<Gw2EnduranceInterval> {
+  // Timed profession bonuses split the same windows used by both recovery and affordability forecasts.
+  const boundaries = [...new Set(rateBoundaries.filter((at) => at > start && at < end))].sort((a, b) => a - b);
+  let index = 0;
   for (const interval of boonIntervals(context.events, 'vigor', start, end, Boolean(context.config.boons?.vigor))) {
-    yield { start: interval.start, end: interval.end, rate: rateAt(interval.active, interval.start) };
+    let from = interval.start;
+    while (index < boundaries.length && boundaries[index] < interval.end) {
+      const boundary = boundaries[index++];
+      if (boundary <= from) continue;
+      yield { start: from, end: boundary, rate: rateAt(interval.active, from) };
+      from = boundary;
+    }
+
+    yield { start: from, end: interval.end, rate: rateAt(interval.active, from) };
   }
 }
 

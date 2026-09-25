@@ -28,7 +28,11 @@ import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js'
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
-import { reactToSoulbeastBuff } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
+import {
+  reactToSoulbeastBuff,
+  reactToSoulbeastDamage,
+  soulbeastEventHandlers
+} from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { createSoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
@@ -243,6 +247,51 @@ test('Engineer condition traits stay blocked at the exact ICD boundary', () => {
   reactToEngineerCondition(context, { ...event, at: AFTER_READY_AT });
   assert.ok(core.traitProcReadyAt.hematicFocus > AFTER_READY_AT);
   assert.equal(context.queue.length, 1);
+});
+
+test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and independent recipients', () => {
+  // Only personal One Wolf Pack includes equality; all gates still reject hits before their deadline.
+  for (const kind of ['one-wolf-pack', 'vulture-stance']) {
+    for (const ally of [false, true]) {
+      const state = createSoulbeastState();
+      const field = kind === 'one-wolf-pack' ? 'oneWolfPackReadyAt' : 'vultureStanceReadyAt';
+      state[field] = READY_AT;
+      state.alliedStanceReadyAt[`${kind}:1`] = READY_AT;
+      const { context } = professionContext({
+        id: 'ranger',
+        catalog: rangerCatalog,
+        core: createRangerCoreState(),
+        specialization: state,
+        kind: 'Soulbeast'
+      });
+      context.boons.set(kind, [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]);
+      const react = ally ? soulbeastEventHandlers['ranger.shared-stance-hit'] : reactToSoulbeastDamage;
+      const event = {
+        type: ally ? 'ranger.shared-stance-hit' : 'damage',
+        actorType: 'player',
+        source: 'ranger',
+        coefficient: 1,
+        skillName: 'Attack',
+        kind,
+        ...(ally ? { metadata: { triggeredByAlly: 1 } } : {})
+      };
+      const inclusive = !ally && kind === 'one-wolf-pack';
+      const blockedTimes = inclusive ? [0.96, READY_AT - 0.000001] : [0.96, READY_AT, READY_AT + 0.0000004];
+      for (const at of blockedTimes) react(context, { ...event, at });
+      assert.equal(context.queue.length, 0);
+      const triggerAt = inclusive ? READY_AT : 1.04;
+      react(context, { ...event, at: triggerAt });
+      assert.ok(context.queue.length > 0);
+      const deadline = ally ? state.alliedStanceReadyAt[`${kind}:1`] : state[field];
+      assert.equal(deadline, triggerAt + (kind === 'one-wolf-pack' ? 1 : 0.25));
+      if (ally) {
+        const queued = context.queue.length;
+        react(context, { ...event, at: 1.04, metadata: { triggeredByAlly: 2 } });
+        assert.ok(context.queue.length > queued);
+        assert.equal(state[field], READY_AT);
+      }
+    }
+  }
 });
 
 test('Ranger boon traits stay blocked at the exact ICD boundary', () => {

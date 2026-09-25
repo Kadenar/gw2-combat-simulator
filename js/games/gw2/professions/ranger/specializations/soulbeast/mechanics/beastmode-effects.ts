@@ -4,7 +4,7 @@ import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { consumeCharge, expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Soulbeast resolver-phase reactions and event handlers. */
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2AlliedPlayerProcTimeline } from '#gw2/platform/combat/state/allied-players.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -247,13 +247,13 @@ function queueStanceProc(
   queueVultureStanceEffects(context, event, profile, poison, might);
 }
 
-/** Allied opportunities have independent stance cooldowns, including across overlapping applications. */
+/** Allied stance cooldowns block their exact deadline independently, including across overlapping applications. */
 function handleSharedStanceHit(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const allyIndex = event.metadata?.triggeredByAlly;
   if (!allyIndex) return;
   const key = `${event.kind}:${allyIndex}`;
   const state = soulbeastState.from(context);
-  if (event.at + EPSILON < (state.alliedStanceReadyAt[key] ?? 0)) return;
+  if (!isInternalCooldownReady(event.at, state.alliedStanceReadyAt[key] ?? 0)) return;
   queueStanceProc(context, event, event.kind === 'one-wolf-pack', (internalCooldown) => {
     state.alliedStanceReadyAt[key] = event.at + internalCooldown;
   });
@@ -271,8 +271,9 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
     isPlayerStrike(event) &&
     event.sourceId !== ID.ONE_WOLF_PACK_STRIKE &&
     activeSoulbeastBuff(context, 'one-wolf-pack', event.at) &&
-    // Periodic hits exactly one interval apart can each trigger an echo; tolerate floating-point drift.
-    event.at + EPSILON >= state.oneWolfPackReadyAt
+    // Personal One Wolf Pack intentionally includes its 1s deadline: observed Frost Trap pulses each echo at 1s cadence.
+    // The shared strict ICD helper would skip alternate pulses; canonical times avoid needing an epsilon here.
+    canonicalTime(event.at) >= canonicalTime(state.oneWolfPackReadyAt)
   ) {
     // 1-second ICD between echoes even within a single multi-hit skill.
     queueStanceProc(context, event, true, (internalCooldown) => {
@@ -439,17 +440,13 @@ export function reactToSoulbeastBuff(context: RangerResolverContext, event: Gw2R
   if (event.kind !== 'one-wolf-pack' && event.kind !== 'vulture-stance') return;
   const maximumAllies = event.resolvedAudience?.alliedPlayerCount ?? 0;
   if (!maximumAllies) return;
-  const profile = requireBalanceProfileFromContext(
-    context,
-    event.kind === 'one-wolf-pack' ? PROFILE.oneWolfPack : PROFILE.vultureStance
-  );
   // Allies begin attacking in combat; waiting to engage never extends the shared stance's expiry.
+  // Keep every attack opportunity so the strict stance gate, rather than a prefiltered cadence, decides procs.
   const start = Math.max(event.at, context.combatStartTime ?? event.at);
   for (const proc of gw2AlliedPlayerProcTimeline(context.config, {
     start,
     duration: Math.max(0, event.at + Number(event.duration || 0) - start),
-    maximumAllies,
-    internalCooldown: balanceProfileNumber(profile, 'internalCooldown')
+    maximumAllies
   })) {
     context.queue.enqueue({
       type: 'ranger.shared-stance-hit',

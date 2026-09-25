@@ -1,5 +1,9 @@
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerMechanicPaletteGroups, mesmerResourceViews } from '#gw2/professions/mesmer/core/presentation.js';
+import {
+  mesmerMechanicPaletteGroups,
+  mesmerResourceViews,
+  mesmerUiState
+} from '#gw2/professions/mesmer/core/presentation.js';
 import type {
   ProfessionEffectPresentation,
   ProfessionEventLogDescriptor
@@ -53,17 +57,34 @@ export const troubadourUi: MesmerUiSlice = Object.freeze({
     mesmerMechanicPaletteGroups(context, TROUBADOUR_MECHANIC_SKILLS, 'notes'),
   resourceViews: (context: MesmerUiContext) => {
     const activeInstruments = (context.professionState as TroubadourUiState | undefined)?.activeInstruments || [];
-    const notes = mesmerResourceViews(context, {
-      id: 'notes',
-      singular: 'note',
-      plural: 'notes',
-      pipStyle: 'mesmer-notes'
-    });
-    if (!activeInstruments.length) return notes;
+    const resources = [
+      ...mesmerResourceViews(context, {
+        id: 'notes',
+        singular: 'note',
+        plural: 'notes',
+        pipStyle: 'mesmer-notes'
+      }),
+      // Display the live continuous pool beside Dodge, independently of the instrument notes.
+      {
+        id: 'endurance',
+        singular: 'endurance',
+        plural: 'endurance',
+        maximum: context.resources!.endurance!.maximum,
+        value: Number(mesmerUiState(context).endurance ?? 100),
+        canStart: false,
+        step: 1,
+        displayMode: 'bar' as const,
+        pipStyle: 'endurance',
+        shortLabel: 'End',
+        statusLabel: 'Current',
+        paletteSkillId: ID.DODGE_TROUBADOUR
+      }
+    ];
+    if (!activeInstruments.length) return resources;
     // Notes remain attached above the instrument row; these unlabeled playing
     // chips are anchored immediately below it to keep the F-key row central.
     return [
-      ...notes,
+      ...resources,
       {
         id: 'playing-instruments',
         singular: 'instrument',

@@ -10,7 +10,7 @@ import {
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import {
   applyTroubadourAttributes,
-  troubadourCastRules,
+  troubadourEndurance,
   troubadourModifierRules,
   troubadourSchedulerHooks
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-rules.js';
@@ -19,6 +19,11 @@ import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import {
+  advanceProfessionEndurance,
+  professionEnduranceReadyAt
+} from '#gw2/platform/combat/resources/endurance-policy.js';
 
 // Keep real profiles and instrument handlers while isolating windows from cast speed, random damage, and cooldowns.
 function instrumentContext() {
@@ -97,7 +102,11 @@ test('instrument commitment, damage bonuses, cleanup, and UI share exact exclusi
     const projected = projectMesmerPlanningState({ schedulerContext: context });
     assert.equal(projected.activeInstruments.length, Number(active));
     const view = troubadourUi
-      .resourceViews({ catalog: context.catalog, professionState: projected })
+      .resourceViews({
+        catalog: context.catalog,
+        professionState: projected,
+        resources: { endurance: { maximum: 100 } }
+      })
       .find((item) => item.id === 'playing-instruments');
     assert.equal(Boolean(view), active);
     const query = modifierContext(context, at);
@@ -168,18 +177,33 @@ test('a same-time instrument committed after a Tale starts cannot grant that Tal
   );
 });
 
-test('Flute dodge recharge uses the final live microsecond and loses the bonus at expiry', () => {
+test('Flute endurance regeneration uses the final live microsecond and loses the bonus at expiry', () => {
   const context = instrumentContext();
   play(context, ID.FLUSTERING_FLUTE, 0.301);
-  const skill = context.catalog.skillsById.get(ID.DODGE_TROUBADOUR);
   for (const at of [5.300999, 5.301, 5.301001]) {
     context.state.time = at;
     troubadourSchedulerHooks.advance.handler(context, at);
-    assert.equal(
-      troubadourCastRules.modifyRechargeDuration({ ...context, skill }, skill.cooldown),
-      at < 5.301 ? 8 : 10
-    );
+    assert.equal(troubadourEndurance.regenerationRate(context, false, at), at < 5.301 ? 6.25 : 5);
   }
+});
+
+// Forecasting and advancement must split both Vigor and replaced Flute windows, even across an otherwise idle wait.
+test('Troubadour endurance integrates Flute replacement and Vigor boundaries without losing partial recovery', () => {
+  const context = instrumentContext();
+  const state = context.state.profession.specialization.state;
+  state.endurance = 0;
+  play(context, ID.FLUSTERING_FLUTE, 1, 3);
+  play(context, ID.FLUSTERING_FLUTE, 2);
+  const vigor = { type: 'buff', kind: 'vigor', at: 3, duration: 2, stacks: 1, audience: { recipients: 'self' } };
+  context.events.push({ ...vigor, resolvedAudience: gw2BoonApplicationRecipients({}, vigor) });
+  // 0-1: 5; 1-3: 12.5; 3-5: 17.5; 5-7: 12.5. The remaining 2.5 takes 0.5s at the base rate.
+  assert.equal(professionEnduranceReadyAt(context, 50, 0), 7.52);
+  assert.equal(state.endurance, 0, 'Readiness must not mutate the pool');
+  advanceProfessionEndurance(context, 7);
+  assert.equal(state.endurance, 47.5);
+  advanceProfessionEndurance(context, 8);
+  assert.equal(state.endurance, 52.5);
+  assert.equal(state.enduranceUpdatedAt, 8);
 });
 
 test('delayed performance packets survive instrument expiry without retaining its playing bonus', () => {

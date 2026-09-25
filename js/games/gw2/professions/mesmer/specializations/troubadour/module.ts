@@ -4,6 +4,7 @@ import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data
 import {
   troubadourAttributeRules,
   troubadourCastRules,
+  troubadourEndurance,
   troubadourSchedulerHooks,
   troubadourSkillMechanicHandlers
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-rules.js';
@@ -30,6 +31,7 @@ export const troubadourModule = defineNativeModule({
     // Troubadour has no resolver-local state; timeline events carry its resolver data.
     resolver: () => ({})
   },
+  resources: { endurance: troubadourEndurance },
   mechanics: {
     modifiers: troubadourAttributeRules,
     execution: {

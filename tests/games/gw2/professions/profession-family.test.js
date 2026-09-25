@@ -1047,12 +1047,12 @@ test('Mesmer presentation and ammo output expose only the active specialization 
       state: { profession: state }
     });
 
-    // Mirage exposes dodge endurance alongside clones; sibling specializations must not inherit it.
+    // Only Mirage and Troubadour expose dodge endurance alongside their primary resource.
     assert.deepEqual(
       resources.map((resource) => resource.id),
       [
         active === 'Virtuoso' ? 'blades' : active === 'Troubadour' ? 'notes' : 'clones',
-        ...(active === 'Mirage' ? ['endurance'] : [])
+        ...(['Mirage', 'Troubadour'].includes(active) ? ['endurance'] : [])
       ],
       active
     );

@@ -134,11 +134,19 @@ test('Ranger condition bonuses retain the Consuming Bite cap and coefficient gua
   }
 });
 
-test('One Wolf Pack uses its own strength and accepts periodic hits at the recharge boundary', () => {
-  // Five evenly spaced pulses must each produce one echo; weapon triggers must use the same stance formula.
+test('One Wolf Pack echoes every one-second Frost Trap pulse without shifting its cadence', () => {
+  // The personal stance's inclusive deadline preserves each pulse's echo while keeping the skill's exact cadence.
   const trap = simulate('Soulbeast', [ID.ONE_WOLF_PACK, ID.FROST_TRAP, wait(6000)]);
   const echoes = hits(trap, ID.ONE_WOLF_PACK);
-  assert.equal(echoes.length, hits(trap, ID.FROST_TRAP).length);
+  const pulses = hits(trap, ID.FROST_TRAP);
+  for (let index = 1; index < pulses.length; index += 1) {
+    assert.equal(Math.round((pulses[index].at - pulses[index - 1].at) * 1_000_000), 1_000_000);
+  }
+
+  assert.deepEqual(
+    echoes.map((event) => Math.round(event.at * 1000)),
+    pulses.map((event) => Math.round(event.at * 1000) + 280)
+  );
   const weapon = simulate('Soulbeast', [ID.ONE_WOLF_PACK, ID.DRAKES_SWIPE, wait(1000)]);
   const echo = hits(weapon, ID.ONE_WOLF_PACK)[0];
   assert.equal(echo.skillWeapon, 'Unequipped');
@@ -167,13 +175,17 @@ test('Leader of the Pack shares half the extended stance window with independent
         event.metadata?.triggeredByAlly &&
         event.type === (skillId === ID.ONE_WOLF_PACK ? 'damage' : 'condition')
     );
-    const interval = skillId === ID.ONE_WOLF_PACK ? 1 : 0.25;
+    const procInterval = skillId === ID.ONE_WOLF_PACK ? 1.25 : 0.5;
     const delay = skillId === ID.ONE_WOLF_PACK ? 0.28 : 0;
     for (const allyIndex of [1, 2]) {
       const times = procs
         .filter((event) => event.metadata.triggeredByAlly === allyIndex)
         .map((event) => Number((event.at - shared.at - delay).toFixed(6)));
-      const expected = Array.from({ length: Math.floor(shared.duration / interval) }, (_, i) => (i + 1) * interval);
+      // Four attacks per second continue through blocked opportunities; equality never advances the stance ICD.
+      const expected = Array.from(
+        { length: Math.floor((shared.duration - 0.25) / procInterval) + 1 },
+        (_, i) => 0.25 + i * procInterval
+      );
       assert.deepEqual(times, expected);
     }
 
@@ -207,7 +219,7 @@ test('shared Vulture might stays on each triggering ally through boon reporting'
   const generation = buildBoonGeneration(result.resolvedEvents, 0, 8);
   assert.deepEqual(
     generation.alliedApplications.map((history) => buffApplicationStacks(history.get('might') || [], 'might', 3.5, 25)),
-    [14, 14, 14, 14]
+    [7, 7, 7, 7]
   );
 });
 
@@ -220,7 +232,7 @@ test('precast shared stances start allied attacks in combat without extending ex
       (event) => event.type === 'buff' && event.resolvedAudience?.alliedPlayerCount === 1
     );
     const delay = skillId === ID.ONE_WOLF_PACK ? 0.28 : 0;
-    const interval = skillId === ID.ONE_WOLF_PACK ? 1 : 0.25;
+    const interval = 0.25;
     const procs = result.resolvedEvents.filter(
       (event) =>
         event.metadata?.triggeredByAlly && event.type === (skillId === ID.ONE_WOLF_PACK ? 'damage' : 'condition')

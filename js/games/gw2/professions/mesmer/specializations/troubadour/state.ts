@@ -5,6 +5,8 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 
 export interface MesmerTroubadourState {
   numericResource: number;
+  endurance: number;
+  enduranceUpdatedAt: number;
   instruments: Record<string, number>;
   lastInstrument: string;
 }
@@ -12,6 +14,8 @@ export interface MesmerTroubadourState {
 function createTroubadourState(_config: Partial<MesmerConfig> = {}): MesmerTroubadourState {
   return {
     numericResource: 0,
+    endurance: 100,
+    enduranceUpdatedAt: 0,
     instruments: {},
     lastInstrument: ''
   };

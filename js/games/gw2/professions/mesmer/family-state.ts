@@ -96,7 +96,7 @@ export function projectMesmerPlanningState({
           ).length
         }
       : {}),
-    ...(config.specialization === 'Troubadour' ? { activeInstruments } : {}),
+    ...(config.specialization === 'Troubadour' ? { activeInstruments, endurance: publicState.endurance } : {}),
     availableFlips,
     autoattackChains: Object.fromEntries(
       context.catalog.autoattackChains.map((chain) => [chain[0], publicState.autoattackChains[chain[0]] || chain[0]])
