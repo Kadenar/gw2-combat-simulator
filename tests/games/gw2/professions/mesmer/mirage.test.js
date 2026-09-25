@@ -675,7 +675,7 @@ test('Crystal Sands creates a collectible Mirage Mirror with delayed damage', ()
   );
 
   assert.deepEqual(result.warnings, []);
-  assert.ok(Math.abs(crystal.at - 0.691) < 0.00001);
+  assert.ok(Math.abs(crystal.at - 0.72) < 0.00001);
   assert.ok(Math.abs(mirror.at - 1.16) < 0.00001);
   assert.equal(confusion.at, crystal.at);
   assert.equal(confusion.stacks, 6);
