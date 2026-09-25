@@ -26,7 +26,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Ski
     effects: []
   },
   [ID.CRYSTAL_SANDS]: {
-    castTimeMs: 371,
+    castTimeMs: 400,
     // The launched sand and its mirror survive cancellation of the remaining animation.
     interruptCommitMs: 320,
     // The ground mirror appears when the sand projectiles converge, after their damage packets.
