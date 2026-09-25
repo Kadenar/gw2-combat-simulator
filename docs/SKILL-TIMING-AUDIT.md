@@ -1,9 +1,9 @@
 # Skill timing audit: 40 ms boundaries
 
-Audited the current working tree on 2026-09-17 after a successful `npm run build:modules`.
+Audited the current working tree on 2026-09-24 after a successful `npm run build:modules`.
 
-Loaded all nine assembled profession catalogs: **1807 skills and 724 balance profiles**. **260 skills** have at least
-one cast field off the 40 ms grid: **170 player-timing skills** and **90 summon-timing skills**. Of the latter, **58**
+Loaded all nine assembled profession catalogs: **1797 skills and 826 balance profiles**. **215 skills** have at least
+one cast field off the 40 ms grid: **125 player-timing skills** and **90 summon-timing skills**. Of the latter, **58**
 also have off-grid explicit Quickness durations.
 
 ## Scope and interpretation
@@ -23,6 +23,8 @@ also have off-grid explicit Quickness durations.
   separate authored-offset findings.
 - Refreshed after the requested Guardian, Mesmer, Revenant, Necromancer, and Thief corrections; resolved entries are
   removed from this list.
+- Reassessed on 2026-09-24: entries whose cast times are now on the 40 ms grid (Mesmer, Ranger, and Warrior
+  corrections) and skills no longer in the assembled catalogs (Warrior aquatic and aquatic primal bursts) are removed.
 
 ## Cast summary
 
@@ -31,13 +33,13 @@ also have off-grid explicit Quickness durations.
 | elementalist |            4 |                 0 |                      0 |                      4 |
 | engineer     |            2 |                11 |                      0 |                     13 |
 | guardian     |            0 |                 0 |                      0 |                      0 |
-| mesmer       |           19 |                 0 |                      0 |                     19 |
+| mesmer       |           17 |                 0 |                      0 |                     17 |
 | necromancer  |            0 |                 0 |                      0 |                      0 |
-| ranger       |           61 |                79 |                     58 |                    140 |
+| ranger       |           54 |                79 |                     58 |                    133 |
 | revenant     |            0 |                 0 |                      0 |                      0 |
 | thief        |            0 |                 0 |                      0 |                      0 |
-| warrior      |           84 |                 0 |                      0 |                     84 |
-| **Total**    |      **170** |            **90** |                 **58** |                **260** |
+| warrior      |           48 |                 0 |                      0 |                     48 |
+| **Total**    |      **125** |            **90** |                 **58** |                **215** |
 
 Summon Quickness counts overlap the summon base counts.
 
@@ -45,8 +47,8 @@ Summon Quickness counts overlap the summon base counts.
 
 | Profession  | Skill / profile                                                  | Off-grid offsets (ms)                        | Location                                                                                                                                                                                                                                         |
 | ----------- | ---------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Revenant    | Unrelenting Assault (26699)                                      | 260, 405, 550, 695                           | [sword.ts:17](../js/games/gw2/professions/revenant/core/skills/weapons/sword.ts#L17)                                                                                                                                         |
-| Necromancer | Sandstorm Shroud - Pulses (necromancer.scourge.sandstorm-shroud) | 3500 for both strike and Torment application | [profiles.ts:149](../js/games/gw2/professions/necromancer/specializations/scourge/profiles.ts#L149), [profiles.ts:159](../js/games/gw2/professions/necromancer/specializations/scourge/profiles.ts#L159) |
+| Revenant    | Unrelenting Assault (26699)                                      | 260, 405, 550, 695                           | [sword.ts:21](../js/games/gw2/professions/revenant/core/skills/weapons/sword.ts#L21)                                                                                                                                         |
+| Necromancer | Sandstorm Shroud - Pulses (necromancer.scourge.sandstorm-shroud) | 3500 for both strike and Torment application | [profiles.ts:157](../js/games/gw2/professions/necromancer/specializations/scourge/profiles.ts#L157) |
 
 Unrelenting Assault generates five strikes at 260, 405, 550, 695, and 840 ms from cast start; only the final packet is
 aligned. Its cast duration is aligned at 840 ms. Sandstorm Shroud uses a fixed 3500 ms offset from cast start. No other
@@ -105,7 +107,6 @@ No remaining off-grid cast findings.
 | 71800    | Effervescence            | Player       | **166.666666667** |                     - |
 | 10176    | Ether Feast              | Player       | **666.666666667** |                     - |
 | 71892    | Friendly Fire            | Player       |           **500** |                     - |
-| 10280    | Illusionary Riposte      | Player       |          **1500** |                     - |
 | 72005    | Inspiring Imagery        | Player       |           **500** |                     - |
 | 71897    | Journey                  | Player       | **333.333333333** |                     - |
 | 10213    | Mantra of Recovery       | Player       |          **1500** |                     - |
@@ -118,7 +119,6 @@ No remaining off-grid cast findings.
 | 76971    | Tale of the August Queen | Player       | **666.666666667** |                     - |
 | 76695    | Tale of the Second Scion | Player       | **666.666666667** |                     - |
 | 10186    | Temporal Curtain         | Player       |           **740** |                     - |
-| 62522    | Twin Blade Restoration   | Player       | **666.666666667** |                     - |
 
 ### Necromancer
 
@@ -135,7 +135,6 @@ No remaining off-grid cast findings. Sandstorm Shroud remains in the damage-offs
 | 12632    | "Guard!"                | Player       |        **333** |                     - |
 | 12631    | "Protect Me!"           | Player       |        **333** |                     - |
 | 12516    | "Strength of the Pack!" | Player       |        **667** |                     - |
-| 31914    | "We Heal As One!"       | Player       |        **667** |                     - |
 | 31535    | Ancestral Grace         | Player       |        **833** |                     - |
 | 21776    | Aqua Surge              | Player       |        **500** |                     - |
 | 31889    | Astral Wisp             | Player       |        **333** |                     - |
@@ -165,7 +164,6 @@ No remaining off-grid cast findings. Sandstorm Shroud remains in the damage-offs
 | 12731    | Deadly Venom            | Summon       |      **499.5** |               **333** |
 | 71002    | Dimension Breach        | Summon       |     **1000.5** |               **667** |
 | 12699    | Electrocute             | Summon       |      **499.5** |               **333** |
-| 12488    | Enduring Swing          | Player       |        **500** |                     - |
 | 12688    | Enfeebling Maul         | Summon       |       **1500** |                  1000 |
 | 12685    | Enfeebling Roar         | Summon       |     **1249.5** |               **833** |
 | 41156    | Fang Grapple            | Summon       |       **1500** |                  1000 |
@@ -190,7 +188,6 @@ No remaining off-grid cast findings. Sandstorm Shroud remains in the damage-offs
 | 65109    | Guardian's Roar         | Summon       |      **499.5** |               **333** |
 | 43636    | Head Toss               | Summon       |        **750** |               **500** |
 | 12489    | Healing Spring          | Player       |        **333** |                     - |
-| 12475    | Hilt Bash               | Player       |        **333** |                     - |
 | 75783    | Honey Toss              | Summon       |        **750** |               **500** |
 | 12718    | Howl of the Pack        | Summon       |       **1500** |                  1000 |
 | 65418    | Hunker Down             | Summon       |      **499.5** |               **333** |
@@ -208,9 +205,7 @@ No remaining off-grid cast findings. Sandstorm Shroud remains in the damage-offs
 | 71688    | Ley Energy Pulse        | Summon       |        **750** |               **500** |
 | 31639    | Lightning Assault       | Summon       |      **499.5** |               **333** |
 | 12698    | Lightning Breath        | Summon       |       **1500** |                  1000 |
-| 12525    | Maul                    | Player       |        **333** |                     - |
 | 12657    | Maul                    | Summon       |       **1260** |                   840 |
-| 46629    | Maul                    | Player       |        **333** |                     - |
 | 12658    | Mighty Roar             | Summon       |      **499.5** |               **333** |
 | 73110    | Mongoose's Frenzy       | Player       |        **667** |                     - |
 | 12501    | Muddy Terrain           | Player       |        **500** |                     - |
@@ -243,8 +238,6 @@ No remaining off-grid cast findings. Sandstorm Shroud remains in the damage-offs
 | 12680    | Rending Pounce          | Summon       |       **1500** |                  1000 |
 | 42963    | Savannah Strike         | Summon       |        **750** |               **500** |
 | 12666    | Shake It Off            | Summon       |      **499.5** |               **333** |
-| 12474    | Slash                   | Player       |        **333** |                     - |
-| 12487    | Slice                   | Player       |        **333** |                     - |
 | 31568    | Smoke Cloud             | Summon       |        **750** |               **500** |
 | 31710    | Solar Beam              | Player       |        **833** |                     - |
 | 12597    | Solar Flare             | Player       |        **500** |                     - |
@@ -293,46 +286,18 @@ Grouped by the weapon each skill belongs to, then primal bursts, then heal/utili
 from the assembled catalog entry. Bursts carry no weapon in the API data, so they are attached to a weapon through
 [`WARRIOR_REGULAR_BURSTS_BY_WEAPON`](../js/games/gw2/professions/warrior/core/presentation.ts) and the Berserker
 `PRIMAL_BURSTS_BY_WEAPON` map, matching by burst name so adrenaline-tier and Spellbreaker variants land with their
-weapon. Bursts that neither map references are the aquatic-weapon bursts and are listed separately. **Module** is the
-native module that defines the fragment (Core, Berserker, Spellbreaker, Bladesworn, Paragon), which is not always the
-specialization that grants the skill — the Spellbreaker dagger, for example, is defined in Core.
+weapon. **Module** is the native module that defines the fragment (Core, Berserker, Spellbreaker, Bladesworn,
+Paragon), which is not always the specialization that grants the skill.
 
 #### Weapon skills
 
 Each weapon lists its off-grid weapon skills by slot, followed by that weapon's adrenaline burst.
 
-##### Axe
-
-| Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | --- | ---: | ---: |
-| 14369 | Chop | 1 | Core | **167** | - |
-| 14370 | Double Chop | 1 | Core | **167** | - |
-| 14418 | Dual Strike | 4 | Core | **500** | - |
-| 14399 | Whirling Axe | 5 | Core | **2500** | - |
-
-##### Dagger
-
-| Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | --- | ---: | ---: |
-| 46233 | Aura Slicer | 2 | Core | **750** | - |
-| 45160 | Hushblade | 5 | Core | **500** | - |
-| 45252 | Breaching Strike | Burst (F1) | Core | **842** | - |
-
 ##### Greatsword
 
 | Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
 | --- | --- | --- | --- | ---: | ---: |
-| 14374 | Brutal Strike | 1 | Core | **333** | - |
-| 14373 | Greatsword Slice | 1 | Core | **333** | - |
-| 14375 | Arcing Slice | Burst (F1) | Core | **333** | - |
 | 42707 | Arcing Slice | Burst (F1) | Spellbreaker | **333** | - |
-
-##### Gunsaber
-
-| Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | --- | ---: | ---: |
-| 62918 | Explosive Thrust | 1 | Bladesworn | **439** | - |
-| 80213 | Explosive Thrust | Action | Bladesworn | **439** | - |
 
 ##### Longbow
 
@@ -340,29 +305,11 @@ Each weapon lists its off-grid weapon skills by slot, followed by that weapon's 
 | --- | --- | --- | --- | ---: | ---: |
 | 42803 | Combustive Shot | Burst (F1) | Spellbreaker | **500** | - |
 
-##### Mace
-
-| Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | --- | ---: | ---: |
-| 14377 | Mace Bash | 1 | Core | **333** | - |
-| 14376 | Mace Smash | 1 | Core | **333** | - |
-| 14378 | Pulverize | 1 | Core | **500** | - |
-| 14507 | Counterblow | 2 | Core | **333** | - |
-| 14548 | Tactical Blow | 2 | Core | **333** | - |
-| 14503 | Pommel Bash | 3 | Core | **333** | - |
-| 14414 | Skull Crack | Burst (F1) | Core | **333** | - |
-| 41110 | Skull Crack | Burst (F1) | Spellbreaker | **333** | - |
-
 ##### Rifle
 
 | Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
 | --- | --- | --- | --- | ---: | ---: |
-| 14432 | Fierce Shot | 1 | Core | **500** | - |
-| 14416 | Volley | 2 | Core | **1667** | - |
-| 14472 | Explosive Shell | 3 | Core | **500** | - |
 | 34296 | Brutal Shot | 4 | Core | **500** | - |
-| 14360 | Rifle Butt | 5 | Core | **333** | - |
-| 14396 | Kill Shot | Burst (F1) | Core | **833** | - |
 
 ##### Shield
 
@@ -374,7 +321,6 @@ Each weapon lists its off-grid weapon skills by slot, followed by that weapon's 
 
 | Skill ID | Skill | Slot | Module | Cast ms | Explicit Quickness ms |
 | --- | --- | --- | --- | ---: | ---: |
-| 73009 | Spear Swipe | 5 | Core | **500** | - |
 | 73006 | Harrier's Toss | Burst (F1) | Core | **333** | - |
 | 73014 | Harrier's Toss | Burst (F1) | Spellbreaker | **333** | - |
 | 73024 | Harrier's Toss | Burst (F1) | Core | **333** | - |
@@ -421,17 +367,6 @@ Each weapon lists its off-grid weapon skills by slot, followed by that weapon's 
 | 29679 | Skull Grinder | Mace | **333** | - |
 | 29644 | Gun Flame | Rifle | **500** | - |
 | 71875 | Rampart Splitter | Staff | **333** | - |
-| 30989 | Burning Shackles | — (aquatic) | **1167** | - |
-| 31048 | Wild Whirl | — (aquatic) | **500** | - |
-
-#### Aquatic bursts
-
-| Skill ID | Skill | Module | Cast ms | Explicit Quickness ms |
-| --- | --- | --- | ---: | ---: |
-| 14544 | Forceful Shot | Core | **1167** | - |
-| 41330 | Forceful Shot | Spellbreaker | **1167** | - |
-| 14443 | Whirling Strike | Core | **500** | - |
-| 41746 | Whirling Strike | Spellbreaker | **500** | - |
 
 #### Heal, utility, and elite skills
 
@@ -439,8 +374,6 @@ Each weapon lists its off-grid weapon skills by slot, followed by that weapon's 
 | --- | --- | --- | --- | --- | ---: | ---: |
 | 76755 | "We Shall Return!" | Heal | Command | Paragon | **667** | - |
 | 62978 | Combat Stimulant | Heal | - | Bladesworn | **500** | - |
-| 21815 | Defiant Stance | Heal | Stance | Core | **500** | - |
-| 14389 | Healing Signet | Heal | Signet | Core | **833** | - |
 | 41100 | Natural Healing | Heal | Meditation | Spellbreaker | **667** | - |
 | 77040 | "Find Their Weakness!" | Utility | Command | Paragon | **333** | - |
 | 77114 | "On Your Knees!" | Utility | Command | Paragon | **167** | - |
@@ -448,14 +381,12 @@ Each weapon lists its off-grid weapon skills by slot, followed by that weapon's 
 | 14405 | Banner of Strength | Utility | Banner | Core | **500** | - |
 | 43123 | Break Enchantments | Utility | Meditation | Spellbreaker | **167** | - |
 | 14502 | Kick | Utility | Physical | Core | **842** | - |
-| 14410 | Signet of Fury | Utility | Signet | Core | **350** | - |
 | 14404 | Signet of Might | Utility | Signet | Core | **333** | - |
 | 14388 | Stomp | Utility | Physical | Core | **500** | - |
 | 14354 | Throw Bolas | Utility | Physical | Core | **333** | - |
 | 76562 | "We Will Never Yield!" | Elite | Command | Paragon | **667** | - |
 | 14419 | Battle Standard | Elite | Banner | Core | **1333** | - |
 | 14483 | Rampage | Elite | Physical | Core | **667** | - |
-| 14355 | Signet of Rage | Elite | Signet | Core | **167** | - |
 
 #### Profession mechanic skills
 
