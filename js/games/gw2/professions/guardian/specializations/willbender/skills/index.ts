@@ -35,6 +35,8 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
       {
         type: 'strike',
         coefficient: 1,
+        // Virtue strikes use mechanic weapon strength independently of equipped weapons.
+        weapon: 'Profession Mechanic',
         name: 'Crashing Courage — Initial Damage'
       },
       {
@@ -153,11 +155,13 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   [ID.RUSHING_JUSTICE]: {
     castTimeMs: 480,
     rechargeAnchor: 'castStart',
-    // Keep the virtue's impact strike and initial Burning together.
+    // Both impact packets retain the impact identity; the strike uses mechanic weapon strength.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 1.5,
+        sourceId: ID.RUSHING_JUSTICE_IMPACT,
+        weapon: 'Profession Mechanic',
         name: 'Rushing Justice — Impact Damage'
       },
       {
@@ -165,6 +169,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         condition: 'Burning',
         stacks: 1,
         duration: 4,
+        sourceId: ID.RUSHING_JUSTICE_IMPACT,
         name: 'Rushing Justice — Initial Burning'
       }
     ])

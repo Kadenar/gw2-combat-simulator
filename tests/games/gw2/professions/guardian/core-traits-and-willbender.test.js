@@ -444,6 +444,8 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
     (event) => event.name === 'Rushing Justice — Impact Damage' || event.name === 'Rushing Justice — Initial Burning'
   );
 
+  // Authored packets retain their impact identity after removing the static modifyEffects hook.
+  assert.ok(rushingJusticePackets.every((event) => event.sourceId === GUARDIAN_SKILL_IDS.RUSHING_JUSTICE_IMPACT));
   assert.deepEqual(
     rushingJusticePackets.map((event) => Math.round((event.at - rushingJusticeAction.at) * 1000)),
     [440, 440]

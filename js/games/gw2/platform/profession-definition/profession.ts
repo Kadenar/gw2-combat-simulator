@@ -378,6 +378,11 @@ export function defineNativeProfession<
         return work;
       }
     };
+    // Bind profession verbs only after Core and the selected elite handlers have been composed.
+    for (const skill of runtime.catalog.skills)
+      for (const { do: action } of skill.sideEffects ?? [])
+        if (action.type.includes('.') && typeof runtime.sideEffectHandlers?.[action.type] !== 'function')
+          throw new TypeError(`Skill ${skill.id} has no side-effect handler registered for ${action.type}.`);
     runtimes.set(specialization, runtime);
     return runtime;
   }

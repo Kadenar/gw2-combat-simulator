@@ -27,7 +27,6 @@ export interface ProfessionBuildAssumptions extends UnvalidatedBuildRecord {
   alliedPlayerCount?: number;
   sharePlayerBoonsWithSummons?: boolean;
   targetDefiant?: boolean;
-  targetDistance?: number;
   targetMoving?: boolean;
   targetSkillActivationsPerSecond?: number;
   targetConditions?: Record<string, number | boolean>;

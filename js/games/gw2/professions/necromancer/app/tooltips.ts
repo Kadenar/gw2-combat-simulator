@@ -881,7 +881,7 @@ export const necromancerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.RELENTLESS_PURSUIT]: outsideScopeTooltip,
     [TRAIT.SOUL_EATER]: traitTooltip(
-      'Deal increased strike damage while near your target. Healing is outside simulation scope.',
+      'Deal increased strike damage; the simulator always assumes a nearby target. Healing is outside simulation scope.',
       (balanceContext) => [
         modifierFact(
           balanceContext,

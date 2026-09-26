@@ -1586,3 +1586,22 @@ test("Panther's Prowl replaces all four Ranger spear stealth-attack slots", () =
   assert.ok(ordinary.every((name) => consumed.includes(name)));
   assert.ok(stealth.every((name) => !consumed.includes(name)));
 });
+
+// Authored eligibility retains pet attribution and suppresses only Vulnerability on non-defiant targets.
+test('Venomous Outburst applies authored Vulnerability only to defiant targets', () => {
+  for (const defiant of [false, true]) {
+    const result = simulate('Untamed', [ID.VENOMOUS_OUTBURST], { initialUntamedState: 'Pet', target: { defiant } });
+    assert.deepEqual(result.warnings, []);
+    const conditions = result.events.filter(
+      (event) => event.type === 'condition' && event.skillId === ID.VENOMOUS_OUTBURST
+    );
+    assert.ok(conditions.some((event) => event.condition === 'Poisoned'));
+    const vulnerability = conditions.find((event) => event.condition === 'Vulnerability');
+    assert.equal(Boolean(vulnerability), defiant);
+    if (vulnerability) {
+      assert.equal(vulnerability.actorType, 'summon');
+      assert.equal(vulnerability.stacks, 8);
+      assert.equal(vulnerability.duration, 10);
+    }
+  }
+});

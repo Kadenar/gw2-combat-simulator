@@ -569,7 +569,7 @@ export const mesmerTooltips: ProfessionTooltips = {
       ]
     ),
     [TRAIT.SUPERIORITY_COMPLEX]: traitTooltip(
-      'Your critical strikes deal increased damage. Use the larger bonus against low-health or eligible controlled targets; defiance alone does not activate it.',
+      'Your critical strikes deal increased damage. Use the larger bonus against low-health or targets affected by Fear or Taunt; defiance alone does not activate it.',
       (balanceContext) => [
         profileFact(
           balanceContext,
@@ -876,7 +876,7 @@ export const mesmerTooltips: ProfessionTooltips = {
     ),
     [TRAIT.BLADETURN_REFRAIN]: outsideScopeTooltip,
     [TRAIT.MENTAL_FOCUS]: traitTooltip(
-      'Your strikes deal increased damage when the target is nearby.',
+      'Your strikes deal increased damage. The simulator always assumes a nearby target.',
       (balanceContext) => [
         modifierFact(balanceContext, 'mesmer.mental-focus', 'factor', 'Nearby strike damage', tooltipFactorChange)
       ]

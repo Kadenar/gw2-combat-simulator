@@ -79,14 +79,10 @@ function opportunist(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   traitEffects(runtime, event, TRAIT.OPPORTUNIST);
 }
 
-/** Control state is committed before Defense and Strength rewards; derived conditions reenter the common queue. */
+/** Control events trigger Defense and Strength rewards; derived conditions reenter the common queue. */
 function controlTraits(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player') return;
   opportunist(runtime, event);
-  runtime.profession.core.targetControlledUntil = Math.max(
-    runtime.profession.core.targetControlledUntil,
-    canonicalTime(runtime.time + Number(event.duration ?? 1))
-  );
   if (hasTrait(runtime, TRAIT.MERCILESS_HAMMER))
     grantWarriorAdrenaline(
       runtime,
@@ -734,14 +730,8 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
   },
   reactions: {
     'damage.resolving'(runtime, event) {
-      // The controlled-target bonus observes accepted control at impact, including control arriving during travel.
-      if (
-        event.skillId === ID.FIERCE_BLOW &&
-        Number(event.coefficient) > 0 &&
-        (runtime.config.target?.controlled ||
-          runtime.config.target?.defiant ||
-          runtime.profession.core.targetControlledUntil > runtime.time)
-      )
+      // Only defiant targets receive the bonus; temporary disable windows are outside simulation scope.
+      if (event.skillId === ID.FIERCE_BLOW && Number(event.coefficient) > 0 && runtime.config.target?.defiant)
         return { coefficient: Number(event.coefficient) * 1.5 };
     },
     'damage.resolved'(runtime, event, details) {

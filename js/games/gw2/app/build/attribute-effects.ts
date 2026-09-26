@@ -280,13 +280,15 @@ export function attributeEffectControls(app: ProfessionAppState): AttributeEffec
       kind: 'special',
       description: 'Positional Critical Chance'
     });
-  if (has('Unsuspecting Foe', 'Superiority Complex'))
+  // The preview uses the same supported defiant state as combat; generic disable windows are not modeled.
+  if (has('Unsuspecting Foe'))
     add({
-      key: 'controlled',
-      label: 'Target disabled',
+      key: 'defiant',
+      label: 'Defiant target',
       group: 'Trait conditionals',
       kind: 'special',
-      description: 'Control-dependent critical bonuses'
+      initial: 1,
+      description: 'Defiant-target critical bonuses'
     });
   for (const [name, required] of [
     ['Torment', 'Wicked Corruption'],

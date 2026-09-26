@@ -76,7 +76,6 @@ const baseConfig = Object.freeze({
     armor: 2597,
     health: 4_000_000,
     defiant: false,
-    controlled: false,
     conditions: {}
   },
   boons: { quickness: true }

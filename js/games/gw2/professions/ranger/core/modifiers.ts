@@ -327,7 +327,7 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     when: (context) =>
       Boolean(
         String(context.event?.damageKind || '').startsWith('ranger-unleashed-disabled') &&
-        (context.config?.target?.defiant || context.config?.target?.disabled || context.config?.target?.defianceBroken)
+        context.config?.target?.defiant
       )
   },
   {
@@ -335,11 +335,7 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.2,
-    when: (context) =>
-      context.event?.damageKind === 'ranger-pounce-defiant' &&
-      Boolean(
-        context.config?.target?.defiant || context.config?.target?.disabled || context.config?.target?.defianceBroken
-      )
+    when: (context) => context.event?.damageKind === 'ranger-pounce-defiant' && Boolean(context.config?.target?.defiant)
   },
   {
     // Spear bonuses are evaluated at impact so live conditions and the health threshold affect the correct hit.
@@ -349,12 +345,7 @@ const rangerPlayerAndSharedModifierRules: readonly Gw2ModifierRule[] = [
     factor: 1.2,
     when: (context) =>
       eventSkill(context)?.id === ID.FALCONS_STOOP &&
-      Boolean(
-        context.config?.target?.defiant ||
-        context.config?.target?.disabled ||
-        context.config?.target?.defianceBroken ||
-        targetConditionActive(context, 'Immobilized')
-      )
+      Boolean(context.config?.target?.defiant || targetConditionActive(context, 'Immobilized'))
   },
   {
     id: 'ranger.spear-leap-low-health',

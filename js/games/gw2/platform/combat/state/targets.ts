@@ -231,14 +231,9 @@ export interface Gw2TargetConfig {
   readonly moving?: boolean;
   /** A defiant golem never rotates, so it also stands in for flanking and behind-the-target bonuses. */
   readonly defiant?: boolean;
-  readonly distance?: number;
-  readonly nearby?: boolean;
   /** Whether the target is casting; drives interrupt and activation-dependent rules. */
   readonly activatingSkills?: boolean;
   readonly confusionActivationsPerSecond?: number;
-  readonly disabled?: boolean;
-  readonly controlled?: boolean;
-  readonly defianceBroken?: boolean;
 }
 
 export interface Gw2RuntimeConditionStack {

@@ -361,3 +361,32 @@ test('resolved critical-hit helper shares sampled outcomes and strict ICDs acros
   );
   assert.equal(state.procs, 3);
 });
+
+// Application catalogs can contain every elite action; only selected modules must supply their handlers.
+test('selected runtime assembly binds profession side-effect handlers', () => {
+  const elite = (hooks) =>
+    defineNativeModule({
+      id: 'Elite',
+      data: {
+        generatedSkills: [
+          skill(2, 'Elite action', {
+            specialization: 'Elite',
+            sideEffects: [{ on: 'castComplete', do: { type: 'fixture.action' } }]
+          })
+        ]
+      },
+      state: { create: () => ({}) },
+      hooks
+    });
+  const missing = defineNativeProfession({ id: 'fixture', name: 'Fixture', modules: [coreModule(), elite({})] });
+  assert.doesNotThrow(() => missing.runtimeFor({ specialization: 'Core' }));
+  assert.throws(() => missing.runtimeFor({ specialization: 'Elite' }), /Skill 2.*fixture.action/);
+  const handler = () => {};
+
+  const bound = defineNativeProfession({
+    id: 'fixture',
+    name: 'Fixture',
+    modules: [coreModule(), elite({ sideEffectHandlers: { 'fixture.action': handler } })]
+  });
+  assert.equal(bound.runtimeFor({ specialization: 'Elite' }).sideEffectHandlers['fixture.action'], handler);
+});

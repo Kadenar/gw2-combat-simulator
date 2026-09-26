@@ -126,9 +126,21 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         duration: 8,
         source: 'ranger-pet',
         actorType: 'summon'
+      },
+      {
+        // Capture defiant-target eligibility at acceptance while retaining pet ownership.
+        type: 'condition',
+        when: (runtime) => Boolean(runtime.config.target?.defiant),
+        condition: 'Vulnerability',
+        stacks: 8,
+        duration: 10,
+        source: 'ranger-pet',
+        actorType: 'summon',
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        atMs: 0
       }
     ]
-    // Custom: Applies pet-attributed Vulnerability only to defiant targets; see `untamed/hooks.ts`.
   },
   [ID.RENDING_VINES]: {
     castTimeMs: 0,

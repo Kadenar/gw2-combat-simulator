@@ -72,15 +72,13 @@ const virtuosoModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) => Boolean(context.event?.metadata?.blade) && hasTrait(context, TRAIT.INFINITE_FORGE)
   },
   {
+    // Simulation targets are always nearby; retain only trait and actor eligibility.
     id: 'mesmer.mental-focus',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.05,
     order: 100,
-    when: (context) =>
-      hasTrait(context, TRAIT.MENTAL_FOCUS) &&
-      Boolean(context.config?.target?.nearby) &&
-      isGw2PlayerActorEvent(context.event)
+    when: (context) => hasTrait(context, TRAIT.MENTAL_FOCUS) && isGw2PlayerActorEvent(context.event)
   },
   {
     id: 'mesmer.bloodsong',

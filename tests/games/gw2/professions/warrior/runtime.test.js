@@ -159,7 +159,6 @@ test('accepted control shares Opportunist cooldown while independent control tra
   const missed = run([{ name: 'Kick', offTarget: true }], config);
   assert.equal(missed.planningState.profession.adrenaline, 0);
   assert.deepEqual({ ...observedRuntime(missed).procs.readyAt }, {});
-  assert.equal(observedRuntime(missed).profession.core.targetControlledUntil, 0);
 });
 
 test('Leg Specialist derives accepted immobilization without turning an effect into a player trigger', () => {
@@ -520,7 +519,7 @@ test('weapon swaps commit the set before Core traits and repeated swaps share on
   );
 });
 
-test('Fierce Blow observes accepted control arriving during travel and excludes missed or expired control', () => {
+test('Fierce Blow ignores temporary control windows', () => {
   const coefficient = (rotation) => {
     const result = run(rotation, { primaryWeapon: 'Hammer' });
     assert.deepEqual(result.warnings, []);
@@ -531,7 +530,7 @@ test('Fierce Blow observes accepted control arriving during travel and excludes 
   const baseline = coefficient(['Fierce Blow']);
   assert.equal(
     coefficient([{ name: 'Fierce Blow', impactDelayMs: 1000 }, 'Staggering Blow', { type: 'wait', durationMs: 1000 }]),
-    baseline * 1.5
+    baseline
   );
   assert.equal(
     coefficient([

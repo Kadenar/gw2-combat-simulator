@@ -12,8 +12,7 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import {
   cloneNecromancerAttributes,
   necromancerEventSkill,
-  necromancerRuntimeSpecializationState,
-  necromancerTargetControlled
+  necromancerRuntimeSpecializationState
 } from '#gw2/professions/necromancer/core/modifiers.js';
 
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -58,14 +57,11 @@ const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'necromancer.anguish-conditional-damage',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
-    // +2% per target condition and +20% if target is controlled; both are live-calibrated against EVTC
+    // Apply the condition bonus; temporary target-control bonuses are outside simulation scope.
     parameters: {
-      damagePerCondition: 0.02,
-      controlledBonus: 0.2
+      damagePerCondition: 0.02
     } as Readonly<Record<string, number>>,
-    amount: (context, _target, parameters) =>
-      targetConditionCount(context) * parameters.damagePerCondition +
-      (necromancerTargetControlled(context) ? parameters.controlledBonus : 0),
+    amount: (context, _target, parameters) => targetConditionCount(context) * parameters.damagePerCondition,
     // Flag is set on Anguish autoattacks and summon barrage hits but NOT on innervate or Summon Spirits hits
     when: (context) => Boolean(context.event?.metadata?.anguishConditionalDamage)
   },

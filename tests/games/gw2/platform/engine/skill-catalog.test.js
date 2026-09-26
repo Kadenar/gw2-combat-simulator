@@ -123,3 +123,56 @@ test('canonical catalogs own derived and exceptional autoattack chains', () => {
   assert.equal(catalog.skillsById.get(5).chainStep, null);
   assert.equal(catalog.skillsById.get(7).chainRoot, 6);
 });
+
+// Reject malformed declarations before runtime execution can partially mutate combat state.
+test('catalogs validate side-effect payloads, amounts, and variant references', () => {
+  const load = (extra) =>
+    createCanonicalCatalog({
+      generated: [
+        { id: 1, name: 'Action', effects: [], ...extra },
+        { id: 2, name: 'Ammo', ammo: 2, effects: [] }
+      ],
+      balanceProfiles: [{ id: 'test.profile', name: 'Profile', profileKind: 'trait', resourceGain: 3, effects: [] }]
+    });
+  const declaration = (action) => ({ sideEffects: [{ on: 'castComplete', do: action }] });
+  for (const action of [
+    { type: 'rechargeReset', skillIds: [2] },
+    { type: 'ammoRestore', skillIds: [2], count: 1 },
+    { type: 'resourceGrant', resource: 'endurance', amount: { profile: 'test.profile', field: 'resourceGain' } },
+    { type: 'flipArm', skillId: 2, durationSec: 1 },
+    { type: 'emitProfile', profileId: 'test.profile' },
+    { type: 'test.action', amount: 0 }
+  ])
+    assert.doesNotThrow(() => load(declaration(action)));
+  for (const action of [
+    { type: 'rechargeReset', skillIds: '2' },
+    { type: 'rechargeReset', skillIds: [99] },
+    { type: 'ammoRestore', skillIds: [1], count: 1 },
+    { type: 'ammoRestore', skillIds: [2], count: -1 },
+    { type: 'resourceGrant', resource: 'missing', amount: 1 },
+    ...[
+      -1,
+      Infinity,
+      NaN,
+      '3',
+      {},
+      { profile: 'missing', field: 'resourceGain' },
+      { profile: 'test.profile', field: 'missing' }
+    ].map((amount) => ({ type: 'resourceGrant', resource: 'endurance', amount })),
+    { type: 'flipArm', skillId: 99, durationSec: 1 },
+    { type: 'flipArm', skillId: 2 },
+    { type: 'emitProfile', profileId: 'missing' },
+    { type: 'emitProfile', profileId: 'test.profile', attribution: [] },
+    { type: 'typo' }
+  ])
+    assert.throws(() => load(declaration(action)), TypeError);
+  for (const extra of [
+    { sideEffects: {} },
+    { sideEffects: [null] },
+    { effectVariants: {} },
+    { effectVariants: [null] },
+    { effectVariants: [{ when: () => true, profileId: 'missing' }] }
+  ])
+    assert.throws(() => load(extra), TypeError);
+  assert.doesNotThrow(() => load({ effectVariants: [{ when: () => true, profileId: 'test.profile' }] }));
+});

@@ -92,7 +92,6 @@ const thiefBuildCodec = createProfessionBuildCodec<ThiefCanonicalBuild>({
     const assumptions = { ...build.assumptions };
     delete assumptions.markedTargetChoice;
     delete assumptions.playerHealthPercent;
-    delete assumptions.targetDistance;
     delete assumptions.artifactDrawSequence;
     delete assumptions.doubleEdgeOutcomeSequence;
     // Stolen skills moved from persisted assumptions to choices made from the live profession palette.

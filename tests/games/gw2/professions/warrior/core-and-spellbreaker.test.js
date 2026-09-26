@@ -1319,9 +1319,8 @@ test('Kill Shot tiers and Fierce Blow target bonuses preserve patched strike coe
   }
 
   for (const [target, expected] of [
-    [{ defiant: false, controlled: false }, 3.6],
-    [{ defiant: true }, 5.4],
-    [{ defiant: false, controlled: true }, 5.4]
+    [{ defiant: false }, 3.6],
+    [{ defiant: true }, 5.4]
   ]) {
     assert.equal(
       coefficient(run('Core', [ID.FIERCE_BLOW], { primaryWeapon: 'Hammer', target }), ID.FIERCE_BLOW),

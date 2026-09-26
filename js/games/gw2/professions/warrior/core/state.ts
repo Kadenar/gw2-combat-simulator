@@ -11,7 +11,6 @@ export interface WarriorCoreState {
 
   autoattackChains: Record<string, SkillId>;
   availableFlips: SkillFlipWindows;
-  targetControlledUntil: number;
 
   burstHitActivations: Record<string, boolean>;
   /** Readiness waits for the next actual signet pulse instead of crediting future adrenaline. */
@@ -48,7 +47,6 @@ export function createWarriorCoreState(config: Gw2Config = {}): WarriorCoreState
 
     autoattackChains: {},
     availableFlips: {},
-    targetControlledUntil: 0,
 
     burstHitActivations: {},
     nextSignetPulseAt: Infinity

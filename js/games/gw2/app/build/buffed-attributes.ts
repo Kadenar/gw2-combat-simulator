@@ -86,9 +86,7 @@ export function calculateBuffedAttributes(
       ...config.target,
       health: 100,
       startingHealthFraction: targetHealth,
-      defiant: Boolean(values.flanking),
-      disabled: Boolean(values.controlled),
-      controlled: Boolean(values.controlled),
+      defiant: Boolean(values.defiant ?? values.flanking),
       conditions: targetConditions
     }
   };

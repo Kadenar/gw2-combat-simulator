@@ -145,10 +145,9 @@ export function reactToNecromancerWeapons(runtime: NecromancerRuntime, event: Gw
   }
 }
 
-/** Distress is a self transition: completing it refreshes Perforate and grants the single-target shard allowance. */
+/** Distress completion grants the single-target shard allowance with its existing expiry ownership. */
 export function completeNecromancerWeapon(runtime: NecromancerRuntime, cast: RuntimeCast): void {
   if (cast.skill.id !== ID.DISTRESS) return;
-  runtime.cooldownController.clear(ID.PERFORATE);
   grantShards(runtime, 6);
 }
 

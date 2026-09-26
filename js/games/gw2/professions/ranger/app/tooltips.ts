@@ -162,7 +162,7 @@ const familyTooltips = {
     ]
   ),
   'ranger.venomous-outburst': skillTooltip(
-    'Your unleashed pet attacks. It additionally applies vulnerability against a defiant, disabled, or defiance-broken target.'
+    'Your unleashed pet attacks. It additionally applies vulnerability against a defiant target.'
   ),
   'ranger.cyclone-bow-enter': skillTooltip(
     'Equip the Cyclone Bow and replace your weapon skills. Trigger applicable weapon-swap effects. Arrows regenerate over time and are shared across its skills.',
@@ -258,7 +258,7 @@ export const rangerTooltips: ProfessionTooltips = {
             balanceContext,
             'ranger.disabled-skill-bonus',
             'factor',
-            'Strike damage against disabled or defiant targets',
+            'Strike damage against defiant targets',
             tooltipFactorChange
           )
         ]
@@ -279,7 +279,7 @@ export const rangerTooltips: ProfessionTooltips = {
             balanceContext,
             'ranger.pounce-defiant',
             'factor',
-            'Strike damage against disabled or defiant targets',
+            'Strike damage against defiant targets',
             tooltipFactorChange
           )
         ]
@@ -301,7 +301,7 @@ export const rangerTooltips: ProfessionTooltips = {
             balanceContext,
             'ranger.falcons-stoop-disabled',
             'factor',
-            'Strike damage against disabled, defiant, or immobilized targets',
+            'Strike damage against defiant or immobilized targets',
             tooltipFactorChange
           )
         ]

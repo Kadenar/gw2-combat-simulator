@@ -932,7 +932,6 @@ test('profession assumption controls normalize and validate deterministic inputs
   );
 
   assert.deepEqual(assumptions, {
-    targetDistance: 2000,
     targetDefiant: false,
     stolenSkillChoice: 'golem'
   });
@@ -941,10 +940,9 @@ test('profession assumption controls normalize and validate deterministic inputs
     validateProfessionAssumptions(
       {
         ...assumptions,
-        targetDistance: -1,
         stolenSkillChoice: 'missing'
       },
       controls
-    ).length >= 2
+    ).length >= 1
   );
 });

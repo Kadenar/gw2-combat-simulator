@@ -54,13 +54,6 @@ export function latestGuardianTimedBuff(context: Gw2ModifierContext, kind: strin
   return latest;
 }
 
-export function guardianTargetDisabled(context: Gw2ModifierContext): boolean {
-  // Control events trigger effects without modeling disable windows; bonuses use the configured target state.
-  return Boolean(
-    context.config?.target?.disabled || context.config?.target?.defiant || context.config?.target?.defianceBroken
-  );
-}
-
 const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'guardian.zealous-blade-power',

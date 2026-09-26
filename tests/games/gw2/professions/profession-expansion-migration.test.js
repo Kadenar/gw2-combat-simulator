@@ -367,7 +367,6 @@ test('ready native professions expose deliberate public end-state keys', async (
       'plagueSendingEntrySkillId',
       'painfulBondPulseAnchorAt',
       'targetChilledUntil',
-      'targetControlledUntil',
       'fearOfDeathReadyAt',
       'vampiricPresenceReadyAt',
       'chillingNovaReadyAt',
@@ -388,14 +387,7 @@ test('ready native professions expose deliberate public end-state keys', async (
     ],
     // Initiative spending is public for the Prodigious Pincher active-state tracker.
     thief: ['traitProcReadyAt'],
-    warrior: [
-      'dragonTriggerStartedAt',
-      'flowUpdatedAt',
-      'gunsAndGloryUntil',
-      'soldierFocusReadyAt',
-      'targetControlledUntil',
-      'traitProcReadyAt'
-    ]
+    warrior: ['dragonTriggerStartedAt', 'flowUpdatedAt', 'gunsAndGloryUntil', 'soldierFocusReadyAt', 'traitProcReadyAt']
   };
 
   for (const entry of professionRegistry) {

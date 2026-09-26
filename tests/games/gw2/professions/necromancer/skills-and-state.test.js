@@ -201,7 +201,7 @@ test('Necromancer modules expose isolated balance-profile authoring', () => {
   assert.deepEqual(
     modules.get('Ritualist').modifierRules.find((rule) => rule.id === 'necromancer.anguish-conditional-damage')
       .parameters,
-    { damagePerCondition: 0.02, controlledBonus: 0.2 }
+    { damagePerCondition: 0.02 }
   );
 
   const preview = applyNecromancerPatch({

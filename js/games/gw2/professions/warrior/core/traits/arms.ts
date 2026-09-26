@@ -18,7 +18,6 @@ import {
   warriorActiveBuffStacks,
   warriorBoonActive,
   warriorEventSkill,
-  warriorTargetControlled,
   warriorWieldingWeapon,
   type WarriorModifierAttributes
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
@@ -156,7 +155,7 @@ export const warriorArmsModifierRules: readonly Gw2ModifierRule[] = Object.freez
     operation: 'add',
     amount: (context) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.UNSUSPECTING_FOE), 'criticalChance'),
-    when: (context) => hasTrait(context, TRAIT.UNSUSPECTING_FOE) && warriorTargetControlled(context)
+    when: (context) => hasTrait(context, TRAIT.UNSUSPECTING_FOE) && Boolean(context.config?.target?.defiant)
   },
   {
     id: 'warrior.burst-precision',

@@ -329,14 +329,6 @@ export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> =
       ? denySkillCast(skill, 'guardian.flip-not-armed', 'not currently armed.')
       : { ready: true };
   },
-  modifyEffects(_runtime, cast, effects) {
-    if (cast.skill.id !== ID.RUSHING_JUSTICE && cast.skill.id !== ID.CRASHING_COURAGE) return effects;
-    return effects.map((effect) => ({
-      ...effect,
-      ...(cast.skill.id === ID.RUSHING_JUSTICE ? { sourceId: ID.RUSHING_JUSTICE_IMPACT } : {}),
-      ...(effect.type === 'strike' ? { weapon: 'Profession Mechanic' } : {})
-    }));
-  },
   onCastStart(runtime, cast) {
     if (cast.cancelled) return;
     if (cast.skill.type === 'Weapon')

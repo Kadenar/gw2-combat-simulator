@@ -83,15 +83,11 @@ export function reactToNecromancerBlind(context: NecromancerResolverContext, eve
   applyChillingDarkness(context, event);
 }
 
-/** Records target-control windows before fear and disruption trait conditions. */
+/** Applies fear and disruption trait reactions without modeling target-control windows. */
 export function reactToNecromancerCoreControl(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {
-  professionCoreState(context).targetControlledUntil = Math.max(
-    Number(professionCoreState(context).targetControlledUntil || 0),
-    event.at + Math.max(0.001, Number(event.duration || 0))
-  );
   if (event.controlKind === 'fear' || event.kind === 'fear') {
     professionCoreState(context).dreadUntil = Math.max(
       Number(professionCoreState(context).dreadUntil || 0),

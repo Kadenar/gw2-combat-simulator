@@ -32,7 +32,7 @@ function modifyReaperAttributes(context: Gw2ModifierContext, attributes: Gw2Stat
 
 export const reaperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
-    // Reaper Shouts deal double damage to nearby targets (the sole target is assumed nearby unless explicitly set false).
+    // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
     id: 'necromancer.reaper-shout-melee',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
@@ -42,9 +42,7 @@ export const reaperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     when: (context) =>
       Boolean(
         // Shout doubling belongs to the player's skill packet, not merely an effect that inherits player modifiers.
-        isGw2PlayerActorEvent(context.event) &&
-        necromancerEventSkill(context)?.categories?.includes('Shout') &&
-        context.config?.target?.nearby !== false
+        isGw2PlayerActorEvent(context.event) && necromancerEventSkill(context)?.categories?.includes('Shout')
       )
   },
   {
@@ -83,7 +81,8 @@ export const reaperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.15,
     order: 100,
-    when: (context) => hasTrait(context, TRAIT.SOUL_EATER) && context.config?.target?.nearby !== false
+    // Nearby range is a fixed simulation assumption.
+    when: (context) => hasTrait(context, TRAIT.SOUL_EATER)
   }
 ]);
 

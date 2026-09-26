@@ -6,6 +6,7 @@
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { deriveAutoattackChains, indexAutoattackChains } from '#gw2/platform/engine/skills/autoattack-chains.js';
 import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
+import { RESOURCE_KEYS } from '#gw2/platform/combat/resources/resource-policy.js';
 import type {
   AutoattackChainPosition,
   BalanceProfile,
@@ -779,18 +780,24 @@ export function createCanonicalCatalog({
 
     const effects = normalizeSkillEffects(merged.effects || [], `skill=${id}`);
     // Declarative activation phases and variant selectors must be executable before they enter a live catalog.
+    if (!Array.isArray(merged.sideEffects ?? [])) throw new TypeError(`Skill ${id} side effects must be an array.`);
     for (const sideEffect of merged.sideEffects ?? []) {
       if (
+        !sideEffect ||
         !['castStart', 'castCommit', 'castComplete'].includes(sideEffect.on) ||
-        !sideEffect.do?.type ||
+        typeof sideEffect.do?.type !== 'string' ||
+        Array.isArray(sideEffect.do) ||
         (sideEffect.when != null && typeof sideEffect.when !== 'function') ||
         (sideEffect.order != null && !Number.isFinite(sideEffect.order))
       )
         throw new TypeError(`Skill ${id} has an invalid side effect.`);
     }
 
+    if (!Array.isArray(merged.effectVariants ?? []))
+      throw new TypeError(`Skill ${id} effect variants must be an array.`);
     for (const variant of merged.effectVariants ?? []) {
       if (
+        !variant ||
         typeof variant.when !== 'function' ||
         variant.profileId == null ||
         (variant.transform != null && typeof variant.transform !== 'function')
@@ -924,6 +931,71 @@ export function createCanonicalCatalog({
   return Object.freeze(catalog);
 }
 
+/** Validate literal and selected-profile amounts without coercion before a declaration can mutate runtime state. */
+function validateSideEffectAmount(catalog: CanonicalCatalog, amount: unknown, label: string): void {
+  let value = amount;
+  if (amount && typeof amount === 'object' && !Array.isArray(amount)) {
+    const reference = amount as { profile?: SkillId; field?: string };
+    const profile = reference.profile == null ? undefined : catalog.balanceProfilesById.get(reference.profile);
+    if (!profile || typeof reference.field !== 'string' || !Object.hasOwn(profile, reference.field))
+      throw new TypeError(`${label} requires an existing balance profile field.`);
+    value = profile[reference.field];
+  }
+
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
+    throw new TypeError(`${label} must be finite and non-negative.`);
+}
+
+/** References can cross module contributions, so validate actions only after all catalog indexes exist. */
+function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): void {
+  for (const { do: action } of skill.sideEffects ?? []) {
+    const label = `Skill ${skill.id} side effect ${action.type}`;
+    switch (action.type) {
+      case 'rechargeReset':
+      case 'ammoRestore':
+        if (!Array.isArray(action.skillIds)) throw new TypeError(`${label} requires a skillIds array.`);
+        for (const id of action.skillIds) {
+          const target = catalog.skillsById.get(id);
+          if (!target) throw new TypeError(`${label} references missing skill ${id}.`);
+          if (action.type === 'ammoRestore' && !(Number(target.ammo) > 0))
+            throw new TypeError(`${label} requires an ammo skill: ${id}.`);
+        }
+
+        if (action.type === 'ammoRestore') validateSideEffectAmount(catalog, action.count, `${label} count`);
+        break;
+      case 'resourceGrant':
+        if (action.resource !== 'endurance' && !RESOURCE_KEYS.includes(action.resource))
+          throw new TypeError(`${label} references unknown resource ${action.resource}.`);
+        validateSideEffectAmount(catalog, action.amount, `${label} amount`);
+        break;
+      case 'flipArm':
+        if (!catalog.skillsById.has(action.skillId))
+          throw new TypeError(`${label} references missing skill ${action.skillId}.`);
+        validateSideEffectAmount(
+          catalog,
+          action.durationSec === undefined ? skill.flipDuration : action.durationSec,
+          `${label} duration`
+        );
+        break;
+      case 'emitProfile':
+        if (!catalog.balanceProfilesById.has(action.profileId))
+          throw new TypeError(`${label} references missing profile ${action.profileId}.`);
+        if (action.attribution != null && (typeof action.attribution !== 'object' || Array.isArray(action.attribution)))
+          throw new TypeError(`${label} attribution must be an object.`);
+        break;
+      default:
+        // Namespaced profession actions are bound to handlers when the selected runtime modules are assembled.
+        if (!/^[\w-]+(?:\.[\w-]+)+$/.test(action.type))
+          throw new TypeError(`${label} is not a built-in or namespaced action.`);
+        if (action.amount !== undefined) validateSideEffectAmount(catalog, action.amount, `${label} amount`);
+    }
+  }
+
+  for (const variant of skill.effectVariants ?? [])
+    if (!catalog.balanceProfilesById.has(variant.profileId))
+      throw new TypeError(`Skill ${skill.id} effect variant references missing profile ${variant.profileId}.`);
+}
+
 /**
  * Enforces referential integrity and shape rules for a canonical catalog.
  */
@@ -947,6 +1019,7 @@ function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
 
     ids.add(skill.id);
     if (!String(skill.name || '')) throw new Error(`Skill ${skill.id} has no name.`);
+    validateSkillDeclarations(catalog, skill);
     for (const reference of [skill.parentId, skill.flipParentId]) {
       if (reference != null && !catalog.skillsById.has(reference)) {
         throw new Error(`Skill ${skill.id} references missing parent ${reference}.`);

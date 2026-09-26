@@ -44,23 +44,6 @@ export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       return effect ? [...effects, { ...effect, timingAnchor: 'castEnd' as const, atMs: 0 }] : effects;
     }
 
-    if (
-      cast.skill.id === ID.VENOMOUS_OUTBURST &&
-      (runtime.config.target?.defiant || runtime.config.target?.disabled || runtime.config.target?.defianceBroken)
-    )
-      return [
-        ...effects,
-        {
-          type: 'condition',
-          source: 'ranger-pet',
-          actorType: 'summon',
-          condition: 'Vulnerability',
-          duration: 10,
-          stacks: 8,
-          timingAnchor: 'castStart',
-          atMs: 0
-        }
-      ];
     return effects;
   },
   onCastComplete(runtime, cast) {

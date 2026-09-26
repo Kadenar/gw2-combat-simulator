@@ -55,15 +55,6 @@ export function necromancerTargetChilled(context: Gw2ModifierContext): boolean {
   );
 }
 
-/** Reports whether target assumptions or a live non-defiant control window make the target controlled. */
-export function necromancerTargetControlled(context: Gw2ModifierContext): boolean {
-  return (
-    Boolean(context.config?.target?.controlled) ||
-    (context.config?.target?.defiant !== true &&
-      Number(necromancerRuntimeCoreState(context).targetControlledUntil || 0) > context.time)
-  );
-}
-
 /** Clones mutable combat attributes with the numeric fields used by Necromancer conversions. */
 export function cloneNecromancerAttributes(attributes: Gw2Stats): Gw2MutableStats & {
   power: number;

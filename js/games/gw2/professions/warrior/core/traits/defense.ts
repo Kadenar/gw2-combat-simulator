@@ -2,11 +2,7 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import {
-  warriorBoonActive,
-  warriorEventSkill,
-  warriorTargetControlled
-} from '#gw2/professions/warrior/core/traits/modifier-queries.js';
+import { warriorBoonActive, warriorEventSkill } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 export const warriorDefenseModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -33,7 +29,7 @@ export const warriorDefenseModifierRules: readonly Gw2ModifierRule[] = Object.fr
             ''
         )
       ) &&
-      warriorTargetControlled(context)
+      Boolean(context.config?.target?.defiant)
   },
   {
     id: 'warrior.stalwart-strength',

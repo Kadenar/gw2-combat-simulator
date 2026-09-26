@@ -78,6 +78,7 @@ const catalog = createCanonicalCatalog({
       effectVariants: [{ when: (runtime) => runtime.profession.selected, profileId: 'test.variant' }],
       effects: [{ type: 'custom', eventType: 'test.default', event: {} }]
     },
+    { id: 'flip', name: 'Flip', effects: [] },
     { id: 991009, name: 'Recharge', castTimeMs: 0, cooldown: 10, weapon: 'Sword', effects: [] }
   ],
   balanceProfiles: [

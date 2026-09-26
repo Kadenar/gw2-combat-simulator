@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -1383,4 +1384,21 @@ test('Fear of Death follows accepted fear with one cooldown and cannot fund entr
   };
   const repeated = simulate([wait(5000)], config, { profession });
   assert.equal(repeated.planningState.profession.lifeForce.value, 30);
+});
+
+// Completion-only reset and shard grants must remain canceled together if a cast never finishes.
+test('interrupted Distress neither refreshes Perforate nor grants shards', () => {
+  const native = necromancerProfession.runtimeFor(base);
+  const profession = {
+    ...native,
+    catalog: withSkill(native.catalog, ID.DISTRESS, { castTimeMs: 1000, interruptMode: 'on-completion' })
+  };
+  const result = simulate(
+    [cast(ID.PERFORATE), cast(ID.ISOLATE), { ...cast(ID.DISTRESS), interruptAfterMs: 100 }],
+    base,
+    { profession }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(observedRuntime(result).cooldowns.has(ID.PERFORATE), true);
+  assert.equal(result.planningState.profession.soulShardGrant.charges, 0);
 });

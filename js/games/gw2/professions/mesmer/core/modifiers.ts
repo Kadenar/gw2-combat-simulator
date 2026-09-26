@@ -101,12 +101,9 @@ function superiorityComplexTargetControlled(context: Gw2ModifierContext): boolea
 }
 
 function superiorityComplexFactor(context: Gw2ModifierContext): number {
-  const target = context.config?.target;
   const superiorityComplexProfile = requireBalanceProfileFromContext(context, TRAIT.SUPERIORITY_COMPLEX);
-  // Generic disables apply only to non-defiant targets, while configured Fear
-  // or Taunt remains an explicit control condition on defiant targets.
-  return (target?.disabled && !target.defiant) ||
-    superiorityComplexTargetControlled(context) ||
+  // Only supported control conditions and target health qualify; generic disable state is not simulated.
+  return superiorityComplexTargetControlled(context) ||
     targetHealthBelow(context, balanceProfileNumber(superiorityComplexProfile, 'threshold'))
     ? balanceProfileNumber(superiorityComplexProfile, 'lowHealthOrDisabledFactor')
     : balanceProfileNumber(superiorityComplexProfile, 'highHealthFactor');

@@ -174,7 +174,6 @@ for (const [profession, predicate] of PLAYER_MODIFIER_PREDICATES) {
 test('actual-player skill modifiers do not follow modifier ownership', () => {
   const context = {
     time: 1,
-    config: { target: { nearby: true } },
     profession: {
       catalog: { skillsById: new Map([[1, { id: 1, categories: ['Shout'] }]]) }
     }

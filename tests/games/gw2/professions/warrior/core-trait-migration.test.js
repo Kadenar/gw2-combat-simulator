@@ -47,13 +47,11 @@ for (const [key, trait, trigger, literalDuration] of [
             catalog: { ...native.catalog, balanceProfilesById: profiles },
             initialize(runtime) {
               native.initialize(runtime);
-              const core = runtime.profession.core;
               Object.assign(runtime.procs.readyAt, { [trait]: 1, unrelated: 99 });
               const enqueue = runtime.queue.enqueue.bind(runtime.queue);
               runtime.queue.enqueue = (event) => {
                 if (event.sourceId === trait) {
                   assert.equal(runtime.procs.readyAt[trait], canonicalTime(event.at + duration));
-                  if (trait === TRAIT.OPPORTUNIST) assert.equal(core.targetControlledUntil, 0);
                   emitted += 1;
                 }
 

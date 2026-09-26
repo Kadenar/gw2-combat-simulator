@@ -191,10 +191,8 @@ export function createGw2SimulationConfig({
       // Defiant doubles as the positional proxy: a defiant golem never rotates,
       // so flanking/behind bonuses always apply and need no separate control.
       defiant: Boolean(assumptions.targetDefiant ?? true),
-      distance: Math.max(0, Number(assumptions.targetDistance ?? 130)),
       conditions: targetConditions,
       moving: Boolean(assumptions.targetMoving),
-      nearby: true,
       activatingSkills: targetSkillActivationsPerSecond > 0,
       confusionActivationsPerSecond: targetSkillActivationsPerSecond
     }

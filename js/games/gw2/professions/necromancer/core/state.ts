@@ -59,7 +59,6 @@ export interface NecromancerCoreState {
   /** Re-entering the timed form owns a new cancellable expiry. */
   lichGeneration: number;
   targetChilledUntil: number;
-  targetControlledUntil: number;
   dreadUntil: number;
 
   tasteForBloodBuffs: Record<string, NecromancerTasteForBloodApplication[]>;
@@ -167,7 +166,6 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     lichEndsAt: 0,
     lichGeneration: 0,
     targetChilledUntil: 0,
-    targetControlledUntil: 0,
     dreadUntil: 0,
 
     tasteForBloodBuffs: {}

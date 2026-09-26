@@ -1,11 +1,7 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
-import {
-  guardianTargetDisabled,
-  guardianTimedBuffActive,
-  latestGuardianTimedBuff
-} from '#gw2/professions/guardian/core/modifiers.js';
+import { guardianTimedBuffActive, latestGuardianTimedBuff } from '#gw2/professions/guardian/core/modifiers.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
 /** Applies a stance modifier to its own impact or proc only when an older application was already active. */
@@ -71,7 +67,8 @@ export const luminaryModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.2,
     order: 100,
-    when: (context) => context.event?.skillId === GUARDIAN_SKILL_IDS.SHINING_SPIN && guardianTargetDisabled(context)
+    when: (context) =>
+      context.event?.skillId === GUARDIAN_SKILL_IDS.SHINING_SPIN && Boolean(context.config?.target?.defiant)
   },
   {
     id: 'guardian.glaring-burst-hammer',

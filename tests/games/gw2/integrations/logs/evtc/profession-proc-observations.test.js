@@ -468,3 +468,32 @@ test('does not infer profession trait procs when the active build omits each tra
   assert.equal(analyzeNecromancerBarbedPrecisionObservation(log, PLAYER, catalog([barbedPrecisionProfile]), {}), null);
   assert.equal(analyzeRangerSharpenedEdgesObservation(log, PLAYER, catalog([sharpenedEdgesProfile]), {}), null);
 });
+
+// Observation must follow the selected profile, including edits that remove a pairing condition.
+test('Shrapnel observation uses patched durations and rejects obsolete-duration pairs', () => {
+  const log = fixture([
+    event({ skillId: EXPLOSION_SKILL_ID }),
+    condition(1100, 736, 8000),
+    condition(1100, 721, 2000),
+    condition(1200, 736, 6000),
+    condition(1200, 721, 1000)
+  ]);
+  const config = { selectedTraitIds: [ENGINEER_TRAIT.SHRAPNEL], stats: { expertise: 0 } };
+  const patched = {
+    ...shrapnelProfile,
+    effects: shrapnelProfile.effects.map((effect) => ({ ...effect, duration: effect.condition === 'Bleeding' ? 8 : 2 }))
+  };
+  const result = analyzeEngineerShrapnelObservation(log, PLAYER, catalog([patched]), config);
+  assert.equal(result.matchedApplications, 1);
+  assert.deepEqual(result.matchedBleedingDurationsMs, [8000]);
+  assert.deepEqual(result.matchedCrippledDurationsMs, [2000]);
+  assert.equal(
+    analyzeEngineerShrapnelObservation(
+      log,
+      PLAYER,
+      catalog([{ ...patched, effects: patched.effects.slice(0, 1) }]),
+      config
+    ),
+    null
+  );
+});

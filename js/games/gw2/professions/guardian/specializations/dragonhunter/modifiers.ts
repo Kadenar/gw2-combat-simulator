@@ -2,7 +2,6 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { guardianTargetDisabled } from '#gw2/professions/guardian/core/modifiers.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 
@@ -30,7 +29,7 @@ export const dragonhunterModifiers: readonly Gw2ModifierRule[] = Object.freeze([
     operation: 'multiply',
     factor: 1.15,
     order: 100,
-    when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.HEAVY_LIGHT) && guardianTargetDisabled(context)
+    when: (context) => hasTrait(context, GUARDIAN_TRAIT_IDS.HEAVY_LIGHT) && Boolean(context.config?.target?.defiant)
   },
   {
     id: 'guardian.dragonhunter.big-game-hunter',

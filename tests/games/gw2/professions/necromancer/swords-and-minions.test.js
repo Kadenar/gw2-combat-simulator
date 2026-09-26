@@ -1747,18 +1747,3 @@ test('Reaper traits reduce shroud cooldowns and ignore minion critical hits', ()
     false
   );
 });
-
-test('Reaper shouts apply their PvE melee damage bonus', () => {
-  const melee = simulate('Reaper', ['"You Are All Weaklings!"'], {
-    selectedSkills: ['"You Are All Weaklings!"']
-  });
-  const ranged = simulate('Reaper', ['"You Are All Weaklings!"'], {
-    selectedSkills: ['"You Are All Weaklings!"'],
-    target: {
-      ...baseConfig.target,
-      nearby: false
-    }
-  });
-
-  assert.ok(Math.abs(melee.strikeDamage - ranged.strikeDamage * 2) < 1e-9);
-});

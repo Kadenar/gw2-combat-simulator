@@ -212,10 +212,7 @@ export const warriorTooltips: ProfessionTooltips = {
     [ID.COUNTERBLOW]: skillTooltip(
       'Begin a block and unlock Tactical Blow for the original block window. Tactical Blow can be used as a manual follow-up. Incoming attacks are outside simulation scope.'
     ),
-    [ID.FIERCE_BLOW]: skillTooltip(
-      'Strike your target. Damage increases against a controlled or defiant target.',
-      undefined
-    ),
+    [ID.FIERCE_BLOW]: skillTooltip('Strike your target. Damage increases against a defiant target.', undefined),
     [ID.MIGHTY_THROW]: (balanceContext, entity) => {
       const selected = balanceContext.catalog.skillsById.get(entity.id);
       if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
@@ -542,7 +539,7 @@ export const warriorTooltips: ProfessionTooltips = {
     [TRAIT.DEFY_PAIN]: outsideScopeTooltip,
     [TRAIT.RESILIENT_ROLL]: outsideScopeTooltip,
     [TRAIT.MERCILESS_HAMMER]: traitTooltip(
-      'Player control effects grant adrenaline. Hammer and mace strikes deal increased damage to controlled or defiant targets.',
+      'Player control effects grant adrenaline. Hammer and mace strikes deal increased damage to defiant targets.',
       (balanceContext, id) => [
         profileFact(balanceContext, id, 'resourceGain', 'Adrenaline gained'),
         modifierFact(
@@ -623,12 +620,9 @@ export const warriorTooltips: ProfessionTooltips = {
         profileFact(balanceContext, id, 'internalCooldown', 'Internal cooldown', tooltipSeconds)
       ]
     ),
-    [TRAIT.UNSUSPECTING_FOE]: traitTooltip(
-      'Gain critical-strike chance against controlled or defiant targets.',
-      (balanceContext) => [
-        profileFact(balanceContext, TRAIT.UNSUSPECTING_FOE, 'criticalChance', 'Critical chance', tooltipPercent)
-      ]
-    ),
+    [TRAIT.UNSUSPECTING_FOE]: traitTooltip('Gain critical-strike chance against defiant targets.', (balanceContext) => [
+      profileFact(balanceContext, TRAIT.UNSUSPECTING_FOE, 'criticalChance', 'Critical chance', tooltipPercent)
+    ]),
     [TRAIT.SUNDERING_BURST]: (balanceContext, entity) => {
       const profile = tooltipProfile(balanceContext, entity.id);
       return {

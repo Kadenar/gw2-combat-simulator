@@ -134,6 +134,8 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.DISTRESS]: {
     castTimeMs: 0,
+    // Completing Distress refreshes Perforate before its profession-owned shard grant.
+    sideEffects: [{ on: 'castComplete', do: { type: 'rechargeReset', skillIds: [ID.PERFORATE] } }],
     effects: []
   }
 });
