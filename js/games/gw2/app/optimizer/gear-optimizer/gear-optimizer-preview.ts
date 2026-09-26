@@ -10,8 +10,8 @@ import {
   isOptimizerRequestCurrent,
   type GearOptimizerRequest,
   type OptimizerCandidate
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
-import { optimizerEquipmentIdentity } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-results.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
+import { optimizerEquipmentIdentity } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-results.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /** Show current gear by default, or inspect a captured candidate without equipping or saving it. */

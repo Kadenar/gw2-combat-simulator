@@ -1,4 +1,4 @@
-/** Owns persisted timeline size, timing emphasis, and idle-time visibility. */
+/** Owns persisted timeline display preferences independently of builds and simulation inputs. */
 const ROTATION_TIMELINE_SIZE_STORAGE_KEY = 'gw2-rotation-timeline-size';
 export const ROTATION_DEAD_TIME_STORAGE_KEY = 'gw2-rotation-dead-time';
 const TRANSITION_DELAY_VISIBILITY_KEY = 'gw2-rotation-transition-delays';
@@ -17,7 +17,8 @@ export function normalizeRotationTimelineSize(value: unknown): RotationTimelineS
   return match?.value || 'normal';
 }
 
-export function normalizeRotationDeadTimeVisibility(value: unknown): boolean {
+/** Only an explicit stored true enables opt-in timeline overlays. */
+export function normalizeRotationVisibility(value: unknown): boolean {
   return value === true || value === 'true';
 }
 
@@ -57,7 +58,7 @@ function storeSize(root: Document, size: RotationTimelineSize): void {
 
 function readStoredRotationDeadTimeVisibility(root: Document): boolean {
   try {
-    return normalizeRotationDeadTimeVisibility(root.defaultView?.localStorage.getItem(ROTATION_DEAD_TIME_STORAGE_KEY));
+    return normalizeRotationVisibility(root.defaultView?.localStorage.getItem(ROTATION_DEAD_TIME_STORAGE_KEY));
   } catch {
     return false;
   }
@@ -75,7 +76,7 @@ export function rotationDeadTimeVisibility(root: Document): boolean {
   const panel = root.getElementById('rotation-timeline')?.closest<HTMLElement>('.rotation-panel');
   return panel?.dataset.showDeadTime === undefined
     ? readStoredRotationDeadTimeVisibility(root)
-    : normalizeRotationDeadTimeVisibility(panel.dataset.showDeadTime);
+    : normalizeRotationVisibility(panel.dataset.showDeadTime);
 }
 
 /** Applies and persists dead-time visibility without treating it as a simulation configuration change. */
@@ -168,5 +169,39 @@ export function mountRotationTimelineSize(root: Document = document): void {
     });
     control.append(select);
     root.getElementById('rotation-timeline-size')?.closest('label')?.after(control);
+  }
+}
+
+/** Owns persisted application preferences for simulated proc overlays on the rotation timeline. */
+export const ROTATION_PROC_OVERLAY_STORAGE_KEYS = Object.freeze({
+  sigil: 'gw2-rotation-overlay-sigil-procs',
+  relic: 'gw2-rotation-overlay-relic-procs',
+  sovereignOfLight: 'gw2-rotation-overlay-sovereign-of-light-procs',
+  kingOfFires: 'gw2-rotation-overlay-king-of-fires-procs'
+} as const);
+
+export type RotationProcOverlayType = keyof typeof ROTATION_PROC_OVERLAY_STORAGE_KEYS;
+
+/** Restores timeline-only proc overlay choices without coupling them to saved builds or simulation inputs. */
+export function readStoredRotationProcOverlayVisibility(root: Document, type: RotationProcOverlayType): boolean {
+  try {
+    return normalizeRotationVisibility(
+      root.defaultView?.localStorage.getItem(ROTATION_PROC_OVERLAY_STORAGE_KEYS[type])
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** Persists proc overlay choices immediately so every profession timeline uses the same display preference. */
+export function storeRotationProcOverlayVisibility(
+  root: Document,
+  type: RotationProcOverlayType,
+  visible: boolean
+): void {
+  try {
+    root.defaultView?.localStorage.setItem(ROTATION_PROC_OVERLAY_STORAGE_KEYS[type], String(visible));
+  } catch {
+    // Browser storage may be unavailable in private or embedded contexts.
   }
 }

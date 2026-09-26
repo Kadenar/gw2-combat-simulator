@@ -22,7 +22,9 @@ for (const patchId of ['current', 'worker-preview']) {
         performance
           .getEntriesByType('resource')
           .map((entry) => entry.name)
-          .filter((url) => /\/app\/(?:define-profession-app\.|build-editor\.|build\/|rotation\/|results\/)/.test(url))
+          .filter((url) =>
+            /\/app\/(?:define-profession-app\.|build-editor\.|build\/|optimizer\/|rotation\/|results\/)/.test(url)
+          )
       );
 
     const baselineWorkerReady = page.waitForEvent('worker', (worker) =>

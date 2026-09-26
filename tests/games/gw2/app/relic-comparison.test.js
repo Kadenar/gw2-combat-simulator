@@ -1,4 +1,4 @@
-import { mountRelicComparison } from '#gw2/app/simulation/relic-comparison/relic-comparison-panel.js';
+import { mountRelicComparison } from '#gw2/app/optimizer/relic-comparison/relic-comparison-panel.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -6,13 +6,13 @@ import test from 'node:test';
 import {
   bindRelicComparisonChartHover,
   relicComparisonChartSvg
-} from '#gw2/app/simulation/relic-comparison/relic-comparison-chart.js';
+} from '#gw2/app/optimizer/relic-comparison/relic-comparison-chart.js';
 import {
   CROSSOVER_EVALUATION_START_MS,
   buildRelicComparisonModel,
   relicComparisonAvailable,
   relicDamageSummary
-} from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
+} from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 
 test('break-even chart hover shows the time and both relic DPS values', () => {
   const tooltip = { innerHTML: '', style: {} };

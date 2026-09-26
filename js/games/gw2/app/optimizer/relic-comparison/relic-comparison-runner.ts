@@ -1,8 +1,5 @@
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import {
-  buildRelicComparisonModel,
-  relicDamageSummary
-} from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
+import { buildRelicComparisonModel, relicDamageSummary } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /** Runs one user-selected relic simulation against the equipped relic already on screen. */

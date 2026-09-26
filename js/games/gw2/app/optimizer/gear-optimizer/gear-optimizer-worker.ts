@@ -1,6 +1,6 @@
-import type { createGroupedOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
-import type { createFastOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-fast.js';
-import type { GearOptimizerRequest, OptimizerCandidate } from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+import type { createGroupedOptimizer } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-space.js';
+import type { createFastOptimizer } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-fast.js';
+import type { GearOptimizerRequest, OptimizerCandidate } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
 
 export type GearOptimizerWorkerRequest = { readonly requestId: number } & (
   | { readonly kind: 'init'; readonly request: GearOptimizerRequest }
@@ -18,13 +18,13 @@ self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWork
   try {
     // Keep shared code out of the entry chunk so WebKit cannot reimport it and install an uninitialized listener.
     const { optimizerEquipment, optimizerScore, verifyOptimizerScore } =
-      await import('#gw2/app/simulation/gear-optimizer/gear-optimizer.js');
+      await import('#gw2/app/optimizer/gear-optimizer/gear-optimizer.js');
     if (data.kind === 'init') {
       activeId = data.requestId;
       const [{ loadProfessionAppAdapter }, { createGroupedOptimizer }, { createFastOptimizer }] = await Promise.all([
         import('#gw2/profession-registry.js'),
-        import('#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js'),
-        import('#gw2/app/simulation/gear-optimizer/gear-optimizer-fast.js')
+        import('#gw2/app/optimizer/gear-optimizer/gear-optimizer-space.js'),
+        import('#gw2/app/optimizer/gear-optimizer/gear-optimizer-fast.js')
       ]);
       const adapter = await loadProfessionAppAdapter(data.request.contentId);
       if (!adapter) throw new TypeError('Optimizer profession is unavailable.');

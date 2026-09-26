@@ -8,7 +8,7 @@ import {
   optimizerEquipmentIdentity,
   retainOptimizerGroup,
   type OptimizerGroupedFilter
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer-results.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-results.js';
 import {
   assignOptimizerChoice,
   optimizerCardinality,
@@ -23,7 +23,7 @@ import {
   type OptimizerEquipment,
   type OptimizerSpace,
   type OptimizerDimension
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
 
 const stats = GEAR_STATS as Readonly<Record<string, Readonly<Record<string, Readonly<Record<string, number>>>>>>;
 export const MAX_OPTIMIZER_STAT_TOTALS = 100_000;

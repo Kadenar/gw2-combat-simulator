@@ -8,11 +8,11 @@ import {
   type GearOptimizerRequest,
   type OptimizerCandidate,
   type OptimizerEquipment
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
 import {
   optimizerEquivalenceKey,
   scoreOptimizerRange
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-space.js';
 
 export const OPTIMIZER_SEARCH_BUDGET = 2048;
 const ROUND_SIZE = 256;

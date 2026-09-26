@@ -4,7 +4,7 @@ import { escapeHtml } from '#ui/shared/html.js';
 import type {
   RelicComparisonModel,
   RelicComparisonPoint
-} from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
+} from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import { clamp } from '#kernel/core/numeric.js';
 export interface RelicComparisonChartOptions {
   /** Colour for the equipped (opponent) relic curve. */

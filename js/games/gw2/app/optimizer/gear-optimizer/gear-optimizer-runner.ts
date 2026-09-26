@@ -5,14 +5,14 @@ import {
   type GearOptimizerRequest,
   type OptimizerCandidate,
   type OptimizerScore
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import {
   createOptimizerResultGroups,
   retainOptimizerGroup,
   type OptimizerResultGroups,
   type OptimizerGroupedFilter
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer-results.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-results.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 export const MAX_OPTIMIZER_WORKERS = 4;

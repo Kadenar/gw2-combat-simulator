@@ -2,20 +2,17 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { runOrdinaryOptimizer } from '#tests/helpers/gear-optimizer.js';
 import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
-import { GearOptimizerRunner } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-runner.js';
-import { createGroupedOptimizer } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
-import {
-  createFastOptimizer,
-  OPTIMIZER_SEARCH_BUDGET
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer-fast.js';
+import { GearOptimizerRunner } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-runner.js';
+import { createGroupedOptimizer } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-space.js';
+import { createFastOptimizer, OPTIMIZER_SEARCH_BUDGET } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-fast.js';
 import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
-import { verifyOptimizerScore, applyOptimizerCandidate } from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+import { verifyOptimizerScore, applyOptimizerCandidate } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
 import {
   groupOptimizerSpace,
   groupedEquipmentAt,
   optimizerEquivalenceKey
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer-space.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-space.js';
 import {
   captureGearOptimizerRequest,
   createOptimizerSpace,
@@ -25,16 +22,16 @@ import {
   optimizerWeaponSets,
   optimizerCardinality,
   optimizerScore
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
 import {
   retainOptimizerCandidate,
   compareOptimizerCandidates
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
 import {
   createOptimizerResultGroups,
   retainOptimizerGroup,
   optimizerEquipmentIdentity
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer-results.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-results.js';
 
 const adapter = await loadProfessionAppAdapter('warrior');
 

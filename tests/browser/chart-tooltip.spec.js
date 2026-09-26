@@ -7,7 +7,7 @@ test('graph tooltips stay inside the chart at desktop and mobile widths', async 
   await page.evaluate(async () => {
     const { mountTimeSeriesCharts } = await import('/js/games/gw2/app/results/charts/time-series-view.ts');
     const { relicComparisonChartSvg, bindRelicComparisonChartHover } =
-      await import('/js/games/gw2/app/simulation/relic-comparison/relic-comparison-chart.ts');
+      await import('/js/games/gw2/app/optimizer/relic-comparison/relic-comparison-chart.ts');
     document.body.innerHTML =
       '<main style="max-width: 1000px; margin: auto"><div id="charts"></div><div id="relic"></div></main>';
     mountTimeSeriesCharts(

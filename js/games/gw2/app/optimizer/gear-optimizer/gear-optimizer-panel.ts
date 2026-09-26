@@ -30,15 +30,15 @@ import {
   type GearOptimizerSelections,
   type OptimizerCandidate,
   type OptimizerEquipment
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
-import { MAX_OPTIMIZER_WORKERS } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-runner.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
+import { MAX_OPTIMIZER_WORKERS } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-runner.js';
 import {
   OPTIMIZER_RESULT_FILTERS,
   optimizerEquipmentIdentity,
   type OptimizerResultFilter
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer-results.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-results.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import { renderOptimizerPreview } from '#gw2/app/simulation/gear-optimizer/gear-optimizer-preview.js';
+import { renderOptimizerPreview } from '#gw2/app/optimizer/gear-optimizer/gear-optimizer-preview.js';
 
 const filterDismissalRoots = new WeakSet<Document>();
 

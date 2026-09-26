@@ -2,7 +2,7 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createGw2SimulationConfig } from '#gw2/app/simulation/config.js';
+import { createGw2SimulationConfig } from '#gw2/app/simulation/build-config.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';

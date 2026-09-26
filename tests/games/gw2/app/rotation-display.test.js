@@ -1,19 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  normalizeRotationDeadTimeVisibility,
+  normalizeRotationVisibility,
   normalizeRotationTimelineSize,
   ROTATION_DEAD_TIME_STORAGE_KEY,
   rotationDeadTimeVisibility,
   setRotationDeadTimeVisibility,
-  ROTATION_TIMELINE_SIZE_OPTIONS
-} from '#gw2/app/rotation/timeline/display-preferences.js';
-import {
-  normalizeRotationProcOverlayVisibility,
+  ROTATION_TIMELINE_SIZE_OPTIONS,
   readStoredRotationProcOverlayVisibility,
   ROTATION_PROC_OVERLAY_STORAGE_KEYS,
   storeRotationProcOverlayVisibility
-} from '#gw2/app/rotation/timeline/proc-overlay-preferences.js';
+} from '#gw2/app/rotation/timeline/preferences.js';
 import { currentTimelineResults } from '#gw2/app/rotation/timeline/model.js';
 import { reconcileTimelineRows, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 import { timelineRowsView } from '#gw2/app/rotation/timeline/rows.js';
@@ -316,10 +313,10 @@ test('rotation timeline sizes expose two larger display options', () => {
   assert.equal(normalizeRotationTimelineSize('extra-large'), 'extra-large');
   assert.equal(normalizeRotationTimelineSize('unsupported'), 'normal');
   assert.equal(normalizeRotationTimelineSize(null), 'normal');
-  assert.equal(normalizeRotationDeadTimeVisibility('true'), true);
-  assert.equal(normalizeRotationDeadTimeVisibility(true), true);
-  assert.equal(normalizeRotationDeadTimeVisibility('false'), false);
-  assert.equal(normalizeRotationDeadTimeVisibility(null), false);
+  assert.equal(normalizeRotationVisibility('true'), true);
+  assert.equal(normalizeRotationVisibility(true), true);
+  assert.equal(normalizeRotationVisibility('false'), false);
+  assert.equal(normalizeRotationVisibility(null), false);
 });
 
 test('rotation dead-time visibility applies to the timeline and persists', () => {
@@ -343,11 +340,11 @@ test('rotation dead-time visibility applies to the timeline and persists', () =>
 });
 
 test('rotation proc overlay preferences normalize stored checkbox values', () => {
-  assert.equal(normalizeRotationProcOverlayVisibility(true), true);
-  assert.equal(normalizeRotationProcOverlayVisibility('true'), true);
-  assert.equal(normalizeRotationProcOverlayVisibility(false), false);
-  assert.equal(normalizeRotationProcOverlayVisibility('false'), false);
-  assert.equal(normalizeRotationProcOverlayVisibility(null), false);
+  assert.equal(normalizeRotationVisibility(true), true);
+  assert.equal(normalizeRotationVisibility('true'), true);
+  assert.equal(normalizeRotationVisibility(false), false);
+  assert.equal(normalizeRotationVisibility('false'), false);
+  assert.equal(normalizeRotationVisibility(null), false);
 });
 
 test('rotation proc overlay preferences persist independently', () => {

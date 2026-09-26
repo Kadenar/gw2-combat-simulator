@@ -2,7 +2,7 @@ import {
   compareOptimizerCandidates,
   type OptimizerCandidate,
   type OptimizerEquipment
-} from '#gw2/app/simulation/gear-optimizer/gear-optimizer.js';
+} from '#gw2/app/optimizer/gear-optimizer/gear-optimizer.js';
 import { INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
 
 export const OPTIMIZER_RESULT_FILTERS = {

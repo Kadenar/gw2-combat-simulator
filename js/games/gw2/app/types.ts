@@ -31,7 +31,7 @@ import type {
   RandomDistributionRequest,
   RandomDistributionOptions
 } from '#gw2/app/simulation/random-distribution/types.js';
-import type { RelicComparisonJobRequest } from '#gw2/app/simulation/relic-comparison/types.js';
+import type { RelicComparisonJobRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
 import type {
   Gw2CanonicalBuild,
   Gw2CalculateAttributes,
@@ -47,7 +47,7 @@ import type {
   ProfessionIsSkillAvailable,
   ProfessionDefaultOffhand
 } from '#gw2/app/build/types.js';
-import type { RelicComparisonModel } from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
+import type { RelicComparisonModel } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { BuildEditor, SimulationPresentation } from '#app/shell/types.js';
 
@@ -76,7 +76,7 @@ export interface RotationComparisonState {
 }
 
 export interface ProfessionAppState {
-  gearOptimizerRunner?: import('#gw2/app/simulation/gear-optimizer/gear-optimizer-runner.js').GearOptimizerRunner;
+  gearOptimizerRunner?: import('#gw2/app/optimizer/gear-optimizer/gear-optimizer-runner.js').GearOptimizerRunner;
   workspace?: import('#gw2/app/build/state/workspace.js').BuildWorkspace;
   activateBuildTab?(id: string): void;
   readonly gameId: string;
@@ -87,7 +87,7 @@ export interface ProfessionAppState {
   patchId: string;
   patchComparison: PatchComparison | null;
   build: Gw2CanonicalBuild;
-  simulationSettings?: import('#gw2/app/simulation/settings.js').SimulationSettings;
+  simulationSettings?: import('#gw2/app/build/panels/simulation-settings.js').SimulationSettings;
   skills: Skill[];
   skillByName: ReadonlyMap<string, Skill>;
   skillById: ReadonlyMap<SkillId, Skill>;

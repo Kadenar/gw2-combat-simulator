@@ -12,7 +12,7 @@ import { renderRotationBuilder } from '#gw2/app/rotation/builder.js';
 import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
 import { gw2BuildEditor } from '#gw2/app/build/editor.js';
 import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
-import { renderGearOptimizerView } from '#gw2/app/simulation/optimizer-view.js';
+import { renderGearOptimizerView } from '#gw2/app/optimizer/view.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
 import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';

@@ -2,9 +2,9 @@ import {
   rotationDeadTimeVisibility,
   setRotationDeadTimeVisibility,
   rotationTransitionDelayVisibility,
-  setRotationTransitionDelayVisibility
-} from '#gw2/app/rotation/timeline/display-preferences.js';
-import { storeRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/proc-overlay-preferences.js';
+  setRotationTransitionDelayVisibility,
+  storeRotationProcOverlayVisibility
+} from '#gw2/app/rotation/timeline/preferences.js';
 import { activeSpecialization } from '#gw2/app/rotation/context.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';

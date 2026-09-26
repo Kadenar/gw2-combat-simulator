@@ -144,7 +144,8 @@ The `js/games/gw2/app/` root holds only the composition root. Everything else li
 | `io/`         | Build and rotation import/export, with log importers under `io/logs/`                                                                                                              |
 | `rotation/`   | Rotation builder: palette, timeline, editing, state snapshot, comparison, warnings                                                                                                 |
 | `results/`    | Result models, skill breakdown, summary metrics, charts, event log, and Analysis panel                                                                                             |
-| `simulation/` | Baseline simulation, gear optimizer, modifier contributions, RNG distribution, relic comparison                                                                                    |
+| `simulation/` | Baseline simulation, modifier contributions, RNG distribution, and build-to-simulation config                                                                                      |
+| `optimizer/`  | Gear optimizer and relic comparison, including their views, runners, and contracts                                                                                                 |
 
 The lazy roster and build-template identities live in `js/games/gw2/profession-registry.ts`, shared by the browser,
 workers, and tooling. This is also where a new profession is registered. Equipment UI used by both build panels and the
@@ -154,16 +155,17 @@ optimizer lives in `shared/equipment/{picker,labels,icons}.ts`.
 
 Non-type imports inside `js/games/gw2/app/` follow these rules:
 
-| Folder        | May import                                                                                                                                                                                                                                                 |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shared/`     | platform, `#ui`, `#kernel`, `app/types.ts`. **No other app folder.**                                                                                                                                                                                       |
-| `simulation/` | `shared/`, `#gw2/profession-registry.ts` (optimizer worker), `results/model.ts` (relic chart series), other `simulation/` files. No `build/`, `rotation/`, `io/`, or `page/`, except `gear-optimizer-preview.ts` (which reuses build attribute rendering). |
-| `results/`    | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionPlanningState`).                                                                                                |
-| `io/`         | `shared/`, `build/state/`, `build/types.ts`, `#gw2/profession-registry.ts` (build-template identities), integrations.                                                                                                                                      |
-| `build/`      | `shared/`, `io/`, `#gw2/profession-registry.ts`, `rotation/timeline/view.ts` (presets repaint).                                                                                                                                                            |
-| `rotation/`   | `shared/`, `results/`, `io/rotation-import-dialog.ts`, `build/types.ts`.                                                                                                                                                                                   |
-| `page/`       | `shared/`, `#gw2/profession-registry.ts`, `rotation/timeline/display-preferences.ts`, `#app`.                                                                                                                                                              |
-| root          | anything.                                                                                                                                                                                                                                                  |
+| Folder        | May import                                                                                                                                                  |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shared/`     | platform, `#ui`, `#kernel`, `app/types.ts`. **No other app folder.**                                                                                        |
+| `simulation/` | `shared/`, other `simulation/` files. No `build/`, `optimizer/`, `results/`, `rotation/`, `io/`, or `page/`.                                                |
+| `optimizer/`  | `shared/`, `build/panels/attributes.ts`, `results/model.ts`, `#gw2/profession-registry.ts`, other `optimizer/` files.                                       |
+| `results/`    | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionPlanningState`). |
+| `io/`         | `shared/`, `build/state/`, `build/types.ts`, `#gw2/profession-registry.ts` (build-template identities), integrations.                                       |
+| `build/`      | `shared/`, `io/`, `#gw2/profession-registry.ts`, `rotation/timeline/view.ts` (presets repaint).                                                             |
+| `rotation/`   | `shared/`, `results/`, `io/rotation-import-dialog.ts`, `build/types.ts`.                                                                                    |
+| `page/`       | `shared/`, `#gw2/profession-registry.ts`, `rotation/timeline/preferences.ts`, `#app`.                                                                       |
+| root          | anything.                                                                                                                                                   |
 
 `rotation/comparison.ts` and `rotation/timeline/view.ts` import each other. Both edges are calls inside functions, so
 load order is safe; don't add top-level code in either file that calls into the other.
@@ -185,6 +187,7 @@ panels/traits.ts
 panels/attributes.ts
 panels/skills.ts
 panels/assumptions.ts
+panels/simulation-settings.ts
 panels/metadata.ts
 panels/presets.ts
 ```
@@ -215,6 +218,9 @@ Important modules include:
 | `timeline/`       | Timeline model, rendering, interaction, and display controls |
 | `state-snapshot/` | Insertion-aware state queries and active-state rendering     |
 
+`timeline/preferences.ts` owns persisted size, timing emphasis, dead time, transition delays, and proc-overlay
+visibility. These preferences retain their storage keys and remain separate from simulation inputs.
+
 Profession-specific rotation presentation is supplied through profession UI hooks rather than hard-coded here. Result
 models, breakdowns, charts, and event logs live in the sibling `js/games/gw2/app/results/` directory.
 
@@ -227,19 +233,19 @@ Application-level simulation services.
 Examples include:
 
 ```text
-config.ts
-settings.ts
-optimizer-view.ts
+build-config.ts
 baseline/
-gear-optimizer/
 modifier-contributions/
 random-distribution/
-relic-comparison/
 ```
 
-The root owns common config construction. `baseline/types.ts` retains baseline and patch-comparison contracts; modifier,
-RNG, and relic request/result contracts live in their feature directories. Optimizer contracts remain beside their
-implementations. Consumers import the owning module directly, without compatibility re-exports.
+`build-config.ts` translates application builds into engine configuration. `baseline/types.ts` retains baseline and
+patch-comparison contracts; modifier and RNG contracts live in their feature directories. Browser simulation settings
+are mounted by `build/panels/simulation-settings.ts`, independently of saved build assumptions.
+
+The sibling `js/games/gw2/app/optimizer/` owns `view.ts`, `gear-optimizer/`, and `relic-comparison/`. Each feature keeps
+its views, runners, workers, and contracts together. Consumers import the owning module directly, without compatibility
+re-exports.
 
 These modules orchestrate simulation work around the shared engine. They should not own profession mechanics.
 
@@ -256,15 +262,15 @@ Shared-code assessment:
   edits through one persistent worker. Relic comparison currently runs one deferred main-thread simulation against the
   displayed baseline and does not own a worker.
 - Config construction and profession integration already converge through `createProfessionRuntime` in
-  `js/games/gw2/app/create-runtime.ts`, `config.ts`, and the shared `simulateGw2` engine. The optimizer reuses the
-  adapter's attribute/config preparation and the engine's score-only output. Exact and fast searches already share
-  `createOptimizerEvaluator` and `scoreOptimizerRange`. Relic comparison reuses `buildChartSeries` from the results
-  layer. These shared pieces should stay outside individual feature directories.
-- Baseline and modifier requests share `deterministicSimulationConfig` in `config.ts`. The optimizer deliberately forces
-  deterministic mode unconditionally, so it does not use the helper that only converts stochastic mode. Modifier
-  candidate enumeration and request assembly belong to `modifier-contributions/request.ts`; one config policy preserves
-  finite target health for Eagle and removes the death cutoff for other modifier comparisons. The runtime supplies
-  profession identity and config preparation, calculating each affected weapon set once per config.
+  `js/games/gw2/app/create-runtime.ts`, `simulation/build-config.ts`, and the shared `simulateGw2` engine. The optimizer
+  reuses the adapter's attribute/config preparation and the engine's score-only output. Exact and fast searches already
+  share `createOptimizerEvaluator` and `scoreOptimizerRange`. Relic comparison reuses `buildChartSeries` from the
+  results layer. These shared pieces should stay outside individual feature directories.
+- Baseline and modifier requests share `deterministicSimulationConfig` in `simulation/build-config.ts`. The optimizer
+  deliberately forces deterministic mode unconditionally, so it does not use the helper that only converts stochastic
+  mode. Modifier candidate enumeration and request assembly belong to `modifier-contributions/request.ts`; one config
+  policy preserves finite target health for Eagle and removes the death cutoff for other modifier comparisons. The
+  runtime supplies profession identity and config preparation, calculating each affected weapon set once per config.
 - No general analysis-runner superclass, batch partitioner, or statistics utility is needed. Similar timer cleanup and
   hardware-concurrency arithmetic are small; the scheduling, partitioning, and result semantics differ. RNG statistics
   currently have one feature owner.
