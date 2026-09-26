@@ -2,11 +2,13 @@
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
+// Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
 export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.POISON_VOLLEY]: {
     effects: [
       {
         type: 'strike',
+        projectile: true,
         coefficient: 1.5,
         hits: 5,
         atMs: 0
@@ -25,6 +27,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
     effects: [
       {
         type: 'strike',
+        projectile: true,
         coefficient: 0.5,
         hits: 1,
         comboFinishers: [
@@ -49,6 +52,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
     effects: [
       {
         type: 'strike',
+        projectile: true,
         coefficient: 0.8,
         hits: 1,
         comboFinishers: [
@@ -85,6 +89,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
     effects: [
       {
         type: 'strike',
+        projectile: true,
         coefficient: 0.4,
         hits: 1,
         comboFinishers: [
@@ -107,6 +112,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
     effects: [
       {
         type: 'strike',
+        projectile: true,
         coefficient: 0.5,
         hits: 1,
         comboFinishers: [

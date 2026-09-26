@@ -1,3 +1,5 @@
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { WarriorRuntimeState } from '#gw2/professions/warrior/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   requireBalanceProfileFromContext,
@@ -6,8 +8,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkill, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -23,10 +23,8 @@ import {
   type WarriorModifierAttributes
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { WarriorResolverContext } from '#gw2/professions/warrior/types.js';
 // Trigger Lesser Signet of Might after the first eligible below-half-health strike at that strike's exact timestamp.
-export function reactToWarriorDamage(context: WarriorResolverContext, event: Gw2ResolverEvent): void {
-  const state = professionCoreState(context);
+export function reactToWarriorDamage(context: Gw2Runtime<WarriorRuntimeState>, event: Gw2ResolverEvent): void {
   if (
     event.actorType !== 'player' ||
     !(Number(event.coefficient || 0) > 0) ||
@@ -38,15 +36,7 @@ export function reactToWarriorDamage(context: WarriorResolverContext, event: Gw2
 
   const signetMastery = requireBalanceProfileFromContext(context, PROFILE.signetMastery);
   // Reserve this trait's own deadline before emitting its effects.
-  if (
-    !tryConsumeProcCooldown(
-      state.traitProcReadyAt,
-      'lesserSignetMight',
-      event.at,
-      balanceProfileNumber(signetMastery, 'internalCooldown')
-    )
-  )
-    return;
+  if (!context.procs.claim(PROFILE.signetMastery)) return;
   for (const effect of signetMastery.effects || []) {
     const kind = String(effect.boon || effect.kind || '');
     queueResolverBoon(

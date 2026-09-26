@@ -100,8 +100,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
     slot: 'Weapon_1',
     specialization: 'Galeshot',
     cycloneBowSkill: true,
-    arrowCost: 0,
-    missileHits: 1
+    arrowCost: 0
   },
   {
     id: 76664,
@@ -114,8 +113,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
 
     cooldown: 1,
     cycloneBowSkill: true,
-    arrowCost: 0,
-    missileHits: 5
+    arrowCost: 0
   },
   {
     id: 77319,
@@ -128,8 +126,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
 
     cooldown: 3,
     cycloneBowSkill: true,
-    arrowCost: 1,
-    missileHits: 3
+    arrowCost: 1
   },
   {
     id: 77012,
@@ -142,8 +139,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
 
     cooldown: 8,
     cycloneBowSkill: true,
-    arrowCost: 1,
-    missileHits: 1
+    arrowCost: 1
   },
   {
     id: 76807,
@@ -156,8 +152,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
 
     cooldown: 12,
     cycloneBowSkill: true,
-    arrowCost: 2,
-    missileHits: 1
+    arrowCost: 2
   },
   {
     id: 76722,
@@ -172,8 +167,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
     ammoCastLockout: 1,
     cooldown: 12,
     cycloneBowSkill: true,
-    arrowCost: 1,
-    missileHits: 1
+    arrowCost: 1
   },
   {
     id: 77174,
@@ -186,8 +180,7 @@ export const RANGER_SUPPLEMENTAL_SKILLS: readonly RangerSkill[] = Object.freeze(
 
     cooldown: 25,
     cycloneBowSkill: true,
-    arrowCost: 3,
-    missileHits: 1
+    arrowCost: 3
   },
   {
     id: 76905,

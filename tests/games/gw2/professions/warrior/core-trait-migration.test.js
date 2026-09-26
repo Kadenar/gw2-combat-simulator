@@ -48,11 +48,11 @@ for (const [key, trait, trigger, literalDuration] of [
             initialize(runtime) {
               native.initialize(runtime);
               const core = runtime.profession.core;
-              core.traitProcReadyAt = { [key]: 1, unrelated: 99 };
+              Object.assign(runtime.procs.readyAt, { [trait]: 1, unrelated: 99 });
               const enqueue = runtime.queue.enqueue.bind(runtime.queue);
               runtime.queue.enqueue = (event) => {
                 if (event.sourceId === trait) {
-                  assert.equal(core.traitProcReadyAt[key], canonicalTime(event.at + duration));
+                  assert.equal(runtime.procs.readyAt[trait], canonicalTime(event.at + duration));
                   if (trait === TRAIT.OPPORTUNIST) assert.equal(core.targetControlledUntil, 0);
                   emitted += 1;
                 }
@@ -81,10 +81,10 @@ for (const [key, trait, trigger, literalDuration] of [
           rotation: [{ type: 'wait', durationMs: at * 1000 }, ...(trigger === 'swap' ? ['Swap Weapons'] : [])]
         });
         assert.deepEqual(result.warnings, []);
-        const core = observedRuntime(result).profession.core;
+        const runtime = observedRuntime(result);
         assert.equal(emitted > 0, expected);
-        assert.equal(core.traitProcReadyAt[key], expected ? canonicalTime(at + duration) : 1);
-        assert.equal(core.traitProcReadyAt.unrelated, 99);
+        assert.equal(runtime.procs.readyAt[trait], expected ? canonicalTime(at + duration) : 1);
+        assert.equal(runtime.procs.readyAt.unrelated, 99);
       }
     }
   });
@@ -111,7 +111,7 @@ test('Opportunist ignores summons, effect immobilization, and unrelated player c
     }
   });
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(observedRuntime(result).profession.core.traitProcReadyAt, {});
+  assert.deepEqual({ ...observedRuntime(result).procs.readyAt }, {});
   assert.equal(observedRuntime(result).profession.core.adrenaline, 0);
 });
 

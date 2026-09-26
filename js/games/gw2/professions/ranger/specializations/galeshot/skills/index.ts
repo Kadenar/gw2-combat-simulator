@@ -8,6 +8,7 @@ const CYCLONE_BOW_PALETTE_TILE = 'galeshot-cyclone-bow';
 // Keen Shot flips to Hawkeye at full Wind Force without creating a second weapon tile.
 const CYCLONE_BOW_ONE_PALETTE_TILE = 'galeshot-cyclone-bow-one';
 
+// Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
 export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.WHIRLWIND]: {
     evades: true,
@@ -82,6 +83,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [480, 480, 520, 520, 600].map((atMs) => ({
           atMs,
           coefficient: 0.7
@@ -97,10 +99,8 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       }
     ],
     castTimeMs: 640,
-    arrowsRestored: 1,
+    arrowsRestored: 1
     // Custom: Restores Cyclone Bow arrows and emits state; see `galeshot/hooks.ts`.
-
-    missileHits: 5
   },
   [ID.SOOTHING_BREEZE]: {
     effects: [],
@@ -113,6 +113,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [{ atMs: 480, coefficient: 0.75 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -127,6 +128,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [800, 920, 1040, 1160, 1280].map((atMs) => ({
           atMs,
           coefficient: 1.36
@@ -144,6 +146,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [520, 600, 640].map((atMs) => ({
           atMs,
           coefficient: 0.64
@@ -164,6 +167,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [{ atMs: 280, coefficient: 0.8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -186,6 +190,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [{ atMs: 800, coefficient: 2.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -211,6 +216,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [{ atMs: 800, coefficient: 2.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -227,6 +233,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [{ atMs: 800, coefficient: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'

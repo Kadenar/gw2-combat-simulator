@@ -40,7 +40,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       }
     ]),
     castTimeMs: 960,
-    adrenalineGain: 10
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } }]
   },
   [ID.GUN_FLAME]: {
     effects: [
@@ -166,7 +166,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       }
     ],
     castTimeMs: 600,
-    adrenalineGain: 5
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 5 } }]
   },
   [ID.SHATTERING_BLOW]: {
     // Share impact timing while preserving independent payloads and declaration order.
@@ -189,25 +189,25 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       }
     ]),
     castTimeMs: 520,
-    adrenalineGain: 5
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 5 } }]
   },
   [ID.BERSERK]: {
     castTimeMs: 0,
     effects: [],
     adrenalineCost: 30,
     burstTier: 3,
-    adrenalineGain: 10
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } }]
   },
   [ID.BLOOD_RECKONING]: {
     effects: [],
     castTimeMs: 280,
     dualWieldCastTimeMs: 240,
-    adrenalineGain: 10
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } }]
   },
   [ID.OUTRAGE]: {
     castTimeMs: 0,
     effects: [],
-    adrenalineGain: 10,
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } }],
     stunbreak: true
   },
   [ID.HEAD_BUTT]: {
@@ -225,7 +225,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]),
     castTimeMs: 800,
     interruptCommitMs: 760,
-    adrenalineGain: 30,
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 30 } }],
     // Head Butt stuns both the foe and the player. The self-stun holds the cast
     // lane for 1s unless broken by a stunbreak (Outrage) or negated by stability.
     selfStunMs: 1000

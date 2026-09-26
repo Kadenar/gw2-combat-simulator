@@ -112,7 +112,6 @@ export interface RangerSkill extends Skill {
   readonly windForceGain?: number;
   readonly windForceApplyMs?: number;
   readonly petNames?: readonly string[];
-  readonly missileHits?: number;
 }
 
 /** Modifier context whose config is the Ranger's, so rules can read its pet selection. */

@@ -15,10 +15,27 @@ import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { modifyWarriorStrengthAttributes } from '#gw2/professions/warrior/core/traits/strength.js';
 import { warriorCoreModifiers } from '#gw2/professions/warrior/core/modifiers.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 
 const simulate = createObservedProfessionSimulator(warriorProfession, {
   stats: { power: 2000, precision: 4000, ferocity: 0, conditionDamage: 0, expertise: 0, vitality: 1000 },
   target: { armor: 2597, health: 1_000_000 }
+});
+
+// Weapon recharge reductions must follow preview tuning rather than literal multipliers in Core hooks.
+test('Forceful Greatsword and Blademaster read the selected recharge profile', () => {
+  const profession = warriorProfession.runtimeFor({ specialization: 'Core' });
+  for (const [trait, weapon] of [
+    [TRAIT.FORCEFUL_GREATSWORD, 'Greatsword'],
+    [TRAIT.BLADEMASTER, 'Sword']
+  ]) {
+    const helpers = applyBalanceProfilePatch(warriorCatalog, {
+      balanceProfiles: { [trait]: { fields: { rechargeMultiplier: 0.3 } } }
+    });
+    const runtime = { helpers, config: { selectedTraitIds: [trait] } };
+    assert.equal(profession.rechargeWork(runtime, { id: 'fixture', weapon }, 10), 3);
+    assert.equal(profession.rechargeWork({ ...runtime, config: {} }, { id: 'fixture', weapon }, 10), 10);
+  }
 });
 
 // Minimal rotations exercise activation contracts without depending on saved benchmark packets.

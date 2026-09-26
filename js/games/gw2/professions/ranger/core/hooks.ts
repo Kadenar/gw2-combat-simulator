@@ -17,7 +17,7 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { rangerCoreCastAvailability } from '#gw2/professions/ranger/core/mechanics/availability.js';
 import { rangerEndurance } from '#gw2/professions/ranger/core/mechanics/resources.js';
-import { rangerRechargeWork } from '#gw2/professions/ranger/core/mechanics/recharge.js';
+import { rangerRechargeRules } from '#gw2/professions/ranger/core/mechanics/recharge.js';
 import {
   applyRangerDodgeTraits,
   applyRangerPetSwapTraits,
@@ -149,7 +149,7 @@ function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast): void {
 export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
   endurance: rangerEndurance,
   availability: rangerCoreCastAvailability,
-  rechargeWork: rangerRechargeWork,
+  rechargeRules: rangerRechargeRules,
   reserveRecharge(runtime, skill, work) {
     // Quick Draw is reserved at acceptance so concurrent casts cannot consume the same grant twice.
     if (skill.type === 'Weapon' && skill.slot !== 'Weapon_1' && runtime.profession.core.quickDrawUntil > runtime.time)

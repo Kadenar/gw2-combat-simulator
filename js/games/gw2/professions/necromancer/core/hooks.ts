@@ -431,11 +431,7 @@ function complete(runtime: NecromancerRuntime, cast: RuntimeCast): void {
   // Follow-ups own exact completion-time windows; ordinary attack chains and dedicated summons/forms own their own state.
   const next = runtime.helpers.autoattackChainPositions.get(Number(skill.id))?.next;
   if (
-    [ID.DARK_PATH, ID.RIPPLE_OF_HORROR, ID.INFUSING_TERROR].some((id) => id === Number(skill.id)) &&
-    skill.flipSkillId != null
-  ) {
-    runtime.armFlip(skill.flipSkillId, { expiresAt: runtime.time + Number(skill.flipDuration) });
-  } else if (
+    !skill.sideEffects?.some((effect) => effect.do.type === 'flipArm') &&
     skill.flipSkillId != null &&
     skill.flipSkillId !== next &&
     skill.flipSkillId !== skill.nextChainId &&
@@ -547,20 +543,20 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
     return { ready: true };
   },
   // Recharge traits select work once at acceptance; the shared controller applies permanent Alacrity.
-  rechargeWork(runtime, skill, work) {
-    if (skill.shroudEntry || skill.rechargeOnMinionDeath) return 0;
-    if (skill.categories?.includes('Corruption') && hasTrait(runtime, TRAIT.MASTER_OF_CORRUPTION))
-      work *= balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, TRAIT.MASTER_OF_CORRUPTION),
-        'rechargeMultiplier'
-      );
-    if (skill.shroud && hasTrait(runtime, TRAIT.SINISTER_SHROUD))
-      work *= balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, PROFILE.sinisterShroud),
-        'rechargeMultiplier'
-      );
-    return work;
-  },
+  // Rules scale accepted work; shroud entry and minion death still own their recharge anchors.
+  rechargeRules: [
+    {
+      trait: TRAIT.MASTER_OF_CORRUPTION,
+      when: (_runtime, skill) => Boolean(skill.categories?.includes('Corruption')),
+      multiplier: { profile: TRAIT.MASTER_OF_CORRUPTION, field: 'rechargeMultiplier' }
+    },
+    {
+      trait: TRAIT.SINISTER_SHROUD,
+      when: (_runtime, skill) => Boolean(skill.shroud),
+      multiplier: { profile: PROFILE.sinisterShroud, field: 'rechargeMultiplier' }
+    }
+  ],
+  rechargeWork: (_runtime, skill, work) => (skill.shroudEntry || skill.rechargeOnMinionDeath ? 0 : work),
   modifyEffects: (runtime, cast, effects) =>
     ownsNecromancerMinionSkill(cast.skill as NecromancerSkill) || cast.skill.id === ID.DEVOURING_DARKNESS
       ? []

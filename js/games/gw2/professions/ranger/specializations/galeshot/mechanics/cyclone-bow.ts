@@ -17,88 +17,85 @@ import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
 
-const MISSILE_SKILL_IDS = new Set<number>([
-  ID.RICOCHET,
-  ID.SPLITBLADE,
-  ID.WINTERS_BITE,
-  ID.PATH_OF_SCARS,
-  ID.PATH_OF_SCARS_MAX_RANGE,
-  ID.RAPID_FIRE,
-  ID.LONG_RANGE_SHOT,
-  ID.POINT_BLANK_SHOT,
-  ID.HUNTERS_SHOT,
-  ID.KEEN_SHOT,
-  ID.HAWKEYE,
-  ID.BLUSTER,
-  ID.FLEETING_ZEPHYR,
-  ID.QUARRYS_PERIL,
-  ID.PELT,
-  ID.SUPERSONIC_ARROW,
-  ID.PIERCING_GALES
-]);
-
-/** Accepted missile strikes alone refund arrows and trigger the active Mistral window. */
+/** Accepted player projectile impacts independently trigger Mistral and advance Shrike. */
 export function reactToGaleshotMissile(context: RangerRuntime, event: Gw2ResolverEvent): void {
   if (
     event.type !== 'damage' ||
     event.actorType !== 'player' ||
     !(Number(event.coefficient) > 0) ||
-    !MISSILE_SKILL_IDS.has(Number(event.skillId ?? event.sourceId))
+    event.projectile !== true
   )
     return;
-  const at = event.at;
+  applyMistral(context, event);
+  applyShrike(context, event);
+}
 
+/** Path of Scars keeps the outgoing contact's enhancement on its return, without extending other projectiles' window. */
+function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
+  const at = event.at;
   const state = galeshotState.from(context);
   // An armed Mistral includes missiles landing at expiry; zero never arms it.
-  if (state.mistralUntil > 0 && at <= state.mistralUntil) {
-    const profile = requireBalanceProfileFromContext(context, PROFILE.mistral);
-    const strike = requireEffect(profile, 'strike', 'Strike');
-    const chilled = requireEffect(profile, 'condition', 'Chilled');
-    // Each missile-triggered Mistral is its own effect activation while its
-    // strike and condition packets remain grouped under one identity.
-    const activationId = strike || chilled ? 'mistral:' + event.eventOrder : undefined;
-    if (strike)
-      emitRangerDamage(
-        context,
-        rangerEvent(
-          {
-            at: at,
-            source: 'ranger',
-            sourceId: ID.MISTRAL,
-            actorType: 'player',
-            skillId: ID.MISTRAL,
-            skillName: 'Mistral',
-            name: 'Mistral',
-            coefficient: effectNumber(profile, strike, 'coefficient'),
-            hits: effectNumber(profile, strike, 'hits'),
-            canCrit: true,
-            damageKind: 'galeshot-mistral',
-            triggeredBy: event.skillName,
-            activationId
-          },
-          'damage'
-        )
-      );
-    if (chilled)
-      context.emit(
-        rangerEvent(
-          {
-            at: at,
-            skillId: ID.MISTRAL,
-            skillName: 'Mistral',
-            name: 'Mistral - Chilled',
-            condition: String(chilled.condition),
-            duration: effectNumber(profile, chilled, 'duration'),
-            stacks: effectNumber(profile, chilled, 'stacks'),
-            triggeredBy: event.skillName,
-            activationId
-          },
-          'condition'
-        )
-      );
+  let enhanced = state.mistralUntil > 0 && at <= state.mistralUntil;
+  if ((event.skillId === ID.PATH_OF_SCARS || event.skillId === ID.PATH_OF_SCARS_MAX_RANGE) && event.activationId) {
+    if (event.hitIndex === 1 && enhanced) state.mistralPathOfScars[event.activationId] = true;
+    if (event.hitIndex === event.totalHits) {
+      enhanced ||= state.mistralPathOfScars[event.activationId] === true;
+      delete state.mistralPathOfScars[event.activationId];
+    }
   }
+  if (!enhanced) return;
+  const profile = requireBalanceProfileFromContext(context, PROFILE.mistral);
+  const strike = requireEffect(profile, 'strike', 'Strike');
+  const chilled = requireEffect(profile, 'condition', 'Chilled');
+  // Each missile-triggered Mistral is its own effect activation while its
+  // strike and condition packets remain grouped under one identity.
+  const activationId = strike || chilled ? 'mistral:' + event.eventOrder : undefined;
+  if (strike)
+    emitRangerDamage(
+      context,
+      rangerEvent(
+        {
+          at: at,
+          source: 'ranger',
+          sourceId: ID.MISTRAL,
+          actorType: 'player',
+          skillId: ID.MISTRAL,
+          skillName: 'Mistral',
+          name: 'Mistral',
+          coefficient: effectNumber(profile, strike, 'coefficient'),
+          hits: effectNumber(profile, strike, 'hits'),
+          canCrit: true,
+          damageKind: 'galeshot-mistral',
+          triggeredBy: event.skillName,
+          activationId
+        },
+        'damage'
+      )
+    );
+  if (chilled)
+    context.emit(
+      rangerEvent(
+        {
+          at: at,
+          skillId: ID.MISTRAL,
+          skillName: 'Mistral',
+          name: 'Mistral - Chilled',
+          condition: String(chilled.condition),
+          duration: effectNumber(profile, chilled, 'duration'),
+          stacks: effectNumber(profile, chilled, 'stacks'),
+          triggeredBy: event.skillName,
+          activationId
+        },
+        'condition'
+      )
+    );
+}
 
+/** Shrike counts resolved projectile impacts, including returns, independently of Mistral. */
+function applyShrike(context: RangerRuntime, event: Gw2ResolverEvent): void {
   if (!hasTrait({ config: context.config }, TRAIT.SHRIKE)) return;
+  const at = event.at;
+  const state = galeshotState.from(context);
   const profile = requireBalanceProfileFromContext(context, PROFILE.shrike);
   const threshold = balanceProfileNumber(profile, 'threshold');
   state.missileHits += 1;

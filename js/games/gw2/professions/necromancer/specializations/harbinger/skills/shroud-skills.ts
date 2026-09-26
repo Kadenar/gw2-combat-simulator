@@ -1,11 +1,17 @@
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber,
+  effectNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 /**
  * Owns Harbinger Shroud entry, exit, and weapon skill fragments.
  * Persistent Blight and shroud state remain under `mechanics/`.
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillEffect } from '#gw2/platform/engine/skills/types.js';
 
 /** Supplies Harbinger Shroud fragments to specialization composition. */
 export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -87,6 +93,45 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     specialization: 'Harbinger'
   },
   [ID.DARK_BARRAGE]: {
+    // Doom Approaches selects its patchable packet profile once; the shared scheduler owns every selected pulse.
+    effectVariants: [
+      {
+        when: (runtime) => hasTrait(runtime, TRAIT.DOOM_APPROACHES),
+        profileId: PROFILE.darkBarrageDoomApproaches,
+        transform: (runtime, _cast, effects) => {
+          const profile = requireBalanceProfileFromContext(runtime, PROFILE.darkBarrageDoomApproaches);
+          const ticks = Array.from({ length: balanceProfileNumber(profile, 'pulseCount') }, (_, index) => ({
+            atMs: (index + 1) * balanceProfileNumber(profile, 'pulseInterval') * 1000
+          }));
+          return effects.flatMap((effect): SkillEffect[] => {
+            if (effect.type === 'strike')
+              return [
+                {
+                  ...effect,
+                  timingAnchor: 'castStart',
+                  timingScale: 'fixed',
+                  ticks: ticks.map((tick) => ({ ...tick, coefficient: effectNumber(profile, effect, 'coefficient') }))
+                }
+              ];
+            if (effect.type === 'condition')
+              return [
+                {
+                  ...effect,
+                  timingAnchor: 'castStart',
+                  timingScale: 'fixed',
+                  ticks: ticks.map((tick) => ({
+                    ...tick,
+                    condition: String(effect.condition),
+                    stacks: effectNumber(profile, effect, 'stacks'),
+                    duration: effectNumber(profile, effect, 'duration')
+                  }))
+                }
+              ];
+            return [];
+          });
+        }
+      }
+    ],
     castTimeMs: 920,
     // Dark Barrage is a channel: interruption keeps each landed volley while 800 ms remains the full-damage cutoff.
     interruptMode: 'per-packet',

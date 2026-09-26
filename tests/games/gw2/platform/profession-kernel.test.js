@@ -5,6 +5,9 @@ import { followUpOf, weaponFlipBlock, weaponFollowUpOpen } from '#gw2/platform/e
 import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { testProfession } from '#tests/fixtures/profession.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { applySkillPatch, applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { skillAuthoringReference } from '#gw2/integrations/patches/authoring/fields.js';
 
 // Shared runtime contracts that profession mechanics build on: procedural emission, follow-up windows, declared
 // costs, and authored skill tasks. Each scenario uses a minimal fixture profession rather than a saved rotation.
@@ -38,13 +41,72 @@ const catalog = createCanonicalCatalog({
         { type: 'test.record-task', atMs: 500, timingAnchor: 'castEnd' }
       ],
       effects: []
+    },
+    {
+      id: 991005,
+      name: 'Rewards',
+      castTimeMs: 1000,
+      interruptCommitMs: 200,
+      sideEffects: [
+        { on: 'castStart', do: { type: 'resourceGrant', resource: 'energy', amount: 1 } },
+        { on: 'castCommit', do: { type: 'resourceGrant', resource: 'energy', amount: 2 } },
+        {
+          on: 'castComplete',
+          do: { type: 'resourceGrant', resource: 'energy', amount: { profile: 'test.proc', field: 'resourceGain' } }
+        }
+      ],
+      effects: []
+    },
+    {
+      id: 991006,
+      name: 'Restore',
+      castTimeMs: 0,
+      sideEffects: [
+        { on: 'castComplete', do: { type: 'rechargeReset', skillIds: [991007] } },
+        { on: 'castComplete', do: { type: 'ammoRestore', skillIds: [991007], count: 1 } },
+        { on: 'castComplete', do: { type: 'flipArm', skillId: 'flip', durationSec: 1 } },
+        { on: 'castComplete', do: { type: 'emitProfile', profileId: 'test.proc' } }
+      ],
+      effects: []
+    },
+    { id: 991007, name: 'Ammo', castTimeMs: 0, ammo: 2, ammoRecharge: 10, cooldown: 10, effects: [] },
+    {
+      id: 991008,
+      name: 'Variant',
+      castTimeMs: 1000,
+      cooldown: 0,
+      effectVariants: [{ when: (runtime) => runtime.profession.selected, profileId: 'test.variant' }],
+      effects: [{ type: 'custom', eventType: 'test.default', event: {} }]
+    },
+    { id: 991009, name: 'Recharge', castTimeMs: 0, cooldown: 10, weapon: 'Sword', effects: [] }
+  ],
+  balanceProfiles: [
+    {
+      id: 'test.proc',
+      name: 'Test Proc',
+      profileKind: 'trait',
+      internalCooldown: 2,
+      resourceGain: 3,
+      rechargeMultiplier: 0.5,
+      effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 3 }]
+    },
+    { id: 'test.other', name: 'Other Proc', profileKind: 'trait', internalCooldown: 2, effects: [] },
+    {
+      id: 'test.variant',
+      name: 'Selected Variant',
+      profileKind: 'skill-variant',
+      effects: [
+        { type: 'custom', eventType: 'test.selected', event: {}, when: (runtime) => runtime.profession.selected },
+        { type: 'custom', eventType: 'test.excluded', event: {}, when: () => false }
+      ]
     }
   ]
 });
 const config = {
   stats: { power: 1000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 },
   target: { armor: 1000, health: 0, conditions: {} },
-  randomness: { mode: 'expected', seed: 123 }
+  randomness: { mode: 'expected', seed: 123 },
+  selectedTraitIds: ['test.trait']
 };
 const cast = (skillId, extra = {}) => ({ type: 'cast', skillId, ...extra });
 const wait = (durationMs) => ({ type: 'wait', durationMs });
@@ -78,7 +140,10 @@ function fixture(hooks = {}) {
         recovery: () => 0
       }
     },
-    ...hooks,
+    eventHandlers: Object.fromEntries(
+      ['test.default', 'test.selected', 'test.excluded'].map((type) => [type, () => {}])
+    ),
+    ...compileProfessionRules(hooks),
     tasks: { 'test.check': (runtime, index) => checks[index](runtime), ...hooks.tasks }
   };
 }
@@ -204,4 +269,150 @@ test('the weapon follow-up rule hides a parent behind its open window and gates 
   assert.equal(weaponFlipBlock(open, skillsById, followUp, 1), null);
   assert.deepEqual(weaponFlipBlock(open, skillsById, parent, 1), { kind: 'open' });
   assert.equal(weaponFollowUpOpen(open, parent, 5), false);
+});
+
+// Minimal activations distinguish acceptance, commitment, and full completion without asserting cast tuning.
+test('side effects preserve phase gates and resolve profile amounts from the selected catalog', () => {
+  for (const [interruptAfterMs, expected] of [
+    [100, 1],
+    [500, 3],
+    [undefined, 7]
+  ]) {
+    const energy = [];
+    const patched = applyBalanceProfilePatch(catalog, {
+      balanceProfiles: { 'test.proc': { fields: { resourceGain: 4 } } }
+    });
+    run(
+      {
+        catalog: patched,
+        initialize: (runtime) => runtime.resourceController.spend('energy', 10),
+        onCastComplete: (runtime) => energy.push(runtime.resourceController.value('energy'))
+      },
+      [cast(991005, { interruptAfterMs })]
+    );
+    assert.deepEqual(energy, [expected]);
+  }
+});
+
+test('declared reset, ammo, flip, and profile effects settle before completion hooks', () => {
+  const observed = [];
+  const result = run(
+    {
+      onCastComplete(runtime, activation) {
+        if (activation.skill.id === 991006)
+          observed.push([
+            runtime.ammo.get(991007).charges,
+            runtime.cooldowns.get(991007),
+            runtime.profession.core.availableFlips.flip.expiresAt
+          ]);
+      }
+    },
+    [cast(991007), cast(991006), wait(1500)],
+    [{ at: 1.1, run: (runtime) => observed.push(runtime.profession.core.availableFlips.flip) }]
+  );
+  assert.deepEqual(observed, [[2, undefined, 1], undefined]);
+  assert.equal(result.events.filter((event) => event.sourceId === 'test.proc' && event.kind === 'might').length, 1);
+});
+
+test('proc claims share a profile deadline, isolate profiles and runs, and retain exclusive readiness', () => {
+  const claims = [];
+  const hooks = {
+    onCastStart(runtime) {
+      claims.push([
+        runtime.procs.claim('test.proc'),
+        runtime.procs.claim('test.proc'),
+        runtime.procs.claim('test.other')
+      ]);
+    }
+  };
+  run(hooks, [cast(991001), wait(2000), cast(991001), wait(1), cast(991001)]);
+  run(hooks, [cast(991001)]);
+  assert.deepEqual(claims, [
+    [true, false, true],
+    [false, false, false],
+    [true, false, true],
+    [true, false, true]
+  ]);
+});
+
+test('recharge rules compose with hooks and trait triggers claim before emitting in declaration order', () => {
+  const observations = [];
+  const result = run(
+    {
+      rechargeRules: [
+        {
+          trait: 'test.trait',
+          when: (_runtime, skill) => skill.weapon === 'Sword',
+          multiplier: { profile: 'test.proc', field: 'rechargeMultiplier' }
+        }
+      ],
+      rechargeWork: (_runtime, _skill, work) => work - 1,
+      traitTriggers: [
+        {
+          trait: 'test.trait',
+          on: 'castComplete',
+          when: () => true,
+          emit: 'test.proc',
+          icd: 'profile',
+          attribution: { name: 'first' }
+        },
+        {
+          trait: 'test.trait',
+          on: 'castComplete',
+          when: () => true,
+          emit: 'test.proc',
+          icd: 'profile',
+          attribution: { name: 'suppressed' }
+        }
+      ],
+      onCastComplete(runtime, activation) {
+        observations.push([activation.rechargeWork, runtime.procs.readyAt['test.proc']]);
+      }
+    },
+    [cast(991009), wait(1000)]
+  );
+  assert.deepEqual(observations, [[4, 2]]);
+  assert.deepEqual(
+    result.events.filter((event) => event.sourceId === 'test.trait').map((event) => event.name),
+    ['first']
+  );
+});
+
+test('patched variants retain executable predicates and snapshot eligibility before later state changes', () => {
+  const patched = applySkillPatch(catalog, { skills: { 991008: { fields: { cooldown: 2 } } } });
+  assert.equal(
+    patched.skillsById.get(991008).effectVariants[0].when,
+    catalog.skillsById.get(991008).effectVariants[0].when
+  );
+  assert.equal(skillAuthoringReference(patched.skillsById.get(991008)).effectVariants, undefined);
+  const result = run(
+    {
+      catalog: patched,
+      initialize(runtime) {
+        runtime.profession.selected = true;
+      }
+    },
+    [cast(991008)],
+    [
+      {
+        at: 0.5,
+        run(runtime) {
+          runtime.profession.selected = false;
+        }
+      }
+    ]
+  );
+  assert.deepEqual(
+    result.events.filter((event) => event.type.startsWith('test.')).map((event) => event.type),
+    ['test.selected']
+  );
+  assert.throws(
+    () =>
+      createCanonicalCatalog({
+        generated: [
+          { id: 1, name: 'Invalid', castTimeMs: 0, effects: [{ type: 'boon', boon: 'might', duration: 1, when: true }] }
+        ]
+      }),
+    /predicate/
+  );
 });

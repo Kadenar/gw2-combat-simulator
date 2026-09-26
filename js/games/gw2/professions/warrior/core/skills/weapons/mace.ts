@@ -48,6 +48,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
     ])
   },
   [ID.TREMOR]: {
+    sideEffects: [{ on: 'castComplete', do: { type: 'rechargeReset', skillIds: [ID.CRUSHING_BLOW] } }],
     // Tremor refreshes Crushing Blow when its cast completes.
     castTimeMs: 560,
     dualWieldCastTimeMs: 400,
@@ -123,7 +124,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
   },
   [ID.TACTICAL_BLOW]: {
     castTimeMs: 480,
-    adrenalineGain: 5,
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 5 } }],
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {

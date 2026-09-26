@@ -23,6 +23,9 @@ import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { InternalWork, WorkOwner } from '#gw2/platform/simulation/internal-work.js';
 import type { SkillFlipWindow } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { SideEffectAction } from '#gw2/platform/simulation/side-effects.js';
+import type { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import type { RechargeRule, TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type {
   AutoattackChainOverride,
   AutoattackChainTransitionResult
@@ -108,6 +111,7 @@ export interface Gw2Runtime<T extends object = object> extends Gw2ResolverRuntim
   readonly lockouts: Map<string, number>;
   readonly inFlight: Map<SkillId, Set<string>>;
   readonly cooldownController: CooldownController;
+  readonly procs: ReturnType<typeof createProcRegistry>;
   readonly history: Gw2ResolverEvent[];
   readonly steps: SimulationStep[];
   resourceController: ReturnType<typeof createRuntimeResources<T>>;
@@ -133,6 +137,8 @@ export interface Gw2Runtime<T extends object = object> extends Gw2ResolverRuntim
 
 /** Canonical live contract: mechanics read and mutate the same context at their actual execution phase. */
 export interface RuntimeProfession<T extends object> extends Gw2QueryProfession {
+  readonly rechargeRules?: readonly RechargeRule<T>[];
+  readonly traitTriggers?: readonly TraitTrigger<T>[];
   createState(config: Gw2Config): T;
   projectPlanningState?(input: Gw2PlanningStateInput<T>): unknown;
   initialize?(runtime: Gw2Runtime<T>): void;
@@ -162,7 +168,12 @@ export interface RuntimeProfession<T extends object> extends Gw2QueryProfession 
   modifyComboFields?(runtime: Gw2Runtime<T>, cast: RuntimeCast, fields: Skill['comboFields']): Skill['comboFields'];
   modifyEffects?(runtime: Gw2Runtime<T>, cast: RuntimeCast, effects: readonly SkillEffect[]): readonly SkillEffect[];
   onCastStart?(runtime: Gw2Runtime<T>, cast: RuntimeCast): void;
+  /** Commit owners settle captured resource state before declared completion rewards and completion hooks. */
+  onCastCommit?(runtime: Gw2Runtime<T>, cast: RuntimeCast): void;
   onCastComplete?(runtime: Gw2Runtime<T>, cast: RuntimeCast): void;
+  readonly sideEffectHandlers?: Readonly<
+    Record<string, (runtime: Gw2Runtime<T>, cast: RuntimeCast, action: SideEffectAction) => void>
+  >;
   readonly autoattackChainOverrides?: readonly AutoattackChainOverride[];
   onAutoattackChainTransition?(
     runtime: Gw2Runtime<T>,

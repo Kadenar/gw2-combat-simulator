@@ -5,6 +5,8 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RIFLE_BUTT]: {
+    // Completed strikes restock the live rifle catalog and reset its bursts.
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.rifle-restock' } }],
     // Rifle Butt uses its successful-hit recharge and reloads the rest of the rifle kit on completion.
     cooldown: 12,
     castTimeMs: 480,

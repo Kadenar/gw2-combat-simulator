@@ -306,6 +306,7 @@ test('Mistral requires an armed window and shares inclusive expiry with its disp
             source: 'probe',
             sourceId: RI.SPLITBLADE,
             skillId: RI.SPLITBLADE,
+            projectile: true, // This fixture probes Mistral's lifetime with an eligible ranged packet.
             actorType: 'player',
             at,
             coefficient: 1

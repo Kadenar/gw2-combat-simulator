@@ -14,7 +14,6 @@ export interface WarriorCoreState {
   targetControlledUntil: number;
   soldierFocusReadyAt: number;
   burstHitActivations: Record<string, boolean>;
-  traitProcReadyAt: Record<string, number>;
   /** Readiness waits for the next actual signet pulse instead of crediting future adrenaline. */
   nextSignetPulseAt: number;
 }
@@ -52,7 +51,6 @@ export function createWarriorCoreState(config: Gw2Config = {}): WarriorCoreState
     targetControlledUntil: 0,
     soldierFocusReadyAt: 0,
     burstHitActivations: {},
-    traitProcReadyAt: {},
     nextSignetPulseAt: Infinity
   };
 }

@@ -745,7 +745,9 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
     Math.abs(
       converted.planningState.profession.flow -
         idle.planningState.profession.flow -
-        warriorCatalog.skillsById.get(ID.SIGNET_OF_FURY).adrenalineGain
+        warriorCatalog.skillsById
+          .get(ID.SIGNET_OF_FURY)
+          .sideEffects.find(({ do: action }) => action.type === 'warrior.adrenaline').do.amount
     ) < 1e-9
   );
   assert.equal(converted.planningState.profession.adrenaline, 0);

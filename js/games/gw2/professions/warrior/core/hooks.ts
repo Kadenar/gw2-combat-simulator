@@ -1,7 +1,7 @@
+import { sideEffectAmount } from '#gw2/platform/simulation/side-effects.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
@@ -65,21 +65,13 @@ function traitEffects(
 }
 
 /** A selected trait claims its own deadline only after its trigger has actually been accepted. */
-function claimTrait(runtime: WarriorRuntime, trait: number, key: string): boolean {
-  return (
-    hasTrait(runtime, trait) &&
-    tryConsumeProcCooldown(
-      runtime.profession.core.traitProcReadyAt,
-      key,
-      runtime.time,
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, trait), 'internalCooldown')
-    )
-  );
+function claimTrait(runtime: WarriorRuntime, trait: number): boolean {
+  return hasTrait(runtime, trait) && runtime.procs.claim(trait);
 }
 
 /** Player control and player immobilization share Opportunist's single cooldown and live resource grant. */
 function opportunist(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
-  if (event.actorType !== 'player' || !claimTrait(runtime, TRAIT.OPPORTUNIST, 'opportunist')) return;
+  if (event.actorType !== 'player' || !claimTrait(runtime, TRAIT.OPPORTUNIST)) return;
   grantWarriorAdrenaline(
     runtime,
     balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.opportunist), 'resourceGain')
@@ -100,15 +92,13 @@ function controlTraits(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
       runtime,
       balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.mercilessHammer), 'resourceGain')
     );
-  if (claimTrait(runtime, TRAIT.STALWART_STRENGTH, 'stalwartStrength'))
-    traitEffects(runtime, event, TRAIT.STALWART_STRENGTH);
+  if (claimTrait(runtime, TRAIT.STALWART_STRENGTH)) traitEffects(runtime, event, TRAIT.STALWART_STRENGTH);
   if (
     hasTrait(runtime, TRAIT.BODY_BLOW) &&
     ['stun', 'daze', 'knockback', 'pull', 'push', 'launch'].includes(String(event.controlKind).toLowerCase())
   )
     traitEffects(runtime, event, TRAIT.BODY_BLOW);
-  if (claimTrait(runtime, TRAIT.AGGRESSIVE_ONSLAUGHT, 'aggressiveOnslaught'))
-    traitEffects(runtime, event, TRAIT.AGGRESSIVE_ONSLAUGHT);
+  if (claimTrait(runtime, TRAIT.AGGRESSIVE_ONSLAUGHT)) traitEffects(runtime, event, TRAIT.AGGRESSIVE_ONSLAUGHT);
 }
 
 /** The first surviving burst strike claims its activation once, even when earlier packets missed or traveled. */
@@ -128,20 +118,8 @@ function firstBurstHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): boolea
     skillName: event.skillName,
     stacks: 1
   };
-  if (
-    hasTrait(runtime, TRAIT.CULL_THE_WEAK) &&
-    tryConsumeProcCooldown(state.traitProcReadyAt, 'cullTheWeak', runtime.time, 5)
-  )
-    runtime.emitDerived(
-      event,
-      buildResolverCondition({
-        ...attribution,
-        sourceId: TRAIT.CULL_THE_WEAK,
-        name: 'Cull the Weak — Weakness',
-        condition: 'Weakness',
-        duration: 3.5
-      })
-    );
+  if (hasTrait(runtime, TRAIT.CULL_THE_WEAK) && runtime.procs.claim(TRAIT.CULL_THE_WEAK))
+    traitEffects(runtime, event, TRAIT.CULL_THE_WEAK);
   if (hasTrait(runtime, TRAIT.BURST_PRECISION)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.burstPrecision);
     runtime.emitDerived(event, {
@@ -253,7 +231,7 @@ function criticalTraits(
     traitEffects(runtime, event, TRAIT.FURIOUS, {}, criticals);
   }
 
-  if (firstBurst && claimTrait(runtime, TRAIT.SUNDERING_BURST, 'sunderingBurst')) {
+  if (firstBurst && claimTrait(runtime, TRAIT.SUNDERING_BURST)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.sunderingBurst);
     const effect = requireEffect(profile, 'condition', criticals > 0 ? 'Critical burst' : 'Burst');
     if (effect)
@@ -339,8 +317,6 @@ function castTraitBuff(
 /** Acceptance rewards survive later cancellation; Kick opens its modifier at the first authored impact. */
 function startTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
   const skill = cast.skill;
-  if (skill.type === 'Heal' && hasTrait(runtime, TRAIT.THICK_SKIN))
-    castTraitBuff(runtime, cast, TRAIT.THICK_SKIN, TRAIT.THICK_SKIN, 'Thick Skin', 'protection', 'boon');
   if (!skill.categories?.includes('Physical') || !hasTrait(runtime, TRAIT.PEAK_PERFORMANCE)) return;
   let at = cast.effectiveEnd;
   if (skill.id === ID.KICK) {
@@ -366,16 +342,6 @@ function startTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
 /** Only completed activations earn signet, movement, and dodge rewards, using the live resource owner. */
 function completeTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
   const skill = cast.skill;
-  if (skill.categories?.includes('Signet') && hasTrait(runtime, TRAIT.SIGNET_MASTERY))
-    castTraitBuff(
-      runtime,
-      cast,
-      TRAIT.SIGNET_MASTERY,
-      PROFILE.signetMastery,
-      'Signet Mastery',
-      'signet-mastery',
-      'buff'
-    );
   if (
     hasTrait(runtime, TRAIT.BRAVE_STRIDE) &&
     (skill.movementSkill || BRAVE_STRIDE_MOVEMENT_SKILL_IDS.some((id) => id === skill.id))
@@ -455,35 +421,6 @@ function empowerPulse(runtime: WarriorRuntime): void {
   runtime.schedule(EMPOWER_PULSE, canonicalTime(runtime.time + interval), null, undefined, -210);
 }
 
-/** Completion effects read the selected authoring once and mutate the live recharge/ammo pools. */
-function completeWeapon(runtime: WarriorRuntime, cast: RuntimeCast): void {
-  switch (cast.skill.id) {
-    case ID.RIFLE_BUTT:
-      for (const skill of runtime.helpers.skills) {
-        if (skill.weapon === 'Rifle' && skill.ammo)
-          runtime.cooldownController.restoreAmmo(skill, 1, runtime.time, 'reset');
-        if (skill.id === ID.KILL_SHOT || skill.id === ID.GUN_FLAME) runtime.cooldownController.clear(skill.id);
-      }
-
-      break;
-    case ID.TREMOR:
-      runtime.cooldownController.clear(ID.CRUSHING_BLOW);
-      break;
-    case ID.BACKBREAKER:
-      runtime.cooldownController.clear(ID.FIERCE_BLOW);
-      break;
-    case ID.TO_THE_LIMIT:
-      runtime.endurance.grant(Number(cast.skill.enduranceGain ?? 0));
-      break;
-    case ID.GUNSTINGER: {
-      const skill = runtime.helpers.skillsById.get(ID.DRAGONS_ROAR);
-      if (skill)
-        runtime.cooldownController.restoreAmmo(skill, Number(cast.skill.ammoRestoreCount ?? 0), runtime.time, 'reset');
-      break;
-    }
-  }
-}
-
 /** The shared swap commits its destination first; Core then resets Focus, grants adrenaline, and claims Fury once. */
 function weaponSwapTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
   const state = runtime.profession.core;
@@ -495,15 +432,7 @@ function weaponSwapTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
     );
   if (!hasTrait(runtime, TRAIT.FURIOUS_BURST)) return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.furiousBurst);
-  if (
-    !tryConsumeProcCooldown(
-      state.traitProcReadyAt,
-      'furiousBurst',
-      runtime.time,
-      balanceProfileNumber(profile, 'internalCooldown')
-    )
-  )
-    return;
+  if (!runtime.procs.claim(PROFILE.furiousBurst)) return;
   const fury = requireEffect(profile, 'boon', 'fury');
   if (!fury) return;
   const event = {
@@ -525,6 +454,21 @@ function weaponSwapTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
 
 /** Core resources and burst packets execute in the Core hooks; elite behavior composes at the family boundary. */
 export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
+  // Custom verbs keep specialization-dependent resource conversion and catalog-matched targets in their owner.
+  sideEffectHandlers: {
+    'warrior.adrenaline'(runtime, _cast, action) {
+      if (action.type !== 'warrior.adrenaline' || action.amount == null)
+        throw new TypeError('Adrenaline grants require an amount.');
+      grantWarriorAdrenaline(runtime, sideEffectAmount(runtime, action.amount));
+    },
+    'warrior.rifle-restock'(runtime) {
+      for (const skill of runtime.helpers.skills) {
+        if (skill.weapon === 'Rifle' && skill.ammo)
+          runtime.cooldownController.restoreAmmo(skill, 1, runtime.time, 'reset');
+        if (skill.id === ID.KILL_SHOT || skill.id === ID.GUN_FLAME) runtime.cooldownController.clear(skill.id);
+      }
+    }
+  },
   // Only an authored measurement and an eligible active offhand can replace the selected duration.
   castDurationMs(runtime, skill, durationMs) {
     const measured = Number(skill.dualWieldCastTimeMs);
@@ -554,20 +498,50 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     runtime.profession.core.nextSignetPulseAt = canonicalTime(runtime.time + 3);
     runtime.schedule(SIGNET_PULSE, runtime.profession.core.nextSignetPulseAt, null, undefined, -220);
   },
-  // Select recharge work once from the active weapon and trait catalog, before creating its reservation.
-  rechargeWork(runtime, skill, work) {
-    if (skill.id === ID.SWAP_WEAPONS) return Math.min(5, work);
-    if (skill.burst && hasTrait(runtime, TRAIT.VERSATILE_POWER))
-      work *= balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, TRAIT.VERSATILE_POWER),
-        'rechargeMultiplier'
-      );
-    if (skill.weapon === 'Greatsword' && hasTrait(runtime, TRAIT.FORCEFUL_GREATSWORD)) work *= 0.8;
-    if (skill.weapon === 'Sword' && hasTrait(runtime, TRAIT.BLADEMASTER)) work *= 0.8;
-    if (skill.weapon === 'Axe' && hasTrait(runtime, TRAIT.AXE_MASTERY))
-      work *= balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.AXE_MASTERY), 'rechargeMultiplier');
-    return work;
-  },
+  // Selected weapon and burst traits share live, patchable recharge rules.
+  rechargeRules: [
+    {
+      trait: TRAIT.VERSATILE_POWER,
+      when: (_runtime, skill) => Boolean(skill.burst),
+      multiplier: { profile: TRAIT.VERSATILE_POWER, field: 'rechargeMultiplier' }
+    },
+    ...(
+      [
+        ['Greatsword', TRAIT.FORCEFUL_GREATSWORD],
+        ['Sword', TRAIT.BLADEMASTER],
+        ['Axe', TRAIT.AXE_MASTERY]
+      ] as const
+    ).map(([weapon, trait]) => ({
+      trait,
+      when: (_runtime: WarriorRuntime, skill: WarriorSkill) => skill.weapon === weapon,
+      multiplier: { profile: trait, field: 'rechargeMultiplier' }
+    }))
+  ],
+  rechargeWork: (_runtime, skill, work) => (skill.id === ID.SWAP_WEAPONS ? Math.min(5, work) : work),
+  traitTriggers: [
+    {
+      trait: TRAIT.THICK_SKIN,
+      on: 'castStart',
+      when: (_runtime, cast) => cast.skill.type === 'Heal',
+      emit: TRAIT.THICK_SKIN,
+      attribution: { name: 'Thick Skin', priority: 0 }
+    },
+    {
+      trait: TRAIT.SIGNET_MASTERY,
+      on: 'castComplete',
+      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Signet')),
+      emit: PROFILE.signetMastery,
+      effects: (effect) => effect.type === 'buff' && effect.kind === 'signet-mastery',
+      attribution: { name: 'Signet Mastery', priority: 0 }
+    },
+    {
+      trait: TRAIT.LEG_SPECIALIST,
+      on: 'condition.applied',
+      when: (_runtime, event) => event.condition === 'Crippled',
+      emit: TRAIT.LEG_SPECIALIST,
+      attribution: { priority: 5 }
+    }
+  ],
   availability(runtime, rawSkill) {
     const skill = rawSkill as WarriorSkill;
     const state = runtime.profession.core;
@@ -650,9 +624,6 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
       ];
     }
 
-    // Mighty Throw's shards have no target in the single-target simulation and must not create hit/proc opportunities.
-    if (cast.skill.id === ID.MIGHTY_THROW)
-      effects = effects.filter((effect) => effect.metadata?.packetKind !== 'warrior.mighty-throw-shard');
     if (!cast.skill.burst || cast.skill.dragonSlash) return effects;
     const spent = burstSpends.get(cast)!;
     const tier = burstTier(runtime, spent);
@@ -735,7 +706,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
       return [captured];
     });
   },
-  onCastComplete(runtime, cast) {
+  onCastCommit(runtime, cast) {
     // A committed block may release early; its follow-up inherits the remaining original channel window.
     if (cast.skill.id === ID.COUNTERBLOW && runtime.time < cast.fullEnd && !cast.cancelled) {
       runtime.armFlip(ID.TACTICAL_BLOW, { expiresAt: cast.fullEnd });
@@ -762,9 +733,9 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
         5
       );
     }
-
-    grantWarriorAdrenaline(runtime, Number(cast.skill.adrenalineGain ?? 0));
-    completeWeapon(runtime, cast);
+  },
+  onCastComplete(runtime, cast) {
+    if (!castCompleted(cast)) return;
     completeTraits(runtime, cast);
     if (cast.skill.inputCategory === 'weapon-swap' && !castWasInterrupted(cast)) weaponSwapTraits(runtime, cast);
   },
@@ -805,8 +776,6 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     'control.resolved': controlTraits,
     'condition.applied'(runtime, event) {
       if (event.condition === 'Immobilized') opportunist(runtime, event);
-      if (event.condition === 'Crippled' && hasTrait(runtime, TRAIT.LEG_SPECIALIST))
-        traitEffects(runtime, event, TRAIT.LEG_SPECIALIST);
     }
   }
 };

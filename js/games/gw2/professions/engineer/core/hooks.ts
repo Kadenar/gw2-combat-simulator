@@ -15,7 +15,7 @@ import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/resources.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
-import { engineerRechargeWork } from '#gw2/professions/engineer/core/mechanics/recharge.js';
+import { engineerRechargeRules } from '#gw2/professions/engineer/core/mechanics/recharge.js';
 import {
   handleAirBlast,
   handleConduitSurge,
@@ -88,7 +88,7 @@ function detonateMines(runtime: EngineerRuntime): void {
 export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = {
   endurance: engineerEndurance,
   availability: engineerCoreCastAvailability,
-  rechargeWork: engineerRechargeWork,
+  rechargeRules: engineerRechargeRules,
   reserveRecharge: (_runtime, skill, work) => (skill.id === ID.HEALING_TURRET ? 0 : work),
   prepareEvent(runtime, event) {
     // Conduit Surge owns its leap at impact; its zero-effect action must not make a second attempt.

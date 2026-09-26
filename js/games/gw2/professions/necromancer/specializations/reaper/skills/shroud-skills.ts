@@ -45,6 +45,8 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     cooldown: 0
   },
   [ID.INFUSING_TERROR]: {
+    // A completed cast arms the authored follow-up duration through the common flip owner.
+    sideEffects: [{ on: 'castComplete', do: { type: 'flipArm', skillId: ID.TERRIFY } }],
     castTimeMs: 0,
     flipDuration: 6,
     effects: [],

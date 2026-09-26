@@ -158,7 +158,7 @@ test('accepted control shares Opportunist cooldown while independent control tra
   assert.equal(from(TRAIT.BODY_BLOW).filter((event) => event.condition === 'Weakness').length, 2);
   const missed = run([{ name: 'Kick', offTarget: true }], config);
   assert.equal(missed.planningState.profession.adrenaline, 0);
-  assert.deepEqual(observedRuntime(missed).profession.core.traitProcReadyAt, {});
+  assert.deepEqual({ ...observedRuntime(missed).procs.readyAt }, {});
   assert.equal(observedRuntime(missed).profession.core.targetControlledUntil, 0);
 });
 
@@ -284,7 +284,7 @@ test('Lesser Signet claims one cooldown on an accepted hit against the current l
   const grants = result.resolvedEvents.filter((event) => event.kind === 'signet-mastery');
   assert.equal(grants.length, 1);
   assert.equal(grants[0].at, hit.at);
-  assert.ok(observedRuntime(result).profession.core.traitProcReadyAt.lesserSignetMight > hit.at);
+  assert.ok(observedRuntime(result).procs.readyAt[TRAIT.SIGNET_MASTERY] > hit.at);
   const healthy = run(['Fierce Shot'], { ...config, target: { ...config.target, startingHealthFraction: 1 } });
   assert.equal(
     healthy.resolvedEvents.some((event) => event.kind === 'signet-mastery'),

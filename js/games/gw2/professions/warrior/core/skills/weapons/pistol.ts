@@ -8,7 +8,7 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Par
     ammoRecharge: 0,
     cooldown: 15,
     // Gunstinger restores three Dragon's Roar charges after completion.
-    ammoRestoreCount: 3,
+    sideEffects: [{ on: 'castComplete', do: { type: 'ammoRestore', skillIds: [ID.DRAGONS_ROAR], count: 3 } }],
     castTimeMs: 600,
     effects: [
       {

@@ -97,6 +97,7 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.BACKBREAKER]: {
+    sideEffects: [{ on: 'castComplete', do: { type: 'rechargeReset', skillIds: [ID.FIERCE_BLOW] } }],
     cooldown: 25,
     // Backbreaker refreshes Fierce Blow when its cast completes.
     castTimeMs: 880,

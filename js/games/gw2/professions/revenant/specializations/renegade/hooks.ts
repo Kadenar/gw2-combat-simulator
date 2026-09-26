@@ -495,16 +495,14 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   },
   // Enhanced Band Together is instant; normal summons keep their authored cast time.
   castDurationMs: (runtime, skill, duration) => (bandTogetherReady(runtime, skill.id) ? 0 : duration),
-  rechargeWork(runtime, skill, work) {
-    if (!bandTogetherReady(runtime, skill.id) || !hasTrait(runtime, TRAIT.ALL_FOR_ONE)) return work;
-    return (
-      work *
-      Math.max(
-        0,
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.allForOne), 'rechargeMultiplier')
-      )
-    );
-  },
+  // Band Together readiness is sampled before the accepted cast changes its state.
+  rechargeRules: [
+    {
+      trait: TRAIT.ALL_FOR_ONE,
+      when: (runtime, skill) => bandTogetherReady(runtime, skill.id),
+      multiplier: { profile: PROFILE.allForOne, field: 'rechargeMultiplier' }
+    }
+  ],
   modifyEffects(_runtime, cast, effects) {
     if (cast.skill.id === ID.HEROIC_COMMAND || cast.skill.id === ID.ORDERS_FROM_ABOVE) return [];
     return bandTogether.get(cast)?.enhanced ? [] : effects;

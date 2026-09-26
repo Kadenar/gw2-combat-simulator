@@ -281,16 +281,19 @@ export const scourgeHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> =
       );
     return { ready: true };
   },
-  rechargeWork(runtime, skill, work) {
-    if (SHADE_SKILLS.has(Number(skill.id)) && hasTrait(runtime, TRAIT.SINISTER_SHROUD))
-      work *= balanceProfileNumber(
-        requireBalanceProfileFromContext(runtime, CORE_PROFILE.sinisterShroud),
-        'rechargeMultiplier'
-      );
-    return skill.id === ID.MANIFEST_SAND_SHADE && hasTrait(runtime, TRAIT.SAND_SAVANT)
-      ? work * balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.sandSavant), 'rechargePenalty')
-      : work;
-  },
+  // Shade traits compose multiplicatively against the same live catalog.
+  rechargeRules: [
+    {
+      trait: TRAIT.SINISTER_SHROUD,
+      when: (_runtime, skill) => SHADE_SKILLS.has(Number(skill.id)),
+      multiplier: { profile: CORE_PROFILE.sinisterShroud, field: 'rechargeMultiplier' }
+    },
+    {
+      trait: TRAIT.SAND_SAVANT,
+      when: (_runtime, skill) => skill.id === ID.MANIFEST_SAND_SHADE,
+      multiplier: { profile: PROFILE.sandSavant, field: 'rechargePenalty' }
+    }
+  ],
   maximumAmmo(runtime, skill, maximum) {
     return skill.id === ID.MANIFEST_SAND_SHADE && hasTrait(runtime, TRAIT.SAND_SAVANT)
       ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.sandSavant), 'maximumStacks')

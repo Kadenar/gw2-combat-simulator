@@ -219,16 +219,14 @@ export const vindicatorHooks: Partial<RuntimeProfession<RevenantRuntimeState>> =
   // The landing-only Dodge input uses the selected dodge's fixed animation.
   castDurationMs: (runtime, skill, duration) =>
     skill.id === ID.DODGE ? Math.max(0, Number(selectedDodge(runtime)?.castTimeMs || 0)) : duration,
-  rechargeWork(runtime, skill, work) {
-    if (!ENERGY_MELD_IDS.has(skill.id) || !hasTrait(runtime, TRAIT.REAVERS_CURSE)) return work;
-    return (
-      work *
-      Math.max(
-        0,
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.reaversCurse), 'rechargeMultiplier')
-      )
-    );
-  },
+  // Energy Meld variants share the same selected trait reduction.
+  rechargeRules: [
+    {
+      trait: TRAIT.REAVERS_CURSE,
+      when: (_runtime, skill) => ENERGY_MELD_IDS.has(skill.id),
+      multiplier: { profile: PROFILE.reaversCurse, field: 'rechargeMultiplier' }
+    }
+  ],
   modifyEffects: (_runtime, cast, effects) => (cast.skill.id === VINDICATOR_JUMP_SKILL.id ? [] : effects),
   onCastStart(runtime, cast) {
     // Landing-only inputs begin at the landing animation; full jumps land after their airborne time.

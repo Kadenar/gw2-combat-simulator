@@ -2,6 +2,8 @@
 import type { EffectMetadata, EffectAudience, DamageEvent } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { SkillSideEffect } from '#gw2/platform/simulation/side-effects.js';
+import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 
 export type SkillId = string | number;
 
@@ -37,6 +39,8 @@ export interface ConditionTick {
 
 export interface SkillEffectBase {
   readonly type: string;
+  /** Capture acceptance-time eligibility once; impact-time state remains a resolver responsibility. */
+  readonly when?: (runtime: Gw2Runtime<any>, cast: RuntimeCast) => boolean;
   readonly atMs?: number;
   readonly intervalMs?: number;
   readonly timingAnchor?: 'castStart' | 'castEnd';
@@ -262,6 +266,18 @@ export interface Skill extends CatalogEntity {
   readonly cost?: SkillCost;
   /** Named mechanic work a committed activation schedules; each task receives `{ cast, trigger }`. */
   readonly tasks?: readonly SkillTask[];
+  /** Ordered mutations executed by the platform at the declared activation phase. */
+  readonly sideEffects?: readonly SkillSideEffect[];
+  /** First matching variant supplies the selected profile's effects before ordinary profession modifiers. */
+  readonly effectVariants?: readonly {
+    readonly when: (runtime: Gw2Runtime<any>, cast: RuntimeCast) => boolean;
+    readonly profileId: SkillId;
+    readonly transform?: (
+      runtime: Gw2Runtime<any>,
+      cast: RuntimeCast,
+      effects: readonly SkillEffect[]
+    ) => readonly SkillEffect[];
+  }[];
 }
 
 /**

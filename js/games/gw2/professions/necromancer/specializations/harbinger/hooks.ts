@@ -276,12 +276,14 @@ export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
     });
     publishBlight(runtime);
   },
-  rechargeWork(runtime, skill, work) {
-    return skill.weapon === 'Pistol' && hasTrait(runtime, TRAIT.DARK_GUNSLINGER)
-      ? work *
-          balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.darkGunslinger), 'rechargeMultiplier')
-      : work;
-  },
+  // Pistol recharge uses the selected trait profile.
+  rechargeRules: [
+    {
+      trait: TRAIT.DARK_GUNSLINGER,
+      when: (_runtime, skill) => skill.weapon === 'Pistol',
+      multiplier: { profile: PROFILE.darkGunslinger, field: 'rechargeMultiplier' }
+    }
+  ],
   onCastStart(runtime, cast) {
     if (cast.skill.categories?.includes('Elixir')) {
       if (cast.cancelled) return;
@@ -300,39 +302,9 @@ export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
       if (at <= cast.effectiveEnd) runtime.schedule(COMMIT, at, { cast, impactAt: at });
     }
   },
-  modifyEffects(runtime, cast, effects) {
+  modifyEffects(_runtime, cast, effects) {
     if (HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)]) return [];
-    if (cast.skill.id !== ID.DARK_BARRAGE || !hasTrait(runtime, TRAIT.DOOM_APPROACHES)) return effects;
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.darkBarrageDoomApproaches);
-    const ticks = Array.from({ length: balanceProfileNumber(profile, 'pulseCount') }, (_, index) => ({
-      atMs: (index + 1) * balanceProfileNumber(profile, 'pulseInterval') * 1000
-    }));
-    return (profile.effects ?? []).flatMap((effect): SkillEffect[] => {
-      if (effect.type === 'strike')
-        return [
-          {
-            ...effect,
-            timingAnchor: 'castStart',
-            timingScale: 'fixed',
-            ticks: ticks.map((tick) => ({ ...tick, coefficient: effectNumber(profile, effect, 'coefficient') }))
-          }
-        ];
-      if (effect.type === 'condition')
-        return [
-          {
-            ...effect,
-            timingAnchor: 'castStart',
-            timingScale: 'fixed',
-            ticks: ticks.map((tick) => ({
-              ...tick,
-              condition: String(effect.condition),
-              stacks: effectNumber(profile, effect, 'stacks'),
-              duration: effectNumber(profile, effect, 'duration')
-            }))
-          }
-        ];
-      return [];
-    });
+    return effects;
   },
   onCastComplete(runtime, cast) {
     if (cast.skill.id === ID.DARK_BARRAGE && !cast.cancelled) deathlyHaste(runtime, cast.skill);

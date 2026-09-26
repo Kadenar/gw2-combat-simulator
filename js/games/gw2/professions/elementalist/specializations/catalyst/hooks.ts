@@ -327,15 +327,14 @@ function gainEnergy(runtime: ElementalistRuntime, event: SimulationEvent): void 
 export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
   initialize,
   availability,
-  rechargeWork(runtime, skill, work) {
-    return skill.skillFamily === 'Jade Sphere' && hasTrait(runtime, 'Elemental Enchantment')
-      ? work *
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(runtime, CORE_PROFILE.elementalEnchantment),
-            'rechargeMultiplier'
-          )
-      : work;
-  },
+  // Sphere recharge uses the selected Core trait profile.
+  rechargeRules: [
+    {
+      trait: 'Elemental Enchantment',
+      when: (_runtime, skill) => skill.skillFamily === 'Jade Sphere',
+      multiplier: { profile: CORE_PROFILE.elementalEnchantment, field: 'rechargeMultiplier' }
+    }
+  ],
   onCombatStart(runtime) {
     const state = catalystState.from(runtime);
     if (!hasTrait(runtime, 'Elemental Empowerment') || state.elementalEmpowermentRefreshStarted) return;

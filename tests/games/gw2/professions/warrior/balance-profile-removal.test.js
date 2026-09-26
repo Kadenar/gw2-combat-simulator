@@ -70,7 +70,7 @@ test('Sundering Burst removal cannot substitute its surviving critical variant',
     const hit = result.events.find((event) => event.type === 'damage');
     const proc = result.events.find((event) => event.sourceId === TRAIT.SUNDERING_BURST);
     assert.equal(proc?.stacks, precision === 0 ? undefined : 13);
-    assert.equal(observedRuntime(result).profession.core.traitProcReadyAt.sunderingBurst, hit.at + 5);
+    assert.equal(observedRuntime(result).procs.readyAt[TRAIT.SUNDERING_BURST], hit.at + 5);
   }
 });
 

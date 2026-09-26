@@ -32,6 +32,9 @@ import {
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
+import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
+import { selectSkillEffects } from '#gw2/platform/simulation/effect-selection.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import {
   autoattackChainAvailability,
@@ -228,6 +231,7 @@ export function runGw2Runtime<T extends object>({
     rotationEndTime: null,
     cursor,
     cooldownController,
+    procs: createProcRegistry(() => runtime),
     inFlight: new Map(),
     lockouts: new Map(),
     history,
@@ -495,6 +499,9 @@ export function runGw2Runtime<T extends object>({
     );
     profession.onAutoattackChainTransition?.(runtime, cast, transition);
     if (cast.skill.cost?.spendOn === 'castCommit' && !cast.cancelled) spendSkillCost(runtime, cast.skill);
+    if (!cast.cancelled) profession.onCastCommit?.(runtime, cast);
+    applySkillSideEffects(runtime, cast, 'castCommit', profession.sideEffectHandlers);
+    applySkillSideEffects(runtime, cast, 'castComplete', profession.sideEffectHandlers);
     profession.onCastComplete?.(runtime, cast);
     if (!cast.cancelled) scheduleSkillTasks(cast);
     const completion = assertSimulationEvent({
@@ -708,8 +715,11 @@ export function runGw2Runtime<T extends object>({
     // A declared cost is paid on acceptance unless the skill pays only for a committed activation.
     if (skill.cost && skill.cost.spendOn !== 'castCommit') spendSkillCost(runtime, skill);
     profession.onCastStart?.(runtime, cast);
+    applySkillSideEffects(runtime, cast, 'castStart', profession.sideEffectHandlers);
     // Custom skill owners select their packets once; scheduled effects still apply through the common live queue.
-    for (const effect of profession.modifyEffects?.(runtime, cast, skill.effects ?? []) ?? skill.effects ?? []) {
+    const selectedEffects = selectSkillEffects(runtime, cast);
+    for (const effect of profession.modifyEffects?.(runtime, cast, selectedEffects) ?? selectedEffects) {
+      if (effect.when && !effect.when(runtime, cast)) continue;
       const perPacket = skill.interruptMode === 'per-packet';
       if (interrupted && !perPacket && cancelledBeforeEffectCommit(skill, effect, start, fullEnd, effectiveEnd))
         continue;

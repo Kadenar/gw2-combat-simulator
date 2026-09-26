@@ -1,3 +1,4 @@
+import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -53,7 +54,8 @@ const RELEASE_POTENTIAL_IDS = new Set<SkillId>(Object.values(REVENANT_RELEASE_PO
 const CUSTOM_EFFECT_SKILL_IDS = new Set<SkillId>([
   ...BEGUILING_HAZE_SKILL_IDS,
   ...TWIN_MOON_SKILL_IDS,
-  ...RELEASE_POTENTIAL_IDS,
+  ID.RELEASE_POTENTIAL_MESMER,
+  ID.RELEASE_POTENTIAL_ASSASSIN,
   ID.GLADIATORS_DEFENSE,
   ID.HEX_EATER_VORTEX
 ]);
@@ -82,15 +84,6 @@ function gainAffinity(runtime: RevenantRuntime, amount: number): void {
       'energy',
       balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.expandedConsciousness), 'resourceGain')
     );
-}
-
-/** Kinetic Insight adds a virtual +2 affinity for scaling without changing the stored value. */
-function effectiveAffinity(runtime: RevenantRuntime): number {
-  const maximum = Math.max(
-    1,
-    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.affinity), 'maximumStacks')
-  );
-  return Math.min(maximum, Number(conduit(runtime).affinity || 0) + (hasTrait(runtime, TRAIT.KINETIC_INSIGHT) ? 2 : 0));
 }
 
 function hasLegend(runtime: RevenantRuntime, legendId: string): boolean {
@@ -497,62 +490,13 @@ function twinMoonSweep(runtime: RevenantRuntime, cast: RuntimeCast): void {
 /** Release Potential resolves the active legend's variant from current affinity and equipped legends. */
 function releasePotential(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const skill = cast.skill;
-  const affinity = effectiveAffinity(runtime);
-  // At the minimum affinity the release gains every equipped legend's effects.
-  const all =
-    affinity >=
-    Math.max(0, balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.affinity), 'minimumStacks'));
+  const affinity = effectiveConduitAffinity(runtime);
   const effects = skill.effects ?? [];
   const hit = effects.find((effect) => effect.type === 'strike');
   const conditions = effects.filter((effect) => effect.type === 'condition');
-  const boons = effects.filter((effect) => effect.type === 'boon');
   const weapon = skillWeapon(runtime, skill);
   const coefficient = hit?.type === 'strike' ? strikeEffectCoefficient(hit) : 0;
   switch (skill.id) {
-    case ID.RELEASE_POTENTIAL_MONK:
-      for (const effect of boons)
-        if (effect.type === 'boon' && effect.boon)
-          boon(runtime, cast, skill, {
-            at: cast.effectiveEnd,
-            name: `${skill.name} — ${effect.boon}`,
-            kind: effect.boon,
-            duration: Number(effect.duration || 0),
-            stacks: Number(effect.stacks ?? 1)
-          });
-      break;
-    case ID.RELEASE_POTENTIAL_DERVISH: {
-      const impact = effectAt(cast, hit);
-      // The conjured scythe uses sword strength on either equipped weapon set.
-      strike(runtime, cast, skill, {
-        at: impact,
-        coefficient,
-        skillWeapon: weapon,
-        weaponStrengthProfileId: 'weapon.sword'
-      });
-      const tick = firstConditionTick(
-        conditions.find((effect) => effect.metadata?.legendId === LEGEND.DEMON),
-        'Bleeding'
-      );
-      if (hasLegend(runtime, LEGEND.DEMON) || all)
-        condition(runtime, cast, skill, {
-          at: impact,
-          condition: String(tick?.condition || 'Bleeding'),
-          stacks: Number(tick?.stacks ?? 1),
-          duration: Number(tick?.duration || 0)
-        });
-      if (hasLegend(runtime, LEGEND.CENTAUR) || all)
-        for (const effect of boons.filter((candidate) => candidate.metadata?.legendId === LEGEND.CENTAUR))
-          if (effect.type === 'boon' && effect.boon)
-            boon(runtime, cast, skill, {
-              at: impact,
-              name: `${skill.name} — ${effect.boon}`,
-              kind: effect.boon,
-              duration: Number(effect.duration || 0),
-              stacks: Number(effect.stacks ?? 1)
-            });
-      break;
-    }
-
     case ID.RELEASE_POTENTIAL_MESMER: {
       const impact = effectAt(cast, hit);
       strike(runtime, cast, skill, { at: impact, coefficient, skillWeapon: weapon });
@@ -598,9 +542,6 @@ function releasePotential(runtime: RevenantRuntime, cast: RuntimeCast): void {
       break;
     }
 
-    case ID.RELEASE_POTENTIAL_WARRIOR:
-      strike(runtime, cast, skill, { at: cast.effectiveEnd, coefficient, skillWeapon: weapon });
-      break;
     default:
       break;
   }
@@ -611,7 +552,7 @@ function mesmerRelease(runtime: RevenantRuntime, data: unknown): void {
   const skill = runtime.helpers.skillsById.get(ID.RELEASE_POTENTIAL_MESMER);
   if (!skill) return;
   const { activationId } = data as { activationId: string };
-  const affinity = effectiveAffinity(runtime);
+  const affinity = effectiveConduitAffinity(runtime);
   const conditions = skill.effects?.filter((effect) => effect.type === 'condition') ?? [];
   const torment = conditions.find((effect) => effect.target !== 'self');
   const self = conditions.find((effect) => effect.target === 'self');
@@ -895,7 +836,15 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
       return Math.max(0, balanceProfileNumber(requireBalanceProfileFromContext(runtime, mesmerProfile), 'cooldown'));
     return RELEASE_POTENTIAL_IDS.has(skill.id) && hasTrait(runtime, TRAIT.KINETIC_INSIGHT) ? work * 0.8 : work;
   },
-  modifyEffects: (_runtime, cast, effects) => (CUSTOM_EFFECT_SKILL_IDS.has(cast.skill.id) ? [] : effects),
+  modifyEffects(runtime, cast, effects) {
+    if (CUSTOM_EFFECT_SKILL_IDS.has(cast.skill.id)) return [];
+    // Declarative releases keep the same active-weapon attribution as their former procedural packets.
+    return RELEASE_POTENTIAL_IDS.has(cast.skill.id)
+      ? effects.map((effect) =>
+          effect.type === 'strike' ? { ...effect, weapon: skillWeapon(runtime, cast.skill) } : effect
+        )
+      : effects;
+  },
   onCastStart(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
     costAffinity(runtime, cast);

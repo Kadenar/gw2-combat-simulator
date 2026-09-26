@@ -28,6 +28,7 @@ import type {
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { validateAutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 
 /** Policies a family exposes for capacity previews; their maximum reads only configuration and catalog. */
 type ProfessionResourcePreview = ReturnType<NonNullable<ProfessionFamilyDefinition['resourcesFor']>>;
@@ -223,8 +224,12 @@ export function defineNativeProfession<
     if (specialization !== 'Core' && selected.length !== 2)
       throw new TypeError(`Unknown specialization: ${specialization}.`);
     const source = family.resolveProfession(config);
-    const hooks = selected.map((module) => module.hooks ?? {}) as Partial<RuntimeProfession<State>>[];
-    const merged = <K extends 'tasks' | 'eventHandlers'>(key: K): RuntimeProfession<State>[K] => {
+    const hooks = (selected.map((module) => module.hooks ?? {}) as Partial<RuntimeProfession<State>>[]).map(
+      compileProfessionRules
+    );
+    const merged = <K extends 'tasks' | 'eventHandlers' | 'sideEffectHandlers'>(
+      key: K
+    ): RuntimeProfession<State>[K] => {
       const entries = hooks.flatMap((hook) => Object.entries(hook[key] ?? {}));
       if (new Set(entries.map(([name]) => name)).size !== entries.length)
         throw new TypeError(`Duplicate hook ${key} owner.`);
@@ -325,6 +330,9 @@ export function defineNativeProfession<
       onCastComplete(context, cast) {
         for (const hook of hooks) hook.onCastComplete?.(context, cast);
       },
+      onCastCommit(context, cast) {
+        for (const hook of hooks) hook.onCastCommit?.(context, cast);
+      },
       onAutoattackChainTransition(context, cast, result) {
         for (const hook of hooks) hook.onAutoattackChainTransition?.(context, cast, result);
       },
@@ -335,6 +343,7 @@ export function defineNativeProfession<
         for (const hook of hooks) hook.onCombatStart?.(context);
       },
       tasks: merged('tasks'),
+      sideEffectHandlers: merged('sideEffectHandlers'),
       eventHandlers: merged('eventHandlers'),
       reactions: Object.fromEntries(
         [...stages].map((stage) => [

@@ -57,6 +57,7 @@ const QUICKNESS_ACTION_RATE = 1.5;
 // Allowlist used to catch typos in hand-authored effect objects at catalog-build time.
 const EFFECT_FIELDS = new Set([
   'type',
+  'when',
   'coefficient',
   'coefficientModifiers',
   'hits',
@@ -387,6 +388,9 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
       `Skill effect has unsupported field${unknownFields.length === 1 ? '' : 's'}: ` + unknownFields.join(', ')
     );
   }
+
+  if (normalizedEffect.when != null && typeof normalizedEffect.when !== 'function')
+    throw new TypeError('Skill effect when must be a predicate.');
 
   // Effect ownership must already use the canonical actor vocabulary at catalog assembly.
   if (normalizedEffect.actorType !== undefined && !EFFECT_ACTOR_TYPES.has(normalizedEffect.actorType)) {
@@ -774,6 +778,26 @@ export function createCanonicalCatalog({
     }
 
     const effects = normalizeSkillEffects(merged.effects || [], `skill=${id}`);
+    // Declarative activation phases and variant selectors must be executable before they enter a live catalog.
+    for (const sideEffect of merged.sideEffects ?? []) {
+      if (
+        !['castStart', 'castCommit', 'castComplete'].includes(sideEffect.on) ||
+        !sideEffect.do?.type ||
+        (sideEffect.when != null && typeof sideEffect.when !== 'function') ||
+        (sideEffect.order != null && !Number.isFinite(sideEffect.order))
+      )
+        throw new TypeError(`Skill ${id} has an invalid side effect.`);
+    }
+
+    for (const variant of merged.effectVariants ?? []) {
+      if (
+        typeof variant.when !== 'function' ||
+        variant.profileId == null ||
+        (variant.transform != null && typeof variant.transform !== 'function')
+      )
+        throw new TypeError(`Skill ${id} has an invalid effect variant.`);
+    }
+
     // Every persistent effect needs an explicit launch cutoff, either on itself
     // or inherited from the skill, before future packets may survive an interrupt.
     if (
@@ -813,6 +837,9 @@ export function createCanonicalCatalog({
     return {
       ...baseSkill,
       effects,
+      ...(merged.sideEffects
+        ? { sideEffects: Object.freeze([...merged.sideEffects].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))) }
+        : {}),
       tags: Object.freeze([...(baseSkill.tags || [])])
     } as Skill;
   });

@@ -1,3 +1,5 @@
+import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 /** Applies Core Mesmer availability, recharge, and shatter-ammunition policy. */
 import {
@@ -10,6 +12,24 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 
+/** Both cast reservations and mantra parent adjustments use the same trait rules before flat shatter reductions. */
+const traitRecharge = compileRechargeRules<MesmerRuntimeState>([
+  {
+    trait: TRAIT.MASTER_OF_MISDIRECTION,
+    when: (runtime, skill) =>
+      Boolean(
+        mesmerMechanicsFor(runtime).shatters[Number(skill.id)] ||
+        mesmerMechanicsFor(runtime).instruments[Number(skill.id)]
+      ),
+    multiplier: { profile: PROFILE.masterOfMisdirection, field: 'rechargeMultiplier' }
+  },
+  {
+    trait: TRAIT.FENCERS_FINESSE,
+    when: (_runtime, skill) => skill.weapon === 'Sword',
+    multiplier: { profile: PROFILE.fencersFinesse, field: 'rechargeMultiplier' }
+  }
+]);
+
 /**
  * Calculates Mesmer recharge with special handling for ammo lockouts, weapon
  * swap, shared traits, Alacrity, and shatter resources.
@@ -21,20 +41,7 @@ export function mesmerRechargeWork(context: MesmerRuntime, skill: MesmerSkill, s
     return sharedDuration === 0 ? 0 : Number(skill.cooldown || 0);
   }
 
-  const traits = mesmerMechanicsFor(context).traits;
-  let multiplier = 1;
-  if (
-    (mesmerMechanicsFor(context).shatters[skill.id] || mesmerMechanicsFor(context).instruments[skill.id]) &&
-    traits.has(TRAIT.MASTER_OF_MISDIRECTION)
-  )
-    multiplier *= balanceProfileNumber(
-      requireBalanceProfileFromContext(context, PROFILE.masterOfMisdirection),
-      'rechargeMultiplier'
-    );
-  if (skill.weapon === 'Sword' && traits.has(TRAIT.FENCERS_FINESSE)) {
-    const fencersFinesseProfile = requireBalanceProfileFromContext(context, PROFILE.fencersFinesse);
-    multiplier *= balanceProfileNumber(fencersFinesseProfile, 'rechargeMultiplier');
-  }
+  const multiplier = traitRecharge(context, skill, 1);
 
   const shatter = mesmerMechanicsFor(context).shatters[skill.id];
   if (shatter?.rechargeReductionPerSource) {
