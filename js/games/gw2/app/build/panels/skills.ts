@@ -8,7 +8,7 @@ import type { ProfessionSkillBarGroup } from '#gw2/platform/profession-presentat
 import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { ProfessionSlotLoadoutBar, ProfessionSlotLoadoutSelector } from '#gw2/app/build/types.js';
+import type { SlotLoadoutBar, SlotLoadoutSelector } from '#gw2/platform/builds/slot-loadout.js';
 import { requiredElement } from '#ui/shared/dom.js';
 
 /** Lists the legal, deduplicated choices for a heal, utility, or elite slot. */
@@ -297,7 +297,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   };
 
   // Render one complete fixed loadout bar and its active-state styling.
-  const barHtml = (bar: ProfessionSlotLoadoutBar): string =>
+  const barHtml = (bar: SlotLoadoutBar): string =>
     `<div class="fixed-loadout-bar skill-bar-selected${
       view.formatActiveBar ? (bar.active ? ' active' : ' inactive') : ' static'
     }">
@@ -309,7 +309,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
       </div>`;
 
   // Legend portraits open the existing choices; names remain available to tooltips and assistive technology.
-  const selectorHtml = (selector: ProfessionSlotLoadoutSelector, index: number): string => {
+  const selectorHtml = (selector: SlotLoadoutSelector, index: number): string => {
     if (view.selectionControl === 'icons') {
       const selected = selector.options.find((entry) => entry.value === selector.value);
       return `<div class="skill-bar-slot fixed-loadout-icon-selector">

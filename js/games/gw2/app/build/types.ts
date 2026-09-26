@@ -1,7 +1,6 @@
-/** Defines build presets, loadout views, and selection contracts shared by the build editor and professions. */
+/** Defines build presets and selection contracts shared by the build editor and professions. */
 import type { Gw2FinalizedAttributeResult, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { CatalogEntity, CanonicalCatalog, SkillId, Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ProfessionPaletteGroup } from '#gw2/platform/profession-presentation/types.js';
+import type { CatalogEntity, Skill } from '#gw2/platform/engine/skills/types.js';
 
 export interface ProfessionAttributeData extends Gw2FinalizedAttributeResult {
   activeTraits: CatalogEntity[];
@@ -37,72 +36,6 @@ export interface ProfessionSpecialization extends CatalogEntity {
   readonly elite: boolean;
   readonly minorTraits: readonly ProfessionSpecializationTrait[];
   readonly majorTraits: readonly (readonly ProfessionSpecializationTrait[])[];
-}
-
-export interface ProfessionSlotLoadout {
-  readonly startingKey: 'startingLegend';
-  readonly palettePlacement?: string;
-  normalizeBuild(
-    build: Gw2CanonicalBuild,
-    context: {
-      readonly build: Gw2CanonicalBuild;
-      readonly specialization: string;
-      readonly professionState?: unknown;
-    }
-  ): Partial<Gw2CanonicalBuild>;
-  selectedSkillIds(context: {
-    readonly build: Gw2CanonicalBuild;
-    readonly specialization: string;
-    readonly professionState?: unknown;
-  }): readonly SkillId[];
-  skillChildren?(context: ProfessionSlotLoadoutContext, skillId: SkillId): readonly SkillId[];
-  paletteGroups(context: ProfessionSlotLoadoutContext): ProfessionPaletteGroup[];
-  unavailableReason(skill: Skill, context: ProfessionSlotLoadoutContext): string;
-  view(context: ProfessionSlotLoadoutContext): ProfessionSlotLoadoutView;
-  updateBuild(
-    build: Gw2CanonicalBuild,
-    selectorKey: string,
-    value: string,
-    context: ProfessionSlotLoadoutContext
-  ): Gw2CanonicalBuild;
-}
-
-export interface ProfessionSlotLoadoutContext {
-  readonly build: Gw2CanonicalBuild;
-  readonly specialization: string;
-  readonly professionState?: unknown;
-  readonly catalog: CanonicalCatalog;
-}
-
-export interface ProfessionSlotLoadoutOption {
-  readonly value: string;
-  readonly label: string;
-  readonly icon?: string;
-  readonly disabled?: boolean;
-}
-
-export interface ProfessionSlotLoadoutSelector {
-  readonly key: string;
-  readonly label: string;
-  readonly value: string;
-  readonly options: readonly ProfessionSlotLoadoutOption[];
-}
-
-export interface ProfessionSlotLoadoutBar {
-  readonly id: string;
-  readonly label: string;
-  readonly compactLabel?: string;
-  readonly icon?: string;
-  readonly active: boolean;
-  readonly skillIds: readonly SkillId[];
-}
-
-export interface ProfessionSlotLoadoutView {
-  readonly label: string;
-  readonly selectionControl: string;
-  readonly formatActiveBar: boolean;
-  readonly selectors: readonly ProfessionSlotLoadoutSelector[];
-  readonly bars: readonly ProfessionSlotLoadoutBar[];
 }
 
 export interface ProfessionSkillAvailabilityContext {

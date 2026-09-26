@@ -1,3 +1,4 @@
+import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 /** Defines application presentation callbacks independently of the executable profession runtime. */
 import type { SkillId, Skill, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
@@ -366,8 +367,8 @@ export interface ProfessionUiContract<TProfessionState = unknown> {
   readonly resourceViews: (context: ProfessionResourceViewContext<TProfessionState>) => ProfessionResourceView[];
   readonly skillBarGroups: (context: ProfessionPaletteContext<TProfessionState>) => ProfessionSkillBarGroup[];
   readonly startControls: (context: ProfessionUiContext<TProfessionState>) => ProfessionStartControl[];
-  /** Application-owned loadout controller; the engine only carries it to the application adapter. */
-  readonly slotLoadout: object | null;
+  /** Shared loadout contract for build selections, skill bars, and palette projections. */
+  readonly slotLoadout: FixedSlotLoadout<Gw2CanonicalBuild> | null;
   readonly targetHealthThresholds: (context: ProfessionUiContext<TProfessionState>) => number[];
   readonly rotationStateSnapshot: (
     context: ProfessionStateSnapshotContext<TProfessionState>

@@ -20,8 +20,7 @@ import type { DefineProfessionAppOptions, Gw2AppAdapter } from '#gw2/app/types.j
 import type {
   ProfessionDefaultOffhand,
   ProfessionOffhandContext,
-  ProfessionSkillAvailabilityContext,
-  ProfessionSlotLoadout
+  ProfessionSkillAvailabilityContext
 } from '#gw2/app/build/types.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
@@ -144,7 +143,7 @@ export function defineProfessionApp<
         gw2SimulationPresentation.render(app, viewModel);
       }
     }),
-    slotLoadout: profession.ui.slotLoadout ? (profession.ui.slotLoadout as unknown as ProfessionSlotLoadout) : null,
+    slotLoadout: profession.ui.slotLoadout,
     assumptionControls: (profession.ui.assumptionControls ||
       Object.freeze([])) as readonly ProfessionAssumptionControl[],
     weaponSkillMatchesSet: profession.weaponSkillMatchesSet || defaultWeaponSkillMatchesSet,

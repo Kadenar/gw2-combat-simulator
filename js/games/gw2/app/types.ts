@@ -1,3 +1,4 @@
+import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-presentation/balance-context.js';
 import type { ProfessionTooltips, SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
@@ -44,8 +45,7 @@ import type {
   BuildTemplatePreset,
   BuildTemplateSelection,
   ProfessionIsSkillAvailable,
-  ProfessionDefaultOffhand,
-  ProfessionSlotLoadout
+  ProfessionDefaultOffhand
 } from '#gw2/app/build/types.js';
 import type { RelicComparisonModel } from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -277,7 +277,7 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
   readonly renderRotationBuilder: (app: ProfessionAppState) => void;
   readonly buildEditor: BuildEditor<ProfessionAppState>;
   readonly presentation: SimulationPresentation<ProfessionAppState>;
-  readonly slotLoadout: ProfessionSlotLoadout | null;
+  readonly slotLoadout: FixedSlotLoadout<Gw2CanonicalBuild> | null;
   readonly assumptionControls: readonly ProfessionAssumptionControl[];
   readonly weaponSkillMatchesSet: Gw2WeaponSkillMatcher;
 }

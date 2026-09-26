@@ -1,3 +1,4 @@
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
 /**
  * Shared model for profession slot skills chosen as fixed packages rather than
@@ -45,7 +46,9 @@ export interface SlotLoadoutContext {
   specialization?: string;
   config?: ProfessionConfig;
   build?: object | null;
-  professionState?: { activeLoadoutId?: string; [field: string]: unknown };
+  /** Profession projections own their fields; the loadout reads only activeLoadoutId. */
+  professionState?: unknown;
+  catalog?: CanonicalCatalog | null;
   state?: {
     profession?: { activeLoadoutId?: string; [field: string]: unknown };
     [field: string]: unknown;
@@ -97,12 +100,12 @@ export interface SlotLoadoutPaletteGroup {
   resourceAnchor?: boolean;
 }
 
-export interface CreateFixedSlotLoadoutOptions {
+export interface CreateFixedSlotLoadoutOptions<TBuild extends object = Record<string, unknown>> {
   id?: string;
   label?: string;
   entryLabel?: string;
-  selectionKey?: string;
-  startingKey?: string;
+  selectionKey?: Extract<keyof TBuild, string>;
+  startingKey?: Extract<keyof TBuild, string>;
   selectionCount?: number;
   selectionControl?: string;
   includeStartingSelector?: boolean;
@@ -111,19 +114,22 @@ export interface CreateFixedSlotLoadoutOptions {
   defaults?: readonly unknown[];
 }
 
-export interface FixedSlotLoadout<TBuild extends object = object> {
+export interface FixedSlotLoadout<TBuild extends object = Record<string, unknown>> {
   readonly id: string;
   readonly label: string;
-  readonly selectionKey: string;
-  readonly startingKey: string;
+  readonly selectionKey: Extract<keyof TBuild, string>;
+  readonly startingKey: Extract<keyof TBuild, string>;
   readonly entries: readonly SlotLoadoutEntry[];
+  /** Optional palette layout and child actions supplied by the owning profession. */
+  readonly palettePlacement?: string;
+  skillChildren?(context: SlotLoadoutContext, skillId: SkillId): readonly SkillId[];
   normalizeBuild(build: TBuild, context?: SlotLoadoutContext): Partial<TBuild>;
   validateBuild(build: TBuild, context?: SlotLoadoutContext): string[];
   view(context?: SlotLoadoutContext): SlotLoadoutView;
   updateBuild(build: TBuild, selectorKey: string, value: unknown, context?: SlotLoadoutContext): TBuild;
   selectedSkillIds(context?: SlotLoadoutContext): number[];
   paletteGroups(context?: SlotLoadoutContext): SlotLoadoutPaletteGroup[];
-  unavailableReason(skill: { readonly id: number }, context?: SlotLoadoutContext): string;
+  unavailableReason(skill: { readonly id: SkillId }, context?: SlotLoadoutContext): string;
 }
 
 function stableId(value: unknown): string {
@@ -168,7 +174,7 @@ function loadoutContext(
  * Creates the shared fixed-bar loadout model used by professions whose slot
  * skills are selected as packages rather than five independent dropdowns.
  */
-export function createFixedSlotLoadout<TBuild extends object = object>({
+export function createFixedSlotLoadout<TBuild extends object = Record<string, unknown>>({
   id = 'fixed-slot-loadout',
   label = 'Loadout',
   entryLabel = 'Bar',
@@ -180,15 +186,15 @@ export function createFixedSlotLoadout<TBuild extends object = object>({
   formatActiveBar = true,
   entries: rawEntries,
   defaults
-}: CreateFixedSlotLoadoutOptions = {}): FixedSlotLoadout<TBuild> {
+}: CreateFixedSlotLoadoutOptions<TBuild> = {}): FixedSlotLoadout<TBuild> {
   if (!selectionKeyOption || !startingKeyOption || selectionCount < 1) {
     throw new TypeError('Fixed slot loadouts require selectionKey, startingKey, and selectionCount.');
   }
 
   // Capture the validated keys as `const` so their narrowed `string` type
   // survives into the closures below (destructured params do not).
-  const selectionKey: string = selectionKeyOption;
-  const startingKey: string = startingKeyOption;
+  const selectionKey = selectionKeyOption;
+  const startingKey = startingKeyOption;
   const entries = normalizeOptions({ entries: rawEntries });
   const byId = new Map(entries.map((entry) => [entry.id, entry]));
   const defaultIds = (defaults || entries.map((entry) => entry.id))
@@ -248,9 +254,12 @@ export function createFixedSlotLoadout<TBuild extends object = object>({
   }
 
   function activeId(context: SlotLoadoutContext, selected: string[]): string {
-    const runtimeId = stableId(
-      context.professionState?.activeLoadoutId ?? context.state?.profession?.activeLoadoutId ?? context.activeLoadoutId
-    );
+    const profession = context.professionState;
+    const projectedId =
+      profession && typeof profession === 'object' && 'activeLoadoutId' in profession
+        ? profession.activeLoadoutId
+        : undefined;
+    const runtimeId = stableId(projectedId ?? context.state?.profession?.activeLoadoutId ?? context.activeLoadoutId);
     return selected.includes(runtimeId)
       ? runtimeId
       : stableId((context.build as BuildRecord | undefined)?.[startingKey] || selected[0]);
@@ -351,11 +360,14 @@ export function createFixedSlotLoadout<TBuild extends object = object>({
     }));
   }
 
-  function unavailableReason(skill: { readonly id: number }, context: SlotLoadoutContext = {}): string {
+  function unavailableReason(skill: { readonly id: SkillId }, context: SlotLoadoutContext = {}): string {
+    // Synthetic palette actions do not belong to the numeric slot-skill packages.
+    if (typeof skill.id !== 'number') return '';
+    const skillId = skill.id;
     const current = view(context);
     const active = new Set(current.activeBar?.skillIds || []);
-    if (active.has(skill.id)) return '';
-    const owner = current.inactiveBars.find((bar) => bar.skillIds.includes(skill.id));
+    if (active.has(skillId)) return '';
+    const owner = current.inactiveBars.find((bar) => bar.skillIds.includes(skillId));
     return owner ? `Swap to ${owner.label} to use this skill` : '';
   }
 

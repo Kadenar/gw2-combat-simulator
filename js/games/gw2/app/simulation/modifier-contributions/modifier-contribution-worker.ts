@@ -1,9 +1,7 @@
 import { createGameWorkerEndpoint } from '#app/game/worker-harness.js';
-import { loadProfession } from '#gw2/app/profession-registry.js';
 import { calculateContributionComparisons } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import type { ProfessionAppContract } from '#gw2/app/types.js';
+import type { Gw2ProfessionSource } from '#gw2/platform/simulation/types.js';
 import type { ModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/types.js';
 
 /**
@@ -21,12 +19,7 @@ interface ModifierContributionsWorkerMessage {
  * The worker posts one terminal response with the same request ID and either
  * `contributions` or a string `error`.
  */
-createGameWorkerEndpoint<ProfessionAppContract, ModifierContributionsWorkerMessage>({
-  async loadDriver({ gameId, contentId }) {
-    if (gameId !== 'gw2') return null;
-    const profession = await loadProfession(contentId);
-    return profession ? withActivePatchPreview(profession) : null;
-  },
+createGameWorkerEndpoint<Gw2ProfessionSource, ModifierContributionsWorkerMessage>({
   calculate(profession, { request }) {
     return {
       contributions: calculateContributionComparisons(request, (rotation, config) =>

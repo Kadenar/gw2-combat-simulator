@@ -788,6 +788,12 @@ test('fixed slot loadouts normalize, validate, render, and gate alternate bars',
   assert.deepEqual(view.activeBar.skillIds, [1, 2, 3, 4, 5]);
   assert.deepEqual(view.inactiveBars[0].skillIds, [6, 7, 8, 9, 10]);
   assert.match(loadout.unavailableReason({ id: 6 }, { build, specialization: 'Core' }), /Swap to Mallyx/);
+  assert.equal(loadout.unavailableReason({ id: 'synthetic-action' }, { build, specialization: 'Core' }), '');
+  // A runtime projection selects the active bar without changing the saved starting legend.
+  const projected = { build, specialization: 'Core', professionState: { activeLoadoutId: 'mallyx' } };
+  assert.equal(loadout.view(projected).activeBar.id, 'mallyx');
+  assert.equal(build.startingLegend, 'jalis');
+  assert.equal(loadout.view({ ...projected, professionState: null }).activeBar.id, 'jalis');
   loadout.updateBuild(build, 'startingLegend', 'mallyx', {
     build,
     specialization: 'Core'

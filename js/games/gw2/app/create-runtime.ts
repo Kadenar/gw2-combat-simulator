@@ -28,7 +28,7 @@ import type {
 } from '#gw2/app/simulation/random-distribution/types.js';
 import type { RelicComparisonJobRequest } from '#gw2/app/simulation/relic-comparison/types.js';
 import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
-import type { ProfessionAttributeData, ProfessionSlotLoadout } from '#gw2/app/build/types.js';
+import type { ProfessionAttributeData } from '#gw2/app/build/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
@@ -79,7 +79,7 @@ export function createProfessionRuntime({
 
   function selectedSkills(app: ProfessionAppState): Skill[] {
     const catalog = app.activeCatalog || profession.catalog;
-    const loadout = profession.ui.slotLoadout ? (profession.ui.slotLoadout as ProfessionSlotLoadout) : null;
+    const loadout = profession.ui.slotLoadout;
     if (loadout) {
       return loadout
         .selectedSkillIds({

@@ -10,6 +10,8 @@ import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js'
 import type { ProfessionModifierDefinition } from '#gw2/platform/engine/profession/types.js';
 import type { ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
+import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import { createFixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
@@ -54,3 +56,20 @@ const composed = composeHookContainer([], 'modifiers', ['modifyAttributes']);
 composed.modifyCastDuration;
 // @ts-expect-error Modifier declarations are metadata, not a callable hook slot.
 composeHookContainer([], 'modifiers', ['modifierRules']);
+
+// Presentation carries the canonical loadout methods and validates build-owned selector keys.
+declare const loadout: NonNullable<ProfessionUiContract['slotLoadout']>;
+const normalizedLoadout: Partial<Gw2CanonicalBuild> = loadout.normalizeBuild(canonical);
+const startingLoadout = canonical[loadout.startingKey];
+const childSkills = loadout.skillChildren?.({ build: canonical }, 1);
+void normalizedLoadout;
+void startingLoadout;
+void childSkills;
+createFixedSlotLoadout<Gw2CanonicalBuild>({
+  selectionKey: 'selectedLegends',
+  // @ts-expect-error A loadout cannot select a misspelled build field.
+  startingKey: 'startingLedgend'
+});
+// @ts-expect-error Presentation must expose a complete loadout, not an opaque object.
+const invalidLoadout: ProfessionUiContract['slotLoadout'] = {};
+void invalidLoadout;

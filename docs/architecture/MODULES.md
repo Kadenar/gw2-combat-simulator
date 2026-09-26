@@ -152,16 +152,16 @@ The registry is also where a completely new profession would be exposed to the a
 
 Non-type imports inside `js/games/gw2/app/` follow these rules:
 
-| Folder        | May import                                                                                                                                                                                                                                                                                    |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shared/`     | platform, `#ui`, `#kernel`, `app/types.ts`. **No other app folder.**                                                                                                                                                                                                                          |
-| `simulation/` | `shared/`, `profession-registry.ts` (workers), `results/model.ts` (relic chart series), other `simulation/` files. No `build/`, `rotation/`, `io/`, or `page/`, except `optimizer-view.ts` and `gear-optimizer-panel.ts`/`-preview.ts` (which render build equipment pickers and attributes). |
-| `results/`    | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionPlanningState`).                                                                                                                                   |
-| `io/`         | `shared/`, `build/state/`, `build/types.ts`, `profession-registry.ts` (build-template identities), integrations.                                                                                                                                                                              |
-| `build/`      | `shared/`, `io/`, `profession-registry.ts`, `rotation/editing/history.ts`, `rotation/timeline/view.ts` (presets repaint).                                                                                                                                                                     |
-| `rotation/`   | `shared/`, `results/`, `io/rotation-import-dialog.ts`, `build/types.ts`.                                                                                                                                                                                                                      |
-| `page/`       | `shared/`, `profession-registry.ts`, `rotation/timeline/display-preferences.ts`, `#app`.                                                                                                                                                                                                      |
-| root          | anything.                                                                                                                                                                                                                                                                                     |
+| Folder        | May import                                                                                                                                                                                                                                                                                             |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `shared/`     | platform, `#ui`, `#kernel`, `app/types.ts`. **No other app folder.**                                                                                                                                                                                                                                   |
+| `simulation/` | `shared/`, `profession-registry.ts` (optimizer worker), `results/model.ts` (relic chart series), other `simulation/` files. No `build/`, `rotation/`, `io/`, or `page/`, except `optimizer-view.ts` and `gear-optimizer-panel.ts`/`-preview.ts` (which render build equipment pickers and attributes). |
+| `results/`    | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionPlanningState`).                                                                                                                                            |
+| `io/`         | `shared/`, `build/state/`, `build/types.ts`, `profession-registry.ts` (build-template identities), integrations.                                                                                                                                                                                       |
+| `build/`      | `shared/`, `io/`, `profession-registry.ts`, `rotation/editing/history.ts`, `rotation/timeline/view.ts` (presets repaint).                                                                                                                                                                              |
+| `rotation/`   | `shared/`, `results/`, `io/rotation-import-dialog.ts`, `build/types.ts`.                                                                                                                                                                                                                               |
+| `page/`       | `shared/`, `profession-registry.ts`, `rotation/timeline/display-preferences.ts`, `#app`.                                                                                                                                                                                                               |
+| root          | anything.                                                                                                                                                                                                                                                                                              |
 
 `rotation/comparison.ts` and `rotation/timeline/view.ts` import each other. Both edges are calls inside functions, so
 load order is safe; don't add top-level code in either file that calls into the other.
@@ -190,7 +190,9 @@ panels/presets.ts
 
 Build and rotation file, chat-code, and log import live in the sibling `js/games/gw2/app/io/` directory.
 
-This layer may translate a build into application state, but it should not implement profession combat mechanics.
+This layer may translate a build into application state, but it should not implement profession combat mechanics. Fixed
+slot-loadout contracts and views come directly from `platform/builds/slot-loadout.ts`; profession presentation exposes
+that typed contract, including optional palette placement and child actions.
 
 ---
 
@@ -244,7 +246,9 @@ Shared-code assessment:
 
 - Worker lifecycle is already extracted into `js/app/game/worker-harness.ts`. `ManagedWorkerBatch` owns cancellation,
   stale-response filtering, and failure cleanup for modifiers, RNG, and the optimizer. `createGameWorkerEndpoint` shares
-  driver loading, request IDs, progress envelopes, and error serialization for baseline, modifier, and RNG workers.
+  driver loading, request IDs, progress envelopes, and error serialization for baseline, modifier, and RNG workers. All
+  three use the default game driver; `js/games/gw2/worker-driver.ts` loads and caches preview-aware profession engines
+  without browser adapters. The optimizer still loads its adapter for build and attribute calculations.
 - Keep scheduling feature-specific. Modifiers debounce and defer to RNG work; RNG partitions reproducible seed ranges
   and merges statistical samples; the optimizer retains worker state across search chunks, refinement rounds, and
   verification. Its stateful protocol does not fit the existing single-request endpoint. Baseline execution coalesces
