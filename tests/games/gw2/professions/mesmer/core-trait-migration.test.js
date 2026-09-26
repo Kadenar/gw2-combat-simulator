@@ -1,5 +1,7 @@
 import { createProcRegistry } from '#gw2/platform/combat/procs.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
@@ -259,4 +261,66 @@ test('canonical phantasm ownership triggers Sharper Images without Master Fencer
   );
 
   assert.deepEqual(procs, ['Sharper Images']);
+});
+
+// A summon can cause Dazzling, but downstream condition observers must still see a player-owned trait.
+test('Dazzling preserves ownership and live profile edits for eligible control', () => {
+  for (const actorType of ['player', 'summon', 'effect']) {
+    for (const offTarget of [false, true]) {
+      for (const removed of [false, true]) {
+        const config = defaultSimulationConfig({
+          specialization: 'Core',
+          selectedTraitIds: [TRAIT.DAZZLING],
+          target: { conditions: {} }
+        });
+        const native = mesmerProfession.runtimeFor(config);
+        const profile = native.catalog.balanceProfilesById.get(TRAIT.DAZZLING);
+        const observed = [];
+        const result = observeGw2Runtime({
+          config,
+          rotation: [{ type: 'wait', durationMs: 1000 }],
+          profession: {
+            ...native,
+            catalog: withProfile(native.catalog, TRAIT.DAZZLING, {
+              effects: removed ? [] : profile.effects.map((effect) => ({ ...effect, stacks: 7, duration: 3 }))
+            }),
+            initialize(runtime) {
+              native.initialize(runtime);
+              runtime.emit({
+                type: 'control',
+                source: 'Mesmer',
+                sourceId: ID.MAGIC_BULLET,
+                at: 0.1,
+                actorType,
+                offTarget,
+                controlKind: 'stun',
+                skillId: ID.MAGIC_BULLET,
+                skillName: 'Magic Bullet',
+                activationId: 'test.control'
+              });
+            },
+            reactions: {
+              ...native.reactions,
+              'condition.applied'(runtime, event, details) {
+                native.reactions['condition.applied']?.(runtime, event, details);
+                if (event.sourceId === TRAIT.DAZZLING) observed.push(event);
+              }
+            }
+          }
+        });
+        assert.deepEqual(result.warnings, []);
+        assert.equal(observed.length, !removed && !offTarget && actorType !== 'effect' ? 1 : 0);
+        if (observed.length) {
+          const [event] = observed;
+          assert.equal(event.actorType, 'effect');
+          assert.equal(event.ownerActorType, 'player');
+          assert.equal(event.skillId, ID.MAGIC_BULLET);
+          assert.equal(event.skillName, 'Magic Bullet');
+          assert.equal(event.activationId, 'test.control');
+          assert.equal(event.stacks, 7);
+          assert.equal(event.duration, 3);
+        }
+      }
+    }
+  }
 });

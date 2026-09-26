@@ -86,7 +86,11 @@ test('Hilt Bash dazes normal targets, stuns defiant targets, and triggers player
       });
     const baseline = run(false);
     const enhanced = run(true);
-    assert.equal(enhanced.events.find((event) => event.type === 'control').controlKind, defiant ? 'Stun' : 'Daze');
+    // The two conditional declarations are mutually exclusive and keep one control reaction.
+    assert.deepEqual(
+      enhanced.events.filter((event) => event.type === 'control').map((event) => event.controlKind),
+      [defiant ? 'Stun' : 'Daze']
+    );
     const poison = (result) =>
       result.resolvedEvents.find((event) => event.type === 'condition' && event.sourceId === TRAIT.DEBILITATING_BLOWS);
     assert.equal(poison(enhanced).actorType, 'effect');

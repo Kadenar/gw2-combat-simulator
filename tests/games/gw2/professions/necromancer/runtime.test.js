@@ -1391,7 +1391,7 @@ test('interrupted Distress neither refreshes Perforate nor grants shards', () =>
   const native = necromancerProfession.runtimeFor(base);
   const profession = {
     ...native,
-    catalog: withSkill(native.catalog, ID.DISTRESS, { castTimeMs: 1000, interruptMode: 'on-completion' })
+    catalog: withSkill(native.catalog, ID.DISTRESS, { castTimeMs: 1000, interruptMode: 'commit' })
   };
   const result = simulate(
     [cast(ID.PERFORATE), cast(ID.ISOLATE), { ...cast(ID.DISTRESS), interruptAfterMs: 100 }],

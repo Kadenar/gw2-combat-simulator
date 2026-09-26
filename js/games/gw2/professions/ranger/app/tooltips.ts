@@ -33,7 +33,7 @@ const familyTooltips = {
   ),
   'ranger.weapon-swap': skillTooltip('Swap weapon sets and trigger applicable weapon-swap effects.'),
   'ranger.hilt-bash': skillTooltip(
-    "Strike and control the target, using a stun against a defiant foe. Completing the cast resets Maul's recharge."
+    "Strike and daze the target, or stun it if it is defiant. Completing the cast resets Maul's recharge."
   ),
   'ranger.winters-bite': skillTooltip(
     "Strike and chill the target. Arm Weakness for a later qualifying hit through Soulbeast's Winter's Bite reaction.",

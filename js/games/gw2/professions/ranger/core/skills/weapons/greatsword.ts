@@ -34,7 +34,9 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         coefficient: 2.5,
         hits: 1
       },
-      { type: 'control', controlKind: 'Daze' }
+      // Select one control packet at acceptance without rewriting effects in the Core hook.
+      { type: 'control', controlKind: 'Daze', when: (runtime) => !runtime.config.target?.defiant },
+      { type: 'control', controlKind: 'Stun', when: (runtime) => Boolean(runtime.config.target?.defiant) }
     ],
     castTimeMs: 640
   },

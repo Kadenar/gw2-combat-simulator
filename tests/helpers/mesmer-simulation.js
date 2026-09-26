@@ -64,7 +64,6 @@ export function createDefaultConfig() {
         Vulnerability: 25
       },
       moving: false,
-      nearby: true,
       activatingSkills: false,
       confusionActivationsPerSecond: 0
     }

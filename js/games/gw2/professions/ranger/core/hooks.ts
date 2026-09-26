@@ -185,11 +185,9 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
         ...(event.type === 'combo_field' ? { expiresAt: Number(event.expiresAt) + delay } : {})
       });
   },
-  modifyEffects(runtime, cast, effects) {
+  modifyEffects(_runtime, cast, effects) {
     if (cast.skill.id === ID.WE_HEAL_AS_ONE || cast.skill.petSkill) return [];
-    return cast.skill.id === ID.HILT_BASH && runtime.config.target?.defiant
-      ? effects.map((effect) => (effect.type === 'control' ? { ...effect, controlKind: 'Stun' } : effect))
-      : effects;
+    return effects;
   },
   onCastStart(runtime, cast) {
     const state = runtime.profession.core;

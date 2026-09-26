@@ -29,11 +29,11 @@ import {
   emitFencersFinesseStacks,
   recordFencersFinesseProc,
   triggerChaoticInterruption,
-  triggerDazzling,
   triggerMasterOfFragmentation,
   triggerThePledge
 } from '#gw2/professions/mesmer/core/traits/index.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Completion tasks apply state at the authored boundary, including committed shortened animations. */
 function complete(runtime: MesmerRuntime, cast: RuntimeCast): void {
@@ -148,6 +148,17 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
         runtime.cooldownController.startRecharge(cast.skill, runtime.time, cast.rechargeWork);
     }
   },
+  // Dazzling precedes other control reactions and keeps player ownership even for summon-triggered control.
+  traitTriggers: [
+    {
+      on: 'control.resolved',
+      trait: TRAIT.DAZZLING,
+      emit: TRAIT.DAZZLING,
+      when: (_runtime, event) => !missesTarget(event) && (event.actorType === 'player' || event.actorType === 'summon'),
+      effects: (effect) => effect.type === 'condition' && effect.name === 'Vulnerability',
+      attribution: { source: 'Trait', sourceId: TRAIT.DAZZLING, actorType: 'effect', ownerActorType: 'player' }
+    }
+  ],
   eventHandlers: mesmerCoreEventHandlers,
   reactions: {
     'damage.resolved'(runtime, event, details) {
@@ -165,7 +176,6 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     'condition.applied': triggerThePledge,
     'control.resolved'(runtime, event) {
       const name = String(event.skillName ?? event.name ?? 'Control effect');
-      triggerDazzling(runtime, event, Number(event.skillId), name);
       triggerChaoticInterruption(runtime, event, name);
       mesmerCoreEventReactions.control(runtime, event);
     },
