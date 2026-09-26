@@ -1,7 +1,7 @@
 import { bindDropdownSearch } from '#ui/shared/dropdown-search.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import { clamp } from '#kernel/core/numeric.js';
-import { equipmentTooltipAttributes } from '#gw2/app/build/equipment-option-labels.js';
+import { equipmentTooltipAttributes } from '#gw2/app/shared/equipment/labels.js';
 
 /** Searchable selects add visible removable choices without requiring Ctrl-click. */
 export function candidatePicker(

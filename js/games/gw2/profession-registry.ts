@@ -1,5 +1,5 @@
 /**
- * Lazy application manifest for every simulator exposed by the shared UI.
+ * Lazy profession manifest shared by browser pages, simulation workers, and tooling.
  *
  * Registry entries contain only profession metadata and explicit dynamic
  * import functions. Reading this module therefore does not eagerly load any

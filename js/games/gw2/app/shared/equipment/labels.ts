@@ -11,7 +11,7 @@ import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
-import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment-icons.js';
+import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
 import type { TooltipFact } from '#gw2/platform/engine/skills/types.js';

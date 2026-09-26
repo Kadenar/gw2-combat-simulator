@@ -5,7 +5,7 @@ import { cpus } from 'node:os';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { parseArgs } from 'node:util';
-import { loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession-registry.js';
+import { loadProfessionAppAdapter, professionOptions } from '#gw2/profession-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 // Usage: node scripts/analysis/benchmark-supported-rotations.mjs [profession ...] > timings.json

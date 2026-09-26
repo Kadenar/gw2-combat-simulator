@@ -2,7 +2,7 @@ import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { loadProfession } from '#gw2/app/profession-registry.js';
+import { loadProfession } from '#gw2/profession-registry.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import {

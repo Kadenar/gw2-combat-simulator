@@ -3,7 +3,7 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
+import { loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { effectFirstAtMs } from '#gw2/platform/engine/effects/authoring.js';

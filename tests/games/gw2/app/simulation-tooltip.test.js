@@ -9,7 +9,7 @@ import {
   tooltipNumber
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
-import { professionRegistry } from '#gw2/app/profession-registry.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';

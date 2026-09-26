@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
-import { loadProfessionAppAdapter, professionRegistry } from '#gw2/app/profession-registry.js';
+import { loadProfessionAppAdapter, professionRegistry } from '#gw2/profession-registry.js';
 import { palettePlanningState, paletteProfessionState } from '#gw2/app/rotation/context.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';

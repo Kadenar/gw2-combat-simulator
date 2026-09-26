@@ -6,7 +6,7 @@ import ts from 'typescript';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { COMMON_EVENT_TYPES } from '#gw2/platform/engine/events/events.js';
-import { professionRegistry } from '#gw2/app/profession-registry.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
 import { createProfessionWeaponData, WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 import { BUILD_SCHEMA_VERSION, migrateMesmerBuild, validateMesmerBuild } from '#gw2/professions/mesmer/build/build.js';
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';

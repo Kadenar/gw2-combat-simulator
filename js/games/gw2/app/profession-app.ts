@@ -1,4 +1,4 @@
-import { bindPageControls } from '#gw2/app/build/page-controls.js';
+import { bindPageControls } from '#gw2/app/page-controls.js';
 import { bindWikiTooltips } from '#gw2/app/shared/tooltip-overlay.js';
 import { normalizeSelectedSkills } from '#gw2/app/build/state/skill-selection.js';
 import { normalizeInfusions } from '#gw2/platform/builds/codec.js';

@@ -74,7 +74,7 @@ Use this table as the first place to look.
 | gw2wingman log fetch/reshape (rules stay in `dps-report/`)            | `js/games/gw2/integrations/logs/wingman/`              |
 | Upcoming balance changes                                              | Patch-preview system                                   |
 | Build migration/default/validation                                    | Profession `build/build.ts`                            |
-| New profession page/registry entry                                    | `js/games/gw2/app/profession-registry.ts`              |
+| New profession page/registry entry                                    | `js/games/gw2/profession-registry.ts`                  |
 
 The main rule is:
 
@@ -128,40 +128,42 @@ Non-type imports:
 
 The `js/games/gw2/app/` root holds only the composition root. Everything else lives in one folder per page area.
 
-| Module                     | Responsibility                                         |
-| -------------------------- | ------------------------------------------------------ |
-| `profession-app.ts`        | Session class; implements `ProfessionAppState`         |
-| `profession-registry.ts`   | Lazy profession registry and build-template identities |
-| `create-runtime.ts`        | Connects application builds to `simulateGw2()`         |
-| `define-profession-app.ts` | Composes preview-aware profession browser adapters     |
-| `types.ts`                 | Application state contracts                            |
+| Module                     | Responsibility                                       |
+| -------------------------- | ---------------------------------------------------- |
+| `page-controls.ts`         | Page-wide import/export, reset, and rotation history |
+| `profession-app.ts`        | Session class; implements `ProfessionAppState`       |
+| `create-runtime.ts`        | Connects application builds to `simulateGw2()`       |
+| `define-profession-app.ts` | Composes preview-aware profession browser adapters   |
+| `types.ts`                 | Application state contracts                          |
 
 | Folder        | Owns                                                                                                                                                                               |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `page/`       | Page chrome shared by the landing page and every profession page: `entry.ts` (the `<script>` in `index.html` and `templates/profession.html`), navigation, tutorial, icon fallback |
-| `shared/`     | Leaf helpers: HTML, icon constants, result clock formatting                                                                                                                        |
+| `shared/`     | Leaf helpers: HTML, equipment pickers/labels/icons, result clock formatting                                                                                                        |
 | `build/`      | Build editor, panels, and build state                                                                                                                                              |
 | `io/`         | Build and rotation import/export, with log importers under `io/logs/`                                                                                                              |
 | `rotation/`   | Rotation builder: palette, timeline, editing, state snapshot, comparison, warnings                                                                                                 |
 | `results/`    | Result models, skill breakdown, summary metrics, charts, event log, and Analysis panel                                                                                             |
 | `simulation/` | Baseline simulation, gear optimizer, modifier contributions, RNG distribution, relic comparison                                                                                    |
 
-The registry is also where a completely new profession would be exposed to the application.
+The lazy roster and build-template identities live in `js/games/gw2/profession-registry.ts`, shared by the browser,
+workers, and tooling. This is also where a new profession is registered. Equipment UI used by both build panels and the
+optimizer lives in `shared/equipment/{picker,labels,icons}.ts`.
 
 ### Dependency direction
 
 Non-type imports inside `js/games/gw2/app/` follow these rules:
 
-| Folder        | May import                                                                                                                                                                                                                                                                                             |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `shared/`     | platform, `#ui`, `#kernel`, `app/types.ts`. **No other app folder.**                                                                                                                                                                                                                                   |
-| `simulation/` | `shared/`, `profession-registry.ts` (optimizer worker), `results/model.ts` (relic chart series), other `simulation/` files. No `build/`, `rotation/`, `io/`, or `page/`, except `optimizer-view.ts` and `gear-optimizer-panel.ts`/`-preview.ts` (which render build equipment pickers and attributes). |
-| `results/`    | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionPlanningState`).                                                                                                                                            |
-| `io/`         | `shared/`, `build/state/`, `build/types.ts`, `profession-registry.ts` (build-template identities), integrations.                                                                                                                                                                                       |
-| `build/`      | `shared/`, `io/`, `profession-registry.ts`, `rotation/editing/history.ts`, `rotation/timeline/view.ts` (presets repaint).                                                                                                                                                                              |
-| `rotation/`   | `shared/`, `results/`, `io/rotation-import-dialog.ts`, `build/types.ts`.                                                                                                                                                                                                                               |
-| `page/`       | `shared/`, `profession-registry.ts`, `rotation/timeline/display-preferences.ts`, `#app`.                                                                                                                                                                                                               |
-| root          | anything.                                                                                                                                                                                                                                                                                              |
+| Folder        | May import                                                                                                                                                                                                                                                 |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shared/`     | platform, `#ui`, `#kernel`, `app/types.ts`. **No other app folder.**                                                                                                                                                                                       |
+| `simulation/` | `shared/`, `#gw2/profession-registry.ts` (optimizer worker), `results/model.ts` (relic chart series), other `simulation/` files. No `build/`, `rotation/`, `io/`, or `page/`, except `gear-optimizer-preview.ts` (which reuses build attribute rendering). |
+| `results/`    | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionPlanningState`).                                                                                                |
+| `io/`         | `shared/`, `build/state/`, `build/types.ts`, `#gw2/profession-registry.ts` (build-template identities), integrations.                                                                                                                                      |
+| `build/`      | `shared/`, `io/`, `#gw2/profession-registry.ts`, `rotation/timeline/view.ts` (presets repaint).                                                                                                                                                            |
+| `rotation/`   | `shared/`, `results/`, `io/rotation-import-dialog.ts`, `build/types.ts`.                                                                                                                                                                                   |
+| `page/`       | `shared/`, `#gw2/profession-registry.ts`, `rotation/timeline/display-preferences.ts`, `#app`.                                                                                                                                                              |
+| root          | anything.                                                                                                                                                                                                                                                  |
 
 `rotation/comparison.ts` and `rotation/timeline/view.ts` import each other. Both edges are calls inside functions, so
 load order is safe; don't add top-level code in either file that calls into the other.
@@ -176,7 +178,6 @@ Feature implementations, runners, workers, and feature-owned contracts live toge
 
 ```text
 editor.ts
-page-controls.ts
 state/persistence.ts
 state/skill-selection.ts
 panels/gear.ts
@@ -409,7 +410,7 @@ the event schema in `engine/events/events.ts`.
 
 `results/rotation-apm.ts` owns input-rate reporting. `skills/transition-delays.ts` owns bar-transition timing, and
 `skills/autoattack-chain-controller.ts` owns live chain transitions; `engine/skills/autoattack-chains.ts` indexes
-catalog chains. Equipment picker icons live in `js/games/gw2/app/shared/equipment-icons.ts`.
+catalog chains. Equipment picker icons live in `js/games/gw2/app/shared/equipment/icons.ts`.
 
 Profession definitions expose weapon eligibility as `weaponSkillMatchesSet`, consumed by both scheduling and the
 application adapter. Family-specific matching lives in `professions/<profession>/build/weapon-matching.ts`; it is not
@@ -1325,7 +1326,7 @@ js/games/gw2/professions/new-profession/
 Then register it in:
 
 ```text
-js/games/gw2/app/profession-registry.ts
+js/games/gw2/profession-registry.ts
 ```
 
 and provide the associated profession page/build data.

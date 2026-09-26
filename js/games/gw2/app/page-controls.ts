@@ -7,6 +7,7 @@ import { requiredElement, requiredInput, requiredValueControl } from '#ui/shared
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
+/** Coordinates page-wide build transfers, reset, and rotation history through the application state. */
 export function bindPageControls(app: ProfessionAppState): void {
   const attributeWeaponSet = requiredValueControl('attribute-weapon-set');
   attributeWeaponSet.addEventListener('change', () => {

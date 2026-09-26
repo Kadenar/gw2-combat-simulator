@@ -1,4 +1,4 @@
-import { professionRegistry } from '#gw2/app/profession-registry.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
 import { decodeGw2BuildTemplate, resolveGw2BuildTemplate } from '#gw2/platform/builds/templates/codec.js';
 import { replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
 

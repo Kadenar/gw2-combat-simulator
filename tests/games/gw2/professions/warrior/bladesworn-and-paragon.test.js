@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession-registry.js';
+import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/profession-registry.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';

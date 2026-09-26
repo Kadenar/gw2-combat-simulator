@@ -221,7 +221,7 @@ test('simulation effect cards preserve repeated applications and semantic icons'
 test('Revenant energy appears beside recharge without duplicating base effects', async ({ page }) => {
   await page.evaluate(async () => {
     const { skillTooltipAttributes } = await import('/js/games/gw2/app/shared/tooltip-overlay.ts');
-    const { loadProfessionAppAdapter } = await import('/js/games/gw2/app/profession-registry.ts');
+    const { loadProfessionAppAdapter } = await import('/js/games/gw2/profession-registry.ts');
     const adapter = await loadProfessionAppAdapter('revenant');
     const skill = adapter.profession.catalog.skillsByName.get('Beguiling Haze');
     const model = adapter.skillTooltip(skill);
@@ -277,7 +277,7 @@ test('control and Revenant buff facts use game icons with concise details', asyn
   await page.evaluate(async (controls) => {
     const { skillTooltipAttributes } = await import('/js/games/gw2/app/shared/tooltip-overlay.ts');
     const { describeSimulationSkill } = await import('/js/games/gw2/app/shared/simulation-tooltip.ts');
-    const { loadProfessionAppAdapter } = await import('/js/games/gw2/app/profession-registry.ts');
+    const { loadProfessionAppAdapter } = await import('/js/games/gw2/profession-registry.ts');
     const adapter = await loadProfessionAppAdapter('revenant');
     const wrapper = document.createElement('div');
     const controlSkill = {
@@ -324,7 +324,7 @@ test('control and Revenant buff facts use game icons with concise details', asyn
 test('Devouring Darkness shows its condition threshold and per-condition life force', async ({ page }) => {
   await page.evaluate(async () => {
     const { skillTooltipAttributes } = await import('/js/games/gw2/app/shared/tooltip-overlay.ts');
-    const { loadProfessionAppAdapter } = await import('/js/games/gw2/app/profession-registry.ts');
+    const { loadProfessionAppAdapter } = await import('/js/games/gw2/profession-registry.ts');
     const adapter = await loadProfessionAppAdapter('necromancer');
     const skill = adapter.profession.catalog.skillsByName.get('Devouring Darkness');
     const wrapper = document.createElement('div');
@@ -353,7 +353,7 @@ test('Revenant requirement tabs group effects and wrap within the tooltip', asyn
   await page.evaluate(async () => {
     const { skillTooltipAttributes, traitTooltipAttributes } =
       await import('/js/games/gw2/app/shared/tooltip-overlay.ts');
-    const { loadProfessionAppAdapter } = await import('/js/games/gw2/app/profession-registry.ts');
+    const { loadProfessionAppAdapter } = await import('/js/games/gw2/profession-registry.ts');
     const adapter = await loadProfessionAppAdapter('revenant');
     const wrapper = document.createElement('div');
     wrapper.innerHTML = [
@@ -461,7 +461,7 @@ test('Harbinger effect tabs switch payloads while retaining shared costs', async
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(async () => {
     const { skillTooltipAttributes } = await import('/js/games/gw2/app/shared/tooltip-overlay.ts');
-    const { loadProfessionAppAdapter } = await import('/js/games/gw2/app/profession-registry.ts');
+    const { loadProfessionAppAdapter } = await import('/js/games/gw2/profession-registry.ts');
     const adapter = await loadProfessionAppAdapter('necromancer');
     for (const name of ['Elixir of Risk', 'Devouring Cut']) {
       const skill = adapter.profession.catalog.skillsByName.get(name);
@@ -536,7 +536,7 @@ test('Dhuumfire cards follow the selected elite specialization', async ({ page }
 test('Necromancer cards use simulation bonuses and condition durations', async ({ page }) => {
   await page.evaluate(async () => {
     const { traitTooltipAttributes } = await import('/js/games/gw2/app/shared/tooltip-overlay.ts');
-    const { loadProfessionAppAdapter } = await import('/js/games/gw2/app/profession-registry.ts');
+    const { loadProfessionAppAdapter } = await import('/js/games/gw2/profession-registry.ts');
     const adapter = await loadProfessionAppAdapter('necromancer');
     for (const name of [
       'Death Perception',

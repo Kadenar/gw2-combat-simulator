@@ -1,8 +1,8 @@
 import { readAttributePreviewValues, renderAttributeStats } from '#gw2/app/build/panels/attributes.js';
-import { getProfessionEntry } from '#gw2/app/profession-registry.js';
+import { getProfessionEntry } from '#gw2/profession-registry.js';
 import { escapeHtml } from '#ui/shared/html.js';
-import { equipmentTooltipAttributes } from '#gw2/app/build/equipment-option-labels.js';
-import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS } from '#gw2/app/shared/equipment-icons.js';
+import { equipmentTooltipAttributes } from '#gw2/app/shared/equipment/labels.js';
+import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import {

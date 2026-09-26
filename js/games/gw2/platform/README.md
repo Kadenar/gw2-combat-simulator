@@ -35,7 +35,7 @@ damage-diagnostic event fields are declared alongside the event schema in `engin
 
 Weapon eligibility is the profession's `weaponSkillMatchesSet` runtime callback. Simulation and application adapters
 consume that same policy; it is not a presentation hook. Equipment picker icons belong in
-`../app/shared/equipment-icons.ts`.
+`../app/shared/equipment/icons.ts`.
 
 ## Placement Rules
 

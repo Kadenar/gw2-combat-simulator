@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { loadProfession } from '#gw2/app/profession-registry.js';
+import { loadProfession } from '#gw2/profession-registry.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';

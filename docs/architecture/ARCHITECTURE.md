@@ -279,7 +279,7 @@ which recomputes crit chance, crit damage, boon duration, and condition duration
 
 ## Included professions
 
-`js/games/gw2/app/profession-registry.ts` is the roster source of truth.
+`js/games/gw2/profession-registry.ts` is the roster source of truth.
 
 | Profession   | Signature mechanics                                                                      |
 | ------------ | ---------------------------------------------------------------------------------------- |
@@ -300,7 +300,7 @@ which recomputes crit chance, crit damage, boon duration, and condition duration
    `catalog.ts`.
 2. Register stable skill/trait IDs, namespaced event handlers, needed standard reactions, `weaponHands`, and
    `skillHandlers`.
-3. Add the page and a lazy `loadProfession`/`loadAppAdapter` entry to `js/games/gw2/app/profession-registry.ts`.
+3. Add the page and a lazy `loadProfession`/`loadAppAdapter` entry to `js/games/gw2/profession-registry.ts`.
 4. Add an end-to-end fixture that imports no other profession.
 5. Run `npm run check`.
 

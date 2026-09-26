@@ -3,7 +3,7 @@ import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { loadProfession } from '#gw2/app/profession-registry.js';
+import { loadProfession } from '#gw2/profession-registry.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 

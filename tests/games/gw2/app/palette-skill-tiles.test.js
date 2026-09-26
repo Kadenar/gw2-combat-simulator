@@ -2,7 +2,7 @@ import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { loadProfession, professionOptions } from '#gw2/app/profession-registry.js';
+import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';

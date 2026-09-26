@@ -2,7 +2,7 @@ import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { describe, test } from 'node:test';
-import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
+import { loadProfession, loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';

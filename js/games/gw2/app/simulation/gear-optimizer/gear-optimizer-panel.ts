@@ -1,7 +1,7 @@
-import { candidatePicker, updatePicker, bindCandidatePickers } from '#gw2/app/build/equipment-picker.js';
+import { candidatePicker, updatePicker, bindCandidatePickers } from '#gw2/app/shared/equipment/picker.js';
 import { PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
 import { INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
-import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment-icons.js';
+import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
 import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
@@ -9,7 +9,7 @@ import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { escapeHtml } from '#ui/shared/html.js';
-import { equipmentTooltipAttributes } from '#gw2/app/build/equipment-option-labels.js';
+import { equipmentTooltipAttributes } from '#gw2/app/shared/equipment/labels.js';
 import {
   prefixOptionLabel,
   runeOptionLabel,
@@ -17,7 +17,7 @@ import {
   foodOptionLabel,
   utilityOptionLabel,
   sigilOptionLabel
-} from '#gw2/app/build/equipment-option-labels.js';
+} from '#gw2/app/shared/equipment/labels.js';
 import {
   captureGearOptimizerRequest,
   optimizerSlots,

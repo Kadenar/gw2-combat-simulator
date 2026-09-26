@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { professionRegistry } from '#gw2/app/profession-registry.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 

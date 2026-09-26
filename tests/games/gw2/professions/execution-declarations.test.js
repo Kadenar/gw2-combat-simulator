@@ -6,7 +6,7 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { THIEF_SKILL_IDS as THIEF_ID } from '#gw2/professions/thief/data/ids.js';
-import { professionRegistry } from '#gw2/app/profession-registry.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 
 test('Antiquary replacement owners emit their own packets instead of the authored effects', () => {
