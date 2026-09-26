@@ -50,7 +50,7 @@ const BASE_BREAKRAZOR_EFFECTS = Object.freeze([
 // Quantize Icerazor impacts and their conditions together so each volley retains its 160 ms cadence.
 export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ICERAZORS_IRE]: {
-    // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/live.ts`.
+    // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/hooks.ts`.
     castTimeMs: 520,
     interruptCommitMs: 480,
     cooldown: 10,
@@ -92,7 +92,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     legendId: 'LegendaryRenegade'
   },
   [ID.DARKRAZORS_DARING]: {
-    // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/live.ts`.
+    // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/hooks.ts`.
     // The normal summon occupies 520 ms; Quickness does not shorten its animation.
     castTimeMs: 520,
 
@@ -127,7 +127,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     legendId: 'LegendaryRenegade'
   },
   [ID.DISMISS_LIEUTENANT_SOULCLEAVE]: {
-    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/live-upkeep.ts`.
+    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -136,7 +136,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     legendId: 'LegendaryRenegade'
   },
   [ID.RAZORCLAWS_RAGE]: {
-    // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/live.ts`.
+    // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/hooks.ts`.
     castTimeMs: 360,
     cooldown: 15,
     energyCost: 25,
@@ -144,7 +144,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     legendId: 'LegendaryRenegade'
   },
   [ID.BREAKRAZORS_BASTION]: {
-    // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/live.ts`.
+    // Custom: Selects and consumes the enhanced Kalla skill profile from live state; see `renegade/hooks.ts`.
     castTimeMs: 520,
     cooldown: 30,
     energyCost: 5,
@@ -152,7 +152,7 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     legendId: 'LegendaryRenegade'
   },
   [ID.SOULCLEAVES_SUMMIT]: {
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/live-upkeep.ts`.
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     castTimeMs: 360,
     cooldown: 3,
     energyCost: 5,

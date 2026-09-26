@@ -10,7 +10,7 @@ import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js
 import { projectEngineerPlanningState } from '#gw2/professions/engineer/family-state.js';
 import { ENGINEER_CORE_BALANCE_PROFILES } from '#gw2/professions/engineer/core/profiles.js';
 import { bindEngineerCoreUi } from '#gw2/professions/engineer/core/presentation.js';
-import { engineerCoreLive } from '#gw2/professions/engineer/core/live.js';
+import { engineerCoreHooks } from '#gw2/professions/engineer/core/hooks.js';
 
 export const engineerCoreModule = defineNativeModule({
   id: 'Core',
@@ -26,9 +26,7 @@ export const engineerCoreModule = defineNativeModule({
     create: createEngineerCoreState,
     project: projectEngineerPlanningState
   },
-  mechanics: {
-    modifiers: engineerCoreAttributeRules,
-    live: engineerCoreLive
-  },
+  modifiers: engineerCoreAttributeRules,
+  hooks: engineerCoreHooks,
   presentation: bindEngineerCoreUi
 });

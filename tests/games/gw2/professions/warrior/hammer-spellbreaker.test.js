@@ -4,13 +4,17 @@ import test from 'node:test';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
-import { createLiveProfessionSimulator, observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import {
+  createObservedProfessionSimulator,
+  observeGw2Runtime,
+  observedRuntime
+} from '#tests/helpers/observed-runtime.js';
 
 // Transient Alacrity changes real recharge progress; the next action tick admits a new tether.
 test('Magebane Tether integrates Alacrity gained or lost during its recharge', () => {
   for (const alacrityAt of [0, 2]) {
     const config = { specialization: 'Spellbreaker', selectedTraitIds: [TRAIT.MAGEBANE_TETHER] };
-    const profession = warriorProfession.liveRuntimeFor(config);
+    const profession = warriorProfession.runtimeFor(config);
     const windows = [];
     const result = observeGw2Runtime({
       config,
@@ -55,7 +59,7 @@ test('Magebane Tether integrates Alacrity gained or lost during its recharge', (
     });
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(windows, [8, 0, 19]);
-    assert.equal(runtimeFor(result).profession.specialization.state.magebaneTetherUntil, 19);
+    assert.equal(observedRuntime(result).profession.specialization.state.magebaneTetherUntil, 19);
   }
 });
 
@@ -78,7 +82,7 @@ const baseConfig = Object.freeze({
   boons: { quickness: true }
 });
 
-const simulate = createLiveProfessionSimulator(warriorProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(warriorProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 

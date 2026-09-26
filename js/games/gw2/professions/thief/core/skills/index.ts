@@ -46,7 +46,7 @@ export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
   }),
   Object.freeze({
     id: ID.DODGE,
-    // Custom: Spends endurance and applies Thief dodge traits through `core/live.ts`.
+    // Custom: Spends endurance and applies Thief dodge traits through `core/hooks.ts`.
     name: 'Dodge',
     description: 'Perform the selected thief dodge.',
     icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',

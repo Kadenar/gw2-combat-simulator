@@ -6,5 +6,5 @@ import { assertManifestRegressions } from './preset-benchmark.js';
 // Audit the converted family directly until the common application entry cuts over in phase 6.
 test('Necromancer presets load and stay within 1% DPS', () =>
   assertManifestRegressions('necromancer', (adapter, rotation, config) =>
-    runGw2Runtime({ profession: adapter.profession.liveRuntimeFor(config), config, rotation })
+    runGw2Runtime({ profession: adapter.profession.runtimeFor(config), config, rotation })
   ));

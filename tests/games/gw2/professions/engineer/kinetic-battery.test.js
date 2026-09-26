@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
-const simulate = createLiveProfessionSimulator(engineerProfession, {
+const simulate = createObservedProfessionSimulator(engineerProfession, {
   stats: { power: 2000, precision: 1000, ferocity: 0, conditionDamage: 0 },
   target: { armor: 2597, conditions: {} }
 });

@@ -5,7 +5,7 @@ import {
   BLADESWORN_SKILL_MECHANICS
 } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
 import { bladeswornAttributeRules } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger-rules.js';
-import { bladeswornLiveMechanics } from '#gw2/professions/warrior/specializations/bladesworn/live.js';
+import { bladeswornHooks } from '#gw2/professions/warrior/specializations/bladesworn/hooks.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { bladeswornUi } from '#gw2/professions/warrior/specializations/bladesworn/presentation.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
@@ -27,9 +27,7 @@ export const bladeswornModule = defineNativeModule({
   state: {
     create: bladeswornState.create
   },
-  mechanics: {
-    modifiers: bladeswornAttributeRules,
-    live: bladeswornLiveMechanics
-  },
+  modifiers: bladeswornAttributeRules,
+  hooks: bladeswornHooks,
   presentation: bladeswornUi
 });

@@ -6,7 +6,7 @@ import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/traits/modifiers.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { firebrandModifierRules } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes-and-mantras.js';
 
@@ -88,7 +88,7 @@ test('Righteous Instincts preserves stacked self Resolution without accepting ot
         runtime.emit(others);
       }
     );
-    const runtime = runtimeFor(result);
+    const runtime = observedRuntime(result);
     const might = result.events.filter(
       (event) => event.type === 'buff' && event.sourceId === TRAIT.RIGHTEOUS_INSTINCTS
     );

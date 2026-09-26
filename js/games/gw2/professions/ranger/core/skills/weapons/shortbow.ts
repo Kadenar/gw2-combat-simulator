@@ -79,7 +79,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
       }
     ],
     castTimeMs: 333
-    // Custom: Arms Blood Thirst charges after the shot; see `core/live.ts`.
+    // Custom: Arms Blood Thirst charges after the shot; see `core/hooks.ts`.
   },
   [ID.CONCUSSION_SHOT]: {
     effects: [

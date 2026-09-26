@@ -1,4 +1,4 @@
-import { evokerLive } from '#gw2/professions/elementalist/specializations/evoker/live.js';
+import { evokerHooks } from '#gw2/professions/elementalist/specializations/evoker/hooks.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
@@ -19,6 +19,7 @@ export const evokerModule = defineNativeModule({
     balanceProfiles: EVOKER_BALANCE_PROFILES
   }),
   state: { create: evokerState.create },
-  mechanics: { modifiers: evokerAttributeRules, live: evokerLive },
+  modifiers: evokerAttributeRules,
+  hooks: evokerHooks,
   presentation: evokerUi
 });

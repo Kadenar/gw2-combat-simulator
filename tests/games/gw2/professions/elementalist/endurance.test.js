@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runNative, runElementalist } from '#tests/helpers/elementalist-simulation.js';
 
 // Drive recovery with accepted applications and actual clock advances; queued grants cannot predict endurance.
@@ -47,8 +47,8 @@ test('Elementalist ignores cancelled and other-only Vigor without depending on w
         {},
         times.map((at) => ({ at, run: (r) => r.endurance.advance() }))
       );
-      assert.equal(runtimeFor(result).profession.core.endurance, cancelled ? 45 : 50);
-      assert.equal(runtimeFor(result).endurance.readyAt(50), cancelled ? 9 : 8);
+      assert.equal(observedRuntime(result).profession.core.endurance, cancelled ? 45 : 50);
+      assert.equal(observedRuntime(result).endurance.readyAt(50), cancelled ? 9 : 8);
     }
 });
 test('timed Vigor recovery crosses application and expiry boundaries', () => {
@@ -56,12 +56,12 @@ test('timed Vigor recovery crosses application and expiry boundaries', () => {
     { at: 0, run: (r) => assert.equal(r.endurance.readyAt(50), 10) },
     { at: 2.001, run: (r) => assert.equal(r.endurance.readyAt(50), 9) }
   ]);
-  assert.equal(runtimeFor(result).profession.core.endurance, 35);
+  assert.equal(observedRuntime(result).profession.core.endurance, 35);
 });
 test('Vigor stacks duration without stacking its rate and respects the duration cap', () => {
-  assert.equal(runtimeFor(recover([vigor(3, 2), vigor(2, 2)], 8)).profession.core.endurance, 50);
+  assert.equal(observedRuntime(recover([vigor(3, 2), vigor(2, 2)], 8)).profession.core.endurance, 50);
   const capped = recover([vigor(0, 20), vigor(0, 20)], 32, {}, [{ at: 29, run: (r) => r.endurance.spend(100) }]);
-  assert.equal(runtimeFor(capped).profession.core.endurance, 17.5);
+  assert.equal(observedRuntime(capped).profession.core.endurance, 17.5);
 });
 test('permanent Vigor keeps its rate through timed expiry and endurance remains capped', () => {
   const result = recover([vigor(2, 2)], 30, { boons: { vigor: true } }, [
@@ -73,7 +73,7 @@ test('permanent Vigor keeps its rate through timed expiry and endurance remains 
       }
     }
   ]);
-  assert.equal(runtimeFor(result).profession.core.endurance, 100);
+  assert.equal(observedRuntime(result).profession.core.endurance, 100);
 });
 
 test('Phoenix Vigor contributes to recovery and the next dodge after expiry', () => {
@@ -85,7 +85,7 @@ test('Phoenix Vigor contributes to recovery and the next dodge after expiry', ()
   const recovery = runNative({ ...options, rotation: ['Dodge', 'Dodge', 'Phoenix', 6000] });
   const buff = recovery.events.find((event) => event.type === 'buff' && event.kind === 'vigor');
   const firstDodge = recovery.events.find((event) => event.type === 'action' && event.skillName === 'Dodge');
-  const end = runtimeFor(recovery).time;
+  const end = observedRuntime(recovery).time;
   assert.deepEqual(recovery.warnings, []);
   assert.ok(end > buff.at + buff.duration);
   // The first dodge is spent at completion; subsequent regeneration includes exactly the Vigor window.

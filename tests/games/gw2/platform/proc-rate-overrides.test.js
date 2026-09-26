@@ -9,21 +9,28 @@ import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 
 // Converted cases explicitly use live execution, including Core traits under elite specializations.
-const runLive = ({ profession, config, rotation, observationPolicy }) =>
-  runGw2Runtime({ profession: profession.liveRuntimeFor(config), config, rotation, observation: observationPolicy });
+const runRuntime = ({ profession, config, rotation, observationPolicy }) =>
+  runGw2Runtime({ profession: profession.runtimeFor(config), config, rotation, observation: observationPolicy });
 
 const cases = [
-  ['necromancer', 'Harbinger', 'Barbed Precision', ['Blood Is Power'], { selectedSkills: ['Blood Is Power'] }, runLive],
-  ['engineer', 'Mechanist', 'Serrated Steel', ['Fragmentation Shot'], { primaryWeapon: 'Pistol' }, runLive],
-  ['engineer', 'Scrapper', 'Shrapnel', ['Grenade Kit', 'Grenade'], { selectedSkills: ['Grenade Kit'] }, runLive],
-  ['warrior', 'Berserker', 'Bloodlust', ['Sever Artery'], { primaryWeapon: 'Sword' }, runLive],
+  [
+    'necromancer',
+    'Harbinger',
+    'Barbed Precision',
+    ['Blood Is Power'],
+    { selectedSkills: ['Blood Is Power'] },
+    runRuntime
+  ],
+  ['engineer', 'Mechanist', 'Serrated Steel', ['Fragmentation Shot'], { primaryWeapon: 'Pistol' }, runRuntime],
+  ['engineer', 'Scrapper', 'Shrapnel', ['Grenade Kit', 'Grenade'], { selectedSkills: ['Grenade Kit'] }, runRuntime],
+  ['warrior', 'Berserker', 'Bloodlust', ['Sever Artery'], { primaryWeapon: 'Sword' }, runRuntime],
   [
     'elementalist',
     'Tempest',
     'Burning Precision',
     ['Fireball'],
     { primaryWeapon: 'Staff', startAttunement: 'Fire' },
-    runLive
+    runRuntime
   ]
 ];
 
@@ -67,7 +74,7 @@ test('proc overrides control every opted-in trait without bypassing selection or
     assert.equal(applications(run(1, false)).length, 0, name);
     // The Mechanist's mech retains its own Precision and can proc Serrated Steel independently of the player.
     assert.equal(applications(run(1, true, 0)).length > 0, ['Serrated Steel', 'Shrapnel'].includes(name), name);
-    const runtime = profession.resolveRuntime({ specialization });
+    const runtime = profession.resolveProfession({ specialization });
     assert.deepEqual(availableProcRateProfiles(runtime.catalog, []), []);
     assert.ok(availableProcRateProfiles(runtime.catalog, [traitId]).some((entry) => entry.procRate.id === key));
   }
@@ -76,7 +83,7 @@ test('proc overrides control every opted-in trait without bypassing selection or
 test('Burning Precision override preserves its internal cooldown', async () => {
   const profession = await loadProfession('elementalist');
   const profile = profession.catalog.balanceProfiles.find((entry) => entry.name === 'Burning Precision');
-  const result = runLive({
+  const result = runRuntime({
     profession,
     rotation: Array(12).fill('Fireball'),
     config: {

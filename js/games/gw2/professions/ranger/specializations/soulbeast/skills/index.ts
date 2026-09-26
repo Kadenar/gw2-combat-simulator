@@ -1,6 +1,6 @@
 /**
  * Composes Soulbeast stance, Beastmode action, and merged-pet skill catalogs.
- * Runtime merge behavior remains in `mechanics/` and `live.ts`.
+ * Runtime merge behavior remains in `mechanics/` and `hooks.ts`.
  */
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { SOULBEAST_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/index.js';

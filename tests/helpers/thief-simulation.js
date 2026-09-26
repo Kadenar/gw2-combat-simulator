@@ -1,6 +1,6 @@
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { observeGw2Runtime } from '#tests/helpers/live-runtime.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 export const THIEF_TEST_CONFIG = Object.freeze({
   primaryWeapon: 'Dagger',
@@ -31,7 +31,7 @@ export function runThief(
   } = {}
 ) {
   const config = { specialization: 'Core', ...THIEF_TEST_CONFIG, ...overrides };
-  const native = profession.liveRuntimeFor(config);
+  const native = profession.runtimeFor(config);
   const extension = extend(native);
   return observeGw2Runtime({
     profession: {

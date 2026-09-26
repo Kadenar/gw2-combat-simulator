@@ -1,11 +1,11 @@
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
-import { emitElementalistDamage } from '#gw2/professions/elementalist/core/live-events.js';
+import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/air.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Real profession selection and execution must preserve same-time ordering and replacement eligibility.
 test('Ranger stealth follows its granting strike and ignores off-target impacts', () => {
@@ -41,8 +41,8 @@ test('Ranger stealth follows its granting strike and ignores off-target impacts'
       }
     }
   );
-  assert.equal(runtimeFor(result).profession.core.stealthUntil, 6);
-  assert.equal(runtimeFor(result).profession.core.revealedUntil, 0);
+  assert.equal(observedRuntime(result).profession.core.stealthUntil, 6);
+  assert.equal(observedRuntime(result).profession.core.revealedUntil, 0);
 });
 
 // Pending hits wake availability without predicting a reset; only the accepted critical clears recharge.
@@ -83,7 +83,7 @@ test('Fresh Air candidates wait for the actual critical fact', () => {
       }
     ]
   });
-  assert.equal(runtimeFor(result).cooldowns.has(air), false);
+  assert.equal(observedRuntime(result).cooldowns.has(air), false);
   const resets = result.events.filter((e) => e.type === 'elementalist.fresh-air');
   assert.equal(resets.length, 1);
   assert.equal(resets[0].at, 2);

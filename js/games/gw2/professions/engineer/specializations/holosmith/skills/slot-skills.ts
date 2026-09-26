@@ -21,7 +21,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     ]
   },
   [ID.LAUNCH_WALL]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/live.ts`.
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/hooks.ts`.
 
     castTimeMs: 520,
     cooldown: 0.5,
@@ -89,7 +89,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     ]
   },
   [ID.PHOTON_WALL]: {
-    // Custom: Arms this skill's follow-up palette flip; see `core/live.ts`.
+    // Custom: Arms this skill's follow-up palette flip; see `core/hooks.ts`.
 
     castTimeMs: 400,
     cooldown: 25,

@@ -1,4 +1,4 @@
-import { withElementalistCast } from '#gw2/professions/elementalist/core/live-events.js';
+import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
@@ -6,7 +6,7 @@ import { EPSILON } from '#kernel/core/clock.js';
  * Skill packet templates remain in `skills/slot-skills.ts`.
  */
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitElementalistCondition, emitElementalistDamage } from '#gw2/professions/elementalist/core/live-events.js';
+import { emitElementalistCondition, emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';

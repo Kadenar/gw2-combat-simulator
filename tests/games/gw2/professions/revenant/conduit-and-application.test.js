@@ -12,27 +12,27 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 
 const revenantAttributeRules = Object.freeze({
   modifyAttributes(context, value) {
     return revenantProfession
-      .resolveRuntime(context?.config || {})
+      .resolveProfession(context?.config || {})
       .modifyAttributes({ catalog: revenantCatalog, ...context }, value);
   },
   modifyCriticalChance(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyCriticalChance(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyCriticalChance(context, value);
   },
   modifyStrikeDamage(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyStrikeDamage(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyStrikeDamage(context, value);
   },
   modifyConditionDamage(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyConditionDamage(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDamage(context, value);
   },
   modifyConditionDuration(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyConditionDuration(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDuration(context, value);
   }
 });
 
@@ -51,11 +51,11 @@ const baseConfig = Object.freeze({
   target: { armor: 2597, conditions: { Vulnerability: 25 } }
 });
 
-const simulate = createLiveProfessionSimulator(revenantProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);
 // Live steps expose the actual activation window; an instant cast occupies none of it.
 const castMs = (step) => step.end - step.start;
 // Live actions carry no recharge snapshot; the owner's cooldown map holds the latest reservation, if any.
-const rechargeReadyAt = (result, skillId) => runtimeFor(result).cooldowns.get(skillId) ?? null;
+const rechargeReadyAt = (result, skillId) => observedRuntime(result).cooldowns.get(skillId) ?? null;
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -787,7 +787,7 @@ test('Beguiling Haze main recharge gains intermittent Alacrity after its follow-
   };
   const rotation = Array(4).fill('Beguiling Haze');
   const skill = revenantCatalog.skillsByName.get('Beguiling Haze');
-  const originalReadyAt = runtimeFor(runRevenant(rotation.slice(0, 3), config)).ammo.get(skill.id).nextRechargeAt;
+  const originalReadyAt = observedRuntime(runRevenant(rotation.slice(0, 3), config)).ammo.get(skill.id).nextRechargeAt;
   const hasted = runRevenant(rotation, config, {
     initialize(runtime) {
       runtime.emit({
@@ -827,7 +827,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
   );
   assert.deepEqual(beguiling.steps.map(castMs), [560, 240, 240]);
   assert.equal(beguiling.planningState.profession.beguilingHazeCharges, 0);
-  const beguilingAmmo = runtimeFor(beguiling).ammo.get(revenantCatalog.skillsByName.get('Beguiling Haze').id);
+  const beguilingAmmo = observedRuntime(beguiling).ammo.get(revenantCatalog.skillsByName.get('Beguiling Haze').id);
 
   assert.equal(beguilingAmmo.maximum, 1);
   assert.equal(beguilingAmmo.charges, 0);
@@ -845,7 +845,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
       initialEnergy: 100
     }
   );
-  const rechargedAmmo = runtimeFor(recharged).ammo.get(revenantCatalog.skillsByName.get('Beguiling Haze').id);
+  const rechargedAmmo = observedRuntime(recharged).ammo.get(revenantCatalog.skillsByName.get('Beguiling Haze').id);
 
   assert.equal(recharged.planningState.profession.beguilingHazeCharges, 0);
   assert.equal(rechargedAmmo.maximum, 1);
@@ -1307,7 +1307,7 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
   });
 
   assert.equal(
-    runtimeFor(kinetic).cooldowns.get(revenantCatalog.skillsByName.get('Release Potential: Warrior').id),
+    observedRuntime(kinetic).cooldowns.get(revenantCatalog.skillsByName.get('Release Potential: Warrior').id),
     kinetic.steps[0].end / 1000 + 8
   );
 

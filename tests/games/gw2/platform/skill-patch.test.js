@@ -493,10 +493,13 @@ test('native professions keep live and lazy preview catalogs side by side', () =
   assert.equal(live.skillsById.get(1).effects[0].coefficient, 1);
   assert.equal(preview.skillsById.get(1).effects[0].coefficient, 2);
   assert.equal(family.catalogFor('fixture-preview'), preview);
-  assert.equal(family.resolveRuntime({ specialization: 'Core' }).catalog.skillsById.get(1).effects[0].coefficient, 1);
+  assert.equal(
+    family.resolveProfession({ specialization: 'Core' }).catalog.skillsById.get(1).effects[0].coefficient,
+    1
+  );
   assert.equal(
     family
-      .resolveRuntime({
+      .resolveProfession({
         specialization: 'Core',
         patchId: 'fixture-preview'
       })
@@ -589,11 +592,11 @@ test('specialization skill previews stay inert in other runtime catalogs', () =>
     }
   );
 
-  const corePreview = family.resolveRuntime({
+  const corePreview = family.resolveProfession({
     specialization: 'Core',
     patchId: 'fixture-preview'
   });
-  const elitePreview = family.resolveRuntime({
+  const elitePreview = family.resolveProfession({
     specialization: 'Elite',
     patchId: 'fixture-preview'
   });
@@ -623,37 +626,33 @@ describe('native profession modifier previews', () => {
       ]
     },
     state: { create: () => ({}) },
-    mechanics: {
-      modifiers: {
-        modifierRules: [
-          {
-            id: 'fixture.trait-critical-chance',
-            target: MODIFIER_TARGET.CRITICAL_CHANCE,
-            operation: 'add',
-            amount: 0.1,
-            when: (context) => traitSelected(context, 10)
-          }
-        ],
-        compileModifierRules: (rules) => createModifierHooks({ rules })
-      }
+    modifiers: {
+      modifierRules: [
+        {
+          id: 'fixture.trait-critical-chance',
+          target: MODIFIER_TARGET.CRITICAL_CHANCE,
+          operation: 'add',
+          amount: 0.1,
+          when: (context) => traitSelected(context, 10)
+        }
+      ],
+      compileModifierRules: (rules) => createModifierHooks({ rules })
     }
   });
   const elite = defineNativeModule({
     id: 'Elite',
     data: {},
     state: { create: () => ({}) },
-    mechanics: {
-      modifiers: [
-        {
-          id: 'fixture.elite-stacking-critical-chance',
-          target: MODIFIER_TARGET.CRITICAL_CHANCE,
-          operation: 'add',
-          parameters: { perStack: 0.01 },
-          amount: (context, _target, parameters) => Number(context.config?.traitStacks || 0) * parameters.perStack,
-          when: (context) => traitSelected(context, 20)
-        }
-      ]
-    }
+    modifiers: [
+      {
+        id: 'fixture.elite-stacking-critical-chance',
+        target: MODIFIER_TARGET.CRITICAL_CHANCE,
+        operation: 'add',
+        parameters: { perStack: 0.01 },
+        amount: (context, _target, parameters) => Number(context.config?.traitStacks || 0) * parameters.perStack,
+        when: (context) => traitSelected(context, 20)
+      }
+    ]
   });
   const family = withPatchPreview(
     defineNativeProfession({
@@ -679,19 +678,19 @@ describe('native profession modifier previews', () => {
     }
   );
 
-  const previewCore = family.resolveRuntime({
+  const previewCore = family.resolveProfession({
     specialization: 'Core',
     patchId: 'fixture-preview'
   });
-  const liveCore = family.resolveRuntime({
+  const liveCore = family.resolveProfession({
     specialization: 'Core',
     patchId: 'current'
   });
-  const previewElite = family.resolveRuntime({
+  const previewElite = family.resolveProfession({
     specialization: 'Elite',
     patchId: 'fixture-preview'
   });
-  const liveElite = family.resolveRuntime({
+  const liveElite = family.resolveProfession({
     specialization: 'Elite',
     patchId: 'current'
   });
@@ -710,7 +709,7 @@ describe('native profession modifier previews', () => {
     assert.equal(previewElite.modifyCriticalChance(eliteContext, 0), 0.26);
     assert.equal(previewElite.modifyCriticalChance({ ...eliteContext, traits: new Set() }, 0), 0);
     assert.equal(
-      family.resolveRuntime({
+      family.resolveProfession({
         specialization: 'Elite',
         patchId: 'fixture-preview'
       }),

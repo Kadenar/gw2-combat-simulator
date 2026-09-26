@@ -263,7 +263,7 @@ test('declarative boons can gate dynamic skill availability', () => {
     id: 'boon-gated',
     name: 'Boon Gated',
     catalog,
-    live: {
+    hooks: {
       availability: (runtime, skill) =>
         skill.id !== 920002 || runtime.query.timeline.buffStacksAt('aegis', runtime.time, 0, 1) > 0
           ? { ready: true }
@@ -317,7 +317,7 @@ test('declarative generic buffs use shared timed state without boon-duration sca
     id: 'buff-state-fixture',
     name: 'Buff State Fixture',
     // Observe the actual buff after the preceding instant cast has resolved.
-    live: {
+    hooks: {
       onCastStart(runtime, cast) {
         if (cast.skill.id === 920012)
           observedAsBuff = runtime.query.timeline.buffStacksAt('trait-charge', runtime.time, 0, 25) > 0;

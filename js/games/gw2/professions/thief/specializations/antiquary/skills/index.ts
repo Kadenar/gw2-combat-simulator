@@ -4,7 +4,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Both API IDs share the primary definition so future timing fixes cannot leave the alias behind.
 const METAL_LEGION_GUITAR_SKILL: Partial<Skill> = {
-  // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/live.ts`.
+  // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
   castTimeMs: 1920,
   cooldown: 0,
   initiativeCost: 0,
@@ -55,7 +55,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
   [ID.METAL_LEGION_GUITAR_ID_76591]: METAL_LEGION_GUITAR_SKILL,
   [ID.FORGED_SURFER_DASH]: {
     movementSkill: true,
-    // Custom: Replaces the cast with its task-driven movement/strike sequence through `antiquary/live.ts`.
+    // Custom: Replaces the cast with its task-driven movement/strike sequence through `antiquary/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0,
     initiativeCost: 0,
@@ -92,7 +92,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     artifactKind: 'offensive'
   },
   [ID.HOLO_DANCER_DECOY]: {
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/live.ts`.
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
     castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 0,
@@ -135,7 +135,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
   },
   [ID.EXALTED_HAMMER]: {
     movementSkill: true,
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/live.ts`.
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -158,7 +158,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     artifactKind: 'defensive'
   },
   [ID.STONE_SUMMIT_CANNON]: {
-    // Custom: Chooses success/backfire and materializes the selected outcome through `antiquary/live.ts`.
+    // Custom: Chooses success/backfire and materializes the selected outcome through `antiquary/hooks.ts`.
     usableWhileRecharging: true,
     castTimeMs: 520,
     cooldown: 15,
@@ -202,7 +202,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
   },
   [ID.ZEPHYRITE_SUN_CRYSTAL_ID_76733]: {
     movementSkill: true,
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/live.ts`.
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
     castTimeMs: 680,
     cooldown: 1,
     initiativeCost: 0,
@@ -226,7 +226,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     artifactKind: 'defensive'
   },
   [ID.CHAK_SHIELD]: {
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/live.ts`.
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -252,7 +252,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     backfire: true
   },
   [ID.ANTIVENOM_DRAUGHT]: {
-    // Custom: Chooses success/backfire and materializes the selected outcome through `antiquary/live.ts`.
+    // Custom: Chooses success/backfire and materializes the selected outcome through `antiquary/hooks.ts`.
     usableWhileRecharging: true,
     castTimeMs: 520,
     cooldown: 10,
@@ -261,7 +261,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
   },
   [ID.ZEPHYRITE_SUN_CRYSTAL]: {
     movementSkill: true,
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/live.ts`.
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
     castTimeMs: 240,
     cooldown: 1,
     initiativeCost: 0,
@@ -314,7 +314,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     backfire: true
   },
   [ID.RESHUFFLE]: {
-    // Custom: Randomizes/refills the Antiquary artifact hand through `antiquary/live.ts`.
+    // Custom: Randomizes/refills the Antiquary artifact hand through `antiquary/hooks.ts`.
     castTimeMs: 0,
     cooldown: 5,
     initiativeCost: 2,
@@ -328,7 +328,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     backfire: true
   },
   [ID.SUMMON_KRYPTIS_TURRET]: {
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/live.ts`.
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
     castTimeMs: 440,
     cooldown: 0,
     initiativeCost: 0,
@@ -361,7 +361,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     effects: []
   },
   [ID.CANACH_COIN_TOSS]: {
-    // Custom: Chooses success/backfire and materializes the selected outcome through `antiquary/live.ts`.
+    // Custom: Chooses success/backfire and materializes the selected outcome through `antiquary/hooks.ts`.
     usableWhileRecharging: true,
     castTimeMs: 0,
     cooldown: 15,
@@ -369,7 +369,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     effects: []
   },
   [ID.SKRITT_SCUFFLE]: {
-    // Custom: Replaces the cast with the delayed Skritt Scuffle sequence through `antiquary/live.ts`.
+    // Custom: Replaces the cast with the delayed Skritt Scuffle sequence through `antiquary/hooks.ts`.
     castTimeMs: 560,
     cooldown: 50,
     initiativeCost: 0,
@@ -390,7 +390,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.MISTBURN_MORTAR]: {
-    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/live.ts`.
+    // Custom: Consumes the selected Antiquary artifact and updates artifact state through `antiquary/hooks.ts`.
     // Measured Quickness timings make artifact use reserve the same cast-lane time seen in EVTC.
     castTimeMs: 600,
     cooldown: 0,
@@ -419,7 +419,7 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
   [ID.SKRITT_SWIPE]: {
     stealTraitSkill: true,
     movementSkill: true,
-    // Custom: Runs steal traits, pilfers artifacts, and applies swipe traits through `antiquary/live.ts`.
+    // Custom: Runs steal traits, pilfers artifacts, and applies swipe traits through `antiquary/hooks.ts`.
     castTimeMs: 200,
     cooldown: 25,
     initiativeCost: 0,

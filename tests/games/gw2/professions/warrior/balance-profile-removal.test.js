@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createLiveProfessionSimulator, observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import {
+  createObservedProfessionSimulator,
+  observeGw2Runtime,
+  observedRuntime
+} from '#tests/helpers/observed-runtime.js';
 import { warriorProfession, warriorCatalog } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/warrior/core/profiles.js';
@@ -20,7 +24,7 @@ function run(balanceProfiles, specialization, rotation, config = {}, skills = {}
     label: 'Warrior removal',
     professions: { warrior: { balanceProfiles, skills } }
   });
-  const result = createLiveProfessionSimulator(profession, {
+  const result = createObservedProfessionSimulator(profession, {
     stats: { power: 2000, precision: 1000, ferocity: 0, conditionDamage: 1000 },
     target: { armor: 2597, health: 1_000_000, defiant: true }
   })(specialization, rotation, { patchId: 'warrior-removal', ...config });
@@ -41,7 +45,7 @@ test('removed Marching Orders Might preserves Soldier Focus cooldown and sibling
     }
   );
   const hit = result.events.find((event) => event.type === 'damage' && event.skillId === ID.EVISCERATE);
-  assert.equal(runtimeFor(result).profession.core.soldierFocusReadyAt, hit.at + 7);
+  assert.equal(observedRuntime(result).profession.core.soldierFocusReadyAt, hit.at + 7);
   assert.ok(result.events.some((event) => event.kind === 'protection'));
   assert.ok(result.events.some((event) => event.kind === 'stability'));
   assert.equal(
@@ -66,7 +70,7 @@ test('Sundering Burst removal cannot substitute its surviving critical variant',
     const hit = result.events.find((event) => event.type === 'damage');
     const proc = result.events.find((event) => event.sourceId === TRAIT.SUNDERING_BURST);
     assert.equal(proc?.stacks, precision === 0 ? undefined : 13);
-    assert.equal(runtimeFor(result).profession.core.traitProcReadyAt.sunderingBurst, hit.at + 5);
+    assert.equal(observedRuntime(result).profession.core.traitProcReadyAt.sunderingBurst, hit.at + 5);
   }
 });
 
@@ -163,7 +167,7 @@ test('removed King of Fires strike preserves Burning and consumes the aura', () 
     false
   );
   assert.ok(result.events.some((event) => event.type === 'condition' && event.sourceId === TRAIT.KING_OF_FIRES));
-  assert.equal(runtimeFor(result).profession.specialization.state.fireAuraUntil, 0);
+  assert.equal(observedRuntime(result).profession.specialization.state.fireAuraUntil, 0);
 });
 
 for (const trait of [TRAIT.UNSEEN_SWORD, TRAIT.SHARP_AS_THE_WIND, TRAIT.RIVERS_FLOW]) {
@@ -174,7 +178,7 @@ for (const trait of [TRAIT.UNSEEN_SWORD, TRAIT.SHARP_AS_THE_WIND, TRAIT.RIVERS_F
       ['__combat_start', { type: 'wait', durationMs: 1000 }, ID.UNSHEATHE_GUNSABER],
       { selectedTraitIds: [trait] }
     );
-    const state = runtimeFor(result).profession.specialization.state;
+    const state = observedRuntime(result).profession.specialization.state;
     assert.equal(state.traitPositiveFlowUntil, 0);
     assert.equal(state.gunsaberSwapTraitReadyAt, 5);
     assert.ok(result.events.some((event) => event.sourceId === trait));
@@ -279,7 +283,7 @@ test('Artillery Slash keeps ammo variant identity after first-strike removal and
     const strike = result.events.find((event) => event.type === 'damage');
     assert.equal(strike?.coefficient, charges === 1 ? undefined : 4);
     assert.ok(result.events.some((event) => event.type === 'control'));
-    assert.equal(runtimeFor(result).ammo.get(ID.ARTILLERY_SLASH).charges, 0);
+    assert.equal(observedRuntime(result).ammo.get(ID.ARTILLERY_SLASH).charges, 0);
   }
 });
 
@@ -293,7 +297,7 @@ test('removed Spellbreaker buffs cannot retain Insight stacks or a tether window
     ['Kick', ID.BREACHING_STRIKE],
     { initialResource: 20, primaryWeapon: 'Dagger', selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT, TRAIT.MAGEBANE_TETHER] }
   );
-  const state = runtimeFor(result).profession.specialization.state;
+  const state = observedRuntime(result).profession.specialization.state;
   assert.deepEqual(state.attackerInsightExpiries, []);
   assert.equal(state.magebaneTetherUntil, 0);
 });
@@ -319,7 +323,7 @@ test('Warrior live owners reject missing profiles and invalid required scalars c
     initialResource: 30,
     selectedTraitIds: [TRAIT.MARCHING_ORDERS]
   };
-  const profession = warriorProfession.liveRuntimeFor(config);
+  const profession = warriorProfession.runtimeFor(config);
   const profiles = new Map(profession.catalog.balanceProfilesById);
   const original = profiles.get(CORE.marchingOrders);
   const balanceDataContext = { professionId: 'warrior', patchId: 'broken' };
@@ -336,7 +340,7 @@ test('Warrior live owners reject missing profiles and invalid required scalars c
   profiles.set(CORE.marchingOrders, { ...original, internalCooldown: 0 });
   const result = simulate();
   assert.equal(
-    runtimeFor(result).profession.core.soldierFocusReadyAt,
+    observedRuntime(result).profession.core.soldierFocusReadyAt,
     result.events.find((event) => event.type === 'damage').at
   );
 });

@@ -5,7 +5,7 @@ import { resolverTimedEffect } from '#gw2/platform/profession-definition/mechani
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { THIEF_SKILL_IDS as T } from '#gw2/professions/thief/data/ids.js';
 import { GUARDIAN_SKILL_IDS as G } from '#gw2/professions/guardian/data/ids.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
@@ -103,7 +103,7 @@ test('Forged Surfer replacement retires old bombs independently of the buff expi
   }
 
   assert.ok(
-    Math.abs(runtimeFor(result).profession.specialization.state.forgedSurferBombDropUntil - (second + 10)) < 1e-9
+    Math.abs(observedRuntime(result).profession.specialization.state.forgedSurferBombDropUntil - (second + 10)) < 1e-9
   );
 });
 

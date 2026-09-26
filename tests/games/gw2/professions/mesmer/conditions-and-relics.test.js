@@ -5,7 +5,7 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
-import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/family.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -789,7 +789,7 @@ test('Relic of Thorns uses the deterministic incoming-hit assumption', () => {
   // Mesmer uses the shared relic bonus once, including configured opening stacks.
   const queryConfig = defaultSimulationConfig({ boons: {}, relic: 'Thorns', initialThornsStacks: 5 });
   const query = createGw2CombatQuery({
-    profession: resolveProfessionRuntime(mesmerProfession, queryConfig),
+    profession: resolveProfessionContract(mesmerProfession, queryConfig),
     config: queryConfig
   });
   assert.equal(query.statsAt(0).conditionDamage, 1150);

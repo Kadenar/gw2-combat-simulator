@@ -465,12 +465,12 @@ Every profession uses the same layout:
   core/
     module.ts              manifest only
     state.ts               <Profession>CoreState next to its factory
-    live.ts                cast hooks, tasks, and reactions
+    hooks.ts               cast hooks, tasks, and reactions
     mechanics/  skills/  traits/  presentation.ts  profiles.ts
   specializations/<name>/
     module.ts              manifest only
     state.ts               <Name>State next to its factory
-    live.ts                module live behavior when needed
+    hooks.ts               module runtime hooks when needed
     mechanics/  skills/  traits/  presentation.ts  profiles.ts  [types.ts for module-only skill fields]
 ```
 
@@ -486,7 +486,7 @@ No other files belong at the profession root. `catalog.ts` stays separate from `
 imports `build/`, and `build/` reads the catalog at module load; merging them creates an initialization cycle.
 
 Each `core/` or `specializations/<name>/` folder is one module. Its `module.ts` is a manifest: imports plus one exported
-`defineNativeModule(...)` call. Live behavior is assembled in `live.ts`; each module's state interface stays in its
+`defineNativeModule(...)` call. Runtime behavior is assembled in `hooks.ts`; each module's state interface stays in its
 `state.ts`.
 
 Code outside a profession folder imports only `profession.js`, `app/app-definition.js`, `build/build.js`,
@@ -513,7 +513,7 @@ Exactly one specialization module is active for an elite-specialization build.
 
 ---
 
-# The four module boundaries
+# The module boundaries
 
 Every native module is declared through:
 
@@ -522,12 +522,13 @@ defineNativeModule({
   id,
   data,
   state,
-  mechanics,
+  modifiers,
+  hooks,
   presentation
 });
 ```
 
-These four fields are the most important ownership boundaries in the profession system.
+These fields are the most important ownership boundaries in the profession system.
 
 ## `data`
 
@@ -578,20 +579,18 @@ Do not place temporary runtime mechanics in application build state just because
 
 ---
 
-## `mechanics`
+## `modifiers` and `hooks`
 
-Executable behavior uses one live contract:
+Executable behavior uses one hook contract beside declarative modifier rules:
 
 ```ts
-mechanics: {
-  modifiers: berserkerAttributeRules,
-  live: berserkerLiveMechanics,
-},
+modifiers: berserkerAttributeRules,
+hooks: berserkerHooks,
 ```
 
-Live hooks cover availability, cast acceptance/completion, recharge reservation, resource policies, named tasks, custom
-events, and combat reactions. Each receives the same state and clock. Module validation rejects retired
-execution/resolution sections; no adapter translates them. Keep logic in owner-local files and wire it in `module.ts`.
+Hooks cover availability, cast acceptance/completion, recharge reservation, resource policies, named tasks, custom
+events, and combat reactions. Each receives the same state and clock. Module validation rejects unknown module
+fields, including retired execution/resolution sections; no adapter translates them. Keep logic in owner-local files and wire it in `module.ts`.
 
 ---
 
@@ -721,10 +720,8 @@ export const berserkerModule = defineNativeModule({
     create: berserkerState.create
   },
 
-  mechanics: {
-    modifiers: berserkerAttributeRules,
-    live: berserkerLiveMechanics
-  },
+  modifiers: berserkerAttributeRules,
+  hooks: berserkerHooks,
 
   presentation: berserkerUi
 });
@@ -736,7 +733,7 @@ Keep implementation details outside this file.
 
 ## `skills/`
 
-Declarative simulator definitions for skills owned by the module. Imperative cast behavior belongs in live hooks.
+Declarative simulator definitions for skills owned by the module. Imperative cast behavior belongs in hooks.
 
 Examples:
 
@@ -756,10 +753,10 @@ Group related skills by weapon, slot family, transformation, or another recogniz
 
 ---
 
-## `live.ts`
+## `hooks.ts`
 
 Assembles the module's cast hooks, named tasks, and combat reactions. Large implementations delegate to skill, trait, or
-mechanic files; all use the same live context. Delayed work carries data to a named task handler.
+mechanic files; all use the same runtime context. Delayed work carries data to a named task handler.
 
 ---
 
@@ -795,7 +792,7 @@ GW2 concept names such as `shatters.ts`, `continuum-split.ts`, `pets.ts`, `beast
 `attunements.ts`, `energy.ts`, or `initiative-and-endurance.ts`.
 
 A mechanics module may contain cast hooks, named tasks, and resolved-event reactions. Its exports make those lifecycle
-points explicit when assembled under `mechanics.live` in `module.ts`. Shared strike and condition resolution stays under
+points explicit when assembled in `hooks.ts` and wired as `hooks` in `module.ts`. Shared strike and condition resolution stays under
 `js/games/gw2/platform/resolver/`.
 
 Generic `rules.ts`, `handlers.ts`, and `resolver.ts` ownership files are retired. Keep a cohesive availability file when
@@ -1235,10 +1232,10 @@ presentation
 
 ```text
 before/during cast or delayed state
-→ live cast hook or named task
+→ cast hook or named task
 
 damage/condition/result reaction
-→ live combat reaction
+→ combat reaction
 ```
 
 ## 4. Does it already have a source of truth?
@@ -1267,7 +1264,8 @@ defineNativeModule({
   id: 'New Specialization',
   data,
   state,
-  mechanics,
+  modifiers,
+  hooks,
   presentation
 });
 ```

@@ -18,7 +18,7 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { applyNecromancerBuildAttributeRules } from '#gw2/professions/necromancer/build/attributes.js';
 import { createNecromancerBuildDefaults, toApplicationBuild } from '#gw2/professions/necromancer/build/build.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 
@@ -338,7 +338,7 @@ test('Dhuumfire tooltips show specialization durations and the Scourge cooldown'
     assert.equal(model.facts.find((fact) => fact.name === 'Internal cooldown')?.detail, cooldown);
   }
 
-  const simulate = createLiveProfessionSimulator(profession, {
+  const simulate = createObservedProfessionSimulator(profession, {
     stats: { power: 2000, precision: 1000 },
     target: { armor: 2597 }
   });
@@ -410,7 +410,7 @@ test('Sinister Shroud tooltip and recharge handling share the selected profile',
     assert.equal(model.facts.find((fact) => fact.name === 'Shroud and shade recharge reduction').detail, detail);
     const recharge = (skillId, selectedTraitIds = [TRAIT.SINISTER_SHROUD]) => {
       const config = { specialization: 'Scourge', patchId, selectedTraitIds };
-      const native = profession.liveRuntimeFor(config);
+      const native = profession.runtimeFor(config);
       return native.rechargeWork({ config, catalog: native.catalog }, native.catalog.skillsById.get(skillId), 20);
     };
 
@@ -590,7 +590,7 @@ test('Necromancer condition handlers and tooltips share selected skill and profi
       (fact) => fact.name === 'Bleeding' && fact.stacks === 3 && /9s.*on yourself/.test(fact.detail)
     )
   );
-  const simulate = createLiveProfessionSimulator(profession, {
+  const simulate = createObservedProfessionSimulator(profession, {
     stats: { power: 2000, precision: 1000, conditionDamage: 1000, vitality: 1000 },
     target: { armor: 2597, conditions: { Chilled: true } }
   });
@@ -645,7 +645,7 @@ test('condition-transfer tooltips expose the same limits used by combat', () => 
   const context = profession.balanceContextFor('transfer-tooltip');
   const model = describeSimulationSkill(context, context.catalog.skillsById.get(ID.PLAGUE_SIGNET), necromancerTooltips);
   assert.equal(model.facts.find((entry) => entry.name === 'Conditions Transferred').detail, '1');
-  const simulate = createLiveProfessionSimulator(profession, {
+  const simulate = createObservedProfessionSimulator(profession, {
     stats: { power: 2000, precision: 1000, conditionDamage: 1000, vitality: 1000 },
     target: { armor: 2597 }
   });
@@ -681,7 +681,7 @@ test('Soulbeast condition triggers preserve the same patched stack count shown i
   const tooltip = describeSimulationSkill(context, context.catalog.skillsById.get(40498), rangerTooltips);
   assert.match(tooltip.facts.find((fact) => fact.name === 'Poisoned').detail, /6s.*per trigger/);
   assert.equal(tooltip.facts.find((fact) => fact.name === 'Poisoned').stacks, 3);
-  const simulate = createLiveProfessionSimulator(profession, {
+  const simulate = createObservedProfessionSimulator(profession, {
     stats: { power: 2000, precision: 1000 },
     target: { armor: 2597 }
   });
@@ -793,7 +793,7 @@ test('Amalgam strain tooltips and activation use the same patched Stability pack
       }
     }
   });
-  const simulate = createLiveProfessionSimulator(profession, {
+  const simulate = createObservedProfessionSimulator(profession, {
     stats: { power: 2000, precision: 1000 },
     target: { armor: 2597 }
   });

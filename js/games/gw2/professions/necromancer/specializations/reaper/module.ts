@@ -1,4 +1,4 @@
-import { reaperLiveMechanics } from '#gw2/professions/necromancer/specializations/reaper/live.js';
+import { reaperHooks } from '#gw2/professions/necromancer/specializations/reaper/hooks.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
@@ -22,9 +22,7 @@ export const reaperModule = defineNativeModule({
   }),
   // One state factory supplies the live combat owner.
   state: { create: reaperState.create },
-  mechanics: {
-    live: reaperLiveMechanics,
-    modifiers: reaperAttributeRules
-  },
+  hooks: reaperHooks,
+  modifiers: reaperAttributeRules,
   presentation: bindReaperUi
 });

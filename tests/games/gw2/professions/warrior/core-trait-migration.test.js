@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createLiveProfessionSimulator, observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import {
+  createObservedProfessionSimulator,
+  observeGw2Runtime,
+  observedRuntime
+} from '#tests/helpers/observed-runtime.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -32,7 +36,7 @@ for (const [key, trait, trigger, literalDuration] of [
           target: { health: 1000000, startingHealthFraction: 0.4, armor: 2597 },
           stats: { power: 2000, precision: 4000 }
         };
-        const native = warriorProfession.liveRuntimeFor(config);
+        const native = warriorProfession.runtimeFor(config);
         const profiles = new Map(native.catalog.balanceProfilesById);
         profiles.set(trait, { ...profiles.get(trait), internalCooldown: duration });
         let emitted = 0;
@@ -77,7 +81,7 @@ for (const [key, trait, trigger, literalDuration] of [
           rotation: [{ type: 'wait', durationMs: at * 1000 }, ...(trigger === 'swap' ? ['Swap Weapons'] : [])]
         });
         assert.deepEqual(result.warnings, []);
-        const core = runtimeFor(result).profession.core;
+        const core = observedRuntime(result).profession.core;
         assert.equal(emitted > 0, expected);
         assert.equal(core.traitProcReadyAt[key], expected ? canonicalTime(at + duration) : 1);
         assert.equal(core.traitProcReadyAt.unrelated, 99);
@@ -89,7 +93,7 @@ for (const [key, trait, trigger, literalDuration] of [
 // Ineligible control and conditions cannot consume Opportunist's shared player-only gate.
 test('Opportunist ignores summons, effect immobilization, and unrelated player conditions', () => {
   const config = { specialization: 'Core', selectedTraitIds: [TRAIT.OPPORTUNIST], initialResource: 0 };
-  const native = warriorProfession.liveRuntimeFor(config);
+  const native = warriorProfession.runtimeFor(config);
   const result = observeGw2Runtime({
     config,
     rotation: [{ type: 'wait', durationMs: 1000 }],
@@ -107,8 +111,8 @@ test('Opportunist ignores summons, effect immobilization, and unrelated player c
     }
   });
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(runtimeFor(result).profession.core.traitProcReadyAt, {});
-  assert.equal(runtimeFor(result).profession.core.adrenaline, 0);
+  assert.deepEqual(observedRuntime(result).profession.core.traitProcReadyAt, {});
+  assert.equal(observedRuntime(result).profession.core.adrenaline, 0);
 });
 
 const baseConfig = Object.freeze({
@@ -124,7 +128,7 @@ const baseConfig = Object.freeze({
 });
 
 // Run each trait through the registered live Core and actual impact dispatcher.
-const simulate = createLiveProfessionSimulator(warriorProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(warriorProfession, baseConfig);
 
 const traitCases = [
   {

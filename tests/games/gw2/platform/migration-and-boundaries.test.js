@@ -1,4 +1,4 @@
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import { access, readFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -137,12 +137,12 @@ test('common weapon data includes Guardian weapon families', () => {
 });
 
 test('Mesmer state creation and planning projections are profession owned', () => {
-  const virtuosoRuntime = mesmerProfession.liveRuntimeFor({
+  const virtuosoRuntime = mesmerProfession.runtimeFor({
     specialization: 'Virtuoso'
   });
   // The public planning projection reports the active specialization's live resource.
   const result = simulateMesmer([], { specialization: 'Virtuoso', initialResource: 3 });
-  const state = runtimeFor(result).profession;
+  const state = observedRuntime(result).profession;
   const projected = result.planningState.profession;
 
   assert.equal(Object.hasOwn(state.specialization.state, 'nextForgeAt'), false);
@@ -177,7 +177,7 @@ test('Mesmer conforms to native handler and state contracts', () => {
   assert.ok(mechanicSkillIds.length > 0);
   assert.ok(mechanicSkillIds.every((skillId) => mesmerCatalog.skillsById.has(skillId)));
   assert.ok(
-    Object.keys(mesmerProfession.liveRuntimeFor({ specialization: 'Chronomancer' }).tasks).every((type) =>
+    Object.keys(mesmerProfession.runtimeFor({ specialization: 'Chronomancer' }).tasks).every((type) =>
       type.startsWith('mesmer.')
     )
   );

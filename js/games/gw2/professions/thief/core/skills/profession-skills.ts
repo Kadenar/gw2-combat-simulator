@@ -7,7 +7,7 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.STEAL]: {
     stealTraitSkill: true,
     movementSkill: true,
-    // Custom: Runs steal traits, grants a stored stolen skill, and updates steal state through `core/live.ts`.
+    // Custom: Runs steal traits, grants a stored stolen skill, and updates steal state through `core/hooks.ts`.
     castTimeMs: 0,
     cooldown: 25,
     initiativeCost: 0,

@@ -7,10 +7,10 @@ import { thiefCoreAttributeRules, thiefCoreModifierRules } from '#gw2/profession
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { applyThiefBuildAttributeRules } from '#gw2/professions/thief/build/attributes.js';
-import { beginThiefStealthAttack, grantThiefStealth } from '#gw2/professions/thief/core/live-stealth.js';
-import { grantThiefEndurance, grantThiefInitiative } from '#gw2/professions/thief/core/live-resources.js';
+import { beginThiefStealthAttack, grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { grantThiefEndurance, grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
@@ -29,7 +29,7 @@ const baseConfig = {
   stats: { power: 2000, precision: 1000, ferocity: 0, expertise: 0, conditionDamage: 1000, concentration: 0 },
   target: { armor: 2597, defiant: true }
 };
-const simulate = createLiveProfessionSimulator(thiefProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(thiefProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, `${actual} != ${expected}`);
 
@@ -44,7 +44,7 @@ test('Basilisk Venom contributes control and retains its 40-second recharge', ()
   const control = result.events.find((event) => event.type === 'control' && event.skillId === ID.BASILISK_VENOM);
   assert.equal(control.controlKind, 'stun');
 
-  near(runtimeFor(result).cooldowns.get(ID.BASILISK_VENOM) - control.at, 40);
+  near(observedRuntime(result).cooldowns.get(ID.BASILISK_VENOM) - control.at, 40);
 });
 
 test("Sniper's Cover spends four initiative and opens a five-second smoke field and follow-up", () => {
@@ -80,8 +80,8 @@ test("Sniper's Cover spends four initiative and opens a five-second smoke field 
 
 test("Infiltrator's Signet pulses discrete initiative only while ready and restarts after activation or reset", () => {
   const selectedSkills = ["Infiltrator's Signet"];
-  const initiative = (result) => runtimeFor(result).resourceController.value('initiative');
-  const nextPulse = (result) => runtimeFor(result).profession.core.infiltratorsSignetPulseAt;
+  const initiative = (result) => observedRuntime(result).resourceController.value('initiative');
+  const nextPulse = (result) => observedRuntime(result).profession.core.infiltratorsSignetPulseAt;
   // Splitting waits cannot change the pulse, and the normal resource cap still applies.
   for (const rotation of [[wait(10000)], [wait(9999), wait(1)]]) {
     const result = live('Core', rotation, { selectedSkills, initialInitiative: 0 });
@@ -96,7 +96,7 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
 
   const active = live('Core', ["Infiltrator's Signet", wait(10000)], { selectedSkills, initialInitiative: 0 });
   assert.equal(initiative(active), 10);
-  assert.equal(runtimeFor(active).cooldowns.get(ID.INFILTRATORS_SIGNET), 20);
+  assert.equal(observedRuntime(active).cooldowns.get(ID.INFILTRATORS_SIGNET), 20);
   assert.equal(nextPulse(active), 30);
   const reset = live('Core', ["Infiltrator's Signet", wait(1000), { type: 'cooldown-reset' }], {
     selectedSkills,
@@ -155,9 +155,9 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
         { probes: [0, 1, 29.9, 30].map((at) => [at, probe]) }
       );
       assert.deepEqual(result.warnings, []);
-      const runtime = runtimeFor(result);
+      const runtime = observedRuntime(result);
       assert.equal(runtime.cooldowns.get(ID.SIGNET_OF_AGILITY), 30);
-      const capacity = thiefProfession.liveRuntimeFor({ specialization }).endurance.maximum(runtime);
+      const capacity = thiefProfession.runtimeFor({ specialization }).endurance.maximum(runtime);
       // The restoration applies at the instant cast's completion, before any regeneration.
       assert.equal(
         result.events.find((event) => event.type === 'action' && event.skillId === ID.SIGNET_OF_AGILITY).endsAt,
@@ -286,7 +286,7 @@ test('THF-001: Hidden Killer requires stealth and lingers after either natural e
   const skill = thiefCatalog.skillsById.get(ID.BACKSTAB);
   const config = { ...baseConfig, specialization: 'Core', selectedTraitIds: [TRAIT.HIDDEN_KILLER] };
   const run = (attack) =>
-    runtimeFor(
+    observedRuntime(
       live('Core', [wait(2000)], config, {
         probes: [
           [1, (runtime) => grantThiefStealth(runtime, skill, 3)],
@@ -358,7 +358,7 @@ test('THF-004: one strike consumes every active venom but emits only one player 
       (event) => event.type === 'damage' && event.sourceId === TRAIT.LEECHING_VENOMS
     );
     assert.equal(siphons.length, 1);
-    const batches = runtimeFor(result).profession.core.venomChargeBatches;
+    const batches = observedRuntime(result).profession.core.venomChargeBatches;
     for (const id of venoms) {
       assert.equal(batches[id][0].charges, 1);
       assert.ok(
@@ -505,7 +505,7 @@ test('THF-009: malicious sword, staff, axe, and scepter use the consumed malice 
         { initialize: markedDeadeye(malice, true) }
       );
       assert.deepEqual(result.warnings, []);
-      const runtime = runtimeFor(result);
+      const runtime = observedRuntime(result);
       assert.equal(runtime.profession.specialization.state.malice, 2);
       if (weapon === 'Sword') {
         near(runtime.profession.core.endurance, runtime.time * 5 + malice * 10);
@@ -532,7 +532,7 @@ test('THF-009: unmarked and missed attacks grant no malicious sword or staff ben
         { initialize: markedDeadeye(4, marked) }
       );
       assert.deepEqual(result.warnings, []);
-      const runtime = runtimeFor(result);
+      const runtime = observedRuntime(result);
       assert.equal(runtime.profession.specialization.state.malice, 4);
       assert.equal(
         result.events.some((event) => event.type === 'buff' && event.kind === 'quickness'),

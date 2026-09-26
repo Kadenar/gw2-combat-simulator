@@ -1,4 +1,4 @@
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
@@ -328,7 +328,7 @@ test('Weaver mechanics execute through native hooks', () => {
   assert.ok(weaveSelfFire.at > weaveSelf.at);
   assert.ok(weaveSelfFire.at < weaveSelf.endsAt);
   assert.equal(
-    runtimeFor(result).cooldowns.get(weaveSelf.skillId) - weaveSelfFire.at,
+    observedRuntime(result).cooldowns.get(weaveSelf.skillId) - weaveSelfFire.at,
     elementalistCatalog.skillsByName.get('Weave Self').cooldown / 1.25
   );
 });

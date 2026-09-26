@@ -6,7 +6,7 @@ import {
   requireEffect,
   effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/live-events.js';
+import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';

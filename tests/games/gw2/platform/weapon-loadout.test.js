@@ -42,7 +42,7 @@ test('profession weapon eligibility is shared with headless simulation', () => {
   });
   assert.equal(family.weaponSkillMatchesSet, weaponSkillMatchesSet);
   for (const specialization of ['Core', 'Elite']) {
-    const runtime = family.resolveRuntime({ specialization });
+    const runtime = family.resolveProfession({ specialization });
     assert.equal(runtime.weaponSkillMatchesSet, weaponSkillMatchesSet);
     assert.equal(runtime.ui, undefined);
     const result = simulateGw2({

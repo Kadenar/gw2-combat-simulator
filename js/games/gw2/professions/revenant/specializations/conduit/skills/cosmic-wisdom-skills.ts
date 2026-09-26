@@ -39,7 +39,7 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.COSMIC_WISDOM]: {
-    // Custom: Activates the Cosmic Wisdom affinity window; see `conduit/live.ts`.
+    // Custom: Activates the Cosmic Wisdom affinity window; see `conduit/hooks.ts`.
     castTimeMs: 0,
     cooldown: 20,
     energyCost: 0,

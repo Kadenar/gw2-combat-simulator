@@ -62,7 +62,8 @@ export interface ProfessionDefinition<TProfessionState extends object = object, 
   readonly build?: ProfessionBuildDefinition<TBuild>;
   readonly resources?: ProfessionResourceDefinition<TProfessionState>;
   readonly attributeRules?: ProfessionAttributeRuleDefinition;
-  readonly live?: Partial<RuntimeProfession<TProfessionState>>;
+  /** Runtime callbacks composed over the normalized attribute and planning hooks. */
+  readonly hooks?: Partial<RuntimeProfession<TProfessionState>>;
   readonly ui?: Partial<ProfessionUiContract>;
 }
 
@@ -117,7 +118,7 @@ export interface NormalizedProfessionContract<TProfessionState extends object = 
   readonly catalog: CanonicalCatalog;
   readonly createState: (config: Readonly<ProfessionConfig>) => TProfessionState;
   readonly projectPlanningState: (...args: never[]) => unknown;
-  readonly liveRuntimeFor: (config: Readonly<ProfessionConfig>) => RuntimeProfession<TProfessionState>;
+  readonly runtimeFor: (config: Readonly<ProfessionConfig>) => RuntimeProfession<TProfessionState>;
   readonly modifyAttributes: (context: Gw2ModifierContext, attributes: Gw2Stats) => Gw2Stats;
   readonly modifyCriticalChance: (context: Gw2ModifierContext, chance: number) => number;
   readonly modifyCriticalDamage: (context: Gw2ModifierContext, multiplier: number) => number;
@@ -144,7 +145,7 @@ export interface ProfessionFamilyContract<
   TRuntime extends NormalizedProfessionContract<TProfessionState> = NormalizedProfessionContract<TProfessionState>,
   TBuild extends object = object
 > extends ProfessionApplicationContract<TBuild> {
-  readonly resolveRuntime: (config: Readonly<ProfessionConfig>) => Readonly<TRuntime>;
+  readonly resolveProfession: (config: Readonly<ProfessionConfig>) => Readonly<TRuntime>;
 }
 
 export type ProfessionSource<

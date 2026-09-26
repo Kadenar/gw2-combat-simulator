@@ -1,5 +1,5 @@
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -54,7 +54,7 @@ function stabilizedFlow(at, applications) {
     selectedTraitIds: [],
     selectedSkills: ['Flow Stabilizer']
   };
-  const profession = warriorProfession.liveRuntimeFor(config);
+  const profession = warriorProfession.runtimeFor(config);
   const result = observeGw2Runtime({
     profession: {
       ...profession,
@@ -77,7 +77,7 @@ function stabilizedFlow(at, applications) {
     rotation: [{ type: 'wait', durationMs: at * 1000 }, ID.FLOW_STABILIZER]
   });
   assert.deepEqual(result.warnings, []);
-  return runtimeFor(result).profession.specialization.state.flow;
+  return observedRuntime(result).profession.specialization.state.flow;
 }
 
 test('Flow Stabilizer reads accumulated self Fury and excludes its own activation', () => {

@@ -115,7 +115,7 @@ function chainProfession(autoattackChains, root = {}) {
     state: {
       create: () => ({ autoattackChains: {} })
     },
-    mechanics: { live: {} }
+    hooks: {}
   });
 
   return defineNativeProfession({
@@ -131,50 +131,50 @@ function chainState(result) {
 }
 
 // Live cases use canonical cast commitments even when target effects miss or reporting is disabled.
-const liveConfig = { stats: { power: 1000 }, target: { armor: 1000, health: 0, conditions: {} } };
+const chainConfig = { stats: { power: 1000 }, target: { armor: 1000, health: 0, conditions: {} } };
 const cast = (skillId, flags = {}) => ({ type: 'cast', skillId, ...flags });
-const liveChain = (rotation, profession = chainProfession().liveRuntimeFor(liveConfig), extra = {}) =>
-  runGw2Runtime({ profession, config: liveConfig, rotation, ...extra });
+const runChain = (rotation, profession = chainProfession().runtimeFor(chainConfig), extra = {}) =>
+  runGw2Runtime({ profession, config: chainConfig, rotation, ...extra });
 
 test('live chains reject out-of-order steps and commit each completion once', () => {
-  const rejected = liveChain([cast(3)]);
+  const rejected = runChain([cast(3)]);
   assert.equal(rejected.warnings.length, 1);
   assert.deepEqual(rejected.planningState.profession.autoattackChains, {});
-  const advanced = liveChain([cast(1), cast(2)]);
+  const advanced = runChain([cast(1), cast(2)]);
   assert.deepEqual(advanced.warnings, []);
   assert.deepEqual(advanced.planningState.profession.autoattackChains, { 1: 3 });
   const rotation = [cast(1), cast(2), cast(3)];
-  const complete = liveChain(rotation);
+  const complete = runChain(rotation);
   assert.deepEqual(complete.planningState.profession.autoattackChains, {});
   assert.deepEqual(complete.warnings, []);
-  assert.equal(liveChain(rotation, undefined, { output: 'score' }).totalDamage, complete.totalDamage);
+  assert.equal(runChain(rotation, undefined, { output: 'score' }).totalDamage, complete.totalDamage);
 });
 
 test('live chain interruptions use selected packet boundaries, including travel and cast-end ties', () => {
   for (const interrupting of [cast(7), cast(7, { offTarget: true }), cast(11)])
-    assert.deepEqual(liveChain([cast(1), interrupting]).planningState.profession.autoattackChains, {});
+    assert.deepEqual(runChain([cast(1), interrupting]).planningState.profession.autoattackChains, {});
   for (const preserving of [cast(8), cast(9), cast(10), cast(12), cast(7, { impactDelayMs: 2000 })])
-    assert.deepEqual(liveChain([cast(1), preserving]).planningState.profession.autoattackChains, { 1: 2 });
-  const native = chainProfession().liveRuntimeFor(liveConfig);
+    assert.deepEqual(runChain([cast(1), preserving]).planningState.profession.autoattackChains, { 1: 2 });
+  const native = chainProfession().runtimeFor(chainConfig);
   const removed = { ...native, modifyEffects: (_runtime, cast, effects) => (cast.skill.id === 7 ? [] : effects) };
-  assert.deepEqual(liveChain([cast(1), cast(7)], removed).planningState.profession.autoattackChains, { 1: 2 });
+  assert.deepEqual(runChain([cast(1), cast(7)], removed).planningState.profession.autoattackChains, { 1: 2 });
 });
 
 test('an interrupted packet chain advances only after a retained packet reaches its cast boundary', () => {
   const profession = chainProfession(undefined, {
     interruptMode: 'per-packet',
     effects: [{ type: 'strike', coefficient: 1, atMs: 200, timingAnchor: 'castStart' }]
-  }).liveRuntimeFor(liveConfig);
+  }).runtimeFor(chainConfig);
   assert.deepEqual(
-    liveChain([cast(1, { interruptAfterMs: 100 })], profession).planningState.profession.autoattackChains,
+    runChain([cast(1, { interruptAfterMs: 100 })], profession).planningState.profession.autoattackChains,
     {}
   );
   assert.deepEqual(
-    liveChain([cast(1, { interruptAfterMs: 200 })], profession).planningState.profession.autoattackChains,
+    runChain([cast(1, { interruptAfterMs: 200 })], profession).planningState.profession.autoattackChains,
     { 1: 2 }
   );
   assert.deepEqual(
-    liveChain([cast(1, { interruptAfterMs: 200, offTarget: true })], profession).planningState.profession
+    runChain([cast(1, { interruptAfterMs: 200, offTarget: true })], profession).planningState.profession
       .autoattackChains,
     { 1: 2 }
   );
@@ -183,8 +183,8 @@ test('an interrupted packet chain advances only after a retained packet reaches 
 test('live native composition keeps overrides scoped to their pending root', () => {
   const profession = chainProfession({
     overrides: [{ id: 'preserve-a', chainRootIds: [1], decision: 'preserve' }]
-  }).liveRuntimeFor(liveConfig);
-  const result = liveChain([cast(1), cast(4), cast(7)], profession);
+  }).runtimeFor(chainConfig);
+  const result = runChain([cast(1), cast(4), cast(7)], profession);
   assert.deepEqual(result.planningState.profession.autoattackChains, { 1: 2 });
   assert.deepEqual(result.warnings, []);
 });

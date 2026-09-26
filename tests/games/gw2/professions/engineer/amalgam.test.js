@@ -1,9 +1,9 @@
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -34,7 +34,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createLiveProfessionSimulator(engineerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -112,19 +112,19 @@ test('Amalgam traits activate on morph and Evolve chronology', () => {
   });
 
   assert.equal(result.warnings.length, 0);
-  assert.ok(runtimeFor(result).profession.specialization.state.willingHostUntil > 0);
-  assert.ok(runtimeFor(result).profession.specialization.state.evolvedUntil > 0);
+  assert.ok(observedRuntime(result).profession.specialization.state.willingHostUntil > 0);
+  assert.ok(observedRuntime(result).profession.specialization.state.evolvedUntil > 0);
   assert.equal(
-    runtimeFor(result).profession.specialization.state.rapaciousUntil,
-    runtimeFor(result).profession.specialization.state.evolvedUntil
+    observedRuntime(result).profession.specialization.state.rapaciousUntil,
+    observedRuntime(result).profession.specialization.state.evolvedUntil
   );
   assert.equal(
-    runtimeFor(result).profession.specialization.state.predatorUntil,
-    runtimeFor(result).profession.specialization.state.evolvedUntil
+    observedRuntime(result).profession.specialization.state.predatorUntil,
+    observedRuntime(result).profession.specialization.state.evolvedUntil
   );
   assert.equal(
-    runtimeFor(result).profession.specialization.state.titanicUntil,
-    runtimeFor(result).profession.specialization.state.evolvedUntil
+    observedRuntime(result).profession.specialization.state.titanicUntil,
+    observedRuntime(result).profession.specialization.state.evolvedUntil
   );
   assert.equal(
     result.events.filter(
@@ -498,13 +498,13 @@ test('Evolve aliases use only the trait-selected identity and share its charges 
     });
     assert.deepEqual(result.warnings, []);
     assert.ok(result.steps.every((step) => step.skillId === skillId && !step.invalid));
-    assert.deepEqual([...runtimeFor(result).cooldowns.keys()], [skillId]);
-    assert.deepEqual([...runtimeFor(result).ammo.keys()], traited ? [skillId] : []);
+    assert.deepEqual([...observedRuntime(result).cooldowns.keys()], [skillId]);
+    assert.deepEqual([...observedRuntime(result).ammo.keys()], traited ? [skillId] : []);
     const [first, second, third] = result.steps;
     // Both Evolve identities recover from activation rather than cast completion.
     assert.ok(third.start >= first.start + 40000);
     if (traited) {
-      assert.equal(runtimeFor(result).ammo.get(skillId).maximum, 2);
+      assert.equal(observedRuntime(result).ammo.get(skillId).maximum, 2);
       assert.ok(second.start < first.start + 40000);
     } else {
       assert.ok(second.start >= first.start + 40000);

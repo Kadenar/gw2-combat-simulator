@@ -11,7 +11,7 @@ function fixtureProfession(initialize, catalog = createCanonicalCatalog()) {
     name: 'Combo Fixture',
     catalog,
     resources: { createState: () => ({}) },
-    live: {
+    hooks: {
       initialize
     }
   });
@@ -230,7 +230,7 @@ test('combo boons use profession duration modifiers at the combo time with finis
         return { ...stats, concentration: Number(stats.concentration || 0) + bonus };
       }
     },
-    live: {
+    hooks: {
       initialize(context) {
         for (const fieldType of ['Fire', 'Smoke']) {
           context.emit({

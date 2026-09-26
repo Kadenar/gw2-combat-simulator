@@ -1,7 +1,7 @@
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
-import { withElementalistCast } from '#gw2/professions/elementalist/core/live-events.js';
+import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import {
   applyCatalystEmpowerment,
   applyCatalystComboTraits,
@@ -14,7 +14,7 @@ import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skil
 import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 /**
- * Live Catalyst mechanics.
+ * Catalyst mechanics and hooks.
  *
  * Owns Jade Sphere energy (spent on deployment, regained from damaging hits), the
  * per-attunement sphere windows and their Spectacular Sphere / Sphere Specialist
@@ -29,7 +29,7 @@ import {
   balanceProfileNumber,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitElementalistBuff } from '#gw2/professions/elementalist/core/live-events.js';
+import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -369,7 +369,7 @@ function gainEnergy(runtime: ElementalistRuntime, event: SimulationEvent): void 
 }
 
 /** Sphere spending, augment tasks, and accepted-hit traits operate on the same live state. */
-export const catalystLive: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
+export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
   initialize,
   availability,
   rechargeWork(runtime, skill, work) {

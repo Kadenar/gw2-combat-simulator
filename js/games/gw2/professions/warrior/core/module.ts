@@ -7,7 +7,7 @@ import {
   WARRIOR_WEAPON_STOW
 } from '#gw2/professions/warrior/core/skills/index.js';
 import { warriorCoreAttributeRules } from '#gw2/professions/warrior/core/traits/modifiers.js';
-import { warriorCoreLiveMechanics } from '#gw2/professions/warrior/core/live.js';
+import { warriorCoreHooks } from '#gw2/professions/warrior/core/hooks.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { projectWarriorPlanningState } from '#gw2/professions/warrior/family-state.js';
 import { bindWarriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
@@ -24,9 +24,7 @@ export const warriorCoreModule = defineNativeModule({
     create: createWarriorCoreState,
     project: projectWarriorPlanningState
   },
-  mechanics: {
-    modifiers: warriorCoreAttributeRules,
-    live: warriorCoreLiveMechanics
-  },
+  modifiers: warriorCoreAttributeRules,
+  hooks: warriorCoreHooks,
   presentation: bindWarriorCoreUi
 });

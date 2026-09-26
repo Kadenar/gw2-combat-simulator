@@ -4,7 +4,11 @@ import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necr
 
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
-import { createLiveProfessionSimulator, observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import {
+  createObservedProfessionSimulator,
+  observeGw2Runtime,
+  observedRuntime
+} from '#tests/helpers/observed-runtime.js';
 import {
   addBlight,
   consumeBlight,
@@ -21,7 +25,7 @@ const baseConfig = {
   target: { armor: 2597, conditions: {} }
 };
 
-const simulate = createLiveProfessionSimulator(necromancerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(necromancerProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // A queued observation before launch sees the original state; canceled throws never spend it.
@@ -35,7 +39,7 @@ test('elixir state commits chronologically and cancelled throws leave it untouch
       selectedSkills: { utility1: 'Elixir of Risk' },
       selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
     };
-    const native = necromancerProfession.liveRuntimeFor(config);
+    const native = necromancerProfession.runtimeFor(config);
     const observations = [];
     const result = observeGw2Runtime({
       config,
@@ -59,7 +63,7 @@ test('elixir state commits chronologically and cancelled throws leave it untouch
       }
     });
     assert.deepEqual(observations, [[20, 15, 0]]);
-    const state = runtimeFor(result).profession.specialization.state;
+    const state = observedRuntime(result).profession.specialization.state;
     assert.equal(state.blight, cancelled ? 20 : 25);
     assert.equal(state.cascadingCorruptionStacks, cancelled ? 15 : 0);
     assert.equal(state.meltdownUntil > 0, !cancelled);
@@ -86,7 +90,7 @@ test('Cascading Corruption delays its packets while Meltdown applies to the trig
     (event) => event.skillId === ID.CASCADING_CORRUPTION && ['damage', 'condition'].includes(event.type)
   );
   assert.equal(proc.at, trigger.at);
-  assert.ok(runtimeFor(result).profession.specialization.state.meltdownUntil > proc.at);
+  assert.ok(observedRuntime(result).profession.specialization.state.meltdownUntil > proc.at);
   assert.equal(packets.length, 2);
   assert.ok(packets.every((event) => Math.round((event.at - proc.at) * 1000) === 17 * 40));
   assert.ok(
@@ -120,7 +124,7 @@ test('spirit replacement changes generation and busy state only at completion', 
     initialResource: 100,
     selectedTraitIds: [TRAIT.SOUL_TWISTING]
   };
-  const native = necromancerProfession.liveRuntimeFor(config);
+  const native = necromancerProfession.runtimeFor(config);
   const starts = [];
   const midway = [];
   const completed = [];

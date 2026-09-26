@@ -1,4 +1,4 @@
-import { mirageLive } from '#gw2/professions/mesmer/specializations/mirage/live.js';
+import { mirageHooks } from '#gw2/professions/mesmer/specializations/mirage/hooks.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
 import { mirageAttributeRules } from '#gw2/professions/mesmer/specializations/mirage/mechanics/ambush-rules.js';
@@ -20,9 +20,7 @@ export const mirageModule = defineNativeModule({
   state: {
     create: mirageState.create
   },
-  mechanics: {
-    modifiers: mirageAttributeRules,
-    live: mirageLive
-  },
+  modifiers: mirageAttributeRules,
+  hooks: mirageHooks,
   presentation: mirageUi
 });

@@ -12,10 +12,10 @@ import {
 } from '#gw2/app/rotation/palette/model.js';
 import { activeResourceGroup, paletteSkillResourceView } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   createRangerBuildDefaults,
@@ -28,7 +28,7 @@ import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/core/profiles.js';
 import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/core/state.js';
 import { DRUID_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/druid/profiles.js';
-import { druidLive } from '#gw2/professions/ranger/specializations/druid/live.js';
+import { druidHooks } from '#gw2/professions/ranger/specializations/druid/hooks.js';
 import {
   createDruidState,
   DRUID_PUBLIC_STATE_PROJECTION
@@ -76,7 +76,7 @@ const baseConfig = Object.freeze({
 });
 
 // Keep scenario defaults local while sharing simulation setup and nested config merging.
-const simulate = createLiveProfessionSimulator(rangerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(rangerProfession, baseConfig);
 
 const applyRangerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(rangerCatalog, patch), patch);
 
@@ -691,7 +691,7 @@ test('Ranger party boons prioritize players before the active pet', () => {
 test('Pack Alpha excludes unleashed-pet and Beastmode skill recharges', () => {
   // Canonical skill ownership lets Core apply Pack Alpha without elite cancellation hooks.
   for (const specialization of ['Core', 'Soulbeast', 'Untamed']) {
-    const context = (selectedTraitIds) => runtimeFor(runRanger([], { specialization, selectedTraitIds }));
+    const context = (selectedTraitIds) => observedRuntime(runRanger([], { specialization, selectedTraitIds }));
     const baseline = context([]);
     const packAlpha = context([TRAIT.PACK_ALPHA]);
     const skills = baseline.helpers.skills.filter(
@@ -703,11 +703,11 @@ test('Pack Alpha excludes unleashed-pet and Beastmode skill recharges', () => {
     for (const skill of skills) {
       assert.equal(Boolean(skill.petSkill && (skill.beastmodeSkill || skill.unleashedPetSkill)), false, skill.name);
       const expected =
-        rangerProfession.liveRuntimeFor({ specialization }).rechargeWork(baseline, skill, skill.cooldown) *
+        rangerProfession.runtimeFor({ specialization }).rechargeWork(baseline, skill, skill.cooldown) *
         (skill.petSkill ? 0.8 : 1);
       assert.ok(
         Math.abs(
-          rangerProfession.liveRuntimeFor({ specialization }).rechargeWork(packAlpha, skill, skill.cooldown) - expected
+          rangerProfession.runtimeFor({ specialization }).rechargeWork(packAlpha, skill, skill.cooldown) - expected
         ) < 1e-9,
         skill.name
       );
@@ -1161,7 +1161,7 @@ test('Ranger transformation availability follows skill IDs after display labels 
   const druid = createDruidState({ initialAstralForce: 100 });
   druid.celestialAvatarActive = true;
   const avatar = { ...rangerCatalog.skillsById.get(ID.CELESTIAL_AVATAR), name: 'Renamed Celestial Avatar' };
-  assert.equal(check('Druid', druid, avatar, druidLive.availability).code, 'ranger.avatar-active');
+  assert.equal(check('Druid', druid, avatar, druidHooks.availability).code, 'ranger.avatar-active');
 
   const untamed = createUntamedState({ initialUntamedState: 'Ranger' });
   const unleash = { ...rangerCatalog.skillsById.get(ID.UNLEASH_RANGER), name: 'Renamed Unleash Ranger' };
@@ -1364,8 +1364,8 @@ test('Untamed Unleash forms share a fixed one-second recharge', () => {
       { skill: 'Unleash Ranger', start: 1000 }
     ]
   );
-  assert.equal(runtimeFor(result).cooldowns.get(ID.UNLEASH_RANGER), 2);
-  assert.equal(runtimeFor(result).cooldowns.get(ID.UNLEASH_PET), 2);
+  assert.equal(observedRuntime(result).cooldowns.get(ID.UNLEASH_RANGER), 2);
+  assert.equal(observedRuntime(result).cooldowns.get(ID.UNLEASH_PET), 2);
   assert.equal(result.planningState.profession.ambushReadyUntil, 5);
 
   const suppressed = simulate('Untamed', ['Unleash Pet', 'Unleash Ranger', 'Unleash Pet', 'Unleash Ranger'], {

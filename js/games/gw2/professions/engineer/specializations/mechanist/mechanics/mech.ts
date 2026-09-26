@@ -5,7 +5,7 @@ import {
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/live-events.js';
+import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';

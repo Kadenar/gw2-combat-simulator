@@ -7,7 +7,7 @@ import {
   effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
-import { emitElementalistBuff, emitElementalistDamage } from '#gw2/professions/elementalist/core/live-events.js';
+import { emitElementalistBuff, emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';

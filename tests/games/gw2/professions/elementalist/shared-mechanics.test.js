@@ -13,7 +13,7 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { availability as evokerAvailability } from '#gw2/professions/elementalist/specializations/evoker/mechanics/availability.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { weaverLive } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
+import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
 
 test('every Elementalist specialization can prepare attunements without precombat recharge', () => {
   // Cover each recharge override, including Weave Self, with and without an explicit future combat marker.
@@ -431,7 +431,7 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
 
   const unravel = { ...elementalistCatalog.skillsById.get(ID.UNRAVEL), name: 'Renamed unravel' };
   assert.equal(
-    weaverLive.availability({ config: { selectedTraitIds: [] } }, unravel).code,
+    weaverHooks.availability({ config: { selectedTraitIds: [] } }, unravel).code,
     'elementalist.weaver-elements-of-rage'
   );
 
@@ -459,7 +459,7 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
     ...elementalistCatalog.skillsById.get(ID.PURBLINDING_PLASMA),
     name: 'Renamed Weaver pistol skill'
   };
-  assert.equal(weaverLive.rechargeWork(pistolContext, purblindingPlasma, 15), 10);
+  assert.equal(weaverHooks.rechargeWork(pistolContext, purblindingPlasma, 15), 10);
 });
 
 // Fire exit starts a delayed proc; its strike and Burning must land together.

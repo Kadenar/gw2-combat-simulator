@@ -777,7 +777,7 @@ test('Mesmer supplemental identities and dynamic handler profiles are explicit',
 
 test('every Mesmer specialization registers native owners without scheduler handlers', () => {
   for (const specialization of ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']) {
-    const runtime = mesmerProfession.liveRuntimeFor({ specialization });
+    const runtime = mesmerProfession.runtimeFor({ specialization });
     assert.equal(typeof runtime.initialize, 'function');
     assert.ok(runtime.catalog.skills.every((skill) => skill.handlerId == null));
     assert.equal(typeof runtime.tasks['mesmer.clone-attack'], 'function');

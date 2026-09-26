@@ -30,13 +30,13 @@ import {
   applyLeechingVenoms,
   applyShadowSiphoning
 } from '#gw2/professions/thief/core/traits/shadow-arts.js';
-import { emitThiefBuff, emitThiefCondition } from '#gw2/professions/thief/core/live-events.js';
-import { grantThiefEndurance, grantThiefInitiative } from '#gw2/professions/thief/core/live-resources.js';
+import { emitThiefBuff, emitThiefCondition } from '#gw2/professions/thief/core/events.js';
+import { grantThiefEndurance, grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { ThiefResolverContext, ThiefResolverEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
-import type { ThiefRuntime } from '#gw2/professions/thief/core/live-events.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
 const unrelentingStrikes = onResolvedCriticalHit(unrelentingStrikesCriticalReaction);
 const noQuarter = onResolvedCriticalHit(noQuarterCriticalReaction);

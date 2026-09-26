@@ -5,7 +5,7 @@ import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 
 export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RELEASE_POTENTIAL_MONK]: {
-    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/live.ts`.
+    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/hooks.ts`.
     castTimeMs: 360,
     cooldown: 10,
     energyCost: 0,
@@ -15,7 +15,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.RELEASE_POTENTIAL_MESMER]: {
-    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/live.ts`.
+    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/hooks.ts`.
     castTimeMs: 440,
     cooldown: 10,
     energyCost: 0,
@@ -53,7 +53,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.RELEASE_POTENTIAL_DERVISH]: {
-    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/live.ts`.
+    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/hooks.ts`.
     castTimeMs: 680,
     // Dervish commits its impact before the remaining animation can be cancelled.
     interruptCommitMs: 560,
@@ -93,7 +93,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.RELEASE_POTENTIAL_ASSASSIN]: {
-    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/live.ts`.
+    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/hooks.ts`.
     // Assassin releases the cast lane at 720 ms; the final strike follows at 800 ms.
     castTimeMs: 720,
     cooldown: 10,
@@ -132,7 +132,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.RELEASE_POTENTIAL_WARRIOR]: {
-    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/live.ts`.
+    // Custom: Selects and materializes the affinity-specific release profile; see `conduit/hooks.ts`.
     castTimeMs: 520,
     cooldown: 10,
     energyCost: 0,

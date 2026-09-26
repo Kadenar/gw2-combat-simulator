@@ -5,7 +5,7 @@ import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const ui = bindWillbenderUi(guardianCatalog);
 const config = { specialization: 'Willbender' };
@@ -15,7 +15,7 @@ const virtues = [
   ['resolve', ID.FLOWING_RESOLVE],
   ['courage', ID.CRASHING_COURAGE]
 ];
-const state = (result) => runtimeFor(result).profession.specialization.state;
+const state = (result) => observedRuntime(result).profession.specialization.state;
 const strike = (runtime, at) =>
   runtime.emit({
     type: 'damage',

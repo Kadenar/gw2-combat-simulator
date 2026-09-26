@@ -38,7 +38,7 @@ for (const entry of professionRegistry) {
       }
     };
     // Every family now shares the native execution boundary.
-    const result = runGw2Runtime({ ...options, profession: profession.liveRuntimeFor(options.config) });
+    const result = runGw2Runtime({ ...options, profession: profession.runtimeFor(options.config) });
     assert.deepEqual(result.warnings, []);
     const series = buildChartSeries(result);
     for (const boon of boons) {

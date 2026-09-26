@@ -8,7 +8,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ENTANGLING_ASP]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/live.ts`.
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 2,
@@ -37,7 +37,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.SHATTERING_ASSAULT]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/live.ts`.
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 640,
     cooldown: 0,
     initiativeCost: 1,
@@ -59,7 +59,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.DISTRACTING_THROW]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/live.ts`.
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 2,
@@ -95,7 +95,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.UNSUSPECTING_STRIKE]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/live.ts`.
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 3,
@@ -132,7 +132,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
   [ID.ASHEN_ASSAULT]: {
     preservesStealth: true,
     spearStealthAttack: true,
-    // Custom: Selects the stealth spear chain, then consumes stealth on completion through `core/live.ts`.
+    // Custom: Selects the stealth spear chain, then consumes stealth on completion through `core/hooks.ts`.
     castTimeMs: 1200,
     cooldown: 0,
     initiativeCost: 0,
@@ -183,7 +183,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     stealthAttack: true
   },
   [ID.MANTIS_STING]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/live.ts`.
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 400,
     cooldown: 0,
     initiativeCost: 3,
@@ -212,7 +212,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.VAMPIRIC_SLASH]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/live.ts`.
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 360,
     cooldown: 0,
     initiativeCost: 1,
@@ -247,7 +247,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.FALLING_SPIDER]: {
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/live.ts`.
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 600,
     cooldown: 0,
     initiativeCost: 1,
@@ -284,7 +284,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
   },
   [ID.BARBED_SPEAR]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/live.ts`.
+    // Custom: Selects the spear follow-up chain and reacts to committed packets through `core/hooks.ts`.
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,

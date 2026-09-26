@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
-const simulate = createLiveProfessionSimulator(thiefProfession, {
+const simulate = createObservedProfessionSimulator(thiefProfession, {
   target: { armor: 2597, conditions: {} },
   primaryWeapon: 'Dagger',
   secondaryWeapon: 'Dagger',

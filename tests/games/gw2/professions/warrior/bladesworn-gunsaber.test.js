@@ -24,7 +24,7 @@ function simulate(rotation) {
     }
   };
   // Native family state and equipment reactions share one queue.
-  return runGw2Runtime({ profession: warriorProfession.liveRuntimeFor(config), config, rotation });
+  return runGw2Runtime({ profession: warriorProfession.runtimeFor(config), config, rotation });
 }
 
 test('Gunsaber equip and stow count as weapon swaps', () => {

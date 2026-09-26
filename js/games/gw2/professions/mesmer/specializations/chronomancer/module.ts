@@ -1,4 +1,4 @@
-import { chronomancerLive } from '#gw2/professions/mesmer/specializations/chronomancer/live.js';
+import { chronomancerHooks } from '#gw2/professions/mesmer/specializations/chronomancer/hooks.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
 import { chronomancerAttributeRules } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/chronomancer-rules.js';
@@ -22,9 +22,7 @@ export const chronomancerModule = defineNativeModule({
   state: {
     create: chronomancerState.create
   },
-  mechanics: {
-    modifiers: chronomancerAttributeRules,
-    live: chronomancerLive
-  },
+  modifiers: chronomancerAttributeRules,
+  hooks: chronomancerHooks,
   presentation: chronomancerUi
 });

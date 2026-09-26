@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
@@ -13,7 +13,7 @@ const config = {
 };
 const wait = { type: 'wait', durationMs: 6000 };
 const run = (rotation, overrides = {}) =>
-  createLiveProfessionSimulator(guardianProfession, { ...config, ...overrides })(undefined, rotation);
+  createObservedProfessionSimulator(guardianProfession, { ...config, ...overrides })(undefined, rotation);
 const flames = (r) => r.resolvedEvents.filter((e) => e.type === 'damage' && e.willbenderFlames);
 
 test('two off-target Resolve precasts keep two Tempo applications and deal zero target damage', () => {

@@ -60,8 +60,8 @@ export function effectiveRevenantEnergyCost(input: RevenantEnergyCostInput, skil
   }
 }
 
-/** Live owners and the palette share one composed cost, read from the single runtime state. */
-export function liveRevenantEnergyCost(
+/** Runtime hooks and the palette share one composed cost, read from the single runtime state. */
+export function revenantEnergyCost(
   runtime: { readonly profession: RevenantRuntimeState; readonly config: RevenantConfig },
   skill: RevenantSkill
 ): number {

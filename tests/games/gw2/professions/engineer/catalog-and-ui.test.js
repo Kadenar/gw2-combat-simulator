@@ -37,8 +37,8 @@ import { MECHANIST_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/special
 import { scrapperModule } from '#gw2/professions/engineer/specializations/scrapper/module.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
 import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
-import { engineerCoreLive } from '#gw2/professions/engineer/core/live.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { engineerCoreHooks } from '#gw2/professions/engineer/core/hooks.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
 
@@ -59,7 +59,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createLiveProfessionSimulator(engineerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
 
 function mechanic(name) {
   return engineerCatalog.skillsByName.get(name);
@@ -192,7 +192,7 @@ test('Engineer palette flips require explicit consumable targets and ignore raw 
     {
       initialize(runtime) {
         const complete = (skill) =>
-          engineerCoreLive.onCastComplete(runtime, { skill, id: 'flip-test', start: 0, fullEnd: 0, effectiveEnd: 0 });
+          engineerCoreHooks.onCastComplete(runtime, { skill, id: 'flip-test', start: 0, fullEnd: 0, effectiveEnd: 0 });
         for (const skill of engineerCatalog.skills.filter(
           (candidate) =>
             candidate.paletteFlipSkillId != null &&
@@ -478,7 +478,7 @@ test('Holosmith palette exposes tool-belt skills, forge, and replacement bars', 
 test('Engineer renders Endurance only for Tools and uses a standard bar', () => {
   const build = createEngineerBuildDefaults();
   const state = engineerProfession
-    .resolveRuntime({
+    .resolveProfession({
       specialization: 'Core'
     })
     .createState({ specialization: 'Core' });
@@ -518,7 +518,7 @@ test('Engineer renders Endurance only for Tools and uses a standard bar', () => 
     specialization: 'Holosmith',
     build,
     professionState: engineerProfession
-      .resolveRuntime({
+      .resolveProfession({
         specialization: 'Holosmith'
       })
       .createState({ specialization: 'Holosmith' })
@@ -630,7 +630,7 @@ test('Engineer event log exposes Heat only for Holosmith heat transitions', () =
   };
   const eventLogRow = (specialization, value) => {
     const config = { specialization };
-    const runtime = engineerProfession.resolveRuntime(config);
+    const runtime = engineerProfession.resolveProfession(config);
 
     return engineerProfession.ui.eventLogRow(
       {

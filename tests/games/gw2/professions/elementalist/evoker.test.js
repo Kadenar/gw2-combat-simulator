@@ -7,8 +7,8 @@ import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/engine/skills/recharge.js';
 import { evokerState, grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
-import { emitElementalistDamage } from '#gw2/professions/elementalist/core/live-events.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { modifyFamiliarEffects } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
@@ -103,7 +103,7 @@ test('Electric Enchantment consumes accepted post-grant hits chronologically and
     [3, 4]
   );
   assert.equal(
-    evokerState.from(runtimeFor(result)).electricEnchantmentGrants.reduce((sum, g) => sum + g.charges, 0),
+    evokerState.from(observedRuntime(result)).electricEnchantmentGrants.reduce((sum, g) => sum + g.charges, 0),
     0
   );
 });

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const baseConfig = {
@@ -14,7 +14,7 @@ const baseConfig = {
   stats: { power: 2000, precision: 1000, expertise: 0, vitality: 1000 },
   target: { armor: 2597, health: 1000000000, conditions: {} }
 };
-const simulate = createLiveProfessionSimulator(necromancerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(necromancerProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // Actual packets grant resources once; interruption cannot grant the skipped remainder of a channel.

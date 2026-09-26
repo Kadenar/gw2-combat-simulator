@@ -18,7 +18,7 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
 
     rechargeAnchor: 'castStart',
     cooldown: 0,
-    // Custom: Spends endurance and applies Ranger dodge traits; see `live.ts`.
+    // Custom: Spends endurance and applies Ranger dodge traits; see `hooks.ts`.
 
     effects: []
   },
@@ -33,7 +33,7 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
-    // Custom: Switches pet slots and applies pet-swap traits; see `live.ts`.
+    // Custom: Switches pet slots and applies pet-swap traits; see `hooks.ts`.
 
     effects: []
   },

@@ -19,7 +19,7 @@ import {
   applyCatalystResolvedDamage
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
 import { applyWeaveSelfAttunement } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
-import { weaverLive } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
+import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
 import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import { commitRechargeDuration } from '#gw2/professions/elementalist/specializations/evoker/mechanics/recharge.js';
 import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
@@ -32,7 +32,7 @@ import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicat
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { RANGER_SKILL_IDS as RI } from '#gw2/professions/ranger/data/ids.js';
 import { bindGaleshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
-import { observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/time-bomb.js';
@@ -46,7 +46,7 @@ const galeshotUi = bindGaleshotUi(rangerCatalog);
 // Real catalogs and state owners; buffer emitted work to isolate the boundary contract of each handler.
 function contextFor(profession, specialization, selectedTraitIds = []) {
   const config = { specialization, selectedTraitIds };
-  const runtime = profession.resolveRuntime(config);
+  const runtime = profession.resolveProfession(config);
   const events = [];
   const emit = (event) => {
     events.push(event);
@@ -91,7 +91,7 @@ const specialization = (context) => context.state.profession.specialization.stat
 
 // Native services supply the actual state and catalog; collect only the handler's immediate output.
 function elementalistContext(specialization, selectedTraitIds = []) {
-  const runtime = runtimeFor(runElementalist({ config: { specialization, selectedTraitIds }, rotation: [] }));
+  const runtime = observedRuntime(runElementalist({ config: { specialization, selectedTraitIds }, rotation: [] }));
   runtime.events = [];
   runtime.emit = (event) => {
     runtime.events.push(event);
@@ -142,7 +142,7 @@ test('Perfect Weave grant and Tailored Victory gate share the emitted buff expir
   for (const at of [10.039999, 10.04, 10.040001]) {
     context.time = at;
     assert.equal(
-      weaverLive.availability(context, context.helpers.skillsById.get(E.TAILORED_VICTORY)).ready,
+      weaverHooks.availability(context, context.helpers.skillsById.get(E.TAILORED_VICTORY)).ready,
       at < 10.04
     );
   }
@@ -193,7 +193,7 @@ test('Solar Focusing Lens preserves inclusive expiry without early activation or
 // Deliver an owned native attack at each boundary, preserving the command's inclusive control window.
 test('minion command control includes its deadline but excludes the following microsecond', () => {
   const config = { specialization: 'Core' };
-  const native = necromancerProfession.liveRuntimeFor(config);
+  const native = necromancerProfession.runtimeFor(config);
   for (const at of [1.999999, 2, 2.000001]) {
     const result = observeGw2Runtime({
       config,
@@ -318,8 +318,8 @@ test('Mistral requires an armed window and shares inclusive expiry with its disp
       active
     );
     assert.equal(
-      galeshotUi.rotationStateSnapshot({ state: { profession: runtimeFor(result).profession }, atSeconds: at }).length >
-        0,
+      galeshotUi.rotationStateSnapshot({ state: { profession: observedRuntime(result).profession }, atSeconds: at })
+        .length > 0,
       active
     );
   }
@@ -334,8 +334,8 @@ test('Reavers Curse requires an arm, includes the final landing, and cannot be c
     initialEnergy: 100
   };
   // A completed Energy Meld arms the curse; the probe landings then read that live deadline.
-  const armedState = runtimeFor(runRevenant(['Energy Meld'], config)).profession;
-  const unarmedState = runtimeFor(runRevenant([], config)).profession;
+  const armedState = observedRuntime(runRevenant(['Energy Meld'], config)).profession;
+  const unarmedState = observedRuntime(runRevenant([], config)).profession;
   const deadline = armedState.specialization.state.reaversCurseUntil;
   assert.ok(deadline > 0);
   for (const armed of [false, true]) {
@@ -390,7 +390,7 @@ test('Time Bomb cannot rearm early and its marker shares the exact detonation de
       });
     }
   });
-  const context = runtimeFor(result);
+  const context = observedRuntime(result);
   const skill = context.helpers.skillsById.get(M.TIME_SINK);
   const castAt = (at) => ({
     id: 'bomb',

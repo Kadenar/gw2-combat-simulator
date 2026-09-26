@@ -3,7 +3,7 @@ import {
   balanceProfileNumber,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/live-events.js';
+import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';

@@ -2,7 +2,7 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import {
   weaverAttributeRules,
-  weaverLive
+  weaverHooks
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import { weaverUi } from '#gw2/professions/elementalist/specializations/weaver/presentation.js';
@@ -23,9 +23,7 @@ export const weaverModule = defineNativeModule({
     balanceProfiles: WEAVER_BALANCE_PROFILES
   }),
   state: { create: weaverState.create },
-  mechanics: {
-    modifiers: weaverAttributeRules,
-    live: weaverLive
-  },
+  modifiers: weaverAttributeRules,
+  hooks: weaverHooks,
   presentation: weaverUi
 });

@@ -11,7 +11,7 @@ test('cooldown reset refills shared life force for every Necromancer specializat
   for (const specialization of ['Core', 'Reaper', 'Scourge', 'Harbinger', 'Ritualist']) {
     const config = { specialization, initialResource: 25, selectedSkills: ['Plaguelands'] };
     const result = runGw2Runtime({
-      profession: necromancerProfession.liveRuntimeFor(config),
+      profession: necromancerProfession.runtimeFor(config),
       rotation: ['Plaguelands', { type: 'cooldown-reset' }],
       config
     });
@@ -30,7 +30,7 @@ test('cooldown reset refills Specter shadow force and clears skill recharge', ()
   // The registered live family owns Shadow Force and its reset.
   const config = { specialization: 'Specter', initialShadowForce: 0 };
   const result = runGw2Runtime({
-    profession: thiefProfession.liveRuntimeFor(config),
+    profession: thiefProfession.runtimeFor(config),
     rotation: ['Siphon', 'Enter Shadow Shroud', { type: 'wait', durationMs: 1000 }, { type: 'cooldown-reset' }],
     config
   });
@@ -43,8 +43,7 @@ test('cooldown reset refills Specter shadow force and clears skill recharge', ()
 test('cooldown reset restores Revenant energy only after combat starts', () => {
   // The registered live family owns Energy and its reset.
   const config = { specialization: 'Core', initialEnergy: 25 };
-  const simulate = (rotation) =>
-    runGw2Runtime({ profession: revenantProfession.liveRuntimeFor(config), rotation, config });
+  const simulate = (rotation) => runGw2Runtime({ profession: revenantProfession.runtimeFor(config), rotation, config });
 
   const beforeCombat = simulate([{ type: 'cooldown-reset' }, { type: 'combat-start' }]);
   const inCombat = simulate([{ type: 'combat-start' }, { type: 'cooldown-reset' }]);

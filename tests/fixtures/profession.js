@@ -83,7 +83,7 @@ export const testProfession = defineProfession({
       }
     ]
   },
-  live: {
+  hooks: {
     eventHandlers: {
       'fixture.resource': (context, event) => {
         context.profession.charge = Math.min(5, context.profession.charge + Number(event.amount || 0));

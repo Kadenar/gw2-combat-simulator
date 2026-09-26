@@ -62,9 +62,9 @@ test('Alacrity gained during a cast updates reserved recharge and the independen
     });
     const result = simulateGw2({
       profession: {
-        liveRuntimeFor(config) {
+        runtimeFor(config) {
           return {
-            ...profession.liveRuntimeFor(config),
+            ...profession.runtimeFor(config),
             initialize(runtime) {
               runtime.emit({
                 type: 'buff',
@@ -161,12 +161,12 @@ test('GW2 base recharge accepts finite cooldowns and defaults missing or invalid
 // Each spent charge recovers independently of the between-cast lockout.
 test('Warrior ammo preserves charge recovery and its independent cast lockout', () => {
   const config = { selectedSkills: ['Throw Bolas'] };
-  const native = warriorProfession.liveRuntimeFor(config);
+  const native = warriorProfession.runtimeFor(config);
   const skill = native.catalog.skillsByName.get('Throw Bolas');
   const seen = [];
   const result = simulateGw2({
     profession: {
-      liveRuntimeFor: () => ({
+      runtimeFor: () => ({
         ...native,
         onCastComplete(runtime, cast) {
           native.onCastComplete?.(runtime, cast);

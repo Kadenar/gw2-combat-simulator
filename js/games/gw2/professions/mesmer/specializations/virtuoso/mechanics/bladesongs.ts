@@ -1,5 +1,5 @@
 import { mesmerConditionFromProfile, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { emitMesmerEffects } from '#gw2/professions/mesmer/core/live-events.js';
+import { emitMesmerEffects } from '#gw2/professions/mesmer/core/events.js';
 import { applyCryOfPain } from '#gw2/professions/mesmer/core/traits/index.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import {

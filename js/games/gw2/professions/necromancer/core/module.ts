@@ -1,4 +1,4 @@
-import { necromancerLiveMechanics } from '#gw2/professions/necromancer/core/live.js';
+import { necromancerCoreHooks } from '#gw2/professions/necromancer/core/hooks.js';
 
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
@@ -30,9 +30,7 @@ export const necromancerCoreModule = defineNativeModule({
     create: createNecromancerCoreState,
     project: projectNecromancerPlanningState
   },
-  mechanics: {
-    live: necromancerLiveMechanics,
-    modifiers: necromancerCoreAttributeRules
-  },
+  hooks: necromancerCoreHooks,
+  modifiers: necromancerCoreAttributeRules,
   presentation: bindNecromancerCoreUi
 });

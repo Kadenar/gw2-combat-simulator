@@ -3,7 +3,7 @@ import test from 'node:test';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Inject boundary events through the real queue so expiration and completion use their native owners.
 function run(specialization, rotation, selectedTraitIds = [], initialize = () => {}) {
@@ -14,7 +14,7 @@ function run(specialization, rotation, selectedTraitIds = [], initialize = () =>
     stats: { power: 2000, precision: 4000 },
     target: { armor: 2597 }
   };
-  const profession = warriorProfession.liveRuntimeFor(config);
+  const profession = warriorProfession.runtimeFor(config);
   const result = observeGw2Runtime({
     profession: {
       ...profession,
@@ -32,7 +32,7 @@ function run(specialization, rotation, selectedTraitIds = [], initialize = () =>
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const combat = { type: 'combat-start' };
-const state = (result) => runtimeFor(result).profession.specialization.state;
+const state = (result) => observedRuntime(result).profession.specialization.state;
 
 test('Tactical Reload rounds an off-grid application and admits entry exactly at its displayed deadline', () => {
   for (const [delay, charges] of [

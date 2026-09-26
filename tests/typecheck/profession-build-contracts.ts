@@ -28,7 +28,7 @@ export type BuildContractAssertions = [
   Assert<Equal<ReturnType<typeof engineerProfession.createBuildDefaults>, EngineerCanonicalBuild>>,
   Assert<Equal<ReturnType<typeof engineerProfession.migrateBuild>, EngineerCanonicalBuild>>,
   Assert<
-    Equal<'migrateBuild' extends keyof ReturnType<typeof engineerProfession.resolveRuntime> ? true : false, false>
+    Equal<'migrateBuild' extends keyof ReturnType<typeof engineerProfession.resolveProfession> ? true : false, false>
   >,
   Assert<Equal<ReturnType<typeof decorated.migrateBuild>, EngineerCanonicalBuild>>,
   Assert<Equal<ReturnType<typeof fixture.migrateBuild>, { counter: number }>>,

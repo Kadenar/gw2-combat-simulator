@@ -25,7 +25,7 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.DEVASTATOR]: {
-    // Custom: Schedules Devastator's delayed follow-up strike; see `core/live-weapons.ts`.
+    // Custom: Schedules Devastator's delayed follow-up strike; see `core/mechanics/weapons.ts`.
 
     castTimeMs: 1000,
 
@@ -57,7 +57,7 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.ROILING_SKIES]: {
-    // Custom: Schedules Roiling Skies' delayed control packet; see `core/live-weapons.ts`.
+    // Custom: Schedules Roiling Skies' delayed control packet; see `core/mechanics/weapons.ts`.
 
     castTimeMs: 680,
     cooldown: 15,
@@ -106,7 +106,7 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.LIGHTNING_ROD]: {
-    // Custom: Schedules Lightning Rod's charge and pulse sequence; see `core/live-weapons.ts`.
+    // Custom: Schedules Lightning Rod's charge and pulse sequence; see `core/mechanics/weapons.ts`.
 
     castTimeMs: 400,
     interruptCommitMs: 280,
@@ -164,7 +164,7 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.CONDUIT_SURGE]: {
-    // Custom: Schedules the delayed Conduit Surge sequence; see `core/live-weapons.ts`.
+    // Custom: Schedules the delayed Conduit Surge sequence; see `core/mechanics/weapons.ts`.
 
     castTimeMs: 520,
 
@@ -180,7 +180,7 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: []
   },
   [ID.ELECTRIC_ARTILLERY]: {
-    // Custom: Consumes Lightning Rod charges and schedules Electric Artillery; see `core/live-weapons.ts`.
+    // Custom: Consumes Lightning Rod charges and schedules Electric Artillery; see `core/mechanics/weapons.ts`.
 
     castTimeMs: 520,
     cooldown: 1,

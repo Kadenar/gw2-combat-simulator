@@ -5,7 +5,7 @@ import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { guardianUiSkillIdsByName } from '#gw2/professions/guardian/core/presentation.js';
 import { projectGuardianPlanningState } from '#gw2/professions/guardian/family-state.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
@@ -20,8 +20,8 @@ test('Guardian weapon flips share exact deadlines across availability, snapshots
     const config = { selectedTraitIds, primaryWeapon, secondaryWeapon };
     const result = runGuardian([id], config);
     assert.deepEqual(result.warnings, []);
-    const runtime = runtimeFor(result);
-    const native = guardianProfession.liveRuntimeFor(config);
+    const runtime = observedRuntime(result);
+    const native = guardianProfession.runtimeFor(config);
     const parent = guardianCatalog.skillsById.get(id);
     const flip = guardianCatalog.skillsById.get(parent.flipSkillId);
     const window = runtime.profession.core.availableFlips[flip.id];
@@ -45,8 +45,8 @@ test('Guardian weapon flips share exact deadlines across availability, snapshots
     }
 
     const expired = runGuardian([id, wait(duration * 1000)], config);
-    assert.equal(runtimeFor(expired).profession.core.availableFlips[flip.id], undefined);
-    assert.equal(runtimeFor(expired).cooldowns.get(id), runtime.cooldowns.get(id));
+    assert.equal(observedRuntime(expired).profession.core.availableFlips[flip.id], undefined);
+    assert.equal(observedRuntime(expired).cooldowns.get(id), runtime.cooldowns.get(id));
   }
 });
 

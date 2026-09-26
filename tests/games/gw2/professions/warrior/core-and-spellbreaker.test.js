@@ -34,7 +34,7 @@ import { spellbreakerModule } from '#gw2/professions/warrior/specializations/spe
 import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import { spellbreakerAttributeRules } from '#gw2/professions/warrior/specializations/spellbreaker/mechanics/full-counter-rules.js';
 import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -53,7 +53,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createLiveProfessionSimulator(warriorProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(warriorProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -235,12 +235,10 @@ test('Warrior core and elite profession resources remain isolated', () => {
   }
 });
 
-test('Warrior modules register live owners without scheduler or resolver replay hooks', () => {
-  // Every selected slice must opt into native composition and expose no obsolete execution owner.
+test('Warrior modules register runtime hooks without scheduler or resolver replay owners', () => {
+  // Every selected slice must opt into native composition; the module validator rejects obsolete execution owners.
   for (const module of warriorNativeModules) {
-    assert.ok(module.mechanics.live, module.id);
-    assert.equal(module.mechanics.execution, undefined, module.id);
-    assert.equal(module.mechanics.resolution, undefined, module.id);
+    assert.ok(module.hooks, module.id);
   }
 });
 
@@ -967,7 +965,7 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
 test('Warrior execution follows stable skill and packet IDs after display labels change', () => {
   // Run renamed catalog entries through the actual owners; labels cannot select resource tiers or target packets.
   const config = { ...baseConfig, specialization: 'Core', initialResource: 30 };
-  const profession = warriorProfession.liveRuntimeFor(config);
+  const profession = warriorProfession.runtimeFor(config);
   const skills = profession.catalog.skills.map((skill) =>
     [ID.KILL_SHOT, ID.MIGHTY_THROW].includes(skill.id)
       ? {
@@ -1302,7 +1300,7 @@ test('Kill Shot tiers and Fierce Blow target bonuses preserve patched strike coe
       }
     }
   });
-  const run = createLiveProfessionSimulator(patched, { ...baseConfig, patchId: 'warrior-coefficient-test' });
+  const run = createObservedProfessionSimulator(patched, { ...baseConfig, patchId: 'warrior-coefficient-test' });
   const coefficient = (result, id) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === id).coefficient;
   for (const [specialization, resource, expected] of [

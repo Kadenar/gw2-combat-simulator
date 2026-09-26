@@ -31,7 +31,7 @@ test('Warrior leaps retain fire fields that expire during travel', async () => {
     warriorAppAdapter.recalculate(app);
     const config = warriorAppAdapter.simulationConfig(app);
     const result = runGw2Runtime({
-      profession: warriorProfession.liveRuntimeFor(config),
+      profession: warriorProfession.runtimeFor(config),
       config,
       rotation: app.build.rotation
     });
@@ -235,7 +235,7 @@ test('Fan of Fire keeps only cast-time skills behind its retained aftercast', as
   warriorAppAdapter.recalculate(app);
   const config = warriorAppAdapter.simulationConfig(app);
   const result = runGw2Runtime({
-    profession: warriorProfession.liveRuntimeFor(config),
+    profession: warriorProfession.runtimeFor(config),
     config,
     rotation: app.build.rotation
   });
@@ -290,7 +290,7 @@ test('Combustive Shot scales its pulses and field with adrenaline', async () => 
     warriorAppAdapter.recalculate(app);
     const config = warriorAppAdapter.simulationConfig(app);
     const result = runGw2Runtime({
-      profession: warriorProfession.liveRuntimeFor(config),
+      profession: warriorProfession.runtimeFor(config),
       config,
       rotation: app.build.rotation
     });
@@ -352,7 +352,7 @@ test('a primal-burst critical hit grants an aura that detonates no earlier than 
   warriorAppAdapter.recalculate(app);
   const config = warriorAppAdapter.simulationConfig(app);
   const result = runGw2Runtime({
-    profession: warriorProfession.liveRuntimeFor(config),
+    profession: warriorProfession.runtimeFor(config),
     config,
     rotation: app.build.rotation
   });
@@ -385,7 +385,7 @@ test('a final persistent Berserker packet does not extend the rotation horizon',
   warriorAppAdapter.recalculate(app);
   const config = warriorAppAdapter.simulationConfig(app);
   const result = runGw2Runtime({
-    profession: warriorProfession.liveRuntimeFor(config),
+    profession: warriorProfession.runtimeFor(config),
     config,
     rotation: app.build.rotation
   });

@@ -11,7 +11,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     stealTraitSkill: true,
     // Siphon adds Lead Attacks and Sleight of Hand reductions instead of multiplying them.
     stealRechargeMode: 'additive',
-    // Custom: Runs steal traits, grants the stolen skill, and updates shadow force through `specter/live.ts`.
+    // Custom: Runs steal traits, grants the stolen skill, and updates shadow force through `specter/hooks.ts`.
     castTimeMs: 520,
     interruptCommitMs: 480,
     cooldown: 18,
@@ -28,7 +28,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ]
   },
   [ID.ENTER_SHADOW_SHROUD]: {
-    // Custom: Enters Shadow Shroud and starts shadow-force drain through `specter/live.ts`.
+    // Custom: Enters Shadow Shroud and starts shadow-force drain through `specter/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     shadowShroudTransition: 'enter',
     castTimeMs: 0,
@@ -39,7 +39,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: []
   },
   [ID.ETERNAL_NIGHT]: {
-    // Custom: Applies Shadow Shroud skill trait effects after the cast through `specter/live.ts`.
+    // Custom: Applies Shadow Shroud skill trait effects after the cast through `specter/hooks.ts`.
     // The supplied log retains the 360/680 ms impacts within a 760 ms activation.
     castTimeMs: 760,
     cooldown: 8,
@@ -71,7 +71,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     shadowShroudSkill: true
   },
   [ID.GRASPING_SHADOWS]: {
-    // Custom: Applies Shadow Shroud skill trait effects after the cast through `specter/live.ts`.
+    // Custom: Applies Shadow Shroud skill trait effects after the cast through `specter/hooks.ts`.
     castTimeMs: 240,
     cooldown: 3,
     initiativeCost: 0,
@@ -108,7 +108,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     shadowShroudSkill: true
   },
   [ID.DAWNS_REPOSE]: {
-    // Custom: Applies Shadow Shroud skill trait effects after the cast through `specter/live.ts`.
+    // Custom: Applies Shadow Shroud skill trait effects after the cast through `specter/hooks.ts`.
     // The leap hits at 800 ms and finishes its activation at 960 ms in the supplied log.
     castTimeMs: 960,
     cooldown: 8,
@@ -150,7 +150,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ]
   },
   [ID.MIND_SHOCK]: {
-    // Custom: Applies Shadow Shroud skill trait effects after the cast through `specter/live.ts`.
+    // Custom: Applies Shadow Shroud skill trait effects after the cast through `specter/hooks.ts`.
     castTimeMs: 360,
     cooldown: 16,
     initiativeCost: 0,
@@ -195,7 +195,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     shadowShroudSkill: true
   },
   [ID.EXIT_SHADOW_SHROUD]: {
-    // Custom: Leaves Shadow Shroud and stops its drain through `specter/live.ts`.
+    // Custom: Leaves Shadow Shroud and stops its drain through `specter/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     shadowShroudTransition: 'exit',
     castTimeMs: 0,
@@ -345,7 +345,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   },
   [ID.HAUNT_SHOT]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    // Custom: Applies Shadow Shroud skill trait effects after the cast through `specter/live.ts`.
+    // Custom: Applies Shadow Shroud skill trait effects after the cast through `specter/hooks.ts`.
     castTimeMs: 640,
     interruptCommitMs: 560,
     cooldown: 0,

@@ -1,4 +1,4 @@
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 
@@ -28,7 +28,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createLiveProfessionSimulator(engineerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
 
 test('Explosives and Firearms traits materialize offensive effects', () => {
   const result = simulate('Amalgam', ['Grenade Kit', 'Shrapnel Grenade'], {
@@ -65,7 +65,7 @@ test('Explosives and Firearms traits materialize offensive effects', () => {
   assert.ok(
     result.resolvedEvents.some((event) => event.type === 'condition' && event.name === 'Incendiary Powder — Burning')
   );
-  assert.ok(runtimeFor(result).profession.core.traitProcReadyAt.thermalVisionUntil > 0);
+  assert.ok(observedRuntime(result).profession.core.traitProcReadyAt.thermalVisionUntil > 0);
 });
 
 test('Explosives traits use the requested packets, gates, and health modifiers', () => {
@@ -658,7 +658,7 @@ test('Energy Amplifier adds Power and Healing Power during regeneration', () => 
     time: 0
   };
   const attributes = engineerProfession
-    .resolveRuntime({
+    .resolveProfession({
       specialization: 'Core'
     })
     .modifyAttributes(

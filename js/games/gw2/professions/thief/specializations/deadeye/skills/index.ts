@@ -5,7 +5,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.STEAL_WARMTH]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/live.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -18,7 +18,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.STEAL_RESISTANCE]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/live.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -31,7 +31,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.STEAL_PRECISION]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/live.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -44,7 +44,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.STEAL_HEALTH]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/live.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -56,7 +56,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.STEAL_STRENGTH]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/live.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -69,7 +69,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.SHADOW_FLARE]: {
-    // Custom: Arms the temporary Shadow Swap follow-up through `deadeye/live.ts`.
+    // Custom: Arms the temporary Shadow Swap follow-up through `deadeye/hooks.ts`.
     castTimeMs: 480,
     cooldown: 20,
     initiativeCost: 0,
@@ -121,7 +121,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.MERCY]: {
-    // Custom: Consumes Malice, refunds initiative, and resets Deadeye's Mark through `deadeye/live.ts`.
+    // Custom: Consumes Malice, refunds initiative, and resets Deadeye's Mark through `deadeye/hooks.ts`.
     castTimeMs: 0,
     cooldown: 1,
     ammo: 2,
@@ -131,7 +131,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: []
   },
   [ID.STEAL_TIME]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/live.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
     castTimeMs: 280,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -151,7 +151,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.STEAL_DURABILITY]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/live.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -166,14 +166,14 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   [ID.DEADEYES_MARK]: {
     stealTraitSkill: true,
     movementSkill: true,
-    // Custom: Marks the target, initializes Malice/stolen skills, and schedules expiry through `deadeye/live.ts`.
+    // Custom: Marks the target, initializes Malice/stolen skills, and schedules expiry through `deadeye/hooks.ts`.
     castTimeMs: 0,
     cooldown: 25,
     initiativeCost: 0,
     effects: []
   },
   [ID.STEAL_DEFENSES]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/live.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -186,7 +186,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ])
   },
   [ID.MALICIOUS_DEATHS_JUDGMENT]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/live.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
     castTimeMs: 600,
     cooldown: 1,
     initiativeCost: 0,
@@ -205,7 +205,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.STEAL_MOBILITY]: {
-    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/live.ts`.
+    // Custom: Gates stealth by Malice, shares boons, consumes the stored skill, and applies traits through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 0.5,
     initiativeCost: 0,
@@ -223,7 +223,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     effects: []
   },
   [ID.SHADOW_MELD]: {
-    // Custom: Clears Revealed at cast start so stealth can apply through `deadeye/live.ts`.
+    // Custom: Clears Revealed at cast start so stealth can apply through `deadeye/hooks.ts`.
     castTimeMs: 440,
     cooldown: 5,
     ammo: 2,
@@ -240,7 +240,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ]
   },
   [ID.SHADOW_SWAP]: {
-    // Custom: Consumes the Shadow Swap follow-up through `deadeye/live.ts`.
+    // Custom: Consumes the Shadow Swap follow-up through `deadeye/hooks.ts`.
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -282,7 +282,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ]
   },
   [ID.MALICIOUS_SURPRISE_SHOT]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/live.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
     castTimeMs: 200,
     cooldown: 1,
     initiativeCost: 0,
@@ -314,7 +314,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_SNEAK_ATTACK]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/live.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
     castTimeMs: 680,
     cooldown: 1,
     initiativeCost: 0,
@@ -343,7 +343,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_BACKSTAB]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/live.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
     castTimeMs: 440,
     cooldown: 1,
     initiativeCost: 0,
@@ -362,7 +362,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_TACTICAL_STRIKE]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/live.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
     castTimeMs: 440,
     cooldown: 1,
     initiativeCost: 0,
@@ -378,7 +378,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_SHADOWSQUALL]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/live.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
     castTimeMs: 1680,
     cooldown: 0,
     initiativeCost: 0,
@@ -410,7 +410,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_HOOK_STRIKE]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/live.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
     castTimeMs: 0,
     cooldown: 1,
     initiativeCost: 0,
@@ -440,7 +440,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     malicious: true
   },
   [ID.MALICIOUS_CUNNING_SALVO]: {
-    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/live.ts`.
+    // Custom: Snapshots Malice, scales malicious packets, and consumes stealth through `deadeye/hooks.ts`.
     castTimeMs: 360,
     cooldown: 1,
     initiativeCost: 0,
@@ -481,7 +481,7 @@ export const DEADEYE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   [ID.MALICIOUS_ASHEN_ASSAULT]: {
     preservesStealth: true,
     spearStealthAttack: true,
-    // Custom: Snapshots Malice, scales the final hit/Torment, refunds initiative, and consumes stealth through `deadeye/live.ts`.
+    // Custom: Snapshots Malice, scales the final hit/Torment, refunds initiative, and consumes stealth through `deadeye/hooks.ts`.
     castTimeMs: 400,
     cooldown: 0,
     initiativeCost: 0,

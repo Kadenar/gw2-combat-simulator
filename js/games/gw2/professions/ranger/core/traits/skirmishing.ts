@@ -1,4 +1,4 @@
-import { emitRangerBuff, rangerEvent } from '#gw2/professions/ranger/core/live-events.js';
+import { emitRangerBuff, rangerEvent } from '#gw2/professions/ranger/core/events.js';
 /** Owns Core Ranger Skirmishing dodge, weapon-swap, and critical-hit trait behavior. */
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';

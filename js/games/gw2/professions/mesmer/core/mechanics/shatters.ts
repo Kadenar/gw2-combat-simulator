@@ -1,5 +1,5 @@
 import { mesmerConditionFromProfile, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { emitMesmerEffects } from '#gw2/professions/mesmer/core/live-events.js';
+import { emitMesmerEffects } from '#gw2/professions/mesmer/core/events.js';
 import { applyCryOfPain, triggerBlindingDissipation } from '#gw2/professions/mesmer/core/traits/index.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type {

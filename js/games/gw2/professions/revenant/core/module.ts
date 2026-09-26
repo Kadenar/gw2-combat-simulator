@@ -9,7 +9,7 @@ import {
   REVENANT_CORE_EXTRA_SKILLS
 } from '#gw2/professions/revenant/core/skills/index.js';
 import { REVENANT_CORE_BALANCE_PROFILES } from '#gw2/professions/revenant/core/profiles.js';
-import { revenantCoreLiveMechanics } from '#gw2/professions/revenant/core/live.js';
+import { revenantCoreHooks } from '#gw2/professions/revenant/core/hooks.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const revenantCoreModule = defineNativeModule({
@@ -20,6 +20,7 @@ export const revenantCoreModule = defineNativeModule({
     balanceProfiles: REVENANT_CORE_BALANCE_PROFILES
   }),
   state: { create: createRevenantCoreState, project: projectRevenantPlanningState },
-  mechanics: { modifiers: revenantCoreAttributeRules, live: revenantCoreLiveMechanics },
+  modifiers: revenantCoreAttributeRules,
+  hooks: revenantCoreHooks,
   presentation: bindRevenantCoreUi
 });

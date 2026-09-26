@@ -37,6 +37,18 @@ function assertObject(value: object | null | undefined, label: string): void {
   }
 }
 
+/** Every field a module shell may declare; `kind` is stamped by `defineNativeModule` itself. */
+const NATIVE_MODULE_FIELDS = Object.freeze([
+  'id',
+  'kind',
+  'data',
+  'state',
+  'resources',
+  'modifiers',
+  'hooks',
+  'presentation'
+]);
+
 function assertNativeModuleDefinition(definition: object): void {
   assertObject(definition, 'Native profession module');
   const candidate = definition as {
@@ -46,10 +58,15 @@ function assertNativeModuleDefinition(definition: object): void {
       readonly create?: (...args: never[]) => object;
       readonly project?: (...args: never[]) => object;
     };
-    readonly mechanics?: { readonly live?: object; readonly modifiers?: object };
+    readonly hooks?: object;
   };
   if (!String(candidate.id || '').trim()) {
     throw new TypeError('Native profession module id is required.');
+  }
+
+  // Unknown fields would otherwise be dropped silently, leaving their behavior uninstalled.
+  for (const key of Object.keys(candidate)) {
+    if (!NATIVE_MODULE_FIELDS.includes(key)) throw new TypeError(`Unsupported native module field: ${key}.`);
   }
 
   assertObject(candidate.data, `${candidate.id}.data`);
@@ -68,14 +85,8 @@ function assertNativeModuleDefinition(definition: object): void {
     }
   }
 
-  if (candidate.mechanics != null) {
-    assertObject(candidate.mechanics, `${candidate.id}.mechanics`);
-  }
-
-  if (candidate.mechanics) {
-    for (const key of Object.keys(candidate.mechanics)) {
-      if (!['live', 'modifiers'].includes(key)) throw new TypeError(`Unsupported native mechanic: ${key}.`);
-    }
+  if (candidate.hooks != null) {
+    assertObject(candidate.hooks, `${candidate.id}.hooks`);
   }
 }
 
@@ -104,12 +115,7 @@ export function defineNativeModule<
     kind: 'native-profession-module' as const,
     data: Object.freeze({ ...definition.data }),
     state: Object.freeze({ ...definition.state }),
-    mechanics: definition.mechanics
-      ? Object.freeze({
-          ...definition.mechanics,
-          live: definition.mechanics.live ? Object.freeze({ ...definition.mechanics.live }) : undefined
-        })
-      : undefined,
+    hooks: definition.hooks ? Object.freeze({ ...definition.hooks }) : undefined,
     presentation:
       typeof definition.presentation === 'function'
         ? definition.presentation
@@ -124,8 +130,7 @@ function compileNativeModule(
   applicationCatalog: Readonly<CanonicalCatalog>,
   fragment: Readonly<ProfessionModuleCatalogFragment>
 ): ProfessionModuleDefinition {
-  const mechanics = module.mechanics || {};
-  const modifiers = Array.isArray(mechanics.modifiers) ? { modifierRules: mechanics.modifiers } : mechanics.modifiers;
+  const modifiers = Array.isArray(module.modifiers) ? { modifierRules: module.modifiers } : module.modifiers;
   let compiledUi: Partial<ProfessionUiContract> | undefined;
   return {
     id: module.id,
@@ -194,35 +199,34 @@ export function defineNativeProfession<
     ui: (typeof definition.presentation === 'function'
       ? definition.presentation(assembly.catalog)
       : definition.presentation) as Partial<ProfessionUiContract> | undefined,
-    // Capacity previews read the live policies of modules that own their resources there; unmigrated selections keep
-    // their composed module declarations.
+    // Capacity previews read the resource policies owned by the selected modules' hooks.
     resourcesFor(specialization) {
-      const live = liveRuntimeFor({ specialization });
+      const runtime = runtimeFor({ specialization });
       return {
-        ...(live.resources as ProfessionResourcePreview),
-        ...(live.endurance == null
+        ...(runtime.resources as ProfessionResourcePreview),
+        ...(runtime.endurance == null
           ? {}
-          : { endurance: live.endurance as unknown as ProfessionResourcePreview['endurance'] })
+          : { endurance: runtime.endurance as unknown as ProfessionResourcePreview['endurance'] })
       };
     }
   };
   const family = defineProfessionFamily<NativeProfessionRuntimeState<TModules>, TBuild>(engineDefinition);
   type State = NativeProfessionRuntimeState<TModules>;
-  const liveRuntimes = new Map<string, RuntimeProfession<State>>();
-  /** Reuse catalog/modifier composition while installing only explicitly converted live mechanics. */
-  function liveRuntimeFor(config: Gw2Config): RuntimeProfession<State> {
+  const runtimes = new Map<string, RuntimeProfession<State>>();
+  /** Composes Core and the selected specialization's hooks over the resolved profession's catalog and modifiers. */
+  function runtimeFor(config: Gw2Config): RuntimeProfession<State> {
     const specialization = config.specialization ?? 'Core';
-    const cached = liveRuntimes.get(specialization);
+    const cached = runtimes.get(specialization);
     if (cached) return cached;
     const selected = [core, ...modules.slice(1).filter((module) => module.id === specialization)];
     if (specialization !== 'Core' && selected.length !== 2)
       throw new TypeError(`Unknown specialization: ${specialization}.`);
-    const source = family.resolveRuntime(config);
-    const hooks = selected.map((module) => module.mechanics?.live ?? {}) as Partial<RuntimeProfession<State>>[];
+    const source = family.resolveProfession(config);
+    const hooks = selected.map((module) => module.hooks ?? {}) as Partial<RuntimeProfession<State>>[];
     const merged = <K extends 'tasks' | 'eventHandlers'>(key: K): RuntimeProfession<State>[K] => {
       const entries = hooks.flatMap((hook) => Object.entries(hook[key] ?? {}));
       if (new Set(entries.map(([name]) => name)).size !== entries.length)
-        throw new TypeError(`Duplicate live ${key} owner.`);
+        throw new TypeError(`Duplicate hook ${key} owner.`);
       return Object.fromEntries(entries) as RuntimeProfession<State>[K];
     };
 
@@ -341,7 +345,7 @@ export function defineNativeProfession<
         return at;
       },
       maximumAmmo(context, skill, maximum) {
-        // Selected modules adjust the same pool cap used by live acceptance and serial recharge.
+        // Selected modules adjust the same pool cap used by cast acceptance and serial recharge.
         for (const hook of hooks) maximum = hook.maximumAmmo?.(context, skill, maximum) ?? maximum;
         return maximum;
       },
@@ -350,7 +354,7 @@ export function defineNativeProfession<
         return work;
       }
     };
-    liveRuntimes.set(specialization, runtime);
+    runtimes.set(specialization, runtime);
     return runtime;
   }
 
@@ -359,7 +363,7 @@ export function defineNativeProfession<
     Object.defineProperties(
       {
         nativeDefinition: Object.freeze({ ...definition }),
-        liveRuntimeFor,
+        runtimeFor,
         specializationIds: Object.freeze(modules.slice(1).map((module) => module.id))
       },
       Object.getOwnPropertyDescriptors(family)

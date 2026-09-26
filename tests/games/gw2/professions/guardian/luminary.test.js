@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { LUMINARY_INITIAL_STATE_SKILL_IDS } from '#gw2/professions/guardian/specializations/luminary/skills/index.js';
@@ -31,7 +31,10 @@ const PLAYER_AUDIENCE = Object.freeze({
 // The shared exit path exempts precombat manual exits and expiry, while preserving combat recharge.
 test('Radiant Forge precombat exits leave entry ready', () => {
   const run = (rotation) =>
-    createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(undefined, rotation);
+    createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+      undefined,
+      rotation
+    );
   const precombat = run(['Enter Radiant Forge', 'Exit Radiant Forge', { type: 'combat-start' }, 'Enter Radiant Forge']);
   assert.deepEqual(precombat.warnings, []);
   assert.equal(
@@ -66,7 +69,7 @@ test('Illuminating Inspiration delegates capped reductions for the three radiant
         }
       }
     );
-    const runtime = runtimeFor(result);
+    const runtime = observedRuntime(result);
     assert.ok(Math.abs(runtime.cooldowns.get(ids.RADIANT_JUSTICE) - (enabled ? 16 : 20)) < 1e-9);
     assert.equal(runtime.cooldowns.get(ids.RADIANT_RESOLVE), enabled ? runtime.time : 2);
     assert.equal(runtime.cooldowns.get(ids.RADIANT_COURAGE), 0);
@@ -78,7 +81,7 @@ test('committed disc cancellation preserves the illuminated shock wave', () => {
   // Verify persistence and enhancement on the same delayed packet, without pinning timing metadata.
   const disc = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.GLEAMING_DISC);
   const run = (illuminated, interruptMs) =>
-    createLiveProfessionSimulator(guardianProfession, { ...config, boons: { quickness: true } })(undefined, [
+    createObservedProfessionSimulator(guardianProfession, { ...config, boons: { quickness: true } })(undefined, [
       ...(illuminated ? ['Symbol of Luminance'] : []),
       { name: disc.name, interruptMs },
       { type: 'wait', durationMs: 1000 }
@@ -103,7 +106,7 @@ test('committed disc cancellation preserves the illuminated shock wave', () => {
 test('a launched hammer still finishes its blast and supplies aura for the following Sovereign trigger', () => {
   // A committed cancel must preserve the combo-producing impact, not only the weapon flip state.
   const hammer = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER);
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     boons: { quickness: true },
@@ -125,7 +128,7 @@ test('a launched hammer still finishes its blast and supplies aura for the follo
 
 test('Dazzling Hammer grants precombat Light Aura for the next in-combat Sovereign detonation', () => {
   // Off-target setup must grant the hammer aura without recording its precombat damage.
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
@@ -169,12 +172,12 @@ test('Luminary skill boons reach the effects chart with boon-duration scaling', 
     [['Enter Radiant Forge', 'Radiant Bulwark', 'Glaring Burst'], ['Resolution']],
     [['Valorous Stance'], ['Stability', 'Protection']]
   ]) {
-    const result = createLiveProfessionSimulator(guardianProfession, {
+    const result = createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Luminary',
       stats: { ...config.stats, concentration: 750 }
     })(undefined, [...rotation, { type: 'wait', durationMs: 1000 }]);
-    const baseline = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+    const baseline = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
       undefined,
       [...rotation, { type: 'wait', durationMs: 1000 }]
     );
@@ -200,7 +203,7 @@ test('Luminary skill boons reach the effects chart with boon-duration scaling', 
 
 test('Radiant Resolve empowers only the next completed staff equip', () => {
   for (const empowered of [false, true]) {
-    const result = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+    const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
       undefined,
       [
         ...(empowered ? ['Radiant Resolve'] : []),
@@ -219,7 +222,7 @@ test('Radiant Resolve empowers only the next completed staff equip', () => {
     assert.equal(result.planningState.profession.radiantResolveArmed, false);
   }
 
-  const interrupted = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+  const interrupted = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
     undefined,
     ['Radiant Resolve', 'Enter Radiant Forge', { name: 'Luminous Staff', interruptMs: 100 }]
   );
@@ -231,7 +234,7 @@ test('Radiant Resolve empowers only the next completed staff equip', () => {
 });
 
 test('Righteous Instincts Might continues across Resolution pulses without duplicating boundary ticks', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     primaryWeapon: 'Greatsword',
@@ -254,7 +257,7 @@ test('Righteous Instincts Might continues across Resolution pulses without dupli
 test('Resplendent Weaponry grants scaled party boons only on traited, completed weapon equips', () => {
   for (const traited of [false, true]) {
     for (const weapon of ['Dazzling Hammer', 'Luminous Staff', 'Gleaming Blade', 'Radiant Bulwark']) {
-      const result = createLiveProfessionSimulator(guardianProfession, {
+      const result = createObservedProfessionSimulator(guardianProfession, {
         ...config,
         specialization: 'Luminary',
         stats: { ...config.stats, concentration: 750 },
@@ -294,7 +297,7 @@ test('Resplendent Weaponry grants scaled party boons only on traited, completed 
     ['Enter Radiant Forge', 'Dazzling Hammer', 'Shining Spin'],
     ['Enter Radiant Forge', { name: 'Dazzling Hammer', interruptMs: 100 }]
   ]) {
-    const result = createLiveProfessionSimulator(guardianProfession, {
+    const result = createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Luminary',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.RESPLENDENT_WEAPONRY]
@@ -336,12 +339,12 @@ test('Luminary chart labels radiant weapons and replaces the previous armament',
 });
 
 test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
-  const unavailable = createLiveProfessionSimulator(guardianProfession, {
+  const unavailable = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
   })(undefined, ['Dazzling Hammer']);
-  const result = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+  const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
     undefined,
     ['Enter Radiant Forge', 'Dazzling Hammer', 'Shining Spin', 'Glaring Burst']
   );
@@ -360,8 +363,8 @@ test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
 test('Luminary Forge availability follows skill IDs after display labels change', () => {
   const config = { specialization: 'Luminary' };
   const result = runGuardian(['Enter Radiant Forge'], config);
-  const runtime = runtimeFor(result);
-  const native = guardianProfession.liveRuntimeFor(config);
+  const runtime = observedRuntime(result);
+  const native = guardianProfession.runtimeFor(config);
   const enter = {
     ...guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE),
     name: 'Renamed forge entry'
@@ -379,7 +382,10 @@ test('Guardian weapon and Radiant Forge flips occupy one live palette tile', () 
     results: null
   };
   const displayedIdsAfter = (rotation, skillIds, extraConfig = {}) => {
-    app.results = createLiveProfessionSimulator(guardianProfession, { ...config, ...extraConfig })(undefined, rotation);
+    app.results = createObservedProfessionSimulator(guardianProfession, { ...config, ...extraConfig })(
+      undefined,
+      rotation
+    );
 
     return displayedSkillTiles(
       app,
@@ -471,7 +477,7 @@ test('Guardian weapon and Radiant Forge flips occupy one live palette tile', () 
 });
 
 test('Sword Glaring Burst alternates its cadence and every weapon variant applies vulnerability', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     boons: { quickness: true }
@@ -532,7 +538,7 @@ test('Sword Glaring Burst alternates its cadence and every weapon variant applie
 });
 
 test('Luminary Radiant Forge transitions reset weapon autoattack chains', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     primaryWeapon: 'Greatsword'
@@ -543,7 +549,7 @@ test('Luminary Radiant Forge transitions reset weapon autoattack chains', () => 
 });
 
 test('Radiant Forge strikes use its normalized transform weapon strength', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+  const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
     undefined,
     [
       'Enter Radiant Forge',
@@ -588,7 +594,7 @@ test('Radiant Forge strikes use its normalized transform weapon strength', () =>
 
 test('Radiant Forge recharge is reduced when at most one weapon is used', () => {
   const rechargeAfter = (radiantWeapons) => {
-    const result = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+    const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
       undefined,
       ['Enter Radiant Forge', ...radiantWeapons, 'Exit Radiant Forge', 'Enter Radiant Forge']
     );
@@ -609,7 +615,10 @@ test('Radiant Forge recharge is reduced when at most one weapon is used', () => 
 
 test('Radiant Forge expiry starts the same reduced recharge as manual exit', () => {
   const run = (rotation) =>
-    createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(undefined, rotation);
+    createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+      undefined,
+      rotation
+    );
   const entered = run(['Enter Radiant Forge']);
   const expiresAt = entered.planningState.profession.radiantForgeEndsAt;
   const expired = run(['Enter Radiant Forge', { type: 'wait', durationMs: expiresAt * 1000 }]);
@@ -627,7 +636,7 @@ test('Radiant Forge expiry starts the same reduced recharge as manual exit', () 
 test('Forge transitions and weapon equips trigger swap sigils only in combat', () => {
   // Entry, manual/automatic exit, and weapon equip count as swaps; flip attacks do not.
   const run = (rotation) =>
-    createLiveProfessionSimulator(guardianProfession, {
+    createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Luminary',
       sigilSets: [{ names: ['Hydromancy', 'Geomancy'] }, { names: [] }]
@@ -690,12 +699,12 @@ test('Radiant Armaments enhances hammer strikes and is replaced by staff', () =>
     'Luminous Staff',
     { type: 'wait', durationMs: 3500 }
   ];
-  const empowered = createLiveProfessionSimulator(guardianProfession, {
+  const empowered = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS]
   })(undefined, rotation);
-  const armaments = createLiveProfessionSimulator(guardianProfession, {
+  const armaments = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS]
@@ -703,12 +712,12 @@ test('Radiant Armaments enhances hammer strikes and is replaced by staff', () =>
   const damage = (result, name) => result.resolvedEvents.find((event) => event.name === name);
   const dazzling = damage(armaments, 'Dazzling Hammer');
   const shining = damage(armaments, 'Shining Spin');
-  const defiantAfterDaze = createLiveProfessionSimulator(guardianProfession, {
+  const defiantAfterDaze = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     target: { ...config.target, defiant: true }
   })(undefined, ['Enter Radiant Forge', 'Dazzling Hammer', 'Shining Spin']);
-  const ordinaryAfterDaze = createLiveProfessionSimulator(guardianProfession, {
+  const ordinaryAfterDaze = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary'
   })(undefined, ['Enter Radiant Forge', 'Dazzling Hammer', 'Shining Spin']);
@@ -738,7 +747,7 @@ test('Radiant Armaments enhances hammer strikes and is replaced by staff', () =>
 
 test('Radiant-weapon traits require a committed equip cast', () => {
   const run = (radiantWeapon) =>
-    createLiveProfessionSimulator(guardianProfession, {
+    createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Luminary',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS, GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS]
@@ -758,7 +767,7 @@ test('a committed radiant weapon cancel arms and consumes its flip while an unco
   // Exercise the state transition using the catalog's cutoff, without pinning its numerical tuning.
   const hammer = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.DAZZLING_HAMMER);
   const run = (interruptMs) =>
-    createLiveProfessionSimulator(guardianProfession, {
+    createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Luminary',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS]
@@ -785,7 +794,7 @@ test('Radiant weapon equips replace the prior flip and preserve its parent coold
 
   for (const [index, [parent, flip]] of weapons.entries()) {
     const [nextParent, nextFlip] = weapons[(index + 1) % weapons.length];
-    const result = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+    const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
       undefined,
       ['Enter Radiant Forge', parent, nextParent]
     );
@@ -795,7 +804,7 @@ test('Radiant weapon equips replace the prior flip and preserve its parent coold
     assert.ok(result.planningState.cooldowns[parent].remaining > 0, parent);
   }
 
-  const glaringBurst = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+  const glaringBurst = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
     undefined,
     ['Enter Radiant Forge', 'Dazzling Hammer', 'Glaring Burst']
   );
@@ -806,7 +815,7 @@ test('Radiant weapon equips replace the prior flip and preserve its parent coold
 test('Guardian armaments share the additive sigil bucket', () => {
   const rotation = ['Enter Radiant Forge', 'Dazzling Hammer', 'Shining Spin'];
   const run = ({ selectedTraitIds = [], sigilSets = undefined, burning = false } = {}) =>
-    createLiveProfessionSimulator(guardianProfession, {
+    createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Luminary',
       selectedTraitIds,
@@ -841,19 +850,19 @@ test('Guardian armaments share the additive sigil bucket', () => {
 });
 
 test('Radiant virtues grant one-use hammer and sword empowerments', () => {
-  const armedHammer = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+  const armedHammer = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
     undefined,
     ['Radiant Justice']
   );
-  const hammer = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+  const hammer = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
     undefined,
     ['Radiant Justice', 'Enter Radiant Forge', 'Dazzling Hammer', 'Dazzling Hammer']
   );
-  const armedSword = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+  const armedSword = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
     undefined,
     ['Radiant Courage']
   );
-  const sword = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+  const sword = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
     undefined,
     ['Radiant Courage', 'Enter Radiant Forge', 'Gleaming Blade', 'Gleaming Blade']
   );
@@ -885,7 +894,7 @@ test('Radiant virtues grant one-use hammer and sword empowerments', () => {
 
 test('Radiant Justice selects the first committed hammer impact after activation', () => {
   const run = (rotation) =>
-    createLiveProfessionSimulator(guardianProfession, {
+    createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Luminary',
       boons: { quickness: true }
@@ -951,7 +960,7 @@ test('Radiant Justice selects the first committed hammer impact after activation
 
 test('Guardian strike modifiers use their tested additive and mult buckets', () => {
   const run = (selectedTraitIds) =>
-    createLiveProfessionSimulator(guardianProfession, {
+    createObservedProfessionSimulator(guardianProfession, {
       ...config,
       // Keep both boon-gated modifiers active so this test isolates damage bucket arithmetic from application order.
       boons: { fury: true, resolution: true },
@@ -980,7 +989,7 @@ test('Guardian strike modifiers use their tested additive and mult buckets', () 
 
 test('Piercing Stance applies its bonus to its first strike without stacking damage on refresh', () => {
   // Compare the skill's own formula with the bonus, both before and after an existing stance application.
-  const result = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+  const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
     undefined,
     ['Piercing Stance', 'Piercing Stance']
   );
@@ -999,31 +1008,31 @@ test('Piercing Stance applies its bonus to its first strike without stacking dam
 });
 
 test('Luminary stances apply modifiers, combos, delayed damage, and control', () => {
-  const piercing = createLiveProfessionSimulator(guardianProfession, {
+  const piercing = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     relic: 'Claw'
   })(undefined, ['Piercing Stance', 'Piercing Stance', { type: 'wait', durationMs: 1000 }]);
-  const daring = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+  const daring = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
     undefined,
     ['Daring Advance', { type: 'wait', durationMs: 1000 }]
   );
-  const daringThenPiercing = createLiveProfessionSimulator(guardianProfession, {
+  const daringThenPiercing = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary'
   })(undefined, ['Daring Advance', 'Piercing Stance', { type: 'wait', durationMs: 1000 }]);
-  const quickPiercing = createLiveProfessionSimulator(guardianProfession, {
+  const quickPiercing = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     boons: { quickness: true }
   })(undefined, ['Piercing Stance']);
-  const effulgent = createLiveProfessionSimulator(guardianProfession, {
+  const effulgent = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     primaryWeapon: 'Greatsword',
     relic: 'Claw'
   })(undefined, ['Effulgent Stance', 'Whirling Wrath', { type: 'wait', durationMs: 4000 }]);
-  const effulgentWithGuardianProcs = createLiveProfessionSimulator(guardianProfession, {
+  const effulgentWithGuardianProcs = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
@@ -1085,7 +1094,7 @@ test('Luminary stances apply modifiers, combos, delayed damage, and control', ()
 });
 
 test('off-target Luminary precasts retain setup without damaging the target', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+  const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
     undefined,
     [
       'Enter Radiant Forge',
@@ -1120,7 +1129,7 @@ test('Luminary hidden actions restore supplied opening-state durations', () => {
     empoweredArmaments: 14_514,
     radiantHammer: 7_320
   };
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     relic: 'Claw'
@@ -1143,7 +1152,7 @@ test('Luminary hidden actions restore supplied opening-state durations', () => {
 
 test('Luminary Light Aura follows resolved combos instead of hardcoded leap casts', () => {
   const simulate = (rotation, selectedTraitIds = []) =>
-    createLiveProfessionSimulator(guardianProfession, {
+    createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Luminary',
       primaryWeapon: 'Greatsword',
@@ -1195,7 +1204,7 @@ test('Luminary Light Aura follows resolved combos instead of hardcoded leap cast
 
 test('Dazzling Hammer combos at the Symbol of Resolution expiry boundary', () => {
   const run = (waitMs) =>
-    createLiveProfessionSimulator(guardianProfession, {
+    createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Luminary',
       primaryWeapon: 'Greatsword',
@@ -1220,7 +1229,7 @@ test('Dazzling Hammer combos at the Symbol of Resolution expiry boundary', () =>
 });
 
 test('Sovereign of Light ignores a core leap that refreshes Light Aura', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     primaryWeapon: 'Greatsword',
@@ -1241,28 +1250,28 @@ test('Sovereign of Light ignores a core leap that refreshes Light Aura', () => {
 });
 
 test('Sovereign of Light consumes combo and trait-granted light auras', () => {
-  const sovereignJustice = createLiveProfessionSimulator(guardianProfession, {
+  const sovereignJustice = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
   })(undefined, ['Enter Radiant Forge', 'Dazzling Hammer']);
-  const activationJustice = createLiveProfessionSimulator(guardianProfession, {
+  const activationJustice = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
   })(undefined, ['Effulgent Stance', 'Radiant Justice', { type: 'wait', durationMs: 4000 }]);
-  const combo = createLiveProfessionSimulator(guardianProfession, {
+  const combo = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     primaryWeapon: 'Greatsword',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
   })(undefined, ['Symbol of Resolution', 'Leap of Faith', 'Enter Radiant Forge', 'Dazzling Hammer']);
-  const justice = createLiveProfessionSimulator(guardianProfession, {
+  const justice = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.JUSTICE_IS_BLIND, GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
   })(undefined, ['Piercing Stance', 'Radiant Justice', 'Piercing Stance']);
-  const justiceWithClaw = createLiveProfessionSimulator(guardianProfession, {
+  const justiceWithClaw = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     relic: 'Claw',
@@ -1313,7 +1322,7 @@ test('Sovereign of Light consumes combo and trait-granted light auras', () => {
 
 test('Sovereign of Light receives fresh Piercing Stance but not fresh Daring Advance', () => {
   const simulate = (rotation) =>
-    createLiveProfessionSimulator(guardianProfession, {
+    createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Luminary',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
@@ -1331,7 +1340,7 @@ test('Sovereign of Light receives fresh Piercing Stance but not fresh Daring Adv
 });
 
 test('Sovereign of Light resolves overlapping aura grants and finishers chronologically', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     boons: { quickness: true },
     specialization: 'Luminary',
@@ -1369,15 +1378,15 @@ test('Luminary recharge traits alter the intended cooldown families', () => {
     'Enter Radiant Forge',
     'Dazzling Hammer'
   ];
-  const withMaster = createLiveProfessionSimulator(guardianProfession, {
+  const withMaster = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.MASTER_AT_ARMS]
   })(undefined, masterRotation);
-  const withoutMaster = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
-    undefined,
-    masterRotation
-  );
+  const withoutMaster = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Luminary'
+  })(undefined, masterRotation);
   const inspirationRotation = [
     'Radiant Justice',
     'Enter Radiant Forge',
@@ -1385,12 +1394,12 @@ test('Luminary recharge traits alter the intended cooldown families', () => {
     'Exit Radiant Forge',
     'Radiant Justice'
   ];
-  const withInspiration = createLiveProfessionSimulator(guardianProfession, {
+  const withInspiration = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.ILLUMINATING_INSPIRATION]
   })(undefined, inspirationRotation);
-  const withoutInspiration = createLiveProfessionSimulator(guardianProfession, {
+  const withoutInspiration = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Luminary'
   })(undefined, inspirationRotation);

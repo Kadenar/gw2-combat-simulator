@@ -1,4 +1,4 @@
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -6,7 +6,7 @@ import { buildChartSeries } from '#gw2/app/results/model.js';
 import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { kineticAcceleratorBoons } from '#gw2/professions/engineer/specializations/scrapper/traits/kinetic-accelerators.js';
 import { createScrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
@@ -29,7 +29,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createLiveProfessionSimulator(engineerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
 
 function mechanic(name) {
   return engineerCatalog.skillsByName.get(name);
@@ -43,14 +43,14 @@ test('Function Gyro aliases share Ex Machina charges and canonical trait effects
     });
 
     assert.deepEqual(result.warnings, []);
-    assert.deepEqual([...runtimeFor(result).ammo.keys()], [56920]);
-    assert.equal(runtimeFor(result).ammo.get(56920).maximum, 2);
-    assert.equal(runtimeFor(result).ammo.get(56920).charges, 0);
+    assert.deepEqual([...observedRuntime(result).ammo.keys()], [56920]);
+    assert.equal(observedRuntime(result).ammo.get(56920).maximum, 2);
+    assert.equal(observedRuntime(result).ammo.get(56920).charges, 0);
     assert.equal(result.events.filter((event) => event.type === 'control' && event.controlKind === 'daze').length, 2);
 
     const untraited = simulate('Scrapper', [skillId]);
     assert.deepEqual(untraited.warnings, []);
-    assert.equal(runtimeFor(untraited).ammo.size, 0);
+    assert.equal(observedRuntime(untraited).ammo.size, 0);
   }
 });
 

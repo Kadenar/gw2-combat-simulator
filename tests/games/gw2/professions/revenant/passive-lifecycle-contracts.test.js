@@ -13,7 +13,7 @@ import {
   modifyHeraldPassiveAttributes
 } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
 import { revenantCoreAttributeRules } from '#gw2/professions/revenant/core/traits/modifiers.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
@@ -25,7 +25,7 @@ const base = {
   boons: {},
   target: { armor: 2597, conditions: {} }
 };
-const simulate = createLiveProfessionSimulator(revenantProfession, base);
+const simulate = createObservedProfessionSimulator(revenantProfession, base);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // Minimal resource histories include delayed applications, pooled duration, and timestamped extension.

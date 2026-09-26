@@ -1,5 +1,5 @@
 import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
-import { observeGw2Runtime } from '#tests/helpers/live-runtime.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 
 export function createDefaultConfig() {
@@ -76,7 +76,7 @@ export function simulateMesmer(rotation, userConfig = {}, observationPolicy = un
   const config = prepareSimulationConfig(createDefaultConfig(), userConfig, { duration: 600 });
 
   return observeGw2Runtime({
-    profession: mesmerProfession.liveRuntimeFor(config),
+    profession: mesmerProfession.runtimeFor(config),
     rotation,
     config,
     observation: observationPolicy
@@ -92,7 +92,7 @@ export function runMesmer({
   output,
   initialize = () => {}
 }) {
-  const native = profession.liveRuntimeFor(config);
+  const native = profession.runtimeFor(config);
   return observeGw2Runtime({
     profession: {
       ...native,

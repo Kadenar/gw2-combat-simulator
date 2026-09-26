@@ -37,7 +37,7 @@ import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js'
 
 // Seeded Necromancer reactions run on the same live owner as the triggering hit.
 const simulateNecromancer = ({ config, rotation }) =>
-  runGw2Runtime({ profession: necromancerProfession.liveRuntimeFor(config), config, rotation });
+  runGw2Runtime({ profession: necromancerProfession.runtimeFor(config), config, rotation });
 
 function minimalAttributeData() {
   return { attributes: {}, activeTraits: [] };
@@ -464,7 +464,7 @@ test('Engineer random trait procs repeat by seed and vary across seeds', () => {
   };
   const run = (seed) =>
     runGw2Runtime({
-      profession: engineerProfession.liveRuntimeFor(config),
+      profession: engineerProfession.runtimeFor(config),
       rotation,
       config: {
         ...config,

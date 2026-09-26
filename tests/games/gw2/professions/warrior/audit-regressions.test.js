@@ -1,7 +1,11 @@
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createLiveProfessionSimulator, observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import {
+  createObservedProfessionSimulator,
+  observeGw2Runtime,
+  observedRuntime
+} from '#tests/helpers/observed-runtime.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
@@ -12,7 +16,7 @@ import { modifyWarriorStrengthAttributes } from '#gw2/professions/warrior/core/t
 import { warriorCoreAttributeRules } from '#gw2/professions/warrior/core/traits/modifiers.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 
-const simulate = createLiveProfessionSimulator(warriorProfession, {
+const simulate = createObservedProfessionSimulator(warriorProfession, {
   stats: { power: 2000, precision: 4000, ferocity: 0, conditionDamage: 0, expertise: 0, vitality: 1000 },
   target: { armor: 2597, health: 1_000_000 }
 });
@@ -63,7 +67,7 @@ test('Invigorating Tempo grants capped adrenaline for each point of Motivation a
       initialResource: 10,
       selectedTraitIds: selected ? [TRAIT.INVIGORATING_TEMPO] : []
     };
-    const profession = warriorProfession.liveRuntimeFor(config);
+    const profession = warriorProfession.runtimeFor(config);
     const result = observeGw2Runtime({
       profession: {
         ...profession,
@@ -77,7 +81,7 @@ test('Invigorating Tempo grants capped adrenaline for each point of Motivation a
       rotation: [skillId, { type: 'wait', durationMs: 3000 }]
     });
     assert.deepEqual(result.warnings, []);
-    const owner = runtimeFor(result).profession;
+    const owner = observedRuntime(result).profession;
     assert.equal(owner.specialization.state.motivation, motivation - spent);
     assert.equal(owner.core.adrenaline, expected);
   }
@@ -251,7 +255,7 @@ test('endurance integration and Dodge readiness follow actual pooled Vigor windo
     // Queued Vigor changes readiness only when it executes; wait partitioning cannot change accumulated recovery.
     const run = (rotation) => {
       const config = { specialization: 'Core' };
-      const profession = warriorProfession.liveRuntimeFor(config);
+      const profession = warriorProfession.runtimeFor(config);
       return observeGw2Runtime({
         profession: {
           ...profession,

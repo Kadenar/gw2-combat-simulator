@@ -5,7 +5,7 @@ import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
 import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 
 // Short synthetic rotations isolate trap timing and finite on-hit charges from benchmark totals.
@@ -16,12 +16,12 @@ const config = {
   stats: { power: 2000, conditionDamage: 1000, precision: 1000, expertise: 0 },
   target: { armor: 2597, defiant: true, conditions: {} }
 };
-const ranger = createLiveProfessionSimulator(rangerProfession, config);
-const thief = createLiveProfessionSimulator(thiefProfession, config);
+const ranger = createObservedProfessionSimulator(rangerProfession, config);
+const thief = createObservedProfessionSimulator(thiefProfession, config);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 // Live venom grants keep their own deadlines; only unexpired batches still hold charges.
 const liveVenomCharges = (result, id) => {
-  const runtime = runtimeFor(result);
+  const runtime = observedRuntime(result);
   return activeChargeGrants(runtime.profession.core.venomChargeBatches[id], runtime.time).reduce(
     (sum, batch) => sum + batch.charges,
     0
@@ -68,7 +68,7 @@ test('Sharpening Stone adds ten to six remaining charges, with one eight-second 
     { selectedSkills: ['Sharpening Stone'] }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(runtimeFor(result).profession.core.sharpeningStoneExpirations.length, 16);
+  assert.equal(observedRuntime(result).profession.core.sharpeningStoneExpirations.length, 16);
   const bleeds = conditions(result, RANGER.SHARPENING_STONE);
   assert.equal(bleeds.length, 4);
   assert.ok(bleeds.every((event) => event.stacks === 1 && Math.abs(event.naturalExpiresAt - event.at - 8) < 1e-9));
@@ -81,7 +81,7 @@ test('Sharpening Stone applications expire independently at thirty seconds', () 
     { selectedSkills: ['Sharpening Stone'] }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(runtimeFor(result).profession.core.sharpeningStoneExpirations.length, 9);
+  assert.equal(observedRuntime(result).profession.core.sharpeningStoneExpirations.length, 9);
   assert.equal(conditions(result, RANGER.SHARPENING_STONE).length, 1);
   const expired = ranger('Druid', ['Sharpening Stone', wait(30000), 'Groundwork Gouge'], {
     selectedSkills: ['Sharpening Stone']

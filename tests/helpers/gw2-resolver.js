@@ -15,8 +15,8 @@ export function resolveTestGw2Events({
   ...options
 }) {
   const native =
-    profession?.liveRuntimeFor(options.config ?? {}) ??
-    defineProfession({ id: 'event-fixture', name: 'Event fixture' }).liveRuntimeFor({});
+    profession?.runtimeFor(options.config ?? {}) ??
+    defineProfession({ id: 'event-fixture', name: 'Event fixture' }).runtimeFor({});
   return runGw2Runtime({
     ...options,
     combatStartTime,

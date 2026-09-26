@@ -6,9 +6,9 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { activeSoulbeastBuff } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 
 const config = {
@@ -20,7 +20,7 @@ const config = {
   stats: { power: 2000, precision: 1000, ferocity: 0 },
   target: { armor: 2597, conditions: {} }
 };
-const simulate = createLiveProfessionSimulator(rangerProfession, config);
+const simulate = createObservedProfessionSimulator(rangerProfession, config);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, `${actual} != ${expected}`);
 // Seed only initial state; every gain, expiry, extension, and wait runs on the common queue.
@@ -47,8 +47,8 @@ test('Ranger endurance and Dodge readiness are invariant under wait partitions',
         boon(runtime, 'vigor', 2, 20, false);
       }
     });
-    close(runtimeFor(result).profession.core.endurance, 25);
-    close(runtimeFor(result).endurance.readyAt(50), 9);
+    close(observedRuntime(result).profession.core.endurance, 25);
+    close(observedRuntime(result).endurance.readyAt(50), 9);
   }
 
   const results = [[4000], [1000, 1000, 2000]].map((waits) =>
@@ -60,7 +60,7 @@ test('Ranger endurance and Dodge readiness are invariant under wait partitions',
   );
   results.forEach((result) => assert.deepEqual(result.warnings, []));
   assert.equal(results[0].steps.at(-1).start, results[1].steps.at(-1).start);
-  close(runtimeFor(results[0]).profession.core.endurance, runtimeFor(results[1]).profession.core.endurance);
+  close(observedRuntime(results[0]).profession.core.endurance, observedRuntime(results[1]).profession.core.endurance);
 });
 
 test('Ranger recovery rejects invalid profiles and uses each invocation profile', () => {
@@ -74,8 +74,8 @@ test('Ranger recovery rejects invalid profiles and uses each invocation profile'
       }
     });
   for (const invalid of [NaN, Infinity, undefined]) assert.throws(() => run(invalid), /Invalid balance data/);
-  close(runtimeFor(run(5)).profession.core.endurance, 20);
-  close(runtimeFor(run(4)).profession.core.endurance, 16);
+  close(observedRuntime(run(5)).profession.core.endurance, 20);
+  close(observedRuntime(run(4)).profession.core.endurance, 16);
 });
 
 test('Galeshot arrow regeneration ignores Alacrity gain and expiry across wait partitions', () => {
@@ -98,7 +98,7 @@ test('Galeshot arrow regeneration ignores Alacrity gain and expiry across wait p
             }
           }
         );
-        const arrows = galeshotState.from(runtimeFor(result)).arrows;
+        const arrows = galeshotState.from(observedRuntime(result)).arrows;
         assert.equal(arrows.value, value);
         assert.equal(arrows.nextAt, nextAt);
       }
@@ -122,7 +122,7 @@ test('resource integration honors boon extensions and permanent boons', () => {
       });
     }
   });
-  close(runtimeFor(result).profession.core.endurance, 35);
+  close(observedRuntime(result).profession.core.endurance, 35);
   const permanent = runRanger(
     [wait(4000)],
     { ...config, boons: { vigor: true }, selectedTraitIds: [TRAIT.NATURAL_VIGOR] },
@@ -132,7 +132,7 @@ test('resource integration honors boon extensions and permanent boons', () => {
       }
     }
   );
-  close(runtimeFor(permanent).profession.core.endurance, 35);
+  close(observedRuntime(permanent).profession.core.endurance, 35);
 });
 
 test('personal stances ignore pet-only combat and trigger on the next player strike', () => {

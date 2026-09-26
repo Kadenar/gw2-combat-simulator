@@ -5,14 +5,18 @@ import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { createLiveProfessionSimulator, observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import {
+  createObservedProfessionSimulator,
+  observeGw2Runtime,
+  observedRuntime
+} from '#tests/helpers/observed-runtime.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 // Partitioning waits must not restart independent allied cadences or duplicate boundary work.
 test('allied attack clocks preserve independent intervals across partitioned and repeated advances', () => {
   const run = (targets, selectedTraitIds, combatStartTime = 1) => {
     const config = { specialization: 'Core', selectedTraitIds, allies: { count: 2, strikesPerSecond: 4 } };
-    const native = necromancerProfession.liveRuntimeFor(config);
+    const native = necromancerProfession.runtimeFor(config);
     const pulses = [];
     let previous = 0;
     const rotation = targets.map((at) => {
@@ -85,7 +89,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createLiveProfessionSimulator(necromancerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(necromancerProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -1694,7 +1698,7 @@ test('Sinister Shroud reduces shroud-skill recharge by fifteen percent', () => {
     [sinister, 5950]
   ]) {
     const last = result.steps.filter((step) => step.skill === 'Anguish').at(-1);
-    assert.equal(Math.round(runtimeFor(result).cooldowns.get(ID.ANGUISH) * 1000 - last.end), rechargeMs);
+    assert.equal(Math.round(observedRuntime(result).cooldowns.get(ID.ANGUISH) * 1000 - last.end), rechargeMs);
   }
 
   assert.equal(

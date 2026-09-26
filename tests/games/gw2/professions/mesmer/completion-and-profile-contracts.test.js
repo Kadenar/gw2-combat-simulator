@@ -191,8 +191,8 @@ test('Virtuoso executes a patched shatter tick beside an empty zero-blade tier',
     ID.BLADESONG_HARMONY
   ];
   const profession = {
-    liveRuntimeFor(config) {
-      const runtime = mesmerProfession.liveRuntimeFor(config);
+    runtimeFor(config) {
+      const runtime = mesmerProfession.runtimeFor(config);
       return { ...runtime, catalog: applyBalanceProfilePatch(runtime.catalog, patch) };
     }
   };
@@ -227,8 +227,8 @@ test('core control events are owned by skill definitions across ordinary and rep
     const rotation = [skill.name, { type: 'wait', durationMs: 1000 }];
     const base = simulateMesmer(rotation, config);
     const profession = {
-      liveRuntimeFor(runtimeConfig) {
-        const runtime = mesmerProfession.liveRuntimeFor(runtimeConfig);
+      runtimeFor(runtimeConfig) {
+        const runtime = mesmerProfession.runtimeFor(runtimeConfig);
         return {
           ...runtime,
           catalog: applySkillPatch(runtime.catalog, {

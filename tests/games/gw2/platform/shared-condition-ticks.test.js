@@ -18,7 +18,7 @@ test('samples and strikes see cooldown resets, snapshots, and swaps only after e
       const profession = defineProfession({
         id: 'timeline-resolution',
         name: 'Timeline resolution',
-        live: {
+        hooks: {
           initialize(ctx) {
             ctx.cooldownController.setReadyAt(1, 10);
           },

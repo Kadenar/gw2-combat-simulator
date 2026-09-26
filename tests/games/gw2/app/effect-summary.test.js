@@ -353,7 +353,7 @@ test('Firebrand tome Quickness remains self-only without configuring allies', as
   const { runGw2Runtime } = await import('#gw2/platform/simulation/runtime.js');
   const config = { specialization: 'Firebrand', allies: { count: 0 }, stats: { vitality: 1000 } };
   const result = runGw2Runtime({
-    profession: guardianProfession.liveRuntimeFor(config),
+    profession: guardianProfession.runtimeFor(config),
     rotation: ['Tome of Justice', { type: 'wait', durationMs: 4000 }],
     config
   });

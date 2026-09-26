@@ -6,7 +6,7 @@ import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { applyMesmerBuildAttributeRules } from '#gw2/professions/mesmer/build/attributes.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/family.js';
 import { createGw2CombatQuery, gw2StatsForWeaponSet } from '#gw2/platform/combat/query/combat-query.js';
 
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
@@ -84,7 +84,7 @@ test('runtime stats follow chronological weapon-set swaps', () => {
   };
   const config = mesmerAppAdapter.simulationConfig(app);
   const query = createGw2CombatQuery({
-    profession: resolveProfessionRuntime(mesmerProfession, config),
+    profession: resolveProfessionContract(mesmerProfession, config),
     config,
     events: [{ type: 'weapon_set', at: 1, weaponSet: 2 }]
   });

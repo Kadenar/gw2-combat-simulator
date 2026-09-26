@@ -1,4 +1,4 @@
-import { emitRangerBuff, rangerEvent } from '#gw2/professions/ranger/core/live-events.js';
+import { emitRangerBuff, rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,

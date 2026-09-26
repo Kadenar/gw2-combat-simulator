@@ -3,7 +3,7 @@ import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
-import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/family.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -13,9 +13,9 @@ import type { Gw2NumericStatKey } from '#gw2/platform/combat/query/combat-query.
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 
-/** Registered families expose their live mechanics; the preview reads only declared resource policies. */
-interface LiveProfessionSource {
-  liveRuntimeFor(config: Gw2Config): RuntimeProfession<object>;
+/** Registered families expose their runtime hooks; the preview reads only declared resource policies. */
+interface RuntimeProfessionSource {
+  runtimeFor(config: Gw2Config): RuntimeProfession<object>;
 }
 
 /** Query isolated conditional attributes; no preview inputs enter the saved build or simulation results. */
@@ -92,7 +92,7 @@ export function calculateBuffedAttributes(
       conditions: targetConditions
     }
   };
-  const profession = resolveProfessionRuntime(app.profession, queryConfig);
+  const profession = resolveProfessionContract(app.profession, queryConfig);
   const professionState = profession.createState(queryConfig);
   const core = readProfessionCoreState(professionState);
   // Opening Strike is a single-hit bonus and is excluded from the attribute preview.
@@ -100,7 +100,7 @@ export function calculateBuffedAttributes(
   const specialization = app.adapter.eliteSpecialization(preview.build);
   const spec = readProfessionSpecializationState(professionState, specialization) || {};
   const events: SimulationEvent[] = [];
-  const liveBoons = new Map<string, Gw2TimedBuffApplication[]>();
+  const previewBoons = new Map<string, Gw2TimedBuffApplication[]>();
   const event: SimulationEvent = {
     type: 'action',
     at: 1,
@@ -124,7 +124,7 @@ export function calculateBuffedAttributes(
         recipientCount: 1
       }
     };
-    liveBoons.set(kind, [application]);
+    previewBoons.set(kind, [application]);
     // Preview events obey the same explicit player-ownership contract as simulated buffs.
     events.push({ ...application, type: 'buff', kind, source: name, sourceId: 'stat-preview', actorType: 'player' });
   };
@@ -158,8 +158,8 @@ export function calculateBuffedAttributes(
         : 'death'
       : '';
   if ('fullEndurance' in values) {
-    // Endurance-conditioned traits belong to live families, whose runtime declares the pool and its capacity.
-    const endurance = (app.profession as unknown as LiveProfessionSource).liveRuntimeFor(queryConfig).endurance;
+    // Endurance-conditioned traits read the family runtime, which declares the pool and its capacity.
+    const endurance = (app.profession as unknown as RuntimeProfessionSource).runtimeFor(queryConfig).endurance;
     if (endurance) {
       const runtime = { profession: professionState, config: queryConfig } as unknown as Gw2Runtime;
       endurance.state(runtime).endurance = values.fullEndurance ? endurance.maximum(runtime) : 0;
@@ -190,7 +190,7 @@ export function calculateBuffedAttributes(
   const runtime = {
     profession: professionState,
     activeWeaponSet: weaponSet,
-    boons: liveBoons,
+    boons: previewBoons,
     combatStartTime: 0,
     relic
   };

@@ -228,10 +228,10 @@ export function defineProfession<TProfessionState extends object, TBuild extends
     modifyConditionDuration: attributeRules.modifyConditionDuration
   };
 
-  const hooks: DynamicFields = {};
+  const composedHooks: DynamicFields = {};
   for (const name of HOOK_NAMES) {
     const fallback = name.startsWith('modify') ? IDENTITY_SECOND_ARGUMENT : NOOP;
-    hooks[name] = composeHooks(sources[name], name, fallback);
+    composedHooks[name] = composeHooks(sources[name], name, fallback);
   }
 
   const profession = {
@@ -241,14 +241,14 @@ export function defineProfession<TProfessionState extends object, TBuild extends
     catalog: definition.catalog ?? createCanonicalCatalog(),
     createState: (config: Readonly<ProfessionConfig>) => resources.createState?.(config) ?? {},
     resources: Object.freeze({ ...resourcePolicies(resources), endurance: resources.endurance ?? null }),
-    ...hooks,
-    // Sparse standalone professions use the same live hooks as native family modules.
-    liveRuntimeFor() {
+    ...composedHooks,
+    // Sparse standalone professions use the same runtime hooks as native family modules.
+    runtimeFor() {
       return {
         ...profession,
         resources: resourcePolicies(resources),
         endurance: resources.endurance,
-        ...definition.live
+        ...definition.hooks
       };
     }
   };

@@ -21,7 +21,7 @@ import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { REVENANT_SKILL_IDS as R, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as W, WARRIOR_TRAIT_IDS as WT } from '#gw2/professions/warrior/data/ids.js';
-import { observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { paragonAttributeRules } from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-motivation.js';
 
 // Exercise exits directly so a large time advance cannot silently move the cooldown's origin.
@@ -36,7 +36,7 @@ test('Forge exits finalize once at the actual transition and clear weapon state'
       ],
       { specialization: 'Luminary' }
     );
-    const runtime = runtimeFor(result);
+    const runtime = observedRuntime(result);
     const state = runtime.profession.specialization.state;
     const exits = result.events.filter(
       (event) => event.type === 'weapon_set' && event.skillId === G.EXIT_RADIANT_FORGE
@@ -69,7 +69,7 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
       maximumTomePages: 9
     };
     const first = createFirebrandState(config);
-    const second = runtimeFor(runGuardian([], config)).profession.specialization.state;
+    const second = observedRuntime(runGuardian([], config)).profession.specialization.state;
     assert.equal(second.tomePages.value, expected);
     assert.equal(second.tomePages.maximum, 9);
     assert.equal(second.tomePages.nextAt, expected < 9 ? 5 : Infinity);
@@ -100,7 +100,7 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
     () => {},
     patched
   );
-  const pages = runtimeFor(result).profession.specialization.state.tomePages;
+  const pages = observedRuntime(result).profession.specialization.state.tomePages;
   assert.equal(pages.value, 10);
   assert.equal(pages.nextAt, Infinity);
   assert.equal(pages.interval, 2);
@@ -109,7 +109,7 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
 // Canonical normal charges never become final merely because ammo or descriptions say so.
 test('Weighty Terms follows canonical mantra IDs and ignores names or final-charge descriptions', () => {
   const config = { specialization: 'Firebrand', selectedTraitIds: [GT.WEIGHTY_TERMS], initialTomePages: 0 };
-  const native = guardianProfession.liveRuntimeFor(config);
+  const native = guardianProfession.runtimeFor(config);
   for (const mantra of MANTRAS) {
     for (const id of [mantra.rootId, mantra.normalId, mantra.finalId, 999991]) {
       const result = runGuardian([], config, (runtime) => {
@@ -129,7 +129,10 @@ test('Weighty Terms follows canonical mantra IDs and ignores names or final-char
           effectiveEnd: 0
         });
       });
-      assert.equal(runtimeFor(result).profession.specialization.state.tomePages.value, id === mantra.finalId ? 2 : 0);
+      assert.equal(
+        observedRuntime(result).profession.specialization.state.tomePages.value,
+        id === mantra.finalId ? 2 : 0
+      );
     }
   }
 });
@@ -188,7 +191,7 @@ test('Galeshot arrow restoration preserves fractional gains and uses the current
       })
     }
   );
-  const runtime = runtimeFor(result);
+  const runtime = observedRuntime(result);
   const state = runtime.profession.specialization.state;
   state.arrows.value = 2.25;
   runtime.resourceController.grant('arrows', 0.5);
@@ -246,7 +249,7 @@ test('Paragon renamed refrains replace, project, exhaust, and recover from missi
       initialResource: 30,
       selectedTraitIds: [WT.CALL_TO_ACTION, WT.STRENGTHENING_STANZAS]
     };
-    const profession = warriorProfession.liveRuntimeFor(config);
+    const profession = warriorProfession.runtimeFor(config);
     const skillsById = new Map(profession.catalog.skillsById);
     for (const id of [W.CHANT_OF_ACTION, W.CHANT_OF_FREEDOM])
       skillsById.set(id, { ...skillsById.get(id), name: 'Renamed ' + id });
@@ -274,7 +277,7 @@ test('Paragon renamed refrains replace, project, exhaust, and recover from missi
     [freedom, W.CHANT_OF_FREEDOM, false]
   ]) {
     assert.deepEqual(result.warnings, []);
-    const runtime = runtimeFor(result);
+    const runtime = observedRuntime(result);
     assert.equal(runtime.profession.specialization.state.activeRefrainId, id);
     assert.equal(result.planningState.profession.activeRefrain, 'Renamed ' + id);
     assert.equal(rule.when({ config: runtime.config, runtime }), applies);
@@ -283,7 +286,7 @@ test('Paragon renamed refrains replace, project, exhaust, and recover from missi
   for (const missing of [false, true]) {
     const result = run([combat, W.CHANT_OF_FREEDOM, { type: 'wait', durationMs: 15000 }], missing);
     assert.deepEqual(result.warnings, []);
-    assert.equal(runtimeFor(result).profession.specialization.state.activeRefrainId, null);
+    assert.equal(observedRuntime(result).profession.specialization.state.activeRefrainId, null);
     assert.equal(result.planningState.profession.activeRefrain, '');
   }
 });

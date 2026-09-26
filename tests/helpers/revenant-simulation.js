@@ -1,6 +1,6 @@
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
-import { observeGw2Runtime } from '#tests/helpers/live-runtime.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 export const REVENANT_TEST_CONFIG = Object.freeze({
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
@@ -20,7 +20,7 @@ export function runRevenant(
   { initialize = () => {}, catalog, output, observation, combatStartTime, extend = () => ({}) } = {}
 ) {
   const config = { specialization: 'Core', ...REVENANT_TEST_CONFIG, ...overrides };
-  const native = revenantProfession.liveRuntimeFor(config);
+  const native = revenantProfession.runtimeFor(config);
   return observeGw2Runtime({
     profession: {
       ...native,

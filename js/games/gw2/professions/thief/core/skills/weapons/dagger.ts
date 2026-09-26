@@ -25,7 +25,7 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.BACKSTAB]: {
-    // Custom: Consumes stealth and applies Revealed after the attack through `core/live.ts`.
+    // Custom: Consumes stealth and applies Revealed after the attack through `core/hooks.ts`.
     castTimeMs: 320,
     interruptCommitMs: 200,
     cooldown: 1,

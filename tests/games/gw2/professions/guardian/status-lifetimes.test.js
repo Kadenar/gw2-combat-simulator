@@ -7,13 +7,13 @@ import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { luminaryModifierRules } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge-rules.js';
 import { bindLuminaryUi } from '#gw2/professions/guardian/specializations/luminary/presentation.js';
 import { LUMINARY_INITIAL_STATE_SKILL_IDS as INITIAL } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
-import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/live-spear.js';
+import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const config = { specialization: 'Luminary' };
 const wait = (durationMs) => ({ type: 'wait', durationMs });
-const state = (result) => runtimeFor(result).profession.specialization.state;
+const state = (result) => observedRuntime(result).profession.specialization.state;
 const ui = bindLuminaryUi(guardianCatalog);
 const cause = {
   type: 'buff',
@@ -86,7 +86,7 @@ test('Radiant Armaments damage and display agree through the final live microsec
   }
 
   const replaced = runGuardian([ID.ENTER_RADIANT_FORGE, ID.DAZZLING_HAMMER, ID.LUMINOUS_STAFF], settings);
-  assert.equal(rule.when({ events: replaced.events, time: runtimeFor(replaced).time }), false);
+  assert.equal(rule.when({ events: replaced.events, time: observedRuntime(replaced).time }), false);
 });
 
 test('Light Aura refreshes on the effect clock and can be consumed only once before expiry', () => {
@@ -142,7 +142,7 @@ test('Radiant Forge exits exactly once at its canonical form deadline', () => {
   assert.equal(exits.length, 1);
   assert.equal(exits[0].at, 20.001);
   assert.equal(state(result).radiantForge, false);
-  assert.equal(runtimeFor(result).cooldowns.get(ID.ENTER_RADIANT_FORGE), 25.001);
+  assert.equal(observedRuntime(result).cooldowns.get(ID.ENTER_RADIANT_FORGE), 25.001);
 });
 
 test('spear illumination expires before accepting a cast at its deadline', () => {
@@ -170,7 +170,7 @@ test('spear illumination expires before accepting a cast at its deadline', () =>
         result.procSteps.some((step) => step.skill === 'Illuminated'),
         at < 5.04
       );
-      assert.ok(runtimeFor(result).profession.core.spearIlluminatedUntil > at);
+      assert.ok(observedRuntime(result).profession.core.spearIlluminatedUntil > at);
     }
   }
 });

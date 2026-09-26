@@ -3,7 +3,7 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
  * Evoker trait behaviour that hangs off skill execution rather than off a
  * mechanic hook - currently just Altruistic Aspect's meditation boons.
  */
-import { emitElementalistBuff } from '#gw2/professions/elementalist/core/live-events.js';
+import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';

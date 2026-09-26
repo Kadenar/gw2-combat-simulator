@@ -5,7 +5,7 @@ import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary
 import { antiquaryUi } from '#gw2/professions/thief/specializations/antiquary/presentation.js';
 import { ANTIQUARY_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/antiquary/skills/index.js';
 import { ANTIQUARY_BALANCE_PROFILES } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
-import { antiquaryLiveMechanics } from '#gw2/professions/thief/specializations/antiquary/live.js';
+import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary/hooks.js';
 
 export const antiquaryModule = defineNativeModule({
   id: 'Antiquary',
@@ -14,6 +14,7 @@ export const antiquaryModule = defineNativeModule({
     balanceProfiles: ANTIQUARY_BALANCE_PROFILES
   }),
   state: { create: antiquaryState.create },
-  mechanics: { modifiers: antiquaryAttributeRules, live: antiquaryLiveMechanics },
+  modifiers: antiquaryAttributeRules,
+  hooks: antiquaryHooks,
   presentation: antiquaryUi
 });

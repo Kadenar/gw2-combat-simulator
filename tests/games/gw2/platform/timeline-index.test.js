@@ -111,9 +111,9 @@ test('passive cooldown queries integrate committed recharge and retain historica
   const owner = { source: 'fixture', sourceId: 'fixture', actorType: 'player' };
   const result = simulateGw2({
     profession: {
-      liveRuntimeFor(config) {
+      runtimeFor(config) {
         return {
-          ...profession.liveRuntimeFor(config),
+          ...profession.runtimeFor(config),
           initialize(runtime) {
             runtime.emit({ ...owner, type: 'buff', kind: 'alacrity', at: 2, duration: 4, stacks: 1 });
           }
@@ -140,9 +140,9 @@ test('passive cooldown queries honor recharge anchors, boon extensions, and the 
   const owner = { source: 'fixture', sourceId: 'fixture', actorType: 'player' };
   const result = simulateGw2({
     profession: {
-      liveRuntimeFor(config) {
+      runtimeFor(config) {
         return {
-          ...profession.liveRuntimeFor(config),
+          ...profession.runtimeFor(config),
           initialize(runtime) {
             runtime.emit({ ...owner, type: 'buff', kind: 'alacrity', at: 1, duration: 4, stacks: 1 });
             runtime.emit({ ...owner, type: 'boon_extension', at: 3, duration: 2 });

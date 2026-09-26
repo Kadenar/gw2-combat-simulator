@@ -11,8 +11,8 @@ import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
-import { THIEF_PREPARATIONS } from '#gw2/professions/thief/core/live-weapons.js';
-import { storedStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/live-steal.js';
+import { THIEF_PREPARATIONS } from '#gw2/professions/thief/core/mechanics/weapons.js';
+import { storedStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
 import type {
   PaletteSkillAvailability,
   RotationStateSnapshotItem

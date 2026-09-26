@@ -1,5 +1,5 @@
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { observeGw2Runtime } from '#tests/helpers/live-runtime.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 /** Run focused Guardian boundaries with real native owners and optional queued fixture events. */
 export function runGuardian(
@@ -17,7 +17,7 @@ export function runGuardian(
     target: { armor: 2597 },
     ...overrides
   };
-  const native = source.liveRuntimeFor(config);
+  const native = source.runtimeFor(config);
   return observeGw2Runtime({
     profession: {
       ...native,

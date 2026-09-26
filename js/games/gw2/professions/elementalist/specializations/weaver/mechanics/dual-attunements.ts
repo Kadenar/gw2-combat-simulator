@@ -3,7 +3,7 @@ import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.j
 import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
-import { withElementalistCast } from '#gw2/professions/elementalist/core/live-events.js';
+import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /**
  * Weaver's dual-attunement mechanic.
@@ -21,7 +21,7 @@ import {
   balanceProfileNumber,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitElementalistBuff } from '#gw2/professions/elementalist/core/live-events.js';
+import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
 import { EPSILON, canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -435,7 +435,7 @@ function modifyRechargeDuration(context: ElementalistRuntime, skill: Skill, dura
 }
 
 /** Native tasks own Weave Self and stance pulses; actual controls and swaps own their trait reactions. */
-export const weaverLive: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
+export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
   initialize,
   availability,
   rechargeWork: modifyRechargeDuration,

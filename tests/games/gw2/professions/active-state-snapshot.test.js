@@ -21,7 +21,7 @@ test('force clocks are detached in snapshots and planning projections and absent
     [thiefProfession, 'Specter', 'shadowClock', projectThiefPlanningState]
   ]) {
     const config = { specialization };
-    const runtime = profession.liveRuntimeFor(config);
+    const runtime = profession.runtimeFor(config);
     const state = runtime.createState(config);
     const clock = state.specialization.state[clockKey];
     Object.assign(clock, { value: 37, maximum: 90, updatedAt: 2 });
@@ -59,7 +59,7 @@ test('force clocks are detached in snapshots and planning projections and absent
     assert.equal(clock.value, 12);
     assert.equal(detached[clockKey].value, 37);
 
-    const core = profession.liveRuntimeFor({ specialization: 'Core' }).createState({ specialization: 'Core' });
+    const core = profession.runtimeFor({ specialization: 'Core' }).createState({ specialization: 'Core' });
     const inactive = project({ profession: core, time: 0 });
     assert.equal(inactive[clockKey], undefined);
   }

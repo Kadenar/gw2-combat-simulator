@@ -7,8 +7,8 @@ import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/c
 import { SPECTER_BALANCE_PROFILE_IDS as SPECTER } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as ANTIQUARY } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS as DEADEYE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
-import { thiefInitiativeRegenerationRate } from '#gw2/professions/thief/core/live-resources.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { thiefInitiativeRegenerationRate } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
@@ -21,7 +21,7 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
     label: 'Thief removal',
     professions: { thief: { balanceProfiles } }
   });
-  const simulate = createLiveProfessionSimulator(profession, {
+  const simulate = createObservedProfessionSimulator(profession, {
     patchId: 'thief-removal',
     selectedTraitIds: [],
     selectedSkills: [],
@@ -124,7 +124,7 @@ for (const [type, name] of [
       false
     );
     assert.equal(
-      Object.keys(runtimeFor(result).profession.specialization.state.darkSentryReadyAtByAlly).length > 0,
+      Object.keys(observedRuntime(result).profession.specialization.state.darkSentryReadyAtByAlly).length > 0,
       type !== 'buff'
     );
   });
@@ -211,8 +211,8 @@ test('removed critical Fury leaves proc progress and cooldown unclaimed', () => 
     selectedTraitIds: [TRAIT.UNRELENTING_STRIKES]
   });
   assert.equal(packet(result, 'buff', TRAIT.UNRELENTING_STRIKES).length, 0);
-  assert.equal(runtimeFor(result).profession.core.traitProcReadyAt[TRAIT.UNRELENTING_STRIKES], undefined);
-  assert.equal(runtimeFor(result).profession.core.traitProcProgress[TRAIT.UNRELENTING_STRIKES], undefined);
+  assert.equal(observedRuntime(result).profession.core.traitProcReadyAt[TRAIT.UNRELENTING_STRIKES], undefined);
+  assert.equal(observedRuntime(result).profession.core.traitProcProgress[TRAIT.UNRELENTING_STRIKES], undefined);
 });
 
 test('Malicious Sneak Attack removal preserves Bleeding and malice spending', () => {

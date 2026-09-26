@@ -5,7 +5,7 @@ import { conduitState } from '#gw2/professions/revenant/specializations/conduit/
 import { conduitUi } from '#gw2/professions/revenant/specializations/conduit/presentation.js';
 import { CONDUIT_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/index.js';
 import { CONDUIT_BALANCE_PROFILES } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import { conduitLiveMechanics } from '#gw2/professions/revenant/specializations/conduit/live.js';
+import { conduitHooks } from '#gw2/professions/revenant/specializations/conduit/hooks.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const conduitModule = defineNativeModule({
@@ -15,6 +15,7 @@ export const conduitModule = defineNativeModule({
     balanceProfiles: CONDUIT_BALANCE_PROFILES
   }),
   state: { create: conduitState.create },
-  mechanics: { modifiers: conduitAttributeRules, live: conduitLiveMechanics },
+  modifiers: conduitAttributeRules,
+  hooks: conduitHooks,
   presentation: conduitUi
 });

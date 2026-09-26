@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createLiveProfessionSimulator, observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import {
+  createObservedProfessionSimulator,
+  observeGw2Runtime,
+  observedRuntime
+} from '#tests/helpers/observed-runtime.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/necromancer/core/profiles.js';
@@ -20,7 +24,7 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
     label: 'Necromancer removal',
     professions: { necromancer: { balanceProfiles } }
   });
-  const result = createLiveProfessionSimulator(profession, {
+  const result = createObservedProfessionSimulator(profession, {
     stats: { power: 2000, precision: 2000, ferocity: 500, conditionDamage: 1200, expertise: 0, vitality: 1000 },
     target: { armor: 2597, health: 1_000_000 }
   })(specialization, rotation, { patchId: 'necromancer-removal', ...config });
@@ -32,7 +36,7 @@ test('removed Dark Defense protection keeps its carapace and cooldown', () => {
   const result = run({ [TRAIT.DARK_DEFENSE]: remove('boon', 'protection') }, 'Core', ['Consume Conditions'], {
     selectedTraitIds: [TRAIT.DARK_DEFENSE]
   });
-  const runtime = runtimeFor(result);
+  const runtime = observedRuntime(result);
   const core = runtime.profession.core;
   assert.ok(core.carapaceExpiries.length > 0);
   assert.ok(core.traitProcReadyAt.darkDefense > runtime.time);
@@ -95,7 +99,7 @@ test('a missing required Necromancer scalar fails instead of using a local defau
   const profile = { ...necromancerCatalog.balanceProfilesById.get(TRAIT.DARK_DEFENSE) };
   delete profile.duration;
   const config = { specialization: 'Core', selectedTraitIds: [TRAIT.DARK_DEFENSE] };
-  const native = necromancerProfession.liveRuntimeFor(config);
+  const native = necromancerProfession.runtimeFor(config);
   const catalog = {
     ...native.catalog,
     balanceProfilesById: new Map(native.catalog.balanceProfilesById).set(TRAIT.DARK_DEFENSE, profile)

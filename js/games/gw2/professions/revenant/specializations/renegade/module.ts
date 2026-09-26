@@ -6,7 +6,7 @@ import { renegadeUi } from '#gw2/professions/revenant/specializations/renegade/p
 import { RENEGADE_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/renegade/skills/index.js';
 import { RENEGADE_EXTRA_SKILLS } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
 import { RENEGADE_BALANCE_PROFILES } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
-import { renegadeLiveMechanics } from '#gw2/professions/revenant/specializations/renegade/live.js';
+import { renegadeHooks } from '#gw2/professions/revenant/specializations/renegade/hooks.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const renegadeModule = defineNativeModule({
@@ -17,6 +17,7 @@ export const renegadeModule = defineNativeModule({
     balanceProfiles: RENEGADE_BALANCE_PROFILES
   }),
   state: { create: renegadeState.create },
-  mechanics: { modifiers: renegadeAttributeRules, live: renegadeLiveMechanics },
+  modifiers: renegadeAttributeRules,
+  hooks: renegadeHooks,
   presentation: renegadeUi
 });

@@ -3,7 +3,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 import { test } from 'node:test';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 const baseConfig = {
@@ -14,9 +14,9 @@ const baseConfig = {
   stats: { power: 2000, precision: 1500, ferocity: 500, conditionDamage: 1000, expertise: 0, vitality: 1000 },
   target: { armor: 2597, conditions: {} }
 };
-const simulate = createLiveProfessionSimulator(revenantProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
-const affinity = (result) => runtimeFor(result).profession.specialization.state.affinity;
+const affinity = (result) => observedRuntime(result).profession.specialization.state.affinity;
 const daggerTimes = (result) =>
   result.events
     .filter((event) => event.type === 'damage' && event.skillName === 'Lesser Enchanted Daggers' && event.at > 0)
@@ -81,7 +81,7 @@ test('starvation cancels Conduit resource and dagger ticks at the boundary', () 
   // Continuous Energy settlement wins over a discrete upkeep tick at the same instant.
   const result = simulate('Conduit', ['Cosmic Wisdom', 'Impossible Odds', wait(4100)], { initialEnergy: 8 });
   assert.deepEqual(result.warnings, []);
-  assert.equal(runtimeFor(result).cooldowns.get(SKILL.IMPOSSIBLE_ODDS), 3 + 4);
+  assert.equal(observedRuntime(result).cooldowns.get(SKILL.IMPOSSIBLE_ODDS), 3 + 4);
   assert.equal(affinity(result), 1, 'the starved upkeep grants no tick at its three-second deadline');
   assert.deepEqual(daggerTimes(result), [1, 2]);
   assert.equal(result.planningState.profession.activeUpkeeps.length, 0);

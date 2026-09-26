@@ -61,12 +61,10 @@ export interface NativeResolvedDamageDetails {
   readonly criticalChance?: number;
 }
 
-export interface NativeMechanicsDefinition<TModifierEscape extends ProfessionAttributeRuleDefinition> {
-  /** Declarative modifier rules or an explicit legacy modifier hook bundle. */
-  readonly modifiers?: readonly Gw2ModifierRule[] | TModifierEscape;
-  /** Live mechanics execute against the single chronological owner. */
-  readonly live?: Partial<Omit<RuntimeProfession<never>, 'id' | 'catalog' | 'createState' | 'projectPlanningState'>>;
-}
+/** Runtime callbacks a module contributes; the platform composes Core and the selected specialization in order. */
+export type NativeModuleHooks = Partial<
+  Omit<RuntimeProfession<never>, 'id' | 'catalog' | 'createState' | 'projectPlanningState'>
+>;
 
 export interface NativeModuleDefinition<
   TId extends string,
@@ -80,7 +78,10 @@ export interface NativeModuleDefinition<
   readonly data: NativeModuleCatalogData;
   readonly state: NativeStateDefinition<TState, TProjectOptions, TProjectedState>;
   readonly resources?: ResourcePolicies & { readonly endurance?: EndurancePolicy };
-  readonly mechanics?: NativeMechanicsDefinition<TModifierEscape>;
+  /** Declarative modifier rules or an explicit legacy modifier hook bundle. */
+  readonly modifiers?: readonly Gw2ModifierRule[] | TModifierEscape;
+  /** Runtime hooks execute against the single chronological owner. */
+  readonly hooks?: NativeModuleHooks;
   readonly presentation?: TPresentation | ((catalog: Readonly<CanonicalCatalog>) => TPresentation);
 }
 
@@ -165,5 +166,5 @@ export type NativeProfessionContract<
   readonly specializationIds: readonly NativeSpecializationId<TModules>[];
   /** Retains the immutable composition input so optional integrations can decorate the family without content imports. */
   readonly nativeDefinition: Readonly<NativeProfessionDefinition<TModules, TPresentation, TBuild>>;
-  liveRuntimeFor(config: Gw2Config): RuntimeProfession<NativeProfessionRuntimeState<TModules>>;
+  runtimeFor(config: Gw2Config): RuntimeProfession<NativeProfessionRuntimeState<TModules>>;
 };

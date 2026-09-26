@@ -5,7 +5,7 @@ import test from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
-import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/family.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -16,7 +16,7 @@ import {
   THIEF_TRAIT_IDS as TRAIT
 } from '#gw2/professions/thief/data/ids.js';
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 import { applyAlliedLeechingVenoms } from '#gw2/professions/thief/core/traits/shadow-arts.js';
@@ -75,7 +75,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createLiveProfessionSimulator(thiefProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(thiefProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -616,10 +616,12 @@ test('Pitfall placement recharge and trigger rearm expire independently', () => 
   // Triggering early preserves the placement cooldown; triggering late starts the shorter rearm.
   const config = { selectedSkills: ['Prepare Pitfall'] };
   // Each recharge deadline is read from the live cooldown clock once its cast has completed.
-  const placementReadyAt = runtimeFor(simulate('Core', [ID.PREPARE_PITFALL], config)).cooldowns.get(ID.PREPARE_PITFALL);
+  const placementReadyAt = observedRuntime(simulate('Core', [ID.PREPARE_PITFALL], config)).cooldowns.get(
+    ID.PREPARE_PITFALL
+  );
   for (const waitMs of [0, placementReadyAt * 1000]) {
     const triggered = [ID.PREPARE_PITFALL, { type: 'wait', durationMs: waitMs }, ID.PITFALL];
-    const triggerReadyAt = runtimeFor(simulate('Core', triggered, config)).cooldowns.get(ID.PITFALL);
+    const triggerReadyAt = observedRuntime(simulate('Core', triggered, config)).cooldowns.get(ID.PITFALL);
     const result = simulate('Core', [...triggered, ID.PREPARE_PITFALL], config);
     const nextPlacement = result.events
       .filter((event) => event.type === 'action' && event.skillId === ID.PREPARE_PITFALL)
@@ -703,7 +705,7 @@ test('Specter traits amplify force gains and add their Siphon recharge reduction
     observationTail(1000)
   );
 
-  assert.equal(runtimeFor(larcenous).resourceController.value('shadowForce'), 5.5);
+  assert.equal(observedRuntime(larcenous).resourceController.value('shadowForce'), 5.5);
   assert.equal(
     larcenous.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Larcenous Torment')
       .length,
@@ -739,8 +741,8 @@ test('Larcenous Torment keeps its life siphon but grants no force inside Shadow 
     baseline.planningState.profession.shadowClock.value
   );
   assert.equal(
-    runtimeFor(larcenous).resourceController.value('shadowForce'),
-    runtimeFor(baseline).resourceController.value('shadowForce')
+    observedRuntime(larcenous).resourceController.value('shadowForce'),
+    observedRuntime(baseline).resourceController.value('shadowForce')
   );
   assert.ok(
     larcenous.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === TRAIT.LARCENOUS_TORMENT)
@@ -761,7 +763,7 @@ test('Specter attribute, ally, and shadowstep traits resolve explicitly', () => 
     }
   };
   const query = createGw2CombatQuery({
-    profession: resolveProfessionRuntime(thiefProfession, attributeConfig),
+    profession: resolveProfessionContract(thiefProfession, attributeConfig),
     config: attributeConfig
   });
   const stats = query.statsAt(0);

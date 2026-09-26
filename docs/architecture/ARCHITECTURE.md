@@ -55,12 +55,12 @@ with `defineNativeModule()`:
 | --------------------- | ------------------------------------------------------------------------------ |
 | `data`                | Generated identities, skill mechanics, traits, weapon hands, and chains        |
 | `state`               | One `create` factory and optional detached public `project` projection         |
-| `mechanics.live`      | Availability, cast hooks, named tasks, resource policies, and combat reactions |
-| `mechanics.modifiers` | Declarative formula and attribute rules                                        |
+| `hooks`               | Availability, cast hooks, named tasks, resource policies, and combat reactions |
+| `modifiers`           | Declarative formula and attribute rules                                        |
 | `presentation`        | UI contributions, optionally catalog-aware                                     |
 
-TypeScript and native module validation reject retired state/mechanic sections. `defineNativeProfession()` composes Core
-with the selected specialization and exposes `liveRuntimeFor(config)`. There is one mutable state instance per run.
+TypeScript and native module validation reject unknown module fields and retired state sections. `defineNativeProfession()` composes Core
+with the selected specialization and exposes `runtimeFor(config)`. There is one mutable state instance per run.
 
 ### Catalog assembly
 
@@ -87,7 +87,7 @@ cooldowns, and dynamic state are separate checks.
 - Core/specialization `skills.ts` or `skills/*.ts` — authoritative ID-keyed declarative skill fields. No production-wide
   skill aggregate; tests compose inventories under `tests/`.
 - `mechanics/*.ts` (or `mechanics.ts`) — owner-local, concept-named triggered effects and state machines.
-- `live.ts` — cast hooks, tasks, and reactions for behavior declarative effects cannot express.
+- `hooks.ts` — cast hooks, tasks, and reactions for behavior declarative effects cannot express.
 - `catalog.ts` — module tuple and assembled catalog, re-exported by `profession.ts`. Only `build/` imports it directly.
 
 ### Authoring workflow
@@ -100,11 +100,11 @@ cooldowns, and dynamic state are separate checks.
 
 ## Profession contract
 
-Native professions expose identity, catalog, build and UI contracts, and `liveRuntimeFor(config)`. The returned runtime
+Native professions expose identity, catalog, build and UI contracts, and `runtimeFor(config)`. The returned runtime
 owns `createState`, `projectPlanningState`, availability/cast/recharge hooks, named tasks, custom event handlers,
 resource policies, and stage-specific reactions. The application surface stays separate from execution.
 
-Standalone fixtures can use `defineProfession({ id, name, catalog, resources: { createState }, live })`. Optional hooks
+Standalone fixtures can use `defineProfession({ id, name, catalog, resources: { createState }, hooks })`. Optional hooks
 default to no-op or identity behavior. A module with only declarative skill data needs no hooks.
 
 - `paletteSkillAvailability(context, skill)` returns `{ available, message, retryAt? }`; retry times are seconds.
@@ -112,8 +112,8 @@ default to no-op or identity behavior. A module with only declarative skill data
 
 ### Families
 
-A family exposes immutable metadata and cached active-runtime composition. `liveRuntimeFor(config)` selects Core plus
-the active elite; missing or Core selects Core alone, and unknown elites throw. `resolveRuntime(config)` supplies
+A family exposes immutable metadata and cached active-runtime composition. `runtimeFor(config)` selects Core plus
+the active elite; missing or Core selects Core alone, and unknown elites throw. `resolveProfession(config)` supplies
 normalized catalog and attribute metadata to application consumers; it does not create a second gameplay state.
 
 - State shape: `{ core, specialization: { kind, state } }` — a plain object, no proxies. Core mechanics use `core`;
@@ -129,7 +129,7 @@ normalized catalog and attribute metadata to application consumers; it does not 
 damage, and condition duration hooks, combining equipment and profession additions once. Pet/mech owners exclude player
 Force and Bursting. Ordered attribute conversions stay imperative hooks.
 
-### Live mechanic ownership
+### Hook ownership
 
 Cast acceptance reserves lane/resource/recharge decisions once. Completion commits cooldowns and dispatches
 `onCastComplete`. Named tasks carry detached payloads on the common heap. Resolved-hit, condition, boon, combo, and
@@ -175,7 +175,7 @@ Schema (version 1) lives in `platform/engine/events/events.ts`:
 - `source` is a display label only. Behavior keys on `actorType` (optionally `ownerActorType` for inherited outgoing
   modifiers); validation requires explicit ownership, no source-label fallback.
 - Common types (`COMMON_EVENT_TYPES`): `action`, `damage`, `condition`, `condition_tick`, `control`, `blind`,
-  `weapon_set`, `proc`. Professions add namespaced types (e.g. `example.resource`) via `mechanics.live.eventHandlers`;
+  `weapon_set`, `proc`. Professions add namespaced types (e.g. `example.resource`) via `hooks.eventHandlers`;
   duplicates, missing handlers, and unknown namespaced events throw.
 - Boon queries read executed phase-visible history and delegate stacking/lifetime arithmetic to `combat/boons.ts`.
 
@@ -184,7 +184,7 @@ and combat/death gates. Professions react to named stages (listed in `platform/r
 names like `damage` are rejected) and receive capabilities such as `hitContext` and `applyCondition`:
 
 ```js
-live: {
+hooks: {
   eventHandlers: { "example.resource": handleResource },
   reactions: {
     "damage.resolved": handleProfessionCriticalTraits,
@@ -299,4 +299,4 @@ which recomputes crit chance, crit damage, boon duration, and condition duration
 5. Run `npm run check`.
 
 No engine, platform, or shared UI branches should be needed. Put a rule in `js/games/gw2/platform` only if multiple
-professions truly share it; otherwise keep it in the profession as a live mechanic or combat reaction.
+professions truly share it; otherwise keep it in the profession as a module hook or combat reaction.

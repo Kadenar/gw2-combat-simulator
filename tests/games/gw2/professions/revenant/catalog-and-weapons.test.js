@@ -25,7 +25,7 @@ import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/cor
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuildAttributeRules);
@@ -55,7 +55,7 @@ const baseConfig = Object.freeze({
 
 const applyRevenantPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(revenantCatalog, patch), patch);
 
-const simulate = createLiveProfessionSimulator(revenantProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);
 // Live steps expose the actual activation window; an instant cast occupies none of it.
 const castMs = (step) => step.end - step.start;
 
@@ -1325,7 +1325,7 @@ test('Revenant spear packets reduce Abyssal Raze count recharge on hit', () => {
       }
     )
   );
-  const ammo = runtimeFor(result).ammo.get(SKILL.ABYSSAL_RAZE);
+  const ammo = observedRuntime(result).ammo.get(SKILL.ABYSSAL_RAZE);
 
   assert.equal(ammo.charges, 3);
   assert.equal(ammo.nextRechargeAt, null);
@@ -1423,7 +1423,7 @@ test('spear reductions advance base Raze recharge once per activation at its rec
       );
       const expectedReadyAt = result.steps[0].end / 1000 + (15 - seconds) / rate;
       assert.ok(
-        Math.abs(runtimeFor(result).ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt - expectedReadyAt) < 1e-9,
+        Math.abs(observedRuntime(result).ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt - expectedReadyAt) < 1e-9,
         skill
       );
     }
@@ -1469,7 +1469,7 @@ test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
 
   assert.equal(result.warnings.length, 0);
 
-  assert.equal(runtimeFor(result).ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt, 14.6);
+  assert.equal(observedRuntime(result).ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt, 14.6);
   assert.deepEqual(result.planningState.cooldowns['Abyssal Raze'], {
     readyAt: 14600,
     remaining: 1180
@@ -1491,7 +1491,7 @@ test('Abyssal Raze recharge reduction carries overflow into the next count', () 
 
   assert.equal(rechargeProc.cooldownReduction, 1);
   // Verify serial recharge overflow independently of the separate between-cast lockout.
-  const { charges, maximum, rechargeWork, nextRechargeAt } = runtimeFor(result).ammo.get(SKILL.ABYSSAL_RAZE);
+  const { charges, maximum, rechargeWork, nextRechargeAt } = observedRuntime(result).ammo.get(SKILL.ABYSSAL_RAZE);
   assert.deepEqual(
     { charges, maximum, rechargeWork, nextRechargeAt },
     {

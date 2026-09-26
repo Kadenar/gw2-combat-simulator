@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { completeEngineerSpear } from '#gw2/professions/engineer/core/live-weapons.js';
+import { completeEngineerSpear } from '#gw2/professions/engineer/core/mechanics/weapons.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
-const simulate = createLiveProfessionSimulator(engineerProfession, {
+const simulate = createObservedProfessionSimulator(engineerProfession, {
   primaryWeapon: 'Spear',
   stats: { power: 2000, conditionDamage: 1000 },
   target: { armor: 2597, conditions: {} }
@@ -29,8 +29,8 @@ test('off-target spear casts grant no Focused window, charges, damage, or condit
     { primaryWeapon: 'Spear' }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(runtimeFor(result).profession.core.focusedUntil, 0);
-  assert.deepEqual(runtimeFor(result).profession.core.lightningRodChargeExpiries, []);
+  assert.equal(observedRuntime(result).profession.core.focusedUntil, 0);
+  assert.deepEqual(observedRuntime(result).profession.core.lightningRodChargeExpiries, []);
   assert.equal(
     result.resolvedEvents.some((event) => event.type === 'damage' || event.type === 'condition'),
     false
@@ -78,7 +78,7 @@ test('Lightning Rod replacement retires old pulses and each charge expires after
     pulses.map((event) => event.activationId),
     ['first', 'second']
   );
-  const expiries = runtimeFor(result).profession.core.lightningRodChargeExpiries;
+  const expiries = observedRuntime(result).profession.core.lightningRodChargeExpiries;
   assert.equal(expiries.length, 1);
   assert.equal(expiries[0], pulses[1].at + 12);
   assert.equal(activeStackCount(expiries, expiries[0] - 0.001), 1);
@@ -157,7 +157,7 @@ test('Artillery snapshots release charges and preserves the armed sequence on ca
   };
 
   const cancelled = runEngineer([{ skillId: ID.ELECTRIC_ARTILLERY, interruptMs: 0 }], {}, { initialize });
-  assert.deepEqual(runtimeFor(cancelled).profession.core.lightningRodChargeExpiries, [0, 0.1, 100]);
+  assert.deepEqual(observedRuntime(cancelled).profession.core.lightningRodChargeExpiries, [0, 0.1, 100]);
   assert.equal(
     cancelled.events.some((event) => event.type === 'engineer.electric-artillery'),
     false
@@ -165,6 +165,6 @@ test('Artillery snapshots release charges and preserves the armed sequence on ca
   const released = runEngineer([ID.ELECTRIC_ARTILLERY, { type: 'wait', durationMs: 700 }], {}, { initialize });
   const projectile = released.events.find((event) => event.type === 'engineer.electric-artillery');
   assert.equal(projectile.charges, 1);
-  assert.deepEqual(runtimeFor(released).profession.core.lightningRodChargeExpiries, []);
-  assert.equal(runtimeFor(released).profession.core.availableFlips[ID.ELECTRIC_ARTILLERY], undefined);
+  assert.deepEqual(observedRuntime(released).profession.core.lightningRodChargeExpiries, []);
+  assert.equal(observedRuntime(released).profession.core.availableFlips[ID.ELECTRIC_ARTILLERY], undefined);
 });

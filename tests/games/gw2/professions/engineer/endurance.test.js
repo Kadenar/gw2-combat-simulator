@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
 const vigor = (at, duration, self = true) => ({
@@ -34,7 +34,7 @@ test('Engineer endurance uses self Vigor applications and expiry across split wa
   for (const waits of [[6000], [2000, 1000, 1000, 2000]]) {
     const result = recover(waits, [vigor(2, 2), vigor(0, 20, false)]);
     assert.equal(result.planningState.profession.endurance, 35);
-    assert.equal(runtimeFor(result).endurance.readyAt(50), 9);
+    assert.equal(observedRuntime(result).endurance.readyAt(50), 9);
   }
 });
 

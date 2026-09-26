@@ -1,6 +1,6 @@
 /**
  * Owns simulator-only Core Revenant action declarations.
- * Their runtime behavior is registered through `core/live.ts`.
+ * Their runtime behavior is registered through `core/hooks.ts`.
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -22,7 +22,7 @@ const actions: readonly Skill[] = [
   },
   {
     id: ID.SWAP_LEGENDS,
-    // Custom: Switches legends and resets energy through `core/live.ts`.
+    // Custom: Switches legends and resets energy through `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     name: 'Swap Legends',
     description: 'Invoke the other selected legend and reset energy.',
@@ -38,7 +38,7 @@ const actions: readonly Skill[] = [
   },
   {
     id: ID.DODGE,
-    // Custom: Spends endurance and emits Revenant dodge state through `core/live.ts`.
+    // Custom: Spends endurance and emits Revenant dodge state through `core/hooks.ts`.
     name: 'Dodge',
     description: 'Perform the selected dodge.',
     icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',

@@ -1,4 +1,4 @@
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -525,7 +525,7 @@ test('Abstraction replaces boons with damage and conditions and blasts only its 
       result.events.some((event) => event.type === 'buff' && event.skillId === ID.INSPIRING_IMAGERY),
       false
     );
-    assert.equal(runtimeFor(result).combo.fields.get(field.fieldId).expiresAt, cast.start / 1000);
+    assert.equal(observedRuntime(result).combo.fields.get(field.fieldId).expiresAt, cast.start / 1000);
     const combo = result.resolvedEvents.find((event) => event.type === 'combo' && event.skillId === ID.ABSTRACTION);
     assert.equal(combo.fieldId, field.fieldId);
     assert.equal(combo.finisherType, 'Blast');

@@ -20,7 +20,7 @@ import {
   handleRangerPoisonousStrikes,
   handleRangerBloodThirst
 } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
-import { rangerCoreLive } from '#gw2/professions/ranger/core/live.js';
+import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
 import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 import { reactToSoulbeastDamage } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
@@ -32,7 +32,7 @@ import { runThief } from '#tests/helpers/thief-simulation.js';
 // Real state owners and catalogs isolate grant contracts without relying on saved rotation packets.
 function contextFor(profession, specialization, selectedTraitIds = []) {
   const config = { specialization, selectedTraitIds };
-  const runtime = profession.resolveRuntime(config);
+  const runtime = profession.resolveProfession(config);
   const state = runtime.createState(config);
   const events = [];
   const emit = (event) => {
@@ -124,7 +124,7 @@ test('Blood Thirst grants twelve seconds, replaces remaining charges, and respec
   const skill = context.catalog.skillsById.get(RANGER.CRIPPLING_SHOT);
   const grant = (at) => {
     context.time = at;
-    rangerCoreLive.onCastComplete(context, { skill, start: at, fullEnd: at, effectiveEnd: at });
+    rangerCoreHooks.onCastComplete(context, { skill, start: at, fullEnd: at, effectiveEnd: at });
     const event = context.events.at(-1);
     assert.equal(event.duration, 12);
     handleRangerBloodThirst(context, event);

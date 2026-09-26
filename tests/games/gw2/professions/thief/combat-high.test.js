@@ -4,7 +4,7 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { antiquaryModifierRules } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-rules.js';
 import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
@@ -15,7 +15,7 @@ const instantSwipe = (catalog) => withSkill(catalog, ID.SKRITT_SWIPE, { castTime
 test('Combat High shares staggered stack expiry across grants, modifiers, projections, and cleanup', () => {
   const result = runThief(['Skritt Swipe'], config, { catalog: instantSwipe });
   assert.deepEqual(result.warnings, []);
-  const profession = runtimeFor(result).profession;
+  const profession = observedRuntime(result).profession;
   const state = profession.specialization.state;
   const strike = antiquaryModifierRules.find((rule) => rule.id === 'thief.combat-high-strike');
   const condition = antiquaryModifierRules.find((rule) => rule.id === 'thief.combat-high-condition');
@@ -34,7 +34,7 @@ test('Combat High shares staggered stack expiry across grants, modifiers, projec
   }
 
   // A replacement grant must restart decay without retaining old stacks.
-  const replaced = runtimeFor(
+  const replaced = observedRuntime(
     runThief(['Skritt Swipe', { type: 'wait', durationMs: 3000 }, 'Skritt Swipe'], config, { catalog: instantSwipe })
   ).profession.specialization.state.combatHighExpirations;
   assert.equal(replaced.length, 10);
@@ -43,7 +43,7 @@ test('Combat High shares staggered stack expiry across grants, modifiers, projec
 
   // Profile cap and cadence own the stack windows, including an explicitly disabled cadence.
   for (const interval of [1, 0]) {
-    const expirations = runtimeFor(
+    const expirations = observedRuntime(
       runThief(['Skritt Swipe'], config, {
         catalog: (catalog) =>
           withProfile(instantSwipe(catalog), PROFILE.combatHigh, {

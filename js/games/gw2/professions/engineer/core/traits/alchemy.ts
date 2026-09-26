@@ -4,7 +4,7 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 /** Owns HGH's elixir cast effects and scheduled-event duration extension. */
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/live-events.js';
+import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';

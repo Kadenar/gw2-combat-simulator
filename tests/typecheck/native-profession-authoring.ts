@@ -14,15 +14,13 @@ const core = defineNativeModule({
   state: {
     create: () => ({ coreValue: 1, resolvedCoreValue: 2 })
   },
-  mechanics: {
-    live: {
-      initialize(runtime: Gw2Runtime<{ core: { coreValue: number; resolvedCoreValue: number } }>) {
-        // Live callbacks consume the canonical state shape used by the family factory.
-        runtime.profession.core.coreValue += runtime.profession.core.resolvedCoreValue;
-      },
-      availability: () => ({ ready: true }),
-      reactions: { 'damage.resolved': () => undefined }
-    }
+  hooks: {
+    initialize(runtime: Gw2Runtime<{ core: { coreValue: number; resolvedCoreValue: number } }>) {
+      // Hook callbacks consume the canonical state shape used by the family factory.
+      runtime.profession.core.coreValue += runtime.profession.core.resolvedCoreValue;
+    },
+    availability: () => ({ ready: true }),
+    reactions: { 'damage.resolved': () => undefined }
   }
 });
 
@@ -46,21 +44,21 @@ type NativeAuthoringAssertions = [
   Assert<Equal<Extract<keyof Gw2PlanningStateInput, 'schedulerState' | 'schedulerContext' | 'queue'>, never>>,
   Assert<Equal<(typeof profession.specializationIds)[number], 'Elite'>>,
   Assert<Equal<RuntimeState['core']['coreValue'], number>>,
-  Assert<Equal<ReturnType<ReturnType<typeof profession.liveRuntimeFor>['createState']>, RuntimeState>>,
+  Assert<Equal<ReturnType<ReturnType<typeof profession.runtimeFor>['createState']>, RuntimeState>>,
   Assert<Equal<RuntimeState['specialization']['kind'], 'Core' | 'Elite'>>,
   Assert<Equal<Extract<RuntimeState['specialization'], { kind: 'Elite' }>['state']['eliteValue'], 'active'>>,
   Assert<typeof applicationProfession extends ProfessionAppContract ? true : false>,
   Assert<typeof profession extends Gw2ProfessionSource ? true : false>,
   Assert<
     Equal<
-      Parameters<NonNullable<ReturnType<typeof profession.liveRuntimeFor>['eventHandlers']>[string]>[0]['profession'],
+      Parameters<NonNullable<ReturnType<typeof profession.runtimeFor>['eventHandlers']>[string]>[0]['profession'],
       RuntimeState
     >
   >,
   Assert<
     Equal<
       Parameters<
-        NonNullable<NonNullable<ReturnType<typeof profession.liveRuntimeFor>['reactions']>['damage.resolved']>
+        NonNullable<NonNullable<ReturnType<typeof profession.runtimeFor>['reactions']>['damage.resolved']>
       >[0]['profession'],
       RuntimeState
     >
@@ -100,19 +98,17 @@ if (false) {
     id: 'InvalidReaction',
     data: {},
     state: { create: () => ({}) },
-    mechanics: {
-      // @ts-expect-error Mechanics no longer declare a separate execution or resolution engine.
-      resolution: {
-        reactions: [
-          {
-            phase: 'scheduler',
-            eventType: 'damage',
-            id: 'invalid.phase',
-            order: 0,
-            handler: () => undefined
-          }
-        ]
-      }
+    // @ts-expect-error Modules no longer declare a separate execution or resolution engine.
+    resolution: {
+      reactions: [
+        {
+          phase: 'scheduler',
+          eventType: 'damage',
+          id: 'invalid.phase',
+          order: 0,
+          handler: () => undefined
+        }
+      ]
     }
   });
 
@@ -129,9 +125,7 @@ if (false) {
     id: 'LegacyReactions',
     data: {},
     state: { create: () => ({}) },
-    mechanics: {
-      // @ts-expect-error Reactions belong under mechanics.live.
-      reactions: []
-    }
+    // @ts-expect-error Reactions belong under hooks.
+    reactions: []
   });
 }

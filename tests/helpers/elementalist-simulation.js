@@ -1,4 +1,4 @@
-import { observeGw2Runtime } from '#tests/helpers/live-runtime.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 
@@ -65,7 +65,7 @@ export function runElementalist({
   initialize = () => {},
   timeline = []
 }) {
-  const native = profession.liveRuntimeFor(config);
+  const native = profession.runtimeFor(config);
   return observeGw2Runtime({
     profession: {
       ...native,

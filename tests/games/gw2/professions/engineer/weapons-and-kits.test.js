@@ -1,4 +1,4 @@
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { skillFlipVisible, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -12,7 +12,7 @@ import {
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { handleElectricArtillery } from '#gw2/professions/engineer/core/mechanics/event-handlers.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
@@ -31,7 +31,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createLiveProfessionSimulator(engineerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
 
 // Blade attribution must survive both authored effects and heat-generated events without changing the casting skill.
 test('Refraction Cutter blades retain their parent skill and expose a separate damage identity', () => {
@@ -155,7 +155,7 @@ test('Mechanist commands are selected by traits and mech attacks persist', () =>
 
   assert.equal(result.warnings.length, 0);
   assert.deepEqual(
-    runtimeFor(result).profession.specialization.state.mech.commandSkillIds.map(
+    observedRuntime(result).profession.specialization.state.mech.commandSkillIds.map(
       (id) => engineerCatalog.skillsById.get(id).name
     ),
     ['Spark Revolver', 'Crisis Zone', 'Barrier Burst']
@@ -522,8 +522,8 @@ describe('Engineer packet profiles', () => {
 
 test('Engineer sword variants have specialization-owned facts and runtime gating', () => {
   const skill = (id) => engineerCatalog.skillsById.get(id);
-  const mechanistRuntime = engineerProfession.resolveRuntime({ specialization: 'Mechanist' });
-  const holosmithRuntime = engineerProfession.resolveRuntime({ specialization: 'Holosmith' });
+  const mechanistRuntime = engineerProfession.resolveProfession({ specialization: 'Mechanist' });
+  const holosmithRuntime = engineerProfession.resolveProfession({ specialization: 'Holosmith' });
 
   for (const id of [
     ID.SUN_EDGE_ID_70514,

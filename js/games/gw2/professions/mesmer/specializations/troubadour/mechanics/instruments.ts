@@ -19,7 +19,7 @@ import {
 import type { MesmerRuntime, MesmerInstrument } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { emitMesmerEffects } from '#gw2/professions/mesmer/core/live-events.js';
+import { emitMesmerEffects } from '#gw2/professions/mesmer/core/events.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 /** Resolves an instrument's player or afterimage packets with their Troubadour trait interactions. */

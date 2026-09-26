@@ -6,5 +6,5 @@ import { assertManifestRegressions } from './preset-benchmark.js';
 // Loading stays shared while the DPS gate exercises the migrated Elementalist owners.
 test('Elementalist presets load and stay within 1% DPS', () =>
   assertManifestRegressions('elementalist', (adapter, rotation, config) =>
-    runGw2Runtime({ profession: adapter.profession.liveRuntimeFor(config), rotation, config })
+    runGw2Runtime({ profession: adapter.profession.runtimeFor(config), rotation, config })
   ));

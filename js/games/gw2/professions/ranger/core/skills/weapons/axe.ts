@@ -82,7 +82,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       }
     ]),
     castTimeMs: 520,
-    // Custom: Arms the Winter's Bite follow-up state; see `core/live.ts`.
+    // Custom: Arms the Winter's Bite follow-up state; see `core/hooks.ts`.
 
     missileHits: 1
   },

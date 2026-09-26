@@ -4,7 +4,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ENCHANTED_DAGGERS]: {
-    // Custom: Arms Enchanted Daggers charges and their strike-triggered healing state; see `core/live-traits.ts`.
+    // Custom: Arms Enchanted Daggers charges and their strike-triggered healing state; see `core/traits/index.ts`.
     castTimeMs: 360,
     cooldown: 30,
     energyCost: 5,
@@ -33,7 +33,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
     legendId: 'LegendaryAssassin'
   },
   [ID.IMPOSSIBLE_ODDS]: {
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/live-upkeep.ts`.
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 5,

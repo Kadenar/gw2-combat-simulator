@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SKILL_IDS as SKILL, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -20,7 +20,7 @@ function run(balanceProfiles, specialization, rotation, selectedTraitIds = [], e
     label: 'Guardian removal',
     professions: { guardian: { balanceProfiles } }
   });
-  const result = createLiveProfessionSimulator(profession, {
+  const result = createObservedProfessionSimulator(profession, {
     specialization,
     selectedTraitIds,
     patchId: 'guardian-removal',
@@ -149,7 +149,7 @@ test('an empty Protector proc owns neither cooldown nor a proc row', () => {
     ['Shelter'],
     [TRAIT.PROTECTORS_RESTORATION]
   );
-  assert.equal(runtimeFor(result).profession.core.protectorsRestorationReadyAt, 0);
+  assert.equal(observedRuntime(result).profession.core.protectorsRestorationReadyAt, 0);
   assert.equal(
     result.procSteps.some((step) => step.skill === 'Lesser Symbol of Protection'),
     false
@@ -431,7 +431,7 @@ test('Effulgent strike and control deletions preserve the other packet and consu
       effects.map((event) => event.type),
       [survivor]
     );
-    const state = runtimeFor(result).profession.specialization.state;
+    const state = observedRuntime(result).profession.specialization.state;
     assert.equal(state.effulgentStacks, 0);
     assert.equal(state.effulgentActiveUntil, 0);
   }

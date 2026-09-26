@@ -4,7 +4,7 @@ import test from 'node:test';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantCorePaletteSkillAvailability } from '#gw2/professions/revenant/core/presentation.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { effectiveRevenantEnergyCost, liveRevenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
+import { effectiveRevenantEnergyCost, revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 
 // Cost policies consume explicit inputs regardless of where the state originated.
@@ -34,9 +34,9 @@ test('Runtime costs use the owned specialization and current Conduit state', () 
     profession: { core: { activeUpkeeps: [] }, specialization: { kind: 'Conduit', state } }
   };
   const skill = { id: SKILL.BEGUILING_HAZE, energyCost: 20 };
-  assert.equal(liveRevenantEnergyCost(runtime, skill), 0);
+  assert.equal(revenantEnergyCost(runtime, skill), 0);
   state.beguilingHazeCharges = 0;
-  assert.equal(liveRevenantEnergyCost(runtime, skill), 20);
+  assert.equal(revenantEnergyCost(runtime, skill), 20);
 });
 
 test('Beguiling Haze follow-ups remain available in the palette below their base Energy cost', () => {

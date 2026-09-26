@@ -5,7 +5,7 @@ import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { observeGw2Runtime } from '#tests/helpers/live-runtime.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { migrateRangerBuild } from '#gw2/professions/ranger/build/build.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -43,7 +43,7 @@ function simulate(rotation, config = {}) {
     stats: { ...baseConfig.stats, ...config.stats },
     target: { ...baseConfig.target, ...config.target }
   };
-  return observeGw2Runtime({ profession: rangerProfession.liveRuntimeFor(options), rotation, config: options });
+  return observeGw2Runtime({ profession: rangerProfession.runtimeFor(options), rotation, config: options });
 }
 
 test('condition Druid weapon timings and packets use configured profiles', () => {

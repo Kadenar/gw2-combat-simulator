@@ -1,6 +1,6 @@
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
@@ -235,8 +235,8 @@ test('extended Vigor preserves Elementalist and Mirage endurance through the new
         });
         assert.equal(
           (specialization === 'Mirage'
-            ? runtimeFor(result).profession.specialization.state
-            : runtimeFor(result).profession.core
+            ? observedRuntime(result).profession.specialization.state
+            : observedRuntime(result).profession.core
           ).endurance,
           expected
         );

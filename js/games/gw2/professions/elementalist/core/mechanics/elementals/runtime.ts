@@ -29,7 +29,7 @@ import {
   emitElementalistBuff,
   emitElementalistCondition,
   emitElementalistDamage
-} from '#gw2/professions/elementalist/core/live-events.js';
+} from '#gw2/professions/elementalist/core/events.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/engine/skills/recharge.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';

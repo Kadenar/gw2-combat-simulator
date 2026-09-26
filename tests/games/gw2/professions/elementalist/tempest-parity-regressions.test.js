@@ -1,7 +1,7 @@
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
@@ -80,8 +80,8 @@ test('Tempest overload completion preserves a longer attunement lockout', () => 
     initialize: (r) => r.cooldownController.startRecharge(r.helpers.skillsById.get(id), 0, 60)
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(runtimeFor(result).cooldowns.get(id), 60);
-  assert.deepEqual(runtimeFor(result).rechargeProgress.get(id), { startedAt: 0, work: 60 });
+  assert.equal(observedRuntime(result).cooldowns.get(id), 60);
+  assert.deepEqual(observedRuntime(result).rechargeProgress.get(id), { startedAt: 0, work: 60 });
 });
 
 // A two-skill rotation isolates the instant-cast scheduling rule without

@@ -34,7 +34,7 @@ const profession = defineProfession({
       return options.profession;
     }
   },
-  live: {
+  hooks: {
     onCastStart(context) {
       context.profession.plannedCasts += 1;
     },

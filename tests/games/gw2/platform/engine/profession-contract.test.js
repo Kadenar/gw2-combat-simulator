@@ -91,7 +91,7 @@ test('structured definition containers preserve state, recharge rules, and resol
       createState: (config) => ({ charges: config.charges ?? 0, damage: 0 }),
       projectPlanningState: ({ profession }) => ({ damage: profession.damage })
     },
-    live: {
+    hooks: {
       rechargeWork: (_context, _skill, duration) => duration / 2 + 1,
       eventHandlers: {
         'structured.damage': (context, event) => {
@@ -108,11 +108,11 @@ test('structured definition containers preserve state, recharge rules, and resol
   const firstState = profession.createState({ charges: 2 });
   const resolverState = profession.createState({});
   const context = { profession: resolverState };
-  profession.liveRuntimeFor({}).eventHandlers['structured.damage'](context, { amount: 3 });
-  profession.liveRuntimeFor({}).reactions['damage.resolved'](context, {});
+  profession.runtimeFor({}).eventHandlers['structured.damage'](context, { amount: 3 });
+  profession.runtimeFor({}).reactions['damage.resolved'](context, {});
 
   assert.deepEqual(firstState, { charges: 2, damage: 0 });
   assert.deepEqual(profession.createState({}), { charges: 0, damage: 0 });
   assert.deepEqual(profession.projectPlanningState({ profession: resolverState }), { damage: 4 });
-  assert.equal(profession.liveRuntimeFor({}).rechargeWork({}, {}, 10), 6);
+  assert.equal(profession.runtimeFor({}).rechargeWork({}, {}, 10), 6);
 });

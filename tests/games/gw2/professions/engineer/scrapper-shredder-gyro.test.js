@@ -14,7 +14,7 @@ const baseConfig = Object.freeze({
 function simulate(quickness) {
   const config = { ...baseConfig, boons: { quickness } };
   return runGw2Runtime({
-    profession: engineerProfession.liveRuntimeFor(config),
+    profession: engineerProfession.runtimeFor(config),
     rotation: ['Shredder Gyro'],
     config,
     observation: { kind: 'tail', durationMs: 7000 }

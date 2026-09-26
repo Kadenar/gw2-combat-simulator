@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
-const simulateProfession = createLiveProfessionSimulator(necromancerProfession, { initialResource: 100, target: {} });
+const simulateProfession = createObservedProfessionSimulator(necromancerProfession, {
+  initialResource: 100,
+  target: {}
+});
 // Control and duration checks observe the same executed packets as live combat.
 const simulate = (rotation, config = {}) => simulateProfession('Ritualist', rotation, config);
 

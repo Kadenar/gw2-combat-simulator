@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
 import { settleMesmerSkillFlips } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { mesmerCoreLive } from '#gw2/professions/mesmer/core/live.js';
+import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
 import { projectMesmerPlanningState } from '#gw2/professions/mesmer/family-state.js';
 import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import { MESMER_CORE_BALANCE_PROFILES } from '#gw2/professions/mesmer/core/profiles.js';
@@ -91,7 +91,7 @@ test('Mesmer flip creation, availability, projection, and cleanup share exact bo
   }
 
   assert.ok(core.availableFlips[ID.COUNTERSPELL]);
-  mesmerCoreLive.tasks['mesmer.flip-expire'](context, { id: ID.COUNTERSPELL, identity: 'parent' });
+  mesmerCoreHooks.tasks['mesmer.flip-expire'](context, { id: ID.COUNTERSPELL, identity: 'parent' });
   assert.equal(core.availableFlips[ID.COUNTERSPELL], undefined);
 });
 

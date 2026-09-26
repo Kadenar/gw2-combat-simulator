@@ -1,5 +1,5 @@
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { observeGw2Runtime } from '#tests/helpers/live-runtime.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 /** Focused scenarios seed or probe the registered live owner without constructing scheduler-shaped fixtures. */
 export function runEngineer(
@@ -14,7 +14,7 @@ export function runEngineer(
     target: { armor: 2597, conditions: {} },
     ...config
   };
-  const native = engineerProfession.liveRuntimeFor(options);
+  const native = engineerProfession.runtimeFor(options);
   return observeGw2Runtime({
     config: options,
     rotation,

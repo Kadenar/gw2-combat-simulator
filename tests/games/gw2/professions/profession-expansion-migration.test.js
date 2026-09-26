@@ -75,11 +75,11 @@ function assertUiContracts(entry, profession, specialization) {
   let runtime;
 
   try {
-    runtime = profession.resolveRuntime({
+    runtime = profession.resolveProfession({
       specialization: runtimeSpecialization
     });
   } catch {
-    runtime = profession.resolveRuntime({ specialization: 'Core' });
+    runtime = profession.resolveProfession({ specialization: 'Core' });
   }
 
   const context = {
@@ -176,7 +176,7 @@ function assertEventDescriptors(entry, profession) {
       .map((specialization) => specialization.name)
       .filter((name) => {
         try {
-          profession.resolveRuntime({ specialization: name });
+          profession.resolveProfession({ specialization: name });
 
           return true;
         } catch {
@@ -186,7 +186,7 @@ function assertEventDescriptors(entry, profession) {
   ];
 
   for (const specialization of specializations) {
-    const runtime = profession.liveRuntimeFor({ specialization });
+    const runtime = profession.runtimeFor({ specialization });
 
     for (const type of Object.keys(runtime.eventHandlers ?? {})) {
       const descriptor = profession.ui.eventLogRow?.(
@@ -219,7 +219,7 @@ test('profession registry entries conform to the shared contracts', async () => 
     assert.equal(profession.id, entry.id);
     assert.equal(adapter.id, entry.id);
     assert.ok(entry.themeClass);
-    assert.equal(typeof profession.resolveRuntime, 'function');
+    assert.equal(typeof profession.resolveProfession, 'function');
     assert.equal(Object.hasOwn(profession, 'eventHandlers'), false);
     assert.equal(Object.hasOwn(profession, 'taskHandlers'), false);
     assert.equal(Object.hasOwn(profession, 'createState'), false);
@@ -254,8 +254,8 @@ test('profession registry entries conform to the shared contracts', async () => 
             : 'Core';
         const runtime =
           entry.id === 'engineer'
-            ? profession.liveRuntimeFor({ specialization: owner })
-            : profession.liveRuntimeFor({ specialization: owner });
+            ? profession.runtimeFor({ specialization: owner })
+            : profession.runtimeFor({ specialization: owner });
 
         assert.equal(typeof runtime.eventHandlers[effect.eventType], 'function', effect.eventType);
       }
@@ -268,7 +268,7 @@ test('profession registry entries conform to the shared contracts', async () => 
       let runtime;
 
       try {
-        runtime = profession.liveRuntimeFor({ specialization });
+        runtime = profession.runtimeFor({ specialization });
       } catch {
         continue;
       }
@@ -410,7 +410,7 @@ test('ready native professions expose deliberate public end-state keys', async (
       [
         ...new Set([
           ...PUBLIC_END_STATE_KEYS_BY_PROFESSION[entry.id],
-          ...(profession.resolveRuntime({}).resources.endurance ? ['maximumEndurance'] : [])
+          ...(profession.resolveProfession({}).resources.endurance ? ['maximumEndurance'] : [])
         ])
       ].sort(),
       entry.id

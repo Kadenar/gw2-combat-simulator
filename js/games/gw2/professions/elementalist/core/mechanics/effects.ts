@@ -1,11 +1,11 @@
 /**
- * Shared Elementalist emission helpers for the live runtime.
+ * Shared Elementalist emission helpers for the runtime hooks.
  *
  * Balance-profile-driven buff, condition, proc, and aura emitters plus the small
  * catalog and state lookups they depend on. Skill and trait handlers depend on
  * this module; it must not depend on them.
  */
-import { emitElementalistBuff, emitElementalistCondition } from '#gw2/professions/elementalist/core/live-events.js';
+import { emitElementalistBuff, emitElementalistCondition } from '#gw2/professions/elementalist/core/events.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';

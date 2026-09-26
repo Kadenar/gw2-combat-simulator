@@ -6,10 +6,10 @@ import { describe, test } from 'node:test';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession-registry.js';
-import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/family.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
@@ -51,7 +51,7 @@ const baseConfig = Object.freeze({
 });
 
 // Keep scenario defaults local while sharing simulation setup and nested config merging.
-const simulate = createLiveProfessionSimulator(rangerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(rangerProfession, baseConfig);
 
 describe('Ranger skill-bar selections', () => {
   test('Soulbeast pet selections update merged Beast skills', () => {
@@ -61,7 +61,7 @@ describe('Ranger skill-bar selections', () => {
       specialization: 'Soulbeast',
       config: { specialization: 'Soulbeast', selectedPet: build.selectedPet },
       catalog: rangerCatalog,
-      professionState: rangerProfession.resolveRuntime({ specialization: 'Soulbeast' }).createState({
+      professionState: rangerProfession.resolveProfession({ specialization: 'Soulbeast' }).createState({
         specialization: 'Soulbeast',
         selectedPet: build.selectedPet
       })
@@ -146,7 +146,7 @@ describe('Ranger skill-bar selections', () => {
         initialUntamedState: build.initialUntamedState
       },
       professionState: rangerProfession
-        .resolveRuntime({ specialization: 'Untamed' })
+        .resolveProfession({ specialization: 'Untamed' })
         .createState({ specialization: 'Untamed' })
     };
 
@@ -178,7 +178,7 @@ describe('Ranger skill-bar selections', () => {
       true
     );
     for (const specialization of ['Core', 'Druid', 'Soulbeast', 'Untamed', 'Galeshot']) {
-      const runtime = rangerProfession.resolveRuntime({ specialization });
+      const runtime = rangerProfession.resolveProfession({ specialization });
       const context = {
         build,
         specialization,
@@ -301,7 +301,7 @@ describe('Galeshot Cyclone Bow', () => {
     const inactiveContext = {
       specialization: 'Galeshot',
       professionState: rangerProfession
-        .resolveRuntime({ specialization: 'Galeshot' })
+        .resolveProfession({ specialization: 'Galeshot' })
         .createState({ specialization: 'Galeshot' })
     };
     const galeshotPaletteGroups = rangerProfession.ui.paletteGroups(inactiveContext);
@@ -632,7 +632,7 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
   // Verify Poison Master's multiplier before packet rounding, which need not preserve an exact aggregate ratio.
   for (const selected of [false, true]) {
     const query = createGw2CombatQuery({
-      profession: resolveProfessionRuntime(rangerProfession, { specialization: 'Core' }),
+      profession: resolveProfessionContract(rangerProfession, { specialization: 'Core' }),
       config: {},
       traits: new Set(selected ? [TRAIT.POISON_MASTER] : [])
     });

@@ -20,7 +20,7 @@ export function simulateGw2(
     config = { ...config, procRateOverrides: normalizeProcRateOverrides(config.procRateOverrides) };
   if (config.selectedSkills != null)
     config = { ...config, selectedSkills: prepareSelectedSkillLoadout(config.selectedSkills) };
-  const profession = options.profession.liveRuntimeFor(config);
+  const profession = options.profession.runtimeFor(config);
   options.onPhase?.('preparation', performance.now() - started);
   return runGw2Runtime({ ...options, profession, config, observation: options.observationPolicy });
 }

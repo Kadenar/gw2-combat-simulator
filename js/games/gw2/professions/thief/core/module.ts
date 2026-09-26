@@ -6,7 +6,7 @@ import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.j
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
 import { THIEF_CORE_BALANCE_PROFILES } from '#gw2/professions/thief/core/profiles.js';
-import { thiefCoreLiveMechanics } from '#gw2/professions/thief/core/live.js';
+import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const thiefCoreModule = defineNativeModule({
@@ -17,6 +17,7 @@ export const thiefCoreModule = defineNativeModule({
     extraSkills: THIEF_CORE_EXTRA_SKILLS
   }),
   state: { create: createThiefCoreState, project: projectThiefPlanningState },
-  mechanics: { modifiers: thiefCoreAttributeRules, live: thiefCoreLiveMechanics },
+  modifiers: thiefCoreAttributeRules,
+  hooks: thiefCoreHooks,
   presentation: thiefCoreUi
 });

@@ -4,7 +4,7 @@ import { elementalistCatalog, elementalistProfession } from '#gw2/professions/el
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import { elementalistRockBarrierTasks } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
-import { elementalistCoreLive } from '#gw2/professions/elementalist/core/live.js';
+import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
 import {
   armElementalistElementalLightningJolt,
   completeElementalistGlyphCast,
@@ -12,7 +12,7 @@ import {
   ensureElementalistElemental
 } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
@@ -57,7 +57,7 @@ test('Rock Barrier availability, palette, and natural recharge share an exact de
       { at: 42, run: elementalistRockBarrierTasks['elementalist.core.release-rock-barrier'] }
     ]
   });
-  assert.equal(runtimeFor(result).cooldowns.get(root.id), 50);
+  assert.equal(observedRuntime(result).cooldowns.get(root.id), 50);
   assert.equal(result.planningState.profession.availableFlips[ID.HURL], undefined);
 });
 
@@ -100,7 +100,7 @@ test('elemental teardown clears the command and starts the glyph recharge once',
       rotation: [{ type: 'wait', durationMs: 122000 }],
       timeline: [{ at: 0.301, run: (r) => complete(r, glyph, completeElementalistGlyphCast) }]
     });
-    const r = runtimeFor(result);
+    const r = observedRuntime(result);
     assert.equal(r.profession.core.summonedElemental.element, null);
     assert.deepEqual(r.profession.core.availableFlips, {});
     assert.equal(r.cooldowns.get(glyph.id), 160.301);
@@ -145,7 +145,7 @@ test('elemental boon candidacy includes the final impact timestamp without an ep
         run: (r) => {
           complete(r, glyphFor('Fire'), completeElementalistGlyphCast);
           for (const at of [120.300999, 120.301, 120.301001]) {
-            const event = elementalistCoreLive.prepareEvent(r, {
+            const event = elementalistCoreHooks.prepareEvent(r, {
               type: 'buff',
               at,
               kind: 'might',

@@ -29,7 +29,7 @@ import {
   REVENANT_RELEASE_POTENTIAL_BY_LEGEND
 } from '#gw2/professions/revenant/data/legends.js';
 import { REVENANT_LEGENDS, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuildAttributeRules);
@@ -37,22 +37,22 @@ const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuild
 const revenantAttributeRules = Object.freeze({
   modifyAttributes(context, value) {
     return revenantProfession
-      .resolveRuntime(context?.config || {})
+      .resolveProfession(context?.config || {})
       .modifyAttributes({ catalog: revenantCatalog, ...context }, value);
   },
   modifyCriticalChance(context, value) {
     return revenantProfession
-      .resolveRuntime(context?.config || {})
+      .resolveProfession(context?.config || {})
       .modifyCriticalChance({ catalog: revenantCatalog, ...context }, value);
   },
   modifyStrikeDamage(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyStrikeDamage(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyStrikeDamage(context, value);
   },
   modifyConditionDamage(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyConditionDamage(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDamage(context, value);
   },
   modifyConditionDuration(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyConditionDuration(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDuration(context, value);
   }
 });
 
@@ -71,7 +71,7 @@ const baseConfig = Object.freeze({
   target: { armor: 2597, conditions: { Vulnerability: 25 } }
 });
 
-const simulate = createLiveProfessionSimulator(revenantProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);
 // Live steps expose the actual activation window; an instant cast occupies none of it.
 const castMs = (step) => step.end - step.start;
 
@@ -1073,7 +1073,7 @@ test('starvation waits for the absolute action tick and preserves its boundary a
       { initialEnergy: 5.1 }
     );
     const elapsedMs = waits.reduce((sum, wait) => sum + wait, 0);
-    const starvationReadyAt = runtimeFor(result).cooldowns.get(SKILL.IMPOSSIBLE_ODDS);
+    const starvationReadyAt = observedRuntime(result).cooldowns.get(SKILL.IMPOSSIBLE_ODDS);
     assert.deepEqual(result.warnings, []);
     assert.equal(result.planningState.profession.activeUpkeeps.length, elapsedMs < 120 ? 1 : 0);
     if (elapsedMs < 120) {
@@ -1586,7 +1586,7 @@ test('Herald consume skills apply their full outgoing profiles', () => {
     startingLegend: LEGEND.DRAGON
   });
 
-  assert.equal(runtimeFor(gaze).cooldowns.get(revenantCatalog.skillsByName.get('Gaze of Darkness').id), 15);
+  assert.equal(observedRuntime(gaze).cooldowns.get(revenantCatalog.skillsByName.get('Gaze of Darkness').id), 15);
   assert.ok(
     gaze.events.some(
       (event) => event.type === 'blind' && event.skillName === 'Gaze of Darkness' && event.duration === 5

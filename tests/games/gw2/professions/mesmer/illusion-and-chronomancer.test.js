@@ -310,8 +310,8 @@ test('Chronomancer shatter boons use boon duration and include Continuum Split',
 
 test('Chronomancer shatter boons consume patched balance-profile values', () => {
   const profession = {
-    liveRuntimeFor(config) {
-      const runtime = mesmerProfession.liveRuntimeFor(config);
+    runtimeFor(config) {
+      const runtime = mesmerProfession.runtimeFor(config);
 
       return {
         ...runtime,

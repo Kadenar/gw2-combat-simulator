@@ -1,4 +1,4 @@
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
@@ -120,8 +120,8 @@ test('Catalyst grants one aura and one set of trait stacks per aura source', () 
     });
     const events = resolvedAndScheduledEvents(result);
     assert.deepEqual(result.warnings, []);
-    assert.equal(runtimeFor(result).profession.core.activeAuras.length, 1);
-    assert.equal(runtimeFor(result).profession.specialization.state.elementalEmpowermentExpiries.length, 4);
+    assert.equal(observedRuntime(result).profession.core.activeAuras.length, 1);
+    assert.equal(observedRuntime(result).profession.specialization.state.elementalEmpowermentExpiries.length, 4);
     assert.equal(
       events
         .filter((event) => event.type === 'buff' && event.kind === 'empowering auras')
@@ -142,9 +142,9 @@ test('Frigid Flurry can finish combos with either initial ice-bullet state', () 
       rotation: ['Deploy Jade Sphere (Water)', 'Frigid Flurry', 1000]
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(runtimeFor(result).profession.core.activeAuras.length, 1);
-    assert.equal(runtimeFor(result).profession.core.activeAuras[0].type, 'Frost Aura');
-    assert.equal(runtimeFor(result).profession.specialization.state.elementalEmpowermentExpiries.length, 4);
+    assert.equal(observedRuntime(result).profession.core.activeAuras.length, 1);
+    assert.equal(observedRuntime(result).profession.core.activeAuras[0].type, 'Frost Aura');
+    assert.equal(observedRuntime(result).profession.specialization.state.elementalEmpowermentExpiries.length, 4);
   }
 });
 

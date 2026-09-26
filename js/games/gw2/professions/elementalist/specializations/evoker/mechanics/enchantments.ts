@@ -7,7 +7,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
  * skills - and spent here by attaching a strike plus condition package to the
  * accepted player strikes that consume them. Each accepted impact dispatches once.
  */
-import { emitElementalistCondition, emitElementalistDamage } from '#gw2/professions/elementalist/core/live-events.js';
+import { emitElementalistCondition, emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';

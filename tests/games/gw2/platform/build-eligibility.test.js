@@ -26,15 +26,13 @@ test('shared eligibility precedes profession filters and cast state changes', ()
         id: 'Core',
         data: { generatedSkills: [weapon, excluded, wrongSpecialization] },
         state: { create: () => ({ resource: 10 }) },
-        mechanics: {
-          live: {
-            availability() {
-              stateChecks++;
-              return { ready: true };
-            },
-            onCastStart(runtime) {
-              runtime.profession.core.resource--;
-            }
+        hooks: {
+          availability() {
+            stateChecks++;
+            return { ready: true };
+          },
+          onCastStart(runtime) {
+            runtime.profession.core.resource--;
           }
         },
         presentation: { paletteSkillAvailability: () => ({ available: true, message: '' }) }
@@ -86,7 +84,7 @@ test('every profession inherits build rejection in browser, palette, and resolve
     const adapter = await entry.loadAppAdapter();
     for (const specialization of ['Core', ...adapter.profession.specializationIds]) {
       const context = { specialization };
-      const runtime = adapter.profession.liveRuntimeFor(context);
+      const runtime = adapter.profession.runtimeFor(context);
       for (const skill of [
         { id: -90001, name: 'Other specialization action', type: 'Action', specialization: 'Other specialization' },
         { id: 90002, name: 'Excluded weapon', type: 'Weapon', simulatorExcluded: true }

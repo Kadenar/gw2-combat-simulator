@@ -5,9 +5,9 @@ import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { galeshotModifierRules } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow-rules.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
-const simulate = createLiveProfessionSimulator(rangerProfession, {
+const simulate = createObservedProfessionSimulator(rangerProfession, {
   initialAstralForce: 100,
   target: { armor: 2597, conditions: {} },
   selectedTraitIds: [TRAIT.NATURAL_MENDER, TRAIT.NATURAL_BALANCE]

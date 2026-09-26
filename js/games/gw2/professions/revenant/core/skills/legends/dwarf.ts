@@ -4,7 +4,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.VENGEFUL_HAMMERS]: {
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/live-upkeep.ts`.
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 5,
@@ -50,7 +50,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     legendId: 'LegendaryDwarf'
   },
   [ID.RELEASE_HAMMERS]: {
-    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/live-upkeep.ts`.
+    // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -159,7 +159,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     legendId: 'LegendaryDwarf'
   },
   [ID.VENGEFUL_HAMMERS_ID_56752]: {
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/live-upkeep.ts`.
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 5,

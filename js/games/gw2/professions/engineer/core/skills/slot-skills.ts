@@ -10,7 +10,7 @@ const HEALING_TURRET_PALETTE_TILE = 'engineer-healing-turret';
 export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.HEALING_TURRET]: {
     // Custom: Arms Detonate Healing Turret, fires the automatic Cleansing Burst pulse, and starts the
-    // 10s overcharge window; see `core/live-weapons.ts`.
+    // 10s overcharge window; see `core/mechanics/weapons.ts`.
 
     paletteFlipSkillId: ID.DETONATE_HEALING_TURRET,
     paletteTileId: HEALING_TURRET_PALETTE_TILE,
@@ -45,7 +45,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.DETONATE_HEALING_TURRET]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/live.ts`.
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/hooks.ts`.
 
     flipParentName: 'Healing Turret',
     paletteTileId: HEALING_TURRET_PALETTE_TILE,
@@ -71,7 +71,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.CLEANSING_BURST]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/live.ts`.
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/hooks.ts`.
 
     flipParentName: 'Healing Turret',
     paletteTileId: HEALING_TURRET_PALETTE_TILE,
@@ -96,7 +96,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.THROW_MINE]: {
-    // Custom: Arms this skill's follow-up palette flip; see `core/live.ts`.
+    // Custom: Arms this skill's follow-up palette flip; see `core/hooks.ts`.
 
     paletteFlipSkillId: ID.DETONATE,
     castTimeMs: 360,
@@ -104,7 +104,7 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     rechargeAnchor: 'castStart'
   },
   [ID.DETONATE]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/live.ts`.
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/hooks.ts`.
 
     flipParentName: 'Throw Mine',
     castTimeMs: 0,

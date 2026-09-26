@@ -229,9 +229,9 @@ test('derived proc activations own their strength roll independently of the trig
   const base = fixtureProfession();
   const source = {
     ...base,
-    liveRuntimeFor(config) {
+    runtimeFor(config) {
       return {
-        ...base.liveRuntimeFor(config),
+        ...base.runtimeFor(config),
         reactions: {
           'damage.resolved'(runtime, cause) {
             if (cause.actorType !== 'player') return;

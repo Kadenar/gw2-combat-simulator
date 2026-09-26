@@ -24,7 +24,7 @@ test('Catalyst snapshots use the active balance catalog before and after simulat
   const app = {
     build: { rotation: [] },
     profession: elementalistProfession,
-    activeCatalog: patched.resolveRuntime({ specialization: 'Catalyst', patchId: 'snapshot-test' }).catalog,
+    activeCatalog: patched.resolveProfession({ specialization: 'Catalyst', patchId: 'snapshot-test' }).catalog,
     adapter: { eliteSpecialization: () => 'Catalyst' },
     results: null
   };

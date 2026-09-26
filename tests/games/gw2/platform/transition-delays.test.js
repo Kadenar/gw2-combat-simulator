@@ -96,7 +96,7 @@ test('invalid transitions do not emit input recovery', () => {
     id: 'denied-transition',
     name: 'Denied Transition',
     catalog,
-    live: {
+    hooks: {
       availability: (context, skill) =>
         skill.id === 2
           ? { ready: false, retryAt: null, reason: 'Unavailable', code: 'fixture.denied' }
@@ -114,16 +114,16 @@ test('invalid transitions do not emit input recovery', () => {
 
 const transitions = { weaponSwapMs: 900, forgeEntryMs: 110, forgeExitMs: 130, shroudEntryMs: 150, shroudExitMs: 170 };
 // Migrated form owners share live execution in these transition contracts.
-const simulateLive = ({ profession, config, rotation }) =>
-  runGw2Runtime({ profession: profession.liveRuntimeFor(config), config, rotation });
+const simulateRuntime = ({ profession, config, rotation }) =>
+  runGw2Runtime({ profession: profession.runtimeFor(config), config, rotation });
 
 test('profession transitions use their own entry and exit settings without charging weapon-swap delay', () => {
   for (const [profession, specialization, entry, exit, simulate = simulateGw2] of [
-    [engineerProfession, 'Holosmith', 'Engage Photon Forge', 'Deactivate Photon Forge', simulateLive],
-    [guardianProfession, 'Luminary', 'Enter Radiant Forge', 'Exit Radiant Forge', simulateLive],
-    [necromancerProfession, 'Core', 'Death Shroud', 'End Death Shroud', simulateLive],
-    [necromancerProfession, 'Reaper', "Reaper's Shroud", "Exit Reaper's Shroud", simulateLive],
-    [thiefProfession, 'Specter', 'Enter Shadow Shroud', 'Exit Shadow Shroud', simulateLive]
+    [engineerProfession, 'Holosmith', 'Engage Photon Forge', 'Deactivate Photon Forge', simulateRuntime],
+    [guardianProfession, 'Luminary', 'Enter Radiant Forge', 'Exit Radiant Forge', simulateRuntime],
+    [necromancerProfession, 'Core', 'Death Shroud', 'End Death Shroud', simulateRuntime],
+    [necromancerProfession, 'Reaper', "Reaper's Shroud", "Exit Reaper's Shroud", simulateRuntime],
+    [thiefProfession, 'Specter', 'Enter Shadow Shroud', 'Exit Shadow Shroud', simulateRuntime]
   ]) {
     const result = simulate({
       profession,
@@ -152,7 +152,7 @@ test('live form entry blocks the next authored input until its recovery ends', (
     [guardianProfession, 'Luminary', 'Enter Radiant Forge', 'Exit Radiant Forge', 'forgeEntryMs'],
     [necromancerProfession, 'Core', 'Death Shroud', 'End Death Shroud', 'shroudEntryMs']
   ]) {
-    const result = simulateLive({
+    const result = simulateRuntime({
       profession,
       rotation: [entry, exit],
       config: { specialization, transitionDelays: transitions, initialResource: 100 }
@@ -166,9 +166,9 @@ test('live form entry blocks the next authored input until its recovery ends', (
 test('automatic shroud depletion and forge expiry apply exit recovery at the transition timestamp', () => {
   for (const [profession, specialization, entry, waitMs, resource, simulate = simulateGw2] of [
     // Observe depletion on the first 40 ms tick at or after the 500 ms zero crossing.
-    [thiefProfession, 'Specter', 'Enter Shadow Shroud', 520, { initialShadowForce: 1 }, simulateLive],
-    [guardianProfession, 'Luminary', 'Enter Radiant Forge', 20000, {}, simulateLive],
-    [necromancerProfession, 'Core', 'Death Shroud', 30000, { initialResource: 10 }, simulateLive]
+    [thiefProfession, 'Specter', 'Enter Shadow Shroud', 520, { initialShadowForce: 1 }, simulateRuntime],
+    [guardianProfession, 'Luminary', 'Enter Radiant Forge', 20000, {}, simulateRuntime],
+    [necromancerProfession, 'Core', 'Death Shroud', 30000, { initialResource: 10 }, simulateRuntime]
   ]) {
     const result = simulate({
       profession,
@@ -186,7 +186,7 @@ test('automatic shroud depletion and forge expiry apply exit recovery at the tra
 
 test('overheated Photon Forge applies exit recovery only at the explicit exit', () => {
   // Overheat locks Forge attacks; the later rotation command owns the bar exit and its recovery.
-  const result = simulateLive({
+  const result = simulateRuntime({
     profession: engineerProfession,
     rotation: ['Engage Photon Forge', { type: 'wait', durationMs: 1000 }, 'Deactivate Photon Forge'],
     config: { specialization: 'Holosmith', transitionDelays: transitions, initialHeat: 99 }
@@ -233,7 +233,7 @@ test('forced-delay markers exclude retained recovery and logged waits, and inclu
 });
 
 test('automatic exit during final entry recovery extends only the overlapping deadline', () => {
-  const result = simulateLive({
+  const result = simulateRuntime({
     profession: thiefProfession,
     rotation: ['Enter Shadow Shroud'],
     config: {

@@ -2,7 +2,7 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import {
   catalystAttributeRules,
-  catalystLive
+  catalystHooks
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-and-empowerment.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { catalystUi } from '#gw2/professions/elementalist/specializations/catalyst/presentation.js';
@@ -22,9 +22,7 @@ export const catalystModule = defineNativeModule({
     balanceProfiles: CATALYST_BALANCE_PROFILES
   }),
   state: { create: catalystState.create },
-  mechanics: {
-    modifiers: catalystAttributeRules,
-    live: catalystLive
-  },
+  modifiers: catalystAttributeRules,
+  hooks: catalystHooks,
   presentation: catalystUi
 });

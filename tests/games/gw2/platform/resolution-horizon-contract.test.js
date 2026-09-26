@@ -217,7 +217,7 @@ function contractProfession() {
     resources: {
       createState: () => ({ actorActiveUntil: 0 })
     },
-    live: {
+    hooks: {
       onCastStart(context, { skill, start }) {
         if (skill.id !== 990005) return;
         context.emit({

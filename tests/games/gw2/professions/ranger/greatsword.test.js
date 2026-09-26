@@ -9,9 +9,9 @@ import {
   rangerAttackOfOpportunityModifier,
   reactToRangerGreatswordDamage
 } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
-const simulate = createLiveProfessionSimulator(rangerProfession, {
+const simulate = createObservedProfessionSimulator(rangerProfession, {
   primaryWeapon: 'Greatsword',
   selectedPet: 'Tiger',
   selectedTraitIds: [],

@@ -1,7 +1,7 @@
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 
@@ -16,7 +16,7 @@ test('Renewed Focus restores core activation traits and Flowing Resolve charges 
     const focus = interrupted
       ? { type: 'cast', skillId: GUARDIAN_SKILL_IDS.RENEWED_FOCUS, interruptAfterMs: 100 }
       : 'Renewed Focus';
-    const core = createLiveProfessionSimulator(guardianProfession, {
+    const core = createObservedProfessionSimulator(guardianProfession, {
       ...config,
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE]
     })(undefined, ['Virtue of Justice', focus, ...(interrupted ? [] : ['Virtue of Justice'])]);
@@ -32,10 +32,10 @@ test('Renewed Focus restores core activation traits and Flowing Resolve charges 
     );
     assert.equal(activations.length, interrupted ? 1 : 2);
 
-    const willbender = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Willbender' })(
-      undefined,
-      ['Flowing Resolve', 'Flowing Resolve', focus]
-    );
+    const willbender = createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      specialization: 'Willbender'
+    })(undefined, ['Flowing Resolve', 'Flowing Resolve', focus]);
     assert.deepEqual(willbender.warnings, []);
     const ammo = willbender.planningState.ammo['Flowing Resolve'];
     assert.equal(ammo.charges, interrupted ? 0 : ammo.maximum);
@@ -46,7 +46,7 @@ test('Renewed Focus restores core activation traits and Flowing Resolve charges 
 
 test('Renewed Focus restores Firebrand pages and dormancy only on completion', () => {
   for (const interrupted of [false, true]) {
-    const result = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Firebrand' })(
+    const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Firebrand' })(
       undefined,
       [
         'Tome of Justice',
@@ -75,7 +75,7 @@ test('Bane Signet Power follows recharge and Perfect Inscriptions for raw and pr
   for (const staticApplied of [false, true]) {
     for (const traited of [false, true]) {
       const bonus = 180 * (traited ? 1.2 : 1);
-      const result = createLiveProfessionSimulator(guardianProfession, {
+      const result = createObservedProfessionSimulator(guardianProfession, {
         ...config,
         stats: { ...config.stats, power: 2000 + (staticApplied ? bonus : 0) },
         attributeProvenance: { professionStaticRulesApplied: staticApplied },
@@ -101,7 +101,7 @@ test('Bane Signet Power follows recharge and Perfect Inscriptions for raw and pr
 
 test('Willbender misses cannot complete a virtue hit cycle', () => {
   for (const offTarget of [false, true]) {
-    const result = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Willbender' })(
+    const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Willbender' })(
       undefined,
       [
         'Rushing Justice',

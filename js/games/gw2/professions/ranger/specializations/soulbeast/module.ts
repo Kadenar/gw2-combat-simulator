@@ -1,7 +1,7 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import { soulbeastAttributeRules } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
-import { soulbeastLive } from '#gw2/professions/ranger/specializations/soulbeast/live.js';
+import { soulbeastHooks } from '#gw2/professions/ranger/specializations/soulbeast/hooks.js';
 import { SOULBEAST_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/index.js';
 import { SOULBEAST_BALANCE_PROFILES } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
@@ -15,6 +15,7 @@ export const soulbeastModule = defineNativeModule({
     balanceProfiles: SOULBEAST_BALANCE_PROFILES
   }),
   state: { create: soulbeastState.create },
-  mechanics: { modifiers: soulbeastAttributeRules, live: soulbeastLive },
+  modifiers: soulbeastAttributeRules,
+  hooks: soulbeastHooks,
   presentation: bindSoulbeastUi
 });

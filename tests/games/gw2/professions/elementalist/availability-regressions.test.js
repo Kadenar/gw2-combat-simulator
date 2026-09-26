@@ -9,7 +9,7 @@ import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core
 import { applyConjureState, captureConjurePickup } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import { weaverLive } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
+import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
 
 test('Arcane Echo requires an armed, unexpired window and consumes it only once', () => {
   const echo = elementalistCatalog.skillsByName.get('Arcane Echo');
@@ -74,9 +74,9 @@ test('Fervent Stance grants dual-attack Might only inside an armed window', () =
       effectiveEnd: at,
       emit: (event) => events.push(event)
     };
-    if (armed) weaverLive.tasks['elementalist.weaver.arm-fervent-stance'](context);
+    if (armed) weaverHooks.tasks['elementalist.weaver.arm-fervent-stance'](context);
     context.time = at;
-    weaverLive.onCastComplete(context, { skill, command: {}, effectiveEnd: at, fullEnd: at, start: at });
+    weaverHooks.onCastComplete(context, { skill, command: {}, effectiveEnd: at, fullEnd: at, start: at });
     const grants = events.filter((event) => event.type === 'buff' && event.source === 'Fervent Stance');
     assert.equal(grants.length, active ? 1 : 0);
     if (active) assert.equal(grants[0].kind, 'might');

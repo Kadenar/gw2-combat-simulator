@@ -4,7 +4,7 @@ import { describe, test } from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { engineerMechHasQuickness } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
@@ -28,7 +28,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createLiveProfessionSimulator(engineerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
 
 // A real mech command must retain its Force Signet bonus when only the player's Force sigil changes.
 test('Jade Mortar does not inherit Force or lose part of its signet bonus', () => {
@@ -95,7 +95,7 @@ for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
   ['Superconducting Signet', ID.SUPERCONDUCTING_SIGNET, 'modifyConditionDamage', 0.1, 0.12]
 ]) {
   test(`${signet} passive follows equipment, recharge, and J-Drive`, () => {
-    const runtime = engineerProfession.liveRuntimeFor({ specialization: 'Mechanist' });
+    const runtime = engineerProfession.runtimeFor({ specialization: 'Mechanist' });
     // Cooldown history must remove the ordinary passive and restore it when recharge finishes.
     const events = [{ type: 'action', at: 1, skillId, rechargeReadyAt: 31 }];
     const timeline = createGw2TimelineIndex({ events });
@@ -330,7 +330,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
   assert.equal(cappedChanneling.concentration, 1500);
   assert.equal(cappedChanneling.healingPower, 1500);
   const copiedMightAfterCaps = engineerProfession
-    .resolveRuntime({
+    .resolveProfession({
       specialization: 'Mechanist'
     })
     .modifyAttributes(
@@ -790,7 +790,7 @@ describe('Mechanist grandmaster active effects', () => {
     assertFlooredDamageMultiplier(mechStrike(mechWithShift).damage, mechStrike(mechWithoutShift).damage, 1.375);
     assert.equal(
       engineerProfession
-        .resolveRuntime({
+        .resolveProfession({
           specialization: 'Mechanist'
         })
         .modifyConditionDamage(

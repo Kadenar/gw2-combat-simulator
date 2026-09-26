@@ -192,7 +192,7 @@ test('public diagnostics capture one execution and are suppressed in score outpu
     id: 'diagnostic-live',
     name: 'Diagnostic live',
     catalog,
-    live: {
+    hooks: {
       reactions: {
         'damage.resolved': (ctx) => {
           capture.push(ctx.damageDiagnostics);

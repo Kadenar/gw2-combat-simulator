@@ -1,4 +1,4 @@
-import { rangerEvent } from '#gw2/professions/ranger/core/live-events.js';
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 /** Owns Core Ranger Wilderness Survival condition and control-triggered trait behavior. */

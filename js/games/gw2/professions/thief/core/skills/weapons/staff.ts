@@ -53,7 +53,7 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.HOOK_STRIKE]: {
-    // Custom: Consumes stealth and applies Revealed after the attack through `core/live.ts`.
+    // Custom: Consumes stealth and applies Revealed after the attack through `core/hooks.ts`.
     castTimeMs: 640,
     cooldown: 1,
     initiativeCost: 0,

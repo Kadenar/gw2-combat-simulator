@@ -1,4 +1,4 @@
-import { observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -74,7 +74,7 @@ test('Revenant Brutality claims at swap completion and honors the exclusive ICD 
             )
         }
       );
-    assert.deepEqual(runtimeFor(run([])).profession.core.traitProcReadyAt, {});
+    assert.deepEqual(observedRuntime(run([])).profession.core.traitProcReadyAt, {});
     const result = run([REVENANT_TRAIT_IDS.BRUTALITY]);
     assert.deepEqual(result.warnings, []);
     // The swap at the exact deadline is blocked; one millisecond later claims again from its own completion.
@@ -84,7 +84,7 @@ test('Revenant Brutality claims at swap completion and honors the exclusive ICD 
         .map((event) => event.at),
       [1, 1 + duration + 0.001]
     );
-    closeTo(runtimeFor(result).profession.core.traitProcReadyAt.brutality, 1 + duration + 0.001 + duration);
+    closeTo(observedRuntime(result).profession.core.traitProcReadyAt.brutality, 1 + duration + 0.001 + duration);
   }
 });
 
@@ -106,7 +106,7 @@ test('Revenant Vicious Reprisal claims only eligible strikes and honors the excl
       );
     const might = (result) =>
       result.events.filter((event) => event.type === 'buff' && event.sourceId === REVENANT_TRAIT_IDS.VICIOUS_REPRISAL);
-    assert.deepEqual(runtimeFor(run([])).profession.core.traitProcReadyAt, {});
+    assert.deepEqual(observedRuntime(run([])).profession.core.traitProcReadyAt, {});
     assert.deepEqual(might(run([REVENANT_TRAIT_IDS.VICIOUS_REPRISAL], {})), []);
     const result = run([REVENANT_TRAIT_IDS.VICIOUS_REPRISAL]);
     assert.deepEqual(result.warnings, []);
@@ -114,7 +114,7 @@ test('Revenant Vicious Reprisal claims only eligible strikes and honors the excl
       might(result).map((event) => event.at),
       [1, 1 + duration + 0.001]
     );
-    closeTo(runtimeFor(result).profession.core.traitProcReadyAt.viciousReprisal, 1 + duration + 0.001 + duration);
+    closeTo(observedRuntime(result).profession.core.traitProcReadyAt.viciousReprisal, 1 + duration + 0.001 + duration);
   }
 });
 
@@ -127,7 +127,7 @@ for (const [key, trait] of [
     for (const selected of [false, true])
       for (const completion of [1, 1.000001]) {
         const config = { specialization: 'Core', selectedTraitIds: selected ? [trait] : [] };
-        const native = necromancerProfession.liveRuntimeFor(config);
+        const native = necromancerProfession.runtimeFor(config);
         const result = observeGw2Runtime({
           config,
           rotation: [{ type: 'wait', durationMs: completion * 1000 - 680 }, 'Well of Blood'],
@@ -139,7 +139,7 @@ for (const [key, trait] of [
             }
           }
         });
-        assert.equal(runtimeFor(result).profession.core.traitProcReadyAt[key] > 1, selected && completion > 1);
+        assert.equal(observedRuntime(result).profession.core.traitProcReadyAt[key] > 1, selected && completion > 1);
         assert.deepEqual(result.warnings, []);
       }
   });
@@ -376,7 +376,7 @@ test('Revenant boon traits stay blocked at the exact ICD boundary', () => {
       .map((event) => event.at),
     [AFTER_READY_AT]
   );
-  assert.ok(runtimeFor(result).profession.specialization.state.bloodFuryReadyAt > AFTER_READY_AT);
+  assert.ok(observedRuntime(result).profession.specialization.state.bloodFuryReadyAt > AFTER_READY_AT);
 });
 
 test('Thief boon traits stay blocked at the exact ICD boundary', () => {
@@ -410,7 +410,7 @@ test('Thief boon traits stay blocked at the exact ICD boundary', () => {
 test('Warrior burst traits stay blocked at the exact ICD boundary', () => {
   for (const at of [READY_AT, AFTER_READY_AT]) {
     const config = { specialization: 'Spellbreaker', selectedTraitIds: [WARRIOR_TRAIT_IDS.MAGEBANE_TETHER] };
-    const native = warriorProfession.liveRuntimeFor(config);
+    const native = warriorProfession.runtimeFor(config);
     const result = observeGw2Runtime({
       config,
       rotation: [{ type: 'wait', durationMs: at * 1000 }],
@@ -434,7 +434,10 @@ test('Warrior burst traits stay blocked at the exact ICD boundary', () => {
     });
     assert.deepEqual(result.warnings, []);
     assert.equal(result.procSteps.filter((proc) => proc.skill === 'Magebane Tether').length, at === READY_AT ? 0 : 1);
-    assert.equal(runtimeFor(result).profession.specialization.state.magebaneTetherReadyAt > READY_AT, at > READY_AT);
+    assert.equal(
+      observedRuntime(result).profession.specialization.state.magebaneTetherReadyAt > READY_AT,
+      at > READY_AT
+    );
   }
 });
 
@@ -468,7 +471,7 @@ test('Necromancer condition traits stay blocked at the exact ICD boundary', () =
     initialResource: 0,
     selectedTraitIds: [NECROMANCER_TRAIT_IDS.NOURISHING_ASHES]
   };
-  const native = necromancerProfession.liveRuntimeFor(config);
+  const native = necromancerProfession.runtimeFor(config);
   for (const at of [READY_AT, AFTER_READY_AT]) {
     const result = observeGw2Runtime({
       config,
@@ -492,7 +495,7 @@ test('Necromancer condition traits stay blocked at the exact ICD boundary', () =
       }
     });
     assert.equal(
-      runtimeFor(result).profession.specialization.state.nourishingAshesReadyAt > READY_AT,
+      observedRuntime(result).profession.specialization.state.nourishingAshesReadyAt > READY_AT,
       at === AFTER_READY_AT
     );
     assert.deepEqual(result.warnings, []);

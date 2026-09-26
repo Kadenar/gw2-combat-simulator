@@ -6,7 +6,7 @@ import {
   balanceProfileNumber,
   effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitEngineerEvent } from '#gw2/professions/engineer/core/live-events.js';
+import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';

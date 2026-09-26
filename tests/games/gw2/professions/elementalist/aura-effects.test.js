@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { applyElementalistAttunementTraits } from '#gw2/professions/elementalist/core/traits/index.js';
@@ -29,7 +29,9 @@ test('real and synthetic Air entry honor trait gates and patched buff versus boo
         const events = [];
         const skill = { id: 1, name: 'Air entry' };
         const config = { stats: { concentration: 750 } };
-        const context = runtimeFor(runElementalist({ config: { ...config, specialization: 'Evoker' }, rotation: [] }));
+        const context = observedRuntime(
+          runElementalist({ config: { ...config, specialization: 'Evoker' }, rotation: [] })
+        );
         Object.assign(context, {
           helpers: catalog,
           traits: new Set(selected),
@@ -84,7 +86,7 @@ test('Core and Tempest aura boons use patched effects and scale once', () => {
       duration: index + 7
     }));
     const config = { stats: { concentration: 750 }, specialization: 'Tempest' };
-    const context = runtimeFor(runElementalist({ config, rotation: [] }));
+    const context = observedRuntime(runElementalist({ config, rotation: [] }));
     const events = [];
     const profiles = new Map(elementalistCatalog.balanceProfilesById);
     profiles.set(profileId, { effects });

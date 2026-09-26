@@ -34,7 +34,7 @@ function run(profession, balanceProfiles, specialization, rotation, config = {},
       ...config
     }
   };
-  const result = runGw2Runtime({ ...options, profession: options.profession.liveRuntimeFor(options.config) });
+  const result = runGw2Runtime({ ...options, profession: options.profession.runtimeFor(options.config) });
   assert.deepEqual(result.warnings, []);
   return result;
 }

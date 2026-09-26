@@ -25,7 +25,7 @@ import {
   emitElementalistBuff,
   emitElementalistCondition,
   emitElementalistDamage
-} from '#gw2/professions/elementalist/core/live-events.js';
+} from '#gw2/professions/elementalist/core/events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GW2_QUICKNESS_ACTION_RATE, castRelativeEffectTimingScale } from '#gw2/platform/skills/timing.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';

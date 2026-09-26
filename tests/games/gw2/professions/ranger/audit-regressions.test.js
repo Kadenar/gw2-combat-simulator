@@ -1,11 +1,11 @@
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { rangerPetCombatMetadata, rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const config = {
   primaryWeapon: 'Greatsword',
@@ -16,7 +16,7 @@ const config = {
   stats: { power: 2000, precision: 1000, ferocity: 0, conditionDamage: 1000, expertise: 0, concentration: 0 },
   target: { armor: 2597, defiant: true, conditions: {} }
 };
-const simulate = createLiveProfessionSimulator(rangerProfession, config);
+const simulate = createObservedProfessionSimulator(rangerProfession, config);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const copied = (result) =>
   result.events.filter((event) => event.type === 'buff' && event.skillId === ID.WE_HEAL_AS_ONE);
@@ -246,7 +246,7 @@ test('Lead the Wind reduces longbow recharge and grants Point-Blank Shot boons',
     selectedTraitIds: [TRAIT.LEAD_THE_WIND]
   });
   const recharge = (result) => {
-    return runtimeFor(result).rechargeProgress.get(ID.RAPID_FIRE).work;
+    return observedRuntime(result).rechargeProgress.get(ID.RAPID_FIRE).work;
   };
 
   assert.ok(Math.abs(recharge(traited) - recharge(baseline) * 0.8) < 1e-9);
@@ -308,7 +308,7 @@ test('Fang and Claw changes independent critical stats only for eligible pets', 
   ]) {
     const metadata = (selectedTraitIds) =>
       rangerPetCombatMetadata(
-        runtimeFor(runRanger([], { ...config, specialization: 'Core', selectedPet, selectedTraitIds }))
+        observedRuntime(runRanger([], { ...config, specialization: 'Core', selectedPet, selectedTraitIds }))
       );
     const baseline = metadata([]),
       enhanced = metadata([TRAIT.FANG_AND_CLAW]);

@@ -17,7 +17,7 @@ const SWORD_AUTOATTACK_EXPIRY_TASK = 'necromancer.sword-autoattack-chain-expire'
 const SWORD_AUTOATTACK_RETENTION_SECONDS = 3;
 
 /** A committed live sword transition replaces its expiry; preserving another cast never extends the deadline. */
-export function observeLiveNecromancerAutoattackTransition(
+export function observeNecromancerAutoattackTransition(
   runtime: NecromancerRuntime,
   _cast: RuntimeCast,
   result: AutoattackChainTransitionResult
@@ -37,7 +37,7 @@ export function observeLiveNecromancerAutoattackTransition(
     );
 }
 
-export const necromancerLiveSwordTasks = {
+export const necromancerSwordTasks = {
   [SWORD_AUTOATTACK_EXPIRY_TASK](runtime: NecromancerRuntime) {
     resetAutoattackChains(runtime, [ID.ENERVATION_BLADE]);
   }

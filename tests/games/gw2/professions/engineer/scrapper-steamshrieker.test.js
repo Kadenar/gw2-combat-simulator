@@ -16,7 +16,7 @@ const scrapperConfig = Object.freeze({
 
 function simulate(rotation) {
   return runGw2Runtime({
-    profession: engineerProfession.liveRuntimeFor(scrapperConfig),
+    profession: engineerProfession.runtimeFor(scrapperConfig),
     rotation,
     config: scrapperConfig
   });

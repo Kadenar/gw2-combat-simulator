@@ -43,7 +43,7 @@ test('sigil diagnostics preserve seeded output and explain suppression of a late
     id: 'sigil-diagnostic-fixture',
     name: 'Sigil diagnostic fixture',
     catalog: createCanonicalCatalog(),
-    live: {
+    hooks: {
       initialize(context) {
         for (const at of [0.1, 10])
           context.emit({
@@ -161,7 +161,7 @@ test('Blight procs supply condition-dependent readiness and expire without recur
     id: 'blight-facts-fixture',
     name: 'Blight facts fixture',
     catalog: createCanonicalCatalog(),
-    live: {
+    hooks: {
       initialize(context) {
         context.emit({
           type: 'damage',
@@ -218,7 +218,7 @@ test('critical sigil cooldowns persist across weapon swaps and cannot proc while
         id: 'sigil-cooldown-fixture',
         name: 'Sigil cooldown fixture',
         catalog: createCanonicalCatalog(),
-        live: {
+        hooks: {
           initialize(context) {
             const owner = { source: 'Fixture', sourceId: 'fixture', actorType: 'player' };
             for (const at of [0.1, 0.3, 0.5]) {

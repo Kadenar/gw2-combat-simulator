@@ -711,7 +711,7 @@ test('Mistburn also grants once per eligible resolver-created player Might appli
     id: 'mistburn-resolved-fixture',
     name: 'Mistburn Resolved Fixture',
     catalog: createCanonicalCatalog(),
-    live: {
+    hooks: {
       initialize(context) {
         for (const at of [1, 2, 2.001])
           context.emit({ type: 'fixture.might', at, source: 'fixture', sourceId: 930011, actorType: 'player' });

@@ -22,29 +22,29 @@ import {
   REVENANT_SKILL_IDS as SKILL,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
-import { grantLiveKallasFervor } from '#gw2/professions/revenant/specializations/renegade/live.js';
+import { grantKallasFervor } from '#gw2/professions/revenant/specializations/renegade/hooks.js';
 
 const revenantAttributeRules = Object.freeze({
   modifyAttributes(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyAttributes(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyAttributes(context, value);
   },
   modifyCriticalChance(context, value) {
     return revenantProfession
-      .resolveRuntime(context?.config || {})
+      .resolveProfession(context?.config || {})
       .modifyCriticalChance({ catalog: revenantCatalog, ...context }, value);
   },
   modifyStrikeDamage(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyStrikeDamage(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyStrikeDamage(context, value);
   },
   modifyConditionDamage(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyConditionDamage(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDamage(context, value);
   },
   modifyConditionDuration(context, value) {
     return revenantProfession
-      .resolveRuntime(context?.config || {})
+      .resolveProfession(context?.config || {})
       .modifyConditionDuration({ catalog: revenantCatalog, ...context }, value);
   }
 });
@@ -72,7 +72,7 @@ const PLAYER_AUDIENCE = Object.freeze({
   recipientCount: 1
 });
 
-const simulate = createLiveProfessionSimulator(revenantProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);
 // Live steps expose the actual activation window; an instant summon occupies none of it.
 const castMs = (step) => step.end - step.start;
 
@@ -525,13 +525,13 @@ test("Kalla's Fervor replaces the soonest-expiring stack at its cap", () => {
             tasks: {
               ...native.tasks,
               [grant]: (runtime) =>
-                grantLiveKallasFervor(runtime, { sourceId: TRAIT.AMBUSH_COMMANDER, sourceName: 'Ambush Commander' })
+                grantKallasFervor(runtime, { sourceId: TRAIT.AMBUSH_COMMANDER, sourceName: 'Ambush Commander' })
             }
           }),
           initialize: (runtime) => [0, 1, 2, 3, 4, 5].forEach((at) => runtime.schedule(grant, at))
         }
       );
-    const renegade = (result) => runtimeFor(result).profession.specialization.state;
+    const renegade = (result) => observedRuntime(result).profession.specialization.state;
     const duration = improved ? 12 : 8;
     // A sixth application keeps five stacks alive past the original stack's expiry without refreshing all five.
     const capped = renegade(run([{ type: 'wait', durationMs: 6000 }]));
@@ -1274,7 +1274,7 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   const impossible = revenantCatalog.skillsByName.get('Impossible Odds');
 
   // Starvation at one second starts the authored starvation cooldown from that boundary.
-  assert.equal(runtimeFor(starved).cooldowns.get(impossible.id) - impossible.starvationCooldown, 1);
+  assert.equal(observedRuntime(starved).cooldowns.get(impossible.id) - impossible.starvationCooldown, 1);
   assert.equal(starved.planningState.profession.activeUpkeeps.length, 0);
 });
 

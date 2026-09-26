@@ -8,7 +8,7 @@ import { buildChartSeries } from '#gw2/app/results/model.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import {
   dragonChargeTickOffsetSeconds,
   dragonChargesForDurationMs
@@ -47,7 +47,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createLiveProfessionSimulator(warriorProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(warriorProfession, baseConfig);
 
 test('Bladesworn gates gunsaber and Dragon Slash state', () => {
   const blocked = simulate('Bladesworn', ['Swift Cut'], {

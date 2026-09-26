@@ -135,7 +135,7 @@ export function defineProfessionFamily<TProfessionState extends object = object,
     catalog: definition.catalog
   });
   const cache = new Map<string, Readonly<NormalizedProfessionContract<TProfessionState>>>();
-  const resolveRuntime = (
+  const resolveProfession = (
     config: Readonly<ProfessionConfig> = {}
   ): Readonly<NormalizedProfessionContract<TProfessionState>> => {
     const specialization = String(config.specialization || 'Core').trim() || 'Core';
@@ -171,9 +171,9 @@ export function defineProfessionFamily<TProfessionState extends object = object,
         definition.id,
         createProfessionFamilyUi({
           resourcesFor: (specialization) => ({
-            ...resourcePolicies(resolveRuntime({ specialization }).resources),
-            endurance: resolveRuntime({ specialization }).resources.endurance ?? undefined,
-            // Live-owned policies replace composed module declarations for the same resource.
+            ...resourcePolicies(resolveProfession({ specialization }).resources),
+            endurance: resolveProfession({ specialization }).resources.endurance ?? undefined,
+            // Hook-owned policies replace composed module declarations for the same resource.
             ...definition.resourcesFor?.(specialization)
           }),
           catalog: definition.catalog,
@@ -186,7 +186,7 @@ export function defineProfessionFamily<TProfessionState extends object = object,
       ));
     },
     ...build,
-    resolveRuntime
+    resolveProfession
   }) as Readonly<ProfessionFamilyContract<TProfessionState, NormalizedProfessionContract<TProfessionState>, TBuild>>;
 }
 
@@ -194,7 +194,7 @@ export function defineProfessionFamily<TProfessionState extends object = object,
  * Resolves family contracts for the supplied configuration. Already-resolved
  * runtime contracts pass through unchanged.
  */
-export function resolveProfessionRuntime<
+export function resolveProfessionContract<
   TProfessionState extends object = object,
   TRuntime extends NormalizedProfessionContract<TProfessionState> = NormalizedProfessionContract<TProfessionState>
 >(
@@ -205,7 +205,7 @@ export function resolveProfessionRuntime<
     throw new TypeError('A profession contract is required.');
   }
 
-  return typeof (profession as ProfessionFamilyContract<TProfessionState, TRuntime>).resolveRuntime === 'function'
-    ? (profession as ProfessionFamilyContract<TProfessionState, TRuntime>).resolveRuntime(config)
+  return typeof (profession as ProfessionFamilyContract<TProfessionState, TRuntime>).resolveProfession === 'function'
+    ? (profession as ProfessionFamilyContract<TProfessionState, TRuntime>).resolveProfession(config)
     : (profession as Readonly<TRuntime>);
 }

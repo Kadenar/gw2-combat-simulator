@@ -8,16 +8,16 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
-import { revenantLiveEnduranceRate } from '#gw2/professions/revenant/core/live.js';
+import { revenantEnduranceRate } from '#gw2/professions/revenant/core/hooks.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { REVENANT_TEST_CONFIG as baseConfig, revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 
-const simulate = createLiveProfessionSimulator(revenantProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
-const core = (result) => runtimeFor(result).profession.core;
-const specialization = (result) => runtimeFor(result).profession.specialization.state;
+const core = (result) => observedRuntime(result).profession.core;
+const specialization = (result) => observedRuntime(result).profession.specialization.state;
 const alacrityAt = (at, duration) => (runtime) =>
   runtime.emit({
     type: 'buff',
@@ -142,7 +142,7 @@ for (const [name, skillId, cooldown] of [
       ],
       3000
     );
-    const runtime = runtimeFor(bounded);
+    const runtime = observedRuntime(bounded);
     assert.equal(owner(runtime)[key].charges, buff.stacks - 2, 'only two eligible hits clear their gates');
     const packets = derived(bounded);
     assert.equal(packets.length, 2);
@@ -163,9 +163,9 @@ for (const [name, skillId, cooldown] of [
       [revenantHit(3 + buff.duration)],
       (4 + buff.duration) * 1000
     );
-    assert.equal(owner(runtimeFor(expired))[key].charges, buff.stacks, 'exact expiry cannot consume');
+    assert.equal(owner(observedRuntime(expired))[key].charges, buff.stacks, 'exact expiry cannot consume');
     const exhausted = scenario({ charges: 1, expiresAt: 100, readyAt: 0 }, [revenantHit(50), revenantHit(60)], 61000);
-    assert.equal(owner(runtimeFor(exhausted))[key].charges, 0, 'exhausted grants cannot underflow');
+    assert.equal(owner(observedRuntime(exhausted))[key].charges, 0, 'exhausted grants cannot underflow');
     assert.equal(derived(exhausted).length, 1);
   });
 }
@@ -351,7 +351,7 @@ test('upkeep starvation cooldowns scale with Alacrity', () => {
     const result = simulate('Core', ['Impossible Odds', wait(2000)], { initialEnergy: 6, boons: { alacrity } });
     assert.deepEqual(result.warnings, []);
     // Five Energy remains after activation; the six-per-second drain against five regeneration empties it at one second.
-    assert.equal(runtimeFor(result).cooldowns.get(SKILL.IMPOSSIBLE_ODDS), 1 + 4 / (alacrity ? 1.25 : 1));
+    assert.equal(observedRuntime(result).cooldowns.get(SKILL.IMPOSSIBLE_ODDS), 1 + 4 / (alacrity ? 1.25 : 1));
     assert.deepEqual(result.planningState.profession.activeUpkeeps, []);
   }
 });
@@ -365,7 +365,7 @@ test('Diminish Solace stops upkeep drain, retires its follow-up, and starts the 
   assert.deepEqual(recovered.planningState.profession.activeUpkeeps, []);
   assert.equal(recovered.planningState.profession.availableFlips[SKILL.DIMINISH_SOLACE], undefined);
   assert.equal(recovered.planningState.profession.energy.value - released.planningState.profession.energy.value, 10);
-  assert.equal(runtimeFor(released).cooldowns.get(SKILL.PROTECTIVE_SOLACE), 6);
+  assert.equal(observedRuntime(released).cooldowns.get(SKILL.PROTECTIVE_SOLACE), 6);
   const unavailable = simulate('Core', ['Diminish Solace'], config);
   assert.match(unavailable.warnings.join('\n'), /activate the matching upkeep/);
 });
@@ -482,7 +482,7 @@ test('Enduring Recovery adds to Vigor and funds the next dodge in Core and Vindi
         initialEndurance: 0
       });
       assert.deepEqual(result.warnings, []);
-      assert.equal(revenantLiveEnduranceRate(runtimeFor(result), vigor), rate);
+      assert.equal(revenantEnduranceRate(observedRuntime(result), vigor), rate);
       assert.equal(result.steps[0].start, readyAt * 1000);
     }
 

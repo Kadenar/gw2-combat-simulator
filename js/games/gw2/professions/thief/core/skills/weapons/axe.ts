@@ -124,7 +124,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ])
   },
   [ID.CUNNING_SALVO]: {
-    // Custom: Consumes stealth and applies Revealed after the attack through `core/live.ts`.
+    // Custom: Consumes stealth and applies Revealed after the attack through `core/hooks.ts`.
     castTimeMs: 360,
     cooldown: 1,
     initiativeCost: 0,

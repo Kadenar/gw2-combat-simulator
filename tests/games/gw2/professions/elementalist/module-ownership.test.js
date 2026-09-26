@@ -19,7 +19,7 @@ const SPECIALIZATION_STATE_KEYS = Object.freeze({
 });
 
 function modifierIds(module) {
-  const modifiers = module.mechanics.modifiers;
+  const modifiers = module.modifiers;
   const rules = Array.isArray(modifiers) ? modifiers : modifiers.modifierRules;
   return new Set(rules.map((rule) => rule.id));
 }
@@ -27,7 +27,7 @@ function modifierIds(module) {
 test('Elementalist runtimes keep elite state in the active specialization slice', () => {
   for (const active of ['Core', ...Object.keys(SPECIALIZATION_STATE_KEYS)]) {
     const config = { specialization: active, startAttunement: 'Fire', secondaryAttunement: 'Water' };
-    const state = elementalistProfession.liveRuntimeFor(config).createState(config);
+    const state = elementalistProfession.runtimeFor(config).createState(config);
     assert.equal(state.specialization.kind, active);
     for (const [owner, keys] of Object.entries(SPECIALIZATION_STATE_KEYS)) {
       for (const key of keys) {
@@ -42,7 +42,7 @@ test('Elementalist runtimes keep elite state in the active specialization slice'
 test('Elementalist resolver buffs update only the owned Core state', () => {
   for (const specialization of ['Core', ...Object.keys(SPECIALIZATION_STATE_KEYS)]) {
     const config = { specialization };
-    const profession = elementalistProfession.liveRuntimeFor(config).createState(config);
+    const profession = elementalistProfession.runtimeFor(config).createState(config);
     const eliteBefore = structuredClone(profession.specialization.state);
     applyElementalistResolverBuff(
       { profession },

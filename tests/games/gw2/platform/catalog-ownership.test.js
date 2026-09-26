@@ -33,7 +33,7 @@ const coreModule = () =>
       weaponHands: { Sword: 'mh' }
     },
     state: { create: () => ({ coreValue: 1 }) },
-    mechanics: { live: {} }
+    hooks: {}
   });
 const eliteModule = () =>
   defineNativeModule({
@@ -52,7 +52,7 @@ const eliteModule = () =>
       specializations: [{ id: 21, name: 'Elite', elite: true }]
     },
     state: { create: () => ({ eliteValue: 2 }) },
-    mechanics: { live: {} }
+    hooks: {}
   });
 
 test('native module data admits only mechanics-backed metadata and explicit extra skills', () => {
@@ -226,12 +226,12 @@ test('module-first assembly derives application and active runtime catalogs', ()
   assert.deepEqual(catalog.skills.map(({ id }) => id).sort(), [1, 2, 3]);
   assert.equal(skillOwners.get(3), 'Core');
   assert.deepEqual(
-    family.resolveRuntime({ specialization: 'Core' }).catalog.skills.map(({ id }) => id),
+    family.resolveProfession({ specialization: 'Core' }).catalog.skills.map(({ id }) => id),
     [1, 3]
   );
   assert.deepEqual(
     family
-      .resolveRuntime({ specialization: 'Elite' })
+      .resolveProfession({ specialization: 'Elite' })
       .catalog.skills.map(({ id }) => id)
       .sort(),
     [1, 2, 3]
@@ -274,10 +274,10 @@ test('module-first assembly rejects duplicate and incomplete contributions', () 
           id: 'UnusedHandler',
           data: {},
           state: { create: () => ({}) },
-          mechanics: { execution: { skillHandlers: { 'test.unused': replaceHandler } } }
+          execution: { skillHandlers: { 'test.unused': replaceHandler } }
         })
       ]),
-    /Unsupported native mechanic: execution/
+    /Unsupported native module field: execution/
   );
   assert.throws(
     () => defineNativeModule({ id: 'Broken', data: {}, state: {} }),

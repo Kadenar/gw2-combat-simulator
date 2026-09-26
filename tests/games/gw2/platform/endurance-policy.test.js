@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadProfession } from '#gw2/app/profession-registry.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 for (const [id, specialization, capacity] of [
   ['elementalist', 'Core', 100],
@@ -22,8 +22,8 @@ for (const [id, specialization, capacity] of [
     // Spend and grant through the actual service so the test cannot retain an obsolete scheduler policy.
     const profession = await loadProfession(id);
     const config = { specialization };
-    const result = observeGw2Runtime({ profession: profession.liveRuntimeFor(config), config, rotation: [] });
-    const runtime = runtimeFor(result);
+    const result = observeGw2Runtime({ profession: profession.runtimeFor(config), config, rotation: [] });
+    const runtime = observedRuntime(result);
     const state = id === 'mesmer' ? runtime.profession.specialization.state : runtime.profession.core;
     assert.equal(state.endurance, capacity);
     runtime.endurance.spend(capacity);
@@ -67,11 +67,11 @@ test('selected profile capacity controls initialization, grants, and readiness',
     balanceProfiles: { 'engineer.core.resources': { fields: { maximumStacks: { from: 100, to: 120 } } } }
   });
   const result = observeGw2Runtime({
-    profession: { ...profession.liveRuntimeFor({}), catalog },
+    profession: { ...profession.runtimeFor({}), catalog },
     config: {},
     rotation: []
   });
-  const runtime = runtimeFor(result);
+  const runtime = observedRuntime(result);
   const pool = runtime.profession.core;
   assert.equal(pool.endurance, 120);
   assert.equal('maximumEndurance' in pool, false);

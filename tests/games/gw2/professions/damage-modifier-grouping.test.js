@@ -9,14 +9,14 @@ import { MESMER_TRAIT_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js'
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER } from '#gw2/professions/necromancer/data/ids.js';
 
-const guardianLuminaryRules = guardianProfession.resolveRuntime({
+const guardianLuminaryRules = guardianProfession.resolveProfession({
   specialization: 'Luminary'
 });
 const mesmerRules = (specialization) =>
-  mesmerProfession.resolveRuntime({
+  mesmerProfession.resolveProfession({
     specialization
   });
-const necromancerRules = (specialization) => necromancerProfession.resolveRuntime({ specialization });
+const necromancerRules = (specialization) => necromancerProfession.resolveProfession({ specialization });
 
 function modifierContext({
   traits = [],

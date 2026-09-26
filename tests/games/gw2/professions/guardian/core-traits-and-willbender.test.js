@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { createGuardianBuildDefaults, migrateGuardianBuild } from '#gw2/professions/guardian/build/build.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -28,7 +28,7 @@ const PLAYER_AUDIENCE = Object.freeze({
 test('a summoned Sword of Justice completes its queued attacks after the player cancels the recovery animation', () => {
   // A completed summon owns its delayed damage and conditions independently of the remaining player animation.
   const run = (cast) =>
-    createLiveProfessionSimulator(guardianProfession, { ...config, boons: { quickness: true } })(undefined, [
+    createObservedProfessionSimulator(guardianProfession, { ...config, boons: { quickness: true } })(undefined, [
       cast,
       { type: 'wait', durationMs: 4000 }
     ]);
@@ -55,7 +55,7 @@ test('off-hand sword coefficients include the PvE dash damage and marked-target 
 });
 
 test('Guardian player strikes trigger shared player-owned sigils', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     stats: {
       ...config.stats,
@@ -77,15 +77,15 @@ test('Guardian player strikes trigger shared player-owned sigils', () => {
 
 // Recharge modifiers and exhausted ammo must affect when the scheduler allows another cast.
 test('Guardian recharge applies Alacrity, ammo, and trait reductions', () => {
-  const alacrity = createLiveProfessionSimulator(guardianProfession, { ...config, boons: { alacrity: true } })(
+  const alacrity = createObservedProfessionSimulator(guardianProfession, { ...config, boons: { alacrity: true } })(
     undefined,
     ['Virtue of Justice']
   );
-  const virtuous = createLiveProfessionSimulator(guardianProfession, {
+  const virtuous = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS]
   })(undefined, ['Virtue of Justice']);
-  const ammo = createLiveProfessionSimulator(guardianProfession, {
+  const ammo = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Pistol'
@@ -102,7 +102,7 @@ test('Zealous Blade reduces every Greatsword skill recharge by 20%', () => {
   const skillNames = ['Whirling Wrath', 'Leap of Faith', 'Symbol of Resolution', 'Binding Blade'];
   const rechargeDurations = (selectedTraitIds) =>
     skillNames.map((skillName) => {
-      const result = createLiveProfessionSimulator(guardianProfession, {
+      const result = createObservedProfessionSimulator(guardianProfession, {
         ...config,
         primaryWeapon: 'Greatsword',
         selectedTraitIds
@@ -111,7 +111,7 @@ test('Zealous Blade reduces every Greatsword skill recharge by 20%', () => {
       const action = result.events.find((event) => event.type === 'action' && event.skillName === skillName);
       const rechargeStart = skill.rechargeAnchor === 'castStart' ? action.at : action.endsAt;
 
-      return Number((runtimeFor(result).cooldowns.get(skill.id) - rechargeStart).toFixed(3));
+      return Number((observedRuntime(result).cooldowns.get(skill.id) - rechargeStart).toFixed(3));
     });
 
   assert.deepEqual(rechargeDurations([]), [8, 10, 12, 25]);
@@ -119,7 +119,7 @@ test('Zealous Blade reduces every Greatsword skill recharge by 20%', () => {
 });
 
 test('Willbender utilities use the supplied physical skill profiles', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Willbender',
     boons: { quickness: true }
@@ -207,7 +207,7 @@ test('Willbender utilities use the supplied physical skill profiles', () => {
 test('Flash Combo schedules separate strikes and preserves only landed packets when interrupted', () => {
   // A nonzero start checks the timing anchor; cancellation includes the boundary hit but drops later hits.
   for (const interruptMs of [undefined, 400]) {
-    const result = createLiveProfessionSimulator(guardianProfession, {
+    const result = createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Willbender',
       boons: { quickness: true }
@@ -229,11 +229,11 @@ test('Flash Combo schedules separate strikes and preserves only landed packets w
 });
 
 test('Whirling Light creates four Burning Bolts inside Purging Flames', () => {
-  const inFireField = createLiveProfessionSimulator(guardianProfession, {
+  const inFireField = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Willbender'
   })(undefined, ['Purging Flames', 'Whirling Light']);
-  const withoutFireField = createLiveProfessionSimulator(guardianProfession, {
+  const withoutFireField = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Willbender'
   })(undefined, ['Whirling Light']);
@@ -262,7 +262,7 @@ test('Master of Consecrations extends the usable combo field without creating a 
   // Finishers between the base and traited expirations must bind only when the duration trait is selected.
   for (const traited of [false, true]) {
     for (const delay of [6000, 8000]) {
-      const result = createLiveProfessionSimulator(guardianProfession, {
+      const result = createObservedProfessionSimulator(guardianProfession, {
         ...config,
         specialization: 'Willbender',
         selectedTraitIds: traited ? [GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS] : []
@@ -284,7 +284,7 @@ test('Master of Consecrations extends the usable combo field without creating a 
 test('Flowing Resolve starts its flame trail before recovery and retains off-target ownership', () => {
   // An early replacement must preserve the pulse that landed during Resolve's trail, but suppress an off-target trail.
   for (const offTarget of [false, true]) {
-    const result = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Willbender' })(
+    const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Willbender' })(
       undefined,
       [
         { type: 'cast', skillId: GUARDIAN_SKILL_IDS.FLOWING_RESOLVE, offTarget },
@@ -305,11 +305,11 @@ test('Flowing Resolve starts its flame trail before recovery and retains off-tar
 });
 
 test('Guardian Blasts use centralized field binding and require an active field', () => {
-  const inFireField = createLiveProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Hammer' })(
+  const inFireField = createObservedProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Hammer' })(
     undefined,
     ['Purging Flames', 'Mighty Blow']
   );
-  const withoutField = createLiveProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Hammer' })(
+  const withoutField = createObservedProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Hammer' })(
     undefined,
     ['Mighty Blow']
   );
@@ -339,7 +339,7 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
     primaryWeapon: 'Greatsword',
     boons: { quickness: true }
   };
-  const full = createLiveProfessionSimulator(guardianProfession, {
+  const full = createObservedProfessionSimulator(guardianProfession, {
     ...willbenderConfig,
     selectedTraitIds: [
       GUARDIAN_TRAIT_IDS.POWER_FOR_POWER,
@@ -347,23 +347,23 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
       GUARDIAN_TRAIT_IDS.TYRANTS_MOMENTUM
     ]
   })(undefined, ['Rushing Justice', 'Whirling Wrath', { type: 'wait', durationMs: 6000 }]);
-  const powerFlames = createLiveProfessionSimulator(guardianProfession, {
+  const powerFlames = createObservedProfessionSimulator(guardianProfession, {
     ...willbenderConfig,
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.POWER_FOR_POWER]
   })(undefined, ['Rushing Justice', { type: 'wait', durationMs: 6000 }]);
-  const plainFlames = createLiveProfessionSimulator(guardianProfession, willbenderConfig)(undefined, [
+  const plainFlames = createObservedProfessionSimulator(guardianProfession, willbenderConfig)(undefined, [
     'Rushing Justice',
     { type: 'wait', durationMs: 6000 }
   ]);
-  const searingFlames = createLiveProfessionSimulator(guardianProfession, {
+  const searingFlames = createObservedProfessionSimulator(guardianProfession, {
     ...willbenderConfig,
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.SEARING_PACT]
   })(undefined, ['Rushing Justice', { type: 'wait', durationMs: 6000 }]);
-  const amplifiedWrath = createLiveProfessionSimulator(guardianProfession, {
+  const amplifiedWrath = createObservedProfessionSimulator(guardianProfession, {
     ...willbenderConfig,
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH]
   })(undefined, ['Rushing Justice', 'Whirling Wrath']);
-  const permeatingWrath = createLiveProfessionSimulator(guardianProfession, {
+  const permeatingWrath = createObservedProfessionSimulator(guardianProfession, {
     ...willbenderConfig,
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH]
   })(undefined, ['Rushing Justice', 'Whirling Wrath']);
@@ -448,11 +448,11 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
     rushingJusticePackets.map((event) => Math.round((event.at - rushingJusticeAction.at) * 1000)),
     [440, 440]
   );
-  assert.equal(runtimeFor(full).rechargeProgress.get(rushingJusticeAction.skillId).work, 12);
+  assert.equal(observedRuntime(full).rechargeProgress.get(rushingJusticeAction.skillId).work, 12);
 });
 
 test('Restorative Virtues converts base recharge reduction through Alacrity', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Willbender',
     primaryWeapon: 'Greatsword',
@@ -461,7 +461,7 @@ test('Restorative Virtues converts base recharge reduction through Alacrity', ()
   })(undefined, ['Rushing Justice', 'Whirling Wrath']);
   const action = result.events.find((event) => event.type === 'action' && event.skillName === 'Whirling Wrath');
   const procs = result.procSteps.filter((step) => step.skill === 'Restorative Virtues');
-  const trackedReadyAt = runtimeFor(result).cooldowns.get(action.skillId);
+  const trackedReadyAt = observedRuntime(result).cooldowns.get(action.skillId);
 
   assert.deepEqual(result.warnings, []);
   assert.ok(procs.length > 0);
@@ -513,7 +513,7 @@ test('Willbender chart treats Lethal Tempo events as refreshed stack snapshots',
 });
 
 test('Willbender virtue windows appear as independent timed buff uptimes', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Willbender' })(
+  const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Willbender' })(
     undefined,
     ['Rushing Justice', 'Flowing Resolve', { type: 'wait', durationMs: 10000 }]
   );
@@ -535,28 +535,28 @@ test('Willbender flame replacement and Phoenix Protocol follow virtue triggers',
     primaryWeapon: 'Greatsword',
     boons: { quickness: true }
   };
-  const overlapping = createLiveProfessionSimulator(guardianProfession, willbenderConfig)(undefined, [
+  const overlapping = createObservedProfessionSimulator(guardianProfession, willbenderConfig)(undefined, [
     'Flowing Resolve',
     'Flowing Resolve',
     { type: 'wait', durationMs: 6000 }
   ]);
-  const replaced = createLiveProfessionSimulator(guardianProfession, willbenderConfig)(undefined, [
+  const replaced = createObservedProfessionSimulator(guardianProfession, willbenderConfig)(undefined, [
     'Flowing Resolve',
     { type: 'wait', durationMs: 700 },
     'Rushing Justice',
     { type: 'wait', durationMs: 6000 }
   ]);
-  const phoenix = createLiveProfessionSimulator(guardianProfession, {
+  const phoenix = createObservedProfessionSimulator(guardianProfession, {
     ...willbenderConfig,
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL]
   })(undefined, ['Flowing Resolve', 'Whirling Wrath', { type: 'wait', durationMs: 6000 }]);
-  const stackedVirtues = createLiveProfessionSimulator(guardianProfession, willbenderConfig)(undefined, [
+  const stackedVirtues = createObservedProfessionSimulator(guardianProfession, willbenderConfig)(undefined, [
     'Flowing Resolve',
     { type: 'wait', durationMs: 1000 },
     'Rushing Justice',
     'Whirling Wrath'
   ]);
-  const allVirtues = createLiveProfessionSimulator(guardianProfession, {
+  const allVirtues = createObservedProfessionSimulator(guardianProfession, {
     ...willbenderConfig,
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.RESTORATIVE_VIRTUES]
   })(undefined, ['Flowing Resolve', 'Crashing Courage', 'Rushing Justice', 'Whirling Wrath']);
@@ -617,7 +617,7 @@ test('Willbender flame replacement and Phoenix Protocol follow virtue triggers',
 });
 
 test('Battle Presence shares Phoenix Protocol alacrity and Inspired Virtue boons reach allies', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Willbender',
     primaryWeapon: 'Greatsword',
@@ -645,7 +645,7 @@ test('Battle Presence shares Phoenix Protocol alacrity and Inspired Virtue boons
 
 test('Holy Reckoning grants Fury on Rushing Justice activation and Might only on virtue triggers', () => {
   // One run covers the activation/trigger boundary and the party audience without depending on a saved rotation.
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Willbender',
     primaryWeapon: 'Greatsword',
@@ -679,7 +679,7 @@ test('Holy Reckoning grants Fury on Rushing Justice activation and Might only on
 });
 
 test('Willbender Flames use a separate stochastic weapon-strength activation from their virtue', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Willbender',
     randomness: { mode: 'stochastic', seed: 1 }
@@ -702,11 +702,11 @@ test('Willbender Flames use a separate stochastic weapon-strength activation fro
 });
 
 test('Guardian symbols and persistent attacks resolve after their casts', () => {
-  const symbol = createLiveProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Greatsword' })(
+  const symbol = createObservedProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Greatsword' })(
     undefined,
     ['Symbol of Resolution', { type: 'wait', durationMs: 4000 }]
   );
-  const procession = createLiveProfessionSimulator(guardianProfession, {
+  const procession = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Dragonhunter'
   })(undefined, ['Procession of Blades', { type: 'wait', durationMs: 5000 }]);
@@ -724,21 +724,21 @@ test('Guardian symbols and persistent attacks resolve after their casts', () => 
 });
 
 test('Guardian autoattack chains and torch flips enforce sequence state', () => {
-  const invalidChain = createLiveProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Mace' })(
+  const invalidChain = createObservedProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Mace' })(
     undefined,
     ['True Strike', 'Faithful Strike']
   );
-  const chain = createLiveProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Mace' })(undefined, [
+  const chain = createObservedProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Mace' })(undefined, [
     'True Strike',
     'Pure Strike',
     'Faithful Strike'
   ]);
-  const invalidFlip = createLiveProfessionSimulator(guardianProfession, {
+  const invalidFlip = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Torch'
   })(undefined, ["Zealot's Fire"]);
-  const flip = createLiveProfessionSimulator(guardianProfession, {
+  const flip = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Torch'
@@ -752,7 +752,7 @@ test('Guardian autoattack chains and torch flips enforce sequence state', () => 
 });
 
 test('Guardian greatsword autoattacks restart after another skill', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Greatsword' })(
+  const result = createObservedProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Greatsword' })(
     undefined,
     ['Strike', 'Whirling Wrath', 'Strike']
   );
@@ -765,12 +765,12 @@ test('Guardian greatsword autoattacks restart after another skill', () => {
 });
 
 test("Zealot's Flame preserves one-handed roots without exempting its flip", () => {
-  const sword = createLiveProfessionSimulator(guardianProfession, {
+  const sword = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Torch'
   })(undefined, ['Sword of Wrath', "Zealot's Flame", 'Sword Arc']);
-  const reset = createLiveProfessionSimulator(guardianProfession, {
+  const reset = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Torch'
@@ -791,7 +791,7 @@ test("Zealot's Flame preserves one-handed roots without exempting its flip", () 
 test("Zealot's Fire locks out Flame until 400 ms or an intervening skill", () => {
   for (const alacrity of [false, true]) {
     for (const between of [[], [{ type: 'wait', durationMs: 50 }], [{ name: 'Symbol of Blades', interruptMs: 320 }]]) {
-      const result = createLiveProfessionSimulator(guardianProfession, {
+      const result = createObservedProfessionSimulator(guardianProfession, {
         ...config,
         primaryWeapon: 'Sword',
         secondaryWeapon: 'Torch',
@@ -809,7 +809,7 @@ test("Zealot's Fire locks out Flame until 400 ms or an intervening skill", () =>
 });
 
 test("Radiant Fire upgrades Zealot's Flame duration, recharge, and ammo", () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     primaryWeapon: 'Axe',
     secondaryWeapon: 'Torch',
@@ -854,12 +854,12 @@ test("Radiant Fire upgrades Zealot's Flame duration, recharge, and ammo", () => 
 });
 
 test('Guardian damage traits use resolver-time target state', () => {
-  const baseline = createLiveProfessionSimulator(guardianProfession, {
+  const baseline = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     primaryWeapon: 'Mace',
     secondaryWeapon: 'Torch'
   })(undefined, ["Zealot's Flame", 'True Strike', { type: 'wait', durationMs: 3000 }]);
-  const traited = createLiveProfessionSimulator(guardianProfession, {
+  const traited = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     primaryWeapon: 'Mace',
     secondaryWeapon: 'Torch',
@@ -876,7 +876,7 @@ test('Guardian damage traits use resolver-time target state', () => {
 });
 
 test('Renewed Focus recharges all three core virtues', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, config)(undefined, [
+  const result = createObservedProfessionSimulator(guardianProfession, config)(undefined, [
     'Virtue of Justice',
     'Virtue of Resolve',
     'Virtue of Courage',
@@ -894,16 +894,17 @@ test('Renewed Focus recharges all three core virtues', () => {
 });
 
 test('a supported Guardian weapon skill executes without warnings', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Hammer' })(undefined, [
-    'Hammer Swing'
-  ]);
+  const result = createObservedProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Hammer' })(
+    undefined,
+    ['Hammer Swing']
+  );
 
   assert.ok(result.totalDamage > 0);
   assert.deepEqual(result.warnings, []);
 });
 
 test('Guardian alias input loads canonical Sword of Justice while Shield of Absorption remains a real flip', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, config)(undefined, [
+  const result = createObservedProfessionSimulator(guardianProfession, config)(undefined, [
     { type: 'cast', skillId: 44846 }
   ]);
   const action = result.events.find((event) => event.type === 'action');
@@ -928,7 +929,7 @@ for (const [name, recharge, boons, duration] of [
     assert.equal(migrated.selectedSkills.Utility1, name);
 
     for (const alacrity of [false, true]) {
-      const result = createLiveProfessionSimulator(guardianProfession, {
+      const result = createObservedProfessionSimulator(guardianProfession, {
         ...config,
         selectedSkills: [name],
         boons: { alacrity },
@@ -994,13 +995,10 @@ test('out-of-scope Guardian slot skills are absent and migrate out of saved buil
 });
 
 test('Guardian results advance to cooldown expiry before recasting', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Mace' })(undefined, [
-    'True Strike',
-    { type: 'wait', durationMs: 1000 },
-    'Pure Strike',
-    'Virtue of Justice',
-    'Virtue of Justice'
-  ]);
+  const result = createObservedProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Mace' })(
+    undefined,
+    ['True Strike', { type: 'wait', durationMs: 1000 }, 'Pure Strike', 'Virtue of Justice', 'Virtue of Justice']
+  );
 
   const casts = result.steps.filter((step) => step.skill === 'Virtue of Justice');
   assert.equal(casts[1].start - casts[0].start, 20000);

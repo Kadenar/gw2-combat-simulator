@@ -1,8 +1,8 @@
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/index.js';
@@ -22,7 +22,7 @@ const baseConfig = Object.freeze({
 
 // Run the smallest Core rotation that reaches a migrated trait through the public dispatcher.
 function simulate(rotation, config = {}) {
-  return createLiveProfessionSimulator(engineerProfession, baseConfig)('Core', rotation, config);
+  return createObservedProfessionSimulator(engineerProfession, baseConfig)('Core', rotation, config);
 }
 
 const wait = { type: 'wait', durationMs: 100 };
@@ -137,7 +137,7 @@ const traitCases = [
     name: 'Thermal Vision',
     trait: TRAIT.THERMAL_VISION,
     rotation: ['Blowtorch', wait],
-    verify: (result) => assert.ok(runtimeFor(result).profession.core.traitProcReadyAt.thermalVisionUntil > 0)
+    verify: (result) => assert.ok(observedRuntime(result).profession.core.traitProcReadyAt.thermalVisionUntil > 0)
   },
   {
     name: 'Sanguine Array',

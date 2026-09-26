@@ -9,7 +9,7 @@ import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necr
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { RITUALIST_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { necromancerAppAdapter } from '#gw2/professions/necromancer/app/app-definition.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -29,7 +29,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createLiveProfessionSimulator(necromancerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(necromancerProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -346,7 +346,7 @@ test('Ritualist weapon spells consume stacks and Resilient Weapon is usable', ()
   assert.equal(nightmareProc.effects[1].duration, 8);
   assert.deepEqual(resilient.warnings, []);
   assert.equal(
-    runtimeFor(resilient).profession.specialization.state.weaponSpells.resilient.recipients.player.charges,
+    observedRuntime(resilient).profession.specialization.state.weaponSpells.resilient.recipients.player.charges,
     5
   );
 });
@@ -1353,7 +1353,7 @@ test('a zero spirit interval disables recurrence without removing initial spirit
       }
     }
   });
-  const result = createLiveProfessionSimulator(profession, baseConfig)(
+  const result = createObservedProfessionSimulator(profession, baseConfig)(
     'Ritualist',
     ["Ritualist's Shroud", 'Anguish', 'Wanderlust', 'Preservation', { type: 'wait', durationMs: 10000 }],
     { patchId: 'no-spirit-loop', initialResource: 100 }

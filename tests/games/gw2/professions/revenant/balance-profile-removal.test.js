@@ -9,7 +9,7 @@ import {
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/revenant/core/profiles.js';
 import { CONDUIT_BALANCE_PROFILE_IDS as CONDUIT } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
@@ -35,7 +35,7 @@ test('removed Brutality quickness leaves the weapon-swap cooldown unclaimed', ()
     { catalog: patched({ [CORE.brutality]: remove('boon', 'quickness') }) }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(runtimeFor(result).profession.core.traitProcReadyAt.brutality, undefined);
+  assert.equal(observedRuntime(result).profession.core.traitProcReadyAt.brutality, undefined);
   assert.equal(
     result.events.some((event) => event.type === 'buff' && event.skillId === TRAIT.BRUTALITY),
     false
@@ -51,7 +51,7 @@ test('removed Battle Scars siphon keeps the scars it would have spent', () => {
       runtime.emit(revenantHit(2));
     }
   });
-  assert.deepEqual(runtimeFor(result).profession.core.battleScars, [30, 10]);
+  assert.deepEqual(observedRuntime(result).profession.core.battleScars, [30, 10]);
   assert.equal(
     result.events.some((event) => event.name === 'Battle Scars — Life Siphon'),
     false
@@ -65,7 +65,7 @@ test('removed Band Together buff arms no enhancement while the unpatched window 
   ]) {
     const result = runRevenant(["Icerazor's Ire"], RENEGADE_CONFIG, { catalog: patched(balanceProfiles) });
     assert.deepEqual(result.warnings, []);
-    assert.equal(runtimeFor(result).profession.specialization.state.bandTogetherReady, ready);
+    assert.equal(observedRuntime(result).profession.specialization.state.bandTogetherReady, ready);
   }
 });
 

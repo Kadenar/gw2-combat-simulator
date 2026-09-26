@@ -4,7 +4,7 @@ import {
   requireEffect,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitElementalistBuff } from '#gw2/professions/elementalist/core/live-events.js';
+import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';

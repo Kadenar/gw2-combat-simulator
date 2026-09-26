@@ -13,7 +13,7 @@ import {
   emitElementalistBuff,
   emitElementalistCondition,
   emitElementalistDamage
-} from '#gw2/professions/elementalist/core/live-events.js';
+} from '#gw2/professions/elementalist/core/events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';

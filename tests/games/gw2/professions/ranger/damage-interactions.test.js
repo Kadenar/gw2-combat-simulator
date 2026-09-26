@@ -1,4 +1,4 @@
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rangerCoreModifierRules } from '#gw2/professions/ranger/core/traits/modifiers.js';
@@ -11,11 +11,11 @@ import {
   skillDamageKeyByIdentity,
   skillDamageIdentityKey
 } from '#gw2/app/results/skill-breakdown.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { buildBoonGeneration } from '#gw2/app/results/charts/boon-generation.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 
-const simulate = createLiveProfessionSimulator(rangerProfession, {
+const simulate = createObservedProfessionSimulator(rangerProfession, {
   primaryWeapon: 'Spear',
   selectedPet: 'Pig',
   selectedTraitIds: [],
@@ -285,7 +285,7 @@ test('precast Frost Trap waits for combat and preserves its whole pulse train an
   const originalField = ordinary.events.find((event) => event.type === 'combo_field');
   assert.equal(field.at, precast.combatStartTime);
   assert.equal(field.expiresAt - field.at, originalField.expiresAt - originalField.at);
-  assert.equal(runtimeFor(precast).profession.core.pendingFrostTrapEvents.length, 0);
+  assert.equal(observedRuntime(precast).profession.core.pendingFrostTrapEvents.length, 0);
   const early = simulate('Soulbeast', [ID.FROST_TRAP, { type: 'combat-start' }, wait(6000)]);
   assert.equal(hits(early, ID.FROST_TRAP)[0].at, ordinaryHits[0].at, 'combat cannot bypass arming');
   const cancelled = simulate('Soulbeast', [

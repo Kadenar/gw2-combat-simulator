@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { reactToSymbolOfIgnition } from '#gw2/professions/guardian/core/traits/index.js';
@@ -37,7 +37,7 @@ test('Firebrand public projections preserve configured pages and detach the cano
 });
 
 test('Firebrand tomes consume shared pages and execute tome damage', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     primaryWeapon: 'Mace',
@@ -63,7 +63,7 @@ test('Firebrand tomes consume shared pages and execute tome damage', () => {
 });
 
 test('Scorched Aftermath applies Burning with its field strikes', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Firebrand' })(
+  const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Firebrand' })(
     undefined,
     ['Tome of Justice', 'Chapter 4: Scorched Aftermath', { type: 'wait', durationMs: 6000 }]
   );
@@ -84,7 +84,7 @@ test('Scorched Aftermath applies Burning with its field strikes', () => {
 });
 
 test('Ashes of the Just grants party charges using Firebrand condition stats', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     primaryWeapon: 'Mace',
@@ -120,7 +120,7 @@ test('Ashes of the Just grants party charges using Firebrand condition stats', (
 });
 
 test('Ashes of the Just cannot trigger before its application event', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     primaryWeapon: 'Mace',
@@ -144,7 +144,7 @@ test('Ashes of the Just cannot trigger before its application event', () => {
 
 test('stowing during a tome page preserves its effects and resource spend without reopening the tome', () => {
   // Stow changes only the bar; the in-flight page must finish and its buff applies before aftercast ends.
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     initialTomePages: 5
@@ -160,7 +160,7 @@ test('stowing during a tome page preserves its effects and resource spend withou
 });
 
 test('stowing during the third tome skill preserves its earned Swift Scholar refund', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     initialTomePages: 3
@@ -184,7 +184,7 @@ test('stowing during the third tome skill preserves its earned Swift Scholar ref
 for (const initialTomePages of [1, 5]) {
   test(`an overlapping mantra refunds pages before the tome cost with ${initialTomePages} initial pages`, () => {
     // Refunds use the still-unspent pool, including its cap, before completion can exhaust the tome.
-    const result = createLiveProfessionSimulator(guardianProfession, {
+    const result = createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Firebrand',
       initialTomePages,
@@ -214,7 +214,7 @@ for (const initialTomePages of [1, 5]) {
 }
 
 test('later tome pages do not restore consumed Ashes charges', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     primaryWeapon: 'Mace',
@@ -239,12 +239,12 @@ test('later tome pages do not restore consumed Ashes charges', () => {
 });
 
 test('Firebrand page exhaustion keeps the tome open while pages regenerate', () => {
-  const exhausted = createLiveProfessionSimulator(guardianProfession, {
+  const exhausted = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     initialTomePages: 2
   })(undefined, ['Tome of Resolve', 'Epilogue: Eternal Oasis', { type: 'wait', durationMs: 8000 }]);
-  const traited = createLiveProfessionSimulator(guardianProfession, {
+  const traited = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS, GUARDIAN_TRAIT_IDS.LOREMASTER]
@@ -252,7 +252,7 @@ test('Firebrand page exhaustion keeps the tome open while pages regenerate', () 
 
   assert.deepEqual(exhausted.warnings, []);
   assert.equal(exhausted.planningState.profession.activeTome, 'resolve');
-  const spent = createLiveProfessionSimulator(guardianProfession, {
+  const spent = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     initialTomePages: 2
@@ -266,7 +266,7 @@ test('Firebrand page exhaustion keeps the tome open while pages regenerate', () 
 
 test('Firebrand page regeneration keeps ticking at capacity after natural recovery or a mantra refund', () => {
   for (const refund of [false, true]) {
-    const result = createLiveProfessionSimulator(guardianProfession, {
+    const result = createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Firebrand',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS]
@@ -301,7 +301,7 @@ test('Firebrand page exhaustion requires an explicit stow before weapon inputs',
     primaryWeapon: 'Mace',
     initialTomePages: 2
   };
-  const result = createLiveProfessionSimulator(guardianProfession, firebrandConfig)(undefined, rotation);
+  const result = createObservedProfessionSimulator(guardianProfession, firebrandConfig)(undefined, rotation);
 
   const [blocked, ready] = result.steps.filter((step) => step.skill === 'True Strike');
   assert.ok(blocked.invalid);
@@ -330,7 +330,7 @@ test('Firebrand page exhaustion requires an explicit stow before weapon inputs',
 });
 
 test('Firebrand tome page cost waits for a regenerating page', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     initialTomePages: 1
@@ -352,7 +352,7 @@ test('Firebrand tome page cost waits for a regenerating page', () => {
 
 test('Unrelenting Criticism adds Bleeding to each axe hit only while traited', () => {
   const simulate = (selectedTraitIds, primaryWeapon, skill) =>
-    createLiveProfessionSimulator(guardianProfession, {
+    createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Firebrand',
       primaryWeapon,
@@ -377,7 +377,7 @@ test('Unrelenting Criticism adds Bleeding to each axe hit only while traited', (
 });
 
 test('Cleansing Flame applies Burning on its final strike', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     primaryWeapon: 'Axe',
@@ -400,7 +400,7 @@ test('Cleansing Flame applies Burning on its final strike', () => {
 
 test('Writ of Persistence extends Symbol of Punishment strikes, boons, and field', () => {
   const simulate = (selectedTraitIds) =>
-    createLiveProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Scepter', selectedTraitIds })(
+    createObservedProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Scepter', selectedTraitIds })(
       undefined,
       ['Symbol of Punishment', { type: 'wait', durationMs: 8000 }]
     );
@@ -422,7 +422,7 @@ test('Writ of Persistence extends Symbol of Punishment strikes, boons, and field
 
 test('Symbol of Ignition burns on other player hits within its active field', () => {
   const simulate = (rotation) =>
-    createLiveProfessionSimulator(guardianProfession, {
+    createObservedProfessionSimulator(guardianProfession, {
       ...config,
       primaryWeapon: 'Pistol',
       secondaryWeapon: 'Pistol'
@@ -481,7 +481,7 @@ test('symbol and projectile ignition independently block through 240 ms without 
 test('torch pulses and fire-whirl bolts ignite through the condition application hook', () => {
   // Condition-only pulses must enter the correct lane without converting every Burning application into a trigger.
   for (const whirling of [false, true]) {
-    const result = createLiveProfessionSimulator(guardianProfession, {
+    const result = createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Willbender',
       primaryWeapon: 'Pistol',
@@ -527,7 +527,7 @@ test('torch pulses and fire-whirl bolts ignite through the condition application
 });
 
 test('Peacekeeper begins recharge when its cast starts', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     primaryWeapon: 'Pistol',
     secondaryWeapon: 'Pistol',
@@ -550,15 +550,15 @@ test('Signet of Wrath loses its passive condition damage while recharging', () =
     primaryWeapon: 'Pistol',
     secondaryWeapon: 'Pistol'
   };
-  const withoutSignet = createLiveProfessionSimulator(guardianProfession, baseConfig)(undefined, [
+  const withoutSignet = createObservedProfessionSimulator(guardianProfession, baseConfig)(undefined, [
     'Through the Heart',
     { type: 'wait', durationMs: 9000 }
   ]);
-  const passive = createLiveProfessionSimulator(guardianProfession, {
+  const passive = createObservedProfessionSimulator(guardianProfession, {
     ...baseConfig,
     selectedSkills: ['Signet of Wrath']
   })(undefined, ['Through the Heart', { type: 'wait', durationMs: 9000 }]);
-  const recharging = createLiveProfessionSimulator(guardianProfession, {
+  const recharging = createObservedProfessionSimulator(guardianProfession, {
     ...baseConfig,
     selectedSkills: ['Signet of Wrath']
   })(undefined, ['Signet of Wrath', 'Through the Heart', 'Signet of Wrath', { type: 'wait', durationMs: 9000 }]);
@@ -580,7 +580,7 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
   assert.equal(rush.flipParentId, flame.id);
   assert.equal(surge.flipParentId, rush.id);
 
-  const normal = createLiveProfessionSimulator(guardianProfession, {
+  const normal = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     selectedSkills: ['Mantra of Flame']
@@ -590,7 +590,7 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
   assert.equal(normal.planningState.profession.availableFlips[surge.id], undefined);
   assert.equal(normal.planningState.ammo['Flame Rush'].charges, 2);
 
-  const final = createLiveProfessionSimulator(guardianProfession, {
+  const final = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     selectedSkills: ['Mantra of Flame']
@@ -599,7 +599,7 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
   assert.equal(final.planningState.profession.availableFlips[rush.id], undefined);
   assert.ok(final.planningState.profession.availableFlips[surge.id]);
 
-  const depleted = createLiveProfessionSimulator(guardianProfession, {
+  const depleted = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     selectedSkills: ['Mantra of Flame']
@@ -611,7 +611,7 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
   assert.ok(depleted.planningState.cooldowns['Mantra of Flame'].remaining > 0);
   const rechargeReadyAt = depleted.planningState.cooldowns['Mantra of Flame'].readyAt;
   // A queued normal charge waits for the root recharge, which restores the prepared pool.
-  const rearmed = createLiveProfessionSimulator(guardianProfession, {
+  const rearmed = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     selectedSkills: ['Mantra of Flame']
@@ -631,7 +631,7 @@ test('mantra charge cooldowns carry across the final flip and scale with Alacrit
       ['Mantra of Potence', 'Potent Haste', 'Overwhelming Celerity'],
       ['Mantra of Liberation', 'Portent of Freedom', 'Unhindered Delivery']
     ]) {
-      const result = createLiveProfessionSimulator(guardianProfession, {
+      const result = createObservedProfessionSimulator(guardianProfession, {
         ...config,
         specialization: 'Firebrand',
         selectedSkills: [root],
@@ -647,7 +647,7 @@ test('mantra charge cooldowns carry across the final flip and scale with Alacrit
 
 test('Tome of Justice applies Amplified Wrath once before the condition duration cap', () => {
   for (const amplifiedWrath of [false, true]) {
-    const result = createLiveProfessionSimulator(guardianProfession, {
+    const result = createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Firebrand',
       primaryWeapon: 'Pistol',
@@ -662,7 +662,7 @@ test('Tome of Justice applies Amplified Wrath once before the condition duration
 });
 
 test('Firebrand tome transitions are weapon swaps and timeline row changes', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Firebrand' })(
+  const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Firebrand' })(
     undefined,
     ['Tome of Justice', 'Stow Tome', 'Tome of Resolve', 'Stow Tome']
   );
@@ -708,7 +708,7 @@ test('Firebrand tome transitions are weapon swaps and timeline row changes', () 
 test('Firebrand tome swaps share sigil cooldowns and require combat', () => {
   // Opening and stowing use the equipped sigil set; immediate follow-up transitions cannot bypass its cooldown.
   for (const inCombat of [false, true]) {
-    const result = createLiveProfessionSimulator(guardianProfession, {
+    const result = createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Firebrand',
       sigilSets: [{ names: ['Hydromancy'] }, { names: ['Geomancy'] }]
@@ -736,7 +736,7 @@ test('Firebrand tome swaps share sigil cooldowns and require combat', () => {
 });
 
 test('Feel My Wrath splits party and self quickness and triggers Quickfire', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     selectedSkills: ['"Feel My Wrath!"'],
@@ -761,7 +761,7 @@ test('Feel My Wrath splits party and self quickness and triggers Quickfire', () 
 });
 
 test('Quickfire grants one Ashes charge to a self-only quickness recipient', () => {
-  const result = createLiveProfessionSimulator(guardianProfession, {
+  const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.QUICKFIRE],
@@ -778,7 +778,7 @@ test('Quickfire grants one Ashes charge to a self-only quickness recipient', () 
 
 test('dormant Tome equips preserve recharge and do not trigger virtue traits', () => {
   const simulate = (rotation) =>
-    createLiveProfessionSimulator(guardianProfession, {
+    createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Firebrand',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE]
@@ -822,7 +822,7 @@ test('dormant Tome equips preserve recharge and do not trigger virtue traits', (
 
 test('Power of the Virtuous reduces each Tome dormancy duration', () => {
   const simulate = (selectedTraitIds) =>
-    createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Firebrand', selectedTraitIds })(
+    createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Firebrand', selectedTraitIds })(
       undefined,
       ['Tome of Justice', 'Stow Tome', 'Tome of Resolve', 'Stow Tome', 'Tome of Courage']
     );
@@ -836,7 +836,7 @@ test('Power of the Virtuous reduces each Tome dormancy duration', () => {
 });
 
 test('Firebrand specialization traits drive pages, quickness, and tome bonuses', () => {
-  const lore = createLiveProfessionSimulator(guardianProfession, {
+  const lore = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     initialTomePages: 5,
@@ -869,7 +869,7 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
       .every((event) => event.stacks === 2 && event.duration === 10)
   );
 
-  const weighted = createLiveProfessionSimulator(guardianProfession, {
+  const weighted = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     selectedSkills: ['Mantra of Potence'],
@@ -886,7 +886,7 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
     [['Slow', 1.5]]
   );
 
-  const liberated = createLiveProfessionSimulator(guardianProfession, {
+  const liberated = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     selectedSkills: ['Shelter'],
@@ -906,7 +906,7 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
 });
 
 test('Firebrand grandmaster support traits react to boons and control', () => {
-  const quickfire = createLiveProfessionSimulator(guardianProfession, {
+  const quickfire = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     maximumTomePages: 8,
@@ -923,7 +923,7 @@ test('Firebrand grandmaster support traits react to boons and control', () => {
     quickfire.procSteps.some((step) => step.skill === 'Quickfire'),
     true
   );
-  const stoic = createLiveProfessionSimulator(guardianProfession, {
+  const stoic = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     selectedTraitIds: [GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR]
@@ -942,7 +942,7 @@ test('Firebrand grandmaster support traits react to boons and control', () => {
 });
 
 test('Firebrand dormant passives and Imbued Haste use timeline state', () => {
-  const passive = createLiveProfessionSimulator(guardianProfession, {
+  const passive = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     primaryWeapon: 'Greatsword'
@@ -964,7 +964,7 @@ test('Firebrand dormant passives and Imbued Haste use timeline state', () => {
   assert.ok(aegis.slice(1).every((event, index) => event.at - aegis[index].at === interval));
 
   const tome = (selectedTraitIds) =>
-    createLiveProfessionSimulator(guardianProfession, {
+    createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Firebrand',
       selectedTraitIds

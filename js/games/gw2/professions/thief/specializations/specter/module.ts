@@ -5,7 +5,7 @@ import { specterState } from '#gw2/professions/thief/specializations/specter/sta
 import { specterUi } from '#gw2/professions/thief/specializations/specter/presentation.js';
 import { SPECTER_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/specter/skills/index.js';
 import { SPECTER_BALANCE_PROFILES } from '#gw2/professions/thief/specializations/specter/profiles.js';
-import { specterLiveMechanics } from '#gw2/professions/thief/specializations/specter/live.js';
+import { specterHooks } from '#gw2/professions/thief/specializations/specter/hooks.js';
 
 export const specterModule = defineNativeModule({
   id: 'Specter',
@@ -14,6 +14,7 @@ export const specterModule = defineNativeModule({
     balanceProfiles: SPECTER_BALANCE_PROFILES
   }),
   state: { create: specterState.create },
-  mechanics: { modifiers: specterAttributeRules, live: specterLiveMechanics },
+  modifiers: specterAttributeRules,
+  hooks: specterHooks,
   presentation: specterUi
 });

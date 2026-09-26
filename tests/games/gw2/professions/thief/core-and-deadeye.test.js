@@ -23,7 +23,7 @@ import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/
 import { deadeyeUi } from '#gw2/professions/thief/specializations/deadeye/presentation.js';
 import { SPECTER_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 
@@ -51,7 +51,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createLiveProfessionSimulator(thiefProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(thiefProfession, baseConfig);
 
 const applyThiefPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(thiefCatalog, patch), patch);
 
@@ -84,7 +84,7 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
         );
         const available = stealthed || (ownsCharges && expiresAt > 5);
         assert.equal(result.warnings.length === 0, available, `${specialization} ${stealthed} ${expiresAt}`);
-        const { core, specialization: elite } = runtimeFor(result).profession;
+        const { core, specialization: elite } = observedRuntime(result).profession;
         if (available) {
           assert.equal(core.stealthUntil, 5);
           assert.equal(core.revealedUntil, 8);
@@ -102,7 +102,7 @@ test('Endurance Thief is Daredevil-owned and grants its patched endurance with C
   // Only Daredevil composes the trait; a completed Steal grants Kleptomaniac initiative and the patched endurance.
   for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary'])
     assert.equal(
-      thiefProfession.liveRuntimeFor({ specialization }).catalog.balanceProfilesById.has(TRAIT.ENDURANCE_THIEF),
+      thiefProfession.runtimeFor({ specialization }).catalog.balanceProfilesById.has(TRAIT.ENDURANCE_THIEF),
       specialization === 'Daredevil'
     );
   for (const specialization of ['Core', 'Daredevil']) {
@@ -129,7 +129,7 @@ test('Endurance Thief is Daredevil-owned and grants its patched endurance with C
         }
       );
       assert.deepEqual(result.warnings, []);
-      const runtime = runtimeFor(result);
+      const runtime = observedRuntime(result);
       assert.equal(runtime.resourceController.value('initiative'), 5);
       assert.equal(runtime.profession.core.endurance, active && selected ? 47 : 10);
       assert.equal(runtime.profession.core.storedStolenSkillCount, 1);
@@ -608,7 +608,7 @@ test('Unload refunds 2 initiative on completion but not cancellation', () => {
   const config = { initialInitiative: 3, primaryWeapon: 'Pistol', secondaryWeapon: 'Pistol' };
   const cost = thiefCatalog.skillsByName.get('Unload').initiativeCost;
   // Regeneration of one initiative per second through the cast isolates the refund.
-  const initiative = (result) => runtimeFor(result).resourceController.value('initiative');
+  const initiative = (result) => observedRuntime(result).resourceController.value('initiative');
   const completed = simulate('Core', ['Unload'], config);
 
   assert.deepEqual(completed.warnings, []);
@@ -1017,7 +1017,7 @@ test('Steal exposes a choice pool and consumes whichever stolen skill is selecte
 
   // Both users of the base pool must gate each choice and consume it once, with Improvisation locking the reuse.
   for (const specialization of ['Core', 'Daredevil']) {
-    const runtime = thiefProfession.liveRuntimeFor({ specialization });
+    const runtime = thiefProfession.runtimeFor({ specialization });
     assert.deepEqual(
       runtime.catalog.skills
         .filter((skill) => skill.slot === 'Profession_2')
@@ -1161,10 +1161,13 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
 
   assert.equal(extendedFurySlice.criticalDamage, 1.5 + 250 / 1500);
   assert.equal(
-    runtimeFor(withNoQuarter).profession.core.traitProcReadyAt[TRAIT.UNRELENTING_STRIKES],
+    observedRuntime(withNoQuarter).profession.core.traitProcReadyAt[TRAIT.UNRELENTING_STRIKES],
     firstFlawless[0].at + 8
   );
-  assert.equal(runtimeFor(withNoQuarter).profession.core.traitProcReadyAt[TRAIT.NO_QUARTER], extendedFurySlice.at + 2);
+  assert.equal(
+    observedRuntime(withNoQuarter).profession.core.traitProcReadyAt[TRAIT.NO_QUARTER],
+    extendedFurySlice.at + 2
+  );
 
   const withAssassinsFury = simulate('Daredevil', ['Flawless Execution'], {
     ...criticalConfig,
@@ -1177,7 +1180,7 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
     2090 / 2000
   );
   assert.equal(
-    runtimeFor(withAssassinsFury).profession.core.traitProcReadyAt[TRAIT.ASSASSINS_FURY],
+    observedRuntime(withAssassinsFury).profession.core.traitProcReadyAt[TRAIT.ASSASSINS_FURY],
     flawlessHits(withAssassinsFury)[0].at + 2
   );
 

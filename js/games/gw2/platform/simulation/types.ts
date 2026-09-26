@@ -32,7 +32,7 @@ export interface Gw2ProfessionContract<
 /** Joins the application surface to a runtime source whose GW2 resolver callbacks remain type checked. */
 export type Gw2ProfessionSource<TProfessionState extends object = any> = ProfessionApplicationContract<Gw2Build> &
   ProfessionSource<TProfessionState, Gw2ProfessionContract<TProfessionState>, Gw2Build> & {
-    liveRuntimeFor(config: Gw2Config): RuntimeProfession<TProfessionState>;
+    runtimeFor(config: Gw2Config): RuntimeProfession<TProfessionState>;
   };
 
 export interface Gw2SimulationPlanningState {

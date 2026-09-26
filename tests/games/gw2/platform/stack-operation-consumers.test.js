@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS } from '#gw2/professions/thief/data/ids.js';
-import { reactThiefSpinningAxe } from '#gw2/professions/thief/core/live-weapons.js';
+import { reactThiefSpinningAxe } from '#gw2/professions/thief/core/mechanics/weapons.js';
 import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { triggerSharpeningStone } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
@@ -11,7 +11,7 @@ import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import { SCOURGE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
-import { observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { WARRIOR_SKILL_IDS, WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
@@ -32,13 +32,13 @@ test('axe materialization replaces the oldest grant without mutating earlier sta
       ]
     }
   );
-  assert.deepEqual(runtimeFor(result).profession.core.spinningAxeExpirations, [31, 32, 33, 34, 35, 11]);
+  assert.deepEqual(observedRuntime(result).profession.core.spinningAxeExpirations, [31, 32, 33, 34, 35, 11]);
   assert.deepEqual(snapshot.spinningAxeExpirations, prior);
 
   // A cast cancelled before its commit point never lands a strike, so it cannot grant axes.
   const cancelled = runThief([{ name: 'Spinning Axe', interruptMs: 1 }], { primaryWeapon: 'Axe' });
   assert.deepEqual(cancelled.warnings, []);
-  assert.deepEqual(runtimeFor(cancelled).profession.core.spinningAxeExpirations, []);
+  assert.deepEqual(observedRuntime(cancelled).profession.core.spinningAxeExpirations, []);
 });
 
 test('Holo-Dancer commits spend grant order even when the newest charge expires first', () => {
@@ -53,12 +53,12 @@ test('Holo-Dancer commits spend grant order even when the newest charge expires 
     }
   });
   assert.deepEqual(result.warnings, []);
-  const runtime = runtimeFor(result);
+  const runtime = observedRuntime(result);
   // The accepted utility spends the oldest live entry, skipping the one already expired at its start.
   assert.deepEqual(runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations, [5]);
   const reduced = runtime.cooldowns.get(skill.id) - result.steps[0].start / 1000;
   const unreduced =
-    runtimeFor(runThief(['Prepare Pitfall'], config)).cooldowns.get(skill.id) - result.steps[0].start / 1000;
+    observedRuntime(runThief(['Prepare Pitfall'], config)).cooldowns.get(skill.id) - result.steps[0].start / 1000;
   assert.ok(Math.abs(reduced - unreduced * 0.2) < 1e-9);
   assert.deepEqual(
     projectThiefPlanningState({ profession: runtime.profession, time: 5 }).holoUtilityCooldownReductionExpirations,
@@ -99,7 +99,7 @@ test('Insight keeps newest grants in its single live state', () => {
       selectedTraitIds: [WARRIOR_TRAIT_IDS.ATTACKERS_INSIGHT],
       target: { defiant: true }
     };
-    const native = warriorProfession.liveRuntimeFor(config);
+    const native = warriorProfession.runtimeFor(config);
     const profile = structuredClone(
       native.catalog.balanceProfilesById.get(SPELLBREAKER_BALANCE_PROFILE_IDS.attackersInsight)
     );
@@ -160,7 +160,7 @@ test('Scourge retains latest expiries and prunes at completion', () => {
   ]) {
     Object.freeze(prior);
     const config = { specialization: 'Scourge' };
-    const native = necromancerProfession.liveRuntimeFor(config);
+    const native = necromancerProfession.runtimeFor(config);
     const profile = structuredClone(native.catalog.balanceProfilesById.get(SCOURGE_BALANCE_PROFILE_IDS.shade));
     profile.maximumStacks = maximumStacks;
     profile.effects.find((effect) => effect.type === 'buff').duration = completion === 1 ? 4 : 0.5;
@@ -182,7 +182,7 @@ test('Scourge retains latest expiries and prunes at completion', () => {
         }
       }
     });
-    const state = runtimeFor(result).profession.specialization.state;
+    const state = observedRuntime(result).profession.specialization.state;
     assert.deepEqual(
       [...state.shades].sort((a, b) => a - b),
       expected

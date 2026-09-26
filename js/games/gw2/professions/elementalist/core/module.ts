@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
-import { elementalistCoreLive } from '#gw2/professions/elementalist/core/live.js';
+import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
 import { elementalistCoreAttributeRules } from '#gw2/professions/elementalist/core/traits/modifiers.js';
 import { projectElementalistPlanningState } from '#gw2/professions/elementalist/family-state.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
@@ -26,6 +26,7 @@ export const elementalistCoreModule = defineNativeModule({
     create: createElementalistCoreState,
     project: projectElementalistPlanningState
   },
-  mechanics: { modifiers: elementalistCoreAttributeRules, live: elementalistCoreLive },
+  modifiers: elementalistCoreAttributeRules,
+  hooks: elementalistCoreHooks,
   presentation: bindElementalistCoreUi
 });

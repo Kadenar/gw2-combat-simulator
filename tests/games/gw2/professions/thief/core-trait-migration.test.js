@@ -19,7 +19,7 @@ import {
   unrelentingStrikesCriticalReaction
 } from '#gw2/professions/thief/core/traits/critical-strikes.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 
@@ -339,7 +339,7 @@ test('Kleptomaniac restores initiative on steal completion', () => {
   ]) {
     const result = runThief(['Steal'], { selectedTraitIds, initialInitiative: 0 });
     assert.deepEqual(result.warnings, []);
-    assert.equal(runtimeFor(result).resourceController.value('initiative'), expected);
+    assert.equal(observedRuntime(result).resourceController.value('initiative'), expected);
   }
 });
 
@@ -349,7 +349,7 @@ test('Lead Attacks records one stack per initiative spent', () => {
     selectedTraitIds: [TRAIT.LEAD_ATTACKS]
   });
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(runtimeFor(result).profession.core.leadAttackExpirations, [11, 11, 11]);
+  assert.deepEqual(observedRuntime(result).profession.core.leadAttackExpirations, [11, 11, 11]);
 });
 
 test('Lead Attacks replaces oldest stacks across and at the cap while preserving independent expiry', () => {
@@ -371,7 +371,7 @@ test('Lead Attacks replaces oldest stacks across and at the cap while preserving
       }
     );
     assert.deepEqual(result.warnings, []);
-    const expirations = runtimeFor(result).profession.core.leadAttackExpirations;
+    const expirations = observedRuntime(result).profession.core.leadAttackExpirations;
     assert.deepEqual(
       expirations,
       Array.from({ length: grants }, (_, at) => Array(4).fill(at + 10))

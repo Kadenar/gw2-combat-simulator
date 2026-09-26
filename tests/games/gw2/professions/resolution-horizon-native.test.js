@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as NECRO_SKILL } from '#gw2/professions/necromancer/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
@@ -18,7 +18,7 @@ const attributes = Object.freeze({
 });
 
 // Native recurrence and interrupted packets must observe the same caller-owned endpoint.
-const simulateNecromancer = createLiveProfessionSimulator(necromancerProfession, { stats: attributes, target });
+const simulateNecromancer = createObservedProfessionSimulator(necromancerProfession, { stats: attributes, target });
 
 test('native wells and uncommitted interrupted effects obey caller observation', () => {
   const well = simulateNecromancer(
@@ -94,7 +94,7 @@ test('native summons and condition builds stop at the observation boundary', () 
 
 test('native upkeep recurrence terminates at starvation inside a finite tail', () => {
   // The registered live family owns upkeep drain and starvation inside the caller's observation tail.
-  const result = createLiveProfessionSimulator(revenantProfession, {
+  const result = createObservedProfessionSimulator(revenantProfession, {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
     startingLegend: LEGEND.ASSASSIN,
     initialEnergy: 50,

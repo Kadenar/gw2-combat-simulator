@@ -3,9 +3,9 @@ import test from 'node:test';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
-const simulate = createLiveProfessionSimulator(thiefProfession, {
+const simulate = createObservedProfessionSimulator(thiefProfession, {
   primaryWeapon: 'Staff',
   selectedSkills: ['Caltrops', 'Fist Flurry'],
   target: { armor: 2597, conditions: {} }

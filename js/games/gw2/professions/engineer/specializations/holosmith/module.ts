@@ -1,7 +1,7 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
 import { holosmithAttributeRules } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-rules.js';
-import { holosmithLive } from '#gw2/professions/engineer/specializations/holosmith/live.js';
+import { holosmithHooks } from '#gw2/professions/engineer/specializations/holosmith/hooks.js';
 import {
   HOLOSMITH_AUTOATTACK_CHAINS,
   HOLOSMITH_SKILL_MECHANICS
@@ -28,9 +28,7 @@ export const holosmithModule = defineNativeModule({
   }),
   // Heat tasks and impact formulas read the same live specialization state.
   state: { create: holosmithState.create },
-  mechanics: {
-    modifiers: holosmithAttributeRules,
-    live: holosmithLive
-  },
+  modifiers: holosmithAttributeRules,
+  hooks: holosmithHooks,
   presentation: bindHolosmithUi
 });

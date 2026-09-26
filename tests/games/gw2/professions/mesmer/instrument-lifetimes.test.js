@@ -1,4 +1,4 @@
-import { troubadourLive } from '#gw2/professions/mesmer/specializations/troubadour/live.js';
+import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
 import { createRuntimeEndurance } from '#gw2/platform/combat/resources/runtime-resources.js';
 import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import assert from 'node:assert/strict';
@@ -23,7 +23,7 @@ import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-
 // Keep real profiles and instrument handlers while isolating windows from cast speed, random damage, and cooldowns.
 function instrumentContext() {
   const config = { specialization: 'Troubadour', selectedTraitIds: [TRAIT.FORTISSIMO] };
-  const profession = mesmerProfession.resolveRuntime(config);
+  const profession = mesmerProfession.resolveProfession(config);
   const events = [];
   const state = {
     time: 0,
@@ -126,7 +126,7 @@ test('instrument commitment, damage bonuses, cleanup, and UI share exact exclusi
     assert.equal(applyTroubadourAttributes(query, { power: 100 }).power, active ? 104 : 100);
     context.time = at;
     if (at >= 5.301)
-      troubadourLive.tasks['mesmer.instrument-expire'](context, { instrument: 'Lute', expiresAt: 5.301 });
+      troubadourHooks.tasks['mesmer.instrument-expire'](context, { instrument: 'Lute', expiresAt: 5.301 });
     assert.equal(Object.hasOwn(state.instruments, 'Lute'), active);
   }
 });
@@ -142,11 +142,11 @@ test('shorter instrument replays replace their own window without reviving old b
   assert.equal(troubadourModifierRules.find((rule) => rule.id === 'mesmer.lute').when(query), false);
   assert.equal(applyTroubadourAttributes(query, { power: 100 }).power, 104);
   context.time = 7.301;
-  troubadourLive.tasks['mesmer.instrument-expire'](context, { instrument: 'Lute', expiresAt: 7.301 });
+  troubadourHooks.tasks['mesmer.instrument-expire'](context, { instrument: 'Lute', expiresAt: 7.301 });
   assert.deepEqual(state.instruments, { Flute: 21.301 });
   context.start = 7.301;
   const skill = { ...context.catalog.skillsById.get(ID.CRESCENDO), damageAtMs: 0 };
-  troubadourLive.tasks['mesmer.crescendo'](context, {
+  troubadourHooks.tasks['mesmer.crescendo'](context, {
     skill,
     start: 7.301,
     fullEnd: 7.301,
@@ -207,7 +207,7 @@ test('Flute endurance regeneration uses the final live microsecond and loses the
     context.time = at;
     context.time = at;
     if (at >= 5.301)
-      troubadourLive.tasks['mesmer.instrument-expire'](context, { instrument: 'Lute', expiresAt: 5.301 });
+      troubadourHooks.tasks['mesmer.instrument-expire'](context, { instrument: 'Lute', expiresAt: 5.301 });
     assert.equal(troubadourEndurance.regenerationRate(context, false, at), at < 5.301 ? 6.25 : 5);
   }
 });

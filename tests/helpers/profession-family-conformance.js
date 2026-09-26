@@ -22,8 +22,8 @@ function sortedIds(entries) {
   return entries.map((entry) => String(entry.id)).sort();
 }
 
-function registryKeys(core, specialization, container, key) {
-  const hooks = (module) => module?.mechanics?.live;
+function registryKeys(core, specialization, key) {
+  const hooks = (module) => module?.hooks;
 
   return [...Object.keys(hooks(core)?.[key] || {}), ...Object.keys(hooks(specialization)?.[key] || {})].sort();
 }
@@ -35,11 +35,11 @@ function presentationFor(module, catalog) {
 }
 
 function reactionKeys(...modules) {
-  return [...new Set(modules.flatMap((module) => [...Object.keys(module?.mechanics?.live?.reactions || {})]))].sort();
+  return [...new Set(modules.flatMap((module) => [...Object.keys(module?.hooks?.reactions || {})]))].sort();
 }
 
 function modifierRules(module) {
-  const modifiers = module?.mechanics?.modifiers;
+  const modifiers = module?.modifiers;
 
   return Array.isArray(modifiers) ? modifiers : modifiers?.modifierRules || [];
 }
@@ -56,7 +56,7 @@ function assertUniqueOwners(modules, select, label) {
 }
 
 export function assertProfessionFamilyConformance({ family, core, specializations }) {
-  assert.equal(typeof family.resolveRuntime, 'function');
+  assert.equal(typeof family.resolveProfession, 'function');
   const modules = [core, ...Object.values(specializations)];
   const skillOwners = getNativeCatalogAssembly(modules, undefined).skillOwners;
 
@@ -65,25 +65,17 @@ export function assertProfessionFamilyConformance({ family, core, specialization
     (module) => modifierRules(module).map((rule) => String(rule.id)),
     `${family.id} modifier`
   );
-  assertUniqueOwners(
-    modules,
-    (module) => Object.keys(module.mechanics?.live?.tasks || {}),
-    `${family.id} task handler`
-  );
-  assertUniqueOwners(
-    modules,
-    (module) => Object.keys(module.mechanics?.live?.eventHandlers || {}),
-    `${family.id} event handler`
-  );
+  assertUniqueOwners(modules, (module) => Object.keys(module.hooks?.tasks || {}), `${family.id} task handler`);
+  assertUniqueOwners(modules, (module) => Object.keys(module.hooks?.eventHandlers || {}), `${family.id} event handler`);
   for (const key of EXECUTABLE_FAMILY_KEYS) {
     assert.equal(Object.hasOwn(family, key), false, `${family.id}.${key}`);
   }
 
   for (const [name, specialization] of [['Core', null], ...Object.entries(specializations)]) {
     const config = { specialization: name };
-    const runtime = family.liveRuntimeFor(config);
+    const runtime = family.runtimeFor(config);
 
-    assert.equal(family.liveRuntimeFor(config), runtime, `${family.id}/${name}`);
+    assert.equal(family.runtimeFor(config), runtime, `${family.id}/${name}`);
     assert.equal(runtime.id, family.id);
     const state = runtime.createState(config);
     const expectedCoreState = core.state.create(config);
@@ -121,12 +113,12 @@ export function assertProfessionFamilyConformance({ family, core, specialization
     );
     assert.deepEqual(
       Object.keys(runtime.tasks ?? {}).sort(),
-      registryKeys(core, specialization, 'live', 'tasks'),
+      registryKeys(core, specialization, 'tasks'),
       `${family.id}/${name} task handlers`
     );
     assert.deepEqual(
       Object.keys(runtime.eventHandlers ?? {}).sort(),
-      registryKeys(core, specialization, 'live', 'eventHandlers'),
+      registryKeys(core, specialization, 'eventHandlers'),
       `${family.id}/${name} event handlers`
     );
     assert.deepEqual(
@@ -140,9 +132,8 @@ export function assertProfessionFamilyConformance({ family, core, specialization
       `${family.id}/${name} canonical resolver stages`
     );
 
-    // Live-owned families preview capacity from their live endurance policy, as the family presentation does.
-    const live = core.mechanics?.live && (!specialization || specialization.mechanics?.live);
-    const previewEndurance = live ? family.liveRuntimeFor(config).endurance : runtime.resources.endurance;
+    // Capacity previews read the hook-owned endurance policy, as the family presentation does.
+    const previewEndurance = family.runtimeFor(config).endurance;
     const context = {
       catalog: family.catalog,
       resources: previewEndurance
@@ -186,7 +177,7 @@ export function assertProfessionFamilyConformance({ family, core, specialization
       }
     }
 
-    // A migrated projection must reflect its registered live initializer, including native resource policies.
+    // A projection must reflect its registered hook initializer, including native resource policies.
     const projected = simulateGw2({ profession: family, rotation: [], config }).planningState.profession;
 
     assert.ok(projected && typeof projected === 'object');
@@ -196,7 +187,7 @@ export function assertProfessionFamilyConformance({ family, core, specialization
   }
 
   assert.throws(
-    () => family.resolveRuntime({ specialization: '__missing__' }),
+    () => family.resolveProfession({ specialization: '__missing__' }),
     /Unknown .* elite specialization "__missing__"/
   );
 }

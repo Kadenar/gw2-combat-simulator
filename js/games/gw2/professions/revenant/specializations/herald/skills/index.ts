@@ -13,7 +13,7 @@ const TRUE_NATURE_SHARED_COOLDOWN = 20;
 
 export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.FACET_OF_STRENGTH]: {
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/live-upkeep.ts`.
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -25,7 +25,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     upkeepPulse: { kind: 'might', duration: 12, stacks: 1 }
   },
   [ID.FACET_OF_ELEMENTS]: {
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/live-upkeep.ts`.
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -37,7 +37,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     upkeepPulse: { kind: 'swiftness', duration: 3, stacks: 1 }
   },
   [ID.GAZE_OF_DARKNESS]: {
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/live.ts`.
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
     castTimeMs: 0,
     cooldown: 15,
     energyCost: 0,
@@ -66,7 +66,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     consume: true
   },
   [ID.ELEMENTAL_BLAST]: {
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/live.ts`.
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
     castTimeMs: 480,
     cooldown: 12,
     energyCost: 0,
@@ -124,7 +124,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     consume: true
   },
   [ID.FACET_OF_LIGHT]: {
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/live-upkeep.ts`.
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     castTimeMs: 200,
     cooldown: 0,
     energyCost: 0,
@@ -136,7 +136,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     upkeepPulse: { kind: 'regeneration', duration: 4, stacks: 1 }
   },
   [ID.INFUSE_LIGHT]: {
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/live.ts`.
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
     castTimeMs: 0,
     cooldown: 30,
     energyCost: 0,
@@ -145,7 +145,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     consume: true
   },
   [ID.FACET_OF_CHAOS]: {
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/live-upkeep.ts`.
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -157,7 +157,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     upkeepPulse: { kind: 'protection', duration: 3, stacks: 1 }
   },
   [ID.CHAOTIC_RELEASE]: {
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/live.ts`.
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
     castTimeMs: 600,
     cooldown: 20,
     energyCost: 0,
@@ -186,7 +186,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     consume: true
   },
   [ID.BURST_OF_STRENGTH]: {
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/live.ts`.
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
     castTimeMs: 840,
     cooldown: 12,
     energyCost: 0,
@@ -210,7 +210,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     consume: true
   },
   [ID.FACET_OF_DARKNESS]: {
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/live-upkeep.ts`.
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -222,7 +222,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     upkeepPulse: { kind: 'fury', duration: 3, stacks: 1 }
   },
   [ID.FACET_OF_NATURE]: {
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/live-upkeep.ts`.
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
     castTimeMs: 0,
     cooldown: 0,
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
@@ -244,7 +244,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
   [ID.TRUE_NATURE_ASSASSIN]: {
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/live.ts`.
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
     castTimeMs: 480,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
     energyCost: 0,
@@ -264,7 +264,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
   [ID.TRUE_NATURE_DWARF]: {
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/live.ts`.
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
     castTimeMs: 480,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
     energyCost: 0,
@@ -282,7 +282,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
   [ID.TRUE_NATURE_DRAGON]: {
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/live.ts`.
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
     castTimeMs: 480,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
     energyCost: 0,
@@ -303,7 +303,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
   [ID.TRUE_NATURE_CENTAUR]: {
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/live.ts`.
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
     castTimeMs: 480,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
     energyCost: 0,
@@ -313,7 +313,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
   [ID.TRUE_NATURE_DEMON]: {
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
-    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/live.ts`.
+    // Custom: Stops the parent facet upkeep after the consume skill resolves; see `herald/hooks.ts`.
     castTimeMs: 480,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
     energyCost: 0,

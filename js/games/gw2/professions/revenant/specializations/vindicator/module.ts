@@ -6,7 +6,7 @@ import { vindicatorState } from '#gw2/professions/revenant/specializations/vindi
 import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
 import { VINDICATOR_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/vindicator/skills/index.js';
 import { VINDICATOR_BALANCE_PROFILES } from '#gw2/professions/revenant/specializations/vindicator/profiles.js';
-import { vindicatorLiveMechanics } from '#gw2/professions/revenant/specializations/vindicator/live.js';
+import { vindicatorHooks } from '#gw2/professions/revenant/specializations/vindicator/hooks.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const vindicatorModule = defineNativeModule({
@@ -17,6 +17,7 @@ export const vindicatorModule = defineNativeModule({
     balanceProfiles: VINDICATOR_BALANCE_PROFILES
   }),
   state: { create: vindicatorState.create },
-  mechanics: { modifiers: vindicatorAttributeRules, live: vindicatorLiveMechanics },
+  modifiers: vindicatorAttributeRules,
+  hooks: vindicatorHooks,
   presentation: vindicatorUi
 });

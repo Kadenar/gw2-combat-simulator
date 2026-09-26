@@ -6,7 +6,7 @@ import { elementalistProfession } from '#gw2/professions/elementalist/profession
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Persistent queries cannot consume one-shot benefits; reservation spends them once on an eligible cast.
@@ -18,7 +18,7 @@ test('Elementalist queries preserve Core and Evoker benefits; an eligible cast c
     startAttunement: 'Fire',
     selectedTraitIds: [ELEMENTALIST_TRAIT_IDS.ELEMENTAL_BALANCE]
   };
-  const native = elementalistProfession.liveRuntimeFor(config),
+  const native = elementalistProfession.runtimeFor(config),
     skill = native.catalog.skillsByName.get('Raging Ricochet');
   const result = runElementalist({
     config,
@@ -43,7 +43,7 @@ test('Elementalist queries preserve Core and Evoker benefits; an eligible cast c
       }
     ]
   });
-  const r = runtimeFor(result),
+  const r = observedRuntime(result),
     action = result.events.find((e) => e.type === 'action');
   assert.ok(Math.abs(r.cooldowns.get(skill.id) - action.endsAt - skill.cooldown * 0.67 * 0.34) < 1e-9);
   assert.equal(r.profession.core.spearNextRechargeReduction, true);
@@ -61,7 +61,7 @@ test('spear recharge empowerment survives an autoattack and belongs to the next 
       r.profession.core.spearNextRechargeReduction = true;
     }
   });
-  assert.equal(runtimeFor(auto).profession.core.spearNextRechargeReduction, true);
+  assert.equal(observedRuntime(auto).profession.core.spearNextRechargeReduction, true);
   const result = runElementalist({
     config: { primaryWeapon: 'Spear' },
     rotation: ['Flame Spear', skill.id],
@@ -70,8 +70,8 @@ test('spear recharge empowerment survives an autoattack and belongs to the next 
     }
   });
   const action = result.events.find((e) => e.type === 'action' && e.skillId === skill.id);
-  assert.equal(runtimeFor(result).profession.core.spearNextRechargeReduction, false);
-  assert.ok(Math.abs(runtimeFor(result).cooldowns.get(skill.id) - action.endsAt - skill.cooldown * 0.67) < 1e-9);
+  assert.equal(observedRuntime(result).profession.core.spearNextRechargeReduction, false);
+  assert.ok(Math.abs(observedRuntime(result).cooldowns.get(skill.id) - action.endsAt - skill.cooldown * 0.67) < 1e-9);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -90,13 +90,13 @@ test('expired pistol and Elemental Balance windows cannot discount a new cast', 
     }
   });
   const action = result.events.find((e) => e.type === 'action');
-  assert.ok(Math.abs(runtimeFor(result).cooldowns.get(skill.id) - action.endsAt - skill.cooldown) < 1e-9);
+  assert.ok(Math.abs(observedRuntime(result).cooldowns.get(skill.id) - action.endsAt - skill.cooldown) < 1e-9);
   assert.deepEqual(result.warnings, []);
 });
 
 test('Antiquary preserves charges across queries and consumes FIFO once per utility, including preparation arming', () => {
   const config = { specialization: 'Antiquary', selectedSkills: ['Prepare Thousand Needles', 'Prepare Pitfall'] };
-  const native = thiefProfession.liveRuntimeFor(config);
+  const native = thiefProfession.runtimeFor(config);
   const placement = thiefProfession.catalog.skillsByName.get('Prepare Thousand Needles');
   const rotation = [{ type: 'wait', durationMs: 1000 }, 'Prepare Thousand Needles', 'Prepare Pitfall'];
   const holo = (runtime) => runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations;
@@ -104,7 +104,7 @@ test('Antiquary preserves charges across queries and consumes FIFO once per util
     projectThiefPlanningState({ profession: runtime.profession, time: runtime.time })
       .holoUtilityCooldownReductionExpirations;
   const observed = {};
-  const recharge = (result) => runtimeFor(result).cooldowns.get(placement.id) - 1;
+  const recharge = (result) => observedRuntime(result).cooldowns.get(placement.id) - 1;
   const persistent = recharge(runThief(rotation.slice(0, 2), config));
   const result = runThief(rotation, config, {
     initialize(runtime) {
@@ -137,7 +137,7 @@ test('Antiquary preserves charges across queries and consumes FIFO once per util
   assert.deepEqual(observed.afterQueries, observed.before);
   assert.deepEqual(observed.afterNeedles, [[5], [5]]);
   assert.ok(Math.abs(recharge(result) - persistent * 0.2) < 1e-9);
-  assert.deepEqual(holo(runtimeFor(result)), []);
+  assert.deepEqual(holo(observedRuntime(result)), []);
   assert.deepEqual(result.planningState.profession.holoUtilityCooldownReductionExpirations, []);
 });
 
@@ -158,11 +158,11 @@ test('rejected and cancelled Elementalist casts preserve empowerments for the ne
   const cancelled = runElementalist({ config, rotation, initialize });
   assert.equal(cancelled.warnings.length, 1);
   assert.match(cancelled.warnings[0], /requires all four elemental bullets/);
-  assert.equal(runtimeFor(cancelled).profession.core.dazingDischargeUntil, 10);
-  assert.equal(runtimeFor(cancelled).profession.specialization.state.elementalBalanceUntil, 10);
+  assert.equal(observedRuntime(cancelled).profession.core.dazingDischargeUntil, 10);
+  assert.equal(observedRuntime(cancelled).profession.specialization.state.elementalBalanceUntil, 10);
   const committed = runElementalist({ config, rotation: [...rotation, 'Searing Salvo'], initialize });
-  assert.equal(runtimeFor(committed).profession.core.dazingDischargeUntil, 0);
-  assert.equal(runtimeFor(committed).profession.specialization.state.elementalBalanceUntil, 0);
+  assert.equal(observedRuntime(committed).profession.core.dazingDischargeUntil, 0);
+  assert.equal(observedRuntime(committed).profession.specialization.state.elementalBalanceUntil, 0);
   assert.equal(committed.warnings.length, 1);
 });
 
@@ -204,8 +204,8 @@ test('Holo-Dancer charges survive healing, unavailable utilities, and cancellati
 
   // After natural expiry the final utility receives its full recharge and finds nothing to spend.
   const last = result.steps.at(-1);
-  const recharge = runtimeFor(result).cooldowns.get(needles.id) - last.start / 1000;
-  const persistent = runtimeFor(runThief(['Prepare Thousand Needles'], config)).cooldowns.get(needles.id) - 0;
+  const recharge = observedRuntime(result).cooldowns.get(needles.id) - last.start / 1000;
+  const persistent = observedRuntime(runThief(['Prepare Thousand Needles'], config)).cooldowns.get(needles.id) - 0;
   assert.ok(Math.abs(recharge - persistent) < 1e-9);
   assert.deepEqual(result.planningState.profession.holoUtilityCooldownReductionExpirations, []);
 });

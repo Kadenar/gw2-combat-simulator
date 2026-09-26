@@ -1,6 +1,6 @@
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /** Imperative Air trait behavior; dispatch and reaction registration stay with their existing owners. */
-import { emitElementalistBuff, emitElementalistDamage } from '#gw2/professions/elementalist/core/live-events.js';
+import { emitElementalistBuff, emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,

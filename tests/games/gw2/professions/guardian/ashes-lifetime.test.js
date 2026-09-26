@@ -3,11 +3,11 @@ import test from 'node:test';
 import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const config = { specialization: 'Firebrand', selectedTraitIds: [TRAIT.QUICKFIRE] };
 const wait = (durationMs) => ({ type: 'wait', durationMs });
-const state = (result) => runtimeFor(result).profession.specialization.state;
+const state = (result) => observedRuntime(result).profession.specialization.state;
 const burns = (result) =>
   result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just'

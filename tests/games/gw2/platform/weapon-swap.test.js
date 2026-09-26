@@ -16,7 +16,7 @@ test('shared weapon swap commits canonical state and event before profession ext
     resources: {
       createState: () => ({ core: { autoattackChains: { 100: 101 } }, specialization: { kind: 'Core', state: {} } })
     },
-    live: {
+    hooks: {
       onCastComplete(runtime, cast) {
         observed.push([runtime.activeWeaponSet, { ...runtime.profession.core.autoattackChains }, cast.skill.id]);
       }

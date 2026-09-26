@@ -20,7 +20,7 @@ test('resolver setup shares reactions and creates fresh profession state for eac
     resources: {
       createState: () => ({ count: 0 })
     },
-    live: {
+    hooks: {
       eventHandlers: {
         'fixture.trigger': (context, event) => {
           context.dispatchReaction('control.resolved', event);
@@ -255,7 +255,7 @@ test('resolver profession state changes are chronological and preserve counters'
         return context.runtime.profession.active ? value * 2 : value;
       }
     },
-    live: {
+    hooks: {
       eventHandlers: {
         'chronology-fixture.state': (context, event) => {
           context.profession.active = event.active;
@@ -322,11 +322,11 @@ test('delayed-impact casts land hostile packets later without moving the cast or
   // A reaction timed from the landed hit must follow the hit once, not receive the travel delay a second time.
   const reactingProfession = {
     ...testProfession,
-    liveRuntimeFor(config) {
+    runtimeFor(config) {
       return {
-        ...testProfession.liveRuntimeFor(config),
+        ...testProfession.runtimeFor(config),
         reactions: {
-          ...testProfession.liveRuntimeFor(config).reactions,
+          ...testProfession.runtimeFor(config).reactions,
           'damage.resolved'(context, event) {
             if (event.type !== 'damage' || event.name === 'Fixture Reaction') return;
             context.emitDerived(event, {

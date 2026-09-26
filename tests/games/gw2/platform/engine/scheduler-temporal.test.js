@@ -119,7 +119,7 @@ test('a recovered ammo charge cannot cast before its lockout expires', () => {
     id: 'ammo-lockout',
     name: 'Ammo Lockout',
     catalog,
-    live: {
+    hooks: {
       initialize(context) {
         const skill = catalog.skillsById.get(980000);
         context.cooldownController.spendAmmo(skill, 0);
@@ -221,7 +221,7 @@ test('tasks during a cast run before a later concurrent command', () => {
     resources: {
       createState: () => ({ log: [] })
     },
-    live: {
+    hooks: {
       initialize(context) {
         context.schedule('fixture.record', 0.25, { value: 'task' });
       },
@@ -286,7 +286,7 @@ test('an intermediate task can make a waiting cast available', () => {
     resources: {
       createState: () => ({ ready: false })
     },
-    live: {
+    hooks: {
       availability(context, skill) {
         if (skill.name !== 'Gated Cast' || context.profession.ready) {
           return { ready: true };
@@ -320,7 +320,7 @@ test('a concurrent instant waits until its finite cooldown expires', () => {
     id: 'temporal-concurrent-wait',
     name: 'Temporal Concurrent Wait',
     catalog: temporalCatalog(),
-    live: {
+    hooks: {
       initialize(context) {
         context.cooldowns.set(980002, context.config.readyAt);
       }
@@ -423,7 +423,7 @@ test('interrupted casts complete at their effective end', () => {
     resources: {
       createState: () => ({ completions: [] })
     },
-    live: {
+    hooks: {
       onCastComplete(context, cast) {
         context.profession.completions.push({
           skill: cast.skill.name,

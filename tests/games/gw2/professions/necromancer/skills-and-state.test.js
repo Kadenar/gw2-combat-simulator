@@ -26,7 +26,7 @@ import { REAPER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/special
 import { SCOURGE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import { RITUALIST_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
-import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -46,7 +46,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createLiveProfessionSimulator(necromancerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(necromancerProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -723,7 +723,7 @@ test('Scourge fixed costs preserve build scaling on the percentage meter', () =>
 // Runtime initialization must replace detached defaults with the active patch's vitality and capacity tuning.
 test('Scourge percentage costs use the selected balance profiles', () => {
   const run = (capacityMultiplier) =>
-    createLiveProfessionSimulator(
+    createObservedProfessionSimulator(
       withPatchPreview(necromancerProfession, {
         id: 'scourge-costs',
         label: 'Scourge costs',
@@ -1509,7 +1509,7 @@ test('Isolate and Distress expose the follow-up and reset Perforate', () => {
     ),
     440
   );
-  assert.equal(runtimeFor(delayedHitWindow).cooldowns.get(ID.ISOLATE), 18.44);
+  assert.equal(observedRuntime(delayedHitWindow).cooldowns.get(ID.ISOLATE), 18.44);
   assert.equal(result.steps[3].start < 8000, true);
   assert.equal(
     result.events.filter(

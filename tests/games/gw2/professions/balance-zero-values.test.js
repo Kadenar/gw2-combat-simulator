@@ -3,7 +3,7 @@ import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -42,11 +42,11 @@ function run(profession, balanceProfiles, specialization, rotation, config = {},
 }
 
 // Resolve the patched catalog before live execution so zero-valued profile fields reach their owner.
-const runLive = ({ profession, config, rotation }) =>
-  runGw2Runtime({ profession: profession.liveRuntimeFor(config), config, rotation });
+const runRuntime = ({ profession, config, rotation }) =>
+  runGw2Runtime({ profession: profession.runtimeFor(config), config, rotation });
 // Observed variant for contracts that read the live owner's state after the run.
-const runLiveObserved = ({ profession, config, rotation }) =>
-  observeGw2Runtime({ profession: profession.liveRuntimeFor(config), config, rotation });
+const runRuntimeObserved = ({ profession, config, rotation }) =>
+  observeGw2Runtime({ profession: profession.runtimeFor(config), config, rotation });
 
 test('Warrior zero Dodge cost does not spend endurance', () => {
   const result = run(
@@ -73,7 +73,7 @@ test('Guardian zero recharge multiplier makes the trait-adjusted skill immediate
       primaryWeapon: 'Greatsword',
       selectedTraitIds: [GUARDIAN_TRAIT.ZEALOUS_BLADE]
     },
-    runLive
+    runRuntime
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(result.steps[1].start, result.steps[0].end);
@@ -114,7 +114,7 @@ test('Harbinger zero Meltdown coefficient emits no strike damage', () => {
       selectedSkills: ['Elixir of Promise'],
       selectedTraitIds: [NECROMANCER_TRAIT.CASCADING_CORRUPTION]
     },
-    runLive
+    runRuntime
   );
   assert.deepEqual(result.warnings, []);
   const meltdown = result.resolvedEvents.find(
@@ -134,7 +134,7 @@ test('Revenant zero Vigor regeneration multiplier stops endurance regeneration',
     'Core',
     ['Dodge', { type: 'wait', durationMs: 1000 }],
     { boons: { vigor: true } },
-    runLive
+    runRuntime
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.endurance, 50);
@@ -149,7 +149,7 @@ test('Thief zero Quick Pockets gain matches a swap without the trait', () => {
     alternateSecondaryWeapon: 'Pistol',
     initialInitiative: 6
   };
-  const baseline = run(thiefProfession, {}, 'Core', rotation, config, runLiveObserved);
+  const baseline = run(thiefProfession, {}, 'Core', rotation, config, runRuntimeObserved);
   const zero = run(
     thiefProfession,
     {
@@ -158,14 +158,14 @@ test('Thief zero Quick Pockets gain matches a swap without the trait', () => {
     'Core',
     rotation,
     { ...config, selectedTraitIds: [THIEF_TRAIT.QUICK_POCKETS] },
-    runLiveObserved
+    runRuntimeObserved
   );
   assert.deepEqual(zero.warnings, []);
   // The swap still claims Quick Pockets' cooldown; its zero grant leaves the pool unchanged.
-  assert.ok(runtimeFor(zero).profession.core.quickPocketsReadyAt > 0);
+  assert.ok(observedRuntime(zero).profession.core.quickPocketsReadyAt > 0);
   assert.equal(
-    runtimeFor(zero).resourceController.value('initiative'),
-    runtimeFor(baseline).resourceController.value('initiative')
+    observedRuntime(zero).resourceController.value('initiative'),
+    observedRuntime(baseline).resourceController.value('initiative')
   );
 });
 
@@ -182,7 +182,7 @@ test('Zero periodic intervals disable signet pulses without stalling resource ad
       initialResource: 0,
       selectedSkills: ['Signet of Undeath', 'Signet of Vampirism']
     },
-    runLive
+    runRuntime
   );
   assert.equal(result.planningState.profession.lifeForce.value, 0);
   assert.equal(result.strikeDamage, 0);

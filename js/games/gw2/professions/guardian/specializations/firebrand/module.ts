@@ -1,7 +1,7 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { firebrandAttributeRules } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes-and-mantras.js';
-import { firebrandLiveMechanics } from '#gw2/professions/guardian/specializations/firebrand/live.js';
+import { firebrandHooks } from '#gw2/professions/guardian/specializations/firebrand/hooks.js';
 import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/index.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 
@@ -17,6 +17,7 @@ export const firebrandModule = defineNativeModule({
     balanceProfiles: FIREBRAND_BALANCE_PROFILES
   }),
   state: { create: firebrandState.create },
-  mechanics: { modifiers: firebrandAttributeRules, live: firebrandLiveMechanics },
+  modifiers: firebrandAttributeRules,
+  hooks: firebrandHooks,
   presentation: bindFirebrandUi
 });

@@ -35,19 +35,6 @@ const EXPECTED_MODULE_IDS = Object.freeze({
   warrior: ['Core', 'Berserker', 'Spellbreaker', 'Bladesworn', 'Paragon']
 });
 
-function schedulerDeclarations(module) {
-  const availability = module.mechanics?.execution?.availability;
-
-  return [
-    ...(availability == null ? [] : Array.isArray(availability) ? availability : [availability]),
-    ...(module.mechanics?.execution?.castLifecycle || [])
-  ];
-}
-
-function resolverDeclarations(module) {
-  return module.mechanics?.resolution?.reactions || [];
-}
-
 test('native profession module order and semantic owners remain stable during migration', () => {
   assert.equal(Object.keys(PROFESSION_MODULES).length, 9);
 
@@ -68,49 +55,14 @@ test('native profession module order and semantic owners remain stable during mi
   }
 });
 
-test('phase-explicit native declarations retain their scheduler and resolver discriminants', () => {
+test('profession modules register runtime behavior only through hooks', () => {
   for (const [profession, modules] of Object.entries(PROFESSION_MODULES)) {
     for (const module of modules) {
       const label = `${profession}/${module.id}`;
 
-      for (const declaration of schedulerDeclarations(module)) {
-        assert.equal(declaration.phase, 'scheduler', `${label}/${declaration.id}`);
-        assert.equal(typeof declaration.handler, 'function', `${label}/${declaration.id}`);
-        assert.ok(Number.isFinite(declaration.order), `${label}/${declaration.id}`);
-      }
-
-      for (const declaration of resolverDeclarations(module)) {
-        assert.equal(declaration.phase, 'resolver', `${label}/${declaration.id}`);
-        assert.equal(typeof declaration.handler, 'function', `${label}/${declaration.id}`);
-        assert.ok(Number.isFinite(declaration.order), `${label}/${declaration.id}`);
-      }
-    }
-  }
-});
-
-test('profession modules register phase behavior only through explicit sections', () => {
-  for (const [profession, modules] of Object.entries(PROFESSION_MODULES)) {
-    for (const module of modules) {
-      const label = `${profession}/${module.id}`;
-
-      // Every supported module uses one live owner; retired phase sections must not return.
-      assert.ok(module.mechanics.live, label);
-      assert.equal(module.mechanics.execution, undefined, label);
-      assert.equal(module.mechanics.resolution, undefined, label);
-
+      // Every supported module owns one hook table; the module validator rejects retired phase sections.
+      assert.ok(module.hooks, label);
       assert.equal(module.data.handlers, undefined, `${label}/data.handlers`);
-
-      for (const legacyKey of [
-        'availability',
-        'castLifecycle',
-        'skillMechanicHandlers',
-        'castRules',
-        'schedulerHooks',
-        'resolverHooks',
-        'reactions'
-      ]) {
-        assert.equal(module.mechanics[legacyKey], undefined, `${label}/mechanics.${legacyKey}`);
-      }
     }
   }
 });

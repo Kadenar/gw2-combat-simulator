@@ -53,7 +53,7 @@ function eliteSpecializationNames(catalog) {
 }
 
 function nativeModifierRules(module) {
-  const modifiers = module.mechanics?.modifiers;
+  const modifiers = module.modifiers;
 
   return Array.isArray(modifiers) ? modifiers : modifiers?.modifierRules || [];
 }
@@ -198,10 +198,6 @@ test('Thief modules own vertical source slices', () => {
   assert.doesNotMatch(coreSources, /specializations\//);
   assert.doesNotMatch(coreSources, /\b(?:Daredevil|Deadeye|Specter|Antiquary|Skritt)\b/);
   assert.equal(
-    existsSync(new URL('../../../../../js/games/gw2/professions/thief/core/events.ts', import.meta.url)),
-    false
-  );
-  assert.equal(
     existsSync(new URL('../../../../../js/games/gw2/professions/thief/family-state.ts', import.meta.url)),
     true
   );
@@ -257,11 +253,11 @@ test('Thief runtimes exclude inactive elite state, catalogs, and registries', ()
   assert.equal(thiefProfession.catalog, thiefCatalog);
   for (const active of ['Core', ...eliteSpecializationNames(thiefCatalog)]) {
     const config = { specialization: active };
-    const runtime = thiefProfession.liveRuntimeFor(config);
+    const runtime = thiefProfession.runtimeFor(config);
     const state = runtime.createState(config);
     const activeElite = active === 'Core' ? null : active;
 
-    assert.equal(runtime, thiefProfession.liveRuntimeFor(config), active);
+    assert.equal(runtime, thiefProfession.runtimeFor(config), active);
     assert.equal(state.specialization.kind, active, active);
     assert.deepEqual(
       runtime.catalog.specializations
@@ -322,7 +318,7 @@ test('Thief runtimes exclude inactive elite state, catalogs, and registries', ()
     assert.equal(resources.includes('artifact-uses'), false, active);
   }
 
-  assert.throws(() => thiefProfession.liveRuntimeFor({ specialization: 'Missing' }), /Unknown specialization: Missing/);
+  assert.throws(() => thiefProfession.runtimeFor({ specialization: 'Missing' }), /Unknown specialization: Missing/);
 });
 
 test('Thief public projection keeps inactive compatibility fields', () => {

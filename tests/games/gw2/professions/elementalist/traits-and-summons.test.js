@@ -1,4 +1,4 @@
-import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -529,7 +529,7 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
   );
 
   assert.ok(
-    Math.abs(runtimeFor(flowDualAttack).cooldowns.get(moltenMeteor.skillId) - moltenMeteor.endsAt - 9.6) < 1e-9
+    Math.abs(observedRuntime(flowDualAttack).cooldowns.get(moltenMeteor.skillId) - moltenMeteor.endsAt - 9.6) < 1e-9
   );
 
   const pursuit = runNative({

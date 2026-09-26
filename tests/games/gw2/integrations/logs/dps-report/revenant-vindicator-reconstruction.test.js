@@ -40,7 +40,7 @@ function simulate(rotation, sigil) {
     stats: { power: 2000, precision: 1500, ferocity: 500, vitality: 1000 },
     target: { armor: 2597, health: 4_000_000, conditions: {} }
   };
-  return runGw2Runtime({ profession: revenantProfession.liveRuntimeFor(config), config, rotation });
+  return runGw2Runtime({ profession: revenantProfession.runtimeFor(config), config, rotation });
 }
 
 const energyProcs = (result) => result.procSteps.filter((step) => step.skill === 'Sigil of Energy').length;

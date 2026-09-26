@@ -1,4 +1,4 @@
-import { mirageLive } from '#gw2/professions/mesmer/specializations/mirage/live.js';
+import { mirageHooks } from '#gw2/professions/mesmer/specializations/mirage/hooks.js';
 import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -13,7 +13,7 @@ import { mirageUi } from '#gw2/professions/mesmer/specializations/mirage/present
 // Real profiles and specialization initialization isolate the lifetime contracts from rotation and cast timing.
 function lifetimeContext(traits = []) {
   const config = { specialization: 'Mirage', primaryWeapon: 'Sword', selectedTraitIds: traits };
-  const profession = mesmerProfession.resolveRuntime(config);
+  const profession = mesmerProfession.resolveProfession(config);
   const events = [];
   const gainHandlers = [];
   const context = {
@@ -192,7 +192,7 @@ test('Mirror availability, palette, cleanup, and one-time pickup agree on exact 
     assert.equal(projected.availableMirrors, Number(active));
     assert.equal(mirageUi.paletteSkillAvailability({ professionState: projected }, skill).available, active);
     context.time = at;
-    mirageLive.tasks['mesmer.mirror-expire'](context);
+    mirageHooks.tasks['mesmer.mirror-expire'](context);
     assert.equal(state.mirrors.length, at < 8.301 ? 1 : 0);
     assert.equal(controller.pickUpMirror(at, 'pickup'), active);
     assert.equal(controller.pickUpMirror(at, 'pickup'), false);
@@ -209,7 +209,7 @@ test('Mirror retry retains pending creation and overlapping mirrors expire indep
   controller.createMirrors(0.301, 1, 'first');
   controller.createMirrors(1.301, 1, 'second');
   context.time = 8.301;
-  mirageLive.tasks['mesmer.mirror-expire'](context);
+  mirageHooks.tasks['mesmer.mirror-expire'](context);
   assert.deepEqual(
     context.profession.specialization.state.mirrors.map((mirror) => mirror.source),
     ['second']

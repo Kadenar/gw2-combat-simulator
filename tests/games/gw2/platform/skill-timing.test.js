@@ -226,7 +226,7 @@ test('runtime variants scale cast-bound launch timing while fixed pulse spacing 
       id: 'pulses',
       name: 'Pulses',
       catalog,
-      live: {
+      hooks: {
         castDurationMs: (_context, _skill, duration) => duration * multiplier
       }
     });

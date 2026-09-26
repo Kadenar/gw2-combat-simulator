@@ -6,5 +6,5 @@ import { assertManifestRegressions } from './preset-benchmark.js';
 // Exercise the registered live family until the shared application entry cuts over in phase 6.
 test('Thief presets load and stay within 1% DPS', () =>
   assertManifestRegressions('thief', (adapter, rotation, config) =>
-    runGw2Runtime({ profession: adapter.profession.liveRuntimeFor(config), config, rotation })
+    runGw2Runtime({ profession: adapter.profession.runtimeFor(config), config, rotation })
   ));

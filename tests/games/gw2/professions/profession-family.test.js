@@ -66,13 +66,9 @@ function eliteSpecializationNames(catalog) {
 }
 
 function nativeModifierRules(module) {
-  const modifiers = module.mechanics?.modifiers;
+  const modifiers = module.modifiers;
 
   return Array.isArray(modifiers) ? modifiers : modifiers?.modifierRules || [];
-}
-
-function nativeSkillHandlers(module) {
-  return module.mechanics?.execution?.skillHandlers;
 }
 
 function nativeSkillOwnerMap(slices) {
@@ -188,8 +184,8 @@ test('elite event presentation is owned by the active specialization', () => {
   for (const [family, specialization, event] of cases) {
     const coreConfig = { specialization: 'Core' };
     const activeConfig = { specialization };
-    const coreState = family.resolveRuntime(coreConfig).createState(coreConfig);
-    const activeRuntime = family.resolveRuntime(activeConfig);
+    const coreState = family.resolveProfession(coreConfig).createState(coreConfig);
+    const activeRuntime = family.resolveProfession(activeConfig);
     const activeState = activeRuntime.createState(activeConfig);
     const coreRow = family.ui.eventLogRow?.({ config: coreConfig, state: { profession: coreState } }, event);
 
@@ -253,8 +249,7 @@ test('native module contributions assemble disjoint application and runtime cata
     const contributed = {
       skills: new Map(),
       traits: new Map(),
-      specializations: new Map(),
-      handlers: new Map()
+      specializations: new Map()
     };
 
     for (const module of modules) {
@@ -270,14 +265,6 @@ test('native module contributions assemble disjoint application and runtime cata
           assert.equal(contributed[kind].has(entry.id), false, `${name}:${kind}:${entry.id}`);
           contributed[kind].set(entry.id, module.id);
         }
-      }
-
-      const moduleHandlers = nativeSkillHandlers(module);
-      const handlers = moduleHandlers instanceof Map ? moduleHandlers : new Map(Object.entries(moduleHandlers || {}));
-
-      for (const handlerId of handlers.keys()) {
-        assert.equal(contributed.handlers.has(handlerId), false, `${name}:handler:${handlerId}`);
-        contributed.handlers.set(handlerId, module.id);
       }
     }
 
@@ -295,7 +282,7 @@ test('native module contributions assemble disjoint application and runtime cata
 
     const skillOwners = getNativeCatalogAssembly(modules, undefined).skillOwners;
     for (const active of ['Core', ...family.specializationIds]) {
-      const runtime = family.resolveRuntime({ specialization: active });
+      const runtime = family.resolveProfession({ specialization: active });
       const runtimeIds = new Set(runtime.catalog.skills.map((skill) => skill.id));
 
       for (const skill of catalog.skills) {
@@ -415,8 +402,8 @@ test('family UI uses active slices, Core-first event precedence, and family veto
 
 test('profession families resolve Core or one known elite and cache contracts', () => {
   const family = testFamily();
-  const core = family.resolveRuntime({});
-  const elite = family.resolveRuntime({ specialization: 'Elite' });
+  const core = family.resolveProfession({});
+  const elite = family.resolveProfession({ specialization: 'Elite' });
 
   assert.deepEqual(
     core.catalog.skills.map((skill) => skill.id),
@@ -434,10 +421,10 @@ test('profession families resolve Core or one known elite and cache contracts', 
     core: { coreReady: true },
     specialization: { kind: 'Elite', state: { eliteReady: true } }
   });
-  assert.equal(family.resolveRuntime({ specialization: 'Elite' }), elite);
+  assert.equal(family.resolveProfession({ specialization: 'Elite' }), elite);
   assert.equal(family.catalog, familyCatalog);
   assert.throws(
-    () => family.resolveRuntime({ specialization: 'Missing' }),
+    () => family.resolveProfession({ specialization: 'Missing' }),
     /Unknown Family Test elite specialization "Missing"/
   );
 });
@@ -463,7 +450,7 @@ test('family hook order is deterministic and duplicate hook ids fail', () => {
     }
   });
 
-  testFamily(core, elite).resolveRuntime({ specialization: 'Elite' }).modifyAttributes({}, {});
+  testFamily(core, elite).resolveProfession({ specialization: 'Elite' }).modifyAttributes({}, {});
   assert.deepEqual(calls, ['elite', 'core']);
 
   const duplicate = {
@@ -480,7 +467,7 @@ test('family hook order is deterministic and duplicate hook ids fail', () => {
         testModule('Elite', {
           attributeRules: { modifyAttributes: duplicate }
         })
-      ).resolveRuntime({ specialization: 'Elite' }),
+      ).resolveProfession({ specialization: 'Elite' }),
     /Duplicate modifyAttributes hook id: same\.initialize/
   );
 });
@@ -509,8 +496,8 @@ test('family attribute declarations compile after active module composition', ()
   });
   const family = testFamily(core, elite);
 
-  assert.equal(family.resolveRuntime({}).modifyStrikeDamage({}, 10), 11);
-  assert.equal(family.resolveRuntime({ specialization: 'Elite' }).modifyStrikeDamage({}, 10), 12);
+  assert.equal(family.resolveProfession({}).modifyStrikeDamage({}, 10), 11);
+  assert.equal(family.resolveProfession({ specialization: 'Elite' }).modifyStrikeDamage({}, 10), 12);
   assert.deepEqual(compiledRuleIds, [['core.rule'], ['core.rule', 'elite.rule']]);
 });
 
@@ -522,7 +509,7 @@ test('family composition rejects duplicate registries and catalog ids', () => {
         testModule('Elite', {
           catalog: { skills: [coreSkill] }
         })
-      ).resolveRuntime({ specialization: 'Elite' }),
+      ).resolveProfession({ specialization: 'Elite' }),
     /Duplicate skill id 1/
   );
 });
@@ -536,9 +523,9 @@ test('canonical simulation resolves the selected live source once', () => {
   let resolutions = 0;
   const source = {
     ...runtime,
-    liveRuntimeFor(config) {
+    runtimeFor(config) {
       resolutions += 1;
-      return runtime.liveRuntimeFor(config);
+      return runtime.runtimeFor(config);
     }
   };
 
@@ -578,11 +565,8 @@ test('Necromancer modules contribute complete disjoint runtime slices', () => {
   for (const [, module] of slices) {
     assert.equal(typeof module.state?.create, 'function');
     assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
-    // Live modules contain their behavior without a second scheduler or resolver registration.
-    assert.ok(module.mechanics.live);
-    assert.equal(module.mechanics.execution, undefined);
-    assert.equal(module.mechanics.resolution, undefined);
-    assert.equal(nativeSkillHandlers(module), undefined);
+    // Modules contain their runtime behavior in one hook table without a second scheduler or resolver registration.
+    assert.ok(module.hooks);
     assert.ok(module.presentation);
     for (const rule of nativeModifierRules(module)) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
@@ -603,7 +587,7 @@ test('Necromancer runtimes exclude sibling catalogs, handlers, and state', () =>
 
   for (const active of ['Core', ...eliteSpecializationNames(necromancerCatalog)]) {
     const config = { specialization: active };
-    const runtime = necromancerProfession.resolveRuntime(config);
+    const runtime = necromancerProfession.resolveProfession(config);
     const state = runtime.createState(config);
     const activeElite = active === 'Core' ? null : active;
     const runtimeEliteLines = runtime.catalog.specializations
@@ -634,7 +618,7 @@ test('Necromancer runtimes exclude sibling catalogs, handlers, and state', () =>
       }
     }
 
-    const live = necromancerProfession.liveRuntimeFor(config);
+    const live = necromancerProfession.runtimeFor(config);
     assert.equal(Object.hasOwn(live.eventHandlers, 'necromancer.painful-bond'), active === 'Ritualist', active);
     assert.equal(Object.hasOwn(live.eventHandlers, 'necromancer.weapon-spell'), false, active);
     assert.equal(Object.hasOwn(live.eventHandlers, 'necromancer.spirit-attack'), false, active);
@@ -644,7 +628,7 @@ test('Necromancer runtimes exclude sibling catalogs, handlers, and state', () =>
 test('Necromancer presentation exposes only active specialization resources', () => {
   for (const active of ['Core', ...eliteSpecializationNames(necromancerCatalog)]) {
     const config = { specialization: active };
-    const runtime = necromancerProfession.resolveRuntime(config);
+    const runtime = necromancerProfession.resolveProfession(config);
     const state = runtime.createState(config);
     const resourceIds = necromancerProfession.ui
       .resourceViews({
@@ -659,7 +643,7 @@ test('Necromancer presentation exposes only active specialization resources', ()
 
 test('Necromancer public projection reports neutral inactive specialization resources', () => {
   const result = runGw2Runtime({
-    profession: necromancerProfession.liveRuntimeFor({ specialization: 'Core' }),
+    profession: necromancerProfession.runtimeFor({ specialization: 'Core' }),
     rotation: [],
     config: { specialization: 'Core' }
   });
@@ -749,7 +733,7 @@ test('Guardian runtimes exclude inactive elite catalogs, registries, and state',
 
   for (const active of ['Core', ...eliteSpecializationNames(guardianCatalog)]) {
     const config = { specialization: active };
-    const runtime = guardianProfession.resolveRuntime(config);
+    const runtime = guardianProfession.resolveProfession(config);
     const state = runtime.createState(config);
     const activeElite = active === 'Core' ? null : active;
 
@@ -779,7 +763,7 @@ test('Guardian runtimes exclude inactive elite catalogs, registries, and state',
       }
     }
 
-    const native = guardianProfession.liveRuntimeFor(config);
+    const native = guardianProfession.runtimeFor(config);
     assert.equal(Object.hasOwn(native.resources, 'tomePages'), active === 'Firebrand', `${active}:pages`);
     assert.equal(
       Object.hasOwn(native.tasks, 'guardian.luminary.forge-expiry'),
@@ -793,7 +777,7 @@ test('Guardian runtimes exclude inactive elite catalogs, registries, and state',
 test('Guardian presentation and public projection preserve their contracts', () => {
   for (const active of ['Core', ...eliteSpecializationNames(guardianCatalog)]) {
     const config = { specialization: active };
-    const runtime = guardianProfession.resolveRuntime(config);
+    const runtime = guardianProfession.resolveProfession(config);
     const state = runtime.createState(config);
     const resourceIds = guardianProfession.ui
       .resourceViews({
@@ -860,11 +844,11 @@ test('Mesmer runtimes exclude inactive elite catalogs, registries, and state', (
   assert.equal(mesmerProfession.catalog, mesmerCatalog);
   for (const active of ['Core', ...eliteSpecializationNames(mesmerCatalog)]) {
     const config = { specialization: active };
-    const runtime = mesmerProfession.liveRuntimeFor(config);
+    const runtime = mesmerProfession.runtimeFor(config);
     const state = runtime.createState(config);
     const activeElite = active === 'Core' ? null : active;
 
-    assert.equal(runtime, mesmerProfession.liveRuntimeFor(config), active);
+    assert.equal(runtime, mesmerProfession.runtimeFor(config), active);
     assert.deepEqual(
       runtime.catalog.specializations
         .filter((specialization) => specialization.elite)
@@ -906,16 +890,13 @@ test('Mesmer runtimes exclude inactive elite catalogs, registries, and state', (
     );
   }
 
-  assert.throws(
-    () => mesmerProfession.liveRuntimeFor({ specialization: 'Missing' }),
-    /Unknown specialization: Missing/
-  );
+  assert.throws(() => mesmerProfession.runtimeFor({ specialization: 'Missing' }), /Unknown specialization: Missing/);
 });
 
 test('Mesmer presentation and ammo output expose only the active specialization state', () => {
   for (const active of ['Core', ...eliteSpecializationNames(mesmerCatalog)]) {
     const config = { specialization: active };
-    const runtime = mesmerProfession.resolveRuntime(config);
+    const runtime = mesmerProfession.resolveProfession(config);
     const state = runtime.createState(config);
     const resources = mesmerProfession.ui.resourceViews({
       catalog: runtime.catalog,
@@ -1010,7 +991,7 @@ test('Revenant runtimes exclude inactive elite catalogs, hooks, and state', () =
   assert.equal(revenantProfession.catalog, revenantCatalog);
   for (const active of ['Core', ...eliteSpecializationNames(revenantCatalog)]) {
     const config = { specialization: active };
-    const runtime = revenantProfession.resolveRuntime(config);
+    const runtime = revenantProfession.resolveProfession(config);
     const state = runtime.createState(config);
     const activeElite = active === 'Core' ? null : active;
 
@@ -1041,7 +1022,7 @@ test('Revenant runtimes exclude inactive elite catalogs, hooks, and state', () =
 
     assert.equal('eventHandlers' in runtime, false);
     // Each elite's recurring live work is registered only while that elite is selected.
-    const native = revenantProfession.liveRuntimeFor(config);
+    const native = revenantProfession.runtimeFor(config);
     for (const [owner, task] of [
       ['Herald', 'revenant.herald-facet-pulse'],
       ['Renegade', 'revenant.soulcleave-allied-proc'],
@@ -1055,7 +1036,7 @@ test('Revenant runtimes exclude inactive elite catalogs, hooks, and state', () =
 test('Revenant presentation and public projection preserve their contracts', () => {
   for (const active of ['Core', ...eliteSpecializationNames(revenantCatalog)]) {
     const config = { specialization: active };
-    const runtime = revenantProfession.resolveRuntime(config);
+    const runtime = revenantProfession.resolveProfession(config);
     const state = runtime.createState(config);
     const resourceIds = revenantProfession.ui
       .resourceViews({
@@ -1099,10 +1080,6 @@ test('Engineer modules contribute disjoint runtime slices', () => {
   for (const [, module] of engineerSlices) {
     assert.equal(typeof module.state?.create, 'function');
     assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
-
-    if (nativeSkillHandlers(module)) {
-      assert.equal(typeof nativeSkillHandlers(module), 'object');
-    }
 
     assert.ok(module.presentation);
     for (const rule of nativeModifierRules(module)) {
@@ -1169,7 +1146,7 @@ test('Engineer runtimes exclude inactive elite catalogs, hooks, and state', () =
   assert.equal(engineerProfession.catalog, engineerCatalog);
   for (const active of ['Core', ...eliteSpecializationNames(engineerCatalog)]) {
     const config = { specialization: active };
-    const runtime = engineerProfession.liveRuntimeFor(config);
+    const runtime = engineerProfession.runtimeFor(config);
     const state = runtime.createState(config);
     const activeElite = active === 'Core' ? null : active;
 
@@ -1228,7 +1205,7 @@ test('Engineer runtimes exclude inactive elite catalogs, hooks, and state', () =
   }
 
   assert.throws(
-    () => engineerProfession.resolveRuntime({ specialization: 'Unknown' }),
+    () => engineerProfession.resolveProfession({ specialization: 'Unknown' }),
     /Unknown Engineer elite specialization "Unknown"/
   );
 });
@@ -1236,7 +1213,7 @@ test('Engineer runtimes exclude inactive elite catalogs, hooks, and state', () =
 test('Engineer presentation and public projection preserve their contracts', () => {
   for (const active of ['Core', ...eliteSpecializationNames(engineerCatalog)]) {
     const config = { specialization: active };
-    const runtime = engineerProfession.liveRuntimeFor(config);
+    const runtime = engineerProfession.runtimeFor(config);
     const state = runtime.createState(config);
     const resourceIds = engineerProfession.ui
       .resourceViews({
@@ -1267,7 +1244,7 @@ test('Engineer presentation and public projection preserve their contracts', () 
   }
 
   const result = runGw2Runtime({
-    profession: engineerProfession.liveRuntimeFor({ specialization: 'Core' }),
+    profession: engineerProfession.runtimeFor({ specialization: 'Core' }),
     rotation: [],
     config: { specialization: 'Core' }
   });

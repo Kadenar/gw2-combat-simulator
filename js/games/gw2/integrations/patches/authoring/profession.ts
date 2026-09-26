@@ -41,7 +41,7 @@ function assertObject(value: object | null | undefined, label: string): void {
 }
 
 function nativeModuleModifierRules(module: AnyNativeModule): readonly Gw2ModifierRule[] {
-  const modifiers = module.mechanics?.modifiers;
+  const modifiers = module.modifiers;
   if (Array.isArray(modifiers)) {
     return modifiers as readonly Gw2ModifierRule[];
   }
@@ -215,7 +215,7 @@ function modulesWithModifierRules(
   return modules.map((module) => {
     const modifierRules = modifierRulesByModule.get(module.id);
     if (!modifierRules) return module;
-    const existing = module.mechanics?.modifiers;
+    const existing = module.modifiers;
     const modifiers = Array.isArray(existing)
       ? modifierRules
       : Object.freeze({ ...((existing || {}) as object), modifierRules });
@@ -223,7 +223,7 @@ function modulesWithModifierRules(
     // Clone only declaration shells touched by a preview; catalog data and state factories stay shared.
     return Object.freeze({
       ...module,
-      mechanics: Object.freeze({ ...module.mechanics, modifiers })
+      modifiers
     });
   });
 }
@@ -336,18 +336,18 @@ export function withPatchPreview<
     return overlay;
   };
 
-  const resolveRuntime = (config: Readonly<Gw2Config> = {}) => {
+  const resolveProfession = (config: Readonly<Gw2Config> = {}) => {
     const patchId = assertPatchId(String(config.patchId || CURRENT_PATCH_ID));
     return patchId === CURRENT_PATCH_ID
-      ? family.resolveRuntime(config)
-      : overlayRuntime(familyForPreview().resolveRuntime(config));
+      ? family.resolveProfession(config)
+      : overlayRuntime(familyForPreview().resolveProfession(config));
   };
 
-  const liveRuntimeFor = (config: Readonly<Gw2Config> = {}) => {
+  const runtimeFor = (config: Readonly<Gw2Config> = {}) => {
     const patchId = assertPatchId(String(config.patchId || CURRENT_PATCH_ID));
     return patchId === CURRENT_PATCH_ID
-      ? family.liveRuntimeFor(config)
-      : overlayRuntime(familyForPreview().liveRuntimeFor(config));
+      ? family.runtimeFor(config)
+      : overlayRuntime(familyForPreview().runtimeFor(config));
   };
 
   return Object.freeze({
@@ -357,8 +357,8 @@ export function withPatchPreview<
     balanceContextFor,
     patchAuthoring,
     validatePatch,
-    resolveRuntime,
-    liveRuntimeFor,
+    resolveProfession,
+    runtimeFor,
     previewModifierRuleTargets: previewModifierRules.targets
   }) as NativePatchAuthoringContract<TModules, TPresentation, TBuild>;
 }

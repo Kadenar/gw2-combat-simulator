@@ -4,7 +4,7 @@ import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.j
 import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
-import { withElementalistCast } from '#gw2/professions/elementalist/core/live-events.js';
+import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import { applyTempestResolverAura } from '#gw2/professions/elementalist/specializations/tempest/mechanics/aura-effects.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /**
@@ -23,7 +23,7 @@ import {
   balanceProfileNumber,
   effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitElementalistBuff, emitElementalistDamage } from '#gw2/professions/elementalist/core/live-events.js';
+import { emitElementalistBuff, emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
@@ -391,7 +391,7 @@ function onAttunementEvent(context: ElementalistRuntime, event: SimulationEvent)
 }
 
 /** Tempest owns overload channels and reacts only to actual attunement and aura events. */
-export const tempestLive: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
+export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
   initialize(runtime) {
     registerElementalistEliteEvents(runtime, onAttunementEvent);
   },
