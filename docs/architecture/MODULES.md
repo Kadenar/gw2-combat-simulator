@@ -134,7 +134,6 @@ The `js/games/gw2/app/` root holds only the composition root. Everything else li
 | `profession-registry.ts` | Lazy registry of every profession              |
 | `create-runtime.ts`      | Connects application builds to `simulateGw2()` |
 | `create-adapter.ts`      | Composes native profession browser adapters    |
-| `capabilities.ts`        | GW2 application capability flags               |
 | `types.ts`               | Application state contracts                    |
 
 | Folder        | Owns                                                                                                                                                                               |

@@ -34,19 +34,12 @@ import type {
   ProfessionAppResult,
   ProfessionAppState,
   ProfessionChangeOptions,
-  ProfessionFeatureRunner,
   ProfessionRotationDragState,
   RotationActionOptions
 } from '#gw2/app/types.js';
 import type { BaselineSimulationOutput } from '#gw2/app/simulation/baseline/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
-
-const NOOP_FEATURE: ProfessionFeatureRunner = Object.freeze({
-  isRunning: false,
-  schedule() {},
-  run() {}
-});
 
 export class ProfessionApp implements ProfessionAppState {
   readonly workspace: BuildWorkspace;
@@ -85,10 +78,10 @@ export class ProfessionApp implements ProfessionAppState {
   templateContainer: HTMLElement | null;
   currentTemplate: BuildTemplateSelection | null;
   templateUndoBuild: Gw2CanonicalBuild | null;
-  readonly modifierContributionRunner: ProfessionFeatureRunner;
-  readonly randomDistributionRunner: ProfessionFeatureRunner;
+  readonly modifierContributionRunner: ModifierContributionRunner;
+  readonly randomDistributionRunner: RandomDistributionRunner;
   readonly gearOptimizerRunner: GearOptimizerRunner;
-  readonly relicComparisonRunner: ProfessionFeatureRunner;
+  readonly relicComparisonRunner: RelicComparisonRunner;
   readonly baselineSimulationRunner: BaselineSimulationRunner;
   private initialRenderGeneration: number;
   private deferredRotationRenderRevision: number | null;
@@ -137,15 +130,9 @@ export class ProfessionApp implements ProfessionAppState {
     this.templateContainer = null;
     this.currentTemplate = null;
     this.templateUndoBuild = null;
-    this.modifierContributionRunner = adapter.capabilities.modifierContributions
-      ? new ModifierContributionRunner(this, () => renderModifierContributions(this))
-      : NOOP_FEATURE;
-    this.randomDistributionRunner = adapter.capabilities.randomDistribution
-      ? new RandomDistributionRunner(this)
-      : NOOP_FEATURE;
-    this.relicComparisonRunner = adapter.capabilities.relicComparison
-      ? new RelicComparisonRunner(this, () => renderRelicComparison(this))
-      : NOOP_FEATURE;
+    this.modifierContributionRunner = new ModifierContributionRunner(this, () => renderModifierContributions(this));
+    this.randomDistributionRunner = new RandomDistributionRunner(this);
+    this.relicComparisonRunner = new RelicComparisonRunner(this, () => renderRelicComparison(this));
     this.baselineSimulationRunner = new BaselineSimulationRunner(this);
     this.gearOptimizerRunner = new GearOptimizerRunner(this, () => renderGearOptimizer(this));
     this.initialRenderGeneration = 0;
@@ -153,7 +140,12 @@ export class ProfessionApp implements ProfessionAppState {
   }
 
   async init(): Promise<void> {
-    await this.adapter.capabilities.patchPreview?.mount(this);
+    // Patch-preview controls load only when an authored preview is active, keeping the default startup chunk-free.
+    if (this.profession.preview) {
+      const { mountPatchPreviewControls } = await import('#gw2/integrations/patches/view.js');
+      mountPatchPreviewControls(this);
+    }
+
     this.baselineSimulationRunner.warmup();
     bindPageControls(this);
     // Delegated tooltip listeners and the mutation observer cover every subsequent panel render.
@@ -276,8 +268,7 @@ export class ProfessionApp implements ProfessionAppState {
 
     if (Array.isArray(previousContributions)) this.results.contributions = previousContributions;
     // Each baseline invalidates comparisons, even when Workspace defers their calculation.
-    this.results.modifierContributionsStale =
-      this.adapter.capabilities.modifierContributions === true && this.build.rotation.length > 0;
+    this.results.modifierContributionsStale = this.build.rotation.length > 0;
     this.results.modifierContributionsError = '';
     this.resultRevision = revision;
     this.simulationStatus = 'idle';

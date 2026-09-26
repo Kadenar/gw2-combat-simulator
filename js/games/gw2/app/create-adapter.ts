@@ -11,7 +11,6 @@ import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/sk
 import { renderRotationBuilder } from '#gw2/app/rotation/builder.js';
 import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
 import { gw2BuildEditor } from '#gw2/app/build/editor.js';
-import { gw2AppCapabilities } from '#gw2/app/capabilities.js';
 import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
 import { renderGearOptimizerView } from '#gw2/app/simulation/optimizer-view.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
@@ -134,7 +133,6 @@ export function defineProfessionApp({
         gw2SimulationPresentation.render(app, viewModel);
       }
     }),
-    capabilities: gw2AppCapabilities,
     slotLoadout: profession.ui.slotLoadout ? (profession.ui.slotLoadout as unknown as ProfessionSlotLoadout) : null,
     assumptionControls: (profession.ui.assumptionControls ||
       Object.freeze([])) as readonly ProfessionAssumptionControl[],

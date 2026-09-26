@@ -49,7 +49,6 @@ import type {
 } from '#gw2/app/build/types.js';
 import type { RelicComparisonModel } from '#gw2/app/simulation/relic-comparison/relic-comparison.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { RotationHotkeyImport } from '#gw2/app/rotation/hotkeys.js';
 import type { BuildEditor, SimulationPresentation } from '#app/shell/types.js';
 
 export type ProfessionAppContract = Gw2ProfessionSource & {
@@ -255,17 +254,6 @@ export interface ProfessionFeatureRunner {
   run?(value?: string, extra?: number): void;
 }
 
-export interface Gw2AppCapabilities {
-  readonly modifierContributions?: true;
-  readonly randomDistribution?: true;
-  readonly relicComparison?: true;
-  readonly patchPreview?: {
-    mount(app: ProfessionAppState): void | Promise<void>;
-    render(container: HTMLElement, app: ProfessionAppState): void | Promise<void>;
-  };
-  readonly keybindImport?: RotationHotkeyImport;
-}
-
 export interface Gw2AppAdapter extends ProfessionRuntimeApi {
   readonly skillTooltip: (skill: Skill, patchId: string) => SimulationTooltip;
   readonly traitTooltip: (trait: CatalogEntity, patchId: string, specialization: string) => SimulationTooltip;
@@ -289,7 +277,6 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
   readonly renderRotationBuilder: (app: ProfessionAppState) => void;
   readonly buildEditor: BuildEditor<ProfessionAppState>;
   readonly presentation: SimulationPresentation<ProfessionAppState>;
-  readonly capabilities: Gw2AppCapabilities;
   readonly slotLoadout: ProfessionSlotLoadout | null;
   readonly assumptionControls: readonly ProfessionAssumptionControl[];
   readonly weaponSkillMatchesSet: Gw2WeaponSkillMatcher;

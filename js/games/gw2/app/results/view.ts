@@ -215,7 +215,11 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
       }
     ),
     afterAnalysisRender(container) {
-      void app.adapter?.capabilities?.patchPreview?.render(container, app);
+      // The patch comparison module loads only when an authored preview can produce a comparison.
+      if (!app.profession?.preview) return;
+      void import('#gw2/integrations/patches/view.js').then(({ renderPatchComparison }) =>
+        renderPatchComparison(container, app)
+      );
     }
   };
 }
