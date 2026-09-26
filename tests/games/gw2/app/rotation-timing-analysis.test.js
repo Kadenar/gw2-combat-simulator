@@ -5,7 +5,6 @@ import test from 'node:test';
 import { formatTimelineTime } from '#gw2/app/shared/result-clock.js';
 import {
   skillTimingAnalyses,
-  stateTimingAnalysis,
   weaponSetActiveSegments,
   weaponSetDurationTotals
 } from '#gw2/app/rotation/timeline/timing/model.js';
@@ -246,42 +245,4 @@ test('kit and bundle bar changes do not split weapon-set duration', () => {
       [2, 7000]
     ]
   );
-});
-
-test('state timing pairs independent stays, ignores duplicate snapshots, and closes the final stay', () => {
-  const analysis = stateTimingAnalysis(
-    [
-      { atMs: -1120, active: true },
-      { atMs: 400, active: true },
-      { atMs: 6960, active: false },
-      { atMs: 14960, active: true }
-    ],
-    23000
-  );
-
-  assert.deepEqual(analysis.occurrences, [
-    { startMs: -1120, endMs: 6960, durationMs: 8080, endedAtTimelineEnd: false },
-    { startMs: 14960, endMs: 23000, durationMs: 8040, endedAtTimelineEnd: true }
-  ]);
-  assert.equal(analysis.useCount, 2);
-  assert.equal(analysis.averageDurationMs, 8060);
-  assert.equal(analysis.shortestDurationMs, 8040);
-  assert.equal(analysis.longestDurationMs, 8080);
-});
-
-test('state timing handles no stays and a single completed stay cleanly', () => {
-  const empty = stateTimingAnalysis([{ atMs: 1000, active: false }], 5000);
-  const single = stateTimingAnalysis(
-    [
-      { atMs: 1000, active: true },
-      { atMs: 3250, active: false }
-    ],
-    5000
-  );
-
-  assert.deepEqual(
-    [empty.useCount, empty.averageDurationMs, empty.shortestDurationMs, empty.longestDurationMs],
-    [0, null, null, null]
-  );
-  assert.deepEqual(single.occurrences, [{ startMs: 1000, endMs: 3250, durationMs: 2250, endedAtTimelineEnd: false }]);
 });

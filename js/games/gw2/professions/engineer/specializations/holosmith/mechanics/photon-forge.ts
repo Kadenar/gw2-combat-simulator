@@ -38,12 +38,10 @@ const PHOTON_FORGE_OVERHEAT_PENALTY_TASK = 'engineer.photon-forge-overheat-penal
 /** Heat observations describe an executed transition; consuming them never restores or mutates profession state. */
 function reportHeat(context: EngineerRuntime, reason: string): void {
   const state = holosmithState.from(context);
-  // The same executed observation supplies heat and form occupancy, including exits caused by equipping a kit.
   emitEngineerEvent(context, 'engineer.heat', {
     at: context.time,
     reason,
-    heat: state.heat,
-    photonForgeActive: state.photonForgeActive
+    heat: state.heat
   });
 }
 
