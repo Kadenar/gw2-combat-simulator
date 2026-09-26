@@ -12,7 +12,7 @@ test('modifier and RNG workers simulate without loading UI dependencies', async 
       performance
         .getEntriesByType('resource')
         .map((entry) => entry.name)
-        .filter((url) => /\/app\/(?:create-adapter\.|build-editor\.|build\/|rotation\/|results\/)/.test(url))
+        .filter((url) => /\/app\/(?:define-profession-app\.|build-editor\.|build\/|rotation\/|results\/)/.test(url))
     );
 
   const modifierWorkerReady = page.waitForEvent('worker', (worker) =>

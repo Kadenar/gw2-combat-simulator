@@ -1,7 +1,7 @@
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { defineProfessionApp } from '#gw2/app/create-adapter.js';
+import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
 import { professionRegistry } from '#gw2/app/profession-registry.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 

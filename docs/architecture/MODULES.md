@@ -48,33 +48,33 @@ shared application views
 
 Use this table as the first place to look.
 
-| You're adding or changing...                                          | Usually belongs in...                                 |
-| --------------------------------------------------------------------- | ----------------------------------------------------- |
-| Skill coefficient, hit count, condition, boon, timing, cooldown, etc. | Owning `skills/index.ts` or `skills/<group>.ts`       |
-| Shared mechanic data used by several skills                           | Profession `profiles.ts`                              |
-| Profession runtime resource or state                                  | `state.ts` or `state/<concept>.ts`                    |
-| Skill availability rule                                               | The owning skill or mechanic module                   |
-| Resource gain/spend/regeneration                                      | `mechanics/<resource>.ts`                             |
-| Cast lifecycle behavior                                               | Owner-local `execution/<concept>.ts`                  |
+| You're adding or changing...                                          | Usually belongs in...                                  |
+| --------------------------------------------------------------------- | ------------------------------------------------------ |
+| Skill coefficient, hit count, condition, boon, timing, cooldown, etc. | Owning `skills/index.ts` or `skills/<group>.ts`        |
+| Shared mechanic data used by several skills                           | Profession `profiles.ts`                               |
+| Profession runtime resource or state                                  | `state.ts` or `state/<concept>.ts`                     |
+| Skill availability rule                                               | The owning skill or mechanic module                    |
+| Resource gain/spend/regeneration                                      | `mechanics/<resource>.ts`                              |
+| Cast lifecycle behavior                                               | Owner-local `execution/<concept>.ts`                   |
 | Declarative trait modifier                                            | `modifiers.ts`, or `traits/<trait-line>.ts` it gathers |
-| Complex trait proc or imperative behavior                             | `traits/index.ts` or `traits/<trait-line>.ts`         |
-| Scheduler-specific skill implementation                               | Owner-local `execution/<concept>.ts`                  |
-| Custom scheduled event definitions                                    | `events.ts` or mechanic-specific file                 |
-| Resolver reaction or custom resolved event                            | The owning concept module, exposed under `resolution` |
-| Profession UI, palette, skill-bar, or active-state display            | `presentation.ts` or a domain-only `ui/` module       |
-| Shared code used by several files within one profession               | `shared.ts`                                           |
-| New reusable GW2 mechanic                                             | `js/games/gw2/platform/`                              |
-| Generic scheduling primitive unrelated to GW2                         | `js/kernel/`                                          |
-| Game-neutral browser shell behavior                                   | `js/app/`                                             |
-| GW2 browser behavior                                                  | `js/games/gw2/app/`                                   |
-| Shared presentation/view-model behavior                               | `js/ui/`                                              |
-| Source-neutral log reconstruction within the GW2 integration          | `js/games/gw2/integrations/logs/shared/`              |
-| EVTC parsing or evidence inference                                    | `js/games/gw2/integrations/logs/evtc/`                |
-| dps.report / Elite Insights parsing or inference                      | `js/games/gw2/integrations/logs/dps-report/`          |
-| gw2wingman log fetch/reshape (rules stay in `dps-report/`)            | `js/games/gw2/integrations/logs/wingman/`             |
-| Upcoming balance changes                                              | Patch-preview system                                  |
-| Build migration/default/validation                                    | Profession `build/build.ts`                           |
-| New profession page/registry entry                                    | `js/games/gw2/app/profession-registry.ts`             |
+| Complex trait proc or imperative behavior                             | `traits/index.ts` or `traits/<trait-line>.ts`          |
+| Scheduler-specific skill implementation                               | Owner-local `execution/<concept>.ts`                   |
+| Custom scheduled event definitions                                    | `events.ts` or mechanic-specific file                  |
+| Resolver reaction or custom resolved event                            | The owning concept module, exposed under `resolution`  |
+| Profession UI, palette, skill-bar, or active-state display            | `presentation.ts` or a domain-only `ui/` module        |
+| Shared code used by several files within one profession               | `shared.ts`                                            |
+| New reusable GW2 mechanic                                             | `js/games/gw2/platform/`                               |
+| Generic scheduling primitive unrelated to GW2                         | `js/kernel/`                                           |
+| Game-neutral browser shell behavior                                   | `js/app/`                                              |
+| GW2 browser behavior                                                  | `js/games/gw2/app/`                                    |
+| Shared presentation/view-model behavior                               | `js/ui/`                                               |
+| Source-neutral log reconstruction within the GW2 integration          | `js/games/gw2/integrations/logs/shared/`               |
+| EVTC parsing or evidence inference                                    | `js/games/gw2/integrations/logs/evtc/`                 |
+| dps.report / Elite Insights parsing or inference                      | `js/games/gw2/integrations/logs/dps-report/`           |
+| gw2wingman log fetch/reshape (rules stay in `dps-report/`)            | `js/games/gw2/integrations/logs/wingman/`              |
+| Upcoming balance changes                                              | Patch-preview system                                   |
+| Build migration/default/validation                                    | Profession `build/build.ts`                            |
+| New profession page/registry entry                                    | `js/games/gw2/app/profession-registry.ts`              |
 
 The main rule is:
 
@@ -128,13 +128,13 @@ Non-type imports:
 
 The `js/games/gw2/app/` root holds only the composition root. Everything else lives in one folder per page area.
 
-| Module                   | Responsibility                                 |
-| ------------------------ | ---------------------------------------------- |
-| `profession-app.ts`      | Session class; implements `ProfessionAppState` |
-| `profession-registry.ts` | Lazy registry of every profession              |
-| `create-runtime.ts`      | Connects application builds to `simulateGw2()` |
-| `create-adapter.ts`      | Composes native profession browser adapters    |
-| `types.ts`               | Application state contracts                    |
+| Module                     | Responsibility                                         |
+| -------------------------- | ------------------------------------------------------ |
+| `profession-app.ts`        | Session class; implements `ProfessionAppState`         |
+| `profession-registry.ts`   | Lazy profession registry and build-template identities |
+| `create-runtime.ts`        | Connects application builds to `simulateGw2()`         |
+| `define-profession-app.ts` | Composes preview-aware profession browser adapters     |
+| `types.ts`                 | Application state contracts                            |
 
 | Folder        | Owns                                                                                                                                                                               |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -157,7 +157,7 @@ Non-type imports inside `js/games/gw2/app/` follow these rules:
 | `shared/`     | platform, `#ui`, `#kernel`, `app/types.ts`. **No other app folder.**                                                                                                                                                                                                                          |
 | `simulation/` | `shared/`, `profession-registry.ts` (workers), `results/model.ts` (relic chart series), other `simulation/` files. No `build/`, `rotation/`, `io/`, or `page/`, except `optimizer-view.ts` and `gear-optimizer-panel.ts`/`-preview.ts` (which render build equipment pickers and attributes). |
 | `results/`    | `shared/`, `simulation/` types, `rotation/timeline/model.ts` (timeline projections for the idle metric), `rotation/context.ts` (`professionPlanningState`).                                                                                                                                   |
-| `io/`         | `shared/`, `build/state/`, `build/types.ts`, integrations.                                                                                                                                                                                                                                    |
+| `io/`         | `shared/`, `build/state/`, `build/types.ts`, `profession-registry.ts` (build-template identities), integrations.                                                                                                                                                                              |
 | `build/`      | `shared/`, `io/`, `profession-registry.ts`, `rotation/editing/history.ts`, `rotation/timeline/view.ts` (presets repaint).                                                                                                                                                                     |
 | `rotation/`   | `shared/`, `results/`, `io/rotation-import-dialog.ts`, `build/types.ts`.                                                                                                                                                                                                                      |
 | `page/`       | `shared/`, `profession-registry.ts`, `rotation/timeline/display-preferences.ts`, `#app`.                                                                                                                                                                                                      |
@@ -590,11 +590,12 @@ hooks: berserkerHooks,
 ```
 
 Hooks cover availability, cast acceptance/completion, recharge reservation, resource policies, named tasks, custom
-events, and combat reactions. Each receives the same state and clock. Module validation rejects unknown module
-fields, including retired execution/resolution sections; no adapter translates them. Keep logic in owner-local files and wire it in `module.ts`. Each key has a same-named sibling file: `modifiers.ts`
-assembles modifier rules and `modify*` callbacks, and `hooks.ts` assembles runtime callbacks. Trait-line or mechanic files
-may own the pieces those files gather. Only `module.ts` imports `hooks.ts`; helpers that specializations, mechanics, or presentation share
-live in `mechanics/` or `traits/`.
+events, and combat reactions. Each receives the same state and clock. Module validation rejects unknown module fields,
+including retired execution/resolution sections; no adapter translates them. Keep logic in owner-local files and wire it
+in `module.ts`. Each key has a same-named sibling file: `modifiers.ts` assembles modifier rules and `modify*` callbacks,
+and `hooks.ts` assembles runtime callbacks. Trait-line or mechanic files may own the pieces those files gather. Only
+`module.ts` imports `hooks.ts`; helpers that specializations, mechanics, or presentation share live in `mechanics/` or
+`traits/`.
 
 ---
 
@@ -796,8 +797,8 @@ GW2 concept names such as `shatters.ts`, `continuum-split.ts`, `pets.ts`, `beast
 `attunements.ts`, `energy.ts`, or `initiative-and-endurance.ts`.
 
 A mechanics module may contain cast hooks, named tasks, and resolved-event reactions. Its exports make those lifecycle
-points explicit when assembled in `hooks.ts` and wired as `hooks` in `module.ts`. Shared strike and condition resolution stays under
-`js/games/gw2/platform/resolver/`.
+points explicit when assembled in `hooks.ts` and wired as `hooks` in `module.ts`. Shared strike and condition resolution
+stays under `js/games/gw2/platform/resolver/`.
 
 Generic `rules.ts`, `handlers.ts`, and `resolver.ts` ownership files are retired. Keep a cohesive availability file when
 it expresses one module's cast gate; split unrelated behavior into a named mechanic, skill family, or trait line.

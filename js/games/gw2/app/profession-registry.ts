@@ -1,7 +1,7 @@
 /**
  * Lazy application manifest for every simulator exposed by the shared UI.
  *
- * Registry entries contain only presentation metadata and explicit dynamic
+ * Registry entries contain only profession metadata and explicit dynamic
  * import functions. Reading this module therefore does not eagerly load any
  * profession implementation. Every profession is bootstrapped through the
  * shared profession app adapter.
@@ -21,6 +21,8 @@ export type ArmorWeight = (typeof ARMOR_WEIGHTS)[number];
 export interface ProfessionRegistryEntry {
   /** Stable lowercase identifier used by builds and pages. */
   readonly id: string;
+  /** Numeric profession identity encoded in GW2 build-template chat links. */
+  readonly buildTemplateCode: number;
   /** Armor class used to group professions in navigation surfaces. */
   readonly armorWeight: ArmorWeight;
   /** Human-readable profession name. */
@@ -46,6 +48,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
   // Light armor: Elementalist, Mesmer, Necromancer.
   {
     id: 'elementalist',
+    buildTemplateCode: 6,
     armorWeight: 'light',
     name: 'Elementalist',
     icon: 'https://render.guildwars2.com/file/BBED46EB20C80D0DDE0F99402493C7E6FFAE1530/156629.png',
@@ -94,6 +97,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
   },
   {
     id: 'mesmer',
+    buildTemplateCode: 7,
     armorWeight: 'light',
     name: 'Mesmer',
     icon: 'https://render.guildwars2.com/file/AF61567E16A83F145D6FB35D63BF01074A3A5AB9/156635.png',
@@ -142,6 +146,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
   },
   {
     id: 'necromancer',
+    buildTemplateCode: 8,
     armorWeight: 'light',
     name: 'Necromancer',
     icon: 'https://render.guildwars2.com/file/CA5A4E96080FCF057C9DA0ED35C693477580421C/156637.png',
@@ -191,6 +196,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
   // Medium armor: Ranger, Thief, Engineer.
   {
     id: 'ranger',
+    buildTemplateCode: 4,
     armorWeight: 'medium',
     name: 'Ranger',
     icon: 'https://render.guildwars2.com/file/49B10316B424F4E20139EB5E51ADCF24A8724E9B/156640.png',
@@ -239,6 +245,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
   },
   {
     id: 'thief',
+    buildTemplateCode: 5,
     armorWeight: 'medium',
     name: 'Thief',
     icon: 'https://render.guildwars2.com/file/13A2C0EF23F23FF2084875629465279DDA807E3D/103581.png',
@@ -287,6 +294,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
   },
   {
     id: 'engineer',
+    buildTemplateCode: 3,
     armorWeight: 'medium',
     name: 'Engineer',
     icon: 'https://render.guildwars2.com/file/A94D00911BD47CDE39A104F90C7D07DE623554ED/156631.png',
@@ -336,6 +344,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
   // Heavy armor: Guardian, Warrior, Revenant.
   {
     id: 'guardian',
+    buildTemplateCode: 1,
     armorWeight: 'heavy',
     name: 'Guardian',
     icon: 'https://render.guildwars2.com/file/6E0D0AC6E0CE5C0C29B3D736ABEA070F4A58540E/156633.png',
@@ -384,6 +393,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
   },
   {
     id: 'warrior',
+    buildTemplateCode: 2,
     armorWeight: 'heavy',
     name: 'Warrior',
     icon: 'https://render.guildwars2.com/file/0A97E13F29B3597A447EEC04A09BE5BD699A2250/156643.png',
@@ -432,6 +442,7 @@ const entries: readonly ProfessionRegistryEntry[] = [
   },
   {
     id: 'revenant',
+    buildTemplateCode: 9,
     armorWeight: 'heavy',
     name: 'Revenant',
     icon: 'https://render.guildwars2.com/file/696A48DD61EE01FD1F4FBBBDB82D74611E04EA39/965717.png',

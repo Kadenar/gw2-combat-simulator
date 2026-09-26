@@ -8,7 +8,7 @@ import {
   tooltipDecimal,
   tooltipNumber
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { defineProfessionApp } from '#gw2/app/create-adapter.js';
+import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
 import { professionRegistry } from '#gw2/app/profession-registry.js';
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { tooltipFactIcon } from '#gw2/app/shared/icons.js';
@@ -223,18 +223,11 @@ test('Revenant trait tooltips show bonuses, resource icons, and excluded traits'
   assert.deepEqual(excluded.facts, []);
 });
 
-// Repeated renders reuse only the selected model; patch changes and per-row descriptions remain independent.
-test('adapter caches skill tooltips per balance context without retaining stale patches or row state', () => {
-  const preview = (coefficient) =>
-    withPatchPreview(necromancerProfession, {
-      id: 'tooltip-cache',
-      label: 'Tooltip cache',
-      professions: { necromancer: { skills: { [ID.BLOOD_CURSE]: { effects: [{ type: 'strike', coefficient }] } } } }
-    });
-  let profession = preview(2);
+// Repeated renders reuse the selected model without retaining per-row availability descriptions.
+test('adapter caches skill tooltips without retaining row state', () => {
   let descriptions = 0;
   const adapter = defineProfessionApp({
-    profession: { ...profession, balanceContextFor: (patchId) => profession.balanceContextFor(patchId) },
+    profession: necromancerProfession,
     tooltips: {
       ...necromancerTooltips,
       skillFacts: (context, skill) => {
@@ -246,15 +239,10 @@ test('adapter caches skill tooltips per balance context without retaining stale 
     toApplicationBuild,
     specializationFallback: 'Spite'
   });
-  const skill = profession.catalog.skillsById.get(ID.BLOOD_CURSE);
+  const skill = necromancerProfession.catalog.skillsById.get(ID.BLOOD_CURSE);
   const live = adapter.skillTooltip(skill, 'current');
   assert.equal(adapter.skillTooltip({ ...skill }, 'current'), live);
   assert.equal(descriptions, 1);
-  const patched = adapter.skillTooltip(skill, 'tooltip-cache');
-  assert.match(patched.facts.find((fact) => fact.name === 'Strike damage').detail, /^2 coefficient/);
-  assert.equal(adapter.skillTooltip(skill, 'tooltip-cache'), patched);
-  assert.equal(adapter.skillTooltip(skill, 'current'), live);
-  assert.equal(descriptions, 2);
   assert.match(
     skillTooltipAttributes(skill, live, { details: 'Available now', detailsTitle: 'Cast details' }),
     /Available now/
@@ -262,11 +250,6 @@ test('adapter caches skill tooltips per balance context without retaining stale 
   const pending = skillTooltipAttributes(skill, live, { details: 'Available at 5s', detailsTitle: 'Cast details' });
   assert.match(pending, /Available at 5s/);
   assert.doesNotMatch(pending, /Available now/);
-
-  profession = preview(3);
-  const revised = adapter.skillTooltip(skill, 'tooltip-cache');
-  assert.match(revised.facts.find((fact) => fact.name === 'Strike damage').detail, /^3 coefficient/);
-  assert.equal(descriptions, 3);
 });
 
 // Handler descriptions must format their own packet once, without a discarded generic pass.

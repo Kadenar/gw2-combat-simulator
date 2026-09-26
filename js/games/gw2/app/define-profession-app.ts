@@ -23,6 +23,9 @@ import type {
   ProfessionSkillAvailabilityContext,
   ProfessionSlotLoadout
 } from '#gw2/app/build/types.js';
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 
 /**
@@ -39,26 +42,34 @@ export function preferOffhand(preferred: string): ProfessionDefaultOffhand {
  * single shared-shell adapter consumed by the browser application.
  * Shared GW2 target conditions are used unless a profession overrides them.
  */
-export function defineProfessionApp({
-  profession,
+export function defineProfessionApp<
+  const TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
+  TPresentation extends object = object,
+  TBuild extends Gw2Build = Gw2Build
+>({
+  profession: nativeProfession,
   tooltips,
   applyBuildAttributeRules,
   createDefaultTargetConditions = createSharedDefaultTargetConditions,
   toApplicationBuild,
   specializationFallback,
   storageVersion = 3,
-  storageKey = `gw2-${profession.id}-simulator-v${storageVersion}`,
-  globalName = `${profession.id}App`,
+  storageKey = `gw2-${nativeProfession.id}-simulator-v${storageVersion}`,
+  globalName = `${nativeProfession.id}App`,
   filenames = {
-    build: `${profession.id}-build.json`,
-    rotation: `${profession.id}-rotation.json`,
-    eventLog: `${profession.id}-event-log.csv`
+    build: `${nativeProfession.id}-build.json`,
+    rotation: `${nativeProfession.id}-rotation.json`,
+    eventLog: `${nativeProfession.id}-event-log.csv`
   },
-  resetPrompt = `Reset the ${profession.name} build, skills, and rotation?`,
+  resetPrompt = `Reset the ${nativeProfession.name} build, skills, and rotation?`,
   runtime = {},
   isSkillAvailable,
   defaultOffhand = ({ offHands = [] } = {}) => offHands[0] || ''
-}: DefineProfessionAppOptions): Readonly<Gw2AppAdapter> {
+}: Omit<DefineProfessionAppOptions, 'profession'> & {
+  readonly profession: NativeProfessionContract<TModules, TPresentation, TBuild>;
+}): Readonly<Gw2AppAdapter> {
+  // Apply previews before capturing catalogs and runtime behavior so every browser adapter uses the same patch.
+  const profession = withActivePatchPreview(nativeProfession);
   const calculateAttributes = createCalculateAttributes(applyBuildAttributeRules);
   const runtimeApi = createProfessionRuntime({
     profession,
