@@ -72,14 +72,11 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
   [ID.EXIT_RADIANT_FORGE]: {
     castTimeMs: 0,
     // Custom: Enters or exits Radiant Forge and updates forge resources; see `luminary/mechanics/radiant-forge.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'guardian.radiant-forge',
+    inputCategory: 'bar-swap',
     effects: []
   },
   [ID.LUMINOUS_STAFF]: {
     castTimeMs: 560,
-    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
-    handlerId: 'guardian.radiant-weapon',
     // Luminous Staff's symbol creates a four-second Light field on its first pulse.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Light', duration: 4, startMs: 440, startAnchor: 'castStart' }],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -104,8 +101,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     castTimeMs: 480,
     // The 400 ms strike remains committed when the remaining aftercast is cancelled at 440 ms.
     interruptCommitMs: 440,
-    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
-    handlerId: 'guardian.radiant-weapon',
     effects: [
       {
         type: 'strike',
@@ -117,8 +112,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
   },
   [ID.GLEAMING_BLADE]: {
     castTimeMs: 840,
-    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
-    handlerId: 'guardian.radiant-weapon',
     effects: [
       {
         type: 'strike',
@@ -138,8 +131,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
   },
   [ID.BRILLIANT_SLAM]: {
     castTimeMs: 480,
-    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
-    handlerId: 'guardian.radiant-weapon',
     effects: [
       {
         type: 'strike',
@@ -151,8 +142,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
   [ID.GLARING_BURST]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
-    // Custom: Builds Glaring Burst packets from live Radiant Forge state; see `luminary/mechanics/radiant-forge.ts`.
-    handlerId: 'guardian.glaring-burst',
     // The replacement strike lands at 480 ms and remains committed when the
     // action lane is released at the observed 520 ms cancel point.
     interruptCommitMs: 520,
@@ -161,27 +150,15 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
   [ID.ENTER_RADIANT_FORGE]: {
     castTimeMs: 0,
     // Custom: Enters or exits Radiant Forge and updates forge resources; see `luminary/mechanics/radiant-forge.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'guardian.radiant-forge',
-    // Entry stays reusable while the forge is active; its final recharge starts on exit.
-    mechanicTriggers: [
-      {
-        type: 'guardian.luminary.clear-forge-entry-cooldown',
-        timingAnchor: 'castEnd'
-      }
-    ],
+    inputCategory: 'bar-swap',
     effects: []
   },
   [ID.RESTORATIVE_GLOW]: {
     castTimeMs: 560,
-    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
-    handlerId: 'guardian.radiant-weapon',
     effects: []
   },
   [ID.RADIANT_BULWARK]: {
     castTimeMs: 1360,
-    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
-    handlerId: 'guardian.radiant-weapon',
     // Shield activation protects nearby allies while the blocking channel runs.
     effects: [
       {
@@ -198,8 +175,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
   [ID.DAZZLING_HAMMER]: {
     castTimeMs: 480,
     interruptCommitMs: 400,
-    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
-    handlerId: 'guardian.radiant-weapon',
     // Keep the hammer's boons, strike, and daze together in declaration order.
     effects: impactEffects(
       { atMs: 440, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
@@ -241,8 +216,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
   },
   [ID.LUCENT_THRUST]: {
     castTimeMs: 440,
-    // Custom: Applies weapon-specific Radiant Forge resource and packet rules; see `luminary/mechanics/radiant-forge.ts`.
-    handlerId: 'guardian.radiant-weapon',
     // Share the melee control and blind timing without moving the separate projectile declaration.
     effects: [
       {

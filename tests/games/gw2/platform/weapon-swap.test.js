@@ -1,62 +1,30 @@
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+const gw2WeaponSwapSkill = { id: -3, name: 'Swap Weapons', inputCategory: 'weapon-swap', castTimeMs: 0, effects: [] };
 
 test('shared weapon swap commits canonical state and event before profession extensions', () => {
-  const events = [];
-  const hookObservations = [];
+  const observed = [];
   const profession = defineProfession({
-    id: 'test-profession',
-    name: 'Test Profession',
-    schedulerHooks: {
-      onWeaponSwap(context, skill) {
-        hookObservations.push({
-          weaponSet: context.state.activeWeaponSet,
-          autoattackChains: { ...context.state.profession.core.autoattackChains },
-          eventCount: events.length,
-          skillId: skill.id
-        });
+    id: 'swap-fixture',
+    name: 'Swap fixture',
+    catalog: createCanonicalCatalog({ generated: [gw2WeaponSwapSkill] }),
+    resources: {
+      createState: () => ({ core: { autoattackChains: { 100: 101 } }, specialization: { kind: 'Core', state: {} } })
+    },
+    live: {
+      onCastComplete(runtime, cast) {
+        observed.push([runtime.activeWeaponSet, { ...runtime.profession.core.autoattackChains }, cast.skill.id]);
       }
     }
   });
-  const context = {
-    profession,
-    effectiveEnd: 3.25,
-    state: {
-      activeWeaponSet: 1,
-      profession: {
-        core: { autoattackChains: { 100: 101 } },
-        specialization: { kind: 'Core', state: {} }
-      }
-    },
-    emit(event) {
-      events.push(event);
-      return event;
-    }
-  };
-  const skill = { id: -3, name: 'Swap Weapons' };
-
-  const handled = gw2WeaponSwapSkillHandler.beforeEffects(context, skill);
-
-  assert.equal(handled, true);
-  assert.equal(context.state.activeWeaponSet, 2);
-  assert.deepEqual(context.state.profession.core.autoattackChains, {});
-  assert.deepEqual(events, [
-    {
-      type: 'weapon_set',
-      at: 3.25,
-      source: 'test-profession',
-      sourceId: -3,
-      actorType: 'player',
-      skillId: -3,
-      skillName: 'Swap Weapons',
-      weaponSet: 2
-    }
-  ]);
-  assert.deepEqual(hookObservations, [{ weaponSet: 2, autoattackChains: {}, eventCount: 1, skillId: -3 }]);
+  const result = simulateGw2({ profession, rotation: ['Swap Weapons'] });
+  assert.deepEqual(observed, [[2, {}, gw2WeaponSwapSkill.id]]);
+  assert.equal(result.events.find((event) => event.type === 'weapon_set').weaponSet, 2);
 });
 
 test('weapon swap only starts its cooldown in combat', () => {

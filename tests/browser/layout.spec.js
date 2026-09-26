@@ -478,32 +478,42 @@ test('timing skill selection submits the picker and details expand below DPS', a
   expect(widths.table).toBeLessThan(widths.body);
 });
 
-// A short authored shroud stay verifies the picker wiring without simulating a benchmark.
-test('profession state duration checks use their own authoritative transitions', async ({ page }) => {
-  await page.goto('/necromancer.html', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  const specialization = page.locator('.spec-picker').last();
-  await specialization.locator('summary').click();
-  await specialization.getByRole('button', { name: 'Reaper', exact: true }).click();
-  await page.evaluate(() => {
-    const app = window.professionApp;
-    app.build.targetHealth = 0;
-    app.build.rotation = [
-      { type: 'cast', skillId: app.skillByName.get("Reaper's Shroud").id },
-      { type: 'wait', durationMs: 1000 },
-      { type: 'cast', skillId: app.skillByName.get("Exit Reaper's Shroud").id }
-    ];
-    app.changed();
+for (const [profession, specialization, enter, exit, label] of [
+  ['necromancer', 'Reaper', "Reaper's Shroud", "Exit Reaper's Shroud", 'Time in Shroud'],
+  ['engineer', 'Holosmith', 'Engage Photon Forge', 'Deactivate Photon Forge', 'Time in Photon Forge'],
+  ['guardian', 'Luminary', 'Enter Radiant Forge', 'Exit Radiant Forge', 'Time in Radiant Forge']
+]) {
+  // Short form stays verify the live transition producers and editor picker together.
+  test(`${profession} state duration checks consume live transitions`, async ({ page }) => {
+    await page.goto(`/${profession}.html`, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+    const pickerSpecialization = page.locator('.spec-picker').last();
+    await pickerSpecialization.locator('summary').click();
+    const option = pickerSpecialization.getByRole('button', { name: specialization, exact: true });
+    if (await option.isEnabled()) await option.click();
+    await page.evaluate(
+      ({ enter, exit }) => {
+        const app = window.professionApp;
+        app.build.targetHealth = 0;
+        app.build.rotation = [
+          { type: 'cast', skillId: app.skillByName.get(enter).id },
+          { type: 'wait', durationMs: 1000 },
+          { type: 'cast', skillId: app.skillByName.get(exit).id }
+        ];
+        app.changed();
+      },
+      { enter, exit }
+    );
+    await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+    expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
+    const picker = page.locator('.timing-check-picker');
+    await picker.locator(':scope > summary').click();
+    await picker.getByRole('button', { name: label }).click();
+    const details = page.locator('.rotation-timing-details-wrap');
+    await details.locator(':scope > summary').click();
+    await expect(details.locator('.timing-skill-details > summary')).toContainText('1 stay');
   });
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
-  expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
-  const picker = page.locator('.timing-check-picker');
-  await picker.locator(':scope > summary').click();
-  await picker.getByRole('button', { name: 'Time in Shroud' }).click();
-  const details = page.locator('.rotation-timing-details-wrap');
-  await details.locator(':scope > summary').click();
-  await expect(details.locator('.timing-skill-details > summary')).toContainText('1 stay');
-});
+}
 
 test('hidden template states stay out of layout', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });

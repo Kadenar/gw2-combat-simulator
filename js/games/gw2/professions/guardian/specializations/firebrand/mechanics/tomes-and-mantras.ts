@@ -7,25 +7,6 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/traits/modifiers.js';
-import {
-  advanceTomeState,
-  initializeTomeCourage,
-  tomeCourage,
-  completeTomePage,
-  tomePageAvailability,
-  tomeStateAvailability
-} from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
-import {
-  observeFirebrandScheduledEvent,
-  updateFirebrandCastState
-} from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
-import {
-  advanceFirebrandMantras,
-  completeFirebrandMantra,
-  firebrandMantraAvailability,
-  initializeFirebrandMantras
-} from '#gw2/professions/guardian/specializations/firebrand/mechanics/mantras.js';
-import { initializeFirebrandBalanceState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
 export const firebrandModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -53,79 +34,4 @@ export const firebrandModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
 
 export const firebrandAttributeRules = Object.freeze({
   modifierRules: firebrandModifierRules
-});
-
-export const firebrandCastRules = Object.freeze({
-  availability: Object.freeze([
-    {
-      id: 'guardian.firebrand.mantras',
-      order: 20,
-      handler: firebrandMantraAvailability
-    },
-    {
-      id: 'guardian.tome-state',
-      order: 30,
-      handler: tomeStateAvailability
-    },
-    {
-      id: 'guardian.tome-pages',
-      order: 40,
-      handler: tomePageAvailability
-    }
-  ])
-});
-
-export const firebrandSchedulerHooks = Object.freeze({
-  taskHandlers: tomeCourage.taskHandlers,
-  initialize: Object.freeze([
-    { id: 'guardian.firebrand.passive-courage', order: 20, handler: initializeTomeCourage },
-    {
-      id: 'guardian.firebrand.balance-state',
-      order: 5,
-      handler: initializeFirebrandBalanceState
-    },
-    {
-      id: 'guardian.firebrand.mantras',
-      order: 10,
-      handler: initializeFirebrandMantras
-    }
-  ]),
-  advance: Object.freeze([
-    {
-      id: 'guardian.firebrand.mantras',
-      order: 5,
-      handler: advanceFirebrandMantras
-    },
-    {
-      id: 'guardian.tomes',
-      order: 10,
-      handler: advanceTomeState
-    }
-  ]),
-  afterCast: Object.freeze([
-    {
-      id: 'guardian.firebrand.traits',
-      order: 30,
-      handler: updateFirebrandCastState
-    }
-  ]),
-  onCastComplete: Object.freeze([
-    {
-      id: 'guardian.tome-pages',
-      order: 10,
-      handler: completeTomePage
-    },
-    {
-      id: 'guardian.firebrand.mantras',
-      order: 20,
-      handler: completeFirebrandMantra
-    }
-  ]),
-  onEventScheduled: Object.freeze([
-    {
-      id: 'guardian.firebrand.traits',
-      order: 20,
-      handler: observeFirebrandScheduledEvent
-    }
-  ])
 });

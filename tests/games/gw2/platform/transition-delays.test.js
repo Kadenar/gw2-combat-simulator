@@ -2,11 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { gw2WeaponSwapSkillHandler } from '#gw2/platform/equipment/weapons/swap.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
-import { emitTransitionLockout } from '#gw2/platform/skills/transition-delays.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { timelineDeadTimeMarkers, timelineTransitionDelayMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
@@ -15,7 +12,6 @@ import { thiefProfession } from '#gw2/professions/thief/profession.js';
 
 // Small casts isolate input scheduling from profession damage or saved-rotation timing.
 const catalog = createCanonicalCatalog({
-  skillHandlers: { swap: gw2WeaponSwapSkillHandler },
   generated: [
     {
       id: 1,
@@ -25,7 +21,7 @@ const catalog = createCanonicalCatalog({
       retainsCastLockoutAfterInterrupt: true,
       effects: []
     },
-    { id: 2, name: 'Swap Weapons', castTimeMs: 0, handlerId: 'swap', effects: [] },
+    { id: 2, name: 'Swap Weapons', castTimeMs: 0, inputCategory: 'weapon-swap', effects: [] },
     { id: 3, name: 'Next cast', castTimeMs: 40, effects: [] },
     { id: 4, name: 'Instant', castTimeMs: 0, effects: [] },
     { id: 5, name: 'Independent input', castTimeMs: 40, independentCast: true, effects: [] }
@@ -34,15 +30,14 @@ const catalog = createCanonicalCatalog({
 const profession = defineProfession({
   id: 'transition-fixture',
   name: 'Transition Fixture',
-  catalog,
-  skillHandlers: { swap: gw2WeaponSwapSkillHandler }
+  catalog
 });
-function scheduler(delay = 100, options = {}) {
+function simulate(rotation, delay = 100, options = {}) {
   const config = { transitionDelays: { weaponSwapMs: delay } };
-  return createScheduler({
+  return simulateGw2({
+    rotation,
     profession,
     config,
-    schedulerPolicy: createGw2SchedulerPolicy(config, { catalog }),
     ...options
   });
 }
@@ -53,11 +48,7 @@ test('transition delay overlaps retained recovery and only its excess extends th
     [100, 560],
     [300, 660]
   ]) {
-    const result = scheduler(delay).run([
-      { type: 'cast', skillId: 1, interruptAfterMs: 360 },
-      'Swap Weapons',
-      'Next cast'
-    ]);
+    const result = simulate([{ type: 'cast', skillId: 1, interruptAfterMs: 360 }, 'Swap Weapons', 'Next cast'], delay);
     assert.deepEqual(result.warnings, []);
     assert.equal(result.steps[1].start, 360);
     assert.equal(result.steps[2].start, expected);
@@ -67,7 +58,7 @@ test('transition delay overlaps retained recovery and only its excess extends th
 
 test('instant, concurrent, and independent inputs cannot bypass transition recovery', () => {
   for (const command of ['Instant', { type: 'cast', skillId: 3, concurrentOffsetMs: 20 }, 'Independent input']) {
-    const result = scheduler().run(['Swap Weapons', command]);
+    const result = simulate(['Swap Weapons', command]);
     assert.deepEqual(result.warnings, []);
     assert.equal(result.steps[1].start, 100);
   }
@@ -81,7 +72,7 @@ test('logged legacy waits and canonical waits count toward recovery instead of a
     ]) {
       const rotation = ['Swap Weapons', wait, 'Next cast'];
       const before = structuredClone(rotation);
-      const result = scheduler().run(rotation);
+      const result = simulate(rotation);
       assert.equal(result.steps[2].start, Math.max(waitMs, 100));
       assert.equal(result.steps[1].start, 0);
       assert.equal(result.steps[1].end, waitMs);
@@ -91,41 +82,11 @@ test('logged legacy waits and canonical waits count toward recovery instead of a
   }
 });
 
-test('recovery advances scheduled tasks and rechecks a longer lockout before accepting input', () => {
-  const config = { transitionDelays: { weaponSwapMs: 100, shroudExitMs: 100 } };
-  const policy = createGw2SchedulerPolicy(config, { catalog });
-  const pending = createScheduler({
-    profession,
-    config,
-    schedulerPolicy: {
-      ...policy,
-      taskHandlers: {
-        ...policy.taskHandlers,
-        exit(context, task) {
-          emitTransitionLockout(context, 'shroudExitMs', task.at);
-        }
-      }
-    }
-  });
-  pending.context.tasks.schedule({ type: 'exit', at: 0.05 });
-  const result = pending.run(['Swap Weapons', 'Next cast']);
-  assert.equal(result.steps[1].start, 150);
-  assert.deepEqual(result.warnings, []);
-});
-
-test('future transition emissions leave earlier concurrent inputs available', () => {
-  const pending = scheduler();
-  emitTransitionLockout(pending.context, 'weaponSwapMs', 0.5);
-  const result = pending.run(['Instant', { type: 'wait', durationMs: 500 }, 'Next cast']);
-  assert.equal(result.steps[0].start, 0);
-  assert.equal(result.steps[2].start, 600);
-});
-
 test('last-transition recovery contributes to rotation completion while an absolute horizon stays fixed', () => {
-  assert.equal(scheduler().run(['Swap Weapons']).stream.rotationEndTime, 0.1);
+  assert.equal(simulate(['Swap Weapons']).rotationEndTime, 0.1);
   assert.equal(
-    scheduler(100, { observationPolicy: { kind: 'absolute', endTimeMs: 1000 } }).run(['Swap Weapons']).stream
-      .resolutionEndTime,
+    simulate(['Swap Weapons'], 100, { observationPolicy: { kind: 'absolute', endTimeMs: 1000 } }).planningState
+      .atSeconds,
     1
   );
 });
@@ -135,15 +96,14 @@ test('invalid transitions do not emit input recovery', () => {
     id: 'denied-transition',
     name: 'Denied Transition',
     catalog,
-    skillHandlers: { swap: gw2WeaponSwapSkillHandler },
-    castRules: {
+    live: {
       availability: (context, skill) =>
         skill.id === 2
           ? { ready: false, retryAt: null, reason: 'Unavailable', code: 'fixture.denied' }
           : { ready: true }
     }
   });
-  const result = scheduler(100, { profession: denied }).run(['Swap Weapons', 'Next cast']);
+  const result = simulate(['Swap Weapons', 'Next cast'], 100, { profession: denied });
   assert.equal(result.steps[0].invalid, true);
   assert.equal(result.steps[1].start, 0);
   assert.equal(
@@ -153,15 +113,19 @@ test('invalid transitions do not emit input recovery', () => {
 });
 
 const transitions = { weaponSwapMs: 900, forgeEntryMs: 110, forgeExitMs: 130, shroudEntryMs: 150, shroudExitMs: 170 };
+// Migrated form owners share live execution in these transition contracts.
+const simulateLive = ({ profession, config, rotation }) =>
+  runGw2Runtime({ profession: profession.liveRuntimeFor(config), config, rotation });
+
 test('profession transitions use their own entry and exit settings without charging weapon-swap delay', () => {
-  for (const [profession, specialization, entry, exit] of [
-    [engineerProfession, 'Holosmith', 'Engage Photon Forge', 'Deactivate Photon Forge'],
-    [guardianProfession, 'Luminary', 'Enter Radiant Forge', 'Exit Radiant Forge'],
-    [necromancerProfession, 'Core', 'Death Shroud', 'End Death Shroud'],
-    [necromancerProfession, 'Reaper', "Reaper's Shroud", "Exit Reaper's Shroud"],
-    [thiefProfession, 'Specter', 'Enter Shadow Shroud', 'Exit Shadow Shroud']
+  for (const [profession, specialization, entry, exit, simulate = simulateGw2] of [
+    [engineerProfession, 'Holosmith', 'Engage Photon Forge', 'Deactivate Photon Forge', simulateLive],
+    [guardianProfession, 'Luminary', 'Enter Radiant Forge', 'Exit Radiant Forge', simulateLive],
+    [necromancerProfession, 'Core', 'Death Shroud', 'End Death Shroud', simulateLive],
+    [necromancerProfession, 'Reaper', "Reaper's Shroud", "Exit Reaper's Shroud", simulateLive],
+    [thiefProfession, 'Specter', 'Enter Shadow Shroud', 'Exit Shadow Shroud', simulateLive]
   ]) {
-    const result = simulateGw2({
+    const result = simulate({
       profession,
       rotation: [entry, { type: 'wait', durationMs: 1000 }, exit],
       config: { specialization, transitionDelays: transitions, initialResource: 100, initialShadowForce: 100 }
@@ -182,14 +146,31 @@ test('profession transitions use their own entry and exit settings without charg
   }
 });
 
-test('automatic shroud depletion and forge expiry apply exit recovery at the transition timestamp', () => {
-  for (const [profession, specialization, entry, waitMs, resource] of [
-    // Observe depletion on the first 40 ms tick at or after the 500 ms zero crossing.
-    [thiefProfession, 'Specter', 'Enter Shadow Shroud', 520, { initialShadowForce: 1 }],
-    [guardianProfession, 'Luminary', 'Enter Radiant Forge', 20000, {}],
-    [necromancerProfession, 'Core', 'Death Shroud', 30000, { initialResource: 10 }]
+// Live form owners must block input themselves; a recorded lockout event alone does not delay the next command.
+test('live form entry blocks the next authored input until its recovery ends', () => {
+  for (const [profession, specialization, entry, exit, kind] of [
+    [guardianProfession, 'Luminary', 'Enter Radiant Forge', 'Exit Radiant Forge', 'forgeEntryMs'],
+    [necromancerProfession, 'Core', 'Death Shroud', 'End Death Shroud', 'shroudEntryMs']
   ]) {
-    const result = simulateGw2({
+    const result = simulateLive({
+      profession,
+      rotation: [entry, exit],
+      config: { specialization, transitionDelays: transitions, initialResource: 100 }
+    });
+    assert.deepEqual(result.warnings, [], specialization);
+    const follow = result.events.find((event) => event.type === 'action' && event.name === exit);
+    assert.equal(follow.at, transitions[kind] / 1000, specialization);
+  }
+});
+
+test('automatic shroud depletion and forge expiry apply exit recovery at the transition timestamp', () => {
+  for (const [profession, specialization, entry, waitMs, resource, simulate = simulateGw2] of [
+    // Observe depletion on the first 40 ms tick at or after the 500 ms zero crossing.
+    [thiefProfession, 'Specter', 'Enter Shadow Shroud', 520, { initialShadowForce: 1 }, simulateLive],
+    [guardianProfession, 'Luminary', 'Enter Radiant Forge', 20000, {}, simulateLive],
+    [necromancerProfession, 'Core', 'Death Shroud', 30000, { initialResource: 10 }, simulateLive]
+  ]) {
+    const result = simulate({
       profession,
       rotation: [entry, { type: 'wait', durationMs: waitMs }],
       config: { specialization, transitionDelays: transitions, ...resource }
@@ -199,19 +180,19 @@ test('automatic shroud depletion and forge expiry apply exit recovery at the tra
       (event) => event.type === 'gw2.transition-lockout' && event.kind.endsWith('ExitMs')
     );
     assert.ok(exit, specialization);
-    assert.ok(result.schedulerState.time >= exit.at + exit.duration - 1e-9);
+    assert.ok(result.planningState.atSeconds >= exit.at + exit.duration - 1e-9);
   }
 });
 
 test('overheated Photon Forge applies exit recovery only at the explicit exit', () => {
   // Overheat locks Forge attacks; the later rotation command owns the bar exit and its recovery.
-  const result = simulateGw2({
+  const result = simulateLive({
     profession: engineerProfession,
     rotation: ['Engage Photon Forge', { type: 'wait', durationMs: 1000 }, 'Deactivate Photon Forge'],
     config: { specialization: 'Holosmith', transitionDelays: transitions, initialHeat: 99 }
   });
   assert.deepEqual(result.warnings, []);
-  const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
+  const overheat = result.events.find((event) => event.type === 'engineer.heat' && event.reason === 'overheat');
   const exitStep = result.steps.find((step) => step.skill === 'Deactivate Photon Forge');
   assert.ok(overheat.at < exitStep.start / 1000);
   const exits = result.events.filter(
@@ -220,36 +201,39 @@ test('overheated Photon Forge applies exit recovery only at the explicit exit', 
   assert.equal(exits.length, 1);
   assert.equal(exits[0].at, exitStep.end / 1000);
   assert.equal(Math.round(exits[0].duration * 1000), transitions.forgeExitMs);
-  assert.ok(result.schedulerState.time >= exits[0].at + exits[0].duration - 1e-9);
+  assert.ok(result.planningState.atSeconds >= exits[0].at + exits[0].duration - 1e-9);
 });
 
 test('transition recovery is occupied timeline time without an injected Wait shape', () => {
-  const result = scheduler().run(['Swap Weapons', 'Next cast']);
+  const result = simulate(['Swap Weapons', 'Next cast']);
   assert.equal(
     result.steps.some((step) => step.skill === 'Wait'),
     false
   );
   assert.deepEqual(timelineDeadTimeMarkers(result.steps, result.events), []);
-  assert.deepEqual(timelineTransitionDelayMarkers(result.steps, result.events, result.state.time * 1000), [
+  assert.deepEqual(timelineTransitionDelayMarkers(result.steps, result.events, result.planningState.atSeconds * 1000), [
     { start: 0, end: 100, durationMs: 100, insertionIndex: 1 }
   ]);
 });
 
 test('forced-delay markers exclude retained recovery and logged waits, and include final recovery', () => {
-  const retained = scheduler().run([{ type: 'cast', skillId: 1, interruptAfterMs: 360 }, 'Swap Weapons', 'Next cast']);
-  assert.deepEqual(timelineTransitionDelayMarkers(retained.steps, retained.events, retained.state.time * 1000), []);
-  const waited = scheduler().run(['Swap Weapons', { type: 'wait', durationMs: 80 }, 'Next cast']);
-  assert.deepEqual(timelineTransitionDelayMarkers(waited.steps, waited.events, waited.state.time * 1000), [
+  const retained = simulate([{ type: 'cast', skillId: 1, interruptAfterMs: 360 }, 'Swap Weapons', 'Next cast']);
+  assert.deepEqual(
+    timelineTransitionDelayMarkers(retained.steps, retained.events, retained.planningState.atSeconds * 1000),
+    []
+  );
+  const waited = simulate(['Swap Weapons', { type: 'wait', durationMs: 80 }, 'Next cast']);
+  assert.deepEqual(timelineTransitionDelayMarkers(waited.steps, waited.events, waited.planningState.atSeconds * 1000), [
     { start: 80, end: 100, durationMs: 20, insertionIndex: 2 }
   ]);
-  const last = scheduler().run(['Swap Weapons']);
-  assert.deepEqual(timelineTransitionDelayMarkers(last.steps, last.events, last.state.time * 1000), [
+  const last = simulate(['Swap Weapons']);
+  assert.deepEqual(timelineTransitionDelayMarkers(last.steps, last.events, last.planningState.atSeconds * 1000), [
     { start: 0, end: 100, durationMs: 100, insertionIndex: 1 }
   ]);
 });
 
 test('automatic exit during final entry recovery extends only the overlapping deadline', () => {
-  const result = simulateGw2({
+  const result = simulateLive({
     profession: thiefProfession,
     rotation: ['Enter Shadow Shroud'],
     config: {
@@ -259,7 +243,7 @@ test('automatic exit during final entry recovery extends only the overlapping de
     }
   });
   // Depletion at 520 ms adds 200 ms exit recovery, overlapping the 600 ms entry recovery.
-  assert.equal(result.schedulerState.time, 0.72);
+  assert.equal(result.rotationEndTime, 0.72);
   assert.equal(result.planningState.profession.shadowShroudActive, false);
   assert.deepEqual(result.warnings, []);
 });

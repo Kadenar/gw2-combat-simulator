@@ -1,157 +1,105 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { boonApplicationsAt, normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
-import { gw2BuffApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import {
-  advanceBladesworn,
-  bladeswornSkillMechanicHandlers,
-  enterDragonTrigger
-} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger.js';
-import { applyGunsaberEntryTraits } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
-import {
-  handleKingOfFiresDetonationTask,
-  kingOfFiresReaction,
-  observeBerserkerEvent
-} from '#gw2/professions/warrior/specializations/berserker/traits/index.js';
+import { observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
 
-// Real profiles and buff preparation isolate lifetime rules from rotations, cooldowns, and random critical rolls.
-function contextFor(specialization, selectedTraitIds = []) {
-  const config = { specialization, selectedTraitIds };
-  const profession = warriorProfession.resolveRuntime(config);
-  const events = [];
-  const emit = (event) => {
-    const prepared =
-      event.type === 'buff'
-        ? normalizeBoonDuration({
-            ...event,
-            resolvedAudience: gw2BuffApplicationRecipients(config, event)
-          })
-        : event;
-    events.push(prepared);
-    return prepared;
+// Inject boundary events through the real queue so expiration and completion use their native owners.
+function run(specialization, rotation, selectedTraitIds = [], initialize = () => {}) {
+  const config = {
+    specialization,
+    selectedTraitIds,
+    initialResource: specialization === 'Bladesworn' ? 100 : 30,
+    stats: { power: 2000, precision: 4000 },
+    target: { armor: 2597 }
   };
-
-  return {
+  const profession = warriorProfession.liveRuntimeFor(config);
+  const result = observeGw2Runtime({
+    profession: {
+      ...profession,
+      initialize(runtime) {
+        profession.initialize?.(runtime);
+        initialize(runtime);
+      }
+    },
     config,
-    profession,
-    catalog: profession.catalog,
-    events,
-    state: { profession: profession.createProfessionState(config), time: 0, ammo: new Map(), cooldowns: new Map() },
-    skill: profession.catalog.skillsById.get(ID.UNSHEATHE_GUNSABER),
-    emit,
-    emitDerived: (_cause, event) => emit(event),
-    eventByOrder: (order) => events.find((event) => event.eventOrder === order),
-    schedulerPolicy: { critical: () => ({ chance: 1 }) },
-    tasks: { schedule() {} }
-  };
-}
-
-test('Tactical Reload uses its displayed deadline and is consumed once through the exact expiry instant', () => {
-  for (const at of [10.039999, 10.04, 10.040001]) {
-    const context = contextFor('Bladesworn');
-    const state = context.state.profession.specialization.state;
-    bladeswornSkillMechanicHandlers['warrior.bladesworn.tactical-reload']({
-      context,
-      skill: context.catalog.skillsById.get(ID.TACTICAL_RELOAD),
-      at: 0.001
-    });
-    const [buff] = boonApplicationsAt(context.events, 'tactical-reload', 0.001);
-    assert.equal(state.tacticalReloadUntil, 10.04);
-    assert.equal(state.tacticalReloadUntil, buff.expiresAt);
-    state.gunsaberActive = true;
-    state.flowUpdatedAt = at;
-    context.effectiveEnd = at;
-    enterDragonTrigger(context, context.catalog.skillsById.get(ID.DRAGON_TRIGGER));
-    assert.equal(state.dragonChargesPerInterval, at <= 10.04 ? 2 : 1);
-    enterDragonTrigger(context, context.catalog.skillsById.get(ID.DRAGON_TRIGGER));
-    assert.equal(state.dragonChargesPerInterval, 1, 'a consumed reload cannot affect a second entry');
-  }
-});
-
-test('Positive Flow integrates trait and Flow Stabilizer bonuses through their displayed lifetimes', () => {
-  for (const source of ['trait', 'stabilizer']) {
-    const context = contextFor('Bladesworn', [TRAIT.RIVERS_FLOW]);
-    const state = context.state.profession.specialization.state;
-    state.flowUpdatedAt = 0.001;
-    if (source === 'trait') applyGunsaberEntryTraits(context, 0.001);
-    else
-      bladeswornSkillMechanicHandlers['warrior.bladesworn.flow-stabilizer']({
-        context,
-        skill: context.catalog.skillsById.get(ID.FLOW_STABILIZER),
-        at: 0.001,
-        castStart: 0.001,
-        activationId: 'stabilizer'
-      });
-    const until = source === 'trait' ? state.traitPositiveFlowUntil : state.flowStabilizerWindows[0].expiresAt;
-    assert.equal(until, source === 'trait' ? 5.04 : 8.04);
-    if (source === 'trait') {
-      assert.equal(boonApplicationsAt(context.events, 'positive-flow', 0.001)[0].expiresAt, until);
-    }
-
-    advanceBladesworn(context, until);
-    // Both sources grant two Positive Flow stacks: 4 Flow/s plus 2 base, credited on whole 40 ms ticks.
-    assert.ok(Math.abs(state.flow - until * 6) < 1e-9);
-    const atExpiry = state.flow;
-    advanceBladesworn(context, until + 0.001);
-    assert.equal(state.flow, atExpiry, 'Flow waits for the next regeneration tick');
-    advanceBladesworn(context, until + 0.04);
-    assert.ok(Math.abs(state.flow - atExpiry - 0.08) < 1e-9, 'only base Flow remains after expiry');
-  }
-
-  // The declarative Flow Stabilizer buff and its procedural state must agree on off-grid applications too.
-  const result = simulateGw2({
-    profession: warriorProfession,
-    config: { specialization: 'Bladesworn' },
-    rotation: [{ type: 'wait', durationMs: 1 }, ID.FLOW_STABILIZER]
+    rotation
   });
   assert.deepEqual(result.warnings, []);
-  const [buff] = boonApplicationsAt(result.events, 'positive-flow', 0.001);
-  assert.equal(result.planningState.profession.flowStabilizerWindows[0].expiresAt, buff.expiresAt);
-});
+  return result;
+}
 
-test('Positive Flow refresh preserves a live interval but reopens at its exclusive endpoint', () => {
-  for (const at of [5.039999, 5.04, 5.040001]) {
-    const context = contextFor('Bladesworn', [TRAIT.RIVERS_FLOW]);
-    const state = context.state.profession.specialization.state;
-    applyGunsaberEntryTraits(context, 0.001);
-    applyGunsaberEntryTraits(context, at);
-    assert.equal(state.traitPositiveFlowStartedAt, at < 5.04 ? 0.001 : at);
-    const applications = boonApplicationsAt(context.events, 'positive-flow', at);
-    assert.equal(state.traitPositiveFlowUntil, applications.at(-1).expiresAt);
+const wait = (durationMs) => ({ type: 'wait', durationMs });
+const combat = { type: 'combat-start' };
+const state = (result) => runtimeFor(result).profession.specialization.state;
+
+test('Tactical Reload rounds an off-grid application and admits entry exactly at its displayed deadline', () => {
+  for (const [delay, charges] of [
+    [10039, 2],
+    [10040, 1]
+  ]) {
+    const result = run('Bladesworn', [wait(1), ID.TACTICAL_RELOAD, wait(delay), ID.DRAGON_TRIGGER, wait(240), combat]);
+    const application = result.events.find((event) => event.kind === 'tactical-reload');
+    const [buff] = boonApplicationsAt(result.events, 'tactical-reload', application.at);
+    assert.equal(Math.round((buff.expiresAt - buff.at) * 1000), 10039);
+    assert.equal(state(result).dragonCharges, charges);
+    assert.equal(state(result).tacticalReloadUntil, 0);
   }
 });
 
-test('trait and combo fire auras share rounded deadlines and detonate only before expiry', () => {
+test('Positive Flow state and displayed expiry agree on off-grid applications', () => {
+  for (const source of ['trait', 'stabilizer']) {
+    const skillId = source === 'trait' ? ID.UNSHEATHE_GUNSABER : ID.FLOW_STABILIZER;
+    const result = run('Bladesworn', [combat, wait(1), skillId], [TRAIT.RIVERS_FLOW]);
+    const [buff] = boonApplicationsAt(result.events, 'positive-flow', 0.001);
+    const until =
+      source === 'trait' ? state(result).traitPositiveFlowUntil : state(result).flowStabilizerWindows[0].expiresAt;
+    assert.equal(until, source === 'trait' ? 5.04 : 8.04);
+    assert.equal(buff.expiresAt, until);
+  }
+});
+
+test('trait and combo fire auras detonate once before their exclusive rounded expiry', () => {
   for (const source of ['trait', 'combo']) {
-    for (const at of [5.039999, 5.04, 5.040001]) {
-      const context = contextFor('Berserker', [TRAIT.KING_OF_FIRES]);
-      const state = context.state.profession.specialization.state;
-      if (source === 'trait') {
-        context.events.push({ type: 'damage', at: 0.001, eventOrder: 1, didCrit: true });
-        kingOfFiresReaction.taskHandlers['warrior.king-of-fires-hit'](context, {
+    for (const at of [5039, 5040, 5041]) {
+      const result = run('Berserker', [wait(at), ID.BERSERK], [TRAIT.KING_OF_FIRES], (runtime) => {
+        const event = {
           at: 0.001,
-          payload: { eventOrder: 1 }
-        });
-        assert.equal(boonApplicationsAt(context.events, 'fire-aura', 0.001)[0].expiresAt, state.fireAuraUntil);
-      } else observeBerserkerEvent(context, { type: 'aura', aura: 'Fire Aura', at: 0.001, duration: 5 });
-      assert.equal(state.fireAuraUntil, 5.04);
-      const task = { at, payload: { skillId: ID.HEAD_BUTT } };
-      handleKingOfFiresDetonationTask(context, task);
-      handleKingOfFiresDetonationTask(context, task);
-      assert.equal(
-        context.events.filter((event) => event.type === 'proc' && event.name === 'King of Fires').length,
-        at < 5.04 ? 1 : 0
-      );
+          source: 'warrior',
+          sourceId: ID.CHOP,
+          skillId: ID.CHOP,
+          skillName: 'Chop',
+          actorType: 'player'
+        };
+        runtime.emit(
+          source === 'trait'
+            ? { ...event, type: 'damage', coefficient: 1, forceCrit: true, weaponStrengthProfileId: 'weapon.axe' }
+            : { ...event, type: 'aura', aura: 'Fire Aura', duration: 5 }
+        );
+      });
+      if (source === 'trait') assert.equal(boonApplicationsAt(result.events, 'fire-aura', 0.001)[0].expiresAt, 5.04);
+      assert.equal(result.procSteps.filter((proc) => proc.skill === 'King of Fires').length, at < 5040 ? 1 : 0);
+      assert.equal(state(result).fireAuraUntil, 0);
     }
   }
 });
 
-test('a shorter combo fire aura does not truncate an existing aura window', () => {
-  const context = contextFor('Berserker');
-  observeBerserkerEvent(context, { type: 'aura', aura: 'Fire Aura', at: 0.001, duration: 5 });
-  observeBerserkerEvent(context, { type: 'aura', aura: 'Fire Aura', at: 1.001, duration: 1 });
-  assert.equal(context.state.profession.specialization.state.fireAuraUntil, 5.04);
+test('a shorter combo fire aura cannot truncate the current aura owner', () => {
+  const result = run('Berserker', [wait(1100)], [], (runtime) => {
+    for (const [at, duration] of [
+      [0.001, 5],
+      [1.001, 1]
+    ])
+      runtime.emit({
+        type: 'aura',
+        aura: 'Fire Aura',
+        at,
+        duration,
+        source: 'combo',
+        sourceId: 'fixture',
+        actorType: 'player'
+      });
+  });
+  assert.equal(state(result).fireAuraUntil, 5.04);
 });

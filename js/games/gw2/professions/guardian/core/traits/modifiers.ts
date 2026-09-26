@@ -11,17 +11,16 @@ import { boonActive, hasSelectedSkill, targetConditionActive } from '#gw2/platfo
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { GuardianSchedulerContext, GuardianSkill, GuardianState } from '#gw2/professions/guardian/types.js';
-import {
-  guardianBuildAvailability,
-  guardianCastAvailability
-} from '#gw2/professions/guardian/core/mechanics/availability.js';
+import type { GuardianConfig, GuardianSkill, GuardianState } from '#gw2/professions/guardian/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
-/** Supplies the same skill and scheduler state to recharge and ammo trait rules. */
-type GuardianSkillModifierContext = GuardianSchedulerContext & {
+/** Recharge and ammunition formulas depend only on the selected catalog, traits, and skill. */
+type GuardianSkillModifierContext = {
+  readonly catalog: CanonicalCatalog;
+  readonly config: GuardianConfig;
   readonly skill?: GuardianSkill;
 };
 
@@ -338,7 +337,7 @@ const guardianCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
-function modifyGuardianRechargeDuration(context: GuardianSkillModifierContext, duration: number): number {
+export function modifyGuardianRechargeDuration(context: GuardianSkillModifierContext, duration: number): number {
   const skill = context.skill;
   let result = duration;
   if (skill?.weapon === 'Greatsword' && hasTrait(context, GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE)) {
@@ -368,7 +367,7 @@ function modifyGuardianRechargeDuration(context: GuardianSkillModifierContext, d
   return result;
 }
 
-function modifyGuardianMaximumAmmo(context: GuardianSkillModifierContext, maximum: number): number {
+export function modifyGuardianMaximumAmmo(context: GuardianSkillModifierContext, maximum: number): number {
   let result = maximum;
   if (context.skill?.id === GUARDIAN_SKILL_IDS.ZEALOTS_FLAME && hasTrait(context, GUARDIAN_TRAIT_IDS.RADIANT_FIRE)) {
     const radiantFireProfile = requireBalanceProfileFromContext(context, PROFILE.radiantFire);
@@ -412,21 +411,4 @@ export const guardianCoreAttributeRules = Object.freeze({
   modifyConditionBaseDuration: modifyGuardianConditionBaseDuration,
   modifierRules: guardianCoreModifierRules,
   compileModifierRules: compileGw2ModifierRules
-});
-
-export const guardianCoreCastRules = Object.freeze({
-  availability: Object.freeze([
-    {
-      id: 'guardian.cast-state',
-      order: 10,
-      handler: guardianCastAvailability
-    },
-    {
-      id: 'guardian.build',
-      order: 100,
-      handler: guardianBuildAvailability
-    }
-  ]),
-  modifyRechargeDuration: modifyGuardianRechargeDuration,
-  modifyMaximumAmmo: modifyGuardianMaximumAmmo
 });

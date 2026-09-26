@@ -12,7 +12,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
  *
  * Overloads are `overload: true` profession skills bound to one attunement, recharge from cast end,
  * and take their tick effects from TEMPEST_OVERLOAD_EFFECTS; the gating, aura, and trait behavior
- * lives in mechanics/overloads.ts. Shouts route through the 'elementalist.tempest-shout' handler
+ * lives in mechanics/overloads.ts. Shouts use the native completion owner
  * and declare their self-aura as `element|seconds`, which the core cast pipeline applies for them.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
@@ -105,7 +105,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     cooldown: 20,
     skillFamily: 'Shout',
     // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
-    handlerId: 'elementalist.tempest-shout',
+
     effects: []
   },
   [ID.FEEL_THE_BURN]: {
@@ -119,7 +119,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     aura: 'Fire|4',
     skillFamily: 'Shout',
     // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
-    handlerId: 'elementalist.tempest-shout',
+
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2.5 },
       // Apply each Burning stack separately so same-impact relic checks observe every application.
@@ -159,7 +159,7 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     aura: 'Magnetic|4',
     skillFamily: 'Shout',
     // Custom: Applies Tempest shout trait effects; see `tempest/module.ts`.
-    handlerId: 'elementalist.tempest-shout',
+
     effects: [
       ...impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
         { type: 'strike', coefficient: 0.75 },

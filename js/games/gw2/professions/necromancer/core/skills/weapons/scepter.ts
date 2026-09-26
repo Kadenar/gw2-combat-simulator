@@ -78,8 +78,6 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     ],
     lifeForceGain: 8,
     lifeForcePerCondition: 1,
-    // Custom: Scales Torment stacks from the target's active condition count; see `core/mechanics/conditions.ts`.
-    handlerId: 'necromancer.devouring-darkness',
     flipParentId: null
   }
 });

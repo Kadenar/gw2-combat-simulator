@@ -11,7 +11,7 @@ export interface SpellbreakerState {
   magebaneTetherRecharge: RechargeProgress | null;
 }
 
-/** Declares Spellbreaker's public compatibility fields and inactive values. */
+/** Declares Spellbreaker's public fields and inactive values. */
 export const SPELLBREAKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   attackerInsightExpiries: [],
   magebaneTetherUntil: 0,

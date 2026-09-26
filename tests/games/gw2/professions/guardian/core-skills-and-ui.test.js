@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
@@ -12,7 +12,6 @@ import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/p
 import { guardianVirtueForSlot } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/core/profiles.js';
-import { observeGuardianScheduledEvent } from '#gw2/professions/guardian/core/traits/index.js';
 import { DRAGONHUNTER_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/dragonhunter/profiles.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { WILLBENDER_BALANCE_PROFILE_IDS } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
@@ -39,7 +38,7 @@ test('Binding Blade flips back when its ten-second tether expires', () => {
   for (const durationMs of [9960, 10000, 10040]) {
     const expired = durationMs >= 10000;
     const rotation = ['Binding Blade', { type: 'wait', durationMs }];
-    const result = simulateGw2({ profession: guardianProfession, rotation, config: settings });
+    const result = createLiveProfessionSimulator(guardianProfession, settings)(undefined, rotation);
     assert.deepEqual(result.warnings, []);
     const tiles = displayedSkillTiles(
       { skills: guardianCatalog.skills, profession: guardianProfession, results: result },
@@ -51,7 +50,7 @@ test('Binding Blade flips back when its ten-second tether expires', () => {
     );
     assert.ok(result.planningState.cooldowns[parent.name].remaining > 0);
 
-    const pull = simulateGw2({ profession: guardianProfession, rotation: [...rotation, 'Pull'], config: settings });
+    const pull = createLiveProfessionSimulator(guardianProfession, settings)(undefined, [...rotation, 'Pull']);
     assert.equal(Boolean(pull.steps.at(-1).invalid), expired);
     if (expired) assert.match(pull.warnings.join(' '), /not currently armed/);
     else assert.deepEqual(pull.warnings, []);
@@ -82,14 +81,14 @@ test('Guardian virtue slots decode consistently and reject unmapped slots', () =
 test('a committed Strike cancel preserves its pending hit and advances the autoattack chain', () => {
   const strike = guardianCatalog.skillsByName.get('Strike');
   for (const committed of [false, true]) {
-    const result = simulateGw2({
-      profession: guardianProfession,
-      rotation: [
-        { name: 'Strike', interruptMs: committed ? strike.interruptCommitMs : strike.interruptCommitMs / 2 },
-        committed ? 'Vengeful Strike' : 'Strike'
-      ],
-      config: { ...config, boons: { quickness: true }, primaryWeapon: 'Greatsword' }
-    });
+    const result = createLiveProfessionSimulator(guardianProfession, {
+      ...config,
+      boons: { quickness: true },
+      primaryWeapon: 'Greatsword'
+    })(undefined, [
+      { name: 'Strike', interruptMs: committed ? strike.interruptCommitMs : strike.interruptCommitMs / 2 },
+      committed ? 'Vengeful Strike' : 'Strike'
+    ]);
     const actions = result.events.filter((event) => event.type === 'action');
     assert.deepEqual(result.warnings, []);
     const firstHit = result.resolvedEvents.find(
@@ -179,11 +178,11 @@ test('Guardian greatsword autos retain aftercast only after commitment', () => {
   ]) {
     const commitMs = guardianCatalog.skillsByName.get(name).interruptCommitMs;
     for (const interruptMs of [80, commitMs]) {
-      const result = simulateGw2({
-        profession: guardianProfession,
-        rotation: [...preceding, { name, interruptMs }, 'Leap of Faith'],
-        config: { ...config, primaryWeapon: 'Greatsword', boons: { quickness: true } }
-      });
+      const result = createLiveProfessionSimulator(guardianProfession, {
+        ...config,
+        primaryWeapon: 'Greatsword',
+        boons: { quickness: true }
+      })(undefined, [...preceding, { name, interruptMs }, 'Leap of Faith']);
       assert.deepEqual(result.warnings, []);
       const attempted = result.steps[preceding.length];
       const next = result.steps[preceding.length + 1];
@@ -191,18 +190,21 @@ test('Guardian greatsword autos retain aftercast only after commitment', () => {
         result.resolvedEvents.some((event) => event.type === 'damage' && event.activationId === attempted.activationId),
         interruptMs >= commitMs
       );
-      assert.equal(attempted.cancelledBeforeCommit === true, interruptMs < commitMs);
+      const action = result.events.find(
+        (event) => event.type === 'action' && event.activationId === attempted.activationId
+      );
+      assert.equal(action.cancelled, interruptMs < commitMs);
       assert.equal(next.start - attempted.start, interruptMs < commitMs ? interruptMs : fullMs);
     }
   }
 });
 
 test('Symbol of Luminance retains both strikes on the exact combat boundary', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Symbol of Luminance', { name: '__combat_start', offset: 360 }],
-    config: { ...config, primaryWeapon: 'Spear', boons: { quickness: true } }
-  });
+  const result = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    primaryWeapon: 'Spear',
+    boons: { quickness: true }
+  })(undefined, ['Symbol of Luminance', { name: '__combat_start', offset: 360 }]);
   // Same-time damage is observable without moving combat one millisecond before the action tick.
   const openingHits = result.resolvedEvents.filter(
     (event) =>
@@ -218,11 +220,11 @@ test('Guardian slot skills require selection before casts can produce effects', 
   // A single cast checks loadout rejection, including Effulgent's delayed detonation.
   for (const name of ['Effulgent Stance', 'Shelter', 'Renewed Focus']) {
     for (const selectedSkills of [[], {}, ['Signet of Wrath'], { Utility1: 'Signet of Wrath' }]) {
-      const result = simulateGw2({
-        profession: guardianProfession,
-        rotation: [name, { type: 'wait', durationMs: 5000 }],
-        config: { ...config, specialization: 'Luminary', selectedSkills }
-      });
+      const result = createLiveProfessionSimulator(guardianProfession, {
+        ...config,
+        specialization: 'Luminary',
+        selectedSkills
+      })(undefined, [name, { type: 'wait', durationMs: 5000 }]);
       assert.equal(result.steps[0].invalid, true, name);
       assert.match(result.warnings.join(' '), /is unavailable.*not equipped/);
       assert.equal(
@@ -233,11 +235,11 @@ test('Guardian slot skills require selection before casts can produce effects', 
   }
 
   for (const selectedSkills of [undefined, ['Effulgent Stance'], { Utility1: 'Effulgent Stance' }]) {
-    const result = simulateGw2({
-      profession: guardianProfession,
-      rotation: ['Effulgent Stance', { type: 'wait', durationMs: 5000 }],
-      config: { ...config, specialization: 'Luminary', selectedSkills }
-    });
+    const result = createLiveProfessionSimulator(guardianProfession, {
+      ...config,
+      specialization: 'Luminary',
+      selectedSkills
+    })(undefined, ['Effulgent Stance', { type: 'wait', durationMs: 5000 }]);
     assert.deepEqual(result.warnings, []);
     assert.ok(result.resolvedEvents.some((event) => event.name === 'Effulgent Stance' && event.damage > 0));
   }
@@ -245,11 +247,11 @@ test('Guardian slot skills require selection before casts can produce effects', 
 
 test('Guardian mantra flips inherit selection from the root slot skill', () => {
   for (const selectedSkills of [[], ['Mantra of Flame']]) {
-    const result = simulateGw2({
-      profession: guardianProfession,
-      rotation: ['Flame Rush', 'Flame Rush', 'Flame Surge'],
-      config: { ...config, specialization: 'Firebrand', selectedSkills }
-    });
+    const result = createLiveProfessionSimulator(guardianProfession, {
+      ...config,
+      specialization: 'Firebrand',
+      selectedSkills
+    })(undefined, ['Flame Rush', 'Flame Rush', 'Flame Surge']);
     if (selectedSkills.length) {
       assert.deepEqual(result.warnings, []);
       assert.ok(result.resolvedEvents.some((event) => event.name === 'Flame Surge'));
@@ -264,31 +266,27 @@ test('Guardian mantra flips inherit selection from the root slot skill', () => {
   }
 });
 
-test('Virtue of Resolution replacement returns before later scheduled-event behavior', () => {
-  const emitted = [];
-  const event = {
-    type: 'buff',
-    at: 1,
-    kind: 'resolution',
-    duration: 4,
-    isSymbol: true,
-    skillId: GUARDIAN_SKILL_IDS.SYMBOL_OF_RESOLUTION,
-    skillName: 'Symbol of Resolution'
-  };
-  const context = {
-    catalog: guardianCatalog,
-    config: {
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE]
-    },
-    emit: (scheduled) => emitted.push(scheduled),
-    // Mutating the event to a symbol hit proves the observer stops immediately after replacement.
-    replaceEvent: (scheduled, replacement) => Object.assign(scheduled, replacement, { type: 'damage' })
-  };
-
-  observeGuardianScheduledEvent(context, event);
-
-  assert.equal(event.duration, 5);
-  assert.deepEqual(emitted, []);
+test('Virtue of Resolution extends delivered boons once without creating extra symbol reactions', () => {
+  // Compare identical symbol casts so only the selected duration modifier changes.
+  const run = (selectedTraitIds) =>
+    createLiveProfessionSimulator(guardianProfession, {
+      ...config,
+      primaryWeapon: 'Greatsword',
+      selectedTraitIds
+    })(undefined, ['Symbol of Resolution', { type: 'wait', durationMs: 6000 }]);
+  const baseline = run([GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE]);
+  const traited = run([GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE]);
+  const resolution = (result) => result.events.filter((event) => event.type === 'buff' && event.kind === 'resolution');
+  assert.ok(resolution(baseline).length > 0);
+  assert.deepEqual(
+    resolution(traited).map((event) => event.duration),
+    resolution(baseline).map((event) => event.duration * 1.25)
+  );
+  const exposure = (result) =>
+    result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.sourceId === GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE
+    );
+  assert.equal(exposure(traited).length, exposure(baseline).length);
 });
 
 test('Guardian modules expose isolated balance-profile authoring', () => {
@@ -399,16 +397,12 @@ test('Masterful Writ utilities grant their flat attributes', () => {
 });
 
 test('Justice active burning resolves through simulateGw2', () => {
-  const withoutJustice = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['True Strike'],
-    config
-  });
-  const withJustice = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Virtue of Justice', 'True Strike', { type: 'wait', durationMs: 2000 }],
-    config
-  });
+  const withoutJustice = createLiveProfessionSimulator(guardianProfession, config)(undefined, ['True Strike']);
+  const withJustice = createLiveProfessionSimulator(guardianProfession, config)(undefined, [
+    'Virtue of Justice',
+    'True Strike',
+    { type: 'wait', durationMs: 2000 }
+  ]);
 
   assert.equal(withoutJustice.conditionDamage, 0);
   assert.ok(withJustice.conditionDamage > 0);
@@ -425,53 +419,35 @@ test('Justice active burning resolves through simulateGw2', () => {
 });
 
 test('Justice passive counts individual hits and respects its active cooldown', () => {
-  const passive = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Whirling Wrath'],
-    config: { ...config, primaryWeapon: 'Greatsword' }
-  });
-  const activated = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Virtue of Justice', 'Whirling Wrath'],
-    config: { ...config, primaryWeapon: 'Greatsword' }
-  });
-  const permeating = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Whirling Wrath'],
-    config: {
-      ...config,
-      primaryWeapon: 'Greatsword',
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH]
-    }
-  });
-  const radiantPassive = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Whirling Wrath'],
-    config: {
-      ...config,
-      specialization: 'Luminary',
-      primaryWeapon: 'Greatsword'
-    }
-  });
-  const radiantPermeating = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Whirling Wrath'],
-    config: {
-      ...config,
-      specialization: 'Luminary',
-      primaryWeapon: 'Greatsword',
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH]
-    }
-  });
-  const radiantActivated = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Radiant Justice', 'Whirling Wrath'],
-    config: {
-      ...config,
-      specialization: 'Luminary',
-      primaryWeapon: 'Greatsword'
-    }
-  });
+  const passive = createLiveProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Greatsword' })(
+    undefined,
+    ['Whirling Wrath']
+  );
+  const activated = createLiveProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Greatsword' })(
+    undefined,
+    ['Virtue of Justice', 'Whirling Wrath']
+  );
+  const permeating = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    primaryWeapon: 'Greatsword',
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH]
+  })(undefined, ['Whirling Wrath']);
+  const radiantPassive = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Luminary',
+    primaryWeapon: 'Greatsword'
+  })(undefined, ['Whirling Wrath']);
+  const radiantPermeating = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Luminary',
+    primaryWeapon: 'Greatsword',
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.PERMEATING_WRATH]
+  })(undefined, ['Whirling Wrath']);
+  const radiantActivated = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Luminary',
+    primaryWeapon: 'Greatsword'
+  })(undefined, ['Radiant Justice', 'Whirling Wrath']);
 
   assert.equal(passive.combatState.profession.justicePassiveBurns, 2);
   assert.equal(passive.combatState.profession.justiceHitCount, 4);
@@ -488,11 +464,11 @@ test('Justice passive counts individual hits and respects its active cooldown', 
 });
 
 test('Justice counts symbol packets and applies the measured two-second passive burn', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Symbol of Resolution', { type: 'wait', durationMs: 6000 }],
-    config: { ...config, specialization: 'Luminary', primaryWeapon: 'Greatsword' }
-  });
+  const result = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Luminary',
+    primaryWeapon: 'Greatsword'
+  })(undefined, ['Symbol of Resolution', { type: 'wait', durationMs: 6000 }]);
   const burn = result.resolvedEvents.find(
     (event) => event.type === 'condition' && event.sourceId === 'guardian.justice-passive'
   );
@@ -505,11 +481,10 @@ test('Justice counts symbol packets and applies the measured two-second passive 
 
 // Tether damage is a non-critical flat strike and must remain attributed to its own breakdown row.
 test('Binding Blade tether resolves flat non-critical strike damage', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Binding Blade', { type: 'wait', durationMs: 15000 }],
-    config: { ...config, primaryWeapon: 'Greatsword' }
-  });
+  const result = createLiveProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Greatsword' })(
+    undefined,
+    ['Binding Blade', { type: 'wait', durationMs: 15000 }]
+  );
   const tether = result.resolvedEvents.filter((event) => event.sourceId === GUARDIAN_SKILL_IDS.BINDING_BLADE_TETHER);
   assert.deepEqual(result.warnings, []);
   assert.ok(tether.length > 0);
@@ -527,12 +502,11 @@ test('Binding Blade tether resolves flat non-critical strike damage', () => {
 // Each Whirling Wrath pair lands together and survives only when cancellation reaches its arrival.
 test('Whirling Wrath cancels melee and projectile pairs together', () => {
   const simulate = (rotation) =>
-    simulateGw2({
-      profession: guardianProfession,
-      rotation,
-      config: { ...config, boons: { quickness: true }, primaryWeapon: 'Greatsword' },
-      observationPolicy: { kind: 'tail', durationMs: 2000 }
-    });
+    createLiveProfessionSimulator(guardianProfession, {
+      ...config,
+      boons: { quickness: true },
+      primaryWeapon: 'Greatsword'
+    })(undefined, rotation, {}, { kind: 'tail', durationMs: 2000 });
   const strikes = (result) =>
     result.resolvedEvents
       .filter((event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.WHIRLING_WRATH)
@@ -551,11 +525,10 @@ test('Whirling Wrath cancels melee and projectile pairs together', () => {
 
 // The symbol burns on its opening strike rather than reapplying Burning on every pulse.
 test('Symbol of Energy applies Burning only with its opening strike', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Symbol of Energy', { type: 'wait', durationMs: 6000 }],
-    config: { ...config, primaryWeapon: 'Longbow' }
-  });
+  const result = createLiveProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Longbow' })(undefined, [
+    'Symbol of Energy',
+    { type: 'wait', durationMs: 6000 }
+  ]);
   const strikes = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillName === 'Symbol of Energy'
   );
@@ -570,11 +543,10 @@ test('Symbol of Energy applies Burning only with its opening strike', () => {
 
 // Exhausting the spirit weapon's charges must wait for recharge after the shorter between-use lockout.
 test('Sword of Justice waits for ammo recharge after exhausting its charges', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Sword of Justice', 'Sword of Justice', 'Sword of Justice', 'Sword of Justice'],
-    config: { ...config, boons: { quickness: true } }
-  });
+  const result = createLiveProfessionSimulator(guardianProfession, { ...config, boons: { quickness: true } })(
+    undefined,
+    ['Sword of Justice', 'Sword of Justice', 'Sword of Justice', 'Sword of Justice']
+  );
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.steps.map((step) => step.start),
@@ -586,11 +558,11 @@ test('Solar Storm preserves its committed volley and rejects uncommitted illumin
   // Compare packet survival and state transitions without prescribing the skill's numerical commit threshold.
   const skill = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SOLAR_STORM);
   const simulate = (interruptMs) =>
-    simulateGw2({
-      profession: guardianProfession,
-      rotation: ['Helio Rush', { name: 'Solar Storm', interruptMs }, { type: 'wait', durationMs: 2000 }],
-      config: { ...config, primaryWeapon: 'Spear', boons: { quickness: true } }
-    });
+    createLiveProfessionSimulator(guardianProfession, {
+      ...config,
+      primaryWeapon: 'Spear',
+      boons: { quickness: true }
+    })(undefined, ['Helio Rush', { name: 'Solar Storm', interruptMs }, { type: 'wait', durationMs: 2000 }]);
   const packets = (result) =>
     result.resolvedEvents
       .filter((event) => event.type === 'damage' && event.skillId === skill.id)
@@ -613,16 +585,12 @@ test('Solar Storm preserves its committed volley and rejects uncommitted illumin
 test('Delayed spear damage uses equipped-weapon trait stats while retaining spear weapon strength', () => {
   // Swapping during projectile travel changes Zealous Blade's power bonus, not the attack's weapon-strength roll.
   const simulate = (swap) =>
-    simulateGw2({
-      profession: guardianProfession,
-      rotation: ['Solar Storm', ...(swap ? ['Swap Weapons'] : []), { type: 'wait', durationMs: 2000 }],
-      config: {
-        ...config,
-        primaryWeapon: 'Spear',
-        weaponSet2Primary: 'Greatsword',
-        selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE]
-      }
-    });
+    createLiveProfessionSimulator(guardianProfession, {
+      ...config,
+      primaryWeapon: 'Spear',
+      weaponSet2Primary: 'Greatsword',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE]
+    })(undefined, ['Solar Storm', ...(swap ? ['Swap Weapons'] : []), { type: 'wait', durationMs: 2000 }]);
   const firstHit = (result) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.SOLAR_STORM);
   const spear = firstHit(simulate(false));
@@ -636,21 +604,16 @@ test('Delayed spear damage uses equipped-weapon trait stats while retaining spea
 test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () => {
   const spearConfig = { ...config, primaryWeapon: 'Spear' };
 
-  const helioAlone = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Helio Rush'],
-    config: spearConfig
-  });
-  const gleamingAlone = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Gleaming Disc', { type: 'wait', durationMs: 1000 }],
-    config: spearConfig
-  });
-  const combo = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Helio Rush', 'Gleaming Disc', { type: 'wait', durationMs: 1000 }],
-    config: spearConfig
-  });
+  const helioAlone = createLiveProfessionSimulator(guardianProfession, spearConfig)(undefined, ['Helio Rush']);
+  const gleamingAlone = createLiveProfessionSimulator(guardianProfession, spearConfig)(undefined, [
+    'Gleaming Disc',
+    { type: 'wait', durationMs: 1000 }
+  ]);
+  const combo = createLiveProfessionSimulator(guardianProfession, spearConfig)(undefined, [
+    'Helio Rush',
+    'Gleaming Disc',
+    { type: 'wait', durationMs: 1000 }
+  ]);
 
   // Helio Rush is not illuminated itself but arms the buff for the next attack.
   assert.equal(helioAlone.planningState.profession.spearIlluminatedArmed, true);
@@ -675,11 +638,12 @@ test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () =
   assert.equal(illuminated[0].sourceSkill, 'Gleaming Disc');
   assert.ok(combo.strikeDamage > helioAlone.strikeDamage + gleamingAlone.strikeDamage + 1);
 
-  const expired = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Helio Rush', { type: 'wait', durationMs: 5001 }, 'Gleaming Disc', { type: 'wait', durationMs: 1000 }],
-    config: spearConfig
-  });
+  const expired = createLiveProfessionSimulator(guardianProfession, spearConfig)(undefined, [
+    'Helio Rush',
+    { type: 'wait', durationMs: 5001 },
+    'Gleaming Disc',
+    { type: 'wait', durationMs: 1000 }
+  ]);
 
   assert.deepEqual(
     expired.resolvedEvents
@@ -688,11 +652,12 @@ test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () =
     [1.5, 1.5]
   );
 
-  const preservedThroughFiller = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Helio Rush', 'Daybreaking Slash', 'Gleaming Disc', { type: 'wait', durationMs: 1000 }],
-    config: spearConfig
-  });
+  const preservedThroughFiller = createLiveProfessionSimulator(guardianProfession, spearConfig)(undefined, [
+    'Helio Rush',
+    'Daybreaking Slash',
+    'Gleaming Disc',
+    { type: 'wait', durationMs: 1000 }
+  ]);
 
   assert.deepEqual(
     preservedThroughFiller.resolvedEvents
@@ -703,15 +668,11 @@ test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () =
 });
 
 test('Inspired Virtue emits its base boon through the shared boon-duration policy', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Virtue of Courage'],
-    config: {
-      ...config,
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE],
-      stats: { ...config.stats, concentration: 750 }
-    }
-  });
+  const result = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE],
+    stats: { ...config.stats, concentration: 750 }
+  })(undefined, ['Virtue of Courage']);
   const protection = result.events.find(
     (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE
   );
@@ -724,14 +685,10 @@ test('Inspired Virtue emits its base boon through the shared boon-duration polic
 test('Spear Symbol of Luminance keeps all spear skills illuminated while active', () => {
   const spearConfig = { ...config, primaryWeapon: 'Spear' };
 
-  const symbolThenHelio = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Symbol of Luminance', 'Helio Rush'],
-    config: {
-      ...spearConfig,
-      boons: { quickness: true }
-    }
-  });
+  const symbolThenHelio = createLiveProfessionSimulator(guardianProfession, {
+    ...spearConfig,
+    boons: { quickness: true }
+  })(undefined, ['Symbol of Luminance', 'Helio Rush']);
 
   assert.equal(symbolThenHelio.steps[0].end, 440);
   // The window empowers Helio Rush even though nothing armed it beforehand.
@@ -756,11 +713,9 @@ test('Spear Symbol of Luminance keeps all spear skills illuminated while active'
 });
 
 test('Spear Symbol of Luminance knocks back on its initial hit', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Symbol of Luminance'],
-    config: { ...config, primaryWeapon: 'Spear' }
-  });
+  const result = createLiveProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Spear' })(undefined, [
+    'Symbol of Luminance'
+  ]);
   const initialHit = result.events.find(
     (event) => event.type === 'damage' && event.name === 'Symbol of Luminance — Initial'
   );
@@ -780,11 +735,13 @@ test('Guardian spear coefficients and repeated pulses stay per-hit', () => {
     boons: { quickness: true },
     primaryWeapon: 'Spear'
   };
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Helio Rush', 'Gleaming Disc', 'Symbol of Luminance', 'Solar Storm', { type: 'wait', durationMs: 5000 }],
-    config: spearConfig
-  });
+  const result = createLiveProfessionSimulator(guardianProfession, spearConfig)(undefined, [
+    'Helio Rush',
+    'Gleaming Disc',
+    'Symbol of Luminance',
+    'Solar Storm',
+    { type: 'wait', durationMs: 5000 }
+  ]);
   const coefficients = (name) =>
     result.resolvedEvents.filter((event) => event.name === name).map((event) => event.coefficient);
 
@@ -823,11 +780,7 @@ test('Guardian spear coefficients and repeated pulses stay per-hit', () => {
 });
 
 test('Guardian swaps weapons and exposes profession palette groups', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Swap Weapons'],
-    config
-  });
+  const result = createLiveProfessionSimulator(guardianProfession, config)(undefined, ['Swap Weapons']);
 
   assert.equal(result.planningState.activeWeaponSet, 2);
   assert.deepEqual(guardianProfession.ui.resourceViews({}), []);
@@ -840,11 +793,11 @@ test('Guardian swaps weapons and exposes profession palette groups', () => {
 
 test('weapon swap ignores Alacrity and Relic of the Warrior reduces its recharge to 7.5 seconds', () => {
   const swapStarts = (extraConfig) =>
-    simulateGw2({
-      profession: guardianProfession,
-      rotation: ['__combat_start', 'Swap Weapons', 'Swap Weapons'],
-      config: { ...config, ...extraConfig }
-    })
+    createLiveProfessionSimulator(guardianProfession, { ...config, ...extraConfig })(undefined, [
+      '__combat_start',
+      'Swap Weapons',
+      'Swap Weapons'
+    ])
       .steps.filter((step) => step.skill === 'Swap Weapons')
       .map((step) => step.start);
 
@@ -1031,17 +984,13 @@ test('Guardian palette availability follows the active tome or forge', () => {
 });
 
 test('Guardian only casts weapon skills equipped on the active set', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Through the Heart', 'Swap Weapons', 'Through the Heart'],
-    config: {
-      ...config,
-      primaryWeapon: 'Sword',
-      secondaryWeapon: 'Focus',
-      weaponSet2Primary: 'Pistol',
-      weaponSet2Secondary: 'Torch'
-    }
-  });
+  const result = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    primaryWeapon: 'Sword',
+    secondaryWeapon: 'Focus',
+    weaponSet2Primary: 'Pistol',
+    weaponSet2Secondary: 'Torch'
+  })(undefined, ['Through the Heart', 'Swap Weapons', 'Through the Heart']);
 
   assert.equal(
     result.resolvedEvents.filter((event) => event.skillName === 'Through the Heart' && event.type === 'damage').length,
@@ -1051,24 +1000,16 @@ test('Guardian only casts weapon skills equipped on the active set', () => {
 });
 
 test('Guardian cannot cast weapon skills while a tome or forge is active', () => {
-  const firebrand = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Tome of Justice', 'True Strike', 'Stow Tome', 'True Strike'],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      primaryWeapon: 'Mace'
-    }
-  });
-  const luminary = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Enter Radiant Forge', 'True Strike', 'Exit Radiant Forge', 'True Strike'],
-    config: {
-      ...config,
-      specialization: 'Luminary',
-      primaryWeapon: 'Mace'
-    }
-  });
+  const firebrand = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    primaryWeapon: 'Mace'
+  })(undefined, ['Tome of Justice', 'True Strike', 'Stow Tome', 'True Strike']);
+  const luminary = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Luminary',
+    primaryWeapon: 'Mace'
+  })(undefined, ['Enter Radiant Forge', 'True Strike', 'Exit Radiant Forge', 'True Strike']);
 
   assert.equal(firebrand.steps[1].invalid, true);
   assert.equal(Boolean(firebrand.steps[3].invalid), false);

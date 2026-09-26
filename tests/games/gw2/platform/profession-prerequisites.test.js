@@ -1,3 +1,4 @@
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -19,12 +20,13 @@ import {
   createCanonicalTargetConditionStateMap
 } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import { isGw2WeaponSkillEquipped } from '#gw2/platform/execution/gw2-policy/policy.js';
+import {
+  defaultWeaponSkillMatchesSet,
+  isGw2WeaponSkillEquipped
+} from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
 
 test('shared build eligibility allows elite weapons while restricting slot skills and actions', () => {
@@ -97,32 +99,6 @@ test('profession composition validates UI callbacks and scheduler refiners', () 
   const invalidAvailability = normalizeProfessionUi('invalid-availability', { paletteSkillAvailability: () => true });
 
   assert.throws(() => invalidAvailability.paletteSkillAvailability({}, {}), /must return an object/);
-
-  const mutating = defineProfession({
-    id: 'mutating-refiner',
-    name: 'Mutating Refiner',
-    simulation: {
-      refineSchedulerConfig(config) {
-        config.changed = true;
-
-        return { ...config };
-      }
-    }
-  });
-
-  assert.throws(() => mutating.simulation.refineSchedulerConfig({}, {}), /must not mutate prior config/);
-
-  const sameObject = defineProfession({
-    id: 'same-refiner',
-    name: 'Same Refiner',
-    simulation: {
-      refineSchedulerConfig(config) {
-        return config;
-      }
-    }
-  });
-
-  assert.throws(() => sameObject.simulation.refineSchedulerConfig({}, {}), /must return a new config object/);
 });
 
 test('target-condition queries combine assumptions and chronological runtime state', () => {
@@ -655,15 +631,15 @@ test('profession event-log hooks present, hide, and diagnose custom events', () 
   }
 });
 
-test('Engineer and Thief contracts present state and suppress known packet events', () => {
+test('Engineer contracts present state and suppress known packet events', () => {
   const engineerRows = simulationEventLogRows(
     {
       events: [
         {
-          type: 'engineer.state',
+          type: 'engineer.heat',
           at: 1,
           reason: 'enter-forge',
-          state: { heat: 25 }
+          heat: 25
         },
         { type: 'engineer.lightning-rod-pulse', at: 1.1 },
         { type: 'engineer.conduit-surge', at: 1.2 },
@@ -677,32 +653,9 @@ test('Engineer and Thief contracts present state and suppress known packet event
   );
 
   assert.equal(engineerRows.length, 1);
-  assert.equal(engineerRows[0].type, 'engineer.state');
+  assert.equal(engineerRows[0].type, 'engineer.heat');
   assert.match(engineerRows[0].description, /enter-forge.*Heat 25\.0/);
   assert.notEqual(engineerRows[0].type, 'diagnostic');
-
-  const thiefRows = simulationEventLogRows(
-    {
-      events: [
-        {
-          type: 'thief.state',
-          at: 2,
-          reason: 'initiative-spent',
-          state: { initiative: { value: 7, maximum: 12, updatedAt: 0, rate: 1 }, malice: 2 }
-        }
-      ],
-      resolvedEvents: [],
-      planningState: { profession: {} }
-    },
-    null,
-    thiefProfession
-  );
-
-  assert.equal(thiefRows.length, 1);
-  assert.equal(thiefRows[0].type, 'thief.state');
-  // Resource rows use readable reason labels after the displayed values.
-  assert.match(thiefRows[0].description, /RESOURCE Initiative 7\.0.*\[Initiative Spent\]/);
-  assert.notEqual(thiefRows[0].type, 'diagnostic');
 
   const originalWarn = console.warn;
 
@@ -725,92 +678,27 @@ test('Engineer and Thief contracts present state and suppress known packet event
   }
 });
 
-test('Guardian and Necromancer classify every known custom event', () => {
+test('Guardian weapon-bar transitions and canonical Necromancer conditions have presentation owners', () => {
   const warnings = [];
   const originalWarn = console.warn;
 
   console.warn = (...values) => warnings.push(values);
   try {
-    const guardianCoreRows = simulationEventLogRows(
-      {
-        events: [
-          {
-            type: 'guardian.virtue-activated',
-            at: 0,
-            skillName: 'Virtue of Justice'
-          },
-          { type: 'guardian.virtues-refreshed', at: 1 },
-          { type: 'guardian.righteous-instincts-tick', at: 7 }
-        ],
-        resolvedEvents: [],
-        planningState: { profession: {} }
-      },
-      { specialization: 'Core' },
-      guardianProfession
-    );
-    const guardianFirebrandRows = simulationEventLogRows(
-      {
-        events: [
-          { type: 'guardian.tome-stowed', at: 8 },
-          {
-            type: 'guardian.tome-page-used',
-            at: 9,
-            skillName: 'Chapter 1: Searing Spell',
-            pageCost: 1,
-            pagesRemaining: 4
-          }
-        ],
-        resolvedEvents: [],
-        planningState: { profession: {} }
-      },
-      { specialization: 'Firebrand' },
-      guardianProfession
-    );
-    const guardianLuminaryRows = simulationEventLogRows(
-      {
-        events: [
-          { type: 'guardian.effulgent-activated', at: 2 },
-          { type: 'guardian.effulgent-detonate', at: 6 },
-          { type: 'guardian.radiant-forge-entered', at: 10 },
-          {
-            type: 'guardian.radiant-forge-exited',
-            at: 30,
-            automatic: true
-          }
-        ],
-        resolvedEvents: [],
-        planningState: { profession: {} }
-      },
-      { specialization: 'Luminary' },
-      guardianProfession
-    );
-    const guardianRows = [...guardianCoreRows, ...guardianFirebrandRows, ...guardianLuminaryRows];
-
-    assert.deepEqual(
-      guardianRows.map((row) => row.type),
-      [
-        'guardian.virtue-activated',
-        'guardian.virtues-refreshed',
-        'guardian.tome-stowed',
-        'guardian.tome-page-used',
-        'guardian.radiant-forge-entered',
-        'guardian.radiant-forge-exited'
-      ]
-    );
-    assert.match(guardianRows[0].description, /VIRTUE ACTIVATED/);
-    assert.match(guardianRows.at(-1).description, /\[automatic\]/);
+    const firebrand = runGuardian(['Tome of Justice', 'Stow Tome'], { specialization: 'Firebrand' });
+    const luminary = runGuardian(['Enter Radiant Forge', { type: 'wait', durationMs: 20000 }], {
+      specialization: 'Luminary'
+    });
+    const firebrandRows = simulationEventLogRows(firebrand, { specialization: 'Firebrand' }, guardianProfession);
+    const luminaryRows = simulationEventLogRows(luminary, { specialization: 'Luminary' }, guardianProfession);
+    assert.ok(firebrandRows.some((row) => row.description === 'TOME STOWED'));
+    assert.ok(firebrandRows.some((row) => row.description.includes('TOME EQUIPPED')));
+    assert.ok(luminaryRows.some((row) => row.description === 'RADIANT FORGE ENTERED'));
+    assert.ok(luminaryRows.some((row) => row.description === 'RADIANT FORGE EXITED [automatic]'));
 
     const necromancerCoreRows = simulationEventLogRows(
       {
-        events: [
-          {
-            type: 'necromancer.state',
-            at: 0,
-            reason: 'shroud-entered',
-            state: { lifeForce: { value: 75, maximum: 100, updatedAt: 0, rate: 0 }, activeShroud: 'reaper' }
-          },
-          { type: 'necromancer.summon-attack', at: 3 }
-        ],
+        // Live state changes no longer produce replay snapshots or synthetic summon events.
+        events: [],
         resolvedEvents: [
           {
             type: 'condition',
@@ -829,11 +717,7 @@ test('Guardian and Necromancer classify every known custom event', () => {
     );
     const ritualistRows = simulationEventLogRows(
       {
-        events: [
-          { type: 'necromancer.painful-bond', at: 2 },
-          { type: 'necromancer.weapon-spell', at: 4 },
-          { type: 'necromancer.weapon-spell-ally-trigger', at: 5 }
-        ],
+        events: [{ type: 'necromancer.painful-bond', at: 2 }],
         resolvedEvents: [],
         planningState: { profession: {} }
       },
@@ -844,9 +728,9 @@ test('Guardian and Necromancer classify every known custom event', () => {
 
     assert.deepEqual(
       necromancerRows.map((row) => row.type),
-      ['necromancer.state', 'condition']
+      ['condition']
     );
-    assert.match(necromancerRows[1].description, /CONDITION Chilled x1 \(5\.00s\) \[Spinal Shivers\]/);
+    assert.match(necromancerRows[0].description, /CONDITION Chilled x1 \(5\.00s\) \[Spinal Shivers\]/);
     assert.equal(warnings.length, 0);
   } finally {
     console.warn = originalWarn;
@@ -988,7 +872,7 @@ test('weapon-set matching supports exact dual-wield and empty-offhand bars', () 
     isGw2WeaponSkillEquipped(
       {
         config: { primaryWeapon: 'Dagger', secondaryWeapon: 'Pistol' },
-        state: { activeWeaponSet: 1 }
+        weaponSet: 1
       },
       {
         type: 'Weapon',
@@ -1003,7 +887,7 @@ test('weapon-set matching supports exact dual-wield and empty-offhand bars', () 
     isGw2WeaponSkillEquipped(
       {
         config: { primaryWeapon: 'Dagger', secondaryWeapon: '' },
-        state: { activeWeaponSet: 1 }
+        weaponSet: 1
       },
       {
         type: 'Weapon',

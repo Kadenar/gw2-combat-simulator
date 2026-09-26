@@ -1,5 +1,7 @@
+import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { resolverSourceSkill } from '#gw2/platform/resolver/packets.js';
-import { EPSILON } from '#kernel/core/clock.js';
 /** Imperative Fire trait behavior; dispatch order remains centralized in the trait index. */
 import {
   requireBalanceProfileFromContext,
@@ -7,18 +9,18 @@ import {
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import {
+  emitElementalistBuff,
+  emitElementalistCondition,
+  emitElementalistDamage
+} from '#gw2/professions/elementalist/core/live-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import type {
-  ElementalistCastContext as ElementalistLifecycleContext,
-  ElementalistSchedulerContext
-} from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   combatStarted,
@@ -39,7 +41,7 @@ const FLAME_EXPULSION_ICON = 'https://render.guildwars2.com/file/998095CB1FD2CF0
 
 // Materialize Sunspot's aura, strike, Burning, and proc at the entry timestamp.
 export function triggerSunspot(
-  context: ElementalistSchedulerContext,
+  context: ElementalistRuntime,
   at: number,
   sourceId: Skill['id'],
   applyAura: ElementalistAuraApplier
@@ -47,7 +49,7 @@ export function triggerSunspot(
   if (!combatStarted(context, at) || !hasTrait(context, 'Sunspot')) return;
 
   // Keep strike and Burning attribution aligned with the actual attunement or overload that triggered Sunspot.
-  const sourceSkill = context.catalog.skillsById.get(sourceId)?.name || '';
+  const sourceSkill = context.helpers.skillsById.get(sourceId)?.name || '';
   const sunspotProfile = requireBalanceProfileFromContext(context, PROFILE.sunspot);
   const sunspotAura = requireEffect(sunspotProfile, 'buff', 'Sunspot Aura');
   if (sunspotAura) {
@@ -62,7 +64,7 @@ export function triggerSunspot(
 
   const sunspotStrike = requireEffect(sunspotProfile, 'strike', 'Sunspot');
   if (sunspotStrike) {
-    emitSkillDamage(context, {
+    emitElementalistDamage(context, {
       at,
       source: 'Sunspot',
       sourceId,
@@ -93,21 +95,25 @@ export function triggerSunspot(
 }
 
 // Snapshot capped Might on Fire exit; the delayed blast damages enemies and grants that Might to other allies.
-export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at: number, sourceId: Skill['id']): void {
+export function triggerFlameExpulsion(context: ElementalistRuntime, at: number, sourceId: Skill['id']): void {
   if (!combatStarted(context, at) || !hasTrait(context, "Pyromancer's Puissance")) return;
 
   const pyromancersPuissanceProfile = requireBalanceProfileFromContext(context, PROFILE.pyromancersPuissance);
   const impactAt = at + balanceProfileNumber(pyromancersPuissanceProfile, 'initialDelay');
   const cappedMight = Math.min(
     balanceProfileNumber(pyromancersPuissanceProfile, 'maximumStacks'),
-    context.buffStacks('might', at)
+    context.config.boons?.might
+      ? Number(context.config.boons.might)
+      : buffApplicationStacks(context.boons.get('might') ?? [], 'might', at, 25, {
+          includes: (application) => application.resolvedAudience?.includesSelf !== false
+        })
   );
   const flameExpulsionStrike = requireEffect(pyromancersPuissanceProfile, 'strike', 'Flame Expulsion');
   const flameExpulsionCondition = requireEffect(pyromancersPuissanceProfile, 'condition', 'Flame Expulsion');
   if (flameExpulsionStrike) {
     const baseCoefficient = effectNumber(pyromancersPuissanceProfile, flameExpulsionStrike, 'coefficient');
     const coefficientPerMight = balanceProfileNumber(pyromancersPuissanceProfile, 'damageIncreasePerStack');
-    emitSkillDamage(context, {
+    emitElementalistDamage(context, {
       at: impactAt,
       source: 'Flame Expulsion',
       sourceId,
@@ -124,7 +130,7 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
     const baseBurningDuration = Number(flameExpulsionCondition.duration);
     const burningDurationPerMight = balanceProfileNumber(pyromancersPuissanceProfile, 'durationPerTier');
 
-    emitSkillCondition(context, {
+    emitElementalistCondition(context, {
       skill: elementalistEventSkill(context, 'Flame Expulsion', sourceId),
       at: impactAt,
       source: 'Flame Expulsion',
@@ -147,7 +153,8 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
   );
   if (cappedMight > 0) {
     if (pyromancersPuissanceFlameExpulsionMight) {
-      emitSkillBuff(context, elementalistEventSkill(context, 'Flame Expulsion', sourceId), {
+      emitElementalistBuff(context, {
+        skill: elementalistEventSkill(context, 'Flame Expulsion', sourceId),
         at: impactAt,
         source: 'Flame Expulsion',
         sourceId,
@@ -166,14 +173,14 @@ export function triggerFlameExpulsion(context: ElementalistSchedulerContext, at:
       name: 'Flame Expulsion',
       procType: 'trait',
       sourceId,
-      sourceSkill: context.catalog.skillsById.get(sourceId)?.name,
+      sourceSkill: context.helpers.skillsById.get(sourceId)?.name,
       icon: FLAME_EXPULSION_ICON
     });
 }
 
 /** Grants Pyromancer's Puissance might after an in-combat Fire-attuned cast. */
-export function applyPyromancersPuissance(context: ElementalistLifecycleContext, skill: Skill): void {
-  const at = context.effectiveEnd;
+export function applyPyromancersPuissance(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
+  const at = cast.effectiveEnd;
   if (
     !hasTrait(context, "Pyromancer's Puissance") ||
     professionCoreState(context).primaryAttunement !== 'Fire' ||
@@ -191,63 +198,93 @@ export function elementalistAuraDuration(context: unknown, duration: number): nu
     : duration;
 }
 
-// Extend weapon Fire-field packets identified by catalog metadata, preserving their authored cadence.
-export function extendPersistingFlamesPackets(context: ElementalistLifecycleContext, skill: Skill): void {
+/** Extend authored weapon Fire fields without editing already queued packets. */
+export function extendPersistingFlamesEffects(
+  context: ElementalistRuntime,
+  skill: Skill,
+  effects: readonly SkillEffect[]
+): readonly SkillEffect[] {
   if (
     !hasTrait(context, 'Persisting Flames') ||
     skill.type !== 'Weapon' ||
     !skill.comboFields?.some((field) => field.fieldType === 'Fire')
   )
-    return;
-
-  const fieldPackets = context.events
-    .filter(
-      (event) =>
-        event.activationId === context.reservationId && event.type === 'damage' && event.damageKind === 'field-tick'
+    return effects;
+  const strikes = effects
+    .flatMap((effect) =>
+      effect.type !== 'strike'
+        ? []
+        : (
+            effect.ticks ?? [
+              {
+                atMs: 0,
+                coefficient: Number(effect.coefficient),
+                damageKind: effect.damageKind,
+                metadata: effect.metadata
+              }
+            ]
+          )
+            .filter((tick) => (tick.damageKind ?? effect.damageKind) === 'field-tick')
+            .map((tick) => ({ effect, tick, at: Number(effect.atMs ?? 0) + Number(tick.atMs) }))
     )
-    .sort((left, right) => left.at - right.at);
-  if (fieldPackets.length < 2) return;
-  const template = fieldPackets.at(-1);
-  const previous = fieldPackets.at(-2);
-  if (!template || !previous) return;
-  const interval = template.at - previous.at;
-  if (!(interval > EPSILON)) return;
-  const attachedConditions = context.events.filter(
-    (event) =>
-      event.activationId === context.reservationId &&
-      event.type === 'condition' &&
-      Math.abs(event.at - template.at) <= EPSILON
+    .sort((a, b) => a.at - b.at);
+  const last = strikes.at(-1),
+    previous = strikes.at(-2);
+  if (!last || !previous || last.at <= previous.at) return effects;
+  const interval = last.at - previous.at;
+  const count = Math.max(
+    0,
+    Math.trunc(balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.persistingFlames), 'summons'))
   );
-  const persistingFlamesProfile = requireBalanceProfileFromContext(context, PROFILE.persistingFlames);
-  const extraPackets = Math.max(0, Math.trunc(balanceProfileNumber(persistingFlamesProfile, 'summons')));
-  for (let index = 1; index <= extraPackets; index += 1) {
-    const at = template.at + interval * index;
-    context.emit({ ...template, at, metadata: { ...template.metadata, largeHitboxOnly: false } });
-    for (const condition of attachedConditions) {
-      context.emit({ ...condition, at, metadata: { ...condition.metadata, largeHitboxOnly: false } });
+  const extra: SkillEffect[] = [];
+  for (let index = 1; index <= count; index++) {
+    extra.push({
+      ...last.effect,
+      atMs: 0,
+      ticks: [
+        { ...last.tick, atMs: last.at + interval * index, metadata: { ...last.tick.metadata, largeHitboxOnly: false } }
+      ]
+    });
+    for (const effect of effects) {
+      if (effect.type !== 'condition') continue;
+      for (const tick of effect.ticks ?? [
+        {
+          atMs: 0,
+          condition: String(effect.condition),
+          stacks: Number(effect.stacks),
+          duration: Number(effect.duration),
+          metadata: effect.metadata
+        }
+      ]) {
+        if (Number(effect.atMs ?? 0) + Number(tick.atMs) === last.at)
+          extra.push({
+            ...effect,
+            atMs: 0,
+            ticks: [
+              { ...tick, atMs: last.at + interval * index, metadata: { ...tick.metadata, largeHitboxOnly: false } }
+            ]
+          });
+      }
     }
   }
+
+  return [...effects, ...extra];
 }
 
-/** Extend scheduled Fire fields from weapon skills; profession fields only qualify for stack generation. */
-export function extendPersistingFlamesField(context: ElementalistSchedulerContext, event: SimulationEvent): void {
-  if (
-    event.type !== 'action' ||
-    !hasTrait(context, 'Persisting Flames') ||
-    context.catalog.skillsById.get(event.skillId ?? event.sourceId ?? '')?.type !== 'Weapon'
-  )
-    return;
-  const field = context.events.find(
-    (candidate) =>
-      candidate.type === 'combo_field' &&
-      candidate.activationId === event.activationId &&
-      candidate.fieldType === 'Fire'
+/** Field registration uses the same extension as the extra authored pulses. */
+export function extendPersistingFlamesFields(
+  context: ElementalistRuntime,
+  cast: RuntimeCast,
+  fields: Skill['comboFields']
+): Skill['comboFields'] {
+  if (!hasTrait(context, 'Persisting Flames') || cast.skill.type !== 'Weapon') return fields;
+  const extension = balanceProfileNumber(
+    requireBalanceProfileFromContext(context, PROFILE.persistingFlames),
+    'durationPerTier'
   );
-  if (!field) return;
-  const persistingFlamesProfile = requireBalanceProfileFromContext(context, PROFILE.persistingFlames);
-  context.replaceEvent(field, {
-    expiresAt: Number(field.expiresAt) + balanceProfileNumber(persistingFlamesProfile, 'durationPerTier')
-  });
+  return fields?.map((field) =>
+    field.fieldType === 'Fire' ? { ...field, duration: Number(field.duration) + extension } : field
+  );
 }
 
 /** Materializes Burning Precision after its registered critical-hit reaction succeeds. */

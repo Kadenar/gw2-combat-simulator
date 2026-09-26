@@ -1,47 +1,20 @@
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import {
-  REVENANT_LEGEND_IDS as LEGEND,
-  REVENANT_SKILL_IDS as ID,
-  REVENANT_TRAIT_IDS as TRAIT
-} from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState
 } from '#gw2/professions/revenant/core/traits/modifiers.js';
-import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
-import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '#gw2/professions/revenant/core/traits/index.js';
-import {
-  grantKallasFervor,
-  activeKallasFervorStacks
-} from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
-import {
-  RENEGADE_PROFILE_IDS,
-  RENEGADE_SPIRIT_BOON_PROFILE_ID
-} from '#gw2/professions/revenant/specializations/renegade/profiles.js';
-import {
-  renegadeCriticalReaction,
-  razorclawReaction,
-  initializeRenegadeTraits,
-  applyAshenDemeanor,
-  modifyRenegadeCastDuration,
-  modifyRenegadeRechargeDuration,
-  observeRenegadeTraits
-} from '#gw2/professions/revenant/specializations/renegade/traits/index.js';
+import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { RevenantCastContext, RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { revenantEndurance } from '#gw2/professions/revenant/core/mechanics/energy.js';
+import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 
 function kallasFervorStacks(context: Gw2ModifierContext): number {
   return activeKallasFervorStacks(revenantRuntimeSpecializationState(context, 'Renegade'), context.time);
@@ -118,7 +91,7 @@ export const renegadeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 function modifyRenegadeCriticalChance(context: Gw2ModifierContext, chance: number): number {
   if (!hasTrait(context, TRAIT.BRUTAL_MOMENTUM)) return chance;
   const state = revenantRuntimeCoreState(context);
-  const maximum = revenantEndurance.maximum(context);
+  const maximum = REVENANT_MAXIMUM_ENDURANCE;
   // 1e-9 tolerance handles floating-point endurance values that should be exactly at cap
   const full = maximum > 0 && Number(state.endurance || 0) >= maximum - 1e-9;
   const brutalMomentumProfile = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.brutalMomentum);
@@ -129,130 +102,4 @@ function modifyRenegadeCriticalChance(context: Gw2ModifierContext, chance: numbe
 export const renegadeAttributeRules = Object.freeze({
   modifierRules: renegadeModifierRules,
   modifyCriticalChance: modifyRenegadeCriticalChance
-});
-
-export const renegadeCastRules = Object.freeze({
-  modifyCastDuration: modifyRenegadeCastDuration,
-  modifyRechargeDuration: modifyRenegadeRechargeDuration
-});
-
-function afterRenegadeCast(context: RevenantCastContext, skill: RevenantSkill): void {
-  applyAshenDemeanor(context, skill);
-  if (skill.id !== ID.SOULCLEAVES_SUMMIT) return;
-  const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === skill.id);
-  if (!active) return;
-  const allies = gw2AlliedPlayerAssumptions(context.config);
-  if (!allies.count || !allies.strikesPerSecond) return;
-  // Start at least one second after activation; preserve the old pre-completion advance ordering.
-  soulcleaveAlliedProcs.start(context, {
-    key: String(skill.id),
-    at: context.effectiveEnd + Math.max(1, 1 / allies.strikesPerSecond),
-    captured: {},
-    ownerId: `revenant.upkeep:${skill.id}`
-  });
-}
-
-/** Deliver each allied proc at its own deadline, with upkeep ownership handling release and starvation. */
-const soulcleaveAlliedProcs = timedEffect<RevenantSchedulerContext, object>({
-  id: 'revenant.soulcleave-allied-proc',
-  priority: -200,
-  interval: (context) =>
-    Math.max(
-      Number(context.catalog.skillsById.get(RENEGADE_PROFILE_IDS.soulcleavesSummitProc)?.cooldown || 0),
-      1 / gw2AlliedPlayerAssumptions(context.config).strikesPerSecond
-    ),
-  effectsAt(context, at) {
-    const active = professionCoreState(context).activeUpkeeps.find(
-      (upkeep) => upkeep.skillId === ID.SOULCLEAVES_SUMMIT
-    );
-    if (!active) return false;
-
-    const skill = context.catalog.skillsById.get(ID.SOULCLEAVES_SUMMIT);
-    const proc = context.catalog.skillsById.get(RENEGADE_PROFILE_IDS.soulcleavesSummitProc);
-    const allies = gw2AlliedPlayerAssumptions(context.config);
-    if (!skill || !proc || !allies.count || !allies.strikesPerSecond) return false;
-    for (let allyIndex = 1; allyIndex <= allies.count; allyIndex += 1) {
-      for (const effect of proc.effects || []) {
-        const applications = materializeSkillEffectApplications({
-          skill: proc,
-          effect,
-          start: at,
-          fullEnd: at,
-          baseEvent: {
-            source: 'revenant',
-            sourceId: skill.id,
-            actorType: effect.actorType || 'effect',
-            skillId: skill.id,
-            skillName: skill.name
-          },
-          skillWeaponFallback: 'Unequipped'
-        });
-        for (const application of applications) {
-          context.emit({
-            ...application.event,
-            name: String(application.event.name || proc.name).replace(
-              "Soulcleave's Summit — ",
-              `Soulcleave's Summit — Ally ${allyIndex} `
-            )
-          });
-        }
-      }
-    }
-  }
-});
-
-function observeRenegadeEvent(context: RevenantSchedulerContext, event: SimulationEvent): void {
-  if (
-    // sigil_swap events fire on every legend swap; we only care about swaps into Renegade
-    event.type !== 'sigil_swap' ||
-    professionCoreState(context).activeLegendId !== LEGEND.RENEGADE ||
-    // Spirit Boon and Song of the Mists only trigger during active combat, not pre-cast
-    !revenantCombatActive(context, event.at)
-  ) {
-    return;
-  }
-
-  if (hasTrait(context.config, TRAIT.SPIRIT_BOON)) {
-    emitLegendInvocationProfile(context, RENEGADE_SPIRIT_BOON_PROFILE_ID, event.at, TRAIT.SPIRIT_BOON);
-  }
-
-  if (!hasTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
-  const song = context.catalog.skillsById.get(ID.CALL_OF_THE_RENEGADE);
-  if (!song) return;
-  emitLegendInvocationSkill(context, ID.CALL_OF_THE_RENEGADE, event.at, TRAIT.SONG_OF_THE_MISTS);
-  // Song of the Mists grants 2 Kalla's Fervor stacks on each legend swap
-  for (let index = 0; index < 2; index += 1) {
-    grantKallasFervor(context, event, {
-      at: event.at,
-      sourceId: TRAIT.SONG_OF_THE_MISTS,
-      sourceName: song.name
-    });
-  }
-}
-
-export const renegadeSchedulerHooks = Object.freeze({
-  initialize: {
-    id: 'revenant.renegade-traits',
-    order: 20,
-    handler: initializeRenegadeTraits
-  },
-  afterCast: {
-    id: 'revenant.renegade-upkeep-start',
-    order: 20,
-    handler: afterRenegadeCast
-  },
-  onEventScheduled: {
-    id: 'revenant.renegade-legend-invocation',
-    order: 20,
-    handler: (context: RevenantSchedulerContext, event: SimulationEvent): void => {
-      // Trait reactions (Ambush Commander, Endless Enmity, Blood Fury, etc.) run before legend-invocation effects so that fervor state is current when Song of the Mists fires
-      observeRenegadeTraits(context, event);
-      observeRenegadeEvent(context, event);
-    }
-  },
-  taskHandlers: Object.freeze({
-    ...soulcleaveAlliedProcs.taskHandlers,
-    ...renegadeCriticalReaction.taskHandlers,
-    ...razorclawReaction.taskHandlers
-  })
 });

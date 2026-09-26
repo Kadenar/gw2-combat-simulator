@@ -1,4 +1,5 @@
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { isCombatEntryEvent } from '#gw2/platform/combat/state/targets.js';
 import { timedBuffAt, timedBuffStacksAt } from '#gw2/platform/results/query.js';
 import {
   formatSecondsRemaining,
@@ -55,7 +56,7 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
 /** Presents gunsaber and Dragon Trigger gates owned by the Bladesworn slice. */
 function availability(context: WarriorUiContext, skill: WarriorSkill): PaletteSkillAvailability {
   const state = warriorUiState(context);
-  // Keep the stow action usable while authoring; the scheduler validates live state.
+  // Keep the stow action usable while authoring; the runtime validates live state.
   if (skill.id === ID.SHEATHE_GUNSABER) return { available: true, message: '' };
   if (skill.gunsaberSkill) {
     if ((skill.dragonSlash || skill.dragonTriggerSkill) && !state.dragonTriggerActive) {
@@ -187,7 +188,14 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     }
 
     // Keep Flow visible after temporary stacks expire; the base stack starts at the combat boundary.
-    const baseStacks = result?.hasExplicitCombatStart && at < (result.combatStartTime ?? Infinity) ? 0 : 1;
+    const baseStacks = result?.events.some(
+      (event) =>
+        event.at <= at &&
+        (!result.hasExplicitCombatStart || event.at >= Number(result.combatStartTime ?? Infinity)) &&
+        isCombatEntryEvent(event)
+    )
+      ? 1
+      : 0;
     const stacks = positiveFlowSources.reduce((total, source) => total + source.stacks, baseStacks);
     const remaining = positiveFlowSources.length
       ? Math.min(...positiveFlowSources.map((source) => source.expiresAt)) - at

@@ -1,9 +1,10 @@
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { scheduleSyncopateDrumWave } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { mesmerConditionFromProfile, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { withMesmerCastEmission } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -15,22 +16,22 @@ import {
   activeTroubadourInstrumentsAt,
   troubadourState
 } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
-import type { MesmerCastContext, MesmerInstrument } from '#gw2/professions/mesmer/types.js';
+import type { MesmerRuntime, MesmerInstrument } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { scheduleDeclarativeEffects } from '#gw2/platform/execution/effect-adapter.js';
+import { emitMesmerEffects } from '#gw2/professions/mesmer/core/live-events.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 /** Resolves an instrument's player or afterimage packets with their Troubadour trait interactions. */
 function instrumentAttack(
-  context: MesmerCastContext,
+  context: MesmerRuntime,
   skill: MesmerSkill,
   data: MesmerInstrument,
   damageAt: number,
   source = 'Player',
   actorType: 'player' | 'summon' = 'player'
 ): void {
-  const runtime = mesmerRuntimeFor(context);
+  const runtime = mesmerMechanicsFor(context);
   const shredding =
     data.instrument === 'Lute' && runtime.traits.has(TRAIT.SHREDDING)
       ? requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.SHREDDING), 'strike', 'Strike')
@@ -78,7 +79,7 @@ function instrumentAttack(
   }
 
   // Player and valid afterimage impacts use the same authored control with distinct ownership.
-  scheduleDeclarativeEffects(
+  emitMesmerEffects(
     context,
     {
       ...skill,
@@ -90,10 +91,8 @@ function instrumentAttack(
           actorType
         }))
     },
-    context.reservationId,
     damageAt,
-    damageAt,
-    actorType === 'summon' ? damageAt : Math.min(damageAt, context.effectiveEnd)
+    damageAt
   );
 
   if (data.instrument === 'Drum') scheduleSyncopateDrumWave(context, skill, damageAt, source, actorType);
@@ -109,7 +108,7 @@ function instrumentAttack(
         at: damageAt,
         kind: effect.boon,
         stacks: effect.stacks,
-        duration: gw2SchedulerBoonDuration(context, skill, String(effect.boon), Number(effect.duration)),
+        duration: Number(effect.duration),
         skillName: skill.name,
         sourceSkill: skill.name,
         audience: { recipients: 'party', maximumRecipients: 5 }
@@ -119,12 +118,17 @@ function instrumentAttack(
 }
 
 /** Spends notes and commits the active-instrument state after its cast completes. */
-function commitInstrument(context: MesmerCastContext, skill: MesmerSkill, data: MesmerInstrument, at: number): void {
+function commitInstrument(
+  context: MesmerRuntime,
+  cast: RuntimeCast,
+  skill: MesmerSkill,
+  data: MesmerInstrument,
+  at: number
+): void {
   at = canonicalTime(at);
-  const runtime = mesmerRuntimeFor(context);
+  const runtime = mesmerMechanicsFor(context);
   const spent = runtime.actions.consumeResources(at, {
-    sourceSkill: skill.name,
-    rotationIndex: context.commandIndex
+    activationId: cast.id
   });
   const instrumentsProfile = requireBalanceProfileFromContext(runtime, PROFILE.instruments);
   const baseDuration = balanceProfileNumber(instrumentsProfile, 'durationMultiplier');
@@ -133,6 +137,7 @@ function commitInstrument(context: MesmerCastContext, skill: MesmerSkill, data: 
   const expiresAt = canonicalTime(at + baseDuration + spent * durationPerNote);
   const state = troubadourState.from(context);
   state.instruments[data.instrument] = expiresAt;
+  context.schedule('mesmer.instrument-expire', expiresAt, { instrument: data.instrument, expiresAt });
   state.lastInstrument = data.instrument;
   runtime.addEvent({
     type: 'mesmer.instrument',
@@ -160,7 +165,7 @@ function commitInstrument(context: MesmerCastContext, skill: MesmerSkill, data: 
 
   if (runtime.traits.has(TRAIT.ALTERED_CHORD) && spent > 0) {
     const crescendo = runtime.skillsById.get(ID.CRESCENDO);
-    const ready = crescendo ? context.state.cooldowns.get(crescendo.id) : undefined;
+    const ready = crescendo ? context.cooldowns.get(crescendo.id) : undefined;
     if (crescendo && ready) {
       const alteredChordProfile = requireBalanceProfileFromContext(runtime, TRAIT.ALTERED_CHORD);
       context.cooldownController.reduceSkillRecharge(
@@ -173,11 +178,14 @@ function commitInstrument(context: MesmerCastContext, skill: MesmerSkill, data: 
 }
 
 /** Resolves Crescendo against the instruments active at its cast-start packet timestamp. */
-function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: number): void {
-  const runtime = mesmerRuntimeFor(context);
+export function resolveCrescendo(context: MesmerRuntime, cast: RuntimeCast, skill: MesmerSkill, at: number): void {
+  const runtime = mesmerMechanicsFor(context);
   const state = troubadourState.from(context);
-  const damageAt = canonicalTime(context.start + Number(skill.damageAtMs || 0) / 1000);
-  const activeInstruments = activeTroubadourInstrumentsAt(context.eventsOfType('mesmer.instrument'), damageAt);
+  const damageAt = canonicalTime(cast.start + Number(skill.damageAtMs || 0) / 1000);
+  const activeInstruments = activeTroubadourInstrumentsAt(
+    context.history.filter((event) => event.type === 'mesmer.instrument'),
+    damageAt
+  );
   const crescendoProfile = requireBalanceProfileFromContext(runtime, PROFILE.crescendo);
   const strike = requireEffect(crescendoProfile, 'strike', 'Strike');
   // Fragmentation replaces Crescendo's per-instrument effectiveness with the trait's improved value.
@@ -209,7 +217,7 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
         at: damageAt,
         kind: String(effect.boon),
         stacks: Number(effect.stacks),
-        duration: gw2SchedulerBoonDuration(context, skill, String(effect.boon), Number(effect.duration)),
+        duration: Number(effect.duration),
         skillName: skill.name,
         sourceSkill: skill.name,
         audience: { recipients: 'party' as const, maximumRecipients: 5 }
@@ -269,21 +277,21 @@ function resolveCrescendo(context: MesmerCastContext, skill: MesmerSkill, at: nu
 }
 
 /** Registers performance packets at cast start while leaving note spending and instrument state at completion. */
-export function scheduleTroubadourPerformance(context: MesmerCastContext, skill: MesmerSkill): void {
-  if (context.action.cancelled) return;
-  const runtime = mesmerRuntimeFor(context);
+export function scheduleTroubadourPerformance(context: MesmerRuntime, cast: RuntimeCast, skill: MesmerSkill): void {
+  if (cancelledBeforeInterruptCommit(skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+  const runtime = mesmerMechanicsFor(context);
   const instrument = runtime.instruments[skill.id];
   if (!instrument && skill.id !== ID.CRESCENDO) return;
-  withMesmerCastEmission(context, skill, () => {
+  withMesmerCastEmission(context, cast, skill, () => {
     if (instrument) {
-      instrumentAttack(context, skill, instrument, context.start + Number(instrument.damageAtMs || 0) / 1000);
+      instrumentAttack(context, skill, instrument, cast.start + Number(instrument.damageAtMs || 0) / 1000);
       if (instrument.instrument === 'Harp') {
         const instrumentsProfile = requireBalanceProfileFromContext(runtime, PROFILE.instruments);
         const distortion = requireEffect(instrumentsProfile, 'buff', 'distortion');
         if (distortion)
           runtime.addEvent({
             type: 'buff',
-            at: context.start,
+            at: cast.start,
             kind: 'distortion',
             stacks: Number(distortion.stacks),
             duration: Number(distortion.duration),
@@ -291,21 +299,22 @@ export function scheduleTroubadourPerformance(context: MesmerCastContext, skill:
           });
       }
     } else {
-      resolveCrescendo(context, skill, context.fullEnd);
+      // Instrument state is read when the strike occurs, after intervening accepted performances.
+      context.schedule('mesmer.crescendo', cast.start + Number(skill.damageAtMs || 0) / 1000, cast);
     }
   });
 }
 
 /** Commits Troubadour instrument state while preserving Harp's interrupt commit point. */
-export function completeTroubadourPerformance(context: MesmerCastContext, skill: MesmerSkill): void {
+export function completeTroubadourPerformance(context: MesmerRuntime, cast: RuntimeCast, skill: MesmerSkill): void {
   // Cancelled performances retain their notes; committed Harp interruptions still activate the instrument.
-  if (context.action.cancelled) return;
+  if (cancelledBeforeInterruptCommit(skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
 
-  const runtime = mesmerRuntimeFor(context);
+  const runtime = mesmerMechanicsFor(context);
   const instrument = runtime.instruments[skill.id];
   if (!instrument) return;
 
-  const interrupted = castWasInterrupted(context);
-  const at = interrupted && instrument?.instrument === 'Harp' ? context.effectiveEnd : context.fullEnd;
-  withMesmerCastEmission(context, skill, () => commitInstrument(context, skill, instrument, at));
+  const interrupted = castWasInterrupted(cast);
+  const at = interrupted && instrument?.instrument === 'Harp' ? cast.effectiveEnd : cast.fullEnd;
+  withMesmerCastEmission(context, cast, skill, () => commitInstrument(context, cast, skill, instrument, at));
 }

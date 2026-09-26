@@ -1,4 +1,3 @@
-import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -6,34 +5,37 @@ import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import {
-  alliedAttackOpportunities,
-  startAlliedAttackOpportunities
-} from '#gw2/professions/necromancer/core/mechanics/life-force.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator, observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
-// Advancing in smaller windows must neither restart allied clocks nor duplicate their boundary events.
+// Partitioning waits must not restart independent allied cadences or duplicate boundary work.
 test('allied attack clocks preserve independent intervals across partitioned and repeated advances', () => {
   const run = (targets, selectedTraitIds, combatStartTime = 1) => {
     const config = { specialization: 'Core', selectedTraitIds, allies: { count: 2, strikesPerSecond: 4 } };
-    const events = [];
-    const context = {
+    const native = necromancerProfession.liveRuntimeFor(config);
+    const pulses = [];
+    let previous = 0;
+    const rotation = targets.map((at) => {
+      const wait = { type: 'wait', durationMs: (at - previous) * 1000 };
+      previous = at;
+      return wait;
+    });
+    observeGw2Runtime({
       config,
-      catalog: necromancerCatalog,
-      state: { profession: necromancerProfession.resolveRuntime(config).createProfessionState(config) },
-      hasExplicitCombatStart: true,
+      rotation,
       combatStartTime,
-      events,
-      emit: (event) => {
-        events.push(event);
-        return event;
+      profession: {
+        ...native,
+        tasks: {
+          ...native.tasks,
+          'necromancer.allied-opportunity'(runtime, pulse) {
+            pulses.push([pulse.trait, runtime.time]);
+            native.tasks['necromancer.allied-opportunity'](runtime, pulse);
+          }
+        }
       }
-    };
-    context.tasks = createTaskQueue({ handlers: alliedAttackOpportunities.taskHandlers });
-    if (combatStartTime != null) startAlliedAttackOpportunities(context, combatStartTime);
-    for (const at of targets) context.tasks.drainThrough(at, context);
-    return events.filter((event) => event.type.endsWith('-allied-hit'));
+    });
+    return pulses;
   };
 
   for (const traits of [
@@ -44,24 +46,24 @@ test('allied attack clocks preserve independent intervals across partitioned and
   ]) {
     const whole = run([3], traits);
     const partitioned = run([0, 0.75, 1, 1.125, 1.25, 1.25, 1.5, 2.125, 3, 3], traits);
-    for (const [trait, type, interval] of [
-      [TRAIT.VAMPIRIC_PRESENCE, 'necromancer.vampiric-presence-allied-hit', 0.5],
-      [TRAIT.OVERFLOWING_THIRST, 'necromancer.taste-for-blood-allied-hit', 0.25]
+    for (const [trait, interval] of [
+      [TRAIT.VAMPIRIC_PRESENCE, 0.5],
+      [TRAIT.OVERFLOWING_THIRST, 0.25]
     ]) {
       const expected = [];
       if (traits.includes(trait)) {
-        for (let at = 1 + interval; at <= 3; at += interval) expected.push([at, 1], [at, 2]);
+        for (let at = 1 + interval; at <= 3; at += interval) expected.push(at);
       }
 
-      for (const events of [whole, partitioned]) {
+      for (const pulses of [whole, partitioned]) {
         assert.deepEqual(
-          events.filter((event) => event.type === type).map((event) => [event.at, event.allyIndex]),
+          pulses.filter(([id]) => id === trait).map(([, at]) => at),
           expected
         );
       }
     }
 
-    assert.deepEqual(run([3], traits, null), []);
+    assert.deepEqual(run([3], traits, 3), []);
   }
 });
 
@@ -83,7 +85,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createProfessionSimulator(necromancerProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(necromancerProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -508,8 +510,9 @@ test('Satiate expires after three seconds and base sword cooldowns continue duri
     const followUpAction = result.events.find((event) => event.type === 'action' && event.skillName === followUp);
 
     assert.deepEqual(result.warnings, [], `${parent} -> ${followUp}`);
-    assert.equal(parentAction.rechargeReadyAt - parentAction.endsAt, cooldown, parent);
-    assert.ok(parentAction.rechargeReadyAt > followUpAction.at, parent);
+    const readyAt = result.planningState.cooldowns[parent].readyAt / 1000;
+    assert.equal(readyAt - parentAction.endsAt, cooldown, parent);
+    assert.ok(readyAt > followUpAction.at, parent);
   }
 });
 
@@ -917,7 +920,6 @@ test('Bone Fiend uses paired Bone Shards and its fourth crippling volley', () =>
   assert.ok(Math.abs(ordinary[2].at - ordinary[0].at - 3.08) < 1e-12);
   assert.equal(attacks[0].summonBasePower, 1500);
   assert.equal(attacks[0].summonDamagePerCoefficient, 1430);
-  assert.equal(attacks[0].weaponStrength, undefined);
   assert.deepEqual(
     cripples.map((event) => [event.stacks, event.duration]),
     [
@@ -1219,12 +1221,10 @@ test('Rigor Mortis is instant and fires two immobilizing projectile finishers', 
   const rigorStep = result.steps.find((step) => step.skill === 'Rigor Mortis');
   const attacks = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === 3634);
   const controls = result.events.filter(
-    (event) =>
-      event.type === 'necromancer.summon-attack' && event.skillId === 3634 && event.controlKind === 'immobilize'
+    (event) => event.type === 'control' && event.skillId === 3634 && event.controlKind === 'immobilize'
   );
   const controlledFollowup = result.events.filter(
-    (event) =>
-      event.type === 'necromancer.summon-attack' && event.skillId === 3633 && event.controlKind === 'immobilize'
+    (event) => event.type === 'control' && event.skillId === 3633 && event.controlKind === 'immobilize'
   );
   const disruptionTorment = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === TRAIT.INSIDIOUS_DISRUPTION
@@ -1236,7 +1236,7 @@ test('Rigor Mortis is instant and fires two immobilizing projectile finishers', 
   );
 
   assert.equal(necromancerCatalog.skillsByName.get('Rigor Mortis').cooldown, 50);
-  assert.equal(rigorStep.fullCastMs, 0);
+  assert.equal(rigorStep.end, rigorStep.start);
   assert.deepEqual(
     attacks.map((event) => [event.coefficient, event.comboFinishers[0].chance]),
     [
@@ -1473,11 +1473,9 @@ test('minion attacks use their canonical cadence, coefficients, and icons', () =
   assert.ok(Math.abs(bloodAttacks[1].at - bloodAttacks[0].at - 3.16) < 1e-12);
   assert.equal(bloodAttacks[0].summonBasePower, 2400);
   assert.equal(bloodAttacks[0].summonDamagePerCoefficient, 4338);
-  assert.equal(bloodAttacks[0].weaponStrength, undefined);
   assert.equal(boneAttacks.length, 2);
   assert.equal(boneAttacks[0].summonBasePower, 2250);
   assert.equal(boneAttacks[0].summonDamagePerCoefficient, 4750);
-  assert.equal(boneAttacks[0].weaponStrength, undefined);
   assert.deepEqual(
     golemAttacks
       .slice(0, 3)
@@ -1487,13 +1485,12 @@ test('minion attacks use their canonical cadence, coefficients, and icons', () =
         event.coefficient,
         event.summonBasePower,
         event.summonDamagePerCoefficient,
-        event.weaponStrength,
         event.icon
       ]),
     [
-      [3653, 'Slash', 0.18, 2500, 3744, undefined, golemIcon],
-      [3654, 'Slash', 0.18, 2500, 3744, undefined, golemIcon],
-      [3655, 'Fist', 0.29, 2500, 3952, undefined, golemIcon]
+      [3653, 'Slash', 0.18, 2500, 3744, golemIcon],
+      [3654, 'Slash', 0.18, 2500, 3744, golemIcon],
+      [3655, 'Fist', 0.29, 2500, 3952, golemIcon]
     ]
   );
 });
@@ -1675,7 +1672,6 @@ test("Shadow Fiend reports Slash and Haunt's full command effects", () => {
   assert.equal(slash.coefficient, 0.3);
   assert.equal(slash.summonDamagePerCoefficient, 1750);
   assert.equal(slash.summonBasePower, 1700);
-  assert.equal(slash.weaponStrength, undefined);
   assert.equal(haunt.at - result.events.find((event) => event.type === 'action' && event.skillId === ID.HAUNT)?.at, 2);
   assert.equal(blind.duration, 5);
   assert.equal(conditionDuration('Chilled'), 3);
@@ -1692,17 +1688,15 @@ test('Sinister Shroud reduces shroud-skill recharge by fifteen percent', () => {
   const sinister = simulate('Ritualist', rotation, {
     selectedTraitIds: [TRAIT.SINISTER_SHROUD]
   });
-  const anguishActions = (result) =>
-    result.events.filter((event) => event.type === 'action' && event.skillName === 'Anguish');
+  // Read the actual final recharge pool; accepted action facts never predict its later readiness.
+  for (const [result, rechargeMs] of [
+    [base, 7000],
+    [sinister, 5950]
+  ]) {
+    const last = result.steps.filter((step) => step.skill === 'Anguish').at(-1);
+    assert.equal(Math.round(runtimeFor(result).cooldowns.get(ID.ANGUISH) * 1000 - last.end), rechargeMs);
+  }
 
-  assert.deepEqual(
-    anguishActions(base).map((event) => Math.round((event.rechargeReadyAt - event.endsAt) * 1000)),
-    [7000, 7000]
-  );
-  assert.deepEqual(
-    anguishActions(sinister).map((event) => Math.round((event.rechargeReadyAt - event.endsAt) * 1000)),
-    [5950, 5950]
-  );
   assert.equal(
     base.steps.filter((step) => step.skill === 'Anguish')[1].start -
       sinister.steps.filter((step) => step.skill === 'Anguish')[1].start,

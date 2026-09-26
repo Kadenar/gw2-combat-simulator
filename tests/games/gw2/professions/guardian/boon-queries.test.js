@@ -1,20 +1,28 @@
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { StableEventQueue } from '#kernel/events/queue.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
-import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/traits/modifiers.js';
-import { reactToRighteousInstincts, righteousInstincts } from '#gw2/professions/guardian/core/traits/radiance.js';
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import { runtimeFor } from '#tests/helpers/live-runtime.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { firebrandModifierRules } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes-and-mantras.js';
 
 // Build real recipient metadata so player queries can distinguish shared, ally-only, and companion-only applications.
 function buff(kind, audience = { recipients: 'self' }) {
-  const event = { type: 'buff', source: 'Fixture', actorType: 'player', at: 4, duration: 2, stacks: 1, kind, audience };
+  const event = {
+    type: 'buff',
+    source: 'Fixture',
+    sourceId: 'fixture-boon',
+    actorType: 'player',
+    at: 4,
+    duration: 2,
+    stacks: 1,
+    kind,
+    audience
+  };
   return {
     ...event,
     resolvedAudience: gw2BoonApplicationRecipients({ allies: { count: 4 } }, event)
@@ -64,36 +72,32 @@ test('Firebrand Imbued Haste follows the live duration pool and its expiry', () 
 });
 
 test('Righteous Instincts preserves stacked self Resolution without accepting other recipients', () => {
-  const core = createGuardianCoreState();
-  const runtime = createGw2ResolverRuntimeState({
-    config: {},
-    traits: new Set([TRAIT.RIGHTEOUS_INSTINCTS]),
-    professionState: { core },
-    horizon: 10,
-    queue: new StableEventQueue(),
-    query: { statsAt: () => ({}) },
-    helpers: guardianCatalog
-  });
   const others = buff('resolution', { recipients: 'party', affectsSelf: false });
-  recordBuffApplication(runtime.boons, others);
-  reactToRighteousInstincts(runtime, others);
-  assert.equal(core.resolutionUntil, 0);
-  assert.equal(righteousInstincts.nextAt(runtime), Infinity);
-  assert.equal(guardianBoonActive({ time: 4, runtime }, 'resolution'), false);
+  // Actual deliveries extend one self-duration pool and one recurring Might cadence.
+  for (const self of [false, true]) {
+    const result = runGuardian(
+      [{ type: 'wait', durationMs: 8000 }],
+      { selectedTraitIds: [TRAIT.RIGHTEOUS_INSTINCTS], allies: { count: 4 } },
+      (runtime) => {
+        runtime.emit(others);
+        if (self) {
+          runtime.emit(buff('resolution'));
+          runtime.emit(buff('resolution'));
+        }
 
-  const self = buff('resolution');
-  for (let index = 0; index < 2; index += 1) {
-    recordBuffApplication(runtime.boons, self);
-    reactToRighteousInstincts(runtime, self);
+        runtime.emit(others);
+      }
+    );
+    const runtime = runtimeFor(result);
+    const might = result.events.filter(
+      (event) => event.type === 'buff' && event.sourceId === TRAIT.RIGHTEOUS_INSTINCTS
+    );
+    assert.deepEqual(
+      might.map((event) => event.at),
+      self ? [4, 5, 6, 7] : []
+    );
+    assert.equal(guardianBoonActive({ time: 6, runtime }, 'resolution'), self);
+    assert.equal(guardianBoonActive({ time: 8, runtime }, 'resolution'), false);
+    assert.equal(runtime.profession.core.resolutionUntil, 0);
   }
-
-  reactToRighteousInstincts(runtime, others);
-  assert.equal(core.resolutionUntil, 8);
-  assert.equal(righteousInstincts.nextAt(runtime), 5);
-  assert.equal(guardianBoonActive({ time: 6, runtime }, 'resolution'), true);
-  assert.equal(guardianBoonActive({ time: 8, runtime }, 'resolution'), false);
-  assert.equal(
-    guardianBoonActive({ time: 6, runtime: { profession: { core: { resolutionUntil: 8 } } } }, 'resolution'),
-    true
-  );
 });

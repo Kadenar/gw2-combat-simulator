@@ -1,3 +1,4 @@
+import { runtimeFor } from '#tests/helpers/live-runtime.js';
 import assert from 'node:assert/strict';
 import { access, readFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -5,7 +6,6 @@ import ts from 'typescript';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { COMMON_EVENT_TYPES } from '#gw2/platform/engine/events/events.js';
-import { SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
 import { professionRegistry } from '#gw2/app/profession-registry.js';
 import { createProfessionWeaponData, WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 import { BUILD_SCHEMA_VERSION, migrateMesmerBuild, validateMesmerBuild } from '#gw2/professions/mesmer/build/build.js';
@@ -137,12 +137,12 @@ test('common weapon data includes Guardian weapon families', () => {
 });
 
 test('Mesmer state creation and planning projections are profession owned', () => {
-  const virtuosoRuntime = mesmerProfession.resolveRuntime({
+  const virtuosoRuntime = mesmerProfession.liveRuntimeFor({
     specialization: 'Virtuoso'
   });
-  // The public planning projection reports the active specialization's scheduler-owned resource.
+  // The public planning projection reports the active specialization's live resource.
   const result = simulateMesmer([], { specialization: 'Virtuoso', initialResource: 3 });
-  const state = result.schedulerState.profession;
+  const state = runtimeFor(result).profession;
   const projected = result.planningState.profession;
 
   assert.equal(Object.hasOwn(state.specialization.state, 'nextForgeAt'), false);
@@ -151,8 +151,8 @@ test('Mesmer state creation and planning projections are profession owned', () =
   assert.equal(projected.resource, 3);
   assert.equal(projected.resourceDefinition.singular, 'blade');
   assert.equal(mesmerProfession.id, 'mesmer');
-  assert.equal(Object.hasOwn(virtuosoRuntime.eventReactions, 'damage.resolved'), false);
-  assert.equal(typeof virtuosoRuntime.eventReactions['control.resolved'], 'function');
+  assert.equal(Object.hasOwn(virtuosoRuntime.reactions, 'damage.resolved'), true);
+  assert.equal(typeof virtuosoRuntime.reactions['control.resolved'], 'function');
   assert.equal(Object.hasOwn(virtuosoRuntime.eventHandlers, 'damage'), false);
   assert.equal(Object.hasOwn(virtuosoRuntime.eventHandlers, 'control'), false);
   assert.equal(
@@ -166,17 +166,8 @@ test('Mesmer state creation and planning projections are profession owned', () =
 });
 
 test('Mesmer conforms to native handler and state contracts', () => {
-  for (const [handlerId, strategy] of mesmerCatalog.skillHandlers) {
-    assert.ok(handlerId.startsWith('mesmer.'));
-    assert.ok(strategy.mode === SKILL_HANDLER_MODES.AUGMENT || strategy.mode === SKILL_HANDLER_MODES.REPLACE);
-  }
-
-  for (const skill of mesmerCatalog.skills) {
-    if (!skill.handlerId) continue;
-    const strategy = mesmerCatalog.skillHandlers.get(skill.handlerId);
-
-    assert.ok(strategy, `${skill.name} has an unresolved handler`);
-  }
+  assert.equal('skillHandlers' in mesmerCatalog, false);
+  assert.ok(mesmerCatalog.skills.every((skill) => skill.handlerId == null));
 
   // Validate the live palette now that read-only build previews no longer project mechanic IDs.
   const mechanicSkillIds = ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour'].flatMap((specialization) =>
@@ -186,7 +177,7 @@ test('Mesmer conforms to native handler and state contracts', () => {
   assert.ok(mechanicSkillIds.length > 0);
   assert.ok(mechanicSkillIds.every((skillId) => mesmerCatalog.skillsById.has(skillId)));
   assert.ok(
-    Object.keys(mesmerProfession.resolveRuntime({ specialization: 'Chronomancer' }).taskHandlers).every((type) =>
+    Object.keys(mesmerProfession.liveRuntimeFor({ specialization: 'Chronomancer' }).tasks).every((type) =>
       type.startsWith('mesmer.')
     )
   );

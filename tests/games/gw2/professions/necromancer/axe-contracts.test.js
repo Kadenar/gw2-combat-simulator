@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { createProfessionPassSimulator, createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const baseConfig = {
@@ -14,11 +14,10 @@ const baseConfig = {
   stats: { power: 2000, precision: 1000, expertise: 0, vitality: 1000 },
   target: { armor: 2597, health: 1000000000, conditions: {} }
 };
-const simulate = createProfessionSimulator(necromancerProfession, baseConfig);
-const simulateWithPasses = createProfessionPassSimulator(necromancerProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(necromancerProfession, baseConfig);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
-// Resource feedback follows reached packets and cannot refund the skipped remainder of an interrupted channel.
+// Actual packets grant resources once; interruption cannot grant the skipped remainder of a channel.
 test('Ghastly Claws grants life force on each landed packet and preserves partial-channel gains', () => {
   const ticks = necromancerCatalog.skillsById.get(ID.GHASTLY_CLAWS).effects[0].ticks;
   const interruptMs = (ticks[2].atMs + ticks[3].atMs) / 2;
@@ -30,23 +29,19 @@ test('Ghastly Claws grants life force on each landed packet and preserves partia
   assert.equal(completed.planningState.profession.lifeForce.value, 12);
   assert.equal(cancelled.planningState.profession.lifeForce.value, 0);
   for (const result of [interrupted, completed, cancelled]) {
-    const gains = result.resolvedEvents.filter((event) => event.type === 'necromancer.life-force-gain');
     const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === ID.GHASTLY_CLAWS);
-    assert.deepEqual(
-      gains.map((event) => event.at),
-      hits.map((event) => event.at)
-    );
-    assert.ok(gains.every((event) => event.amount === 1.5));
+    assert.equal(result.planningState.profession.lifeForce.value, hits.length * 1.5);
     assert.deepEqual(result.warnings, []);
   }
 });
 
-// Unconditional per-packet gains are predicted while scheduling, so resolution confirms them without a second pass.
-test('Ghastly Claws life force converges in its scheduling pass', () => {
-  const { result, passes } = simulateWithPasses('Core', ['Ghastly Claws']);
+// The next command spends the live pool instead of waiting for a replay of observed gains.
+test('Ghastly Claws life force funds the next shroud entry in one execution', () => {
+  const result = simulate('Core', ['Ghastly Claws', 'Death Shroud']);
   assert.deepEqual(result.warnings, []);
-  assert.equal(passes, 1);
+  assert.equal(result.planningState.profession.activeShroud, 'death');
   assert.equal(result.planningState.profession.lifeForce.value, 12);
+  assert.equal(result.steps[1].start, result.steps[0].end);
 });
 
 // Compare one isolated packet so ordinary Vulnerability and the skill-specific bonus must multiply.

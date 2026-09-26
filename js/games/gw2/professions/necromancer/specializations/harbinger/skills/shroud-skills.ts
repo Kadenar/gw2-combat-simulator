@@ -17,9 +17,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     slot: 'Weapon_4',
     shroud: 'harbinger',
     shroudSlot: 4,
-    specialization: 'Harbinger',
-    // Custom: Consumes live Blight to materialize the skill's scaled packets; see `harbinger/mechanics/blight.ts`.
-    handlerId: 'necromancer.blight-skill'
+    specialization: 'Harbinger'
   },
   [ID.EXIT_HARBINGER_SHROUD]: {
     castTimeMs: 0,
@@ -28,8 +26,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     specialization: 'Harbinger',
     shroudExit: 'harbinger',
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'necromancer.shroud'
+    inputCategory: 'bar-swap'
   },
   [ID.VITAL_DRAW]: {
     castTimeMs: 800,
@@ -47,8 +44,8 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
         controlKind: 'float'
       }
     ]),
-    // Aggregate the three 3% siphons because the simulator assumes every strike connects.
-    lifeForceGain: 9,
+    // Each accepted siphon funds the live pool only when its own strike arrives.
+    lifeForcePerHit: 3,
     type: 'Profession',
     slot: 'Weapon_5',
     shroud: 'harbinger',
@@ -64,8 +61,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     shroudProfileId: PROFILE.resources,
     minimumShroudLifeForcePercent: 0,
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'necromancer.shroud'
+    inputCategory: 'bar-swap'
   },
   [ID.TAINTED_BOLTS]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -110,9 +106,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     slot: 'Weapon_2',
     shroud: 'harbinger',
     shroudSlot: 2,
-    specialization: 'Harbinger',
-    // Custom: Replaces the base hit with Doom Approaches' sequence; see `harbinger/execution/dark-barrage.ts`.
-    handlerId: 'necromancer.dark-barrage'
+    specialization: 'Harbinger'
   },
   [ID.DEVOURING_CUT]: {
     castTimeMs: 480,
@@ -124,8 +118,6 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     slot: 'Weapon_3',
     shroud: 'harbinger',
     shroudSlot: 3,
-    specialization: 'Harbinger',
-    // Custom: Consumes live Blight to materialize the skill's scaled packets; see `harbinger/mechanics/blight.ts`.
-    handlerId: 'necromancer.blight-skill'
+    specialization: 'Harbinger'
   }
 });

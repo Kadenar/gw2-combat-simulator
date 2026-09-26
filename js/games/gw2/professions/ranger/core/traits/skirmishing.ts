@@ -1,6 +1,6 @@
+import { emitRangerBuff, rangerEvent } from '#gw2/professions/ranger/core/live-events.js';
 /** Owns Core Ranger Skirmishing dodge, weapon-swap, and critical-hit trait behavior. */
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -10,17 +10,11 @@ import {
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/mechanics.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { queueBleeding } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import type {
-  RangerCastContext,
-  RangerResolverContext,
-  RangerSchedulerContext,
-  RangerSkill
-} from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
@@ -30,7 +24,7 @@ type RangerCriticalHitDefinition = ResolvedCriticalHitOptions<
   NativeResolvedDamageDetails
 >;
 
-export function applyRangerDodgeTraits(context: RangerCastContext, at = context.effectiveEnd): void {
+export function applyRangerDodgeTraits(context: RangerRuntime, at = context.time): void {
   if (!hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.lightOnYourFeet);
   const effect = requireEffect(profile, 'buff', 'light-on-your-feet');
@@ -39,29 +33,31 @@ export function applyRangerDodgeTraits(context: RangerCastContext, at = context.
   const baseDuration = effectNumber(profile, effect, 'duration');
   // Reapplications stack duration in game, so preserve the live remainder
   // instead of replacing it with another six-second overlapping window.
-  const activeUntil = context.events
+  const activeUntil = context.history
     .filter((event) => event.type === 'buff' && event.kind === kind && event.at <= at)
     .reduce((maximum, event) => Math.max(maximum, gw2EffectExpiresAt(event.at, Number(event.duration || 0))), at);
-  emitSkillBuff(context, {
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
-    actorType: 'effect',
-    skillId: TRAIT.LIGHT_ON_YOUR_FEET,
-    skillName: 'Light on your Feet',
-    kind,
-    duration: baseDuration + Math.max(0, activeUntil - at),
-    stacks: effectNumber(profile, effect, 'stacks')
-  });
+  emitRangerBuff(
+    context,
+    rangerEvent(
+      {
+        at,
+        source: 'Trait',
+        sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
+        actorType: 'effect',
+        skillId: TRAIT.LIGHT_ON_YOUR_FEET,
+        skillName: 'Light on your Feet',
+        kind,
+        duration: baseDuration + Math.max(0, activeUntil - at),
+        stacks: effectNumber(profile, effect, 'stacks')
+      },
+      'buff'
+    )
+  );
 }
 
 // Apply combat-only weapon-swap traits on independent ICDs and arm Quick Draw's
 // one-use window for the next qualifying weapon skill.
-export function applyRangerWeaponSwapTraits(
-  context: RangerCastContext | RangerSchedulerContext,
-  skill: RangerSkill,
-  at = 'effectiveEnd' in context ? context.effectiveEnd : context.state.time
-): void {
+export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: RangerSkill, at = context.time): void {
   const state = professionCoreState(context);
   const inCombat = context.combatStartTime != null && at >= context.combatStartTime;
   if (
@@ -74,22 +70,23 @@ export function applyRangerWeaponSwapTraits(
     // The cooldown gates only swiftness, so a removed boon leaves it ready.
     if (effect) {
       state.tailWindReadyAt = at + balanceProfileNumber(profile, 'internalCooldown');
-      emitSkillBuff(context, {
-        at,
-        source: 'Trait',
-        sourceId: TRAIT.TAIL_WIND,
-        actorType: 'effect',
-        skillId: skill.id,
-        skillName: 'Tail Wind',
-        kind: String(effect.boon),
-        duration: gw2SchedulerBoonDuration(
-          context,
-          skill,
-          String(effect.boon),
-          effectNumber(profile, effect, 'duration')
-        ),
-        stacks: effectNumber(profile, effect, 'stacks')
-      });
+      emitRangerBuff(
+        context,
+        rangerEvent(
+          {
+            at,
+            source: 'Trait',
+            sourceId: TRAIT.TAIL_WIND,
+            actorType: 'effect',
+            skillId: skill.id,
+            skillName: 'Tail Wind',
+            kind: String(effect.boon),
+            duration: effectNumber(profile, effect, 'duration'),
+            stacks: effectNumber(profile, effect, 'stacks')
+          },
+          'buff'
+        )
+      );
     }
   }
 
@@ -104,22 +101,23 @@ export function applyRangerWeaponSwapTraits(
     state.quickDrawReadyAt = at + balanceProfileNumber(profile, 'internalCooldown');
     state.quickDrawUntil = at + balanceProfileNumber(profile, 'durationMultiplier');
     if (effect)
-      emitSkillBuff(context, {
-        at,
-        source: 'Trait',
-        sourceId: TRAIT.QUICK_DRAW,
-        actorType: 'effect',
-        skillId: skill.id,
-        skillName: 'Quick Draw',
-        kind: String(effect.boon),
-        duration: gw2SchedulerBoonDuration(
-          context,
-          skill,
-          String(effect.boon),
-          effectNumber(profile, effect, 'duration')
-        ),
-        stacks: effectNumber(profile, effect, 'stacks')
-      });
+      emitRangerBuff(
+        context,
+        rangerEvent(
+          {
+            at,
+            source: 'Trait',
+            sourceId: TRAIT.QUICK_DRAW,
+            actorType: 'effect',
+            skillId: skill.id,
+            skillName: 'Quick Draw',
+            kind: String(effect.boon),
+            duration: effectNumber(profile, effect, 'duration'),
+            stacks: effectNumber(profile, effect, 'stacks')
+          },
+          'buff'
+        )
+      );
   }
 
   if (
@@ -132,22 +130,23 @@ export function applyRangerWeaponSwapTraits(
     // The cooldown gates only fury, so a removed boon leaves it ready.
     if (effect) {
       state.furiousGripReadyAt = at + balanceProfileNumber(profile, 'internalCooldown');
-      emitSkillBuff(context, {
-        at,
-        source: 'Trait',
-        sourceId: TRAIT.FURIOUS_GRIP,
-        actorType: 'effect',
-        skillId: skill.id,
-        skillName: 'Furious Grip',
-        kind: String(effect.boon),
-        duration: gw2SchedulerBoonDuration(
-          context,
-          skill,
-          String(effect.boon),
-          effectNumber(profile, effect, 'duration')
-        ),
-        stacks: effectNumber(profile, effect, 'stacks')
-      });
+      emitRangerBuff(
+        context,
+        rangerEvent(
+          {
+            at,
+            source: 'Trait',
+            sourceId: TRAIT.FURIOUS_GRIP,
+            actorType: 'effect',
+            skillId: skill.id,
+            skillName: 'Furious Grip',
+            kind: String(effect.boon),
+            duration: effectNumber(profile, effect, 'duration'),
+            stacks: effectNumber(profile, effect, 'stacks')
+          },
+          'buff'
+        )
+      );
     }
   }
 }

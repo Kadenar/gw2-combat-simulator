@@ -14,9 +14,10 @@ export const brawler = defineRelic({
     // Preparation can leave a buff running, but only the equipped relic can trigger again after the marker.
     const marker = state.combatMarker as SimulationEvent | undefined;
     const precombat =
-      ctx.combatStartTime != null &&
-      event.at <= ctx.combatStartTime &&
-      (!marker || compareTimelineEvents(event, marker) < 0);
+      ctx.combatStartPending === true ||
+      (ctx.combatStartTime != null &&
+        event.at <= ctx.combatStartTime &&
+        (!marker || compareTimelineEvents(event, marker) < 0));
     if (precombat ? !ctx.config?.precastRelics?.includes('Brawler') : ctx.relic?.name !== 'Brawler') return;
     const kind = String(event?.kind || '').toLowerCase();
     // Player ownership is insufficient: the boon must reach the player to activate Brawler.

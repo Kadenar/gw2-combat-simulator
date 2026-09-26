@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -26,7 +26,7 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
     label: 'Ranger removal',
     professions: { ranger: { balanceProfiles } }
   });
-  const result = createProfessionSimulator(profession, {
+  const result = createLiveProfessionSimulator(profession, {
     initialAstralForce: 100,
     selectedPet: 'Jacaranda',
     selectedPet2: 'Carrion Devourer',

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createDefaultConfig, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfiledShatters } from '#gw2/professions/mesmer/core/profiles.js';
@@ -46,7 +46,12 @@ test('committed Harmony spends its reservation while cancelled Harmony restores 
   const committed = simulateMesmer(rotation({ name: skill.name, interruptMs }), config);
   const cancelled = simulateMesmer(rotation({ name: skill.name, interruptMs: 100 }), config);
   const spends = (result) =>
-    result.events.filter((event) => event.type === 'resource' && event.sourceSkill === skill.name && event.amount < 0);
+    result.events.filter(
+      (event) =>
+        event.type === 'resource' &&
+        event.activationId === result.steps.find((step) => step.skill === skill.name)?.activationId &&
+        event.amount < 0
+    );
   const hits = (result) => result.events.filter((event) => event.type === 'damage' && event.skillId === skill.id);
 
   assert.deepEqual(committed.warnings, []);
@@ -108,7 +113,13 @@ test('committed Duelist interruptions preserve the eventual clone while early ca
     assert.equal(result.planningState.profession.resource, interruptMs === 100 ? 0 : 1);
     const duelist = result.steps.find((step) => step.skill === 'Phantasmal Duelist');
     const nextCast = result.steps.find((step) => step.skill === 'Winds of Chaos');
-    assert.equal(nextCast.start, interruptMs === 100 ? duelist.end : duelist.start + duelist.fullCastMs);
+    assert.equal(
+      nextCast.start,
+      interruptMs === 100
+        ? duelist.end
+        : result.events.find((event) => event.activationId === duelist.activationId && event.type === 'action')
+            .fullEndsAt * 1000
+    );
   }
 });
 
@@ -130,13 +141,14 @@ test('cancelled Ether preserves an established phantasm cooldown', () => {
 test('cancelled Mimic cannot reset the next utility cooldown', () => {
   const result = simulateMesmer([{ name: 'Mimic', interruptMs: 100 }, 'Signet of Illusions']);
   const mimic = result.events.find((event) => event.type === 'action' && event.skillId === ID.MIMIC);
-  const utility = result.events.find((event) => event.type === 'action' && event.skillId === ID.SIGNET_OF_ILLUSIONS);
 
   assert.equal(mimic.cancelled, true);
   assert.deepEqual(result.warnings, []);
   assert.equal(
     result.planningState.cooldowns['Signet of Illusions']?.readyAt,
-    Math.ceil((utility.rechargeReadyAt * 1000) / 40) * 40
+    simulateMesmer([{ type: 'wait', durationMs: mimic.endsAt * 1000 }, 'Signet of Illusions']).planningState.cooldowns[
+      'Signet of Illusions'
+    ].readyAt
   );
   assert.equal(
     result.events.some((event) => event.type === 'proc' && event.source === 'Mimic'),
@@ -179,12 +191,12 @@ test('Virtuoso executes a patched shatter tick beside an empty zero-blade tier',
     ID.BLADESONG_HARMONY
   ];
   const profession = {
-    resolveRuntime(config) {
-      const runtime = mesmerProfession.resolveRuntime(config);
+    liveRuntimeFor(config) {
+      const runtime = mesmerProfession.liveRuntimeFor(config);
       return { ...runtime, catalog: applyBalanceProfilePatch(runtime.catalog, patch) };
     }
   };
-  const result = simulateGw2({
+  const result = runMesmer({
     profession,
     config: createDefaultConfig(),
     rotation: ['Bladesong Harmony', { name: '__wait', waitMs: 1000 }]
@@ -215,8 +227,8 @@ test('core control events are owned by skill definitions across ordinary and rep
     const rotation = [skill.name, { type: 'wait', durationMs: 1000 }];
     const base = simulateMesmer(rotation, config);
     const profession = {
-      resolveRuntime(runtimeConfig) {
-        const runtime = mesmerProfession.resolveRuntime(runtimeConfig);
+      liveRuntimeFor(runtimeConfig) {
+        const runtime = mesmerProfession.liveRuntimeFor(runtimeConfig);
         return {
           ...runtime,
           catalog: applySkillPatch(runtime.catalog, {
@@ -225,7 +237,7 @@ test('core control events are owned by skill definitions across ordinary and rep
         };
       }
     };
-    const removed = simulateGw2({ profession, config, rotation });
+    const removed = runMesmer({ profession, config, rotation });
     const controls = (result) => result.events.filter((event) => event.type === 'control' && event.skillId === skillId);
     assert.deepEqual(base.warnings, []);
     assert.deepEqual(removed.warnings, []);

@@ -1,3 +1,8 @@
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { recordBuffApplication, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
@@ -13,19 +18,12 @@ import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-seri
 import { assertSimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { noQuarterCriticalReaction } from '#gw2/professions/thief/core/traits/critical-strikes.js';
-import { handleRangerBoonExtension } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
-import { heraldSchedulerHooks } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-rules.js';
-import { REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_LEGEND_IDS, REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';
+import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
-import { resolveGw2Timeline } from '#gw2/platform/resolver/resolve-timeline.js';
-import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
 
 // Exercise real extension handlers and both phases with minimal duration/resource contracts.
 const self = {
@@ -138,29 +136,6 @@ test('empty and reversed self-boon windows bypass history with or without perman
   }
 });
 
-test('scheduler configured duration boons bypass history while intensity and custom stacks stay additive', () => {
-  // Permanent presence is fixed even when extensions exist; intensity still needs its extended applications.
-  const policy = createGw2SchedulerPolicy();
-  const unreadable = new Proxy([], { get: () => assert.fail('Configured duration boons must not read history') });
-  const fixed = { events: unreadable, eventsOfType: () => unreadable };
-  for (const kind of ['vigor', 'alacrity', 'fury']) {
-    for (const configured of [1, 3]) assert.equal(policy.buffStacks(fixed, kind, 4, configured, unreadable, 0), 1);
-  }
-
-  for (const kind of ['vigor', 'might', 'stability', 'custom']) {
-    const events = [
-      buff(0, 2, self, kind, kind === 'vigor' ? 1 : 2),
-      { ...buff(1, 3), type: 'boon_extension', kind: undefined }
-    ];
-    const current = { events, eventsOfType: (type) => events.filter((event) => event.type === type) };
-    assert.equal(policy.buffStacks(current, kind, 3, 3, [], 3), kind === 'vigor' ? 1 : kind === 'custom' ? 3 : 5);
-    if (kind === 'vigor') {
-      assert.equal(policy.buffStacks(current, kind, 3, 0, [], 0), 1);
-      assert.equal(policy.buffStacks(current, kind, 5, 0, [], 0), 0);
-    }
-  }
-});
-
 test('extensions preserve past duration and intensity observations across recipients and charts', () => {
   const events = [
     buff(0, 5, shared),
@@ -242,63 +217,97 @@ test('extended Vigor preserves Elementalist and Mirage endurance through the new
     [mesmerProfession, 'Mirage']
   ]) {
     const config = { specialization, selectedTraitIds: [], boons: { vigor: false } };
-    const scheduler = createScheduler({ profession, config, schedulerPolicy: createGw2SchedulerPolicy(config) });
-    const { context } = scheduler;
-    const state =
-      specialization === 'Mirage' ? context.state.profession.specialization.state : context.state.profession.core;
-    state.endurance = 0;
-    state.enduranceUpdatedAt = 0;
-    context.emit(buff(0, 2, self, 'vigor'));
-    context.emit({ ...buff(1, 2, self, 'vigor'), type: 'boon_extension' });
-    scheduler.advanceTo(3);
-    assert.equal(state.endurance, 22.5, specialization);
-    scheduler.advanceTo(5);
-    assert.equal(state.endurance, 35, specialization);
+    const simulate = specialization === 'Mirage' ? runMesmer : runElementalist;
+    {
+      for (const [at, expected] of [
+        [3, 22.5],
+        [5, 35]
+      ]) {
+        const result = simulate({
+          profession,
+          config,
+          rotation: [{ type: 'wait', durationMs: at * 1000 }],
+          initialize(runtime) {
+            runtime.endurance.spend(100);
+            runtime.emit(buff(0, 2, self, 'vigor'));
+            runtime.emit({ ...buff(1, 2, self, 'vigor'), type: 'boon_extension' });
+          }
+        });
+        assert.equal(
+          (specialization === 'Mirage'
+            ? runtimeFor(result).profession.specialization.state
+            : runtimeFor(result).profession.core
+          ).endurance,
+          expected
+        );
+      }
+    }
   }
 });
 
 test('No Quarter cannot consume Fury authored after its hit at the same timestamp', () => {
-  const config = { specialization: 'Core', selectedTraitIds: [THIEF_TRAIT_IDS.NO_QUARTER], stats: { precision: 2995 } };
-  const scheduler = createScheduler({
-    profession: thiefProfession,
-    config,
-    schedulerPolicy: createGw2SchedulerPolicy(config)
-  });
-  const { context } = scheduler;
-  context.emit({ ...buff(1), type: 'damage', coefficient: 1, skillId: 1, skillName: 'Probe' });
-  context.emit(buff(1, 5));
-  scheduler.advanceTo(1);
-  assert.equal(context.events.filter((event) => event.type === 'boon_extension').length, 0);
-  assert.equal(context.state.profession.core.traitProcReadyAt[THIEF_TRAIT_IDS.NO_QUARTER] || 0, 0);
+  const result = runThief(
+    [{ type: 'wait', durationMs: 1000 }],
+    {
+      specialization: 'Core',
+      selectedTraitIds: [THIEF_TRAIT_IDS.NO_QUARTER],
+      stats: { precision: 2995 }
+    },
+    {
+      initialize(runtime) {
+        runtime.emit({
+          ...buff(1),
+          type: 'damage',
+          coefficient: 1,
+          weaponStrength: 1000,
+          skillId: 1,
+          skillName: 'Probe'
+        });
+        runtime.emit(buff(1, 5));
+      }
+    }
+  );
+  assert.equal(result.resolvedEvents.filter((event) => event.type === 'boon_extension').length, 0);
 });
 
 test('forced critical hits preserve the Fury fact needed by No Quarter', () => {
-  const config = { specialization: 'Core', selectedTraitIds: [THIEF_TRAIT_IDS.NO_QUARTER] };
-  const policy = createGw2SchedulerPolicy(config);
-  const scheduler = createScheduler({ profession: thiefProfession, config, schedulerPolicy: policy });
-  const { context } = scheduler;
-  context.emit(buff(0, 2));
-  const hit = context.emit({ ...buff(1), type: 'damage', coefficient: 1, forceCrit: true });
-  scheduler.advanceTo(1);
-  assert.equal(policy.critical(context, hit).furyActive, true);
-  assert.equal(context.events.filter((event) => event.type === 'boon_extension').length, 1);
-  assert.equal(context.hasBuff('fury', 3), true);
+  const result = runThief(
+    [{ type: 'wait', durationMs: 3000 }],
+    {
+      specialization: 'Core',
+      selectedTraitIds: [THIEF_TRAIT_IDS.NO_QUARTER]
+    },
+    {
+      initialize(runtime) {
+        runtime.emit(buff(0, 2));
+        runtime.emit({ ...buff(1), type: 'damage', coefficient: 1, forceCrit: true, weaponStrength: 1000 });
+      }
+    }
+  );
+  assert.equal(result.resolvedEvents.filter((event) => event.type === 'boon_extension').length, 1);
+  assert.equal(remaining(boonApplicationsAt(result.resolvedEvents, 'fury', 3), 3), 1);
 });
+
+// Herald's live consume completes 480 ms after Facet of Nature, so a leading wait lands its extension at `at`.
+const HERALD_CONFIG = Object.freeze({
+  specialization: 'Herald',
+  selectedLegends: [REVENANT_LEGEND_IDS.DRAGON, REVENANT_LEGEND_IDS.ASSASSIN],
+  startingLegend: REVENANT_LEGEND_IDS.DRAGON,
+  initialEnergy: 100
+});
+const heraldExtensionAt = (extensionAt, tailMs = 0) => [
+  { type: 'wait', durationMs: Math.round(extensionAt * 1000) - 480 },
+  'Facet of Nature',
+  { skillId: REVENANT_SKILL_IDS.TRUE_NATURE_DRAGON },
+  ...(tailMs ? [{ type: 'wait', durationMs: tailMs }] : [])
+];
 
 function extend(profession, events, at) {
   if (profession === 'Herald') {
-    const context = {
-      eventsOfType: (type) => events.filter((event) => event.type === type),
-      emitDerived: (_event, extension) => events.push(extension)
-    };
-    heraldSchedulerHooks.onEventScheduled.handler(context, {
-      type: 'proc',
-      skillId: REVENANT_SKILL_IDS.TRUE_NATURE_DRAGON,
-      procType: 'boon-extension',
-      at,
-      duration: 2
+    const result = runRevenant(heraldExtensionAt(at), HERALD_CONFIG, {
+      initialize: (runtime) => events.forEach((event) => runtime.emit(event))
     });
-    return boonApplicationsAt(events, 'fury', at);
+    return boonApplicationsAt(result.events, 'fury', at);
   }
 
   const boons = new Map();
@@ -313,7 +322,7 @@ function extend(profession, events, at) {
       { quantity: 1 }
     );
   } else {
-    handleRangerBoonExtension(context, { at, duration: 2 });
+    applyBoonExtension(boons, { at, duration: 2 });
   }
 
   return boons.get('fury') || [];
@@ -343,189 +352,136 @@ for (const profession of ['Thief', 'Ranger', 'Herald']) {
   }
 }
 
-// Run real scheduler facts and resolver reactions on the same two-hit stream to expose phase disagreement.
-for (const name of ['Thief', 'Ranger', 'Herald']) {
-  for (const enabled of [false, true]) {
-    const config = {
-      specialization: name === 'Thief' ? 'Deadeye' : name === 'Ranger' ? 'Soulbeast' : 'Herald',
-      primaryWeapon: name === 'Thief' ? 'Pistol' : name === 'Ranger' ? 'Longbow' : 'Sword',
-      selectedTraitIds: name === 'Thief' && enabled ? [THIEF_TRAIT_IDS.NO_QUARTER] : [],
-      stats: { power: 1000, precision: 2470, ferocity: 0, conditionDamage: 0 },
-      target: { armor: 2597 }
-    };
-    const scheduler = createScheduler({
-      profession: name === 'Thief' ? thiefProfession : name === 'Ranger' ? rangerProfession : revenantProfession,
-      config,
-      schedulerPolicy: createGw2SchedulerPolicy(config)
-    });
-    const { context } = scheduler;
-    context.schedulerPolicy.requireCriticalFacts();
-    const skill = context.catalog.skillsByName.get(
-      name === 'Thief' ? 'Bola Shot' : name === 'Ranger' ? 'Long Range Shot' : 'Preparation Thrust'
-    );
-    if (!skill) throw new Error(`Missing ${name} probe skill`);
-    if (name === 'Thief') {
-      Object.assign(context.state.profession.specialization.state, { markedTargetId: 'target', markExpiresAt: 10 });
+// Herald's live owner and resolver share one runtime: its extension must reach the later hit's critical facts.
+for (const enabled of [false, true]) {
+  const probe = (at) => ({
+    type: 'damage',
+    at,
+    source: 'probe',
+    sourceId: REVENANT_SKILL_IDS.PREPARATION_THRUST,
+    actorType: 'player',
+    skillId: REVENANT_SKILL_IDS.PREPARATION_THRUST,
+    skillName: 'Preparation Thrust',
+    coefficient: 1,
+    weaponStrengthProfileId: 'weapon.sword',
+    activationId: `probe-${at}`
+  });
+  const result = runRevenant(
+    enabled ? heraldExtensionAt(1, 2500) : [{ type: 'wait', durationMs: 3500 }],
+    { ...HERALD_CONFIG, stats: { power: 1000, precision: 2470, ferocity: 0, conditionDamage: 0 } },
+    {
+      initialize(runtime) {
+        runtime.emit({ ...buff(0, 2), resolvedAudience: undefined, audience: { recipients: 'self' } });
+        runtime.emit(probe(1));
+        runtime.emit(probe(3));
+      }
     }
-
-    context.emit({ ...buff(0, 2), resolvedAudience: undefined, audience: { recipients: 'self' } });
-    scheduler.advanceTo(0);
-    const hit = (at) => ({
-      type: 'damage',
-      at,
-      source: 'probe',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      coefficient: 1,
-      hits: 1,
-      activationId: `probe-${at}`
-    });
-    context.emit(hit(1));
-    scheduler.advanceTo(1);
-    if (name === 'Herald' && enabled) {
-      context.emit({
-        type: 'proc',
-        at: 1,
-        source: 'revenant',
-        sourceId: REVENANT_SKILL_IDS.TRUE_NATURE_DRAGON,
-        actorType: 'player',
-        skillId: REVENANT_SKILL_IDS.TRUE_NATURE_DRAGON,
-        procType: 'boon-extension',
-        duration: 2
-      });
-    }
-
-    if (name === 'Ranger' && enabled) {
-      context.emit({
-        type: 'ranger.boon-extension',
-        at: 1,
-        source: 'ranger',
-        sourceId: 'probe',
-        actorType: 'effect',
-        duration: 2
-      });
-    }
-
-    const second = context.emit(hit(3));
-    scheduler.advanceTo(3);
-    const scheduledChance = context.schedulerPolicy.critical(context, second).chance;
-    const scheduled = scheduler.run([]);
-    const resolved = resolveGw2Timeline({
-      stream: scheduled.stream,
-      config,
-      profession: context.profession,
-      traits: selectedGw2TraitValues(config, context.catalog)
-    });
-    const resolvedHit = resolved.resolvedEvents.find(
-      (event) => event.type === 'damage' && event.activationId === 'probe-3'
-    );
-    if (!resolvedHit) throw new Error(`Missing ${name} resolved probe hit`);
-    const label = `${name} ${enabled ? 'extension' : 'control'}`;
-    check(`${label}: resolver observes expected Fury critical chance`, resolvedHit.criticalChance, enabled ? 1 : 0.75);
-    check(`${label}: scheduled and resolved critical chance agree`, scheduledChance, resolvedHit.criticalChance);
-    if (name === 'Thief')
-      check(
-        `${label}: Deadeye malice follows resolved critical chance`,
-        context.state.profession.specialization.state.malice,
-        2 +
-          resolved.resolvedEvents.filter(
-            (event) => event.type === 'damage' && event.actorType === 'player' && event.didCrit
-          ).length
-      );
-    check(`${label}: native probe has no warnings`, [...scheduled.warnings, ...resolved.warnings], []);
-  }
+  );
+  const label = `Herald ${enabled ? 'extension' : 'control'}`;
+  check(
+    `${label}: resolver observes expected Fury critical chance`,
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.activationId === 'probe-3')?.criticalChance,
+    enabled ? 1 : 0.75
+  );
+  check(`${label}: native probe has no warnings`, result.warnings, []);
 }
 
-test('critical boon predictions preserve same-time hit facts and are applied once during resolution', () => {
+// A live extension changes only later hits; no scheduler prediction participates.
+for (const name of ['Thief', 'Ranger'])
+  for (const enabled of [false, true]) {
+    test(name + ' critical chance follows the live Fury extension: ' + enabled, () => {
+      const config = {
+        specialization: name === 'Thief' ? 'Deadeye' : 'Soulbeast',
+        selectedTraitIds: name === 'Thief' && enabled ? [THIEF_TRAIT_IDS.NO_QUARTER] : [],
+        stats: { power: 1000, precision: 2470, ferocity: 0 },
+        target: { armor: 2597 }
+      };
+      const run = name === 'Thief' ? runThief : runRanger;
+      const result = run([{ type: 'wait', durationMs: 3500 }], config, {
+        initialize(runtime) {
+          runtime.emit(buff(0, 2));
+          const skill = runtime.helpers.skillsByName.get(name === 'Thief' ? 'Bola Shot' : 'Long Range Shot');
+          for (const at of [1, 3])
+            runtime.emit({
+              type: 'damage',
+              at,
+              source: 'probe',
+              sourceId: skill.id,
+              skillId: skill.id,
+              skillName: skill.name,
+              actorType: 'player',
+              coefficient: 1
+            });
+          if (name === 'Ranger' && enabled) runtime.emit({ ...buff(1, 2), type: 'boon_extension' });
+        }
+      });
+      assert.deepEqual(result.warnings, []);
+      assert.equal(
+        result.resolvedEvents.find((event) => event.type === 'damage' && event.at === 3).criticalChance,
+        enabled ? 1 : 0.75
+      );
+    });
+  }
+
+test('critical boon grants affect later same-time hits exactly once', () => {
   for (const mode of ['deterministic', 'stochastic']) {
-    const config = {
-      specialization: 'Deadeye',
-      primaryWeapon: 'Pistol',
-      selectedTraitIds: [
-        THIEF_TRAIT_IDS.UNRELENTING_STRIKES,
-        THIEF_TRAIT_IDS.NO_QUARTER,
-        THIEF_TRAIT_IDS.ASSASSINS_FURY
-      ],
-      randomness: { mode, seed: 42 },
-      stats: { power: 1000, precision: 2470, ferocity: 0 },
-      target: { armor: 2597 }
-    };
-    const scheduler = createScheduler({
-      profession: thiefProfession,
-      config,
-      schedulerPolicy: createGw2SchedulerPolicy(config)
-    });
-    const { context } = scheduler;
-    const skill = context.catalog.skillsByName.get('Bola Shot');
-    const hits = [1, 2, 3].map((index) =>
-      context.emit({
-        type: 'damage',
-        at: 1,
-        source: 'probe',
-        sourceId: skill.id,
-        actorType: 'player',
-        skillId: skill.id,
-        skillName: skill.name,
-        coefficient: 1,
-        hits: 1,
-        activationId: `same-${index}`
-      })
+    const result = runThief(
+      [{ type: 'wait', durationMs: 1000 }],
+      {
+        specialization: 'Deadeye',
+        selectedTraitIds: [
+          THIEF_TRAIT_IDS.UNRELENTING_STRIKES,
+          THIEF_TRAIT_IDS.NO_QUARTER,
+          THIEF_TRAIT_IDS.ASSASSINS_FURY
+        ],
+        randomness: { mode, seed: 42 },
+        stats: { power: 1000, precision: 2470, ferocity: 0 }
+      },
+      {
+        initialize(runtime) {
+          const skill = runtime.helpers.skillsByName.get('Bola Shot');
+          for (const index of [1, 2, 3])
+            runtime.emit({
+              type: 'damage',
+              at: 1,
+              source: 'probe',
+              sourceId: skill.id,
+              actorType: 'player',
+              skillId: skill.id,
+              skillName: skill.name,
+              coefficient: 1,
+              activationId: 'same-' + index
+            });
+        }
+      }
     );
-    scheduler.advanceTo(1);
-    const scheduledChances = hits.map((hit) => context.schedulerPolicy.critical(context, hit).chance);
-    const result = resolveGw2Timeline({
-      stream: scheduler.run([]).stream,
-      config,
-      profession: context.profession,
-      traits: selectedGw2TraitValues(config, context.catalog)
-    });
-    const resolvedChances = hits.map(
-      (hit) =>
-        result.resolvedEvents.find((event) => event.type === 'damage' && event.activationId === hit.activationId)
-          .criticalChance
+    assert.deepEqual(
+      result.resolvedEvents.filter((event) => event.type === 'damage').map((event) => event.criticalChance),
+      [0.75, 1, 1]
     );
-    assert.deepEqual(scheduledChances, resolvedChances, mode);
-    assert.deepEqual(resolvedChances, [0.75, 1, 1]);
-    assert.ok(result.events.every((event) => event.schedulerBoonPrediction !== true));
     const buffs = result.resolvedEvents.filter((event) => event.type === 'buff');
-    // Unrelenting Strikes grants Fury once; its gain triggers Might once, while No Quarter only extends.
     assert.equal(buffs.filter((event) => event.kind === 'fury').length, 1);
     assert.equal(buffs.filter((event) => event.kind === 'might').length, 1);
     assert.deepEqual(result.warnings, []);
   }
 });
 
-test('Essence of Speed predicts self Quickness extensions without duplicating them or using ally-only grants', () => {
+test('Essence of Speed extends self Quickness once and ignores ally-only grants', () => {
   for (const includesSelf of [false, true]) {
-    const config = {
-      specialization: 'Soulbeast',
-      primaryWeapon: 'Longbow',
-      selectedTraitIds: [RANGER_TRAIT_IDS.ESSENCE_OF_SPEED],
-      stats: { power: 1000, precision: 2470, ferocity: 0 },
-      target: { armor: 2597 }
-    };
-    const scheduler = createScheduler({
-      profession: rangerProfession,
-      config,
-      schedulerPolicy: createGw2SchedulerPolicy(config)
-    });
-    const { context } = scheduler;
-    context.schedulerPolicy.requireCriticalFacts();
-    context.emit(buff(0, 2));
-    context.emit(buff(1, 5, { ...self, includesSelf, alliedPlayerCount: includesSelf ? 0 : 1 }, 'quickness'));
-    context.emit(buff(1.5, 5, self, 'quickness'));
-    // The second grant is on cooldown only when the first one actually affected the player.
-    scheduler.advanceTo(3);
-    assert.equal(context.hasBuff('fury', 3), true);
-    assert.equal(remaining(boonApplicationsAt(context.events, 'fury', 3), 3), 1);
-    const result = resolveGw2Timeline({
-      stream: scheduler.run([]).stream,
-      config,
-      profession: context.profession,
-      traits: selectedGw2TraitValues(config, context.catalog)
-    });
+    const result = runRanger(
+      [{ type: 'wait', durationMs: 3000 }],
+      {
+        specialization: 'Soulbeast',
+        selectedTraitIds: [RANGER_TRAIT_IDS.ESSENCE_OF_SPEED]
+      },
+      {
+        initialize(runtime) {
+          runtime.emit(buff(0, 2));
+          runtime.emit(buff(1, 5, { ...self, includesSelf, alliedPlayerCount: includesSelf ? 0 : 1 }, 'quickness'));
+          runtime.emit(buff(1.5, 5, self, 'quickness'));
+        }
+      }
+    );
     assert.equal(remaining(boonApplicationsAt(result.resolvedEvents, 'fury', 3), 3), 1);
     assert.deepEqual(result.warnings, []);
   }

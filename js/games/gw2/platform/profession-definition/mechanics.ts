@@ -1,11 +1,5 @@
-import { augmentSkillHandler, replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
-import type { AvailabilityResult, SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  NativeResolvedDamageDetails,
-  NativeResolvedReaction,
-  NativeSchedulerMechanic
-} from '#gw2/platform/profession-definition/module-types.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import {
   advanceCriticalProc,
   criticalOpportunity,
@@ -16,21 +10,6 @@ import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js
 
 export { timedEffect } from '#gw2/platform/engine/effects/timed-effects.js';
 export { resolverTimedEffect } from '#gw2/platform/resolver/timed-effect-adapter.js';
-export { resourceDepletion } from '#gw2/platform/execution/resource-clock.js';
-export { actorLoop } from '#gw2/platform/execution/actor-loop.js';
-export { eventReaction, scheduledReaction } from '#gw2/platform/execution/scheduler-reactions.js';
-
-type OrderedEscapeHandler = Readonly<{
-  id: string;
-  order?: number;
-  handler: (...args: never[]) => object | boolean | number | string | null | void;
-}>;
-
-type AvailabilityEscapeHandler = Readonly<{
-  id: string;
-  order?: number;
-  handler: (...args: never[]) => AvailabilityResult;
-}>;
 
 function resolvedReaction<
   TContext extends Gw2ResolverRuntime,
@@ -43,7 +22,7 @@ function resolvedReaction<
     order?: number;
     handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
   }>
-): NativeResolvedReaction<TContext, TEvent, TDetails> {
+): ResolvedReaction<TContext, TEvent, TDetails> {
   if (!String(declaration.id || '').trim() || typeof declaration.handler !== 'function') {
     throw new TypeError(`${stage} resolver reaction requires id and handler.`);
   }
@@ -68,7 +47,7 @@ export function onResolvingDamage<
     order?: number;
     handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
   }>
-): NativeResolvedReaction<TContext, TEvent, TDetails> {
+): ResolvedReaction<TContext, TEvent, TDetails> {
   return resolvedReaction('damage.resolving', declaration);
 }
 
@@ -83,68 +62,8 @@ export function onResolvedDamage<
     order?: number;
     handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
   }>
-): NativeResolvedReaction<TContext, TEvent, TDetails> {
+): ResolvedReaction<TContext, TEvent, TDetails> {
   return resolvedReaction('damage.resolved', declaration);
-}
-
-/** Creates an ordered resolver reaction for resolved control effects. */
-export function onResolvedControl<
-  TContext extends Gw2ResolverRuntime,
-  TEvent extends Gw2ResolverEvent,
-  TDetails extends object = object
->(
-  declaration: Readonly<{
-    id: string;
-    order?: number;
-    handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
-  }>
-): NativeResolvedReaction<TContext, TEvent, TDetails> {
-  return resolvedReaction('control.resolved', declaration);
-}
-
-/** Creates an ordered resolver reaction for resolved blind effects. */
-export function onResolvedBlind<
-  TContext extends Gw2ResolverRuntime,
-  TEvent extends Gw2ResolverEvent,
-  TDetails extends object = object
->(
-  declaration: Readonly<{
-    id: string;
-    order?: number;
-    handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
-  }>
-): NativeResolvedReaction<TContext, TEvent, TDetails> {
-  return resolvedReaction('blind.resolved', declaration);
-}
-
-/** Creates an ordered resolver reaction for applied conditions. */
-export function onConditionApplied<
-  TContext extends Gw2ResolverRuntime,
-  TEvent extends Gw2ResolverEvent,
-  TDetails extends object = object
->(
-  declaration: Readonly<{
-    id: string;
-    order?: number;
-    handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
-  }>
-): NativeResolvedReaction<TContext, TEvent, TDetails> {
-  return resolvedReaction('condition.applied', declaration);
-}
-
-/** Creates an ordered resolver reaction for applied buffs. */
-export function onBuffApplied<
-  TContext extends Gw2ResolverRuntime,
-  TEvent extends Gw2ResolverEvent,
-  TDetails extends object = object
->(
-  declaration: Readonly<{
-    id: string;
-    order?: number;
-    handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
-  }>
-): NativeResolvedReaction<TContext, TEvent, TDetails> {
-  return resolvedReaction('buff.applied', declaration);
 }
 
 /** Creates an ordered resolver reaction for resolved combos. */
@@ -158,7 +77,7 @@ export function onComboResolved<
     order?: number;
     handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
   }>
-): NativeResolvedReaction<TContext, TEvent, TDetails> {
+): ResolvedReaction<TContext, TEvent, TDetails> {
   return resolvedReaction('combo.resolved', declaration);
 }
 
@@ -173,7 +92,7 @@ export function onAuraApplied<
     order?: number;
     handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
   }>
-): NativeResolvedReaction<TContext, TEvent, TDetails> {
+): ResolvedReaction<TContext, TEvent, TDetails> {
   return resolvedReaction('aura.applied', declaration);
 }
 
@@ -218,9 +137,8 @@ export function onResolvedCriticalHit<
   TDetails extends NativeResolvedDamageDetails
 >(
   options: ResolvedCriticalHitOptions<TContext, TEvent, TDetails>
-): NativeResolvedReaction<TContext, TEvent, TDetails> & {
+): ResolvedReaction<TContext, TEvent, TDetails> & {
   readonly attribution: ResolvedCriticalHitOptions<TContext, TEvent, TDetails>['attribution'];
-  readonly requiresCriticalFacts: true;
 } {
   const actorTypes = new Set(options.actorTypes || ['player']);
   const sourceIds = options.sourceIds == null ? null : new Set(options.sourceIds.map(String));
@@ -276,50 +194,14 @@ export function onResolvedCriticalHit<
       if (application) options.handler(context, event, details, application);
     }
   });
-  return Object.freeze({ ...reaction, attribution: options.attribution, requiresCriticalFacts: true as const });
+  return Object.freeze({ ...reaction, attribution: options.attribution });
 }
 
-function schedulerMechanic(
-  hook: NativeSchedulerMechanic['hook'],
-  declaration: OrderedEscapeHandler
-): NativeSchedulerMechanic {
-  if (!String(declaration.id || '').trim() || typeof declaration.handler !== 'function') {
-    throw new TypeError(`${hook} scheduler mechanic requires id and handler.`);
-  }
-
-  return Object.freeze({
-    phase: 'scheduler',
-    hook,
-    id: declaration.id,
-    order: Number(declaration.order || 0),
-    handler: declaration.handler
-  });
-}
-
-/** Creates an ordered scheduler mechanic that controls skill availability. */
-export function skillAvailability(declaration: AvailabilityEscapeHandler): NativeSchedulerMechanic {
-  return schedulerMechanic('availability', declaration);
-}
-
-/** Creates an ordered scheduler mechanic that runs after a skill's declarative effects. */
-export function afterSkillEffects(declaration: OrderedEscapeHandler): NativeSchedulerMechanic {
-  return schedulerMechanic('afterCast', declaration);
-}
-
-// The underlying handler functions take beforeEffects as a separate positional
-// parameter; these wrappers provide a flat object API and split it out internally.
-/** Builds an augmenting skill-handler strategy from flat phase callbacks. */
-export function augmentSkill<TContext extends object>(
-  phases: Omit<Partial<SkillHandlerStrategy<TContext>>, 'mode'>
-): Readonly<SkillHandlerStrategy<TContext>> {
-  const { beforeEffects = null, ...options } = phases;
-  return augmentSkillHandler(beforeEffects, options);
-}
-
-/** Builds a replacing skill-handler strategy from flat phase callbacks. */
-export function replaceSkill<TContext extends object>(
-  phases: Omit<Partial<SkillHandlerStrategy<TContext>>, 'mode'>
-): Readonly<SkillHandlerStrategy<TContext>> {
-  const { beforeEffects = null, ...options } = phases;
-  return replaceSkillHandler(beforeEffects, options);
+/** Ordered reactions retain live critical facts without declaring a second execution phase. */
+interface ResolvedReaction<TContext, TEvent, TDetails> {
+  readonly phase: 'resolver';
+  readonly stage: Gw2ResolverStage;
+  readonly id: string;
+  readonly order: number;
+  readonly handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
 }

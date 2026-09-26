@@ -1,4 +1,3 @@
-import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -6,7 +5,6 @@ import test from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
@@ -18,11 +16,13 @@ import {
   THIEF_TRAIT_IDS as TRAIT
 } from '#gw2/professions/thief/data/ids.js';
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
-import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
-import { createAntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { handleThiefState } from '#gw2/professions/thief/family-state.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
+
 import { applyAlliedLeechingVenoms } from '#gw2/professions/thief/core/traits/shadow-arts.js';
+
+// Forced exits carry the depletion owner so they are distinct from an authored Exit Shadow Shroud.
+const DEPLETED = 'thief.shadow-shroud-depleted';
 
 test('allied Leeching Venoms triggers only for the first packet of an allied venom proc', () => {
   // Ally zero and later condition packets cannot duplicate the venom's life-steal reaction.
@@ -75,7 +75,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createProfessionSimulator(thiefProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(thiefProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -197,45 +197,47 @@ test('Specter automatically leaves Shadow Shroud when shadow force depletes', ()
   assert.equal(result.planningState.profession.shadowClock.value, 0);
   assert.equal(result.events.filter((event) => event.type === 'weapon_set' && event.shroudSwap).length, 2);
   assert.deepEqual(result.warnings, []);
-  const depleted = result.events.filter((event) => event.sourceId === 'thief.shadow-shroud-depleted');
+  const depleted = result.events.filter((event) => event.sourceId === DEPLETED);
   assert.equal(depleted.length, 1);
   assert.equal(depleted[0].at, 0.52);
-  const snapshot = result.events.find((event) => event.reason === 'shadow-shroud-depleted');
-  assert.equal(snapshot.at, 0.52);
-  assert.equal(snapshot.state.shadowShroudActive, false);
-  assert.equal(snapshot.state.shadowClock.value, 0);
+  assert.equal(depleted[0].type, 'weapon_set');
 });
 
 // Observe the live clock so backdating an exit after the wait cannot satisfy the timing contract.
-test('Shadow Shroud depletion executes at the scheduler boundary', () => {
-  const scheduler = createScheduler({
-    profession: thiefProfession,
-    config: { specialization: 'Specter', initialShadowForce: 1 }
-  });
-  const emit = scheduler.context.emit;
+test('Shadow Shroud depletion executes at the live boundary', () => {
   const observed = [];
-  scheduler.context.emit = (event) => {
-    if (event.reason === 'shadow-shroud-depleted') observed.push(scheduler.context.state.time);
-    return emit(event);
-  };
-
-  scheduler.run(['Enter Shadow Shroud', { type: 'wait', durationMs: 1000 }]);
+  const result = runThief(
+    ['Enter Shadow Shroud', { type: 'wait', durationMs: 1000 }],
+    { specialization: 'Specter', initialShadowForce: 1 },
+    {
+      initialize(runtime) {
+        const emit = runtime.emit;
+        runtime.emit = (event) => {
+          if (event.sourceId === DEPLETED) observed.push(runtime.time);
+          return emit(event);
+        };
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
   assert.deepEqual(observed, [0.52]);
 });
 
 test('Shadow Shroud depletion follows force gains and cooldown resets', () => {
+  // Two percent drains in one second, so Siphon's completion at 0.77 s adds its gain to the remaining 0.46 and the
+  // exit moves to the first 40 ms boundary after 13.5 s. The reset refills the pool at 0.25 s.
   for (const [command, expectedExit] of [
-    ['Siphon', 13],
+    ['Siphon', 13.52],
     [{ type: 'cooldown-reset' }, 50.28]
   ]) {
     const result = simulate(
       'Specter',
       ['Enter Shadow Shroud', { type: 'wait', durationMs: 250 }, command, { type: 'wait', durationMs: 51000 }],
-      { initialShadowForce: 1 }
+      { initialShadowForce: 2 }
     );
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(
-      result.events.filter((event) => event.reason === 'shadow-shroud-depleted').map((event) => event.at),
+      result.events.filter((event) => event.sourceId === DEPLETED).map((event) => event.at),
       [expectedExit]
     );
   }
@@ -255,7 +257,7 @@ test('manual Shadow Shroud exit cancels depletion and preserves remaining force'
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(
-    result.events.some((event) => event.reason === 'shadow-shroud-depleted'),
+    result.events.some((event) => event.sourceId === DEPLETED),
     false
   );
   assert.equal(result.planningState.profession.shadowClock.value, 1);
@@ -612,24 +614,20 @@ test('Mind Shock grants stability before its delayed strike and stun', () => {
 
 test('Pitfall placement recharge and trigger rearm expire independently', () => {
   // Triggering early preserves the placement cooldown; triggering late starts the shorter rearm.
-  const prepared = simulate('Core', [ID.PREPARE_PITFALL], { selectedSkills: ['Prepare Pitfall'] });
-  const placement = prepared.events.find((event) => event.type === 'action' && event.skillId === ID.PREPARE_PITFALL);
-  for (const waitMs of [0, placement.rechargeReadyAt * 1000]) {
-    const result = simulate(
-      'Core',
-      [ID.PREPARE_PITFALL, { type: 'wait', durationMs: waitMs }, ID.PITFALL, ID.PREPARE_PITFALL],
-      {
-        selectedSkills: ['Prepare Pitfall']
-      }
-    );
-    const trigger = result.events.find((event) => event.type === 'action' && event.skillId === ID.PITFALL);
+  const config = { selectedSkills: ['Prepare Pitfall'] };
+  // Each recharge deadline is read from the live cooldown clock once its cast has completed.
+  const placementReadyAt = runtimeFor(simulate('Core', [ID.PREPARE_PITFALL], config)).cooldowns.get(ID.PREPARE_PITFALL);
+  for (const waitMs of [0, placementReadyAt * 1000]) {
+    const triggered = [ID.PREPARE_PITFALL, { type: 'wait', durationMs: waitMs }, ID.PITFALL];
+    const triggerReadyAt = runtimeFor(simulate('Core', triggered, config)).cooldowns.get(ID.PITFALL);
+    const result = simulate('Core', [...triggered, ID.PREPARE_PITFALL], config);
     const nextPlacement = result.events
       .filter((event) => event.type === 'action' && event.skillId === ID.PREPARE_PITFALL)
       .at(-1);
     assert.deepEqual(result.warnings, []);
     assert.equal(
       Math.round(nextPlacement.at * 1000),
-      Math.ceil((Math.max(placement.rechargeReadyAt, trigger.rechargeReadyAt) * 1000) / 40) * 40
+      Math.ceil((Math.max(placementReadyAt, triggerReadyAt) * 1000) / 40) * 40
     );
   }
 });
@@ -705,7 +703,7 @@ test('Specter traits amplify force gains and add their Siphon recharge reduction
     observationTail(1000)
   );
 
-  assert.equal(larcenous.combatState.profession.shadowClock.value, 5.5);
+  assert.equal(runtimeFor(larcenous).resourceController.value('shadowForce'), 5.5);
   assert.equal(
     larcenous.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Larcenous Torment')
       .length,
@@ -740,7 +738,10 @@ test('Larcenous Torment keeps its life siphon but grants no force inside Shadow 
     larcenous.planningState.profession.shadowClock.value,
     baseline.planningState.profession.shadowClock.value
   );
-  assert.equal(larcenous.combatState.profession.shadowClock.value, baseline.combatState.profession.shadowClock.value);
+  assert.equal(
+    runtimeFor(larcenous).resourceController.value('shadowForce'),
+    runtimeFor(baseline).resourceController.value('shadowForce')
+  );
   assert.ok(
     larcenous.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === TRAIT.LARCENOUS_TORMENT)
   );
@@ -1024,99 +1025,30 @@ test('Skale and Devourer Venom grant party charges that proc together on attacks
   assert.equal(personalProcs(ID.DEVOURER_VENOM).length, 2);
 });
 
-test('Thief snapshots reconcile venom generations and detach fields at their declared owners', () => {
-  // Repeated grants must retain resolved spending and proc progress without sharing mutable snapshot data.
-  const core = createThiefCoreState();
-  const state = createAntiquaryState();
-  const context = { profession: { core, specialization: { kind: 'Antiquary', state } } };
-  core.traitProcProgress = { [TRAIT.NO_QUARTER]: 0.5 };
-  core.traitProcReadyAt = { [TRAIT.NO_QUARTER]: 10 };
-  core.venomGeneration = 1;
-  core.venomChargeBatches[ID.SPIDER_VENOM] = [
-    { generation: 1, charges: 2, expiresAt: 10 },
-    { generation: 1, charges: 1, expiresAt: 1 },
-    { generation: 1, charges: 0, expiresAt: 20 }
-  ];
-  const snapshot = {
-    at: 1,
-    state: {
-      venomGeneration: 2,
-      venomChargeBatches: {
-        [ID.SPIDER_VENOM]: [
-          { generation: 1, charges: 5, expiresAt: 10 },
-          { generation: 2, charges: 3, expiresAt: 20 }
-        ]
-      },
-      traitProcProgress: {},
-      traitProcReadyAt: {},
-      availableFlips: { [ID.SPIDER_VENOM]: armSkillFlip({}, 0, 0, 10) },
-      backfireState: { outcome: 'success' }
-    }
-  };
-  handleThiefState(context, snapshot);
-  assert.deepEqual(
-    core.venomChargeBatches[ID.SPIDER_VENOM].map((batch) => batch.charges),
-    [2, 3]
+test('Mistburn charges are spent once by later player strikes, never by the Mortar itself', () => {
+  // Five charges survive the Mortar's own packets and are consumed one per later player strike until exhausted.
+  const result = simulate(
+    'Antiquary',
+    ['Skritt Swipe', 'Mistburn Mortar', 'Double Strike', 'Wild Strike', 'Lotus Strike', 'Double Strike', 'Wild Strike'],
+    {}
   );
-  assert.equal(Object.hasOwn(core, 'backfireState'), false);
-  assert.equal(Object.hasOwn(state, 'availableFlips'), false);
-  core.venomChargeBatches[ID.SPIDER_VENOM][1].charges = 1;
-  core.availableFlips[ID.SPIDER_VENOM] = armSkillFlip({}, 0, 0, 0);
-  state.backfireState.outcome = 'backfire';
-  assert.equal(snapshot.state.venomChargeBatches[ID.SPIDER_VENOM][1].charges, 3);
-  assert.equal(snapshot.state.availableFlips[ID.SPIDER_VENOM]?.expiresAt, 10);
-  assert.equal(snapshot.state.backfireState.outcome, 'success');
-
-  handleThiefState(context, { ...snapshot, at: 2 });
-  assert.deepEqual(
-    core.venomChargeBatches[ID.SPIDER_VENOM].map((batch) => batch.charges),
-    [2, 1]
+  assert.deepEqual(result.warnings, []);
+  const procs = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.name === 'Mistburn Mortar — Charged Strike'
   );
-  assert.deepEqual(core.traitProcProgress, { [TRAIT.NO_QUARTER]: 0.5 });
-  assert.deepEqual(core.traitProcReadyAt, { [TRAIT.NO_QUARTER]: 10 });
-  handleThiefState(context, {
-    at: 3,
-    state: {
-      venomGeneration: 3,
-      venomChargeBatches: { [ID.SPIDER_VENOM]: [{ generation: 3, charges: 4, expiresAt: 15 }] }
-    }
-  });
-  assert.deepEqual(
-    core.venomChargeBatches[ID.SPIDER_VENOM].map((batch) => batch.charges),
-    [2, 4, 1]
-  );
-  assert.equal(core.venomGeneration, 3);
-});
-
-test('Mistburn snapshots preserve spent charges until a new generation is granted', () => {
-  // Scheduler snapshots repeat grants; only a new application may refill resolver-consumed charges.
-  const result = simulate('Antiquary', ['Skritt Swipe', 'Mistburn Mortar']);
-  const snapshot = result.events.find((event) => event.type === 'thief.state' && event.state?.mistburn?.charges > 0);
-  assert.ok(snapshot);
-  const state = createAntiquaryState();
-  const context = {
-    profession: { core: createThiefCoreState(), specialization: { kind: 'Antiquary', state } }
-  };
-
-  handleThiefState(context, snapshot);
-  assert.equal(state.mistburn.charges, snapshot.state.mistburn.charges);
-  state.mistburn.charges -= 1;
-  handleThiefState(context, { ...snapshot, at: snapshot.at + 0.1 });
-  assert.equal(state.mistburn.charges, snapshot.state.mistburn.charges - 1);
-
-  handleThiefState(context, {
-    ...snapshot,
-    at: snapshot.at + 0.2,
-    state: { ...snapshot.state, mistburnGeneration: snapshot.state.mistburnGeneration + 1 }
-  });
-  assert.equal(state.mistburn.charges, snapshot.state.mistburn.charges);
+  assert.equal(procs.length, 5);
+  assert.ok(procs.every((event) => event.triggeredBy !== 'Mistburn Mortar'));
+  assert.equal(result.planningState.profession.mistburn.charges, 0);
 });
 
 test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic', () => {
-  assert.ok(
+  // Double Edge skills are exactly those usable while their recharge runs.
+  assert.deepEqual(
     thiefCatalog.skills
-      .filter((skill) => skill.handlerId === 'thief.double-edge')
-      .every((skill) => skill.usableWhileRecharging === true)
+      .filter((skill) => skill.usableWhileRecharging === true)
+      .map((skill) => skill.id)
+      .sort((left, right) => left - right),
+    [ID.STONE_SUMMIT_CANNON, ID.ANTIVENOM_DRAUGHT, ID.CANACH_COIN_TOSS].sort((left, right) => left - right)
   );
   const artifact = simulate('Antiquary', ['Skritt Swipe', 'Forged Surfer Dash', { type: 'wait', durationMs: 1200 }], {
     primaryWeapon: 'Axe',
@@ -1436,9 +1368,10 @@ test('Holo-Dancer separates its initial Might from the shared explosion impact',
     selectedTraitIds: []
   });
   assert.deepEqual(result.warnings, []);
-  const packets = result.events.filter(
-    (event) => event.skillId === ID.HOLO_DANCER_DECOY && ['control', 'damage', 'buff'].includes(event.type)
-  );
+  // Same-instant packets keep their authored emission order; dispatch phases may apply boons first.
+  const packets = result.events
+    .filter((event) => event.skillId === ID.HOLO_DANCER_DECOY && ['control', 'damage', 'buff'].includes(event.type))
+    .sort((left, right) => left.at - right.at || left.eventOrder - right.eventOrder);
   const completedAt = packets.find((event) => event.type === 'control').at;
   assert.deepEqual(
     packets.map(({ type, at, kind }) => [type, at, kind]),

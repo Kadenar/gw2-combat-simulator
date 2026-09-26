@@ -3,14 +3,10 @@ import test from 'node:test';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { gw2StaticAttributes } from '#gw2/platform/combat/query/combat-query.js';
 import { gw2ResolverBoonDuration, queueResolverBoon } from '#gw2/platform/resolver/boons.js';
-import { createGw2SchedulerPolicy, gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
-import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
-import { resolveTestGw2Stream } from '#tests/helpers/gw2-resolver.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 
@@ -69,51 +65,16 @@ test('boon grants round durations to milliseconds and expirations up to action t
         duration,
         fixedDuration: true
       });
-      const event = buildScheduledEventStream({ events: [input], rotationEndTime: 0.375 }).events[0];
+      const event = resolveTestGw2Events({ events: [input], endTime: 0.375 }).events.find(
+        (event) => event.type === 'buff'
+      );
       assert.equal(event.duration, expected);
       assert.equal(event.at, 0.375);
       assert.equal(input.duration, duration);
-      assert.deepEqual(buildScheduledEventStream({ events: [event], rotationEndTime: 0.375 }).events[0], event);
     }
   }
 
   assert.equal(gw2EffectExpiresAt(0.36, 1.002), 1.4);
-
-  // Later modifiers still receive unrounded inputs, while scheduler availability already observes rounded lifetimes.
-  const { context } = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() });
-  for (const kind of ['might', 'fury']) {
-    const event = context.emit({
-      type: 'buff',
-      at: 0.375,
-      source: 'Player',
-      sourceId: kind,
-      actorType: 'player',
-      kind,
-      duration: 0.75,
-      stacks: 1
-    });
-    context.replaceEvent(event, { duration: event.duration * 4 });
-    assert.equal(context.hasBuff(kind, 3.399999), true);
-    assert.equal(context.hasBuff(kind, 3.4), false);
-    context.replaceEvent(event, { duration: 1.0015 });
-    assert.equal(context.hasBuff(kind, 1.399999), true);
-    assert.equal(context.hasBuff(kind, 1.4), false);
-    context.replaceEvent(event, { duration: 0.0005 });
-    assert.equal(context.hasBuff(kind, 0.375), false);
-  }
-
-  context.emit({
-    type: 'buff',
-    at: 0.36,
-    source: 'Player',
-    sourceId: 'modifier',
-    actorType: 'player',
-    kind: 'modifier-buff',
-    duration: 1.002,
-    stacks: 1
-  });
-  assert.equal(context.hasBuff('modifier-buff', 1.399999), true);
-  assert.equal(context.hasBuff('modifier-buff', 1.4), false);
 });
 
 // Raw streams and derived reactions must agree with scheduler rounding and never re-round a draining lifetime.
@@ -125,9 +86,9 @@ test('resolver boon grants and extensions retain rounded expiry in detailed and 
       Object.freeze({ ...owner, type: 'buff', at: 0.375, kind: 'might', duration: 1.01, stacks: 1 }),
       ...[0.375, 1.399999, 1.4, 1.439999, 1.44].map((at) => ({ ...owner, type: 'damage', at, flatDamage: 1 }))
     ];
-    const result = resolveTestGw2Stream({
+    const result = resolveTestGw2Events({
       output,
-      stream: { ...buildScheduledEventStream({ events: [], rotationEndTime: 1.5 }), events },
+      ...{ ...{ events: [], endTime: 1.5 }, events },
       config: {},
       professionReactions: {
         'damage.resolved': (ctx, event) => {
@@ -188,36 +149,6 @@ test('static attribute snapshots preserve global and named boon-duration bonuses
   assert.equal(stats.boonDurationBonus, 10);
   assert.deepEqual(stats.boonDurationBonuses, { Might: 15 });
   assert.ok(Math.abs(gw2BoonDurationMultiplier('might', stats) - 1.45) < 1e-12);
-});
-
-test('scheduler-owned boons use live profession stats and the active weapon-set sigils', () => {
-  const config = {
-    stats: {
-      concentration: 0,
-      boonDurationBonus: 10,
-      boonDurationBonuses: { Might: 10 }
-    },
-    weaponSetStats: [{}, { concentration: 300 }],
-    sigilSets: [{ boonDurationBonus: 0 }, { boonDurationBonus: 10 }]
-  };
-  const schedulerPolicy = createGw2SchedulerPolicy(config);
-  const context = {
-    schedulerPolicy,
-    state: { activeWeaponSet: 2, time: 4, profession: {} },
-    events: [],
-    combatStartTime: 0,
-    profession: {
-      // Simulates a live profession attribute modifier layered over configured weapon-set stats.
-      modifyAttributes(_context, stats) {
-        return { ...stats, concentration: Number(stats.concentration || 0) + 150 };
-      }
-    }
-  };
-  const skill = { id: 1, name: 'Fixture boon source' };
-
-  assert.equal(gw2SchedulerBoonDuration(context, skill, 'might', 5), 8);
-  assert.equal(gw2SchedulerBoonDuration(context, skill, 'profession-specific-buff', 5), 5);
-  assert.equal(gw2SchedulerBoonDuration(context, skill, 'might', 5, { fixedDuration: true }), 5);
 });
 
 test('resolver-owned boons sample timestamp stats and the currently active sigils', () => {
@@ -332,9 +263,9 @@ test('declarative boons can gate dynamic skill availability', () => {
     id: 'boon-gated',
     name: 'Boon Gated',
     catalog,
-    castRules: {
-      availability: (context) =>
-        context.skill.id !== 920002 || context.hasBuff('aegis')
+    live: {
+      availability: (runtime, skill) =>
+        skill.id !== 920002 || runtime.query.timeline.buffStacksAt('aegis', runtime.time, 0, 1) > 0
           ? { ready: true }
           : {
               ready: false,
@@ -378,19 +309,20 @@ test('declarative generic buffs use shared timed state without boon-duration sca
         id: 920012,
         name: 'Inspect Trait Buff',
         castTimeMs: 0,
-        handlerId: 'fixture.inspect-buff',
         effects: []
       }
-    ],
-    skillHandlers: {
-      'fixture.inspect-buff': replaceSkillHandler((context) => {
-        observedAsBuff = context.hasBuff('trait-charge');
-      })
-    }
+    ]
   });
   const profession = defineProfession({
     id: 'buff-state-fixture',
     name: 'Buff State Fixture',
+    // Observe the actual buff after the preceding instant cast has resolved.
+    live: {
+      onCastStart(runtime, cast) {
+        if (cast.skill.id === 920012)
+          observedAsBuff = runtime.query.timeline.buffStacksAt('trait-charge', runtime.time, 0, 25) > 0;
+      }
+    },
     catalog
   });
   const result = simulateGw2({

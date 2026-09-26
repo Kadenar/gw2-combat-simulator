@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as NECRO_SKILL } from '#gw2/professions/necromancer/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
@@ -17,19 +17,8 @@ const attributes = Object.freeze({
   vitality: 1000
 });
 
-function simulateNecromancer(specialization, rotation, config = {}, observationPolicy = { kind: 'rotation' }) {
-  return simulateGw2({
-    profession: necromancerProfession,
-    rotation,
-    config: {
-      specialization,
-      stats: attributes,
-      target,
-      ...config
-    },
-    observationPolicy
-  });
-}
+// Native recurrence and interrupted packets must observe the same caller-owned endpoint.
+const simulateNecromancer = createLiveProfessionSimulator(necromancerProfession, { stats: attributes, target });
 
 test('native wells and uncommitted interrupted effects obey caller observation', () => {
   const well = simulateNecromancer(
@@ -104,19 +93,14 @@ test('native summons and condition builds stop at the observation boundary', () 
 });
 
 test('native upkeep recurrence terminates at starvation inside a finite tail', () => {
-  const result = simulateGw2({
-    profession: revenantProfession,
-    rotation: ['Impossible Odds'],
-    config: {
-      specialization: 'Core',
-      selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
-      startingLegend: LEGEND.ASSASSIN,
-      initialEnergy: 50,
-      stats: attributes,
-      target
-    },
-    observationPolicy: { kind: 'tail', durationMs: 50_000 }
-  });
+  // The registered live family owns upkeep drain and starvation inside the caller's observation tail.
+  const result = createLiveProfessionSimulator(revenantProfession, {
+    selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
+    startingLegend: LEGEND.ASSASSIN,
+    initialEnergy: 50,
+    stats: attributes,
+    target
+  })('Core', ['Impossible Odds'], {}, { kind: 'tail', durationMs: 50_000 });
 
   assert.equal(result.planningState.profession.activeUpkeeps.length, 0);
   assert.ok(Math.abs(result.planningState.profession.energy.value - 25) < 0.01);

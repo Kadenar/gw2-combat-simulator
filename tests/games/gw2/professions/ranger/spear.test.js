@@ -1,11 +1,12 @@
+import { runtimeFor } from '#tests/helpers/live-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 
-const simulate = createProfessionSimulator(rangerProfession, {
+const simulate = createLiveProfessionSimulator(rangerProfession, {
   primaryWeapon: 'Spear',
   secondaryWeapon: '',
   selectedPet: 'Pig',
@@ -59,8 +60,8 @@ test('spear slots 2–4 commit identical cooldowns for base and stealth skills',
     for (const rotation of [[base], [ID.PANTHERS_PROWL, stealth], [ID.PANTHERS_PROWL, cast(stealth, 1)]]) {
       const result = simulate('Soulbeast', rotation);
       assert.deepEqual(result.warnings, []);
-      assert.ok(result.schedulerState.cooldowns.get(base) > 0);
-      assert.equal(result.schedulerState.cooldowns.get(base), result.schedulerState.cooldowns.get(stealth));
+      assert.ok(runtimeFor(result).cooldowns.get(base) > 0);
+      assert.equal(runtimeFor(result).cooldowns.get(base), runtimeFor(result).cooldowns.get(stealth));
     }
   }
 });

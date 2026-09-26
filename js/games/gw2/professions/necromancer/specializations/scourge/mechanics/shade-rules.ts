@@ -1,32 +1,22 @@
-import { eventReaction } from '#gw2/platform/execution/scheduler-reactions.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
+
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   cloneNecromancerAttributes,
   necromancerRuntimeSpecializationState
 } from '#gw2/professions/necromancer/core/traits/modifiers.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type {
-  NecromancerPrecastContext,
-  NecromancerSchedulerContext,
-  NecromancerSkillModifierContext,
-  NecromancerSimulationEvent,
-  NecromancerSkill
-} from '#gw2/professions/necromancer/types.js';
 
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
-import { gainNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { purgeScourgeTimedState, scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 
 // Apply Scourge's static conversion and live-shade attribute bonuses from their authoritative inputs.
 function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
@@ -50,7 +40,7 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
   ) {
     const sandSageProfile = requireBalanceProfileFromContext(context, PROFILE.sandSage);
     const bonus = balanceProfileNumber(sandSageProfile, 'attributeBonus');
-    // Dynamic attribute queries may begin from sparse scheduler stats, so normalize
+    // Dynamic attribute queries may begin from sparse input stats, so normalize
     // absent duration attributes before applying Sand Sage's active-shade bonus.
     result.concentration = Number(result.concentration || 0) + bonus;
     result.expertise = Number(result.expertise || 0) + bonus;
@@ -58,79 +48,6 @@ function modifyScourgeAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
 
   return result;
 }
-
-// Apply Sand Savant's recharge penalty only to Manifest Sand Shade.
-function modifyScourgeRechargeDuration(context: NecromancerSkillModifierContext, duration: number): number {
-  // Sand Savant adds a 25% recharge penalty alongside the ammo cap reduction to 1
-  return context.skill?.id === ID.MANIFEST_SAND_SHADE && hasTrait(context, TRAIT.SAND_SAVANT)
-    ? duration * balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.sandSavant), 'rechargePenalty')
-    : duration;
-}
-
-// Collapse Manifest Sand Shade to Sand Savant's single-charge limit.
-function modifyScourgeMaximumAmmo(context: NecromancerSkillModifierContext, maximum: number): number {
-  // Sand Savant merges all 3 shades into a single more-powerful shade; only 1 charge allowed
-  return context.skill?.id === ID.MANIFEST_SAND_SHADE && hasTrait(context, TRAIT.SAND_SAVANT)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.sandSavant), 'maximumStacks')
-    : maximum;
-}
-
-/** Selects the one Scourge F5 variant enabled by Herald of Sorrow for this command attempt. */
-function scourgeBuildAvailability(context: NecromancerPrecastContext, skill: NecromancerSkill): AvailabilityResult {
-  // Herald of Sorrow owns the mutually exclusive F5 replacement at the Scourge boundary.
-  if (skill.id === ID.SANDSTORM_SHROUD) {
-    return hasTrait(context, TRAIT.HERALD_OF_SORROW)
-      ? CAST_READY
-      : denyCast('necromancer.trait-replacement', `${skill.name} is unavailable — requires Herald of Sorrow.`);
-  }
-
-  if (skill.id === ID.DESERT_SHROUD) {
-    return hasTrait(context, TRAIT.HERALD_OF_SORROW)
-      ? denyCast(
-          'necromancer.trait-replacement',
-          `${skill.name} is unavailable — replaced by Sandstorm Shroud while Herald of Sorrow is selected.`
-        )
-      : CAST_READY;
-  }
-
-  return CAST_READY;
-}
-
-/** Nourishing Ashes claims its existing cooldown only when the causal Burning application survives. */
-export const nourishingAshes = eventReaction<NecromancerSchedulerContext, NecromancerSimulationEvent>({
-  id: 'necromancer.scourge.nourishing-ashes',
-  missingEvent: 'skip',
-  order: 10,
-  select(_context, event) {
-    return event.type === 'condition' && event.condition === 'Burning'
-      ? { at: event.at, payload: { eventOrder: Number(event.eventOrder) } }
-      : null;
-  },
-  execute(context, event) {
-    const state = scourgeState.from(context);
-    if (
-      event.cancelled ||
-      event.offTarget ||
-      !hasTrait(context, TRAIT.NOURISHING_ASHES) ||
-      !isInternalCooldownReady(event.at, state.nourishingAshesReadyAt)
-    )
-      return;
-    const profile = requireBalanceProfileFromContext(context, PROFILE.nourishingAshes);
-    state.nourishingAshesReadyAt = event.at + balanceProfileNumber(profile, 'cooldown');
-    gainNecromancerLifeForce(context, balanceProfileNumber(profile, 'lifeForceGain'), event.at, 'nourishing-ashes');
-  }
-});
-
-export const scourgeSchedulerHooks = Object.freeze({
-  advance: {
-    id: 'scourge.purge-shades',
-    order: -10,
-    handler: (context: NecromancerSchedulerContext, target: number) =>
-      purgeScourgeTimedState(scourgeState.from(context), target)
-  },
-  onEventScheduled: nourishingAshes.onEventScheduled,
-  taskHandlers: nourishingAshes.taskHandlers
-});
 
 const scourgeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -154,14 +71,4 @@ const scourgeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 export const scourgeAttributeRules = Object.freeze({
   modifyAttributes: modifyScourgeAttributes,
   modifierRules: scourgeModifierRules
-});
-
-export const scourgeCastRules = Object.freeze({
-  availability: {
-    id: 'scourge.build',
-    order: 120,
-    handler: scourgeBuildAvailability
-  },
-  modifyRechargeDuration: modifyScourgeRechargeDuration,
-  modifyMaximumAmmo: modifyScourgeMaximumAmmo
 });

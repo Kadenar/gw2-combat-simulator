@@ -341,7 +341,7 @@ test('Mesmer Deadly Blades does not increase phantasm damage', () => {
   assert.equal(mesmerRules('Virtuoso').modifyConditionDamage({ ...context, condition: 'Bleeding' }, 1), 1.05);
 });
 
-test('Mesmer instrument checks skip other specializations and index events once', () => {
+test('Mesmer instrument checks skip other specializations and observe new history', () => {
   const countedEvents = () => {
     let reads = 0;
     const events = new Proxy(
@@ -431,7 +431,9 @@ test('Mesmer instrument checks skip other specializations and index events once'
   }
 
   assert.equal(first, second);
-  assert.equal(relevant.reads(), relevant.events.length);
+  // A later instrument event must be visible even when this history was queried earlier.
+  relevant.events.push({ type: 'mesmer.instrument', instrument: 'Lute', at: 1, expiresAt: 1 });
+  assert.ok(mesmerRules('Troubadour').modifyStrikeDamage(troubadour, 1) < first);
 });
 
 test('Vicious Expression always applies its boonless-target modifier', () => {

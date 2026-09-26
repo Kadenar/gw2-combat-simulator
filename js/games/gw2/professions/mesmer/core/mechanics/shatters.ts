@@ -1,7 +1,7 @@
-import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { scheduleDeclarativeEffects } from '#gw2/platform/execution/effect-adapter.js';
+import { mesmerConditionFromProfile, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { emitMesmerEffects } from '#gw2/professions/mesmer/core/live-events.js';
 import { applyCryOfPain, triggerBlindingDissipation } from '#gw2/professions/mesmer/core/traits/index.js';
-import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
@@ -9,10 +9,10 @@ import type {
 
 /** Resolves clone-based shatter packets while keeping repeat strikes ineligible for first-strike traits. */
 export function resolveCloneShatter(
-  context: MesmerCastContext,
-  { skill, shatter, at, spent }: MesmerShatterResolverRequest
+  context: MesmerRuntime,
+  { skill, shatter, at, spent, castStart }: MesmerShatterResolverRequest
 ): readonly MesmerShatterTraitHit[] {
-  const runtime = mesmerRuntimeFor(context);
+  const runtime = mesmerMechanicsFor(context);
   const sources = spent + 1;
   const strike = shatter.strikes[spent];
 
@@ -96,16 +96,14 @@ export function resolveCloneShatter(
       );
   } else if (shatter.kind === 'control') {
     // The resolved spend supplies player plus clone applications; no cast-completion observation substitutes for them.
-    scheduleDeclarativeEffects(
+    emitMesmerEffects(
       context,
       {
         ...skill,
         effects: (skill.effects || []).map((effect) => ({ ...effect, applications: sources }))
       },
-      context.reservationId,
-      context.start,
-      at,
-      context.effectiveEnd
+      castStart,
+      at
     );
   } else {
     throw new Error(`Unsupported clone shatter kind: ${shatter.kind}.`);

@@ -1,4 +1,4 @@
-import type { SchedulerStep } from '#gw2/platform/execution/types.js';
+import type { SimulationStep } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
@@ -86,7 +86,7 @@ export function stateTimingAnalysis(
 /** Groups completed casts by stable ID so every interval is measured only against the same skill. */
 export function skillTimingAnalyses(
   skillIds: readonly SkillId[] = [],
-  steps: readonly SchedulerStep[] = []
+  steps: readonly SimulationStep[] = []
 ): SkillTimingAnalysis[] {
   const seen = new Set<SkillId>();
   return skillIds
@@ -140,7 +140,7 @@ export interface WeaponSetActiveSegment {
 
 /** Produces one stay per real equipped-set activation so repeated manifest rows retain their own durations. */
 export function weaponSetActiveSegments(
-  steps: readonly SchedulerStep[] = [],
+  steps: readonly SimulationStep[] = [],
   {
     startingWeaponSet = 1,
     timelineEndMs = 0,
@@ -191,7 +191,7 @@ export function weaponSetActiveSegments(
 
 /** Sums every stay for each equipped set while keeping aggregate reporting separate from row presentation. */
 export function weaponSetDurationTotals(
-  steps: readonly SchedulerStep[] = [],
+  steps: readonly SimulationStep[] = [],
   options: WeaponSetDurationOptions = {}
 ): ReadonlyMap<number, number> {
   const totals = new Map<number, number>();

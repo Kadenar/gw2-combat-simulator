@@ -8,10 +8,11 @@ import {
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
+import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
+import { emitMesmerPacket } from '#gw2/professions/mesmer/core/live-events.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
-import type { MesmerRuntime, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerMechanics, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import {
   MESMER_CORE_CLONE_ATTACKS,
   MESMER_CORE_PHANTASM_ATTACK_TIMINGS,
@@ -29,10 +30,7 @@ import {
   mesmerProfiledTraitDamage
 } from '#gw2/professions/mesmer/core/profiles.js';
 import { createSkillEffectController } from '#gw2/professions/mesmer/core/execution/effect-controller.js';
-import {
-  createCloneAttackScheduler,
-  cloneActions
-} from '#gw2/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
+import { createCloneAttackScheduler } from '#gw2/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
 import { createCriticalTraitDispatcher } from '#gw2/professions/mesmer/core/mechanics/illusions/critical-traits.js';
 import { createMesmerEventEmitters } from '#gw2/professions/mesmer/core/mechanics/illusions/event-emission.js';
 import type { MesmerActiveEmission, MesmerCastDetails } from '#gw2/professions/mesmer/core/execution/effect-types.js';
@@ -46,7 +44,7 @@ import { clamp } from '#kernel/core/numeric.js';
 
 /** Builds Core trait variations consumed by the shared phantasm lifecycle. */
 function runtimeTraitsPhantasmSpawnModifiers(
-  context: MesmerSchedulerContext,
+  context: MesmerRuntime,
   traits: ReadonlySet<number>
 ): Record<number, { countMultiplier: number; damageMultiplier: number }> {
   if (!traits.has(TRAIT.BOUNTIFUL_BLADES)) return {};
@@ -68,11 +66,13 @@ function runtimeTraitsPhantasmSpawnModifiers(
  *
  * Connected Mesmer runtime.
  */
-export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRuntime {
-  const { state, config, catalog } = context;
+export function createMesmerMechanics(context: MesmerRuntime): MesmerMechanics {
+  const state = context;
+  const { config } = context;
+  const catalog = context.helpers as import('#gw2/platform/engine/skills/types.js').CanonicalCatalog<MesmerSkill>;
   // Normalize canonical selected IDs once for all Mesmer controllers.
   const traits = new Set((config.selectedTraitIds || []).map(Number));
-  const resourceDefinition = mesmerResourceDefinition(config.specialization, context);
+  const resourceDefinition = mesmerResourceDefinition(config.specialization ?? 'Core', context);
   const skillsById = catalog.skillsById;
   const allSkills = catalog.skills;
   const flipSkillsByParent = new Map<SkillId, MesmerSkill>(
@@ -128,32 +128,26 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
 
       return context.emit({
         activationId: active.activationId,
+        offTarget: active.offTarget,
         ...event,
         at: active.effectiveEnd
       });
     }
 
     const attributed = {
-      ...(active ? { activationId: active.activationId } : {}),
+      ...(active
+        ? {
+            // Trait projectiles own their strength roll; the originating cast still supplies interruption and targeting.
+            activationId:
+              event.type === 'damage' && event.sourceId !== active.skill.id
+                ? `${active.activationId}:mesmer:${event.sourceId}`
+                : active.activationId,
+            offTarget: active.offTarget
+          }
+        : {}),
       ...event
     };
-    if (
-      event.type === 'buff' &&
-      event.audience &&
-      event.audience.recipients !== 'self' &&
-      Number(event.at) > state.time + EPSILON
-    ) {
-      // Party boons select currently active companions when their packet lands, after same-time state changes.
-      context.tasks.schedule({
-        type: 'mesmer.party-buff',
-        at: Number(event.at),
-        priority: 10,
-        payload: { event: attributed }
-      });
-      return null;
-    }
-
-    return context.emit(attributed);
+    return emitMesmerPacket(context, attributed);
   };
 
   const { addEvent, addTraitProc, addCondition, addDamage } = createMesmerEventEmitters({
@@ -164,12 +158,7 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
   });
 
   const scheduleCloneTask = (clone: MesmerClone, at: number) =>
-    cloneActions.replace(context, {
-      key: String(clone.id),
-      ownerId: clone.ownerId || `mesmer.clone:${clone.id}`,
-      firstAt: at,
-      state: { cloneId: clone.id }
-    });
+    context.schedule('mesmer.clone-attack', at, clone.id, { id: clone.ownerId!, generation: 0 }, -50);
   const cloneAttackScheduler = createCloneAttackScheduler({
     state,
     cloneAttacks: runtime.cloneAttacks,
@@ -177,18 +166,10 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
     addCondition,
     scheduleTask: scheduleCloneTask
   });
-  const destroyClone = (clone: MesmerClone, _at: number) => {
-    cloneActions.cancel(context, String(clone.id));
-    context.tasks.cancelOwner(clone.ownerId || `mesmer.clone:${clone.id}`);
-  };
-
+  const destroyClone = (clone: MesmerClone, _at: number) => context.cancelOwner({ id: clone.ownerId!, generation: 0 });
   const scheduleResourceTask = (candidate: MesmerPendingResource) => {
     if (runtime.activeEmission && candidate.at > runtime.activeEmission.effectiveEnd + EPSILON) return;
-    context.tasks.schedule({
-      type: 'mesmer.resource-gain',
-      at: Math.max(state.time, candidate.at),
-      payload: candidate
-    });
+    context.schedule('mesmer.resource-gain', Math.max(context.time, candidate.at), candidate);
   };
 
   const resources = createResourceController({
@@ -207,10 +188,14 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
   const criticalTraits = createCriticalTraitDispatcher({
     state,
     traits,
-    criticalChance: (event) => context.schedulerPolicy.critical?.(context, event)?.chance || 0,
     emitEvent: (cause, event) => context.emitDerived(cause, event),
     boonDuration: (boon, duration) =>
-      gw2SchedulerBoonDuration(context, { id: TRAIT.MASTER_FENCER, name: 'Master Fencer' }, boon, duration),
+      gw2ResolverBoonDuration(
+        context,
+        { type: 'buff', at: context.time, source: 'Trait', sourceId: TRAIT.MASTER_FENCER, actorType: 'player' },
+        boon,
+        duration
+      ),
     addTraitProc,
     balanceProfile: runtime.balanceProfile
   });
@@ -246,7 +231,7 @@ export function createMesmerRuntime(context: MesmerSchedulerContext): MesmerRunt
     instruments: runtime.instruments,
     balanceProfile: runtime.balanceProfile
   });
-  const connectedRuntime: MesmerRuntime = Object.assign(runtime, {
+  const connectedRuntime: MesmerMechanics = Object.assign(runtime, {
     activePrimaryWeapon,
     addEvent,
     addTraitProc,

@@ -9,28 +9,16 @@ import type {
   ProfessionEventLogDescriptor
 } from '#gw2/platform/profession-presentation/types.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  NecromancerSimulationEvent,
-  NecromancerSkill,
-  NecromancerUiContext,
-  NecromancerUiSlice
-} from '#gw2/professions/necromancer/types.js';
-
-const RITUALIST_PACKET_EVENTS = new Set<string>([
-  'necromancer.painful-bond',
-  'necromancer.painful-bond-pulse',
-  'necromancer.spirit-attack',
-  'necromancer.weapon-spell',
-  'necromancer.weapon-spell-ally-trigger'
-]);
+import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 
 // Suppress resolver-only Ritualist packets while leaving ordinary events to the shared renderer.
 function ritualistEventLogRow(
   _context: NecromancerUiContext,
-  event: NecromancerSimulationEvent
+  event: SimulationEvent
 ): ProfessionEventLogDescriptor | null | undefined {
   // Return null (suppress row) for internal bookkeeping events; undefined defers to the default renderer
-  return RITUALIST_PACKET_EVENTS.has(event?.type) ? null : undefined;
+  return event.type === 'necromancer.painful-bond' ? null : undefined;
 }
 
 const INNERVATE_BY_SPIRIT: Readonly<Record<string, SkillId>> = Object.freeze({

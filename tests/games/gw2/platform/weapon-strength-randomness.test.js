@@ -224,6 +224,47 @@ function fixtureProfession() {
   });
 }
 
+test('derived proc activations own their strength roll independently of the triggering weapon cast', () => {
+  // One multi-packet weapon activation may trigger a different profile without sharing its cached roll.
+  const base = fixtureProfession();
+  const source = {
+    ...base,
+    liveRuntimeFor(config) {
+      return {
+        ...base.liveRuntimeFor(config),
+        reactions: {
+          'damage.resolved'(runtime, cause) {
+            if (cause.actorType !== 'player') return;
+            runtime.emitDerived(cause, {
+              type: 'damage',
+              at: runtime.time,
+              source: 'fixture',
+              sourceId: 'trait.proc',
+              actorType: 'effect',
+              coefficient: 1,
+              weaponStrengthProfileId: 'nonweapon.unequipped'
+            });
+          }
+        }
+      };
+    }
+  };
+  const options = {
+    profession: source,
+    rotation: ['Dagger Flurry'],
+    config: { randomness: { mode: 'stochastic', seed: 7 } }
+  };
+  const result = simulateGw2(options);
+  const hits = result.resolvedEvents.filter((event) => event.type === 'damage');
+  const weapon = hits.filter((event) => event.actorType === 'player');
+  const procs = hits.filter((event) => event.actorType === 'effect');
+  assert.equal(new Set(weapon.map((event) => event.activationId)).size, 1);
+  assert.ok(procs.length > 0);
+  assert.ok(procs.every((event) => event.activationId !== weapon[0].activationId));
+  assert.equal(result.totalDamage, simulateGw2(options).totalDamage);
+  assert.equal(result.totalDamage, simulateGw2({ ...options, output: 'score' }).totalDamage);
+});
+
 function simulateFixture(mode, seed = 1, casts = 1, precision = 0) {
   return simulateGw2({
     profession: fixtureProfession(),

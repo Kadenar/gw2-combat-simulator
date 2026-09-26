@@ -4,7 +4,7 @@ import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 /**
- * Canonical event schema shared by the platform scheduler and resolver.
+ * Canonical event schema shared by the unified runtime and reports.
  * Professions may add custom types, but every event crossing the boundary must
  * still satisfy this base shape.
  */
@@ -89,7 +89,7 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
     throw new Error('Event schemaVersion is invalid.');
   }
 
-  // Every producer must declare ownership before an event crosses the scheduler/resolver boundary.
+  // Every producer must declare ownership before an event enters the live queue.
   if (!ACTOR_TYPES.has(event.actorType as SimulationActorType)) {
     throw new Error('Event actorType is invalid. A valid actorType is required.');
   }
@@ -211,6 +211,13 @@ export interface EffectMetadata {
   readonly largeHitboxOnly?: boolean;
   readonly legendId?: string;
   readonly necromancerBlight?: number;
+  /** Immutable burst inputs captured before resource spending; later hits cannot change the selected tier. */
+  readonly warriorAdrenalineSpent?: number;
+  readonly warriorBurstTier?: number;
+  /** Shares Devouring Darkness's pre-application observation between its independent impact packets. */
+  readonly necromancerConditionCount?: number;
+  /** Addle retains only its activation-time shard gate while later impacts use live resource state. */
+  readonly necromancerAddleImmobilize?: boolean;
   readonly necromancerShroudSkillOne?: boolean;
   readonly packetKind?: string;
   readonly radiantWeapon?: string;
@@ -253,7 +260,7 @@ export interface SimulationEventBase<TType extends string = string> {
   /** The action's skill grants an evade window, independently of ordinary dodge actions. */
   readonly evades?: boolean;
   readonly activationId?: string;
-  /** Monotone identity assigned when the scheduler emits the event. */
+  /** Monotone identity assigned when the runtime emits the event. */
   readonly eventOrder?: number;
   /** Same-timestamp position of an event derived from another scheduled event. */
   readonly causalOrder?: number;
@@ -333,7 +340,6 @@ export type ConditionEvent = SimulationEventBase<'condition'> & ConditionEventFi
 /** Named core payloads preserve permissive external inputs while making ordinary effect work discoverable. */
 export interface BuffEvent extends SimulationEventBase<'buff'> {
   readonly fixedDuration?: boolean;
-  readonly schedulerBoonPrediction?: boolean;
 }
 
 export interface BoonExtensionEvent extends SimulationEventBase<'boon_extension'> {

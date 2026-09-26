@@ -3,37 +3,86 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
-import { lightningRod, scheduleElectricArtillery } from '#gw2/professions/engineer/core/mechanics/spear.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { completeEngineerSpear } from '#gw2/professions/engineer/core/live-weapons.js';
+import { runEngineer } from '#tests/helpers/engineer-simulation.js';
+import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 
-const simulate = createProfessionSimulator(engineerProfession, {
+const simulate = createLiveProfessionSimulator(engineerProfession, {
   primaryWeapon: 'Spear',
   stats: { power: 2000, conditionDamage: 1000 },
   target: { armor: 2597, conditions: {} }
 });
 const artilleryEvents = (result) => result.resolvedEvents.filter((event) => event.sourceId === ID.ELECTRIC_ARTILLERY);
 
+// Missed custom packets retain their cast's target eligibility through delayed dispatch.
+test('off-target spear casts grant no Focused window, charges, damage, or conditions', () => {
+  const result = runEngineer(
+    [
+      { type: 'cast', skillId: ID.CONDUIT_SURGE, offTarget: true },
+      { type: 'cast', skillId: ID.LIGHTNING_ROD, offTarget: true },
+      { type: 'wait', durationMs: 4500 },
+      { type: 'cast', skillId: ID.ELECTRIC_ARTILLERY, offTarget: true },
+      { type: 'wait', durationMs: 1000 }
+    ],
+    { primaryWeapon: 'Spear' }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(runtimeFor(result).profession.core.focusedUntil, 0);
+  assert.deepEqual(runtimeFor(result).profession.core.lightningRodChargeExpiries, []);
+  assert.equal(
+    result.resolvedEvents.some((event) => event.type === 'damage' || event.type === 'condition'),
+    false
+  );
+});
+
 // Charge expiry is half-open, and a stale pulse cannot extend another activation's resource window.
-test('Lightning Rod charges expire after twelve seconds', () => {
-  const core = createEngineerCoreState();
-  const scheduled = [];
-  const context = {
-    state: { profession: { core } },
-    emit: () => {},
-    tasks: { schedule: (task) => scheduled.push(task), cancel: () => {} }
-  };
-  const captured = { skillId: ID.LIGHTNING_ROD, skillName: 'Lightning Rod' };
-  lightningRod.start(context, { key: 'rod', times: [1, 13], captured });
-  const handler = lightningRod.taskHandlers['engineer.lightning-rod'];
-  handler(context, scheduled[0]);
-  assert.deepEqual(core.lightningRodChargeExpiries, [13]);
-  const stale = scheduled[1];
-  lightningRod.start(context, { key: 'rod', times: [13], captured });
-  handler(context, stale);
-  assert.deepEqual(core.lightningRodChargeExpiries, [13]);
-  handler(context, scheduled[2]);
-  assert.deepEqual(core.lightningRodChargeExpiries, [25]);
+test('Lightning Rod replacement retires old pulses and each charge expires after twelve seconds', () => {
+  const result = runEngineer(
+    [{ type: 'wait', durationMs: 700 }],
+    {},
+    {
+      initialize(runtime) {
+        const cast = {
+          id: 'first',
+          command: {},
+          skill: engineerCatalog.skillsById.get(ID.LIGHTNING_ROD),
+          start: 0,
+          fullEnd: 0,
+          effectiveEnd: 0
+        };
+        completeEngineerSpear(runtime, cast);
+        runtime.schedule('test.replace-rod', 0.2, cast);
+      },
+      extend(native) {
+        return {
+          tasks: {
+            ...native.tasks,
+            'test.replace-rod'(runtime, cast) {
+              completeEngineerSpear(runtime, {
+                ...cast,
+                id: 'second',
+                start: runtime.time,
+                fullEnd: runtime.time,
+                effectiveEnd: runtime.time
+              });
+            }
+          }
+        };
+      }
+    }
+  );
+  const pulses = result.events.filter((event) => event.type === 'engineer.lightning-rod-pulse');
+  assert.deepEqual(
+    pulses.map((event) => event.activationId),
+    ['first', 'second']
+  );
+  const expiries = runtimeFor(result).profession.core.lightningRodChargeExpiries;
+  assert.equal(expiries.length, 1);
+  assert.equal(expiries[0], pulses[1].at + 12);
+  assert.equal(activeStackCount(expiries, expiries[0] - 0.001), 1);
+  assert.equal(activeStackCount(expiries, expiries[0]), 0);
 });
 
 // An unused flip disappears at its deadline, including its palette flag and stored charges.
@@ -102,35 +151,20 @@ test('Artillery damage and conditions wait for impact without delaying the next 
 
 // Charges are snapshotted at release, including a charge that naturally expires before impact.
 test('Artillery snapshots release charges and preserves the armed sequence on cancellation', () => {
-  const core = createEngineerCoreState();
-  Object.assign(core, {
-    lightningRodChargeExpiries: [10, 10.1, 20],
-    availableFlips: { [ID.ELECTRIC_ARTILLERY]: armSkillFlip({}, 0, 0, Infinity) }
-  });
-  const emitted = [];
-  const cancelledOwners = [];
-  const context = {
-    action: { cancelled: true },
-    state: { profession: { core, specialization: { kind: 'Core', state: {} } } },
-    effectiveEnd: 10,
-    events: emitted,
-    emit: (event) => {
-      emitted.push(event);
-      return event;
-    },
-    tasks: { cancelOwner: (owner) => cancelledOwners.push(owner) }
+  const initialize = (runtime) => {
+    runtime.profession.core.lightningRodChargeExpiries = [0, 0.1, 100];
+    armSkillFlip(runtime.profession.core.availableFlips, ID.ELECTRIC_ARTILLERY, 0);
   };
-  const skill = engineerCatalog.skillsById.get(ID.ELECTRIC_ARTILLERY);
-  scheduleElectricArtillery(context, skill);
-  assert.equal(emitted.length, 0);
-  assert.equal(cancelledOwners.length, 0);
-  assert.equal(skillFlipReady(core.availableFlips[ID.ELECTRIC_ARTILLERY], 10), true);
-  assert.deepEqual(core.lightningRodChargeExpiries, [10, 10.1, 20]);
-  context.action.cancelled = false;
-  scheduleElectricArtillery(context, skill);
-  const impact = emitted.find((event) => event.type === 'engineer.electric-artillery');
-  assert.equal(impact.charges, 2);
-  assert.equal(impact.at, 10.6);
-  assert.deepEqual(core.lightningRodChargeExpiries, []);
-  assert.equal(lightningRod.nextAt(context, 'rod'), Infinity);
+
+  const cancelled = runEngineer([{ skillId: ID.ELECTRIC_ARTILLERY, interruptMs: 0 }], {}, { initialize });
+  assert.deepEqual(runtimeFor(cancelled).profession.core.lightningRodChargeExpiries, [0, 0.1, 100]);
+  assert.equal(
+    cancelled.events.some((event) => event.type === 'engineer.electric-artillery'),
+    false
+  );
+  const released = runEngineer([ID.ELECTRIC_ARTILLERY, { type: 'wait', durationMs: 700 }], {}, { initialize });
+  const projectile = released.events.find((event) => event.type === 'engineer.electric-artillery');
+  assert.equal(projectile.charges, 1);
+  assert.deepEqual(runtimeFor(released).profession.core.lightningRodChargeExpiries, []);
+  assert.equal(runtimeFor(released).profession.core.availableFlips[ID.ELECTRIC_ARTILLERY], undefined);
 });

@@ -8,7 +8,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { RangerCastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { isRangerHammerVariant, normalizeRangerHammerSkillIds } from '#gw2/professions/ranger/data/hammer-variants.js';
 
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
@@ -16,12 +16,11 @@ import {
   RANGER_SPEAR_STEALTH_FLIP_BY_PARENT,
   rangerSpearStealthAvailable
 } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
-import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 // Enforce endurance, pet ownership, selected hammer variants, and timed weapon
 // flips before allowing a core Ranger cast; shared code owns chain ordering.
-export function rangerCoreCastAvailability(context: RangerCastContext, skill: RangerSkill): AvailabilityResult {
-  const selection = selectedSlotSkillAvailability(context, skill);
+export function rangerCoreCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {
+  const selection = selectedSlotSkillAvailability({ config: context.config, catalog: context.helpers }, skill);
   if (selection) return selection;
   const state = professionCoreState(context);
   if (skill.id === ID.DODGE) {
@@ -30,7 +29,7 @@ export function rangerCoreCastAvailability(context: RangerCastContext, skill: Ra
       ? { ready: true }
       : {
           ready: false,
-          retryAt: professionEnduranceReadyAt(context, cost),
+          retryAt: context.endurance.readyAt(cost),
           code: 'ranger.endurance',
           reason: `Dodge requires ${cost} endurance.`
         };
@@ -47,12 +46,12 @@ export function rangerCoreCastAvailability(context: RangerCastContext, skill: Ra
     return denySkillCast(skill, 'ranger.hammer-variant-not-selected', 'select this Hammer variant first.');
   }
 
-  const flipParent = skill.flipParentId == null ? null : context.catalog.skillsById.get(Number(skill.flipParentId));
+  const flipParent = skill.flipParentId == null ? null : context.helpers.skillsById.get(Number(skill.flipParentId));
   const spearStealthFlipId = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];
   const isSpearStealthAttack = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
   // Spear choices can come from any stealth source; do not misidentify the base attack as their prerequisite.
   if (isSpearStealthAttack || spearStealthFlipId != null) {
-    const available = rangerSpearStealthAvailable(state, context.start);
+    const available = rangerSpearStealthAvailable(state, context.time);
     if (isSpearStealthAttack && !available)
       return denySkillCast(skill, 'ranger.flip-inactive', "use Panther's Prowl or gain stealth first.");
     if (!isSpearStealthAttack && available)
@@ -64,7 +63,7 @@ export function rangerCoreCastAvailability(context: RangerCastContext, skill: Ra
     skill.type === 'Weapon' &&
     !isRangerHammerVariant(skill.id) &&
     flipParent?.flipSkillId === skill.id &&
-    !skillFlipReady(state.availableFlips[Number(skill.id)], context.start)
+    !skillFlipReady(state.availableFlips[Number(skill.id)], context.time)
   ) {
     return denySkillCast(skill, 'ranger.flip-inactive', `use ${flipParent?.name || 'its opening weapon skill'} first.`);
   }
@@ -74,7 +73,7 @@ export function rangerCoreCastAvailability(context: RangerCastContext, skill: Ra
     !isRangerHammerVariant(skill.id) &&
     skill.flipSkillId != null &&
     skill.flipSkillId !== skill.nextChainId &&
-    skillFlipReady(state.availableFlips[Number(skill.flipSkillId)], context.start)
+    skillFlipReady(state.availableFlips[Number(skill.flipSkillId)], context.time)
   ) {
     return denySkillCast(skill, 'ranger.flip-active', 'use or wait out the active follow-up skill.');
   }

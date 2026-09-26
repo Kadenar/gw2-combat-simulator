@@ -1,4 +1,4 @@
-import type { SchedulerConfig } from '#gw2/platform/execution/types.js';
+import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
 /**
  * Shared model for profession slot skills chosen as fixed packages rather than
  * as independent skills (for example, a Revenant legend and its entire bar).
@@ -43,7 +43,7 @@ type BuildRecord = Record<string, unknown>;
 
 export interface SlotLoadoutContext {
   specialization?: string;
-  config?: SchedulerConfig;
+  config?: ProfessionConfig;
   build?: object | null;
   professionState?: { activeLoadoutId?: string; [field: string]: unknown };
   state?: {

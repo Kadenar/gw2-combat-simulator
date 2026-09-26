@@ -4,13 +4,8 @@ import {
   BLADESWORN_SHARP_AS_THE_WIND_SKILLS,
   BLADESWORN_SKILL_MECHANICS
 } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
-import { bladeswornSkillHandlers } from '#gw2/professions/warrior/specializations/bladesworn/execution/index.js';
-import {
-  bladeswornAttributeRules,
-  bladeswornCastRules,
-  bladeswornSchedulerHooks,
-  bladeswornSkillMechanicHandlers
-} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger-rules.js';
+import { bladeswornAttributeRules } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger-rules.js';
+import { bladeswornLiveMechanics } from '#gw2/professions/warrior/specializations/bladesworn/live.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { bladeswornUi } from '#gw2/professions/warrior/specializations/bladesworn/presentation.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
@@ -30,17 +25,11 @@ export const bladeswornModule = defineNativeModule({
     }
   }),
   state: {
-    scheduler: bladeswornState.create,
-    resolver: bladeswornState.create
+    create: bladeswornState.create
   },
   mechanics: {
     modifiers: bladeswornAttributeRules,
-    execution: {
-      skillHandlers: bladeswornSkillHandlers,
-      castRules: bladeswornCastRules,
-      skillMechanicHandlers: bladeswornSkillMechanicHandlers,
-      hooks: bladeswornSchedulerHooks
-    }
+    live: bladeswornLiveMechanics
   },
   presentation: bladeswornUi
 });

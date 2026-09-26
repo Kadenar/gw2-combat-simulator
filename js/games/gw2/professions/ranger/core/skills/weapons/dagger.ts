@@ -99,10 +99,9 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     ],
 
     cooldown: 6,
-    castTimeMs: 600,
+    castTimeMs: 600
     // Double Arc arms the pet's next two attacks; the weapon hit does not poison directly.
-    // Custom: Arms Poisonous Strikes charges and duration after the attack; see `core/execution/index.ts`.
-    handlerId: 'ranger.poisonous-strikes'
+    // Custom: Arms Poisonous Strikes charges and duration after the attack; see `core/live.ts`.
   },
   [ID.DEADLY_DELIVERY]: {
     effects: [

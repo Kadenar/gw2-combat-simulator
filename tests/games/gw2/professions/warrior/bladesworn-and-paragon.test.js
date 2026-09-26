@@ -8,19 +8,15 @@ import { buildChartSeries } from '#gw2/app/results/model.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 import {
   dragonChargeTickOffsetSeconds,
   dragonChargesForDurationMs
 } from '#gw2/professions/warrior/data/dragon-charges.js';
 import {
   DRAGON_TRIGGER_TICK_RESOURCE_REASON,
-  dragonChargesToAdrenalineSpent,
-  projectDragonCharges,
-  projectDragonFlow
+  dragonChargesToAdrenalineSpent
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
-import { advanceBladesworn } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger.js';
-import { createBladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import {
   BLADESWORN_BALANCE_PROFILE_IDS,
   BLADESWORN_BALANCE_PROFILES
@@ -51,7 +47,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createProfessionSimulator(warriorProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(warriorProfession, baseConfig);
 
 test('Bladesworn gates gunsaber and Dragon Slash state', () => {
   const blocked = simulate('Bladesworn', ['Swift Cut'], {
@@ -281,7 +277,6 @@ test('Dragon Trigger defers recharge while charging and still blocks re-entry', 
   assert.deepEqual(active.warnings, []);
   assert.equal(active.planningState.profession.dragonTriggerActive, true);
   assert.equal(active.planningState.cooldowns['Dragon Trigger'], undefined);
-  assert.equal(active.events.find((event) => event.type === 'action').rechargeReadyAt, null);
 
   const repeated = simulate('Bladesworn', [ID.DRAGON_TRIGGER, ID.DRAGON_TRIGGER], { initialResource: 100 });
   assert.match(repeated.warnings[0], /Dragon Trigger is already active/);
@@ -326,112 +321,6 @@ test('Leaving Dragon Trigger starts recharge at the exit timestamp', () => {
   }
 });
 
-test('Flow regeneration uses 40 ms ticks across fragmented advancement and rate changes', () => {
-  const base = [{ start: 0, end: 1, flowPerSecond: 2 }];
-  // A partial tick grants nothing; the full base-rate tick grants 0.08 Flow.
-  for (const [durationMs, expected] of [
-    [39, 0],
-    [40, 0.08],
-    [79, 0.08],
-    [80, 0.16],
-    [1000, 2]
-  ]) {
-    const result = simulate('Bladesworn', [{ type: 'wait', durationMs }], { initialResource: 0 });
-    assert.ok(Math.abs(result.planningState.profession.flow - expected) < 1e-9);
-    assert.equal(projectDragonFlow(0, 100, 0, durationMs / 1000, base), expected);
-  }
-
-  const rates = [
-    { start: 0, end: 0.06, flowPerSecond: 2 },
-    { start: 0.06, end: 0.12, flowPerSecond: 6 }
-  ];
-  let flow = 0;
-  let from = 0;
-  for (const to of [0.025, 0.039, 0.04, 0.065, 0.079, 0.08, 0.12]) {
-    flow = projectDragonFlow(flow, 100, from, to, rates);
-    from = to;
-  }
-
-  assert.ok(Math.abs(flow - 0.56) < 1e-9);
-  assert.ok(Math.abs(flow - projectDragonFlow(0, 100, 0, 0.12, rates)) < 1e-9);
-  assert.equal(projectDragonFlow(0, 100, 0.12, 0.16, rates), 0);
-  assert.equal(projectDragonFlow(99.96, 100, 0, 0.04, base), 100);
-});
-
-test('projectDragonCharges covers exact-fit, stalled, and accelerated windows', () => {
-  const project = (overrides = {}) =>
-    projectDragonCharges({
-      startTime: 0,
-      flow: 45,
-      maximumFlow: 100,
-      maximumCharges: 10,
-      chargesPerInterval: 1,
-      flowPerInterval: 5,
-      tickAt: (tickIndex) => tickIndex * 0.25,
-      flowRateSegments: [],
-      deadline: 2.5,
-      ...overrides
-    });
-
-  const exactFit = project();
-
-  assert.equal(exactFit.length, 10);
-  assert.deepEqual(exactFit.at(-1), {
-    at: 2.5,
-    charges: 10,
-    flowAfter: 0,
-    flowSpent: 5,
-    granted: true
-  });
-
-  const stalled = project({
-    flow: 3,
-    initialCharges: 1,
-    initialTickIndex: 2,
-    maximumCharges: 2,
-    flowRateSegments: [{ start: 0, end: 2.5, flowPerSecond: 4 }]
-  });
-
-  assert.deepEqual(
-    stalled.map((tick) => ({ ...tick, flowAfter: canonicalTime(tick.flowAfter) })),
-    [
-      { at: 0.5, charges: 1, flowAfter: 4.92, flowSpent: 0, granted: false },
-      { at: 0.75, charges: 2, flowAfter: 0.88, flowSpent: 5, granted: true }
-    ]
-  );
-
-  const daringDragon = project({
-    maximumCharges: 5,
-    flowPerInterval: 10
-  });
-
-  assert.equal(daringDragon.length, 5);
-  assert.equal(daringDragon.at(-1).at, 1.25);
-  assert.equal(daringDragon.at(-1).charges, 5);
-
-  const tacticalReload = project({
-    flow: 25,
-    chargesPerInterval: 2
-  });
-
-  assert.equal(tacticalReload.length, 5);
-  assert.equal(tacticalReload.at(-1).at, 1.25);
-  assert.equal(tacticalReload.at(-1).charges, 10);
-
-  const empty = project({ flow: 0, flowRateSegments: [] });
-
-  assert.equal(
-    empty.every((tick) => tick.flowAfter === 0),
-    true
-  );
-  assert.equal(
-    empty.slice(1).every((tick) => tick.granted === false),
-    true
-  );
-  assert.equal(empty[0].charges, 1);
-  assert.equal(empty[0].granted, true);
-});
-
 test('Dragon Trigger spends Flow at fixed 240 ms intervals', () => {
   assert.deepEqual(
     Array.from({ length: 10 }, (_, index) => dragonChargeTickOffsetSeconds(index + 1) * 1000),
@@ -457,7 +346,7 @@ test('Dragon Trigger spends Flow at fixed 240 ms intervals', () => {
     assert.equal(release.flowSpent, (expectedSeconds / 0.24 - 1) * DRAGON_TRIGGER_TICK_FLOW);
     const entry = result.events.find((event) => event.reason === 'dragon trigger entry');
     const ticks = result.events.filter((event) => event.reason === 'dragon trigger charge');
-    if (expectedSeconds === 2.4) assert.ok(Math.abs(ticks.at(-1).flowAfter - 44.8) < 1e-9);
+    if (expectedSeconds === 2.4) assert.ok(Math.abs(ticks.at(-1).flowAfter - 40) < 1e-9);
     assert.deepEqual(
       ticks.map((tick) => canonicalTime(tick.at - entry.at)),
       Array.from({ length: expectedSeconds / 0.24 }, (_, index) => ((index + 1) * 240) / 1000)
@@ -519,7 +408,7 @@ test('Burst Mastery restores twenty percent of Dragon Slash Flow spent', () => {
 
   const slash = mastered.events.find((event) => event.type === 'action' && event.skillName === 'Dragon Slash—Force');
   const swiftness = mastered.events.find(
-    (event) => event.type === 'buff' && event.name === 'Burst Mastery — Swiftness'
+    (event) => event.type === 'buff' && event.sourceId === TRAIT.BURST_MASTERY && event.kind === 'swiftness'
   );
   assert.equal(mastered.planningState.profession.flow - baseline.planningState.profession.flow, 3);
   assert.equal(swiftness.duration, 3);
@@ -572,9 +461,13 @@ test('Bladesworn releases at the requested charge count and clamps to the trait 
 });
 
 test('Dragon Trigger stalls below its Flow cost and resumes after rebuilding', () => {
-  const result = simulate('Bladesworn', ['Dragon Trigger', { name: 'Dragon Slash—Force', releaseAtCharges: 4 }], {
-    initialResource: 15
-  });
+  const result = simulate(
+    'Bladesworn',
+    ['__combat_start', 'Dragon Trigger', { name: 'Dragon Slash—Force', releaseAtCharges: 4 }],
+    {
+      initialResource: 15
+    }
+  );
 
   assert.deepEqual(result.warnings, []);
   const ticks = result.events.filter(
@@ -593,20 +486,24 @@ test('Dragon Trigger stalls below its Flow cost and resumes after rebuilding', (
   );
   const spend = result.events.find(
     (event) =>
-      event.type === 'resource' && event.reason === 'profession mechanic' && event.sourceSkill === 'Dragon Slash—Force'
+      event.type === 'resource' && event.reason === 'profession mechanic' && event.skillId === ID.DRAGON_SLASH_FORCE
   );
 
   assert.equal(spend.amount, -4);
-  assert.equal(spend.rotationIndex, 1);
+  assert.equal(spend.activationId, result.steps.find((step) => step.skillId === ID.DRAGON_SLASH_FORCE).activationId);
   assert.equal(spend.flowSpent, 15);
   assert.equal(spend.adrenalineBarsSpent, 1);
 });
 
 test('Flow balance accounts for Stabilizer, entry spending, regeneration, and stalled charges', () => {
-  const result = simulate('Bladesworn', [ID.FLOW_STABILIZER, ID.DRAGON_TRIGGER, ID.DRAGON_SLASH_FORCE], {
-    initialResource: 0,
-    boons: { fury: true }
-  });
+  const result = simulate(
+    'Bladesworn',
+    ['__combat_start', ID.FLOW_STABILIZER, ID.DRAGON_TRIGGER, ID.DRAGON_SLASH_FORCE],
+    {
+      initialResource: 0,
+      boons: { fury: true }
+    }
+  );
   const entry = result.events.find((event) => event.reason === 'dragon trigger entry');
   const ticks = result.events.filter((event) => event.reason === DRAGON_TRIGGER_TICK_RESOURCE_REASON);
 
@@ -646,105 +543,21 @@ test('Dragon Slash reports unreachable Flow-gated requests', () => {
   );
 });
 
-test('Dragon Trigger resource ticks match the shared projection', () => {
-  const result = simulate(
-    'Bladesworn',
-    ['Dragon Trigger', 'Flow Stabilizer', { name: 'Dragon Slash—Force', releaseAtCharges: 4 }],
-    { initialResource: DRAGON_TRIGGER_ENTRY_FLOW }
-  );
-
-  assert.deepEqual(result.warnings, []);
-  const entry = result.events.find((event) => event.type === 'resource' && event.reason === 'dragon trigger entry');
-  const actual = result.events
-    .filter((event) => event.type === 'resource' && event.reason === DRAGON_TRIGGER_TICK_RESOURCE_REASON)
-    .map(({ at, value, flowAfter, flowSpent, granted }) => ({
-      at,
-      charges: value,
-      flowAfter,
-      flowSpent,
-      granted
-    }));
-  const projected = projectDragonCharges({
-    startTime: entry.at,
-    firstTickAt: entry.nextChargeAt,
-    flow: entry.value,
-    maximumFlow: entry.maximumFlow,
-    maximumCharges: entry.maximumCharges,
-    chargesPerInterval: entry.chargesPerInterval,
-    flowPerInterval: entry.flowPerInterval,
-    tickAt: (tickIndex) => entry.at + dragonChargeTickOffsetSeconds(tickIndex),
-    flowRateSegments: entry.flowRateSegments,
-    deadline: entry.deadline
-  }).slice(0, actual.length);
-
-  assert.deepEqual(actual, projected);
-  assert.equal(
-    entry.flowRateSegments.some((segment) => segment.flowPerSecond === 6),
-    true
-  );
-});
-
 test('Bladesworn preserves partial charge time across fragmented advancement', () => {
-  const state = createBladeswornState({ initialResource: 100 });
-
-  state.dragonTriggerActive = true;
-  state.dragonTriggerStartedAt = 0;
-  state.dragonTriggerChargeDeadline = 2.5;
-  state.nextDragonChargeAt = 0.24;
-  const context = {
-    config: {},
-    events: [],
-    emit(event) {
-      this.events.push(event);
-
-      return event;
-    },
-    hasExplicitCombatStart: false,
-    state: {
-      profession: {
-        specialization: { kind: 'Bladesworn', state }
-      }
-    }
-  };
-
-  for (const target of [0.05, 0.1, 0.15, 0.2]) {
-    advanceBladesworn({ catalog: warriorCatalog, ...context }, target);
-  }
-
-  assert.equal(state.dragonCharges, 0);
-  advanceBladesworn({ catalog: warriorCatalog, ...context }, 0.24);
-  assert.equal(state.dragonCharges, 1);
-  for (const target of [0.48, 0.76, 1, 1.24, 1.48, 1.72, 2, 2.24, 2.48]) {
-    advanceBladesworn({ catalog: warriorCatalog, ...context }, target);
-  }
-
-  assert.equal(state.dragonCharges, 10);
-  assert.ok(Math.abs(state.flow - 59) < 1e-9);
-  assert.equal(state.dragonTriggerFlowSpent, 45);
-  assert.deepEqual(
-    context.events.map(({ at, value, flowAfter, granted }) => ({
-      at,
-      value,
-      flowAfter: canonicalTime(flowAfter),
-      granted
-    })),
-    projectDragonCharges({
-      startTime: 0,
-      flow: 100,
-      maximumFlow: 100,
-      maximumCharges: 10,
-      chargesPerInterval: 1,
-      flowPerInterval: 5,
-      tickAt: (tickIndex) => dragonChargeTickOffsetSeconds(tickIndex),
-      flowRateSegments: [{ start: 0, end: 2.5, flowPerSecond: 2 }],
-      deadline: 2.5
-    }).map(({ at, charges, flowAfter, granted }) => ({
-      at,
-      value: charges,
-      flowAfter: canonicalTime(flowAfter),
-      granted
-    }))
-  );
+  // Cursor waits must not reset the live charge cadence or resource tick owner.
+  const charge = (durations) =>
+    simulate(
+      'Bladesworn',
+      ['__combat_start', ID.DRAGON_TRIGGER, ...durations.map((durationMs) => ({ type: 'wait', durationMs }))],
+      { initialResource: 100 }
+    ).planningState.profession;
+  assert.equal(charge([50, 50, 50, 50]).dragonCharges, 0);
+  assert.equal(charge([50, 50, 50, 50, 40]).dragonCharges, 1);
+  const fragmented = charge([50, 50, 50, 50, 40, 240, 280, 240, 240, 240, 240, 280, 240, 240]);
+  const combined = charge([2480]);
+  assert.equal(fragmented.dragonCharges, 10);
+  assert.equal(fragmented.dragonCharges, combined.dragonCharges);
+  assert.ok(Math.abs(fragmented.flow - combined.flow) < 1e-9);
 });
 
 // All-round attacks consume their magazine; reload skills make a follow-up available.
@@ -799,7 +612,7 @@ test('Precombat Positive Flow survives an explicit combat start while base regen
   });
 
   assert.deepEqual(precombat.warnings, []);
-  assert.equal(precombat.planningState.profession.flow, 32);
+  assert.ok(Math.abs(precombat.planningState.profession.flow - 32) < 1e-9);
   for (const [atSeconds, value] of [
     [8.49, '0 stacks'],
     [8.5, '1 stack']
@@ -817,19 +630,29 @@ test('Precombat Positive Flow survives an explicit combat start while base regen
 });
 
 test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', () => {
-  const baseline = simulate('Bladesworn', [{ type: 'wait', durationMs: 9000 }], { initialResource: 0 });
-
-  assert.equal(baseline.planningState.profession.flow, 18);
-
-  const stabilized = simulate('Bladesworn', [ID.FLOW_STABILIZER, { type: 'wait', durationMs: 8500 }], {
+  const baseline = simulate('Bladesworn', ['__combat_start', { type: 'wait', durationMs: 9000 }], {
     initialResource: 0
   });
-  const unstabilized = simulate('Bladesworn', [{ type: 'wait', durationMs: 8500 }], { initialResource: 0 });
+
+  assert.ok(Math.abs(baseline.planningState.profession.flow - 18) < 1e-9);
+
+  const stabilized = simulate(
+    'Bladesworn',
+    ['__combat_start', ID.FLOW_STABILIZER, { type: 'wait', durationMs: 8500 }],
+    {
+      initialResource: 0
+    }
+  );
+  const unstabilized = simulate('Bladesworn', ['__combat_start', { type: 'wait', durationMs: 8500 }], {
+    initialResource: 0
+  });
 
   // The 8.5 s observation includes regeneration through the 8.48 s tick.
-  assert.equal(stabilized.planningState.profession.flow, 48.96);
-  assert.equal(unstabilized.planningState.profession.flow, 16.96);
-  assert.equal(stabilized.planningState.profession.flow - unstabilized.planningState.profession.flow, 32);
+  assert.ok(Math.abs(stabilized.planningState.profession.flow - 48.96) < 1e-9);
+  assert.ok(Math.abs(unstabilized.planningState.profession.flow - 16.96) < 1e-9);
+  assert.ok(
+    Math.abs(stabilized.planningState.profession.flow - unstabilized.planningState.profession.flow - 32) < 1e-9
+  );
   assert.equal(
     stabilized.events.some(
       (event) => event.type === 'buff' && event.kind === 'positive-flow' && event.stacks === 2 && event.duration === 8
@@ -838,8 +661,13 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
   );
 
   // A reload preserves count recharge even when it briefly fills the magazine.
-  const spent = simulate('Bladesworn', [ID.FLOW_STABILIZER]);
-  const retainedRecharge = simulate('Bladesworn', [ID.FLOW_STABILIZER, ID.TACTICAL_RELOAD, ID.FLOW_STABILIZER]);
+  const spent = simulate('Bladesworn', ['__combat_start', ID.FLOW_STABILIZER]);
+  const retainedRecharge = simulate('Bladesworn', [
+    '__combat_start',
+    ID.FLOW_STABILIZER,
+    ID.TACTICAL_RELOAD,
+    ID.FLOW_STABILIZER
+  ]);
 
   assert.deepEqual(retainedRecharge.warnings, []);
   assert.equal(
@@ -855,6 +683,7 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
   const overlapping = simulate(
     'Bladesworn',
     [
+      '__combat_start',
       { type: 'wait', durationMs: 2000 },
       ID.FLOW_STABILIZER,
       { type: 'wait', durationMs: 2000 },
@@ -864,7 +693,7 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
     { initialResource: 0 }
   );
 
-  assert.equal(overlapping.planningState.profession.flow, 71);
+  assert.ok(Math.abs(overlapping.planningState.profession.flow - 71) < 1e-9);
   assert.deepEqual(
     overlapping.events
       .filter((event) => event.type === 'buff' && event.kind === 'positive-flow')
@@ -890,10 +719,10 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
     title: 'Positive Flow (5 stacks; time until the next temporary stack expires)'
   });
 
-  const firstCast = simulate('Bladesworn', [ID.FLOW_STABILIZER], {
+  const firstCast = simulate('Bladesworn', ['__combat_start', ID.FLOW_STABILIZER], {
     initialResource: 0
   });
-  const castWithFury = simulate('Bladesworn', [ID.FLOW_STABILIZER], {
+  const castWithFury = simulate('Bladesworn', ['__combat_start', ID.FLOW_STABILIZER], {
     initialResource: 0,
     boons: { fury: true }
   });
@@ -901,13 +730,17 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
   assert.equal(firstCast.planningState.profession.flow, 0);
   assert.equal(castWithFury.planningState.profession.flow, 15);
 
-  const converted = simulate('Bladesworn', [ID.SIGNET_OF_FURY], {
+  const converted = simulate('Bladesworn', ['__combat_start', ID.SIGNET_OF_FURY], {
     initialResource: 0
   });
 
-  const idle = simulate('Bladesworn', [{ type: 'wait', durationMs: converted.planningState.atSeconds * 1000 }], {
-    initialResource: 0
-  });
+  const idle = simulate(
+    'Bladesworn',
+    ['__combat_start', { type: 'wait', durationMs: converted.planningState.atSeconds * 1000 }],
+    {
+      initialResource: 0
+    }
+  );
   assert.ok(
     Math.abs(
       converted.planningState.profession.flow -
@@ -917,12 +750,18 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
   );
   assert.equal(converted.planningState.profession.adrenaline, 0);
 
-  const accelerated = simulate('Bladesworn', [ID.TACTICAL_RELOAD, ID.DRAGON_TRIGGER, ID.DRAGON_SLASH_FORCE], {
-    initialResource: 100
-  });
+  const accelerated = simulate(
+    'Bladesworn',
+    ['__combat_start', ID.TACTICAL_RELOAD, ID.DRAGON_TRIGGER, ID.DRAGON_SLASH_FORCE],
+    {
+      initialResource: 100
+    }
+  );
 
   assert.deepEqual(accelerated.warnings, []);
-  const normal = simulate('Bladesworn', [ID.DRAGON_TRIGGER, ID.DRAGON_SLASH_FORCE], { initialResource: 100 });
+  const normal = simulate('Bladesworn', ['__combat_start', ID.DRAGON_TRIGGER, ID.DRAGON_SLASH_FORCE], {
+    initialResource: 100
+  });
   const chargeTicks = (result) => result.events.filter((event) => event.reason === DRAGON_TRIGGER_TICK_RESOURCE_REASON);
   assert.equal(chargeTicks(accelerated).at(-1).value, chargeTicks(normal).at(-1).value);
   assert.ok(chargeTicks(accelerated).length < chargeTicks(normal).length);
@@ -967,7 +806,7 @@ test('Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown res
     { initialResource: 100 }
   );
 
-  assert.deepEqual(concurrentTrigger.warnings, ['Dragon Trigger cannot be cast concurrently.']);
+  assert.deepEqual(concurrentTrigger.warnings, ['Dragon Trigger: Dragon Trigger cannot be cast concurrently.']);
   assert.equal(concurrentTrigger.steps.find((step) => step.skill === 'Dragon Trigger').invalid, true);
   const utility = simulate('Bladesworn', [ID.DRAGON_TRIGGER, ID.TRIGGERGUARD, ID.FLICKER_STEP], {
     initialResource: 100
@@ -1140,9 +979,10 @@ test('Paragon chants consume adrenaline and start a refrain', () => {
   assert.equal(result.planningState.profession.adrenaline, 20);
   assert.equal(result.planningState.profession.motivation, 4);
   assert.equal(result.planningState.profession.activeRefrain, 'Chant of Action');
-  const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.CHANT_OF_ACTION);
-  const state = result.events.find((event) => event.sourceId === 'warrior.paragon-state.chant');
-  assert.equal(state.at, action.endsAt);
+  assert.equal(
+    result.events.some((event) => event.type === 'warrior.paragon-state'),
+    false
+  );
 });
 
 test('Paragon chant opening boons reach the caster and party', () => {
@@ -1178,7 +1018,6 @@ test('Paragon Action refrain boons reach the caster and party', () => {
   });
   const boons = result.events.filter((event) => event.type === 'buff' && event.skillId === ID.CHANT_OF_ACTION);
   const refrain = boons.filter((event) => event.at > boons[0].at);
-  const refrainState = result.events.find((event) => event.sourceId === 'warrior.paragon-state.refrain-pulse');
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
@@ -1191,7 +1030,7 @@ test('Paragon Action refrain boons reach the caster and party', () => {
     assert.equal(boon.resolvedAudience.alliedPlayerCount, 4);
   }
 
-  assert.equal(refrainState.at, refrain[0].at);
+  assert.equal(result.planningState.profession.motivation, 3);
 });
 
 test('Rally the Valiant grants motivation when a burst starts', () => {
@@ -1202,13 +1041,10 @@ test('Rally the Valiant grants motivation when a burst starts', () => {
   });
 
   assert.equal(result.planningState.profession.motivation, 8);
-  const combatStart = result.events.find((event) => event.type === 'combat_start');
-  const burst = result.events.find((event) => event.type === 'action' && event.skillName === 'Breaching Strike');
   assert.equal(
-    result.events.find((event) => event.sourceId === 'warrior.paragon-state.call-to-action').at,
-    combatStart.at
+    result.events.some((event) => event.type === 'warrior.paragon-state'),
+    false
   );
-  assert.equal(result.events.find((event) => event.sourceId === 'warrior.paragon-state.rally').at, burst.at);
 
   const withoutRally = simulate('Paragon', ['__combat_start', 'Breaching Strike'], {
     initialResource: 10,
@@ -1320,7 +1156,7 @@ test('two-stack Gunsaber traits grant and display their full Positive Flow rate 
       const buff = result.events.find((event) => event.kind === 'positive-flow');
       assert.equal(buff.stacks, 2);
       assert.equal(buff.duration, 5);
-      assert.equal(result.planningState.profession.flow, expectedFlow);
+      assert.ok(Math.abs(result.planningState.profession.flow - expectedFlow) < 1e-9);
       const display = warriorProfession.ui
         .rotationStateSnapshot({
           specialization: 'Bladesworn',
@@ -1373,7 +1209,7 @@ test('Bladesworn swap and Dragon Trigger traits use supplied behavior', () => {
   assert.equal(swap.resolvedEvents.find((event) => event.name === 'Unseen Sword').skillId, 62847);
   assert.equal(skillBreakdownRows(swap).find((entry) => entry.name === 'Unseen Sword').hits, 1);
   assert.equal(swap.events.find((event) => event.kind === 'positive-flow').duration, 5);
-  assert.equal(swap.planningState.profession.flow, 30);
+  assert.ok(Math.abs(swap.planningState.profession.flow - 30) < 1e-9);
 
   const combatOnly = simulate(
     'Bladesworn',

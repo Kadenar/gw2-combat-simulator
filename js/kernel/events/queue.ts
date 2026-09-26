@@ -38,13 +38,17 @@ interface HeapEntry<T extends QueuedEvent> {
   readonly phase: number;
   readonly causalOrder: number | null;
   readonly sequence: number;
+  readonly priority: number;
+  readonly explicitCausalOrder: number | null;
+  cancelled: boolean;
 }
 
 function compareHeapEntries<T extends QueuedEvent>(left: HeapEntry<T>, right: HeapEntry<T>): number {
   return (
     left.time - right.time ||
     left.phase - right.phase ||
-    compareEventPlacement(left.event, right.event, left.causalOrder, right.causalOrder) ||
+    left.priority - right.priority ||
+    (left.causalOrder ?? Infinity) - (right.causalOrder ?? Infinity) ||
     left.sequence - right.sequence
   );
 }
@@ -94,6 +98,10 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   ) {
     this.phaseFor = options.phaseFor;
     this.safetyLimit = options.safetyLimit ?? ACTION_SAFETY_LIMIT;
+    if (!Number.isSafeInteger(this.safetyLimit) || this.safetyLimit < 1) {
+      throw new RangeError('Event safety limit must be a positive safe integer.');
+    }
+
     this.currentCausalOrder = null;
     this.heap = [...events].map((event, sequence) => this.entry(event, sequence));
     this.nextSequence = this.heap.length;
@@ -103,6 +111,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
   }
 
   get length(): number {
+    this.discardCancelledHead();
     return this.heap.length;
   }
 
@@ -119,11 +128,9 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     const at = eventTimestamp(event);
     const phase = this.phaseFor?.(event, this.current) ?? 0;
     if (!Number.isFinite(phase)) throw new RangeError('Event phase must be finite.');
-    if (
-      this.phaseFor &&
-      this.current &&
-      (at < this.current.at || (at === this.current.at && phase < this.current.phase))
-    ) {
+    const priority = Number(event.priority ?? 0);
+    if (!Number.isFinite(priority)) throw new RangeError('Event priority must be finite.');
+    if (this.current && (at < this.current.at || (at === this.current.at && phase < this.current.phase))) {
       throw new RangeError(
         `Cannot enqueue past time or phase at ${at}s from ${String(event.sourceId ?? event.type ?? 'event')}.`
       );
@@ -134,7 +141,10 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
       time: timeKey(at),
       phase,
       causalOrder: eventCausalOrder(event) ?? this.currentCausalOrder,
-      sequence
+      explicitCausalOrder: eventCausalOrder(event),
+      priority,
+      sequence,
+      cancelled: false
     };
   }
 
@@ -153,8 +163,72 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     return entry.event;
   }
 
+  /** Inspect live work without advancing the frontier, including at an inclusive observation endpoint. */
+  peek(): T | undefined {
+    this.discardCancelledHead();
+    const first = this.heap[0];
+    if (!first) return undefined;
+    // Keys are captured in the heap; reject edits instead of silently dispatching a corrupted packet.
+    if (
+      eventTimestamp(first.event) !== first.time / 1_000_000 ||
+      Number(first.event.priority ?? 0) !== first.priority ||
+      eventCausalOrder(first.event) !== first.explicitCausalOrder
+    ) {
+      throw new Error('Queued event ordering keys changed; cancel and enqueue a replacement.');
+    }
+
+    return first.event;
+  }
+
+  /** Cancel current insertions only; later work, including a renewed lifetime, remains eligible. */
+  cancel(event: T): void {
+    this.cancelWhere((pending) => pending === event);
+  }
+
+  /** Lifetime owners choose cancellable work explicitly, independently of activation attribution. */
+  cancelWhere(matches: (event: T) => boolean): void {
+    // Linear cancellation scan; add an identity index only if measured cancellation cost warrants it.
+    for (const entry of this.heap) if (!entry.cancelled && matches(entry.event)) entry.cancelled = true;
+  }
+
+  /** Commands share the event frontier and safety budget, and begin without the previous handler's causal context. */
+  advanceFrontier(at: number, phase = 0, source = 'command'): void {
+    at = canonicalTime(at);
+    this.peek();
+    if (this.heap[0] && this.heap[0].time <= timeKey(at)) {
+      throw new RangeError(`Cannot advance past pending work at ${at}s from ${source}.`);
+    }
+
+    this.moveFrontier(at, phase, source);
+  }
+
+  private moveFrontier(at: number, phase: number, source: string): void {
+    if (!Number.isFinite(phase)) throw new RangeError('Event phase must be finite.');
+    if (this.current && (at < this.current.at || (at === this.current.at && phase < this.current.phase))) {
+      throw new RangeError(`Cannot advance to past time or phase at ${at}s from ${source}.`);
+    }
+
+    this.sameTimeCount = this.current?.at === at ? this.sameTimeCount + 1 : 1;
+    this.current = { at, phase };
+    this.currentCausalOrder = null;
+    if (this.sameTimeCount > this.safetyLimit) {
+      throw new Error(`Same-time event safety limit (${this.safetyLimit}) exceeded at ${at}s from ${source}.`);
+    }
+  }
+
   dequeue(): T | undefined {
-    if (this.heap.length === 0) return undefined;
+    if (!this.peek()) return undefined;
+    const first = this.removeHead()!;
+    this.moveFrontier(first.time / 1_000_000, first.phase, String(first.event.sourceId ?? first.event.type ?? 'event'));
+    this.currentCausalOrder = first.causalOrder;
+    return first.event;
+  }
+
+  private discardCancelledHead(): void {
+    while (this.heap[0]?.cancelled) this.removeHead();
+  }
+
+  private removeHead(): HeapEntry<T> | undefined {
     const first = this.heap[0];
     const last = this.heap.pop();
     if (this.heap.length > 0 && last) {
@@ -162,17 +236,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
       this.siftDown(0);
     }
 
-    this.currentCausalOrder = first.causalOrder;
-    const at = eventTimestamp(first.event);
-    this.sameTimeCount = this.current?.at === at ? this.sameTimeCount + 1 : 1;
-    this.current = { at, phase: first.phase };
-    if (this.phaseFor && this.sameTimeCount > this.safetyLimit) {
-      throw new Error(
-        `Same-time event safety limit (${this.safetyLimit}) exceeded at ${at}s from ${String(first.event.sourceId ?? first.event.type ?? 'event')}.`
-      );
-    }
-
-    return first.event;
+    return first;
   }
 
   private siftDown(start: number): void {

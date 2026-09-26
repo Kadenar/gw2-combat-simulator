@@ -12,7 +12,6 @@ export interface ConduitState {
   beguilingHazeCharges: number;
   beguilingHazeReadyAt: number;
   beguilingHazeRecharge: RechargeProgress | null;
-  beguilingHazeMainReservations: string[];
   energyCostOverrides: Record<string, number>;
   mistfireReadyAt: number;
 }
@@ -44,7 +43,6 @@ export function createConduitState(): ConduitState {
     beguilingHazeReadyAt: 0,
     beguilingHazeRecharge: null,
     // Tracks in-flight main-cast reservations so follow-up charges arm exactly once per main cast, not per follow-up.
-    beguilingHazeMainReservations: [],
     // Only populated during Mesmer form; cleared on form exit so native legend skill costs are restored.
     energyCostOverrides: {},
     mistfireReadyAt: 0

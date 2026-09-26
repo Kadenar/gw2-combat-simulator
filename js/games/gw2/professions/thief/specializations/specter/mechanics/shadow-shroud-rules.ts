@@ -1,5 +1,3 @@
-import { grantResource } from '#gw2/platform/combat/resources/resource-policy.js';
-import { emitThiefStateSnapshot } from '#gw2/professions/thief/family-state.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -9,48 +7,11 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { specterCastAvailability } from '#gw2/professions/thief/specializations/specter/mechanics/availability.js';
-import {
-  advanceSpecterResources,
-  shadowDepletion,
-  spendSpecterResources
-} from '#gw2/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
-import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
-import {
-  handleDarkSentry,
-  larcenousTormentReaction
-} from '#gw2/professions/thief/specializations/specter/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 
 import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
-import type { ThiefSchedulerContext } from '#gw2/professions/thief/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-
-export const specterSchedulerHooks = Object.freeze({
-  advance: advanceSpecterResources,
-  onCastStart: spendSpecterResources,
-  onCooldownReset: {
-    id: 'thief.specter-shadow-force-reset',
-    order: 20,
-    // The training-area reset refills Shadow Force without forcing Specter out of Shadow Shroud.
-    handler: (context: ThiefSchedulerContext): void => {
-      const state = specterState.from(context);
-      grantResource(context, 'shadowForce', state.shadowClock.maximum);
-      emitThiefStateSnapshot(context, context.state.time, 'cooldown-reset');
-    }
-  },
-  onEventScheduled: {
-    id: 'thief.specter-events',
-    order: 30,
-    handler: larcenousTormentReaction.onEventScheduled.handler
-  },
-  taskHandlers: Object.freeze({
-    ...shadowDepletion.taskHandlers,
-    ...larcenousTormentReaction.taskHandlers,
-    'thief.specter-dark-sentry': handleDarkSentry
-  })
-});
 
 // Second Opinion grants an extra +90 condition damage only while wielding Scepter in the active set.
 function wieldingScepter(context: Gw2ModifierContext): boolean {
@@ -103,12 +64,4 @@ const specterModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 export const specterAttributeRules = Object.freeze({
   modifyAttributes: modifySpecterAttributes,
   modifierRules: specterModifierRules
-});
-
-export const specterCastRules = Object.freeze({
-  availability: {
-    id: 'thief.specter-availability',
-    order: 20,
-    handler: specterCastAvailability
-  }
 });

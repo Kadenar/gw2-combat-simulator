@@ -19,7 +19,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
     cooldown: 18,
     skillFamily: 'Meditation',
     // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
-    handlerId: 'elementalist.evoker-meditation',
+
     effects: []
   },
   [ID.HARES_AGILITY]: {
@@ -33,7 +33,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
     resourceGain: 50,
     skillFamily: 'Meditation',
     // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
-    handlerId: 'elementalist.evoker-meditation',
+
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.4 },
       { type: 'boon', boon: 'Swiftness', stacks: 1, duration: 10, metadata: {} }
@@ -49,7 +49,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
     cooldown: 15,
     skillFamily: 'Meditation',
     // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
-    handlerId: 'elementalist.evoker-meditation',
+
     effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.5 },
       { type: 'condition', condition: 'Bleeding', stacks: 4, duration: 10, metadata: {} }
@@ -65,7 +65,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, Partial<
     cooldown: 60,
     skillFamily: 'Meditation',
     // Custom: Applies Altruistic Aspect after the meditation effects; see `evoker/module.ts`.
-    handlerId: 'elementalist.evoker-meditation',
+
     effects: []
   },
   [ID.REJUVENATE]: {

@@ -1,3 +1,5 @@
+import { refreshElementalistBuffs } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Owns Weaver dual-weapon state behavior for hammer orbs and pistol bullets.
@@ -10,10 +12,10 @@ import {
   balanceProfileNumber,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff, emitSkillControl } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import { emitElementalistBuff, emitElementalistControl } from '#gw2/professions/elementalist/core/live-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistCastContext, ElementalistPrecastContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   isElementalistAttunement,
@@ -21,7 +23,6 @@ import {
 } from '#gw2/professions/elementalist/core/state.js';
 import { activeHammerOrbElements } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import {
-  activeBuffEvents,
   emitProfiledBuff,
   emitProfiledCondition,
   skillWeapon
@@ -42,12 +43,12 @@ export function weaverDualAttunements(skill: Skill): readonly [ElementalistAttun
 }
 
 /** Creates and refreshes the two hammer orbs granted by a Weaver dual skill. */
-export function applyWeaverHammerState(context: ElementalistCastContext, skill: Skill): void {
+export function applyWeaverHammerState(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   if (skillWeapon(skill) !== 'Hammer') return;
   const elements = weaverDualAttunements(skill);
   if (!elements) return;
   const state = professionCoreState(context);
-  const at = context.effectiveEnd;
+  const at = cast.effectiveEnd;
   const hammerOrbsProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.hammerOrbs);
   const orbDuration = balanceProfileNumber(hammerOrbsProfile, 'durationMultiplier');
   // Any orb still alive is extended to the new full duration, including the
@@ -57,18 +58,17 @@ export function applyWeaverHammerState(context: ElementalistCastContext, skill: 
     const expiresAt = state.hammerOrbs[element];
     if (expiresAt == null || expiresAt < at) continue;
     state.hammerOrbs[element] = at + orbDuration;
-    for (const event of activeBuffEvents(context, `hammer ${element} orb`, at)) {
-      context.replaceEvent(event, { duration: at + orbDuration - event.at });
-    }
+    refreshElementalistBuffs(context, `hammer ${element} orb`, at, () => at + orbDuration);
   }
 
   // The cast's own pair is (re)created and attributed to this activation; the
   // buff is only emitted for an element that was not already orbiting.
   for (const element of elements) {
     state.hammerOrbs[element] = at + orbDuration;
-    state.hammerOrbActivationIds[element] = context.reservationId;
+    state.hammerOrbActivationIds[element] = cast.id;
     if (!previouslyActive.has(element)) {
-      emitSkillBuff(context, skill, {
+      emitElementalistBuff(context, {
+        skill: skill,
         at,
         source: skill.name,
         sourceId: skill.id,
@@ -81,12 +81,13 @@ export function applyWeaverHammerState(context: ElementalistCastContext, skill: 
     }
   }
 
+  context.schedule('elementalist.expire-state', at + orbDuration, null, undefined, 50);
   state.hammerOrbLastCastAt = at;
 }
 
 /** Checks the shared orb lockout and duplicate-orb restriction for Weaver dual skills. */
 export function weaverHammerAvailability(
-  context: ElementalistPrecastContext,
+  context: ElementalistRuntime,
   skill: Skill
 ): { ready: boolean; retryAt?: number | null; code?: string; reason?: string } | null {
   if (skillWeapon(skill) !== 'Hammer') return null;
@@ -96,7 +97,7 @@ export function weaverHammerAvailability(
   const hammerOrbsProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.hammerOrbs);
   // Every dual hammer skill shares one short lockout after the last orb cast.
   const retryAt = state.hammerOrbLastCastAt + balanceProfileNumber(hammerOrbsProfile, 'initialDelay');
-  if (retryAt > context.start + EPSILON) {
+  if (retryAt > context.time + EPSILON) {
     return retryCast(
       retryAt,
       'elementalist.hammer-orb-lockout',
@@ -105,7 +106,7 @@ export function weaverHammerAvailability(
   }
 
   if (
-    elements.some((element) => state.hammerOrbs[element] != null && Number(state.hammerOrbs[element]) >= context.start)
+    elements.some((element) => state.hammerOrbs[element] != null && Number(state.hammerOrbs[element]) >= context.time)
   ) {
     return denyCast(
       'elementalist.hammer-orb-active',
@@ -118,12 +119,12 @@ export function weaverHammerAvailability(
 }
 
 /** Consumes and grants pistol bullets for Weaver's dual-attunement weapon skills. */
-export function applyWeaverPistolState(context: ElementalistCastContext, skill: Skill): void {
+export function applyWeaverPistolState(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   if (skillWeapon(skill) !== 'Pistol') return;
   const elements = weaverDualAttunements(skill);
   if (!elements) return;
   const state = professionCoreState(context);
-  const at = context.effectiveEnd;
+  const at = cast.effectiveEnd;
   // With no bullet loaded for either half of the pair, the dual skill loads one
   // for the current main-hand element instead of firing.
   const active = elements.filter((element) => state.pistolBullets[element]);
@@ -169,7 +170,7 @@ export function applyWeaverPistolState(context: ElementalistCastContext, skill: 
     } else if (skill.id === ID.FLOWING_FINESSE && element === 'Air') {
       emitProfiledBuff(context, at, PROFILE.flowingFinesse, 'Air', skill.name, skill.id);
     } else if (skill.id === ID.ENERVATING_EARTH && element === 'Air') {
-      emitSkillControl(context, {
+      emitElementalistControl(context, {
         at,
         source: skill.name,
         sourceId: skill.id,

@@ -465,7 +465,7 @@ test('native professions keep live and lazy preview catalogs side by side', () =
         }
       ]
     },
-    state: { scheduler: () => ({}) }
+    state: { create: () => ({}) }
   });
   const family = withPatchPreview(
     defineNativeProfession({
@@ -543,7 +543,7 @@ test('specialization skill previews stay inert in other runtime catalogs', () =>
         }
       ]
     },
-    state: { scheduler: () => ({}) }
+    state: { create: () => ({}) }
   });
   const elite = defineNativeModule({
     id: 'Elite',
@@ -565,7 +565,7 @@ test('specialization skill previews stay inert in other runtime catalogs', () =>
         }
       ]
     },
-    state: { scheduler: () => ({}) }
+    state: { create: () => ({}) }
   });
   const family = withPatchPreview(
     defineNativeProfession({
@@ -622,7 +622,7 @@ describe('native profession modifier previews', () => {
         }
       ]
     },
-    state: { scheduler: () => ({}) },
+    state: { create: () => ({}) },
     mechanics: {
       modifiers: {
         modifierRules: [
@@ -641,7 +641,7 @@ describe('native profession modifier previews', () => {
   const elite = defineNativeModule({
     id: 'Elite',
     data: {},
-    state: { scheduler: () => ({}) },
+    state: { create: () => ({}) },
     mechanics: {
       modifiers: [
         {

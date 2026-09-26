@@ -2,10 +2,45 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { resolveTestGw2Stream } from '#tests/helpers/gw2-resolver.js';
-import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { testProfession } from '#tests/fixtures/profession.js';
+
+// Endpoint discovery must finish an empty cursor at zero; a tail is added once and never becomes rotation time.
+test('empty rotations establish their boundary before an observation tail', () => {
+  for (const output of ['detailed', 'score']) {
+    const result = simulateGw2({
+      profession: testProfession,
+      rotation: [],
+      output,
+      observationPolicy: { kind: 'tail', durationMs: 2000 },
+      config: { target: {}, sigilSets: [{ names: [] }] }
+    });
+    assert.equal(result.rotationEndTime, 0);
+    assert.equal(result.observationEndTime, 2);
+    assert.equal(result.totalDamage, 0);
+    assert.deepEqual(result.warnings, []);
+  }
+});
+
+// Current-engine characterization: authoring continues after death and its projection is distinct from combat capture.
+test('post-death planning retains later self cooldowns without changing the combat boundary', () => {
+  const result = simulateMesmer(['Mind Slash', 'Phantasmal Swordsman', { type: 'wait', durationMs: 5000 }], {
+    specialization: 'Core',
+    primaryWeapon: 'Sword',
+    secondaryWeapon: 'Sword',
+    initialResource: 0,
+    target: { health: 1, armor: 2597 }
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.combatState.atSeconds, result.deathTime);
+  assert.equal(result.planningState.atSeconds, result.observationEndTime);
+  assert.ok(result.planningState.atSeconds > result.combatState.atSeconds);
+  assert.ok(result.planningState.cooldowns['Phantasmal Swordsman'].remaining > 0);
+  assert.ok(
+    result.resolvedEvents.filter((event) => event.type === 'damage').every((event) => event.at <= result.deathTime)
+  );
+});
 
 // Direct callers may bypass the stream builder; ingress must canonicalize copies before query construction.
 test('resolver cutoff includes the canonical instant and excludes the following microsecond', () => {
@@ -21,12 +56,12 @@ test('resolver cutoff includes the canonical instant and excludes the following 
       })
     )
   );
-  const stream = Object.freeze({ ...buildScheduledEventStream({ events: [], rotationEndTime: 0.6 }), events });
+  const scenario = Object.freeze({ ...{ events: [], endTime: 0.6 }, events });
   for (const output of ['detailed', 'score']) {
     const seen = [];
-    const result = resolveTestGw2Stream({
+    const result = resolveTestGw2Events({
       output,
-      stream,
+      ...scenario,
       config: { target: {}, sigilSets: [{ names: [] }] },
       query: {
         statsAt: (at) => {
@@ -45,28 +80,9 @@ test('resolver cutoff includes the canonical instant and excludes the following 
 });
 
 // Opening hits must start the same sigil cooldown in both simulation phases.
-test('scheduler sigil predictions include the combat boundary and exclude earlier hits', () => {
+test('actual sigil procs include the combat boundary and exclude earlier hits', () => {
   for (const offset of [1000, 1100]) {
-    let predictions = [];
-    const profession = {
-      ...testProfession,
-      resolveRuntime() {
-        const runtime = testProfession;
-        return {
-          ...runtime,
-          initialize(context) {
-            predictions = [];
-            runtime.initialize(context);
-          },
-          onEventScheduled(context, event) {
-            runtime.onEventScheduled(context, event);
-            if (event.type === 'damage' && event.schedulerPrediction === 'critical-sigil') {
-              predictions.push(event.at);
-            }
-          }
-        };
-      }
-    };
+    const profession = testProfession;
     const result = simulateGw2({
       profession,
       rotation: ['Fixture Slash', { name: '__combat_start', offset }, { type: 'wait', durationMs: 1000 }],
@@ -77,7 +93,6 @@ test('scheduler sigil predictions include the combat boundary and exclude earlie
       }
     });
     const expected = offset === 1000 ? [1] : [];
-    assert.deepEqual(predictions, expected);
     assert.deepEqual(
       result.resolvedEvents
         .filter((event) => event.type === 'damage' && event.source === 'Sigil')
@@ -110,7 +125,7 @@ test('offset combat starts respect the clock and keep sigil procs aligned with r
     assert.equal(result.steps.find((step) => step.skill === 'Combat Start').start, expectedStart * 1000);
     assert.equal(result.firstHitTime, expectedStart + 1);
     assert.deepEqual(
-      result.events.filter((event) => event.type === 'proc' && event.name === 'Sigil of Ice').map((event) => event.at),
+      result.procSteps.filter((event) => event.skill === 'Sigil of Ice').map((event) => event.start / 1000),
       [result.firstHitTime]
     );
     assert.ok(
@@ -161,8 +176,8 @@ test('target death finishes the lethal activation and stops future events', () =
   assert.ok(result.events.every((event) => event.at <= result.deathTime + 0.0001));
 });
 
-test('target death finishes untagged multi-hit siblings', () => {
-  const stream = buildScheduledEventStream({
+test('target death finishes explicitly owned multi-hit siblings', () => {
+  const scenario = {
     events: [
       {
         type: 'damage',
@@ -174,7 +189,8 @@ test('target death finishes untagged multi-hit siblings', () => {
         hitIndex: 1,
         totalHits: 2,
         source: 'Player',
-        sourceId: 'untagged-multi-hit',
+        sourceId: 'multi-hit',
+        activationId: 'multi-hit:1',
         actorType: 'player'
       },
       {
@@ -187,7 +203,8 @@ test('target death finishes untagged multi-hit siblings', () => {
         hitIndex: 2,
         totalHits: 2,
         source: 'Player',
-        sourceId: 'untagged-multi-hit',
+        sourceId: 'multi-hit',
+        activationId: 'multi-hit:1',
         actorType: 'player'
       },
       {
@@ -202,10 +219,10 @@ test('target death finishes untagged multi-hit siblings', () => {
         activationId: 'distinct-activation'
       }
     ],
-    rotationEndTime: 1
-  });
-  const result = resolveTestGw2Stream({
-    stream,
+    endTime: 1
+  };
+  const result = resolveTestGw2Events({
+    ...scenario,
     config: {
       target: { health: 1 },
       sigilSets: [{ names: [] }]
@@ -239,7 +256,7 @@ test('target death finishes untagged multi-hit siblings', () => {
 });
 
 test('pending damage can kill mid-cast and suppress the current skill packet', () => {
-  const stream = buildScheduledEventStream({
+  const scenario = {
     events: [
       {
         type: 'damage',
@@ -275,10 +292,10 @@ test('pending damage can kill mid-cast and suppress the current skill packet', (
         activationId: 'current-activation'
       }
     ],
-    rotationEndTime: 89.6
-  });
-  const result = resolveTestGw2Stream({
-    stream,
+    endTime: 89.6
+  };
+  const result = resolveTestGw2Events({
+    ...scenario,
     config: {
       target: { health: 1 },
       sigilSets: [{ names: [] }]
@@ -346,7 +363,7 @@ test('delayed combat start uses its offset instead of the preceding cast end', (
     })
   );
 
-  assert.equal(result.steps[1].start, 100);
+  assert.equal(result.combatStartTime, 0.1);
   assert.equal(result.combatStartTime, 0.1);
   assert.equal(result.hasExplicitCombatStart, true);
   assert.ok(Math.abs(result.firstHitTime - 0.36) < 1e-12);
@@ -362,7 +379,7 @@ test('DPS duration starts at the first hit in the supplied delayed-start rotatio
     defaultSimulationConfig()
   );
 
-  assert.equal(result.steps[1].start, 700);
+  assert.equal(result.combatStartTime, 0.7);
   assert.ok(Math.abs(result.firstHitTime - 0.759) < 1e-12);
   assert.ok(Math.abs(result.rotationEndTime - 1.32) < 1e-12);
   assert.ok(Math.abs(result.dpsWindow - 0.561) < 1e-12);

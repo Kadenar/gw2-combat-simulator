@@ -12,52 +12,10 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { activeBoonStacks, engineerEvent, eventSkill } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
-import { mechanistCastAvailability } from '#gw2/professions/engineer/specializations/mechanist/mechanics/availability.js';
-import {
-  applyEngineerMechCastTraits,
-  engineerMechHasQuickness,
-  mechActions,
-  initializeEngineerMech,
-  isEngineerMechCommand,
-  observeEngineerMechEvent
-} from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
-import { summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
-import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
-import { engineerMechAttributes, mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-import type {
-  EngineerPrecastContext,
-  EngineerRechargeContext,
-  EngineerSchedulerContext
-} from '#gw2/professions/engineer/types.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
+import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/state.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-
-/** Applies mech cast traits after the skill's effects have been emitted. */
-export const mechanistAfterCast = Object.freeze({
-  id: 'engineer.mech-traits',
-  order: 30,
-  handler: applyEngineerMechCastTraits
-});
-
-export const mechanistAdvancedSchedulerHooks = Object.freeze({
-  prepareEvent: {
-    id: 'engineer.mech-boon-audience',
-    order: 10,
-    handler: (context: EngineerSchedulerContext, event: SimulationEventBase) =>
-      prepareGw2BuffCompanionCandidates(event, mechanistState.from(context).mech.active ? ['engineer.mech'] : [])
-  },
-  initialize: {
-    id: 'engineer.mech-initialize',
-    order: 10,
-    handler: initializeEngineerMech
-  },
-  onEventScheduled: {
-    id: 'engineer.mech-events',
-    order: 10,
-    handler: observeEngineerMechEvent
-  },
-  taskHandlers: mechActions.taskHandlers
-});
 
 /** Recognizes native and replayed events that belong to the jade mech. */
 function engineerMechEvent(context: Gw2ModifierContext): boolean {
@@ -157,8 +115,7 @@ function modifyMechanistAttributes(context: Gw2ModifierContext, attributes: Gw2S
 }
 
 /** Applies Jade Dynamo and Overclock/J-Drive recharge reductions to eligible Mechanist skills. */
-function modifyMechanistRechargeDuration(context: EngineerRechargeContext, duration: number): number {
-  const skill = context.skill;
+export function mechanistRechargeWork(context: EngineerRuntime, skill: EngineerSkill, duration: number): number {
   if (isEngineerMechCommand(skill) && hasTrait(context.config, TRAIT.MECH_CORE_JADE_DYNAMO)) {
     const jadeDynamoProfile = requireBalanceProfileFromContext(context, PROFILE.jadeDynamo);
     return duration * balanceProfileNumber(jadeDynamoProfile, 'rechargeMultiplier');
@@ -170,11 +127,11 @@ function modifyMechanistRechargeDuration(context: EngineerRechargeContext, durat
     skill?.id !== ID.OVERCLOCK_SIGNET &&
     skill?.categories?.some((category) => String(category).toLowerCase() === 'signet')
   ) {
-    const overclockReadyAt = Number(context.state?.cooldowns?.get(ID.OVERCLOCK_SIGNET) || 0);
+    const overclockReadyAt = Number(context.cooldowns.get(ID.OVERCLOCK_SIGNET) || 0);
     const jDrive = hasTrait(context.config, TRAIT.MECH_CORE_J_DRIVE);
     if (
       selectedSkillNameSet(context.config?.selectedSkills).has('Overclock Signet') &&
-      (jDrive || overclockReadyAt <= Number(context.start || 0))
+      (jDrive || overclockReadyAt <= Number(context.time))
     ) {
       // J-Drive improves Overclock's 20% passive reduction to 24%.
       return duration * (jDrive ? 0.76 : 0.8);
@@ -187,22 +144,4 @@ function modifyMechanistRechargeDuration(context: EngineerRechargeContext, durat
 export const mechanistAttributeRules = Object.freeze({
   modifyAttributes: modifyMechanistAttributes,
   modifierRules: mechanistModifierRules
-});
-
-export const mechanistCastRules = Object.freeze({
-  // Override the player's cast-rate decision only for skills executed by the mech.
-  modifyCastDuration(context: EngineerPrecastContext, duration: number): number {
-    if (!isEngineerMechCommand(context.skill)) return duration;
-    return (
-      (engineerMechHasQuickness(context, context.start)
-        ? summonQuicknessCastTimeMs(context.skill)
-        : Number(context.skill.castTimeMs || 0)) / 1000
-    );
-  },
-  availability: {
-    id: 'engineer.mechanist-availability',
-    order: 30,
-    handler: mechanistCastAvailability
-  },
-  modifyRechargeDuration: modifyMechanistRechargeDuration
 });

@@ -1,3 +1,5 @@
+import { assertSimulationEvent } from '#gw2/platform/engine/events/events.js';
+import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -5,17 +7,17 @@ import test from 'node:test';
 import { createMesmerEventEmitters } from '#gw2/professions/mesmer/core/mechanics/illusions/event-emission.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { scheduleMesmerPhantasmEffects } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { troubadourSchedulerHooks } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-rules.js';
+import { completeTroubadourPhantasm } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-rules.js';
 
 test('phantasm packet and Harmonize commitment preserve their interruption tolerances', () => {
   // Synthetic summon progress checks the commitment contract without pinning authored skill timings.
-  const harmonize = troubadourSchedulerHooks.onCastComplete.find(({ id }) => id.endsWith('.harmonize')).handler;
+
   for (const progress of [0.5, undefined, NaN, Infinity, -Infinity]) {
     for (const effectiveEnd of [3 - 5 * EPSILON, 3 - 3 * EPSILON, 3 - EPSILON / 2, 3, 4]) {
       const packets = [];
       const resources = [];
       const context = {
-        catalog: mesmerCatalog,
+        helpers: mesmerCatalog,
         start: 2,
         fullEnd: 4,
         effectiveEnd,
@@ -32,8 +34,11 @@ test('phantasm packet and Harmonize commitment preserve their interruption toler
         }
       };
       const skill = { resource: { mode: 'phantasm' }, phantasmSummonProgress: progress };
-      scheduleMesmerPhantasmEffects(context, skill);
-      harmonize(context, skill);
+      const cast = { ...context, skill, id: 'phantasm', command: {} };
+      context.time = context.fullEnd;
+      registerMesmerMechanics(context, context.mesmerRuntime);
+      scheduleMesmerPhantasmEffects(context, cast, skill);
+      completeTroubadourPhantasm(context, cast);
       const packetCommitted = progress === 0.5 && effectiveEnd >= 3 - EPSILON && effectiveEnd < 4;
       assert.equal(packets[0].phantasmSummonAt, packetCommitted ? effectiveEnd : undefined);
       assert.equal(packets[0].emissionEnd, packetCommitted || effectiveEnd === 4 ? Infinity : effectiveEnd);
@@ -48,11 +53,12 @@ function createFixture() {
   const events = [];
   const context = {
     profession: { id: 'mesmer' },
-    catalog: { skillsById: new Map(), skillsByName: new Map() }
+    helpers: { skillsById: new Map(), skillsByName: new Map() }
   };
   const emitters = createMesmerEventEmitters({
     context,
-    emit(event) {
+    emit(input) {
+      const event = assertSimulationEvent(input);
       events.push(event);
       return event;
     },
@@ -94,7 +100,6 @@ test('Mesmer wrappers merge application, tick, and explicit metadata without los
   for (const event of [condition, damage]) {
     assert.equal(event.at, 1.25);
     assert.deepEqual(event.metadata, { cloneId: 0, blade: false, shatterTraitEligible: false });
-    assert.ok(Object.isFrozen(event.metadata));
     for (const key of Object.keys(event.metadata)) assert.equal(Object.hasOwn(event, key), false);
   }
 

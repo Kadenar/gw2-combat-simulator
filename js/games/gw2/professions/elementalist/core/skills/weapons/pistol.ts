@@ -409,7 +409,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     cooldown: 0,
     skillFamily: 'Weapon skill',
     // Elemental Explosion consumes every stored bullet and grants the current attunement's aura.
-    mechanicTriggers: [
+    elementalistTasks: [
       {
         type: 'elementalist.core.consume-elemental-explosion',
         timingAnchor: 'castEnd'

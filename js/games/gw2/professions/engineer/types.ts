@@ -1,12 +1,6 @@
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  CastContext,
-  CastLifecycleContext,
-  SchedulerContext,
-  SchedulerState
-} from '#gw2/platform/execution/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
   Gw2CanonicalBuild,
@@ -16,6 +10,7 @@ import type {
   ProfessionBuildAssumptions
 } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
@@ -58,6 +53,7 @@ export interface EngineerRuntimeState {
 }
 
 export interface EngineerSkill extends Skill {
+  readonly kitTransition?: 'equip' | 'stow';
   readonly countsAsToolbeltSkill?: boolean;
   readonly duration?: number;
   readonly kit?: string | boolean;
@@ -70,29 +66,8 @@ export interface EngineerSkill extends Skill {
   readonly toolbeltParentName?: string;
 }
 
-export type EngineerSchedulerContext = SchedulerContext<EngineerRuntimeState> & {
-  readonly catalog: CanonicalCatalog<EngineerSkill>;
-  readonly config: EngineerConfig;
-};
-
-export type EngineerCastContext = CastLifecycleContext<EngineerRuntimeState> & {
-  readonly catalog: CanonicalCatalog<EngineerSkill>;
-  readonly config: EngineerConfig;
-};
-
-export type EngineerPrecastContext = CastContext<EngineerRuntimeState> & {
-  readonly catalog: CanonicalCatalog<EngineerSkill>;
-  readonly config: EngineerConfig;
-};
-
-export type EngineerMaximumAmmoContext = EngineerSchedulerContext & {
-  readonly skill?: EngineerSkill;
-};
-
-export type EngineerRechargeContext = EngineerSchedulerContext & {
-  readonly skill?: EngineerSkill;
-  readonly start?: number;
-};
+/** Command owners and impact reactions share one Engineer state at executed time. */
+export type EngineerRuntime = Gw2Runtime<EngineerRuntimeState> & { readonly config: EngineerConfig };
 
 export type EngineerSimulationEvent = SimulationEvent & {
   readonly application?: EngineerSimulationEvent;
@@ -107,10 +82,6 @@ export type EngineerSimulationEvent = SimulationEvent & {
   readonly staticDischarge?: boolean;
 };
 
-export interface EngineerPlanningStateProjectionOptions {
-  readonly schedulerState: SchedulerState<EngineerRuntimeState>;
-}
-
 export type EngineerResolverEvent = Gw2ResolverEvent & {
   readonly application?: Gw2ResolverEvent;
   readonly charges?: number;
@@ -121,13 +92,12 @@ export type EngineerResolverEvent = Gw2ResolverEvent & {
   readonly hitIndex?: number;
   readonly mechBasicAttack?: boolean;
   readonly projectile?: boolean;
-  readonly state?: Partial<EngineerState>;
+  readonly offTarget?: boolean;
 };
 
 export type EngineerResolverContext = Gw2ResolverRuntime & {
   config: EngineerConfig;
   profession: EngineerRuntimeState;
-  readonly state?: { readonly profession: EngineerRuntimeState };
 };
 
 /** Engineer's finalized attributes also carry the pre-profession conversion pool Amalgam evolves from. */

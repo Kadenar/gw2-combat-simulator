@@ -112,19 +112,32 @@ export const elementalistTooltips: ProfessionTooltips = {
         ]
       : [])
   ],
-  handlers: {
-    'elementalist.tempest-shout': skillTooltip(
-      "Apply this shout's effects and trigger applicable shout and aura traits. Tempestuous Aria adds party might."
+  // Descriptions bind canonical skill IDs after removal of execution handler registrations.
+  skills: {
+    ...Object.fromEntries(
+      [ID.WASH_THE_PAIN_AWAY, ID.FEEL_THE_BURN, ID.AFTERSHOCK].map((id) => [
+        id,
+        skillTooltip(
+          "Apply this shout's effects and trigger applicable shout and aura traits. Tempestuous Aria adds party might."
+        )
+      ])
     ),
-    'elementalist.primordial-stance': (balanceContext) => ({
-      description:
-        "Pulse strike damage and conditions throughout the stance. Each pulse reads your current primary and secondary attunements: each hand supplies its element's condition, so a shared attunement applies that condition twice. The strike occurs once per pulse.",
-      facts: simulationEffectFacts(
-        tooltipProfile(balanceContext, WEAVER.primordialStance).effects,
-        'per pulse; conditions depend on current attunements'
-      ).facts
-    }),
-    'elementalist.grand-finale': (balanceContext) => ({
+    ...Object.fromEntries(
+      [ID.PRIMORDIAL_STANCE_FIRE, ID.PRIMORDIAL_STANCE_WATER, ID.PRIMORDIAL_STANCE_AIR, ID.PRIMORDIAL_STANCE_EARTH].map(
+        (id) => [
+          id,
+          (balanceContext) => ({
+            description:
+              "Pulse strike damage and conditions throughout the stance. Each pulse reads your current primary and secondary attunements: each hand supplies its element's condition, so a shared attunement applies that condition twice. The strike occurs once per pulse.",
+            facts: simulationEffectFacts(
+              tooltipProfile(balanceContext, WEAVER.primordialStance).effects,
+              'per pulse; conditions depend on current attunements'
+            ).facts
+          })
+        ]
+      )
+    ),
+    [ID.GRAND_FINALE]: (balanceContext) => ({
       description:
         "Consume all active hammer orbs and fire one projectile per orb. Each projectile applies its element's effects. Consuming the orbs cancels their pending attacks.",
       facts: [
@@ -134,9 +147,8 @@ export const elementalistTooltips: ProfessionTooltips = {
         ).facts,
         { name: 'Combo finisher', detail: 'Projectile, per consumed orb' }
       ]
-    })
-  },
-  skills: {
+    }),
+
     ...Object.fromEntries(
       [ID.MAGNETIC_AURA, ID.FROST_AURA, ID.SHOCKING_AURA, ID.FIRE_SHIELD].map((id) => [
         id,

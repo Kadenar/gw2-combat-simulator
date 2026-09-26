@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 // Imported unknown commands must retain their diagnostics as text in editable and reference timelines.
 test('unknown imported skill diagnostics cannot create timeline attributes or elements', async ({ page }) => {
   const skillId = 'audit" data-audit-marker="present"><audit-marker>&quoted';
-  const reason = `Unknown skill id ${skillId}.`;
+  const reason = 'Unknown skill.';
   await page.goto('/mesmer.html');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.waitForFunction(() => window.professionApp?.simulationStatus === 'idle');
@@ -17,7 +17,7 @@ test('unknown imported skill diagnostics cannot create timeline attributes or el
     applyRotationImportPreview(app, await previewRotationFile(file, app));
   }, skillId);
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
-  expect(await page.evaluate(() => window.professionApp.results.warnings)).toContain(reason);
+  expect(await page.evaluate(() => window.professionApp.results.warnings)).toContain(`${skillId}: ${reason}`);
 
   await page.evaluate(async () => {
     const { renderTimeline } = await import('/js/games/gw2/app/rotation/timeline/view.ts');

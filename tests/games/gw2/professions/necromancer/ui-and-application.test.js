@@ -13,7 +13,7 @@ import {
   validateNecromancerBuild
 } from '#gw2/professions/necromancer/build/build.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 const baseConfig = Object.freeze({
@@ -34,7 +34,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createProfessionSimulator(necromancerProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(necromancerProfession, baseConfig);
 
 // Presentation derives whole points without mutating normalized resources or applying vitality traits twice.
 test('Necromancer displays actual life force while simulation and starting values remain percentages', () => {
@@ -379,51 +379,13 @@ test('Necromancer shroud transitions stay adjacent and toggle availability', () 
   }
 });
 
-test('Necromancer state events have a real event-log presentation', () => {
-  const rows = simulationEventLogRows(
-    {
-      events: [
-        {
-          type: 'necromancer.state',
-          at: 1,
-          reason: 'shroud-enter',
-          state: {
-            lifeForce: { value: 82.5, maximum: 100, updatedAt: 0, rate: 0 },
-            activeShroud: 'reaper',
-            blight: 3,
-            soulShardGrant: { charges: 2, expiresAt: 10 }
-          }
-        }
-      ],
-      resolvedEvents: [],
-      planningState: { profession: {} }
-    },
-    null,
-    necromancerProfession
-  );
-
-  assert.equal(rows.length, 1);
-  assert.equal(rows[0].type, 'necromancer.state');
-  assert.match(rows[0].description, /shroud-enter.*Life force 82\.5.*Shroud reaper.*Blight 3.*Soul shards 2/);
-  assert.doesNotMatch(rows[0].description, /UNPRESENTED CUSTOM EVENT/);
-});
-
-test('Necromancer siphon bookkeeping events stay out of the event log', () => {
-  const rows = simulationEventLogRows(
-    {
-      events: [
-        { type: 'necromancer.taste-for-blood-grant', at: 0, stacks: 3, duration: 10 },
-        { type: 'necromancer.taste-for-blood-allied-hit', at: 1, allyIndex: 1 },
-        { type: 'necromancer.vampiric-presence-allied-hit', at: 1, allyIndex: 1 }
-      ],
-      resolvedEvents: [],
-      planningState: { profession: {} }
-    },
-    null,
-    necromancerProfession
-  );
-
-  assert.deepEqual(rows, []);
+// The log presents actual casts and transitions without synthetic resource snapshots.
+test('Necromancer live transitions have an event-log presentation', () => {
+  const result = simulate('Core', ['Death Shroud', 'End Death Shroud'], { initialResource: 100 });
+  assert.deepEqual(result.warnings, []);
+  const rows = simulationEventLogRows(result, null, necromancerProfession);
+  assert.ok(rows.some((row) => row.description.includes('Death Shroud')));
+  assert.ok(rows.every((row) => !row.description.includes('UNPRESENTED CUSTOM EVENT')));
 });
 
 test('slot skills are inaccessible in transformed shrouds', () => {

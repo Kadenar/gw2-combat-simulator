@@ -1,11 +1,11 @@
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { runtimeFor } from '#tests/helpers/live-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { rangerPetCombatMetadata, rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 
 const config = {
   primaryWeapon: 'Greatsword',
@@ -16,7 +16,7 @@ const config = {
   stats: { power: 2000, precision: 1000, ferocity: 0, conditionDamage: 1000, expertise: 0, concentration: 0 },
   target: { armor: 2597, defiant: true, conditions: {} }
 };
-const simulate = createProfessionSimulator(rangerProfession, config);
+const simulate = createLiveProfessionSimulator(rangerProfession, config);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const copied = (result) =>
   result.events.filter((event) => event.type === 'buff' && event.skillId === ID.WE_HEAL_AS_ONE);
@@ -159,39 +159,38 @@ test('We Heal As One does not invent boons or copy from interrupted casts', () =
 
 test('We Heal As One snapshots distinct audiences, intensity stacks, and boon lifetime at completion', () => {
   const boonConfig = { ...config, specialization: 'Core', boons: { might: 7 } };
-  const scheduler = createScheduler({
-    profession: rangerProfession,
-    config: boonConfig,
-    schedulerPolicy: createGw2SchedulerPolicy(boonConfig)
+  let petId;
+  const result = runRanger([ID.WE_HEAL_AS_ONE], boonConfig, {
+    initialize(runtime) {
+      petId = rangerPetCompanionId(runtime);
+      const seed = (kind, duration, stacks, companionId = petId, at = 0) =>
+        runtime.emit({
+          type: 'buff',
+          at,
+          kind,
+          duration,
+          stacks,
+          source: 'test',
+          sourceId: 'test-boon',
+          actorType: 'effect',
+          audience: {
+            recipients: 'summons',
+            affectsSelf: false,
+            maximumRecipients: 1,
+            eligibleCompanionIds: [companionId]
+          },
+          companionCandidates: [companionId]
+        });
+      seed('stability', 10, 4);
+      seed('protection', 0.1, 1);
+      seed('fury', 10, 1, 'retired-pet');
+      seed('vigor', 10, 1, petId, 10);
+      // The pooled Alacrity remains active after either original packet's standalone expiry.
+      seed('alacrity', 0.7, 1);
+      seed('alacrity', 0.7, 1);
+    }
   });
-  const petId = rangerPetCompanionId(scheduler.context);
-  const seed = (kind, duration, stacks, companionId = petId, at = 0) =>
-    scheduler.context.emit({
-      type: 'buff',
-      at,
-      kind,
-      duration,
-      stacks,
-      source: 'test',
-      sourceId: 'test-boon',
-      actorType: 'effect',
-      audience: {
-        recipients: 'summons',
-        affectsSelf: false,
-        maximumRecipients: 1,
-        eligibleCompanionIds: [companionId]
-      },
-      companionCandidates: [companionId]
-    });
-  seed('stability', 10, 4);
-  seed('protection', 0.1, 1);
-  seed('fury', 10, 1, 'retired-pet');
-  seed('vigor', 10, 1, petId, 10);
-  // The pooled Alacrity remains active after either original packet's standalone expiry.
-  seed('alacrity', 0.7, 1);
-  seed('alacrity', 0.7, 1);
-  scheduler.run([ID.WE_HEAL_AS_ONE]);
-  const applications = copied(scheduler);
+  const applications = copied(result);
   const self = applications.filter((event) => event.resolvedAudience.includesSelf);
   const pet = applications.filter((event) => event.resolvedAudience.includesSummons);
   assert.deepEqual(self.map((event) => [event.kind, event.stacks]).sort(), [
@@ -247,8 +246,7 @@ test('Lead the Wind reduces longbow recharge and grants Point-Blank Shot boons',
     selectedTraitIds: [TRAIT.LEAD_THE_WIND]
   });
   const recharge = (result) => {
-    const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.RAPID_FIRE);
-    return action.rechargeReadyAt - action.endsAt;
+    return runtimeFor(result).rechargeProgress.get(ID.RAPID_FIRE).work;
   };
 
   assert.ok(Math.abs(recharge(traited) - recharge(baseline) * 0.8) < 1e-9);
@@ -310,10 +308,7 @@ test('Fang and Claw changes independent critical stats only for eligible pets', 
   ]) {
     const metadata = (selectedTraitIds) =>
       rangerPetCombatMetadata(
-        createScheduler({
-          profession: rangerProfession,
-          config: { ...config, specialization: 'Core', selectedPet, selectedTraitIds }
-        }).context
+        runtimeFor(runRanger([], { ...config, specialization: 'Core', selectedPet, selectedTraitIds }))
       );
     const baseline = metadata([]),
       enhanced = metadata([TRAIT.FANG_AND_CLAW]);

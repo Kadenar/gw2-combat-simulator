@@ -1,6 +1,6 @@
 import { skillFlipVisible, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
-import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { activeStackCount, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -11,13 +11,13 @@ import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
-import { THIEF_PREPARATIONS } from '#gw2/professions/thief/core/mechanics/preparations.js';
-import { storedStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
+import { THIEF_PREPARATIONS } from '#gw2/professions/thief/core/live-weapons.js';
+import { storedStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/live-steal.js';
 import type {
   PaletteSkillAvailability,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { ThiefSimulationEvent, ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
+import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {
   return flattenProfessionState<Partial<ThiefState>>(context.state?.profession || context.professionState);
@@ -137,44 +137,6 @@ function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: Thief
   return { available: true, message: '' };
 }
 
-function thiefCoreEventLogRow(context: ThiefUiContext, event: ThiefSimulationEvent) {
-  if (event?.type !== 'thief.state') return undefined;
-  const state = event.state || {};
-  const logState = context.eventLogState as Map<string, { at: number; value: number }> | undefined;
-  // Show resource changes (including endurance) and suppress unchanged regeneration checkpoints.
-  const resources = (['initiative', 'endurance'] as const).flatMap((key) => {
-    const value = Number(key === 'initiative' ? (state.initiative?.value ?? 0) : state.endurance || 0);
-    const at = Number((key === 'initiative' ? state.initiative?.updatedAt : state.enduranceUpdatedAt) ?? event.at);
-    const previous = logState?.get(key);
-    // Completion snapshots may carry resources from cast start; never report those as spending.
-    if (previous && at < previous.at) return [];
-    logState?.set(key, { at, value });
-    const before = previous?.value ?? null;
-    if (before !== null && value.toFixed(1) === before.toFixed(1)) return [];
-    const label = key === 'initiative' ? 'Initiative' : 'Endurance';
-    const change = before === null ? '' : ` (${value > before ? '+' : ''}${(value - before).toFixed(1)})`;
-    return [`${label} ${value.toFixed(1)}${change}`];
-  });
-  const reason = String(event.reason || 'state');
-  // These changes already have named BUFF rows; their snapshots only synchronize engine state.
-  if (
-    !resources.length &&
-    ['resources', 'lead-attacks', 'daredevil-dodge', 'spider-venom', 'skale-venom', 'devourer-venom'].includes(reason)
-  )
-    return null;
-  const label = reason
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-  return {
-    type: event.type,
-    description: `${resources.length ? `RESOURCE ${resources.join(' · ')}` : 'STATE'} [${reason === 'resources' ? 'Regeneration' : label}]`,
-    className: 'resource',
-    order: 30,
-    flags: []
-  };
-}
-
 /** Show active trait stacks and skill bonuses alongside weapon trackers and stealth gates. */
 function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
   const state = thiefUiState(context);
@@ -192,7 +154,8 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     });
   }
 
-  const leadAttacksStacks = Math.max(0, Math.trunc(Number(state.leadAttacksStacks || 0)));
+  // Each initiative-spending grant expires independently, so the count is read at the displayed instant.
+  const leadAttacksStacks = activeStackCount(state.leadAttackExpirations || [], at);
   if (leadAttacksStacks > 0) {
     items.push({
       id: 'thief-lead-attacks',
@@ -308,6 +271,5 @@ export const thiefCoreUi = Object.freeze({
       }
     ];
   },
-  paletteSkillAvailability: corePaletteSkillAvailability,
-  eventLogRow: thiefCoreEventLogRow
+  paletteSkillAvailability: corePaletteSkillAvailability
 });

@@ -179,7 +179,7 @@ function rangerCorePaletteAvailability(
   const flipParent = skill.flipParentId == null ? null : catalog.skillsById.get(Number(skill.flipParentId));
   const spearStealthFlipId = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];
   const isSpearStealthAttack = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
-  // Share the scheduler's spear gate so ordinary stealth and Hunter's Prowess produce the same palette.
+  // Share the live spear gate so ordinary stealth and Hunter's Prowess produce the same palette.
   if (isSpearStealthAttack || spearStealthFlipId != null) {
     const available = rangerSpearStealthAvailable(state, Number(context.time || 0));
     if (isSpearStealthAttack && !available)

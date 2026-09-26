@@ -1,21 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
-function simulate(rotation, config = {}) {
-  return simulateGw2({
-    profession: necromancerProfession,
-    rotation,
-    config: {
-      specialization: 'Ritualist',
-      initialResource: 100,
-      ...config
-    }
-  });
-}
+const simulateProfession = createLiveProfessionSimulator(necromancerProfession, { initialResource: 100, target: {} });
+// Control and duration checks observe the same executed packets as live combat.
+const simulate = (rotation, config = {}) => simulateProfession('Ritualist', rotation, config);
 
 test('Wanderlust omits minion knockdown while its player controls still apply', () => {
   const summoned = simulate(["Ritualist's Shroud", 'Wanderlust', { type: 'wait', durationMs: 6000 }], {
@@ -75,13 +67,9 @@ test('Painful Bond adds overlapping applications to its remaining duration', () 
   const result = simulate(["Ritualist's Shroud", 'Anguish', 'Anguish', { type: 'wait', durationMs: 22_000 }], {
     selectedTraitIds: [TRAIT.SOUL_TWISTING]
   });
-  const applications = result.events.filter(
-    (event) => event.type === 'necromancer.painful-bond' && event.mode === 'apply'
-  );
   const pulses = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Painful Bond');
 
-  assert.equal(applications.length, 2);
-  assert.ok(applications[1].at < applications[0].at + applications[0].duration);
+  assert.deepEqual(result.warnings, []);
   assert.equal(pulses.length, 20);
   assert.equal(Number((pulses.at(-1).at - pulses[0].at).toFixed(3)), 19);
 });

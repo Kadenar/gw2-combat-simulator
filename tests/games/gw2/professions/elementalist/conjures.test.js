@@ -4,7 +4,6 @@ import test from 'node:test';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { applyElementalistResolverConjure } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { modifyElementalistAttributes } from '#gw2/professions/elementalist/core/traits/modifiers.js';
 
 const hammerOptions = {
@@ -154,13 +153,13 @@ test('Lightning Hammer attributes follow the wielder through utility hits, drop,
   const attributes = { precision: 1000, ferocity: 0 };
   const context = { runtime, config: { selectedTraitIds: [] }, event: { skillName: 'Arcane Wave' }, time: 1 };
   const baseline = modifyElementalistAttributes(context, attributes);
-  // Feed the same equip/drop events the scheduler publishes to the real resolver handler.
-  applyElementalistResolverConjure(runtime, { conjureEquipped: 'Lightning Hammer', conjureExpiresAt: 31 });
+  // Attribute queries read the live equipped bundle and its expiry.
+  Object.assign(core, { conjureEquipped: 'Lightning Hammer', conjureExpiresAt: 31 });
   const held = modifyElementalistAttributes({ catalog: elementalistCatalog, ...context }, attributes);
   assert.equal(held.precision - baseline.precision, 180);
   assert.equal(held.ferocity - baseline.ferocity, 75);
   assert.deepEqual(modifyElementalistAttributes({ ...context, time: 31 }, attributes), baseline);
-  applyElementalistResolverConjure(runtime, { conjureEquipped: null, conjureExpiresAt: 0 });
+  Object.assign(core, { conjureEquipped: null, conjureExpiresAt: 0 });
   assert.deepEqual(modifyElementalistAttributes(context, attributes), baseline);
 });
 

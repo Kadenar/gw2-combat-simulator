@@ -2,31 +2,29 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
 function simulate(rotation) {
-  return simulateGw2({
-    profession: warriorProfession,
-    rotation,
-    config: {
-      specialization: 'Bladesworn',
-      initialResource: 100,
-      stats: {
-        power: 2000,
-        precision: 1500,
-        ferocity: 500,
-        conditionDamage: 1000
-      },
-      target: {
-        armor: 2597,
-        health: 3_970_000,
-        defiant: true,
-        conditions: { Vulnerability: 25 }
-      }
+  const config = {
+    specialization: 'Bladesworn',
+    initialResource: 100,
+    stats: {
+      power: 2000,
+      precision: 1500,
+      ferocity: 500,
+      conditionDamage: 1000
+    },
+    target: {
+      armor: 2597,
+      health: 3_970_000,
+      defiant: true,
+      conditions: { Vulnerability: 25 }
     }
-  });
+  };
+  // Native family state and equipment reactions share one queue.
+  return runGw2Runtime({ profession: warriorProfession.liveRuntimeFor(config), config, rotation });
 }
 
 test('Gunsaber equip and stow count as weapon swaps', () => {

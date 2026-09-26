@@ -8,13 +8,12 @@ import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/pr
 export function definePatchedProfessionApp<
   const TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
-  TSimulation extends object = object,
   TBuild extends Gw2Build = Gw2Build
 >({
   profession,
   ...options
 }: Omit<DefineProfessionAppOptions, 'profession'> & {
-  readonly profession: NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild>;
+  readonly profession: NativeProfessionContract<TModules, TPresentation, TBuild>;
 }): Readonly<Gw2AppAdapter> {
   return defineProfessionApp({ ...options, profession: withActivePatchPreview(profession) });
 }

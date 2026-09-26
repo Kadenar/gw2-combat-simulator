@@ -2,9 +2,8 @@ import { EPSILON } from '#kernel/core/clock.js';
 /**
  * Evoker cast gating.
  *
- * Decides whether attunement swaps and familiar skills may start, and doubles as
- * the capture point for the pre-swap attunement recharge snapshot that
- * `attunements.ts` later consumes.
+ * Checks current attunement and familiar state; pending work supplies retry
+ * boundaries without predicting the resources it will grant.
  */
 import { denyCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import {
@@ -12,11 +11,9 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistPrecastContext } from '#gw2/professions/elementalist/types.js';
-import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import {
   BASIC_FAMILIARS,
@@ -24,13 +21,12 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
-import { commitRechargeDuration } from '#gw2/professions/elementalist/specializations/evoker/mechanics/recharge.js';
 
 /**
  * Waits for in-flight familiar casts and charge grants; missing resources without
  * a pending grant remain a final denial for this command.
  */
-export function availability(context: ElementalistPrecastContext, skill: Skill): AvailabilityResult {
+export function availability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
   const state = evokerState.from(context);
   const attunement = targetAttunement(skill);
   if (attunement) {
@@ -40,21 +36,10 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
         `${skill.name} is unavailable - attunement swapping is disabled by Specialized Elements.`
       );
     }
-
-    // capture remaining recharge before the swap fires so applyEvokerAttunementRechargePolicy can preserve shorter cooldowns
-    if (!state.pendingOffAttunementRemainingByCommand[context.commandIndex]) {
-      const core = professionCoreState(context);
-      state.pendingOffAttunementRemainingByCommand[context.commandIndex] = Object.fromEntries(
-        ELEMENTALIST_ATTUNEMENTS.map((element) => [
-          element,
-          Math.max(0, Number(core.attunementReadyAt[element] || 0) - context.start)
-        ])
-      );
-    }
   }
 
   // Nothing may start until the familiar cast in flight ends.
-  if (state.activeFamiliarCast && context.start < state.activeFamiliarCast.endsAt - EPSILON) {
+  if (state.activeFamiliarCast && context.time < state.activeFamiliarCast.endsAt - EPSILON) {
     return retryCast(
       state.activeFamiliarCast.endsAt,
       'elementalist.evoker-familiar-cast',
@@ -78,9 +63,8 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
     const requiredEmpowered = balanceProfileNumber(resourcesProfile, 'minimumStacks');
     // Recorded familiar inputs can precede the simulator's weapon completion; wait for real pending grants.
     if (state.empowered < requiredEmpowered && state.charges < state.maximumCharges) {
-      const pending = state.concurrentParentAnchors
-        .flatMap((entry) => (entry.weaponChargeGain ? [entry.weaponChargeGain] : []))
-        .filter((grant) => grant.at > context.start + EPSILON)
+      const pending = state.pendingWeaponCompletions
+        .filter((grant) => grant.at > context.time + EPSILON)
         .sort((left, right) => left.at - right.at);
       let charges = state.charges;
       for (const grant of pending) {
@@ -110,13 +94,3 @@ export function availability(context: ElementalistPrecastContext, skill: Skill):
     ? { ready: true }
     : denyCast('elementalist.evoker-empowered', `${skill.name} is unavailable - requires three empowered charges.`);
 }
-
-/** Registers Evoker contributions while each callback remains with its familiar, resource, or trait owner. */
-export const evokerCastRules = Object.freeze({
-  availability: {
-    id: 'elementalist.evoker-availability',
-    order: 30,
-    handler: availability
-  },
-  commitRechargeDuration
-});

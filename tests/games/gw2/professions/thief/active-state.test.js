@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 
-const simulate = createProfessionSimulator(thiefProfession, {
+const simulate = createLiveProfessionSimulator(thiefProfession, {
   primaryWeapon: 'Axe',
   secondaryWeapon: 'Dagger',
   selectedSkills: ['Skritt Scuffle', 'Hide in Shadows'],

@@ -12,8 +12,8 @@ import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
  * Holds the selected familiar element, the familiar charge/empowered economy,
  * trait timers (Evocation ICDs, Ignite tiering, Elemental Balance), and the
  * bookkeeping ledgers that let familiar casts interrupt, defer, and re-apply
- * work scheduled by surrounding commands. Shared by the scheduler and resolver
- * passes, which each build their own instance from the same factory.
+ * work scheduled by surrounding commands. One instance owns accepted casts,
+ * completion grants, and impact reactions throughout the simulation.
  */
 import {
   definePublicStateDefaults,
@@ -28,7 +28,7 @@ const resources = EVOKER_BALANCE_PROFILES.find((profile) => profile.id === PROFI
 const maximumCharges = requireBalanceNumber(resources.maximumStacks, 'Evoker resources maximumStacks');
 const maximumEmpowered = requireBalanceNumber(resources.minimumStacks, 'Evoker resources minimumStacks');
 
-/** Per-simulation Evoker state carried across every cast, hook, and resolver pass. */
+/** Per-simulation Evoker state carried across every cast, deadline, and accepted impact. */
 export interface EvokerState {
   element: ElementalistAttunement;
   charges: number;
@@ -53,8 +53,6 @@ export interface EvokerState {
   >;
   // reservations whose own effects must be cancelled once their scheduling finishes
   cancelledFamiliarActivations: Record<string, boolean>;
-  // keyed by commandIndex (not reservationId) because availability runs at command scheduling time, before the event fires
-  pendingOffAttunementRemainingByCommand: Record<number, Partial<Record<ElementalistAttunement, number>>>;
   // the familiar cast currently in flight; blocks other casts and defers charge grants that its reset would wipe
   activeFamiliarCast: {
     reservationId: string;
@@ -62,16 +60,7 @@ export interface EvokerState {
     resetsCharges: boolean;
   } | null;
   // Pending parent grants let an early familiar input wait until its charges become available.
-  concurrentParentAnchors: Array<{
-    commandIndex: number;
-    weaponChargeGain: {
-      activationId: string;
-      at: number;
-      source: string;
-      sourceId: string | number;
-      gain: number;
-    } | null;
-  }>;
+  pendingWeaponCompletions: Array<{ activationId: string; at: number; gain: number }>;
   // charge grants deferred past a charge-resetting familiar cast, replayed once it completes
   pendingWeaponChargeGains: Array<{
     activationId: string;
@@ -107,9 +96,8 @@ export const evokerState = defineProfessionSpecializationState(
       ignitePassiveReadyAt: 0,
       lastEmpoweredFamiliarByBasic: {},
       cancelledFamiliarActivations: {},
-      pendingOffAttunementRemainingByCommand: {},
       activeFamiliarCast: null,
-      concurrentParentAnchors: [],
+      pendingWeaponCompletions: [],
       pendingWeaponChargeGains: []
     };
   }

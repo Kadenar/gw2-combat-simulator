@@ -1,35 +1,23 @@
-/**
- * Evoker reactions to events as they are scheduled.
- *
- * The single scheduler subscription that fans out to the attunement recharge
- * policy, the Fire familiar's burning-driven Might, Electric Enchantment
- * consumption, and the Elemental Balance / Elemental Dynamo attunement-entry
- * traits.
- */
+/** Evoker trait and enchantment reactions consume actual transitions and accepted impacts. */
 import {
   requireBalanceProfileFromContext,
   requireEffect,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import { emitElementalistBuff } from '#gw2/professions/elementalist/core/live-events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { elementalistEventSkill, emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { applyEvokerAttunementRechargePolicy } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 
-/**
- * Reacts to every newly scheduled event: applies the Evoker attunement recharge
- * policy, procs the Fire familiar's Might on burning, spends an armed Electric
- * Enchantment stack on qualifying player strikes, then handles the
- * attunement-entry traits.
- */
-export function onEventScheduled(context: ElementalistSchedulerContext, event: SimulationEvent): void {
+/** Applies familiar, enchantment, and attunement-entry rewards at their actual event boundary. */
+export function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context);
   applyEvokerAttunementRechargePolicy(context, event, state);
   // ignitePassiveReadyAt gates the Fire familiar's Might proc to an ICD; without it every burning tick would trigger
@@ -45,7 +33,8 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
     if (might) {
       const igniteProfile = requireBalanceProfileFromContext(context, PROFILE.ignite);
       state.ignitePassiveReadyAt = event.at + balanceProfileNumber(igniteProfile, 'pulseInterval');
-      emitSkillBuff(context, elementalistEventSkill(context, 'Fire Familiar', sourceId), {
+      emitElementalistBuff(context, {
+        skill: elementalistEventSkill(context, 'Fire Familiar', sourceId),
         at: event.at,
         source: 'Fire Familiar',
         sourceId,
@@ -58,7 +47,7 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
     }
   }
 
-  // forward-facing consumption; enchantments.ts covers strikes already queued when the stack was granted
+  // Spend an enchantment only after the shared runtime accepts this player hit.
   if (event.type === 'damage' && event.actorType === 'player' && Number(event.coefficient) > 0) {
     consumeElectricEnchantment(context, state, event);
   }
@@ -80,7 +69,7 @@ export function onEventScheduled(context: ElementalistSchedulerContext, event: S
       // Temporary-effect expiry uses the absolute combat tick, including patched durations.
       const duration = balanceProfileNumber(elementalBalanceProfile, 'durationMultiplier');
       state.elementalBalanceUntil = gw2EffectExpiresAt(event.at, duration);
-      emitElementalistProc(context as never, {
+      emitElementalistProc(context, {
         at: event.at,
         name: 'Elemental Balance',
         procType: 'skill',

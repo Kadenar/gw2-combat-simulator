@@ -7,7 +7,7 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { CAST_READY } from '#gw2/platform/engine/skills/availability.js';
+
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   cloneNecromancerAttributes,
@@ -15,39 +15,10 @@ import {
   necromancerRuntimeSpecializationState,
   necromancerTargetControlled
 } from '#gw2/professions/necromancer/core/traits/modifiers.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
-import type { NecromancerPrecastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
-import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-
-/** Re-exports Ritualist's spirit lifecycle and autonomous-attack scheduler hooks. */
-export { ritualistSchedulerHooks } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
-
-const INNERVATE_SPIRIT: ReadonlyMap<SkillId, string> = new Map([
-  [ID.INNERVATE_ANGUISH, 'anguish'],
-  [ID.INNERVATE_WANDERLUST, 'wanderlust'],
-  [ID.INNERVATE_PRESERVATION, 'preservation']
-]);
-
-// Gate each Innervate command on the lifetime of its corresponding spirit.
-function ritualistAvailability(
-  context: NecromancerPrecastContext,
-  skill: NecromancerSkill
-): Readonly<AvailabilityResult> {
-  const spirit = INNERVATE_SPIRIT.get(skill.id);
-  if (!spirit) return CAST_READY;
-  if (ritualistState.from(context).activeSpirits[spirit]) return CAST_READY;
-  // Innervate availability follows the matching specialization-owned spirit lifetime.
-  return {
-    ready: false,
-    retryAt: null,
-    code: 'necromancer.spirit',
-    reason: `${skill.name} is unavailable — requires an active ${spirit} spirit.`
-  };
-}
 
 // Apply Ritualist's build-time concentration bonus without double-counting pre-applied static rules.
 function modifyRitualistAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
@@ -118,12 +89,4 @@ const ritualistModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 export const ritualistAttributeRules = Object.freeze({
   modifyAttributes: modifyRitualistAttributes,
   modifierRules: ritualistModifierRules
-});
-
-export const ritualistCastRules = Object.freeze({
-  availability: {
-    id: 'ritualist.innervate-availability',
-    order: 20,
-    handler: ritualistAvailability
-  }
 });

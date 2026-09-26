@@ -2,52 +2,45 @@ import type { CriticalSigilDiagnostic } from '#gw2/platform/equipment/sigils/dia
 /** Owns the simulation/types.ts contracts so type dependencies follow their runtime feature boundaries. */
 import type {
   NormalizedProfessionContract,
-  ProfessionSimulationDefinition,
   ProfessionApplicationContract,
   ProfessionSource
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerContext, SchedulerState, SchedulerStep } from '#gw2/platform/execution/types.js';
+import type { SimulationStep } from '#gw2/platform/execution/types.js';
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
-import type {
-  Gw2ResolverEventHandlers,
-  Gw2ResolverReactions,
-  Gw2ResolverResult
-} from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { RotationApm } from '#gw2/platform/results/rotation-apm.js';
 
-/** GW2 simulation policy: one optional refinement pass over the scheduler config. */
-export interface Gw2SimulationDefinition extends ProfessionSimulationDefinition {
-  readonly refineSchedulerConfig?: (config: Gw2Config, result: Gw2SimulationResult) => Gw2Config | null | undefined;
+/** Public projections read an observed state and immutable inputs, never execution controllers or future history. */
+export interface Gw2PlanningStateInput<T extends object = object> {
+  readonly profession: T;
+  readonly time: number;
+  readonly activeWeaponSet: number;
+  readonly config: Gw2Config;
+  readonly catalog: CanonicalCatalog;
 }
 
-export interface Gw2ProfessionContract<TProfessionState extends object = object> extends NormalizedProfessionContract<
-  TProfessionState,
-  Gw2ResolverEventHandlers,
-  Gw2ResolverReactions
-> {
-  readonly simulation: Gw2SimulationDefinition | null;
-  readonly projectPlanningState: (options: {
-    readonly schedulerContext: SchedulerContext;
-    /** Diagnostic scheduler state, with its own time in seconds at the planning boundary. */
-    readonly schedulerState: SchedulerState;
-  }) => unknown;
+export interface Gw2ProfessionContract<
+  TProfessionState extends object = object
+> extends NormalizedProfessionContract<TProfessionState> {
+  readonly projectPlanningState: (input: Gw2PlanningStateInput<TProfessionState>) => unknown;
 }
 
 /** Joins the application surface to a runtime source whose GW2 resolver callbacks remain type checked. */
-export type Gw2ProfessionSource<TProfessionState extends object = any> = ProfessionApplicationContract<
-  Gw2SimulationDefinition,
-  Gw2Build
-> &
-  ProfessionSource<TProfessionState, Gw2ProfessionContract<TProfessionState>, Gw2SimulationDefinition, Gw2Build>;
+export type Gw2ProfessionSource<TProfessionState extends object = any> = ProfessionApplicationContract<Gw2Build> &
+  ProfessionSource<TProfessionState, Gw2ProfessionContract<TProfessionState>, Gw2Build> & {
+    liveRuntimeFor(config: Gw2Config): RuntimeProfession<TProfessionState>;
+  };
 
 export interface Gw2SimulationPlanningState {
-  /** Scheduler observation boundary in seconds; includes planned actions after target death. */
+  /** Observed planning boundary in seconds; includes authoring continuation after target death. */
   readonly atSeconds: number;
   /** Public cooldown deadlines and remaining durations are milliseconds. */
   readonly cooldowns: Readonly<Record<string, { readyAt: number; remaining: number }>>;
-  /** Name-keyed live scheduler ammo; absent entries do not imply full charges. Prefer ammoBySkillId for identity. */
+  /** Name-keyed observed ammo; absent entries do not imply full charges. Prefer ammoBySkillId for identity. */
   readonly ammo: Readonly<Record<string, unknown>>;
   /** ID-keyed ammo avoids collisions between distinct skills sharing a display name. */
   readonly ammoBySkillId: Readonly<Record<string, unknown>>;
@@ -56,20 +49,19 @@ export interface Gw2SimulationPlanningState {
 }
 
 export interface Gw2SimulationResult extends Gw2ResolverResult {
-  /** Causal sigil comparisons are retained only in detailed diagnostic runs. */
+  /** Actual sigil decisions are retained only in detailed diagnostic runs. */
   readonly criticalSigilDiagnostics?: readonly CriticalSigilDiagnostic[];
   readonly rotationApm: RotationApm;
-  readonly steps: readonly SchedulerStep[];
+  readonly steps: readonly SimulationStep[];
   readonly planningState: Gw2SimulationPlanningState;
-  readonly schedulerState: SchedulerState;
 }
 
-export interface Gw2DeclarativeSimulationOptions {
-  /** Capture formula facts only in the final detailed pass; never persisted as build configuration. */
+export interface Gw2SimulationOptions {
+  /** Capture formula facts during detailed execution; never persisted as build configuration. */
   readonly damageDiagnostics?: boolean;
   /** Optional profiler receives phase durations; normal simulations avoid clock reads. */
-  readonly onPhase?: (phase: 'scheduling' | 'resolution' | 'reporting' | 'refinement', durationMs: number) => void;
-  readonly profession: ProfessionSource<any, Gw2ProfessionContract, Gw2SimulationDefinition, Gw2Build>;
+  readonly onPhase?: (phase: 'preparation' | 'execution' | 'reporting', durationMs: number) => void;
+  readonly profession: Gw2ProfessionSource;
   readonly rotation: readonly unknown[];
   readonly config?: Gw2Config;
   readonly observationPolicy?: ObservationPolicy;

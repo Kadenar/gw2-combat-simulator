@@ -1,16 +1,12 @@
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
-import { createScheduledEvents } from '#gw2/platform/execution/scheduled-events.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { ELEMENTALIST_SKILL_IDS as E, ELEMENTALIST_TRAIT_IDS as ET } from '#gw2/professions/elementalist/data/ids.js';
 import { ENGINEER_TRAIT_IDS as HT } from '#gw2/professions/engineer/data/ids.js';
 import { GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
@@ -23,8 +19,8 @@ import {
   applyCatalystResolvedDamage
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
 import { applyWeaveSelfAttunement } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
-import { weaverCastRules } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
-import { onEventScheduled } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
+import { weaverLive } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
+import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import { commitRechargeDuration } from '#gw2/professions/elementalist/specializations/evoker/mechanics/recharge.js';
 import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
@@ -32,26 +28,15 @@ import {
   holosmithResolverEventHandlers,
   consumeSolarFocusingLens
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-effects.js';
-import {
-  performEnergyMeld,
-  completeVindicatorDodge
-} from '#gw2/professions/revenant/specializations/vindicator/mechanics/dodge.js';
 import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
-import { galeshotMissileReaction } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { RANGER_SKILL_IDS as RI } from '#gw2/professions/ranger/data/ids.js';
 import { bindGaleshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
-import {
-  handleNecromancerPainfulBond,
-  painfulBondPulses
-} from '#gw2/professions/necromancer/specializations/ritualist/mechanics/event-handlers.js';
-import { minionActions } from '#gw2/professions/necromancer/core/mechanics/minions.js';
-import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
-import { reactToRighteousInstincts, righteousInstincts } from '#gw2/professions/guardian/core/traits/radiance.js';
-import { handleSymbolOfIgnitionField, reactToSymbolOfIgnition } from '#gw2/professions/guardian/core/traits/index.js';
-import { dragonhunterEventHandlers } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/virtue-effects.js';
+import { observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/time-bomb.js';
-import { projectDragonCharges } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
-import { skrittScuffle } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 import { nourys } from '#gw2/platform/equipment/relics/rules/nourys.js';
 import { aristocracy } from '#gw2/platform/equipment/relics/rules/aristocracy.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
@@ -76,7 +61,7 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
     state: {
       time: 0,
       activeWeaponSet: 1,
-      profession: runtime.createProfessionState(config),
+      profession: runtime.createState(config),
       cooldowns: new Map(),
       ammo: new Map(),
       rechargeProgress: new Map()
@@ -104,9 +89,23 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
 
 const specialization = (context) => context.state.profession.specialization.state;
 
+// Native services supply the actual state and catalog; collect only the handler's immediate output.
+function elementalistContext(specialization, selectedTraitIds = []) {
+  const runtime = runtimeFor(runElementalist({ config: { specialization, selectedTraitIds }, rotation: [] }));
+  runtime.events = [];
+  runtime.emit = (event) => {
+    runtime.events.push(event);
+    return event;
+  };
+
+  runtime.emitDerived = (_cause, event) => runtime.emit(event);
+  runtime.queue.enqueue = (event) => runtime.emit(event);
+  return runtime;
+}
+
 test('temporary Elemental Empowerment stacks survive the final microsecond and expire on their buff tick', () => {
-  const context = contextFor(elementalistProfession, 'Catalyst');
-  const state = specialization(context);
+  const context = elementalistContext('Catalyst');
+  const state = context.profession.specialization.state;
   grantCatalystElementalEmpowerment(state, 0.001, 1, 1);
   assert.deepEqual(state.elementalEmpowermentExpiries, [1.04]);
   grantCatalystElementalEmpowerment(state, 1.039999, 1, 1);
@@ -117,14 +116,14 @@ test('temporary Elemental Empowerment stacks survive the final microsecond and e
 
 test('Shattering Ice uses the same exclusive tick deadline for grants and hits', () => {
   for (const at of [1.039999, 1.04, 1.040001]) {
-    const context = contextFor(elementalistProfession, 'Catalyst');
+    const context = elementalistContext('Catalyst');
     applyCatalystEmpowerment(context, {
       kind: 'shattering ice',
       at: 0.001,
       duration: 1,
       resolvedAudience: { includesSelf: true }
     });
-    assert.equal(specialization(context).shatteringIceUntil, 1.04);
+    assert.equal(context.profession.specialization.state.shatteringIceUntil, 1.04);
     applyCatalystResolvedDamage(context, { type: 'damage', at, actorType: 'player', coefficient: 1 });
     assert.equal(
       context.events.some((event) => event.type === 'damage'),
@@ -134,16 +133,16 @@ test('Shattering Ice uses the same exclusive tick deadline for grants and hits',
 });
 
 test('Perfect Weave grant and Tailored Victory gate share the emitted buff expiry', () => {
-  const context = contextFor(elementalistProfession, 'Weaver');
-  const state = specialization(context);
+  const context = elementalistContext('Weaver');
+  const state = context.profession.specialization.state;
   state.weaveSelfUntil = 10;
   state.weaveSelfVisited = ['Fire', 'Air', 'Water'];
   applyWeaveSelfAttunement(context, 0.001, 'Earth', 'Earth Attunement', E.EARTH_ATTUNEMENT);
   assert.equal(state.perfectWeaveUntil, 10.04);
   for (const at of [10.039999, 10.04, 10.040001]) {
-    context.start = at;
+    context.time = at;
     assert.equal(
-      weaverCastRules.availability.handler(context, context.catalog.skillsById.get(E.TAILORED_VICTORY)).ready,
+      weaverLive.availability(context, context.helpers.skillsById.get(E.TAILORED_VICTORY)).ready,
       at < 10.04
     );
   }
@@ -151,28 +150,32 @@ test('Perfect Weave grant and Tailored Victory gate share the emitted buff expir
 
 test('Elemental Balance is consumable through its final microsecond and only once', () => {
   for (const at of [5.039999, 5.04, 5.040001]) {
-    const context = contextFor(elementalistProfession, 'Evoker', [ET.ELEMENTAL_BALANCE]);
-    const state = specialization(context);
+    const context = elementalistContext('Evoker', [ET.ELEMENTAL_BALANCE]);
+    const state = context.profession.specialization.state;
     state.elementalBalanceProgress = 1;
-    onEventScheduled(context, { type: 'elementalist.attunement-enter', to: state.element, at: 0.001 });
+    onAcceptedEvent(context, { type: 'elementalist.attunement-enter', to: state.element, at: 0.001 });
     assert.equal(state.elementalBalanceUntil, 5.04);
-    context.state.time = at;
+    context.time = at;
     context.skill = { type: 'Weapon', slot: 'Weapon_2' };
-    assert.equal(commitRechargeDuration(context, 10), at < 5.04 ? 10 * 0.34 : 10);
-    assert.equal(commitRechargeDuration(context, 10), 10);
+    assert.equal(commitRechargeDuration(context, context.skill, 10), at < 5.04 ? 10 * 0.34 : 10);
+    assert.equal(commitRechargeDuration(context, context.skill, 10), 10);
   }
 });
 
-test('Electric Enchantment cannot consume hits before its grant, including retrospective scheduling', () => {
+test('Electric Enchantment cannot consume hits before its grant, at its exact boundaries', () => {
   for (const at of [0.300999, 0.301, 1.319999, 1.32]) {
-    const context = contextFor(elementalistProfession, 'Evoker');
-    const state = specialization(context);
+    const context = elementalistContext('Evoker');
+    const state = context.profession.specialization.state;
     grantElectricEnchantments(state, 0.1 + 0.201, 1, 1);
     assert.equal(state.electricEnchantmentGrants[0].at, 0.301);
     assert.equal(state.electricEnchantmentGrants[0].expiresAt, 1.32);
     const event = { type: 'damage', at, actorType: 'player', coefficient: 1 };
+    context.time = at;
     consumeElectricEnchantment(context, state, event);
-    assert.equal(event.electricEnchantmentConsumed === true, at >= 0.301 && at < 1.32);
+    assert.equal(
+      context.events.some((event) => event.source === 'Electric Enchantment'),
+      at >= 0.301 && at < 1.32
+    );
   }
 });
 
@@ -187,112 +190,102 @@ test('Solar Focusing Lens preserves inclusive expiry without early activation or
   }
 });
 
-test('Painful Bond duration stacking and damage use exact exclusive tick expiry', () => {
-  const context = contextFor(necromancerProfession, 'Ritualist');
-  handleNecromancerPainfulBond(context, { mode: 'apply', at: 0.001, duration: 1 });
-  assert.equal(specialization(context).painfulBondUntil, 1.04);
-  handleNecromancerPainfulBond(context, { mode: 'apply', at: 0.5, duration: 1 });
-  assert.equal(specialization(context).painfulBondUntil, 2.04);
-  for (const at of [2.039999, 2.04, 2.040001]) {
-    context.events.length = 0;
-    painfulBondPulses.start(context, { key: 'boundary', at, captured: {} });
-    painfulBondPulses.eventHandlers['necromancer.painful-bond-pulse'](context, context.events.pop());
-    assert.equal(
-      context.events.some((event) => event.type === 'damage'),
-      at < 2.04
-    );
-  }
-});
-
-test('Lich Form expires exactly once and preserves its last live microsecond', () => {
-  const scheduler = createScheduler({
-    profession: necromancerProfession,
-    config: { selectedSkills: { Elite: 'Lich Form' } }
-  });
-  assert.equal(scheduler.cast({ type: 'cast', skillId: N.LICH_FORM }), true);
-  const state = scheduler.state.profession.core;
-  const deadline = state.lichEndsAt;
-  assert.ok(deadline > 0);
-  scheduler.advanceTo(deadline - 0.000001);
-  assert.equal(state.activeShroud, 'lich');
-  scheduler.advanceTo(deadline);
-  assert.equal(state.activeShroud, '');
-  assert.equal(state.availableFlips[N.EXIT_LICH_FORM], undefined);
-  const lifeForce = state.lifeForce.value;
-  scheduler.advanceTo(deadline + 0.000001);
-  assert.equal(state.lifeForce.value, lifeForce);
-});
-
+// Deliver an owned native attack at each boundary, preserving the command's inclusive control window.
 test('minion command control includes its deadline but excludes the following microsecond', () => {
+  const config = { specialization: 'Core' };
+  const native = necromancerProfession.liveRuntimeFor(config);
   for (const at of [1.999999, 2, 2.000001]) {
-    const context = contextFor(necromancerProfession, 'Core');
-    // Autonomous attacks query the same indexed boon history as the real scheduler.
-    Object.assign(context, createScheduledEvents({ prepareEvent: (event) => event, observeEvent() {} }));
-    context.tasks = createTaskQueue({ handlers: minionActions.taskHandlers });
-    minionActions.start(context, 0, {
-      key: 'golem',
-      ownerId: 'golem',
-      firstAt: at,
-      state: {
-        skillId: N.SUMMON_FLESH_GOLEM,
-        minionKey: 'flesh-golem',
-        generation: 1,
-        attackGeneration: 1,
-        cycleIndex: 1,
-        minionIndex: 0,
-        attackIndex: 0,
-        controlUntil: 2,
-        controlKind: 'knockdown'
+    const result = observeGw2Runtime({
+      config,
+      rotation: [{ type: 'combat-start' }, { type: 'wait', durationMs: 2001 }],
+      profession: {
+        ...native,
+        initialize(runtime) {
+          native.initialize(runtime);
+          const state = runtime.profession.core;
+          state.activeMinions['flesh-golem'] = 1;
+          state.minionGenerations['flesh-golem'] = 1;
+          state.minionAttackGenerations['flesh-golem'] = 1;
+          state.minionAttackCursors['minion:flesh-golem:0'] = { cycleIndex: 1, attackIndex: 0 };
+          runtime.schedule('necromancer.minion-attack', at, {
+            skillId: N.SUMMON_FLESH_GOLEM,
+            key: 'flesh-golem',
+            generation: 1,
+            attackGeneration: 1,
+            index: 0,
+            activationId: 'test:golem',
+            controlUntil: 2,
+            controlKind: 'knockdown'
+          });
+        }
       }
     });
-    context.tasks.drainThrough(at, context);
+    assert.deepEqual(result.warnings, []);
+    assert.ok(result.totalDamage > 0);
     assert.equal(
-      context.events.find((event) => event.type === 'necromancer.summon-attack')?.controlKind,
+      result.events.find((event) => event.type === 'control')?.controlKind,
       at <= 2 ? 'knockdown' : undefined
     );
   }
 });
 
 test('Righteous Instincts extends Resolution at the last live microsecond and stops at expiry', () => {
-  const context = contextFor(guardianProfession, 'Core', [GT.RIGHTEOUS_INSTINCTS]);
-  reactToRighteousInstincts(context, {
-    at: 0.001,
-    kind: 'resolution',
-    duration: 1,
-    resolvedAudience: { includesSelf: true }
-  });
-  const state = context.state.profession.core;
-  assert.equal(state.resolutionUntil, 1.04);
-  context.events.length = 0;
-  reactToRighteousInstincts(context, {
-    at: 1.039999,
-    kind: 'resolution',
-    duration: 1,
-    resolvedAudience: { includesSelf: true }
-  });
-  assert.equal(state.resolutionUntil, 2.04);
-  assert.equal(context.events.length, 0, 'extension must not restart the cadence');
-  for (const at of [2.039999, 2.04, 2.040001]) {
-    context.events.length = 0;
-    righteousInstincts.start(context, { key: 'resolution', at, captured: {} });
-    righteousInstincts.eventHandlers['guardian.righteous-instincts-tick'](context, context.events.pop());
-    assert.equal(
-      context.events.some((event) => event.kind === 'might'),
-      at < 2.04
-    );
-  }
+  const result = runGuardian(
+    [{ type: 'wait', durationMs: 2100 }],
+    { selectedTraitIds: [GT.RIGHTEOUS_INSTINCTS] },
+    (runtime) => {
+      for (const at of [0.001, 1.039999])
+        runtime.emit({
+          type: 'buff',
+          source: 'fixture',
+          sourceId: 'resolution',
+          actorType: 'player',
+          kind: 'resolution',
+          duration: 1,
+          stacks: 1,
+          at,
+          audience: { recipients: 'self' }
+        });
+    }
+  );
+  const might = result.events.filter((event) => event.type === 'buff' && event.kind === 'might');
+  assert.deepEqual(
+    might.map((event) => event.at),
+    [0.001, 1.001, 2.001]
+  );
 });
 
-test('Symbol of Ignition and Dragonhunter tether retain exact inclusive final triggers', () => {
+test('Symbol of Ignition includes its endpoint while Dragonhunter tether stops at its deadline', () => {
   for (const at of [0.000999, 0.001, 1.000999, 1.001, 1.001001]) {
-    const context = contextFor(guardianProfession, 'Dragonhunter');
-    handleSymbolOfIgnitionField(context, { at: 0.001, duration: 1 });
-    reactToSymbolOfIgnition(context, { type: 'damage', actorType: 'player', coefficient: 1, at });
-    assert.equal(context.events.length > 0, at >= 0.001 && at <= 1.001);
-    context.events.length = 0;
-    dragonhunterEventHandlers['guardian.dragonhunter-tethered'](context, { at: 0.001, tetherUntil: 1.001 });
-    dragonhunterEventHandlers['guardian.dragonhunter-justice-pulse'](context, { at });
-    assert.equal(context.events.length > 0, at <= 1.001);
+    const result = runGuardian([{ type: 'wait', durationMs: 1100 }], { specialization: 'Dragonhunter' }, (runtime) => {
+      runtime.profession.core.symbolIgnitionStartsAt = 0.001;
+      runtime.profession.core.symbolIgnitionUntil = 1.001;
+      runtime.emit({
+        type: 'damage',
+        source: 'guardian',
+        sourceId: 'fixture-hit',
+        actorType: 'player',
+        coefficient: 1,
+        weaponStrengthProfileId: 'weapon.scepter',
+        at
+      });
+      const state = runtime.profession.specialization.state;
+      state.tetherActivationId = 'fixture-tether';
+      state.tetherUntil = 1.001;
+      runtime.schedule('guardian.dragonhunter.tether-burn', at, {
+        activationId: state.tetherActivationId,
+        deadline: state.tetherUntil,
+        event: { type: 'damage', source: 'guardian', sourceId: 'tether', at }
+      });
+    });
+    const ignition = result.resolvedEvents.some(
+      (event) => event.type === 'condition' && event.skillName === 'Symbol of Ignition'
+    );
+    assert.equal(ignition, at >= 0.001 && at <= 1.001);
+    const tether = result.events.some(
+      (event) => event.type === 'condition' && event.name === 'Spear of Justice — Active Burning' && event.at === at
+    );
+    assert.equal(tether, at < 1.001);
   }
 });
 
@@ -302,42 +295,70 @@ test('Mistral requires an armed window and shares inclusive expiry with its disp
     [1.001, 1.001, true],
     [1.001, 1.001001, false]
   ]) {
-    const context = contextFor(rangerProfession, 'Galeshot');
-    specialization(context).mistralUntil = deadline;
-    galeshotMissileReaction.taskHandlers['ranger.galeshot-missile-hit'](context, { at, payload: {} });
+    const result = runRanger(
+      [{ type: 'wait', durationMs: 1100 }],
+      { specialization: 'Galeshot' },
+      {
+        initialize(runtime) {
+          runtime.profession.specialization.state.mistralUntil = deadline;
+          runtime.emit({
+            type: 'damage',
+            source: 'probe',
+            sourceId: RI.SPLITBLADE,
+            skillId: RI.SPLITBLADE,
+            actorType: 'player',
+            at,
+            coefficient: 1
+          });
+        }
+      }
+    );
     assert.equal(
-      context.events.some((event) => event.skillName === 'Mistral'),
+      result.events.some((event) => event.skillName === 'Mistral'),
       active
     );
-    assert.equal(galeshotUi.rotationStateSnapshot({ state: context.state, atSeconds: at }).length > 0, active);
+    assert.equal(
+      galeshotUi.rotationStateSnapshot({ state: { profession: runtimeFor(result).profession }, atSeconds: at }).length >
+        0,
+      active
+    );
   }
 });
 
 test('Reavers Curse requires an arm, includes the final landing, and cannot be consumed twice', () => {
+  const config = {
+    specialization: 'Vindicator',
+    selectedLegends: ['LegendaryAlliance', 'LegendaryAssassin'],
+    startingLegend: 'LegendaryAlliance',
+    selectedTraitIds: [RT.REAVERS_CURSE],
+    initialEnergy: 100
+  };
+  // A completed Energy Meld arms the curse; the probe landings then read that live deadline.
+  const armedState = runtimeFor(runRevenant(['Energy Meld'], config)).profession;
+  const unarmedState = runtimeFor(runRevenant([], config)).profession;
+  const deadline = armedState.specialization.state.reaversCurseUntil;
+  assert.ok(deadline > 0);
   for (const armed of [false, true]) {
     for (const delta of [0, 0.000001]) {
-      const context = contextFor(revenantProfession, 'Vindicator', [RT.REAVERS_CURSE]);
-      const state = specialization(context);
-      if (armed) {
-        context.effectiveEnd = 0.001;
-        context.state.time = 0.001;
-        performEnergyMeld(context, context.catalog.skillsById.get(R.ENERGY_MELD));
-        assert.ok(state.reaversCurseUntil > 0);
-      }
-
-      const at = armed ? state.reaversCurseUntil + delta : 0;
+      const at = armed ? deadline + delta : 0.001;
       assert.equal(
-        vindicatorUi.rotationStateSnapshot({ state: context.state, atSeconds: at }).length > 0,
+        vindicatorUi.rotationStateSnapshot({ state: { profession: armed ? armedState : unarmedState }, atSeconds: at })
+          .length > 0,
         armed && delta === 0
       );
-      const profile = context.catalog.skillsById.get(R.DEATH_DROP);
-      const offset = Number(profile.effects.find((effect) => effect.type === 'strike').ticks[0].atMs) / 1000;
-      context.events.length = 0;
-      completeVindicatorDodge(context, profile, at - offset);
-      const first = context.events.find((event) => event.type === 'damage').coefficient;
-      context.events.length = 0;
-      completeVindicatorDodge(context, profile, at - offset);
-      const second = context.events.find((event) => event.type === 'damage').coefficient;
+      // The rotation outlasts the probe landings so their queued work executes.
+      const wait = { type: 'wait', durationMs: Math.ceil(at * 1000) + 500 };
+      const result = runRevenant(armed ? ['Energy Meld', wait] : [wait], config, {
+        initialize(runtime) {
+          // Two same-time landings prove the first consumes the charge.
+          for (const activationId of ['landing-1', 'landing-2'])
+            runtime.schedule('revenant.vindicator-landing', at, { skillId: R.DODGE, activationId });
+        }
+      });
+      const [first, second] = ['landing-1', 'landing-2'].map(
+        (activationId) =>
+          result.events.find((event) => event.type === 'damage' && event.activationId === activationId).coefficient
+      );
       assert.equal(first > second, armed && delta === 0);
     }
   }
@@ -354,49 +375,59 @@ test('tracked Mesmer hits expire at their exact age limit', () => {
 });
 
 test('Time Bomb cannot rearm early and its marker shares the exact detonation deadline', () => {
-  const scheduler = createScheduler({
-    profession: mesmerProfession,
-    config: { specialization: 'Chronomancer', selectedTraitIds: [MT.TIME_BOMB] }
+  const result = runMesmer({
+    config: { specialization: 'Chronomancer', selectedTraitIds: [MT.TIME_BOMB] },
+    rotation: [],
+    initialize(runtime) {
+      const skill = runtime.helpers.skillsById.get(M.TIME_SINK);
+      completeChronomancerTimeBomb(runtime, {
+        id: 'bomb',
+        skill,
+        command: { type: 'cast', skillId: skill.id },
+        start: 0,
+        fullEnd: 0,
+        effectiveEnd: 0
+      });
+    }
   });
-  const context = { ...scheduler.context, start: 0.001, fullEnd: 0.001, effectiveEnd: 0.001, reservationId: 'bomb' };
-  const skill = context.catalog.skillsById.get(M.TIME_SINK);
-  completeChronomancerTimeBomb(context, skill);
-  const deadline = specialization(context).timeBombUntil;
-  const marker = scheduler.events.find((event) => event.kind === 'time-bomb');
-  assert.equal(marker.expiresAt, deadline);
-  context.fullEnd = context.effectiveEnd = deadline - 0.000001;
-  completeChronomancerTimeBomb(context, skill);
-  assert.equal(specialization(context).timeBombUntil, deadline);
-  context.fullEnd = context.effectiveEnd = deadline;
-  completeChronomancerTimeBomb(context, skill);
-  assert.ok(specialization(context).timeBombUntil > deadline);
-});
-
-test('Dragon Trigger includes a charge exactly at the canonical deadline and no later charge', () => {
-  const input = {
-    startTime: 0,
-    flow: 100,
-    maximumFlow: 100,
-    maximumCharges: 10,
-    chargesPerInterval: 1,
-    flowPerInterval: 5,
-    flowRateSegments: [],
-    deadline: 0.3
-  };
-  assert.equal(projectDragonCharges({ ...input, tickAt: (index) => 0.1 + index * 0.2 }).length, 1);
-  assert.equal(projectDragonCharges({ ...input, tickAt: (index) => 0.100001 + index * 0.2 }).length, 0);
+  const context = runtimeFor(result);
+  const skill = context.helpers.skillsById.get(M.TIME_SINK);
+  const castAt = (at) => ({
+    id: 'bomb',
+    skill,
+    command: { type: 'cast', skillId: skill.id },
+    start: at,
+    fullEnd: at,
+    effectiveEnd: at
+  });
+  const state = context.profession.specialization.state;
+  const deadline = state.timeBombUntil;
+  assert.equal(context.history.find((event) => event.kind === 'time-bomb').expiresAt, deadline);
+  completeChronomancerTimeBomb(context, castAt(deadline - 0.000001));
+  assert.equal(state.timeBombUntil, deadline);
+  completeChronomancerTimeBomb(context, castAt(deadline));
+  assert.ok(state.timeBombUntil > deadline);
 });
 
 test('Skritt Scuffle allows the final pilfer without a grace period', () => {
-  for (const at of [15, 15.000001]) {
-    const context = contextFor(thiefProfession, 'Antiquary');
-    specialization(context).artifactUsesRemaining = 0;
-    context.tasks.cancel = () => {};
-
-    skrittScuffle.start(context, { at, captured: { expiresAt: 15 } });
-    skrittScuffle.taskHandlers['thief.skritt-scuffle'](context, context.events.pop());
-    assert.equal(specialization(context).artifactUsesRemaining > 0, at === 15);
-  }
+  // Scuffle completes at 0.56 s, so its assistant expires at 15.56 s; the pulse at that instant still pilfers.
+  const uses = [];
+  const observe = (runtime) => uses.push(runtime.profession.specialization.state.artifactUsesRemaining);
+  const clear = (runtime) => (runtime.profession.specialization.state.artifactUsesRemaining = 0);
+  const result = runThief(
+    ['Skritt Scuffle', { type: 'wait', durationMs: 20000 }],
+    { specialization: 'Antiquary', selectedSkills: ['Skritt Scuffle'] },
+    {
+      probes: [
+        [15.5, clear],
+        [15.56, observe],
+        [15.57, clear],
+        [18.6, observe]
+      ]
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(uses, [1, 0]);
 });
 
 test('Nourys recurring damage windows have exact starts and exclusive tick-aligned ends', () => {
@@ -415,7 +446,7 @@ test('Nourys recurring damage windows have exact starts and exclusive tick-align
 
 test('Aristocracy excludes its own trigger instant but benefits the following microsecond', () => {
   const state = aristocracy.createState();
-  aristocracy.condition({}, state, {
+  aristocracy.condition({ recordProc() {} }, state, {
     type: 'condition',
     actorType: 'player',
     at: 0.001,

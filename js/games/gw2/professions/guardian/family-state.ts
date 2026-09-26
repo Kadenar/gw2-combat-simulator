@@ -1,3 +1,5 @@
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import type { GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
 import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   composePublicStateProjections,
@@ -12,7 +14,7 @@ import { DRAGONHUNTER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/
 import { FIREBRAND_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { LUMINARY_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import { WILLBENDER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/willbender/state.js';
-import type { GuardianPlanningStateProjectionOptions, GuardianState } from '#gw2/professions/guardian/types.js';
+import type { GuardianState } from '#gw2/professions/guardian/types.js';
 
 // Compose public metadata once; runtime initialization and resolver ownership stay with each slice.
 const GUARDIAN_PUBLIC_STATE_PROJECTION = composePublicStateProjections([
@@ -26,7 +28,7 @@ const GUARDIAN_PUBLIC_STATE_PROJECTION = composePublicStateProjections([
 /** Detaches canonical combat state and expires public windows at the observation time. */
 export function snapshotGuardianState(state: unknown, at: number): GuardianState {
   const snapshot = snapshotProfessionState<GuardianState>(state);
-  // Snapshots can be requested before scheduler cleanup; never expose an expired flip to the palette.
+  // Snapshots can be captured before a flip's expiry task runs; never expose an expired flip to the palette.
   snapshot.availableFlips = Object.fromEntries(
     Object.entries(snapshot.availableFlips || {}).filter(([, window]) => skillFlipVisible(window, at))
   );
@@ -37,12 +39,13 @@ export function snapshotGuardianState(state: unknown, at: number): GuardianState
 /** Public projection keys are composed from manifests owned by each Guardian vertical slice. */
 export const GUARDIAN_PUBLIC_END_STATE_KEYS = GUARDIAN_PUBLIC_STATE_PROJECTION.keys;
 
-/** Projects scheduler predictions at the planning boundary without borrowing resolved combat effects. */
+/** Projects only the observed state and its active public windows at the planning boundary. */
 export function projectGuardianPlanningState({
-  schedulerState
-}: GuardianPlanningStateProjectionOptions): Partial<GuardianState> {
+  profession,
+  time
+}: Gw2PlanningStateInput<GuardianRuntimeState>): Partial<GuardianState> {
   return projectPublicProfessionState(
-    snapshotGuardianState(schedulerState.profession, schedulerState.time),
+    snapshotGuardianState(profession, time),
     GUARDIAN_PUBLIC_END_STATE_KEYS,
     GUARDIAN_PUBLIC_STATE_PROJECTION.defaults
   );

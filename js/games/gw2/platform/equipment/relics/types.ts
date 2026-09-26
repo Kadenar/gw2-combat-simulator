@@ -44,13 +44,14 @@ export interface Gw2RelicRuntimeContext {
   readonly relic?: Gw2RelicRuntime;
 }
 
-export interface Gw2RelicMaterializerContext {
+export interface Gw2RelicEmissionContext {
   readonly combatStartTime?: number | null;
   readonly hasExplicitCombatStart?: boolean;
   emitDerived(cause: SimulationEvent, event: Gw2EventDraft): SimulationEvent;
 }
 
 export interface Gw2RelicContext {
+  readonly combatStartPending?: boolean;
   readonly helpers?: Gw2ResolverHelpers;
   precastRelics?: readonly Gw2RelicRuntime[];
   readonly config: Gw2RelicConfig;
@@ -88,7 +89,6 @@ export interface Gw2RelicContext {
 }
 
 export type Gw2EventDraft = {
-  readonly schedulerBoonPrediction?: boolean;
   readonly ownerActorType?: SimulationActorType;
   readonly triggeredBy?: string;
   readonly activationId?: string;
@@ -134,19 +134,14 @@ export interface Gw2ConditionHelpers {
 
 export interface Gw2RelicRule {
   readonly createState?: () => Gw2RelicState;
-  readonly materializeBoon?: (
-    context: Gw2RelicMaterializerContext,
-    state: Gw2RelicState,
-    event: SimulationEvent
-  ) => unknown;
-  readonly materializeCondition?: (
-    context: Gw2RelicMaterializerContext,
+  readonly emitConditionEffects?: (
+    context: Gw2RelicEmissionContext,
     state: Gw2RelicState,
     event: SimulationEvent
   ) => unknown;
   /** Observes committed activations with their catalog skill so skill classifications can trigger relic facts. */
-  readonly materializeAction?: (
-    context: Gw2RelicMaterializerContext,
+  readonly emitActionEffects?: (
+    context: Gw2RelicEmissionContext,
     state: Gw2RelicState,
     event: SimulationEvent,
     skill: Skill | undefined
@@ -157,6 +152,11 @@ export interface Gw2RelicRule {
     event: SimulationEvent,
     helpers: Gw2ConditionHelpers
   ) => unknown;
+  /** Live actions and completions trigger equipment at their actual semantic boundary. */
+  readonly action?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
+  readonly completed?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
+  readonly activate?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
+  readonly passiveTimeline?: (context: Gw2RelicContext, state: Gw2RelicState, end: number) => unknown;
   readonly timeline?: (
     context: Gw2RelicContext,
     state: Gw2RelicState,

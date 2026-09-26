@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 
-const simulate = createProfessionSimulator(engineerProfession, {
+const simulate = createLiveProfessionSimulator(engineerProfession, {
   stats: { power: 2000, precision: 1000, ferocity: 0, conditionDamage: 0 },
   target: { armor: 2597, conditions: {} }
 });
@@ -36,12 +36,10 @@ test('mech command charges count when issued, before the independent animation c
   const result = simulate('Mechanist', ['Rolling Smash', 'Discharge Array', 'Fragmentation Shot'], {
     selectedTraitIds: [TRAIT.KINETIC_BATTERY]
   });
-  const charges = result.events.filter(
-    (event) => event.type === 'engineer.state' && event.reason === 'kinetic-battery'
-  );
+  const charges = result.events.filter((event) => event.type === 'engineer.kinetic-battery');
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
-    charges.map((event) => [event.at, event.state.kineticCharges]),
+    charges.map((event) => [event.at, event.kineticCharges]),
     [
       [0, 1],
       [0, 2]
@@ -141,9 +139,9 @@ test('Kinetic Battery charges and buff timer appear in Active State across Engin
         .some((item) => item.id === 'engineer-kinetic-charges'),
       false
     );
-    const event = { type: 'engineer.state', reason: 'kinetic-battery', state: { kineticCharges: 4 } };
+    const event = { type: 'engineer.kinetic-battery', kineticCharges: 4 };
     assert.match(engineerProfession.ui.eventLogRow(context, event).description, /4\/5/);
-    event.state.kineticCharges = 0;
+    event.kineticCharges = 0;
     assert.match(engineerProfession.ui.eventLogRow(context, event).description, /activated/);
   }
 });

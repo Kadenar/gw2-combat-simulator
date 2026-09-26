@@ -37,7 +37,7 @@ function availability(context: WarriorUiContext, skill: WarriorSkill): PaletteSk
   if (!burst.available) return burst;
   const state = warriorUiState(context);
   if (skill.primalBurst && !state.berserkActive) return { available: false, message: 'Enter berserk mode first' };
-  if (skill.handlerId === 'warrior.berserk' && state.berserkActive) {
+  if (skill.id === ID.BERSERK && state.berserkActive) {
     return { available: false, message: 'Already in berserk mode' };
   }
 

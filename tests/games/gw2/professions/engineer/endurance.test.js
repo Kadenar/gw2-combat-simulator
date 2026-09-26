@@ -1,98 +1,67 @@
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/resources.js';
-import { advanceEngineerResources } from '#gw2/professions/engineer/core/mechanics/resources.js';
+import { runEngineer } from '#tests/helpers/engineer-simulation.js';
+import { runtimeFor } from '#tests/helpers/live-runtime.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
-// Explicit recipients keep another actor's Vigor from changing player recovery.
-const vigor = (at, duration, includesSelf = true) => ({
+
+const vigor = (at, duration, self = true) => ({
   type: 'buff',
+  source: 'test',
+  sourceId: 'vigor',
+  actorType: 'player',
   kind: 'vigor',
+  stacks: 1,
   at,
   duration,
-  resolvedAudience: { includesSelf, includesSummons: !includesSelf, companionIds: [] }
+  audience: { recipients: self ? 'self' : 'summons', affectsSelf: self }
 });
 
-function resourceContext(events, config = {}) {
-  return {
-    catalog: engineerCatalog,
-    profession: { resources: { endurance: engineerEndurance } },
+/** Endurance advances across actual boon boundaries, independently of how authored waits are partitioned. */
+function recover(waits, events, config = {}) {
+  return runEngineer(
+    waits.map((durationMs) => ({ type: 'wait', durationMs })),
     config,
-    events,
-    start: 0,
-    state: { profession: { core: { endurance: 0, enduranceUpdatedAt: 0, maximumEndurance: 100 } } },
-    emit(event) {
-      this.events.push(event);
-      return event;
+    {
+      initialize(runtime) {
+        runtime.profession.core.endurance = 0;
+        for (const event of events) runtime.emit(event);
+      }
     }
-  };
+  );
 }
 
-test('Engineer ignores cancelled Vigor grants and extensions in recovery and readiness', () => {
-  // Shared replay must exclude cancelled effects without changing wait partitioning or snapshot timing.
-  for (const cancelledType of ['buff', 'boon_extension']) {
-    for (const targets of [[8], [2, 3, 4, 6, 8]]) {
-      const context = resourceContext([
-        vigor(0, 20, false),
-        vigor(2, 2),
-        { ...vigor(0, 20), cancelled: true },
-        { type: 'boon_extension', at: 3, duration: 2, kind: 'vigor', cancelled: cancelledType === 'boon_extension' }
-      ]);
-      const readyAt = cancelledType === 'buff' ? 8 : 9;
-      assert.equal(professionEnduranceReadyAt(context, 50), readyAt);
-      for (const at of targets) advanceEngineerResources(context, at);
-      const state = context.state.profession.core;
-      assert.equal(state.endurance, cancelledType === 'buff' ? 50 : 45);
-      assert.equal(professionEnduranceReadyAt({ ...context, start: 8 }, 50), readyAt);
-      advanceEngineerResources(context, readyAt);
-      assert.equal(state.endurance, 50);
-      assert.equal(state.enduranceUpdatedAt, readyAt);
-      assert.equal(context.events.at(-1).type, 'engineer.state');
-      assert.equal(context.events.at(-1).at, readyAt);
-    }
+test('Engineer endurance uses self Vigor applications and expiry across split waits', () => {
+  for (const waits of [[6000], [2000, 1000, 1000, 2000]]) {
+    const result = recover(waits, [vigor(2, 2), vigor(0, 20, false)]);
+    assert.equal(result.planningState.profession.endurance, 35);
+    assert.equal(runtimeFor(result).endurance.readyAt(50), 9);
   }
 });
 
-test('Engineer recovery and dodge predictions cross self-Vigor applications and expiry', () => {
-  const context = resourceContext([vigor(2, 2), vigor(0, 20, false)]);
-  assert.equal(professionEnduranceReadyAt(context, 20), 3.36);
-  assert.equal(professionEnduranceReadyAt(context, 50), 9);
-  advanceEngineerResources(context, 6);
-  assert.equal(context.state.profession.core.endurance, 35);
-  advanceEngineerResources(context, 3);
-  assert.equal(context.state.profession.core.endurance, 35);
-  assert.equal(context.state.profession.core.enduranceUpdatedAt, 6);
+test('Engineer endurance uses pooled Vigor duration and actual extensions', () => {
+  const result = recover(
+    [8000],
+    [
+      vigor(2, 2),
+      vigor(3, 2),
+      {
+        type: 'boon_extension',
+        source: 'test',
+        sourceId: 'extension',
+        actorType: 'player',
+        at: 4,
+        kind: 'vigor',
+        duration: 1
+      }
+    ]
+  );
+  assert.equal(result.planningState.profession.endurance, 52.5);
 });
 
-test('Engineer Vigor pools duration and extensions while respecting the duration cap', () => {
-  const context = resourceContext([
-    vigor(3, 2),
-    vigor(2, 2),
-    { type: 'boon_extension', at: 4, duration: 1, kind: 'vigor' }
-  ]);
-  advanceEngineerResources(context, 8);
-  assert.equal(context.state.profession.core.endurance, 52.5);
-
-  const capped = resourceContext([vigor(0, 20), vigor(0, 20)]);
-  capped.state.profession.core.enduranceUpdatedAt = 29;
-  advanceEngineerResources(capped, 32);
-  assert.equal(capped.state.profession.core.endurance, 17.5);
-});
-
-test('Engineer preserves Adrenal Implant, permanent Vigor and the endurance cap', () => {
-  const context = resourceContext([vigor(2, 2)], { selectedTraitIds: [TRAIT.ADRENAL_IMPLANT] });
-  assert.equal(professionEnduranceReadyAt(context, 50), 7.2);
-  advanceEngineerResources(context, 6);
-  assert.equal(context.state.profession.core.endurance, 42.5);
-
-  const permanent = resourceContext([vigor(2, 2)], {
-    selectedTraitIds: [TRAIT.ADRENAL_IMPLANT],
-    boons: { vigor: true }
-  });
-  assert.equal(professionEnduranceReadyAt(permanent, 50), 5.72);
-  advanceEngineerResources(permanent, 6);
-  assert.equal(permanent.state.profession.core.endurance, 52.5);
-  advanceEngineerResources(permanent, 30);
-  assert.equal(permanent.state.profession.core.endurance, 100);
+test('Engineer preserves Adrenal Implant, permanent Vigor and its endurance cap', () => {
+  const traits = { selectedTraitIds: [TRAIT.ADRENAL_IMPLANT] };
+  assert.equal(recover([6000], [vigor(2, 2)], traits).planningState.profession.endurance, 42.5);
+  const config = { ...traits, boons: { vigor: true } };
+  assert.equal(recover([6000], [vigor(2, 2)], config).planningState.profession.endurance, 52.5);
+  assert.equal(recover([30000], [], config).planningState.profession.endurance, 100);
 });

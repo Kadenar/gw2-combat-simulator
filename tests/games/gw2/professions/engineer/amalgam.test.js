@@ -1,15 +1,17 @@
+import { runtimeFor } from '#tests/helpers/live-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   amalgamAttributeRules,
-  amalgamCastRules
+  amalgamMaximumAmmo
 } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-rules.js';
+import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
@@ -32,7 +34,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createProfessionSimulator(engineerProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(engineerProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -110,11 +112,20 @@ test('Amalgam traits activate on morph and Evolve chronology', () => {
   });
 
   assert.equal(result.warnings.length, 0);
-  assert.ok(result.combatState.profession.willingHostUntil > 0);
-  assert.ok(result.combatState.profession.evolvedUntil > 0);
-  assert.equal(result.combatState.profession.rapaciousUntil, result.combatState.profession.evolvedUntil);
-  assert.equal(result.combatState.profession.predatorUntil, result.combatState.profession.evolvedUntil);
-  assert.equal(result.combatState.profession.titanicUntil, result.combatState.profession.evolvedUntil);
+  assert.ok(runtimeFor(result).profession.specialization.state.willingHostUntil > 0);
+  assert.ok(runtimeFor(result).profession.specialization.state.evolvedUntil > 0);
+  assert.equal(
+    runtimeFor(result).profession.specialization.state.rapaciousUntil,
+    runtimeFor(result).profession.specialization.state.evolvedUntil
+  );
+  assert.equal(
+    runtimeFor(result).profession.specialization.state.predatorUntil,
+    runtimeFor(result).profession.specialization.state.evolvedUntil
+  );
+  assert.equal(
+    runtimeFor(result).profession.specialization.state.titanicUntil,
+    runtimeFor(result).profession.specialization.state.evolvedUntil
+  );
   assert.equal(
     result.events.filter(
       (event) => event.type === 'buff' && event.kind === 'alacrity' && event.skillName === 'New Genes'
@@ -148,7 +159,7 @@ test('Evolve raises attributes by ten percent for eight seconds', () => {
   assertFlooredDamageMultiplier(puncture(evolved).damage, puncture(baseline).damage, 1.1);
   assert.equal(
     evolved.planningState.profession.evolvedUntil,
-    evolved.events.find((event) => event.type === 'engineer.state' && event.reason === 'evolve').at + 8
+    evolved.steps[0].start / 1000 + ((evolved.steps[0].end - evolved.steps[0].start) / 1000) * (520 / 640) + 8
   );
 });
 
@@ -478,26 +489,22 @@ test('Evolve aliases use only the trait-selected identity and share its charges 
     const skillId = traited ? ID.EVOLVE_DOUBLE_HELIX : ID.EVOLVE_BASE;
     const inactive = engineerCatalog.skillsById.get(traited ? ID.EVOLVE_BASE : ID.EVOLVE_DOUBLE_HELIX);
     assert.equal(
-      amalgamCastRules.availability.handler({ config: { specialization: 'Amalgam', selectedTraitIds } }, inactive)
-        .ready,
+      amalgamCastAvailability({ config: { specialization: 'Amalgam', selectedTraitIds } }, inactive).ready,
       false
     );
-    assert.equal(
-      amalgamCastRules.modifyMaximumAmmo({ config: { selectedTraitIds }, skill: inactive }, Number(inactive.ammo || 0)),
-      0
-    );
+    assert.equal(amalgamMaximumAmmo({ config: { selectedTraitIds } }, inactive, Number(inactive.ammo || 0)), 0);
     const result = simulate('Amalgam', [ID.EVOLVE_DOUBLE_HELIX, ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX], {
       selectedTraitIds
     });
     assert.deepEqual(result.warnings, []);
     assert.ok(result.steps.every((step) => step.skillId === skillId && !step.invalid));
-    assert.deepEqual([...result.schedulerState.cooldowns.keys()], [skillId]);
-    assert.deepEqual([...result.schedulerState.ammo.keys()], traited ? [skillId] : []);
+    assert.deepEqual([...runtimeFor(result).cooldowns.keys()], [skillId]);
+    assert.deepEqual([...runtimeFor(result).ammo.keys()], traited ? [skillId] : []);
     const [first, second, third] = result.steps;
     // Both Evolve identities recover from activation rather than cast completion.
     assert.ok(third.start >= first.start + 40000);
     if (traited) {
-      assert.equal(result.schedulerState.ammo.get(skillId).maximum, 2);
+      assert.equal(runtimeFor(result).ammo.get(skillId).maximum, 2);
       assert.ok(second.start < first.start + 40000);
     } else {
       assert.ok(second.start >= first.start + 40000);
@@ -655,7 +662,10 @@ test('Plasmatic State models both phases as one cast', () => {
   assert.equal(following.start - step.start, 960);
   const action = result.events.find((event) => event.type === 'action' && event.skillName === 'Plasmatic State');
 
-  assert.equal(Math.round((action.rechargeReadyAt - action.at) * 1000), 25_480);
+  assert.equal(
+    Math.round((result.planningState.cooldowns['Plasmatic State'].readyAt / 1000 - action.at) * 1000),
+    25_480
+  );
   assert.equal(
     result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Plasmatic State').length,
     2

@@ -1,6 +1,7 @@
 import { mountFloatingEditor, type FloatingEditorHandle } from '#ui/rotation/editing/floating-editor.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { CastCommand } from '#gw2/platform/execution/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 
@@ -32,6 +33,7 @@ function seconds(value: number): string {
 
 // Release times use the timeline's combat-relative clock so a row matches the slash label it will produce.
 export function chargeReleaseRowLabel(row: ChargeReleaseEditorRow, combatReferenceMs = 0): string {
+  if (row.disabled) return `${row.charges} charges · unavailable`;
   const flow = row.flowAfter == null ? '—' : row.flowAfter.toFixed(2);
   return (
     `${row.charges} charges · ${formatTimelineTime(row.at * 1000, combatReferenceMs, 3)} (+${seconds(row.delta)}) · ` +
@@ -166,7 +168,7 @@ function editorRows(value: unknown): readonly ChargeReleaseEditorRow[] {
 
 /**
  * Opens the charge-release editor for a charge-consuming skill (e.g. Dragon
- * Slash). Asks the profession UI to project the charge outcomes at the given
+ * Slash). Asks the profession UI to simulate charge outcomes at the given
  * insertion index, validates the rows, and hands them to the shared editor;
  * `onApply` reports the chosen release-at-charges back to the caller.
  */
@@ -176,12 +178,17 @@ export function openDragonSlashReleaseEditor(options: {
   readonly skill: Skill;
   readonly insertionIndex: number;
   readonly currentReleaseAtCharges?: number | null;
+  readonly command?: CastCommand;
   readonly onApply: (releaseAtCharges: number | undefined) => void;
 }): FloatingEditorHandle {
   const rawProjection = options.app.profession.ui.chargeReleaseProjection({
-    events: options.app.results?.events || [],
-    insertionIndex: options.insertionIndex,
-    skill: options.skill
+    skill: options.skill,
+    preview: (command) =>
+      options.app.adapter.rotationPreviewAt(
+        options.app,
+        options.insertionIndex,
+        command ? [{ ...options.command, ...command }] : []
+      )
   });
   const projection = rawProjection && typeof rawProjection === 'object' ? (rawProjection as UnvalidatedFields) : {};
   return openChargeReleaseEditor({

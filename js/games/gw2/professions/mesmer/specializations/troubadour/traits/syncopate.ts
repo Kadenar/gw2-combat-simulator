@@ -6,9 +6,9 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { defineTraitProfile } from '#gw2/platform/profession-definition/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { MesmerCastContext, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 export const SYNCOPATE_PROFILE = defineTraitProfile(TRAIT.SYNCOPATE, 'Syncopate', {
@@ -21,8 +21,8 @@ export const SYNCOPATE_PROFILE = defineTraitProfile(TRAIT.SYNCOPATE, 'Syncopate'
 });
 
 /** Resolves Syncopate from Troubadour control and Method of Madness proc events. */
-export function observeSyncopateEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
-  const runtime = mesmerRuntimeFor(context);
+export function observeSyncopateEvent(context: MesmerRuntime, event: SimulationEvent): void {
+  const runtime = mesmerMechanicsFor(context);
   if (!runtime.traits.has(TRAIT.SYNCOPATE)) return;
   const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
   const damage = requireEffect(syncopateProfile, 'strike', 'Immediate wave');
@@ -63,13 +63,13 @@ export function observeSyncopateEvent(context: MesmerSchedulerContext, event: Si
 
 /** Adds the delayed wave and its daze to player and afterimage Drum impacts when Syncopate is selected. */
 export function scheduleSyncopateDrumWave(
-  context: MesmerCastContext,
+  context: MesmerRuntime,
   skill: MesmerSkill,
   damageAt: number,
   source: string,
   actorType: 'player' | 'summon'
 ): void {
-  const runtime = mesmerRuntimeFor(context);
+  const runtime = mesmerMechanicsFor(context);
   if (!runtime.traits.has(TRAIT.SYNCOPATE)) return;
   const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
   const delayedAt = damageAt + balanceProfileNumber(syncopateProfile, 'initialDelay');

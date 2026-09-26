@@ -2,7 +2,7 @@
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
-/** Defines Engineer spear fragments and binds stateful spear skills to their execution handlers. */
+/** Defines Engineer spear fragments and declares stateful packets emitted by live spear tasks. */
 export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.PUNCTURING_JAB]: {
     castTimeMs: 440,
@@ -25,8 +25,8 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.DEVASTATOR]: {
-    // Custom: Schedules Devastator's delayed follow-up strike; see `core/mechanics/spear.ts`.
-    handlerId: 'engineer.devastator',
+    // Custom: Schedules Devastator's delayed follow-up strike; see `core/live-weapons.ts`.
+
     castTimeMs: 1000,
 
     cooldown: 20,
@@ -57,8 +57,8 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.ROILING_SKIES]: {
-    // Custom: Schedules Roiling Skies' delayed control packet; see `core/mechanics/spear.ts`.
-    handlerId: 'engineer.roiling-skies',
+    // Custom: Schedules Roiling Skies' delayed control packet; see `core/live-weapons.ts`.
+
     castTimeMs: 680,
     cooldown: 15,
     effects: [
@@ -106,8 +106,8 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.LIGHTNING_ROD]: {
-    // Custom: Schedules Lightning Rod's charge and pulse sequence; see `core/mechanics/spear.ts`.
-    handlerId: 'engineer.lightning-rod',
+    // Custom: Schedules Lightning Rod's charge and pulse sequence; see `core/live-weapons.ts`.
+
     castTimeMs: 400,
     interruptCommitMs: 280,
     cooldown: 12,
@@ -164,8 +164,8 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.CONDUIT_SURGE]: {
-    // Custom: Schedules the delayed Conduit Surge sequence; see `core/mechanics/spear.ts`.
-    handlerId: 'engineer.conduit-surge',
+    // Custom: Schedules the delayed Conduit Surge sequence; see `core/live-weapons.ts`.
+
     castTimeMs: 520,
 
     cooldown: 5,
@@ -180,8 +180,8 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     effects: []
   },
   [ID.ELECTRIC_ARTILLERY]: {
-    // Custom: Consumes Lightning Rod charges and schedules Electric Artillery; see `core/mechanics/spear.ts`.
-    handlerId: 'engineer.electric-artillery',
+    // Custom: Consumes Lightning Rod charges and schedules Electric Artillery; see `core/live-weapons.ts`.
+
     castTimeMs: 520,
     cooldown: 1,
     effects: []

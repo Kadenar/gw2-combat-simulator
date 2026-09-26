@@ -237,6 +237,17 @@ export function createProfessionRuntime({
       return app.results.planningState;
     }
 
+    return rotationPreviewAt(app, index).planningState;
+  }
+
+  /** Prefix and candidate previews use the same engine and inherited combat boundary, without an observation tail. */
+  function rotationPreviewAt(
+    app: ProfessionAppState,
+    insertionIndex: number,
+    appended: readonly RotationCommand[] = []
+  ): Gw2SimulationResult {
+    const rotation = app.build.rotation;
+    const index = clamp(Math.floor(Number(insertionIndex) || 0), 0, rotation.length);
     const config = baselineSimulationConfig(app);
     // A prefix before the marker still uses the full rotation's boundary, including casts that finish across it.
     const combatStartTime =
@@ -245,11 +256,11 @@ export function createProfessionRuntime({
         : undefined;
     return simulateGw2({
       profession,
-      rotation: rotation.slice(0, index),
+      rotation: [...rotation.slice(0, index), ...appended],
       config,
       observationPolicy: { kind: 'rotation' },
       combatStartTime: combatStartTime ?? undefined
-    }).planningState;
+    });
   }
 
   /** Captures a clone-safe baseline job before later edits can mutate the rotation. */
@@ -290,6 +301,7 @@ export function createProfessionRuntime({
     relicComparisonRequest,
     calculateRandomDistribution,
     rotationPlanningStateAt,
+    rotationPreviewAt,
     baselineSimulationRequest,
     calculateBaselineSimulation,
     runSimulation

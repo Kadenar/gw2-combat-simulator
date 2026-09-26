@@ -1,17 +1,11 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
-import { antiquarySkillHandlers } from '#gw2/professions/thief/specializations/antiquary/execution/index.js';
-import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
-import {
-  antiquaryAttributeRules,
-  antiquaryCastRules,
-  antiquarySchedulerHooks
-} from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-rules.js';
+import { antiquaryAttributeRules } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-rules.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { antiquaryUi } from '#gw2/professions/thief/specializations/antiquary/presentation.js';
 import { ANTIQUARY_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/antiquary/skills/index.js';
 import { ANTIQUARY_BALANCE_PROFILES } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
+import { antiquaryLiveMechanics } from '#gw2/professions/thief/specializations/antiquary/live.js';
 
 export const antiquaryModule = defineNativeModule({
   id: 'Antiquary',
@@ -19,22 +13,7 @@ export const antiquaryModule = defineNativeModule({
     skillMechanics: ANTIQUARY_SKILL_MECHANICS,
     balanceProfiles: ANTIQUARY_BALANCE_PROFILES
   }),
-  state: { scheduler: antiquaryState.create, resolver: antiquaryState.create },
-  mechanics: {
-    modifiers: antiquaryAttributeRules,
-    execution: {
-      skillHandlers: antiquarySkillHandlers,
-      castRules: antiquaryCastRules,
-      hooks: antiquarySchedulerHooks
-    },
-    resolution: {
-      reactions: [
-        onResolvedDamage({
-          id: 'thief.antiquary.damage',
-          handler: antiquaryResolverEventReactions.damage
-        })
-      ]
-    }
-  },
+  state: { create: antiquaryState.create },
+  mechanics: { modifiers: antiquaryAttributeRules, live: antiquaryLiveMechanics },
   presentation: antiquaryUi
 });

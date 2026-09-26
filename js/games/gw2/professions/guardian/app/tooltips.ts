@@ -14,6 +14,7 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/guardian/core/profiles.js';
@@ -32,122 +33,183 @@ function virtueBoons(description: string): DescribeSimulationTooltip {
   });
 }
 
+/** Shared descriptions for Guardian skill families; each binds below to its canonical skill identities. */
+const familyTooltips = {
+  virtue: skillTooltip(
+    "Activate this virtue and trigger its applicable trait effects. Its passive follows the virtue's recharge state; specialization-specific replacements change the active effect."
+  ),
+  'renewed-focus': skillTooltip(
+    'Complete the channel to refresh virtue recharges, restore virtue ammunition, and ready virtue passives. Invulnerability is outside combat simulation scope.'
+  ),
+  'dragonhunter-justice': skillTooltip(
+    "Strike and tether your target, applying recurring Burning while the tether remains active. Hunter's Verdict ends the tether early; Big Game Hunter extends it.",
+    (balanceContext) => [
+      ...simulationEffectFacts(
+        tooltipProfile(balanceContext, DRAGONHUNTER.tether).effects?.filter(
+          (effect) => effect.packetLabel !== 'passive'
+        ),
+        'per tether pulse'
+      ).facts
+    ]
+  ),
+  'hunters-verdict': skillTooltip(
+    'Break the active Spear of Justice tether and pull your target. Ending the tether cancels its remaining pulses.'
+  ),
+  'dragonhunter-virtue': skillTooltip(
+    'Activate Wings of Resolve and its virtue traits. Soaring Devastation adds its strike and immobilize. Healing is outside combat simulation scope.'
+  ),
+  'stow-tome': skillTooltip(
+    'Close the active tome and restore your weapon skills. This ends the current consecutive-page sequence for Swift Scholar.'
+  ),
+  'tome-page': skillTooltip(
+    'Use a page from the matching open tome and apply these effects. Pages are shared across tomes and regenerate after spending begins. Applicable tome traits can add boons or refund pages; the tome stays open until stowed.'
+  ),
+  'willbender-virtue': (balanceContext, entity) => {
+    const selected = balanceContext.catalog.skillsById.get(entity.id);
+    if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+    const index = entity.id === ID.RUSHING_JUSTICE ? 0 : entity.id === ID.FLOWING_RESOLVE ? 1 : 2;
+    return {
+      description:
+        "Activate this virtue's temporary hit-trigger window and lay Willbender Flames. Trails from the same virtue can overlap; switching virtues cancels the previous trails. Eligible hits advance virtue triggers; partial progress persists between active windows. Justice triggers Burning; Courage triggers defensive boons. Resolve healing is outside combat simulation scope, but its trait effects still apply.",
+      facts: [
+        ...simulationEffectFacts(selected.effects).facts,
+        ...simulationEffectFacts(
+          tooltipProfile(balanceContext, WILLBENDER.virtueWindows).effects?.slice(index, index + 1),
+          'base active window'
+        ).facts,
+        ...simulationEffectFacts(tooltipProfile(balanceContext, WILLBENDER.flames).effects, 'full flame trail').facts,
+        profileFact(balanceContext, WILLBENDER.virtueWindows, 'threshold', 'Base eligible hits per trigger'),
+        ...(index === 2
+          ? simulationEffectFacts(
+              tooltipProfile(balanceContext, WILLBENDER.courageTrigger).effects,
+              'per Courage trigger'
+            ).facts
+          : [])
+      ]
+    };
+  },
+  'radiant-forge': (balanceContext, entity) =>
+    entity.id === ID.ENTER_RADIANT_FORGE
+      ? {
+          description:
+            'Enter Radiant Forge and replace your weapon bar. Equipping radiant weapons changes Glaring Burst and unlocks follow-ups. Recharge starts on exit and is reduced when at most one distinct radiant weapon was used.',
+          facts: [
+            ...simulationEffectFacts(tooltipProfile(balanceContext, LUMINARY.forge).effects).facts,
+            profileFact(
+              balanceContext,
+              LUMINARY.forge,
+              'rechargeReduction',
+              'Base recharge reduction with at most one weapon',
+              tooltipSeconds
+            )
+          ]
+        }
+      : {
+          description:
+            'Exit Radiant Forge, restore your weapon bar, and begin its recharge. The recharge is reduced when at most one distinct radiant weapon was used.',
+          facts: []
+        },
+  'radiant-weapon': (balanceContext, entity) =>
+    skillTooltip(
+      entity.flipParentId == null
+        ? "Equip this radiant weapon and apply its effects. Its follow-up replaces the prior radiant weapon's follow-up, and Glaring Burst changes to match the equipped weapon. Triggers eligible weapon-equip effects."
+        : "Use the equipped radiant weapon's follow-up and apply its listed effects."
+    )(balanceContext, entity),
+  'glaring-burst': (balanceContext) => ({
+    description:
+      "Use the equipped radiant weapon's Glaring Burst. Hammer and sword strike; staff and shield grant their listed party boons. Every variant applies vulnerability after its impact. The sword alternates its attack cadence.",
+    facts: [
+      ...[
+        [LUMINARY.glaringBurstHammer, 'hammer'],
+        [LUMINARY.glaringBurstBlade, 'sword'],
+        [LUMINARY.glaringBurstStaff, 'staff'],
+        [LUMINARY.glaringBurstBulwark, 'shield']
+      ].flatMap(
+        ([id, label]) =>
+          simulationEffectFacts(tooltipProfile(balanceContext, id).effects, `with ${label}; alternative`).facts
+      ),
+      modifierFact(
+        balanceContext,
+        'guardian.glaring-burst-hammer',
+        'factor',
+        'Additional hammer strike multiplier',
+        tooltipFactorChange
+      ),
+      ...simulationEffectFacts(
+        tooltipProfile(balanceContext, LUMINARY.glaringBurstVulnerability).effects,
+        'all variants, after the impact'
+      ).facts
+    ]
+  }),
+  'weapon-swap': skillTooltip('Swap to your other weapon set and trigger applicable weapon-swap effects.')
+} satisfies Readonly<Record<string, DescribeSimulationTooltip>>;
+
+/** Canonical members of each described family, independent of the live owner that executes them. */
+const FAMILY_SKILL_IDS: Readonly<Record<keyof typeof familyTooltips, readonly SkillId[]>> = {
+  'dragonhunter-justice': [ID.SPEAR_OF_JUSTICE],
+  'dragonhunter-virtue': [ID.WINGS_OF_RESOLVE],
+  'glaring-burst': [ID.GLARING_BURST],
+  'hunters-verdict': [ID.HUNTERS_VERDICT],
+  'radiant-forge': [ID.ENTER_RADIANT_FORGE, ID.EXIT_RADIANT_FORGE],
+  'radiant-weapon': [
+    ID.BRILLIANT_SLAM,
+    ID.DAZZLING_HAMMER,
+    ID.GLEAMING_BLADE,
+    ID.LUCENT_THRUST,
+    ID.LUMINOUS_STAFF,
+    ID.RADIANT_BULWARK,
+    ID.RESTORATIVE_GLOW,
+    ID.SHINING_SPIN
+  ],
+  'renewed-focus': [ID.RENEWED_FOCUS],
+  'stow-tome': [ID.STOW_TOME],
+  'tome-page': [
+    ID.ASHES_OF_THE_JUST,
+    ID.AZURE_SUN,
+    ID.DARING_CHALLENGE,
+    ID.DESERT_BLOOM,
+    ID.ETERNAL_OASIS,
+    ID.HEATED_REBUKE,
+    ID.IGNITING_BURST,
+    ID.RADIANT_RECOVERY,
+    ID.SCORCHED_AFTERMATH,
+    ID.SEARING_SPELL,
+    ID.SHINING_RIVER,
+    ID.STALWART_STAND,
+    ID.UNBROKEN_LINES,
+    ID.UNFLINCHING_CHARGE,
+    ID.VALIANT_BULWARK
+  ],
+  virtue: [
+    ID.COURAGE,
+    ID.JUSTICE,
+    ID.RADIANT_COURAGE,
+    ID.RADIANT_JUSTICE,
+    ID.RADIANT_RESOLVE,
+    ID.RESOLVE,
+    ID.SHIELD_OF_COURAGE,
+    ID.TOME_OF_COURAGE,
+    ID.TOME_OF_COURAGE_ID_42371,
+    ID.TOME_OF_JUSTICE,
+    ID.TOME_OF_RESOLVE
+  ],
+  'weapon-swap': [ID.SWAP_WEAPONS],
+  'willbender-virtue': [ID.CRASHING_COURAGE, ID.FLOWING_RESOLVE, ID.RUSHING_JUSTICE]
+};
+
 /** Local descriptions follow implemented Guardian mechanics; scalar facts read the selected balance definitions. */
 export const guardianTooltips: ProfessionTooltips = {
   skillFacts: (_c, entity) =>
     entity.pageCost == null
       ? []
       : [{ name: 'Tome pages spent', detail: tooltipDecimal(tooltipNumber(entity, 'pageCost')) }],
-  handlers: {
-    'guardian.virtue': skillTooltip(
-      "Activate this virtue and trigger its applicable trait effects. Its passive follows the virtue's recharge state; specialization-specific replacements change the active effect."
-    ),
-    'guardian.renewed-focus': skillTooltip(
-      'Complete the channel to refresh virtue recharges, restore virtue ammunition, and ready virtue passives. Invulnerability is outside combat simulation scope.'
-    ),
-    'guardian.dragonhunter-justice': skillTooltip(
-      "Strike and tether your target, applying recurring Burning while the tether remains active. Hunter's Verdict ends the tether early; Big Game Hunter extends it.",
-      (balanceContext) => [
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, DRAGONHUNTER.tether).effects?.filter(
-            (effect) => effect.packetLabel !== 'passive'
-          ),
-          'per tether pulse'
-        ).facts
-      ]
-    ),
-    'guardian.hunters-verdict': skillTooltip(
-      'Break the active Spear of Justice tether and pull your target. Ending the tether cancels its remaining pulses.'
-    ),
-    'guardian.dragonhunter-virtue': skillTooltip(
-      'Activate Wings of Resolve and its virtue traits. Soaring Devastation adds its strike and immobilize. Healing is outside combat simulation scope.'
-    ),
-    'guardian.stow-tome': skillTooltip(
-      'Close the active tome and restore your weapon skills. This ends the current consecutive-page sequence for Swift Scholar.'
-    ),
-    'guardian.tome-page': skillTooltip(
-      'Use a page from the matching open tome and apply these effects. Pages are shared across tomes and regenerate after spending begins. Applicable tome traits can add boons or refund pages; the tome stays open until stowed.'
-    ),
-    'guardian.willbender-virtue': (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id);
-      if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
-      const index = entity.id === ID.RUSHING_JUSTICE ? 0 : entity.id === ID.FLOWING_RESOLVE ? 1 : 2;
-      return {
-        description:
-          "Activate this virtue's temporary hit-trigger window and lay Willbender Flames. Trails from the same virtue can overlap; switching virtues cancels the previous trails. Eligible hits advance virtue triggers; partial progress persists between active windows. Justice triggers Burning; Courage triggers defensive boons. Resolve healing is outside combat simulation scope, but its trait effects still apply.",
-        facts: [
-          ...simulationEffectFacts(selected.effects).facts,
-          ...simulationEffectFacts(
-            tooltipProfile(balanceContext, WILLBENDER.virtueWindows).effects?.slice(index, index + 1),
-            'base active window'
-          ).facts,
-          ...simulationEffectFacts(tooltipProfile(balanceContext, WILLBENDER.flames).effects, 'full flame trail').facts,
-          profileFact(balanceContext, WILLBENDER.virtueWindows, 'threshold', 'Base eligible hits per trigger'),
-          ...(index === 2
-            ? simulationEffectFacts(
-                tooltipProfile(balanceContext, WILLBENDER.courageTrigger).effects,
-                'per Courage trigger'
-              ).facts
-            : [])
-        ]
-      };
-    },
-    'guardian.radiant-forge': (balanceContext, entity) =>
-      entity.id === ID.ENTER_RADIANT_FORGE
-        ? {
-            description:
-              'Enter Radiant Forge and replace your weapon bar. Equipping radiant weapons changes Glaring Burst and unlocks follow-ups. Recharge starts on exit and is reduced when at most one distinct radiant weapon was used.',
-            facts: [
-              ...simulationEffectFacts(tooltipProfile(balanceContext, LUMINARY.forge).effects).facts,
-              profileFact(
-                balanceContext,
-                LUMINARY.forge,
-                'rechargeReduction',
-                'Base recharge reduction with at most one weapon',
-                tooltipSeconds
-              )
-            ]
-          }
-        : {
-            description:
-              'Exit Radiant Forge, restore your weapon bar, and begin its recharge. The recharge is reduced when at most one distinct radiant weapon was used.',
-            facts: []
-          },
-    'guardian.radiant-weapon': (balanceContext, entity) =>
-      skillTooltip(
-        entity.flipParentId == null
-          ? "Equip this radiant weapon and apply its effects. Its follow-up replaces the prior radiant weapon's follow-up, and Glaring Burst changes to match the equipped weapon. Triggers eligible weapon-equip effects."
-          : "Use the equipped radiant weapon's follow-up and apply its listed effects."
-      )(balanceContext, entity),
-    'guardian.glaring-burst': (balanceContext) => ({
-      description:
-        "Use the equipped radiant weapon's Glaring Burst. Hammer and sword strike; staff and shield grant their listed party boons. Every variant applies vulnerability after its impact. The sword alternates its attack cadence.",
-      facts: [
-        ...[
-          [LUMINARY.glaringBurstHammer, 'hammer'],
-          [LUMINARY.glaringBurstBlade, 'sword'],
-          [LUMINARY.glaringBurstStaff, 'staff'],
-          [LUMINARY.glaringBurstBulwark, 'shield']
-        ].flatMap(
-          ([id, label]) =>
-            simulationEffectFacts(tooltipProfile(balanceContext, id).effects, `with ${label}; alternative`).facts
-        ),
-        modifierFact(
-          balanceContext,
-          'guardian.glaring-burst-hammer',
-          'factor',
-          'Additional hammer strike multiplier',
-          tooltipFactorChange
-        ),
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, LUMINARY.glaringBurstVulnerability).effects,
-          'all variants, after the impact'
-        ).facts
-      ]
-    }),
-    'guardian.weapon-swap': skillTooltip('Swap to your other weapon set and trigger applicable weapon-swap effects.')
-  },
   skills: {
+    // Family descriptions bind to canonical skill identities; skill-specific entries below take precedence.
+    ...Object.fromEntries(
+      Object.entries(FAMILY_SKILL_IDS).flatMap(([family, ids]) =>
+        ids.map((id) => [id, familyTooltips[family as keyof typeof familyTooltips]])
+      )
+    ),
     ...Object.fromEntries(
       [
         [ID.TOME_OF_JUSTICE, FIREBRAND.tomeJustice],

@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 
-const simulate = createProfessionSimulator(engineerProfession, {
+const simulate = createLiveProfessionSimulator(engineerProfession, {
   selectedSkills: ['Healing Turret', 'Flamethrower'],
   selectedTraitIds: [TRAIT.AIM_ASSISTED_ROCKET],
   target: { armor: 2597, conditions: {} }

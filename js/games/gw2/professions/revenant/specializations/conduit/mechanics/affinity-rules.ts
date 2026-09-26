@@ -1,14 +1,7 @@
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import {
   requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
-import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import { handleMesmerReleaseConditions } from '#gw2/professions/revenant/specializations/conduit/execution/release-potential.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -20,44 +13,17 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
-import { REVENANT_CONDUIT_FORM_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { bolsteredBondsBonuses } from '#gw2/professions/revenant/specializations/conduit/traits/bolstered-bonds.js';
 import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState
 } from '#gw2/professions/revenant/core/traits/modifiers.js';
-import { denySkillCast as denyRevenantSkill } from '#gw2/professions/shared/availability.js';
-import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import {
-  emitNuminousGift,
-  gainConduitAffinity,
-  conduitAffinityReaction,
-  syncConduitEnergyCostOverrides
-} from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
-import { emitLesserEnchantedDaggers } from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
-import { completeBeguilingHaze } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
-import { runtimeRevenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
-import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
-import { emitLegendInvocationProfile } from '#gw2/professions/revenant/core/traits/index.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import {
   BEGUILING_HAZE_SKILL_IDS,
-  TWIN_MOON_SKILL_IDS,
-  afterConduitTraitCast,
-  modifyConduitCastDuration,
-  modifyConduitRechargeDuration,
-  observeConduitTraits
-} from '#gw2/professions/revenant/specializations/conduit/traits/index.js';
+  TWIN_MOON_SKILL_IDS
+} from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import type {
-  RevenantCastContext,
-  RevenantPrecastContext,
-  RevenantSchedulerContext,
-  RevenantSkill
-} from '#gw2/professions/revenant/types.js';
 
 function affinity(context: Gw2ModifierContext): number {
   // Kinetic Insight adds a flat +2 bonus to affinity for modifier calculations without changing actual state.
@@ -169,238 +135,4 @@ function modifyConduitAttributes(context: Gw2ModifierContext, attributes: Gw2Sta
 export const conduitAttributeRules = Object.freeze({
   modifierRules: conduitModifierRules,
   modifyAttributes: modifyConduitAttributes
-});
-
-const RELEASE_POTENTIAL_IDS = new Set(Object.values(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND));
-
-function conduitCastAvailability(context: RevenantPrecastContext, skill: RevenantSkill) {
-  const state = conduitState.from(context);
-  // Both skill identities share the main recharge; project its progress after any Alacrity changes.
-  if (skill.handlerId === 'revenant.beguiling-haze' && state.beguilingHazeRecharge) {
-    state.beguilingHazeReadyAt = gw2CooldownReadyAt(
-      context.cooldownController.project(skill, state.beguilingHazeRecharge)
-    );
-  }
-
-  if (
-    skill.handlerId === 'revenant.beguiling-haze' &&
-    Number(state.beguilingHazeCharges || 0) <= 0 &&
-    context.start < Number(state.beguilingHazeReadyAt || 0)
-  ) {
-    return denyRevenantSkill(
-      skill,
-      'revenant.beguiling-haze-cooldown',
-      'Beguiling Haze is recharging.',
-      Number(state.beguilingHazeReadyAt)
-    );
-  }
-
-  // Each legend maps to exactly one Release Potential variant; block the wrong variant before the engine
-  // can queue it, since all five variants share the same handler id.
-  if (
-    RELEASE_POTENTIAL_IDS.has(skill.id) &&
-    REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND[professionCoreState(context).activeLegendId] !== skill.id
-  ) {
-    return denyRevenantSkill(
-      skill,
-      'revenant.release-variant',
-      'the active legend supplies a different Release Potential variant.'
-    );
-  }
-
-  return { ready: true as const };
-}
-
-export const conduitCastRules = Object.freeze({
-  availability: {
-    id: 'revenant.conduit-availability',
-    order: 20,
-    handler: conduitCastAvailability
-  },
-  modifyCastDuration: modifyConduitCastDuration,
-  modifyRechargeDuration: modifyConduitRechargeDuration
-});
-
-function afterConduitCast(context: RevenantCastContext, skill: RevenantSkill): void {
-  afterConduitTraitCast(context, skill);
-  if (skill.handlerId !== 'revenant.upkeep') return;
-  const active = professionCoreState(context).activeUpkeeps.find((upkeep) => upkeep.skillId === skill.id);
-  if (!active) return;
-  // Upkeep ticks follow Energy settlement but precede cast completion (-100), as they did in advance.
-  conduitUpkeepAffinity.start(context, {
-    key: String(skill.id),
-    at: context.effectiveEnd + 3,
-    ownerId: `revenant.upkeep:${skill.id}`,
-    captured: { skillId: skill.id }
-  });
-  if (skill.id === ID.IMPOSSIBLE_ODDS) {
-    conduitUpkeepDaggers.start(context, {
-      key: String(skill.id),
-      at: context.effectiveEnd + 1,
-      ownerId: `revenant.upkeep:${skill.id}`,
-      captured: { skillId: skill.id }
-    });
-  }
-}
-
-// Separate cadences share upkeep ownership so release and Energy starvation stop both.
-const conduitUpkeepAffinity = timedEffect<RevenantSchedulerContext, { skillId: RevenantSkill['id'] }>({
-  id: 'revenant.conduit-upkeep-affinity',
-  priority: -200,
-  interval: () => 3,
-  effectsAt(context, _at, { skillId }) {
-    if (
-      !professionCoreState(context).activeUpkeeps.some((active) => active.skillId === skillId) ||
-      !context.catalog.skillsById.has(skillId)
-    )
-      return false;
-    gainConduitAffinity(context, 1, 'enigmatic-upkeep');
-  }
-});
-const conduitUpkeepDaggers = timedEffect<RevenantSchedulerContext, { skillId: RevenantSkill['id'] }>({
-  id: 'revenant.conduit-upkeep-daggers',
-  priority: -190,
-  interval: () => 1,
-  effectsAt(context, at, { skillId }) {
-    if (!professionCoreState(context).activeUpkeeps.some((active) => active.skillId === skillId)) return false;
-    const skill = context.catalog.skillsById.get(skillId);
-    if (!skill) return false;
-    emitLesserEnchantedDaggers(context, skill, at);
-  }
-});
-
-function completeConduitCast(context: RevenantCastContext, skill: RevenantSkill): void {
-  completeBeguilingHaze(context, skill);
-}
-
-function advanceConduitForm(context: RevenantSchedulerContext, target: number): void {
-  const state = conduitState.from(context);
-  if (state.cosmicWisdomUntil > 0 && target >= state.cosmicWisdomUntil) {
-    // Form expiry clears the form name and restores native energy costs in the same tick.
-    state.cosmicWisdomUntil = 0;
-    state.conduitForm = '';
-    syncConduitEnergyCostOverrides(context);
-  }
-}
-
-function gainConduitAffinityFromCost(context: RevenantCastContext, skill: RevenantSkill): void {
-  const cost = runtimeRevenantEnergyCost(context, skill);
-  if (!(cost > 0)) return;
-  if (skill.legendId && !skill.affinityOnHit) {
-    // Legend skills whose affinity is deferred to hit time are excluded here to avoid double-granting.
-    gainConduitAffinity(context, cost >= 25 ? 2 : 1, 'enigmatic-connection');
-  } else if (
-    // Conductive Armaments grants affinity on weapon skill casts; only legend skills grant it on cast otherwise.
-    skill.type === 'Weapon' &&
-    hasTrait(context.config, TRAIT.CONDUCTIVE_ARMAMENTS)
-  ) {
-    gainConduitAffinity(context, 1, 'conductive-armaments');
-  }
-}
-
-function observeConduitEvent(context: RevenantSchedulerContext, event: SimulationEvent): void {
-  if (event.type !== 'sigil_swap') return;
-  const state = conduitState.from(context);
-  const coreState = professionCoreState(context);
-  // Entity invocation inherits Spirit Boon and Song of the Mists from Conduit's paired Core legend.
-  if (coreState.activeLegendId === LEGEND.ENTITY && revenantCombatActive(context, event.at)) {
-    const pairedLegendId = coreState.selectedLegendIds.find((legendId) => legendId !== LEGEND.ENTITY);
-    if (pairedLegendId && hasTrait(context.config, TRAIT.SPIRIT_BOON)) {
-      emitLegendInvocationProfile(
-        context,
-        REVENANT_CORE_BALANCE_PROFILE_IDS.spiritBoon,
-        event.at,
-        TRAIT.SPIRIT_BOON,
-        (effect) => effect.metadata?.legendId === pairedLegendId
-      );
-    }
-
-    if (pairedLegendId && hasTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) {
-      emitLegendInvocationProfile(
-        context,
-        REVENANT_CORE_BALANCE_PROFILE_IDS.songOfTheMists,
-        event.at,
-        TRAIT.SONG_OF_THE_MISTS,
-        (effect) => effect.metadata?.legendId === pairedLegendId
-      );
-    }
-  }
-
-  // Snapshot active status before resetting affinity so Enhanced Embodiment and form updates use the pre-swap value.
-  const cosmicWisdomActive = state.cosmicWisdomUntil > event.at;
-  // Legend swap always resets affinity to 0 regardless of traits.
-  state.affinity = 0;
-  if (revenantCombatActive(context, event.at) && hasTrait(context.config, TRAIT.LINGERING_DETERMINATION)) {
-    // Lingering Determination immediately restores 2 affinity after the reset; out-of-combat swaps do not proc it.
-    const lingering = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.lingeringDetermination);
-    gainConduitAffinity(
-      context,
-      Math.max(0, balanceProfileNumber(lingering, 'resourceGain')),
-      'lingering-determination'
-    );
-  }
-
-  if (cosmicWisdomActive && hasTrait(context.config, TRAIT.ENHANCED_EMBODIMENT)) {
-    const enhanced = requireBalanceProfileFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment);
-    const extension = requireEffect(enhanced, 'buff', 'cosmic-wisdom-extension');
-    if (extension) state.cosmicWisdomUntil += Math.max(0, effectNumber(enhanced, extension, 'duration'));
-  }
-
-  if (cosmicWisdomActive) {
-    // On legend swap the form updates to match the newly active legend (e.g. swapping to Demon yields Mesmer form).
-    state.conduitForm = REVENANT_CONDUIT_FORM_BY_LEGEND[professionCoreState(context).activeLegendId] || '';
-    syncConduitEnergyCostOverrides(context);
-  }
-
-  const swapSkill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
-  // Found Purpose grants invocation boons only once combat has started.
-  if (swapSkill && revenantCombatActive(context, event.at) && hasTrait(context.config, TRAIT.FOUND_PURPOSE)) {
-    emitNuminousGift(context, swapSkill, { allies: true });
-  }
-}
-
-export const conduitSchedulerHooks = Object.freeze({
-  advance: {
-    id: 'revenant.conduit-form-expiry',
-    order: 20,
-    handler: advanceConduitForm
-  },
-  afterCast: {
-    id: 'revenant.conduit-upkeep-start',
-    order: 20,
-    handler: afterConduitCast
-  },
-  onCastComplete: {
-    id: 'revenant.conduit-cast-complete',
-    order: 20,
-    handler: completeConduitCast
-  },
-  onCastStart: {
-    id: 'revenant.conduit-energy-cost',
-    order: 20,
-    handler: gainConduitAffinityFromCost
-  },
-  onEventScheduled: {
-    id: 'revenant.conduit-events',
-    order: 20,
-    handler: (context: RevenantSchedulerContext, event: SimulationEvent): void => {
-      observeConduitTraits(context, event);
-      observeConduitEvent(context, event);
-    }
-  },
-  onCooldownReset: {
-    id: 'revenant.conduit-cooldown-reset',
-    order: 20,
-    // On a full cooldown reset (e.g. phase end), treat Beguiling Haze as immediately available.
-    handler: (context: RevenantSchedulerContext): void => {
-      conduitState.from(context).beguilingHazeReadyAt = context.state.time;
-      conduitState.from(context).beguilingHazeRecharge = null;
-    }
-  },
-  taskHandlers: Object.freeze({
-    'revenant.release-mesmer-conditions': handleMesmerReleaseConditions,
-    ...conduitUpkeepAffinity.taskHandlers,
-    ...conduitUpkeepDaggers.taskHandlers,
-    ...conduitAffinityReaction.taskHandlers
-  })
 });

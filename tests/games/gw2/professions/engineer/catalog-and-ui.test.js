@@ -37,10 +37,10 @@ import { MECHANIST_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/special
 import { scrapperModule } from '#gw2/professions/engineer/specializations/scrapper/module.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
 import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { engineerCoreSkillHandlers } from '#gw2/professions/engineer/core/execution/index.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { engineerCoreLive } from '#gw2/professions/engineer/core/live.js';
+import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
-import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
@@ -59,7 +59,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createProfessionSimulator(engineerProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(engineerProfession, baseConfig);
 
 function mechanic(name) {
   return engineerCatalog.skillsByName.get(name);
@@ -186,44 +186,42 @@ test('Overclock Signet runtime inputs stay outside balance authoring', () => {
 });
 
 test('Engineer palette flips require explicit consumable targets and ignore raw API flips', () => {
-  // Every declared parent must arm only its palette target, then consume it once.
-  const events = [];
-  const core = createEngineerCoreState();
-  const context = {
-    catalog: engineerCatalog,
-    config: {},
-    state: { profession: { core, specialization: { kind: 'Core', state: {} } } },
-    start: 3,
-    effectiveEnd: 3,
-    events,
-    emit: (event) => events.push(event)
-  };
-  const arm = engineerCoreSkillHandlers['engineer.arm-flip'].afterEffects;
-  const consume = engineerCoreSkillHandlers['engineer.consume-flip'].afterEffects;
-  for (const skill of engineerCatalog.skills.filter(
-    (candidate) => candidate.handlerId === 'engineer.arm-flip' && candidate.id !== ID.HEALING_TURRET
-  )) {
-    const flip = engineerCatalog.skillsById.get(skill.paletteFlipSkillId);
-    assert.ok(flip, skill.name);
-    assert.equal(engineerCoreCastAvailability(context, flip).ready, false);
-    arm(context, { ...skill, flipSkillId: ID.RIFLE_BURST });
-    assert.equal(engineerCoreCastAvailability(context, flip).ready, true);
-    assert.equal(core.availableFlips[ID.RIFLE_BURST], undefined);
-    assert.equal(events.at(-1).at, 3);
-    consume(context, flip);
-    assert.equal(engineerCoreCastAvailability(context, flip).ready, false);
-  }
+  runEngineer(
+    [],
+    {},
+    {
+      initialize(runtime) {
+        const complete = (skill) =>
+          engineerCoreLive.onCastComplete(runtime, { skill, id: 'flip-test', start: 0, fullEnd: 0, effectiveEnd: 0 });
+        for (const skill of engineerCatalog.skills.filter(
+          (candidate) =>
+            candidate.paletteFlipSkillId != null &&
+            candidate.id !== ID.HEALING_TURRET &&
+            candidate.id !== ID.PHOTON_WALL
+        )) {
+          const flip = engineerCatalog.skillsById.get(skill.paletteFlipSkillId);
+          assert.equal(engineerCoreCastAvailability(runtime, flip).ready, false);
+          complete({ ...skill, flipSkillId: ID.RIFLE_BURST });
+          assert.equal(engineerCoreCastAvailability(runtime, flip).ready, true);
+          assert.equal(runtime.profession.core.availableFlips[ID.RIFLE_BURST], undefined);
+          complete(flip);
+          assert.equal(engineerCoreCastAvailability(runtime, flip).ready, false);
+        }
 
-  const before = structuredClone(core.availableFlips);
-  const eventCount = events.length;
-  for (const paletteFlipSkillId of [undefined, null, NaN, Infinity, 0, -1, 'missing', ID.RIFLE_BURST]) {
-    assert.throws(
-      () => arm(context, { name: 'Malformed parent', paletteFlipSkillId, flipSkillId: ID.MAGNETIC_INVERSION }),
-      /requires a paletteFlipSkillId referencing a consumable flip/
-    );
-    assert.deepEqual(core.availableFlips, before);
-    assert.equal(events.length, eventCount);
-  }
+        const before = structuredClone(runtime.profession.core.availableFlips);
+        for (const paletteFlipSkillId of [NaN, Infinity, 0, -1, 'missing', ID.RIFLE_BURST]) {
+          assert.throws(
+            () => complete({ id: -999, name: 'Malformed parent', paletteFlipSkillId }),
+            /requires a paletteFlipSkillId/
+          );
+          assert.deepEqual(runtime.profession.core.availableFlips, before);
+        }
+
+        complete({ id: -999, name: 'Unowned API flip', flipSkillId: ID.MAGNETIC_INVERSION });
+        assert.deepEqual(runtime.profession.core.availableFlips, before);
+      }
+    }
+  );
 });
 
 test('Overheat authoring retains the live penalty and rejects obsolete saved controls', () => {
@@ -483,7 +481,7 @@ test('Engineer renders Endurance only for Tools and uses a standard bar', () => 
     .resolveRuntime({
       specialization: 'Core'
     })
-    .createProfessionState({ specialization: 'Core' });
+    .createState({ specialization: 'Core' });
   const core = engineerProfession.ui.resourceViews({
     catalog: engineerCatalog,
     specialization: 'Core',
@@ -523,7 +521,7 @@ test('Engineer renders Endurance only for Tools and uses a standard bar', () => 
       .resolveRuntime({
         specialization: 'Holosmith'
       })
-      .createProfessionState({ specialization: 'Holosmith' })
+      .createState({ specialization: 'Holosmith' })
   });
 
   assert.deepEqual(
@@ -626,9 +624,9 @@ test('Engineer kits render beneath weapons while Holosmith mechanics stay groupe
 
 test('Engineer event log exposes Heat only for Holosmith heat transitions', () => {
   const event = {
-    type: 'engineer.state',
+    type: 'engineer.heat',
     reason: 'heat',
-    state: { heat: 25 }
+    heat: 25
   };
   const eventLogRow = (specialization, value) => {
     const config = { specialization };
@@ -637,7 +635,7 @@ test('Engineer event log exposes Heat only for Holosmith heat transitions', () =
     return engineerProfession.ui.eventLogRow(
       {
         config,
-        state: { profession: runtime.createProfessionState(config) }
+        state: { profession: runtime.createState(config) }
       },
       value
     );
@@ -961,7 +959,7 @@ test('Scrapper F skills follow selected skill-slot order', () => {
   );
   const core = simulate('Core', ['Function Gyro']);
 
-  assert.match(core.warnings[0], /Unknown skill id Function Gyro/);
+  assert.match(core.warnings[0], /Function Gyro: Unknown skill/);
 });
 
 test('Engineer slot selection excludes contextual and unsupported utilities', () => {

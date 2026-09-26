@@ -6,13 +6,10 @@ import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
-import { applyConjureState } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
+import { applyConjureState, captureConjurePickup } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import {
-  weaverSchedulerHooks,
-  weaverSkillMechanicHandlers
-} from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
+import { weaverLive } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
 
 test('Arcane Echo requires an armed, unexpired window and consumes it only once', () => {
   const echo = elementalistCatalog.skillsByName.get('Arcane Echo');
@@ -31,20 +28,24 @@ test('Arcane Echo requires an armed, unexpired window and consumes it only once'
       [echo.id, 30]
     ]);
     const context = {
-      state: { time: 0, profession: { core }, cooldowns, rechargeProgress: new Map(), ammo: new Map() },
-      catalog: elementalistCatalog,
+      time: 0,
+      profession: { core },
+      cooldowns,
+      rechargeProgress: new Map(),
+      ammo: new Map(),
+      helpers: elementalistCatalog,
       effectiveEnd: 0,
       rechargeWork: 5
     };
-    context.cooldownController = createCooldownController({ state: context.state, rechargeDuration: () => 5 });
-    if (armed) completeArcaneEcho(context, echo);
+    context.cooldownController = createCooldownController({ state: context, rechargeDuration: () => 5 });
+    if (armed) completeArcaneEcho(context, context, echo);
     context.effectiveEnd = at;
-    completeArcaneEcho(context, weapon);
+    completeArcaneEcho(context, context, weapon);
     assert.equal(cooldowns.get(weapon.id), active ? at + 1 : 20);
     assert.equal(cooldowns.get(echo.id), active ? 35 : 30);
     if (active) {
       assert.equal(core.arcaneEchoUntil, 0);
-      completeArcaneEcho(context, weapon);
+      completeArcaneEcho(context, context, weapon);
       assert.equal(cooldowns.get(echo.id), 35);
     }
   }
@@ -62,19 +63,20 @@ test('Fervent Stance grants dual-attack Might only inside an armed window', () =
   ]) {
     const events = [];
     const context = {
-      state: {
-        profession: {
-          core: createElementalistCoreState(),
-          specialization: { kind: 'Weaver', state: weaverState.create() }
-        }
+      profession: {
+        core: createElementalistCoreState(),
+        specialization: { kind: 'Weaver', state: weaverState.create() }
       },
-      catalog: elementalistCatalog,
+      time: 0,
+      query: { statsAt: () => ({}) },
+      helpers: elementalistCatalog,
       config: { selectedTraitIds: [] },
       effectiveEnd: at,
       emit: (event) => events.push(event)
     };
-    if (armed) weaverSkillMechanicHandlers['elementalist.weaver.arm-fervent-stance']({ context, at: 0 });
-    weaverSchedulerHooks.onCastComplete.handler(context, skill);
+    if (armed) weaverLive.tasks['elementalist.weaver.arm-fervent-stance'](context);
+    context.time = at;
+    weaverLive.onCastComplete(context, { skill, command: {}, effectiveEnd: at, fullEnd: at, start: at });
     const grants = events.filter((event) => event.type === 'buff' && event.source === 'Fervent Stance');
     assert.equal(grants.length, active ? 1 : 0);
     if (active) assert.equal(grants[0].kind, 'might');
@@ -90,9 +92,10 @@ test('elemental glyphs require equipment while matching command flips and summon
     const skill = elementalistCatalog.skillsByName.get(name);
     const core = createElementalistCoreState();
     const context = {
-      state: { profession: { core } },
+      profession: { core },
       config: { selectedSkills: { Elite: 'Conjure Fiery Greatsword' }, autoSummonElemental: false },
-      catalog: elementalistCatalog,
+      helpers: elementalistCatalog,
+      time: 0,
       start: 0
     };
     for (const expiry of [0, 10]) {
@@ -113,7 +116,7 @@ test('elemental glyphs require equipment while matching command flips and summon
     assert.equal(occupied.ready, false);
     assert.equal(occupied.retryAt, 10);
     assert.equal(elementalistCoreAvailability(context, flip).ready, true);
-    context.start = 10;
+    context.time = 10;
     assert.equal(elementalistCoreAvailability(context, skill).ready, true);
 
     const rejected = runNative({
@@ -143,21 +146,27 @@ test('conjure pickup availability and consumption require a finite, unexpired gr
       if (expiry !== undefined) core.conjurePickups[weapon] = expiry;
       const events = [];
       const context = {
-        catalog: elementalistCatalog,
-        state: { profession: { core } },
+        helpers: elementalistCatalog,
+        profession: { core },
+        time: 0,
         start: 0,
         effectiveEnd: 0.3,
+        schedule() {},
+        query: { statsAt: () => ({}) },
+        config: {},
         emit: (event) => events.push(event)
       };
       const expected = expiry === 0.1 || expiry === 1;
       assert.equal(elementalistCoreAvailability(context, skill).ready, expected, `${weapon}: ${expiry}`);
-      applyConjureState(context, skill);
+      const cast = { skill, start: 0, effectiveEnd: 0.3 };
+      captureConjurePickup(context, cast);
+      applyConjureState(context, cast, skill);
       assert.equal(core.conjureEquipped, expected ? weapon : null);
       assert.equal(events.filter((event) => event.type === 'sigil_swap').length, expected ? 1 : 0);
       if (expected) {
         assert.equal(Object.hasOwn(core.conjurePickups, weapon), false);
         assert.equal(elementalistCoreAvailability(context, skill).ready, false);
-        applyConjureState(context, skill);
+        applyConjureState(context, { skill, start: 0.3, effectiveEnd: 0.6 }, skill);
         assert.equal(events.filter((event) => event.type === 'sigil_swap').length, 1);
       }
     }

@@ -1,3 +1,4 @@
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -5,15 +6,10 @@ import {
 import { skillFlipVisible } from '#gw2/platform/engine/skills/skill-flips.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { flattenProfessionState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { SchedulerState } from '#gw2/platform/execution/types.js';
-import type {
-  MesmerPlanningState,
-  MesmerProfessionState,
-  MesmerRuntimeState,
-  MesmerSchedulerContext
-} from '#gw2/professions/mesmer/types.js';
+import type { MesmerPlanningState, MesmerProfessionState, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 
 /** Selects the active specialization's public resource contract at the family boundary. */
@@ -39,7 +35,7 @@ interface MesmerNumericResourceState {
 }
 
 /** Returns the active numeric resource state and rejects clone-owning Mesmer specializations. */
-export function mesmerNumericResourceState(state: SchedulerState<MesmerRuntimeState>): MesmerNumericResourceState {
+export function mesmerNumericResourceState(state: MesmerRuntime): MesmerNumericResourceState {
   const kind = state.profession.specialization.kind;
   const active = readProfessionSpecializationState<MesmerNumericResourceState>(state.profession, kind);
   if (typeof active?.numericResource !== 'number') {
@@ -50,16 +46,12 @@ export function mesmerNumericResourceState(state: SchedulerState<MesmerRuntimeSt
 }
 
 /** Projects the family aggregate while exposing only the active specialization's optional fields. */
-export function projectMesmerPlanningState({
-  schedulerContext: context
-}: {
-  readonly schedulerContext: MesmerSchedulerContext;
-}): MesmerPlanningState {
-  const runtime = mesmerRuntimeFor(context);
-  const { state, config } = context;
-  const endTime = canonicalTime(state.time);
-  const definition = runtime.resourceDefinition;
-  const publicState = flattenProfessionState(state.profession) as unknown as MesmerProfessionState;
+export function projectMesmerPlanningState(input: Gw2PlanningStateInput<MesmerRuntimeState>): MesmerPlanningState {
+  const { config, catalog } = input;
+  const endTime = canonicalTime(input.time);
+  // Resource labels and ambush names derive from selected catalog data, without initializing combat controllers.
+  const definition = mesmerResourceDefinition(config.specialization || 'Core', { catalog });
+  const publicState = flattenProfessionState(input.profession) as unknown as MesmerProfessionState;
   const availableFlips = Object.fromEntries(
     Object.entries(publicState.availableFlips).filter(([, window]) => skillFlipVisible(window, endTime))
   );
@@ -72,7 +64,7 @@ export function projectMesmerPlanningState({
       expiresAt: Math.round(expiresAt * 1000),
       remaining: Math.max(0, Math.round((expiresAt - endTime) * 1000))
     }));
-  const weaponSet = state.activeWeaponSet === 1 ? 1 : 2;
+  const weaponSet = input.activeWeaponSet === 1 ? 1 : 2;
   const activeWeapon = gw2ActivePrimaryWeapon(config, weaponSet) || '';
   return {
     resource: definition.singular === 'clone' ? publicState.clones.length : publicState.numericResource,
@@ -81,7 +73,7 @@ export function projectMesmerPlanningState({
     availableAmbush:
       publicState.ambushSource && publicState.ambushUntil > endTime
         ? {
-            name: runtime.ambushAttacks[activeWeapon]?.name || '',
+            name: catalog.skillsById.get(MESMER_MIRAGE_AMBUSH_SKILLS[activeWeapon]?.id ?? NaN)?.name || '',
             source: publicState.ambushSource,
             expiresAt: Math.round(publicState.ambushUntil * 1000),
             remaining: Math.max(0, Math.round((publicState.ambushUntil - endTime) * 1000))
@@ -99,7 +91,7 @@ export function projectMesmerPlanningState({
     ...(config.specialization === 'Troubadour' ? { activeInstruments, endurance: publicState.endurance } : {}),
     availableFlips,
     autoattackChains: Object.fromEntries(
-      context.catalog.autoattackChains.map((chain) => [chain[0], publicState.autoattackChains[chain[0]] || chain[0]])
+      catalog.autoattackChains.map((chain) => [chain[0], publicState.autoattackChains[chain[0]] || chain[0]])
     ),
     continuumActive: Boolean(publicState.continuum),
     continuumRemaining: publicState.continuum

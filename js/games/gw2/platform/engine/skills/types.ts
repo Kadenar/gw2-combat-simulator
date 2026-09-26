@@ -1,11 +1,8 @@
 /** Defines catalog skills and declarative effects so authored data stays independent of runtime implementations. */
 import type { EffectMetadata, EffectAudience, DamageEvent } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
-import type { SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 
 export type SkillId = string | number;
-
-export type SkillHandlerMode = 'augment' | 'replace';
 
 export type SkillInterruptMode = 'commit' | 'per-packet';
 
@@ -197,6 +194,8 @@ export interface Skill extends CatalogEntity {
   readonly cooldown?: number;
   /** Which actor's active boons determine recharge-rate modifiers. */
   readonly rechargeBuffAudience?: 'self' | 'summon';
+  /** Recharge always runs at the base rate; Alacrity never changes it (for example, Revenant legend swap). */
+  readonly rechargeIgnoresAlacrity?: boolean;
   /**
    * Allows a profession mechanic to activate this skill while its ordinary
    * recharge is still running. The profession remains responsible for
@@ -238,11 +237,8 @@ export interface Skill extends CatalogEntity {
   /** Keep the serial cast lane blocked through the original cast end after the skill commits. */
   readonly retainsCastLockoutAfterInterrupt?: boolean;
   readonly effects?: readonly SkillEffect[];
-  readonly mechanicTriggers?: readonly SkillMechanicTrigger[];
   readonly comboFields?: readonly Readonly<Record<string, unknown>>[];
   readonly comboFinishers?: readonly Readonly<Record<string, unknown>>[];
-  /** Dispatches stateful or phase-specific behavior to the matching entry in the active module's `mechanics.execution.skillHandlers`. */
-  readonly handlerId?: string;
   readonly parentId?: SkillId;
   readonly flipParentId?: SkillId | null;
   readonly flipSkillId?: SkillId | null;
@@ -298,12 +294,11 @@ export interface SkillLockout {
   readonly durationMs: number;
 }
 
-/** Declarative profession-mechanic callback scheduled relative to a skill cast. */
-export interface SkillMechanicTrigger {
+/** Authored deadlines for named work owned by the selected profession's live task registry. */
+export interface SkillTask {
   readonly type: string;
   readonly atMs?: number;
   readonly timingAnchor?: 'castStart' | 'castEnd';
-  /** Mechanic triggers retain their base-cast-relative timing contract. */
   readonly timingScale?: 'cast' | 'fixed';
   readonly count?: number;
 }
@@ -315,7 +310,7 @@ export interface AutoattackChainPosition {
   readonly next: number | null;
 }
 
-export interface CanonicalCatalog<TSkill extends Skill = Skill, TContext extends object = object> {
+export interface CanonicalCatalog<TSkill extends Skill = Skill> {
   /** Selected patch metadata used by shared validation diagnostics. */
   readonly balanceDataContext?: { readonly professionId: string; readonly patchId: string };
   readonly skills: readonly TSkill[];
@@ -324,7 +319,6 @@ export interface CanonicalCatalog<TSkill extends Skill = Skill, TContext extends
   readonly balanceProfiles: readonly BalanceProfile[];
   readonly balanceProfilesById: ReadonlyMap<SkillId, BalanceProfile>;
   readonly balanceProfilesByName: ReadonlyMap<string, BalanceProfile>;
-  readonly skillHandlers: ReadonlyMap<string, SkillHandlerStrategy<TContext>>;
   readonly autoattackChains: readonly (readonly number[])[];
   readonly autoattackChainPositions: ReadonlyMap<number, AutoattackChainPosition>;
   readonly traits: readonly CatalogEntity[];

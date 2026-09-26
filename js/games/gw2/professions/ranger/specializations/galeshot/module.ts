@@ -1,37 +1,20 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
-import { galeshotSkillHandlers } from '#gw2/professions/ranger/specializations/galeshot/execution/index.js';
-import {
-  galeshotAttributeRules,
-  galeshotCastRules,
-  galeshotSchedulerHooks
-} from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow-rules.js';
+import { galeshotAttributeRules } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow-rules.js';
+import { galeshotLive } from '#gw2/professions/ranger/specializations/galeshot/live.js';
 import { GALESHOT_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/galeshot/skills/index.js';
-import { galeshotState, galeshotArrows } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-import { bindGaleshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
-import { galeshotEventHandlers } from '#gw2/professions/ranger/specializations/galeshot/mechanics/state-events.js';
 import { GALESHOT_BALANCE_PROFILES } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
+import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
+import { bindGaleshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
 
+/** The module registers one live mechanic owner beside its existing data and modifier formulas. */
 export const galeshotModule = defineNativeModule({
   id: 'Galeshot',
-  resources: { arrows: galeshotArrows },
   data: createRangerModuleData('Galeshot', {
     skillMechanics: GALESHOT_BASE_SKILL_MECHANICS,
     balanceProfiles: GALESHOT_BALANCE_PROFILES
   }),
-  // Both sides share the same factory; the resolver only needs the fields
-  // emitted by handleGaleshotState, but reusing the full shape is harmless.
-  state: { scheduler: galeshotState.create, resolver: galeshotState.create },
-  mechanics: {
-    modifiers: galeshotAttributeRules,
-    execution: {
-      skillHandlers: galeshotSkillHandlers,
-      castRules: galeshotCastRules,
-      hooks: galeshotSchedulerHooks
-    },
-    resolution: {
-      hooks: { eventHandlers: galeshotEventHandlers }
-    }
-  },
+  state: { create: galeshotState.create },
+  mechanics: { modifiers: galeshotAttributeRules, live: galeshotLive },
   presentation: bindGaleshotUi
 });

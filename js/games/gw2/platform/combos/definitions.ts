@@ -372,7 +372,6 @@ interface ComboOutcomeEventBase extends Pick<
   | 'fieldSource'
   | 'fieldOwnerId'
   | 'finisherType'
-  | 'schedulerPrediction'
 > {
   readonly at: number;
   readonly source: string;
@@ -404,8 +403,7 @@ function inheritedComboFields(combo: ComboEvent): ComboOutcomeEventBase {
     fieldSourceId: combo.fieldSourceId,
     fieldSource: combo.fieldSource,
     fieldOwnerId: combo.fieldOwnerId,
-    finisherType: combo.finisherType,
-    schedulerPrediction: combo.schedulerPrediction
+    finisherType: combo.finisherType
   };
 }
 

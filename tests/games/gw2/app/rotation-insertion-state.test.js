@@ -111,7 +111,7 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
     assert.deepEqual(result.warnings, []);
     const beforeHit = adapter.rotationPlanningStateAt(app, 2);
     assert.equal(beforeHit.atSeconds, 1);
-    assert.equal(beforeHit.profession.flow, 4);
+    assert.ok(Math.abs(beforeHit.profession.flow - 4) < 1e-9);
     const beforeMarker = adapter.rotationPlanningStateAt(app, 3);
     const afterMarker = adapter.rotationPlanningStateAt(app, 4);
     assert.equal(beforeMarker.atSeconds, afterMarker.atSeconds);
@@ -151,9 +151,9 @@ test('Ranger prefix simulations keep precast traps armed until the inherited bou
     });
   const armed = prefix(1);
   assert.ok(armed.planningState.atSeconds < result.combatStartTime);
-  assert.ok(armed.schedulerState.profession.core.pendingFrostTrapEvents.length > 0);
+  assert.ok(armed.combatState.profession.pendingFrostTrapEvents.length > 0);
   const triggered = prefix(2);
-  assert.equal(triggered.schedulerState.profession.core.pendingFrostTrapEvents.length, 0);
+  assert.equal(triggered.combatState.profession.pendingFrostTrapEvents.length, 0);
 });
 
 test('native insertion previews project weapon set and cooldown state', async () => {

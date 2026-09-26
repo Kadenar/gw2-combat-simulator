@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { createEventReactions, defineProfession } from '#gw2/platform/engine/profession/contract.js';
 
 // Profession contracts provide neutral defaults and deterministic hooks for every implementation.
 test('profession contract supplies defaults and deterministic hook ordering', () => {
@@ -9,15 +9,13 @@ test('profession contract supplies defaults and deterministic hook ordering', ()
   const profession = defineProfession({
     id: 'ordered',
     name: 'Ordered',
-    schedulerHooks: {
-      initialize: [
+    attributeRules: {
+      modifyAttributes: [
         { id: 'later', order: 20, handler: () => calls.push('later') },
         { id: 'first', order: 10, handler: () => calls.push('first') },
         { id: 'same', order: 10, handler: () => calls.push('same') }
-      ]
-    },
-    resolverHooks: {
-      eventReactions: {
+      ],
+      reactions: {
         control: [
           {
             id: 'later-control',
@@ -34,23 +32,24 @@ test('profession contract supplies defaults and deterministic hook ordering', ()
     }
   });
 
-  profession.initialize({});
+  profession.modifyAttributes({}, {});
   assert.deepEqual(calls, ['first', 'same', 'later']);
-  profession.eventReactions.control({}, { type: 'control' });
+  createEventReactions({
+    control: [
+      { id: 'later', order: 20, handler: () => calls.push('later-control') },
+      { id: 'first', order: 10, handler: () => calls.push('first-control') }
+    ]
+  }).control({}, { type: 'control' });
   assert.deepEqual(calls, ['first', 'same', 'later', 'first-control', 'later-control']);
-  assert.deepEqual(profession.availability({}, {}), { ready: true });
-  assert.deepEqual(profession.createProfessionState({}), {});
+  assert.deepEqual(profession.createState({}), {});
   assert.equal(profession.modifyStrikeDamage({}, 12), 12);
   assert.equal(Object.hasOwn(profession, 'ui'), false);
   assert.equal(Object.hasOwn(profession, 'createBuildDefaults'), false);
 });
 
 // Chained hooks receive the previous result even when an intermediate hook only observes it.
-test('event preparers and attribute modifiers preserve values through observing hooks', () => {
-  for (const [container, hook] of [
-    ['schedulerHooks', 'prepareEvent'],
-    ['attributeRules', 'modifyAttributes']
-  ]) {
+test('attribute modifiers preserve values through observing hooks', () => {
+  for (const [container, hook] of [['attributeRules', 'modifyAttributes']]) {
     const observed = [];
     const profession = defineProfession({
       id: 'chained',
@@ -83,40 +82,37 @@ test('presentation contract supports zero or multiple resource views', () => {
   assert.equal(multiple.resourceViews({}).length, 2);
 });
 
-// State factories remain independent while the structured hooks operate on the resulting runtime state.
+// Fresh states share one factory while the structured hooks operate on the resulting runtime state.
 test('structured definition containers preserve state, recharge rules, and resolver reactions', () => {
   const profession = defineProfession({
     id: 'structured',
     name: 'Structured',
     resources: {
-      createProfessionState: (config) => ({ charges: config.charges }),
-      createResolverState: () => ({ damage: 0 }),
-      projectPlanningState: ({ resolverState }) => ({ damage: resolverState.damage })
+      createState: (config) => ({ charges: config.charges ?? 0, damage: 0 }),
+      projectPlanningState: ({ profession }) => ({ damage: profession.damage })
     },
-    castRules: {
-      modifyRechargeDuration: [(_context, duration) => duration / 2, (_context, duration) => duration + 1]
-    },
-    resolverHooks: {
+    live: {
+      rechargeWork: (_context, _skill, duration) => duration / 2 + 1,
       eventHandlers: {
         'structured.damage': (context, event) => {
           context.profession.damage += event.amount;
         }
       },
-      eventReactions: {
+      reactions: {
         'damage.resolved': (context) => {
           context.profession.damage += 1;
         }
       }
     }
   });
-  const schedulerState = profession.createProfessionState({ charges: 2 });
-  const resolverState = profession.createResolverState({});
+  const firstState = profession.createState({ charges: 2 });
+  const resolverState = profession.createState({});
   const context = { profession: resolverState };
-  profession.eventHandlers['structured.damage'](context, { amount: 3 });
-  profession.eventReactions['damage.resolved'](context, {});
+  profession.liveRuntimeFor({}).eventHandlers['structured.damage'](context, { amount: 3 });
+  profession.liveRuntimeFor({}).reactions['damage.resolved'](context, {});
 
-  assert.deepEqual(schedulerState, { charges: 2 });
-  assert.deepEqual(profession.createResolverState({}), { damage: 0 });
-  assert.deepEqual(profession.projectPlanningState({ resolverState }), { damage: 4 });
-  assert.equal(profession.modifyRechargeDuration({}, 10), 6);
+  assert.deepEqual(firstState, { charges: 2, damage: 0 });
+  assert.deepEqual(profession.createState({}), { charges: 0, damage: 0 });
+  assert.deepEqual(profession.projectPlanningState({ profession: resolverState }), { damage: 4 });
+  assert.equal(profession.liveRuntimeFor({}).rechargeWork({}, {}, 10), 6);
 });

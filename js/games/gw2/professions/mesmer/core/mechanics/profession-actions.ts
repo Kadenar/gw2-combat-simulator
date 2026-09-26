@@ -8,15 +8,13 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { triggerMesmerPostShatterTraits } from '#gw2/professions/mesmer/core/traits/index.js';
-import type { SchedulerState } from '#gw2/platform/execution/types.js';
 import type {
   MesmerAddCondition,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerCastContext,
-  MesmerProfessionActionController,
   MesmerRuntime,
-  MesmerRuntimeState,
+  MesmerProfessionActionController,
+  MesmerMechanics,
   MesmerShatterResolver
 } from '#gw2/professions/mesmer/types.js';
 import type {
@@ -29,7 +27,7 @@ import type { MesmerDestroyClone } from '#gw2/professions/mesmer/core/mechanics/
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 interface ProfessionActionControllerOptions {
-  readonly state: SchedulerState<MesmerRuntimeState>;
+  readonly state: MesmerRuntime;
   readonly traits: ReadonlySet<number>;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly destroyClone: MesmerDestroyClone;
@@ -39,7 +37,7 @@ interface ProfessionActionControllerOptions {
   readonly addTraitProc: MesmerAddTraitProc;
   readonly addCondition: MesmerAddCondition;
   readonly shatterResolvers: Readonly<Record<string, MesmerShatterResolver>>;
-  readonly balanceProfile: MesmerRuntime['balanceProfile'];
+  readonly balanceProfile: MesmerMechanics['balanceProfile'];
 }
 
 export function createProfessionActionController({
@@ -66,7 +64,7 @@ export function createProfessionActionController({
   const addResourceSpendEvent = (
     at: number,
     spent: number,
-    { sourceSkill = '', rotationIndex = null }: MesmerResourceSpendDetails = {}
+    { activationId }: MesmerResourceSpendDetails = {}
   ): number => {
     addEvent({
       type: 'resource',
@@ -75,17 +73,13 @@ export function createProfessionActionController({
       value: currentResource(),
       resource: resourceDefinition.plural,
       reason: 'profession mechanic',
-      ...(sourceSkill ? { sourceSkill } : {}),
-      ...(Number.isInteger(rotationIndex) ? { rotationIndex } : {})
+      activationId
     });
     return spent;
   };
 
   // Clone path calls destroyClone per clone so the engine can emit death events; numeric path zeroes the counter.
-  const consumeResources = (
-    at: number,
-    { sourceSkill = '', rotationIndex = null }: MesmerResourceSpendDetails = {}
-  ): number => {
+  const consumeResources = (at: number, { activationId }: MesmerResourceSpendDetails = {}): number => {
     const spent = currentResource();
     if (resourceDefinition.singular === 'clone') {
       for (const clone of professionCoreState(state).clones) {
@@ -97,7 +91,7 @@ export function createProfessionActionController({
       numericResourceState().numericResource = 0;
     }
 
-    return addResourceSpendEvent(at, spent, { sourceSkill, rotationIndex });
+    return addResourceSpendEvent(at, spent, { activationId });
   };
 
   // Reserve/commit/restore supports skills that must read the count before the cast resolves damage
@@ -116,7 +110,7 @@ export function createProfessionActionController({
   const commitReservedResources = (
     at: number,
     reserved: number,
-    { sourceSkill = '', rotationIndex = null }: MesmerResourceSpendDetails = {}
+    { activationId }: MesmerResourceSpendDetails = {}
   ): number => {
     const reservedCount = boundedNumber(reserved, 0, 0, resourceDefinition.maximum);
     const additionalSpent = Math.min(
@@ -125,8 +119,7 @@ export function createProfessionActionController({
     );
     numericResourceState().numericResource -= additionalSpent;
     return addResourceSpendEvent(at, reservedCount + additionalSpent, {
-      sourceSkill,
-      rotationIndex
+      activationId
     });
   };
 
@@ -150,7 +143,7 @@ export function createProfessionActionController({
   // Orchestrates resource spending and shared traits while the registered resolver owns packet behavior.
   // resourcesSpent=null means consume resources now; a pre-computed value skips the consume.
   const handleShatter = (
-    context: MesmerCastContext,
+    context: MesmerRuntime,
     skill: MesmerSkill,
     at: number,
     resourcesSpent: number | null = null,

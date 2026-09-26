@@ -3,13 +3,12 @@ import test from 'node:test';
 
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
-import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { testProfession } from '#tests/fixtures/profession.js';
-import { resolveTestGw2Stream } from '#tests/helpers/gw2-resolver.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 
 test('GW2 resolver registry orders hooks stably and returns the last result', () => {
   const calls = [];
@@ -235,9 +234,9 @@ test('resolver duration queries use live relic state while historical queries re
   assert.equal(query.conditionDurationMultiplier('Bleeding', 1.001), 1.03);
   const durations = [];
   const liveBonuses = [];
-  resolveTestGw2Stream({
+  resolveTestGw2Events({
     config,
-    stream: buildScheduledEventStream({ events, rotationEndTime: 3 }),
+    ...{ events, endTime: 3 },
     professionReactions: {
       'condition.applied': (context, application) => {
         if (application.condition !== 'Bleeding') return;

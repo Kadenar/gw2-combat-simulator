@@ -3,7 +3,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 import { thiefCatalog, thiefNativeModules, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
@@ -35,15 +35,14 @@ test('Antiquary projects its own charge fields and preserves the inactive initia
   assert.equal(inactive.stealthAttackExpiresAt, 0);
 });
 
-test('Daredevil keeps grant generations in snapshots but out of public projections', () => {
-  // Reconciliation still needs generation identity even though public consumers only need readiness and expiry.
+test('Daredevil projects its Weakening Strikes grant from a detached snapshot', () => {
+  // Public consumers need readiness and expiry; the snapshot must not alias live state.
   const state = createDaredevilState();
-  Object.assign(state, { weakeningStrikeGeneration: 7, weakeningStrikeReady: true, weakeningStrikeExpiresAt: 10 });
+  Object.assign(state, { weakeningStrikeReady: true, weakeningStrikeExpiresAt: 10 });
   const snapshot = snapshotProfessionState({ core: {}, specialization: { kind: 'Daredevil', state } });
   const { keys, defaults } = DAREDEVIL_PUBLIC_STATE_PROJECTION;
   const projected = projectPublicProfessionState(snapshot, keys, defaults);
-  assert.equal(snapshot.weakeningStrikeGeneration, 7);
-  assert.equal(Object.hasOwn(projected, 'weakeningStrikeGeneration'), false);
+  state.weakeningStrikeReady = false;
   assert.equal(projected.weakeningStrikeReady, true);
   assert.equal(projected.weakeningStrikeExpiresAt, 10);
 });
@@ -178,7 +177,7 @@ test('Thief modules own vertical source slices', () => {
     assert.match(skills, /_SKILL_MECHANICS\b/);
     assert.doesNotMatch(skills, /from\s+["'][^"']*catalog\.js["']/);
 
-    assert.equal(typeof module.state?.scheduler, 'function');
+    assert.equal(typeof module.state?.create, 'function');
     assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
     for (const rule of nativeModifierRules(module)) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
@@ -212,7 +211,7 @@ test('Thief modules own vertical source slices', () => {
   );
 
   // Core trait lines stay private implementation details behind the ordered index dispatcher.
-  const traitLines = ['acrobatics', 'critical-strikes', 'deadly-arts', 'shadow-arts', 'trickery'];
+  const traitLines = ['critical-strikes', 'deadly-arts', 'shadow-arts'];
   const traitIndex = professionSourceEntries.find(({ relativePath }) => relativePath === 'core/traits/index.ts').source;
   for (const traitLine of traitLines) {
     const importPattern = new RegExp(`core/traits/${traitLine}\\.js`);
@@ -258,11 +257,11 @@ test('Thief runtimes exclude inactive elite state, catalogs, and registries', ()
   assert.equal(thiefProfession.catalog, thiefCatalog);
   for (const active of ['Core', ...eliteSpecializationNames(thiefCatalog)]) {
     const config = { specialization: active };
-    const runtime = thiefProfession.resolveRuntime(config);
-    const state = runtime.createProfessionState(config);
+    const runtime = thiefProfession.liveRuntimeFor(config);
+    const state = runtime.createState(config);
     const activeElite = active === 'Core' ? null : active;
 
-    assert.equal(runtime, thiefProfession.resolveRuntime(config), active);
+    assert.equal(runtime, thiefProfession.liveRuntimeFor(config), active);
     assert.equal(state.specialization.kind, active, active);
     assert.deepEqual(
       runtime.catalog.specializations
@@ -280,9 +279,10 @@ test('Thief runtimes exclude inactive elite state, catalogs, and registries', ()
       false,
       `${active}:skills`
     );
-    assert.deepEqual(
-      [...runtime.catalog.skillHandlers.keys()].sort(),
-      [...new Set(runtime.catalog.skills.map((skill) => String(skill.handlerId || '')).filter(Boolean))].sort(),
+    // Live owners select behavior from canonical skill identity; no skill names a scheduler handler.
+    assert.equal(
+      runtime.catalog.skills.some((skill) => skill.handlerId != null),
+      false,
       `${active}:handlers`
     );
 
@@ -298,12 +298,12 @@ test('Thief runtimes exclude inactive elite state, catalogs, and registries', ()
     }
 
     assert.equal(
-      Object.hasOwn(runtime.taskHandlers, 'thief.forged-surfer'),
+      Object.hasOwn(runtime.tasks, 'thief.forged-surfer'),
       active === 'Antiquary',
       `${active}:forged-surfer`
     );
     assert.equal(
-      Object.hasOwn(runtime.taskHandlers, 'thief.skritt-scuffle'),
+      Object.hasOwn(runtime.tasks, 'thief.skritt-scuffle'),
       active === 'Antiquary',
       `${active}:skritt-scuffle`
     );
@@ -322,18 +322,11 @@ test('Thief runtimes exclude inactive elite state, catalogs, and registries', ()
     assert.equal(resources.includes('artifact-uses'), false, active);
   }
 
-  assert.throws(
-    () => thiefProfession.resolveRuntime({ specialization: 'Missing' }),
-    /Unknown Thief elite specialization "Missing"/
-  );
+  assert.throws(() => thiefProfession.liveRuntimeFor({ specialization: 'Missing' }), /Unknown specialization: Missing/);
 });
 
 test('Thief public projection keeps inactive compatibility fields', () => {
-  const result = simulateGw2({
-    profession: thiefProfession,
-    rotation: [],
-    config: { specialization: 'Core' }
-  });
+  const result = runThief([]);
 
   assert.equal(result.planningState.profession.malice, 0);
   assert.equal(result.planningState.profession.shadowClock, undefined);

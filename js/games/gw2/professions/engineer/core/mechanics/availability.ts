@@ -14,15 +14,11 @@ import {
   selectedSlotSkillAvailability
 } from '#gw2/professions/shared/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { EngineerPrecastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
-import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Enforces Core Engineer resource, kit, flip, and toolbelt prerequisites after shared build eligibility. */
-export function engineerCoreCastAvailability(
-  context: EngineerPrecastContext,
-  skill: EngineerSkill
-): AvailabilityResult {
-  const selection = selectedSlotSkillAvailability(context, skill);
+export function engineerCoreCastAvailability(context: EngineerRuntime, skill: EngineerSkill): AvailabilityResult {
+  const selection = selectedSlotSkillAvailability({ config: context.config, catalog: context.helpers }, skill);
   if (selection) return selection;
   const state = professionCoreState(context);
   if (skill.id === ID.DODGE) {
@@ -35,7 +31,7 @@ export function engineerCoreCastAvailability(
           skill,
           'engineer.insufficient-endurance',
           `requires ${enduranceCost} endurance.`,
-          professionEnduranceReadyAt(context, enduranceCost)
+          context.endurance.readyAt(enduranceCost)
         );
   }
 
@@ -44,18 +40,18 @@ export function engineerCoreCastAvailability(
   }
 
   const artillery = state.availableFlips[ID.ELECTRIC_ARTILLERY];
-  if (skill.id === ID.ELECTRIC_ARTILLERY && !skillFlipReady(artillery, context.start)) {
+  if (skill.id === ID.ELECTRIC_ARTILLERY && !skillFlipReady(artillery, context.time)) {
     // The stored window carries readiness even while its palette tile is hidden.
     const retryAt = Number(artillery?.availableAt || 0);
     return denyEngineerCast(
       skill,
       'engineer.electric-artillery-inactive',
       'Lightning Rod has not finished charging.',
-      retryAt > context.start ? retryAt : null
+      retryAt > context.time ? retryAt : null
     );
   }
 
-  if (skill.id === ID.LIGHTNING_ROD && artillery && (artillery.expiresAt ?? Infinity) > context.start) {
+  if (skill.id === ID.LIGHTNING_ROD && artillery && (artillery.expiresAt ?? Infinity) > context.time) {
     // block re-cast while EA is available OR while the charge window is still open (both share the slot)
     return denyEngineerCast(
       skill,
@@ -85,7 +81,7 @@ export function engineerCoreCastAvailability(
     return denyEngineerCast(skill, 'engineer.weapon-bar-replaced', 'the active kit replaces weapon skills.');
   }
 
-  if (skill.handlerId === 'engineer.kit-equip') {
+  if (skill.kitTransition === 'equip') {
     if (!selectedSkillNameSet(context.config.selectedSkills).has(skill.kitName || skill.name)) {
       return denyEngineerCast(skill, 'engineer.kit-not-equipped', 'the kit is not selected in a slot.');
     }
@@ -100,9 +96,9 @@ export function engineerCoreCastAvailability(
   }
 
   if (
-    skill.handlerId === 'engineer.consume-flip' &&
+    skill.flipParentName != null &&
     // availableFlips is populated by the parent skill's handler; absent = parent hasn't fired yet
-    !skillFlipReady(state.availableFlips[skill.id], context.start)
+    !skillFlipReady(state.availableFlips[skill.id], context.time)
   ) {
     return denyEngineerCast(
       skill,

@@ -5,7 +5,6 @@ import type {
   PaletteSkillAvailability,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 
@@ -119,9 +118,7 @@ export function bindUntamedUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlic
       }
     ],
     paletteSkillAvailability: availability,
-    rotationStateSnapshot: untamedStateSnapshot,
+    rotationStateSnapshot: untamedStateSnapshot
     // Unleash synchronization is internal state bookkeeping, not a player-facing combat event.
-    eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
-      event.type === 'ranger.untamed-state' ? null : undefined
   });
 }

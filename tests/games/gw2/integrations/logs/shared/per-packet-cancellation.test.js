@@ -1,3 +1,4 @@
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
@@ -5,7 +6,6 @@ import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { event, log } from '#tests/helpers/evtc-fixture.js';
 
 // Rounded imports use one cancellation boundary for damage and occupancy while retaining observed gaps and overlaps.
@@ -22,6 +22,7 @@ test('both log adapters quantize channel and atomic cancellations to the same ac
             interruptMode,
             effects: [200, 400].map((atMs) => ({
               type: 'strike',
+              weaponStrength: 1000,
               timingAnchor: 'castStart',
               persistsAfterInterrupt: true,
               interruptCommitMs: atMs,
@@ -80,10 +81,10 @@ test('both log adapters quantize channel and atomic cancellations to the same ac
                   }),
                   catalog
                 );
-          const replay = createScheduler({ profession }).run([
-            ...imported.rotation,
-            { type: 'wait', durationMs: 1000 }
-          ]);
+          const replay = simulateGw2({
+            profession,
+            rotation: [...imported.rotation, { type: 'wait', durationMs: 1000 }]
+          });
           const rounded = Math.round(duration / 40) * 40;
           const label = `${source}, ${interruptMode}, duration ${duration}, gap ${gap}`;
           const channel = replay.steps.find((step) => step.skillId === 1000);

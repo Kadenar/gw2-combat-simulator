@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { runtimeFor } from '#tests/helpers/live-runtime.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import {
@@ -12,64 +13,39 @@ import { applyElementalistResolvedCondition } from '#gw2/professions/elementalis
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/elementalist/core/profiles.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { applyCatalystComboTraits } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
-import { catalystSchedulerHooks } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-and-empowerment.js';
 import { CATALYST_BALANCE_PROFILE_IDS as CATALYST } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import {
   completeEvokerAttunement,
   triggerSpecializedElementEntry
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
-import { elementalistEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
 
 const skill = { id: 1, name: 'Fixture Heal', type: 'Heal' };
 
-// Keep scheduler and resolver instances separate while inspecting deadlines at the first effect.
+// Use native services while collecting just the procedural output under test.
 function contextFor(kind = 'Core', specialization = {}) {
+  const context = runtimeFor(
+    runElementalist({ config: { specialization: kind, autoSummonElemental: false }, rotation: [] })
+  );
   const core = createElementalistCoreState();
-  const profession = { core, specialization: { kind, state: specialization } };
+  context.profession = { core, specialization: { kind, state: specialization } };
+  context.time = context.effectiveEnd = 1;
+  context.combatActive = true;
+  context.traits = new Set();
   const events = [];
-  const context = {
-    catalog: elementalistCatalog,
-    config: {},
-    hasBuff: () => false,
-    schedulerPolicy: { isCombatActive: () => true },
-    traits: new Set(),
-    profession: { ...profession, resources: { endurance: elementalistEndurance } },
-    state: {
-      time: 1,
-      activeWeaponSet: 1,
-      cooldowns: new Map(),
-      ammo: new Map(),
-      rechargeProgress: new Map(),
-      profession
-    },
-    effectiveEnd: 1,
-    inFlight: new Map(),
-    events,
-    boons: new Map(),
-    query: { statsAt: () => ({}) },
-    recordProc() {},
-    emit(event) {
-      events.push(event);
-      return event;
-    },
-    applyCondition(event) {
-      return this.emit(event);
-    },
-    queue: {
-      enqueue(event) {
-        return context.emit(event);
-      }
-    }
+  context.emit = (event) => {
+    events.push(event);
+    return event;
   };
-  // Attunement completion delegates recharge speed and timers to the shared controller.
-  context.cooldownController = createCooldownController({ state: context.state, rechargeDuration: () => 0 });
+
+  context.queue.enqueue = (event) => context.emit(event);
+  context.applyCondition = (event) => context.emit(event);
   return { context, core, events };
 }
 
 for (const [trait, key, profile, invoke] of [
-  ["Earth's Embrace", 'earthsEmbrace', CORE.earthsEmbrace, (c) => applyGenericPostCast(c, skill)],
-  ['Soothing Ice', 'soothingIce', CORE.soothingIce, (c) => applyGenericPostCast(c, skill)],
+  ["Earth's Embrace", 'earthsEmbrace', CORE.earthsEmbrace, (c) => applyGenericPostCast(c, c, skill)],
+  ['Soothing Ice', 'soothingIce', CORE.soothingIce, (c) => applyGenericPostCast(c, c, skill)],
   [
     'Elemental Lockdown',
     'elementalLockdown',
@@ -82,7 +58,7 @@ for (const [trait, key, profile, invoke] of [
     CORE.strengthOfStone,
     (c) => applyElementalistResolvedCondition(c, { type: 'condition', condition: 'Immobilized', at: c.effectiveEnd })
   ],
-  ['Evasive Arcana', 'evasiveArcanaWater', CORE.evasiveArcana, (c) => triggerEvasiveArcana(c, skill)]
+  ['Evasive Arcana', 'evasiveArcanaWater', CORE.evasiveArcana, (c) => triggerEvasiveArcana(c, c, skill)]
 ]) {
   test(`${trait} retains eligibility, zero override and strict owner-local deadlines`, () => {
     for (const duration of [2, 0]) {
@@ -90,7 +66,7 @@ for (const [trait, key, profile, invoke] of [
       core.primaryAttunement = 'Water';
       const profiles = new Map(elementalistCatalog.balanceProfilesById);
       profiles.set(profile, { ...profiles.get(profile), internalCooldown: duration });
-      context.catalog = { ...elementalistCatalog, balanceProfilesById: profiles };
+      context.helpers = { ...context.helpers, balanceProfilesById: profiles };
       invoke(context);
       assert.deepEqual(core.procReadyAt, {});
       context.traits.add(trait);
@@ -114,11 +90,11 @@ for (const [trait, key, profile, invoke] of [
   });
 }
 
-test('Catalyst combo claims stay per element, per trait and per phase, including Water', () => {
+test('Catalyst combo claims stay per element, and per trait, including Water', () => {
   for (const duration of [2, 0]) {
-    for (const handler of [applyCatalystComboTraits, catalystSchedulerHooks.onEventScheduled.handler]) {
+    for (const handler of [applyCatalystComboTraits]) {
       const invoke = (context, event) => {
-        context.state.time = event.at;
+        context.time = event.at;
         handler(context, event);
       };
 
@@ -129,8 +105,8 @@ test('Catalyst combo claims stay per element, per trait and per phase, including
         profiles.set(id, { ...profiles.get(id), internalCooldown: duration });
       }
 
-      context.catalog = { ...elementalistCatalog, balanceProfilesById: profiles };
-      const combo = { type: 'combo', at: 1, sourceId: 1, schedulerPrediction: 'combo-result' };
+      context.helpers = { ...context.helpers, balanceProfilesById: profiles };
+      const combo = { type: 'combo', at: 1, sourceId: 1 };
       invoke(context, combo);
       assert.deepEqual(state.elementalEpitomeReadyAt, {});
       context.traits = new Set(['Elemental Epitome', 'Elemental Synergy']);
@@ -146,10 +122,6 @@ test('Catalyst combo claims stay per element, per trait and per phase, including
         assert.equal(state.elementalSynergyReadyAt[element], 1 + duration + 0.000001 + duration);
       }
 
-      if (handler === catalystSchedulerHooks.onEventScheduled.handler) {
-        assert.ok(events.every((event) => event.schedulerPrediction === 'combo-result'));
-      }
-
       assert.deepEqual(catalystState.create().elementalSynergyReadyAt, {});
     }
   }
@@ -161,19 +133,19 @@ test('Evoker real and synthetic entry share profile timers without changing trai
   const { context, core } = contextFor('Evoker', state);
   const earth = elementalistCatalog.skillsByName.get('Earth Attunement');
   // Real entry intentionally consults the policy before downstream trait selection.
-  completeEvokerAttunement(context, earth);
+  completeEvokerAttunement(context, context, earth);
   assert.equal(state.attunementTraitProcReadyAt[CORE.earthenBlast], 6);
   assert.equal(state.attunementTraitProcReadyAt[CORE.rockSolid], 6);
   context.traits = new Set(['Earthen Blast', 'Rock Solid']);
   core.primaryAttunement = 'Earth';
   context.effectiveEnd = 6;
-  triggerSpecializedElementEntry(context, skill, 'Earth');
+  triggerSpecializedElementEntry(context, context, skill, 'Earth');
   assert.equal(state.attunementTraitProcReadyAt[CORE.rockSolid], 6);
   context.effectiveEnd += 0.000001;
-  triggerSpecializedElementEntry(context, skill, 'Earth');
+  triggerSpecializedElementEntry(context, context, skill, 'Earth');
   assert.equal(state.attunementTraitProcReadyAt[CORE.rockSolid], context.effectiveEnd + 5);
   assert.equal(state.attunementTraitProcReadyAt[CORE.earthenBlast], context.effectiveEnd + 5);
   const other = contextFor('Evoker', evokerState.create());
-  triggerSpecializedElementEntry(other.context, skill, 'Earth');
+  triggerSpecializedElementEntry(other.context, other.context, skill, 'Earth');
   assert.deepEqual(other.context.profession.specialization.state.attunementTraitProcReadyAt, {});
 });

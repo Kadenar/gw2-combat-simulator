@@ -650,7 +650,7 @@ test('Mirage can queue an ambush before its window closes without extending the 
       assert.equal(ambush.start, 1600);
       assert.deepEqual(result.warnings, []);
     } else {
-      assert.deepEqual(result.warnings, ['Fractured Glass has no active Mirage Cloak ambush window.']);
+      assert.deepEqual(result.warnings, ['Fractured Glass: Fractured Glass has no active Mirage Cloak ambush window.']);
     }
   }
 });
@@ -750,12 +750,12 @@ test('Sigil of Energy restores one Mirage dodge charge on weapon swap', () => {
     })
   );
   const dodges = result.steps.filter((step) => step.skill === 'Dodge / Mirage Cloak' && !step.invalid);
-  const energy = result.events.find((event) => event.type === 'proc' && event.sourceId === 'sigil.energy');
+  const energy = result.procSteps.find((proc) => proc.skill === 'Sigil of Energy');
 
   assert.deepEqual(result.warnings, []);
   assert.equal(dodges.length, 3);
   assert.ok(energy);
-  assert.equal(dodges[2].start, energy.at * 1000);
+  assert.equal(dodges[2].start, energy.start);
 });
 
 test("Nomad's Endurance grants vigor on shatter and uses it for damage", () => {

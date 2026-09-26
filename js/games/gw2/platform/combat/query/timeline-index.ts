@@ -21,6 +21,7 @@ import { insertSorted } from '#kernel/core/collections.js';
 import { eventCausalOrder } from '#kernel/events/queue.js';
 
 interface CreateGw2TimelineIndexOptions {
+  readonly skillOnCooldown?: (skillId: import('#gw2/platform/engine/skills/types.js').SkillId, time: number) => boolean;
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
   readonly skillsById?: ReadonlyMap<SkillId, Skill>;
@@ -50,6 +51,7 @@ interface CachedBuffStacks {
  */
 export function createGw2TimelineIndex({
   config = {},
+  skillOnCooldown,
   events = [],
   skillsById,
   resolved = false,
@@ -285,6 +287,7 @@ export function createGw2TimelineIndex({
 
   const skillOnCooldownAt = (skillId: SkillId, time: number): boolean => {
     time = canonicalTime(time);
+    if (skillOnCooldown) return skillOnCooldown(skillId, time);
     refreshQueryCache(time);
     const cached = cooldownCache.get(skillId);
     if (cached !== undefined) return cached;

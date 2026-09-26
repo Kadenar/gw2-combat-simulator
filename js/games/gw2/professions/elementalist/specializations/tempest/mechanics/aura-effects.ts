@@ -43,9 +43,7 @@ export function applyTempestResolverAura(context: ElementalistResolverContext, e
     recordElementalistTraitProc(context, event, 'Tempestuous Aria');
   }
 
-  // Scheduled auras already carry their boon grants; Aria's resolver-owned window still updates above.
-  if (event.elementalistResolverGeneratedAura !== true && event.type !== 'aura') return;
-
+  // Both skill and combo auras grant their trait boons only after actual application.
   for (const trait of ['Invigorating Torrents', 'Elemental Bastion'] as const) {
     if (!hasTrait(context, trait)) continue;
     const boons = tempestAuraBoons(context, trait);

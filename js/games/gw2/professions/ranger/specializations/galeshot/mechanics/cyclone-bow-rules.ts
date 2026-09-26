@@ -1,3 +1,4 @@
+import { emitRangerBuff, rangerEvent } from '#gw2/professions/ranger/core/live-events.js';
 import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 import {
   requireBalanceProfileFromContext,
@@ -5,33 +6,24 @@ import {
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { RangerCastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-import {
-  completeGaleshotSkill,
-  galeshotDisableReaction,
-  galeshotMissileReaction,
-  galeshotPetReaction,
-  observeGaleshotEvent
-} from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 
 // Grant Cloudburst's profile-defined party boons from the qualifying reset skill
 // at cast completion.
-function emitCloudburstBoons(context: RangerCastContext, skill: RangerSkill): void {
+function emitCloudburstBoons(context: RangerRuntime, skill: RangerSkill): void {
   if (!hasTrait(context, TRAIT.CLOUDBURST)) return;
   const hawkeye = skill.id === ID.HAWKEYE;
   const profile = requireBalanceProfileFromContext(context, PROFILE.cloudburst);
@@ -40,25 +32,31 @@ function emitCloudburstBoons(context: RangerCastContext, skill: RangerSkill): vo
     const effect = requireEffect(profile, 'boon', name);
     if (!effect) continue;
     const kind = String(effect.boon);
-    emitSkillBuff(context, {
-      at: context.effectiveEnd,
-      source: 'Trait',
-      sourceId: TRAIT.CLOUDBURST,
-      actorType: 'effect',
-      skillId: TRAIT.CLOUDBURST,
-      skillName: 'Cloudburst',
-      name: `Cloudburst - ${kind}`,
-      kind,
-      boon: kind,
-      duration: gw2SchedulerBoonDuration(context, skill, kind, effectNumber(profile, effect, 'duration')),
-      stacks: effectNumber(profile, effect, 'stacks'),
-      audience: { recipients: 'party' as const, maximumRecipients: 5 },
-      triggeredBy: skill.name
-    });
+    emitRangerBuff(
+      context,
+      rangerEvent(
+        {
+          at: context.time,
+          source: 'Trait',
+          sourceId: TRAIT.CLOUDBURST,
+          actorType: 'effect',
+          skillId: TRAIT.CLOUDBURST,
+          skillName: 'Cloudburst',
+          name: `Cloudburst - ${kind}`,
+          kind,
+          boon: kind,
+          duration: effectNumber(profile, effect, 'duration'),
+          stacks: effectNumber(profile, effect, 'stacks'),
+          audience: { recipients: 'party' as const, maximumRecipients: 5 },
+          triggeredBy: skill.name
+        },
+        'buff'
+      )
+    );
   }
 }
 
-export function applyGaleshotCycloneBowTraits(context: RangerCastContext, skill: RangerSkill): void {
+export function applyGaleshotCycloneBowTraits(context: RangerRuntime, skill: RangerSkill): void {
   const state = galeshotState.from(context);
   if (skill.id === ID.HAWKEYE) {
     if (hasTrait(context, TRAIT.GALE_FORCE)) {
@@ -68,19 +66,25 @@ export function applyGaleshotCycloneBowTraits(context: RangerCastContext, skill:
       if (effect) {
         const duration = effectNumber(profile, effect, 'duration');
         // galeForceUntil is a timestamp, not a duration; compare against context.time in modifiers.
-        state.galeForceUntil = context.effectiveEnd + duration;
-        emitSkillBuff(context, {
-          at: context.effectiveEnd,
-          source: 'Trait',
-          sourceId: TRAIT.GALE_FORCE,
-          actorType: 'effect',
-          skillId: TRAIT.GALE_FORCE,
-          skillName: 'Gale Force',
-          kind: String(effect.kind),
-          duration,
-          stacks: effectNumber(profile, effect, 'stacks'),
-          triggeredBy: skill.name
-        });
+        state.galeForceUntil = context.time + duration;
+        emitRangerBuff(
+          context,
+          rangerEvent(
+            {
+              at: context.time,
+              source: 'Trait',
+              sourceId: TRAIT.GALE_FORCE,
+              actorType: 'effect',
+              skillId: TRAIT.GALE_FORCE,
+              skillName: 'Gale Force',
+              kind: String(effect.kind),
+              duration,
+              stacks: effectNumber(profile, effect, 'stacks'),
+              triggeredBy: skill.name
+            },
+            'buff'
+          )
+        );
       }
     }
 
@@ -92,7 +96,7 @@ export function applyGaleshotCycloneBowTraits(context: RangerCastContext, skill:
     // Wuthering Wind is primed by Bluster; the charge is only consumable at or
     // after effectiveEnd so the same cast can't immediately trigger itself.
     state.wutheringWindReady = hasTrait(context, TRAIT.WUTHERING_WIND);
-    state.wutheringWindReadyAt = context.effectiveEnd;
+    state.wutheringWindReadyAt = context.time;
     emitCloudburstBoons(context, skill);
   }
 
@@ -105,27 +109,9 @@ export function applyGaleshotCycloneBowTraits(context: RangerCastContext, skill:
   }
 }
 
-export const galeshotSchedulerHooks = Object.freeze({
-  onCastComplete: {
-    id: 'ranger.galeshot-traits',
-    order: 20,
-    handler: completeGaleshotSkill
-  },
-  onEventScheduled: {
-    id: 'ranger.galeshot-events',
-    order: 20,
-    handler: observeGaleshotEvent
-  },
-  taskHandlers: Object.freeze({
-    ...galeshotMissileReaction.taskHandlers,
-    ...galeshotPetReaction.taskHandlers,
-    ...galeshotDisableReaction.taskHandlers
-  })
-});
-
 // Gate Galeshot casts by Cyclone Bow ownership, arrows, Wind Force, and the
 // Perilous Skies replacement before the shared Ranger checks run.
-function galeshotCastAvailability(context: RangerCastContext, skill: RangerSkill): AvailabilityResult {
+export function galeshotCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {
   const state = galeshotState.from(context);
   if (skill.cycloneBowSkill && !state.cycloneBowActive) {
     return deny(skill, 'ranger.cyclone-bow-inactive', 'summon the Cyclone Bow first.');
@@ -262,11 +248,4 @@ export const galeshotModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 
 export const galeshotAttributeRules = Object.freeze({
   modifierRules: galeshotModifierRules
-});
-export const galeshotCastRules = Object.freeze({
-  availability: {
-    id: 'ranger.galeshot-availability',
-    order: 20,
-    handler: galeshotCastAvailability
-  }
 });

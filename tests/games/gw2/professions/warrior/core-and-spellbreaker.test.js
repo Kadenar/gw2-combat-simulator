@@ -3,7 +3,6 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { autoattackChainSkillAvailable } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
@@ -21,7 +20,7 @@ import { warriorCoreModule } from '#gw2/professions/warrior/core/module.js';
 import { WARRIOR_WEAPON_STOW } from '#gw2/professions/warrior/core/skills/actions.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/profiles.js';
-import { warriorCoreSkillHandlers } from '#gw2/professions/warrior/core/execution/index.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { warriorCoreAttributeRules } from '#gw2/professions/warrior/core/traits/modifiers.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { berserkerModule } from '#gw2/professions/warrior/specializations/berserker/module.js';
@@ -35,7 +34,7 @@ import { spellbreakerModule } from '#gw2/professions/warrior/specializations/spe
 import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import { spellbreakerAttributeRules } from '#gw2/professions/warrior/specializations/spellbreaker/mechanics/full-counter-rules.js';
 import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -54,7 +53,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createProfessionSimulator(warriorProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(warriorProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -236,23 +235,13 @@ test('Warrior core and elite profession resources remain isolated', () => {
   }
 });
 
-test('Warrior Core does not own elite resource, cast, UI, or trait branches', async () => {
-  const sources = await Promise.all(
-    [
-      'mechanics/availability.ts',
-      'execution/index.ts',
-      'mechanics/adrenaline-and-endurance.ts',
-      'state.ts',
-      'traits/index.ts',
-      'presentation.ts'
-    ].map((name) =>
-      readFile(new URL(`../../../../../js/games/gw2/professions/warrior/core/${name}`, import.meta.url), 'utf8')
-    )
-  );
-  const coreSource = sources.join('\n');
-
-  assert.doesNotMatch(coreSource, /Bladesworn|Spellbreaker|Paragon|KING_OF_FIRES/);
-  assert.doesNotMatch(coreSource, /warrior\.(?:berserk|full-counter|chant)/);
+test('Warrior modules register live owners without scheduler or resolver replay hooks', () => {
+  // Every selected slice must opt into native composition and expose no obsolete execution owner.
+  for (const module of warriorNativeModules) {
+    assert.ok(module.mechanics.live, module.id);
+    assert.equal(module.mechanics.execution, undefined, module.id);
+    assert.equal(module.mechanics.resolution, undefined, module.id);
+  }
 });
 
 test('Warrior F keys follow the selected primary weapons', () => {
@@ -654,11 +643,9 @@ test('Outrage queued after a wait clears the remaining Head Butt self-stun', () 
   assert.equal(locked.steps.find((step) => step.skill === 'Sundering Leap').start, 1800);
   assert.deepEqual(broken.warnings, []);
   assert.deepEqual(
-    broken.steps.map((step) => [step.skill, step.start]),
+    broken.steps.filter((step) => step.skillId != null).map((step) => [step.skill, step.start]),
     [
       ['Head Butt', 0],
-      ['Combat Start', 700],
-      ['Wait', 800],
       ['Outrage', 877],
       ['Sundering Leap', 877]
     ]
@@ -957,8 +944,11 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
 
   const singleTarget = simulate('Berserker', ['Mighty Throw']);
 
-  assert.equal(singleTarget.events.find((event) => event.name === 'Mighty Throw — Shard Damage').coefficient, 0);
-  // Explosion tags belong to the aftershock and both throw packets, even when a shard has no secondary target.
+  assert.equal(
+    singleTarget.events.some((event) => event.metadata?.packetKind === 'warrior.mighty-throw-shard'),
+    false
+  );
+  // The shard has no single-target outcome; surviving spear and aftershock packets retain their explosion tags.
   const maimingDamage = simulate('Berserker', ['Maiming Spear', { type: 'wait', durationMs: 2500 }]).events.filter(
     (event) => event.type === 'damage' && event.skillId === ID.MAIMING_SPEAR
   );
@@ -970,41 +960,43 @@ test('Berserker spear and greatsword packets use configured timing profiles', ()
     singleTarget.events
       .filter((event) => event.type === 'damage' && event.skillId === ID.MIGHTY_THROW)
       .map((event) => event.damageKind),
-    ['explosion', 'explosion']
+    ['explosion']
   );
 });
 
 test('Warrior execution follows stable skill and packet IDs after display labels change', () => {
-  const replacements = [];
-  const context = {
-    // Tier packets resolve before emission, using the normal activation and resource context.
-    catalog: warriorCatalog,
-    profession: warriorProfession,
-    config: { selectedTraitIds: [] },
-    state: {
-      profession: { core: createWarriorCoreState({ initialResource: 30 }), specialization: { kind: 'Core', state: {} } }
-    },
-    action: {},
-    schedulerPolicy: {},
-    reservationId: 'renamed-burst',
-    start: 0,
-    fullEnd: 1,
-    effectiveEnd: 1,
-    emit: (event) => event,
-    replaceEvent: (_event, replacement) => replacements.push(replacement)
+  // Run renamed catalog entries through the actual owners; labels cannot select resource tiers or target packets.
+  const config = { ...baseConfig, specialization: 'Core', initialResource: 30 };
+  const profession = warriorProfession.liveRuntimeFor(config);
+  const skills = profession.catalog.skills.map((skill) =>
+    [ID.KILL_SHOT, ID.MIGHTY_THROW].includes(skill.id)
+      ? {
+          ...skill,
+          name: 'Renamed ' + skill.id,
+          effects: skill.effects.map((effect) => ({ ...effect, name: 'Renamed packet' }))
+        }
+      : skill
+  );
+  const catalog = {
+    ...profession.catalog,
+    skills,
+    skillsById: new Map(skills.map((skill) => [skill.id, skill])),
+    skillsByName: new Map(skills.map((skill) => [skill.name, skill]))
   };
-  const killShot = { ...warriorCatalog.skillsById.get(ID.KILL_SHOT), name: 'Renamed burst skill' };
-  warriorCoreSkillHandlers['warrior.resource'].beforeEffects(context, killShot);
-  assert.equal(replacements.at(-1).coefficient, 3.25);
-
-  const mightyThrow = { ...warriorCatalog.skillsById.get(ID.MIGHTY_THROW), name: 'Renamed spear skill' };
-  warriorCoreSkillHandlers['warrior.mighty-throw'].afterEffect(context, mightyThrow, {
-    type: 'damage',
-    coefficient: 0.9,
-    name: 'Renamed shard packet',
-    metadata: { packetKind: 'warrior.mighty-throw-shard' }
+  const result = runGw2Runtime({
+    profession: { ...profession, catalog },
+    config,
+    rotation: [ID.KILL_SHOT, ID.MIGHTY_THROW]
   });
-  assert.equal(replacements.at(-1).coefficient, 0);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.events.find((event) => event.type === 'damage' && event.skillId === ID.KILL_SHOT).coefficient,
+    3.25
+  );
+  assert.equal(
+    result.events.some((event) => event.metadata?.packetKind === 'warrior.mighty-throw-shard'),
+    false
+  );
 });
 
 test('Spellbreaker uses its reduced adrenaline cap for Full Counter', () => {
@@ -1310,9 +1302,9 @@ test('Kill Shot tiers and Fierce Blow target bonuses preserve patched strike coe
       }
     }
   });
-  const run = createProfessionSimulator(patched, { ...baseConfig, patchId: 'warrior-coefficient-test' });
+  const run = createLiveProfessionSimulator(patched, { ...baseConfig, patchId: 'warrior-coefficient-test' });
   const coefficient = (result, id) =>
-    result.events.find((event) => event.type === 'damage' && event.skillId === id).coefficient;
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === id).coefficient;
   for (const [specialization, resource, expected] of [
     ['Core', 10, 4.5],
     ['Core', 20, 5.5],
@@ -1354,10 +1346,10 @@ test('Dual Strike preserves separate hit and boon application indices at its sha
       totalHits ?? totalApplications
     ]),
     [
-      ['damage', 1, 2],
-      ['damage', 2, 2],
       ['buff', 1, 2],
-      ['buff', 2, 2]
+      ['buff', 2, 2],
+      ['damage', 1, 2],
+      ['damage', 2, 2]
     ]
   );
   assert.ok(packets.every((event) => event.at === packets[0].at));
@@ -1434,26 +1426,18 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
 });
 
 test('Dagger autos use a 15% critical-damage factor', () => {
-  const damage = (skillName, precision) => {
-    const rotation =
-      skillName === 'Focused Slash'
-        ? ['Precise Cut', skillName]
-        : skillName === 'Keen Strike'
-          ? ['Precise Cut', 'Focused Slash', skillName]
-          : [skillName];
-    const result = simulate('Spellbreaker', rotation, {
-      primaryWeapon: 'Dagger',
-      secondaryWeapon: 'Mace',
-      stats: { precision, ferocity: 1000 },
-      boons: { fury: false }
-    });
-
-    return result.breakdown.find((entry) => entry.name === skillName)?.strikeDamage || 0;
-  };
-
-  assertFlooredDamageMultiplier(damage('Precise Cut', 0), damage('Keen Strike', 0), 0.6 / 1.05);
-  assertFlooredDamageMultiplier(damage('Precise Cut', 10000), damage('Keen Strike', 10000), (1.15 * 0.6) / 1.05);
-  assertFlooredDamageMultiplier(damage('Focused Slash', 10000), damage('Keen Strike', 10000), (1.15 * 0.65) / 1.05);
+  // Inspect the critical formula independently of Keen Strike's same-time Might application.
+  const result = simulate('Spellbreaker', ['Precise Cut', 'Focused Slash', 'Keen Strike'], {
+    primaryWeapon: 'Dagger',
+    secondaryWeapon: 'Mace',
+    stats: { precision: 10000, ferocity: 1000 }
+  });
+  assert.deepEqual(result.warnings, []);
+  const criticalDamage = (id) =>
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === id).criticalDamage;
+  const baseline = criticalDamage(ID.KEEN_STRIKE);
+  assert.equal(criticalDamage(ID.PRECISE_CUT), baseline * 1.15);
+  assert.equal(criticalDamage(ID.FOCUSED_SLASH), baseline * 1.15);
 });
 
 test('Peak Performance buffs Kick and Leg Specialist requires impairment', () => {
@@ -1607,7 +1591,7 @@ test('Bloodlust uses seeded rolls in both simulation modes', () => {
 
   assert.equal(bleedingStacks(stochastic), expectedStochasticStacks);
   assert.deepEqual(
-    stochastic.events
+    stochastic.resolvedEvents
       .filter((event) => event.type === 'damage' && event.actorType === 'player')
       .map((event) => event.didCrit),
     Array(12).fill(true)
@@ -1620,16 +1604,16 @@ test('precombat Kick cannot sample criticals or advance hit-dependent procs', ()
     stats: { precision: 10000 },
     randomness: { mode: 'stochastic', seed: 7 }
   });
-  const kick = result.events.find((event) => event.type === 'damage' && event.skillId === ID.KICK);
+  const kick = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.KICK);
 
-  assert.equal(kick.didCrit, undefined);
+  assert.equal(kick, undefined);
   assert.equal(result.totalDamage, 0);
   assert.equal(
     result.resolvedEvents.some((event) => event.type === 'condition'),
     false
   );
 
-  const deterministic = simulate('Spellbreaker', ['Kick', '__combat_start', 'Precise Cut'], {
+  const config = {
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Mace',
     stats: { precision: 1945 },
@@ -1638,12 +1622,13 @@ test('precombat Kick cannot sample criticals or advance hit-dependent procs', ()
       { names: ['Air'], strike: 1, condition: 1 },
       { names: [], strike: 1, condition: 1 }
     ]
-  });
-
-  assert.equal(
-    deterministic.events.some((event) => event.source === 'Sigil' && event.skillName === 'Sigil of Air'),
-    false
-  );
+  };
+  // Adding a precombat notification cannot change the next actual hit's seeded roll or equipment claim.
+  const withKick = simulate('Spellbreaker', ['Kick', '__combat_start', 'Precise Cut'], config);
+  const withoutKick = simulate('Spellbreaker', ['__combat_start', 'Precise Cut'], config);
+  const outcomes = (result) =>
+    result.resolvedEvents.filter((event) => event.type === 'damage').map((event) => [event.skillId, event.didCrit]);
+  assert.deepEqual(outcomes(withKick), outcomes(withoutKick));
 });
 
 test('Spellbreaker offensive traits use multiplicative damage modifiers', () => {

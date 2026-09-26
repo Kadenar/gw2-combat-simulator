@@ -1,9 +1,8 @@
 import { resolverSourceSkill, buildResolverStrike, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 /**
- * Resolver-side Catalyst reactions.
+ * Accepted-impact Catalyst reactions.
  *
- * The scheduler emits the canonical event stream; these handlers read it after
- * resolution to grant Empowering Auras and Elemental Empowerment stacks, run the
+ * These handlers observe actual event outcomes to grant Empowering Auras and Elemental Empowerment stacks, run the
  * combo-finisher traits (Elemental Epitome, Elemental Synergy), pay out Vicious
  * Empowerment, and queue the Shattering Ice packet.
  */
@@ -19,8 +18,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { grantEndurance } from '#gw2/platform/combat/resources/endurance.js';
-import type { ElementalistResolverContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import {
   activeElementalistBuffs,
   queueElementalistAura,
@@ -40,7 +38,6 @@ import {
   elementalEpitomeAura,
   elementalSynergyBoon
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/aura-parameters.js';
-import { elementalistEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
 
 /**
  * Convert resolved aura applications into Catalyst aura-stack traits and their
@@ -50,16 +47,15 @@ import { elementalistEndurance } from '#gw2/professions/elementalist/core/mechan
  * Elemental Epitome turns the same aura into an Elemental Empowerment stack, but
  * only once combat has started.
  */
-export function applyCatalystResolverAura(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
+export function applyCatalystResolverAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   // Scheduled auras already carry their trait grants; only newly resolved auras
   // need new grants here. Both paths still refresh Empowering Auras' duration.
-  const needsGrants = event.elementalistResolverGeneratedAura === true || event.type === 'aura';
   if (hasTrait(context, 'Empowering Auras')) {
     const { maximumStacks, duration } = empoweringAurasParameters(context);
     const current = activeElementalistBuffs(context, 'Empowering Auras', event.at);
     refreshElementalistBuffs(context, 'Empowering Auras', event.at, () => event.at + duration);
     const activeStacks = current.reduce((total, application) => total + Number(application.stacks || 1), 0);
-    if (needsGrants && activeStacks < maximumStacks) {
+    if (activeStacks < maximumStacks) {
       queueElementalistBuff(context, event, 'Empowering Auras', 1, duration, resolverSourceSkill(event));
     }
 
@@ -67,7 +63,6 @@ export function applyCatalystResolverAura(context: ElementalistResolverContext, 
   }
 
   if (
-    !needsGrants ||
     !hasTrait(context, 'Elemental Epitome') ||
     (context.combatStartTime != null && event.at < context.combatStartTime)
   ) {
@@ -93,7 +88,7 @@ export function applyCatalystResolverAura(context: ElementalistResolverContext, 
  * Elemental Synergy runs on its own per-attunement cooldown and pays out by
  * element: might in Fire, stability in Earth, endurance in Air.
  */
-export function applyCatalystComboTraits(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
+export function applyCatalystComboTraits(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   const core = professionCoreState(context);
   const state = catalystState.from(context);
   const attunement = core.primaryAttunement;
@@ -128,15 +123,7 @@ export function applyCatalystComboTraits(context: ElementalistResolverContext, e
     } else if (attunement === 'Air') {
       const elementalSynergyProfile = requireBalanceProfileFromContext(context, PROFILE.elementalSynergy);
 
-      Object.assign(
-        core,
-        grantEndurance(
-          core,
-          balanceProfileNumber(elementalSynergyProfile, 'resourceGain'),
-          event.at,
-          elementalistEndurance.maximum(context)
-        )
-      );
+      context.endurance.grant(balanceProfileNumber(elementalSynergyProfile, 'resourceGain'));
     }
 
     recordElementalistTraitProc(context, event, 'Elemental Synergy');

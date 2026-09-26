@@ -6,7 +6,7 @@
  * Glyph of Elementals summons.
  *
  * These are pure data fragments — no behavior. Stateful behavior is owned by the corresponding
- * mechanic subsystem, while `mechanicTriggers` names handlers in `core/execution/index.ts`.
+ * mechanic subsystem, while `elementalistTasks` names handlers in `core/execution/index.ts`.
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/engine/effects/authoring.js';
@@ -461,7 +461,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, P
     cooldown: 12,
     skillFamily: 'Signet',
     // Activating the signet disables its passive until recharge unless Written in Stone preserves it.
-    mechanicTriggers: [
+    elementalistTasks: [
       {
         type: 'elementalist.core.disable-signet-of-fire-passive',
         timingAnchor: 'castEnd'

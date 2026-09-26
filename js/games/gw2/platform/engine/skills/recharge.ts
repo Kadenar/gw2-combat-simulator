@@ -50,7 +50,7 @@ export function* gw2RechargeIntervals(
   end: number
 ): Iterable<RechargeInterval> {
   if (end <= start) return;
-  if (skill.name === 'Swap Weapons') {
+  if (skill.name === 'Swap Weapons' || skill.rechargeIgnoresAlacrity) {
     yield { start, end, rate: 1 };
     return;
   }

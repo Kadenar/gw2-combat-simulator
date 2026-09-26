@@ -17,8 +17,7 @@ const extraSkills: Skill[] = [
     rechargeAnchor: 'castStart',
     cooldown: 10,
     // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
-    inputCategory: 'weapon-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'necromancer.weapon-swap',
+    inputCategory: 'weapon-swap',
     effects: []
   },
   {
@@ -31,8 +30,6 @@ const extraSkills: Skill[] = [
     slot: 'Profession_1',
     castTimeMs: 0,
     cooldown: 0,
-    // Custom: Enters or exits Lich Form and updates transform state; see `core/mechanics/shroud.ts`.
-    handlerId: 'necromancer.lich',
     flipParentId: ID.LICH_FORM,
     flipParent: 'Lich Form',
     effects: []

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { snapshotProfessionState, restoreFlatProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -15,22 +15,20 @@ import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.j
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
 test('force clocks are detached in snapshots and planning projections and absent for inactive specializations', () => {
-  // Replay and presentation share one clock shape without sharing mutable resource state.
+  // Snapshots and presentation share one clock shape without sharing mutable resource state.
   for (const [profession, specialization, clockKey, project] of [
     [rangerProfession, 'Druid', 'astralClock', projectRangerPlanningState],
     [thiefProfession, 'Specter', 'shadowClock', projectThiefPlanningState]
   ]) {
     const config = { specialization };
-    const runtime = profession.resolveRuntime(config);
-    const state = runtime.createProfessionState(config);
+    const runtime = profession.liveRuntimeFor(config);
+    const state = runtime.createState(config);
     const clock = state.specialization.state[clockKey];
     Object.assign(clock, { value: 37, maximum: 90, updatedAt: 2 });
     const detached = snapshotProfessionState(state);
-    const restored = runtime.createProfessionState(config);
-    restoreFlatProfessionState(restored.core, restored.specialization.state, detached);
-    assert.deepEqual(restored.specialization.state[clockKey], clock);
-    assert.notEqual(restored.specialization.state[clockKey], clock);
-    const projected = project({ schedulerState: { profession: state, time: 2 } });
+    assert.deepEqual(detached[clockKey], clock);
+    assert.notEqual(detached[clockKey], clock);
+    const projected = project({ profession: state, time: 2 });
     assert.deepEqual(projected[clockKey], clock);
     assert.notEqual(projected[clockKey], clock);
     // Projection must leave the live resource and its capacity untouched.
@@ -61,10 +59,8 @@ test('force clocks are detached in snapshots and planning projections and absent
     assert.equal(clock.value, 12);
     assert.equal(detached[clockKey].value, 37);
 
-    const core = profession
-      .resolveRuntime({ specialization: 'Core' })
-      .createProfessionState({ specialization: 'Core' });
-    const inactive = project({ schedulerState: { profession: core, time: 0 } });
+    const core = profession.liveRuntimeFor({ specialization: 'Core' }).createState({ specialization: 'Core' });
+    const inactive = project({ profession: core, time: 0 });
     assert.equal(inactive[clockKey], undefined);
   }
 });
@@ -290,18 +286,9 @@ test('Ranger snapshots expose elite windows and resolver-owned Ferocious Symbios
   assert.equal(untamed['untamed-ferocious-symbiosis-pet'], '5/5 · 4.0s');
 
   const projected = projectRangerPlanningState({
-    schedulerState: {
-      profession: {
-        core: {},
-        specialization: { kind: 'Untamed', state: { rangerUnleashed: true, ambushReadyUntil: 7 } }
-      }
-    },
-    resolverState: {
+    profession: {
       core: {},
-      specialization: {
-        kind: 'Untamed',
-        state: { ferociousSymbiosisPlayerStacks: 4, ferociousSymbiosisPlayerUntil: 10 }
-      }
+      specialization: { kind: 'Untamed', state: { rangerUnleashed: true, ambushReadyUntil: 7 } }
     }
   });
   assert.equal(projected.ferociousSymbiosisPlayerStacks, 0);

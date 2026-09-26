@@ -7,7 +7,6 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
   [ID.BLOSSOMING_AURA]: {
     castTimeMs: 600,
     interruptCommitMs: 480,
-    handlerId: 'revenant.blossoming-aura',
     rechargeAnchor: 'castStart',
     duration: 4,
     pulseInterval: 1,
@@ -149,7 +148,6 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.DETONATE_BLOSSOMING_AURA]: {
-    handlerId: 'revenant.detonate-blossoming-aura',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,

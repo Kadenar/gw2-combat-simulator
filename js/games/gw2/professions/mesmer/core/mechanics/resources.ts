@@ -1,13 +1,12 @@
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { mesmerNumericResourceState } from '#gw2/professions/mesmer/family-state.js';
 import { triggerCompoundingPower } from '#gw2/professions/mesmer/core/traits/index.js';
-import type { SchedulerState } from '#gw2/platform/execution/types.js';
 import type {
   MesmerActivePrimaryWeapon,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerRuntime,
-  MesmerRuntimeState
+  MesmerMechanics
 } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerClone,
@@ -22,7 +21,7 @@ import type {
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 
 interface ResourceControllerOptions {
-  readonly state: SchedulerState<MesmerRuntimeState>;
+  readonly state: MesmerRuntime;
   readonly traits: ReadonlySet<number>;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly clamp: (value: number, minimum: number, maximum: number) => number;
@@ -31,8 +30,8 @@ interface ResourceControllerOptions {
   readonly addEvent: MesmerAddEvent;
   readonly addTraitProc: MesmerAddTraitProc;
   readonly destroyClone: MesmerDestroyClone;
-  readonly scheduleResourceTask?: ((candidate: MesmerPendingResource) => unknown) | null;
-  readonly balanceProfile: MesmerRuntime['balanceProfile'];
+  readonly scheduleResourceTask: (candidate: MesmerPendingResource) => unknown;
+  readonly balanceProfile: MesmerMechanics['balanceProfile'];
 }
 
 /** Owns shared clone or numeric resource gains and exposes committed gains to active specialization reactions. */
@@ -46,7 +45,7 @@ export function createResourceController({
   addEvent,
   addTraitProc,
   destroyClone,
-  scheduleResourceTask = null,
+  scheduleResourceTask,
   balanceProfile
 }: ResourceControllerOptions): MesmerResourceController {
   let cloneSequence = 0;
@@ -131,13 +130,7 @@ export function createResourceController({
     reason: string,
     cause: MesmerResourceCause = {}
   ): void => {
-    if (scheduleResourceTask) {
-      scheduleResourceTask({ at, count, weapon, reason, cause });
-      return;
-    }
-
-    professionCoreState(state).pendingResources.push({ at, count, weapon, reason, cause });
-    professionCoreState(state).pendingResources.sort((left, right) => left.at - right.at);
+    scheduleResourceTask({ at, count, weapon, reason, cause });
   };
 
   return {

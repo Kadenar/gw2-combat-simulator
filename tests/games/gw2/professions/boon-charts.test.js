@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { professionRegistry } from '#gw2/app/profession-registry.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 
 // Minimal native casts cover scheduled and resolver-generated boons across all nine professions.
 const cases = {
@@ -26,7 +26,7 @@ for (const entry of professionRegistry) {
   test(`${entry.id} generated boons appear in the effects chart`, async () => {
     const profession = await entry.loadProfession();
     const [skill, config, traits, boons] = cases[profession.id];
-    const result = simulateGw2({
+    const options = {
       profession,
       // Scenarios begin in combat so combat-only traits, such as Zephyr's Boon on a self aura, are eligible.
       rotation: [{ type: 'combat-start' }, skill, { type: 'wait', durationMs: 1000 }],
@@ -36,7 +36,9 @@ for (const entry of professionRegistry) {
         stats: { power: 2000, precision: 4000, vitality: 1000 },
         selectedTraitIds: traits.map((name) => profession.catalog.traits.find((trait) => trait.name === name).id)
       }
-    });
+    };
+    // Every family now shares the native execution boundary.
+    const result = runGw2Runtime({ ...options, profession: profession.liveRuntimeFor(options.config) });
     assert.deepEqual(result.warnings, []);
     const series = buildChartSeries(result);
     for (const boon of boons) {
@@ -47,11 +49,11 @@ for (const entry of professionRegistry) {
       );
     }
 
-    // A trait generated after hit resolution must be visible despite having no scheduled buff record.
+    // A trait generated after hit resolution must be visible in the single live event history.
     if (profession.id === 'engineer') {
       assert.equal(
         result.events.some((event) => event.type === 'buff' && event.kind === 'fury'),
-        false
+        true
       );
       assert.equal(result.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'fury').length, 1);
     }

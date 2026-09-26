@@ -14,6 +14,7 @@ export const MESMER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     description: 'Swap between weapon sets. The swap has a 10-second recharge.',
     icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
     type: 'Action',
+    inputCategory: 'weapon-swap',
     slot: 'Action',
     castTimeMs: 0,
     rechargeAnchor: 'castStart',

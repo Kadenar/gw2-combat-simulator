@@ -19,17 +19,13 @@ import { daredevilModifierRules } from '#gw2/professions/thief/specializations/d
 import { THIEF_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/core/profiles.js';
 import { DAREDEVIL_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
-import { deadeyeCastRules } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice-rules.js';
+import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
 import { deadeyeUi } from '#gw2/professions/thief/specializations/deadeye/presentation.js';
 import { SPECTER_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { thiefCoreCastAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
-import { refreshResource } from '#gw2/platform/combat/resources/resource-policy.js';
-import { beginStealthAttack, stealthBreakingReaction } from '#gw2/professions/thief/core/mechanics/stealth.js';
-import { completeSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
+import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Hide in Shadows', "Assassin's Signet", 'Shadow Flare', 'Shadow Gust', 'Thieves Guild'],
@@ -55,7 +51,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createProfessionSimulator(thiefProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(thiefProfession, baseConfig);
 
 const applyThiefPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(thiefCatalog, patch), patch);
 
@@ -66,108 +62,95 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
   for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']) {
     for (const stealthed of [false, true]) {
       for (const expiresAt of [5, 6]) {
-        const { context } = createScheduler({
-          profession: thiefProfession,
-          config: { ...baseConfig, specialization },
-          schedulerPolicy: createGw2SchedulerPolicy(baseConfig)
-        });
-        const { core, specialization: elite } = context.state.profession;
-        assert.equal(Object.hasOwn(core, 'stealthAttackCharges'), false);
-        Object.assign(core, {
-          stealthAttackCharges: 99,
-          stealthAttackExpiresAt: 100,
-          stealthStartedAt: 0,
-          stealthUntil: stealthed ? 6 : 0
-        });
         const ownsCharges = specialization === 'Deadeye' || specialization === 'Antiquary';
-        if (ownsCharges) Object.assign(elite.state, { stealthAttackCharges: 2, stealthAttackExpiresAt: expiresAt });
-        const skill = thiefCatalog.skillsByName.get('Backstab');
-        const cast = { ...context, start: 5, skill };
-        const available = thiefCoreCastAvailability(cast, skill);
-        assert.equal(available.ready, stealthed || (ownsCharges && expiresAt > 5));
-        if (available.ready) {
-          beginStealthAttack(cast, skill);
+        const attack = specialization === 'Deadeye' ? 'Malicious Backstab' : 'Backstab';
+        const result = runThief(
+          [{ type: 'wait', durationMs: 5000 }, attack],
+          { ...baseConfig, specialization },
+          {
+            initialize(runtime) {
+              const { core, specialization: elite } = runtime.profession;
+              assert.equal(Object.hasOwn(core, 'stealthAttackCharges'), false);
+              Object.assign(core, {
+                stealthAttackCharges: 99,
+                stealthAttackExpiresAt: 100,
+                stealthStartedAt: 0,
+                stealthUntil: stealthed ? 6 : 0
+              });
+              if (ownsCharges)
+                Object.assign(elite.state, { stealthAttackCharges: 2, stealthAttackExpiresAt: expiresAt });
+            }
+          }
+        );
+        const available = stealthed || (ownsCharges && expiresAt > 5);
+        assert.equal(result.warnings.length === 0, available, `${specialization} ${stealthed} ${expiresAt}`);
+        const { core, specialization: elite } = runtimeFor(result).profession;
+        if (available) {
           assert.equal(core.stealthUntil, 5);
           assert.equal(core.revealedUntil, 8);
         }
 
         assert.equal(core.stealthAttackCharges, 99);
         assert.equal(core.stealthAttackExpiresAt, 100);
-        assert.equal(
-          elite.state.stealthAttackCharges,
-          ownsCharges ? (!stealthed && available.ready ? 1 : 2) : undefined
-        );
+        assert.equal(elite.state.stealthAttackCharges, ownsCharges ? (!stealthed && available ? 1 : 2) : undefined);
       }
     }
   }
 });
 
-test('Endurance Thief is Daredevil-owned and commits between Core resource and final steal snapshots', () => {
-  // Patched grants retain stolen-skill storage and run after the scheduler reaches completion.
-  for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary']) {
+test('Endurance Thief is Daredevil-owned and grants its patched endurance with Core steal resources', () => {
+  // Only Daredevil composes the trait; a completed Steal grants Kleptomaniac initiative and the patched endurance.
+  for (const specialization of ['Core', 'Daredevil', 'Deadeye', 'Specter', 'Antiquary'])
+    assert.equal(
+      thiefProfession.liveRuntimeFor({ specialization }).catalog.balanceProfilesById.has(TRAIT.ENDURANCE_THIEF),
+      specialization === 'Daredevil'
+    );
+  for (const specialization of ['Core', 'Daredevil']) {
     for (const selected of [false, true]) {
-      const config = {
-        ...baseConfig,
-        specialization,
-        selectedTraitIds: [TRAIT.KLEPTOMANIAC, ...(selected ? [TRAIT.ENDURANCE_THIEF] : [])]
-      };
-      const { context } = createScheduler({
-        profession: thiefProfession,
-        config,
-        schedulerPolicy: createGw2SchedulerPolicy(config)
-      });
       const active = specialization === 'Daredevil';
-      assert.equal(context.catalog.balanceProfilesById.has(TRAIT.ENDURANCE_THIEF), active);
-      assert.equal(typeof context.onThiefStealComplete === 'function', active);
-      const core = context.state.profession.core;
-      Object.assign(core, {
-        initiative: { value: 3, maximum: 12, updatedAt: 2, rate: 1 },
-        endurance: 10,
-        enduranceUpdatedAt: 2
-      });
-      context.state.time = 2;
-      const catalog = active
-        ? applyBalanceProfilePatch(context.catalog, {
-            balanceProfiles: {
-              [DAREDEVIL_BALANCE_PROFILE_IDS.enduranceThief]: { fields: { resourceGain: { from: 50, to: 37 } } }
-            }
-          })
-        : context.catalog;
-      const firstEvent = context.events.length;
-      completeSteal({ ...context, catalog, skill: context.catalog.skillsById.get(ID.STEAL), effectiveEnd: 2 });
-      const snapshots = context.events.slice(firstEvent).filter((event) => event.type === 'thief.state');
-      const granted = active && selected;
-      assert.deepEqual(
-        snapshots.map((event) => event.reason),
-        ['kleptomaniac', ...(granted ? ['endurance-thief'] : []), 'steal']
+      const result = runThief(
+        ['Steal'],
+        {
+          ...baseConfig,
+          specialization,
+          initialInitiative: 3,
+          initialEndurance: 10,
+          selectedTraitIds: [TRAIT.KLEPTOMANIAC, ...(selected ? [TRAIT.ENDURANCE_THIEF] : [])]
+        },
+        {
+          catalog: (catalog) =>
+            active
+              ? applyBalanceProfilePatch(catalog, {
+                  balanceProfiles: {
+                    [DAREDEVIL_BALANCE_PROFILE_IDS.enduranceThief]: { fields: { resourceGain: { from: 50, to: 37 } } }
+                  }
+                })
+              : catalog
+        }
       );
-      assert.equal(core.endurance, granted ? 47 : 10);
-      assert.equal(core.enduranceUpdatedAt, 2);
-      for (const snapshot of snapshots) {
-        assert.equal(snapshot.at, 2);
-        assert.equal(snapshot.state.initiative.value, 5);
-        assert.equal(snapshot.state.storedStolenSkillCount, 1);
-        assert.equal(snapshot.state.endurance, snapshot.reason === 'kleptomaniac' ? 10 : core.endurance);
-      }
+      assert.deepEqual(result.warnings, []);
+      const runtime = runtimeFor(result);
+      assert.equal(runtime.resourceController.value('initiative'), 5);
+      assert.equal(runtime.profession.core.endurance, active && selected ? 47 : 10);
+      assert.equal(runtime.profession.core.storedStolenSkillCount, 1);
     }
   }
 });
 
-// The scheduler and palette must agree on the Shadow Swap flip's lifetime.
-test('Deadeye scheduler and palette enforce the same flip expiry boundary', () => {
+// The live runtime and palette must agree on the Shadow Swap flip's lifetime.
+test('Deadeye live runtime and palette enforce the same flip expiry boundary', () => {
   const swap = thiefCatalog.skillsById.get(ID.SHADOW_SWAP);
   const flare = thiefCatalog.skillsById.get(ID.SHADOW_FLARE);
   for (const expiresAt of [undefined, 4, 5, 6]) {
     const core = { availableFlips: expiresAt == null ? {} : { [ID.SHADOW_SWAP]: armSkillFlip({}, 0, 0, expiresAt) } };
-    const context = { start: 5, state: { profession: { core, specialization: { kind: 'Deadeye', state: {} } } } };
-    const result = deadeyeCastRules.availability.handler(context, swap);
+    const result = deadeyeCastAvailability(core.availableFlips, swap, 5);
     assert.equal(result.ready, expiresAt > 5);
     if (!result.ready) {
       assert.equal(result.code, 'thief.shadow-flare');
       assert.equal(result.retryAt, null);
     }
 
-    assert.equal(deadeyeCastRules.availability.handler(context, flare).ready, true);
+    assert.equal(deadeyeCastAvailability(core.availableFlips, flare, 5).ready, true);
     assert.equal(deadeyeUi.paletteSkillAvailability({ time: 5, professionState: core }, swap).available, result.ready);
   }
 
@@ -413,11 +396,8 @@ test('Thief resources use profession-specific initiative and malice pips', () =>
     thiefProfession.ui.resourceViews({
       specialization,
       config: { specialization, ...config },
-      professionState: thiefProfession
-        .resolveRuntime({
-          specialization
-        })
-        .createProfessionState({ specialization, ...config })
+      // The palette renders an initialized planning state, whose pools start at their selected capacity.
+      professionState: runThief([], { ...baseConfig, specialization, ...config }).planningState.profession
     });
 
   const coreInitiative = resourceViews('Core')[0];
@@ -614,37 +594,36 @@ test('initiative regenerates at exact boundaries and ignores Alacrity', () => {
   });
 
   assert.equal(kneeling.warnings.length, 0);
+  // Kneel spends the starting initiative; the kneeling rate applies from Kneel's completion onward.
+  const kneeled = kneeling.steps[0].end / 1000;
   assert.ok(
-    Math.abs(kneeling.planningState.profession.initiative.value - (kneeling.planningState.atSeconds * 4) / 3) < 1e-9
+    Math.abs(
+      kneeling.planningState.profession.initiative.value -
+        (kneeled + ((kneeling.planningState.atSeconds - kneeled) * 4) / 3)
+    ) < 1e-9
   );
 });
 
 test('Unload refunds 2 initiative on completion but not cancellation', () => {
   const config = { initialInitiative: 3, primaryWeapon: 'Pistol', secondaryWeapon: 'Pistol' };
+  const cost = thiefCatalog.skillsByName.get('Unload').initiativeCost;
+  // Regeneration of one initiative per second through the cast isolates the refund.
+  const initiative = (result) => runtimeFor(result).resourceController.value('initiative');
   const completed = simulate('Core', ['Unload'], config);
-  const states = completed.events.filter((event) => event.type === 'thief.state');
-  const refundIndex = states.findIndex((event) => event.reason === 'unload-refund');
 
   assert.deepEqual(completed.warnings, []);
   assert.equal(completed.steps[0].interrupted, false);
-  assert.ok(refundIndex > 0);
-  // Compare adjacent resource snapshots to isolate the refund from passive regeneration and cast duration.
-  assert.ok(
-    Math.abs(states[refundIndex].state.initiative.value - states[refundIndex - 1].state.initiative.value - 2) < 1e-9
-  );
+  assert.ok(Math.abs(initiative(completed) - (3 - cost + completed.rotationEndTime + 2)) < 1e-9);
 
   const interrupted = simulate('Core', [{ name: 'Unload', interruptMs: 1 }], config);
 
   assert.deepEqual(interrupted.warnings, []);
-  assert.equal(interrupted.steps[0].cancelledBeforeCommit, true);
+  assert.equal(interrupted.events.find((event) => event.type === 'action').cancelled, true);
   assert.equal(
     interrupted.events.some((event) => event.type === 'damage' && event.skillName === 'Unload'),
     false
   );
-  assert.equal(
-    interrupted.events.some((event) => event.type === 'thief.state' && event.reason === 'unload-refund'),
-    false
-  );
+  assert.ok(Math.abs(initiative(interrupted) - (3 - cost + interrupted.rotationEndTime)) < 1e-9);
 });
 
 test('weapon swap preserves shared initiative', () => {
@@ -671,7 +650,7 @@ test('a pre-commit cancellation does not advance the Thief autoattack chain', ()
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.steps[0].cancelledBeforeCommit, true);
+  assert.equal(result.events.find((event) => event.type === 'action').cancelled, true);
   assert.equal(result.planningState.profession.autoattackChains[ID.DOUBLE_STRIKE], ID.WILD_STRIKE);
 });
 
@@ -692,33 +671,32 @@ test('non-stealth strike skills remove stealth and restore the normal autoattack
   assert.ok(result.events.some((event) => event.type === 'damage' && event.skillName === 'Double Strike'));
 });
 
-test('stealth-break work uses the strike timestamp and explicit same-time priority', () => {
-  const scheduled = [];
-  stealthBreakingReaction.onEventScheduled.handler(
-    { catalog: thiefCatalog, tasks: { schedule: (task) => scheduled.push(task) } },
-    { type: 'damage', at: 1.25, actorType: 'player', skillId: ID.HEARTSEEKER, activationId: 'cast:1' }
-  );
-
-  assert.deepEqual(
-    scheduled.map(({ at, priority }) => ({ at, priority })),
-    [{ at: 1.25, priority: 20 }]
-  );
-});
-
 test('delayed strikes break stealth on impact without blocking a same-time stealth attack', () => {
   const config = {
     primaryWeapon: 'Rifle',
     secondaryWeapon: '',
     selectedSkills: ['Shadow Meld', 'Shadow Flare']
   };
-  const impact = simulate('Deadeye', ['Kneel', 'Shadow Meld', 'Shadow Flare', { type: 'wait', durationMs: 1 }], config);
-  const flareDamage = impact.events.find((event) => event.type === 'damage' && event.skillName === 'Shadow Flare');
-  const stealthBreak = impact.events.find(
-    (event) => event.type === 'thief.state' && event.reason === 'strike-broke-stealth'
+  const rotation = ['Kneel', 'Shadow Meld', 'Shadow Flare', { type: 'wait', durationMs: 1 }];
+  const flareDamage = simulate('Deadeye', rotation, config).events.find(
+    (event) => event.type === 'damage' && event.skillName === 'Shadow Flare'
+  );
+  // The landed strike, not the cast, ends stealth at its own impact instant.
+  const observed = [];
+  runThief(
+    rotation,
+    { ...baseConfig, ...config, specialization: 'Deadeye' },
+    {
+      probes: [
+        [
+          flareDamage.at,
+          (runtime) => observed.push(runtime.profession.core.strikeBrokeStealthAt, runtime.profession.core.stealthUntil)
+        ]
+      ]
+    }
   );
 
-  assert.equal(stealthBreak.at, flareDamage.at);
-  assert.equal(stealthBreak.priority, 5);
+  assert.deepEqual(observed, [flareDamage.at, flareDamage.at]);
   const sameTimeAttack = simulate(
     'Deadeye',
     ['Kneel', 'Shadow Meld', 'Shadow Flare', "Malicious Death's Judgment"],
@@ -1039,7 +1017,7 @@ test('Steal exposes a choice pool and consumes whichever stolen skill is selecte
 
   // Both users of the base pool must gate each choice and consume it once, with Improvisation locking the reuse.
   for (const specialization of ['Core', 'Daredevil']) {
-    const runtime = thiefProfession.resolveRuntime({ specialization });
+    const runtime = thiefProfession.liveRuntimeFor({ specialization });
     assert.deepEqual(
       runtime.catalog.skills
         .filter((skill) => skill.slot === 'Profession_2')
@@ -1093,12 +1071,31 @@ test('Daredevil capacity and every dodge replacement resolve explicitly', () => 
     assert.ok(result.events.some((event) => event.type === eventType));
 
     if (selectedDodge === 'Bounding Dodger') {
-      const stateIndex = result.events.findIndex(
-        (event) => event.type === 'thief.state' && event.reason === 'daredevil-dodge'
+      // The window opens after the dodge's own landing strike resolves, so Bound does not benefit from it.
+      const windowAtBound = [];
+      const bound = result.events.find((event) => event.type === 'damage' && event.name === 'Bound');
+      runThief(
+        ['Dodge'],
+        { ...baseConfig, specialization: 'Daredevil', selectedDodge, selectedTraitIds: [traitId] },
+        {
+          extend: (native) => ({
+            reactions: {
+              ...native.reactions,
+              'damage.resolving'(runtime, event, details) {
+                if (event.name === 'Bound')
+                  windowAtBound.push(runtime.profession.specialization.state.boundingDamageUntil);
+                return native.reactions['damage.resolving'](runtime, event, details);
+              }
+            }
+          }),
+          probes: [
+            [bound.at, (runtime) => windowAtBound.push(runtime.profession.specialization.state.boundingDamageUntil)]
+          ]
+        }
       );
-      const boundIndex = result.events.findIndex((event) => event.type === 'damage' && event.name === 'Bound');
-
-      assert.ok(stateIndex >= 0 && stateIndex < boundIndex);
+      assert.equal(windowAtBound.length, 2);
+      assert.ok(windowAtBound[0] <= bound.at);
+      assert.ok(windowAtBound[1] > bound.at);
     }
   }
 
@@ -1164,10 +1161,10 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
 
   assert.equal(extendedFurySlice.criticalDamage, 1.5 + 250 / 1500);
   assert.equal(
-    withNoQuarter.combatState.profession.traitProcReadyAt[TRAIT.UNRELENTING_STRIKES],
+    runtimeFor(withNoQuarter).profession.core.traitProcReadyAt[TRAIT.UNRELENTING_STRIKES],
     firstFlawless[0].at + 8
   );
-  assert.equal(withNoQuarter.combatState.profession.traitProcReadyAt[TRAIT.NO_QUARTER], extendedFurySlice.at + 2);
+  assert.equal(runtimeFor(withNoQuarter).profession.core.traitProcReadyAt[TRAIT.NO_QUARTER], extendedFurySlice.at + 2);
 
   const withAssassinsFury = simulate('Daredevil', ['Flawless Execution'], {
     ...criticalConfig,
@@ -1180,7 +1177,7 @@ test('Critical Strikes applies runtime Fury, No Quarter, and multiplicative modi
     2090 / 2000
   );
   assert.equal(
-    withAssassinsFury.combatState.profession.traitProcReadyAt[TRAIT.ASSASSINS_FURY],
+    runtimeFor(withAssassinsFury).profession.core.traitProcReadyAt[TRAIT.ASSASSINS_FURY],
     flawlessHits(withAssassinsFury)[0].at + 2
   );
 
@@ -1408,24 +1405,28 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
 
 test('Malicious Intent grants malice after a stealth attack consumes its existing stacks', () => {
   // Six stacks must empower the attack without the post-consumption grant triggering Maleficent Seven.
-  const result = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom', 'Cloak and Dagger', 'Malicious Backstab'], {
+  const rotation = ["Deadeye's Mark", 'Death Blossom', 'Cloak and Dagger', 'Malicious Backstab'];
+  const config = {
+    ...baseConfig,
+    specialization: 'Deadeye',
     selectedTraitIds: [TRAIT.MALICIOUS_INTENT, TRAIT.MALEFICENT_SEVEN],
-    stats: { precision: 5000 }
-  });
-  const hit = result.events.find((event) => event.skillName === 'Malicious Backstab' && event.type === 'damage');
-  const transitions = result.events.filter(
-    (event) => event.type === 'thief.state' && ['malice-spent', 'malicious-intent'].includes(event.reason)
+    stats: { ...baseConfig.stats, precision: 5000 }
+  };
+  const hit = runThief(rotation, config).resolvedEvents.find(
+    (event) => event.skillName === 'Malicious Backstab' && event.type === 'damage'
   );
+  // Malice is held through the attack and replaced at its impact by the spend and the Malicious Intent grant.
+  const malice = [];
+  const result = runThief(rotation, config, {
+    probes: [hit.at - 0.001, hit.at].map((at) => [
+      at,
+      (runtime) => malice.push(runtime.profession.specialization.state.malice)
+    ])
+  });
 
   assert.deepEqual(result.warnings, []);
   assert.equal(hit.deadeyeMaliceSnapshot, 6);
-  assert.deepEqual(
-    transitions.map((event) => [event.reason, event.state.malice, event.at]),
-    [
-      ['malice-spent', 0, hit.at],
-      ['malicious-intent', 2, hit.at]
-    ]
-  );
+  assert.deepEqual(malice, [6, 2]);
   assert.equal(result.planningState.profession.malice, 2);
   assert.equal(result.planningState.profession.maleficentSevenTriggered, false);
   assert.equal(
@@ -1456,25 +1457,29 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
 
   assert.equal(noncriticalBurst.planningState.profession.malice, 1);
 
-  const earlyMercy = simulate(
-    'Deadeye',
-    ["Deadeye's Mark", 'Kneel', 'Three Round Burst', { name: 'Mercy', offset: 100 }],
-    {
-      ...criticalConfig,
-      initialInitiative: 4,
-      primaryWeapon: 'Rifle',
-      secondaryWeapon: '',
-      selectedSkills: ['Mercy']
-    }
-  );
-  const earlyMercyStates = earlyMercy.events.filter((event) => event.type === 'thief.state');
-  const mercyIndex = earlyMercyStates.findIndex((event) => event.reason === 'mercy');
+  const earlyMercyRotation = ["Deadeye's Mark", 'Kneel', 'Three Round Burst', { name: 'Mercy', offset: 100 }];
+  const earlyMercyConfig = {
+    ...baseConfig,
+    ...criticalConfig,
+    specialization: 'Deadeye',
+    initialInitiative: 4,
+    primaryWeapon: 'Rifle',
+    secondaryWeapon: '',
+    selectedSkills: ['Mercy']
+  };
+  const earlyMercy = runThief(earlyMercyRotation, earlyMercyConfig);
+  const mercyAt = earlyMercy.steps.find((step) => step.skill === 'Mercy').end / 1000;
+  // Observe half a millisecond either side of the instant Mercy, removing that interval's regeneration.
+  const around = [];
+  runThief(earlyMercyRotation, earlyMercyConfig, {
+    probes: [mercyAt - 0.0005, mercyAt + 0.0005].map((at) => [
+      at,
+      (runtime) =>
+        around.push([runtime.resourceController.value('initiative'), runtime.profession.core.initiative.rate])
+    ])
+  });
   // Two malice stacks refund five initiative independently of the preceding regeneration wait.
-  assert.ok(
-    Math.abs(
-      earlyMercyStates[mercyIndex].state.initiative.value - earlyMercyStates[mercyIndex - 1].state.initiative.value - 5
-    ) < 1e-9
-  );
+  assert.ok(Math.abs(around[1][0] - around[0][0] - around[0][1] * 0.001 - 5) < 1e-9);
   assert.equal(earlyMercy.planningState.profession.malice, 2);
 
   const rifleRotation = ["Deadeye's Mark", 'Kneel', 'Three Round Burst', 'Shadow Meld', "Malicious Death's Judgment"];
@@ -1485,18 +1490,28 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
     selectedSkills: ['Mercy', 'Shadow Meld']
   };
   const ordinaryShot = simulate('Deadeye', rifleRotation, rifleConfig);
-  const mercyShot = simulate('Deadeye', [...rifleRotation, { name: 'Mercy', offset: 100 }], rifleConfig);
+  const mercyRotation = [...rifleRotation, { name: 'Mercy', offset: 100 }];
+  const mercyShot = simulate('Deadeye', mercyRotation, rifleConfig);
   const maliciousEvent = (result) =>
     result.resolvedEvents.find((event) => event.skillName === "Malicious Death's Judgment" && event.type === 'damage');
   const ordinaryEvent = maliciousEvent(ordinaryShot);
   const mercyEvent = maliciousEvent(mercyShot);
   const mercyStep = mercyShot.steps.find((step) => step.skill === 'Mercy');
-  const maliceSpent = mercyShot.events.find((event) => event.type === 'thief.state' && event.reason === 'malice-spent');
 
+  // A Mercy cast during the attack cannot change the malice the attack snapshotted at its start.
+  assert.ok(mercyStep.start / 1000 < mercyEvent.at);
   assert.equal(mercyEvent.deadeyeMaliceSnapshot, 4);
   assert.equal(mercyEvent.damage, ordinaryEvent.damage);
-  assert.equal(maliceSpent.at, mercyEvent.at);
-  assert.ok(maliceSpent.at > mercyStep.start / 1000);
+  // The attack's impact then grants Malicious Intent's malice.
+  const afterImpact = [];
+  runThief(
+    mercyRotation,
+    { ...baseConfig, ...rifleConfig, specialization: 'Deadeye' },
+    {
+      probes: [[mercyEvent.at, (runtime) => afterImpact.push(runtime.profession.specialization.state.malice)]]
+    }
+  );
+  assert.deepEqual(afterImpact, [2]);
 
   const remarked = simulate('Deadeye', ["Deadeye's Mark", 'Death Blossom', "Deadeye's Mark"], {
     stats: { precision: 5000 },
@@ -1664,33 +1679,35 @@ test('Deadeye rifle stance rejects every inactive replacement', () => {
 
 // A fractional observation must not bypass the recovery threshold's detection tick.
 test('initiative-funded casts retain readiness across intermediate observations', () => {
-  const { context } = createScheduler({ profession: thiefProfession, config: { ...baseConfig, initialInitiative: 0 } });
-  const skill = { ...context.catalog.skillsById.get(ID.DOUBLE_STRIKE), initiativeCost: 0.1 };
-  context.advanceTo(0.1);
-  const waiting = thiefCoreCastAvailability({ ...context, start: 0.1 }, skill);
-  assert.equal(waiting.ready, false);
-  assert.equal(waiting.retryAt, 0.12);
-  context.advanceTo(0.12);
-  assert.equal(thiefCoreCastAvailability({ ...context, start: 0.12 }, skill).ready, true);
+  const catalog = (live) => withSkill(live, ID.DOUBLE_STRIKE, { initiativeCost: 0.1 });
+  for (const waits of [[100], [50, 50]]) {
+    const result = runThief(
+      [...waits.map((durationMs) => ({ type: 'wait', durationMs })), 'Double Strike'],
+      { ...baseConfig, initialInitiative: 0 },
+      { catalog }
+    );
+    assert.deepEqual(result.warnings, []);
+    // One tenth of an initiative accrues at 0.1 s and is detected on the next 40 ms tick.
+    assert.equal(result.steps.find((step) => step.skillId != null).start, 120);
+  }
 });
 
 // Known signet pulses remain affordability boundaries when ordinary recovery is disabled.
 test('initiative availability waits for a signet grant with zero regeneration', () => {
-  const { context } = createScheduler({
-    profession: thiefProfession,
-    config: { ...baseConfig, initialInitiative: 0, selectedSkills: ["Infiltrator's Signet"] }
-  });
-  context.catalog = { ...context.catalog, balanceProfilesById: new Map(context.catalog.balanceProfilesById) };
-  const profileId = THIEF_CORE_BALANCE_PROFILE_IDS.resources;
-  context.catalog.balanceProfilesById.set(profileId, {
-    ...context.catalog.balanceProfilesById.get(profileId),
-    resourceGain: 0
-  });
-  refreshResource(context, 'initiative');
-  const skill = { ...context.catalog.skillsById.get(ID.DOUBLE_STRIKE), initiativeCost: 1 };
-  const waiting = thiefCoreCastAvailability({ ...context, start: 0 }, skill);
-  assert.equal(waiting.ready, false);
-  assert.equal(waiting.retryAt, 10);
-  context.advanceTo(10);
-  assert.equal(thiefCoreCastAvailability({ ...context, start: 10 }, skill).ready, true);
+  const result = runThief(
+    ['Double Strike'],
+    { ...baseConfig, initialInitiative: 0, selectedSkills: ["Infiltrator's Signet"] },
+    {
+      catalog: (live) =>
+        withProfile(
+          withSkill(live, ID.DOUBLE_STRIKE, { initiativeCost: 1 }),
+          THIEF_CORE_BALANCE_PROFILE_IDS.resources,
+          {
+            resourceGain: 0
+          }
+        )
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.steps[0].start, 10000);
 });

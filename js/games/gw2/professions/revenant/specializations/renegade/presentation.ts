@@ -1,4 +1,5 @@
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
+import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -73,7 +74,7 @@ export const renegadeUi: RevenantUiSlice = Object.freeze({
   ],
   isPaletteSkillInstant: (context: RevenantUiContext, skill: RevenantSkill) =>
     // Band Together is instant only when the one-use enhancement window is active; the UI must expose this so the user can see at a glance that the next press is the empowered summon
-    skill.handlerId === 'revenant.band-together' &&
+    RENEGADE_ENHANCED_SKILL_BY_ID[Number(skill.id)] != null &&
     isBandTogetherReady(revenantUiState(context), Number(context.time || 0)),
   resourceViews: () => []
 });

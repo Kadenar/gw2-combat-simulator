@@ -1,9 +1,10 @@
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadProfession } from '#gw2/app/profession-registry.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
 import {
   createGuardianBuildDefaults,
   migrateGuardianBuild,
@@ -12,16 +13,9 @@ import {
 import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/build/attributes.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
-import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
 import { guardianCoreAttributeRules } from '#gw2/professions/guardian/core/traits/modifiers.js';
-import { reactToZealSymbolTraits } from '#gw2/professions/guardian/core/traits/zeal.js';
-import { updateGuardianTraitCastState } from '#gw2/professions/guardian/core/traits/index.js';
 import { projectGuardianPlanningState, snapshotGuardianState } from '#gw2/professions/guardian/family-state.js';
-import {
-  handleVirtueActivation,
-  reactToJusticeHitWithOptions
-} from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 
 const guardianCoreUi = bindGuardianCoreUi(guardianCatalog);
@@ -40,64 +34,44 @@ const config = {
   target: { armor: 2597 }
 };
 
-test('Guardian planning projection uses only scheduler state and leaves combat counters detached', () => {
-  // Activation and hits change canonical state; snapshots expose detached canonical values.
-  const state = createGuardianCoreState();
-  const profession = { core: state, specialization: { kind: 'Core', state: {} } };
-  const context = {
-    profession,
-    helpers: guardianCatalog,
-    applyCondition() {},
-    recordProc() {}
-  };
-  handleVirtueActivation(context, { virtue: 'justice', skillId: GUARDIAN_SKILL_IDS.JUSTICE, at: 0 });
-  const armed = snapshotGuardianState(profession, 0);
-  assert.equal(armed.justiceActiveArmed, true);
-  assert.equal(armed.justiceActiveBurns, 0);
-  for (let at = 1; at <= 6; at += 1) {
-    reactToJusticeHitWithOptions(context, { actorType: 'player', coefficient: 1, at }, { hitContext: {} });
-  }
-
-  assert.equal(state.justiceActiveBurns, 1);
-  assert.equal(state.justicePassiveBurns, 1);
-  assert.equal(state.justiceActiveArmed, false);
-  assert.equal(armed.justiceActiveArmed, true);
-  for (const key of ['justiceArmed', 'justiceBurns', 'symbolicAvengerStacks']) {
-    assert.equal(Object.hasOwn(state, key), false);
-    assert.equal(Object.hasOwn(armed, key), false);
-  }
-
-  const scheduler = { ...createGuardianCoreState(), justiceActiveArmed: true, justiceActiveBurns: 9 };
-  const projected = projectGuardianPlanningState({
-    schedulerState: { profession: scheduler, time: 6 },
-    // Resolver counters cannot overwrite scheduler predictions.
-    resolverState: { ...state, justiceActiveArmed: false, justiceActiveBurns: 99 }
-  });
-  assert.equal(projected.justiceActiveArmed, true);
-  assert.equal(projected.justiceActiveBurns, 9);
-  assert.equal(projected.symbolicAvengerExpirations.length, 0);
+test('Guardian combat and planning projections detach counters from the live state', () => {
+  // Both public boundaries detach their data from the one live state owner.
+  const result = runGuardian(['Virtue of Justice', 'Orb of Wrath']);
+  const runtime = runtimeFor(result);
+  assert.equal(runtime.profession.core.justiceActiveBurns, 1);
+  assert.equal(result.planningState.profession.justiceActiveArmed, false);
+  const projected = projectGuardianPlanningState({ profession: runtime.profession, time: runtime.time });
   projected.virtueReadyAt.justice = 99;
-  assert.equal(state.virtueReadyAt.justice, 0);
-  assert.equal(scheduler.justiceActiveBurns, 9);
+  runtime.profession.core.justiceActiveBurns = 9;
+  assert.notEqual(runtime.profession.core.virtueReadyAt.justice, 99);
+  assert.equal(result.combatState.profession.justiceActiveBurns, 1);
+  assert.equal(result.planningState.profession.justiceActiveBurns, 1);
 });
 
 test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks independently', () => {
-  // Stagger applications so expiry boundaries distinguish individual stacks from a shared refresh.
-  const state = createGuardianCoreState();
-  const profession = { core: state, specialization: { kind: 'Core', state: {} } };
-  const context = {
-    profession,
-    traits: new Set([GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER]),
-    catalog: guardianCatalog,
-    recordProc() {}
-  };
+  // Stagger actual symbol hits, then query detached projections at each independent deadline.
+  const run = (extra = false) =>
+    runGuardian(
+      [{ type: 'wait', durationMs: extra ? 20000 : 5000 }],
+      { selectedTraitIds: [GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER] },
+      (runtime) => {
+        for (const at of [0, 1, 2, 3, 4, 5, ...(extra ? [20] : [])])
+          runtime.emit({
+            type: 'damage',
+            source: 'guardian',
+            sourceId: GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT,
+            skillId: GUARDIAN_SKILL_IDS.SYMBOL_OF_PUNISHMENT,
+            actorType: 'player',
+            coefficient: 1,
+            isSymbol: true,
+            at
+          });
+      }
+    );
+  const result = run();
+  const profession = runtimeFor(result).profession;
   const rule = guardianCoreAttributeRules.modifierRules.find((entry) => entry.id === 'guardian.symbolic-avenger');
-  const bonusAt = (time) => rule.amount({ runtime: { profession }, time }, rule.target, rule.parameters);
-  for (const at of [0, 1, 2, 3, 4, 5]) {
-    reactToZealSymbolTraits(context, { type: 'damage', at, isSymbol: true });
-  }
-
-  assert.equal(Object.hasOwn(state, 'symbolicAvengerStacks'), false);
+  assert.equal(profession.core.symbolicAvengerExpirations.length, 5);
   for (const [at, stacks] of [
     [15, 5],
     [15.999, 5],
@@ -107,49 +81,33 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
     [19, 1],
     [20, 0]
   ]) {
-    assert.equal(bonusAt(at), stacks * 0.01);
-    const snapshot = snapshotGuardianState(profession, at);
-    assert.equal(snapshot.symbolicAvengerExpirations.length, stacks);
-    assert.equal(state.symbolicAvengerExpirations.length, 5);
-    const projected = projectGuardianPlanningState({
-      schedulerState: { profession, time: at },
-      resolverState: profession
-    });
+    assert.equal(rule.amount({ runtime: { profession }, time: at }, rule.target, rule.parameters), stacks * 0.01);
+    const projected = projectGuardianPlanningState({ profession, time: at });
     assert.equal(projected.symbolicAvengerExpirations.length, stacks);
+    assert.equal(profession.core.symbolicAvengerExpirations.length, 5);
     const items = guardianCoreUi.rotationStateSnapshot({ professionState: projected, atSeconds: at });
     assert.equal(items.length, stacks ? 1 : 0);
-    if (stacks) assert.ok(items[0].value.startsWith(`${stacks}/5`));
+    if (stacks) assert.ok(items[0].value.startsWith(stacks + '/5'));
   }
 
-  // A new symbol must discard expired stacks instead of resurrecting the old count.
-  reactToZealSymbolTraits(context, { type: 'damage', at: 20, isSymbol: true });
-  assert.equal(bonusAt(20), 0.01);
-  assert.equal(bonusAt(35), 0);
+  assert.deepEqual(runtimeFor(run(true)).profession.core.symbolicAvengerExpirations, [35]);
 });
 
 test('Zeal symbol traits emit their full profiles and stack damage', () => {
-  const symbols = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Virtue of Justice', { type: 'wait', durationMs: 5000 }],
-    config: {
-      ...config,
-      boons: { fury: true },
-      selectedTraitIds: [
-        GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS,
-        GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER,
-        GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE
-      ]
-    }
-  });
-  const zealotsResolution = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['True Strike', { type: 'wait', durationMs: 6000 }],
-    config: {
-      ...config,
-      target: { ...config.target, health: 1000000, startingHealthFraction: 0.2 },
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION]
-    }
-  });
+  const symbols = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    boons: { fury: true },
+    selectedTraitIds: [
+      GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS,
+      GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER,
+      GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE
+    ]
+  })(undefined, ['Virtue of Justice', { type: 'wait', durationMs: 5000 }]);
+  const zealotsResolution = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    target: { ...config.target, health: 1000000, startingHealthFraction: 0.2 },
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION]
+  })(undefined, ['True Strike', { type: 'wait', durationMs: 6000 }]);
   const blades = symbols.resolvedEvents.filter((event) => event.name === 'Lesser Symbol of Blades');
   const resolution = zealotsResolution.resolvedEvents.filter((event) => event.name === 'Lesser Symbol of Resolution');
 
@@ -190,17 +148,13 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
 test("Zealot's Resolution requires the enemy to be below its threshold before the hit", () => {
   // Crossing the threshold and hitting a target already below it are distinct proc opportunities.
   const run = (rotation, startingHealthFraction = 1) =>
-    simulateGw2({
-      profession: guardianProfession,
-      rotation,
-      config: {
-        ...config,
-        primaryWeapon: 'Mace',
-        stats: { ...config.stats, power: 4000 },
-        target: { ...config.target, health: 4000, startingHealthFraction },
-        selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION]
-      }
-    });
+    createLiveProfessionSimulator(guardianProfession, {
+      ...config,
+      primaryWeapon: 'Mace',
+      stats: { ...config.stats, power: 4000 },
+      target: { ...config.target, health: 4000, startingHealthFraction },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION]
+    })(undefined, rotation);
   const pulses = (result) =>
     result.resolvedEvents.filter(
       (event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION
@@ -220,20 +174,16 @@ test("Spear's Furious Focus symbol precedes the tether and only later pulses gai
   // Check modifier ordering rather than pinning cast durations: the tether cannot amplify an earlier pulse.
   for (const quickness of [false, true]) {
     const run = (bigGameHunter) =>
-      simulateGw2({
-        profession: guardianProfession,
-        rotation: ['Spear of Justice', { type: 'wait', durationMs: 5000 }],
-        config: {
-          ...config,
-          specialization: 'Dragonhunter',
-          primaryWeapon: 'Longbow',
-          boons: { fury: true, quickness },
-          selectedTraitIds: [
-            GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS,
-            ...(bigGameHunter ? [GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER] : [])
-          ]
-        }
-      });
+      createLiveProfessionSimulator(guardianProfession, {
+        ...config,
+        specialization: 'Dragonhunter',
+        primaryWeapon: 'Longbow',
+        boons: { fury: true, quickness },
+        selectedTraitIds: [
+          GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS,
+          ...(bigGameHunter ? [GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER] : [])
+        ]
+      })(undefined, ['Spear of Justice', { type: 'wait', durationMs: 5000 }]);
     const baseline = run(false);
     const enhanced = run(true);
     const pulses = (result) =>
@@ -242,7 +192,9 @@ test("Spear's Furious Focus symbol precedes the tether and only later pulses gai
       );
     const normal = pulses(baseline),
       boosted = pulses(enhanced);
-    const tether = enhanced.events.find((event) => event.type === 'guardian.dragonhunter-tethered');
+    const tether = enhanced.resolvedEvents.find(
+      (event) => event.type === 'condition' && event.name === 'Spear of Justice — Active Burning'
+    );
     assert.ok(boosted[0].at < tether.at);
     assert.equal(boosted[0].damage, normal[0].damage);
     assertFlooredDamageMultiplier(boosted[1].damage, normal[1].damage, 1.25);
@@ -254,23 +206,20 @@ test("Spear's Furious Focus symbol precedes the tether and only later pulses gai
 });
 
 test('Furious Focus uses a separate stochastic weapon-strength activation from its triggering virtue', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Spear of Justice', { type: 'wait', durationMs: 5000 }],
-    config: {
-      ...config,
-      specialization: 'Dragonhunter',
-      primaryWeapon: 'Spear',
-      boons: { fury: true },
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS],
-      randomness: { mode: 'stochastic', seed: 1 }
-    }
-  });
+  const result = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Dragonhunter',
+    primaryWeapon: 'Spear',
+    boons: { fury: true },
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS],
+    randomness: { mode: 'stochastic', seed: 1 }
+  })(undefined, ['Spear of Justice', { type: 'wait', durationMs: 5000 }]);
   const virtue = result.resolvedEvents.find((event) => event.name === 'Spear of Justice' && event.type === 'damage');
   const symbol = result.resolvedEvents.filter(
     (event) => event.name === 'Lesser Symbol of Blades' && event.type === 'damage'
   );
 
+  // The virtue's authored equipped-weapon source resolves to the wielded Spear at emission.
   assert.equal(virtue.weaponStrengthProfileId, 'weapon.spear');
   assert.equal(symbol.length, 5);
   assert.notEqual(symbol[0].activationId, virtue.activationId);
@@ -282,116 +231,79 @@ test('Furious Focus uses a separate stochastic weapon-strength activation from i
 });
 
 test("Healer's Resolution grants eight seconds on committed heals with a shared twenty-second ICD", () => {
-  const events = [];
-  const core = createGuardianCoreState();
-  const context = {
-    profession: { core, specialization: { kind: 'Core', state: {} } },
-    catalog: guardianCatalog,
-    traits: new Set([GUARDIAN_TRAIT_IDS.HEALERS_RESOLUTION]),
-    action: {},
-    effectiveEnd: 0,
-    emit: (event) => events.push(event)
-  };
-  const heal = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SHELTER);
-  const otherHeal = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SIGNET_OF_RESOLVE);
-  // Non-heals and cancelled casts must not grant the boon or consume its cooldown.
-  updateGuardianTraitCastState(context, { id: 'test-utility', type: 'Utility' });
-  context.action.cancelled = true;
-  updateGuardianTraitCastState(context, heal);
-  assert.equal(events.length, 0);
-  assert.equal(core.healersResolutionReadyAt, 0);
-  context.action.cancelled = false;
-  updateGuardianTraitCastState(context, heal);
-  assert.equal(core.healersResolutionReadyAt, 20);
-  for (const at of [1, 19.999, 20, 20.001]) {
-    context.effectiveEnd = at;
-    updateGuardianTraitCastState(context, otherHeal);
+  // Different heals share the same strict cooldown boundary; canceled casts and utilities cannot claim it.
+  const settings = { selectedTraitIds: [GUARDIAN_TRAIT_IDS.HEALERS_RESOLUTION] };
+  for (const skillId of [GUARDIAN_SKILL_IDS.SHELTER, GUARDIAN_SKILL_IDS.SIGNET_OF_RESOLVE]) {
+    const ordinary = runGuardian([skillId], settings);
+    const completion = ordinary.events.find((event) => event.type === 'action' && event.skillId === skillId).endsAt;
+    for (const offset of [-0.001, 0, 0.001]) {
+      const deadline = completion - offset;
+      const result = runGuardian([skillId], settings, (runtime) => {
+        runtime.profession.core.healersResolutionReadyAt = deadline;
+      });
+      const boons = result.events.filter((event) => event.type === 'buff' && event.kind === 'resolution');
+      assert.equal(boons.length > 0, offset > 0);
+      assert.equal(
+        runtimeFor(result).profession.core.healersResolutionReadyAt,
+        offset > 0 ? completion + 20 : deadline
+      );
+    }
+
+    const canceled = runGuardian([{ skillId, interruptAfterMs: 1 }], settings);
+    assert.equal(runtimeFor(canceled).profession.core.healersResolutionReadyAt, 0);
   }
 
-  assert.deepEqual(
-    events.map(({ at, kind, duration }) => ({ at, kind, duration })),
-    [
-      { at: 0, kind: 'resolution', duration: 8 },
-      { at: 20.001, kind: 'resolution', duration: 8 }
-    ]
+  const utility = runGuardian(['Bane Signet'], settings);
+  assert.equal(runtimeFor(utility).profession.core.healersResolutionReadyAt, 0);
+  const untraited = runGuardian(['Shelter']);
+  assert.equal(runtimeFor(untraited).profession.core.healersResolutionReadyAt, 0);
+  const scaled = runGuardian(['Shelter'], { ...settings, stats: { concentration: 750 } });
+  assert.equal(
+    scaled.events.find((event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.HEALERS_RESOLUTION)
+      .duration,
+    12
   );
-  context.traits.clear();
-  context.effectiveEnd = 50;
-  updateGuardianTraitCastState(context, heal);
-  assert.equal(events.length, 2);
-
-  // The simulation must route the heal through the shared hook and apply boon-duration scaling.
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Shelter', { type: 'wait', durationMs: 1000 }],
-    config: {
-      ...config,
-      stats: { ...config.stats, concentration: 750 },
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.HEALERS_RESOLUTION]
-    }
-  });
-  assert.deepEqual(result.warnings, []);
-  const resolution = result.events.find(
-    (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.HEALERS_RESOLUTION
-  );
-  assert.equal(resolution.kind, 'resolution');
-  assert.equal(resolution.duration, 12);
 });
 
 test("Protector's Restoration shares a fixed twenty-second ICD across committed healing skills", () => {
-  const events = [];
-  const core = createGuardianCoreState();
-  let activation = 0;
-  const context = {
-    profession: { core, specialization: { kind: 'Core', state: {} } },
-    catalog: guardianCatalog,
-    traits: new Set([GUARDIAN_TRAIT_IDS.PROTECTORS_RESTORATION]),
-    action: {},
-    effectiveEnd: 0,
-    createActivationId: () => `symbol-${++activation}`,
-    emit: (event) => events.push(event)
-  };
-  const heal = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SHELTER);
-  const otherHeal = guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.SIGNET_OF_RESOLVE);
-  // Ineligible casts leave the shared cooldown available for the next committed heal.
-  updateGuardianTraitCastState(context, { id: 'test-utility', type: 'Utility' });
-  context.action.cancelled = true;
-  updateGuardianTraitCastState(context, heal);
-  assert.equal(events.length, 0);
-  assert.equal(core.protectorsRestorationReadyAt, 0);
-  context.action.cancelled = false;
-  updateGuardianTraitCastState(context, heal);
-  assert.equal(core.protectorsRestorationReadyAt, 20);
-  for (const at of [1, 19.999, 20, 20.001]) {
-    context.effectiveEnd = at;
-    updateGuardianTraitCastState(context, otherHeal);
+  // Different heals share the same strict cooldown boundary; canceled casts and utilities cannot claim it.
+  const settings = { selectedTraitIds: [GUARDIAN_TRAIT_IDS.PROTECTORS_RESTORATION] };
+  for (const skillId of [GUARDIAN_SKILL_IDS.SHELTER, GUARDIAN_SKILL_IDS.SIGNET_OF_RESOLVE]) {
+    const ordinary = runGuardian([skillId], settings);
+    const completion = ordinary.events.find((event) => event.type === 'action' && event.skillId === skillId).endsAt;
+    for (const offset of [-0.001, 0, 0.001]) {
+      const deadline = completion - offset;
+      const result = runGuardian([skillId], settings, (runtime) => {
+        runtime.profession.core.protectorsRestorationReadyAt = deadline;
+      });
+      const boons = result.events.filter((event) => event.type === 'buff' && event.kind === 'protection');
+      assert.equal(boons.length > 0, offset > 0);
+      assert.equal(
+        runtimeFor(result).profession.core.protectorsRestorationReadyAt,
+        offset > 0 ? completion + 20 : deadline
+      );
+    }
+
+    const canceled = runGuardian([{ skillId, interruptAfterMs: 1 }], settings);
+    assert.equal(runtimeFor(canceled).profession.core.protectorsRestorationReadyAt, 0);
   }
 
-  assert.deepEqual(
-    events.filter((event) => event.type === 'proc').map((event) => event.at),
-    [0, 20.001]
-  );
-  const eventCount = events.length;
-  context.traits.clear();
-  context.effectiveEnd = 50;
-  updateGuardianTraitCastState(context, heal);
-  assert.equal(events.length, eventCount);
+  const utility = runGuardian(['Bane Signet'], settings);
+  assert.equal(runtimeFor(utility).profession.core.protectorsRestorationReadyAt, 0);
+  const untraited = runGuardian(['Shelter']);
+  assert.equal(runtimeFor(untraited).profession.core.protectorsRestorationReadyAt, 0);
 });
 
 test("Protector's Restoration pulses Protection and symbol damage while its Light field enables combos", () => {
   // A short heal/finisher sequence checks real scheduling, boon scaling, and field expiry.
   const run = (waitMs) =>
-    simulateGw2({
-      profession: guardianProfession,
-      rotation: ['Shelter', { type: 'wait', durationMs: waitMs }, 'Mighty Blow', { type: 'wait', durationMs: 3000 }],
-      config: {
-        ...config,
-        primaryWeapon: 'Hammer',
-        stats: { ...config.stats, concentration: 750 },
-        boons: { alacrity: true },
-        selectedTraitIds: [GUARDIAN_TRAIT_IDS.PROTECTORS_RESTORATION, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE]
-      }
-    });
+    createLiveProfessionSimulator(guardianProfession, {
+      ...config,
+      primaryWeapon: 'Hammer',
+      stats: { ...config.stats, concentration: 750 },
+      boons: { alacrity: true },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.PROTECTORS_RESTORATION, GUARDIAN_TRAIT_IDS.SYMBOLIC_EXPOSURE]
+    })(undefined, ['Shelter', { type: 'wait', durationMs: waitMs }, 'Mighty Blow', { type: 'wait', durationMs: 3000 }]);
   const result = run(0);
   assert.deepEqual(result.warnings, []);
   const symbolId = GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_PROTECTION;
@@ -427,7 +339,7 @@ test("Protector's Restoration pulses Protection and symbol damage while its Ligh
       .map((event) => Math.round((event.at - start) * 1000)),
     [0, 1000, 2000]
   );
-  assert.equal(result.schedulerState.profession.core.protectorsRestorationReadyAt, start + 20);
+  assert.equal(runtimeFor(result).profession.core.protectorsRestorationReadyAt, start + 20);
   const expired = run(2500);
   assert.deepEqual(expired.warnings, []);
   assert.equal(
@@ -438,28 +350,26 @@ test("Protector's Restoration pulses Protection and symbol damage while its Ligh
 
 test('resolution traits affect strike damage, critical chance, and might', () => {
   const run = (selectedTraitIds) =>
-    simulateGw2({
-      profession: guardianProfession,
-      rotation: ['Symbol of Resolution', 'Strike', { type: 'wait', durationMs: 6000 }],
-      config: {
-        ...config,
-        primaryWeapon: 'Greatsword',
-        selectedTraitIds
-      }
-    });
+    createLiveProfessionSimulator(guardianProfession, {
+      ...config,
+      primaryWeapon: 'Greatsword',
+      selectedTraitIds
+    })(undefined, ['Symbol of Resolution', 'Strike', { type: 'wait', durationMs: 6000 }]);
   const righteous = run([GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS]);
   const retribution = run([GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS, GUARDIAN_TRAIT_IDS.RETRIBUTION]);
   const first = (result) => result.resolvedEvents.find((event) => event.name === 'Symbol of Resolution — Initial');
   const followup = (result) => result.resolvedEvents.find((event) => event.name === 'Strike');
   const pulses = retribution.resolvedEvents.filter((event) => event.name === 'Symbol of Resolution');
 
-  // The initial hit precedes its Resolution grant; only the follow-up inside that window receives the bonuses.
-  assert.equal(first(retribution).damage, first(righteous).damage);
+  // The delivered self boon precedes same-time damage, so the initial and subsequent strikes receive its modifiers.
+  assertFlooredDamageMultiplier(first(retribution).damage, first(righteous).damage, 1.1);
   assertFlooredDamageMultiplier(followup(retribution).damage, followup(righteous).damage, 1.1);
-  assert.ok(Math.abs(followup(retribution).criticalChance - first(retribution).criticalChance - 0.25) < 1e-9);
+  assert.equal(followup(retribution).criticalChance, first(retribution).criticalChance);
   assert.ok(
     Math.abs(
-      first(retribution).criticalChance - (config.stats.precision > 895 ? (config.stats.precision - 895) / 2100 : 0)
+      first(retribution).criticalChance -
+        0.25 -
+        (config.stats.precision > 895 ? (config.stats.precision - 895) / 2100 : 0)
     ) < 1e-9
   );
   assert.equal(
@@ -523,17 +433,13 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
     GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE,
     GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER
   ];
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Spear of Justice', 'Helio Rush', { type: 'wait', durationMs: 13000 }],
-    config: {
-      ...config,
-      specialization: 'Dragonhunter',
-      primaryWeapon: 'Spear',
-      boons: { quickness: true },
-      selectedTraitIds
-    }
-  });
+  const result = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Dragonhunter',
+    primaryWeapon: 'Spear',
+    boons: { quickness: true },
+    selectedTraitIds
+  })(undefined, ['Spear of Justice', 'Helio Rush', { type: 'wait', durationMs: 13000 }]);
   const activeBurning = result.resolvedEvents.filter((event) => event.name === 'Spear of Justice — Active Burning');
   const spearStrike = result.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillName === 'Spear of Justice'
@@ -547,7 +453,7 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
     activeBurning.every((event) => event.duration === 2),
     true
   );
-  assert.equal(result.combatState.profession.tetherUntil, 12.56);
+  assert.equal(result.combatState.profession.tetherUntil, 0);
   // The observation ends after the tether, so its expired flip must not remain in planning state.
   assert.equal(result.planningState.profession.availableFlips[GUARDIAN_SKILL_IDS.HUNTERS_VERDICT], undefined);
   assert.equal(
@@ -571,17 +477,13 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
     true
   );
 
-  const verdict = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Spear of Justice', "Hunter's Verdict", { type: 'wait', durationMs: 3000 }],
-    config: {
-      ...config,
-      specialization: 'Dragonhunter',
-      primaryWeapon: 'Spear',
-      boons: { quickness: true },
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER]
-    }
-  });
+  const verdict = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Dragonhunter',
+    primaryWeapon: 'Spear',
+    boons: { quickness: true },
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER]
+  })(undefined, ['Spear of Justice', "Hunter's Verdict", { type: 'wait', durationMs: 3000 }]);
 
   assert.deepEqual(verdict.warnings, []);
   assert.equal(verdict.resolvedEvents.filter((event) => event.name === 'Spear of Justice — Active Burning').length, 1);
@@ -592,19 +494,15 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
     true
   );
 
-  const courage = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Shield of Courage'],
-    config: {
-      ...config,
-      specialization: 'Dragonhunter',
-      selectedTraitIds: [
-        GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
-        GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION,
-        GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE
-      ]
-    }
-  });
+  const courage = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Dragonhunter',
+    selectedTraitIds: [
+      GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
+      GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION,
+      GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE
+    ]
+  })(undefined, ['Shield of Courage']);
 
   assert.equal(
     courage.events.some((event) => event.type === 'buff' && event.kind === 'protection'),
@@ -617,16 +515,12 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
     true
   );
 
-  const soaring = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Wings of Resolve'],
-    config: {
-      ...config,
-      specialization: 'Dragonhunter',
-      primaryWeapon: 'Spear',
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOARING_DEVASTATION]
-    }
-  });
+  const soaring = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Dragonhunter',
+    primaryWeapon: 'Spear',
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOARING_DEVASTATION]
+  })(undefined, ['Wings of Resolve']);
 
   assert.equal(
     soaring.resolvedEvents.some(
@@ -641,16 +535,12 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
 });
 
 test('Relic of Fireworks triggers on Dragonhunter virtues', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Spear of Justice', { type: 'wait', durationMs: 3000 }],
-    config: {
-      ...config,
-      specialization: 'Dragonhunter',
-      primaryWeapon: 'Spear',
-      relic: 'Fireworks'
-    }
-  });
+  const result = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Dragonhunter',
+    primaryWeapon: 'Spear',
+    relic: 'Fireworks'
+  })(undefined, ['Spear of Justice', { type: 'wait', durationMs: 3000 }]);
   const procs = result.procSteps.filter((step) => step.skill === 'Relic of Fireworks');
 
   assert.ok(procs.length > 0);
@@ -658,16 +548,12 @@ test('Relic of Fireworks triggers on Dragonhunter virtues', () => {
 });
 
 test('Dragonhunter traps and control traits apply their complete effects', () => {
-  const trap = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Procession of Blades', { type: 'wait', durationMs: 5000 }],
-    config: {
-      ...config,
-      specialization: 'Dragonhunter',
-      relic: 'Dragonhunter',
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.HUNTERS_PREMONITION]
-    }
-  });
+  const trap = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Dragonhunter',
+    relic: 'Dragonhunter',
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.HUNTERS_PREMONITION]
+  })(undefined, ['Procession of Blades', { type: 'wait', durationMs: 5000 }]);
 
   assert.equal(trap.procSteps.filter((step) => step.skill === 'Relic of the Dragonhunter').length, 10);
   assert.equal(
@@ -681,21 +567,17 @@ test('Dragonhunter traps and control traits apply their complete effects', () =>
     true
   );
 
-  const maw = simulateGw2({
-    profession: guardianProfession,
-    rotation: ["Dragon's Maw", { type: 'wait', durationMs: 1500 }],
-    config: {
-      ...config,
-      target: { ...config.target, defiant: true },
-      specialization: 'Dragonhunter',
-      initialEndurance: 0,
-      selectedTraitIds: [
-        GUARDIAN_TRAIT_IDS.DULLED_SENSES,
-        GUARDIAN_TRAIT_IDS.HEAVY_LIGHT,
-        GUARDIAN_TRAIT_IDS.HUNTERS_DETERMINATION
-      ]
-    }
-  });
+  const maw = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    target: { ...config.target, defiant: true },
+    specialization: 'Dragonhunter',
+    initialEndurance: 0,
+    selectedTraitIds: [
+      GUARDIAN_TRAIT_IDS.DULLED_SENSES,
+      GUARDIAN_TRAIT_IDS.HEAVY_LIGHT,
+      GUARDIAN_TRAIT_IDS.HUNTERS_DETERMINATION
+    ]
+  })(undefined, ["Dragon's Maw", { type: 'wait', durationMs: 1500 }]);
   const mawStrike = maw.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === "Dragon's Maw");
 
   assert.deepEqual(maw.warnings, []);
@@ -729,17 +611,18 @@ test('Dragonhunter relic boosts the triggering trap hit and expires for later at
   // A fresh trap receives the bonus immediately, without making the timed buff permanent or stacking it twice.
   for (const trap of ["Dragon's Maw", 'Purification', 'Procession of Blades']) {
     const simulate = (relic) =>
-      simulateGw2({
-        profession: guardianProfession,
-        rotation: [
-          trap,
-          { type: 'wait', durationMs: 5000 },
-          'Strike',
-          { type: 'wait', durationMs: 6000 },
-          'Leap of Faith'
-        ],
-        config: { ...config, primaryWeapon: 'Greatsword', specialization: 'Dragonhunter', relic }
-      });
+      createLiveProfessionSimulator(guardianProfession, {
+        ...config,
+        primaryWeapon: 'Greatsword',
+        specialization: 'Dragonhunter',
+        relic
+      })(undefined, [
+        trap,
+        { type: 'wait', durationMs: 5000 },
+        'Strike',
+        { type: 'wait', durationMs: 6000 },
+        'Leap of Faith'
+      ]);
     const baseline = simulate('');
     const boosted = simulate('Dragonhunter');
     const hits = (result) => result.resolvedEvents.filter((event) => event.type === 'damage');
@@ -759,14 +642,10 @@ for (const [name, primaryWeapon, traitId] of [
   test(`${name} only creates trait field extensions after commitment`, () => {
     // A single cast isolates cancellation from the later damage, conditions, and fields its trait adds.
     const simulate = (selectedTraitIds, interruptMs) =>
-      simulateGw2({
-        profession: guardianProfession,
-        rotation: [
-          { name, ...(interruptMs == null ? {} : { interruptMs }) },
-          { type: 'wait', durationMs: 9000 }
-        ],
-        config: { ...config, primaryWeapon, selectedTraitIds }
-      });
+      createLiveProfessionSimulator(guardianProfession, { ...config, primaryWeapon, selectedTraitIds })(undefined, [
+        { name, ...(interruptMs == null ? {} : { interruptMs }) },
+        { type: 'wait', durationMs: 9000 }
+      ]);
     const baseline = simulate([]);
     const committed = simulate([traitId]);
     const cancelled = simulate([traitId], 0);
@@ -797,23 +676,15 @@ for (const [name, primaryWeapon, traitId] of [
 }
 
 test('Glacial Heart and Master of Consecrations replace their numeric effects', () => {
-  const glacial = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Glacial Blow'],
-    config: {
-      ...config,
-      primaryWeapon: 'Hammer',
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.GLACIAL_HEART]
-    }
-  });
-  const purging = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Purging Flames', { type: 'wait', durationMs: 9000 }],
-    config: {
-      ...config,
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS]
-    }
-  });
+  const glacial = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    primaryWeapon: 'Hammer',
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.GLACIAL_HEART]
+  })(undefined, ['Glacial Blow']);
+  const purging = createLiveProfessionSimulator(guardianProfession, {
+    ...config,
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS]
+  })(undefined, ['Purging Flames', { type: 'wait', durationMs: 9000 }]);
 
   assert.deepEqual(glacial.warnings, []);
   assert.equal(
@@ -847,11 +718,10 @@ test('Glacial Heart and Master of Consecrations replace their numeric effects', 
 });
 
 test('Luminary UI excludes virtue aliases and lists the forge exit once', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Radiant Justice', 'Enter Radiant Forge'],
-    config: { ...config, specialization: 'Luminary' }
-  });
+  const result = createLiveProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
+    undefined,
+    ['Radiant Justice', 'Enter Radiant Forge']
+  );
   const professionSkillIds = guardianProfession.ui.paletteGroups({
     specialization: 'Luminary',
     professionState: result.planningState.profession
@@ -908,16 +778,10 @@ test('elite specializations expose their profession mechanics', () => {
 });
 
 test('Guardian declarative scheduling respects the configured starting set', () => {
-  const initial = simulateGw2({
-    profession: guardianProfession,
-    rotation: [],
-    config: { ...config, startingWeaponSet: 2 }
-  });
-  const swapped = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Swap Weapons'],
-    config: { ...config, startingWeaponSet: 2 }
-  });
+  const initial = createLiveProfessionSimulator(guardianProfession, { ...config, startingWeaponSet: 2 })(undefined, []);
+  const swapped = createLiveProfessionSimulator(guardianProfession, { ...config, startingWeaponSet: 2 })(undefined, [
+    'Swap Weapons'
+  ]);
 
   assert.equal(initial.planningState.activeWeaponSet, 2);
   assert.equal(swapped.planningState.activeWeaponSet, 1);

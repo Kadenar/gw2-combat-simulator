@@ -3,13 +3,13 @@ import test from 'node:test';
 import { resultSummaryMetrics } from '#gw2/app/results/model.js';
 import { mountRotationResults } from '#gw2/app/results/analysis-panel.js';
 import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
-import { simulateDeclarativeGw2 } from '#gw2/platform/simulation/pipeline.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 
 // Presentation rounds only the displayed rate and exposes the same accounting on hover and keyboard disclosure.
 test('APM renders next to duration with a tooltip and sustained peak details', () => {
-  const result = simulateDeclarativeGw2({
+  const result = simulateGw2({
     profession: testProfession,
     rotation: ['Fixture Charge', { type: 'wait', durationMs: 10100 }]
   });
@@ -38,7 +38,7 @@ test('zero-duration and empty views show an em dash while positive-duration zero
     [['Fixture Charge'], '—'],
     [[{ type: 'wait', durationMs: 1000 }], '0 APM']
   ]) {
-    const result = simulateDeclarativeGw2({ profession: testProfession, rotation });
+    const result = simulateGw2({ profession: testProfession, rotation });
     assert.equal(resultSummaryMetrics(result)[1].value, expected);
   }
 

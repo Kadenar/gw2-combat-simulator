@@ -143,8 +143,6 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
   [ID.ADRENALINE_RUSH]: {
     castTimeMs: 333,
     adrenalineGain: 3,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'strike',

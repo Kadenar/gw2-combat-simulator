@@ -239,8 +239,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.SNEAK_ATTACK]: {
-    // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
-    handlerId: 'thief.stealth-attack',
+    // Custom: Consumes stealth and applies Revealed after the attack through `core/live.ts`.
     castTimeMs: 680,
     cooldown: 1,
     initiativeCost: 0,

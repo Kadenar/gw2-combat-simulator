@@ -3,9 +3,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { resolveTestGw2Stream } from '#tests/helpers/gw2-resolver.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
-import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
@@ -56,7 +55,7 @@ test('Might increases condition damage as well as strike power', () => {
 test('condition applications shorter than one second deal fractional damage', () => {
   // Resolution retains nested annotations for condition reactions without flattening them into the application.
   const metadata = Object.freeze({ cloneId: 0, blade: false, triggeredByAlly: 1, venomProcEffectIndex: 0 });
-  const stream = buildScheduledEventStream({
+  const scenario = {
     events: [
       {
         type: 'condition',
@@ -72,13 +71,13 @@ test('condition applications shorter than one second deal fractional damage', ()
         sourceId: 'short-bleed'
       }
     ],
-    rotationEndTime: 2,
-    resolverHandoff: {
+    ...{
       warnings: ['resolver handoff warning']
-    }
-  });
-  const result = resolveTestGw2Stream({
-    stream,
+    },
+    endTime: 2
+  };
+  const result = resolveTestGw2Events({
+    ...scenario,
     config: {
       target: {},
       sigilSets: [{ names: [] }]
@@ -115,7 +114,7 @@ test('condition applications shorter than one second deal fractional damage', ()
 });
 
 test('staggered condition applications preserve fractional stack-seconds', () => {
-  const stream = buildScheduledEventStream({
+  const scenario = {
     events: [
       {
         type: 'condition',
@@ -142,10 +141,10 @@ test('staggered condition applications preserve fractional stack-seconds', () =>
         sourceId: 'short-bleed'
       }
     ],
-    rotationEndTime: 2
-  });
-  const result = resolveTestGw2Stream({
-    stream,
+    endTime: 2
+  };
+  const result = resolveTestGw2Events({
+    ...scenario,
     config: {
       target: {},
       sigilSets: [{ names: [] }]
@@ -194,7 +193,7 @@ function resolveBleedThrough(
     output = 'detailed'
   } = {}
 ) {
-  const stream = buildScheduledEventStream({
+  const scenario = {
     events: [
       {
         type: 'condition',
@@ -209,12 +208,12 @@ function resolveBleedThrough(
         sourceId: 'observed-bleed'
       }
     ],
-    rotationEndTime
-  });
+    endTime: rotationEndTime
+  };
 
-  return resolveTestGw2Stream({
+  return resolveTestGw2Events({
     output,
-    stream,
+    ...scenario,
     config: {
       target: targetHealth > 0 ? { health: targetHealth, startingHealthFraction } : {},
       sigilSets: [{ names: [] }]
@@ -338,7 +337,7 @@ test('target death occurs on shared condition pulses rather than expiry or the o
 });
 
 test('precombat target conditions are rejected rather than carried into combat', () => {
-  const stream = buildScheduledEventStream({
+  const scenario = {
     events: [
       {
         type: 'condition',
@@ -360,15 +359,14 @@ test('precombat target conditions are rejected rather than carried into combat',
         sourceId: 'combat-start'
       }
     ],
-    rotationEndTime: 3,
-    resolverHandoff: {
-      hasExplicitCombatStart: true,
+    ...{
       combatStartTime: 1,
       warnings: []
-    }
-  });
-  const result = resolveTestGw2Stream({
-    stream,
+    },
+    endTime: 3
+  };
+  const result = resolveTestGw2Events({
+    ...scenario,
     config: {
       target: {},
       sigilSets: [{ names: [] }]
@@ -421,9 +419,9 @@ function resolveEnvironmentConditions({
     },
     sigilSets: [{ names: [] }]
   };
-  const stream = buildScheduledEventStream({ events, rotationEndTime });
-  return resolveTestGw2Stream({
-    stream,
+  const scenario = { events, endTime: rotationEndTime };
+  return resolveTestGw2Events({
+    ...scenario,
     config,
     traits: new Set(),
     professionReactions,
@@ -616,7 +614,7 @@ test('environment scheduling preserves permanent status counts without duplicati
     config: { target: { conditions: { Bleeding: 2 } } }
   });
   const context = {
-    horizon: 2,
+    horizon: null,
     queue: new StableEventQueue([], { phaseFor: gw2ResolverPhase }),
     conditionState: new Map(),
     environmentConditions: new Map()
@@ -627,8 +625,8 @@ test('environment scheduling preserves permanent status counts without duplicati
   assert.equal(resolution.activeConditionStackCount(context, 'Bleeding', 1), 2);
   assert.equal(context.conditionState.size, 0);
   assert.equal(context.environmentConditions.get('Bleeding').stacks, 2);
-  // One shared sampler precedes the two whole-second environment payouts.
-  assert.equal(context.queue.length, 3);
+  // Unknown observation ends retain one sampler and one successor, never a precomputed horizon of payouts.
+  assert.equal(context.queue.length, 2);
   assert.equal(context.queue.dequeue().type, 'condition_buffer');
 });
 

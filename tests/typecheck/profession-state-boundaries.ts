@@ -8,7 +8,7 @@ import {
 } from '#gw2/platform/engine/profession/state.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-import type { EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
+import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
 import type { EngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import type { HolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
@@ -25,7 +25,7 @@ import { catalystState } from '#gw2/professions/elementalist/specializations/cat
 import type { CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { WeaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import type { MesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 
@@ -66,8 +66,8 @@ export type ProfessionModuleStateBoundaryAssertions = [
   Assert<Rejects<RevenantCoreState, 'affinity'>>
 ];
 
-declare const context: EngineerSchedulerContext;
-declare const elementalistContext: ElementalistSchedulerContext;
+declare const context: EngineerRuntime;
+declare const elementalistContext: ElementalistRuntime;
 
 professionCoreState(context).endurance;
 holosmithState.from(context).heat;

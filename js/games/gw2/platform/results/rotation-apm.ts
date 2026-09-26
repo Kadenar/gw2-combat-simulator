@@ -1,5 +1,6 @@
 import { normalizeRotation } from '#gw2/platform/execution/rotation.js';
-import type { SchedulerRunResult } from '#gw2/platform/execution/types.js';
+import type { SimulationStep } from '#gw2/platform/execution/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { isAutoattackSkill } from '#gw2/platform/engine/skills/autoattack-chains.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 
@@ -62,19 +63,24 @@ function peakApm(starts: readonly number[], duration: number, windowSeconds: num
 
 /** Counts executed command activations over the execution window, independently of damage and observation tails. */
 export function rotationApm(
-  scheduled: Pick<SchedulerRunResult, 'steps' | 'stream'>,
+  executed: {
+    steps: readonly SimulationStep[];
+    events: readonly Gw2ResolverEvent[];
+    rotationEndTime: number;
+    combatStartTime: number | null;
+  },
   rotation: readonly unknown[],
   catalog: CanonicalCatalog,
   rotationStartTime = 0
 ): RotationApm {
   const commands = normalizeRotation(rotation, catalog, { strict: true });
-  const { stream, steps } = scheduled;
-  const start = stream.resolverHandoff.combatStartTime ?? rotationStartTime;
-  const end = stream.rotationEndTime;
+  const { events, steps } = executed;
+  const start = executed.combatStartTime ?? rotationStartTime;
+  const end = executed.rotationEndTime;
   const durationSeconds = Math.max(0, end - start);
-  // Action events retain exact seconds; scheduler display timestamps are rounded to milliseconds.
+  // Action events retain exact seconds; step display timestamps are rounded to milliseconds.
   const activations = new Map(
-    stream.events
+    events
       .filter((event) => event.type === 'action' && event.activationId != null)
       .map((event) => [event.activationId, event])
   );
@@ -117,7 +123,7 @@ export function rotationApm(
       continue;
     }
 
-    // Independent pet commands and concurrent/ammo uses each keep their own scheduler reservation identity.
+    // Independent pet commands and concurrent/ammo uses each keep their own cast reservation identity.
     starts.push({ at: activation.at - start, instant: Number(activation.fullEndsAt) === activation.at });
     weaponSwapCount += Number(skill.inputCategory === 'weapon-swap');
     barSwapCount += Number(skill.inputCategory === 'bar-swap');

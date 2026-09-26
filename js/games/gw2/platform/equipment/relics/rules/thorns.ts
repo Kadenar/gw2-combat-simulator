@@ -22,7 +22,7 @@ function thornsStacksAt(at: number, configuredInitialStacks: unknown = 0): numbe
 }
 
 export const thorns = defineRelic({
-  timeline(ctx, _state, _events, rotationEndTime) {
+  passiveTimeline(ctx, _state, rotationEndTime) {
     const initialStacks = thornsStacksAt(0, ctx.config.initialThornsStacks);
     if (initialStacks > 0) {
       // Thorns stacks persist; numeric proc state lets charts and summaries retain the opening ramp.

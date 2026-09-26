@@ -1,12 +1,7 @@
+import { chronomancerLive } from '#gw2/professions/mesmer/specializations/chronomancer/live.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
-import {
-  chronomancerAttributeRules,
-  chronomancerCastRules,
-  chronomancerRuntimeHooks,
-  chronomancerSkillMechanicHandlers
-} from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/chronomancer-rules.js';
+import { chronomancerAttributeRules } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/chronomancer-rules.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import { chronomancerUi } from '#gw2/professions/mesmer/specializations/chronomancer/presentation.js';
 import {
@@ -14,7 +9,6 @@ import {
   MESMER_CHRONOMANCER_SKILL_MECHANICS,
   MESMER_CHRONOMANCER_SUPPLEMENTAL_SKILL_MECHANICS
 } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
-import { mesmerReplaceProfile } from '#gw2/professions/mesmer/core/execution/index.js';
 import { CHRONOMANCER_BALANCE_PROFILES } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
 
 export const chronomancerModule = defineNativeModule({
@@ -26,27 +20,11 @@ export const chronomancerModule = defineNativeModule({
     balanceProfiles: CHRONOMANCER_BALANCE_PROFILES
   }),
   state: {
-    scheduler: chronomancerState.create,
-    // Chronomancer has no resolver-local state; timeline events carry its resolver data.
-    resolver: () => ({})
+    create: chronomancerState.create
   },
   mechanics: {
     modifiers: chronomancerAttributeRules,
-    execution: {
-      // Continuum transitions replace their declarative profiles with stateful handlers.
-      skillHandlers: Object.freeze({
-        'mesmer.continuum-shift': mesmerReplaceProfile,
-        'mesmer.continuum-split': mesmerReplaceProfile
-      }),
-      castRules: chronomancerCastRules,
-      skillMechanicHandlers: chronomancerSkillMechanicHandlers,
-      hooks: chronomancerRuntimeHooks
-    },
-    resolution: {
-      hooks: {
-        eventHandlers: { 'mesmer.phantasm-resummoned': OBSERVABLE_EVENT_HANDLER }
-      }
-    }
+    live: chronomancerLive
   },
   presentation: chronomancerUi
 });

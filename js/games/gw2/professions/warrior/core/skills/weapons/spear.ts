@@ -45,8 +45,6 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
   },
   [ID.MIGHTY_THROW]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    // Custom: Suppresses secondary-target shards in single-target simulations; see `core/execution/index.ts`.
-    handlerId: 'warrior.mighty-throw',
     castTimeMs: 640,
     // Both impact packets count as explosions; shards still require a secondary target.
     effects: [

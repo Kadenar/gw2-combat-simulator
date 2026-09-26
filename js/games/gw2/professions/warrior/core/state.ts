@@ -7,15 +7,16 @@ export interface WarriorCoreState {
   adrenaline: number;
   maximumAdrenaline: number;
   endurance: number;
-
   enduranceUpdatedAt: number;
+
   autoattackChains: Record<string, SkillId>;
   availableFlips: SkillFlipWindows;
   targetControlledUntil: number;
   soldierFocusReadyAt: number;
   burstHitActivations: Record<string, boolean>;
-  burstPrecisionDurations: Record<string, number>;
   traitProcReadyAt: Record<string, number>;
+  /** Readiness waits for the next actual signet pulse instead of crediting future adrenaline. */
+  nextSignetPulseAt: number;
 }
 
 /** Declares the Core fields exposed by every Warrior end-state projection. */
@@ -44,14 +45,14 @@ export function createWarriorCoreState(config: Gw2Config = {}): WarriorCoreState
     adrenaline,
     maximumAdrenaline,
     endurance: 100,
-
     enduranceUpdatedAt: 0,
+
     autoattackChains: {},
     availableFlips: {},
     targetControlledUntil: 0,
     soldierFocusReadyAt: 0,
     burstHitActivations: {},
-    burstPrecisionDurations: {},
-    traitProcReadyAt: {}
+    traitProcReadyAt: {},
+    nextSignetPulseAt: Infinity
   };
 }

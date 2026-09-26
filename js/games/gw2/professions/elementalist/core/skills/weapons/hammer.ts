@@ -661,7 +661,6 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // per-orb packet shape — at cast time `scheduleGrandFinaleProfile` claims the skill and emits one
   // projectile finisher plus an element-specific condition for each orb it consumes.
   [ID.GRAND_FINALE]: {
-    handlerId: 'elementalist.grand-finale',
     name: 'Grand Finale',
     type: 'Weapon',
     slot: 'Weapon_3',

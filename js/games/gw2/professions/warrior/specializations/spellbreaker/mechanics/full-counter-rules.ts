@@ -1,35 +1,19 @@
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { Gw2MutableStats } from '#gw2/platform/combat/types.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
-import { syncWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
-import type { WarriorSchedulerContext } from '#gw2/professions/warrior/types.js';
-import { observeSpellbreakerEvent } from '#gw2/professions/warrior/specializations/spellbreaker/traits/index.js';
-import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-
-export const spellbreakerSchedulerHooks = Object.freeze({
-  initialize: (context: WarriorSchedulerContext) => {
-    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-    professionCoreState(context).maximumAdrenaline = balanceProfileNumber(resourcesProfile, 'maximumStacks');
-    syncWarriorAdrenaline(context);
-  },
-  onEventScheduled: {
-    id: 'warrior.attacker-insight',
-    order: 20,
-    handler: observeSpellbreakerEvent
-  }
-});
+import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 
 // Cast through an anonymous type rather than importing SpellbreakerState
 // directly to avoid a circular dependency between rules and state modules.

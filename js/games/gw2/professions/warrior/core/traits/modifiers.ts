@@ -1,32 +1,24 @@
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-
-import type { Gw2Stats } from '#gw2/platform/combat/types.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { warriorCastAvailability } from '#gw2/professions/warrior/core/mechanics/availability.js';
+import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import { modifyWarriorArmsAttributes, warriorArmsModifierRules } from '#gw2/professions/warrior/core/traits/arms.js';
+import { warriorDefenseModifierRules } from '#gw2/professions/warrior/core/traits/defense.js';
+import { warriorDisciplineModifierRules } from '#gw2/professions/warrior/core/traits/discipline.js';
 import {
   warriorEventSkill,
   type WarriorModifierAttributes
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import {
-  modifyWarriorArmsAttributes,
   modifyWarriorStrengthAttributes,
+  warriorStrengthModifierRules
+} from '#gw2/professions/warrior/core/traits/strength.js';
+import {
   modifyWarriorTacticsAttributes,
-  warriorArmsModifierRules,
-  warriorDefenseModifierRules,
-  warriorDisciplineModifierRules,
-  warriorStrengthModifierRules,
   warriorTacticsModifierRules
-} from '#gw2/professions/warrior/core/traits/index.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { WarriorCastContext, WarriorSchedulerContext, WarriorSkill } from '#gw2/professions/warrior/types.js';
-import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+} from '#gw2/professions/warrior/core/traits/tactics.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
 function modifyWarriorAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   const result = { ...attributes } as WarriorModifierAttributes;
@@ -121,47 +113,8 @@ const warriorModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   ...warriorDisciplineModifierRules
 ]);
 
-// Apply the fixed weapon-swap recharge and multiplicative burst or weapon-trait
-// reductions after shared recharge policy has produced the base duration.
-function modifyRechargeDuration(context: WarriorSchedulerContext & { skill?: WarriorSkill }, duration: number): number {
-  const skill = context.skill;
-  if (skill?.id === ID.SWAP_WEAPONS) return duration > 0 ? Math.min(5, duration) : 0;
-  let result = duration;
-  if (skill?.burst && hasTrait(context, TRAIT.VERSATILE_POWER))
-    result *= balanceProfileNumber(
-      requireBalanceProfileFromContext(context, TRAIT.VERSATILE_POWER),
-      'rechargeMultiplier'
-    );
-  if (skill?.weapon === 'Greatsword' && hasTrait(context, TRAIT.FORCEFUL_GREATSWORD)) result *= 0.8;
-  if (skill?.weapon === 'Sword' && hasTrait(context, TRAIT.BLADEMASTER)) result *= 0.8;
-  if (skill?.weapon === 'Axe' && hasTrait(context, TRAIT.AXE_MASTERY))
-    result *= balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.AXE_MASTERY), 'rechargeMultiplier');
-  return result;
-}
-
-const DUAL_WIELD_OFFHANDS = new Set(['Axe', 'Dagger', 'Mace', 'Sword']);
-
-function modifyCastDuration(context: WarriorCastContext, duration: number): number {
-  // Only measured Dual Wielding timings replace the Quickness-calibrated cast duration.
-  const measured = Number(context.skill.dualWieldCastTimeMs);
-  if (!(measured > 0)) return duration;
-  const weaponSet = context.state.activeWeaponSet === 2 ? 2 : 1;
-  const offhand = String(gw2ConfiguredWeaponSet(context.config, weaponSet)[1] || '');
-  return hasTrait(context, TRAIT.DUAL_WIELDING) && DUAL_WIELD_OFFHANDS.has(offhand) ? measured / 1000 : duration;
-}
-
 export const warriorCoreAttributeRules = Object.freeze({
   modifyAttributes: modifyWarriorAttributes,
   modifierRules: warriorModifierRules,
   compileModifierRules: compileGw2ModifierRules
-});
-
-export const warriorCoreCastRules = Object.freeze({
-  availability: {
-    id: 'warrior.resource',
-    order: 10,
-    handler: warriorCastAvailability
-  },
-  modifyCastDuration,
-  modifyRechargeDuration
 });

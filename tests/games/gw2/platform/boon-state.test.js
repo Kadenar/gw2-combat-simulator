@@ -2,8 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { activeBoonStacks, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { runtimeTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
-import { gw2BuffActiveForAudience } from '#gw2/platform/execution/gw2-policy/policy.js';
-import { createScheduledEvents } from '#gw2/platform/execution/scheduled-events.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 
 import {
   durationStackingBoonCapSeconds,
@@ -13,11 +12,20 @@ import {
   standardBoonPresentation
 } from '#gw2/platform/combat/boons.js';
 
-// Use the scheduler's real indexes so emission and replacement remain part of the boon-query contract.
+// Historical boon queries use the same index as live execution.
 function boonContext(events = []) {
-  const context = createScheduledEvents({ prepareEvent: (event) => event, observeEvent() {} });
-  for (const event of events) context.emit({ source: 'fixture', sourceId: 'boon', actorType: 'player', ...event });
-  return context;
+  const history = events.map((event) => ({ source: 'fixture', sourceId: 'boon', actorType: 'player', ...event }));
+  const timeline = createGw2TimelineIndex({ events: history });
+  return {
+    timeline,
+    emit(event) {
+      history.push(event);
+    }
+  };
+}
+
+function activeFor(context, kind, at, audience, companionId) {
+  return context.timeline.buffStacksAt(kind, at, 0, 1, audience, companionId) > 0;
 }
 
 // Floating-point sums cannot keep summon boons active at their exact canonical expiry.
@@ -39,7 +47,7 @@ test('summon intensity boons exclude canonical expiry and preserve the preceding
     [0.6, false],
     [0.600001, false]
   ]) {
-    assert.equal(gw2BuffActiveForAudience(context, 'might', at, 'summon'), active);
+    assert.equal(activeFor(context, 'might', at, 'summon'), active);
   }
 });
 
@@ -54,8 +62,7 @@ test('summon boon queries keep capped recipients in separate duration pools', ()
       resolvedAudience: { includesSummons: true, companionIds: [companionId] }
     }))
   );
-  const active = (index, at) =>
-    gw2BuffActiveForAudience(context, 'quickness', at, 'summon', `minion:bone-minion:${index}`);
+  const active = (index, at) => activeFor(context, 'quickness', at, 'summon', `minion:bone-minion:${index}`);
   assert.equal(active(0, 0), true);
   assert.equal(active(1, 0), false);
   assert.equal(active(0, 1), true);
@@ -76,67 +83,6 @@ test('summon boon queries keep capped recipients in separate duration pools', ()
   assert.equal(active(0, 2), false);
   assert.equal(active(1, 2), true);
   assert.equal(active(1, 3), false);
-});
-
-test('indexed summon boons preserve history across out-of-order grants and event replacements', () => {
-  // Cap duration chronologically, isolate recipients, and update kind/type/audience membership after replacements.
-  const summon = {
-    includesSelf: false,
-    includesSummons: true,
-    companionIds: ['pet'],
-    recipientCount: 1,
-    alliedPlayerCount: 0
-  };
-  const self = { ...summon, includesSelf: true, includesSummons: false, companionIds: [] };
-  const context = boonContext([
-    { type: 'buff', kind: 'quickness', at: 20, duration: 25, resolvedAudience: summon },
-    { type: 'buff', kind: 'quickness', at: 0, duration: 30, resolvedAudience: summon },
-    { type: 'buff', kind: 'quickness', at: 40, duration: 30, resolvedAudience: self }
-  ]);
-  const [later, earlier, selfOnly] = context.events;
-  const active = (at, companionId = 'pet') => gw2BuffActiveForAudience(context, 'quickness', at, 'summon', companionId);
-  assert.deepEqual(context.buffEvents('Quickness', 'summon'), [earlier, later]);
-  assert.deepEqual(context.buffEvents('quickness'), [selfOnly]);
-  // Queries must use the indexes even when unrelated event history is unavailable.
-  const indexed = {
-    ...context,
-    get events() {
-      return assert.fail('Summon queries must not scan the full event log');
-    }
-  };
-  assert.equal(gw2BuffActiveForAudience(indexed, 'quickness', 49.999999, 'summon', 'pet'), true);
-  assert.equal(active(50), false);
-  assert.equal(active(25, 'other'), false);
-  assert.equal(active(1), true);
-  context.replaceEvent(later, { at: 35, duration: 2 });
-  assert.equal(active(34), false);
-  assert.equal(active(36), true);
-  context.replaceEvent(later, { kind: 'might' });
-  assert.equal(active(36), false);
-  assert.equal(gw2BuffActiveForAudience(context, 'might', 36, 'summon', 'pet'), true);
-  context.replaceEvent(later, { type: 'marker' });
-  assert.equal(context.buffEvents('might', 'summon').length, 0);
-  context.replaceEvent(earlier, { resolvedAudience: self });
-  assert.equal(active(1), false);
-  context.replaceEvent(earlier, { resolvedAudience: summon });
-  assert.equal(active(1), true);
-  const extension = context.emit({
-    type: 'boon_extension',
-    at: 29,
-    duration: 4,
-    kind: 'quickness',
-    extensionAudience: 'all',
-    source: 'fixture',
-    sourceId: 'extension',
-    actorType: 'player'
-  });
-  assert.equal(gw2BuffActiveForAudience(indexed, 'quickness', 33.999999, 'summon', 'pet'), true);
-  assert.equal(active(34), false);
-  context.replaceEvent(extension, { duration: 1 });
-  assert.equal(active(31), false);
-  context.replaceEvent(extension, { at: 31, duration: 4 });
-  assert.equal(active(32), false);
-  assert.equal(active(1), true);
 });
 
 // Presence uses the same microsecond half-open boundary for duration pools, intensity boons, and conditions.

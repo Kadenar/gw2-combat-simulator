@@ -10,22 +10,18 @@ import type {
 } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionFamilyContract,
-  ProfessionAttributeRuleDefinition,
-  ProfessionCastRuleDefinition
+  ProfessionAttributeRuleDefinition
 } from '#gw2/platform/engine/profession/types.js';
 import type { Gw2Build, ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
 
-import type { SchedulerConfig, SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
-import type { Gw2ProfessionContract, Gw2SimulationDefinition } from '#gw2/platform/simulation/types.js';
+import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
+import type { Gw2ProfessionContract } from '#gw2/platform/simulation/types.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
-import type { Gw2ResolverEvent, Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2AutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
-
-export type NativeSkillHandlerRegistry<TContext extends object> =
-  ReadonlyMap<string, SkillHandlerStrategy<TContext>> | Readonly<Record<string, SkillHandlerStrategy<TContext>>>;
+import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface NativeModuleCatalogData {
   readonly generatedSkills?: readonly Skill[];
@@ -52,13 +48,11 @@ export interface NativeModuleCatalogData {
 }
 
 export interface NativeStateDefinition<
-  TSchedulerState extends object,
-  TResolverState extends object,
+  TState extends object,
   TProjectOptions extends object,
   TProjectedState extends object
 > {
-  readonly scheduler: (config: Readonly<SchedulerConfig>) => TSchedulerState;
-  readonly resolver?: (config: Readonly<SchedulerConfig>) => TResolverState;
+  readonly create: (config: Readonly<ProfessionConfig>) => TState;
   readonly project?: (options: TProjectOptions) => TProjectedState;
 }
 
@@ -67,149 +61,37 @@ export interface NativeResolvedDamageDetails {
   readonly criticalChance?: number;
 }
 
-export interface NativeResolvedReaction<
-  TContext extends Gw2ResolverRuntime,
-  TEvent extends Gw2ResolverEvent,
-  TDetails extends object
-> {
-  readonly phase: 'resolver';
-  readonly stage: Gw2ResolverStage;
-  readonly id: string;
-  readonly order: number;
-  readonly requiresCriticalFacts?: boolean;
-  readonly handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
-}
-
-export interface NativeResolverMechanic {
-  readonly phase: 'resolver';
-  readonly stage: Gw2ResolverStage;
-  readonly id: string;
-  readonly order: number;
-  readonly handler: (...args: never[]) => object | void;
-}
-
-export interface NativeSchedulerMechanic {
-  readonly phase: 'scheduler';
-  readonly hook: 'availability' | 'afterCast' | 'onCastStart' | 'onCastComplete';
-  readonly id: string;
-  readonly order: number;
-  readonly handler: (...args: never[]) => object | boolean | number | string | null | void;
-}
-
-/** Scheduler-owned behavior exposed by one canonical profession-content module. */
-export interface NativeExecutionMechanicsDefinition<
-  THandlerContext extends object,
-  TCastRulesEscape extends ProfessionCastRuleDefinition,
-  TSchedulerHooksEscape extends object,
-  TSchedulerMechanics extends readonly NativeSchedulerMechanic[]
-> {
-  /** A registry may compose handlers with narrower, handler-specific contexts. */
-  readonly skillHandlers?: NativeSkillHandlerRegistry<THandlerContext> | NativeSkillHandlerRegistry<never>;
-  /** Phase-explicit availability declarations. */
-  readonly availability?: NativeSchedulerMechanic | readonly NativeSchedulerMechanic[];
-  /** Phase-explicit cast lifecycle declarations. */
-  readonly castLifecycle?: TSchedulerMechanics;
-  /** Profession-owned implementations for declarative skill mechanic triggers. */
-  readonly skillMechanicHandlers?: Readonly<Record<string, (...args: never[]) => unknown>>;
-  /** Advanced scheduler cast-policy escape hatch. */
-  readonly castRules?: TCastRulesEscape;
-  /** Advanced scheduler lifecycle/task escape hatch. */
-  readonly hooks?: TSchedulerHooksEscape;
-}
-
-/** Resolver-owned behavior exposed by one canonical profession-content module. */
-export interface NativeResolutionMechanicsDefinition<
-  TResolverHooksEscape extends object,
-  TReactions extends readonly NativeResolverMechanic[]
-> {
-  /** Phase-explicit resolver reactions. */
-  readonly reactions?: TReactions;
-  /** Advanced resolver event-handler/reaction escape hatch. */
-  readonly hooks?: TResolverHooksEscape;
-}
-
-export interface NativeMechanicsDefinition<
-  TModifierEscape extends ProfessionAttributeRuleDefinition,
-  TCastRulesEscape extends ProfessionCastRuleDefinition,
-  TSchedulerHooksEscape extends object,
-  TResolverHooksEscape extends object,
-  TReactions extends readonly NativeResolverMechanic[],
-  TSchedulerMechanics extends readonly NativeSchedulerMechanic[],
-  THandlerContext extends object = object
-> {
+export interface NativeMechanicsDefinition<TModifierEscape extends ProfessionAttributeRuleDefinition> {
   /** Declarative modifier rules or an explicit legacy modifier hook bundle. */
   readonly modifiers?: readonly Gw2ModifierRule[] | TModifierEscape;
-  /** Scheduler-owned behavior. */
-  readonly execution?: NativeExecutionMechanicsDefinition<
-    THandlerContext,
-    TCastRulesEscape,
-    TSchedulerHooksEscape,
-    TSchedulerMechanics
-  >;
-  /** Resolver-owned behavior. */
-  readonly resolution?: NativeResolutionMechanicsDefinition<TResolverHooksEscape, TReactions>;
+  /** Live mechanics execute against the single chronological owner. */
+  readonly live?: Partial<Omit<RuntimeProfession<never>, 'id' | 'catalog' | 'createState' | 'projectPlanningState'>>;
 }
 
 export interface NativeModuleDefinition<
   TId extends string,
-  TSchedulerState extends object,
-  TResolverState extends object,
+  TState extends object,
   TProjectOptions extends object,
   TProjectedState extends object,
-  THandlerContext extends object,
   TModifierEscape extends ProfessionAttributeRuleDefinition,
-  TCastRulesEscape extends ProfessionCastRuleDefinition,
-  TSchedulerHooksEscape extends object,
-  TResolverHooksEscape extends object,
-  TReactions extends readonly NativeResolverMechanic[],
-  TSchedulerMechanics extends readonly NativeSchedulerMechanic[],
   TPresentation extends object
 > {
   readonly id: TId;
   readonly data: NativeModuleCatalogData;
-  readonly state: NativeStateDefinition<TSchedulerState, TResolverState, TProjectOptions, TProjectedState>;
+  readonly state: NativeStateDefinition<TState, TProjectOptions, TProjectedState>;
   readonly resources?: ResourcePolicies & { readonly endurance?: EndurancePolicy };
-  readonly mechanics?: NativeMechanicsDefinition<
-    TModifierEscape,
-    TCastRulesEscape,
-    TSchedulerHooksEscape,
-    TResolverHooksEscape,
-    TReactions,
-    TSchedulerMechanics,
-    THandlerContext
-  >;
+  readonly mechanics?: NativeMechanicsDefinition<TModifierEscape>;
   readonly presentation?: TPresentation | ((catalog: Readonly<CanonicalCatalog>) => TPresentation);
 }
 
 export interface NativeModule<
   TId extends string = string,
-  TSchedulerState extends object = object,
-  TResolverState extends object = TSchedulerState,
+  TState extends object = object,
   TProjectOptions extends object = object,
   TProjectedState extends object = object,
-  THandlerContext extends object = object,
   TModifierEscape extends ProfessionAttributeRuleDefinition = object,
-  TCastRulesEscape extends ProfessionCastRuleDefinition = object,
-  TSchedulerHooksEscape extends object = object,
-  TResolverHooksEscape extends object = object,
-  TReactions extends readonly NativeResolverMechanic[] = readonly NativeResolverMechanic[],
-  TSchedulerMechanics extends readonly NativeSchedulerMechanic[] = readonly NativeSchedulerMechanic[],
   TPresentation extends object = object
-> extends NativeModuleDefinition<
-  TId,
-  TSchedulerState,
-  TResolverState,
-  TProjectOptions,
-  TProjectedState,
-  THandlerContext,
-  TModifierEscape,
-  TCastRulesEscape,
-  TSchedulerHooksEscape,
-  TResolverHooksEscape,
-  TReactions,
-  TSchedulerMechanics,
-  TPresentation
-> {
+> extends NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifierEscape, TPresentation> {
   readonly kind: 'native-profession-module';
 }
 
@@ -218,25 +100,11 @@ export interface NativeCatalogOptions {
   readonly skillNameOverrides?: Readonly<Record<string, SkillId>>;
 }
 
-export type AnyNativeModule<TId extends string = string> = NativeModule<
-  TId,
-  object,
-  object,
-  never,
-  object,
-  never,
-  object,
-  object,
-  object,
-  object,
-  readonly NativeResolverMechanic[],
-  readonly NativeSchedulerMechanic[],
-  object
->;
+export type AnyNativeModule<TId extends string = string> = NativeModule<TId, object, never, object, object, object>;
 
 type NativeModuleState<TModule> = TModule extends {
   readonly state: {
-    readonly scheduler: (config: Readonly<SchedulerConfig>) => infer TState;
+    readonly create: (config: Readonly<ProfessionConfig>) => infer TState;
   };
 }
   ? TState
@@ -270,7 +138,6 @@ export type NativeSpecializationId<TModules extends readonly AnyNativeModule[]> 
 export interface NativeProfessionDefinition<
   TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
-  TSimulation extends Gw2SimulationDefinition = Gw2SimulationDefinition,
   TBuild extends Gw2Build = Gw2Build
 > {
   readonly id: string;
@@ -279,7 +146,6 @@ export interface NativeProfessionDefinition<
   readonly build?: ProfessionBuildDefinition<TBuild>;
   /** Family presentation factories receive the same assembled catalog as module presentation factories. */
   readonly presentation?: TPresentation | ((catalog: Readonly<CanonicalCatalog>) => TPresentation);
-  readonly simulation?: TSimulation | null;
   readonly catalog?: NativeCatalogOptions;
   /** Profession-specific exceptions and observers for the automatically installed GW2 chain controller. */
   readonly autoattackChains?: Gw2AutoattackChainOptions;
@@ -290,15 +156,14 @@ export interface NativeProfessionDefinition<
 export type NativeProfessionContract<
   TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
-  TSimulation extends Gw2SimulationDefinition = Gw2SimulationDefinition,
   TBuild extends Gw2Build = Gw2Build
 > = ProfessionFamilyContract<
   NativeProfessionRuntimeState<TModules>,
   Gw2ProfessionContract<NativeProfessionRuntimeState<TModules>>,
-  TSimulation,
   TBuild
 > & {
   readonly specializationIds: readonly NativeSpecializationId<TModules>[];
   /** Retains the immutable composition input so optional integrations can decorate the family without content imports. */
-  readonly nativeDefinition: Readonly<NativeProfessionDefinition<TModules, TPresentation, TSimulation, TBuild>>;
+  readonly nativeDefinition: Readonly<NativeProfessionDefinition<TModules, TPresentation, TBuild>>;
+  liveRuntimeFor(config: Gw2Config): RuntimeProfession<NativeProfessionRuntimeState<TModules>>;
 };

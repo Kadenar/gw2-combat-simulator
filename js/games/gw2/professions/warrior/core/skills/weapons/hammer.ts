@@ -65,8 +65,6 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
     interruptCommitMs: 600,
     cooldown: 6,
     castTimeMs: 880,
-    // Custom: Upgrades the strike against controlled or defiant targets; see `core/execution/index.ts`.
-    handlerId: 'warrior.fierce-blow',
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -101,12 +99,6 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
   [ID.BACKBREAKER]: {
     cooldown: 25,
     // Backbreaker refreshes Fierce Blow when its cast completes.
-    mechanicTriggers: [
-      {
-        type: 'warrior.core.reset-fierce-blow',
-        timingAnchor: 'castEnd'
-      }
-    ],
     castTimeMs: 880,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'fixed' }, [

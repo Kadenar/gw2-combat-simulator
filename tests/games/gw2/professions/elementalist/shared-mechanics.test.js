@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { rotationSelectedSlotSkills } from '#gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
@@ -13,14 +13,14 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { availability as evokerAvailability } from '#gw2/professions/elementalist/specializations/evoker/mechanics/availability.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { weaverCastRules } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
+import { weaverLive } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
 
 test('every Elementalist specialization can prepare attunements without precombat recharge', () => {
   // Cover each recharge override, including Weave Self, with and without an explicit future combat marker.
   for (const specialization of ['Core', 'Tempest', 'Weaver', 'Catalyst', 'Evoker']) {
     for (const suffix of [[], ['__combat_start']]) {
       for (const preparation of specialization === 'Weaver' ? [[], ['Weave Self']] : [[]]) {
-        const result = simulateGw2({
+        const result = runElementalist({
           profession: elementalistProfession,
           rotation: [
             ...preparation,
@@ -54,7 +54,7 @@ test('every Elementalist specialization can prepare attunements without precomba
 
 test('attunement recharge resumes after an explicit combat marker or the first hit', () => {
   for (const combatStart of ['__combat_start', 'Fireball']) {
-    const result = simulateGw2({
+    const result = runElementalist({
       profession: elementalistProfession,
       rotation: ['Water Attunement', 'Fire Attunement', combatStart, 'Water Attunement', 'Fire Attunement'],
       config: { specialization: 'Core', startAttunement: 'Fire', primaryWeapon: 'Staff' }
@@ -69,7 +69,7 @@ test('attunement recharge resumes after an explicit combat marker or the first h
 test('attunement entry damage traits require combat already active', () => {
   // Both an explicit marker and a landed hit should enable only subsequent entry traits.
   for (const combatStart of [['__combat_start'], ['Fireball', { type: 'wait', durationMs: 2000 }]]) {
-    const result = simulateGw2({
+    const result = runElementalist({
       profession: elementalistProfession,
       rotation: ['Air Attunement', 'Fire Attunement', ...combatStart, 'Air Attunement', 'Fire Attunement'],
       config: {
@@ -292,7 +292,7 @@ test('using the first Aerial Agility follow-up restarts its full cooldown', () =
     weapons: ['Pistol', 'Dagger']
   });
   const initialDuration = unused.planningState.cooldowns['Aerial Agility'].readyAt - unused.steps[0].end;
-  const followup = used.steps[2];
+  const followup = used.steps.find((step) => step.skill === 'Aerial Agility (chain)');
 
   assert.equal(used.planningState.cooldowns['Aerial Agility'].readyAt - followup.end, initialDuration);
   assert.ok(
@@ -416,13 +416,9 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
   const ignite = { ...elementalistCatalog.skillsById.get(ID.IGNITE), name: 'Renamed familiar' };
   const state = evokerState.create({ evokerElement: 'Fire', initialEvokerCharges: 6 });
   const context = {
-    catalog: elementalistCatalog,
-    state: {
-      profession: {
-        core: {},
-        specialization: { kind: 'Evoker', state }
-      }
-    },
+    helpers: elementalistCatalog,
+    profession: { core: {}, specialization: { kind: 'Evoker', state } },
+    time: 0,
     start: 0,
     commandIndex: 0,
     config: { selectedTraitIds: [] }
@@ -435,15 +431,17 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
 
   const unravel = { ...elementalistCatalog.skillsById.get(ID.UNRAVEL), name: 'Renamed unravel' };
   assert.equal(
-    weaverCastRules.availability.handler({ config: { selectedTraitIds: [] } }, unravel).code,
+    weaverLive.availability({ config: { selectedTraitIds: [] } }, unravel).code,
     'elementalist.weaver-elements-of-rage'
   );
 
   const core = createElementalistCoreState({ pistolBullets: { Earth: true, Air: true } });
   const pistolEvents = [];
   const pistolContext = {
-    catalog: elementalistCatalog,
-    state: { profession: { core } },
+    helpers: elementalistCatalog,
+    profession: { core },
+    time: 1,
+    query: { statsAt: () => ({}) },
     effectiveEnd: 1,
     config: { selectedTraitIds: [] },
     emit: (event) => pistolEvents.push(event)
@@ -452,7 +450,7 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
     ...elementalistCatalog.skillsById.get(ID.SHATTERING_STONE),
     name: 'Renamed core pistol skill'
   };
-  applyPistolState(pistolContext, shatteringStone);
+  applyPistolState(pistolContext, pistolContext, shatteringStone);
   assert.equal(core.pistolBullets.Earth, false);
   assert.equal(pistolEvents[0].kind, 'shattering stone');
   assert.equal(pistolEvents[0].skillId, shatteringStone.id);
@@ -461,7 +459,7 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
     ...elementalistCatalog.skillsById.get(ID.PURBLINDING_PLASMA),
     name: 'Renamed Weaver pistol skill'
   };
-  assert.equal(weaverCastRules.modifyRechargeDuration({ ...pistolContext, skill: purblindingPlasma }, 15), 10);
+  assert.equal(weaverLive.rechargeWork(pistolContext, purblindingPlasma, 15), 10);
 });
 
 // Fire exit starts a delayed proc; its strike and Burning must land together.
@@ -616,7 +614,6 @@ test('Rock Barrier starts its root recharge when Hurl is used', () => {
   const hurl = actions.find((event) => event.skillName === 'Hurl');
 
   assert.equal(barriers.length, 2);
-  assert.equal(barriers[0].rechargeReadyAt, null);
   assert.equal(barriers[1].at - hurl.endsAt, elementalistCatalog.skillsByName.get('Rock Barrier').cooldown / 1.25);
 });
 
@@ -670,7 +667,7 @@ test('Pistol bullets grant, consume, and apply their payload', () => {
 test('Hammer orbs block reuse and Grand Finale cancels future packets', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Arcane']],
-    rotation: ['Flame Wheel', 'Flame Wheel', 'Grand Finale', 8000],
+    rotation: ['Flame Wheel', 'Grand Finale', 8000],
     weapons: ['Hammer', ''],
     gear: Object.fromEntries(
       Object.keys(elementalistProfession.createBuildDefaults().gear).map((slot) => [slot, "Assassin's"])
@@ -683,12 +680,18 @@ test('Hammer orbs block reuse and Grand Finale cancels future packets', () => {
 
   assert.equal(result.events.filter((event) => event.type === 'action' && event.skillName === 'Flame Wheel').length, 1);
   assert.equal(result.planningState.profession.hammerOrbs.Fire, null);
-  assert.equal(
-    result.events.some((event) => event.cancelled && event.detail === 'cancelled by Grand Finale'),
-    true
+  const release = result.events.find((event) => event.type === 'action' && event.skillName === 'Grand Finale');
+  assert.ok(
+    !result.resolvedEvents.some(
+      (event) => event.type === 'damage' && event.skillName === 'Flame Wheel' && event.at > release.at
+    )
   );
   assert.equal(
-    result.warnings.some((warning) => warning.includes('Grand Finale must consume the active orb')),
+    runNative({
+      lines: [['Fire'], ['Air'], ['Arcane']],
+      weapons: ['Hammer', ''],
+      rotation: ['Flame Wheel', 'Flame Wheel']
+    }).warnings.some((warning) => warning.includes('Grand Finale must consume the active orb')),
     true
   );
   const finale = result.events.find((event) => event.type === 'action' && event.skillName === 'Grand Finale');

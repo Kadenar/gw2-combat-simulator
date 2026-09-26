@@ -9,9 +9,9 @@ import {
   rangerAttackOfOpportunityModifier,
   reactToRangerGreatswordDamage
 } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 
-const simulate = createProfessionSimulator(rangerProfession, {
+const simulate = createLiveProfessionSimulator(rangerProfession, {
   primaryWeapon: 'Greatsword',
   selectedPet: 'Tiger',
   selectedTraitIds: [],
@@ -137,7 +137,11 @@ test('Enduring Swing grants 15 capped endurance on completion and none when inte
 test('Maul grants the active pet 50% on its next strike without changing later strikes', () => {
   const petStrikes = (result) =>
     result.resolvedEvents.filter(
-      (event) => event.type === 'damage' && event.source === 'ranger-pet' && event.at >= result.steps.at(-2).end / 1000
+      (event) =>
+        event.type === 'damage' &&
+        event.source === 'ranger-pet' &&
+        event.at >=
+          result.steps.find((step) => step.skillId === ID.MAUL_BASE || step.skillId === ID.MAUL_SOULBEAST).end / 1000
     );
   // The player variant grants no pet bonus; equal timing and vulnerability isolate the pet variant's charge.
   for (const [specialization, prefix] of [

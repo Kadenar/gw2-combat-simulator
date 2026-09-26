@@ -34,7 +34,6 @@ export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
     id: ID.SWAP_WEAPONS,
     // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
     inputCategory: 'weapon-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'thief.weapon-swap',
     name: 'Swap Weapons',
     description: 'Swap equipped weapon sets.',
     icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
@@ -47,8 +46,7 @@ export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
   }),
   Object.freeze({
     id: ID.DODGE,
-    // Custom: Spends endurance and applies Thief dodge traits; see `core/skills/dodge.ts`.
-    handlerId: 'thief.dodge',
+    // Custom: Spends endurance and applies Thief dodge traits through `core/live.ts`.
     name: 'Dodge',
     description: 'Perform the selected thief dodge.',
     icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',

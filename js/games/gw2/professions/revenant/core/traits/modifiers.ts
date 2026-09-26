@@ -3,8 +3,6 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { revenantCastAvailability } from '#gw2/professions/revenant/core/mechanics/availability.js';
-import { modifyRevenantRechargeDuration } from '#gw2/professions/revenant/core/traits/index.js';
 import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { buffMatchesAudience, GW2_STANDARD_BOONS, sumActiveStacks } from '#gw2/platform/combat/boons.js';
@@ -234,16 +232,4 @@ export const revenantCoreAttributeRules = Object.freeze({
   modifyConditionDuration: modifyCoreConditionDuration,
   modifierRules: revenantCoreModifierRules,
   compileModifierRules: compileGw2ModifierRules
-});
-
-/**
- * Revenant availability and recharge-duration rules; cast speed uses shared policy.
- */
-export const revenantCastRules = Object.freeze({
-  availability: {
-    id: 'revenant.availability',
-    order: 10,
-    handler: revenantCastAvailability
-  },
-  modifyRechargeDuration: modifyRevenantRechargeDuration
 });

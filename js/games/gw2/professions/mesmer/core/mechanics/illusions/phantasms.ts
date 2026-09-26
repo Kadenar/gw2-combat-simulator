@@ -7,7 +7,7 @@ import type {
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerRuntime
+  MesmerMechanics
 } from '#gw2/professions/mesmer/types.js';
 
 import type {
@@ -75,7 +75,7 @@ interface PhantasmEffectControllerOptions {
   readonly addTraitProc: MesmerAddTraitProc;
   readonly addCondition: MesmerAddCondition;
   readonly addDamage: MesmerAddDamage;
-  readonly balanceProfile: MesmerRuntime['balanceProfile'];
+  readonly balanceProfile: MesmerMechanics['balanceProfile'];
 }
 
 function phantasmAttackDisplayName(skillId: number, damageGroupName: string): string {

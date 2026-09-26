@@ -12,6 +12,7 @@ import {
   tooltipNumber,
   tooltipProfile,
   simulationEffectFacts,
+  type DescribeSimulationTooltip,
   type ProfessionTooltips,
   type SimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
@@ -24,7 +25,8 @@ import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { VINDICATOR_DODGE_AUTO_ACTION } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
-import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
+import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 
 /** Put requirement-specific effects in tabs while shared effects stay visible with every selection. */
 function variantEffects(effects: readonly SkillEffect[] = [], context = '') {
@@ -58,6 +60,371 @@ function variantEffects(effects: readonly SkillEffect[] = [], context = '') {
   return { facts, factTabs: [...tabs].map(([label, facts]) => ({ label, facts })), incomplete };
 }
 
+/** Shared descriptions for Revenant skill families; each binds below to its canonical skill identities. */
+const familyTooltips = {
+  'weapon-swap': skillTooltip(
+    'Switch weapon sets. At maximum Crushing Abyss, swapping to a different weapon loadout consumes the stacks and triggers Abyssal Raze. The triggered strike uses its base coefficient and retains the stack-scaled torment.'
+  ),
+  'legend-swap': skillTooltip(
+    'Invoke your other equipped legend and reset energy. Ordinary upkeep skills stop; Facet of Nature can continue across legends. Combat invocation traits and swap sigils apply.',
+    (balanceContext, entity) => [
+      { name: 'Energy after invoking', detail: tooltipDecimal(tooltipNumber(entity, 'resourceGain')) },
+      profileFact(balanceContext, CORE.chargedMists, 'resourceGain', 'Energy with Charged Mists'),
+      profileFact(
+        balanceContext,
+        CORE.chargedMists,
+        'threshold',
+        'Charged Mists threshold: previous energy rounded down'
+      )
+    ]
+  ),
+  dodge: skillTooltip(
+    'Spend endurance to dodge. Vindicator also applies the grandmaster-selected landing package; other specializations only apply their supported dodge-related traits. Incoming damage is outside simulation scope.'
+  ),
+  'vindicator-jump': (balanceContext) => ({
+    description:
+      "Spend endurance to leap, then apply the landing selected by your grandmaster trait. Reaver's Curse can empower the next landing. Death Drop starts its Forerunner of Death bonus after its own damage resolves.",
+    facts: [ID.DEATH_DROP, ID.IMPERIAL_IMPACT, ID.SAINTS_SHIELD].flatMap((id) => {
+      const landing = balanceContext.catalog.skillsById.get(id)!;
+      return simulationEffectFacts(landing.effects, `${landing.name}: alternative landing`).facts;
+    })
+  }),
+  'ancient-echo': (balanceContext, entity) => {
+    const effects = variantEffects(balanceContext.catalog.skillsById.get(entity.id)!.effects);
+    return {
+      ...effects,
+      description: 'Restore energy and apply only the package matching your active core legend.',
+      facts: [
+        ...effects.facts,
+        {
+          name: 'Energy restored',
+          detail: tooltipDecimal(tooltipNumber(balanceContext.catalog.skillsById.get(entity.id)!, 'resourceGain'))
+        }
+      ]
+    };
+  },
+  upkeep: (balanceContext, entity) => {
+    const selected = balanceContext.catalog.skillsById.get(entity.id)! as RevenantSkill;
+    const pulse = selected.upkeepPulse;
+    return {
+      description: pulse
+        ? 'Maintain this facet to pulse its boon to your party while draining energy. Its consume skill stops the upkeep. Draconic Echo can retain the passive temporarily after consumption.'
+        : 'Maintain this skill while draining energy. Its recurring effects stop when the upkeep ends or energy is exhausted.',
+      facts: [
+        ...simulationEffectFacts(selected.effects, 'per upkeep pulse').facts,
+        ...(pulse
+          ? simulationEffectFacts(
+              [
+                {
+                  type: 'boon',
+                  boon: pulse.kind,
+                  duration: pulse.duration,
+                  stacks: pulse.stacks,
+                  audience: { recipients: 'party', maximumRecipients: 5 }
+                }
+              ],
+              'per upkeep pulse'
+            ).facts
+          : []),
+        ...(selected.pulseInterval == null
+          ? []
+          : [{ name: 'Pulse interval', detail: tooltipSeconds(selected.pulseInterval) }])
+      ]
+    };
+  },
+  'upkeep-release': skillTooltip(
+    "End the parent skill's upkeep and stop its recurring effects.",
+    (balanceContext, entity) => {
+      const parent =
+        entity.flipParentId == null ? undefined : balanceContext.catalog.skillsById.get(entity.flipParentId);
+      return parent?.manualReleaseCooldown == null
+        ? []
+        : [
+            {
+              name: 'Parent cooldown on release',
+              detail: tooltipSeconds(tooltipNumber(parent, 'manualReleaseCooldown'))
+            }
+          ];
+    }
+  ),
+  'facet-consume': skillTooltip(
+    'Consume the active facet to perform this skill and stop its energy upkeep. Its cooldown belongs to the parent facet. Draconic Echo can retain the passive after consumption.'
+  ),
+  'enchanted-daggers': (balanceContext, entity) => ({
+    description:
+      'Prepare a finite set of enchanted daggers. Qualifying player strikes consume one ready, unexpired charge for additional life-siphon damage. Siphons cannot critically strike.',
+    facts: (balanceContext.catalog.skillsById.get(entity.id)!.effects || []).flatMap(
+      (effect) =>
+        simulationEffectFacts(
+          [{ ...effect, ...(effect.type === 'strike' ? { noCrit: true } : {}) }],
+          effect.type === 'strike' ? 'per consumed charge' : ''
+        ).facts
+    )
+  }),
+  'band-together': (balanceContext, entity) => {
+    const selected = balanceContext.catalog.skillsById.get(entity.id)!;
+    const enhanced = balanceContext.catalog.skillsById.get(RENEGADE_ENHANCED_SKILL_BY_ID[Number(entity.id)])!;
+    return {
+      description:
+        'Call a warband member. An ordinary cast primes Band Together; the next supported warband skill within its window consumes the enhancement and uses its enhanced package instead. Enhanced casts do not prime another enhancement.' +
+        (selected.id === ID.RAZORCLAWS_RAGE
+          ? ' Razorclaw grants finite bleeding charges to you and the assumed attacking allies.'
+          : ''),
+      facts: [
+        ...(selected.id === ID.RAZORCLAWS_RAGE
+          ? [
+              ...simulationEffectFacts(
+                balanceContext.catalog.skillsById.get(RENEGADE.razorclawsRageProc)!.effects,
+                'per charge consumed'
+              ).facts,
+              {
+                name: 'Bleed trigger cooldown',
+                detail: tooltipSeconds(
+                  tooltipNumber(balanceContext.catalog.skillsById.get(RENEGADE.razorclawsRageProc)!, 'cooldown')
+                )
+              }
+            ]
+          : [])
+      ],
+      // Enhanced casts replace the base payload; only ordinary casts prime another Band Together window.
+      factTabs: [
+        {
+          label: 'Base effects',
+          facts: [
+            ...simulationEffectFacts(selected.effects).facts,
+            ...simulationEffectFacts(tooltipProfile(balanceContext, RENEGADE.bandTogether).effects).facts
+          ]
+        },
+        { label: 'Enhanced effects', facts: simulationEffectFacts(enhanced.effects).facts }
+      ]
+    };
+  },
+  'heroic-command': (balanceContext, entity) => ({
+    description:
+      "Refresh your active Kalla's Fervor stacks and grant might for each stack. Lasting Legacy replaces the base might amount. With no active Fervor, this grants no might.",
+    facts: [
+      ...simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects, 'per Fervor stack').facts,
+      ...simulationEffectFacts(
+        tooltipProfile(balanceContext, RENEGADE.heroicCommandLastingLegacy).effects,
+        'per Fervor stack with Lasting Legacy instead'
+      ).facts
+    ]
+  }),
+  'orders-from-above': (balanceContext, entity) => ({
+    description:
+      'Pulse alacrity. Righteous Rebel replaces the base pulse package; together with Bold Reversal it also adds protection.',
+    facts: [
+      ...simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects, 'base pulses').facts,
+      ...simulationEffectFacts(
+        tooltipProfile(balanceContext, RENEGADE.ordersFromAboveRighteousRebel).effects,
+        'with Righteous Rebel instead'
+      ).facts,
+      ...simulationEffectFacts(
+        tooltipProfile(balanceContext, RENEGADE.boldReversalRighteousRebel).effects,
+        'additional pulses with both Righteous Rebel and Bold Reversal'
+      ).facts
+    ]
+  }),
+  'spear-recharge': skillTooltip(
+    "Attack and reduce Abyssal Raze's ammunition recharge when this skill's first damage packet lands.",
+    (_c, entity) => [
+      { name: 'Abyssal Raze recharge reduction', detail: tooltipSeconds(tooltipNumber(entity, 'rechargeReduction')) }
+    ]
+  ),
+  'abyssal-raze': (balanceContext, entity) => {
+    const selected = balanceContext.catalog.skillsById.get(entity.id)!;
+    const strike = selected.effects!.find((effect) => effect.type === 'strike')!;
+    return {
+      description:
+        'Strike and inflict torment, increasing damage and adding torment for each Crushing Abyss stack already active at impact. Then gain a stack if below the cap. At the cap, swapping to a different weapon loadout consumes the stacks for an additional Raze with base strike damage.',
+      facts: [
+        ...simulationEffectFacts(
+          selected.effects!.filter((effect) => !effect.metadata?.trigger),
+          'base cast'
+        ).facts,
+        ...simulationEffectFacts(
+          selected.effects!.filter((effect) => effect.metadata?.trigger === 'crushing-abyss'),
+          'additional torment per Crushing Abyss stack'
+        ).facts,
+        {
+          name: 'Strike damage per Crushing Abyss stack',
+          detail: tooltipPercent(tooltipNumber(strike, 'damageIncreasePerStack'))
+        },
+        { name: 'Maximum Crushing Abyss stacks', detail: tooltipDecimal(tooltipNumber(selected, 'maximumStacks')) }
+      ]
+    };
+  },
+  'blossoming-aura': (balanceContext, entity) => {
+    const selected = balanceContext.catalog.skillsById.get(entity.id)!;
+    const final = selected.effects!.find((effect) => effect.type === 'strike' && effect.name === 'Final Damage')!;
+    return {
+      description:
+        "Attach an aura that pulses damage, then detonates and weakens the target. Detonating early cancels remaining pulses. The final strike grows with elapsed pulse intervals, up to the engine's detonation cap.",
+      facts: [
+        ...simulationEffectFacts(selected.effects, 'complete aura; final strike shown before growth').facts,
+        { name: 'Aura duration', detail: tooltipSeconds(tooltipNumber(selected, 'duration')) },
+        { name: 'Pulse interval', detail: tooltipSeconds(tooltipNumber(selected, 'pulseInterval')) },
+        {
+          name: 'Final damage increase per elapsed interval',
+          detail: tooltipPercent(tooltipNumber(final, 'damageIncreasePerStack'))
+        }
+      ]
+    };
+  },
+  'detonate-blossoming-aura': skillTooltip(
+    'Detonate your active Blossoming Aura immediately. Its final damage scales with elapsed pulse intervals, applies weakness, and cancels remaining pulses.',
+    (balanceContext) =>
+      simulationEffectFacts(
+        balanceContext.catalog.skillsById
+          .get(ID.BLOSSOMING_AURA)!
+          .effects?.filter((effect) => effect.name !== 'Pulsing Damage'),
+        'base detonation before elapsed-interval scaling'
+      ).facts
+  ),
+  'beguiling-haze': (balanceContext, entity) => ({
+    description:
+      'Strike and prepare follow-up charges. Each follow-up costs no energy and uses its smaller attack. The original main-cast recharge resumes after the charges are spent. Shared Wisdom grants its matching boon.',
+    facts: [
+      ...simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects, 'main cast').facts,
+      ...simulationEffectFacts(
+        tooltipProfile(balanceContext, CONDUIT.beguilingHazeFollowUp).effects,
+        'per follow-up instead'
+      ).facts,
+      profileFact(balanceContext, CONDUIT.beguilingHazeFollowUp, 'maximumStacks', 'Follow-up charges')
+    ]
+  }),
+  'hex-eater-vortex': (balanceContext, entity) => ({
+    description:
+      'Remove conditions from yourself and fire a tormenting projectile for each removed condition, up to the authored projectile limit. Equipping Demon fires the full salvo even without self-conditions. Shared Wisdom grants its matching boon.',
+    facts: simulationEffectFacts(
+      balanceContext.catalog.skillsById.get(entity.id)!.effects,
+      'maximum salvo; fewer projectiles without Demon or enough self-conditions'
+    ).facts
+  }),
+  'gladiators-defense': skillTooltip(
+    'Strike, weaken the target, and gain the listed boons when this action completes. Shared Wisdom adds its matching boon. Incoming attacks are not required to produce these simulated effects.'
+  ),
+  'twin-moon-sweep': (balanceContext, entity) => ({
+    description:
+      'You and a fragment strike together, applying bleeding and might. Both attacks are player-owned. Equipped Assassin adds immobilization; equipped Demon adds later shatter and confusion packets. Gain affinity once from the main hit; Shared Wisdom adds might.',
+    ...variantEffects(balanceContext.catalog.skillsById.get(entity.id)!.effects)
+  }),
+  'cosmic-wisdom': skillTooltip(
+    'Enter the form associated with your active legend. Swapping legends changes the form during the window. Assassin triggers lesser daggers; Dervish triggers scythe attacks from Entity skills; Mesmer changes Demon skill costs. Affinity and Conduit traits modify these effects.',
+    (balanceContext) => [
+      ...simulationEffectFacts(
+        balanceContext.catalog.skillsById.get(ID.LESSER_ENCHANTED_DAGGERS)!.effects,
+        'Assassin form: per dagger trigger'
+      ).facts,
+      ...simulationEffectFacts(
+        balanceContext.catalog.skillsById.get(ID.FORM_OF_THE_DERVISH_ATTACK)!.effects,
+        'Dervish form: per Entity cast'
+      ).facts,
+      ...simulationEffectFacts(
+        balanceContext.catalog.skillsById.get(ID.FORM_OF_THE_DERVISH_ATTACK_ELITE)!.effects,
+        'Dervish form: additional Twin Moon Sweep attack'
+      ).facts
+    ]
+  ),
+  'release-potential': (balanceContext, entity) => {
+    const selected = balanceContext.catalog.skillsById.get(entity.id)!;
+    const effects = variantEffects(selected.effects, 'base values before affinity scaling');
+    const conditions = selected.effects?.filter((effect) => effect.type === 'condition') || [];
+    return {
+      ...effects,
+      description:
+        "Release the power of your current form. Affinity increases the listed enemy-condition durations and reduces Mesmer's self-torment duration. Dervish gains its legend-specific effects from an equipped matching legend or sufficient affinity. Kinetic Insight adds virtual affinity for these calculations without spending your actual affinity.",
+      facts: [
+        ...effects.facts,
+        ...conditions.flatMap((effect) => [
+          ...(effect.durationPerAffinity == null
+            ? []
+            : [
+                {
+                  name: `${effect.condition} duration per affinity`,
+                  detail: tooltipPercent(tooltipNumber(effect, 'durationPerAffinity'))
+                }
+              ]),
+          ...(effect.durationReductionPerAffinity == null
+            ? []
+            : [
+                {
+                  name: 'Self-torment duration reduction per affinity',
+                  detail: tooltipPercent(-tooltipNumber(effect, 'durationReductionPerAffinity'))
+                }
+              ])
+        ]),
+        ...(selected.id === ID.RELEASE_POTENTIAL_DERVISH
+          ? [profileFact(balanceContext, CONDUIT.affinity, 'minimumStacks', 'Affinity for all Dervish legend effects')]
+          : [])
+      ]
+    };
+  }
+} satisfies Readonly<Record<string, DescribeSimulationTooltip>>;
+
+/** Canonical members of each described family, independent of the live owner that executes them. */
+const FAMILY_SKILL_IDS: Readonly<Record<keyof typeof familyTooltips, readonly SkillId[]>> = {
+  'weapon-swap': [ID.SWAP_WEAPONS],
+  'legend-swap': [ID.SWAP_LEGENDS],
+  dodge: [ID.DODGE],
+  'vindicator-jump': [VINDICATOR_JUMP_SKILL.id],
+  'ancient-echo': [ID.ANCIENT_ECHO],
+  upkeep: [
+    ID.VENGEFUL_HAMMERS,
+    ID.VENGEFUL_HAMMERS_ID_56752,
+    ID.FACET_OF_STRENGTH,
+    ID.PROTECTIVE_SOLACE,
+    ID.PROTECTIVE_SOLACE_ID_29310,
+    ID.FACET_OF_ELEMENTS,
+    ID.IMPOSSIBLE_ODDS,
+    ID.FACET_OF_LIGHT,
+    ID.FACET_OF_CHAOS,
+    ID.EMBRACE_THE_DARKNESS,
+    ID.FACET_OF_DARKNESS,
+    ID.FACET_OF_NATURE,
+    ID.SOULCLEAVES_SUMMIT
+  ],
+  'upkeep-release': [
+    ID.RESIST_THE_DARKNESS,
+    ID.RELEASE_HAMMERS,
+    ID.DIMINISH_SOLACE,
+    ID.RELINQUISH_POWER,
+    ID.DISMISS_LIEUTENANT_SOULCLEAVE
+  ],
+  'facet-consume': [
+    ID.GAZE_OF_DARKNESS,
+    ID.INFUSE_LIGHT,
+    ID.CHAOTIC_RELEASE,
+    ID.BURST_OF_STRENGTH,
+    ID.TRUE_NATURE_ASSASSIN,
+    ID.TRUE_NATURE_DWARF,
+    ID.TRUE_NATURE_DRAGON,
+    ID.TRUE_NATURE_CENTAUR,
+    ID.TRUE_NATURE_DEMON,
+    ID.ELEMENTAL_BLAST
+  ],
+  'enchanted-daggers': [ID.ENCHANTED_DAGGERS],
+  'band-together': [ID.ICERAZORS_IRE, ID.DARKRAZORS_DARING, ID.RAZORCLAWS_RAGE, ID.BREAKRAZORS_BASTION],
+  'heroic-command': [ID.HEROIC_COMMAND],
+  'orders-from-above': [ID.ORDERS_FROM_ABOVE],
+  'spear-recharge': [ID.ABYSSAL_BLITZ, ID.ABYSSAL_BLOT, ID.ABYSSAL_FORCE, ID.ABYSSAL_STRIKE],
+  'abyssal-raze': [ID.ABYSSAL_RAZE],
+  'blossoming-aura': [ID.BLOSSOMING_AURA],
+  'detonate-blossoming-aura': [ID.DETONATE_BLOSSOMING_AURA],
+  'beguiling-haze': [ID.BEGUILING_HAZE, ID.BEGUILING_HAZE_ID_76805],
+  'hex-eater-vortex': [ID.HEX_EATER_VORTEX],
+  'gladiators-defense': [ID.GLADIATORS_DEFENSE],
+  'twin-moon-sweep': [ID.TWIN_MOON_SWEEP, ID.TWIN_MOON_SWEEP_ID_77001],
+  'cosmic-wisdom': [ID.COSMIC_WISDOM],
+  'release-potential': [
+    ID.RELEASE_POTENTIAL_MONK,
+    ID.RELEASE_POTENTIAL_MESMER,
+    ID.RELEASE_POTENTIAL_DERVISH,
+    ID.RELEASE_POTENTIAL_ASSASSIN,
+    ID.RELEASE_POTENTIAL_WARRIOR
+  ]
+};
+
 /** Local Revenant explanations reference the same trait and mechanic profiles used by legend and form handlers. */
 export const revenantTooltips: ProfessionTooltips = {
   skillFacts: (_c, entity) => [
@@ -75,314 +442,13 @@ export const revenantTooltips: ProfessionTooltips = {
       ? []
       : [{ name: 'Energy exhaustion cooldown', detail: tooltipSeconds(tooltipNumber(entity, 'starvationCooldown')) }])
   ],
-  handlers: {
-    'revenant.weapon-swap': skillTooltip(
-      'Switch weapon sets. At maximum Crushing Abyss, swapping to a different weapon loadout consumes the stacks and triggers Abyssal Raze. The triggered strike uses its base coefficient and retains the stack-scaled torment.'
-    ),
-    'revenant.legend-swap': skillTooltip(
-      'Invoke your other equipped legend and reset energy. Ordinary upkeep skills stop; Facet of Nature can continue across legends. Combat invocation traits and swap sigils apply.',
-      (balanceContext, entity) => [
-        { name: 'Energy after invoking', detail: tooltipDecimal(tooltipNumber(entity, 'resourceGain')) },
-        profileFact(balanceContext, CORE.chargedMists, 'resourceGain', 'Energy with Charged Mists'),
-        profileFact(
-          balanceContext,
-          CORE.chargedMists,
-          'threshold',
-          'Charged Mists threshold: previous energy rounded down'
-        )
-      ]
-    ),
-    'revenant.dodge': skillTooltip(
-      'Spend endurance to dodge. Vindicator also applies the grandmaster-selected landing package; other specializations only apply their supported dodge-related traits. Incoming damage is outside simulation scope.'
-    ),
-    'revenant.vindicator-jump': (balanceContext) => ({
-      description:
-        "Spend endurance to leap, then apply the landing selected by your grandmaster trait. Reaver's Curse can empower the next landing. Death Drop starts its Forerunner of Death bonus after its own damage resolves.",
-      facts: [ID.DEATH_DROP, ID.IMPERIAL_IMPACT, ID.SAINTS_SHIELD].flatMap((id) => {
-        const landing = balanceContext.catalog.skillsById.get(id)!;
-        return simulationEffectFacts(landing.effects, `${landing.name}: alternative landing`).facts;
-      })
-    }),
-    'revenant.ancient-echo': (balanceContext, entity) => {
-      const effects = variantEffects(balanceContext.catalog.skillsById.get(entity.id)!.effects);
-      return {
-        ...effects,
-        description: 'Restore energy and apply only the package matching your active core legend.',
-        facts: [
-          ...effects.facts,
-          {
-            name: 'Energy restored',
-            detail: tooltipDecimal(tooltipNumber(balanceContext.catalog.skillsById.get(entity.id)!, 'resourceGain'))
-          }
-        ]
-      };
-    },
-    'revenant.upkeep': (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id)! as RevenantSkill;
-      const pulse = selected.upkeepPulse;
-      return {
-        description: pulse
-          ? 'Maintain this facet to pulse its boon to your party while draining energy. Its consume skill stops the upkeep. Draconic Echo can retain the passive temporarily after consumption.'
-          : 'Maintain this skill while draining energy. Its recurring effects stop when the upkeep ends or energy is exhausted.',
-        facts: [
-          ...simulationEffectFacts(selected.effects, 'per upkeep pulse').facts,
-          ...(pulse
-            ? simulationEffectFacts(
-                [
-                  {
-                    type: 'boon',
-                    boon: pulse.kind,
-                    duration: pulse.duration,
-                    stacks: pulse.stacks,
-                    audience: { recipients: 'party', maximumRecipients: 5 }
-                  }
-                ],
-                'per upkeep pulse'
-              ).facts
-            : []),
-          ...(selected.pulseInterval == null
-            ? []
-            : [{ name: 'Pulse interval', detail: tooltipSeconds(selected.pulseInterval) }])
-        ]
-      };
-    },
-    'revenant.upkeep-release': skillTooltip(
-      "End the parent skill's upkeep and stop its recurring effects.",
-      (balanceContext, entity) => {
-        const parent =
-          entity.flipParentId == null ? undefined : balanceContext.catalog.skillsById.get(entity.flipParentId);
-        return parent?.manualReleaseCooldown == null
-          ? []
-          : [
-              {
-                name: 'Parent cooldown on release',
-                detail: tooltipSeconds(tooltipNumber(parent, 'manualReleaseCooldown'))
-              }
-            ];
-      }
-    ),
-    'revenant.facet-consume': skillTooltip(
-      'Consume the active facet to perform this skill and stop its energy upkeep. Its cooldown belongs to the parent facet. Draconic Echo can retain the passive after consumption.'
-    ),
-    'revenant.enchanted-daggers': (balanceContext, entity) => ({
-      description:
-        'Prepare a finite set of enchanted daggers. Qualifying player strikes consume one ready, unexpired charge for additional life-siphon damage. Siphons cannot critically strike.',
-      facts: (balanceContext.catalog.skillsById.get(entity.id)!.effects || []).flatMap(
-        (effect) =>
-          simulationEffectFacts(
-            [{ ...effect, ...(effect.type === 'strike' ? { noCrit: true } : {}) }],
-            effect.type === 'strike' ? 'per consumed charge' : ''
-          ).facts
-      )
-    }),
-    'revenant.band-together': (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id)!;
-      const enhanced = balanceContext.catalog.skillsById.get(RENEGADE_ENHANCED_SKILL_BY_ID[Number(entity.id)])!;
-      return {
-        description:
-          'Call a warband member. An ordinary cast primes Band Together; the next supported warband skill within its window consumes the enhancement and uses its enhanced package instead. Enhanced casts do not prime another enhancement.' +
-          (selected.id === ID.RAZORCLAWS_RAGE
-            ? ' Razorclaw grants finite bleeding charges to you and the assumed attacking allies.'
-            : ''),
-        facts: [
-          ...(selected.id === ID.RAZORCLAWS_RAGE
-            ? [
-                ...simulationEffectFacts(
-                  balanceContext.catalog.skillsById.get(RENEGADE.razorclawsRageProc)!.effects,
-                  'per charge consumed'
-                ).facts,
-                {
-                  name: 'Bleed trigger cooldown',
-                  detail: tooltipSeconds(
-                    tooltipNumber(balanceContext.catalog.skillsById.get(RENEGADE.razorclawsRageProc)!, 'cooldown')
-                  )
-                }
-              ]
-            : [])
-        ],
-        // Enhanced casts replace the base payload; only ordinary casts prime another Band Together window.
-        factTabs: [
-          {
-            label: 'Base effects',
-            facts: [
-              ...simulationEffectFacts(selected.effects).facts,
-              ...simulationEffectFacts(tooltipProfile(balanceContext, RENEGADE.bandTogether).effects).facts
-            ]
-          },
-          { label: 'Enhanced effects', facts: simulationEffectFacts(enhanced.effects).facts }
-        ]
-      };
-    },
-    'revenant.heroic-command': (balanceContext, entity) => ({
-      description:
-        "Refresh your active Kalla's Fervor stacks and grant might for each stack. Lasting Legacy replaces the base might amount. With no active Fervor, this grants no might.",
-      facts: [
-        ...simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects, 'per Fervor stack').facts,
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, RENEGADE.heroicCommandLastingLegacy).effects,
-          'per Fervor stack with Lasting Legacy instead'
-        ).facts
-      ]
-    }),
-    'revenant.orders-from-above': (balanceContext, entity) => ({
-      description:
-        'Pulse alacrity. Righteous Rebel replaces the base pulse package; together with Bold Reversal it also adds protection.',
-      facts: [
-        ...simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects, 'base pulses').facts,
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, RENEGADE.ordersFromAboveRighteousRebel).effects,
-          'with Righteous Rebel instead'
-        ).facts,
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, RENEGADE.boldReversalRighteousRebel).effects,
-          'additional pulses with both Righteous Rebel and Bold Reversal'
-        ).facts
-      ]
-    }),
-    'revenant.spear-recharge': skillTooltip(
-      "Attack and reduce Abyssal Raze's ammunition recharge when this skill's first damage packet lands.",
-      (_c, entity) => [
-        { name: 'Abyssal Raze recharge reduction', detail: tooltipSeconds(tooltipNumber(entity, 'rechargeReduction')) }
-      ]
-    ),
-    'revenant.abyssal-raze': (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id)!;
-      const strike = selected.effects!.find((effect) => effect.type === 'strike')!;
-      return {
-        description:
-          'Strike and inflict torment, increasing damage and adding torment for each Crushing Abyss stack already active at impact. Then gain a stack if below the cap. At the cap, swapping to a different weapon loadout consumes the stacks for an additional Raze with base strike damage.',
-        facts: [
-          ...simulationEffectFacts(
-            selected.effects!.filter((effect) => !effect.metadata?.trigger),
-            'base cast'
-          ).facts,
-          ...simulationEffectFacts(
-            selected.effects!.filter((effect) => effect.metadata?.trigger === 'crushing-abyss'),
-            'additional torment per Crushing Abyss stack'
-          ).facts,
-          {
-            name: 'Strike damage per Crushing Abyss stack',
-            detail: tooltipPercent(tooltipNumber(strike, 'damageIncreasePerStack'))
-          },
-          { name: 'Maximum Crushing Abyss stacks', detail: tooltipDecimal(tooltipNumber(selected, 'maximumStacks')) }
-        ]
-      };
-    },
-    'revenant.blossoming-aura': (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id)!;
-      const final = selected.effects!.find((effect) => effect.type === 'strike' && effect.name === 'Final Damage')!;
-      return {
-        description:
-          "Attach an aura that pulses damage, then detonates and weakens the target. Detonating early cancels remaining pulses. The final strike grows with elapsed pulse intervals, up to the engine's detonation cap.",
-        facts: [
-          ...simulationEffectFacts(selected.effects, 'complete aura; final strike shown before growth').facts,
-          { name: 'Aura duration', detail: tooltipSeconds(tooltipNumber(selected, 'duration')) },
-          { name: 'Pulse interval', detail: tooltipSeconds(tooltipNumber(selected, 'pulseInterval')) },
-          {
-            name: 'Final damage increase per elapsed interval',
-            detail: tooltipPercent(tooltipNumber(final, 'damageIncreasePerStack'))
-          }
-        ]
-      };
-    },
-    'revenant.detonate-blossoming-aura': skillTooltip(
-      'Detonate your active Blossoming Aura immediately. Its final damage scales with elapsed pulse intervals, applies weakness, and cancels remaining pulses.',
-      (balanceContext) =>
-        simulationEffectFacts(
-          balanceContext.catalog.skillsById
-            .get(ID.BLOSSOMING_AURA)!
-            .effects?.filter((effect) => effect.name !== 'Pulsing Damage'),
-          'base detonation before elapsed-interval scaling'
-        ).facts
-    ),
-    'revenant.beguiling-haze': (balanceContext, entity) => ({
-      description:
-        'Strike and prepare follow-up charges. Each follow-up costs no energy and uses its smaller attack. The original main-cast recharge resumes after the charges are spent. Shared Wisdom grants its matching boon.',
-      facts: [
-        ...simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects, 'main cast').facts,
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, CONDUIT.beguilingHazeFollowUp).effects,
-          'per follow-up instead'
-        ).facts,
-        profileFact(balanceContext, CONDUIT.beguilingHazeFollowUp, 'maximumStacks', 'Follow-up charges')
-      ]
-    }),
-    'revenant.hex-eater-vortex': (balanceContext, entity) => ({
-      description:
-        'Remove conditions from yourself and fire a tormenting projectile for each removed condition, up to the authored projectile limit. Equipping Demon fires the full salvo even without self-conditions. Shared Wisdom grants its matching boon.',
-      facts: simulationEffectFacts(
-        balanceContext.catalog.skillsById.get(entity.id)!.effects,
-        'maximum salvo; fewer projectiles without Demon or enough self-conditions'
-      ).facts
-    }),
-    'revenant.gladiators-defense': skillTooltip(
-      'Strike, weaken the target, and gain the listed boons when this action completes. Shared Wisdom adds its matching boon. Incoming attacks are not required to produce these simulated effects.'
-    ),
-    'revenant.twin-moon-sweep': (balanceContext, entity) => ({
-      description:
-        'You and a fragment strike together, applying bleeding and might. Both attacks are player-owned. Equipped Assassin adds immobilization; equipped Demon adds later shatter and confusion packets. Gain affinity once from the main hit; Shared Wisdom adds might.',
-      ...variantEffects(balanceContext.catalog.skillsById.get(entity.id)!.effects)
-    }),
-    'revenant.cosmic-wisdom': skillTooltip(
-      'Enter the form associated with your active legend. Swapping legends changes the form during the window. Assassin triggers lesser daggers; Dervish triggers scythe attacks from Entity skills; Mesmer changes Demon skill costs. Affinity and Conduit traits modify these effects.',
-      (balanceContext) => [
-        ...simulationEffectFacts(
-          balanceContext.catalog.skillsById.get(ID.LESSER_ENCHANTED_DAGGERS)!.effects,
-          'Assassin form: per dagger trigger'
-        ).facts,
-        ...simulationEffectFacts(
-          balanceContext.catalog.skillsById.get(ID.FORM_OF_THE_DERVISH_ATTACK)!.effects,
-          'Dervish form: per Entity cast'
-        ).facts,
-        ...simulationEffectFacts(
-          balanceContext.catalog.skillsById.get(ID.FORM_OF_THE_DERVISH_ATTACK_ELITE)!.effects,
-          'Dervish form: additional Twin Moon Sweep attack'
-        ).facts
-      ]
-    ),
-    'revenant.release-potential': (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id)!;
-      const effects = variantEffects(selected.effects, 'base values before affinity scaling');
-      const conditions = selected.effects?.filter((effect) => effect.type === 'condition') || [];
-      return {
-        ...effects,
-        description:
-          "Release the power of your current form. Affinity increases the listed enemy-condition durations and reduces Mesmer's self-torment duration. Dervish gains its legend-specific effects from an equipped matching legend or sufficient affinity. Kinetic Insight adds virtual affinity for these calculations without spending your actual affinity.",
-        facts: [
-          ...effects.facts,
-          ...conditions.flatMap((effect) => [
-            ...(effect.durationPerAffinity == null
-              ? []
-              : [
-                  {
-                    name: `${effect.condition} duration per affinity`,
-                    detail: tooltipPercent(tooltipNumber(effect, 'durationPerAffinity'))
-                  }
-                ]),
-            ...(effect.durationReductionPerAffinity == null
-              ? []
-              : [
-                  {
-                    name: 'Self-torment duration reduction per affinity',
-                    detail: tooltipPercent(-tooltipNumber(effect, 'durationReductionPerAffinity'))
-                  }
-                ])
-          ]),
-          ...(selected.id === ID.RELEASE_POTENTIAL_DERVISH
-            ? [
-                profileFact(
-                  balanceContext,
-                  CONDUIT.affinity,
-                  'minimumStacks',
-                  'Affinity for all Dervish legend effects'
-                )
-              ]
-            : [])
-        ]
-      };
-    }
-  },
   skills: {
+    // Family descriptions bind to canonical skill identities; skill-specific entries below take precedence.
+    ...Object.fromEntries(
+      Object.entries(FAMILY_SKILL_IDS).flatMap(([family, ids]) =>
+        ids.map((id) => [id, familyTooltips[family as keyof typeof familyTooltips]])
+      )
+    ),
     [VINDICATOR_DODGE_AUTO_ACTION]: () => ({
       description:
         'Start a Vindicator dodge and the current autoattack together. Endurance is spent at takeoff; the grandmaster-selected landing occurs after the airborne phase.',
@@ -472,7 +538,7 @@ export const revenantTooltips: ProfessionTooltips = {
     ),
     [ID.ETERNITYS_REQUIEM]: (balanceContext, entity) => ({
       description: 'Strike repeatedly. Additional packets hit only a target configured with a large hitbox.',
-      // Packet metadata is the same exclusion gate used by the scheduler's hitbox filter.
+      // Packet metadata is the same exclusion gate used by the live hitbox filter.
       facts: (balanceContext.catalog.skillsById.get(entity.id)!.effects || []).flatMap((effect) =>
         effect.type === 'strike' && effect.ticks
           ? [false, true].flatMap((large) => {

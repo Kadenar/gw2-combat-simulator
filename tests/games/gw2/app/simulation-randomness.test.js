@@ -13,6 +13,7 @@ import {
   summarizeRandomDistributionOutcomes
 } from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,
@@ -33,6 +34,10 @@ import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
+
+// Seeded Necromancer reactions run on the same live owner as the triggering hit.
+const simulateNecromancer = ({ config, rotation }) =>
+  runGw2Runtime({ profession: necromancerProfession.liveRuntimeFor(config), config, rotation });
 
 function minimalAttributeData() {
   return { attributes: {}, activeTraits: [] };
@@ -458,8 +463,8 @@ test('Engineer random trait procs repeat by seed and vary across seeds', () => {
     }
   };
   const run = (seed) =>
-    simulateGw2({
-      profession: engineerProfession,
+    runGw2Runtime({
+      profession: engineerProfession.liveRuntimeFor(config),
       rotation,
       config: {
         ...config,
@@ -493,8 +498,7 @@ test('Necromancer randomizes Barbed Precision and Chilling Nova by seed', () => 
     }
   };
   const barbed = (seed) =>
-    simulateGw2({
-      profession: necromancerProfession,
+    simulateNecromancer({
       rotation: ['Weeping Shots', { type: 'wait', durationMs: 4100 }],
       config: {
         ...common,
@@ -515,8 +519,7 @@ test('Necromancer randomizes Barbed Precision and Chilling Nova by seed', () => 
   );
 
   const chillingNova = (seed) =>
-    simulateGw2({
-      profession: necromancerProfession,
+    simulateNecromancer({
       rotation: ["Reaper's Shroud", 'Life Rend'],
       config: {
         ...common,
@@ -534,8 +537,7 @@ test('Necromancer randomizes Barbed Precision and Chilling Nova by seed', () => 
 
 test('Reaper rolls ice-field projectile finishers per bullet by seed', () => {
   const boltCount = (mode, seed) =>
-    simulateGw2({
-      profession: necromancerProfession,
+    simulateNecromancer({
       rotation: ['Weeping Shots', 'Vicious Shot', { type: 'wait', durationMs: 2000 }],
       config: {
         specialization: 'Reaper',

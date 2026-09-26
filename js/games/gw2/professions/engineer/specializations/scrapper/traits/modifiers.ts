@@ -3,8 +3,6 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { kineticAcceleratorBoons } from '#gw2/professions/engineer/specializations/scrapper/traits/kinetic-accelerators.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -12,33 +10,8 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { applyEngineerSharpshooterConditionDamage } from '#gw2/professions/engineer/core/traits/modifiers.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { EngineerMaximumAmmoContext, EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
-
-import { applyScrapperCastTraits } from '#gw2/professions/engineer/specializations/scrapper/traits/index.js';
-
-/** Predict combo boons for scheduling; resolution alone commits their combat applications. */
-function observeScrapperScheduledEvent(context: EngineerSchedulerContext, event: SimulationEvent): void {
-  if (event.schedulerPrediction !== 'combo-result') return;
-  for (const boon of kineticAcceleratorBoons(context, event)) {
-    emitSkillBuff(context, { ...boon, cause: event, schedulerBoonPrediction: true });
-  }
-}
-
-export const scrapperSchedulerHooks = Object.freeze({
-  onEventScheduled: {
-    id: 'engineer.kinetic-accelerators',
-    order: 30,
-    handler: observeScrapperScheduledEvent
-  },
-  // order 30 runs after core engineer hooks (10/20) but before any finisher hooks
-  afterCast: {
-    id: 'engineer.scrapper-traits',
-    order: 30,
-    handler: applyScrapperCastTraits
-  }
-});
 
 const scrapperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -77,8 +50,8 @@ function modifyScrapperAttributes(context: Gw2ModifierContext, attributes: Gw2St
 }
 
 // Ex Machina (adept trait): Function Gyro gets a minimum of 2 ammo charges.
-function modifyScrapperMaximumAmmo(context: EngineerMaximumAmmoContext, maximum: number): number {
-  return context.skill?.id === ID.FUNCTION_GYRO && hasTrait(context.config, TRAIT.EX_MACHINA)
+export function scrapperMaximumAmmo(context: EngineerRuntime, skill: EngineerSkill, maximum: number): number {
+  return skill.id === ID.FUNCTION_GYRO && hasTrait(context.config, TRAIT.EX_MACHINA)
     ? Math.max(
         balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.EX_MACHINA), 'maximumAmmo'),
         Number(maximum || 0)
@@ -89,8 +62,4 @@ function modifyScrapperMaximumAmmo(context: EngineerMaximumAmmoContext, maximum:
 export const scrapperAttributeRules = Object.freeze({
   modifyAttributes: modifyScrapperAttributes,
   modifierRules: scrapperModifierRules
-});
-
-export const scrapperCastRules = Object.freeze({
-  modifyMaximumAmmo: modifyScrapperMaximumAmmo
 });

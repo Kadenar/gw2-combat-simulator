@@ -4,7 +4,6 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerCriticalTraitReaction } from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
 import { mesmerCoreModifierRules } from '#gw2/professions/mesmer/core/traits/modifiers.js';
 
 test('Mental Anguish uses explicit nested shatter eligibility', () => {
@@ -17,42 +16,6 @@ test('Mental Anguish uses explicit nested shatter eligibility', () => {
       eligible === true
     );
   }
-});
-
-test('delayed Mesmer hit procs retain annotations and prefer canonical critical facts', () => {
-  // Canonical replacement supplies sampled facts without dropping annotations on the original scheduled hit.
-  const event = Object.freeze({ type: 'damage', at: 2, eventOrder: 7, metadata: { blade: true }, didCrit: false });
-  for (const canonical of [{ type: 'damage', at: 2, eventOrder: 7, didCrit: true, metadata: { cloneId: 0 } }]) {
-    const processed = [];
-    const context = {
-      mesmerRuntime: { criticalTraits: { process: (candidate) => processed.push(candidate) } },
-      eventByOrder(order) {
-        assert.equal(order, 7);
-        return canonical;
-      }
-    };
-    mesmerCriticalTraitReaction.taskHandlers['mesmer.critical-traits'](context, {
-      at: 2,
-      payload: { eventOrder: 7, metadata: event.metadata }
-    });
-    assert.equal(processed.length, 1);
-    assert.equal(processed[0].at, 2);
-    assert.equal(processed[0].metadata?.blade, true);
-    assert.equal(processed[0].metadata?.cloneId, canonical ? 0 : undefined);
-    assert.equal(processed[0].didCrit, Boolean(canonical));
-    assert.equal(event.didCrit, false);
-  }
-});
-
-test('Mesmer critical reactions reject a missing canonical event', () => {
-  assert.throws(
-    () =>
-      mesmerCriticalTraitReaction.taskHandlers['mesmer.critical-traits'](
-        { eventByOrder: () => undefined },
-        { at: 2, payload: { eventOrder: 7, metadata: { blade: true } } }
-      ),
-    /requires a scheduled event/
-  );
 });
 
 // Shared traits retain their damage, boon, and resource contracts across Mesmer specializations.
@@ -239,7 +202,7 @@ test('Master Fencer grants self and allied fury on critical hits with an eight-s
       randomness: { mode: 'stochastic', seed: 1 }
     })
   );
-  const hits = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter');
+  const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter');
   const procs = result.events.filter((event) => event.type === 'proc' && event.name === 'Master Fencer');
   const fury = result.events.filter((event) => event.type === 'buff' && event.skillName === 'Master Fencer');
 
@@ -349,7 +312,7 @@ test('Sharper Images samples illusion criticals instead of accumulating expected
     ...config,
     randomness: { mode: 'stochastic', seed: 91 }
   });
-  const illusionHits = result.events.filter((event) => event.type === 'damage' && event.source === 'Phantasm');
+  const illusionHits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.source === 'Phantasm');
   const criticals = illusionHits.filter((event) => event.didCrit).length;
   const sharperImages = result.events.filter(
     (event) => event.type === 'condition' && event.name.includes('Sharper Images')

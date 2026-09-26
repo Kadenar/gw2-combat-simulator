@@ -35,9 +35,9 @@ test('profession weapon eligibility is shared with headless simulation', () => {
           weapons: ['Sword'],
           weaponHands: { Sword: 'mh' }
         },
-        state: { scheduler: () => ({}) }
+        state: { create: () => ({}) }
       }),
-      defineNativeModule({ id: 'Elite', data: {}, state: { scheduler: () => ({}) } })
+      defineNativeModule({ id: 'Elite', data: {}, state: { create: () => ({}) } })
     ]
   });
   assert.equal(family.weaponSkillMatchesSet, weaponSkillMatchesSet);

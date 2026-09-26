@@ -239,8 +239,7 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Part
     requiredOffHand: 'Pistol'
   },
   [ID.SHADOWSQUALL]: {
-    // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
-    handlerId: 'thief.stealth-attack',
+    // Custom: Consumes stealth and applies Revealed after the attack through `core/live.ts`.
     castTimeMs: 1960,
     cooldown: 0,
     initiativeCost: 0,

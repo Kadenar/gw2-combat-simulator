@@ -1,12 +1,5 @@
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  CastContext,
-  CastLifecycleContext,
-  SchedulerContext,
-  SchedulerState
-} from '#gw2/platform/execution/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { EffectMetadata } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
@@ -55,63 +48,6 @@ export interface GuardianRuntimeState {
     | { kind: 'Luminary'; state: GuardianLuminaryState };
 }
 
-export type GuardianSchedulerContext = SchedulerContext<GuardianRuntimeState> & {
-  readonly config: GuardianConfig;
-};
-
-export type GuardianCastContext = CastLifecycleContext<GuardianRuntimeState> & {
-  readonly config: GuardianConfig;
-};
-
-export type GuardianPrecastContext = CastContext<GuardianRuntimeState> & {
-  readonly config: GuardianConfig;
-};
-
-export interface GuardianPlanningStateProjectionOptions {
-  readonly schedulerState: SchedulerState<GuardianRuntimeState>;
-}
-
-export interface GuardianAvailabilityContext {
-  readonly config?: GuardianConfig;
-  readonly catalog?: CanonicalCatalog;
-  readonly specialization?: string;
-  readonly specializations?: GuardianConfig['specializations'];
-}
-
-/** Fields emitted by Guardian mechanics and read by its resolver and presentation. */
-export interface GuardianEventExtra {
-  readonly virtue?: GuardianVirtue;
-  readonly passiveReadyAt?: number;
-  readonly priority?: number;
-  readonly tetherUntil?: number;
-  readonly applicationIndex?: number;
-  readonly totalApplications?: number;
-  readonly weaponSet?: number;
-  readonly weaponLine?: string | null;
-  readonly activeTome?: string;
-  readonly tome?: string;
-  readonly pageCost?: number;
-  readonly pagesRemaining?: number;
-  readonly nextTomePageAt?: number;
-  readonly ashes?: ChargeGrant;
-  readonly ashesBurnDuration?: number;
-  readonly radiantForge?: boolean;
-  readonly radiantForgeEndsAt?: number;
-  readonly radiantForgeEnteredAt?: number;
-  readonly radiantWeapon?: string;
-  readonly duration?: number;
-  readonly at?: number;
-  readonly source?: string;
-  readonly sourceId?: SkillId;
-  readonly actorType?: SimulationActorType;
-  readonly skillId?: SkillId | null;
-  readonly skillName?: string;
-}
-
-export type GuardianEventContext = GuardianSchedulerContext & {
-  readonly effectiveEnd?: number;
-};
-
 export interface GuardianStrikeFields {
   readonly skillWeapon?: string;
   readonly isSymbol?: boolean;
@@ -144,27 +80,12 @@ export type GuardianResolverContext = Gw2ResolverRuntime & {
 
 export type GuardianVirtue = 'justice' | 'resolve' | 'courage';
 
+/** Guardian-specific annotations on executed combat and weapon-bar facts. */
 export type GuardianResolverEvent = Gw2ResolverEvent & {
-  // Derived tether conditions retain the application identity of their custom pulse event.
   readonly applicationIndex?: number;
   readonly totalApplications?: number;
-  readonly activeTome?: string;
-  readonly ashes?: ChargeGrant;
-  readonly ashesBurnDuration?: number;
   readonly automatic?: boolean;
-  readonly burningDuration?: number;
   readonly isSymbol?: boolean;
-  readonly justiceActive?: boolean;
-  readonly nextTomePageAt?: number;
-  readonly pageCost?: number;
-  readonly pagesRemaining?: number;
-  readonly passiveReadyAt?: number;
-  readonly radiantForge?: boolean;
-  readonly radiantForgeEndsAt?: number;
-  readonly radiantForgeEnteredAt?: number;
-  readonly radiantWeapon?: string;
-  readonly tetherUntil?: number;
-  readonly virtue?: GuardianVirtue;
 };
 
 export interface GuardianSkill extends Skill {

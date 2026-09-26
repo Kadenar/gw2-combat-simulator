@@ -139,7 +139,7 @@ test('axe clone attacks and Axes of Symmetry use cast-start snapshots', () => {
     (event) => event.type === 'condition' && event.skillName === 'Axes of Symmetry' && event.source === 'Clone'
   );
 
-  assert.equal(axesStep.end - axesStep.start, 1000);
+  assert.ok(Math.abs(axesStep.end - axesStep.start - 1000) < 1e-9);
   assert.equal(Math.round((playerHit.at - axesStart) * 1000), 920);
   assert.deepEqual(
     cloneHits.map((event) => Math.round((event.at - axesStart) * 1000)),

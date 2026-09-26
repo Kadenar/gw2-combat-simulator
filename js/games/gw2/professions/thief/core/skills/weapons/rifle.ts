@@ -21,9 +21,8 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     kneelSkill: true
   },
   [ID.KNEEL]: {
-    // Custom: Enters Kneel and exposes kneeling rifle skills; see `core/skills/actions.ts`.
+    // Custom: Enters Kneel and exposes kneeling rifle skills through `core/live.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'thief.kneel',
     castTimeMs: 360,
     cooldown: 0.5,
     initiativeCost: 1,
@@ -69,9 +68,8 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     kneelSkill: true
   },
   [ID.FREE_ACTION]: {
-    // Custom: Leaves Kneel and restores standing rifle skills; see `core/skills/actions.ts`.
+    // Custom: Leaves Kneel and restores standing rifle skills through `core/live.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'thief.free-action',
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -306,8 +304,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     kneelSkill: true
   },
   [ID.DEATHS_JUDGMENT]: {
-    // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
-    handlerId: 'thief.stealth-attack',
+    // Custom: Consumes stealth and applies Revealed after the attack through `core/live.ts`.
     castTimeMs: 360,
     cooldown: 1,
     initiativeCost: 0,

@@ -80,16 +80,8 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     cooldown: 24,
     castTimeMs: 680,
     // The heal restores two dodge bars when its cast completes.
-    mechanicTriggers: [
-      {
-        type: 'warrior.core.restore-endurance',
-        timingAnchor: 'castEnd',
-        count: 100
-      }
-    ],
+    enduranceGain: 100,
     adrenalineGain: 30,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
     effects: []
   },
   [ID.SIGNET_OF_MIGHT]: {
@@ -157,8 +149,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     castTimeMs: 400,
     dualWieldCastTimeMs: 280,
     adrenalineGain: 30,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource',
     effects: [
       {
         type: 'buff',

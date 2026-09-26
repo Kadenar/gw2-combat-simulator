@@ -1,19 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
-import { advanceProfessionResources } from '#gw2/platform/combat/resources/resource-policy.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { activeSoulbeastBuff } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import {
-  advanceProfessionEndurance,
-  professionEnduranceReadyAt
-} from '#gw2/platform/combat/resources/endurance-policy.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
 
 const config = {
   selectedPet: 'Tiger',
@@ -24,20 +20,12 @@ const config = {
   stats: { power: 2000, precision: 1000, ferocity: 0 },
   target: { armor: 2597, conditions: {} }
 };
-const simulate = createProfessionSimulator(rangerProfession, config);
+const simulate = createLiveProfessionSimulator(rangerProfession, config);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, `${actual} != ${expected}`);
-const schedulerFor = (overrides = {}) => {
-  const options = { ...config, specialization: 'Core', ...overrides };
-  return createScheduler({
-    profession: rangerProfession,
-    config: options,
-    schedulerPolicy: createGw2SchedulerPolicy(options)
-  });
-};
-
-const boon = (scheduler, kind, at, duration, affectsSelf = true) =>
-  scheduler.context.emit({
+// Seed only initial state; every gain, expiry, extension, and wait runs on the common queue.
+const boon = (runtime, kind, at, duration, affectsSelf = true) =>
+  runtime.emit({
     type: 'buff',
     source: 'test',
     sourceId: 'test-boon',
@@ -50,62 +38,44 @@ const boon = (scheduler, kind, at, duration, affectsSelf = true) =>
   });
 
 test('Ranger endurance and Dodge readiness are invariant under wait partitions', () => {
-  // Two applications pool into two seconds of Vigor; a pet-only application cannot extend the player window.
-  for (const partition of [[4], [1, 2, 3, 4]]) {
-    const scheduler = schedulerFor();
-    const state = scheduler.state.profession.core;
-    state.endurance = 0;
-    boon(scheduler, 'vigor', 0, 1);
-    boon(scheduler, 'vigor', 0.5, 1);
-    boon(scheduler, 'vigor', 2, 20, false);
-    for (const at of partition) advanceProfessionEndurance(scheduler.context, at);
-    close(state.endurance, 25);
-    close(professionEnduranceReadyAt({ ...scheduler.context, start: 4 }, 50), 9);
+  for (const waits of [[4000], [1000, 1000, 1000, 1000]]) {
+    const result = runRanger(waits.map(wait), config, {
+      initialize(runtime) {
+        runtime.profession.core.endurance = 0;
+        boon(runtime, 'vigor', 0, 1);
+        boon(runtime, 'vigor', 0.5, 1);
+        boon(runtime, 'vigor', 2, 20, false);
+      }
+    });
+    close(runtimeFor(result).profession.core.endurance, 25);
+    close(runtimeFor(result).endurance.readyAt(50), 9);
   }
 
-  const run = (waits) => {
-    const scheduler = schedulerFor();
-    boon(scheduler, 'vigor', 0, 2);
-    return scheduler.run([ID.DODGE, ID.DODGE, ...waits.map(wait), ID.DODGE]);
-  };
-
-  const whole = run([4000]),
-    split = run([1000, 1000, 2000]);
-  assert.deepEqual(whole.warnings, []);
-  assert.deepEqual(split.warnings, []);
-  assert.equal(whole.steps.at(-1).start, split.steps.at(-1).start);
-  close(whole.state.profession.core.endurance, split.state.profession.core.endurance);
+  const results = [[4000], [1000, 1000, 2000]].map((waits) =>
+    runRanger([ID.DODGE, ID.DODGE, ...waits.map(wait), ID.DODGE], config, {
+      initialize(runtime) {
+        boon(runtime, 'vigor', 0, 2);
+      }
+    })
+  );
+  results.forEach((result) => assert.deepEqual(result.warnings, []));
+  assert.equal(results[0].steps.at(-1).start, results[1].steps.at(-1).start);
+  close(runtimeFor(results[0]).profession.core.endurance, runtimeFor(results[1]).profession.core.endurance);
 });
 
-test('Ranger recovery rates reject invalid profiles and reread patched profiles between invocations', () => {
-  // Missing or non-finite rates fail visibly; invocation-local rates must not survive a profile replacement.
-  for (const invalid of [NaN, Infinity, undefined]) {
-    const scheduler = schedulerFor({ selectedTraitIds: [TRAIT.NATURAL_VIGOR] });
-    const profiles = new Map([
-      [PROFILE.resources, { enduranceRegenerationPerSecond: invalid, vigorRegenerationMultiplier: 1.5 }],
-      [PROFILE.naturalVigor, { vigorRegenerationMultiplier: 0.25 }]
-    ]);
-    const context = { ...scheduler.context, catalog: { balanceProfilesById: profiles } };
-    assert.throws(() => professionEnduranceReadyAt({ ...context, start: 0 }, 30), /Invalid balance data/);
-  }
-
-  const scheduler = schedulerFor({ selectedTraitIds: [TRAIT.NATURAL_VIGOR] });
-  const state = scheduler.state.profession.core;
-  const profiles = new Map([
-    [PROFILE.resources, { enduranceRegenerationPerSecond: 5, vigorRegenerationMultiplier: 1.5 }],
-    [PROFILE.naturalVigor, { vigorRegenerationMultiplier: 0.25 }]
-  ]);
-  const context = { ...scheduler.context, catalog: { balanceProfilesById: profiles } };
-  state.endurance = 0;
-  boon(scheduler, 'vigor', 1, 2);
-  close(professionEnduranceReadyAt({ ...context, start: 0 }, 30), 4);
-  advanceProfessionEndurance(context, 4);
-  close(state.endurance, 30);
-  profiles.set(PROFILE.resources, { enduranceRegenerationPerSecond: 4, vigorRegenerationMultiplier: 2 });
-  profiles.set(PROFILE.naturalVigor, { vigorRegenerationMultiplier: 0.5 });
-  close(professionEnduranceReadyAt({ ...context, start: 4 }, 36), 5);
-  advanceProfessionEndurance(context, 5);
-  close(state.endurance, 36);
+test('Ranger recovery rejects invalid profiles and uses each invocation profile', () => {
+  const run = (rate) =>
+    runRanger([wait(4000)], config, {
+      extend: (native) => ({
+        catalog: withProfile(native.catalog, PROFILE.resources, { enduranceRegenerationPerSecond: rate })
+      }),
+      initialize(runtime) {
+        runtime.profession.core.endurance = 0;
+      }
+    });
+  for (const invalid of [NaN, Infinity, undefined]) assert.throws(() => run(invalid), /Invalid balance data/);
+  close(runtimeFor(run(5)).profession.core.endurance, 20);
+  close(runtimeFor(run(4)).profession.core.endurance, 16);
 });
 
 test('Galeshot arrow regeneration ignores Alacrity gain and expiry across wait partitions', () => {
@@ -113,42 +83,56 @@ test('Galeshot arrow regeneration ignores Alacrity gain and expiry across wait p
     [3, 10],
     [0, 2]
   ]) {
-    for (const partition of [[4.9], [1, 2, 3, 4.9]]) {
-      const scheduler = schedulerFor({ specialization: 'Galeshot' });
-      boon(scheduler, 'alacrity', at, duration);
-      const state = galeshotState.from(scheduler.context);
-      for (const time of partition) advanceProfessionResources(scheduler.context, time);
-      assert.equal(state.arrows.value, 0);
-      assert.equal(state.arrows.nextAt, 5);
-      advanceProfessionResources(scheduler.context, 5);
-      assert.equal(state.arrows.value, 1);
-      assert.equal(state.arrows.nextAt, 10);
-      advanceProfessionResources(scheduler.context, 10);
-      assert.equal(state.arrows.value, 2);
-      assert.equal(state.arrows.nextAt, 15);
+    for (const waits of [[4900], [1000, 1000, 1000, 1900]]) {
+      for (const [extra, value, nextAt] of [
+        [0, 0, 5],
+        [100, 1, 10],
+        [5100, 2, 15]
+      ]) {
+        const result = runRanger(
+          [...waits, extra].map(wait),
+          { ...config, specialization: 'Galeshot' },
+          {
+            initialize(runtime) {
+              boon(runtime, 'alacrity', at, duration);
+            }
+          }
+        );
+        const arrows = galeshotState.from(runtimeFor(result)).arrows;
+        assert.equal(arrows.value, value);
+        assert.equal(arrows.nextAt, nextAt);
+      }
     }
   }
 });
 
-test('resource integration honors boon extensions and configured permanent boons', () => {
-  const scheduler = schedulerFor();
-  scheduler.state.profession.core.endurance = 0;
-  boon(scheduler, 'vigor', 0, 2);
-  scheduler.context.emit({
-    type: 'boon_extension',
-    source: 'test',
-    sourceId: 'extension',
-    actorType: 'effect',
-    at: 1,
-    kind: 'vigor',
-    duration: 2
+test('resource integration honors boon extensions and permanent boons', () => {
+  const result = runRanger([wait(5000)], config, {
+    initialize(runtime) {
+      runtime.profession.core.endurance = 0;
+      boon(runtime, 'vigor', 0, 2);
+      runtime.emit({
+        type: 'boon_extension',
+        source: 'test',
+        sourceId: 'extension',
+        actorType: 'effect',
+        at: 1,
+        kind: 'vigor',
+        duration: 2
+      });
+    }
   });
-  advanceProfessionEndurance(scheduler.context, 5);
-  close(scheduler.state.profession.core.endurance, 35);
-  const permanent = schedulerFor({ boons: { vigor: true }, selectedTraitIds: [TRAIT.NATURAL_VIGOR] });
-  permanent.state.profession.core.endurance = 0;
-  advanceProfessionEndurance(permanent.context, 4);
-  close(permanent.state.profession.core.endurance, 35);
+  close(runtimeFor(result).profession.core.endurance, 35);
+  const permanent = runRanger(
+    [wait(4000)],
+    { ...config, boons: { vigor: true }, selectedTraitIds: [TRAIT.NATURAL_VIGOR] },
+    {
+      initialize(runtime) {
+        runtime.profession.core.endurance = 0;
+      }
+    }
+  );
+  close(runtimeFor(permanent).profession.core.endurance, 35);
 });
 
 test('personal stances ignore pet-only combat and trigger on the next player strike', () => {
@@ -211,6 +195,32 @@ test('pet swaps preserve committed projectiles but interrupt unfinished melee at
       );
     }
   }
+});
+
+test('a swap retires a queued command before its pet can start it', () => {
+  const result = runRanger(
+    [ID.FURIOUS_POUNCE, ID.PET_SWAP, wait(12000)],
+    {
+      ...config,
+      selectedPet: 'Tiger',
+      selectedPet2: 'Pig'
+    },
+    {
+      initialize(runtime) {
+        // Reserve the pet lane past the swap; the player remains free to replace the pet immediately.
+        runtime.profession.core.petAutoBusyUntil = 10;
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.events.some((event) => event.type === 'action' && event.skillId === ID.FURIOUS_POUNCE),
+    false
+  );
+  assert.equal(
+    result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.FURIOUS_POUNCE),
+    false
+  );
 });
 
 test('committed autonomous effects survive swaps with the outgoing pet identity and attributes', () => {

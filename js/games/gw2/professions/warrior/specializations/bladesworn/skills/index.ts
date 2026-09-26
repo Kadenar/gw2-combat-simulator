@@ -1,8 +1,33 @@
 /** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { hasTrait, type Gw2TraitLookupContext } from '#gw2/platform/combat/state/traits.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+
+const SHARP_AS_THE_WIND_VARIANTS = new Map<number, number>([
+  [ID.SWIFT_CUT, ID.SHARP_SWIFT_CUT],
+  [ID.STEEL_DIVIDE, ID.SHARP_STEEL_DIVIDE],
+  [ID.EXPLOSIVE_THRUST, ID.SHARP_EXPLOSIVE_THRUST],
+  [ID.BLOOMING_FIRE, ID.SHARP_BLOOMING_FIRE],
+  [ID.ARTILLERY_SLASH, ID.SHARP_ARTILLERY_SLASH],
+  [ID.CYCLONE_TRIGGER, ID.SHARP_CYCLONE_TRIGGER],
+  [ID.BREAK_STEP, ID.SHARP_BREAK_STEP],
+  [ID.DRAGON_SLASH_FORCE, ID.SHARP_DRAGON_SLASH_FORCE],
+  [ID.DRAGON_SLASH_BOOST, ID.SHARP_DRAGON_SLASH_BOOST],
+  [ID.DRAGON_SLASH_REACH, ID.SHARP_DRAGON_SLASH_REACH]
+]);
+const SHARP_AS_THE_WIND_PARENTS = new Map(
+  [...SHARP_AS_THE_WIND_VARIANTS].map(([parentId, variantId]) => [variantId, parentId])
+);
+
+/** Both action identities select the version owned by the equipped adept trait. */
+export function resolveSharpAsTheWindSkillId(context: Gw2TraitLookupContext, skillId: SkillId): SkillId {
+  const parentId = SHARP_AS_THE_WIND_PARENTS.get(Number(skillId)) ?? Number(skillId);
+  const variantId = SHARP_AS_THE_WIND_VARIANTS.get(parentId);
+  if (!variantId) return skillId;
+  return hasTrait(context, TRAIT.SHARP_AS_THE_WIND) ? variantId : parentId;
+}
 
 export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.UNSHEATHE_GUNSABER]: {
@@ -10,25 +35,19 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     cooldown: 5,
     castTimeMs: 0,
     effects: [],
-    // Custom: Equips Gunsaber and updates bundle/weapon state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'warrior.gunsaber-enter'
+    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
   },
   [ID.DRAGON_TRIGGER]: {
     effects: [],
     castTimeMs: 0,
     canCastConcurrently: false,
-    // Custom: Enters Dragon Trigger and starts charge/flow state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'warrior.dragon-trigger'
+    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
   },
   [ID.SHEATHE_GUNSABER]: {
     cooldown: 5,
     castTimeMs: 0,
     effects: [],
-    // Custom: Stows Gunsaber and restores weapon state; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'warrior.gunsaber-exit'
+    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
   },
   [ID.TACTICAL_RELOAD]: {
     effects: [],
@@ -36,23 +55,11 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     dualWieldCastTimeMs: 400,
     // Tactical Reload commits at 480ms, keeps its remaining cast lockout, and resolves its reload after interruption.
     interruptCommitMs: 480,
-    retainsCastLockoutAfterInterrupt: true,
-    mechanicTriggers: [
-      {
-        type: 'warrior.bladesworn.tactical-reload',
-        timingAnchor: 'castEnd'
-      }
-    ]
+    retainsCastLockoutAfterInterrupt: true
   },
   [ID.DRAGONSPIKE_MINE]: {
     movementSkill: true,
     // Dragonspike Mine refreshes Dragon Trigger when its cast completes.
-    mechanicTriggers: [
-      {
-        type: 'warrior.bladesworn.reset-dragon-trigger',
-        timingAnchor: 'castEnd'
-      }
-    ],
     effects: [
       {
         type: 'strike',
@@ -83,12 +90,6 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   [ID.FLOW_STABILIZER]: {
     castTimeMs: 0,
     // Flow Stabilizer opens its passive-flow window and grants its conditional flow on completion.
-    mechanicTriggers: [
-      {
-        type: 'warrior.bladesworn.flow-stabilizer',
-        timingAnchor: 'castEnd'
-      }
-    ],
     effects: [
       {
         type: 'boon',
@@ -137,8 +138,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     castTimeMs: 600,
     dualWieldCastTimeMs: 480,
     // Committed interrupted casts keep the cartridge window consumed by later explosions.
-    interruptCommitMs: 480,
-    handlerId: 'warrior.overcharged-cartridges'
+    interruptCommitMs: 480
   },
   // Only explicitly named explosion packets trigger explosion modifiers and traits; ordinary gunsaber hits do not.
   [ID.SWIFT_CUT]: {
@@ -236,9 +236,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: [],
     castTimeMs: 680,
     gunsaberSkill: true,
-    skillWeapon: 'Gunsaber',
-    // Custom: Materializes Artillery Slash's charge-scaled projectile sequence; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
-    handlerId: 'warrior.artillery-slash'
+    skillWeapon: 'Gunsaber'
   },
   [ID.CYCLONE_TRIGGER]: {
     ammo: 2,
@@ -304,9 +302,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     skillWeapon: 'Gunsaber',
     dragonSlash: true,
     dragonSlashMinimumCoefficient: 1.16,
-    dragonSlashMaximumCoefficient: 20.4,
-    // Custom: Consumes Dragon Trigger charge and materializes the selected slash; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
-    handlerId: 'warrior.dragon-slash'
+    dragonSlashMaximumCoefficient: 20.4
   },
   [ID.DRAGON_SLASH_BOOST]: {
     movementSkill: true,
@@ -317,9 +313,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     skillWeapon: 'Gunsaber',
     dragonSlash: true,
     dragonSlashMinimumCoefficient: 0.92,
-    dragonSlashMaximumCoefficient: 16.3,
-    // Custom: Consumes Dragon Trigger charge and materializes the selected slash; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
-    handlerId: 'warrior.dragon-slash'
+    dragonSlashMaximumCoefficient: 16.3
   },
   [ID.DRAGON_SLASH_REACH]: {
     effects: [],
@@ -329,9 +323,7 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     skillWeapon: 'Gunsaber',
     dragonSlash: true,
     dragonSlashMinimumCoefficient: 0.56,
-    dragonSlashMaximumCoefficient: 10.21,
-    // Custom: Consumes Dragon Trigger charge and materializes the selected slash; see `bladesworn/mechanics/gunsaber-and-trigger.ts`.
-    handlerId: 'warrior.dragon-slash'
+    dragonSlashMaximumCoefficient: 10.21
   },
   [ID.FLICKER_STEP]: {
     ammo: 3,

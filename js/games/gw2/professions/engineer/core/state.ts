@@ -17,6 +17,8 @@ export interface EngineerCoreState {
   autoattackChains: Record<string, SkillId>;
   focusedUntil: number;
   lightningRodChargeExpiries: number[];
+  lightningRodGeneration: number;
+  healingTurretGeneration: number;
   healingTurretActivationId: string;
   kineticCharges: number;
   pendingMineFieldActivationIds: string[];
@@ -56,6 +58,8 @@ export function createEngineerCoreState(_config: EngineerConfig = {}): EngineerC
     availableFlips: {},
     autoattackChains: {},
     lightningRodChargeExpiries: [],
+    lightningRodGeneration: 0,
+    healingTurretGeneration: 0,
     healingTurretActivationId: '',
     focusedUntil: 0,
     kineticCharges: 0,
@@ -64,7 +68,7 @@ export function createEngineerCoreState(_config: EngineerConfig = {}): EngineerC
   };
 }
 
-// Standalone state factories seed from authored data; scheduler initialization selects the active patch.
+// Standalone state factories seed from authored data; live initialization selects the active patch.
 const BASE_MAXIMUM_ENDURANCE = requireBalanceNumber(
   ENGINEER_CORE_BALANCE_PROFILES.find((profile) => profile.id === ENGINEER_CORE_BALANCE_PROFILE_IDS.resources)!
     .maximumStacks,

@@ -1,3 +1,4 @@
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /**
  * Owns conjured-bundle equip, pickup, and recharge state across casts.
  * Conjure skill fragments live in `skills/conjure-skills.ts`.
@@ -10,11 +11,7 @@ import {
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type {
-  ElementalistCastContext as ElementalistLifecycleContext,
-  ElementalistResolverContext,
-  ElementalistResolverEvent
-} from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { CONJURE_PICKUP_WEAPONS, CONJURE_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
@@ -29,10 +26,9 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professio
  * copy's pick-up window, `__drop_bundle` unequips, and `__pickup_*` re-equips a
  * copy whose window is still open. Any of those swaps emits `sigil_swap`.
  */
-export function applyConjureState(context: ElementalistLifecycleContext, skill: Skill): void {
-  if (context.action?.cancelled === true) return;
+export function applyConjureState(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   const state = professionCoreState(context);
-  const at = context.effectiveEnd;
+  const at = cast.effectiveEnd;
   const conjuredWeapon = CONJURE_SKILLS[Number(skill.id)];
   let swapped = false;
   if (conjuredWeapon) {
@@ -59,9 +55,8 @@ export function applyConjureState(context: ElementalistLifecycleContext, skill: 
   } else if (CONJURE_PICKUP_WEAPONS[Number(skill.id)]) {
     const weapon = CONJURE_PICKUP_WEAPONS[Number(skill.id)];
     // Require a real ground copy, preserving pickups begun before its window closes.
-    const pickupAction = context.action?.eventOrder == null ? null : context.eventByOrder(context.action.eventOrder);
-    const expiresAt = pickupAction?.conjurePickupExpiresAt ?? state.conjurePickups[weapon];
-    if (typeof expiresAt === 'number' && Number.isFinite(expiresAt) && expiresAt > context.start) {
+    const expiresAt = pickupWindows.get(cast);
+    if (typeof expiresAt === 'number' && Number.isFinite(expiresAt) && expiresAt > cast.start) {
       state.conjureEquipped = weapon;
       delete state.conjurePickups[weapon];
       swapped = true;
@@ -74,6 +69,9 @@ export function applyConjureState(context: ElementalistLifecycleContext, skill: 
       ? at +
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.conjurePickups), 'durationMultiplier')
       : 0;
+    context.schedule('elementalist.expire-state', state.conjureExpiresAt || at, null);
+    for (const deadline of Object.values(state.conjurePickups))
+      context.schedule('elementalist.expire-state', deadline, null);
     resetAutoattackChains(context);
     context.emit({
       type: 'elementalist.conjure',
@@ -96,12 +94,9 @@ export function applyConjureState(context: ElementalistLifecycleContext, skill: 
   }
 }
 
-/** Keep the resolver's wielded bundle current so its attributes apply to every player skill until drop or expiry. */
-export function applyElementalistResolverConjure(
-  context: ElementalistResolverContext,
-  event: ElementalistResolverEvent
-): void {
-  const state = professionCoreState(context);
-  state.conjureEquipped = typeof event.conjureEquipped === 'string' ? event.conjureEquipped : null;
-  state.conjureExpiresAt = Number(event.conjureExpiresAt || 0);
+const pickupWindows = new WeakMap<RuntimeCast, number>();
+/** A pickup accepted before ground expiry retains that copy through its animation. */
+export function captureConjurePickup(runtime: ElementalistRuntime, cast: RuntimeCast): void {
+  const weapon = CONJURE_PICKUP_WEAPONS[Number(cast.skill.id)];
+  if (weapon) pickupWindows.set(cast, runtime.profession.core.conjurePickups[weapon]);
 }

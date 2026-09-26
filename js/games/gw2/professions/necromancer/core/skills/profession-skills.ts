@@ -30,8 +30,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     shroudProfileId: PROFILE.shroud,
     minimumShroudLifeForcePercent: 10,
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'necromancer.shroud'
+    inputCategory: 'bar-swap'
   },
   [ID.END_DEATH_SHROUD]: {
     castTimeMs: 0,
@@ -39,8 +38,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     cooldown: 0,
     shroudExit: 'death',
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'necromancer.shroud'
+    inputCategory: 'bar-swap'
   },
   [ID.DOOM]: {
     castTimeMs: 600,
@@ -139,9 +137,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     slot: 'Weapon_2',
     shroud: 'death',
     shroudSlot: 2,
-    specialization: '',
-    // Custom: Arms or consumes the skill's timed follow-up flip; see `core/execution/index.ts`.
-    handlerId: 'necromancer.flip'
+    specialization: ''
   },
   [ID.GRIM_SPECTER]: {
     castTimeMs: 520,
@@ -182,9 +178,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         type: 'control',
         controlKind: 'fear'
       }
-    ],
-    // Custom: Arms or consumes the skill's timed follow-up flip; see `core/execution/index.ts`.
-    handlerId: 'necromancer.flip'
+    ]
   },
   [ID.DEATHLY_CLAWS]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -224,6 +218,8 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     castTimeMs: 1000,
     summons: 8,
     summonInterval: 1,
+    // Creature lifetime survives removal of an attack or explosion from the selected profile.
+    summonDuration: 6,
     effects: [
       {
         type: 'strike',
@@ -243,9 +239,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
         packetLabel: 'explosion',
         name: 'Unstable Horror - Explosion'
       }
-    ],
-    // Custom: Summons the temporary minions and schedules their attacks/expiry; see `core/mechanics/minions.ts`.
-    handlerId: 'necromancer.summon-madness'
+    ]
   },
   [ID.DHUUMFIRE_BLAST]: {
     castTimeMs: 920,

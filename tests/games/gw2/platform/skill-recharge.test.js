@@ -4,44 +4,8 @@ import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
-
-test('scheduler recharge sees reentrant grants and same-length replacements before the next cast', () => {
-  // A nested grant is indexed before its observation callback runs, and replacing it must invalidate cached windows.
-  const skill = { id: 990020, name: 'Cached recharge', castTimeMs: 0, cooldown: 10, effects: [] };
-  let grant;
-  let nestedReadyAt;
-  const owner = { source: 'fixture', sourceId: 'fixture', actorType: 'player' };
-  const profession = defineProfession({
-    id: 'cached-recharge',
-    name: 'Cached Recharge',
-    catalog: createCanonicalCatalog({ generated: [skill] }),
-    schedulerHooks: {
-      onEventScheduled(context, event) {
-        if (event.type !== 'marker' || event.action !== 'grant-alacrity') return;
-        grant = context.emit({ ...owner, type: 'buff', kind: 'alacrity', at: 2, duration: 4, stacks: 1 });
-        context.cooldownController.refresh(2);
-        nestedReadyAt = context.state.cooldowns.get(skill.id);
-      }
-    }
-  });
-  const scheduler = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() });
-  scheduler.cast({ type: 'cast', skillId: skill.id });
-  scheduler.advanceTo(2);
-  assert.equal(scheduler.state.cooldowns.get(skill.id), 10);
-  scheduler.context.emit({ ...owner, type: 'marker', action: 'grant-alacrity', at: 2 });
-  assert.equal(nestedReadyAt, 9);
-  grant = scheduler.context.replaceEvent(grant, { cancelled: true });
-  scheduler.context.cooldownController.refresh(2);
-  assert.equal(scheduler.state.cooldowns.get(skill.id), 10);
-  scheduler.context.replaceEvent(grant, { cancelled: false, duration: 8 });
-  scheduler.context.cooldownController.refresh(2);
-  assert.equal(scheduler.state.cooldowns.get(skill.id), 8.4);
-  assert.deepEqual(scheduler.warnings, []);
-});
 
 // Minimal recharges isolate boon-rate integration and tick detection from profession rotations.
 test('cooldowns and serial ammo integrate intermittent Alacrity before checking the absolute tick', () => {
@@ -96,30 +60,37 @@ test('Alacrity gained during a cast updates reserved recharge and the independen
         ]
       })
     });
-    const scheduler = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() });
-    scheduler.cast({ type: 'cast', skillId: 990011 });
-    scheduler.advanceTo(1);
-    scheduler.context.emit({
-      type: 'buff',
-      kind: 'alacrity',
-      at: 1,
-      duration: 4,
-      stacks: 1,
-      source: 'fixture',
-      sourceId: 'fixture',
-      actorType: 'player'
+    const result = simulateGw2({
+      profession: {
+        liveRuntimeFor(config) {
+          return {
+            ...profession.liveRuntimeFor(config),
+            initialize(runtime) {
+              runtime.emit({
+                type: 'buff',
+                kind: 'alacrity',
+                at: 1,
+                duration: 4,
+                stacks: 1,
+                source: 'fixture',
+                sourceId: 'fixture',
+                actorType: 'player'
+              });
+            },
+            onCastComplete(runtime, cast) {
+              if (cast.start !== 0) return;
+              if (ammo) {
+                assert.equal(runtime.ammo.get(990011).nextRechargeAt, 21.25);
+                assert.equal(runtime.ammo.get(990011).lockoutReadyAt, 6.25);
+              } else assert.equal(runtime.cooldowns.get(990011), 21.25);
+            }
+          };
+        }
+      },
+      rotation: ['Reserved', 'Reserved']
     });
-    scheduler.advanceTo(2);
-    if (ammo) {
-      assert.equal(scheduler.state.ammo.get(990011).nextRechargeAt, 21.25);
-      assert.equal(scheduler.state.ammo.get(990011).lockoutReadyAt, 6.25);
-    } else {
-      assert.equal(scheduler.state.cooldowns.get(990011), 21.25);
-    }
-
-    scheduler.cast({ type: 'cast', skillId: 990011 });
-    assert.equal(scheduler.events.findLast((event) => event.type === 'action').at, ammo ? 6.28 : 21.28);
-    assert.deepEqual(scheduler.warnings, []);
+    assert.equal(result.events.findLast((event) => event.type === 'action').at, ammo ? 6.28 : 21.28);
+    assert.deepEqual(result.warnings, []);
   }
 });
 
@@ -187,49 +158,32 @@ test('GW2 base recharge accepts finite cooldowns and defaults missing or invalid
   assert.equal(gw2BaseRecharge({}), 0);
 });
 
-// Scheduler queries use the same finite base selection without mistaking charge recharge for cast lockout.
-test('scheduler recharge queries share base selection and preserve independent ammo lockouts', () => {
-  const { context } = createScheduler({
-    profession: defineProfession({ id: 'recharge-query', name: 'Recharge Query' })
-  });
-  const skill = { id: 990021, ammo: 2, ammoRecharge: 8, cooldown: 10, ammoCastLockout: 0.5 };
-  assert.equal(context.rechargeDurationFor(skill), 8);
-  assert.equal(context.rechargeDurationFor(skill, 0, { ammoCastLockout: true }), 0.5);
-  assert.equal(context.rechargeDurationFor({ ...skill, ammoRecharge: Infinity }), 10);
-});
-
 // Each spent charge recovers independently of the between-cast lockout.
 test('Warrior ammo preserves charge recovery and its independent cast lockout', () => {
-  const scheduler = createScheduler({
-    profession: warriorProfession,
-    config: { selectedSkills: ['Throw Bolas'] }
+  const config = { selectedSkills: ['Throw Bolas'] };
+  const native = warriorProfession.liveRuntimeFor(config);
+  const skill = native.catalog.skillsByName.get('Throw Bolas');
+  const seen = [];
+  const result = simulateGw2({
+    profession: {
+      liveRuntimeFor: () => ({
+        ...native,
+        onCastComplete(runtime, cast) {
+          native.onCastComplete?.(runtime, cast);
+          if (cast.skill.id === skill.id)
+            seen.push({ start: cast.start, end: cast.effectiveEnd, ammo: { ...runtime.ammo.get(skill.id) } });
+        }
+      })
+    },
+    config,
+    rotation: [skill.id, skill.id, skill.id]
   });
-  const { context, state } = scheduler;
-  const skill = context.catalog.skillsByName.get('Throw Bolas');
-  assert.equal(skill.cooldown, 16);
-  assert.equal(skill.ammoCastLockout, 1);
-  assert.equal(Object.hasOwn(skill, 'recharge'), false);
-
-  assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);
-  const first = scheduler.events.findLast((event) => event.type === 'action');
-  scheduler.advanceTo(first.endsAt);
-  const ammo = state.ammo.get(skill.id);
-  assert.equal(ammo.charges, 1);
-  assert.equal(ammo.nextRechargeAt, first.endsAt + 16);
-  assert.equal(state.cooldowns.get(skill.id), first.endsAt + 1);
-
-  assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);
-  const second = scheduler.events.findLast((event) => event.type === 'action');
-  assert.equal(second.at, gw2CooldownReadyAt(first.endsAt + 1));
-  scheduler.advanceTo(second.endsAt);
-  assert.equal(ammo.charges, 0);
-  assert.equal(state.cooldowns.get(skill.id), first.endsAt + 16);
-  scheduler.advanceTo(gw2CooldownReadyAt(first.endsAt + 16));
-  context.cooldownController.refreshAmmo(skill, state.time);
-  assert.equal(ammo.charges, 1);
-  assert.equal(ammo.nextRechargeAt, gw2CooldownReadyAt(first.endsAt + 16) + 16);
-  assert.equal(state.cooldowns.has(skill.id), false);
-  assert.deepEqual(scheduler.warnings, []);
+  assert.equal(seen[0].ammo.charges, 1);
+  assert.equal(seen[0].ammo.nextRechargeAt, seen[0].end + 16);
+  assert.equal(seen[1].start, gw2CooldownReadyAt(seen[0].end + 1));
+  assert.equal(seen[1].ammo.charges, 0);
+  assert.equal(seen[2].start, gw2CooldownReadyAt(seen[0].end + 16));
+  assert.deepEqual(result.warnings, []);
 });
 
 test('declarative ammo consumes and recharges shared charges', () => {

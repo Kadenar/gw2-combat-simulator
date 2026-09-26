@@ -4,67 +4,58 @@ import test from 'node:test';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/aliases.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
-import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
-import {
-  observeSpellbreakerEvent,
-  reactToSpellbreakerDamage
-} from '#gw2/professions/warrior/specializations/spellbreaker/traits/index.js';
+import { createLiveProfessionSimulator, observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
 
-// Both execution stages must integrate a temporary boon and detect completion on the next 40 ms tick.
+// Transient Alacrity changes real recharge progress; the next action tick admits a new tether.
 test('Magebane Tether integrates Alacrity gained or lost during its recharge', () => {
-  for (const stage of ['scheduler', 'resolver']) {
-    for (const alacrityAt of [0, 2]) {
-      const config = { specialization: 'Spellbreaker', selectedTraitIds: [TRAIT.MAGEBANE_TETHER] };
-      const profession = warriorProfession.resolveRuntime(config);
-      const events = [];
-      const scheduler = createScheduler({ profession, config, schedulerPolicy: createGw2SchedulerPolicy(config) });
-      const context =
-        stage === 'scheduler'
-          ? scheduler.context
-          : {
-              config,
-              profession,
-              catalog: profession.catalog,
-              helpers: profession.catalog,
-              state: { profession: profession.createProfessionState(config) },
-              query: { timeline: createGw2TimelineIndex({ config, events, resolved: true }) },
-              recordProc() {}
-            };
-      const observe = stage === 'scheduler' ? observeSpellbreakerEvent : reactToSpellbreakerDamage;
-      const alacrity = {
-        type: 'buff',
-        kind: 'alacrity',
-        at: alacrityAt,
-        duration: 4.08,
-        stacks: 1,
-        source: 'fixture',
-        sourceId: 'fixture',
-        actorType: 'player',
-        resolvedAudience: {
-          includesSelf: true,
-          includesSummons: false,
-          alliedPlayerCount: 0,
-          companionIds: [],
-          recipientCount: 1
+  for (const alacrityAt of [0, 2]) {
+    const config = { specialization: 'Spellbreaker', selectedTraitIds: [TRAIT.MAGEBANE_TETHER] };
+    const profession = warriorProfession.liveRuntimeFor(config);
+    const windows = [];
+    const result = observeGw2Runtime({
+      config,
+      profession: {
+        ...profession,
+        initialize(runtime) {
+          profession.initialize(runtime);
+          runtime.emit({
+            type: 'buff',
+            kind: 'alacrity',
+            at: alacrityAt,
+            duration: 4.08,
+            stacks: 1,
+            source: 'fixture',
+            sourceId: 'fixture',
+            actorType: 'player'
+          });
+          for (const at of [0, 10.99, 11])
+            runtime.emit({
+              type: 'damage',
+              actorType: 'player',
+              coefficient: 1,
+              skillId: ID.BREACHING_STRIKE,
+              sourceId: ID.BREACHING_STRIKE,
+              source: 'warrior',
+              skillName: 'Breaching Strike',
+              weaponStrengthProfileId: 'weapon.dagger',
+              activationId: 'burst-' + at,
+              at
+            });
+        },
+        reactions: {
+          ...profession.reactions,
+          'damage.resolved'(runtime, event, hit) {
+            profession.reactions['damage.resolved'](runtime, event, hit);
+            if (event.skillId === ID.BREACHING_STRIKE)
+              windows.push(runtime.profession.specialization.state.magebaneTetherUntil);
+          }
         }
-      };
-      const grantAlacrity = () => (stage === 'scheduler' ? context.emit(alacrity) : events.push(alacrity));
-      if (alacrityAt === 0) grantAlacrity();
-      const hit = { type: 'damage', actorType: 'player', coefficient: 1, skillId: ID.BREACHING_STRIKE, at: 0 };
-      observe(context, hit);
-      if (alacrityAt > 0) grantAlacrity();
-      const state = spellbreakerState.from(context);
-      assert.equal(state.magebaneTetherUntil, 8);
-      // 12 seconds of work completes at 10.98; readiness is first detected at 11.00.
-      observe(context, { ...hit, at: 10.99 });
-      assert.equal(state.magebaneTetherUntil, 8, `${stage}: blocked before the tick`);
-      observe(context, { ...hit, at: 11 });
-      assert.equal(state.magebaneTetherUntil, 19, `${stage}: ready at the tick`);
-    }
+      },
+      rotation: [{ type: 'wait', durationMs: 11000 }]
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(windows, [8, 0, 19]);
+    assert.equal(runtimeFor(result).profession.specialization.state.magebaneTetherUntil, 19);
   }
 });
 
@@ -87,7 +78,7 @@ const baseConfig = Object.freeze({
   boons: { quickness: true }
 });
 
-const simulate = createProfessionSimulator(warriorProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(warriorProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -187,7 +178,7 @@ test('hammer cooldowns, conditional damage, recharge, and Defense traits work', 
     simulate('Core', ['Fierce Blow'], {
       primaryWeapon: 'Hammer',
       target: { defiant }
-    }).events.find((event) => event.type === 'damage').coefficient;
+    }).resolvedEvents.find((event) => event.type === 'damage').coefficient;
 
   assert.equal(fierceCoefficient(false), 1.8);
   assert.equal(fierceCoefficient(true), 2.7);
@@ -215,7 +206,8 @@ test('hammer cooldowns, conditional damage, recharge, and Defense traits work', 
     },
     { condition: 'Weakness', duration: 3.5 }
   );
-  assert.equal(defense.planningState.profession.adrenaline, 16);
+  // Reset fills the 20-point pool; the next burst spends 10, then control grants 7 and its hit grants 1.
+  assert.equal(defense.planningState.profession.adrenaline, 18);
 });
 
 test("Spellbreaker only gains Attacker's Insight from control and lightning leap combos", () => {
@@ -354,7 +346,7 @@ test('"To the Limit!" restores endurance, grants flow, and triggers Thick Skin',
   assert.equal(core.planningState.profession.endurance, 100);
   const protection = core.events.find((event) => event.sourceId === TRAIT.THICK_SKIN);
 
-  assert.deepEqual({ boon: protection.boon, duration: protection.duration }, { boon: 'protection', duration: 3 });
+  assert.deepEqual({ boon: protection.kind, duration: protection.duration }, { boon: 'protection', duration: 3 });
 
   const bladesworn = simulate('Bladesworn', ['"To the Limit!"'], {
     initialResource: 0

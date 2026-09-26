@@ -29,12 +29,6 @@ interface StateTimingCheckDefinition {
   readonly eventActive: (app: ProfessionAppState, event: SimulationEvent) => boolean | null;
 }
 
-function snapshotState(event: SimulationEvent): Readonly<Record<string, unknown>> | null {
-  return event.state && typeof event.state === 'object' && !Array.isArray(event.state)
-    ? (event.state as Readonly<Record<string, unknown>>)
-    : null;
-}
-
 function eventMatchesSkill(app: ProfessionAppState, event: SimulationEvent, name: string): boolean {
   const skillId = app.skillByName.get(name)?.id;
   return skillId != null && (event.skillId === skillId || event.sourceId === skillId);
@@ -48,30 +42,36 @@ const STATE_TIMING_CHECKS: readonly StateTimingCheckDefinition[] = Object.freeze
     availableFor: (skill) =>
       ['Engage Photon Forge', 'Deactivate Photon Forge'].includes(skill.name) || skill.forgeSkill === true,
     eventActive: (_app, event) => {
-      const state = event.type === 'engineer.state' ? snapshotState(event) : null;
-      return typeof state?.photonForgeActive === 'boolean' ? state.photonForgeActive : null;
+      return event.type === 'engineer.heat' && typeof event.photonForgeActive === 'boolean'
+        ? event.photonForgeActive
+        : null;
     }
   },
   {
     id: STATE_TIMING_CHECK_IDS.radiantForge,
     label: 'Time in Radiant Forge',
     availableFor: (skill) => ['Enter Radiant Forge', 'Exit Radiant Forge'].includes(skill.name),
-    eventActive: (_app, event) =>
-      event.type === 'guardian.radiant-forge-entered'
-        ? true
-        : event.type === 'guardian.radiant-forge-exited'
-          ? false
-          : null
+    eventActive: (app, event) =>
+      event.type !== 'weapon_set'
+        ? null
+        : eventMatchesSkill(app, event, 'Enter Radiant Forge')
+          ? true
+          : eventMatchesSkill(app, event, 'Exit Radiant Forge')
+            ? false
+            : null
   },
   {
     id: STATE_TIMING_CHECK_IDS.shroud,
     label: 'Time in Shroud',
     availableFor: (skill) => Boolean(skill.shroudEntry || skill.shroudExit),
     eventActive: (_app, event) => {
-      const state = event.type === 'necromancer.state' ? snapshotState(event) : null;
-      if (!state || !Object.hasOwn(state, 'activeShroud')) return null;
-      const activeShroud = String(state.activeShroud || '');
-      return Boolean(activeShroud && activeShroud !== 'lich');
+      // Entry, manual exit, and automatic depletion share the actual shroud transition packets.
+      if (event.type !== 'weapon_set') return null;
+      return event.sourceId === 'necromancer.shroud-enter'
+        ? true
+        : event.sourceId === 'necromancer.shroud-exit'
+          ? false
+          : null;
     }
   },
   {

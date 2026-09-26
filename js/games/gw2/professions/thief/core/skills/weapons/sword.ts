@@ -117,8 +117,7 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     requiredOffHand: false
   },
   [ID.TACTICAL_STRIKE]: {
-    // Custom: Consumes stealth and applies Revealed after the attack; see `core/mechanics/stealth.ts`.
-    handlerId: 'thief.stealth-attack',
+    // Custom: Consumes stealth and applies Revealed after the attack through `core/live.ts`.
     castTimeMs: 360,
     cooldown: 1,
     initiativeCost: 0,

@@ -2,27 +2,25 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator, observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/necromancer/core/profiles.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as RITUALIST } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
-import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import { applyDarkDefense } from '#gw2/professions/necromancer/core/traits/death-magic.js';
 import { applyVampiric } from '#gw2/professions/necromancer/core/traits/blood-magic.js';
 import { minionDefinitionForSkill } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const patched = (balanceProfiles) => applyBalanceProfilePatch(necromancerCatalog, { balanceProfiles });
 
-// A patched Ritualist rotation exercises spirit compilation through the real scheduler and resolver.
+// Patched rotations exercise profile compilation and actual live effect ownership together.
 function run(balanceProfiles, specialization, rotation, config = {}) {
   const profession = withPatchPreview(necromancerProfession, {
     id: 'necromancer-removal',
     label: 'Necromancer removal',
     professions: { necromancer: { balanceProfiles } }
   });
-  const result = createProfessionSimulator(profession, {
+  const result = createLiveProfessionSimulator(profession, {
     stats: { power: 2000, precision: 2000, ferocity: 500, conditionDamage: 1200, expertise: 0, vitality: 1000 },
     target: { armor: 2597, health: 1_000_000 }
   })(specialization, rotation, { patchId: 'necromancer-removal', ...config });
@@ -30,26 +28,18 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
   return result;
 }
 
-function castContext(balanceProfiles, selectedTraitIds) {
-  const config = { selectedTraitIds };
-  const events = [];
-  return {
-    config,
-    catalog: patched(balanceProfiles),
-    effectiveEnd: 1,
-    state: { time: 1, profession: { core: createNecromancerCoreState(config) } },
-    events,
-    emit: (event) => events.push(event)
-  };
-}
-
 test('removed Dark Defense protection keeps its carapace and cooldown', () => {
-  const context = castContext({ [TRAIT.DARK_DEFENSE]: remove('boon', 'protection') }, [TRAIT.DARK_DEFENSE]);
-  applyDarkDefense(context, necromancerCatalog.skillsById.get(ID.CONSUME_CONDITIONS));
-  const core = context.state.profession.core;
+  const result = run({ [TRAIT.DARK_DEFENSE]: remove('boon', 'protection') }, 'Core', ['Consume Conditions'], {
+    selectedTraitIds: [TRAIT.DARK_DEFENSE]
+  });
+  const runtime = runtimeFor(result);
+  const core = runtime.profession.core;
   assert.ok(core.carapaceExpiries.length > 0);
-  assert.ok(core.traitProcReadyAt.darkDefense > 1);
-  assert.deepEqual(context.events, []);
+  assert.ok(core.traitProcReadyAt.darkDefense > runtime.time);
+  assert.equal(
+    result.events.some((event) => event.kind === 'protection'),
+    false
+  );
 });
 
 test('removed minion Vampiric siphon keeps the player siphon bound to its own values', () => {
@@ -104,10 +94,14 @@ test('removed Anguish autoattack stops autonomous attacks while its summon barra
 test('a missing required Necromancer scalar fails instead of using a local default', () => {
   const profile = { ...necromancerCatalog.balanceProfilesById.get(TRAIT.DARK_DEFENSE) };
   delete profile.duration;
-  const context = castContext({}, [TRAIT.DARK_DEFENSE]);
-  context.catalog = { balanceProfilesById: new Map([[TRAIT.DARK_DEFENSE, profile]]) };
+  const config = { specialization: 'Core', selectedTraitIds: [TRAIT.DARK_DEFENSE] };
+  const native = necromancerProfession.liveRuntimeFor(config);
+  const catalog = {
+    ...native.catalog,
+    balanceProfilesById: new Map(native.catalog.balanceProfilesById).set(TRAIT.DARK_DEFENSE, profile)
+  };
   assert.throws(
-    () => applyDarkDefense(context, necromancerCatalog.skillsById.get(ID.CONSUME_CONDITIONS)),
+    () => observeGw2Runtime({ profession: { ...native, catalog }, config, rotation: ['Consume Conditions'] }),
     /Invalid balance data: .*field=duration/
   );
 });

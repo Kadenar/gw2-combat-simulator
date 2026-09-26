@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { renderPaletteMarkup } from '#tests/helpers/palette.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 
@@ -47,7 +47,7 @@ function createTempestApp(rotation = [], { tempestTraits = '1-1-2', alacrity = t
   };
 
   elementalistAppAdapter.recalculate(app);
-  app.results = simulateGw2({
+  app.results = runElementalist({
     profession: elementalistProfession,
     rotation: commands,
     config: elementalistAppAdapter.simulationConfig(app)

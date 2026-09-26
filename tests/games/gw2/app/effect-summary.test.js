@@ -29,17 +29,18 @@ test('Harbinger state uptime uses recorded transitions and clips to the observat
   const { bindHarbingerUi } = await import('#gw2/professions/necromancer/specializations/harbinger/presentation.js');
   const { necromancerCatalog } = await import('#gw2/professions/necromancer/catalog.js');
   const presentations = bindHarbingerUi(necromancerCatalog).effectPresentations();
-  const state = (at, activeShroud, meltdownUntil = 0) => ({
-    type: 'necromancer.state',
+  const transition = (at, entering) => ({
+    type: 'weapon_set',
     at,
-    state: { activeShroud, meltdownUntil }
+    shroudSwap: true,
+    sourceId: entering ? 'necromancer.shroud-enter' : 'necromancer.shroud-exit'
   });
   const events = [
-    state(0, 'harbinger'),
-    state(2, 'harbinger', 5),
-    state(3, '', 5),
-    state(4, 'harbinger', 6),
-    state(6, 'harbinger', 6)
+    transition(0, true),
+    { type: 'buff', at: 2, kind: 'meltdown', stacks: 1, duration: 3, resolvedAudience: self },
+    transition(3, false),
+    transition(4, true),
+    { type: 'buff', at: 4, kind: 'meltdown', stacks: 1, duration: 2, resolvedAudience: self }
   ];
   for (const sampleStep of [50, 1000]) {
     const summaries = buildChartSeries(
@@ -54,7 +55,7 @@ test('Harbinger state uptime uses recorded transitions and clips to the observat
 
   assert.deepEqual(
     buildChartSeries(
-      { rotationEndTime: 2, observationEndTime: 2, combatEndTime: 2, events: [state(0, '')] },
+      { rotationEndTime: 2, observationEndTime: 2, combatEndTime: 2, events: [transition(0, false)] },
       250,
       presentations
     ).effectSummaries,
@@ -245,7 +246,7 @@ test('relic proc state survives recording and refreshes replace stack counts', (
 
   // A persistent state without an expiry ends at the observation horizon and uses a fresh value on replacement.
   const thorns = createGw2ResolverRuntimeState({ config: { relic: 'Thorns', initialThornsStacks: 9 } });
-  invokeRelicHook(thorns, 'timeline', [], 5);
+  invokeRelicHook(thorns, 'passiveTimeline', 5);
   const ramp = buildChartSeries({
     rotationEndTime: 5,
     observationEndTime: 5,
@@ -349,11 +350,12 @@ test('allied-only intensity grants extend each reached recipient once and exclud
 
 test('Firebrand tome Quickness remains self-only without configuring allies', async () => {
   const { guardianProfession } = await import('#gw2/professions/guardian/profession.js');
-  const { simulateGw2 } = await import('#gw2/platform/simulation/simulate.js');
-  const result = simulateGw2({
-    profession: guardianProfession,
+  const { runGw2Runtime } = await import('#gw2/platform/simulation/runtime.js');
+  const config = { specialization: 'Firebrand', allies: { count: 0 }, stats: { vitality: 1000 } };
+  const result = runGw2Runtime({
+    profession: guardianProfession.liveRuntimeFor(config),
     rotation: ['Tome of Justice', { type: 'wait', durationMs: 4000 }],
-    config: { specialization: 'Firebrand', allies: { count: 0 }, stats: { vitality: 1000 } }
+    config
   });
   assert.deepEqual(result.warnings, []);
   const generation = buildChartSeries(result).boonGeneration.Quickness;

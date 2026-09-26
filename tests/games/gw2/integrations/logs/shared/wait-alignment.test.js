@@ -23,7 +23,7 @@ test('dps.report import keeps log-derived waits when replayed casts would be del
     id: 'mesmer',
     name: 'Mesmer',
     catalog,
-    schedulerHooks: {
+    live: {
       initialize: () => {
         initializations += 1;
       }

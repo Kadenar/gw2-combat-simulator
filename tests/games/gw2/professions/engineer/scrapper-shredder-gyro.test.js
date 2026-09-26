@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 const baseConfig = Object.freeze({
@@ -12,11 +12,12 @@ const baseConfig = Object.freeze({
 });
 
 function simulate(quickness) {
-  return simulateGw2({
-    profession: engineerProfession,
+  const config = { ...baseConfig, boons: { quickness } };
+  return runGw2Runtime({
+    profession: engineerProfession.liveRuntimeFor(config),
     rotation: ['Shredder Gyro'],
-    config: { ...baseConfig, boons: { quickness } },
-    observationPolicy: { kind: 'tail', durationMs: 7000 }
+    config,
+    observation: { kind: 'tail', durationMs: 7000 }
   });
 }
 

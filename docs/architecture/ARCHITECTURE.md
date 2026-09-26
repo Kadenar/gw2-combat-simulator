@@ -2,14 +2,14 @@
 
 How the simulator is composed, the contracts each layer exposes, and the workflow for adding a profession. See
 [MODULES.md](./MODULES.md) for per-folder ownership and [SKILL-EVENT-ORDERING.md](./SKILL-EVENT-ORDERING.md) for
-rotation, scheduler-task, and same-time resolver ordering.
+commands, internal tasks, and same-time combat ordering.
 
 ## Contents
 
 - [Layers](#layers)
 - [Native profession modules](#native-profession-modules)
 - [Profession contract](#profession-contract)
-- [Scheduler and simulation](#scheduler-and-simulation)
+- [Runtime and simulation](#runtime-and-simulation)
 - [Events and resolution](#events-and-resolution)
 - [Skills and rotations](#skills-and-rotations)
 - [Builds and attributes](#builds-and-attributes)
@@ -51,28 +51,24 @@ cooldowns stay inspectable.
 Every profession is authored with `platform/profession-definition/profession.ts`. A module is a vertical slice declared
 with `defineNativeModule()`:
 
-| Section                | Owns                                                                                        |
-| ---------------------- | ------------------------------------------------------------------------------------------- |
-| `data`                 | generated identities, skill mechanics/overrides, extra skills, traits, weapon hands, chains |
-| `state`                | `scheduler` factory; optional distinct `resolver` factory and public `project` projection   |
-| `mechanics.execution`  | skill handlers, availability, cast lifecycle, cast rules, scheduler hooks                   |
-| `mechanics.resolution` | resolved-event reactions and resolver hooks                                                 |
-| `mechanics.modifiers`  | declarative modifier rules, compiled into the right phase                                   |
-| `presentation`         | UI contributions; may be a catalog-aware factory                                            |
+| Section               | Owns                                                                           |
+| --------------------- | ------------------------------------------------------------------------------ |
+| `data`                | Generated identities, skill mechanics, traits, weapon hands, and chains        |
+| `state`               | One `create` factory and optional detached public `project` projection         |
+| `mechanics.live`      | Availability, cast hooks, named tasks, resource policies, and combat reactions |
+| `mechanics.modifiers` | Declarative formula and attribute rules                                        |
+| `presentation`        | UI contributions, optionally catalog-aware                                     |
 
-TypeScript checks section placement. At runtime `defineNativeModule()` validates IDs, required data/state, factories,
-and handler/reaction phases, but **silently ignores unknown or retired flat fields** — they register nothing.
-
-`defineNativeProfession()` takes a Core-first module tuple, infers the state union and specialization IDs, and compiles
-to the engine's `defineProfessionFamily()` contract, which remains the execution boundary.
+TypeScript and native module validation reject retired state/mechanic sections. `defineNativeProfession()` composes Core
+with the selected specialization and exposes `liveRuntimeFor(config)`. There is one mutable state instance per run.
 
 ### Catalog assembly
 
 `createNativeModuleData()` selects generated metadata for one owner and merges local mechanics.
 `assembleNativeApplicationCatalog()` derives the full editor/build catalog from all modules; runtime fragments contain
-Core plus only the selected elite. There is no separate ownership table. Assembly fails on duplicate IDs, handlers, or
-weapon hands, unused handlers, handlers in the wrong slice, and invalid specialization-only IDs. Weapon skills belong to
-Core (Weaponmaster Training) unless listed in `specializationOnlySkillIds`.
+Core plus only the selected elite. There is no separate ownership table. Assembly fails on duplicate IDs or weapon hands
+and invalid specialization-only IDs. Weapon skills belong to Core (Weaponmaster Training) unless listed in
+`specializationOnlySkillIds`.
 
 ### Build eligibility
 
@@ -91,7 +87,7 @@ cooldowns, and dynamic state are separate checks.
 - Core/specialization `skills.ts` or `skills/*.ts` — authoritative ID-keyed declarative skill fields. No production-wide
   skill aggregate; tests compose inventories under `tests/`.
 - `mechanics/*.ts` (or `mechanics.ts`) — owner-local, concept-named triggered effects and state machines.
-- `execution/` — `augmentSkill()`/`replaceSkill()` strategies for behavior declarative effects can't express.
+- `live.ts` — cast hooks, tasks, and reactions for behavior declarative effects cannot express.
 - `catalog.ts` — module tuple and assembled catalog, re-exported by `profession.ts`. Only `build/` imports it directly.
 
 ### Authoring workflow
@@ -104,63 +100,21 @@ cooldowns, and dynamic state are separate checks.
 
 ## Profession contract
 
-The engine-level contract, produced by native composition or written directly with `defineProfession()` (standalone
-architectures and test fixtures):
+Native professions expose identity, catalog, build and UI contracts, and `liveRuntimeFor(config)`. The returned runtime
+owns `createState`, `projectPlanningState`, availability/cast/recharge hooks, named tasks, custom event handlers,
+resource policies, and stage-specific reactions. The application surface stays separate from execution.
 
-```js
-export const exampleProfession = defineProfession({
-  id: 'example',
-  name: 'Example',
-  catalog,
-  build: { createBuildDefaults, migrateBuild, validateBuild },
-  resources: {
-    createProfessionState,
-    createResolverState, // optional clean resolver-time initial state
-    projectPlanningState // optional public profession-state projection
-  },
-  attributeRules,
-  castRules,
-  schedulerHooks,
-  resolverHooks: {
-    eventHandlers, // exclusive custom event types
-    eventReactions // reactions to standard GW2 event types
-  },
-  weaponSkillMatchesSet, // shared equipment eligibility for simulation and application consumers
-  ui: {
-    assumptionControls,
-    eventLogRow,
-    isPaletteSkillInstant,
-    paletteSkillAvailability, // { available, message, retryAt? }
-    isSlotSkillSelectable,
-    paletteGroups,
-    resourceViews, // zero, one, or multiple resource view models
-    skillBarGroups,
-    slotLoadout,
-    targetHealthThresholds,
-    timelineSkillIcon,
-    updateSkillBarSelection,
-    weaponSwapChangesSet
-  },
-  simulation: {
-    refineSchedulerConfig // optional immutable feedback-pass refinement
-  }
-});
-```
+Standalone fixtures can use `defineProfession({ id, name, catalog, resources: { createState }, live })`. Optional hooks
+default to no-op or identity behavior. A module with only declarative skill data needs no hooks.
 
-- All hooks are optional: missing validation accepts, missing modifiers return input, others no-op.
-- Scheduler hooks and resolver reactions take `{ id, order, handler }`; lower order first, declaration order breaks
-  ties.
-- `paletteSkillAvailability(context, skill)` is normalized to `{ available, message, retryAt? }` (`message` defaults to
-  `''`; `retryAt` is absolute simulator seconds). Omitted means always available.
-- Event presenters return `{ type, description, className, order, flags }`; `null` hides an event, `undefined` falls
-  back to the diagnostic row.
+- `paletteSkillAvailability(context, skill)` returns `{ available, message, retryAt? }`; retry times are seconds.
+- Event presenters return `{ type, description, className, order, flags }`; null hides an event and undefined delegates.
 
 ### Families
 
-A family exposes identity, full catalog, build codec, normalized UI, optional refinement, and `resolveRuntime(config)` —
-never handlers, hooks, or mutable state. `resolveRuntime` returns a cached runtime of Core plus the selected elite;
-missing or `Core` selects Core alone, unknown elites throw. `simulateGw2()` and the scheduler normalize families; plain
-`defineProfession()` contracts pass through.
+A family exposes immutable metadata and cached active-runtime composition. `liveRuntimeFor(config)` selects Core plus
+the active elite; missing or Core selects Core alone, and unknown elites throw. `resolveRuntime(config)` supplies
+normalized catalog and attribute metadata to application consumers; it does not create a second gameplay state.
 
 - State shape: `{ core, specialization: { kind, state } }` — a plain object, no proxies. Core mechanics use `core`;
   elite mechanics validate and use only the active specialization state.
@@ -175,55 +129,32 @@ missing or `Core` selects Core alone, unknown elites throw. `simulateGw2()` and 
 damage, and condition duration hooks, combining equipment and profession additions once. Pet/mech owners exclude player
 Force and Bursting. Ordered attribute conversions stay imperative hooks.
 
-### Phase-explicit helpers
+### Live mechanic ownership
 
-| Phase          | Helpers                                                                                                                                                                    |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scheduler      | `skillAvailability()`, `afterSkillEffects()`                                                                                                                               |
-| Resolver       | `onResolvingDamage()`, `onResolvedDamage()`, `onResolvedControl()`, `onResolvedBlind()`, `onConditionApplied()`, `onBuffApplied()`, `onComboResolved()`, `onAuraApplied()` |
-| Critical procs | `onResolvedCriticalHit()` (eligibility, state, materialization, ICD, attribution, effect)                                                                                  |
-| Skill handlers | `augmentSkill()` decorates declarative effects; `replaceSkill()` owns emission                                                                                             |
+Cast acceptance reserves lane/resource/recharge decisions once. Completion commits cooldowns and dispatches
+`onCastComplete`. Named tasks carry detached payloads on the common heap. Resolved-hit, condition, boon, combo, and
+control reactions see the same live profession state as the next command. Critical effects reuse the hit's actual
+outcome and claim one ICD; no scheduling prediction exists.
 
-Helpers need stable IDs, accept explicit order, and compile into existing cast rules, hooks, or reactions. A replacing
-handler keeps `effects` as canonical profile metadata; the scheduler does not emit them.
+## Runtime and simulation
 
-`advanceCriticalProc()` is the shared critical-proc kernel, used by `onResolvedCriticalHit()` and by scheduler-side
-`advanceScheduledCriticalProc()`. Both consume the same seeded `didCrit` outcome and share secondary rolls and ICD
-claims. Declarations apply every returned proc.
+`simulateGw2()` validates input and invokes `simulation/runtime.ts` exactly once.
 
-Raw `mechanics.execution.castRules`/`hooks`, `mechanics.resolution.hooks`, and raw modifier hook bundles remain escape
-hatches for typed tasks, custom events, complex cooldown/ammo policy, and multi-event state machines. Keep them
-owner-local and never import inactive specialization code.
+- One cursor, heap, profession/target state, resource controller, and RNG own the run.
+- Pending work is invisible to historical queries until it executes.
+- Score and detailed modes share mechanics. Detailed mode retains steps, reports, APM, and optional diagnostics.
+- `planningState` captures resources, cooldowns, ammo, weapon set, and public profession state at the observation end.
+  After target death, authored commands continue while hostile effects and hit-dependent grants are suppressed.
+- `combatState` freezes the profession projection at the combat boundary. Both observations are deeply detached; neither
+  is a checkpoint, and neither is merged into the other.
+- Rotation duration follows accepted commands, reservations, and final input recovery. Rotation, tail, and absolute
+  observation policies bound delayed work without recursively extending the rotation.
+- Cast/interrupt commitment and lifetime generations determine whether pending work survives cancellation. Committed
+  projectiles can outlive a cast. Finite actor tasks schedule bounded work, not an unbounded future history.
+- Player health stays at 100%; target health remains live. Attribute preview health is a separate input.
+- Build adapters provide attribute provenance so static rules apply once; dynamic modifiers always read live facts.
 
-## Scheduler and simulation
-
-`simulateGw2()` is the single entry point: shared scheduler → event stream → resolver → result builder.
-
-- **State.** Shared scheduler state holds time, cooldowns, ammo, lockouts, active weapon set, skill uses, and
-  `profession` (`.core` / `.specialization.state`); context owns pending events and tasks. Typed tasks carry
-  serializable payloads to namespaced profession handlers.
-- **Policy.** Player casts use authored effective timings calibrated with permanent Quickness; runtime Quickness
-  conversion applies only to independent summon casts. The platform supplies Alacrity-adjusted recharge, ammo, and
-  starting weapon set; profession hooks may modify cast duration, recharge, or max ammo.
-- **Result state.** `planningState` contains scheduler-only cooldowns, ammo, weapon set, and the allowlisted
-  `planningState.profession` from `resources.projectPlanningState`. `combatState.profession` contains resolved event
-  state. Each projection carries `atSeconds`; planning can extend past target death. Public results expose
-  `rotationEndTime`, `observationEndTime`, and `combatEndTime` in seconds. Editor insertion previews use planned state
-  without an observation tail. Scheduler snapshots remain an internal contract, not resumable checkpoints.
-- **Observation.** Callers choose `rotation`, `tail`, or absolute policies. The scheduler derives rotation end from
-  commands and cast-lane reservations only, then drains finite tasks to the observation end. The resolver applies
-  target-death clipping and uses one effective end everywhere. Skill/event metadata and saved benchmark metadata cannot
-  change the boundary; benchmark tooling uses the default.
-- **Interrupts and persistence.** `persistsAfterInterrupt` only controls packet cancellation. Persistent effects declare
-  (or inherit) a positive `interruptCommitMs`; per-packet skills use `interruptMode: 'per-packet'`. Persistent actors
-  use typed tasks with explicit generation/lifetime/stop conditions and schedule one bounded unit at a time.
-- **Refinement.** `simulation.refineSchedulerConfig(config, result)` returns a new config to rerun or `null`/`undefined`
-  when converged, up to `MAX_SCHEDULER_REFINEMENT_PASSES` (5). It must not mutate inputs or return the same object, and
-  must be idempotent on converged results.
-- **Attribute provenance.** Browser adapters pass `attributeProvenance` (`professionStaticRulesApplied`,
-  `calculatedWeaponSet`, `calculatedPrimaryWeapon`) so static profession rules apply once; direct callers omit it and
-  runtime hooks apply them. Weapon-dependent rules compare against the active weapon after swaps; dynamic combat
-  modifiers are always runtime.
+The event clock, ordering, programmatic API, and snapshot documents describe the precise boundary contracts.
 
 ## Events and resolution
 
@@ -244,31 +175,28 @@ Schema (version 1) lives in `platform/engine/events/events.ts`:
 - `source` is a display label only. Behavior keys on `actorType` (optionally `ownerActorType` for inherited outgoing
   modifiers); validation requires explicit ownership, no source-label fallback.
 - Common types (`COMMON_EVENT_TYPES`): `action`, `damage`, `condition`, `condition_tick`, `control`, `blind`,
-  `weapon_set`, `proc`. Professions add namespaced types (e.g. `example.resource`) via `resolverHooks.eventHandlers`;
+  `weapon_set`, `proc`. Professions add namespaced types (e.g. `example.resource`) via `mechanics.live.eventHandlers`;
   duplicates, missing handlers, and unknown namespaced events throw.
-- Boon queries select phase-visible history, then delegate to `combat/boons.ts`. Scheduler and resolver histories stay
-  separate.
+- Boon queries read executed phase-visible history and delegate stacking/lifetime arithmetic to `combat/boons.ts`.
 
-`platform/resolver` owns standard types. Common handlers resolve damage/conditions, drain the queue, enforce combat and
-target-death bounds, and apply sigils and relics. Professions react to named stages (listed in
-`platform/resolver/reaction-registry.ts`; bare names like `damage` are rejected) and receive capabilities such as
-`hitContext` and `applyCondition`:
+`platform/resolver` owns standard types. Common handlers resolve damage and conditions; the runtime owns queue draining
+and combat/death gates. Professions react to named stages (listed in `platform/resolver/reaction-registry.ts`; bare
+names like `damage` are rejected) and receive capabilities such as `hitContext` and `applyCondition`:
 
 ```js
-resolverHooks: {
+live: {
   eventHandlers: { "example.resource": handleResource },
-  eventReactions: {
+  reactions: {
     "damage.resolved": handleProfessionCriticalTraits,
     "control.resolved": handleProfessionInterruptTraits,
   },
 }
 ```
 
-**Chance-based effects.** Both modes use seeded rolls. Scheduler-observed hits carry their sampled `didCrit` outcome
-into resolution; hits without a sampled outcome, including resolver-generated strikes, sample it during resolution.
-Sigils and traits reuse the hit's outcome for critical eligibility, then roll any separate proc chance. Combo attempts
-and Shrapnel also use seeded rolls rather than accumulation. Critical damage stays expected-valued; `didCrit` only
-decides on-critical proc eligibility.
+**Chance-based effects.** Both outputs use the same seeded streams. An eligible resolved hit samples its critical
+outcome once; suppressed impacts make no draw or claim. Sigils and traits reuse the hit's outcome for critical
+eligibility, then roll any separate proc chance. Combo attempts and Shrapnel also use seeded rolls rather than
+accumulation. Critical damage stays expected-valued; `didCrit` only decides on-critical proc eligibility.
 
 **Activations and weapon strength.** Each cast gets a stable `activationId` shared by all its packets; triggered traits,
 sigils, relics, equipment, and summons get their own. `weaponStrengthProfileId` is snapshotted while the
@@ -286,7 +214,7 @@ capabilities; app adapters combine both.
 
 ### Timing contract
 
-- Player `castTimeMs` is effective duration **calibrated with permanent Quickness**; the scheduler never rescales it for
+- Player `castTimeMs` is effective duration **calibrated with permanent Quickness**; the runtime never rescales it for
   boons. Runtime variants may change it.
 - Independent summons keep base `castTimeMs`, optional `quicknessCastTimeMs`, Quickness rate conversion, and 40 ms
   rounding. Autonomous summons use profession-owned timing.
@@ -371,4 +299,4 @@ which recomputes crit chance, crit damage, boon duration, and condition duration
 5. Run `npm run check`.
 
 No engine, platform, or shared UI branches should be needed. Put a rule in `js/games/gw2/platform` only if multiple
-professions truly share it; otherwise keep it in the profession as a scheduler mechanic or resolver reaction.
+professions truly share it; otherwise keep it in the profession as a live mechanic or combat reaction.

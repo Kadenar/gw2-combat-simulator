@@ -3,64 +3,11 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerSpecializationState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
-import { holosmithCastAvailability } from '#gw2/professions/engineer/specializations/holosmith/mechanics/availability.js';
 import {
-  decorateHolosmithHeatEvent,
   holosmithEventMetadata,
   holosmithEventStrikeFactor
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
-import {
-  advancePhotonForgeState,
-  handleHolosmithKitEquip,
-  skillHeat,
-  enhancedCapacityMight,
-  handlePhotonForgeOverheatPenalty,
-  passiveHeat,
-  initializePhotonForgeHeat,
-  triggerThermalReleaseValve
-} from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { EngineerCastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
-
-/** Handles post-cast kit transitions and triggers Thermal Release Valve at synthetic dodge start. */
-function handleHolosmithAfterCast(context: EngineerCastContext, skill: EngineerSkill): void {
-  handleHolosmithKitEquip(context, skill);
-  if (skill.id === -5) {
-    triggerThermalReleaseValve(context, skill, context.start);
-  }
-}
-
-/** Runs kit transitions and dodge-triggered Thermal Release Valve after skill effects. */
-export const holosmithAfterCast = Object.freeze({
-  id: 'engineer.holosmith-after-cast',
-  order: 30,
-  handler: handleHolosmithAfterCast
-});
-
-/** Registers Holosmith heat initialization, observation, advancement, and task hooks. */
-export const holosmithAdvancedSchedulerHooks = Object.freeze({
-  initialize: {
-    id: 'engineer.photon-forge-initialize',
-    order: 20,
-    handler: initializePhotonForgeHeat
-  },
-  onEventScheduled: {
-    id: 'engineer.holosmith-events',
-    order: 30,
-    handler: decorateHolosmithHeatEvent
-  },
-  advance: {
-    id: 'engineer.photon-forge',
-    order: 20,
-    handler: advancePhotonForgeState
-  },
-  taskHandlers: Object.freeze({
-    ...skillHeat.taskHandlers,
-    ...enhancedCapacityMight.taskHandlers,
-    'engineer.photon-forge-overheat-penalty': handlePhotonForgeOverheatPenalty,
-    ...passiveHeat.taskHandlers
-  })
-});
 
 /** Applies an authored skill factor before ordinary condition-duration bonuses are capped. */
 function modifyHolosmithConditionBaseDuration(context: Gw2ModifierContext, multiplier: number): number {
@@ -126,13 +73,4 @@ export const holosmithModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
 export const holosmithAttributeRules = Object.freeze({
   modifyConditionBaseDuration: modifyHolosmithConditionBaseDuration,
   modifierRules: holosmithModifierRules
-});
-
-/** Exposes Holosmith cast availability to the scheduler. */
-export const holosmithCastRules = Object.freeze({
-  availability: {
-    id: 'engineer.holosmith-availability',
-    order: 30,
-    handler: holosmithCastAvailability
-  }
 });

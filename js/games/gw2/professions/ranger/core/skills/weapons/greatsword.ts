@@ -25,7 +25,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
   },
   [ID.HILT_BASH]: {
     cooldown: 20,
-    handlerId: 'ranger.hilt-bash',
+
     effects: [
       {
         type: 'strike',

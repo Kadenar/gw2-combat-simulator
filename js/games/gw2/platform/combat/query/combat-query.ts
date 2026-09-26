@@ -34,8 +34,23 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { roundEffectDuration } from '#gw2/platform/skills/timing.js';
 import { boundedNumber, clamp } from '#kernel/core/numeric.js';
 
-interface CreateGw2CombatQueryOptions<TProfessionState extends object> {
-  readonly profession?: NormalizedProfessionContract<TProfessionState>;
+/** Queries need immutable catalog and formula hooks, not either execution engine's state factories. */
+export type Gw2QueryProfession = Pick<
+  NormalizedProfessionContract,
+  | 'id'
+  | 'catalog'
+  | 'modifyAttributes'
+  | 'modifyCriticalChance'
+  | 'modifyCriticalDamage'
+  | 'modifyStrikeDamage'
+  | 'modifyConditionDamage'
+  | 'modifyConditionDuration'
+  | 'modifyConditionBaseDuration'
+>;
+
+interface CreateGw2CombatQueryOptions {
+  readonly profession?: Gw2QueryProfession;
+  readonly skillOnCooldown?: (skillId: import('#gw2/platform/engine/skills/types.js').SkillId, time: number) => boolean;
   readonly config?: Gw2Config;
   readonly events?: readonly SimulationEvent[];
   readonly resolvedTimelineEvents?: readonly SimulationEvent[];
@@ -77,15 +92,16 @@ function conditionOwnerEvent(event: SimulationEvent | null): SimulationEvent | n
  * conditions, and active equipment effects chronological instead of looking
  * ahead in the completed event stream.
  */
-export function createGw2CombatQuery<TProfessionState extends object = object>({
+export function createGw2CombatQuery({
   profession,
   config = {},
+  skillOnCooldown,
   events = [],
   resolvedTimelineEvents,
   traits = selectedGw2TraitValues(config, profession?.catalog),
   conditionDurationBonus,
   attributePreviewPlayerHealthFraction
-}: CreateGw2CombatQueryOptions<TProfessionState> = {}): Readonly<Gw2CombatQuery> {
+}: CreateGw2CombatQueryOptions = {}): Readonly<Gw2CombatQuery> {
   if (!profession?.id) {
     throw new TypeError('GW2 combat query requires a profession.');
   }
@@ -95,6 +111,7 @@ export function createGw2CombatQuery<TProfessionState extends object = object>({
   const timeline = createGw2TimelineIndex({
     config,
     skillsById: profession.catalog.skillsById,
+    skillOnCooldown,
     events: resolvedTimelineEvents ?? events,
     resolved: resolvedTimelineEvents != null
   });

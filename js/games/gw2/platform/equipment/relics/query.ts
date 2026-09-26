@@ -58,6 +58,7 @@ export function recordPassiveRelicTimeline(
   rotationEndTime: number
 ): void {
   invokeRelicHook(ctx, 'timeline', events, rotationEndTime);
+  invokeRelicHook(ctx, 'passiveTimeline', rotationEndTime);
   ctx.precastRelics = normalizePrecastRelics(ctx.config?.precastRelics)
     .filter((name) => name !== ctx.relic?.name)
     .map(createRelicRuntime);

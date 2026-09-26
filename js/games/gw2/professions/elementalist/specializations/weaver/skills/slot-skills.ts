@@ -24,7 +24,7 @@ function primordialStance(attunement: ElementalistAttunement): Partial<Skill> {
     ammo: 2,
     ammoRecharge: 20,
     skillFamily: 'Stance',
-    handlerId: 'elementalist.primordial-stance',
+
     effects: [
       {
         type: 'strike',
@@ -91,7 +91,7 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     nextChainId: ID.WEAVE_SELF,
     skillFamily: 'Stance',
     // Tailored Victory consumes the Perfect Weave flip window when it completes.
-    mechanicTriggers: [
+    elementalistTasks: [
       {
         type: 'elementalist.weaver.consume-perfect-weave',
         timingAnchor: 'castEnd'
@@ -124,7 +124,7 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>
     cooldown: 20,
     skillFamily: 'Stance',
     // Fervent Stance arms its dual-attack might window after completion.
-    mechanicTriggers: [
+    elementalistTasks: [
       {
         type: 'elementalist.weaver.arm-fervent-stance',
         timingAnchor: 'castEnd'

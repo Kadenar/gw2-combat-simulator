@@ -1,9 +1,4 @@
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -11,13 +6,12 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
-import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 
 const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([ID.VENOMOUS_OUTBURST, ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
 
-export function untamedCastAvailability(context: RangerCastContext, skill: RangerSkill): AvailabilityResult {
+export function untamedCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {
   const state = untamedState.from(context);
   if (skill.id === ID.UNLEASH_RANGER && state.rangerUnleashed) {
     return deny(skill, 'ranger.ranger-unleashed', 'the ranger is already unleashed.');
@@ -37,7 +31,7 @@ export function untamedCastAvailability(context: RangerCastContext, skill: Range
     }
 
     // ambushReadyUntil is a deadline, not a cooldown: the window closes when time reaches it.
-    if (context.start >= state.ambushReadyUntil) {
+    if (context.time >= state.ambushReadyUntil) {
       return deny(skill, 'ranger.ambush-unavailable', 'unleash to make an ambush available.');
     }
   }
@@ -113,72 +107,4 @@ const untamedModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 
 export const untamedAttributeRules = Object.freeze({
   modifierRules: untamedModifierRules
-});
-export const untamedCastRules = Object.freeze({
-  availability: {
-    id: 'ranger.untamed-availability',
-    order: 20,
-    handler: untamedCastAvailability
-  }
-});
-
-/** Runs Untamed mechanics owned by one completed skill activation. */
-export const untamedSkillMechanicHandlers = Object.freeze({
-  'ranger.untamed.sync-unleash-cooldown': ({
-    context,
-    castStart,
-    activationId
-  }: {
-    context: RangerSchedulerContext;
-    castStart: number;
-    activationId: string;
-  }): void => {
-    // This shared F5 recharge is fixed and therefore intentionally ignores Alacrity.
-    const readyAt =
-      castStart + balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'recharge');
-    context.cooldownController.setReadyAt(ID.UNLEASH_RANGER, readyAt);
-    context.cooldownController.setReadyAt(ID.UNLEASH_PET, readyAt);
-    const action = context.events.find(
-      (event) => event.type === 'action' && String(event.activationId || '') === activationId
-    );
-    if (action) context.replaceEvent(action, { rechargeReadyAt: readyAt, rechargeProgress: undefined });
-  }
-});
-
-export const untamedSchedulerHooks = Object.freeze({
-  advance: {
-    id: 'ranger.untamed-ambush-expiry',
-    order: 20,
-    handler(context: RangerSchedulerContext, at: number): void {
-      // Expiry clears the grant without resetting the cooldown that controls the next grant.
-      const state = untamedState.from(context);
-      if (state.ambushReadyUntil <= at) state.ambushReadyUntil = 0;
-    }
-  },
-  // Let Loose extends the shared swap only while combat is active.
-  onWeaponSwap(context: RangerCastContext): void {
-    if (
-      !hasTrait(context, TRAIT.LET_LOOSE) ||
-      // Pre-combat weapon swaps don't trigger Let Loose; only in-combat swaps count.
-      context.combatStartTime == null ||
-      context.start < context.combatStartTime
-    ) {
-      return;
-    }
-
-    const state = untamedState.from(context);
-    if (!isInternalCooldownReady(context.start, state.letLooseReadyAt)) return;
-    const profileId = PROFILE.letLoose;
-    state.letLooseReadyAt =
-      context.start + balanceProfileNumber(requireBalanceProfileFromContext(context, profileId), 'internalCooldown');
-    // Weapon swap resets Unleashed Power so the next Unleash Ranger re-opens an ambush window.
-    state.unleashedPowerReadyAt = 0;
-    if (state.rangerUnleashed) {
-      // Keep an exact deadline from swap completion, shared by cast and palette queries.
-      state.ambushReadyUntil = canonicalTime(
-        context.effectiveEnd +
-          balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'durationMultiplier')
-      );
-    }
-  }
 });

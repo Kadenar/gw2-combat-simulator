@@ -1,5 +1,6 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   applyEngineerDerivedCondition,
   queueDamage
@@ -8,7 +9,7 @@ import { applyAimAssistedRocket } from '#gw2/professions/engineer/core/traits/ex
 import type {
   EngineerResolverContext,
   EngineerResolverEvent,
-  EngineerSchedulerContext,
+  EngineerRuntime,
   EngineerSkill
 } from '#gw2/professions/engineer/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
@@ -20,7 +21,7 @@ import {
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 
 /** Emits kit transitions as sigil swaps so shared equipment reactions observe the bar change. */
-export function emitEngineerBarSwap(context: EngineerSchedulerContext, skill: EngineerSkill, at: number): void {
+export function emitEngineerBarSwap(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   context.emit({
     type: 'sigil_swap',
     at,
@@ -29,7 +30,7 @@ export function emitEngineerBarSwap(context: EngineerSchedulerContext, skill: En
     actorType: 'player',
     skillId: skill.id,
     skillName: skill.name,
-    weaponSet: context.state.activeWeaponSet
+    weaponSet: context.activeWeaponSet
   });
 }
 
@@ -67,6 +68,16 @@ function focused(context: EngineerResolverContext, at: number): boolean {
 
 /** Each Lightning Rod pulse applies Vulnerability, with stronger strikes and stacks against Focused targets. */
 export function handleLightningRodPulse(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+  // Only a target-facing pulse in combat can earn an Artillery charge.
+  if (
+    !event.offTarget &&
+    !context.combatStartPending &&
+    (context.combatStartTime == null || event.at >= context.combatStartTime)
+  ) {
+    const state = context.profession.core;
+    state.lightningRodChargeExpiries = addTimedStacks(state.lightningRodChargeExpiries, 1, event.at, 12, 12).expiries;
+  }
+
   const isFocused = focused(context, event.at);
   const profile = requireBalanceProfileFromContext(
     context,
@@ -95,10 +106,15 @@ export function handleConduitSurge(context: EngineerResolverContext, event: Engi
   const idProfile = requireBalanceProfileFromContext(context, profile.id);
   const burning = requireEffect(idProfile, 'condition', 'Burning');
   // Math.max preserves a longer existing Focused window; Conduit Surge must not shorten it
-  professionCoreState(context).focusedUntil = Math.max(
-    Number(professionCoreState(context).focusedUntil || 0),
-    event.at + balanceProfileNumber(idProfile, 'durationMultiplier')
-  );
+  if (
+    !event.offTarget &&
+    !context.combatStartPending &&
+    (context.combatStartTime == null || event.at >= context.combatStartTime)
+  )
+    professionCoreState(context).focusedUntil = Math.max(
+      Number(professionCoreState(context).focusedUntil || 0),
+      event.at + balanceProfileNumber(idProfile, 'durationMultiplier')
+    );
   const strike = requireEffect(idProfile, 'strike', profile.name);
   if (strike)
     queueDamage(context, event, {
@@ -116,7 +132,9 @@ export function handleConduitSurge(context: EngineerResolverContext, event: Engi
         duration: Number(burning.duration),
         source: 'engineer',
         sourceId: event.skillId ?? event.sourceId,
-        actorType: 'player'
+        actorType: 'player',
+        activationId: event.activationId,
+        offTarget: event.offTarget
       })
     );
 }
@@ -178,7 +196,9 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
           duration: Number(burning.duration) + charges * balanceProfileNumber(idProfile, 'burningDurationPerCharge'),
           source: 'engineer',
           sourceId: event.skillId ?? event.sourceId,
-          actorType: 'player'
+          actorType: 'player',
+          activationId: event.activationId,
+          offTarget: event.offTarget
         })
       );
     }

@@ -4,8 +4,7 @@ import { GW2_RESOLVER_STAGES } from '#gw2/platform/resolver/reaction-registry.js
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 const EXECUTABLE_FAMILY_KEYS = Object.freeze([
-  'createProfessionState',
-  'createResolverState',
+  'createState',
   'taskHandlers',
   'eventHandlers',
   'eventReactions',
@@ -24,8 +23,7 @@ function sortedIds(entries) {
 }
 
 function registryKeys(core, specialization, container, key) {
-  const hooks = (module) =>
-    container === 'schedulerHooks' ? module?.mechanics?.execution?.hooks : module?.mechanics?.resolution?.hooks;
+  const hooks = (module) => module?.mechanics?.live;
 
   return [...Object.keys(hooks(core)?.[key] || {}), ...Object.keys(hooks(specialization)?.[key] || {})].sort();
 }
@@ -37,14 +35,7 @@ function presentationFor(module, catalog) {
 }
 
 function reactionKeys(...modules) {
-  return [
-    ...new Set(
-      modules.flatMap((module) => [
-        ...Object.keys(module?.mechanics?.resolution?.hooks?.eventReactions || {}),
-        ...(module?.mechanics?.resolution?.reactions || []).map((reaction) => reaction.stage)
-      ])
-    )
-  ].sort();
+  return [...new Set(modules.flatMap((module) => [...Object.keys(module?.mechanics?.live?.reactions || {})]))].sort();
 }
 
 function modifierRules(module) {
@@ -76,12 +67,12 @@ export function assertProfessionFamilyConformance({ family, core, specialization
   );
   assertUniqueOwners(
     modules,
-    (module) => Object.keys(module.mechanics?.execution?.hooks?.taskHandlers || {}),
+    (module) => Object.keys(module.mechanics?.live?.tasks || {}),
     `${family.id} task handler`
   );
   assertUniqueOwners(
     modules,
-    (module) => Object.keys(module.mechanics?.resolution?.hooks?.eventHandlers || {}),
+    (module) => Object.keys(module.mechanics?.live?.eventHandlers || {}),
     `${family.id} event handler`
   );
   for (const key of EXECUTABLE_FAMILY_KEYS) {
@@ -90,27 +81,15 @@ export function assertProfessionFamilyConformance({ family, core, specialization
 
   for (const [name, specialization] of [['Core', null], ...Object.entries(specializations)]) {
     const config = { specialization: name };
-    const runtime = family.resolveRuntime(config);
+    const runtime = family.liveRuntimeFor(config);
 
-    assert.equal(family.resolveRuntime(config), runtime, `${family.id}/${name}`);
+    assert.equal(family.liveRuntimeFor(config), runtime, `${family.id}/${name}`);
     assert.equal(runtime.id, family.id);
-    const state = runtime.createProfessionState(config);
-    const expectedCoreState = core.state.scheduler(config);
-    const expectedSpecializationState = specialization ? specialization.state.scheduler(config) : {};
+    const state = runtime.createState(config);
+    const expectedCoreState = core.state.create(config);
+    const expectedSpecializationState = specialization ? specialization.state.create(config) : {};
 
-    // Composed state applies the active resource policy after the individual state factories.
-    const endurance = runtime.resources.endurance;
-    if (endurance) {
-      const expectedContext = {
-        config,
-        catalog: runtime.catalog,
-        state: {
-          profession: { core: expectedCoreState, specialization: { kind: name, state: expectedSpecializationState } }
-        }
-      };
-      endurance.state(expectedContext).endurance = endurance.maximum(expectedContext);
-    }
-
+    // Resource capacities are initialized by the runtime after the raw state factory.
     assert.deepEqual(Object.keys(state).sort(), ['core', 'specialization']);
     assert.deepEqual(state.core, expectedCoreState, `${family.id}/${name} core state`);
     assert.equal(state.specialization.kind, name);
@@ -141,35 +120,33 @@ export function assertProfessionFamilyConformance({ family, core, specialization
       `${family.id}/${name} specializations`
     );
     assert.deepEqual(
-      [...runtime.catalog.skillHandlers.keys()].sort(),
-      [...new Set(runtime.catalog.skills.map((skill) => String(skill.handlerId || '')).filter(Boolean))].sort(),
-      `${family.id}/${name} skill handlers`
-    );
-    assert.deepEqual(
-      Object.keys(runtime.taskHandlers).sort(),
-      registryKeys(core, specialization, 'schedulerHooks', 'taskHandlers'),
+      Object.keys(runtime.tasks ?? {}).sort(),
+      registryKeys(core, specialization, 'live', 'tasks'),
       `${family.id}/${name} task handlers`
     );
     assert.deepEqual(
-      Object.keys(runtime.eventHandlers).sort(),
-      registryKeys(core, specialization, 'resolverHooks', 'eventHandlers'),
+      Object.keys(runtime.eventHandlers ?? {}).sort(),
+      registryKeys(core, specialization, 'live', 'eventHandlers'),
       `${family.id}/${name} event handlers`
     );
     assert.deepEqual(
-      Object.keys(runtime.eventReactions).sort(),
+      Object.keys(runtime.reactions ?? {}).sort(),
       reactionKeys(core, specialization),
       `${family.id}/${name} event reactions`
     );
     assert.equal(
-      Object.keys(runtime.eventReactions).every((stage) => CANONICAL_REACTION_STAGES.has(stage)),
+      Object.keys(runtime.reactions ?? {}).every((stage) => CANONICAL_REACTION_STAGES.has(stage)),
       true,
       `${family.id}/${name} canonical resolver stages`
     );
 
+    // Live-owned families preview capacity from their live endurance policy, as the family presentation does.
+    const live = core.mechanics?.live && (!specialization || specialization.mechanics?.live);
+    const previewEndurance = live ? family.liveRuntimeFor(config).endurance : runtime.resources.endurance;
     const context = {
       catalog: family.catalog,
-      resources: runtime.resources.endurance
-        ? { endurance: { maximum: runtime.resources.endurance.maximum({ catalog: family.catalog, config }) } }
+      resources: previewEndurance
+        ? { endurance: { maximum: previewEndurance.maximum({ catalog: family.catalog, config }) } }
         : {},
       config,
       build: { ...family.createBuildDefaults(), specialization: name },
@@ -209,11 +186,8 @@ export function assertProfessionFamilyConformance({ family, core, specialization
       }
     }
 
-    const projected = simulateGw2({
-      profession: family,
-      rotation: [],
-      config
-    }).planningState.profession;
+    // A migrated projection must reflect its registered live initializer, including native resource policies.
+    const projected = simulateGw2({ profession: family, rotation: [], config }).planningState.profession;
 
     assert.ok(projected && typeof projected === 'object');
     assert.equal(Object.hasOwn(projected, 'core'), false);

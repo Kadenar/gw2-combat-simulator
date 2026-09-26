@@ -9,7 +9,7 @@ import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw
 import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
@@ -51,7 +51,7 @@ const baseConfig = Object.freeze({
 });
 
 // Keep scenario defaults local while sharing simulation setup and nested config merging.
-const simulate = createProfessionSimulator(rangerProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(rangerProfession, baseConfig);
 
 describe('Ranger skill-bar selections', () => {
   test('Soulbeast pet selections update merged Beast skills', () => {
@@ -61,7 +61,7 @@ describe('Ranger skill-bar selections', () => {
       specialization: 'Soulbeast',
       config: { specialization: 'Soulbeast', selectedPet: build.selectedPet },
       catalog: rangerCatalog,
-      professionState: rangerProfession.resolveRuntime({ specialization: 'Soulbeast' }).createProfessionState({
+      professionState: rangerProfession.resolveRuntime({ specialization: 'Soulbeast' }).createState({
         specialization: 'Soulbeast',
         selectedPet: build.selectedPet
       })
@@ -147,7 +147,7 @@ describe('Ranger skill-bar selections', () => {
       },
       professionState: rangerProfession
         .resolveRuntime({ specialization: 'Untamed' })
-        .createProfessionState({ specialization: 'Untamed' })
+        .createState({ specialization: 'Untamed' })
     };
 
     assert.equal(
@@ -187,7 +187,7 @@ describe('Ranger skill-bar selections', () => {
           selectedHammerSkillIds: build.selectedHammerSkillIds
         },
         catalog: rangerCatalog,
-        professionState: runtime.createProfessionState({ specialization })
+        professionState: runtime.createState({ specialization })
       };
       const hammer = rangerProfession.ui
         .skillBarGroups(context)
@@ -302,7 +302,7 @@ describe('Galeshot Cyclone Bow', () => {
       specialization: 'Galeshot',
       professionState: rangerProfession
         .resolveRuntime({ specialization: 'Galeshot' })
-        .createProfessionState({ specialization: 'Galeshot' })
+        .createState({ specialization: 'Galeshot' })
     };
     const galeshotPaletteGroups = rangerProfession.ui.paletteGroups(inactiveContext);
 

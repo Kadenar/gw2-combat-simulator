@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 
-const simulate = createProfessionSimulator(revenantProfession, {
+const simulate = createLiveProfessionSimulator(revenantProfession, {
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
   startingLegend: LEGEND.ASSASSIN,
   initialEnergy: 50,

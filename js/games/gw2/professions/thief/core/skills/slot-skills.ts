@@ -17,8 +17,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: []
   },
   [ID.PREPARE_THOUSAND_NEEDLES]: {
-    // Custom: Stores the prepared trap and exposes its activation skill; see `core/mechanics/preparations.ts`.
-    handlerId: 'thief.prepare-trap',
+    // Custom: Stores the prepared trap and exposes its activation skill through `core/live.ts`.
     castTimeMs: 600,
     // Placement survives cancellation once the preparation commits.
     interruptCommitMs: 400,
@@ -78,8 +77,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ])
   },
   [ID.SPIDER_VENOM]: {
-    // Custom: Arms per-recipient venom charges and proc state; see `core/mechanics/venoms.ts`.
-    handlerId: 'thief.venom',
+    // Custom: Arms per-recipient venom charges and proc state through `core/live.ts`.
     castTimeMs: 0,
     cooldown: 30,
     initiativeCost: 0,
@@ -105,8 +103,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ]
   },
   [ID.ASSASSINS_SIGNET]: {
-    // Custom: Activates Assassin's Signet's timed power state; see `core/skills/actions.ts`.
-    handlerId: 'thief.assassins-signet',
+    // Custom: Activates Assassin's Signet's timed power state through `core/live.ts`.
     castTimeMs: 0,
     cooldown: 20,
     initiativeCost: 0,
@@ -119,8 +116,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: []
   },
   [ID.SKALE_VENOM]: {
-    // Custom: Arms per-recipient venom charges and proc state; see `core/mechanics/venoms.ts`.
-    handlerId: 'thief.venom',
+    // Custom: Arms per-recipient venom charges and proc state through `core/live.ts`.
     castTimeMs: 0,
     cooldown: 30,
     initiativeCost: 0,
@@ -129,8 +125,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ]
   },
   [ID.PREPARE_PITFALL]: {
-    // Custom: Stores the prepared trap and exposes its activation skill; see `core/mechanics/preparations.ts`.
-    handlerId: 'thief.prepare-trap',
+    // Custom: Stores the prepared trap and exposes its activation skill through `core/live.ts`.
     castTimeMs: 360,
     cooldown: 25,
     rechargeAnchor: 'castStart',
@@ -179,8 +174,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ]
   },
   [ID.THIEVES_GUILD]: {
-    // Custom: Summons both thieves and schedules their autonomous attacks/expiry; see `core/skills/actions.ts`.
-    handlerId: 'thief.thieves-guild',
+    // Custom: Summons both thieves and schedules their autonomous attacks/expiry through `core/live.ts`.
     castTimeMs: 1000,
     cooldown: 120,
     initiativeCost: 0,
@@ -306,8 +300,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ])
   },
   [ID.DEVOURER_VENOM]: {
-    // Custom: Arms per-recipient venom charges and proc state; see `core/mechanics/venoms.ts`.
-    handlerId: 'thief.venom',
+    // Custom: Arms per-recipient venom charges and proc state through `core/live.ts`.
     castTimeMs: 0,
     cooldown: 40,
     initiativeCost: 0,
@@ -329,8 +322,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     effects: []
   },
   [ID.PITFALL]: {
-    // Custom: Consumes the prepared trap and emits its activation effects; see `core/mechanics/preparations.ts`.
-    handlerId: 'thief.activate-trap',
+    // Custom: Consumes the prepared trap and emits its activation effects through `core/live.ts`.
     castTimeMs: 0,
     cooldown: 3,
     initiativeCost: 0,
@@ -371,8 +363,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ]
   },
   [ID.THOUSAND_NEEDLES]: {
-    // Custom: Consumes the prepared trap and emits its activation effects; see `core/mechanics/preparations.ts`.
-    handlerId: 'thief.activate-trap',
+    // Custom: Consumes the prepared trap and emits its activation effects through `core/live.ts`.
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,

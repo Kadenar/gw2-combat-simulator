@@ -3,7 +3,6 @@ import { createThiefBuildDefaults, migrateThiefBuild, validateThiefBuild } from 
 import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
 import { thiefNativeModules } from '#gw2/professions/thief/catalog.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { observeThiefAutoattackTransition } from '#gw2/professions/thief/core/mechanics/weapon-state.js';
 
 export { thiefCatalog, thiefNativeModules } from '#gw2/professions/thief/catalog.js';
 
@@ -24,8 +23,7 @@ export const thiefProfession = defineNativeProfession({
         chainRootIds: [ID.SHADOW_BOLT],
         decision: 'preserve'
       }
-    ],
-    onTransition: observeThiefAutoattackTransition
+    ]
   },
   weaponSkillMatchesSet: thiefWeaponSkillMatchesSet
 });

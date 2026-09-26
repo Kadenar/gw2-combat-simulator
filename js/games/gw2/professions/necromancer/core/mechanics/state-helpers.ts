@@ -1,31 +1,15 @@
-import { grantResource } from '#gw2/platform/combat/resources/resource-policy.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+
 /**
- * Shared primitives for every necromancer skill handler.
- *
- * Owns Core carapace, Soul Shard, and life-force mutations and their snapshots,
- * plus the module-composed creature-summon reaction dispatcher.
- * Specialization modules own blight and shade state.
- *
- * Handlers depend on this module; it must not depend on them.
+ * Shared live Carapace, Soul Shard, and creature-summon operations.
+ * Specializations register creature reactions without coupling Core to their mechanics.
  */
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { emitNecromancerLifeForce } from '#gw2/professions/necromancer/family-state.js';
+
 import { addTimedStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import type {
-  NecromancerCastContext,
-  NecromancerEmissionContext,
-  NecromancerResolverContext,
-  NecromancerSchedulerContext,
-  NecromancerSkill
-} from '#gw2/professions/necromancer/types.js';
+import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 
 const SOUL_SHARD_DURATION_SECONDS = 10;
@@ -34,7 +18,7 @@ const CARAPACE_MAXIMUM_STACKS = 30;
 
 /** Returns stable identities for minions eligible to receive shared effects. */
 export function necromancerActiveMinionCompanionIds(
-  context: NecromancerEmissionContext | NecromancerResolverContext
+  context: Pick<NecromancerRuntime, 'profession'>
 ): readonly string[] {
   const core = professionCoreState(context);
   const companionIds: string[] = [];
@@ -48,17 +32,11 @@ export function necromancerActiveMinionCompanionIds(
 }
 
 /** Includes every active Necromancer summon that can compete for a shared boon slot. */
-export function necromancerActiveBoonCompanionIds(
-  context: NecromancerEmissionContext | NecromancerResolverContext
-): readonly string[] {
-  const candidate = context as {
-    readonly state?: { readonly profession?: unknown };
-    readonly profession?: unknown;
-  };
-  const runtime = (candidate.state?.profession ?? candidate.profession) as {
-    readonly specialization?: { readonly state?: { readonly activeSpirits?: Readonly<Record<string, boolean>> } };
-  };
-  const spiritIds = Object.entries(runtime.specialization?.state?.activeSpirits || {})
+export function necromancerActiveBoonCompanionIds(context: Pick<NecromancerRuntime, 'profession'>): readonly string[] {
+  const runtime = context.profession;
+  const spiritIds = Object.entries(
+    runtime.specialization.kind === 'Ritualist' ? runtime.specialization.state.activeSpirits : {}
+  )
     .filter(([, active]) => active)
     .map(([key]) => `spirit:${key}`);
   return Object.freeze([...necromancerActiveMinionCompanionIds(context), ...spiritIds]);
@@ -82,7 +60,8 @@ export function addSoulShards(state: NecromancerCoreState, stacks: number, at: n
   purgeTimedState(state, at);
   // Refresh the shared deadline even at the cap, adding only the newly admitted shards.
   const added = boundedInteger(stacks, 0, 0, SOUL_SHARD_MAXIMUM_STACKS - state.soulShardGrant.charges);
-  state.soulShardGrant = grantCharges(added, at + SOUL_SHARD_DURATION_SECONDS, state.soulShardGrant, at);
+  // The stored deadline must equal the queue's canonical timestamp so exact expiry cannot leave floating-point residue.
+  state.soulShardGrant = grantCharges(added, canonicalTime(at + SOUL_SHARD_DURATION_SECONDS), state.soulShardGrant, at);
   return added;
 }
 
@@ -95,43 +74,24 @@ export function consumeSoulShards(state: NecromancerCoreState, stacks: number, a
   return consumed;
 }
 
-/** Convert percentage gains once, apply Gluttony, and let the engine order recovery before the capped grant. */
-export function gainNecromancerLifeForce(
-  context: NecromancerSchedulerContext,
-  amount: number,
-  at: number,
-  reason = ''
-): void {
-  const state = professionCoreState(context);
-  const multiplier = hasTrait(context, TRAIT.GLUTTONY)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.GLUTTONY), 'lifeForceGainMultiplier')
-    : 1;
-  grantResource(context, 'lifeForce', ((amount * state.lifeForce.maximum) / 100) * multiplier, at);
-  if (reason && at === context.state.time) emitNecromancerLifeForce(context, at, reason);
-}
-
 type CreatureSummonReaction = (
-  context: NecromancerCastContext,
   skill: NecromancerSkill,
   at: number,
-  count: number
+  count: number,
+  activationId: string | undefined
 ) => void;
 
 const creatureSummonReactions = new WeakMap<object, Map<string, CreatureSummonReaction>>();
 
 /**
  * Registers an active module's reaction without making Core depend on that
- * module. Scheduler and cast contexts share the same state object.
+ * module. The caller supplies the simulation owner and actual summon attribution.
  */
-export function registerCreatureSummonReaction(
-  context: NecromancerSchedulerContext,
-  id: string,
-  reaction: CreatureSummonReaction
-): void {
-  let reactions = creatureSummonReactions.get(context.state);
+export function registerCreatureSummonReaction(owner: object, id: string, reaction: CreatureSummonReaction): void {
+  let reactions = creatureSummonReactions.get(owner);
   if (!reactions) {
     reactions = new Map();
-    creatureSummonReactions.set(context.state, reactions);
+    creatureSummonReactions.set(owner, reactions);
   }
 
   reactions.set(id, reaction);
@@ -139,41 +99,42 @@ export function registerCreatureSummonReaction(
 
 /** Dispatches a creature summon to every reaction registered for this simulation state. */
 export function runCreatureSummonReactions(
-  context: NecromancerCastContext,
+  owner: object,
   skill: NecromancerSkill,
   at: number,
-  count = 1
+  count: number,
+  activationId: string | undefined
 ): void {
-  for (const reaction of creatureSummonReactions.get(context.state)?.values() || []) {
-    reaction(context, skill, at, count);
+  for (const reaction of creatureSummonReactions.get(owner)?.values() || []) {
+    reaction(skill, at, count, activationId);
   }
 }
 
-type CreatureStrikeMultiplier = (context: NecromancerCastContext) => number;
+type CreatureStrikeMultiplier = () => number;
 
 const creatureStrikeMultipliers = new WeakMap<object, Map<string, CreatureStrikeMultiplier>>();
 
 /** Registers specialization-owned multipliers that must be stamped onto Core creature attacks. */
 export function registerNecromancerCreatureStrikeMultiplier(
-  context: NecromancerSchedulerContext,
+  owner: object,
   id: string,
   multiplier: CreatureStrikeMultiplier
 ): void {
-  let multipliers = creatureStrikeMultipliers.get(context.state);
+  let multipliers = creatureStrikeMultipliers.get(owner);
   if (!multipliers) {
     multipliers = new Map();
-    creatureStrikeMultipliers.set(context.state, multipliers);
+    creatureStrikeMultipliers.set(owner, multipliers);
   }
 
   multipliers.set(id, multiplier);
 }
 
 /** Multiplies all registered Core and specialization contributions for a creature strike. */
-export function necromancerCreatureStrikeMultiplier(context: NecromancerCastContext): number {
+export function necromancerCreatureStrikeMultiplier(owner: object): number {
   let multiplier = 1;
-  for (const contribution of creatureStrikeMultipliers.get(context.state)?.values() || []) {
+  for (const contribution of creatureStrikeMultipliers.get(owner)?.values() || []) {
     // A specialization can explicitly disable creature strikes with a zero multiplier.
-    multiplier *= Number(contribution(context) ?? 1);
+    multiplier *= Number(contribution() ?? 1);
   }
 
   return multiplier;

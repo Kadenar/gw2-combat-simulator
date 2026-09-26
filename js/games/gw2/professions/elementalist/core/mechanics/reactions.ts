@@ -18,12 +18,8 @@ import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import type {
-  ElementalistResolverContext,
-  ElementalistResolverEvent,
-  ElementalistState
-} from '#gw2/professions/elementalist/types.js';
-import { isElementalistAttunement, type ElementalistAuraState } from '#gw2/professions/elementalist/core/state.js';
+import type { ElementalistResolverContext } from '#gw2/professions/elementalist/types.js';
+import { type ElementalistAuraState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import {
   applyArcanePrecision,
@@ -43,26 +39,6 @@ export {
   recordElementalistTraitProc,
   refreshElementalistBuffs
 } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
-
-/** Mirrors an attunement event into Core and any specialization-owned secondary attunement state. */
-export function applyElementalistResolverAttunement(
-  context: ElementalistResolverContext,
-  event: ElementalistResolverEvent
-): void {
-  const core = professionCoreState(context);
-  if (isElementalistAttunement(event.to)) core.primaryAttunement = event.to;
-  core.attunementEnteredAt = event.at;
-
-  // Object.hasOwn checks this optional owned field, but does not narrow the specialization union.
-  const specialization = context.profession.specialization.state as Partial<
-    Pick<ElementalistState, 'secondaryAttunement'>
-  >;
-  if (Object.hasOwn(specialization, 'secondaryAttunement')) {
-    specialization.secondaryAttunement = isElementalistAttunement(event.secondaryAttunement)
-      ? event.secondaryAttunement
-      : null;
-  }
-}
 
 /** Queues a resolver-generated aura after applying Smothering Auras exactly once. */
 export function queueElementalistAura(
@@ -100,7 +76,7 @@ export function applyElementalistResolverAura(context: ElementalistResolverConte
   if (context.reporting && event.elementalistResolverGeneratedAura === true) context.resolved.push(event);
   if (context.combatStartTime != null && event.at < context.combatStartTime) return;
 
-  if (event.elementalistResolverGeneratedAura === true || event.type === 'aura') {
+  {
     applyElementalistResolverAuraTraits(context, event);
   }
 
@@ -242,12 +218,4 @@ export function applyElementalistResolvedCondition(
   }
 
   if (event.condition === 'Burning') grantPersistingFlames(context, event);
-}
-
-/** Mirrors Signet of Fire's passive-suppression window into resolver state. */
-export function applyElementalistResolverSignetFire(
-  context: ElementalistResolverContext,
-  event: Gw2ResolverEvent
-): void {
-  professionCoreState(context).signetOfFireDisabledUntil = Number(event.disabledUntil || event.at);
 }

@@ -6,16 +6,12 @@ import {
   WARRIOR_SWAP_WEAPONS,
   WARRIOR_WEAPON_STOW
 } from '#gw2/professions/warrior/core/skills/index.js';
-import { warriorCoreSkillHandlers } from '#gw2/professions/warrior/core/execution/index.js';
-import { warriorCoreSkillMechanicHandlers } from '#gw2/professions/warrior/core/traits/index.js';
-import { warriorCoreAttributeRules, warriorCoreCastRules } from '#gw2/professions/warrior/core/traits/modifiers.js';
+import { warriorCoreAttributeRules } from '#gw2/professions/warrior/core/traits/modifiers.js';
+import { warriorCoreLiveMechanics } from '#gw2/professions/warrior/core/live.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { projectWarriorPlanningState } from '#gw2/professions/warrior/family-state.js';
 import { bindWarriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
-import { warriorCoreEventReactions } from '#gw2/professions/warrior/core/mechanics/reactions.js';
 import { WARRIOR_CORE_BALANCE_PROFILES } from '#gw2/professions/warrior/core/profiles.js';
-import { warriorCoreSchedulerHooks } from '#gw2/professions/warrior/core/execution/hooks.js';
-import { warriorEndurance } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
 
 export const warriorCoreModule = defineNativeModule({
   id: 'Core',
@@ -24,23 +20,13 @@ export const warriorCoreModule = defineNativeModule({
     balanceProfiles: WARRIOR_CORE_BALANCE_PROFILES,
     extraSkills: [WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS, WARRIOR_WEAPON_STOW]
   }),
-  resources: { endurance: warriorEndurance },
   state: {
-    scheduler: createWarriorCoreState,
-    resolver: createWarriorCoreState,
+    create: createWarriorCoreState,
     project: projectWarriorPlanningState
   },
   mechanics: {
     modifiers: warriorCoreAttributeRules,
-    execution: {
-      skillHandlers: warriorCoreSkillHandlers,
-      castRules: warriorCoreCastRules,
-      skillMechanicHandlers: warriorCoreSkillMechanicHandlers,
-      hooks: warriorCoreSchedulerHooks
-    },
-    resolution: {
-      reactions: warriorCoreEventReactions
-    }
+    live: warriorCoreLiveMechanics
   },
   presentation: bindWarriorCoreUi
 });

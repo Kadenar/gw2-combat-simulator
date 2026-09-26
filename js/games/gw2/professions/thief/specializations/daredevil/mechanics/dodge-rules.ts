@@ -10,44 +10,8 @@ import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefRuntimeState, thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/traits/modifiers.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { ThiefSchedulerContext } from '#gw2/professions/thief/types.js';
 import type { DaredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
-import { daredevilCastAvailability } from '#gw2/professions/thief/specializations/daredevil/mechanics/availability.js';
-import { updatePalmStrikeWindow } from '#gw2/professions/thief/specializations/daredevil/mechanics/palm-strike.js';
-import {
-  applyDaredevilDodge,
-  applyEnduranceThief,
-  beginDaredevilTraits
-} from '#gw2/professions/thief/specializations/daredevil/traits/index.js';
-import { thiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
-
-function initializeDaredevilRuntime(context: ThiefSchedulerContext): void {
-  context.onThiefStealComplete = applyEnduranceThief;
-}
-
-export const daredevilSchedulerHooks = Object.freeze({
-  initialize: {
-    id: 'thief.daredevil-endurance',
-    order: 10,
-    handler: initializeDaredevilRuntime
-  },
-  // Resource refunds occur at cast start; offensive procs wait for resolved hits.
-  onCastStart: beginDaredevilTraits,
-  afterCast: Object.freeze([
-    {
-      id: 'thief.daredevil-dodge',
-      // Order 30: runs after core thief afterCast (order 20) so endurance has already been deducted
-      order: 30,
-      handler: applyDaredevilDodge
-    },
-    {
-      id: 'thief.daredevil-palm-strike',
-      // Order 40: must follow dodge handler so the Palm Strike window is set after dodge effects are emitted
-      order: 40,
-      handler: updatePalmStrikeWindow
-    }
-  ])
-});
+import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 
 export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -69,7 +33,8 @@ export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       isGw2PlayerModifierOwnedEvent(context.event) &&
       hasTrait(context, TRAIT.HAVOC_SPECIALIST) &&
       // Trait activates whenever endurance is not at maximum — any spent dodge qualifies
-      Number(thiefRuntimeState(context).endurance || 0) < daredevilEndurance.maximum(context)
+      Number(thiefRuntimeState(context).endurance || 0) <
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.resources), 'maximumStacks')
   },
   {
     id: 'thief.bounding-dodger',
@@ -98,18 +63,3 @@ export const daredevilModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
 export const daredevilAttributeRules = Object.freeze({
   modifierRules: daredevilModifierRules
 });
-
-export const daredevilCastRules = Object.freeze({
-  availability: {
-    id: 'thief.daredevil-availability',
-    order: 20,
-    handler: daredevilCastAvailability
-  }
-});
-
-/** Daredevil replaces only the capacity rule while retaining Core's pool and regeneration. */
-export const daredevilEndurance = {
-  ...thiefEndurance,
-  maximum: (context: unknown) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(context, 'thief.daredevil.resources'), 'maximumStacks')
-};

@@ -247,11 +247,6 @@ export function prepareGw2ComboEvent(event: SimulationEventBase): SimulationEven
   return event;
 }
 
-/** Reports whether an event is a scheduler-only combo prediction. */
-export function isSchedulerComboPrediction(event: Readonly<Record<string, unknown>>): boolean {
-  return event.schedulerPrediction === 'combo-result';
-}
-
 /** Creates isolated mutable state for combo resolution. */
 export function createGw2ComboRuntimeState(): Gw2ComboRuntimeState {
   return {

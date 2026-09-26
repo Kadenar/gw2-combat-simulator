@@ -1,12 +1,12 @@
-import { mesmerConditionFromProfile, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { scheduleDeclarativeEffects } from '#gw2/platform/execution/effect-adapter.js';
+import { mesmerConditionFromProfile, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { emitMesmerEffects } from '#gw2/professions/mesmer/core/live-events.js';
 import { applyCryOfPain } from '#gw2/professions/mesmer/core/traits/index.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { MesmerCastContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
@@ -14,10 +14,10 @@ import type {
 
 /** Resolves Virtuoso Bladesong packets and reports their actual impact timing to shared shatter traits. */
 export function resolveBladesong(
-  context: MesmerCastContext,
+  context: MesmerRuntime,
   { skill, shatter, at, castStart, spent }: MesmerShatterResolverRequest
 ): readonly MesmerShatterTraitHit[] {
-  const runtime = mesmerRuntimeFor(context);
+  const runtime = mesmerMechanicsFor(context);
   const strike = shatter.strikes[spent];
   const packetTicks = () => strike?.ticks ?? [];
 
@@ -84,7 +84,7 @@ export function resolveBladesong(
         },
         { metadata: { shatterTraitEligible: true, blade: true } }
       );
-    scheduleDeclarativeEffects(context, skill, context.reservationId, castStart, damageAt, damageAt);
+    emitMesmerEffects(context, skill, castStart, damageAt);
     return strike ? [{ at: damageAt, count: 1 }] : [];
   }
 

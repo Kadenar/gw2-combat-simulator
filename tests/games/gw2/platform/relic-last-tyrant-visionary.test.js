@@ -170,7 +170,7 @@ test('profiled Burning procs preserve fractional totals and source attribution w
     const events = [];
     const context = {
       profession: { id: 'elementalist' },
-      catalog: {
+      helpers: {
         skillsById: new Map(),
         skillsByName: new Map(),
         balanceProfilesById: new Map([

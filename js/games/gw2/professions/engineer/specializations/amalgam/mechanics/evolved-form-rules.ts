@@ -16,27 +16,11 @@ import {
 import { applyEngineerSharpshooterConditionDamage } from '#gw2/professions/engineer/core/traits/modifiers.js';
 
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
-import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
-import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { EngineerMaximumAmmoContext, EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import { mercurialTendenciesReaction } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 const EVOLVE_SKILL_IDS = new Set([ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX]);
-
-/** Registers scheduled-event observation and deferred Mercurial Tendencies execution. */
-export const amalgamSchedulerHooks = Object.freeze({
-  onEventScheduled: {
-    id: 'engineer.amalgam-events',
-    order: 20,
-    handler: mercurialTendenciesReaction.onEventScheduled.handler
-  },
-  taskHandlers: Object.freeze({
-    ...mercurialTendenciesReaction.taskHandlers
-  })
-});
 
 // Evolved adds 10% of its eligible stat pool, or 20% with Double Helix.
 // Derived armor/crit fields update from toughness, ferocity, and precision.
@@ -137,9 +121,9 @@ function modifyAmalgamAttributes(context: EngineerModifierContext, attributes: G
 }
 
 /** Only the selected Double Helix variant may use Evolve ammo, including profiled capacity edits. */
-function modifyAmalgamMaximumAmmo(context: EngineerMaximumAmmoContext, maximum: number): number {
-  if (!context.skill || !EVOLVE_SKILL_IDS.has(Number(context.skill.id))) return maximum;
-  return context.skill.id === ID.EVOLVE_DOUBLE_HELIX && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
+export function amalgamMaximumAmmo(context: EngineerRuntime, skill: EngineerSkill, maximum: number): number {
+  if (!skill || !EVOLVE_SKILL_IDS.has(Number(skill.id))) return maximum;
+  return skill.id === ID.EVOLVE_DOUBLE_HELIX && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
     ? Math.max(
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.evolve), 'maximumStacks'),
         Number(maximum || 0)
@@ -151,16 +135,4 @@ function modifyAmalgamMaximumAmmo(context: EngineerMaximumAmmoContext, maximum: 
 export const amalgamAttributeRules = Object.freeze({
   modifyAttributes: modifyAmalgamAttributes,
   modifierRules: amalgamModifierRules
-});
-
-/** Exposes Amalgam cast availability and ammo-capacity rules to the scheduler. */
-export const amalgamCastRules = Object.freeze({
-  modifySkillId: (context: EngineerSchedulerContext, skillId: SkillId) =>
-    resolveAmalgamSkillId(context.config, skillId),
-  availability: {
-    id: 'engineer.amalgam-availability',
-    order: 30,
-    handler: amalgamCastAvailability
-  },
-  modifyMaximumAmmo: modifyAmalgamMaximumAmmo
 });

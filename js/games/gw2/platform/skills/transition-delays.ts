@@ -1,3 +1,4 @@
+import { canonicalTime } from '#kernel/core/clock.js';
 import type { SimulationEventBase, SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -48,4 +49,20 @@ export function emitTransitionLockout(
     ...(skill ? { skillId: skill.id, skillName: skill.name } : {}),
     name: 'Transition delay'
   });
+}
+
+/** Live bar transitions block the next authored input for their configured recovery and record that interval. */
+export function lockTransitionInput(
+  runtime: {
+    readonly config?: Gw2Config;
+    readonly time: number;
+    inputReadyAt: number;
+    emit(event: SimulationEventBase): unknown;
+  },
+  kind: TransitionDelayKind,
+  skill?: { readonly id: SkillId; readonly name: string }
+): void {
+  const delay = normalizeTransitionDelays(runtime.config?.transitionDelays)[kind] / 1000;
+  runtime.inputReadyAt = Math.max(runtime.inputReadyAt, canonicalTime(runtime.time + delay));
+  emitTransitionLockout(runtime, kind, runtime.time, skill);
 }

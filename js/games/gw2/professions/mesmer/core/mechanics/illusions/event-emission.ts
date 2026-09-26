@@ -1,11 +1,7 @@
 import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
-import {
-  emitSkillBuff,
-  emitSkillCondition,
-  emitSkillControl,
-  emitSkillDamage
-} from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
 
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
@@ -15,12 +11,12 @@ import type {
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerSchedulerContext
+  MesmerRuntime
 } from '#gw2/professions/mesmer/types.js';
 import type { MesmerEventExtra, MesmerSummonKind } from '#gw2/professions/mesmer/data/types.js';
 
 interface MesmerEventEmitterOptions {
-  readonly context: MesmerSchedulerContext;
+  readonly context: MesmerRuntime;
   readonly emit: (event: SimulationEventBase) => SimulationEvent | null;
   readonly activePrimaryWeapon: () => string;
   readonly weaponStrength: Readonly<Record<string, number>>;
@@ -29,7 +25,7 @@ interface MesmerEventEmitterOptions {
 /** Player events are the default; explicit summon metadata keeps ownership independent of display labels. */
 function ownership(actorType: SimulationActorType | undefined, summonKind: MesmerSummonKind | undefined) {
   return {
-    actorType: actorType ?? (summonKind ? 'summon' : 'player'),
+    actorType: (actorType ?? (summonKind ? 'summon' : 'player')) as SimulationActorType,
     ...(summonKind ? { summonKind } : {})
   };
 }
@@ -53,13 +49,10 @@ export function createMesmerEventEmitters({
   addCondition: MesmerAddCondition;
   addDamage: MesmerAddDamage;
 }> {
-  const emissionContext = Object.assign(Object.create(context) as MesmerSchedulerContext, { emit });
   const addEvent: MesmerAddEvent = (event) => {
-    const source = String(event.source || context.profession.id);
+    const source = String(event.source || 'mesmer');
     const sourceId = event.sourceId ?? event.skillId ?? event.skillName ?? event.name ?? event.type;
     const canonical = { ...event, source, sourceId, ...ownership(event.actorType, event.summonKind) };
-    if (event.type === 'buff') return emitSkillBuff(emissionContext, canonical as never);
-    if (event.type === 'control') return emitSkillControl(emissionContext, canonical as never);
     return emit(canonical as SimulationEventBase);
   };
 
@@ -77,8 +70,8 @@ export function createMesmerEventEmitters({
     });
 
   const skillForCondition = (skillName: string, extra: MesmerEventExtra): Skill =>
-    context.catalog.skillsById.get(extra.skillId ?? '') ||
-    context.catalog.skillsByName.get(skillName) || {
+    context.helpers.skillsById.get(extra.skillId ?? '') ||
+    context.helpers.skillsByName.get(skillName) || {
       id: extra.skillId ?? extra.sourceId ?? `mesmer.effect:${skillName}`,
       name: skillName
     };
@@ -99,8 +92,7 @@ export function createMesmerEventEmitters({
     return ticks.flatMap((tick, index) => {
       const name = canonicalTargetConditionName(tick.condition);
       if (!(Number(tick.duration) > 0)) return [];
-      const emitted = emitSkillCondition(emissionContext, {
-        skill,
+      const packet = {
         ...fields,
         ...baseOwnership,
         at: at + Number(tick.atMs || 0) / 1000,
@@ -115,8 +107,9 @@ export function createMesmerEventEmitters({
         applicationIndex: index + 1,
         totalApplications: ticks.length,
         // Packet annotations override application defaults; explicit call annotations win last.
-        metadata: { ...condition.metadata, ...tick.metadata, ...extra.metadata }
-      });
+        metadata: normalizeEffectMetadata({ ...condition.metadata, ...tick.metadata, ...extra.metadata })
+      };
+      const emitted = emit(buildResolverCondition(packet));
       return emitted ? [emitted] : [];
     });
   };
@@ -154,8 +147,8 @@ export function createMesmerEventEmitters({
         }));
     const slotSkill = ['Heal', 'Utility', 'Elite'].includes(String(skill.type || ''));
 
-    return ticks.flatMap((tick, index) =>
-      emitSkillDamage(emissionContext, skill, {
+    return ticks.flatMap((tick, index) => {
+      const packet = {
         ...fields,
         ...baseOwnership,
         at: at + Number(tick.atMs || 0) / 1000,
@@ -171,10 +164,16 @@ export function createMesmerEventEmitters({
         skillWeapon: skill.weapon || (slotSkill ? 'Utility' : activePrimaryWeapon()),
         canCrit: group.canCrit,
         // Keep the skill fallback while preserving false, zero, and unrelated packet annotations.
-        metadata: { blade: Boolean(skill.blade), ...group.metadata, ...tick.metadata, ...extra.metadata },
+        metadata: normalizeEffectMetadata({
+          blade: Boolean(skill.blade),
+          ...group.metadata,
+          ...tick.metadata,
+          ...extra.metadata
+        }),
         ...(strength == null ? {} : { weaponStrength: strength })
-      }).filter((event): event is SimulationEvent => Boolean(event))
-    );
+      };
+      return [emit(buildResolverStrike(packet))].filter((event): event is SimulationEvent => Boolean(event));
+    });
   };
 
   return Object.freeze({ addEvent, addTraitProc, addCondition, addDamage });

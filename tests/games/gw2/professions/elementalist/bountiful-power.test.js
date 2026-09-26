@@ -20,9 +20,12 @@ for (const { threshold, progress, grants } of [
     const core = { bountifulPowerProgress: 0 };
     const events = [];
     const context = {
-      catalog,
+      helpers: catalog,
+      time: 4,
+      config: {},
+      query: { statsAt: () => ({}) },
       traits: new Set(['Bountiful Power']),
-      state: { profession: { core } },
+      profession: { core },
       emit(event) {
         assert.ok(events.length < 8, 'Bountiful Power exceeded the expected grant bound');
         events.push(event);

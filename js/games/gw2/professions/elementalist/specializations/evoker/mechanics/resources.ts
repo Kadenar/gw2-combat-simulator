@@ -1,3 +1,4 @@
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import { EPSILON } from '#kernel/core/clock.js';
 /**
  * The Evoker familiar-charge economy.
@@ -14,7 +15,7 @@ import {
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 // Use Core's bundle names so conjure availability and familiar-charge exclusions agree.
 import { CONJURED_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import {
@@ -29,7 +30,7 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementa
  * and pins the Core attunement to the selected element when Specialized Elements
  * has disabled attunement swapping.
  */
-export function initialize(context: ElementalistSchedulerContext): void {
+export function initialize(context: ElementalistRuntime): void {
   const state = evokerState.from(context);
   const core = professionCoreState(context);
   // Specialized Elements keeps the six-charge capacity but accelerates each
@@ -60,10 +61,10 @@ export function initialize(context: ElementalistSchedulerContext): void {
 }
 
 /** Publishes the current charge and empowered totals as an absolute reading at the cast's end. */
-export function emitResource(context: ElementalistCastContext, skill: Skill, state: EvokerState): void {
+export function emitResource(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill, state: EvokerState): void {
   context.emit({
     type: 'resource',
-    at: context.effectiveEnd,
+    at: cast.effectiveEnd,
     source: skill.name,
     sourceId: skill.id,
     actorType: 'player',
@@ -108,7 +109,8 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pic
 
 // commits one grant, clamped to capacity, and reports it with a delta so the log shows the change
 function applyWeaponSkillChargeGain(
-  context: ElementalistCastContext,
+  context: ElementalistRuntime,
+  _cast: RuntimeCast,
   state: EvokerState,
   chargeGain: EvokerState['pendingWeaponChargeGains'][number]
 ): void {
@@ -118,7 +120,7 @@ function applyWeaponSkillChargeGain(
   context.emit({
     type: 'resource',
     activationId: chargeGain.activationId,
-    at: chargeGain.at,
+    at: context.time,
     source: chargeGain.source,
     sourceId: chargeGain.sourceId,
     actorType: 'player',
@@ -136,12 +138,17 @@ function applyWeaponSkillChargeGain(
  * charge-resetting basic familiar is still casting so the charges land after the
  * reset rather than being wiped by it.
  */
-export function grantWeaponSkillCharges(context: ElementalistCastContext, skill: Skill, state: EvokerState): void {
+export function grantWeaponSkillCharges(
+  context: ElementalistRuntime,
+  cast: RuntimeCast,
+  skill: Skill,
+  state: EvokerState
+): void {
   const gain = weaponSkillChargeGain(context, skill, state);
   if (gain <= 0) return;
   const chargeGain = {
-    activationId: context.reservationId,
-    at: context.effectiveEnd,
+    activationId: cast.id,
+    at: cast.effectiveEnd,
     source: skill.name,
     sourceId: skill.id,
     gain
@@ -151,20 +158,24 @@ export function grantWeaponSkillCharges(context: ElementalistCastContext, skill:
   if (
     state.activeFamiliarCast &&
     state.activeFamiliarCast.resetsCharges &&
-    context.reservationId !== state.activeFamiliarCast.reservationId &&
-    context.effectiveEnd <= state.activeFamiliarCast.endsAt + EPSILON
+    cast.id !== state.activeFamiliarCast.reservationId &&
+    cast.effectiveEnd <= state.activeFamiliarCast.endsAt + EPSILON
   ) {
     state.pendingWeaponChargeGains.push(chargeGain);
     return;
   }
 
-  applyWeaponSkillChargeGain(context, state, chargeGain);
+  applyWeaponSkillChargeGain(context, cast, state, chargeGain);
 }
 
 /** Replays every deferred grant once the familiar cast that blocked them has settled. */
-export function flushPendingWeaponChargeGains(context: ElementalistCastContext, state: EvokerState): void {
+export function flushPendingWeaponChargeGains(
+  context: ElementalistRuntime,
+  cast: RuntimeCast,
+  state: EvokerState
+): void {
   for (const chargeGain of state.pendingWeaponChargeGains) {
-    applyWeaponSkillChargeGain(context, state, chargeGain);
+    applyWeaponSkillChargeGain(context, cast, state, chargeGain);
   }
 
   state.pendingWeaponChargeGains = [];

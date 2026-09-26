@@ -8,14 +8,12 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetConditionActive, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/traits/index.js';
 import {
   activeBoonStacks,
   engineerEvent,
   engineerRuntimeState,
-  engineerSchedulerState,
   eventSkill,
   heavyMetalBonus,
   playerHealthFraction,
@@ -24,7 +22,7 @@ import {
 } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { EngineerRechargeContext } from '#gw2/professions/engineer/types.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 // Chemical Rounds extends pistol-skill base durations before the normal capped condition-duration multiplier.
 function modifyEngineerConditionBaseDuration(context: Gw2ModifierContext, multiplier: number): number {
@@ -99,14 +97,13 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
       activeBoonStacks(context, 'vigor', 1) > 0
   },
   {
-    // checks runtime state when available; falls back to scheduler state for precast evaluation
+    // Use the same endurance rule for live damage and isolated attribute previews.
     id: 'engineer.takedown-round',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
     amount: 0.1,
     when: (context) => {
-      const state =
-        context.runtime?.profession != null ? engineerRuntimeState(context) : engineerSchedulerState(context);
+      const state = engineerRuntimeState(context);
       return (
         isGw2PlayerModifierOwnedEvent(context.event) &&
         hasTrait(context, TRAIT.TAKEDOWN_ROUND) &&
@@ -298,8 +295,7 @@ export function applyEngineerSharpshooterConditionDamage(
 }
 
 /** Applies toolbelt and gadget recharge reductions from the active Core traits. */
-function modifyEngineerCoreRechargeDuration(context: EngineerRechargeContext, duration: number): number {
-  const skill = context.skill;
+export function engineerRechargeWork(context: EngineerRuntime, skill: EngineerSkill, duration: number): number {
   if (isEngineerToolbeltSkill(skill) && hasTrait(context.config, TRAIT.MECHANIZED_DEPLOYMENT)) {
     const mechanizedDeploymentProfile = requireBalanceProfileFromContext(context, TRAIT.MECHANIZED_DEPLOYMENT);
     return duration * balanceProfileNumber(mechanizedDeploymentProfile, 'rechargeMultiplier');
@@ -316,25 +312,9 @@ function modifyEngineerCoreRechargeDuration(context: EngineerRechargeContext, du
   return duration;
 }
 
-/** Defers Healing Turret's recharge until its detonation starts the real cooldown. */
-function commitEngineerCoreRechargeDuration(context: EngineerRechargeContext, duration: number): number {
-  return context.skill?.id === ID.HEALING_TURRET ? 0 : duration;
-}
-
 export const engineerCoreAttributeRules = Object.freeze({
   modifyAttributes: modifyEngineerCoreAttributes,
   modifyConditionBaseDuration: modifyEngineerConditionBaseDuration,
   modifierRules: engineerCoreModifierRules,
   compileModifierRules: compileGw2ModifierRules
-});
-
-export const engineerCoreCastRules = Object.freeze({
-  availability: {
-    id: 'engineer.core-availability',
-    // order 10 — runs before specialization availability checks (which typically use higher order values)
-    order: 10,
-    handler: engineerCoreCastAvailability
-  },
-  commitRechargeDuration: commitEngineerCoreRechargeDuration,
-  modifyRechargeDuration: modifyEngineerCoreRechargeDuration
 });

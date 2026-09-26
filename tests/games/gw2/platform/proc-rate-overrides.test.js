@@ -5,24 +5,35 @@ import { availableProcRateProfiles, normalizeProcRateOverrides } from '#gw2/plat
 import { validateCommonAssumptions } from '#gw2/platform/builds/assumptions.js';
 import { procChanceFromContext } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { simulateGw2 } from '#gw2/platform/index.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 
-// Exercise each execution path with minimal opportunities, including Core traits under elite specializations.
+// Converted cases explicitly use live execution, including Core traits under elite specializations.
+const runLive = ({ profession, config, rotation, observationPolicy }) =>
+  runGw2Runtime({ profession: profession.liveRuntimeFor(config), config, rotation, observation: observationPolicy });
+
 const cases = [
-  ['necromancer', 'Harbinger', 'Barbed Precision', ['Blood Is Power'], { selectedSkills: ['Blood Is Power'] }],
-  ['engineer', 'Mechanist', 'Serrated Steel', ['Fragmentation Shot'], { primaryWeapon: 'Pistol' }],
-  ['engineer', 'Scrapper', 'Shrapnel', ['Grenade Kit', 'Grenade'], { selectedSkills: ['Grenade Kit'] }],
-  ['warrior', 'Berserker', 'Bloodlust', ['Sever Artery'], { primaryWeapon: 'Sword' }],
-  ['elementalist', 'Tempest', 'Burning Precision', ['Fireball'], { primaryWeapon: 'Staff', startingAttunement: 'Fire' }]
+  ['necromancer', 'Harbinger', 'Barbed Precision', ['Blood Is Power'], { selectedSkills: ['Blood Is Power'] }, runLive],
+  ['engineer', 'Mechanist', 'Serrated Steel', ['Fragmentation Shot'], { primaryWeapon: 'Pistol' }, runLive],
+  ['engineer', 'Scrapper', 'Shrapnel', ['Grenade Kit', 'Grenade'], { selectedSkills: ['Grenade Kit'] }, runLive],
+  ['warrior', 'Berserker', 'Bloodlust', ['Sever Artery'], { primaryWeapon: 'Sword' }, runLive],
+  [
+    'elementalist',
+    'Tempest',
+    'Burning Precision',
+    ['Fireball'],
+    { primaryWeapon: 'Staff', startAttunement: 'Fire' },
+    runLive
+  ]
 ];
 
 test('proc overrides control every opted-in trait without bypassing selection or trigger eligibility', async () => {
-  for (const [id, specialization, name, rotation, extra] of cases) {
+  for (const [id, specialization, name, rotation, extra, simulate = simulateGw2] of cases) {
     const profession = await loadProfession(id);
     const profile = profession.catalog.balanceProfiles.find((entry) => entry.name === name);
     const { id: key, traitId } = profile.procRate;
     const run = (rate, selected = true, precision = 3000, mode = 'deterministic') =>
-      simulateGw2({
+      simulate({
         profession,
         rotation,
         config: {
@@ -65,13 +76,13 @@ test('proc overrides control every opted-in trait without bypassing selection or
 test('Burning Precision override preserves its internal cooldown', async () => {
   const profession = await loadProfession('elementalist');
   const profile = profession.catalog.balanceProfiles.find((entry) => entry.name === 'Burning Precision');
-  const result = simulateGw2({
+  const result = runLive({
     profession,
     rotation: Array(12).fill('Fireball'),
     config: {
       specialization: 'Core',
       primaryWeapon: 'Staff',
-      startingAttunement: 'Fire',
+      startAttunement: 'Fire',
       stats: { power: 2000, precision: 3000 },
       selectedTraitIds: [profile.procRate.traitId],
       procRateOverrides: { [profile.procRate.id]: 1 }

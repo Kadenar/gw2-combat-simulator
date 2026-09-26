@@ -11,6 +11,7 @@ import {
   tooltipNumber,
   tooltipProfile,
   simulationEffectFacts,
+  type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -20,6 +21,222 @@ import { DRUID_BALANCE_PROFILE_IDS as DRUID } from '#gw2/professions/ranger/spec
 import { UNTAMED_BALANCE_PROFILE_IDS as UNTAMED } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as GALESHOT } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
+
+/** Descriptions bind to canonical skill identities independently of runtime dispatch. */
+const familyTooltips = {
+  'ranger.dodge': skillTooltip(
+    'Spend endurance to dodge and trigger applicable dodge traits. Incoming damage is outside combat simulation scope.',
+    (balanceContext) => [profileFact(balanceContext, CORE.resources, 'resourceCost', 'Endurance spent')]
+  ),
+  'ranger.pet-swap': skillTooltip(
+    'Switch to the other selected pet, update its command skills, and trigger pet-swap traits. The new pet receives a fresh Opening Strike opportunity.'
+  ),
+  'ranger.weapon-swap': skillTooltip('Swap weapon sets and trigger applicable weapon-swap effects.'),
+  'ranger.hilt-bash': skillTooltip(
+    "Strike and control the target, using a stun against a defiant foe. Completing the cast resets Maul's recharge."
+  ),
+  'ranger.winters-bite': skillTooltip(
+    "Strike and chill the target. Arm Weakness for a later qualifying hit through Soulbeast's Winter's Bite reaction.",
+    (balanceContext) =>
+      simulationEffectFacts(tooltipProfile(balanceContext, SOULBEAST.wintersBite).effects, 'armed follow-up').facts
+  ),
+  'ranger.sun-spirit': skillTooltip(
+    "Apply the spirit's effects and trigger Solar Flare Burning.",
+    (balanceContext) =>
+      simulationEffectFacts(tooltipProfile(balanceContext, CORE.sunSpirit).effects, 'Solar Flare').facts
+  ),
+  'ranger.sharpening-stone': skillTooltip(
+    'Arm bleeding charges for your qualifying strikes. Each hit consumes the charge with the earliest expiry.',
+    (balanceContext) => [
+      profileFact(balanceContext, CORE.sharpeningStone, 'playerStacks', 'Bleeding charges'),
+      profileFact(balanceContext, CORE.sharpeningStone, 'durationMultiplier', 'Charge lifetime', tooltipSeconds),
+      ...simulationEffectFacts(tooltipProfile(balanceContext, CORE.sharpeningStone).effects, 'per charge consumed')
+        .facts
+    ]
+  ),
+  'ranger.poisonous-strikes': skillTooltip(
+    "Strike and arm Poisonous Strikes. Your pet's qualifying hits consume the charges; while merged in Beastmode, your hits consume the same charges instead.",
+    (balanceContext) => [
+      profileFact(balanceContext, CORE.poisonousStrikes, 'playerStacks', 'Poison charges'),
+      profileFact(balanceContext, CORE.poisonousStrikes, 'durationMultiplier', 'Charge lifetime', tooltipSeconds),
+      ...simulationEffectFacts(tooltipProfile(balanceContext, CORE.poisonousStrikes).effects, 'per charge consumed')
+        .facts
+    ]
+  ),
+  'ranger.crippling-shot': skillTooltip(
+    'Cripple the target and arm Blood Thirst. Subsequent qualifying hits consume its bleeding charges; the arming skill cannot spend them.',
+    (balanceContext) => [
+      profileFact(balanceContext, CORE.bloodThirst, 'playerStacks', 'Bleeding charges'),
+      profileFact(balanceContext, CORE.bloodThirst, 'durationMultiplier', 'Charge lifetime', tooltipSeconds),
+      ...simulationEffectFacts(tooltipProfile(balanceContext, CORE.bloodThirst).effects, 'per charge consumed').facts
+    ]
+  ),
+  'ranger.sic-em': skillTooltip(
+    "Temporarily increase your active pet's strike damage. Soulbeast applies the separate player bonus while merged.",
+    (balanceContext) => [
+      profileFact(balanceContext, CORE.sicEm, 'durationMultiplier', 'Base duration', tooltipSeconds),
+      modifierFact(balanceContext, 'ranger.sic-em-pet', 'factor', 'Pet strike damage', tooltipFactorChange),
+      modifierFact(balanceContext, 'ranger.sic-em-player', 'factor', 'Merged player strike damage', tooltipFactorChange)
+    ]
+  ),
+  'ranger.beastmode-enter': skillTooltip(
+    'Merge with your active pet, replace its commands with Beastmode skills, and gain its archetype attributes. The pet stops acting independently while merged. Trigger applicable Beastmode traits.'
+  ),
+  'ranger.beastmode-exit': skillTooltip(
+    "Leave Beastmode, restore your pet's independent actions and command skills, and remove the merged archetype attributes. Trigger applicable Beastmode traits."
+  ),
+  'ranger.one-wolf-pack': skillTooltip(
+    'Qualifying player strikes trigger a delayed additional strike during the stance. The echo cannot trigger itself. Leader of the Pack extends the stance and shares it with configured allies for 50% of your duration.',
+    (balanceContext) => [
+      profileFact(balanceContext, SOULBEAST.oneWolfPack, 'durationMultiplier', 'Base stance duration', tooltipSeconds),
+      profileFact(balanceContext, SOULBEAST.oneWolfPack, 'internalCooldown', 'Minimum echo interval', tooltipSeconds),
+      ...simulationEffectFacts(tooltipProfile(balanceContext, SOULBEAST.oneWolfPack).effects, 'per echo').facts
+    ]
+  ),
+  'ranger.vulture-stance': skillTooltip(
+    'Qualifying player strikes inflict poison and grant might during the stance, subject to its trigger interval. Leader of the Pack extends the stance and shares it with configured allies for 50% of your duration.',
+    (balanceContext) => [
+      profileFact(
+        balanceContext,
+        SOULBEAST.vultureStance,
+        'durationMultiplier',
+        'Base stance duration',
+        tooltipSeconds
+      ),
+      profileFact(balanceContext, SOULBEAST.vultureStance, 'internalCooldown', 'Trigger interval', tooltipSeconds),
+      ...simulationEffectFacts(tooltipProfile(balanceContext, SOULBEAST.vultureStance).effects, 'per trigger').facts
+    ]
+  ),
+  'ranger.celestial-avatar-enter': skillTooltip(
+    'Enter Celestial Avatar and replace your weapon bar. Astral force drains until you leave or it is depleted. Entry triggers applicable Avatar and weapon-swap effects.',
+    (balanceContext) => [
+      profileFact(
+        balanceContext,
+        DRUID.resources,
+        'durationMultiplier',
+        'Maximum Avatar duration from full force',
+        tooltipSeconds
+      ),
+      profileFact(balanceContext, DRUID.resources, 'maximumStacks', 'Full astral force')
+    ]
+  ),
+  'ranger.celestial-avatar-exit': skillTooltip(
+    'Leave Celestial Avatar and restore your weapon skills. Retain part of your remaining astral force; automatic exit from exhaustion retains none. Trigger applicable exit and weapon-swap effects.',
+    (balanceContext) => [
+      profileFact(
+        balanceContext,
+        DRUID.resources,
+        'astralForceRetentionMultiplier',
+        'Remaining astral force retained',
+        (value) => `${tooltipDecimal(value * 100)}%`
+      )
+    ]
+  ),
+  'ranger.celestial-avatar-skill': skillTooltip(
+    'Use this skill while Celestial Avatar is active. Apply its direct effects and eligible Eclipse or Grace of the Land effects. Healing is outside combat simulation scope.'
+  ),
+  'ranger.unleash-ranger': skillTooltip(
+    "Unleash yourself and restore your pet's ordinary commands. Open a temporary unleashed-ambush window when the shared ambush cooldown is ready.",
+    (balanceContext) => [
+      profileFact(balanceContext, UNTAMED.resources, 'durationMultiplier', 'Ambush window', tooltipSeconds),
+      profileFact(balanceContext, UNTAMED.resources, 'internalCooldown', 'Ambush grant cooldown', tooltipSeconds)
+    ]
+  ),
+  'ranger.unleash-pet': skillTooltip(
+    'Unleash your pet and replace its commands with unleashed skills. Your weapon and trait effects follow the pet-unleashed state.'
+  ),
+  'ranger.unleashed-ambush': skillTooltip(
+    'Use the available unleashed ambush and consume its window. Apply eligible ambush traits.'
+  ),
+  'ranger.exploding-spores': skillTooltip(
+    'Strike, poison, and control the target. Gain might if you were unleashed at cast start, or protection if your pet was unleashed.',
+    (balanceContext) => [
+      ...simulationEffectFacts(
+        tooltipProfile(balanceContext, UNTAMED.explodingSporesRanger).effects,
+        'ranger unleashed; alternative'
+      ).facts,
+      ...simulationEffectFacts(
+        tooltipProfile(balanceContext, UNTAMED.explodingSporesPet).effects,
+        'pet unleashed; alternative'
+      ).facts
+    ]
+  ),
+  'ranger.venomous-outburst': skillTooltip(
+    'Your unleashed pet attacks. It additionally applies vulnerability against a defiant, disabled, or defiance-broken target.'
+  ),
+  'ranger.cyclone-bow-enter': skillTooltip(
+    'Equip the Cyclone Bow and replace your weapon skills. Trigger applicable weapon-swap effects. Arrows regenerate over time and are shared across its skills.',
+    (balanceContext) => [
+      profileFact(balanceContext, GALESHOT.resources, 'maximumStacks', 'Arrow capacity'),
+      profileFact(
+        balanceContext,
+        GALESHOT.resources,
+        'pulseInterval',
+        'Base arrow regeneration interval',
+        tooltipSeconds
+      )
+    ]
+  ),
+  'ranger.cyclone-bow-exit': skillTooltip(
+    'Dismiss the Cyclone Bow, clear Wind Force, and restore your weapon skills. Trigger applicable weapon-swap effects.'
+  ),
+  'ranger.cyclone-bow-skill': skillTooltip(
+    'Use this Cyclone Bow skill, spend its arrows, and gain the listed Wind Force. Apply eligible Cyclone Bow traits.'
+  ),
+  'ranger.galeshot-arrows': skillTooltip(
+    "Apply this skill's effects and restore Cyclone Bow arrows up to their capacity."
+  ),
+  'ranger.mistral': skillTooltip(
+    'Restore arrows and arm Mistral. Each eligible missile hit during its window adds a strike and Chilled.',
+    (balanceContext) => [
+      profileFact(balanceContext, GALESHOT.mistral, 'durationMultiplier', 'Mistral window', tooltipSeconds),
+      ...simulationEffectFacts(tooltipProfile(balanceContext, GALESHOT.mistral).effects, 'per eligible missile hit')
+        .facts
+    ]
+  )
+} satisfies Record<string, DescribeSimulationTooltip>;
+const familySkillIds: Record<keyof typeof familyTooltips, readonly (number | string)[]> = {
+  'ranger.dodge': [ID.DODGE],
+  'ranger.pet-swap': [ID.PET_SWAP],
+  'ranger.weapon-swap': [ID.SWAP_WEAPONS],
+  'ranger.hilt-bash': [ID.HILT_BASH],
+  'ranger.winters-bite': [ID.WINTERS_BITE],
+  'ranger.sun-spirit': [ID.SUN_SPIRIT],
+  'ranger.sharpening-stone': [ID.SHARPENING_STONE],
+  'ranger.poisonous-strikes': [ID.DOUBLE_ARC],
+  'ranger.crippling-shot': [ID.CRIPPLING_SHOT],
+  'ranger.sic-em': [ID.SIC_EM],
+  'ranger.beastmode-enter': [ID.BEASTMODE],
+  'ranger.beastmode-exit': [ID.LEAVE_BEASTMODE],
+  'ranger.one-wolf-pack': [ID.ONE_WOLF_PACK],
+  'ranger.vulture-stance': [ID.VULTURE_STANCE],
+  'ranger.celestial-avatar-enter': [ID.CELESTIAL_AVATAR],
+  'ranger.celestial-avatar-exit': [ID.RELEASE_CELESTIAL_AVATAR],
+  'ranger.celestial-avatar-skill': [
+    ID.COSMIC_RAY,
+    ID.SEED_OF_LIFE,
+    ID.LUNAR_IMPACT,
+    ID.REJUVENATING_TIDES,
+    ID.NATURAL_CONVERGENCE
+  ],
+  'ranger.unleash-ranger': [ID.UNLEASH_RANGER],
+  'ranger.unleash-pet': [ID.UNLEASH_PET],
+  'ranger.unleashed-ambush': [ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE],
+  'ranger.exploding-spores': [ID.EXPLODING_SPORES],
+  'ranger.venomous-outburst': [ID.VENOMOUS_OUTBURST],
+  'ranger.cyclone-bow-enter': [ID.SUMMON_CYCLONE_BOW],
+  'ranger.cyclone-bow-exit': [ID.DISMISS_CYCLONE_BOW],
+  'ranger.cyclone-bow-skill': [
+    ID.HAWKEYE,
+    ID.BLUSTER,
+    ID.FLEETING_ZEPHYR,
+    ID.QUARRYS_PERIL,
+    ID.PELT,
+    ID.SUPERSONIC_ARROW
+  ],
+  'ranger.galeshot-arrows': [ID.PERFECT_STORM, ID.PIERCING_GALES],
+  'ranger.mistral': [ID.MISTRAL]
+};
 
 /** Keep companion bonuses and form-dependent alternatives separate while sharing the simulation's balance inputs. */
 export const rangerTooltips: ProfessionTooltips = {
@@ -106,191 +323,12 @@ export const rangerTooltips: ProfessionTooltips = {
         ]
       : [])
   ],
-  handlers: {
-    'ranger.dodge': skillTooltip(
-      'Spend endurance to dodge and trigger applicable dodge traits. Incoming damage is outside combat simulation scope.',
-      (balanceContext) => [profileFact(balanceContext, CORE.resources, 'resourceCost', 'Endurance spent')]
-    ),
-    'ranger.pet-swap': skillTooltip(
-      'Switch to the other selected pet, update its command skills, and trigger pet-swap traits. The new pet receives a fresh Opening Strike opportunity.'
-    ),
-    'ranger.weapon-swap': skillTooltip('Swap weapon sets and trigger applicable weapon-swap effects.'),
-    'ranger.hilt-bash': skillTooltip(
-      "Strike and control the target, using a stun against a defiant foe. Completing the cast resets Maul's recharge."
-    ),
-    'ranger.winters-bite': skillTooltip(
-      "Strike and chill the target. Arm Weakness for a later qualifying hit through Soulbeast's Winter's Bite reaction.",
-      (balanceContext) =>
-        simulationEffectFacts(tooltipProfile(balanceContext, SOULBEAST.wintersBite).effects, 'armed follow-up').facts
-    ),
-    'ranger.sun-spirit': skillTooltip(
-      "Apply the spirit's effects and trigger Solar Flare Burning.",
-      (balanceContext) =>
-        simulationEffectFacts(tooltipProfile(balanceContext, CORE.sunSpirit).effects, 'Solar Flare').facts
-    ),
-    'ranger.sharpening-stone': skillTooltip(
-      'Arm bleeding charges for your qualifying strikes. Each hit consumes the charge with the earliest expiry.',
-      (balanceContext) => [
-        profileFact(balanceContext, CORE.sharpeningStone, 'playerStacks', 'Bleeding charges'),
-        profileFact(balanceContext, CORE.sharpeningStone, 'durationMultiplier', 'Charge lifetime', tooltipSeconds),
-        ...simulationEffectFacts(tooltipProfile(balanceContext, CORE.sharpeningStone).effects, 'per charge consumed')
-          .facts
-      ]
-    ),
-    'ranger.poisonous-strikes': skillTooltip(
-      "Strike and arm Poisonous Strikes. Your pet's qualifying hits consume the charges; while merged in Beastmode, your hits consume the same charges instead.",
-      (balanceContext) => [
-        profileFact(balanceContext, CORE.poisonousStrikes, 'playerStacks', 'Poison charges'),
-        profileFact(balanceContext, CORE.poisonousStrikes, 'durationMultiplier', 'Charge lifetime', tooltipSeconds),
-        ...simulationEffectFacts(tooltipProfile(balanceContext, CORE.poisonousStrikes).effects, 'per charge consumed')
-          .facts
-      ]
-    ),
-    'ranger.crippling-shot': skillTooltip(
-      'Cripple the target and arm Blood Thirst. Subsequent qualifying hits consume its bleeding charges; the arming skill cannot spend them.',
-      (balanceContext) => [
-        profileFact(balanceContext, CORE.bloodThirst, 'playerStacks', 'Bleeding charges'),
-        profileFact(balanceContext, CORE.bloodThirst, 'durationMultiplier', 'Charge lifetime', tooltipSeconds),
-        ...simulationEffectFacts(tooltipProfile(balanceContext, CORE.bloodThirst).effects, 'per charge consumed').facts
-      ]
-    ),
-    'ranger.sic-em': skillTooltip(
-      "Temporarily increase your active pet's strike damage. Soulbeast applies the separate player bonus while merged.",
-      (balanceContext) => [
-        profileFact(balanceContext, CORE.sicEm, 'durationMultiplier', 'Base duration', tooltipSeconds),
-        modifierFact(balanceContext, 'ranger.sic-em-pet', 'factor', 'Pet strike damage', tooltipFactorChange),
-        modifierFact(
-          balanceContext,
-          'ranger.sic-em-player',
-          'factor',
-          'Merged player strike damage',
-          tooltipFactorChange
-        )
-      ]
-    ),
-    'ranger.beastmode-enter': skillTooltip(
-      'Merge with your active pet, replace its commands with Beastmode skills, and gain its archetype attributes. The pet stops acting independently while merged. Trigger applicable Beastmode traits.'
-    ),
-    'ranger.beastmode-exit': skillTooltip(
-      "Leave Beastmode, restore your pet's independent actions and command skills, and remove the merged archetype attributes. Trigger applicable Beastmode traits."
-    ),
-    'ranger.one-wolf-pack': skillTooltip(
-      'Qualifying player strikes trigger a delayed additional strike during the stance. The echo cannot trigger itself. Leader of the Pack extends the stance and shares it with configured allies for 50% of your duration.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          SOULBEAST.oneWolfPack,
-          'durationMultiplier',
-          'Base stance duration',
-          tooltipSeconds
-        ),
-        profileFact(balanceContext, SOULBEAST.oneWolfPack, 'internalCooldown', 'Minimum echo interval', tooltipSeconds),
-        ...simulationEffectFacts(tooltipProfile(balanceContext, SOULBEAST.oneWolfPack).effects, 'per echo').facts
-      ]
-    ),
-    'ranger.vulture-stance': skillTooltip(
-      'Qualifying player strikes inflict poison and grant might during the stance, subject to its trigger interval. Leader of the Pack extends the stance and shares it with configured allies for 50% of your duration.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          SOULBEAST.vultureStance,
-          'durationMultiplier',
-          'Base stance duration',
-          tooltipSeconds
-        ),
-        profileFact(balanceContext, SOULBEAST.vultureStance, 'internalCooldown', 'Trigger interval', tooltipSeconds),
-        ...simulationEffectFacts(tooltipProfile(balanceContext, SOULBEAST.vultureStance).effects, 'per trigger').facts
-      ]
-    ),
-    'ranger.celestial-avatar-enter': skillTooltip(
-      'Enter Celestial Avatar and replace your weapon bar. Astral force drains until you leave or it is depleted. Entry triggers applicable Avatar and weapon-swap effects.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          DRUID.resources,
-          'durationMultiplier',
-          'Maximum Avatar duration from full force',
-          tooltipSeconds
-        ),
-        profileFact(balanceContext, DRUID.resources, 'maximumStacks', 'Full astral force')
-      ]
-    ),
-    'ranger.celestial-avatar-exit': skillTooltip(
-      'Leave Celestial Avatar and restore your weapon skills. Retain part of your remaining astral force; automatic exit from exhaustion retains none. Trigger applicable exit and weapon-swap effects.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          DRUID.resources,
-          'astralForceRetentionMultiplier',
-          'Remaining astral force retained',
-          (value) => `${tooltipDecimal(value * 100)}%`
-        )
-      ]
-    ),
-    'ranger.celestial-avatar-skill': skillTooltip(
-      'Use this skill while Celestial Avatar is active. Apply its direct effects and eligible Eclipse or Grace of the Land effects. Healing is outside combat simulation scope.'
-    ),
-    'ranger.unleash-ranger': skillTooltip(
-      "Unleash yourself and restore your pet's ordinary commands. Open a temporary unleashed-ambush window when the shared ambush cooldown is ready.",
-      (balanceContext) => [
-        profileFact(balanceContext, UNTAMED.resources, 'durationMultiplier', 'Ambush window', tooltipSeconds),
-        profileFact(balanceContext, UNTAMED.resources, 'internalCooldown', 'Ambush grant cooldown', tooltipSeconds)
-      ]
-    ),
-    'ranger.unleash-pet': skillTooltip(
-      'Unleash your pet and replace its commands with unleashed skills. Your weapon and trait effects follow the pet-unleashed state.'
-    ),
-    'ranger.unleashed-ambush': skillTooltip(
-      'Use the available unleashed ambush and consume its window. Apply eligible ambush traits.'
-    ),
-    'ranger.exploding-spores': skillTooltip(
-      'Strike, poison, and control the target. Gain might if you were unleashed at cast start, or protection if your pet was unleashed.',
-      (balanceContext) => [
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, UNTAMED.explodingSporesRanger).effects,
-          'ranger unleashed; alternative'
-        ).facts,
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, UNTAMED.explodingSporesPet).effects,
-          'pet unleashed; alternative'
-        ).facts
-      ]
-    ),
-    'ranger.venomous-outburst': skillTooltip(
-      'Your unleashed pet attacks. It additionally applies vulnerability against a defiant, disabled, or defiance-broken target.'
-    ),
-    'ranger.cyclone-bow-enter': skillTooltip(
-      'Equip the Cyclone Bow and replace your weapon skills. Trigger applicable weapon-swap effects. Arrows regenerate over time and are shared across its skills.',
-      (balanceContext) => [
-        profileFact(balanceContext, GALESHOT.resources, 'maximumStacks', 'Arrow capacity'),
-        profileFact(
-          balanceContext,
-          GALESHOT.resources,
-          'pulseInterval',
-          'Base arrow regeneration interval',
-          tooltipSeconds
-        )
-      ]
-    ),
-    'ranger.cyclone-bow-exit': skillTooltip(
-      'Dismiss the Cyclone Bow, clear Wind Force, and restore your weapon skills. Trigger applicable weapon-swap effects.'
-    ),
-    'ranger.cyclone-bow-skill': skillTooltip(
-      'Use this Cyclone Bow skill, spend its arrows, and gain the listed Wind Force. Apply eligible Cyclone Bow traits.'
-    ),
-    'ranger.galeshot-arrows': skillTooltip(
-      "Apply this skill's effects and restore Cyclone Bow arrows up to their capacity."
-    ),
-    'ranger.mistral': skillTooltip(
-      'Restore arrows and arm Mistral. Each eligible missile hit during its window adds a strike and Chilled.',
-      (balanceContext) => [
-        profileFact(balanceContext, GALESHOT.mistral, 'durationMultiplier', 'Mistral window', tooltipSeconds),
-        ...simulationEffectFacts(tooltipProfile(balanceContext, GALESHOT.mistral).effects, 'per eligible missile hit')
-          .facts
-      ]
-    )
-  },
   skills: {
+    ...Object.fromEntries(
+      Object.entries(familySkillIds).flatMap(([family, ids]) =>
+        ids.map((id) => [id, familyTooltips[family as keyof typeof familyTooltips]])
+      )
+    ),
     ...Object.fromEntries(
       [ID.MAUL_SOULBEAST, ID.MAUL_BASE].map((id) => [
         id,

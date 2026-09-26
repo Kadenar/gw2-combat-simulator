@@ -276,11 +276,11 @@ test('full previews and selected runtimes preserve removals without leaking acro
       id: 'fixture',
       name: 'Fixture',
       modules: [
-        defineNativeModule({ id: 'Core', data: {}, state: { scheduler: () => ({}) } }),
+        defineNativeModule({ id: 'Core', data: {}, state: { create: () => ({}) } }),
         defineNativeModule({
           id: 'Elite',
           data: { generatedSkills: [skill], balanceProfiles: [profile, { ...profile, id: 2, name: 'Unedited' }] },
-          state: { scheduler: () => ({}) }
+          state: { create: () => ({}) }
         })
       ]
     }),

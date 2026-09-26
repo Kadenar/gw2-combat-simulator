@@ -2,11 +2,13 @@ import { defineProfessionSpecializationState } from '#gw2/platform/engine/profes
 
 export interface HeraldState {
   elevatedCompassionReadyAt: number;
+  /** The one scheduled Elevated Compassion pulse; stale or cancelled cadences no longer match it. */
+  elevatedCompassionPulseAt: number | null;
   sharedEmpowermentReadyAt: number;
   /** Consumed passives retain their window and legend without retaining upkeep drain. */
   lingeringFacets: Record<string, { startsAt: number; expiresAt: number; legendId: string }>;
   facetPulseReadyAt: Record<string, number>;
-  /** Resolver-owned life-steal cooldown; scheduler snapshots must not rewind it. */
+  /** Assassin Nature's life-steal cooldown, claimed when a landed strike resolves. */
   natureSiphonReadyAt: number;
 }
 
@@ -14,6 +16,7 @@ export interface HeraldState {
 export function createHeraldState(): HeraldState {
   return {
     elevatedCompassionReadyAt: 0,
+    elevatedCompassionPulseAt: null,
     sharedEmpowermentReadyAt: 0,
     lingeringFacets: {},
     facetPulseReadyAt: {},
@@ -21,5 +24,5 @@ export function createHeraldState(): HeraldState {
   };
 }
 
-// Each phase owns its state; snapshot restoration preserves the resolver's Nature siphon clock.
+// Herald's slice of the single live runtime state.
 export const heraldState = defineProfessionSpecializationState('Herald', createHeraldState);

@@ -1,4 +1,4 @@
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { observeGw2Runtime } from '#tests/helpers/live-runtime.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 
@@ -48,10 +48,39 @@ export function createNativeApp({ lines, rotation = [], ...extras }) {
 export function runNative(options) {
   const { app, commands } = createNativeApp(options);
 
-  return simulateGw2({
+  return runElementalist({
     profession: elementalistProfession,
     rotation: commands,
     config: elementalistAppAdapter.simulationConfig(app)
+  });
+}
+
+/** Family checks exercise registered native owners, including patched catalogs and timed setup. */
+export function runElementalist({
+  profession = elementalistProfession,
+  config,
+  rotation,
+  observationPolicy,
+  output,
+  initialize = () => {},
+  timeline = []
+}) {
+  const native = profession.liveRuntimeFor(config);
+  return observeGw2Runtime({
+    profession: {
+      ...native,
+      initialize(runtime) {
+        native.initialize?.(runtime);
+        initialize(runtime);
+        for (const [index, entry] of timeline.entries())
+          runtime.schedule('test.elementalist-check', entry.at, index, undefined, entry.priority);
+      },
+      tasks: { ...native.tasks, 'test.elementalist-check': (runtime, index) => timeline[index].run(runtime) }
+    },
+    config,
+    rotation,
+    observation: observationPolicy,
+    output
   });
 }
 

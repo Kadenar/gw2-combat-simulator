@@ -1,3 +1,4 @@
+import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { criticalChanceTooltip, rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
@@ -7,7 +8,7 @@ import { elementalistProfession } from '#gw2/professions/elementalist/profession
 import { CATALYST_BALANCE_PROFILE_IDS as CATALYST_PROFILE } from '#gw2/professions/elementalist/specializations/catalyst/profiles.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Template rendering needs the selected catalog both before simulation and when replaying aura stacks.
 test('Catalyst snapshots use the active balance catalog before and after simulation', () => {
@@ -116,15 +117,12 @@ test('active state shows one countdown per active relic and ignores future, expi
 
 test('Deadeye cantrip relic windows reach the shared active-state display and expire', () => {
   for (const waitMs of [0, 8000]) {
-    const result = simulateGw2({
-      profession: thiefProfession,
-      rotation: ['Shadow Gust', { type: 'wait', durationMs: waitMs }],
-      config: {
-        specialization: 'Deadeye',
-        relic: 'Deadeye',
-        selectedSkills: ['Shadow Gust'],
-        primaryWeapon: 'Rifle'
-      }
+    const result = runThief(['Shadow Gust', { type: 'wait', durationMs: waitMs }], {
+      specialization: 'Deadeye',
+      relic: 'Deadeye',
+      selectedSkills: ['Shadow Gust'],
+      primaryWeapon: 'Rifle',
+      secondaryWeapon: ''
     });
     assert.deepEqual(result.warnings, []);
     const { items } = rotationStateSnapshot({
@@ -170,7 +168,7 @@ test('Aristocracy shows current stacks with the remaining duration in its toolti
 
 // Conversion countdowns follow the actual scheduled grants, including separate entities, repeats, and cursor history.
 test('Chronomancer active state shows only pending conversions from phantasms already summoned', () => {
-  const result = simulateGw2({
+  const result = runMesmer({
     profession: mesmerProfession,
     rotation: ['Phantasmal Warlock', { type: 'wait', durationMs: 12000 }],
     config: {

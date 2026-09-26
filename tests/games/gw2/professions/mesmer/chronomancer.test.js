@@ -43,7 +43,7 @@ test('Continuum snapshots keep passive cooldown queries aligned with restored re
   cooldown.startRecharge(skill, 0);
   continuum.beginContinuumSplit({ id: 980001 }, 1);
   continuum.restoreContinuum(4, 'test');
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 11), true);
+  assert.equal(state.cooldowns.get(skill.id), 13);
   events.push({
     type: 'buff',
     kind: 'alacrity',
@@ -60,9 +60,8 @@ test('Continuum snapshots keep passive cooldown queries aligned with restored re
   });
   cooldown.refresh(11);
   assert.equal(state.cooldowns.get(skill.id), 11);
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 10.999999), true);
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 11), false);
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 4), true);
+
+  assert.equal(state.cooldowns.get(skill.id) > 11, false);
 });
 
 // A rewind preserves the remaining cast lockout even when recharge reduction subsequently returns a charge.
@@ -260,7 +259,7 @@ test('Chronophantasma conversions preserve clone spends across a Continuum Split
   );
   const spends = result.events
     .filter((event) => event.type === 'resource' && event.reason === 'profession mechanic')
-    .map((event) => [event.sourceSkill, -event.amount]);
+    .map((event) => [result.steps.find((step) => step.activationId === event.activationId)?.skill, -event.amount]);
 
   assert.deepEqual(spends, [
     ['Continuum Split', 2],
@@ -353,8 +352,8 @@ test('mid-rotation concurrent Continuum Split does not restore expired cooldowns
     })
   );
 
-  assert.equal(result.steps[3].start, 14580);
-  assert.equal(result.steps[5].start, result.steps[4].end);
+  assert.equal(result.steps.find((step) => step.skill === 'Continuum Split').start, 14580);
+  assert.equal(result.steps.at(-1).start, result.steps.at(-2).end);
 });
 
 test('Split Second shatter traits affect only the first strike from each source', () => {

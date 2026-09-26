@@ -11,6 +11,7 @@ import {
   tooltipDecimal,
   tooltipProfile,
   simulationEffectFacts,
+  type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/warrior/core/profiles.js';
@@ -18,6 +19,109 @@ import { BERSERKER_BALANCE_PROFILE_IDS as BERSERKER } from '#gw2/professions/war
 import { BLADESWORN_BALANCE_PROFILE_IDS as BLADESWORN } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PARAGON } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+
+/** Shared skill descriptions retain each selected variant's own effects and balance profiles. */
+const commandTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
+  skillTooltip(
+    "Apply this command's initial effects and queue an echo. A completed burst triggers pending echoes early. Reverberation adds another echo. " +
+      (entity.id === ID.FIND_THEIR_WEAKNESS
+        ? 'The echo grants party might and adrenaline.'
+        : entity.id === ID.ON_YOUR_KNEES
+          ? 'The echo strikes and immobilizes your target.'
+          : entity.id === ID.WE_SHALL_RETURN
+            ? 'The echo grants adrenaline; revival is outside simulation scope.'
+            : 'The defensive echo has no direct damage in the simulator.'),
+    (context) => [profileFact(context, PARAGON.commands, 'pulseInterval', 'Delay before echo', tooltipSeconds)]
+  )(balanceContext, entity);
+
+const chantTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+  const action = entity.id === ID.CHANT_OF_ACTION;
+  const recovery = entity.id === ID.CHANT_OF_RECUPERATION;
+  const effects = tooltipProfile(balanceContext, PARAGON.chants).effects || [];
+  // Match runtime packet identities even when an earlier boon was removed.
+  const names = action ? ['might', 'fury'] : recovery ? ['vigor'] : ['stability'];
+  const opening = effects.filter((effect) => effect.type === 'boon' && names.includes(String(effect.name)));
+  return {
+    description:
+      'Spend adrenaline, gain Motivation, and replace the active refrain. The refrain pulses until Motivation runs out; each pulse uses the Motivation tier before spending its cost. ' +
+      (action
+        ? 'Action pulses might, adding Fury at higher tiers. Enduring Refrain increases its might.'
+        : recovery
+          ? 'Recuperation has defensive effects, adding regeneration at the highest tier. Healing is outside combat simulation scope.'
+          : 'Freedom pulses swiftness, adds resolution at higher tiers, and adds protection at the highest tier.'),
+    facts: [
+      ...simulationEffectFacts(
+        opening.map((effect) => ({ ...effect, audience: { recipients: 'party' as const } })),
+        'on activation'
+      ).facts,
+      profileFact(balanceContext, PARAGON.chants, 'resourceGain', 'Base Motivation gained'),
+      profileFact(balanceContext, PARAGON.resources, 'pulseInterval', 'Refrain pulse interval', tooltipSeconds),
+      profileFact(balanceContext, PARAGON.resources, 'minimumStacks', 'Motivation required for tier two'),
+      profileFact(balanceContext, PARAGON.resources, 'threshold', 'Motivation required for tier three')
+    ]
+  };
+};
+
+const artillerySlashTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+  const sharp = entity.id === ID.SHARP_ARTILLERY_SLASH;
+  const profile = tooltipProfile(balanceContext, sharp ? BLADESWORN.sharpArtillerySlash : BLADESWORN.artillerySlash);
+  return {
+    description:
+      'Consume all available ammunition for an explosive attack. ' +
+      (sharp
+        ? 'Sharp as the Wind applies Bleeding, increasing it with more rounds spent; consuming both rounds upgrades daze to stun.'
+        : 'Consuming both rounds increases strike damage. The attack also dazes.'),
+    facts: sharp
+      ? simulationEffectFacts(profile.effects).facts
+      : (profile.effects || []).flatMap(
+          (effect) =>
+            simulationEffectFacts(
+              [effect],
+              effect.type === 'strike' ? (effect.name === 'One round' ? 'one round spent' : 'two rounds spent') : ''
+            ).facts
+        )
+  };
+};
+
+const resourceTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
+  skillTooltip(
+    entity.burst
+      ? entity.primalBurst
+        ? 'Spend adrenaline to perform a primal burst and trigger eligible burst traits.'
+        : 'Spend adrenaline to perform a burst and trigger eligible burst traits. Ordinary bursts consume available adrenaline; specialization variants follow their own spending limit.'
+      : 'Apply the listed effects and gain adrenaline when the activation succeeds.'
+  )(balanceContext, entity);
+
+const dragonSlashTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+  const selected = balanceContext.catalog.skillsById.get(entity.id);
+  if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+  return {
+    description:
+      'Consume your Dragon charges and leave Dragon Trigger to release an explosive burst. Strike damage scales linearly from the minimum to the maximum charge value. Sharp as the Wind variants also scale Burning with charges.',
+    facts: [
+      ...simulationEffectFacts(
+        [{ type: 'strike', coefficient: tooltipNumber(selected, 'dragonSlashMinimumCoefficient') }],
+        'minimum charge'
+      ).facts,
+      ...simulationEffectFacts(
+        [{ type: 'strike', coefficient: tooltipNumber(selected, 'dragonSlashMaximumCoefficient') }],
+        'maximum charges'
+      ).facts,
+      ...(Number(selected.dragonSlashMinimumBurningDuration) > 0
+        ? [
+            {
+              name: 'Burning duration at minimum charge',
+              detail: tooltipSeconds(tooltipNumber(selected, 'dragonSlashMinimumBurningDuration'))
+            },
+            {
+              name: 'Burning duration at maximum charges',
+              detail: tooltipSeconds(tooltipNumber(selected, 'dragonSlashMaximumBurningDuration'))
+            }
+          ]
+        : [])
+    ]
+  };
+};
 
 /** Describes Warrior triggers and alternatives without copying balance numbers out of their simulation owners. */
 export const warriorTooltips: ProfessionTooltips = {
@@ -30,7 +134,7 @@ export const warriorTooltips: ProfessionTooltips = {
       : [
           {
             name:
-              entity.primalBurst || entity.specialization === 'Spellbreaker' || entity.handlerId === 'warrior.berserk'
+              entity.primalBurst || entity.specialization === 'Spellbreaker' || entity.id === ID.BERSERK
                 ? 'Adrenaline cost'
                 : 'Minimum adrenaline',
             detail: tooltipDecimal(tooltipNumber(entity, 'adrenalineCost'))
@@ -52,85 +156,61 @@ export const warriorTooltips: ProfessionTooltips = {
         ]
       : [])
   ],
-  handlers: {
-    'warrior.command': (balanceContext, entity) =>
-      skillTooltip(
-        "Apply this command's initial effects and queue an echo. A completed burst triggers pending echoes early. Reverberation adds another echo. " +
-          (entity.id === ID.FIND_THEIR_WEAKNESS
-            ? 'The echo grants party might and adrenaline.'
-            : entity.id === ID.ON_YOUR_KNEES
-              ? 'The echo strikes and immobilizes your target.'
-              : entity.id === ID.WE_SHALL_RETURN
-                ? 'The echo grants adrenaline; revival is outside simulation scope.'
-                : 'The defensive echo has no direct damage in the simulator.'),
-        (context) => [profileFact(context, PARAGON.commands, 'pulseInterval', 'Delay before echo', tooltipSeconds)]
-      )(balanceContext, entity),
-    'warrior.chant': (balanceContext, entity) => {
-      const action = entity.id === ID.CHANT_OF_ACTION;
-      const recovery = entity.id === ID.CHANT_OF_RECUPERATION;
-      const effects = tooltipProfile(balanceContext, PARAGON.chants).effects || [];
-      // Match runtime packet identities even when an earlier boon was removed.
-      const names = action ? ['might', 'fury'] : recovery ? ['vigor'] : ['stability'];
-      const opening = effects.filter((effect) => effect.type === 'boon' && names.includes(String(effect.name)));
-      return {
-        description:
-          'Spend adrenaline, gain Motivation, and replace the active refrain. The refrain pulses until Motivation runs out; each pulse uses the Motivation tier before spending its cost. ' +
-          (action
-            ? 'Action pulses might, adding Fury at higher tiers. Enduring Refrain increases its might.'
-            : recovery
-              ? 'Recuperation has defensive effects, adding regeneration at the highest tier. Healing is outside combat simulation scope.'
-              : 'Freedom pulses swiftness, adds resolution at higher tiers, and adds protection at the highest tier.'),
-        facts: [
-          ...simulationEffectFacts(
-            opening.map((effect) => ({ ...effect, audience: { recipients: 'party' as const } })),
-            'on activation'
-          ).facts,
-          profileFact(balanceContext, PARAGON.chants, 'resourceGain', 'Base Motivation gained'),
-          profileFact(balanceContext, PARAGON.resources, 'pulseInterval', 'Refrain pulse interval', tooltipSeconds),
-          profileFact(balanceContext, PARAGON.resources, 'minimumStacks', 'Motivation required for tier two'),
-          profileFact(balanceContext, PARAGON.resources, 'threshold', 'Motivation required for tier three')
-        ]
-      };
-    },
-    'warrior.artillery-slash': (balanceContext, entity) => {
-      const sharp = entity.id === ID.SHARP_ARTILLERY_SLASH;
-      const profile = tooltipProfile(
-        balanceContext,
-        sharp ? BLADESWORN.sharpArtillerySlash : BLADESWORN.artillerySlash
-      );
-      return {
-        description:
-          'Consume all available ammunition for an explosive attack. ' +
-          (sharp
-            ? 'Sharp as the Wind applies Bleeding, increasing it with more rounds spent; consuming both rounds upgrades daze to stun.'
-            : 'Consuming both rounds increases strike damage. The attack also dazes.'),
-        facts: sharp
-          ? simulationEffectFacts(profile.effects).facts
-          : (profile.effects || []).flatMap(
-              (effect) =>
-                simulationEffectFacts(
-                  [effect],
-                  effect.type === 'strike' ? (effect.name === 'One round' ? 'one round spent' : 'two rounds spent') : ''
-                ).facts
-            )
-      };
-    },
-    'warrior.resource': (balanceContext, entity) =>
-      skillTooltip(
-        entity.burst
-          ? entity.primalBurst
-            ? 'Spend adrenaline to perform a primal burst and trigger eligible burst traits.'
-            : 'Spend adrenaline to perform a burst and trigger eligible burst traits. Ordinary bursts consume available adrenaline; specialization variants follow their own spending limit.'
-          : 'Apply the listed effects and gain adrenaline when the activation succeeds.'
-      )(balanceContext, entity),
-    'warrior.counterblow': skillTooltip(
+
+  skills: {
+    // Descriptions bind to canonical skill identities, independently of execution owners.
+    [ID.WE_WILL_NEVER_YIELD]: commandTooltip,
+    [ID.WE_SHALL_RETURN]: commandTooltip,
+    [ID.FIND_THEIR_WEAKNESS]: commandTooltip,
+    [ID.ON_YOUR_KNEES]: commandTooltip,
+    [ID.CHANT_OF_RECUPERATION]: chantTooltip,
+    [ID.CHANT_OF_FREEDOM]: chantTooltip,
+    [ID.CHANT_OF_ACTION]: chantTooltip,
+    [ID.ARTILLERY_SLASH]: artillerySlashTooltip,
+    [ID.SHARP_ARTILLERY_SLASH]: artillerySlashTooltip,
+    [ID.DEFIANT_ROAR]: resourceTooltip,
+    [ID.VALIANT_LEAP]: resourceTooltip,
+    [ID.TACTICAL_BLOW]: resourceTooltip,
+    [ID.ADRENALINE_RUSH]: resourceTooltip,
+    [ID.SUNDERING_LEAP]: resourceTooltip,
+    [ID.GUN_FLAME]: resourceTooltip,
+    [ID.SKULL_GRINDER]: resourceTooltip,
+    [ID.ARC_DIVIDER]: resourceTooltip,
+    [ID.SCORCHED_EARTH]: resourceTooltip,
+    [ID.WILD_BLOW]: resourceTooltip,
+    [ID.SHATTERING_BLOW]: resourceTooltip,
+    [ID.OUTRAGE]: resourceTooltip,
+    [ID.HEAD_BUTT]: resourceTooltip,
+    [ID.FLAMING_FLURRY]: resourceTooltip,
+    [ID.DECAPITATE]: resourceTooltip,
+    [ID.RUPTURING_SMASH]: resourceTooltip,
+    [ID.SLICING_MAELSTROM]: resourceTooltip,
+    [ID.RAMPART_SPLITTER]: resourceTooltip,
+    [ID.WILD_THROW]: resourceTooltip,
+    [ID.EARTHSHAKER_ID_40601]: resourceTooltip,
+    [ID.SKULL_CRACK_ID_41110]: resourceTooltip,
+    [ID.ARCING_SLICE_ID_42707]: resourceTooltip,
+    [ID.COMBUSTIVE_SHOT_ID_42803]: resourceTooltip,
+    [ID.EVISCERATE_ID_43566]: resourceTooltip,
+    [ID.PATH_TO_VICTORY_ID_72089]: resourceTooltip,
+    [ID.HARRIERS_TOSS_ID_73014]: resourceTooltip,
+    [ID.EARTHSHAKER]: resourceTooltip,
+    [ID.SKULL_CRACK]: resourceTooltip,
+    [ID.BREACHING_STRIKE]: resourceTooltip,
+    [ID.PATH_TO_VICTORY]: resourceTooltip,
+    [ID.PATH_TO_VICTORY_ID_71932]: resourceTooltip,
+    [ID.PATH_TO_VICTORY_ID_71950]: resourceTooltip,
+    [ID.HARRIERS_TOSS_ID_73006]: resourceTooltip,
+    [ID.HARRIERS_TOSS]: resourceTooltip,
+    [ID.HARRIERS_TOSS_ID_73042]: resourceTooltip,
+    [ID.COUNTERBLOW]: skillTooltip(
       'Begin a block and unlock Tactical Blow for the original block window. Tactical Blow can be used as a manual follow-up. Incoming attacks are outside simulation scope.'
     ),
-    'warrior.fierce-blow': skillTooltip(
+    [ID.FIERCE_BLOW]: skillTooltip(
       'Strike your target. Damage increases against a controlled or defiant target.',
       undefined
     ),
-    'warrior.mighty-throw': (balanceContext, entity) => {
+    [ID.MIGHTY_THROW]: (balanceContext, entity) => {
       const selected = balanceContext.catalog.skillsById.get(entity.id);
       if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
       const effects = simulationEffectFacts(
@@ -151,7 +231,7 @@ export const warriorTooltips: ProfessionTooltips = {
           'Throw your spear at the primary target. Shards that only hit secondary enemies are excluded from this single-target simulation.'
       };
     },
-    'warrior.combustive-shot': (balanceContext) => {
+    [ID.COMBUSTIVE_SHOT]: (balanceContext) => {
       const profile = tooltipProfile(balanceContext, CORE.combustiveShot);
       return {
         description:
@@ -171,11 +251,11 @@ export const warriorTooltips: ProfessionTooltips = {
         ]
       };
     },
-    'warrior.dragons-roar': (balanceContext) => ({
+    [ID.DRAGONS_ROAR]: (balanceContext) => ({
       description: 'Consume all available ammunition and fire one explosive strike for each round spent.',
       facts: simulationEffectFacts(tooltipProfile(balanceContext, CORE.dragonsRoar).effects, 'per round spent').facts
     }),
-    'warrior.berserk': skillTooltip(
+    [ID.BERSERK]: skillTooltip(
       'Enter Berserk, reduce your adrenaline capacity, and unlock primal bursts. Rage skills and eligible traits can extend the active duration.',
       (balanceContext) => [
         ...simulationEffectFacts(
@@ -185,19 +265,21 @@ export const warriorTooltips: ProfessionTooltips = {
         profileFact(balanceContext, BERSERKER.resources, 'maximumStacks', 'Adrenaline capacity while Berserk')
       ]
     ),
-    'warrior.blood-reckoning': skillTooltip(
+    [ID.BLOOD_RECKONING]: skillTooltip(
       'Gain adrenaline and reset primal-burst recharges when the activation succeeds. Healing is outside combat simulation scope.'
     ),
-    'warrior.full-counter': skillTooltip(
-      'Spend adrenaline and apply the modeled counterattack and control effects. Incoming damage is outside simulation scope.'
-    ),
-    'warrior.gunsaber-enter': skillTooltip(
+    [ID.FULL_COUNTER]: () => ({
+      description:
+        'Spend adrenaline to prepare Full Counter. Incoming attacks are outside simulation scope, so its counterattack and control do not trigger.',
+      facts: []
+    }),
+    [ID.UNSHEATHE_GUNSABER]: skillTooltip(
       'Draw your Gunsaber, replace your weapon skills, and trigger applicable weapon-swap and Gunsaber-entry effects.'
     ),
-    'warrior.gunsaber-exit': skillTooltip(
+    [ID.SHEATHE_GUNSABER]: skillTooltip(
       'Sheathe your Gunsaber and restore your weapon skills. End an active Dragon Trigger and trigger applicable weapon-swap effects.'
     ),
-    'warrior.dragon-trigger': skillTooltip(
+    [ID.DRAGON_TRIGGER]: skillTooltip(
       'Enter Dragon Trigger, drawing the Gunsaber if needed. Spend Flow at each charging opportunity to build Dragon charges. Release with a Dragon Slash; recharge begins when you leave the trigger. Tactical Reload increases charges gained per opportunity.',
       (balanceContext) => [
         profileFact(balanceContext, BLADESWORN.dragonTrigger, 'maximumStacks', 'Maximum Dragon charges'),
@@ -206,37 +288,13 @@ export const warriorTooltips: ProfessionTooltips = {
         profileFact(balanceContext, BLADESWORN.dragonTrigger, 'cooldown', 'Maximum trigger duration', tooltipSeconds)
       ]
     ),
-    'warrior.dragon-slash': (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id);
-      if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
-      return {
-        description:
-          'Consume your Dragon charges and leave Dragon Trigger to release an explosive burst. Strike damage scales linearly from the minimum to the maximum charge value. Sharp as the Wind variants also scale Burning with charges.',
-        facts: [
-          ...simulationEffectFacts(
-            [{ type: 'strike', coefficient: tooltipNumber(selected, 'dragonSlashMinimumCoefficient') }],
-            'minimum charge'
-          ).facts,
-          ...simulationEffectFacts(
-            [{ type: 'strike', coefficient: tooltipNumber(selected, 'dragonSlashMaximumCoefficient') }],
-            'maximum charges'
-          ).facts,
-          ...(Number(selected.dragonSlashMinimumBurningDuration) > 0
-            ? [
-                {
-                  name: 'Burning duration at minimum charge',
-                  detail: tooltipSeconds(tooltipNumber(selected, 'dragonSlashMinimumBurningDuration'))
-                },
-                {
-                  name: 'Burning duration at maximum charges',
-                  detail: tooltipSeconds(tooltipNumber(selected, 'dragonSlashMaximumBurningDuration'))
-                }
-              ]
-            : [])
-        ]
-      };
-    },
-    'warrior.overcharged-cartridges': (balanceContext) => {
+    [ID.DRAGON_SLASH_FORCE]: dragonSlashTooltip,
+    [ID.DRAGON_SLASH_BOOST]: dragonSlashTooltip,
+    [ID.DRAGON_SLASH_REACH]: dragonSlashTooltip,
+    [ID.SHARP_DRAGON_SLASH_FORCE]: dragonSlashTooltip,
+    [ID.SHARP_DRAGON_SLASH_BOOST]: dragonSlashTooltip,
+    [ID.SHARP_DRAGON_SLASH_REACH]: dragonSlashTooltip,
+    [ID.OVERCHARGED_CARTRIDGES]: (balanceContext) => {
       const profile = tooltipProfile(balanceContext, BLADESWORN.overchargedCartridges);
       return {
         description:
@@ -263,13 +321,12 @@ export const warriorTooltips: ProfessionTooltips = {
         ]
       };
     },
-    'warrior.dodge': skillTooltip(
+    [ID.DODGE]: skillTooltip(
       'Spend endurance to dodge and trigger applicable dodge traits. Incoming attacks are outside simulation scope.',
       (balanceContext) => [profileFact(balanceContext, CORE.resources, 'resourceCost', 'Endurance cost')]
     ),
-    'warrior.weapon-swap': skillTooltip('Swap to your other weapon set and trigger applicable weapon-swap effects.')
-  },
-  skills: {
+    [ID.SWAP_WEAPONS]: skillTooltip('Swap to your other weapon set and trigger applicable weapon-swap effects.'),
+
     // Signet attributes live in mechanic profiles, separate from the active skill packets.
     [ID.SIGNET_OF_MIGHT]: skillTooltip(
       'Passively grants power while ready. Activation grants might.',
@@ -295,12 +352,7 @@ export const warriorTooltips: ProfessionTooltips = {
     [ID.GUNSTINGER]: skillTooltip("Strike your target and restore Dragon's Roar ammunition.", (_c, entity) => [
       {
         name: 'Ammunition restored',
-        detail: tooltipDecimal(
-          tooltipNumber(
-            entity.mechanicTriggers?.find((trigger) => trigger.type === 'warrior.core.restore-dragons-roar-ammo'),
-            'count'
-          )
-        )
+        detail: tooltipDecimal(tooltipNumber(entity, 'ammoRestoreCount'))
       }
     ]),
     [ID.TACTICAL_RELOAD]: skillTooltip(
@@ -323,12 +375,7 @@ export const warriorTooltips: ProfessionTooltips = {
       (_c, entity) => [
         {
           name: 'Endurance restored',
-          detail: tooltipDecimal(
-            tooltipNumber(
-              entity.mechanicTriggers?.find((trigger) => trigger.type === 'warrior.core.restore-endurance'),
-              'count'
-            )
-          )
+          detail: tooltipDecimal(tooltipNumber(entity, 'enduranceGain'))
         }
       ]
     ),

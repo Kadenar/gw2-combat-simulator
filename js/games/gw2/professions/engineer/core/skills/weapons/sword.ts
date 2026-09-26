@@ -81,8 +81,8 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.GLEAM_SABER_ID_70771]: {
-    // Custom: Recharges the other sword skills after the cast; see `core/execution/sword.ts`.
-    handlerId: 'engineer.gleam-saber',
+    // Custom: Recharges the other sword skills after the cast; see `core/live.ts`.
+
     castTimeMs: 720,
     // Commit the strike and recharge at 600 ms while retaining the full cast lockout.
     interruptCommitMs: 600,

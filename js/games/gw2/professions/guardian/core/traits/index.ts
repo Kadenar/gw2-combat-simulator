@@ -1,130 +1,16 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
-import { applyProtectorsRestoration, applyWritOfPersistence } from '#gw2/professions/guardian/core/traits/honor.js';
-import {
-  applyFuriousFocus,
-  applySymbolicExposure,
-  reactToZealotsResolution,
-  reactToZealSymbolTraits
-} from '#gw2/professions/guardian/core/traits/zeal.js';
-import {
-  applyIndomitableCourage,
-  applyInspiredVirtue,
-  applyInspiringVirtue,
-  applyMasterOfConsecrations,
-  applyVirtueOfResolution,
-  replaceVirtueOfResolutionDuration
-} from '#gw2/professions/guardian/core/traits/virtues.js';
-import { applyHealersResolution, reactToRighteousInstincts } from '#gw2/professions/guardian/core/traits/radiance.js';
-import {
-  emitGuardianProc,
-  guardianResolverState,
-  guardianTraitIcon,
-  isGuardianSymbolSkill
-} from '#gw2/professions/guardian/core/traits/shared.js';
-import type {
-  GuardianCastContext,
-  GuardianResolverContext,
-  GuardianResolverEvent,
-  GuardianSchedulerContext,
-  GuardianSkill
-} from '#gw2/professions/guardian/types.js';
-
-export { emitGuardianProc, guardianTraitIcon, isGuardianSymbolSkill };
-
-/** Preserves Core Guardian's mixed trait and base-skill execution order behind one public dispatcher. */
-export function updateGuardianTraitCastState(context: GuardianCastContext, skill: GuardianSkill): void {
-  // Only committed casts create trait effects; other lifecycle hooks still handle cancelled attempts.
-  if (context.action.cancelled) return;
-
-  const at = context.effectiveEnd;
-  applyHealersResolution(context, skill, at);
-  applyProtectorsRestoration(context, skill, at);
-  applyWritOfPersistence(context, skill);
-
-  if (skill.id === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION) {
-    const symbolOfIgnitionProfile = requireBalanceProfileFromContext(context, PROFILE.symbolOfIgnition);
-    const field = requireEffect(symbolOfIgnitionProfile, 'buff', 'guardian-symbol-of-ignition-field');
-    if (field) {
-      const duration = effectNumber(symbolOfIgnitionProfile, field, 'duration');
-      context.replaceEvent(context.action, {
-        comboFields: [
-          {
-            ownerId: 'guardian',
-            fieldType: 'Light',
-            duration,
-            startAnchor: 'castEnd'
-          }
-        ]
-      });
-      context.emit({
-        type: 'guardian.symbol-of-ignition-field',
-        at: context.effectiveEnd,
-        source: 'guardian',
-        sourceId: skill.id,
-        actorType: 'effect',
-        skillId: skill.id,
-        skillName: skill.name,
-        duration
-      });
-    }
-  }
-
-  if (skill.id === GUARDIAN_SKILL_IDS.PURGING_FLAMES) {
-    const durationMultiplier = hasTrait(context, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS)
-      ? balanceProfileNumber(
-          requireBalanceProfileFromContext(context, PROFILE.masterOfConsecrations),
-          'durationMultiplier'
-        )
-      : 1;
-    context.replaceEvent(context.action, {
-      comboFields: [
-        {
-          ownerId: 'guardian',
-          fieldType: 'Fire',
-          duration: 5 * durationMultiplier,
-          startAnchor: 'castEnd'
-        }
-      ]
-    });
-  }
-
-  let virtueSlot = skill.categories?.includes('Virtue') ? String(skill.slot || '') : '';
-  // Virtue activation traits only trigger when the passive was ready before
-  // the activation disabled it; repeat activations cannot retrigger them.
-  if (virtueSlot && !professionCoreState(context).lastVirtuePassiveWasReady) virtueSlot = '';
-  if (virtueSlot) {
-    applyInspiredVirtue(context, skill, virtueSlot, at);
-    applyVirtueOfResolution(context, skill, at);
-    applyInspiringVirtue(context, skill, at);
-    applyIndomitableCourage(context, skill, virtueSlot, at);
-  }
-
-  applyFuriousFocus(context, skill, virtueSlot, at);
-  applyMasterOfConsecrations(context, skill);
-}
-
-export function handleSymbolOfIgnitionField(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  const state = guardianResolverState(context);
-  state.symbolIgnitionStartsAt = event.at;
-  // The field includes its final timestamp, matching its last pulse.
-  state.symbolIgnitionUntil = canonicalTime(event.at + Number(event.duration));
-}
+import { guardianResolverState } from '#gw2/professions/guardian/core/traits/shared.js';
+import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/professions/guardian/types.js';
 
 // Symbol hits and projectile hits have independent ignition cooldowns. Torch pulses
 // and fire-whirl bolts also ignite, but ordinary conditions and ignition itself do not.
@@ -170,6 +56,9 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
       source: 'guardian',
       sourceId: GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION,
       actorType: 'player',
+      // Ignition remains attributed to the actual impact that claimed its cooldown.
+      activationId: event.activationId,
+      causalOrder: event.causalOrder ?? event.eventOrder,
       skillId: GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION,
       skillName: 'Symbol of Ignition',
       name: 'Symbol of Ignition — Ignition',
@@ -180,51 +69,4 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
       projectile
     })
   );
-}
-
-// Normalize Resolution duration before it enters the queue, then decorate
-// canonical symbol packets with scheduler-owned trait effects.
-export function observeGuardianScheduledEvent(context: GuardianSchedulerContext, event: GuardianResolverEvent): void {
-  if (replaceVirtueOfResolutionDuration(context, event)) return;
-  if (event.type !== 'damage') return;
-
-  const skillId = event.skillId;
-  const skill = skillId == null ? undefined : context.catalog.skillsById.get(skillId);
-  if (!(event.isSymbol || isGuardianSymbolSkill(skill, event.skillName))) return;
-
-  applySymbolicExposure(context, event);
-
-  if (skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_RESOLUTION) {
-    const sourceSkill =
-      skill ||
-      ({
-        id: GUARDIAN_SKILL_IDS.SYMBOL_OF_RESOLUTION,
-        name: event.skillName || 'Symbol of Resolution'
-      } as GuardianSkill);
-    emitSkillBuff(context, {
-      at: event.at,
-      source: 'guardian',
-      sourceId: skillId,
-      actorType: 'player',
-      skillId,
-      skillName: event.skillName,
-      kind: 'resolution',
-      stacks: 1,
-      duration: gw2SchedulerBoonDuration(context, sourceSkill, 'resolution', 1)
-    });
-  }
-}
-
-export function reactToGuardianDamageTraits(
-  context: GuardianResolverContext,
-  event: GuardianResolverEvent,
-  details: NativeResolvedDamageDetails = {}
-): void {
-  reactToSymbolOfIgnition(context, event);
-  reactToZealSymbolTraits(context, event);
-  reactToZealotsResolution(context, event, details.hitContext?.damage ?? 0);
-}
-
-export function reactToGuardianBuffTraits(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  reactToRighteousInstincts(context, event);
 }

@@ -7,8 +7,7 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.STEAL]: {
     stealTraitSkill: true,
     movementSkill: true,
-    // Custom: Runs steal traits, grants a stored stolen skill, and updates steal state; see `core/mechanics/steal.ts`.
-    handlerId: 'thief.steal',
+    // Custom: Runs steal traits, grants a stored stolen skill, and updates steal state through `core/live.ts`.
     castTimeMs: 0,
     cooldown: 25,
     initiativeCost: 0,
@@ -23,7 +22,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.SOUL_STONE_VENOM]: {
     // Consume the selected stolen skill after its effects; Improvisation retains one use of the same choice.
-    handlerId: 'thief.stolen-skill',
     castTimeMs: 0,
     cooldown: 0,
     initiativeCost: 0,
@@ -40,7 +38,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.DETONATE_PLASMA]: {
     // Consume the selected stolen skill after its effects; Improvisation retains one use of the same choice.
-    handlerId: 'thief.stolen-skill',
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
@@ -117,7 +114,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.THROW_MAGNETIC_BOMB]: {
     // Consume the selected stolen skill after its effects; Improvisation retains one use of the same choice.
-    handlerId: 'thief.stolen-skill',
     castTimeMs: 520,
     cooldown: 0,
     initiativeCost: 0,
@@ -126,7 +122,7 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         type: 'strike',
         ticks: [160, 360, 520].map((atMs) => ({
           atMs,
-          coefficient: 6.300000000000001 / 3
+          coefficient: 6.3 / 3
         })),
         name: 'Throw Magnetic Bomb',
         actorType: 'player',

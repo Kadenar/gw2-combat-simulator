@@ -1,10 +1,10 @@
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Mirage-owned cloak, ambush, and deception behavior. */
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { BalanceProfile, ConditionEffect, StatusEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { SchedulerState } from '#gw2/platform/execution/types.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -17,9 +17,7 @@ import type {
   MesmerAddDamage,
   MesmerAddEvent,
   MesmerAddTraitProc,
-  MesmerAmbushAttack,
-  MesmerConfig,
-  MesmerRuntimeState
+  MesmerAmbushAttack
 } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerMirageCloakOptions,
@@ -35,8 +33,8 @@ import type { MesmerConditionApplication, MesmerSkill } from '#gw2/professions/m
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 
 interface MirageActionControllerOptions {
-  readonly state: SchedulerState<MesmerRuntimeState>;
-  readonly config: MesmerConfig;
+  readonly state: MesmerRuntime;
+  readonly config: MesmerRuntime['config'];
   readonly traits: ReadonlySet<number>;
   readonly ambushAttacks: Readonly<Record<string, MesmerAmbushAttack>>;
   readonly cloneAttacks: Readonly<Record<string, MesmerCloneAttack>>;
@@ -48,7 +46,6 @@ interface MirageActionControllerOptions {
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
   readonly queueResources: MesmerQueueResources;
   readonly balanceProfile: (id: SkillId) => BalanceProfile | undefined;
-  readonly boonDuration: (sourceSkill: string, boon: string, baseDuration: number) => number;
   readonly reduceSkillRecharge: (skill: MesmerSkill, reduction: number, at: number) => number;
 }
 
@@ -69,7 +66,6 @@ export function createMirageActionController({
   activePrimaryWeapon,
   queueResources,
   balanceProfile,
-  boonDuration,
   reduceSkillRecharge
 }: MirageActionControllerOptions): MesmerMirageController {
   // The selected effect already owns its identity and validated balance values.
@@ -91,6 +87,7 @@ export function createMirageActionController({
         expiresAt: canonicalTime(at + Number(mirror.duration)),
         source
       });
+      state.schedule('mesmer.mirror-expire', canonicalTime(at + Number(mirror.duration)), undefined);
     }
   };
 
@@ -110,7 +107,7 @@ export function createMirageActionController({
       actorType,
       kind: String(boon.name || '').toLowerCase(),
       stacks: Number(boon.stacks),
-      duration: boonDuration(sourceSkill, boon.name, Number(boon.duration)),
+      duration: Number(boon.duration),
       skillName: sourceSkill,
       sourceSkill,
       audience: {

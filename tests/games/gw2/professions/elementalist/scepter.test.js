@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
@@ -22,7 +22,7 @@ test('Flamestrike interruptions retain only committed strike packets', () => {
     [480, 1],
     [520, 2]
   ]) {
-    const result = simulateGw2({
+    const result = runElementalist({
       profession: elementalistProfession,
       rotation: [{ type: 'cast', skillId: ID.FLAMESTRIKE, interruptAfterMs }],
       config,

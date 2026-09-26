@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { StableEventQueue } from '#kernel/events/queue.js';
-import { createGw2CombatObserver } from '#gw2/platform/execution/gw2-policy/combat-observer.js';
-import { createMaterializerState } from '#gw2/platform/execution/gw2-policy/materializer-state.js';
-import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
+import {
+  createGw2ConditionResolution,
+  finalizeConditionApplications
+} from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 
 // Both phases snapshot the same natural lifetime while the resolver samples damage at tick time.
@@ -27,7 +28,6 @@ test('condition duration preserves phase context, fixed durations, and natural e
       stacks: 1,
       fixedDuration
     };
-    const scheduler = createMaterializerState({}, null, false);
     const resolution = createGw2ConditionResolution({ reactions: { dispatch() {} } });
     const resolver = createGw2ResolverRuntimeState({
       config: {},
@@ -36,7 +36,7 @@ test('condition duration preserves phase context, fixed durations, and natural e
       queue: new StableEventQueue(),
       applyCondition: resolution.applyCondition
     });
-    for (const runtime of [scheduler, resolver]) {
+    for (const runtime of [resolver]) {
       runtime.query = {
         statsAt(at, application, queriedRuntime) {
           assert.equal(queriedRuntime, runtime);
@@ -67,12 +67,11 @@ test('condition duration preserves phase context, fixed durations, and natural e
       };
     }
 
-    createGw2CombatObserver(scheduler).observe({ hasExplicitCombatStart: false }, event);
     const application = resolver.applyCondition(event);
     assert.equal(application.effectiveDuration, expectedDuration);
-    assert.equal(application.expiresAt, Math.min(5.5, 4 + expectedDuration));
+    assert.equal(application.expiresAt, 4 + expectedDuration);
     assert.equal(application.naturalExpiresAt, 4 + expectedDuration);
-    for (const runtime of [scheduler, resolver]) {
+    for (const runtime of [resolver]) {
       assert.equal(runtime.conditionState.get('Bleeding').stacks[0].expiresAt, 4 + expectedDuration);
     }
 
@@ -87,5 +86,8 @@ test('condition duration preserves phase context, fixed durations, and natural e
     const tick = resolution.handleConditionTick(resolver, eventTick);
     assert.equal(tick.damage, 82); // Bleeding uses the tick's 1000 Condition Damage, not the application's zero.
     assert.equal(application.effectiveDuration, expectedDuration);
+    // Reporting clips the application only after execution has established its boundary.
+    finalizeConditionApplications(resolver, 5.5);
+    assert.equal(application.expiresAt, Math.min(5.5, 4 + expectedDuration));
   }
 });

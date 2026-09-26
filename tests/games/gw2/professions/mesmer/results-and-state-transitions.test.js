@@ -64,7 +64,7 @@ test('result summary totals the same charge-aware dead-time gaps shown on the ti
       {
         type: 'resource',
         reason: 'profession mechanic',
-        rotationIndex: 1,
+        activationId: 'second',
         amount: -4,
         resource: 'dragon charges',
         sourceSkill: 'Second Cast',
@@ -73,7 +73,7 @@ test('result summary totals the same charge-aware dead-time gaps shown on the ti
     ],
     steps: [
       { ri: 0, skill: 'First Cast', start: 0, end: 500 },
-      { ri: 1, skill: 'Second Cast', start: 1250, end: 1750 }
+      { ri: 1, activationId: 'second', skill: 'Second Cast', start: 1250, end: 1750 }
     ]
   });
 
@@ -192,9 +192,15 @@ test('Combat Start is timeline zero while DPS waits for the first subsequent hit
   );
 
   assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.70s');
-  assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.00s');
-  assert.equal(formatResultTimelineTime(result.steps[2].start, result), '0.18s');
-  assert.equal(formatResultTimelineTime(result.steps[2].end, result), '0.62s');
+  assert.equal(
+    formatResultTimelineTime(result.events.find((event) => event.type === 'combat_start').at * 1000, result),
+    '0.00s'
+  );
+  assert.equal(
+    formatResultTimelineTime(result.steps.find((step) => step.skill === 'Bladecall').start, result),
+    '0.18s'
+  );
+  assert.equal(formatResultTimelineTime(result.steps.find((step) => step.skill === 'Bladecall').end, result), '0.62s');
   assert.equal(result.dpsStartTime, result.firstHitTime);
 });
 
@@ -238,9 +244,12 @@ test('a delayed Combat Start suppresses earlier damage without moving display ze
     })
   );
 
-  assert.equal(result.steps[1].start, 500);
+  assert.equal(result.events.find((event) => event.type === 'combat_start').at * 1000, 500);
   assert.equal(formatResultTimelineTime(result.steps[0].start, result), '-0.50s');
-  assert.equal(formatResultTimelineTime(result.steps[1].start, result), '0.00s');
+  assert.equal(
+    formatResultTimelineTime(result.events.find((event) => event.type === 'combat_start').at * 1000, result),
+    '0.00s'
+  );
   assert.ok(result.resolvedEvents.filter((event) => event.type === 'damage').every((event) => event.at >= 0.5));
   assert.ok(Math.abs(result.dpsStartTime - 1) < 1e-12);
 });
@@ -616,7 +625,7 @@ test('a build can open combat on its second weapon set', () => {
   assert.equal(onSetOne.planningState.activeWeaponSet, 1);
 });
 
-test('starting on weapon set two is ignored without a second weapon set', () => {
+test('the runtime preserves an explicitly selected empty weapon set', () => {
   const result = simulateMesmer(
     [{ name: '__wait', waitMs: 1000 }],
     defaultSimulationConfig({
@@ -630,7 +639,7 @@ test('starting on weapon set two is ignored without a second weapon set', () => 
     })
   );
 
-  assert.equal(result.planningState.activeWeaponSet, 1);
+  assert.equal(result.planningState.activeWeaponSet, 2);
 });
 
 test('clone specs never open combat with clones', () => {

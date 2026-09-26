@@ -5,11 +5,13 @@ import {
 } from '#gw2/platform/engine/profession/state.js';
 import { consumeNewestStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 const BLIGHT_DURATION_SECONDS = 25;
 const BLIGHT_MAXIMUM_STACKS = 25;
 
 export interface HarbingerState {
+  blightGeneration: number;
   nextBlightAt?: number;
   blight: number;
   blightExpiries: number[];
@@ -31,6 +33,7 @@ export function createHarbingerState(config: NecromancerConfig = {}): HarbingerS
   // Cap at 19 rather than 20: pre-combat stacks must never immediately trigger Meltdown on the first consumed Blight.
   const initialCascadingCorruptionStacks = boundedInteger(config.initialCascadingCorruptionStacks || 0, 0, 0, 19);
   return {
+    blightGeneration: 0,
     // POSITIVE_INFINITY means "not yet in shroud"; the cursor is set to a real value when Harbinger Shroud is entered.
     nextBlightAt: Number.POSITIVE_INFINITY,
     blight: initialBlight,
@@ -66,7 +69,7 @@ export function addBlight(state: HarbingerState, stacks: number, at: number): nu
   const expiries = state.blightExpiries;
   const count = boundedInteger(stacks, 0, 0, BLIGHT_MAXIMUM_STACKS);
   for (let index = 0; index < count; index += 1) {
-    const expiresAt = at + BLIGHT_DURATION_SECONDS;
+    const expiresAt = canonicalTime(at + BLIGHT_DURATION_SECONDS);
     if (expiries.length < BLIGHT_MAXIMUM_STACKS) expiries.push(expiresAt);
     else expiries[expiries.indexOf(Math.min(...expiries))] = expiresAt;
   }

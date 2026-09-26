@@ -15,7 +15,6 @@ import {
   targetHealthBelow
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { rangerCoreCastAvailability } from '#gw2/professions/ranger/core/mechanics/availability.js';
 import { stalkersStrikeTargetImpaired } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { rangerAttackOfOpportunityModifier } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import {
@@ -30,7 +29,7 @@ import {
 } from '#gw2/professions/ranger/core/traits/pet-modifiers.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats, Gw2NumericStatKey } from '#gw2/platform/combat/query/combat-query.js';
-import type { RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { gw2ConfiguredWeaponSet, gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 
@@ -422,64 +421,48 @@ export const rangerCoreAttributeRules = Object.freeze({
   compileModifierRules: compileGw2ModifierRules
 });
 
-export const rangerCoreCastRules = Object.freeze({
-  availability: {
-    id: 'ranger.core-availability',
-    order: 10,
-    handler: rangerCoreCastAvailability
-  },
-  modifyRechargeDuration(context: RangerSchedulerContext & { skill?: RangerSkill }, duration: number): number {
-    const skill = context.skill;
-    let result = duration;
-    const state = professionCoreState(context);
-    if (
-      skill?.type === 'Weapon' &&
-      skill.slot !== 'Weapon_1' &&
-      state.quickDrawUntil > context.state.time &&
-      hasTrait(context, TRAIT.QUICK_DRAW)
-    ) {
-      result *= balanceProfileNumber(
-        requireBalanceProfileFromContext(context, PROFILE.quickDraw),
-        'rechargeMultiplier'
-      );
-    }
-
-    if (skill?.weapon === 'Axe' && hasTrait(context, TRAIT.HONED_AXES)) {
-      result *= balanceProfileNumber(
-        requireBalanceProfileFromContext(context, PROFILE.honedAxes),
-        'rechargeMultiplier'
-      );
-    }
-
-    if (skill?.weapon === 'Shortbow' && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) {
-      result *= balanceProfileNumber(
-        requireBalanceProfileFromContext(context, PROFILE.lightOnYourFeet),
-        'rechargeMultiplier'
-      );
-    }
-
-    // Lead the Wind reduces every supported longbow skill's base recharge before shared recharge-rate scaling.
-    if (skill?.weapon === 'Longbow' && hasTrait(context, TRAIT.LEAD_THE_WIND)) {
-      result *= balanceProfileNumber(
-        requireBalanceProfileFromContext(context, PROFILE.leadTheWind),
-        'rechargeMultiplier'
-      );
-    }
-
-    if (['Dagger', 'Torch'].includes(String(skill?.weapon || '')) && hasTrait(context, TRAIT.AMBIDEXTERITY)) {
-      result *= balanceProfileNumber(
-        requireBalanceProfileFromContext(context, PROFILE.ambidexterity),
-        'rechargeMultiplier'
-      );
-    }
-
-    if (skill?.petSkill && hasTrait(context, TRAIT.PACK_ALPHA)) {
-      result *= balanceProfileNumber(
-        requireBalanceProfileFromContext(context, PROFILE.packAlpha),
-        'rechargeMultiplier'
-      );
-    }
-
-    return result;
+/** Select recharge from current traits and the unclaimed Quick Draw grant. */
+export function rangerRechargeWork(context: RangerRuntime, skill: RangerSkill, duration: number): number {
+  let result = duration;
+  const state = professionCoreState(context);
+  if (
+    skill?.type === 'Weapon' &&
+    skill.slot !== 'Weapon_1' &&
+    state.quickDrawUntil > context.time &&
+    hasTrait(context, TRAIT.QUICK_DRAW)
+  ) {
+    result *= balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.quickDraw), 'rechargeMultiplier');
   }
-});
+
+  if (skill?.weapon === 'Axe' && hasTrait(context, TRAIT.HONED_AXES)) {
+    result *= balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.honedAxes), 'rechargeMultiplier');
+  }
+
+  if (skill?.weapon === 'Shortbow' && hasTrait(context, TRAIT.LIGHT_ON_YOUR_FEET)) {
+    result *= balanceProfileNumber(
+      requireBalanceProfileFromContext(context, PROFILE.lightOnYourFeet),
+      'rechargeMultiplier'
+    );
+  }
+
+  // Lead the Wind reduces every supported longbow skill's base recharge before shared recharge-rate scaling.
+  if (skill?.weapon === 'Longbow' && hasTrait(context, TRAIT.LEAD_THE_WIND)) {
+    result *= balanceProfileNumber(
+      requireBalanceProfileFromContext(context, PROFILE.leadTheWind),
+      'rechargeMultiplier'
+    );
+  }
+
+  if (['Dagger', 'Torch'].includes(String(skill?.weapon || '')) && hasTrait(context, TRAIT.AMBIDEXTERITY)) {
+    result *= balanceProfileNumber(
+      requireBalanceProfileFromContext(context, PROFILE.ambidexterity),
+      'rechargeMultiplier'
+    );
+  }
+
+  if (skill?.petSkill && hasTrait(context, TRAIT.PACK_ALPHA)) {
+    result *= balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.packAlpha), 'rechargeMultiplier');
+  }
+
+  return result;
+}

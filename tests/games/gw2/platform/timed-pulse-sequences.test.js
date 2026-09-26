@@ -1,23 +1,13 @@
-import { setResource } from '#gw2/platform/combat/resources/resource-policy.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { resolverTimedEffect } from '#gw2/platform/profession-definition/mechanics.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { THIEF_SKILL_IDS as T } from '#gw2/professions/thief/data/ids.js';
 import { GUARDIAN_SKILL_IDS as G } from '#gw2/professions/guardian/data/ids.js';
-import {
-  completeForgedSurfer,
-  completeSkrittScuffle,
-  forgedSurfer,
-  skrittScuffle
-} from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
-import {
-  restartInfiltratorsSignetPassive,
-  infiltratorsSignetPassive
-} from '#gw2/professions/thief/core/mechanics/resources.js';
+import { runtimeFor } from '#tests/helpers/live-runtime.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Exercise resolver queue identity directly so replacement and horizon behavior cannot depend on profession state.
 test('resolver recurrence ignores retired work, isolates queues, and stops at the horizon', () => {
@@ -73,87 +63,97 @@ test('resolver zero interval permits the opening pulse without recurrence', () =
 });
 
 test('Infiltrator signet rearm replaces the pending resource pulse and follows cooldown resets', () => {
-  const scheduler = createScheduler({
-    profession: thiefProfession,
-    config: { selectedSkills: { utility1: "Infiltrator's Signet" } }
-  });
-  const { context, state } = scheduler;
-  setResource(context, 'initiative', 0);
-  state.cooldowns.set(T.INFILTRATORS_SIGNET, 20);
-  restartInfiltratorsSignetPassive(context);
-  assert.equal(infiltratorsSignetPassive.nextAt(context), 30);
-  state.cooldowns.delete(T.INFILTRATORS_SIGNET);
-  scheduler.advanceTo(1);
-  restartInfiltratorsSignetPassive(context);
-  assert.equal(infiltratorsSignetPassive.nextAt(context), 11);
-  scheduler.advanceTo(10);
-  const before = state.profession.core.initiative.value;
-  scheduler.advanceTo(11);
-  assert.equal(
-    state.profession.core.initiative.value - before,
-    2,
-    'one second of regeneration plus one discrete pulse'
+  const observed = [];
+  const observe = (runtime) =>
+    observed.push([runtime.resourceController.value('initiative'), runtime.profession.core.infiltratorsSignetPulseAt]);
+  const result = runThief(
+    [
+      "Infiltrator's Signet",
+      { type: 'wait', durationMs: 1000 },
+      { type: 'cooldown-reset' },
+      { type: 'wait', durationMs: 10000 }
+    ],
+    { selectedSkills: ["Infiltrator's Signet"], initialInitiative: 0 },
+    { probes: [0.5, 1.0005, 10, 11].map((at) => [at, observe]) }
   );
-  assert.equal(infiltratorsSignetPassive.nextAt(context), 21);
+  assert.deepEqual(result.warnings, []);
+  // Activation starts the twenty-second recharge, so the next pulse waits ten seconds past it.
+  assert.equal(observed[0][1], 30);
+  // The reset rearms the pulse from the reset instant.
+  assert.equal(observed[1][1], 11);
+  assert.equal(observed[3][0] - observed[2][0], 2, 'one second of regeneration plus one discrete pulse');
+  assert.equal(observed[3][1], 21);
 });
 
 test('Forged Surfer replacement retires old bombs independently of the buff expiry', () => {
-  const scheduler = createScheduler({ profession: thiefProfession, config: { specialization: 'Antiquary' } });
-  const { context, state } = scheduler;
-  const skill = context.catalog.skillsById.get(T.FORGED_SURFER_DASH);
-  completeForgedSurfer({ ...context, effectiveEnd: 0 }, skill);
-  scheduler.advanceTo(1);
-  const oldNext = forgedSurfer.nextAt(context);
-  completeForgedSurfer({ ...context, effectiveEnd: 1 }, skill);
-  scheduler.advanceTo(2);
-  const before = scheduler.events.filter((event) => event.type === 'damage').length;
-  scheduler.advanceTo(oldNext);
-  assert.equal(scheduler.events.filter((event) => event.type === 'damage').length, before);
-  assert.equal(forgedSurfer.nextAt(context), 5);
-  assert.equal(state.profession.specialization.state.forgedSurferBombDropUntil, 11);
+  // Swipe (0.2 s) and the dash (0.2 s) repeat, so the first sequence is replaced before its 1.4 s dash.
+  const result = runThief(
+    ['Skritt Swipe', 'Forged Surfer Dash', 'Skritt Swipe', 'Forged Surfer Dash', { type: 'wait', durationMs: 12000 }],
+    { specialization: 'Antiquary' },
+    { catalog: (live) => withSkill(live, T.SKRITT_SWIPE, { cooldown: 0 }) }
+  );
+  assert.deepEqual(result.warnings, []);
+  const second = result.steps.filter((step) => step.skill === 'Forged Surfer Dash')[1].end / 1000;
+  const surfer = result.events.filter((event) => event.type === 'damage' && event.skillId === T.FORGED_SURFER_DASH);
+  assert.ok(surfer.length > 0);
+  // Every packet belongs to the replacement: its dash one second after completion, then bombs every three seconds.
+  for (const event of surfer) {
+    const offset = event.at - second - 1;
+    assert.ok(offset >= -1e-9 && Math.abs(offset / 3 - Math.round(offset / 3)) < 1e-9, String(event.at));
+  }
+
+  assert.ok(
+    Math.abs(runtimeFor(result).profession.specialization.state.forgedSurferBombDropUntil - (second + 10)) < 1e-9
+  );
 });
 
 test('Skritt assistants overlap and each retains its inclusive final pilfer', () => {
-  const scheduler = createScheduler({ profession: thiefProfession, config: { specialization: 'Antiquary' } });
-  const { context } = scheduler;
-  const skill = context.catalog.skillsByName.get('Skritt Scuffle');
-  completeSkrittScuffle({ ...context, effectiveEnd: 0 }, skill);
-  scheduler.advanceTo(1);
-  completeSkrittScuffle({ ...context, effectiveEnd: 1 }, skill);
-  scheduler.advanceTo(15);
-  const pilfers = () => scheduler.events.filter((event) => event.reason === 'skritt-scuffle-artifact');
-  assert.ok(pilfers().some((event) => event.at === 3));
-  assert.ok(pilfers().some((event) => event.at === 4));
-  assert.ok(pilfers().some((event) => event.at === 15));
-  assert.equal(skrittScuffle.nextAt(context), 16);
-  scheduler.advanceTo(16);
-  assert.equal(pilfers().at(-1).at, 16);
-  assert.equal(skrittScuffle.nextAt(context), Infinity);
+  const pilfers = [];
+  const result = runThief(
+    ['Skritt Scuffle', 'Skritt Scuffle', { type: 'wait', durationMs: 20000 }],
+    { specialization: 'Antiquary', selectedSkills: ['Skritt Scuffle'] },
+    {
+      catalog: (live) => withSkill(live, T.SKRITT_SCUFFLE, { cooldown: 0 }),
+      extend: (native) => ({
+        tasks: {
+          ...native.tasks,
+          'thief.skritt-scuffle'(runtime, data) {
+            pilfers.push(runtime.time);
+            native.tasks['thief.skritt-scuffle'](runtime, data);
+          }
+        }
+      })
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const [first, second] = result.steps.map((step) => step.end / 1000);
+  // Each assistant pilfers every three seconds through its own inclusive fifteen-second lifetime.
+  const expected = [first, second]
+    .flatMap((end) => [3, 6, 9, 12, 15].map((offset) => end + offset))
+    .sort((left, right) => left - right);
+  assert.equal(pilfers.length, expected.length);
+  pilfers.forEach((at, index) => assert.ok(Math.abs(at - expected[index]) < 1e-9, `${at} != ${expected[index]}`));
 });
 
 test('Willbender fields overlap for the same virtue and cancel as a group when virtue changes', () => {
-  const scheduler = createScheduler({ profession: guardianProfession, config: { specialization: 'Willbender' } });
-  const { context } = scheduler;
-  const activate = (at, virtue, flameId, offTarget = false) =>
-    context.tasks.schedule({
-      type: 'guardian.willbender-flame-activate',
-      at,
-      priority: -10,
-      payload: { virtue, flameId, offTarget }
-    });
-  activate(0, 'justice', G.WILLBENDER_FLAMES_ID_62618, true);
-  activate(0.5, 'justice', G.WILLBENDER_FLAMES_ID_62618);
-  scheduler.advanceTo(1.5);
-  const flames = () => scheduler.events.filter((event) => event.willbenderFlames);
-  const activations = new Set(flames().map((event) => event.activationId));
-  assert.equal(activations.size, 2);
-  assert.ok(flames().some((event) => event.at > 0.5 && event.offTarget === true));
-  activate(1.5, 'courage', G.WILLBENDER_FLAMES_COURAGE);
-  scheduler.advanceTo(8);
-  assert.ok(flames().some((event) => event.at > 1.5));
-  assert.ok(
-    flames()
-      .filter((event) => event.at > 1.5)
-      .every((event) => !activations.has(event.activationId))
+  const result = runGuardian(
+    [
+      G.FLOWING_RESOLVE,
+      G.FLOWING_RESOLVE,
+      { type: 'wait', durationMs: 1000 },
+      G.CRASHING_COURAGE,
+      { type: 'wait', durationMs: 6000 }
+    ],
+    { specialization: 'Willbender' }
   );
+  assert.deepEqual(result.warnings, []);
+  const resolve = result.events.filter((event) => event.type === 'damage' && event.skillId === G.WILLBENDER_FLAMES);
+  assert.equal(new Set(resolve.map((event) => event.activationId)).size, 2);
+  const courage = result.events.filter(
+    (event) => event.type === 'damage' && event.skillId === G.WILLBENDER_FLAMES_COURAGE
+  );
+  assert.ok(courage.length > 0);
+  const activation = result.events.find((event) => event.kind === 'willbender-courage').at;
+  assert.ok(resolve.every((event) => event.at < activation));
+  assert.ok(courage.every((event) => event.at >= activation));
 });

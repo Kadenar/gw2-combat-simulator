@@ -46,7 +46,7 @@ for (const mode of ['preview', 'absent', 'invalid']) {
                 }
               ]
             },
-            state: { scheduler: () => ({}) }
+            state: { create: () => ({}) }
           })
         ]
       });

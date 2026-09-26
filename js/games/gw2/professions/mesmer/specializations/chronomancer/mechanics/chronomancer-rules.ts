@@ -3,7 +3,6 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { EPSILON } from '#kernel/core/clock.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -12,24 +11,15 @@ import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2EventActorType, isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { timedActive } from '#gw2/professions/mesmer/core/traits/modifiers.js';
-import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import {
-  chronomancerControllerFor,
-  initializeChronomancerRuntime
-} from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/runtime.js';
-import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/time-bomb.js';
+import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type {
-  MesmerPrecastContext,
-  MesmerSchedulerContext,
-  MesmerSchedulerTask
-} from '#gw2/professions/mesmer/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
-function chronomancerAvailability(context: MesmerPrecastContext, skill: MesmerSkill): AvailabilityResult {
+export function chronomancerAvailability(context: MesmerRuntime, skill: MesmerSkill): AvailabilityResult {
   if (skill.id !== ID.CONTINUUM_SHIFT || chronomancerState.from(context).continuum) {
     return { ready: true };
   }
@@ -41,14 +31,6 @@ function chronomancerAvailability(context: MesmerPrecastContext, skill: MesmerSk
     reason: `${skill.name} requires an active Continuum Split.`
   };
 }
-
-export const chronomancerCastRules = Object.freeze({
-  availability: {
-    id: 'mesmer.chronomancer.availability',
-    order: 20,
-    handler: chronomancerAvailability
-  }
-});
 
 const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   {
@@ -96,19 +78,10 @@ const chronomancerModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
-function handleContinuumExpiryTask(
-  context: MesmerSchedulerContext,
-  task: MesmerSchedulerTask<'continuumExpire'>
-): void {
-  const active = chronomancerState.from(context).continuum;
-  if (!active || Math.abs(active.expiresAt - task.payload.expiresAt) > EPSILON) return;
-  chronomancerControllerFor(mesmerRuntimeFor(context)).restoreContinuum(task.at, 'split expired');
-}
-
 /** Arms Danger Time from Chronomancer control packets and Delayed Reactions. */
-function observeChronomancerEvent(context: MesmerSchedulerContext, event: SimulationEvent): void {
+export function observeChronomancerEvent(context: MesmerRuntime, event: SimulationEvent): void {
   if (event.type !== 'control') return;
-  const runtime = mesmerRuntimeFor(context);
+  const runtime = mesmerMechanicsFor(context);
   const skillId = Number(event.skillId);
   if (
     !runtime.traits.has(TRAIT.DANGER_TIME) ||
@@ -130,34 +103,4 @@ function observeChronomancerEvent(context: MesmerSchedulerContext, event: Simula
   runtime.addTraitProc('Danger Time', event.at, skillName);
 }
 
-const chronomancerSchedulerHooks = Object.freeze({
-  onCastComplete: {
-    id: 'mesmer.chronomancer.time-bomb',
-    order: 20,
-    handler: completeChronomancerTimeBomb
-  },
-  onEventScheduled: {
-    id: 'mesmer.chronomancer.danger-time',
-    order: 20,
-    handler: observeChronomancerEvent
-  },
-  taskHandlers: Object.freeze({
-    'mesmer.continuum-expire': handleContinuumExpiryTask
-  })
-});
-
-/** Restores a manually ended Continuum Split through skill-owned trigger metadata. */
-export const chronomancerSkillMechanicHandlers = Object.freeze({
-  'mesmer.chronomancer.restore-continuum': ({ context, at }: { context: MesmerSchedulerContext; at: number }): void => {
-    chronomancerControllerFor(mesmerRuntimeFor(context)).restoreContinuum(at, 'manual shift');
-  }
-});
-
-export const chronomancerAttributeRules = Object.freeze({
-  modifierRules: chronomancerModifierRules
-});
-
-export const chronomancerRuntimeHooks = Object.freeze({
-  ...chronomancerSchedulerHooks,
-  initialize: initializeChronomancerRuntime
-});
+export const chronomancerAttributeRules = Object.freeze({ modifierRules: chronomancerModifierRules });

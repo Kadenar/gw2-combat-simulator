@@ -1,10 +1,9 @@
 import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
-import type { SchedulerContext } from '#gw2/platform/execution/types.js';
 
 export interface GuardianCoreState {
   endurance: number;
@@ -15,7 +14,6 @@ export interface GuardianCoreState {
   justiceActiveBurns: number;
   justicePassiveBurns: number;
   virtueReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
-  lastVirtuePassiveWasReady: boolean;
   autoattackChains: Record<string, SkillId>;
   availableFlips: SkillFlipWindows;
   symbolicAvengerExpirations: number[];
@@ -25,7 +23,9 @@ export interface GuardianCoreState {
   symbolProjectileIgnitionReadyAt: number;
   zealotsResolutionReadyAt: number;
   resolutionUntil: number;
+  righteousInstinctsGeneration: number;
   furiousFocusReadyAt: number;
+  furiousFocusRecharge: RechargeProgress | null;
   healersResolutionReadyAt: number;
   protectorsRestorationReadyAt: number;
   spearIlluminatedArmed: boolean;
@@ -49,7 +49,6 @@ export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCo
       resolve: 0,
       courage: 0
     },
-    lastVirtuePassiveWasReady: false,
     autoattackChains: {},
     availableFlips: {},
     symbolicAvengerExpirations: [],
@@ -59,7 +58,9 @@ export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCo
     symbolProjectileIgnitionReadyAt: 0,
     zealotsResolutionReadyAt: 0,
     resolutionUntil: 0,
+    righteousInstinctsGeneration: 0,
     furiousFocusReadyAt: 0,
+    furiousFocusRecharge: null,
     healersResolutionReadyAt: 0,
     protectorsRestorationReadyAt: 0,
     spearIlluminatedArmed: false,
@@ -101,10 +102,3 @@ export const GUARDIAN_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
   keys: GUARDIAN_CORE_PUBLIC_END_STATE_KEYS,
   defaults: {}
 });
-
-/** Guardian currently tracks grants only; this capability does not add passive dodge simulation. */
-export const guardianEndurance: EndurancePolicy<SchedulerContext<{ core: GuardianCoreState }>> = {
-  state: (context) => context.state.profession.core,
-  maximum: () => 100,
-  regenerationRate: () => 0
-};

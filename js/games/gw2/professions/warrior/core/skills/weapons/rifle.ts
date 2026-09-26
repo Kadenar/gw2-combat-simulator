@@ -7,12 +7,6 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
   [ID.RIFLE_BUTT]: {
     // Rifle Butt uses its successful-hit recharge and reloads the rest of the rifle kit on completion.
     cooldown: 12,
-    mechanicTriggers: [
-      {
-        type: 'warrior.core.reload-rifle',
-        timingAnchor: 'castEnd'
-      }
-    ],
     castTimeMs: 480,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [

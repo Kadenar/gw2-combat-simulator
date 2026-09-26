@@ -5,9 +5,9 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerMaximumAmmoContext, MesmerRechargeContext } from '#gw2/professions/mesmer/types.js';
-import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
-import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 
 /**
@@ -16,17 +16,15 @@ import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mes
  *
  * Mesmer-adjusted recharge duration.
  */
-function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDuration: number): number {
-  const { skill } = context;
-  if (context.ammoCastLockout) return sharedDuration;
+export function mesmerRechargeWork(context: MesmerRuntime, skill: MesmerSkill, sharedDuration: number): number {
   if (skill.id === ID.SWAP_WEAPONS) {
     return sharedDuration === 0 ? 0 : Number(skill.cooldown || 0);
   }
 
-  const traits = mesmerRuntimeFor(context).traits;
+  const traits = mesmerMechanicsFor(context).traits;
   let multiplier = 1;
   if (
-    (mesmerRuntimeFor(context).shatters[skill.id] || mesmerRuntimeFor(context).instruments[skill.id]) &&
+    (mesmerMechanicsFor(context).shatters[skill.id] || mesmerMechanicsFor(context).instruments[skill.id]) &&
     traits.has(TRAIT.MASTER_OF_MISDIRECTION)
   )
     multiplier *= balanceProfileNumber(
@@ -38,13 +36,12 @@ function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDuration: nu
     multiplier *= balanceProfileNumber(fencersFinesseProfile, 'rechargeMultiplier');
   }
 
-  const rechargeRate = context.cooldownController.rate(skill, Number(context.at ?? context.start));
-  const shatter = mesmerRuntimeFor(context).shatters[skill.id];
+  const shatter = mesmerMechanicsFor(context).shatters[skill.id];
   if (shatter?.rechargeReductionPerSource) {
-    const clones = mesmerRuntimeFor(context).actions.currentResource();
+    const clones = mesmerMechanicsFor(context).actions.currentResource();
     const reduction = Number(shatter.rechargeReductionPerSource) * (clones + 1);
     const baseCooldown = gw2BaseRecharge(skill);
-    return Math.max(0, baseCooldown * multiplier - reduction) / rechargeRate;
+    return Math.max(0, baseCooldown * multiplier - reduction);
   }
 
   // Shared recharge already uses the owner's current Alacrity rate, including transient grants.
@@ -56,24 +53,13 @@ function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDuration: nu
  *
  * Mesmer-adjusted maximum charge count.
  */
-function modifyMesmerMaximumAmmo(context: MesmerMaximumAmmoContext, maximum: number): number {
-  const id = context.skill.id;
-  const runtime = mesmerRuntimeFor(context);
+export function mesmerMaximumAmmo(context: MesmerRuntime, skill: MesmerSkill, maximum: number): number {
+  // Inactive mantra flips have no charge pool; only their parent can rearm and refill them.
+  if (skill.flipParentId && !context.profession.core.availableFlips[skill.id]) return 0;
+  const id = skill.id;
+  const runtime = mesmerMechanicsFor(context);
   const isSlot1 = runtime.shatters[id]?.slot === 1 || runtime.instruments[id]?.slot === 1;
-  return isSlot1 && mesmerRuntimeFor(context).traits.has(TRAIT.SHATTER_STORM)
+  return isSlot1 && mesmerMechanicsFor(context).traits.has(TRAIT.SHATTER_STORM)
     ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.shatterStorm), 'maximumStacks')
     : maximum;
 }
-
-/**
- * Mesmer availability, recharge, ammo, and profession-owned scheduling rules.
- */
-export const mesmerCastRules = Object.freeze({
-  availability: {
-    id: 'mesmer.availability',
-    order: 10,
-    handler: mesmerAvailability
-  },
-  modifyRechargeDuration: modifyMesmerRecharge,
-  modifyMaximumAmmo: modifyMesmerMaximumAmmo
-});

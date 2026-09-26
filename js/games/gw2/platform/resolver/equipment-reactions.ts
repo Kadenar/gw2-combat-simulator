@@ -60,7 +60,7 @@ function criticalFoodProc(ctx: Gw2ResolverRuntime): CriticalFoodProc | undefined
   return proc?.type === 'critStrike' ? proc : undefined;
 }
 
-/** Apply the same decision as prediction, using only surviving resolver hits and local state. */
+/** Accepted hits claim critical sigils from the shared sampled outcome and live ICD map. */
 function createResolvedCriticalSigilEffects(
   ctx: Gw2ResolverRuntime,
   event: Gw2ResolverEvent,
@@ -74,7 +74,7 @@ function createResolvedCriticalSigilEffects(
     critical,
     ctx.sigil
   );
-  ctx.sigilDiagnostics?.record('resolution', event, critical.chance, decision);
+  ctx.sigilDiagnostics?.record(event, gw2SigilSet(ctx.config, ctx.activeWeaponSet).names || [], critical, decision);
   const sourceSkill = event.skillName || '';
   for (const { name, readyAt } of decision.procs) {
     const proc = SIGIL_PROC_LOOKUP[name];
@@ -238,8 +238,15 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       {
         id: 'relic.after-hit',
         order: GW2_REACTION_ORDER.FINAL_COMMON,
-        handler(ctx, event) {
-          invokeRelicHook(ctx, 'afterHit', event, skillForEvent(ctx.helpers, event));
+        handler(ctx, event, details = {}) {
+          // Eligibility uses the resolved profile even when the authored packet inherited its weapon strength.
+          const profile = (details as NativeResolvedDamageDetails).hitContext?.weaponStrength?.profileId;
+          invokeRelicHook(
+            ctx,
+            'afterHit',
+            profile ? { ...event, weaponStrengthProfileId: profile } : event,
+            skillForEvent(ctx.helpers, event)
+          );
         }
       }
     ],

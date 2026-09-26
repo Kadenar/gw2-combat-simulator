@@ -1,20 +1,21 @@
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { defineProfessionFamily } from '#gw2/platform/engine/profession/family.js';
-import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
+import { composeStateFragments } from '#gw2/platform/engine/profession/module.js';
+import type { RuntimeProfession, Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
-import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
+import { denyCast } from '#gw2/platform/engine/skills/availability.js';
 import type {
   ProfessionFamilyDefinition,
   ProfessionAttributeRuleDefinition,
-  ProfessionCastRuleDefinition,
-  ProfessionSchedulerHookDefinition,
   ProfessionModuleCatalogFragment,
   ProfessionModuleDefinition
 } from '#gw2/platform/engine/profession/types.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { Gw2SimulationDefinition } from '#gw2/platform/simulation/types.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
-import type { SchedulerConfig } from '#gw2/platform/execution/types.js';
+import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import type {
   AnyNativeModule,
@@ -22,17 +23,13 @@ import type {
   NativeModuleDefinition,
   NativeProfessionContract,
   NativeProfessionDefinition,
-  NativeProfessionRuntimeState,
-  NativeResolvedReaction,
-  NativeResolverMechanic,
-  NativeSchedulerMechanic
+  NativeProfessionRuntimeState
 } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import {
-  createGw2AutoattackChainMechanics,
-  type Gw2AutoattackChainOptions
-} from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { validateAutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
+
+/** Policies a family exposes for capacity previews; their maximum reads only configuration and catalog. */
+type ProfessionResourcePreview = ReturnType<NonNullable<ProfessionFamilyDefinition['resourcesFor']>>;
 
 function assertObject(value: object | null | undefined, label: string): void {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -46,24 +43,10 @@ function assertNativeModuleDefinition(definition: object): void {
     readonly id?: string;
     readonly data?: Record<string, unknown>;
     readonly state?: {
-      readonly scheduler?: (...args: never[]) => object;
-      readonly resolver?: (...args: never[]) => object;
+      readonly create?: (...args: never[]) => object;
       readonly project?: (...args: never[]) => object;
     };
-    readonly mechanics?: {
-      readonly execution?: {
-        readonly skillHandlers?: unknown;
-        readonly availability?: NativeSchedulerMechanic | readonly NativeSchedulerMechanic[];
-        readonly castLifecycle?: readonly NativeSchedulerMechanic[];
-        readonly castRules?: unknown;
-        readonly hooks?: unknown;
-        readonly skillMechanicHandlers?: unknown;
-      };
-      readonly resolution?: {
-        readonly reactions?: readonly { readonly phase?: string }[];
-        readonly hooks?: unknown;
-      };
-    };
+    readonly mechanics?: { readonly live?: object; readonly modifiers?: object };
   };
   if (!String(candidate.id || '').trim()) {
     throw new TypeError('Native profession module id is required.');
@@ -71,11 +54,15 @@ function assertNativeModuleDefinition(definition: object): void {
 
   assertObject(candidate.data, `${candidate.id}.data`);
   assertObject(candidate.state, `${candidate.id}.state`);
-  if (typeof candidate.state?.scheduler !== 'function') {
-    throw new TypeError(`${candidate.id}.state.scheduler must be a function.`);
+  for (const key of Object.keys(candidate.state!)) {
+    if (!['create', 'project'].includes(key)) throw new TypeError(`Unsupported native state field: ${key}.`);
   }
 
-  for (const name of ['resolver', 'project'] as const) {
+  if (typeof candidate.state?.create !== 'function') {
+    throw new TypeError(`${candidate.id}.state.create must be a function.`);
+  }
+
+  for (const name of ['project'] as const) {
     if (candidate.state?.[name] != null && typeof candidate.state[name] !== 'function') {
       throw new TypeError(`${candidate.id}.state.${name} must be a function.`);
     }
@@ -85,32 +72,9 @@ function assertNativeModuleDefinition(definition: object): void {
     assertObject(candidate.mechanics, `${candidate.id}.mechanics`);
   }
 
-  if (candidate.mechanics?.execution != null) {
-    assertObject(candidate.mechanics.execution, `${candidate.id}.mechanics.execution`);
-  }
-
-  if (candidate.mechanics?.resolution != null) {
-    assertObject(candidate.mechanics.resolution, `${candidate.id}.mechanics.resolution`);
-  }
-
-  const execution = candidate.mechanics?.execution;
-  const resolution = candidate.mechanics?.resolution;
-  // Availability can be singular or plural; normalize it before validating the shared declaration contract.
-  const availability = execution?.availability;
-  const castLifecycle = execution?.castLifecycle;
-  const schedulerDeclarations = [
-    ...(availability == null ? [] : Array.isArray(availability) ? availability : [availability]),
-    ...(castLifecycle || [])
-  ];
-  for (const declaration of schedulerDeclarations) {
-    if (declaration.phase !== 'scheduler' || typeof declaration.handler !== 'function') {
-      throw new TypeError(`${candidate.id} contains an invalid scheduler mechanic declaration.`);
-    }
-  }
-
-  for (const declaration of resolution?.reactions ?? []) {
-    if (declaration.phase !== 'resolver') {
-      throw new TypeError(`${candidate.id} contains a non-resolver reaction declaration.`);
+  if (candidate.mechanics) {
+    for (const key of Object.keys(candidate.mechanics)) {
+      if (!['live', 'modifiers'].includes(key)) throw new TypeError(`Unsupported native mechanic: ${key}.`);
     }
   }
 }
@@ -126,51 +90,15 @@ function assertNativeModuleDefinition(definition: object): void {
  */
 export function defineNativeModule<
   const TId extends string,
-  TSchedulerState extends object,
-  TResolverState extends object = TSchedulerState,
+  TState extends object,
   TProjectOptions extends object = object,
   TProjectedState extends object = object,
-  THandlerContext extends object = never,
   TModifierEscape extends ProfessionAttributeRuleDefinition = object,
-  TCastRulesEscape extends ProfessionCastRuleDefinition = object,
-  TSchedulerHooksEscape extends object = object,
-  TResolverHooksEscape extends object = object,
-  TReactions extends readonly NativeResolverMechanic[] = readonly NativeResolverMechanic[],
-  TSchedulerMechanics extends readonly NativeSchedulerMechanic[] = readonly NativeSchedulerMechanic[],
   TPresentation extends object = object
 >(
-  definition: NativeModuleDefinition<
-    TId,
-    TSchedulerState,
-    TResolverState,
-    TProjectOptions,
-    TProjectedState,
-    THandlerContext,
-    TModifierEscape,
-    TCastRulesEscape,
-    TSchedulerHooksEscape,
-    TResolverHooksEscape,
-    TReactions,
-    TSchedulerMechanics,
-    TPresentation
-  >
-): NativeModule<
-  TId,
-  TSchedulerState,
-  TResolverState,
-  TProjectOptions,
-  TProjectedState,
-  THandlerContext,
-  TModifierEscape,
-  TCastRulesEscape,
-  TSchedulerHooksEscape,
-  TResolverHooksEscape,
-  TReactions,
-  TSchedulerMechanics,
-  TPresentation
-> {
+  definition: NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifierEscape, TPresentation>
+): NativeModule<TId, TState, TProjectOptions, TProjectedState, TModifierEscape, TPresentation> {
   assertNativeModuleDefinition(definition);
-  const execution = definition.mechanics?.execution;
   return Object.freeze({
     ...definition,
     kind: 'native-profession-module' as const,
@@ -179,10 +107,7 @@ export function defineNativeModule<
     mechanics: definition.mechanics
       ? Object.freeze({
           ...definition.mechanics,
-          execution: execution ? Object.freeze({ ...execution }) : undefined,
-          resolution: definition.mechanics.resolution
-            ? Object.freeze({ ...definition.mechanics.resolution })
-            : undefined
+          live: definition.mechanics.live ? Object.freeze({ ...definition.mechanics.live }) : undefined
         })
       : undefined,
     presentation:
@@ -194,114 +119,12 @@ export function defineNativeModule<
   });
 }
 
-function appendOrderedHook(
-  target: {
-    -readonly [K in NativeSchedulerMechanic['hook']]?: (ProfessionCastRuleDefinition &
-      ProfessionSchedulerHookDefinition)[K];
-  },
-  name: NativeSchedulerMechanic['hook'],
-  declaration: NativeSchedulerMechanic
-): void {
-  const existing = target[name];
-  target[name] = [
-    ...(existing == null ? [] : Array.isArray(existing) ? existing : [existing]),
-    {
-      id: declaration.id,
-      order: declaration.order,
-      handler: declaration.handler
-    }
-  ];
-}
-
 function compileNativeModule(
   module: AnyNativeModule,
   applicationCatalog: Readonly<CanonicalCatalog>,
-  fragment: Readonly<ProfessionModuleCatalogFragment>,
-  installAutoattackChainController = false,
-  autoattackChainOptions: Gw2AutoattackChainOptions = {}
+  fragment: Readonly<ProfessionModuleCatalogFragment>
 ): ProfessionModuleDefinition {
   const mechanics = module.mechanics || {};
-  const execution = mechanics.execution || {};
-  const resolution = mechanics.resolution || {};
-  const castRules: ProfessionCastRuleDefinition = { ...((execution.castRules || {}) as ProfessionCastRuleDefinition) };
-  const schedulerHooks: {
-    -readonly [K in keyof ProfessionSchedulerHookDefinition]: ProfessionSchedulerHookDefinition[K];
-  } = {
-    ...((execution.hooks || {}) as ProfessionSchedulerHookDefinition),
-    ...(execution.skillMechanicHandlers == null ? {} : { skillMechanicHandlers: execution.skillMechanicHandlers })
-  };
-  const availability = execution.availability;
-  const availabilityDeclarations: readonly NativeSchedulerMechanic[] =
-    availability == null ? [] : Array.isArray(availability) ? availability : [availability as NativeSchedulerMechanic];
-  // Availability gates casts; lifecycle mechanics execute only after the corresponding cast transition.
-  for (const declaration of [
-    ...availabilityDeclarations,
-    ...((execution.castLifecycle || []) as NativeSchedulerMechanic[])
-  ]) {
-    appendOrderedHook(declaration.hook === 'availability' ? castRules : schedulerHooks, declaration.hook, declaration);
-  }
-
-  // Core owns the shared chain controller; specialization modules only add scoped behavior.
-  if (installAutoattackChainController) {
-    const controller = createGw2AutoattackChainMechanics(autoattackChainOptions);
-    appendOrderedHook(castRules, 'availability', controller.availability as NativeSchedulerMechanic);
-    appendOrderedHook(schedulerHooks, 'afterCast', controller.castLifecycle as NativeSchedulerMechanic);
-  }
-
-  // Every native runtime includes Core; reject ineligible commands before profession state gates run.
-  if (module.id === 'Core') {
-    appendOrderedHook(castRules, 'availability', {
-      phase: 'scheduler',
-      hook: 'availability',
-      id: 'gw2.build-eligibility',
-      order: -2000,
-      handler(context: { readonly config: { readonly specialization?: string } }, skill: Skill) {
-        return isBuildSkillAvailable(skill, context.config)
-          ? CAST_READY
-          : denyCast('gw2.build-unavailable', `${skill.name} is unavailable for this build.`);
-      }
-    });
-  }
-
-  const resolverHooks = { ...((resolution.hooks || {}) as UnvalidatedFields) };
-  const reactions = {
-    ...((resolverHooks.eventReactions || {}) as UnvalidatedFields)
-  };
-  let requiresCriticalFacts = false;
-  for (const declaration of (resolution.reactions || []) as NativeResolvedReaction<
-    Gw2ResolverRuntime,
-    Gw2ResolverEvent,
-    object
-  >[]) {
-    requiresCriticalFacts ||= declaration.requiresCriticalFacts === true;
-    const existing = reactions[declaration.stage];
-    reactions[declaration.stage] = [
-      ...(existing == null ? [] : Array.isArray(existing) ? existing : [existing]),
-      {
-        id: declaration.id,
-        order: declaration.order,
-        handler: declaration.handler
-      }
-    ];
-  }
-
-  // Critical-hit reactions require the scheduler to materialize canonical critical facts first.
-  if (requiresCriticalFacts) {
-    const initialize = schedulerHooks.initialize;
-    schedulerHooks.initialize = [
-      ...(initialize == null ? [] : Array.isArray(initialize) ? initialize : [initialize]),
-      {
-        id: `${module.id}.resolved-critical-facts`,
-        order: -1000,
-        handler(context: UnvalidatedFields) {
-          const policy = context.schedulerPolicy as { requireCriticalFacts?: () => void } | undefined;
-          policy?.requireCriticalFacts?.();
-        }
-      }
-    ];
-  }
-
-  resolverHooks.eventReactions = reactions;
   const modifiers = Array.isArray(mechanics.modifiers) ? { modifierRules: mechanics.modifiers } : mechanics.modifiers;
   let compiledUi: Partial<ProfessionUiContract> | undefined;
   return {
@@ -309,15 +132,10 @@ function compileNativeModule(
     catalog: fragment,
     resources: {
       ...module.resources,
-      createProfessionState: module.state.scheduler as (config: Readonly<SchedulerConfig>) => UnvalidatedFields,
-      // Resolver state defaults to the scheduler state so simple modules share one state object.
-      createResolverState: module.state.resolver || module.state.scheduler,
+      createState: module.state.create as (config: Readonly<ProfessionConfig>) => UnvalidatedFields,
       ...(module.state.project == null ? {} : { projectPlanningState: module.state.project })
     },
     attributeRules: modifiers as ProfessionAttributeRuleDefinition | undefined,
-    castRules,
-    schedulerHooks,
-    resolverHooks,
     get ui() {
       if (compiledUi) return compiledUi;
       const presentation =
@@ -347,15 +165,15 @@ function compileNativeModule(
 export function defineNativeProfession<
   const TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
-  TSimulation extends Gw2SimulationDefinition = Gw2SimulationDefinition,
   TBuild extends Gw2Build = Gw2Build
 >(
-  definition: NativeProfessionDefinition<TModules, TPresentation, TSimulation, TBuild>
-): NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild> {
+  definition: NativeProfessionDefinition<TModules, TPresentation, TBuild>
+): NativeProfessionContract<TModules, TPresentation, TBuild> {
   if (!definition || typeof definition !== 'object') {
     throw new TypeError('A native profession definition is required.');
   }
 
+  validateAutoattackChainOptions(definition.autoattackChains ?? {});
   const modules = definition.modules as readonly AnyNativeModule[];
   for (const module of modules) assertNativeModuleDefinition(module);
   const assembly = getNativeCatalogAssembly(modules, definition.catalog);
@@ -366,13 +184,7 @@ export function defineNativeProfession<
     weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
     catalog: assembly.catalog,
     build: definition.build,
-    core: compileNativeModule(
-      core,
-      assembly.catalog,
-      assembly.fragments.get('Core')!,
-      true,
-      definition.autoattackChains
-    ),
+    core: compileNativeModule(core, assembly.catalog, assembly.fragments.get('Core')!),
     specializations: Object.fromEntries(
       modules
         .slice(1)
@@ -382,18 +194,175 @@ export function defineNativeProfession<
     ui: (typeof definition.presentation === 'function'
       ? definition.presentation(assembly.catalog)
       : definition.presentation) as Partial<ProfessionUiContract> | undefined,
-    simulation: definition.simulation
+    // Capacity previews read the live policies of modules that own their resources there; unmigrated selections keep
+    // their composed module declarations.
+    resourcesFor(specialization) {
+      const live = liveRuntimeFor({ specialization });
+      return {
+        ...(live.resources as ProfessionResourcePreview),
+        ...(live.endurance == null
+          ? {}
+          : { endurance: live.endurance as unknown as ProfessionResourcePreview['endurance'] })
+      };
+    }
   };
   const family = defineProfessionFamily<NativeProfessionRuntimeState<TModules>, TBuild>(engineDefinition);
+  type State = NativeProfessionRuntimeState<TModules>;
+  const liveRuntimes = new Map<string, RuntimeProfession<State>>();
+  /** Reuse catalog/modifier composition while installing only explicitly converted live mechanics. */
+  function liveRuntimeFor(config: Gw2Config): RuntimeProfession<State> {
+    const specialization = config.specialization ?? 'Core';
+    const cached = liveRuntimes.get(specialization);
+    if (cached) return cached;
+    const selected = [core, ...modules.slice(1).filter((module) => module.id === specialization)];
+    if (specialization !== 'Core' && selected.length !== 2)
+      throw new TypeError(`Unknown specialization: ${specialization}.`);
+    const source = family.resolveRuntime(config);
+    const hooks = selected.map((module) => module.mechanics?.live ?? {}) as Partial<RuntimeProfession<State>>[];
+    const merged = <K extends 'tasks' | 'eventHandlers'>(key: K): RuntimeProfession<State>[K] => {
+      const entries = hooks.flatMap((hook) => Object.entries(hook[key] ?? {}));
+      if (new Set(entries.map(([name]) => name)).size !== entries.length)
+        throw new TypeError(`Duplicate live ${key} owner.`);
+      return Object.fromEntries(entries) as RuntimeProfession<State>[K];
+    };
+
+    const stages = new Set(hooks.flatMap((hook) => Object.keys(hook.reactions ?? {}))) as Set<Gw2ResolverStage>;
+    const runtime: RuntimeProfession<State> = {
+      id: definition.id,
+      catalog: source.catalog,
+      projectPlanningState: source.projectPlanningState,
+      modifyAttributes: source.modifyAttributes,
+      modifyCriticalChance: source.modifyCriticalChance,
+      modifyCriticalDamage: source.modifyCriticalDamage,
+      modifyStrikeDamage: source.modifyStrikeDamage,
+      modifyConditionDamage: source.modifyConditionDamage,
+      modifyConditionDuration: source.modifyConditionDuration,
+      modifyConditionBaseDuration: source.modifyConditionBaseDuration,
+      createState: (initial) =>
+        composeStateFragments(
+          selected.map((module) => ({
+            name: module.id,
+            module: module.id === 'Core' ? engineDefinition.core : engineDefinition.specializations[module.id]
+          })),
+          initial
+        ) as State,
+      resources: Object.assign({}, ...hooks.map((hook) => hook.resources)),
+      endurance: [...hooks].reverse().find((hook) => hook.endurance)?.endurance,
+      autoattackChainOverrides: definition.autoattackChains?.overrides,
+      weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
+      initialize(context) {
+        for (const hook of hooks) hook.initialize?.(context);
+      },
+      availability(context, skill, command) {
+        // Build eligibility precedes profession mechanics, including transformed skill bars.
+        if (!isBuildSkillAvailable(skill, context.config))
+          return denyCast('gw2.build-unavailable', `${skill.name} is unavailable for this build.`);
+        let retryAt = context.time;
+        let blocked: ReturnType<NonNullable<RuntimeProfession<State>['availability']>> = { ready: true };
+        for (const hook of hooks) {
+          const result = hook.availability?.(context, skill, command);
+          if (result && !result.ready) {
+            if (result.retryAt == null) return result;
+            retryAt = Math.max(retryAt, result.retryAt);
+            blocked = { ...result, retryAt };
+          }
+        }
+
+        return blocked;
+      },
+      castDurationMs(context, skill, durationMs) {
+        for (const hook of hooks) durationMs = hook.castDurationMs?.(context, skill, durationMs) ?? durationMs;
+        return durationMs;
+      },
+      castDetail(context, cast) {
+        let detail: string | undefined;
+        for (const hook of hooks) detail = hook.castDetail?.(context, cast) ?? detail;
+        return detail;
+      },
+      modifySkillId(context, skillId) {
+        for (const hook of hooks) skillId = hook.modifySkillId?.(context, skillId) ?? skillId;
+        return skillId;
+      },
+      modifyComboFields(context, cast, fields) {
+        for (const hook of hooks) fields = hook.modifyComboFields?.(context, cast, fields) ?? fields;
+        return fields;
+      },
+      modifyEffects(context, cast, effects) {
+        for (const hook of hooks) effects = hook.modifyEffects?.(context, cast, effects) ?? effects;
+        return effects;
+      },
+      prepareEvent(context, event) {
+        for (const hook of hooks) {
+          const prepared = hook.prepareEvent ? hook.prepareEvent(context, event) : event;
+          if (prepared === null) return null;
+          event = prepared;
+        }
+
+        return event;
+      },
+      onCastStart(context: Gw2Runtime<State>, cast: RuntimeCast) {
+        for (const hook of hooks) hook.onCastStart?.(context, cast);
+      },
+      onCastComplete(context, cast) {
+        for (const hook of hooks) hook.onCastComplete?.(context, cast);
+      },
+      onAutoattackChainTransition(context, cast, result) {
+        for (const hook of hooks) hook.onAutoattackChainTransition?.(context, cast, result);
+      },
+      onCooldownReset(context) {
+        for (const hook of hooks) hook.onCooldownReset?.(context);
+      },
+      onCombatStart(context) {
+        for (const hook of hooks) hook.onCombatStart?.(context);
+      },
+      tasks: merged('tasks'),
+      eventHandlers: merged('eventHandlers'),
+      reactions: Object.fromEntries(
+        [...stages].map((stage) => [
+          stage,
+          (context: Gw2Runtime<State>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
+            let updates: Record<string, unknown> | undefined;
+            for (const hook of hooks) {
+              const result = hook.reactions?.[stage]?.(context, updates ? { ...event, ...updates } : event, details);
+              if (result) updates = { ...updates, ...result };
+            }
+
+            return updates;
+          }
+        ])
+      ),
+      rechargeWork(context, skill, work) {
+        // Core and specialization modifiers compose before the runtime reserves the selected work.
+        for (const hook of hooks) work = hook.rechargeWork?.(context, skill, work) ?? work;
+        return work;
+      },
+      rechargeStart(context, cast, at) {
+        for (const hook of hooks) at = hook.rechargeStart?.(context, cast, at) ?? at;
+        return at;
+      },
+      maximumAmmo(context, skill, maximum) {
+        // Selected modules adjust the same pool cap used by live acceptance and serial recharge.
+        for (const hook of hooks) maximum = hook.maximumAmmo?.(context, skill, maximum) ?? maximum;
+        return maximum;
+      },
+      reserveRecharge(context, skill, work) {
+        for (const hook of hooks) work = hook.reserveRecharge?.(context, skill, work) ?? work;
+        return work;
+      }
+    };
+    liveRuntimes.set(specialization, runtime);
+    return runtime;
+  }
 
   // Retain lazy application getters while exposing the immutable native compilation input.
   return Object.freeze(
     Object.defineProperties(
       {
         nativeDefinition: Object.freeze({ ...definition }),
+        liveRuntimeFor,
         specializationIds: Object.freeze(modules.slice(1).map((module) => module.id))
       },
       Object.getOwnPropertyDescriptors(family)
     )
-  ) as NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild>;
+  ) as NativeProfessionContract<TModules, TPresentation, TBuild>;
 }

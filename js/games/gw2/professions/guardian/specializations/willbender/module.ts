@@ -1,39 +1,22 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
-import { willbenderSkillHandlers } from '#gw2/professions/guardian/specializations/willbender/execution/virtues.js';
-import { willbenderEventHandlers } from '#gw2/professions/guardian/specializations/willbender/mechanics/virtue-effects.js';
-import {
-  willbenderAttributeRules,
-  willbenderSchedulerHooks,
-  willbenderSkillMechanicHandlers
-} from '#gw2/professions/guardian/specializations/willbender/mechanics/virtue-rules.js';
+import { willbenderAttributeRules } from '#gw2/professions/guardian/specializations/willbender/mechanics/virtue-rules.js';
+import { willbenderLiveMechanics } from '#gw2/professions/guardian/specializations/willbender/live.js';
 import { WILLBENDER_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/willbender/skills/index.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
+
 import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
 import { WILLBENDER_BALANCE_PROFILES } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 
+// One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const willbenderModule = defineNativeModule({
   id: 'Willbender',
   data: createGuardianModuleData('Willbender', {
     skillMechanics: WILLBENDER_SKILL_MECHANICS,
+
     balanceProfiles: WILLBENDER_BALANCE_PROFILES
   }),
-  state: {
-    // Scheduler and resolver each get their own independent instance of the same
-    // shape; they must not share a reference because the two phases run separately.
-    scheduler: willbenderState.create,
-    resolver: willbenderState.create
-  },
-  mechanics: {
-    modifiers: willbenderAttributeRules,
-    execution: {
-      skillHandlers: willbenderSkillHandlers,
-      skillMechanicHandlers: willbenderSkillMechanicHandlers,
-      hooks: willbenderSchedulerHooks
-    },
-    resolution: {
-      hooks: { eventHandlers: willbenderEventHandlers }
-    }
-  },
+  state: { create: willbenderState.create },
+  mechanics: { modifiers: willbenderAttributeRules, live: willbenderLiveMechanics },
   presentation: bindWillbenderUi
 });

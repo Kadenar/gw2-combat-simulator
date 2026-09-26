@@ -1,15 +1,13 @@
-import { EPSILON } from '#kernel/core/clock.js';
 /**
  * GW2-wide runtime ownership for autoattack-chain availability and state.
  * Native professions only declare narrow interruption overrides and optional
  * transition observers; this controller performs every live map mutation.
  */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { effectFirstAt } from '#gw2/platform/engine/effects/materializer.js';
 import { CAST_READY, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import { resolveAutoattackChainStep } from '#gw2/platform/engine/skills/autoattack-chains.js';
-import type { AvailabilityResult, CastContext, CastLifecycleContext } from '#gw2/platform/execution/types.js';
-import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { Skill, SkillId, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 
 interface AutoattackChainCoreState {
   readonly autoattackChains?: Record<string, SkillId>;
@@ -41,28 +39,8 @@ export interface AutoattackChainTransitionResult {
   readonly transitions: readonly AutoattackChainTransition[];
 }
 
-export interface AutoattackChainTransitionContext {
-  readonly cast: CastLifecycleContext;
-  readonly skill: Skill;
-  readonly result: AutoattackChainTransitionResult;
-}
-
 export interface Gw2AutoattackChainOptions {
   readonly overrides?: readonly AutoattackChainOverride[];
-  readonly onTransition?: (context: AutoattackChainTransitionContext) => void;
-}
-
-interface AutoattackChainHook {
-  readonly phase: 'scheduler';
-  readonly hook: 'availability' | 'afterCast';
-  readonly id: string;
-  readonly order: number;
-  readonly handler: (...args: never[]) => unknown;
-}
-
-export interface Gw2AutoattackChainMechanics {
-  readonly availability: AutoattackChainHook;
-  readonly castLifecycle: AutoattackChainHook;
 }
 
 /** Shows the expected chain step, accepting stored names or IDs and defaulting an unstarted chain to its root. */
@@ -125,7 +103,7 @@ function matchingOverride(
   return null;
 }
 
-function validateOptions(options: Gw2AutoattackChainOptions): void {
+export function validateAutoattackChainOptions(options: Gw2AutoattackChainOptions): void {
   const ids = new Set<string>();
   for (const override of options.overrides || []) {
     const id = String(override.id || '').trim();
@@ -143,55 +121,34 @@ function validateOptions(options: Gw2AutoattackChainOptions): void {
   }
 }
 
-function availability(context: CastContext, skill: Skill): AvailabilityResult {
+/** Both execution owners validate the same canonical chain map without changing its current step. */
+export function autoattackChainAvailability(
+  context: object,
+  catalog: Pick<CanonicalCatalog, 'autoattackChainPositions' | 'skillsById'>,
+  skill: Skill
+): AvailabilityResult {
   const chains = chainState(context);
   if (!chains) return CAST_READY;
-  const chain = resolveAutoattackChainStep(context.catalog.autoattackChainPositions, chains, skill.id);
+  const chain = resolveAutoattackChainStep(catalog.autoattackChainPositions, chains, skill.id);
   if (!chain || chain.matchesExpectedStep) return CAST_READY;
-  const expected = context.catalog.skillsById.get(chain.expectedSkillId);
+  const expected = catalog.skillsById.get(chain.expectedSkillId);
   return denyCast(
     'gw2.autoattack-chain',
     `${skill.name} is unavailable — cast ${expected?.name || 'the earlier chain skill'} first.`
   );
 }
 
-/** A player cast interrupts a pending chain only when its own damage lands no later than the cast's actual end. */
-function interruptsAutoattackChain(context: CastLifecycleContext, skill: Skill): boolean {
-  if (
-    context.action?.cancelled === true ||
-    skill.independentCast === true ||
-    context.fullEnd <= context.start + EPSILON
-  )
-    return false;
-  const emittedByCastEnd = context
-    .eventsOfType('damage')
-    .some(
-      (event) => event.activationId === context.reservationId && Number(event.at) <= context.effectiveEnd + EPSILON
-    );
-  if (emittedByCastEnd) return true;
-
-  // Replacing handlers can retain their profile until cast completion, so use
-  // that authored timing when no damage event exists yet.
-  return (skill.effects || []).some((effect) => {
-    if (effect.type !== 'strike') return false;
-    const timing = context.schedulerPolicy.effectTiming?.(context, skill, effect) ?? effect;
-    return effectFirstAt(context.start, context.fullEnd, timing) <= context.effectiveEnd + EPSILON;
-  });
-}
-
-function transition(
-  context: CastLifecycleContext,
+/** Mutates each pending root once from committed cast facts, independently of scheduling or combat-history queries. */
+export function advanceAutoattackChains(
+  context: object,
+  catalog: Pick<CanonicalCatalog, 'autoattackChainPositions'>,
   skill: Skill,
-  options: Gw2AutoattackChainOptions
+  committed: boolean,
+  interrupts: boolean,
+  overrides: readonly AutoattackChainOverride[] = []
 ): AutoattackChainTransitionResult {
   const chains = chainState(context);
-  // Interrupted packet-based autos advance only after a hit; an empty cast preserves its current step.
-  const committed =
-    context.action?.cancelled !== true &&
-    (skill.interruptMode !== 'per-packet' ||
-      context.action?.interrupted !== true ||
-      interruptsAutoattackChain(context, skill));
-  const position = context.catalog.autoattackChainPositions.get(Number(skill.id));
+  const position = catalog.autoattackChainPositions.get(Number(skill.id));
   const castChainRootId = position?.root ?? null;
   if (!chains) {
     return Object.freeze({ committed, castChainRootId, transitions: Object.freeze([]) });
@@ -210,10 +167,10 @@ function transition(
       chainRootId: root,
       interruptingSkill: skill
     };
-    const override = matchingOverride(options.overrides || [], overrideContext);
+    const override = matchingOverride(overrides, overrideContext);
     // Skill type is irrelevant: only a nonzero cast whose damage lands by cast end
     // interrupts the pending chain unless a profession declares a narrow exception.
-    const decision = override?.decision || (interruptsAutoattackChain(context, skill) ? 'reset' : 'preserve');
+    const decision = override?.decision || (interrupts ? 'reset' : 'preserve');
     if (decision === 'reset') delete chains[root];
     changes.push(
       Object.freeze({
@@ -240,35 +197,5 @@ function transition(
     committed,
     castChainRootId,
     transitions: Object.freeze(changes)
-  });
-}
-
-/** Creates the two hooks automatically installed on every native GW2 profession. */
-export function createGw2AutoattackChainMechanics(
-  options: Gw2AutoattackChainOptions = {}
-): Gw2AutoattackChainMechanics {
-  validateOptions(options);
-  const frozenOptions = Object.freeze({
-    ...options,
-    overrides: Object.freeze([...(options.overrides || [])])
-  });
-  return Object.freeze({
-    availability: Object.freeze({
-      phase: 'scheduler' as const,
-      hook: 'availability' as const,
-      id: 'gw2.autoattack-chain-availability',
-      order: -1000,
-      handler: availability as (...args: never[]) => AvailabilityResult
-    }),
-    castLifecycle: Object.freeze({
-      phase: 'scheduler' as const,
-      hook: 'afterCast' as const,
-      id: 'gw2.autoattack-chain-transition',
-      order: -1000,
-      handler: ((context: CastLifecycleContext, skill: Skill): void => {
-        const result = transition(context, skill, frozenOptions);
-        frozenOptions.onTransition?.({ cast: context, skill, result });
-      }) as (...args: never[]) => void
-    })
   });
 }

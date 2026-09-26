@@ -1,38 +1,22 @@
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 
-import {
-  REVENANT_LEGEND_IDS as LEGEND,
-  REVENANT_SKILL_IDS as ID,
-  REVENANT_TRAIT_IDS as TRAIT
-} from '#gw2/professions/revenant/data/ids.js';
-import { emitLegendInvocationProfile, emitLegendInvocationSkill } from '#gw2/professions/revenant/core/traits/index.js';
-import { revenantCombatActive } from '#gw2/professions/revenant/core/mechanics/legend-swap.js';
+import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState
 } from '#gw2/professions/revenant/core/traits/modifiers.js';
-import { completeVindicatorDodge } from '#gw2/professions/revenant/specializations/vindicator/mechanics/dodge.js';
-import { VINDICATOR_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/vindicator/profiles.js';
-import {
-  modifyVindicatorCastDuration,
-  modifyVindicatorRechargeDuration
-} from '#gw2/professions/revenant/specializations/vindicator/traits/index.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
-import type { RevenantSchedulerContext, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { grantProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
-import { revenantEndurance } from '#gw2/professions/revenant/core/mechanics/energy.js';
+import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 
 // 1e-9 tolerance prevents floating-point drift from falsely reporting endurance as "full" at max.
 function enduranceNotFull(context: Gw2ModifierContext): boolean {
   const state = revenantRuntimeCoreState(context);
-  const maximum = revenantEndurance.maximum(context);
+  const maximum = REVENANT_MAXIMUM_ENDURANCE;
   return maximum > 0 && Number(state.endurance || 0) < maximum - 1e-9;
 }
 
@@ -78,48 +62,7 @@ function modifyVindicatorAttributes(context: Gw2ModifierContext, attributes: Gw2
   return modified;
 }
 
-function observeVindicatorEvent(context: RevenantSchedulerContext, event: SimulationEvent): void {
-  if (event.type === 'revenant.state' && event.reason === 'dodge') {
-    // Landing-only Dodge inputs supply the strike-profile origin in the dodge state event.
-    const skill = context.catalog.skillsById.get(ID.DODGE) as RevenantSkill | undefined;
-    if (skill) completeVindicatorDodge(context, skill, event.at);
-    return;
-  }
-
-  if (event.type !== 'sigil_swap') return;
-  const coreState = professionCoreState(context);
-  // Invocation effects only fire when swapping INTO Alliance and within combat.
-  if (coreState.activeLegendId !== LEGEND.ALLIANCE || !revenantCombatActive(context, event.at)) {
-    return;
-  }
-
-  const swapSkill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
-  if (!swapSkill) return;
-  if (hasTrait(context.config, TRAIT.SPIRIT_BOON)) {
-    emitLegendInvocationProfile(context, VINDICATOR_BALANCE_PROFILE_IDS.spiritBoon, event.at, TRAIT.SPIRIT_BOON);
-  }
-
-  if (!hasTrait(context.config, TRAIT.SONG_OF_THE_MISTS)) return;
-  const song = context.catalog.skillsById.get(ID.CALL_OF_THE_ALLIANCE);
-  if (!song) return;
-  emitLegendInvocationSkill(context, ID.CALL_OF_THE_ALLIANCE, event.at, TRAIT.SONG_OF_THE_MISTS);
-  grantProfessionEndurance(context, Number(song.resourceGain || 0), event.at);
-}
-
 export const vindicatorAttributeRules = Object.freeze({
   modifierRules: vindicatorModifierRules,
   modifyAttributes: modifyVindicatorAttributes
-});
-
-export const vindicatorCastRules = Object.freeze({
-  modifyCastDuration: modifyVindicatorCastDuration,
-  modifyRechargeDuration: modifyVindicatorRechargeDuration
-});
-export const vindicatorSchedulerHooks = Object.freeze({
-  onEventScheduled: {
-    id: 'revenant.vindicator-dodge',
-    // Run specialization event effects after Core observes the scheduled event.
-    order: 20,
-    handler: observeVindicatorEvent
-  }
 });

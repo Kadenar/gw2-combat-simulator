@@ -1,5 +1,4 @@
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { EPSILON } from '#kernel/core/clock.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -11,104 +10,24 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
  * @fileoverview Implements shared Guardian virtue validation, activation and
  * refresh events, plus the reusable resolver-time Justice burning contract.
  */
-
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { emitGuardianEvent } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
-  GuardianCastContext,
   GuardianResolverContext,
   GuardianResolverEvent,
   GuardianSkill,
   GuardianVirtue
 } from '#gw2/professions/guardian/types.js';
-import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 
 const VIRTUES_BY_SLOT: readonly (GuardianVirtue | null)[] = Object.freeze([null, 'justice', 'resolve', 'courage']);
 
 /** Decodes the slot's trailing digit; each caller owns its skill eligibility checks. */
 export function guardianVirtueForSlot(slot: GuardianSkill['slot']): GuardianVirtue | null {
   return VIRTUES_BY_SLOT[Number(String(slot || '').match(/(\d)$/)?.[1] || 0)] || null;
-}
-
-/**
- * Activates the virtue represented by the skill's profession slot and emits
- * the neutral resolver transition decorated by active elite modules.
- */
-function activateVirtue(context: GuardianCastContext, skill: GuardianSkill): void {
-  const virtue = guardianVirtueForSlot(skill.slot);
-  if (!virtue) return;
-  const state = professionCoreState(context);
-  state.lastVirtuePassiveWasReady = Number(state.virtueReadyAt[virtue] || 0) <= context.effectiveEnd + EPSILON;
-  const passiveReadyAt = context.rechargeReadyAt ?? context.effectiveEnd;
-  emitGuardianEvent(context, skill, 'guardian.virtue-activated', {
-    virtue,
-    passiveReadyAt,
-    // Radiant Justice's activation-generated Sovereign and symbol packets hit
-    // before its passive is disabled, matching their EVTC ordering.
-    ...(skill.id === GUARDIAN_SKILL_IDS.RADIANT_JUSTICE ? { priority: 10 } : {})
-  });
-  state.virtueReadyAt[virtue] = passiveReadyAt;
-}
-
-/**
- * Clears all Guardian virtue cooldowns after Renewed Focus completes and emits
- * a resolver refresh event.
- */
-function renewedFocus(context: GuardianCastContext, skill: GuardianSkill): void {
-  if (castWasInterrupted(context)) return;
-  for (const virtue of context.catalog.skills.filter(
-    (candidate) => candidate.categories?.includes('Virtue') && /^Profession_[1-3]$/.test(String(candidate.slot || ''))
-  )) {
-    context.cooldownController.clear(virtue.id);
-    context.cooldownController.restoreAmmo(virtue, Number.POSITIVE_INFINITY, context.effectiveEnd, 'reset');
-  }
-
-  // Activation traits consult scheduler readiness before the resolver replays the refresh.
-  professionCoreState(context).virtueReadyAt = {
-    justice: context.effectiveEnd,
-    resolve: context.effectiveEnd,
-    courage: context.effectiveEnd
-  };
-  emitGuardianEvent(context, skill, 'guardian.virtues-refreshed');
-}
-
-/**
- * Raw virtue callbacks consumed by the central handler registry.
- */
-export const guardianVirtueSkillHandlers = Object.freeze({
-  'guardian.virtue': activateVirtue,
-  'guardian.renewed-focus': renewedFocus
-});
-
-/**
- * Replays a Core virtue activation into resolver state.
- */
-export function handleVirtueActivation(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  const virtue = event.virtue;
-  if (!virtue) return;
-  professionCoreState(context).virtueReadyAt[virtue] = Number(event.passiveReadyAt || event.at);
-  if (virtue === 'justice' && event.skillId === GUARDIAN_SKILL_IDS.JUSTICE) {
-    const justiceProfile = requireBalanceProfileFromContext(context, PROFILE.justice);
-    professionCoreState(context).justiceActiveArmed = Boolean(
-      requireEffect(justiceProfile, 'condition', 'Burning (active)')
-    );
-  }
-}
-
-/**
- * Marks all resolver-side virtue passives ready at the refresh timestamp.
- */
-export function handleVirtueRefresh(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  professionCoreState(context).virtueReadyAt = {
-    justice: event.at,
-    resolve: event.at,
-    courage: event.at
-  };
 }
 
 /**
@@ -143,6 +62,9 @@ function applyJusticeBurn(
       actorType: 'player',
       skillId,
       skillName,
+      // The burn belongs to the actual triggering hit, even when that hit came from a delayed activation.
+      activationId: event.activationId,
+      causalOrder: event.causalOrder ?? event.eventOrder,
       name: `${skillName} — ${active ? 'Active' : 'Passive'} Burning`,
       condition: String(burn.condition),
       stacks: effectNumber(justiceProfile, burn, 'stacks'),

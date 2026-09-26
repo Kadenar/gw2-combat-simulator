@@ -1,13 +1,7 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
-import { amalgamSkillHandlers } from '#gw2/professions/engineer/specializations/amalgam/execution/index.js';
-import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
-import {
-  amalgamAttributeRules,
-  amalgamCastRules,
-  amalgamSchedulerHooks
-} from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-rules.js';
+import { amalgamAttributeRules } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-rules.js';
+import { amalgamLive } from '#gw2/professions/engineer/specializations/amalgam/live.js';
 import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { AMALGAM_BALANCE_PROFILES } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
@@ -21,22 +15,10 @@ export const amalgamModule = defineNativeModule({
     skillMechanics: AMALGAM_SKILL_MECHANICS,
     balanceProfiles: AMALGAM_BALANCE_PROFILES
   }),
-  state: { scheduler: amalgamState.create, resolver: amalgamState.create },
+  state: { create: amalgamState.create },
   mechanics: {
     modifiers: amalgamAttributeRules,
-    execution: {
-      skillHandlers: amalgamSkillHandlers,
-      castRules: amalgamCastRules,
-      hooks: amalgamSchedulerHooks
-    },
-    resolution: {
-      reactions: [
-        onResolvedDamage({
-          id: 'engineer.amalgam.damage',
-          handler: amalgamResolverEventReactions.damage
-        })
-      ]
-    }
+    live: amalgamLive
   },
   presentation: bindAmalgamUi
 });

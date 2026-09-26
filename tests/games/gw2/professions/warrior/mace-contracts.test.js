@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 
-const simulate = createProfessionSimulator(warriorProfession, { primaryWeapon: 'Mace', stats: {}, target: {} });
+const simulate = createLiveProfessionSimulator(warriorProfession, { primaryWeapon: 'Mace', stats: {}, target: {} });
 
 test('Counterblow arms one temporary Tactical Blow without dealing damage or granting adrenaline', () => {
   // The block reserves a single follow-up inside its original channel window.

@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 
 import { warriorAppAdapter } from '#gw2/professions/warrior/app/app-definition.js';
 import { migrateWarriorBuild } from '#gw2/professions/warrior/build/build.js';
-import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
+import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { strikeEffectTicks, conditionEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
@@ -28,7 +29,12 @@ test('Warrior leaps retain fire fields that expire during travel', async () => {
     });
     const app = { build, skillByName: warriorCatalog.skillsByName, attributeWeaponSet: 1 };
     warriorAppAdapter.recalculate(app);
-    const result = warriorAppAdapter.runSimulation(app);
+    const config = warriorAppAdapter.simulationConfig(app);
+    const result = runGw2Runtime({
+      profession: warriorProfession.liveRuntimeFor(config),
+      config,
+      rotation: app.build.rotation
+    });
     const aura = result.resolvedEvents.find((event) => event.type === 'aura' && event.skillName === leap);
     assert.deepEqual(result.warnings, []);
     assert.ok(aura);
@@ -227,13 +233,17 @@ test('Fan of Fire keeps only cast-time skills behind its retained aftercast', as
   };
 
   warriorAppAdapter.recalculate(app);
-  const result = warriorAppAdapter.runSimulation(app);
+  const config = warriorAppAdapter.simulationConfig(app);
+  const result = runGw2Runtime({
+    profession: warriorProfession.liveRuntimeFor(config),
+    config,
+    rotation: app.build.rotation
+  });
   const action = (name) => result.events.find((event) => event.type === 'action' && event.skillName === name);
   const fan = action('Fan of Fire');
 
   assert.deepEqual(result.warnings, []);
   assert.equal(fan.endsAt, 0.24);
-  assert.equal(fan.castLockoutEndsAt, 0.56);
   assert.equal(action('Outrage').at, 0.24);
   assert.equal(action('Swap Weapons').at, 0.24);
   assert.equal(action('Flames of War').at, 0.56);
@@ -278,12 +288,21 @@ test('Combustive Shot scales its pulses and field with adrenaline', async () => 
     };
 
     warriorAppAdapter.recalculate(app);
-    const result = warriorAppAdapter.runSimulation(app);
+    const config = warriorAppAdapter.simulationConfig(app);
+    const result = runGw2Runtime({
+      profession: warriorProfession.liveRuntimeFor(config),
+      config,
+      rotation: app.build.rotation
+    });
 
     assert.deepEqual(result.warnings, []);
     const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.COMBUSTIVE_SHOT);
 
-    assert.equal(action.burstTier, tier);
+    assert.equal(
+      result.events.find((event) => event.type === 'damage' && event.skillId === ID.COMBUSTIVE_SHOT).metadata
+        .warriorBurstTier,
+      tier
+    );
     assert.equal(action.comboFields[0].duration, tier * 3);
     assert.deepEqual(
       result.events
@@ -331,8 +350,13 @@ test('a primal-burst critical hit grants an aura that detonates no earlier than 
   };
 
   warriorAppAdapter.recalculate(app);
-  const result = warriorAppAdapter.runSimulation(app);
-  const criticalHit = result.events.find(
+  const config = warriorAppAdapter.simulationConfig(app);
+  const result = runGw2Runtime({
+    profession: warriorProfession.liveRuntimeFor(config),
+    config,
+    rotation: app.build.rotation
+  });
+  const criticalHit = result.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillId === ID.SCORCHED_EARTH && event.didCrit
   );
   const kingProc = result.procSteps.find((proc) => proc.type === 'trait_proc' && proc.skill === 'King of Fires');
@@ -359,7 +383,12 @@ test('a final persistent Berserker packet does not extend the rotation horizon',
   };
 
   warriorAppAdapter.recalculate(app);
-  const result = warriorAppAdapter.runSimulation(app);
+  const config = warriorAppAdapter.simulationConfig(app);
+  const result = runGw2Runtime({
+    profession: warriorProfession.liveRuntimeFor(config),
+    config,
+    rotation: app.build.rotation
+  });
   const kingProc = result.procSteps.find((proc) => proc.type === 'trait_proc' && proc.skill === 'King of Fires');
 
   assert.deepEqual(result.warnings, []);

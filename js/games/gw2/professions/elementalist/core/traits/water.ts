@@ -1,3 +1,4 @@
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /** Imperative Water trait behavior; post-cast ordering stays in the trait dispatcher. */
 import {
   requireBalanceProfileFromContext,
@@ -8,19 +9,20 @@ import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistCastContext as ElementalistLifecycleContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { emitProfiledBuff } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
 /** Applies Soothing Ice's Frost Aura and regeneration from an eligible healing skill. */
 export function applySoothingIce(
-  context: ElementalistLifecycleContext,
+  context: ElementalistRuntime,
+  cast: RuntimeCast,
   skill: Skill,
   applyAura: ElementalistAuraApplier
 ): void {
   const state = professionCoreState(context);
-  const at = context.effectiveEnd;
+  const at = cast.effectiveEnd;
   if (!hasTrait(context, 'Soothing Ice')) {
     return;
   }

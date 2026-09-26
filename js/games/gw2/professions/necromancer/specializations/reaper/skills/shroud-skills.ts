@@ -51,9 +51,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     slot: 'Weapon_3',
     shroud: 'reaper',
     shroudSlot: 3,
-    specialization: 'Reaper',
-    // Custom: Arms or consumes the skill's timed follow-up flip; see `core/execution/index.ts`.
-    handlerId: 'necromancer.flip'
+    specialization: 'Reaper'
   },
   [ID.LIFE_REAP]: {
     interruptCommitMs: 360,
@@ -158,8 +156,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     shroudProfileId: PROFILE.resources,
     minimumShroudLifeForcePercent: 10,
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'necromancer.shroud'
+    inputCategory: 'bar-swap'
   },
   [ID.DEATHS_CHARGE]: {
     castTimeMs: 1200,
@@ -199,7 +196,6 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     specialization: 'Reaper',
     shroudExit: 'reaper',
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'necromancer.shroud'
+    inputCategory: 'bar-swap'
   }
 });

@@ -18,14 +18,10 @@ import {
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
-import { necromancerCastRules } from '#gw2/professions/necromancer/core/mechanics/availability.js';
+
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type {
-  NecromancerSkillModifierContext,
-  NecromancerSkill,
-  NecromancerState
-} from '#gw2/professions/necromancer/types.js';
+import type { NecromancerSkill, NecromancerState } from '#gw2/professions/necromancer/types.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 
 /** Reads Core Necromancer state from a resolver-side modifier context. */
@@ -306,28 +302,6 @@ const necromancerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
-/** Applies Core skill-family recharge traits while preserving minion-death recharge exceptions. */
-function modifyNecromancerCoreRechargeDuration(context: NecromancerSkillModifierContext, duration: number): number {
-  let result = duration;
-  const skill = context.skill;
-  if (skill?.rechargeOnMinionDeath && !context.minionDeathRecharge) return 0;
-  if (skill?.categories?.includes('Corruption') && hasTrait(context, TRAIT.MASTER_OF_CORRUPTION)) {
-    result *= balanceProfileNumber(
-      requireBalanceProfileFromContext(context, TRAIT.MASTER_OF_CORRUPTION),
-      'rechargeMultiplier'
-    );
-  }
-
-  if ((skill?.shroud || skill?.handlerId === 'necromancer.shade') && hasTrait(context, TRAIT.SINISTER_SHROUD)) {
-    result *= balanceProfileNumber(
-      requireBalanceProfileFromContext(context, PROFILE.sinisterShroud),
-      'rechargeMultiplier'
-    );
-  }
-
-  return result;
-}
-
 /** Extends eligible scepter condition base durations for Lingering Curse. */
 function modifyNecromancerConditionBaseDuration(context: Gw2ModifierContext, duration: number): number {
   return necromancerEventSkill(context)?.weapon === 'Scepter' &&
@@ -339,7 +313,7 @@ function modifyNecromancerConditionBaseDuration(context: Gw2ModifierContext, dur
 }
 
 /** Aligns Isolate's recharge start to the cast progress where its flip activates. */
-function modifyNecromancerRechargeStart(
+export function modifyNecromancerRechargeStart(
   context: {
     readonly skill?: NecromancerSkill;
     readonly start: number;
@@ -357,10 +331,4 @@ export const necromancerCoreAttributeRules = Object.freeze({
   modifyConditionBaseDuration: modifyNecromancerConditionBaseDuration,
   modifierRules: necromancerCoreModifierRules,
   compileModifierRules: compileGw2ModifierRules
-});
-
-export const necromancerCoreCastRules = Object.freeze({
-  ...necromancerCastRules,
-  modifyRechargeDuration: modifyNecromancerCoreRechargeDuration,
-  modifyRechargeStart: modifyNecromancerRechargeStart
 });

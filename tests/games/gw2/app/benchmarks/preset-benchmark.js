@@ -18,7 +18,10 @@ export function relativeError(actual, expected) {
   return Math.abs(actual / expected - 1);
 }
 
-export async function assertManifestRegressions(professionId) {
+export async function assertManifestRegressions(
+  professionId,
+  simulate = (adapter, rotation, config) => adapter.simulateBuild(rotation, config)
+) {
   const manifest = JSON.parse(await readFile(repoUrl(`data/gw2/builds/${professionId}/manifest.json`), 'utf8'));
   const adapter = await loadProfessionAppAdapter(professionId);
 
@@ -72,7 +75,8 @@ export async function assertManifestRegressions(professionId) {
       const config = adapter.simulationConfig(app);
       // Build-only presets still exercise loading and configuration without inventing a benchmark rotation.
       if (!preset.rotation) continue;
-      const result = adapter.simulateBuild(build.rotation, config);
+      // A migrated family's test supplies its live entry while sharing the unchanged loading and DPS gates.
+      const result = simulate(adapter, build.rotation, config);
       const dpsError = relativeError(result.dps, preset.benchmarkDps);
 
       if (result.warnings.length) unexpectedWarnings.push({ label, warnings: result.warnings });

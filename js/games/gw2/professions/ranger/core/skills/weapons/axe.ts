@@ -82,19 +82,14 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       }
     ]),
     castTimeMs: 520,
-    // Custom: Arms the Winter's Bite follow-up state; see `core/execution/index.ts`.
-    handlerId: 'ranger.winters-bite',
+    // Custom: Arms the Winter's Bite follow-up state; see `core/live.ts`.
+
     missileHits: 1
   },
   [ID.PATH_OF_SCARS]: {
     interruptCommitMs: 360,
     // Both range variants share the same weapon-slot recharge after completion.
-    mechanicTriggers: [
-      {
-        type: 'ranger.core.sync-path-of-scars-cooldown',
-        timingAnchor: 'castEnd'
-      }
-    ],
+
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
@@ -173,12 +168,7 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 15,
     missileHits: 2,
     // Both range variants share the same weapon-slot recharge after completion.
-    mechanicTriggers: [
-      {
-        type: 'ranger.core.sync-path-of-scars-cooldown',
-        timingAnchor: 'castEnd'
-      }
-    ],
+
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {

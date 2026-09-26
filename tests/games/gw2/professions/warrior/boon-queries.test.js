@@ -1,3 +1,5 @@
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -8,8 +10,6 @@ import {
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { modifyWarriorArmsAttributes, warriorArmsModifierRules } from '#gw2/professions/warrior/core/traits/arms.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { createBladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import { bladeswornSkillMechanicHandlers } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger.js';
 import { bladeswornAttributeRules } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger-rules.js';
 
 // Warrior's modifiers share duration semantics without gaining visibility into future timeline applications.
@@ -46,76 +46,59 @@ test('Warrior Fury modifiers and boon counts survive individual packet expiry', 
   assert.equal(warriorBoonActive(context, 'fury'), false);
 });
 
-test('Flow Stabilizer reads accumulated pre-cast Fury and excludes its own activation', () => {
-  const events = [0, 1].map((at) => ({
-    type: 'buff',
-    kind: 'fury',
-    at,
-    duration: 5,
-    stacks: 1,
-    activationId: `prior-${at}`,
-    resolvedAudience: { includesSelf: true }
-  }));
-  const state = createBladeswornState();
-  const context = {
-    // Window state now reads the same selected skill packet as the status emitter.
-    catalog: warriorCatalog,
-    config: {},
-    events,
-    state: { profession: { core: {}, specialization: { kind: 'Bladesworn', state } } }
+// Sample the real boon pool before the cast emits its own Fury application.
+function stabilizedFlow(at, applications) {
+  const config = {
+    specialization: 'Bladesworn',
+    initialResource: 0,
+    selectedTraitIds: [],
+    selectedSkills: ['Flow Stabilizer']
   };
-  const invoke = () =>
-    bladeswornSkillMechanicHandlers['warrior.bladesworn.flow-stabilizer']({
-      context,
-      skill: warriorCatalog.skillsById.get(ID.FLOW_STABILIZER),
-      at: 7,
-      castStart: 7,
-      activationId: 'current'
-    });
-  invoke();
-  assert.equal(state.flow, 15);
-  state.flow = 0;
-  events[1].activationId = 'current';
-  invoke();
-  assert.equal(state.flow, 0);
-  events[1].activationId = 'prior-1';
-  events[1].resolvedAudience.includesSelf = false;
-  invoke();
-  assert.equal(state.flow, 0);
+  const profession = warriorProfession.liveRuntimeFor(config);
+  const result = observeGw2Runtime({
+    profession: {
+      ...profession,
+      initialize(runtime) {
+        profession.initialize?.(runtime);
+        for (const application of applications)
+          runtime.emit({
+            type: 'buff',
+            kind: 'fury',
+            duration: 5,
+            stacks: 1,
+            source: 'fixture',
+            sourceId: 'fixture',
+            actorType: 'player',
+            ...application
+          });
+      }
+    },
+    config,
+    rotation: [{ type: 'wait', durationMs: at * 1000 }, ID.FLOW_STABILIZER]
+  });
+  assert.deepEqual(result.warnings, []);
+  return runtimeFor(result).profession.specialization.state.flow;
+}
+
+test('Flow Stabilizer reads accumulated self Fury and excludes its own activation', () => {
+  const prior = [0, 1].map((at) => ({ at, activationId: 'prior-' + at }));
+  assert.equal(stabilizedFlow(7, prior), 15);
+  assert.equal(stabilizedFlow(7, []), 0);
+  assert.equal(
+    stabilizedFlow(7, [prior[0], { ...prior[1], audience: { recipients: 'party', affectsSelf: false } }]),
+    0
+  );
 });
 
-// Fury is sampled at the cast instant: neither imminent expiry nor a future application may shift that decision.
+// Neither a future application nor an expired pooled boon can grant the conditional resource.
 test('Flow Stabilizer uses exact Fury application and expiry boundaries', () => {
-  for (const [castStart, expectedFlow] of [
+  for (const [at, expected] of [
     [0.999999, 0],
     [1, 15],
     [1.999999, 15],
     [2, 0]
   ]) {
-    const state = createBladeswornState();
-    bladeswornSkillMechanicHandlers['warrior.bladesworn.flow-stabilizer']({
-      skill: warriorCatalog.skillsById.get(ID.FLOW_STABILIZER),
-      context: {
-        catalog: warriorCatalog,
-        config: {},
-        events: [
-          {
-            type: 'buff',
-            kind: 'fury',
-            at: 1,
-            duration: 1,
-            stacks: 1,
-            activationId: 'prior',
-            resolvedAudience: { includesSelf: true }
-          }
-        ],
-        state: { profession: { core: {}, specialization: { kind: 'Bladesworn', state } } }
-      },
-      at: castStart,
-      castStart,
-      activationId: 'current'
-    });
-    assert.equal(state.flow, expectedFlow, `cast at ${castStart}`);
+    assert.equal(stabilizedFlow(at, [{ at: 1, duration: 1, activationId: 'prior' }]), expected, 'cast at ' + at);
   }
 });
 

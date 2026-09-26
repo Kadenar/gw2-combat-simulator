@@ -1,4 +1,3 @@
-import { EPSILON } from '#kernel/core/clock.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
@@ -8,6 +7,7 @@ import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   eventSkill,
   hasSelectedSkill,
@@ -18,10 +18,9 @@ import {
   targetHealthFraction
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { thiefCoreCastAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
-import type { ThiefPrecastContext, ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
+import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 
@@ -41,9 +40,10 @@ export function modifyThiefLifeSiphon(context: ThiefResolverContext, event: Thie
 
   const state = readProfessionCoreState<ThiefCoreState>(context.profession);
   const leadAttacksProfile = requireBalanceProfileFromContext(context, PROFILE.leadAttacks);
+  // Stacks expire individually, so the siphon counts those active at its own impact.
   const stacks = Math.min(
     balanceProfileNumber(leadAttacksProfile, 'maximumStacks'),
-    Number(state.leadAttacksStacks || 0)
+    activeStackCount(state.leadAttackExpirations || [], event.at)
   );
   return {
     flatStrikeMultiplier:
@@ -151,9 +151,12 @@ export const thiefCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       maximumStacks: 15,
       damagePerStack: 0.01
     } as Readonly<Record<string, number>>,
+    // Stacks expire individually, so strikes and condition ticks count those active at their own instant.
     amount: (context, _target, parameters) =>
-      Math.min(parameters.maximumStacks, Number(thiefRuntimeState(context).leadAttacksStacks || 0)) *
-      parameters.damagePerStack,
+      Math.min(
+        parameters.maximumStacks,
+        activeStackCount(thiefRuntimeState(context).leadAttackExpirations || [], context.time)
+      ) * parameters.damagePerStack,
     when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.LEAD_ATTACKS)
   },
   {
@@ -303,40 +306,4 @@ export const thiefCoreAttributeRules = Object.freeze({
   modifyAttributes: modifyThiefCoreAttributes,
   modifierRules: thiefCoreModifierRules,
   compileModifierRules: compileGw2ModifierRules
-});
-
-function modifyThiefCoreRechargeDuration(context: ThiefPrecastContext, duration: number): number {
-  const skill = context.skill;
-  const readyAt = Number(context.state.cooldowns.get(skill.id) || 0);
-  if (skill.usableWhileRecharging === true && readyAt > context.start + EPSILON) {
-    return 0;
-  }
-
-  let result = duration;
-  if (skill.stealTraitSkill) {
-    const leadAttacks = hasTrait(context.config, TRAIT.LEAD_ATTACKS);
-    const sleightOfHand = hasTrait(context.config, TRAIT.SLEIGHT_OF_HAND);
-    const leadAttacksProfile = requireBalanceProfileFromContext(context, PROFILE.leadAttacks);
-    const leadMultiplier = balanceProfileNumber(leadAttacksProfile, 'rechargeMultiplier');
-    const sleightOfHandProfile = requireBalanceProfileFromContext(context, PROFILE.sleightOfHand);
-    const sleightMultiplier = balanceProfileNumber(sleightOfHandProfile, 'rechargeMultiplier');
-    if (skill.stealRechargeMode === 'additive') {
-      // Skills can own an additive exception while the base traits remain shared.
-      result *= 1 - Number(leadAttacks) * (1 - leadMultiplier) - Number(sleightOfHand) * (1 - sleightMultiplier);
-    } else {
-      if (leadAttacks) result *= leadMultiplier;
-      if (sleightOfHand) result *= sleightMultiplier;
-    }
-  }
-
-  return result;
-}
-
-export const thiefCoreCastRules = Object.freeze({
-  availability: {
-    id: 'thief.core-availability',
-    order: 10,
-    handler: thiefCoreCastAvailability
-  },
-  modifyRechargeDuration: modifyThiefCoreRechargeDuration
 });

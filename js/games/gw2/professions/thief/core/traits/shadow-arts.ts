@@ -5,60 +5,15 @@ import {
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { ThiefCastContext, ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
+import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 
 const VENOM_SKILL_IDS = new Set<number>([ID.SPIDER_VENOM, ID.SKALE_VENOM, ID.DEVOURER_VENOM]);
-
-/** Applies Shadow Arts effects without owning the base venom packet that triggers them. */
-export function applyHiddenThief(context: ThiefCastContext, at: number): void {
-  if (!hasTrait(context.config, TRAIT.HIDDEN_THIEF)) return;
-  const state = professionCoreState(context);
-
-  const hiddenThiefProfile = requireBalanceProfileFromContext(context, PROFILE.hiddenThief);
-  const blindness = requireEffect(hiddenThiefProfile, 'condition', 'Blindness');
-  const weakness = requireEffect(hiddenThiefProfile, 'condition', 'Weakness');
-  // Claim this owner's ICD before effects or resource snapshots can re-enter the trait.
-  if (
-    !tryConsumeProcCooldown(
-      state.traitProcReadyAt,
-      TRAIT.HIDDEN_THIEF,
-      at,
-      balanceProfileNumber(hiddenThiefProfile, 'internalCooldown')
-    )
-  )
-    return;
-  if (blindness)
-    emitSkillCondition(context, {
-      at,
-      source: 'Trait',
-      skillId: context.skill?.id ?? null,
-      skillName: context.skill?.name ?? null,
-      condition: 'Blindness',
-      duration: effectNumber(hiddenThiefProfile, blindness, 'duration'),
-      stacks: effectNumber(hiddenThiefProfile, blindness, 'stacks'),
-      sourceId: TRAIT.HIDDEN_THIEF,
-      name: 'Hidden Thief - Blindness'
-    });
-  if (weakness)
-    emitSkillCondition(context, {
-      at,
-      source: 'Trait',
-      skillId: context.skill?.id ?? null,
-      skillName: context.skill?.name ?? null,
-      condition: 'Weakness',
-      duration: effectNumber(hiddenThiefProfile, weakness, 'duration'),
-      stacks: effectNumber(hiddenThiefProfile, weakness, 'stacks'),
-      sourceId: TRAIT.HIDDEN_THIEF,
-      name: 'Hidden Thief - Weakness'
-    });
-}
 
 function enqueueSiphon(
   context: ThiefResolverContext,
@@ -114,7 +69,7 @@ export function applyAlliedLeechingVenoms(context: ThiefResolverContext, applica
   applyLeechingVenoms(context, application);
 }
 
-/** Claims the resolver-owned ICD only for eligible stealth strikes before queuing the siphon. */
+/** Claims the trait's ICD only for eligible stealth strikes before queuing the siphon. */
 export function applyShadowSiphoning(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (
     event.actorType !== 'player' ||

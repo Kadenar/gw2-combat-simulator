@@ -1,51 +1,17 @@
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 
-import type { WarriorSchedulerContext } from '#gw2/professions/warrior/types.js';
-import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
-import {
-  refrains,
-  applyParagonWeaponSwapTraits,
-  beginParagonCast,
-  commandEchoes,
-  observeParagonEvent,
-  updateParagonCast
-} from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-commands.js';
-
-export const paragonSchedulerHooks = Object.freeze({
-  // Paragon adds its specialization trait without owning the base swap.
-  onWeaponSwap: applyParagonWeaponSwapTraits,
-  // Keep Core's three-bar adrenaline pool; each chant or burst still spends one bar.
-  initialize: (context: WarriorSchedulerContext) => {
-    const state = paragonState.from(context);
-    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-    state.maximumMotivation = balanceProfileNumber(resourcesProfile, 'maximumStacks');
-    state.motivation = Math.min(state.maximumMotivation, state.motivation);
-  },
-  onCastStart: beginParagonCast,
-  afterCast: {
-    id: 'warrior.paragon-motivation',
-    order: 20,
-    handler: updateParagonCast
-  },
-  onEventScheduled: {
-    id: 'warrior.paragon-call-to-action',
-    order: 20,
-    handler: observeParagonEvent
-  },
-  taskHandlers: { ...commandEchoes.taskHandlers, ...refrains.taskHandlers }
-});
 
 function paragonRuntimeState(context: Gw2ModifierContext): {
   motivation?: number;

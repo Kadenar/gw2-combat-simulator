@@ -78,8 +78,41 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
   const director = skillType === 'Heal';
   const relicName = director ? 'Director' : 'Mount Balrior';
   const name = director ? 'Relic of the Director' : 'Relic of Mount Balrior';
+  function activate(ctx: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) {
+    const at = event.at;
+    (state.activationTimes as number[]).push(at);
+    ctx.recordProc('relic', name, at, event.skillName, 'activated', '', null, at + 6);
+    if (director) {
+      ctx.queue.enqueue({
+        type: 'condition',
+        at,
+        source: 'Relic',
+        sourceId: 'relic.director',
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillName: name,
+        name,
+        triggeredBy: event.skillName,
+        offTarget: Boolean(event.offTarget),
+        condition: 'Vulnerability',
+        stacks: 8,
+        duration: 8
+      });
+    }
+  }
+
   return defineRelic({
-    createState: () => ({ activationTimes: [] }),
+    createState: () => ({ activationTimes: [], readyAt: -Infinity }),
+    activate,
+    completed(ctx, state, event) {
+      if (event.skillType !== skillType || event.cancelled || !isGw2PlayerActorEvent(event)) return;
+      // The runtime supplies completion time and whether the marker has executed; pending casts cannot activate buffs.
+      const precombat = event.precombat === true;
+      if (precombat ? !ctx.config.precastRelics?.includes(relicName) : ctx.config.relic !== relicName) return;
+      if (!isInternalCooldownReady(event.at, state.readyAt)) return;
+      state.readyAt = event.at + (director ? 15 : 30);
+      ctx.queue.enqueue({ ...event, type: 'relic.activate', sourceId: relicName, at: event.at + (director ? 0 : 1) });
+    },
     timeline(ctx, state, events, rotationEndTime) {
       const activationTimes = state.activationTimes as number[];
       activationTimes.length = 0;
@@ -104,25 +137,7 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
         readyAt = completedAt + (director ? 15 : 30);
         // Balrior assumes the player remains in its area, which appears one second after using the elite.
         const at = completedAt + (director ? 0 : 1);
-        activationTimes.push(at);
-        ctx.recordProc('relic', name, at, cast.skillName, 'activated', '', null, at + 6);
-        if (director) {
-          ctx.queue.enqueue({
-            type: 'condition',
-            at,
-            source: 'Relic',
-            sourceId: 'relic.director',
-            actorType: 'effect',
-            ownerActorType: 'player',
-            skillName: name,
-            name,
-            triggeredBy: cast.skillName,
-            offTarget: Boolean(cast.offTarget),
-            condition: 'Vulnerability',
-            stacks: 8,
-            duration: 8
-          });
-        }
+        activate(ctx, state, { ...cast, at });
       }
     },
     strikeMultiplier(ctx, state, event) {

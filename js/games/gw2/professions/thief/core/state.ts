@@ -29,7 +29,6 @@ export interface ThiefCoreState {
   endurance: number;
 
   enduranceUpdatedAt: number;
-  leadAttacksStacks: number;
   leadAttackExpirations: number[];
   fluidStrikesUntil: number;
   quickPocketsReadyAt: number;
@@ -40,7 +39,6 @@ export interface ThiefCoreState {
   spinningAxeExpirations: number[];
   venomChargeBatches: ChargePool['grants'];
   venomAllyLastProcAt: Record<string, number>;
-  venomGeneration: number;
   activeThievesGuild: ThievesGuildState | null;
   assassinsSignetActiveUntil: number;
   assassinsSignetPassiveDisabledUntil: number;
@@ -48,6 +46,12 @@ export interface ThiefCoreState {
   autoattackChains: Record<string, SkillId>;
   traitProcProgress: Record<string, number>;
   traitProcReadyAt: Record<string, number>;
+  /** The pending Infiltrator's Signet pulse instant; earlier queued pulses retire themselves. */
+  infiltratorsSignetPulseAt: number | null;
+  /** The instant a landed strike last broke stealth, claimable by one same-instant stealth attack. */
+  strikeBrokeStealthAt: number | null;
+  /** The pending scepter continuation expiry; a newer chain step replaces it. */
+  scepterChainExpiresAt: number | null;
 }
 
 export function selectedThiefTraits(config: ThiefConfig = {}): Set<string | number> {
@@ -77,7 +81,6 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     endurance: 100,
 
     enduranceUpdatedAt: 0,
-    leadAttacksStacks: 0,
     leadAttackExpirations: [],
     fluidStrikesUntil: 0,
     quickPocketsReadyAt: 0,
@@ -88,14 +91,16 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     spinningAxeExpirations: [],
     venomChargeBatches: {},
     venomAllyLastProcAt: {},
-    venomGeneration: 0,
     activeThievesGuild: null,
     assassinsSignetActiveUntil: 0,
     assassinsSignetPassiveDisabledUntil: 0,
     availableFlips: {},
     autoattackChains: {},
     traitProcProgress: {},
-    traitProcReadyAt: {}
+    traitProcReadyAt: {},
+    infiltratorsSignetPulseAt: null,
+    strikeBrokeStealthAt: null,
+    scepterChainExpiresAt: null
   };
 }
 
@@ -111,7 +116,7 @@ const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[] = Obje
   'kneeling',
   'endurance',
 
-  'leadAttacksStacks',
+  'leadAttackExpirations',
   'fluidStrikesUntil',
   'quickPocketsReadyAt',
   'spearChainStage',

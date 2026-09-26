@@ -12,8 +12,10 @@ import {
 } from '#gw2/app/rotation/palette/model.js';
 import { activeResourceGroup, paletteSkillResourceView } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { runtimeFor } from '#tests/helpers/live-runtime.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   createRangerBuildDefaults,
@@ -26,7 +28,7 @@ import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/core/profiles.js';
 import { RANGER_CORE_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/core/state.js';
 import { DRUID_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/druid/profiles.js';
-import { druidCastAvailability } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
+import { druidLive } from '#gw2/professions/ranger/specializations/druid/live.js';
 import {
   createDruidState,
   DRUID_PUBLIC_STATE_PROJECTION
@@ -44,8 +46,8 @@ import {
 import { GALESHOT_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { GALESHOT_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { soulbeastCastRules } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
-import { untamedCastRules } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash.js';
+import { soulbeastCastAvailability } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
+import { untamedCastAvailability } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash.js';
 import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/family-state.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 
@@ -74,7 +76,7 @@ const baseConfig = Object.freeze({
 });
 
 // Keep scenario defaults local while sharing simulation setup and nested config merging.
-const simulate = createProfessionSimulator(rangerProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(rangerProfession, baseConfig);
 
 const applyRangerPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(rangerCatalog, patch), patch);
 
@@ -128,11 +130,6 @@ test('Ranger catalog preserves runtime references and handlers', () => {
       .every((skill) => skill.independentCast),
     true
   );
-  assert.equal(rangerCatalog.skillsById.get(ID.CELESTIAL_AVATAR).handlerId, 'ranger.celestial-avatar-enter');
-  assert.equal(rangerCatalog.skillsById.get(ID.BEASTMODE).handlerId, 'ranger.beastmode-enter');
-  assert.equal(rangerCatalog.skillsById.get(ID.UNLEASH_RANGER).handlerId, 'ranger.unleash-ranger');
-  assert.equal(rangerCatalog.skillsById.get(ID.SUMMON_CYCLONE_BOW).handlerId, 'ranger.cyclone-bow-enter');
-  assert.equal(rangerCatalog.skillsById.get(ID.SWAP_WEAPONS).handlerId, 'ranger.weapon-swap');
   assert.equal(rangerCatalog.skillsById.get(ID.PET_SWAP).icon, rangerCatalog.skillsById.get(ID.SWAP_WEAPONS).icon);
 });
 
@@ -437,47 +434,39 @@ test('Twice as Vicious activates from a disable', () => {
   assertFlooredDamageMultiplier(heavySmashDamage(twiceAsVicious), heavySmashDamage(baseline), 1.07);
 });
 
-test('Ranger Ice projectile finishers resolve per projectile without triggering Twice as Vicious', () => {
-  const rotation = ['Frost Trap', 'Splitblade', 'Ricochet', 'Ricochet', 'Ricochet', 'Ricochet', 'Ricochet'];
-  const deterministic = simulate('Soulbeast', rotation, {
-    primaryWeapon: 'Axe',
-    secondaryWeapon: 'Axe',
-    selectedPet: 'Pig',
-    selectedTraitIds: [TRAIT.TWICE_AS_VICIOUS]
-  });
-  const withoutTwiceAsVicious = simulate('Soulbeast', rotation, {
-    primaryWeapon: 'Axe',
-    secondaryWeapon: 'Axe',
-    selectedPet: 'Pig'
-  });
-  const comboConditions = deterministic.resolvedEvents.filter(
-    (event) => event.type === 'combo' && event.fieldType === 'Ice' && event.finisherType === 'Projectile'
-  );
-
-  assert.deepEqual(
-    comboConditions.map((event) => [event.skillName, event.outcome.condition, event.outcome.duration]),
-    [
-      ['Splitblade', 'Chilled', 1],
-      ['Ricochet', 'Chilled', 1],
-      ['Ricochet', 'Chilled', 1]
-    ]
-  );
-  assert.equal(deterministic.totalDamage, withoutTwiceAsVicious.totalDamage);
-
-  // Weapon-strength sampling must not change which projectile attempts succeed for the same seed.
-  const stochastic = simulate('Soulbeast', rotation, {
-    primaryWeapon: 'Axe',
-    secondaryWeapon: 'Axe',
-    selectedPet: 'Pig',
-    randomness: { mode: 'stochastic', seed: 1 }
-  });
-
-  assert.deepEqual(
-    stochastic.resolvedEvents
-      .filter((event) => event.type === 'combo' && event.fieldType === 'Ice' && event.finisherType === 'Projectile')
-      .map((event) => event.attemptId),
-    comboConditions.map((event) => event.attemptId)
-  );
+test('Ranger Ice projectile finishers resolve each projectile without triggering Twice as Vicious', () => {
+  // Guarantee the finisher chance to isolate per-projectile ownership from random-stream identities.
+  const run = (selectedTraitIds) =>
+    runRanger(
+      ['Frost Trap', 'Splitblade', { type: 'wait', durationMs: 1000 }],
+      {
+        specialization: 'Soulbeast',
+        primaryWeapon: 'Axe',
+        secondaryWeapon: 'Axe',
+        selectedTraitIds
+      },
+      {
+        extend(native) {
+          const skill = native.catalog.skillsById.get(ID.SPLITBLADE);
+          return {
+            catalog: withSkill(native.catalog, skill.id, {
+              effects: skill.effects.map((effect) => ({
+                ...effect,
+                ...(effect.comboFinishers
+                  ? { comboFinishers: effect.comboFinishers.map((finisher) => ({ ...finisher, chance: 1 })) }
+                  : {})
+              }))
+            })
+          };
+        }
+      }
+    );
+  const result = run([TRAIT.TWICE_AS_VICIOUS]);
+  const combos = result.resolvedEvents.filter((event) => event.type === 'combo' && event.fieldType === 'Ice');
+  assert.deepEqual(result.warnings, []);
+  assert.equal(combos.length, 5);
+  assert.ok(combos.every((event) => event.outcome.condition === 'Chilled' && event.outcome.duration === 1));
+  assert.equal(result.totalDamage, run([]).totalDamage);
 });
 
 test('Core Ranger exposes only the selected pet Beast skill', () => {
@@ -702,11 +691,10 @@ test('Ranger party boons prioritize players before the active pet', () => {
 test('Pack Alpha excludes unleashed-pet and Beastmode skill recharges', () => {
   // Canonical skill ownership lets Core apply Pack Alpha without elite cancellation hooks.
   for (const specialization of ['Core', 'Soulbeast', 'Untamed']) {
-    const context = (selectedTraitIds) =>
-      createScheduler({ profession: rangerProfession, config: { specialization, selectedTraitIds } }).context;
+    const context = (selectedTraitIds) => runtimeFor(runRanger([], { specialization, selectedTraitIds }));
     const baseline = context([]);
     const packAlpha = context([TRAIT.PACK_ALPHA]);
-    const skills = baseline.catalog.skills.filter(
+    const skills = baseline.helpers.skills.filter(
       (skill) => skill.cooldown > 0 && (skill.petSkill || skill.beastmodeSkill || skill.unleashedPetSkill)
     );
     assert.ok(skills.some((skill) => skill.petSkill));
@@ -714,15 +702,22 @@ test('Pack Alpha excludes unleashed-pet and Beastmode skill recharges', () => {
     if (specialization === 'Untamed') assert.ok(skills.some((skill) => skill.unleashedPetSkill));
     for (const skill of skills) {
       assert.equal(Boolean(skill.petSkill && (skill.beastmodeSkill || skill.unleashedPetSkill)), false, skill.name);
-      const expected = baseline.rechargeDurationFor(skill, 0) * (skill.petSkill ? 0.8 : 1);
-      assert.ok(Math.abs(packAlpha.rechargeDurationFor(skill, 0) - expected) < 1e-9, skill.name);
+      const expected =
+        rangerProfession.liveRuntimeFor({ specialization }).rechargeWork(baseline, skill, skill.cooldown) *
+        (skill.petSkill ? 0.8 : 1);
+      assert.ok(
+        Math.abs(
+          rangerProfession.liveRuntimeFor({ specialization }).rechargeWork(packAlpha, skill, skill.cooldown) - expected
+        ) < 1e-9,
+        skill.name
+      );
     }
   }
 });
 
 test("Pack Alpha improves only the Pig's five documented attributes", () => {
   const metadata = rangerPetCombatMetadata({
-    catalog: rangerCatalog,
+    helpers: rangerCatalog,
     config: { selectedTraitIds: [TRAIT.PACK_ALPHA] },
     state: {
       cooldowns: new Map(),
@@ -763,12 +758,10 @@ test('Tiger uses its documented attributes and nominal Bite recharge', () => {
       selectedTraitIds: [TRAIT.PACK_ALPHA],
       selectedSkills: ['Signet of the Wild']
     },
-    state: {
-      time: 0,
-      cooldowns: new Map(),
-      profession: {
-        core: { activePet: 'Tiger', activePetSlot: 1, petAutoGeneration: 0 }
-      }
+    time: 0,
+    cooldowns: new Map(),
+    profession: {
+      core: { activePet: 'Tiger', activePetSlot: 1, petAutoGeneration: 0 }
     }
   });
 
@@ -1020,7 +1013,7 @@ for (const [specialization, skillId, selectedPet, buffKind, multiplier] of [
   ['Soulbeast', ID.WORLDLY_IMPACT, 'Pig', 'sic-em', 1.25],
   ['Core', ID.FURIOUS_POUNCE, 'Tiger', 'sic-em-pet', 1.4]
 ]) {
-  test(`${specialization} Sic 'Em buffs simultaneous damage without affecting earlier hits`, () => {
+  test(`${specialization} Sic 'Em cannot retroactively buff an impact already dispatched`, () => {
     const config = { selectedPet, selectedTraitIds: [TRAIT.GO_FOR_THE_THROAT] };
     const attack = { type: 'cast', skillId };
     const strike = (result) =>
@@ -1048,7 +1041,7 @@ for (const [specialization, skillId, selectedPet, buffKind, multiplier] of [
       assert.equal(hit.at, baselineHit.at);
       assert.ok(buff);
       assert.equal(Math.round((buff.at - hit.at) * 1000), offsetMs);
-      if (offsetMs <= 0) {
+      if (offsetMs < 0) {
         assertFlooredDamageMultiplier(hit.damage, baselineHit.damage, multiplier);
         assert.ok(result.resolvedEvents.indexOf(buff) < result.resolvedEvents.indexOf(hit));
       } else {
@@ -1155,30 +1148,24 @@ test('Ranger transformation availability follows skill IDs after display labels 
     availability(
       {
         config: { specialization: kind, selectedPet: 'Lynx' },
-        state: { profession: { specialization: { kind, state } } },
-        start: 0
+        profession: { specialization: { kind, state } },
+        time: 0
       },
       skill
     );
 
   const soulbeast = createSoulbeastState();
   const beastmode = { ...rangerCatalog.skillsById.get(ID.BEASTMODE), name: 'Renamed Beastmode' };
-  assert.equal(
-    check('Soulbeast', soulbeast, beastmode, soulbeastCastRules.availability.handler).code,
-    'ranger.beastmode-active'
-  );
+  assert.equal(check('Soulbeast', soulbeast, beastmode, soulbeastCastAvailability).code, 'ranger.beastmode-active');
 
   const druid = createDruidState({ initialAstralForce: 100 });
   druid.celestialAvatarActive = true;
   const avatar = { ...rangerCatalog.skillsById.get(ID.CELESTIAL_AVATAR), name: 'Renamed Celestial Avatar' };
-  assert.equal(check('Druid', druid, avatar, druidCastAvailability).code, 'ranger.avatar-active');
+  assert.equal(check('Druid', druid, avatar, druidLive.availability).code, 'ranger.avatar-active');
 
   const untamed = createUntamedState({ initialUntamedState: 'Ranger' });
   const unleash = { ...rangerCatalog.skillsById.get(ID.UNLEASH_RANGER), name: 'Renamed Unleash Ranger' };
-  assert.equal(
-    check('Untamed', untamed, unleash, untamedCastRules.availability.handler).code,
-    'ranger.ranger-unleashed'
-  );
+  assert.equal(check('Untamed', untamed, unleash, untamedCastAvailability).code, 'ranger.ranger-unleashed');
 });
 
 test('Hammer variants are selected for every Ranger specialization', () => {
@@ -1186,7 +1173,7 @@ test('Hammer variants are selected for every Ranger specialization', () => {
     primaryWeapon: 'Hammer'
   });
 
-  assert.match(blocked.warnings[0], /select this Hammer variant/);
+  assert.match(blocked.warnings[0], /required weapon is not equipped/);
 
   const result = simulate('Untamed', ['Unleash Ranger', 'Unleashed Wild Swing', 'Unleash Pet'], {
     primaryWeapon: 'Hammer',
@@ -1206,7 +1193,7 @@ test('Hammer variants are selected for every Ranger specialization', () => {
     primaryWeapon: 'Hammer'
   });
 
-  assert.match(druidBlocked.warnings[0], /select this Hammer variant/);
+  assert.match(druidBlocked.warnings[0], /required weapon is not equipped/);
   const druidSelected = simulate('Druid', ['Unleashed Wild Swing'], {
     primaryWeapon: 'Hammer',
     selectedHammerSkillIds: [ID.UNLEASHED_WILD_SWING, ID.OVERBEARING_SMASH, ID.SAVAGE_SHOCK_WAVE, ID.THUMP]
@@ -1369,9 +1356,6 @@ test('Untamed Unleash forms share a fixed one-second recharge', () => {
     boons: { alacrity: true }
   });
   const unleashSteps = result.steps.filter((step) => ['Unleash Pet', 'Unleash Ranger'].includes(step.skill));
-  const unleashActions = result.events.filter(
-    (event) => event.type === 'action' && [ID.UNLEASH_PET, ID.UNLEASH_RANGER].includes(event.skillId)
-  );
 
   assert.deepEqual(
     unleashSteps.map(({ skill, start }) => ({ skill, start })),
@@ -1380,10 +1364,8 @@ test('Untamed Unleash forms share a fixed one-second recharge', () => {
       { skill: 'Unleash Ranger', start: 1000 }
     ]
   );
-  assert.deepEqual(
-    unleashActions.map((event) => event.rechargeReadyAt - event.at),
-    [1, 1]
-  );
+  assert.equal(runtimeFor(result).cooldowns.get(ID.UNLEASH_RANGER), 2);
+  assert.equal(runtimeFor(result).cooldowns.get(ID.UNLEASH_PET), 2);
   assert.equal(result.planningState.profession.ambushReadyUntil, 5);
 
   const suppressed = simulate('Untamed', ['Unleash Pet', 'Unleash Ranger', 'Unleash Pet', 'Unleash Ranger'], {

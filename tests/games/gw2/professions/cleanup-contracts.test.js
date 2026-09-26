@@ -1,28 +1,15 @@
-import {
-  initializeProfessionResources,
-  refreshResource,
-  grantResource
-} from '#gw2/platform/combat/resources/resource-policy.js';
-import { firebrandPages } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { guardianProfession, guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS as G, GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
-import {
-  createFirebrandState,
-  initializeFirebrandBalanceState
-} from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { FIREBRAND_BALANCE_PROFILE_IDS as FB } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
-import { updateFirebrandCastState } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
-import {
-  advanceRadiantForgeState,
-  guardianRadiantForgeSkillHandlers
-} from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
 import { soulbeastAttributeRules } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
@@ -34,62 +21,35 @@ import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { REVENANT_SKILL_IDS as R, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as W, WARRIOR_TRAIT_IDS as WT } from '#gw2/professions/warrior/data/ids.js';
-import {
-  activateChant,
-  refrains,
-  observeParagonEvent
-} from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-commands.js';
+import { observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
 import { paragonAttributeRules } from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-motivation.js';
-import { projectWarriorPlanningState, snapshotWarriorState } from '#gw2/professions/warrior/family-state.js';
 
 // Exercise exits directly so a large time advance cannot silently move the cooldown's origin.
-test('Forge exits finalize once at the exit time and clear weapon state even without an exit catalog entry', () => {
-  for (const mode of ['manual', 'automatic', 'missing-skill']) {
-    const { context } = createScheduler({ profession: guardianProfession, config: { specialization: 'Luminary' } });
-    const state = context.state.profession.specialization.state;
-    const core = context.state.profession.core;
-    Object.assign(state, {
-      radiantForge: true,
-      radiantForgeEndsAt: 20,
-      radiantWeapon: 'blade',
-      glaringBurstSwordSlow: true
-    });
-    core.availableFlips = { [G.EXIT_RADIANT_FORGE]: armSkillFlip({}, 0, 0) };
-    core.autoattackChains = { 1: 2 };
-    const events = [];
-    let finalizations = 0;
-    const skillsById = new Map(context.catalog.skillsById);
-    if (mode === 'missing-skill') skillsById.delete(G.EXIT_RADIANT_FORGE);
-    const exitContext = {
-      ...context,
-      catalog: { ...context.catalog, skillsById },
-      effectiveEnd: 20,
-      emit: (event) => events.push({ event, activeAtEmission: state.radiantForge }),
-      rechargeDurationFor: () => {
-        finalizations++;
-        return 10;
-      }
-    };
-    if (mode === 'manual')
-      guardianRadiantForgeSkillHandlers['guardian.radiant-forge'](exitContext, skillsById.get(G.EXIT_RADIANT_FORGE));
-    else advanceRadiantForgeState(exitContext, 40);
-    advanceRadiantForgeState(exitContext, 50);
-    assert.equal(finalizations, 1);
-    assert.equal(context.state.cooldowns.get(G.ENTER_RADIANT_FORGE), 25);
+test('Forge exits finalize once at the actual transition and clear weapon state', () => {
+  for (const automatic of [false, true]) {
+    const result = runGuardian(
+      [
+        G.ENTER_RADIANT_FORGE,
+        G.GLEAMING_BLADE,
+        ...(automatic ? [] : [G.EXIT_RADIANT_FORGE]),
+        { type: 'wait', durationMs: 40000 }
+      ],
+      { specialization: 'Luminary' }
+    );
+    const runtime = runtimeFor(result);
+    const state = runtime.profession.specialization.state;
+    const exits = result.events.filter(
+      (event) => event.type === 'weapon_set' && event.skillId === G.EXIT_RADIANT_FORGE
+    );
+    assert.equal(exits.length, 1);
+    assert.equal(exits[0].automatic, automatic);
+    assert.equal(runtime.rechargeProgress.get(G.ENTER_RADIANT_FORGE).startedAt, exits[0].at);
+    assert.equal(runtime.rechargeProgress.get(G.ENTER_RADIANT_FORGE).work, 5);
     assert.equal(state.radiantForge, false);
     assert.equal(state.radiantWeapon, '');
     assert.equal(state.glaringBurstSwordSlow, false);
-    assert.deepEqual(core.availableFlips, {});
-    assert.deepEqual(core.autoattackChains, {});
-    assert.deepEqual(
-      events.map(({ event }) => event.type),
-      mode === 'missing-skill' ? [] : ['guardian.radiant-forge-exited', 'weapon_set']
-    );
-    for (const { event, activeAtEmission } of events) {
-      assert.equal(event.at, 20);
-      assert.equal(event.automatic, mode === 'manual' ? undefined : true);
-      assert.equal(activeAtEmission, mode === 'automatic');
-    }
+    assert.deepEqual(runtime.profession.core.availableFlips, {});
+    assert.deepEqual(runtime.profession.core.autoattackChains, {});
   }
 });
 
@@ -103,73 +63,74 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
     [99, 9]
   ]) {
     const config = {
+      specialization: 'Firebrand',
       selectedTraitIds: [GT.ARCHIVIST_OF_WHISPERS, GT.LOREMASTER],
       initialTomePages: initial,
       maximumTomePages: 9
     };
     const first = createFirebrandState(config);
-    const second = createFirebrandState(config);
-    const context = {
-      config,
-      catalog: guardianCatalog,
-      state: { profession: { specialization: { kind: 'Firebrand', state: second } } }
-    };
-    initializeFirebrandBalanceState(context);
+    const second = runtimeFor(runGuardian([], config)).profession.specialization.state;
     assert.equal(second.tomePages.value, expected);
     assert.equal(second.tomePages.maximum, 9);
     assert.equal(second.tomePages.nextAt, expected < 9 ? 5 : Infinity);
-    assert.deepEqual(first, second);
+    assert.deepEqual(first.tomePages, second.tomePages);
     assert.notEqual(first.tomeDormantReadyAt, second.tomeDormantReadyAt);
   }
 
-  const config = { selectedTraitIds: [GT.ARCHIVIST_OF_WHISPERS], initialTomePages: 6 };
-  const state = createFirebrandState(config);
-  initializeProfessionResources({
-    profession: { resources: { tomePages: firebrandPages } },
-    config,
-    state: { time: 0, profession: { specialization: { kind: 'Firebrand', state } } },
-    catalog: {
-      balanceProfilesById: new Map([
-        ...guardianCatalog.balanceProfilesById,
-        [FB.resources, { maximumStacks: 6, pulseInterval: 2 }],
-        [FB.archivistOfWhispers, { maximumStacks: 10 }]
-      ])
+  const patched = withPatchPreview(guardianProfession, {
+    id: 'pages',
+    label: 'Pages',
+    professions: {
+      guardian: {
+        balanceProfiles: {
+          [FB.resources]: { fields: { maximumStacks: 6, pulseInterval: 2 } },
+          [FB.archivistOfWhispers]: { fields: { maximumStacks: 10 } }
+        }
+      }
     }
   });
-  assert.equal(state.tomePages.value, 10);
-  assert.equal(state.tomePages.nextAt, Infinity);
-  assert.equal(state.tomePages.interval, 2);
+  const result = runGuardian(
+    [],
+    {
+      specialization: 'Firebrand',
+      patchId: 'pages',
+      selectedTraitIds: [GT.ARCHIVIST_OF_WHISPERS],
+      initialTomePages: 6
+    },
+    () => {},
+    patched
+  );
+  const pages = runtimeFor(result).profession.specialization.state.tomePages;
+  assert.equal(pages.value, 10);
+  assert.equal(pages.nextAt, Infinity);
+  assert.equal(pages.interval, 2);
 });
 
 // Canonical normal charges never become final merely because ammo or descriptions say so.
-test('Weighty Terms follows mantra IDs while preserving unfamiliar custom final-charge data', () => {
-  const { context } = createScheduler({
-    profession: guardianProfession,
-    config: { specialization: 'Firebrand', selectedTraitIds: [GT.WEIGHTY_TERMS] }
-  });
-  context.advanceTo(1);
-  const state = context.state.profession.specialization.state;
+test('Weighty Terms follows canonical mantra IDs and ignores names or final-charge descriptions', () => {
+  const config = { specialization: 'Firebrand', selectedTraitIds: [GT.WEIGHTY_TERMS], initialTomePages: 0 };
+  const native = guardianProfession.liveRuntimeFor(config);
   for (const mantra of MANTRAS) {
-    for (const id of [mantra.rootId, mantra.normalId, mantra.finalId]) {
-      state.tomePages.value = 0;
-      const skill = {
-        ...context.catalog.skillsById.get(id),
-        name: 'Renamed mantra',
-        description: id === mantra.finalId ? '' : 'Final Charge.',
-        categories: ['Mantra']
-      };
-      updateFirebrandCastState({ ...context, effectiveEnd: 1, ammo: { charges: 1 } }, skill);
-      assert.equal(state.tomePages.value, id === mantra.finalId ? 2 : 0);
+    for (const id of [mantra.rootId, mantra.normalId, mantra.finalId, 999991]) {
+      const result = runGuardian([], config, (runtime) => {
+        const skill = {
+          ...guardianCatalog.skillsById.get(id),
+          id,
+          name: 'Renamed mantra',
+          description: id === mantra.finalId ? '' : 'Final Charge.',
+          categories: ['Mantra']
+        };
+        native.onCastComplete(runtime, {
+          skill,
+          id: 'fixture-mantra',
+          command: {},
+          start: 0,
+          fullEnd: 0,
+          effectiveEnd: 0
+        });
+      });
+      assert.equal(runtimeFor(result).profession.specialization.state.tomePages.value, id === mantra.finalId ? 2 : 0);
     }
-  }
-
-  for (const skill of [
-    { id: 999991, name: 'Custom', description: 'Final Charge.' },
-    { id: 999992, name: 'Custom', categories: ['Mantra'] }
-  ]) {
-    state.tomePages.value = 0;
-    updateFirebrandCastState({ ...context, effectiveEnd: 1, ammo: { charges: 1 } }, skill);
-    assert.equal(state.tomePages.value, 2);
   }
 });
 
@@ -218,20 +179,21 @@ test('Soulbeast reconciles raw and precomputed archetypes across merge state and
 });
 
 test('Galeshot arrow restoration preserves fractional gains and uses the current cap', () => {
-  const { context } = createScheduler({ profession: rangerProfession, config: { specialization: 'Galeshot' } });
-  const state = context.state.profession.specialization.state;
-  const patched = {
-    ...context,
-    catalog: {
-      ...context.catalog,
-      balanceProfilesById: new Map([[GALE.resources, { maximumStacks: 4.5, pulseInterval: 5 }]])
+  const result = runRanger(
+    [],
+    { specialization: 'Galeshot' },
+    {
+      extend: (native) => ({
+        catalog: withProfile(native.catalog, GALE.resources, { maximumStacks: 4.5, pulseInterval: 5 })
+      })
     }
-  };
+  );
+  const runtime = runtimeFor(result);
+  const state = runtime.profession.specialization.state;
   state.arrows.value = 2.25;
-  refreshResource(patched, 'arrows');
-  grantResource(patched, 'arrows', 0.5);
+  runtime.resourceController.grant('arrows', 0.5);
   assert.equal(state.arrows.value, 2.75);
-  grantResource(patched, 'arrows', 10);
+  runtime.resourceController.grant('arrows', 10);
   assert.equal(state.arrows.value, 4.5);
   assert.equal(state.arrows.maximum, 4.5);
 });
@@ -277,39 +239,51 @@ test('Conduit modifiers and Peitha follow all supported button IDs after renamin
 
 // Refrain identity drives pulses and modifiers, while snapshots still expose a readable label.
 test('Paragon renamed refrains replace, project, exhaust, and recover from missing skills', () => {
-  const { context } = createScheduler({
-    profession: warriorProfession,
-    config: { specialization: 'Paragon', selectedTraitIds: [WT.CALL_TO_ACTION, WT.STRENGTHENING_STANZAS] }
-  });
-  const state = context.state.profession.specialization.state;
-  const skillsById = new Map(context.catalog.skillsById);
-  for (const id of [W.CHANT_OF_ACTION, W.CHANT_OF_FREEDOM])
-    skillsById.set(id, { ...skillsById.get(id), name: 'Renamed ' + id });
-  const renamed = { ...context, catalog: { ...context.catalog, skillsById }, effectiveEnd: 0 };
-  observeParagonEvent(renamed, { type: 'combat_start', at: 0 });
-  assert.equal(state.activeRefrainId, W.CHANT_OF_ACTION);
+  // Renamed catalog entries and a removed pulse source exercise the actual refrain owner and public projection.
+  const run = (rotation, missing = false) => {
+    const config = {
+      specialization: 'Paragon',
+      initialResource: 30,
+      selectedTraitIds: [WT.CALL_TO_ACTION, WT.STRENGTHENING_STANZAS]
+    };
+    const profession = warriorProfession.liveRuntimeFor(config);
+    const skillsById = new Map(profession.catalog.skillsById);
+    for (const id of [W.CHANT_OF_ACTION, W.CHANT_OF_FREEDOM])
+      skillsById.set(id, { ...skillsById.get(id), name: 'Renamed ' + id });
+    const catalog = { ...profession.catalog, skillsById };
+    return observeGw2Runtime({
+      profession: {
+        ...profession,
+        catalog,
+        onCastComplete(runtime, cast) {
+          profession.onCastComplete?.(runtime, cast);
+          if (missing && cast.skill.id === W.CHANT_OF_FREEDOM) skillsById.delete(W.CHANT_OF_FREEDOM);
+        }
+      },
+      config,
+      rotation
+    });
+  };
+
+  const combat = { type: 'combat-start' };
+  const action = run([combat]);
+  const freedom = run([combat, W.CHANT_OF_FREEDOM]);
   const rule = paragonAttributeRules.modifierRules.find(({ id }) => id === 'warrior.strengthening-stanzas');
-  assert.equal(rule.when({ config: renamed.config, runtime: { profession: renamed.state.profession } }), true);
-  assert.equal(
-    projectWarriorPlanningState({ schedulerState: renamed.state, schedulerContext: renamed }).activeRefrain,
-    'Renamed ' + W.CHANT_OF_ACTION
-  );
-  // Direct activation needs the successful cast action normally supplied by the scheduler.
-  activateChant({ ...renamed, action: { cancelled: false } }, skillsById.get(W.CHANT_OF_FREEDOM));
-  assert.equal(state.activeRefrainId, W.CHANT_OF_FREEDOM);
-  assert.equal(rule.when({ config: renamed.config, runtime: { profession: renamed.state.profession } }), false);
-  assert.equal(
-    snapshotWarriorState(renamed.state.profession, skillsById).activeRefrain,
-    'Renamed ' + W.CHANT_OF_FREEDOM
-  );
-  state.motivation = 1;
-  refrains.consumeAll(renamed, refrains.nextAt(renamed));
-  assert.equal(state.activeRefrainId, null);
-  assert.equal(snapshotWarriorState(renamed.state.profession, skillsById).activeRefrain, '');
-  state.activeRefrainId = 999999;
-  refrains.start(renamed, { key: 'refrain', at: 6, captured: {} });
-  state.motivation = 1;
-  refrains.consumeAll(renamed, 10);
-  assert.equal(state.activeRefrainId, null);
-  assert.equal(refrains.nextAt(renamed), Infinity);
+  for (const [result, id, applies] of [
+    [action, W.CHANT_OF_ACTION, true],
+    [freedom, W.CHANT_OF_FREEDOM, false]
+  ]) {
+    assert.deepEqual(result.warnings, []);
+    const runtime = runtimeFor(result);
+    assert.equal(runtime.profession.specialization.state.activeRefrainId, id);
+    assert.equal(result.planningState.profession.activeRefrain, 'Renamed ' + id);
+    assert.equal(rule.when({ config: runtime.config, runtime }), applies);
+  }
+
+  for (const missing of [false, true]) {
+    const result = run([combat, W.CHANT_OF_FREEDOM, { type: 'wait', durationMs: 15000 }], missing);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(runtimeFor(result).profession.specialization.state.activeRefrainId, null);
+    assert.equal(result.planningState.profession.activeRefrain, '');
+  }
 });

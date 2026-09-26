@@ -11,6 +11,12 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { Gw2NumericStatKey } from '#gw2/platform/combat/query/combat-query.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2Runtime, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+
+/** Registered families expose their live mechanics; the preview reads only declared resource policies. */
+interface LiveProfessionSource {
+  liveRuntimeFor(config: Gw2Config): RuntimeProfession<object>;
+}
 
 /** Query isolated conditional attributes; no preview inputs enter the saved build or simulation results. */
 export function calculateBuffedAttributes(
@@ -87,7 +93,7 @@ export function calculateBuffedAttributes(
     }
   };
   const profession = resolveProfessionRuntime(app.profession, queryConfig);
-  const professionState = profession.createProfessionState(queryConfig);
+  const professionState = profession.createState(queryConfig);
   const core = readProfessionCoreState(professionState);
   // Opening Strike is a single-hit bonus and is excluded from the attribute preview.
   if ('playerOpeningStrikeReady' in core) core.playerOpeningStrikeReady = false;
@@ -151,16 +157,13 @@ export function calculateBuffedAttributes(
         ? specialization.toLowerCase()
         : 'death'
       : '';
-  if ('fullEndurance' in values && profession.resources.endurance) {
-    const resourceContext = {
-      state: { profession: professionState },
-      config: queryConfig,
-      catalog: profession.catalog
-    };
-    const pool = profession.resources.endurance.state(
-      resourceContext as Parameters<typeof profession.resources.endurance.state>[0]
-    );
-    pool.endurance = values.fullEndurance ? profession.resources.endurance.maximum(resourceContext) : 0;
+  if ('fullEndurance' in values) {
+    // Endurance-conditioned traits belong to live families, whose runtime declares the pool and its capacity.
+    const endurance = (app.profession as unknown as LiveProfessionSource).liveRuntimeFor(queryConfig).endurance;
+    if (endurance) {
+      const runtime = { profession: professionState, config: queryConfig } as unknown as Gw2Runtime;
+      endurance.state(runtime).endurance = values.fullEndurance ? endurance.maximum(runtime) : 0;
+    }
   }
 
   for (let index = 0; index < Number(values.instruments || 0); index++) {

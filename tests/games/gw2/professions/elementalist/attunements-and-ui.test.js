@@ -1,3 +1,4 @@
+import { runtimeFor } from '#tests/helpers/live-runtime.js';
 import assert from 'node:assert/strict';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import test from 'node:test';
@@ -48,12 +49,12 @@ test('Tempest mechanics execute through native hooks', () => {
   const overload = result.events.find((event) => event.type === 'action' && event.skillName === 'Overload Fire');
   const swaps = result.events.filter((event) => event.type === 'elementalist.attunement');
 
-  assert.ok(overload.rechargeReadyAt > overload.endsAt);
+  assert.ok(runtimeFor(result).cooldowns.get(overload.skillId) > overload.endsAt);
   assert.deepEqual(
     swaps.map((event) => event.to),
     ['Air', 'Fire']
   );
-  assert.ok(swaps[1].at >= overload.rechargeReadyAt);
+  assert.ok(swaps[1].at >= runtimeFor(result).cooldowns.get(overload.skillId));
   assert.equal(result.planningState.profession.primaryAttunement, 'Fire');
 });
 
@@ -119,11 +120,10 @@ test('a Fulgor recast replaces the pending secondary action pulses', () => {
   });
   const secondary = result.events.filter((event) => event.fulgorSecondary === true);
   const activePulses = secondary.filter((event) => event.type === 'damage');
-  const replacedPulses = secondary.filter((event) => event.cancelled === true);
-
-  assert.equal(activePulses.length, 9);
-  assert.equal(replacedPulses.length, 3);
-  assert.ok(replacedPulses.every((event) => event.detail === 'replaced by a later Fulgor secondary action'));
+  const casts = result.events.filter((event) => event.type === 'action' && event.skillName === 'Fulgor');
+  assert.ok(activePulses.some((event) => event.activationId === casts[0].activationId));
+  assert.ok(activePulses.some((event) => event.activationId === casts[1].activationId));
+  assert.ok(activePulses.every((event) => event.activationId !== casts[0].activationId || event.at <= casts[1].endsAt));
 });
 
 test('Tempest party boons affect the summoned elemental', () => {
@@ -277,7 +277,10 @@ test("Fox's Fury and catalyst spheres grant their boons to the party", () => {
     initialCatalystEnergy: 30
   });
   const sphereBoons = catalyst.events.filter(
-    (event) => event.type === 'buff' && event.skillName === 'Deploy Jade Sphere (Fire)'
+    (event) =>
+      event.type === 'buff' &&
+      event.skillName === 'Deploy Jade Sphere (Fire)' &&
+      ['might', 'quickness'].includes(event.kind)
   );
 
   assert.equal(sphereBoons.filter((event) => event.kind === 'might').length, 7);
@@ -301,7 +304,7 @@ test('Core mechanics execute through native hooks', () => {
   const proc = result.events.find((event) => event.type === 'elementalist.fresh-air');
 
   assert.ok(proc);
-  assert.equal(result.planningState.profession.attunementReadyAt.Air, proc.at);
+  assert.equal(runtimeFor(result).cooldowns.get(elementalistCatalog.skillsByName.get('Air Attunement').id), undefined);
 });
 
 test('Fresh Air resets both Air Attunement and Overload Air', () => {
@@ -313,7 +316,7 @@ test('Fresh Air resets both Air Attunement and Overload Air', () => {
   const proc = result.events.find((event) => event.type === 'elementalist.fresh-air');
 
   assert.ok(proc);
-  assert.equal(result.planningState.profession.attunementReadyAt.Air, proc.at);
+  assert.equal(runtimeFor(result).cooldowns.get(elementalistCatalog.skillsByName.get('Air Attunement').id), undefined);
   assert.equal(result.planningState.cooldowns['Air Attunement'], undefined);
   assert.equal(result.planningState.cooldowns['Overload Air'], undefined);
 });
@@ -337,7 +340,7 @@ test('Fresh Air consumes sampled criticals after scheduled strikes in RNG mode',
   assert.ok(procs.length > 0);
   for (const proc of procs) {
     assert.ok(
-      result.events.some(
+      result.resolvedEvents.some(
         (event) =>
           event.type === 'damage' &&
           event.at === proc.at &&
@@ -347,12 +350,12 @@ test('Fresh Air consumes sampled criticals after scheduled strikes in RNG mode',
     );
   }
 
-  assert.equal(result.planningState.profession.attunementReadyAt.Air, procs[0].at);
+  assert.equal(runtimeFor(result).cooldowns.get(elementalistCatalog.skillsByName.get('Air Attunement').id), undefined);
   assert.equal(result.planningState.cooldowns['Air Attunement'], undefined);
   assert.equal(result.planningState.cooldowns['Overload Air'], undefined);
 });
 
-test('Fresh Air lookahead preserves a scheduled reset across an intervening attunement', () => {
+test('Fresh Air resolves a queued critical after an intervening attunement', () => {
   const result = runNative({
     lines: [['Fire'], ['Air', '3-3-2'], ['Tempest', '3-1-2']],
     weapons: ['Hammer', ''],
@@ -365,7 +368,7 @@ test('Fresh Air lookahead preserves a scheduled reset across an intervening attu
     (event) => event.type === 'elementalist.fresh-air' && event.sourceSkill === 'Rocky Loop'
   );
 
-  const hit = result.events.find(
+  const hit = result.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillName === 'Rocky Loop' && event.didCrit
   );
   assert.equal(reset.at, hit.at);
@@ -1092,7 +1095,7 @@ test('Ride the Lightning receives its on-hit cooldown reduction', () => {
   const action = result.events.find((event) => event.type === 'action' && event.skillName === 'Ride the Lightning');
 
   assert.ok(action);
-  assert.equal(action.rechargeReadyAt - action.endsAt, 10);
+  assert.equal(runtimeFor(result).cooldowns.get(action.skillId) - action.endsAt, 10);
 });
 
 test('Fresh Air grants ferocity when entering Air, not when resetting it', () => {

@@ -1,13 +1,7 @@
+import { troubadourLive } from '#gw2/professions/mesmer/specializations/troubadour/live.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
-import {
-  troubadourAttributeRules,
-  troubadourCastRules,
-  troubadourEndurance,
-  troubadourSchedulerHooks,
-  troubadourSkillMechanicHandlers
-} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-rules.js';
+import { troubadourAttributeRules } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-rules.js';
 import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
 import {
@@ -16,7 +10,6 @@ import {
   MESMER_TROUBADOUR_SUPPLEMENTAL_SKILL_MECHANICS
 } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 import { TROUBADOUR_BALANCE_PROFILES } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
-import { troubadourPerformanceProfile } from '#gw2/professions/mesmer/specializations/troubadour/execution/index.js';
 
 export const troubadourModule = defineNativeModule({
   id: 'Troubadour',
@@ -27,28 +20,11 @@ export const troubadourModule = defineNativeModule({
     balanceProfiles: TROUBADOUR_BALANCE_PROFILES
   }),
   state: {
-    scheduler: troubadourState.create,
-    // Troubadour has no resolver-local state; timeline events carry its resolver data.
-    resolver: () => ({})
+    create: troubadourState.create
   },
-  resources: { endurance: troubadourEndurance },
   mechanics: {
     modifiers: troubadourAttributeRules,
-    execution: {
-      // Instrument actions replace their declarative profiles with stateful handlers.
-      skillHandlers: Object.freeze({
-        'mesmer.instrument': troubadourPerformanceProfile,
-        'mesmer.crescendo': troubadourPerformanceProfile
-      }),
-      castRules: troubadourCastRules,
-      skillMechanicHandlers: troubadourSkillMechanicHandlers,
-      hooks: troubadourSchedulerHooks
-    },
-    resolution: {
-      hooks: {
-        eventHandlers: { 'mesmer.instrument': OBSERVABLE_EVENT_HANDLER }
-      }
-    }
+    live: troubadourLive
   },
   presentation: troubadourUi
 });

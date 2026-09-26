@@ -3,10 +3,11 @@ import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
 } from '#gw2/platform/engine/profession/state.js';
-import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
+
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 export interface NecromancerWeaponSpellState {
+  readonly generation: number;
   readonly skillId?: SkillId;
   readonly skillName?: string;
   readonly appliedAt?: number;
@@ -16,6 +17,8 @@ export interface NecromancerWeaponSpellState {
 }
 
 export interface RitualistState {
+  weaponSpellGeneration: number;
+  painfulBondGeneration: number;
   activeSpirits: Record<string, boolean>;
   spiritGenerations: Record<string, number>;
   spiritInitialUntil: Record<string, number>;
@@ -38,6 +41,8 @@ export const RITUALIST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 /** Creates Ritualist's spirit cadence, weapon-spell, and Painful Bond runtime state. */
 export function createRitualistState(): RitualistState {
   const state: RitualistState = {
+    weaponSpellGeneration: 0,
+    painfulBondGeneration: 0,
     activeSpirits: {},
     spiritGenerations: {},
     spiritInitialUntil: {},
@@ -53,8 +58,6 @@ export function createRitualistState(): RitualistState {
     // NaN signals "no pulse scheduled yet"; first apply event sets the anchor
     painfulBondPulseAnchorAt: Number.NaN
   };
-  // Preserve resolved effect cadence and per-recipient spending across scheduler snapshots.
-  registerNecromancerResolverFields(state, ['painfulBondUntil', 'painfulBondPulseAnchorAt', 'weaponSpells']);
   return state;
 }
 

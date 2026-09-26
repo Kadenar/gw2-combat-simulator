@@ -1,5 +1,6 @@
 import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
+import { isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { reconstructConduitDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/conduit.js';
 import { reconstructRenegadeDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/renegade.js';
 import { reconstructVindicatorDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/vindicator.js';
@@ -23,6 +24,13 @@ const COMPOSITE_CASTS = [
   { startId: 62895, finishId: 62713, maximumGapMs: 10 }
 ] as const;
 
+/** EI records upkeep releases as ordinary actions; the catalog's upkeep parent identifies them. */
+function upkeepRelease(context: LogActionNormalizationContext, action: RecordedLogAction): boolean {
+  return isRevenantUpkeepRelease(recordedActionSkill(action, context), (id) =>
+    recordedActionSkill({ rawSkillId: Number(id), rawName: '' }, context)
+  );
+}
+
 function normalizeLegendSwaps(
   context: LogActionNormalizationContext,
   actions: readonly RecordedLogAction[]
@@ -39,7 +47,7 @@ function normalizeLegendSwaps(
                 (candidate) =>
                   candidate !== action &&
                   Math.abs(candidate.start - action.start) <= 1 &&
-                  recordedActionSkill(candidate, context)?.handlerId === 'revenant.upkeep-release'
+                  upkeepRelease(context, candidate)
               )
               .map((candidate) => candidate.eventIndex + 0.25)
           ),
@@ -57,7 +65,7 @@ function normalizeGeneratedRevenantActions(
   // Legend swaps automatically release active upkeep. Removing that EI signal
   // and coalescing split animations keeps one simulator command per player input.
   const actionable = actions.filter((action) => {
-    if (recordedActionSkill(action, context)?.handlerId !== 'revenant.upkeep-release') return true;
+    if (!upkeepRelease(context, action)) return true;
     const imminentSwap = actions.find(
       (candidate) =>
         candidate.canonicalSkillId === -4 && candidate.start >= action.start && candidate.start - action.start <= 500

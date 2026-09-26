@@ -1,3 +1,4 @@
+import { runtimeFor } from '#tests/helpers/live-runtime.js';
 import { skillFlipVisible, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -11,7 +12,7 @@ import {
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { handleElectricArtillery } from '#gw2/professions/engineer/core/mechanics/event-handlers.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator } from '#tests/helpers/live-runtime.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
@@ -30,7 +31,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createProfessionSimulator(engineerProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(engineerProfession, baseConfig);
 
 // Blade attribution must survive both authored effects and heat-generated events without changing the casting skill.
 test('Refraction Cutter blades retain their parent skill and expose a separate damage identity', () => {
@@ -154,7 +155,9 @@ test('Mechanist commands are selected by traits and mech attacks persist', () =>
 
   assert.equal(result.warnings.length, 0);
   assert.deepEqual(
-    result.combatState.profession.mech.commandSkillIds.map((id) => engineerCatalog.skillsById.get(id).name),
+    runtimeFor(result).profession.specialization.state.mech.commandSkillIds.map(
+      (id) => engineerCatalog.skillsById.get(id).name
+    ),
     ['Spark Revolver', 'Crisis Zone', 'Barrier Burst']
   );
   assert.ok(

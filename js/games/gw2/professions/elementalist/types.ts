@@ -1,3 +1,4 @@
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 /**
  * Shared Elementalist type boundary.
  *
@@ -6,14 +7,8 @@
  * Elementalist-flavored context/event types every module's handlers are written against.
  */
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  CastContext,
-  CastLifecycleContext,
-  RechargeQueryDetails,
-  SchedulerContext,
-  SchedulerState
-} from '#gw2/platform/execution/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -51,12 +46,6 @@ export interface ElementalistModifierContext extends Gw2ModifierContext {
 /** Bullet stock by element; absent elements are unstocked. */
 export type ElementalistPistolBullets = Partial<Record<ElementalistAttunement, boolean>>;
 
-/** Recharge queries Elementalist rules answer, including its own release flag. */
-export interface ElementalistRechargeQuery extends RechargeQueryDetails {
-  /** Set when Rock Barrier's release handler re-requests the held recharge. */
-  readonly rockBarrierRelease?: boolean;
-}
-
 /** Application UI callback context narrowed to Elementalist builds and end-state projections. */
 export interface ElementalistUiContext extends Omit<
   ProfessionUiCallbackContext<Partial<ElementalistState>>,
@@ -79,6 +68,7 @@ export type ElementalistUiSlice = Partial<ProfessionUiContract<Partial<Elemental
 
 /** A catalog skill carrying the Elementalist-specific identity fields the modules read. */
 export interface ElementalistSkill extends Skill {
+  readonly elementalistTasks?: readonly import('#gw2/platform/engine/skills/types.js').SkillTask[];
   readonly attunement?: string;
   readonly aura?: string;
   readonly chainRoot?: SkillId;
@@ -86,27 +76,8 @@ export interface ElementalistSkill extends Skill {
   readonly skillFamily?: string;
 }
 
-/** Scheduler-phase context narrowed to the Elementalist catalog, config, and runtime state. */
-export type ElementalistSchedulerContext = SchedulerContext<ElementalistRuntimeState> & {
-  readonly catalog: CanonicalCatalog<ElementalistSkill>;
-  readonly config: ElementalistConfig;
-};
-
-/** Context for availability checks made before a cast is allowed to start. */
-export type ElementalistPrecastContext = CastContext<ElementalistRuntimeState> & {
-  readonly catalog: CanonicalCatalog<ElementalistSkill>;
-  readonly config: ElementalistConfig;
-  readonly skill: ElementalistSkill;
-};
-
-/** Context for the cast lifecycle hooks that mutate state as a skill starts and finishes. */
-export type ElementalistCastContext = CastLifecycleContext<ElementalistRuntimeState> & {
-  readonly catalog: CanonicalCatalog<ElementalistSkill>;
-  readonly config: ElementalistConfig;
-  readonly skill: ElementalistSkill;
-  /** Set by a specialization that already performed this cast's attunement swap, so Core does not repeat it. */
-  elementalistAttunementHandled?: boolean;
-};
+/** One actual gameplay context, shared by Core and the active elite. */
+export type ElementalistRuntime = Gw2Runtime<ElementalistRuntimeState> & { config: ElementalistConfig };
 
 /** Scheduled event enriched with the aura and combo-field metadata Elementalist emits. */
 export type ElementalistSimulationEvent = SimulationEvent & {
@@ -128,10 +99,4 @@ export type ElementalistResolverEvent = Gw2ResolverEvent & {
 export type ElementalistResolverContext = Gw2ResolverRuntime & {
   config: ElementalistConfig;
   profession: ElementalistRuntimeState;
-  readonly state?: { readonly profession: ElementalistRuntimeState };
 };
-
-/** Input to the family end-state projection: the scheduler state at the end of a run. */
-export interface ElementalistPlanningStateProjectionOptions {
-  readonly schedulerState: SchedulerState<ElementalistRuntimeState>;
-}

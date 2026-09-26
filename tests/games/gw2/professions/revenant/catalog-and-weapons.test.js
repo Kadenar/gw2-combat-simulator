@@ -25,7 +25,7 @@ import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/cor
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuildAttributeRules);
@@ -55,7 +55,9 @@ const baseConfig = Object.freeze({
 
 const applyRevenantPatch = (patch) => applyBalanceProfilePatch(applySkillPatch(revenantCatalog, patch), patch);
 
-const simulate = createProfessionSimulator(revenantProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(revenantProfession, baseConfig);
+// Live steps expose the actual activation window; an instant cast occupies none of it.
+const castMs = (step) => step.end - step.start;
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -279,7 +281,7 @@ test('Elemental Blast keeps packet timing runtime-only while exposing packet val
   const runtimeElementalBlast = revenantCatalog.skillsById.get(SKILL.ELEMENTAL_BLAST);
   const [strike, conditions] = elementalBlast.effects;
 
-  assert.equal(elementalBlast.handlerId, 'revenant.facet-consume');
+  assert.equal(elementalBlast.consume, true);
   assert.deepEqual(
     strike.ticks.map((tick) => tick.coefficient),
     [1.5, 1.5, 1.5]
@@ -916,7 +918,7 @@ test('weapon swap changes the active Revenant weapon set', () => {
   });
 
   assert.equal(result.warnings.length, 0);
-  assert.equal(result.steps[0].fullCastMs, 0);
+  assert.equal(castMs(result.steps[0]), 0);
   assert.equal(result.planningState.activeWeaponSet, 2);
   assert.ok(result.events.some((event) => event.type === 'weapon_set' && event.weaponSet === 2));
 });
@@ -1083,7 +1085,7 @@ test('Renegade shortbow skills use supplied casts, packets, and combo data', () 
   });
 
   assert.deepEqual(
-    quicknessResult.steps.map((step) => [step.skill, step.fullCastMs]),
+    quicknessResult.steps.map((step) => [step.skill, castMs(step)]),
     [
       ['Shattershot', 480],
       ['Bloodbane Path', 760],
@@ -1323,7 +1325,7 @@ test('Revenant spear packets reduce Abyssal Raze count recharge on hit', () => {
       }
     )
   );
-  const ammo = result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE);
+  const ammo = runtimeFor(result).ammo.get(SKILL.ABYSSAL_RAZE);
 
   assert.equal(ammo.charges, 3);
   assert.equal(ammo.nextRechargeAt, null);
@@ -1421,7 +1423,7 @@ test('spear reductions advance base Raze recharge once per activation at its rec
       );
       const expectedReadyAt = result.steps[0].end / 1000 + (15 - seconds) / rate;
       assert.ok(
-        Math.abs(result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt - expectedReadyAt) < 1e-9,
+        Math.abs(runtimeFor(result).ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt - expectedReadyAt) < 1e-9,
         skill
       );
     }
@@ -1467,7 +1469,7 @@ test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
 
   assert.equal(result.warnings.length, 0);
 
-  assert.equal(result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt, 14.6);
+  assert.equal(runtimeFor(result).ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt, 14.6);
   assert.deepEqual(result.planningState.cooldowns['Abyssal Raze'], {
     readyAt: 14600,
     remaining: 1180
@@ -1489,7 +1491,7 @@ test('Abyssal Raze recharge reduction carries overflow into the next count', () 
 
   assert.equal(rechargeProc.cooldownReduction, 1);
   // Verify serial recharge overflow independently of the separate between-cast lockout.
-  const { charges, maximum, rechargeWork, nextRechargeAt } = result.schedulerState.ammo.get(SKILL.ABYSSAL_RAZE);
+  const { charges, maximum, rechargeWork, nextRechargeAt } = runtimeFor(result).ammo.get(SKILL.ABYSSAL_RAZE);
   assert.deepEqual(
     { charges, maximum, rechargeWork, nextRechargeAt },
     {

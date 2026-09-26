@@ -8,11 +8,9 @@ import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   ProfessionEffectPresentation,
-  ProfessionEventLogDescriptor,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import type {
-  GuardianResolverEvent,
   GuardianSkill,
   GuardianState,
   GuardianUiContext,
@@ -99,36 +97,6 @@ export function guardianUiSkillsByMode(
     .map((skill) => skill.id);
 }
 
-// Render Guardian-specific virtue and state events while delegating ordinary
-// combat events to the shared log formatter.
-function guardianEventLogRow(
-  _context: GuardianUiContext,
-  event: GuardianResolverEvent
-): ProfessionEventLogDescriptor | null | undefined {
-  if (event.type === 'guardian.righteous-instincts-tick' || event.type === 'guardian.symbol-of-ignition-field') {
-    return null;
-  }
-
-  const base = {
-    type: event.type,
-    className: 'resource',
-    order: 30,
-    flags: []
-  };
-  if (event.type === 'guardian.virtue-activated') {
-    return {
-      ...base,
-      description: `VIRTUE ACTIVATED ${event.skillName || event.virtue || 'Unknown'}`
-    };
-  }
-
-  if (event.type === 'guardian.virtues-refreshed') {
-    return { ...base, description: 'VIRTUES REFRESHED' };
-  }
-
-  return undefined;
-}
-
 function guardianPaletteWeaponSkills(context: GuardianUiContext, skills: readonly GuardianSkill[]): GuardianSkill[] {
   const glacialHeart = hasTrait(context, GUARDIAN_TRAIT_IDS.GLACIAL_HEART);
   // Glacial Heart replaces Hammer 2 for the entire build, so only its selected
@@ -156,7 +124,6 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog>): Guardia
     assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
     // Inspiring Virtue is a binary Core effect shared by every Guardian specialization.
     effectPresentations: () => [...GUARDIAN_CORE_EFFECT_PRESENTATIONS],
-    eventLogRow: guardianEventLogRow,
     rotationStateSnapshot: guardianCoreStateSnapshot,
     paletteWeaponSkills: guardianPaletteWeaponSkills,
     paletteGroups: (context: GuardianUiContext) =>

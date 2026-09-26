@@ -13,7 +13,6 @@ import {
   migrateMesmerBuild,
   validateMesmerBuild
 } from '#gw2/professions/mesmer/build/build.js';
-import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
 import {
@@ -667,7 +666,7 @@ test('every terrestrial Mirage main-hand weapon has a selectable ambush skill', 
   // Catalog loading must retain the actor variants on the same skill that selects the ambush handler.
   for (const skill of AMBUSH_SKILLS) {
     const loaded = mesmerCatalog.skillsById.get(skill.id);
-    assert.equal(loaded.handlerId, 'mesmer.ambush');
+    assert.equal(loaded.ambush, true);
     assert.deepEqual(loaded.player, skill.player);
     assert.deepEqual(loaded.clone, skill.clone);
   }
@@ -772,42 +771,16 @@ test('Mesmer supplemental identities and dynamic handler profiles are explicit',
   assert.ok(shared.effects.length > 0);
   const replacing = mesmerCatalog.skillsByName.get('Phantasmal Swordsman');
 
-  assert.equal(replacing.handlerId, 'mesmer.phantasm');
+  assert.equal(replacing.phantasm, true);
   assert.ok(replacing.effects.length > 0);
 });
 
-test('Mesmer replacement handlers are limited to dynamic mechanic families', () => {
-  const allowed = new Set([
-    'mesmer.ambush',
-    'mesmer.bladesong',
-    'mesmer.continuum-shift',
-    'mesmer.continuum-split',
-    'mesmer.crescendo',
-    // Abstraction can cancel Inspiring Imagery's delayed boons, so emission depends on runtime state.
-    'mesmer.inspiring-imagery',
-    'mesmer.instrument',
-    'mesmer.mirage-dodge',
-    'mesmer.phantasm',
-    'mesmer.shatter',
-    'mesmer.weapon-swap'
-  ]);
-
+test('every Mesmer specialization registers native owners without scheduler handlers', () => {
   for (const specialization of ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']) {
-    const runtime = resolveProfessionRuntime(mesmerProfession, { specialization });
-    const replacements = runtime.catalog.skills.filter((skill) => runtime.skillHandlerFor(skill)?.mode === 'replace');
-
-    assert.ok(replacements.length > 0, specialization);
-    for (const skill of replacements) {
-      assert.ok(
-        allowed.has(skill.handlerId),
-        `${specialization}: ${skill.name} uses unexpected handler ${skill.handlerId}`
-      );
-    }
-
-    assert.ok(
-      runtime.catalog.skills.some((skill) => skill.effects.length > 0 && !skill.handlerId),
-      specialization
-    );
+    const runtime = mesmerProfession.liveRuntimeFor({ specialization });
+    assert.equal(typeof runtime.initialize, 'function');
+    assert.ok(runtime.catalog.skills.every((skill) => skill.handlerId == null));
+    assert.equal(typeof runtime.tasks['mesmer.clone-attack'], 'function');
   }
 });
 

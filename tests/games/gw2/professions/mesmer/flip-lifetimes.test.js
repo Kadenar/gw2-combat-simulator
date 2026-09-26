@@ -1,11 +1,13 @@
+import { registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
-import { completeMesmerCast } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { advanceMesmerScheduler } from '#gw2/professions/mesmer/core/execution/scheduler-hooks.js';
+import { settleMesmerSkillFlips } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
+import { mesmerCoreLive } from '#gw2/professions/mesmer/core/live.js';
 import { projectMesmerPlanningState } from '#gw2/professions/mesmer/family-state.js';
 import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
+import { MESMER_CORE_BALANCE_PROFILES } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 // Exercise the shared flip lifecycle without depending on a weapon's calibrated cast duration.
@@ -19,7 +21,7 @@ function flipContext() {
     flipDuration: 0.2
   };
   const skillsById = new Map([parent, flip].map((skill) => [skill.id, skill]));
-  return {
+  const context = {
     parent,
     flip,
     config: {},
@@ -29,13 +31,18 @@ function flipContext() {
     action: {},
     reservationId: 'parent',
     inFlight: new Map(),
-    maximumAmmoFor: () => 0,
+    cooldownController: { ensureAmmo: () => null },
+    schedule() {},
     state: {
       time: 0.35,
       activeWeaponSet: 1,
       profession: { core: createMesmerCoreState(), specialization: { kind: 'Core', state: {} } }
     },
-    catalog: { skillsById, autoattackChains: [] },
+    catalog: {
+      skillsById,
+      autoattackChains: [],
+      balanceProfilesById: new Map(MESMER_CORE_BALANCE_PROFILES.map((profile) => [profile.id, profile]))
+    },
     mesmerRuntime: {
       skillsById,
       flipSkillsByParent: new Map([[parent.id, flip]]),
@@ -46,12 +53,16 @@ function flipContext() {
       skillEffects: { scheduleResources() {}, complete() {} }
     }
   };
+  Object.assign(context, context.state);
+  context.helpers = context.catalog;
+  registerMesmerMechanics(context, context.mesmerRuntime);
+  return context;
 }
 
 test('Mesmer flip creation, availability, projection, and cleanup share exact boundaries', () => {
   const context = flipContext();
-  completeMesmerCast(context, context.parent);
-  const core = context.state.profession.core;
+  settleMesmerSkillFlips(context, { ...context, id: 'parent' }, context.parent, context.effectiveEnd);
+  const core = context.profession.core;
   assert.deepEqual(core.availableFlips[ID.COUNTERSPELL], {
     identity: 'parent',
     visibleAt: 0.35,
@@ -64,31 +75,34 @@ test('Mesmer flip creation, availability, projection, and cleanup share exact bo
     [0.499999, true],
     [0.5, false, 'mesmer.flip-not-armed']
   ]) {
-    context.start = context.state.time = at;
+    context.start = context.time = at;
     const availability = mesmerAvailability(context, context.flip);
     assert.equal(availability.ready, ready, `availability at ${at}`);
     assert.equal(availability.code, code);
     // Delayed flips remain listed for inspection, but expired flips must disappear before cleanup runs.
     assert.equal(
-      Boolean(projectMesmerPlanningState({ schedulerContext: context }).availableFlips[ID.COUNTERSPELL]),
+      Boolean(
+        projectMesmerPlanningState({ ...context, config: context.config, catalog: context.catalog }).availableFlips[
+          ID.COUNTERSPELL
+        ]
+      ),
       at < 0.5
     );
   }
 
-  advanceMesmerScheduler(context, 0.499999);
   assert.ok(core.availableFlips[ID.COUNTERSPELL]);
-  advanceMesmerScheduler(context, 0.5);
+  mesmerCoreLive.tasks['mesmer.flip-expire'](context, { id: ID.COUNTERSPELL, identity: 'parent' });
   assert.equal(core.availableFlips[ID.COUNTERSPELL], undefined);
 });
 
 test('Mesmer completion cannot arm an already expired flip and cleanup preserves persistent flips', () => {
   const context = flipContext();
   context.fullEnd = context.effectiveEnd = 0.5;
-  completeMesmerCast(context, context.parent);
-  assert.equal(context.state.profession.core.availableFlips[ID.COUNTERSPELL], undefined);
-  context.state.profession.core.availableFlips[ID.POWER_SPIKE] = armSkillFlip({}, 0, 0, Infinity);
-  advanceMesmerScheduler(context, 100);
-  assert.equal(context.state.profession.core.availableFlips[ID.POWER_SPIKE].expiresAt, null);
+  settleMesmerSkillFlips(context, { ...context, id: 'parent' }, context.parent, context.effectiveEnd);
+  assert.equal(context.profession.core.availableFlips[ID.COUNTERSPELL], undefined);
+  context.profession.core.availableFlips[ID.POWER_SPIKE] = armSkillFlip({}, 0, 0, Infinity);
+
+  assert.equal(context.profession.core.availableFlips[ID.POWER_SPIKE].expiresAt, null);
 });
 
 test('Mesmer flip endpoints canonicalize arithmetic residue without snapping to action ticks', () => {
@@ -97,8 +111,8 @@ test('Mesmer flip endpoints canonicalize arithmetic residue without snapping to 
   context.fullEnd = context.effectiveEnd = 0.15;
   context.flip.flipDelay = 0.2;
   context.flip.flipDuration = 0.333333;
-  completeMesmerCast(context, context.parent);
-  assert.deepEqual(context.state.profession.core.availableFlips[ID.COUNTERSPELL], {
+  settleMesmerSkillFlips(context, { ...context, id: 'parent' }, context.parent, context.effectiveEnd);
+  assert.deepEqual(context.profession.core.availableFlips[ID.COUNTERSPELL], {
     identity: 'parent',
     visibleAt: 0.15,
     availableAt: 0.3,

@@ -4,17 +4,15 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
+import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import { activeTroubadourInstrumentsAt } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
-import type { MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { grantProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 interface TroubadourTaleInvocation {
-  readonly context: MesmerSchedulerContext;
+  readonly context: MesmerRuntime;
   readonly skill: MesmerSkill;
   readonly at: number;
   readonly castStart: number;
@@ -37,7 +35,7 @@ const TALE_INSTRUMENTS: Readonly<Record<number, string>> = Object.freeze({
 
 /** Resolves a Tale's profile boons, matching-instrument note, and Troubadour trait effects together. */
 export function resolveTroubadourTale({ context, skill, at, castStart, activationId }: TroubadourTaleInvocation): void {
-  const runtime = mesmerRuntimeFor(context);
+  const runtime = mesmerMechanicsFor(context);
   const profileId = TALE_PROFILE_IDS[skill.id];
   const profile = profileId ? requireBalanceProfileFromContext(runtime, profileId) : null;
   const partyRecipients = { audience: { recipients: 'party' as const, maximumRecipients: 5 } };
@@ -48,7 +46,7 @@ export function resolveTroubadourTale({ context, skill, at, castStart, activatio
       at,
       kind: String(boon.boon || ''),
       stacks: Number(boon.stacks),
-      duration: gw2SchedulerBoonDuration(context, skill, String(boon.boon), Number(boon.duration)),
+      duration: Number(boon.duration),
       skillName: skill.name,
       sourceSkill: skill.name,
       ...partyRecipients
@@ -58,11 +56,15 @@ export function resolveTroubadourTale({ context, skill, at, castStart, activatio
   const requiredInstrument = TALE_INSTRUMENTS[skill.id];
   // Completion can follow expiry or another performance; award the note from the instrument present at cast start.
   const action = activationId
-    ? context.eventsOfType('action').find((event) => event.activationId === activationId)
+    ? context.history.filter((event) => event.type === 'action').find((event) => event.activationId === activationId)
     : undefined;
   if (
     requiredInstrument &&
-    activeTroubadourInstrumentsAt(context.eventsOfType('mesmer.instrument'), castStart, action).has(requiredInstrument)
+    activeTroubadourInstrumentsAt(
+      context.history.filter((event) => event.type === 'mesmer.instrument'),
+      castStart,
+      action
+    ).has(requiredInstrument)
   ) {
     const profile = requireBalanceProfileFromContext(runtime, profileId);
     runtime.resources.queueResources(
@@ -75,7 +77,7 @@ export function resolveTroubadourTale({ context, skill, at, castStart, activatio
 
   if (skill.id === ID.TALE_OF_THE_HONORABLE_ROGUE) {
     // Preserve fractional recovery and cap the grant through the shared endurance pool.
-    grantProfessionEndurance(context, 50, at);
+    context.endurance.grant(50);
   }
 
   if (runtime.traits.has(TRAIT.RACONTEUR)) {
@@ -87,7 +89,7 @@ export function resolveTroubadourTale({ context, skill, at, castStart, activatio
       at,
       kind: String(protection.boon),
       stacks: Number(protection.stacks),
-      duration: gw2SchedulerBoonDuration(context, skill, String(protection.boon), Number(protection.duration)),
+      duration: Number(protection.duration),
       skillName: skill.name,
       sourceSkill: skill.name,
       ...partyRecipients

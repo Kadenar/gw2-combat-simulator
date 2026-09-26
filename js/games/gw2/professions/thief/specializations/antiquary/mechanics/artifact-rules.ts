@@ -1,35 +1,11 @@
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { activeStackCount, consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { antiquaryState, type AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
+import type { AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/traits/modifiers.js';
-import { antiquaryCastAvailability } from '#gw2/professions/thief/specializations/antiquary/mechanics/availability.js';
-import { forgedSurfer, skrittScuffle } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
-import {
-  advanceAntiquaryResources,
-  spendAntiquaryResources
-} from '#gw2/professions/thief/specializations/antiquary/mechanics/resources.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { ThiefPrecastContext } from '#gw2/professions/thief/types.js';
-
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
-
-const antiquaryTaskHandlers = Object.freeze({
-  ...forgedSurfer.taskHandlers,
-  ...skrittScuffle.taskHandlers
-});
-
-export const antiquarySchedulerHooks = Object.freeze({
-  advance: advanceAntiquaryResources,
-  onCastStart: spendAntiquaryResources,
-  taskHandlers: antiquaryTaskHandlers
-});
 
 // Meticulous Custodian boosts the base strike coefficient of each artifact to its "enhanced" value; factors below are enhanced/base
 const METICULOUS_ARTIFACT_STRIKE_IDS = new Set<number>([
@@ -138,7 +114,7 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
       hasTrait(context, TRAIT.METICULOUS_CUSTODIAN) &&
       context.event?.skillId === ID.MISTBURN_MORTAR &&
       context.event?.condition === 'Burning' &&
-      context.event?.triggeredBy == null // the Charged Strike bonus burn (emitted by resolver) must not have its duration doubled a second time
+      context.event?.triggeredBy == null // the Charged Strike bonus burn (applied by the landed strike) must not have its duration doubled a second time
   },
   {
     id: 'thief.meticulous-custodian-sun-crystal-burning',
@@ -155,25 +131,4 @@ export const antiquaryModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
 
 export const antiquaryAttributeRules = Object.freeze({
   modifierRules: antiquaryModifierRules
-});
-
-/** Only accepted utility casts prune and spend the oldest live Holo-Dancer charge. */
-function commitAntiquaryRechargeDuration(context: ThiefPrecastContext, duration: number): number {
-  if (context.skill.type !== 'Utility') return duration;
-  const state = antiquaryState.from(context);
-  const artifactWindowsProfile = requireBalanceProfileFromContext(context, PROFILE.artifactWindows);
-  const multiplier = balanceProfileNumber(artifactWindowsProfile, 'rechargeMultiplier');
-  // Consume the oldest grant, even when a newer charge expires sooner.
-  const { expiries, consumed } = consumeOldestStacks(state.holoUtilityCooldownReductionExpirations, 1, context.start);
-  state.holoUtilityCooldownReductionExpirations = expiries;
-  return duration * (consumed > 0 ? multiplier : 1);
-}
-
-export const antiquaryCastRules = Object.freeze({
-  availability: {
-    id: 'thief.antiquary-availability',
-    order: 20,
-    handler: antiquaryCastAvailability
-  },
-  commitRechargeDuration: commitAntiquaryRechargeDuration
 });

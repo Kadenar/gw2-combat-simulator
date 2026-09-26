@@ -4,10 +4,8 @@
  * overrides, and resolver handlers become one validated immutable lookup.
  */
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import { normalizeSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { deriveAutoattackChains, indexAutoattackChains } from '#gw2/platform/engine/skills/autoattack-chains.js';
 import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
-import { toEntries } from '#kernel/core/collections.js';
 import type {
   AutoattackChainPosition,
   BalanceProfile,
@@ -20,7 +18,6 @@ import type {
   SkillLockout,
   StrikeTick
 } from '#gw2/platform/engine/skills/types.js';
-import type { SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 
 /** Corrects derived catalog chains with authored additions and exclusions shared by module contributions. */
 export interface AutoattackChainOptions {
@@ -35,7 +32,6 @@ interface CanonicalCatalogOptions {
   readonly extraSkills?: readonly Skill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
   readonly autoattackChains?: AutoattackChainOptions;
-  readonly skillHandlers?: ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>>;
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
   readonly weapons?: readonly string[];
@@ -195,16 +191,6 @@ export function normalizeSkillEffects(effects: readonly SkillEffect[], label: st
       return normalized;
     })
   );
-}
-
-/**
- * Normalizes handler maps so catalog lookup is always string-keyed regardless
- * of whether the source used a plain object or Map.
- */
-function normalizeSkillHandlers(
-  value: ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>> | null | undefined
-): Map<string, SkillHandlerStrategy> {
-  return new Map(toEntries(value).map(([id, handler]) => [id, normalizeSkillHandler(id, handler)]));
 }
 
 /**
@@ -715,7 +701,7 @@ function normalizeLockouts(lockouts: unknown, skillId: SkillId): readonly SkillL
 }
 
 /**
- * Builds the immutable catalog consumed by the shared scheduler, resolver, and
+ * Builds the immutable catalog consumed by the shared runtime and
  * app adapters.
  */
 export function createCanonicalCatalog({
@@ -725,7 +711,6 @@ export function createCanonicalCatalog({
   extraSkills = [],
   balanceProfiles = [],
   autoattackChains = {},
-  skillHandlers = {},
   traits = [],
   specializations = [],
   weapons = [],
@@ -903,7 +888,6 @@ export function createCanonicalCatalog({
     balanceProfilesByName: new Map(profiles.map((profile) => [profile.name, profile])),
     autoattackChains: normalizedAutoattacks.chains,
     autoattackChainPositions: normalizedAutoattacks.positions,
-    skillHandlers: normalizeSkillHandlers(skillHandlers),
     traits: Object.freeze(traits.map((trait) => Object.freeze({ ...trait }))),
     specializations: Object.freeze(specializations.map((specialization) => Object.freeze({ ...specialization }))),
     weapons: new Set(weapons),
@@ -936,10 +920,6 @@ function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
 
     ids.add(skill.id);
     if (!String(skill.name || '')) throw new Error(`Skill ${skill.id} has no name.`);
-    if (skill.handlerId && !catalog.skillHandlers?.has(String(skill.handlerId))) {
-      throw new Error(`Skill ${skill.id} references missing handler ${skill.handlerId}.`);
-    }
-
     for (const reference of [skill.parentId, skill.flipParentId]) {
       if (reference != null && !catalog.skillsById.has(reference)) {
         throw new Error(`Skill ${skill.id} references missing parent ${reference}.`);

@@ -9,9 +9,7 @@ import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necr
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { RITUALIST_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { necromancerAppAdapter } from '#gw2/professions/necromancer/app/app-definition.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { createRitualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import { ritualistEventHandlers } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-effects.js';
+import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -31,7 +29,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createProfessionSimulator(necromancerProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(necromancerProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -47,7 +45,6 @@ test('cancelled Essence Blast attempts emit no damage while committed blasts sur
     );
     const cancelled = interruptAfterMs != null && interruptAfterMs < skill.interruptCommitMs;
     assert.deepEqual(result.warnings, []);
-    assert.equal(Boolean(result.steps.find((step) => step.skillId === skill.id).cancelledBeforeCommit), cancelled);
     assert.equal(
       result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === skill.id),
       !cancelled
@@ -107,41 +104,6 @@ test('Ritualist autoattacks and Painful Bond carry their source icons', () => {
   assert.equal(anguishRows.find((row) => row.name === 'Anguish Autoattack')?.icon, anguishIcon);
   assert.equal(anguishRows.find((row) => row.name === 'Painful Bond')?.icon, anguishIcon);
   assert.equal(wanderlustRows.find((row) => row.name === 'Wanderlust Autoattack')?.icon, wanderlustIcon);
-});
-
-// A missed shared pulse is skipped, not delayed into the current animation's impact window.
-test('spirit readiness is checked at attack start and generation is checked again at impact', () => {
-  for (const key of ['anguish', 'wanderlust', 'preservation']) {
-    const state = createRitualistState();
-    const queued = [];
-    const context = {
-      profession: { specialization: { kind: 'Ritualist', state } },
-      queue: { enqueue: (event) => queued.push(event) }
-    };
-    const attack = {
-      type: 'necromancer.spirit-attack',
-      at: 5,
-      coefficient: 1,
-      requiresSpirit: key,
-      requiresSpiritGeneration: 1,
-      spiritAttackDelay: 0.8
-    };
-    const handle = ritualistEventHandlers['necromancer.spirit-attack'];
-    state.activeSpirits[key] = true;
-    state.spiritGenerations[key] = 1;
-    state.spiritBusyUntil[key] = 5.4;
-    handle(context, attack);
-    assert.deepEqual(queued, []);
-    state.spiritBusyUntil[key] = 5;
-    handle(context, attack);
-    const impact = queued.pop();
-    assert.equal(impact.at, 5.8);
-    state.spiritGenerations[key] = 2;
-    handle(context, impact);
-    assert.deepEqual(queued, []);
-    handle(context, { ...impact, requiresSpiritGeneration: 2 });
-    assert.equal(queued.pop().type, 'damage');
-  }
 });
 
 // Replacing Anguish must preserve the other spirits' clocks and rejoin their next eligible cycle.
@@ -384,20 +346,19 @@ test('Ritualist weapon spells consume stacks and Resilient Weapon is usable', ()
   assert.equal(nightmareProc.effects[1].duration, 8);
   assert.deepEqual(resilient.warnings, []);
   assert.equal(
-    resilient.events.some(
-      (event) => event.type === 'necromancer.weapon-spell' && event.spell === 'resilient' && event.playerStacks === 5
-    ),
-    true
+    runtimeFor(resilient).profession.specialization.state.weaponSpells.resilient.recipients.player.charges,
+    5
   );
 });
 
 test('Ritualist weapon spells scale with allied players', () => {
-  const rotation = ['Nightmare Weapon', 'Splinter Weapon'];
+  // Modeled allied strikes require an actual combat boundary even when the player never attacks.
+  const rotation = [{ type: 'combat-start' }, 'Nightmare Weapon', 'Splinter Weapon'];
   const solo = simulate(
     'Ritualist',
     rotation,
     {
-      selectedSkills: rotation,
+      selectedSkills: ['Nightmare Weapon', 'Splinter Weapon'],
       allies: { count: 0, strikesPerSecond: 1 }
     },
     observationTail(5000)
@@ -406,13 +367,15 @@ test('Ritualist weapon spells scale with allied players', () => {
     'Ritualist',
     rotation,
     {
-      selectedSkills: rotation,
+      selectedSkills: ['Nightmare Weapon', 'Splinter Weapon'],
       allies: { count: 4, strikesPerSecond: 1 }
     },
     observationTail(5000)
   );
   const allyProcs = party.resolvedEvents.filter((event) => event.type === 'damage' && event.metadata?.triggeredByAlly);
-  const applicationEvents = party.events.filter((event) => event.type === 'necromancer.weapon-spell');
+  const applicationEvents = party.events.filter(
+    (event) => event.type === 'buff' && [ID.NIGHTMARE_WEAPON, ID.SPLINTER_WEAPON].includes(event.skillId)
+  );
 
   assert.equal(solo.totalDamage, 0);
   assert.ok(party.totalDamage > solo.totalDamage);
@@ -431,7 +394,7 @@ test('Ritualist weapon spells scale with allied players', () => {
 
   const wieldersBoon = simulate(
     'Ritualist',
-    ['Nightmare Weapon'],
+    [{ type: 'combat-start' }, 'Nightmare Weapon'],
     {
       selectedSkills: ['Nightmare Weapon'],
       selectedTraitIds: [TRAIT.WIELDERS_BOON],
@@ -467,13 +430,15 @@ test('Ritualist weapon spells prioritize players, include minions, and exclude s
     },
     observationTail(5000)
   );
-  const applications = result.events.filter((event) => event.type === 'necromancer.weapon-spell');
+  const applications = result.events.filter(
+    (event) => event.type === 'buff' && [ID.NIGHTMARE_WEAPON, ID.SPLINTER_WEAPON].includes(event.skillId)
+  );
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.combatState.profession.activeSpirits.anguish, true);
   assert.deepEqual(
-    applications.map((event) => event.spell),
-    ['nightmare', 'splinter']
+    applications.map((event) => event.skillId),
+    [ID.NIGHTMARE_WEAPON, ID.SPLINTER_WEAPON]
   );
   assert.equal(
     applications.every(
@@ -1388,7 +1353,7 @@ test('a zero spirit interval disables recurrence without removing initial spirit
       }
     }
   });
-  const result = createProfessionSimulator(profession, baseConfig)(
+  const result = createLiveProfessionSimulator(profession, baseConfig)(
     'Ritualist',
     ["Ritualist's Shroud", 'Anguish', 'Wanderlust', 'Preservation', { type: 'wait', durationMs: 10000 }],
     { patchId: 'no-spirit-loop', initialResource: 100 }

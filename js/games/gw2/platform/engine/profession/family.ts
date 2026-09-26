@@ -9,29 +9,19 @@ import type {
   NormalizedProfessionContract,
   ProfessionDefinition,
   ProfessionAttributeRuleDefinition,
-  ProfessionSchedulerHookDefinition,
-  ProfessionSimulationDefinition,
   ProfessionFamilyContract,
   ProfessionFamilyDefinition,
   ProfessionModuleDefinition,
   ProfessionSource
 } from '#gw2/platform/engine/profession/types.js';
-import type { SchedulerConfig } from '#gw2/platform/execution/types.js';
-import {
-  ATTRIBUTE_HOOK_NAMES,
-  CAST_HOOK_NAMES,
-  SCHEDULER_HOOK_NAMES,
-  assertDefinition,
-  defineProfession
-} from '#gw2/platform/engine/profession/contract.js';
+import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
+import { ATTRIBUTE_HOOK_NAMES, assertDefinition, defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import {
   assertModuleDefinition,
-  composeEventReactions,
   composeHookContainer,
   composeModuleCatalog,
   composeStateFragments,
   defineProfessionModule,
-  mergeHandlerRegistries,
   singleOwnerValue
 } from '#gw2/platform/engine/profession/module.js';
 import type { NamedModule } from '#gw2/platform/engine/profession/module.js';
@@ -82,24 +72,6 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
   modules: readonly NamedModule[]
 ): ProfessionDefinition<TProfessionState, TBuild> {
   const genericModules = modules as readonly NamedModule<object>[];
-  const schedulerHooks: {
-    -readonly [K in keyof ProfessionSchedulerHookDefinition]: ProfessionSchedulerHookDefinition[K];
-  } = composeHookContainer(genericModules, 'schedulerHooks', SCHEDULER_HOOK_NAMES);
-  schedulerHooks.taskHandlers = mergeHandlerRegistries(
-    genericModules,
-    (module) => module.schedulerHooks?.taskHandlers,
-    'task handler'
-  );
-  schedulerHooks.skillMechanicHandlers = mergeHandlerRegistries(
-    genericModules,
-    (module) => module.schedulerHooks?.skillMechanicHandlers,
-    'skill mechanic handler'
-  );
-  const eventHandlers = mergeHandlerRegistries(
-    genericModules,
-    (module) => module.resolverHooks?.eventHandlers,
-    'event handler'
-  );
   const projectPlanningState = singleOwnerValue(
     genericModules,
     (module) => module.resources?.projectPlanningState,
@@ -115,18 +87,10 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
       // The selected elite replaces Core's policy as one capability; grants are never composed twice.
       endurance: [...genericModules].reverse().find(({ module }) => module.resources?.endurance)?.module.resources
         ?.endurance,
-      createProfessionState: (config) => composeStateFragments(genericModules, config, false) as TProfessionState,
-      createResolverState: (config) => composeStateFragments(genericModules, config, true),
+      createState: (config) => composeStateFragments(genericModules, config) as TProfessionState,
       ...(projectPlanningState == null ? {} : { projectPlanningState })
     },
-    attributeRules: composeModuleAttributeRules(genericModules),
-    castRules: composeHookContainer(genericModules, 'castRules', CAST_HOOK_NAMES),
-    schedulerHooks,
-    resolverHooks: {
-      eventHandlers,
-      eventReactions: composeEventReactions(genericModules)
-    },
-    simulation: definition.simulation
+    attributeRules: composeModuleAttributeRules(genericModules)
   };
 }
 
@@ -136,14 +100,7 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
  */
 export function defineProfessionFamily<TProfessionState extends object = object, TBuild extends object = object>(
   definition: ProfessionFamilyDefinition<TBuild>
-): Readonly<
-  ProfessionFamilyContract<
-    TProfessionState,
-    NormalizedProfessionContract<TProfessionState, object, object>,
-    ProfessionSimulationDefinition,
-    TBuild
-  >
-> {
+): Readonly<ProfessionFamilyContract<TProfessionState, NormalizedProfessionContract<TProfessionState>, TBuild>> {
   assertDefinition(definition);
   assertModuleDefinition(definition.core);
   if (definition.core.id !== 'Core') {
@@ -169,30 +126,18 @@ export function defineProfessionFamily<TProfessionState extends object = object,
   }
 
   const core = defineProfessionModule(definition.core);
-  const applicationModules: NamedModule[] = [
-    { name: 'Core', module: core },
-    ...[...specializationModules].map(([name, module]) => ({ name, module }))
-  ];
   // Validate the family catalog and simulation policy without composing executable hooks across inactive elites.
   // The trigger registry lets the full application catalog validate every module-owned trigger.
   const applicationSurface = defineProfession({
     id: definition.id,
     name: definition.name,
     weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
-    catalog: definition.catalog,
-    schedulerHooks: {
-      skillMechanicHandlers: mergeHandlerRegistries(
-        applicationModules,
-        (module) => module.schedulerHooks?.skillMechanicHandlers,
-        'skill mechanic handler'
-      )
-    },
-    simulation: definition.simulation
+    catalog: definition.catalog
   });
-  const cache = new Map<string, Readonly<NormalizedProfessionContract<TProfessionState, object, object>>>();
+  const cache = new Map<string, Readonly<NormalizedProfessionContract<TProfessionState>>>();
   const resolveRuntime = (
-    config: Readonly<SchedulerConfig> = {}
-  ): Readonly<NormalizedProfessionContract<TProfessionState, object, object>> => {
+    config: Readonly<ProfessionConfig> = {}
+  ): Readonly<NormalizedProfessionContract<TProfessionState>> => {
     const specialization = String(config.specialization || 'Core').trim() || 'Core';
     if (specialization !== 'Core' && !specializationModules.has(specialization)) {
       throw new Error(
@@ -227,7 +172,9 @@ export function defineProfessionFamily<TProfessionState extends object = object,
         createProfessionFamilyUi({
           resourcesFor: (specialization) => ({
             ...resourcePolicies(resolveRuntime({ specialization }).resources),
-            endurance: resolveRuntime({ specialization }).resources.endurance ?? undefined
+            endurance: resolveRuntime({ specialization }).resources.endurance ?? undefined,
+            // Live-owned policies replace composed module declarations for the same resource.
+            ...definition.resourcesFor?.(specialization)
           }),
           catalog: definition.catalog,
           core: core.ui || {},
@@ -238,17 +185,9 @@ export function defineProfessionFamily<TProfessionState extends object = object,
         })
       ));
     },
-    simulation: applicationSurface.simulation,
     ...build,
     resolveRuntime
-  }) as Readonly<
-    ProfessionFamilyContract<
-      TProfessionState,
-      NormalizedProfessionContract<TProfessionState, object, object>,
-      ProfessionSimulationDefinition,
-      TBuild
-    >
-  >;
+  }) as Readonly<ProfessionFamilyContract<TProfessionState, NormalizedProfessionContract<TProfessionState>, TBuild>>;
 }
 
 /**
@@ -257,11 +196,10 @@ export function defineProfessionFamily<TProfessionState extends object = object,
  */
 export function resolveProfessionRuntime<
   TProfessionState extends object = object,
-  TRuntime extends NormalizedProfessionContract<TProfessionState, object, object> =
-    NormalizedProfessionContract<TProfessionState>
+  TRuntime extends NormalizedProfessionContract<TProfessionState> = NormalizedProfessionContract<TProfessionState>
 >(
   profession: ProfessionSource<TProfessionState, TRuntime>,
-  config: Readonly<SchedulerConfig> = {}
+  config: Readonly<ProfessionConfig> = {}
 ): Readonly<TRuntime> {
   if (!profession || typeof profession !== 'object') {
     throw new TypeError('A profession contract is required.');

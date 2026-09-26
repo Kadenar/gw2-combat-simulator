@@ -30,9 +30,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         { type: 'condition', condition: 'Chilled', stacks: 1, duration: 4 },
         { type: 'control', controlKind: 'pull' }
       ]
-    ),
-    // Custom: Checks projectile commitment and grants life force on the committed hit; see `core/execution/greatsword.ts`.
-    handlerId: 'necromancer.grasping-darkness'
+    )
   },
   [ID.NIGHTFALL]: {
     // The field commits at 440 ms; every delayed pulse then survives the interrupted cast.
@@ -69,9 +67,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
           intervalTimingScale: 'fixed'
         }
       ])
-    ],
-    // Custom: Checks field commitment and grants life force with each committed pulse; see `core/execution/greatsword.ts`.
-    handlerId: 'necromancer.nightfall'
+    ]
   },
   [ID.CHILLING_SCYTHE]: {
     castTimeMs: 920,
@@ -82,22 +78,13 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
       { type: 'strike', coefficient: 1.8 },
       { type: 'condition', condition: 'Chilled', stacks: 1, duration: 2 }
     ]),
-    lifeForceGain: 5,
-    // Custom: Resets Gravedigger after a committed strike; see `core/execution/greatsword.ts`.
-    handlerId: 'necromancer.chilling-scythe'
+    lifeForceGain: 5
   },
   [ID.GRAVEDIGGER]: {
     castTimeMs: 1080,
     // The strike commits at 840 ms, but cancelling after it lands retains the full skill lockout.
     interruptCommitMs: 840,
     retainsCastLockoutAfterInterrupt: true,
-    // Completing Gravedigger resets its recharge once the target is below half health.
-    mechanicTriggers: [
-      {
-        type: 'necromancer.core.reset-gravedigger-below-half',
-        timingAnchor: 'castEnd'
-      }
-    ],
     effects: [
       {
         type: 'strike',

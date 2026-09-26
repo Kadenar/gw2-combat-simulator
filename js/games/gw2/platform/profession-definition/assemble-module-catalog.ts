@@ -11,12 +11,10 @@ import type {
   SkillId
 } from '#gw2/platform/engine/skills/types.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/engine/profession/types.js';
-import type { SkillHandlerStrategy } from '#gw2/platform/execution/types.js';
 import type {
   AnyNativeModule,
   NativeCatalogOptions,
-  NativeModuleCatalogData,
-  NativeSkillHandlerRegistry
+  NativeModuleCatalogData
 } from '#gw2/platform/profession-definition/module-types.js';
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 
@@ -215,8 +213,6 @@ function composeNativeCatalog(
   const mechanicsOwners = new Map<string, string>();
   const overrides: Record<string, Partial<Skill>> = {};
   const overrideOwners = new Map<string, string>();
-  const handlers = new Map<string, SkillHandlerStrategy<object>>();
-  const handlerOwners = new Map<string, string>();
   const exclusiveOwners = new Map<string, string>();
   const weapons = new Set<string>();
   const weaponHands = new Map<string, string>();
@@ -243,17 +239,6 @@ function composeNativeCatalog(
 
       overrideOwners.set(skillId, module.id);
       overrides[skillId] = override;
-    }
-
-    const moduleHandlers = module.mechanics?.execution?.skillHandlers as NativeSkillHandlerRegistry<object> | undefined;
-    for (const [handlerId, handler] of toEntries(moduleHandlers)) {
-      const prior = handlerOwners.get(handlerId);
-      if (prior) {
-        throw new TypeError(`Duplicate skill handler ${handlerId} in ${prior} and ${module.id}.`);
-      }
-
-      handlerOwners.set(handlerId, module.id);
-      handlers.set(handlerId, handler);
     }
 
     for (const skillId of module.data.specializationOnlySkillIds || []) {
@@ -292,7 +277,6 @@ function composeNativeCatalog(
     overrides,
     extraSkills: extras.values as Skill[],
     balanceProfiles: balanceProfiles.values,
-    skillHandlers: handlers,
     traits: traits.values,
     specializations: specializations.values,
     weapons: [...weapons],
@@ -344,28 +328,6 @@ function composeNativeCatalog(
     }
   }
 
-  // Each handler must be owned by the same module as the skills that use it.
-  // Core handlers may serve skills in any module (since Core is the base layer),
-  // but a non-Core handler must not cross into another module's skills.
-  for (const [handlerId, owner] of handlerOwners) {
-    const referencedOwners = new Set(
-      catalog.skills.filter((skill) => skill.handlerId === handlerId).map((skill) => skillOwners.get(skill.id))
-    );
-    if (!referencedOwners.size) {
-      throw new TypeError(`Skill handler ${handlerId} is unused.`);
-    }
-
-    if (
-      (owner === 'Core' && !referencedOwners.has('Core')) ||
-      (owner !== 'Core' && (referencedOwners.size !== 1 || !referencedOwners.has(owner)))
-    ) {
-      throw new TypeError(
-        `Skill handler ${handlerId} is contributed by ${owner}, but its skills ` +
-          `are available in ${[...referencedOwners].join(', ')}.`
-      );
-    }
-  }
-
   const chainContributions = new Map<string, AutoattackChainOptions>();
   for (const module of modules) {
     chainContributions.set(module.id, { additional: [], excludeSkillIds: [] });
@@ -399,7 +361,6 @@ function composeNativeCatalog(
 
   const fragments = new Map<string, Readonly<ProfessionModuleCatalogFragment>>();
   for (const module of modules) {
-    const moduleHandlers = new Map([...handlers].filter(([handlerId]) => handlerOwners.get(handlerId) === module.id));
     const hands = new Map([...weaponHands].filter(([weapon]) => weaponHandOwners.get(weapon) === module.id));
     const chains = chainContributions.get(module.id)!;
     // Module-local selections resolve active specialization collisions; global overrides remain Core-owned.
@@ -414,7 +375,6 @@ function composeNativeCatalog(
         balanceProfiles: Object.freeze(
           catalog.balanceProfiles.filter((profile) => balanceProfiles.owners.get(profile.id) === module.id)
         ),
-        skillHandlers: moduleHandlers,
         traits: Object.freeze(catalog.traits.filter((trait) => traits.owners.get(trait.id) === module.id)),
         specializations: Object.freeze(
           catalog.specializations.filter(

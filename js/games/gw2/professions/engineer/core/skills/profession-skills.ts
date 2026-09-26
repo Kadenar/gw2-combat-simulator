@@ -6,8 +6,8 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 /** Defines Core toolbelt skill fragments and their parent-slot relationships. */
 export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.MINE_FIELD]: {
-    // Custom: Defers precast mines to combat start and applies detonation traits; see `core/execution/index.ts`.
-    handlerId: 'engineer.mine-field',
+    // Custom: Defers precast mines to combat start and applies detonation traits; see `core/live.ts`.
+
     castTimeMs: 920,
     cooldown: 17,
     effects: [

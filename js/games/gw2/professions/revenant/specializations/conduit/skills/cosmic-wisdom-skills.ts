@@ -39,8 +39,7 @@ export const CONDUIT_COSMIC_WISDOM_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.COSMIC_WISDOM]: {
-    // Custom: Activates the Cosmic Wisdom affinity window; see `execution/cosmic-wisdom.ts`.
-    handlerId: 'revenant.cosmic-wisdom',
+    // Custom: Activates the Cosmic Wisdom affinity window; see `conduit/live.ts`.
     castTimeMs: 0,
     cooldown: 20,
     energyCost: 0,

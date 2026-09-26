@@ -11,8 +11,6 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     castTimeMs: 920,
     // The Fire combo field lasts four seconds from the first pulse.
     comboFields: [{ ownerId: 'guardian', fieldType: 'Fire', duration: 4, startMs: 440, startAnchor: 'castStart' }],
-    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
-    handlerId: 'guardian.tome-page',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -38,8 +36,6 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   },
   [ID.IGNITING_BURST]: {
     castTimeMs: 480,
-    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
-    handlerId: 'guardian.tome-page',
     // Keep the page's strike, Burning, and Weakness on one impact.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -62,14 +58,10 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   },
   [ID.RADIANT_RECOVERY]: {
     castTimeMs: 200,
-    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
-    handlerId: 'guardian.tome-page',
     effects: []
   },
   [ID.STALWART_STAND]: {
     castTimeMs: 200,
-    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
-    handlerId: 'guardian.tome-page',
     effects: [
       {
         type: 'boon',
@@ -106,8 +98,6 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     castTimeMs: 680,
     // A cancel after commitment retains the completed page use and its effects.
     interruptCommitMs: 480,
-    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
-    handlerId: 'guardian.tome-page',
     // Keep the committed page's strike and conditions on one impact.
     effects: impactEffects(
       { atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
@@ -136,8 +126,7 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     canCastConcurrently: true,
     castTimeMs: 0,
     // Custom: Closes the active tome and updates tome state; see `firebrand/mechanics/tomes.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'guardian.stow-tome',
+    inputCategory: 'bar-swap',
     effects: []
   },
   [ID.TOME_OF_RESOLVE]: {
@@ -145,20 +134,14 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     // Tome transitions change the available bar without cancelling the active animation.
     canCastConcurrently: true,
     castTimeMs: 0,
-    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
-    handlerId: 'guardian.virtue',
     effects: []
   },
   [ID.VALIANT_BULWARK]: {
     castTimeMs: 200,
-    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
-    handlerId: 'guardian.tome-page',
     effects: []
   },
   [ID.DARING_CHALLENGE]: {
     castTimeMs: 200,
-    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
-    handlerId: 'guardian.tome-page',
     effects: [
       {
         type: 'strike',
@@ -178,8 +161,6 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   },
   [ID.SHINING_RIVER]: {
     castTimeMs: 200,
-    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
-    handlerId: 'guardian.tome-page',
     effects: [
       {
         type: 'boon',
@@ -224,22 +205,16 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     canCastConcurrently: true,
     castTimeMs: 0,
-    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
-    handlerId: 'guardian.virtue',
     effects: []
   },
   [ID.TOME_OF_COURAGE_ID_42371]: {
     inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
     canCastConcurrently: true,
     castTimeMs: 0,
-    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
-    handlerId: 'guardian.virtue',
     effects: []
   },
   [ID.HEATED_REBUKE]: {
     castTimeMs: 200,
-    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
-    handlerId: 'guardian.tome-page',
     effects: [
       {
         type: 'strike',
@@ -256,20 +231,14 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     castTimeMs: 880,
     // Commitment precedes the animation end; the Ashes grant keeps its separate application time.
     interruptCommitMs: 640,
-    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
-    handlerId: 'guardian.tome-page',
     effects: []
   },
   [ID.ETERNAL_OASIS]: {
     castTimeMs: 200,
-    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
-    handlerId: 'guardian.tome-page',
     effects: []
   },
   [ID.UNFLINCHING_CHARGE]: {
     castTimeMs: 200,
-    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
-    handlerId: 'guardian.tome-page',
     effects: [
       {
         type: 'boon',
@@ -288,14 +257,10 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     // Tome transitions change the available bar without cancelling the active animation.
     canCastConcurrently: true,
     castTimeMs: 0,
-    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
-    handlerId: 'guardian.virtue',
     effects: []
   },
   [ID.UNBROKEN_LINES]: {
     castTimeMs: 200,
-    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
-    handlerId: 'guardian.tome-page',
     effects: [
       {
         type: 'buff',
@@ -322,14 +287,10 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   },
   [ID.DESERT_BLOOM]: {
     castTimeMs: 200,
-    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
-    handlerId: 'guardian.tome-page',
     effects: []
   },
   [ID.AZURE_SUN]: {
     castTimeMs: 200,
-    // Custom: Spends pages and applies tome-specific state changes; see `firebrand/mechanics/tomes.ts`.
-    handlerId: 'guardian.tome-page',
     effects: [
       {
         type: 'boon',

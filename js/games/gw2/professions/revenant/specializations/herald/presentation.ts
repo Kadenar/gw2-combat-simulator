@@ -9,7 +9,7 @@ import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/pro
 const TRUE_NATURE_IDS: readonly SkillId[] = Object.freeze(Object.values(HERALD_MECHANICS.trueNatureConsumeByLegendId));
 
 // Mirror Herald facet and consume-skill flip state in the palette without
-// mutating the scheduler's active upkeep windows.
+// mutating the projected active upkeep windows.
 function heraldPaletteAvailability(context: RevenantUiContext, skill: RevenantSkill): PaletteSkillAvailability {
   if (skill.id !== SKILL.FACET_OF_NATURE && !TRUE_NATURE_IDS.includes(skill.id)) {
     return { available: true, message: '' };

@@ -8,7 +8,7 @@ import {
   NECROMANCER_MINION_PROFILE_BY_SKILL_ID
 } from '#gw2/professions/necromancer/core/profiles.js';
 import type { BalanceProfile, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { NecromancerCastContext, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 export interface MinionAttack {
   readonly name: string;
@@ -73,11 +73,8 @@ function minionAttackFromEffect(profile: BalanceProfile, effect: SkillEffect): M
   };
 }
 
-/** Compiles one summon balance profile into the attack model consumed by the scheduler. */
-export function minionDefinitionForSkill(
-  context: NecromancerCastContext,
-  skillId: SkillId
-): MinionDefinition | undefined {
+/** Compiles one summon balance profile into the attack model used by its lifetime owner. */
+export function minionDefinitionForSkill(context: unknown, skillId: SkillId): MinionDefinition | undefined {
   const profileId = NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skillId)];
   // Only minion skills compile a summon; every mapped skill must have its profile.
   if (profileId == null) return undefined;
@@ -91,7 +88,8 @@ export function minionDefinitionForSkill(
   );
   const toAttack = (effect: SkillEffect): MinionAttack => ({
     ...minionAttackFromEffect(profile, effect),
-    ...(alternateCondition
+    // Alternate conditions belong only to their alternate attack cycle.
+    ...(alternateCondition && effect.packetLabel === 'alternate'
       ? {
           condition: [
             String(alternateCondition.condition),
@@ -123,7 +121,7 @@ export function minionDefinitionForSkill(
   };
 }
 
-export function minionDefinitionFor(context: NecromancerCastContext, key: string): MinionDefinition | undefined {
+export function minionDefinitionFor(context: unknown, key: string): MinionDefinition | undefined {
   for (const skillId of Object.keys(NECROMANCER_MINION_PROFILE_BY_SKILL_ID)) {
     const definition = minionDefinitionForSkill(context, Number(skillId));
     if (definition?.key === key) return definition;
@@ -132,11 +130,11 @@ export function minionDefinitionFor(context: NecromancerCastContext, key: string
   return undefined;
 }
 
-export function summonWeaponStrength(context: NecromancerCastContext): number {
+export function summonWeaponStrength(context: unknown): number {
   return balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.summonAttributes), 'weaponStrength');
 }
 
-/** Compiles a command skill's declarative packets into its compact scheduler input. */
+/** Compiles a command skill's declarative packets into its command payload. */
 export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefinition {
   const effects = skill.effects || [];
   const strike = effects.find((effect) => effect.type === 'strike' && !Array.isArray(effect.ticks));

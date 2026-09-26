@@ -1,10 +1,10 @@
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { CastLifecycleContext, SchedulerContext, SchedulerState } from '#gw2/platform/execution/types.js';
 import type { Gw2CanonicalBuild, Gw2Build, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import type { DruidState } from '#gw2/professions/ranger/specializations/druid/state.js';
@@ -90,20 +90,13 @@ export interface RangerRuntimeState {
     | { kind: 'Galeshot'; state: GaleshotState };
 }
 
-export type RangerSchedulerContext = SchedulerContext<RangerRuntimeState> & {
-  readonly config: RangerConfig;
-};
-export type RangerCastContext = CastLifecycleContext<RangerRuntimeState> & {
-  readonly config: RangerConfig;
-};
 export type RangerResolverContext = Gw2ResolverRuntime & {
   config: RangerConfig;
   profession: RangerRuntimeState;
 };
 
-export interface RangerPlanningStateProjectionOptions {
-  readonly schedulerState: SchedulerState<RangerRuntimeState>;
-}
+/** All live Ranger owners share one combat, resource, and profession state. */
+export type RangerRuntime = Gw2Runtime<RangerRuntimeState> & { readonly config: RangerConfig };
 
 export interface RangerSkill extends Skill {
   readonly petSkill?: boolean;

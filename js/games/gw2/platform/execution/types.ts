@@ -1,42 +1,6 @@
-import type { RechargeProgress, RechargeInterval } from '#gw2/platform/engine/skills/recharge.js';
+import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 /** Defines scheduling state, cast commands, and observation contracts used to execute rotations. */
-import type {
-  Skill,
-  SkillMechanicTrigger,
-  SkillHandlerMode,
-  SkillEffect,
-  SkillId,
-  CanonicalCatalog
-} from '#gw2/platform/engine/skills/types.js';
-import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { ScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
-import type { NormalizedProfessionContract } from '#gw2/platform/engine/profession/types.js';
-import type { ObservationPolicy } from '#kernel/execution/observation.js';
-
-/** Runtime input supplied when a declarative skill mechanic reaches its scheduled timestamp. */
-export interface SkillMechanicInvocation<TProfessionState extends object = object> {
-  readonly context: SchedulerContext<TProfessionState>;
-  readonly skill: Skill;
-  readonly trigger: SkillMechanicTrigger;
-  readonly at: number;
-  readonly castStart: number;
-  readonly castEnd: number;
-  readonly activationId: string;
-}
-
-export type SkillMechanicTriggerHandler<TProfessionState extends object = object> = (
-  invocation: SkillMechanicInvocation<TProfessionState>
-) => unknown;
-
-export type SkillHandlerPhase<TContext extends object = object> = (context: TContext, skill: Skill) => unknown;
-
-export interface SkillHandlerStrategy<TContext extends object = object> {
-  readonly mode: SkillHandlerMode;
-  readonly resolveMode?: (context: TContext, skill: Skill) => SkillHandlerMode;
-  readonly beforeEffects?: SkillHandlerPhase<TContext>;
-  readonly afterEffect?: (context: TContext, skill: Skill, event: SimulationEvent, handlerState: unknown) => unknown;
-  readonly afterEffects?: (context: TContext, skill: Skill, handlerState: unknown) => unknown;
-}
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 export interface AmmoState {
   charges: number;
@@ -47,57 +11,6 @@ export interface AmmoState {
   lockoutProgress?: RechargeProgress;
   /** Independent cast lockout; charge recovery must not shorten this deadline. */
   lockoutReadyAt?: number;
-}
-
-export interface SchedulerState<TProfessionState = object> {
-  time: number;
-  cooldowns: Map<SkillId, number>;
-  rechargeProgress: Map<SkillId, RechargeProgress>;
-  ammo: Map<SkillId, AmmoState>;
-  lockouts: Map<string, number>;
-  activeWeaponSet: number;
-  skillUses: Map<SkillId, number>;
-  profession: TProfessionState;
-}
-
-export interface ScheduledTask<TPayload = unknown> {
-  readonly id: string;
-  readonly type: string;
-  readonly at: number;
-  readonly priority: number;
-  readonly ownerId: string | null;
-  readonly payload: TPayload | null;
-  readonly order: number;
-}
-
-export interface ScheduledTaskInput<TPayload = unknown> {
-  readonly id?: string;
-  readonly type: string;
-  readonly at: number;
-  readonly priority?: number;
-  readonly ownerId?: string | number | null;
-  readonly payload?: TPayload;
-  readonly required?: boolean;
-}
-
-export type ScheduledTaskHandler<TContext = unknown, TPayload = unknown> = (
-  context: TContext,
-  task: ScheduledTask<TPayload>
-) => unknown;
-
-/**
- * Registry entry for one task type. The module that schedules a task type also owns its handler and payload shape, so
- * registries erase the payload type and dispatch hands each handler the payload scheduled under its type.
- */
-export type RegisteredTaskHandler<TContext> = ScheduledTaskHandler<TContext, never>;
-
-export interface TaskQueue<TContext = unknown, TPayload = unknown> {
-  schedule(task: ScheduledTaskInput<TPayload>): string;
-  cancel(id: string | number): void;
-  cancelOwner(ownerId: string | number): void;
-  nextAt(type?: string): number;
-  drainThrough(target: number, context: TContext): void;
-  has(id: string | number): boolean;
 }
 
 export type AvailabilityResult =
@@ -115,28 +28,7 @@ export type AvailabilityResult =
       code: string;
     }>;
 
-/**
- * What a recharge query carries into the profession and policy recharge rules beyond the scheduler context: the skill
- * being queried, when it is queried, and the cast timings when the query comes from a completing cast. Professions add
- * their own query flags on top of this.
- */
-export interface RechargeQueryDetails {
-  readonly skill?: Skill;
-  /** Query time in simulation seconds. */
-  readonly at?: number;
-  /** Cast start for cast-bound queries; the query time otherwise. */
-  readonly start?: number;
-  readonly fullEnd?: number;
-  readonly effectiveEnd?: number;
-  /** Queries the post-cast ammo lockout instead of the per-charge recharge. */
-  readonly ammoCastLockout?: boolean;
-}
-
-/** Scheduler context of one recharge query. */
-export type RechargeContext<TProfessionState extends object = object> = SchedulerContext<TProfessionState> &
-  RechargeQueryDetails;
-
-export interface SchedulerConfig {
+export interface ProfessionConfig {
   /** Active elite specialization, or "Core"; module composition resolves the runtime from it. */
   readonly specialization?: string;
   readonly boons?: Readonly<Record<string, boolean | number>>;
@@ -161,133 +53,7 @@ export interface CooldownController {
   spendAmmo(skill: Skill, at: number, committedRechargeWork?: number): void;
 }
 
-export interface SchedulerTaskAccess {
-  schedule(task: ScheduledTaskInput<object>): string;
-  cancel(id: string | number): void;
-  cancelOwner(ownerId: string | number): void;
-  nextAt(type?: string): number;
-}
-
-export interface SchedulerPolicy<TProfessionState extends object = object> {
-  readonly rechargeIntervals?: (
-    context: SchedulerContext<TProfessionState>,
-    skill: Skill,
-    start: number,
-    end: number
-  ) => Iterable<RechargeInterval>;
-  /** Earliest next input after transition recovery, independent of each skill's cast lane. */
-  readonly inputReadyAt?: (context: SchedulerContext<TProfessionState>, at: number) => number;
-  readonly initialWeaponSet?: () => number;
-  readonly prepareEvent?: (
-    context: SchedulerContext<TProfessionState>,
-    event: SimulationEventBase
-  ) => SimulationEventBase | undefined;
-  readonly initialize?: (context: SchedulerContext<TProfessionState>) => unknown;
-  readonly availability?: (context: CastContext<TProfessionState>, skill: Skill) => AvailabilityResult;
-  readonly castDuration?: (
-    context: CastContext<TProfessionState>,
-    skill: Skill,
-    duration: number
-  ) => number | undefined;
-  readonly rechargeDuration?: (
-    context: RechargeContext<TProfessionState>,
-    skill: Skill,
-    duration: number
-  ) => number | undefined;
-  readonly maximumAmmo?: (
-    context: SchedulerContext<TProfessionState> & { skill: Skill },
-    skill: Skill,
-    maximum: number
-  ) => number | undefined;
-  readonly effectTiming?: (
-    context: SchedulerContext<TProfessionState> & {
-      skill: Skill;
-      start: number;
-      fullEnd: number;
-      effectiveEnd: number;
-    },
-    skill: Skill,
-    effect: SkillEffect
-  ) => SkillEffect | undefined;
-  readonly effectDuration?: (
-    context: SchedulerContext<TProfessionState>,
-    skill: Skill,
-    effect: SkillEffect,
-    duration: number
-  ) => number | undefined;
-  readonly buffStacks?: (
-    context: SchedulerContext<TProfessionState>,
-    kind: string,
-    at: number,
-    configuredStacks: number,
-    applications: readonly SimulationEvent[],
-    defaultStacks: number
-  ) => number | undefined;
-  readonly onEventScheduled?: (context: SchedulerContext<TProfessionState>, event: SimulationEvent) => unknown;
-  /** Updates derived indexes after replacement without observing the event a second time. */
-  readonly onEventReplaced?: (
-    context: SchedulerContext<TProfessionState>,
-    previous: SimulationEvent,
-    replacement: SimulationEvent
-  ) => void;
-  readonly advance?: (context: SchedulerContext<TProfessionState>, at: number) => unknown;
-  readonly taskHandlers?: Readonly<Record<string, RegisteredTaskHandler<SchedulerContext<TProfessionState>>>>;
-}
-
-export interface SchedulerContext<TProfessionState extends object = object> {
-  readonly profession: NormalizedProfessionContract<TProfessionState>;
-  readonly config: SchedulerConfig;
-  readonly catalog: CanonicalCatalog;
-  readonly state: SchedulerState<TProfessionState>;
-  readonly events: SimulationEvent[];
-  readonly warnings: string[];
-  readonly schedulerPolicy: SchedulerPolicy<TProfessionState>;
-  readonly observationPolicy: ObservationPolicy;
-  observationEndTime: number | null;
-  readonly inFlight: Map<SkillId, Set<string>>;
-  hasExplicitCombatStart: boolean;
-  combatStartTime: number | null;
-  tasks: SchedulerTaskAccess;
-  cooldownController: CooldownController;
-  castDurationFor(context: CastContext<TProfessionState>, skill: Skill): number;
-  /** Queries persistent recharge without reserving or consuming next-cast benefits. */
-  rechargeDurationFor<TDetails extends RechargeQueryDetails>(skill: Skill, at?: number, details?: TDetails): number;
-  maximumAmmoFor(skill: Skill): number;
-  createActivationId(kind?: 'effect' | 'summon-attack' | string): string;
-  advanceTo(at: number): void;
-  eventsOfType(type: string): readonly SimulationEvent[];
-  /** Chronological buff applications for one kind and actor audience; replacements update the index immediately. */
-  buffEvents(kind: string, audience?: 'self' | 'summon'): readonly SimulationEvent[];
-  eventByOrder(order: number): SimulationEvent | undefined;
-  emit(event: SimulationEventBase): SimulationEvent;
-  /** Applies updates to the current version of a scheduled event, preserving its eventOrder identity. */
-  replaceEvent(event: SimulationEvent, updates: Partial<SimulationEventBase>): SimulationEvent;
-  emitDerived(cause: SimulationEvent, event: SimulationEventBase): SimulationEvent;
-  buffStacks(kind: string, at?: number): number;
-  hasBuff(kind: string, at?: number): boolean;
-}
-
-export type CastContext<TProfessionState extends object = object> = SchedulerContext<TProfessionState> & {
-  readonly command: CastCommand;
-  readonly commandIndex: number;
-  readonly skill: Skill;
-  readonly start: number;
-  readonly ammo: AmmoState | null;
-};
-
-export type CastLifecycleContext<TProfessionState extends object = object> = CastContext<TProfessionState> & {
-  readonly action: SimulationEvent;
-  readonly fullEnd: number;
-  readonly effectiveEnd: number;
-  /** Committed base-recharge seconds; Alacrity changes the rate of progress, not these amounts. */
-  readonly rechargeWork: number;
-  readonly ammoLockoutWork: number;
-  readonly rechargeStart: number;
-  readonly rechargeReadyAt: number | null;
-  readonly reservationId: string;
-};
-
-export interface SchedulerStep {
+export interface SimulationStep {
   readonly ri: number;
   readonly skill: string;
   /** Stable cast identity used by result analysis without relying on display names or bar positions. */
@@ -306,25 +72,6 @@ export interface SchedulerStep {
   readonly missingInterruptCommit?: boolean;
   readonly invalid?: boolean;
   readonly invalidReason?: string;
-}
-
-export interface SchedulerRunResult<TProfessionState extends object = object> {
-  readonly context: SchedulerContext<TProfessionState>;
-  readonly state: SchedulerState<TProfessionState>;
-  readonly events: readonly SimulationEvent[];
-  readonly steps: readonly SchedulerStep[];
-  readonly warnings: readonly string[];
-  readonly stream: ScheduledEventStream;
-}
-
-export interface Scheduler<TProfessionState extends object = object> {
-  readonly state: SchedulerState<TProfessionState>;
-  readonly events: SimulationEvent[];
-  readonly warnings: string[];
-  readonly context: SchedulerContext<TProfessionState>;
-  cast(command: CastCommand, commandIndex?: number): boolean;
-  advanceTo(at: number): void;
-  run(rotation: readonly unknown[]): SchedulerRunResult<TProfessionState>;
 }
 
 export interface CastCommand {

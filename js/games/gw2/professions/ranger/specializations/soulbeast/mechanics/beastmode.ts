@@ -1,32 +1,23 @@
-import { eventReaction } from '#gw2/platform/profession-definition/mechanics.js';
 import type { RangerModifierContext } from '#gw2/professions/ranger/types.js';
 import { soulbeastArchetypeAttributes } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
-import { essenceOfSpeedExtension } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import {
-  professionCoreState,
-  readProfessionCoreState,
-  readProfessionSpecializationState
-} from '#gw2/platform/engine/profession/state.js';
+import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { boonActive, playerHealthFraction, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { rangerPetByName, selectedRangerPet } from '#gw2/professions/ranger/core/state.js';
-import { applyRangerBeastSkillTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats, Gw2NumericStatKey } from '#gw2/platform/combat/query/combat-query.js';
-import type { RangerCastContext, RangerSchedulerContext, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 
@@ -137,7 +128,7 @@ function modifySoulbeastAttributes(context: RangerModifierContext, attributes: G
   return result;
 }
 
-function soulbeastCastAvailability(context: RangerCastContext, skill: RangerSkill): AvailabilityResult {
+export function soulbeastCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {
   const state = soulbeastState.from(context);
   const toggle = skill.id === ID.BEASTMODE || skill.id === ID.LEAVE_BEASTMODE;
   // Wrong-pet check must precede the beastmode-active check: a skill can be a beastmodeSkill
@@ -160,15 +151,6 @@ function soulbeastCastAvailability(context: RangerCastContext, skill: RangerSkil
 
   return { ready: true };
 }
-
-// Command traits follow stable skill identity instead of API description prose.
-const RANGER_COMMAND_SKILL_IDS: ReadonlySet<number> = new Set([
-  ID.STRENGTH_OF_THE_PACK,
-  ID.PROTECT_ME,
-  ID.GUARD,
-  ID.SIC_EM,
-  ID.WE_HEAL_AS_ONE
-]);
 
 // Soulbeast player modifiers follow outgoing ownership while merged-pet state remains a separate prerequisite.
 export const soulbeastModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
@@ -239,97 +221,4 @@ export const soulbeastModifierRules: readonly Gw2ModifierRule[] = Object.freeze(
 export const soulbeastAttributeRules = Object.freeze({
   modifyAttributes: modifySoulbeastAttributes,
   modifierRules: soulbeastModifierRules
-});
-export const soulbeastCastRules = Object.freeze({
-  availability: {
-    id: 'ranger.soulbeast-availability',
-    order: 20,
-    handler: soulbeastCastAvailability
-  }
-});
-
-function initializeSoulbeastPetOwnership(context: RangerSchedulerContext): void {
-  // Beastmode starts active, so Soulbeast suspends Core's autonomous pet before combat begins.
-  setRangerPetActive(context, !soulbeastState.from(context).beastmodeActive, context.state.time);
-}
-
-function emitMergedCommandEffects(context: RangerCastContext, skill: RangerSkill): void {
-  if (skill.id === ID.SIC_EM) {
-    emitSkillBuff(context, {
-      at: context.start,
-      source: 'ranger',
-      sourceId: skill.id,
-      actorType: 'player',
-      skillId: skill.id,
-      skillName: skill.name,
-      kind: 'sic-em',
-      // Apply the instant command before simultaneous merged strikes query its modifier.
-      priority: -20,
-      duration: balanceProfileNumber(
-        requireBalanceProfileFromContext(context, CORE_PROFILE.sicEm),
-        'durationMultiplier'
-      ),
-      stacks: 1
-    });
-  }
-
-  if (RANGER_COMMAND_SKILL_IDS.has(Number(skill.id)) && hasTrait(context, TRAIT.RESOUNDING_TIMBRE)) {
-    context.emit({
-      type: 'ranger.boon-extension',
-      at: context.start,
-      source: 'ranger',
-      sourceId: TRAIT.RESOUNDING_TIMBRE,
-      actorType: 'effect',
-      skillId: skill.id,
-      skillName: 'Resounding Timbre',
-      duration: balanceProfileNumber(
-        requireBalanceProfileFromContext(context, CORE_PROFILE.resoundingTimbre),
-        'durationMultiplier'
-      )
-    });
-  }
-}
-
-/** Completes Soulbeast-only pet substitution and merged Beast-skill behavior. */
-function completeSoulbeastCast(context: RangerCastContext, skill: RangerSkill): void {
-  const state = soulbeastState.from(context);
-  if (skill.id === ID.PET_SWAP) {
-    state.archetype = rangerPetByName(professionCoreState(context).activePet).archetype;
-  }
-
-  if (!state.beastmodeActive) return;
-  emitMergedCommandEffects(context, skill);
-  if (skill.beastmodeSkill && skill.id !== ID.BEASTMODE && skill.id !== ID.LEAVE_BEASTMODE) {
-    applyRangerBeastSkillTraits(context, skill, false);
-  }
-}
-
-/** Predict Quickness extensions at impact while keeping resolver progress independent. */
-const essenceOfSpeedReaction = eventReaction<RangerSchedulerContext>({
-  id: 'ranger.essence-of-speed',
-  order: 30,
-  missingEvent: 'skip',
-  select(context, event) {
-    if (event.type !== 'buff' || event.kind !== 'quickness' || !hasTrait(context, TRAIT.ESSENCE_OF_SPEED)) return null;
-    return { at: event.at, priority: -60, payload: { eventOrder: Number(event.eventOrder) } };
-  },
-  execute(context, cause) {
-    const extension = essenceOfSpeedExtension(context, cause);
-    if (extension) context.emitDerived(cause, { ...extension, schedulerBoonPrediction: true });
-  }
-});
-
-export const soulbeastSchedulerHooks = Object.freeze({
-  onEventScheduled: essenceOfSpeedReaction.onEventScheduled,
-  taskHandlers: essenceOfSpeedReaction.taskHandlers,
-  initialize: {
-    id: 'ranger.soulbeast-pet-ownership',
-    order: 20,
-    handler: initializeSoulbeastPetOwnership
-  },
-  onCastComplete: {
-    id: 'ranger.soulbeast-complete',
-    order: 20,
-    handler: completeSoulbeastCast
-  }
 });

@@ -4,47 +4,18 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { boonActive, eventSkill } from '#gw2/platform/combat/query/runtime-query.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/traits/modifiers.js';
-import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
-import {
-  initializeDeadeyeMalice,
-  deadeyeMaliceReaction,
-  updateDeadeyeCastState
-} from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
-import { deadeyeTaskHandlers } from '#gw2/professions/thief/specializations/deadeye/mechanics/task-handlers.js';
 import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
-import type { ThiefSimulationEvent, ThiefPrecastContext, ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefSimulationEvent } from '#gw2/professions/thief/types.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
 
 import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
-
-export const deadeyeSchedulerHooks = Object.freeze({
-  initialize: {
-    id: 'thief.deadeye-critical-facts',
-    order: 10,
-    handler: initializeDeadeyeMalice
-  },
-  afterCast: Object.freeze([
-    {
-      id: 'thief.deadeye-malice',
-      order: 30,
-      handler: updateDeadeyeCastState
-    }
-  ]),
-  onEventScheduled: {
-    id: 'thief.deadeye-malice-hit',
-    order: 20,
-    handler: deadeyeMaliceReaction.onEventScheduled.handler
-  },
-  taskHandlers: deadeyeTaskHandlers
-});
 
 const SHADOW_FLARE_SKILL_IDS: ReadonlySet<number> = new Set([ID.SHADOW_FLARE, ID.SHADOW_SWAP]);
 const MALICIOUS_DAMAGE_SCALING_SKILL_IDS: ReadonlySet<number> = new Set([
@@ -148,7 +119,7 @@ const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
     id: 'thief.malicious-stealth-attack',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
-    // Malice at cast time is snapshotted onto the event so the resolver sees the pre-consumption value even after malice is zeroed
+    // Malice at cast start is snapshotted onto the event so each hit sees the pre-consumption value after malice is spent
     parameters: { damagePerMalice: 0.1 } as Readonly<Record<string, number>>,
     amount: (context, _target, parameters) =>
       Math.max(0, Number((context.event as ThiefSimulationEvent | undefined)?.deadeyeMaliceSnapshot || 0)) *
@@ -163,13 +134,4 @@ const deadeyeModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 export const deadeyeAttributeRules = Object.freeze({
   modifyAttributes: modifyDeadeyeAttributes,
   modifierRules: deadeyeModifierRules
-});
-
-export const deadeyeCastRules = Object.freeze({
-  availability: {
-    id: 'thief.deadeye-availability',
-    order: 20,
-    handler: (context: ThiefPrecastContext, skill: ThiefSkill) =>
-      deadeyeCastAvailability(professionCoreState(context).availableFlips, skill, context.start)
-  }
 });

@@ -3,7 +3,7 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { applyMesmerRuntimeManifest, mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import { applyMesmerRuntimeManifest, mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
 import {
   resolveChronomancerShatterBoons,
@@ -14,7 +14,7 @@ import {
   MESMER_CHRONOMANCER_SHATTERS,
   MESMER_CHRONOMANCER_TRAIT_DAMAGE
 } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
-import type { MesmerRuntime, MesmerSchedulerContext } from '#gw2/professions/mesmer/types.js';
+import type { MesmerMechanics, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import {
   CHRONOMANCER_BALANCE_PROFILE_IDS as PROFILE,
   CHRONOMANCER_SHATTER_PROFILE_IDS
@@ -25,13 +25,13 @@ import type { MesmerContinuumController } from '#gw2/professions/mesmer/speciali
 const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set<number>([ID.SWAP_WEAPONS]);
 
 /** Returns the controller installed only by the Chronomancer runtime. */
-export function chronomancerControllerFor(runtime: MesmerRuntime): MesmerContinuumController {
+export function chronomancerControllerFor(runtime: MesmerMechanics): MesmerContinuumController {
   if (!runtime.continuum) throw new Error('Chronomancer runtime is not initialized.');
   return runtime.continuum;
 }
 
-export function initializeChronomancerRuntime(context: MesmerSchedulerContext): void {
-  const runtime = mesmerRuntimeFor(context);
+export function initializeChronomancerRuntime(context: MesmerRuntime): void {
+  const runtime = mesmerMechanicsFor(context);
   applyMesmerRuntimeManifest(runtime, {
     shatters: mesmerProfiledShatters(context, MESMER_CHRONOMANCER_SHATTERS, CHRONOMANCER_SHATTER_PROFILE_IDS),
     shatterResolvedHandlers: [resolveChronomancerShatterBoons, resolveIllusionaryReversion],
@@ -53,15 +53,13 @@ export function initializeChronomancerRuntime(context: MesmerSchedulerContext): 
         }
       : undefined
   });
-  for (const skill of context.catalog.skills) {
-    if (context.maximumAmmoFor(skill) > 0) {
-      context.cooldownController.ensureAmmo(skill, 0);
-    }
+  for (const skill of context.helpers.skills) {
+    context.cooldownController.ensureAmmo(skill, 0);
   }
 
   const continuumSplitProfile = requireBalanceProfileFromContext(context, PROFILE.continuumSplit);
   const continuum = createContinuumController({
-    state: context.state,
+    state: context,
     cooldownController: context.cooldownController,
     unaffectedCooldownIds: CONTINUUM_UNAFFECTED_COOLDOWN_IDS,
     skillsById: runtime.skillsById,
@@ -76,22 +74,14 @@ export function initializeChronomancerRuntime(context: MesmerSchedulerContext): 
           'durationMultiplier'
         )
       : 0,
-    scheduleExpiry: (at) =>
-      context.tasks.schedule({
-        type: 'mesmer.continuum-expire',
-        at,
-        priority: -30,
-        ownerId: 'mesmer.continuum',
-        payload: { expiresAt: at }
-      })
+    scheduleExpiry: (at) => context.schedule('mesmer.continuum-expire', at, at, undefined, -30)
   });
   runtime.continuum = continuum;
   // Continuum Split replaces the ordinary shatter path while still publishing a resolved shatter contract.
-  runtime.skillCompletionHandlers.push((castContext, skill, at) =>
+  runtime.skillCompletionHandlers.push((_context, cast, skill, at) =>
     skill.id === ID.CONTINUUM_SPLIT
       ? continuum.beginContinuumSplit(skill, at, {
-          sourceSkill: skill.name,
-          rotationIndex: castContext.commandIndex
+          activationId: cast.id
         })
       : false
   );

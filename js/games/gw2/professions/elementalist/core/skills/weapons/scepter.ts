@@ -3,7 +3,7 @@
  *
  * Covers the main-hand slot 1-3 skills across all four attunements, including the
  * Earth-attunement Rock Barrier/Hurl flip pair. Declarative data only: the named
- * `mechanicTriggers` are implemented by `core/execution/index.ts`, and the table
+ * `elementalistTasks` are implemented by `core/execution/index.ts`, and the table
  * is merged into the Core skill catalog by `core/skills/index.ts`.
  */
 
@@ -353,7 +353,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     nextChainId: ID.HURL,
     skillFamily: 'Weapon skill',
     // Rock Barrier opens Hurl's stored-barrier window after completion.
-    mechanicTriggers: [
+    elementalistTasks: [
       {
         type: 'elementalist.core.open-rock-barrier',
         timingAnchor: 'castEnd'
@@ -385,7 +385,7 @@ export const ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, 
     nextChainId: ID.ROCK_BARRIER,
     skillFamily: 'Weapon skill',
     // Hurl consumes the stored barrier and starts Rock Barrier's real recharge.
-    mechanicTriggers: [
+    elementalistTasks: [
       {
         type: 'elementalist.core.release-rock-barrier',
         timingAnchor: 'castEnd'

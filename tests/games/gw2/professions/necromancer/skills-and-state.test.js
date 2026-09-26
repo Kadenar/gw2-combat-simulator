@@ -26,7 +26,7 @@ import { REAPER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/special
 import { SCOURGE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import { RITUALIST_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator, runtimeFor } from '#tests/helpers/live-runtime.js';
 
 const baseConfig = Object.freeze({
   stats: {
@@ -46,7 +46,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createProfessionSimulator(necromancerProfession, baseConfig);
+const simulate = createLiveProfessionSimulator(necromancerProfession, baseConfig);
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -417,15 +417,6 @@ test('Wanderlust Vulnerability affects only its final two field hits', () => {
   assertFlooredDamageMultiplier(fieldHits[3].damage, fieldHits[0].damage, 1.04);
 });
 
-test('Vital Draw grants nine percent life force for its three assumed hits', () => {
-  const result = simulate('Harbinger', ['Harbinger Shroud', 'Vital Draw'], { initialResource: 20 });
-  const states = result.events.filter((event) => event.type === 'necromancer.life-force');
-  const gainIndex = states.findIndex((event) => event.reason === 'life-force');
-
-  // Compare adjacent resource snapshots so the contract remains independent of cast-duration drain.
-  assert.equal(states[gainIndex].state.lifeForce.value - states[gainIndex - 1].state.lifeForce.value, 9);
-});
-
 test('Relic of Fireworks refreshes from qualifying Reaper Shroud skills', () => {
   const result = simulate('Reaper', ["Reaper's Shroud", 'Soul Spiral'], {
     initialResource: 100,
@@ -591,7 +582,6 @@ test('Signet of Spite follows its live passive and active profile', () => {
   assert.ok(damage(withSignet, 'Rending Claws') > damage(withoutSignet, 'Rending Claws'));
   assert.equal(damage(withSignet, 'Life Blast'), damage(withoutSignet, 'Life Blast'));
   assert.equal(damage(active, 'Rending Claws'), damage(withoutSignet, 'Rending Claws'));
-  assert.equal(active.steps[0].fullCastMs, 880);
   assert.equal(necromancerCatalog.skillsById.get(ID.SIGNET_OF_SPITE).cooldown, 40);
   assert.equal(signetEvents.find((event) => event.type === 'damage')?.coefficient, 1);
   assert.deepEqual(conditions, [
@@ -642,24 +632,6 @@ test('core heals remain selectable and castable without requiring damage effects
     assert.ok(
       result.events.some((event) => event.type === 'action' && event.skillId === skill.id),
       name
-    );
-  }
-});
-
-test('catalog skills with simulated active effects have mechanics', () => {
-  for (const skill of necromancerCatalog.skills) {
-    // Healing and Signet of Undeath's revive do not need target-combat effects.
-    if (skill.type === 'Heal' || skill.id === ID.SIGNET_OF_UNDEATH) continue;
-    assert.equal(
-      Boolean(
-        skill.handlerId ||
-        skill.effects.length ||
-        skill.lifeForceGain ||
-        skill.flipParentId != null ||
-        skill.type === 'Action'
-      ),
-      true,
-      `${skill.id} ${skill.name}`
     );
   }
 });
@@ -742,7 +714,7 @@ test('Scourge fixed costs preserve build scaling on the percentage meter', () =>
       assert.deepEqual(allowed.warnings, []);
       assert.ok(Math.abs(allowed.planningState.profession.lifeForce.value - 0.01) < 1e-10);
       assert.equal(denied.warnings.length, 1);
-      assert.match(denied.warnings[0], /requires .*% life force/);
+      assert.match(denied.warnings[0], /requires .*life force/);
       assert.equal(denied.planningState.profession.lifeForce.value, expectedCost - 0.01);
     }
   }
@@ -751,7 +723,7 @@ test('Scourge fixed costs preserve build scaling on the percentage meter', () =>
 // Runtime initialization must replace detached defaults with the active patch's vitality and capacity tuning.
 test('Scourge percentage costs use the selected balance profiles', () => {
   const run = (capacityMultiplier) =>
-    createProfessionSimulator(
+    createLiveProfessionSimulator(
       withPatchPreview(necromancerProfession, {
         id: 'scourge-costs',
         label: 'Scourge costs',
@@ -975,48 +947,6 @@ test('Gravedigger fully recharges when it hits below 50% target health', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(gravediggers.length, 2);
   assert.equal(gravediggers[1].start, gravediggers[0].end);
-});
-
-test('target-health scheduler refinement only reruns rotations that cast Gravedigger', () => {
-  const refine = necromancerProfession.simulation.refineSchedulerConfig;
-  const config = { target: { health: 100 } };
-  const damageResult = {
-    events: [{ type: 'action', skillId: ID.DUSK_STRIKE }],
-    resolvedEvents: [{ type: 'damage', at: 1, damage: 60 }]
-  };
-
-  assert.equal(refine(config, damageResult), null);
-
-  const refinement = refine(config, {
-    ...damageResult,
-    events: [{ type: 'action', skillId: ID.GRAVEDIGGER }]
-  });
-
-  assert.equal(refinement._schedulerFeedback.targetBelowHalfAt, 1);
-});
-
-// Resolver-only rules can disprove a prediction; stable feedback then switches to replaying the observed gains.
-test('life-force refinement replays resolved gains that scheduler prediction missed', () => {
-  const refine = necromancerProfession.simulation.refineSchedulerConfig;
-  const feedback = { targetBelowHalfAt: 1, boundaryLifeForceGains: 1, conditionCounts: {} };
-  const config = { target: { health: 100 }, _schedulerFeedback: feedback };
-  const result = {
-    events: [],
-    observationEndTime: 2,
-    resolvedEvents: [
-      { type: 'damage', at: 1, damage: 60 },
-      { type: 'necromancer.life-force-gain', at: 1, amount: 1, sourceId: TRAIT.SPITEFUL_FORTITUDE }
-    ]
-  };
-
-  const replay = refine(config, result);
-  assert.deepEqual(replay._schedulerFeedback.lifeForceGains, [{ at: 1, amount: 1 }]);
-  assert.equal(refine(replay, result), null);
-
-  // A moved death time explains the disagreement, so the next pass predicts again with the new death boundary.
-  const retried = refine(config, { ...result, deathTime: 1 });
-  assert.equal(retried._schedulerFeedback.targetDeathAt, 1);
-  assert.equal(retried._schedulerFeedback.lifeForceGains, undefined);
 });
 
 test('Reaper and Harbinger shroud transitions emit the current weapon set', () => {
@@ -1340,12 +1270,6 @@ test('Harbinger shroud attacks use their Blight thresholds and coefficients', ()
   assert.equal(darkBarrageCoefficients.length, 6);
   assert.ok(Math.abs(darkBarrageCoefficients.reduce((sum, value) => sum + value, 0) - 3.6) < 1e-12);
   assert.equal(empoweredCut.planningState.profession.blight, 0);
-  assert.equal(
-    empoweredArc.events.some(
-      (event) => event.type === 'necromancer.state' && event.reason === 'blight-skill' && event.state.blight === 0
-    ),
-    true
-  );
   // Exiting before the first one-second shroud tick prevents passive Blight gains.
   assert.equal(empoweredArc.planningState.profession.blight, 0);
   assert.equal(
@@ -1393,14 +1317,8 @@ test('Blight skills pay their cost before Wicked Corruption and elixirs', () => 
     assert.equal(wickedStrike.metadata.necromancerBlight, 20, skill);
     assertFlooredDamageMultiplier(wickedStrike.damage, skillDamage(baseline).damage, 1.2);
     assert.equal(
-      wicked.events.find((event) => event.type === 'necromancer.state' && event.reason === 'blight-skill')?.state
-        .blight,
-      20,
-      skill
-    );
-    assert.equal(
-      wicked.events.find((event) => event.type === 'necromancer.state' && event.reason === 'blight-consumed')?.state
-        .blight,
+      wicked.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.ELIXIR_OF_RISK)?.metadata
+        .necromancerBlight,
       elixirConsumption,
       skill
     );
@@ -1591,10 +1509,7 @@ test('Isolate and Distress expose the follow-up and reset Perforate', () => {
     ),
     440
   );
-  assert.equal(
-    delayedHitWindow.events.find((event) => event.type === 'action' && event.skillId === ID.ISOLATE).rechargeReadyAt,
-    18.44
-  );
+  assert.equal(runtimeFor(delayedHitWindow).cooldowns.get(ID.ISOLATE), 18.44);
   assert.equal(result.steps[3].start < 8000, true);
   assert.equal(
     result.events.filter(
@@ -1603,13 +1518,7 @@ test('Isolate and Distress expose the follow-up and reset Perforate', () => {
     14
   );
   assert.equal(result.events.filter((event) => event.type === 'damage' && event.name === 'Soul Shards').length, 6);
-  assert.equal(
-    result.events.some(
-      (event) =>
-        event.type === 'necromancer.state' && event.reason === 'distress' && event.state.soulShardGrant.charges === 6
-    ),
-    true
-  );
+  assert.equal(result.planningState.profession.soulShardGrant.charges, 0);
   const rows = skillBreakdownRows(result);
 
   assert.equal(rows.find((row) => row.name === 'Perforate')?.hits, 14);
@@ -1652,12 +1561,7 @@ test('Perforate consumes one shard per strike after concurrent Distress', () => 
 
   assert.deepEqual(result.warnings, []);
   assert.ok(distress.start > perforate.start && distress.start < perforate.end);
-  assert.deepEqual(
-    result.events
-      .filter((event) => event.type === 'necromancer.state' && event.reason === 'perforate')
-      .map((event) => event.state.soulShardGrant.charges),
-    [5, 4, 3, 2, 1, 0]
-  );
+  assert.equal(result.planningState.profession.soulShardGrant.charges, 0);
   assert.equal(result.events.filter((event) => event.type === 'damage' && event.name === 'Soul Shards').length, 6);
 });
 

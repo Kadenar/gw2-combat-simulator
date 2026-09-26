@@ -34,8 +34,7 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ])
   },
   [ID.HEROIC_COMMAND]: {
-    // Custom: Builds Heroic Command boons from live Kalla state and traits; see `renegade/mechanics/kalla-and-band-together.ts`.
-    handlerId: 'revenant.heroic-command',
+    // Custom: Builds Heroic Command boons from live Kalla state and traits; see `renegade/live.ts`.
     castTimeMs: 480,
     cooldown: 10,
     energyCost: 10,
@@ -51,8 +50,7 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.ORDERS_FROM_ABOVE]: {
-    // Custom: Builds Orders from Above boons from live Kalla state and traits; see `renegade/mechanics/kalla-and-band-together.ts`.
-    handlerId: 'revenant.orders-from-above',
+    // Custom: Builds Orders from Above boons from live Kalla state and traits; see `renegade/live.ts`.
     castTimeMs: 0,
     cooldown: 20,
     energyCost: 20,

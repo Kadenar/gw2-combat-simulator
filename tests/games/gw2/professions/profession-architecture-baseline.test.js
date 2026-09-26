@@ -62,7 +62,7 @@ test('native profession module order and semantic owners remain stable during mi
 
     for (const module of modules) {
       assert.equal(module.kind, 'native-profession-module', `${profession}/${module.id}`);
-      assert.equal(typeof module.state.scheduler, 'function', `${profession}/${module.id}`);
+      assert.equal(typeof module.state.create, 'function', `${profession}/${module.id}`);
       assert.ok(module.data && typeof module.data === 'object', `${profession}/${module.id}`);
     }
   }
@@ -93,7 +93,11 @@ test('profession modules register phase behavior only through explicit sections'
     for (const module of modules) {
       const label = `${profession}/${module.id}`;
 
-      assert.ok(module.mechanics.execution, `${label}/execution`);
+      // Every supported module uses one live owner; retired phase sections must not return.
+      assert.ok(module.mechanics.live, label);
+      assert.equal(module.mechanics.execution, undefined, label);
+      assert.equal(module.mechanics.resolution, undefined, label);
+
       assert.equal(module.data.handlers, undefined, `${label}/data.handlers`);
 
       for (const legacyKey of [
@@ -111,17 +115,17 @@ test('profession modules register phase behavior only through explicit sections'
   }
 });
 
-test('scheduler and resolver state factories never share a mutable state instance', () => {
+test('independent simulations never share a mutable state instance', () => {
   for (const [profession, modules] of Object.entries(PROFESSION_MODULES)) {
     for (const module of modules) {
       const config = { specialization: module.id };
-      const schedulerState = module.state.scheduler(config);
-      const resolverState = (module.state.resolver || module.state.scheduler)(config);
+      const first = module.state.create(config);
+      const second = module.state.create(config);
       const label = `${profession}/${module.id}`;
 
-      assert.notEqual(schedulerState, resolverState, label);
-      assert.doesNotThrow(() => structuredClone(schedulerState), `${label}/scheduler`);
-      assert.doesNotThrow(() => structuredClone(resolverState), `${label}/resolver`);
+      assert.notEqual(first, second, label);
+      assert.doesNotThrow(() => structuredClone(first), `${label}/first`);
+      assert.doesNotThrow(() => structuredClone(second), `${label}/second`);
     }
   }
 });

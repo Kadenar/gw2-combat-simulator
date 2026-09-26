@@ -2,20 +2,20 @@
 
 The GW2 platform is organized by ownership. Put a module in the narrowest domain that owns its concepts and invariants.
 
-| Directory                  | Owns                                                                                                |
-| -------------------------- | --------------------------------------------------------------------------------------------------- |
-| `builds/`                  | Build normalization, attributes, target conditions, and templates                                   |
-| `combat/`                  | Damage formulas, modifiers, queries, and combat state                                               |
-| `combos/`                  | Combo definitions, catalogs, and events                                                             |
-| `engine/`                  | Runtime contracts, canonical events/skills, pure effects, and profession composition                |
-| `execution/`               | Command scheduling, cast lifecycle, event storage, cooldowns, and GW2 policy adapters               |
-| `equipment/`               | Gear, consumables, relics, sigils, and weapons                                                      |
-| `profession-definition/`   | Stable profession authoring APIs, catalog assembly, metadata, and mechanic declarations             |
-| `profession-presentation/` | Application UI composition, validation, defaults, and display contracts                             |
-| `resolver/`                | Event resolution and reaction processing                                                            |
-| `results/`                 | Resolver result construction, planning-state projection, committed-effect queries, and rotation APM |
-| `simulation/`              | Simulation configuration, orchestration, and public result types                                    |
-| `skills/`                  | GW2 skill timing, recharge, transition delays, aliases, and autoattack-chain control                |
+| Directory                  | Owns                                                                                              |
+| -------------------------- | ------------------------------------------------------------------------------------------------- |
+| `builds/`                  | Build normalization, attributes, target conditions, and templates                                 |
+| `combat/`                  | Damage formulas, modifiers, queries, and combat state                                             |
+| `combos/`                  | Combo definitions, catalogs, and events                                                           |
+| `engine/`                  | Runtime contracts, canonical events/skills, pure effects, and profession composition              |
+| `execution/`               | Rotation commands, cast reservations, cooldowns, ammo, and interruption arithmetic                |
+| `equipment/`               | Gear, consumables, relics, sigils, and weapons                                                    |
+| `profession-definition/`   | Stable profession authoring APIs, catalog assembly, metadata, and mechanic declarations           |
+| `profession-presentation/` | Application UI composition, validation, defaults, and display contracts                           |
+| `resolver/`                | Event resolution and reaction processing                                                          |
+| `results/`                 | Combat result construction, planning-state projection, committed-effect queries, and rotation APM |
+| `simulation/`              | One live simulation runtime, configuration, and public result types                               |
+| `skills/`                  | GW2 skill timing, recharge, transition delays, aliases, and autoattack-chain control              |
 
 Profession implementations live in `../professions/<profession>/`; their folder layout is described in
 [Simulator modules](../../../../docs/architecture/MODULES.md#profession-modules).
@@ -27,7 +27,7 @@ Generic arithmetic is game-neutral and lives in `#kernel/core/numeric.js`; coerc
 to `builds/codec.ts`. Seeded critical-proc eligibility, secondary rolls, and ICD claims belong to
 `combat/critical-procs.ts`; whole-millisecond duration rounding and absolute effect expiry remain separate operations in
 `skills/timing.ts`. Condition coefficients live in `combat/formulas.ts`. Boon queries share stack/pool calculations in
-`combat/boons.ts` while selecting their own phase-visible histories.
+`combat/boons.ts` using executed history at the current logical time.
 
 Catalog indexing and balance-profile lookups belong in `engine/skills/`; GW2 autoattack-chain state transitions belong
 in `skills/autoattack-chain-controller.ts`. Shared event-to-skill lookup lives in `combat/query/event-skill.ts`, and
@@ -40,22 +40,22 @@ consume that same policy; it is not a presentation hook. Equipment picker icons 
 ## Placement Rules
 
 - Keep declaration files beside the domain that owns the declared contract.
-- Keep runtime execution in `execution/`, GW2 scheduler-only materialization in `execution/gw2-policy/`, and
-  resolver-only reactions in `resolver/`.
-- Do not import `resolver/` from `execution/`, or `execution/` from `resolver/`. Coordinate them through `simulation/`.
+- Keep runtime orchestration in `simulation/`, reusable cast/cooldown services in `execution/`, and hit/condition
+  reactions in `resolver/`.
+- Compose execution and resolution services through `simulation/runtime.ts`.
 - Import the owning module directly. Domain indexes are deliberate public APIs, not compatibility paths.
 - Keep the platform root limited to the public simulation entry point.
 
-The scheduler coordinates commands and time. `execution/scheduled-events.ts` owns event identities, replacement,
-indexes, and FIFO observation; `cast-lifecycle.ts` owns reservations and cooldown commitment; `effect-adapter.ts`
-filters interrupted effects while reusing the pure effect materializer. Task types have one owner across core, policy,
-and profession registries; duplicate registration fails before execution.
+`simulation/runtime.ts` owns one cursor, heap, profession state, target state, resource controller, and RNG. Commands,
+internal tasks, hits, procs, and condition wakes settle on that clock. Internal work has registered handlers and
+detached data payloads; lifetime generations cancel obsolete work without erasing committed projectiles.
 
 `profession-definition/profession.ts` remains the public native compiler. Its internal runtime stages stay in
-`engine/profession/`. Compiled runtimes expose execution and combat capabilities. Build callbacks live on the family
-application contract, normalized by `builds/profession-contract.ts`; presentation initializes lazily through the
-family's `ui` adapter. Headless runtime compilation and simulation do not initialize presentation factories.
+`engine/profession/`. Compiled live runtimes expose cast hooks, tasks, and combat reactions on the same state. Build
+callbacks live on the family application contract, normalized by `builds/profession-contract.ts`; presentation
+initializes lazily through the family's `ui` adapter. Headless runtime compilation and simulation do not initialize
+presentation factories.
 
-`results/build-result.ts` projects drained resolver state, and `results/end-state.ts` projects the scheduler's planning
-state at its own observation boundary. Result effect queries index committed `resolvedEvents`, sharing the combat buff
-lifetime and stacking rules. Completed report histories are treated as immutable.
+`results/build-result.ts` projects executed combat facts. `results/end-state.ts` projects live planning state at the
+requested observation boundary, including command continuation after target death. Combat state is detached at the
+earlier combat boundary. Result queries index committed effects; neither projection is a checkpoint.

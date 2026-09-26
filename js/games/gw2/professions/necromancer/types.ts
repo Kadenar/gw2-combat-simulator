@@ -1,14 +1,7 @@
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { NecromancerSchedulerFeedback } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
-import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
-import type {
-  CastContext,
-  CastLifecycleContext,
-  RechargeQueryDetails,
-  SchedulerContext,
-  SchedulerState
-} from '#gw2/platform/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
+
 import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -37,8 +30,6 @@ export interface NecromancerConfig extends Gw2Config {
   readonly initialCascadingCorruptionStacks?: number;
   readonly duration?: number;
   readonly professionAssumptions?: Readonly<Record<string, unknown>>;
-  /** Feedback the scheduler records for its next refinement pass; written only by the refinement hook. */
-  readonly _schedulerFeedback?: NecromancerSchedulerFeedback;
 }
 
 export interface NecromancerState
@@ -53,6 +44,9 @@ export interface NecromancerRuntimeState {
     | { kind: 'Harbinger'; state: HarbingerState }
     | { kind: 'Ritualist'; state: RitualistState };
 }
+
+/** Actual mechanics share one owned family state and one live clock. */
+export type NecromancerRuntime = Gw2Runtime<NecromancerRuntimeState>;
 
 export interface NecromancerSkill extends Skill {
   readonly blightCost?: number;
@@ -70,64 +64,13 @@ export interface NecromancerSkill extends Skill {
   readonly slotSelectable?: boolean;
 }
 
-/** Recharge queries Necromancer rules answer, beyond the shared query details. */
-export interface NecromancerRechargeQuery extends RechargeQueryDetails {
-  /** Set when a minion's death re-requests its summon recharge. */
-  readonly minionDeathRecharge?: boolean;
-}
-
-export type NecromancerSchedulerContext = SchedulerContext<NecromancerRuntimeState> & {
-  readonly catalog: CanonicalCatalog<NecromancerSkill>;
-  readonly config: NecromancerConfig;
-};
-
-export type NecromancerCastContext = CastLifecycleContext<NecromancerRuntimeState> & {
-  readonly catalog: CanonicalCatalog<NecromancerSkill>;
-  readonly config: NecromancerConfig;
-};
-
-export type NecromancerEmissionContext = NecromancerSchedulerContext & {
-  readonly effectiveEnd?: number;
-};
-
-export type NecromancerPrecastContext = CastContext<NecromancerRuntimeState> & {
-  readonly catalog: CanonicalCatalog<NecromancerSkill>;
-  readonly config: NecromancerConfig;
-};
-
-/** Shares skill-rule inputs across recharge and ammo hooks, including minion-death recharge handling. */
-export type NecromancerSkillModifierContext = Omit<SchedulerContext<NecromancerRuntimeState>, 'config'> & {
-  readonly config: NecromancerConfig;
-  readonly skill?: NecromancerSkill;
-  readonly minionDeathRecharge?: boolean;
-};
-
-export type NecromancerSimulationEvent = SimulationEvent & {
-  readonly application?: NecromancerSimulationEvent;
-  readonly cancelled?: boolean;
-  readonly coefficient?: number;
-  readonly condition?: string;
-  readonly expiresAt?: number;
-  readonly hitIndex?: number;
-  readonly state?: Partial<NecromancerState>;
-};
-
 export type NecromancerResolverEvent = Gw2ResolverEvent & {
   readonly application?: NecromancerResolverEvent;
-  readonly state?: Partial<NecromancerState>;
   readonly summonCount?: number;
   readonly summonOwner?: string;
   readonly summonOwnerBase?: string;
   readonly summonCriticalChance?: number;
   readonly summonCriticalDamage?: number;
-  readonly requiresMinion?: string;
-  readonly requiresMinionIndex?: number;
-  readonly requiresMinionGeneration?: number;
-  readonly requiresMinionAttackGeneration?: number;
-  readonly requiresSpirit?: string;
-  readonly requiresSpiritGeneration?: number;
-  /** Delay from a spirit's shared attack opportunity to its damage impact; zero marks the queued impact. */
-  readonly spiritAttackDelay?: number;
   readonly mode?: string;
   readonly playerStacks?: number;
   readonly allyStacks?: number;
@@ -141,16 +84,11 @@ export type NecromancerResolverEvent = Gw2ResolverEvent & {
 export type NecromancerResolverContext = Gw2ResolverRuntime & {
   config: NecromancerConfig;
   profession: NecromancerRuntimeState;
-  readonly state?: { readonly profession: NecromancerRuntimeState };
 };
 
 export type NecromancerQueryRuntime = Gw2QueryRuntime & {
   readonly profession?: NecromancerRuntimeState | Partial<NecromancerState> | null;
 };
-
-export interface NecromancerPlanningStateProjectionOptions {
-  readonly schedulerState: SchedulerState<NecromancerRuntimeState>;
-}
 
 export interface NecromancerUiContext extends Omit<ProfessionUiCallbackContext<Partial<NecromancerState>>, 'build'> {
   readonly config?: NecromancerConfig;

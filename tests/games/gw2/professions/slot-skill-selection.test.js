@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -14,21 +15,25 @@ const config = {
   target: { armor: 2597 }
 };
 
+// Migrated families exercise selection on their actual live owners.
+const simulateLive = ({ profession, config, rotation }) =>
+  runGw2Runtime({ profession: profession.liveRuntimeFor(config), config, rotation });
+
 // Single casts exercise selection independently of damage formulas and saved rotations.
-for (const [profession, names] of [
-  [necromancerProfession, ['Summon Blood Fiend', 'Blood Is Power', 'Lich Form']],
-  [engineerProfession, ['Healing Turret', 'Throw Mine', 'Supply Crate']],
-  [mesmerProfession, ['Ether Feast', 'Phantasmal Disenchanter', 'Time Warp']],
-  [warriorProfession, ['Healing Signet', 'Throw Bolas', 'Signet of Rage']],
-  [rangerProfession, ['Troll Unguent', 'Sharpening Stone', '"Strength of the Pack!"']],
-  [thiefProfession, ['Hide in Shadows', 'Spider Venom', 'Thieves Guild']]
+for (const [profession, names, simulate = simulateGw2] of [
+  [necromancerProfession, ['Summon Blood Fiend', 'Blood Is Power', 'Lich Form'], simulateLive],
+  [engineerProfession, ['Healing Turret', 'Throw Mine', 'Supply Crate'], simulateLive],
+  [mesmerProfession, ['Ether Feast', 'Phantasmal Disenchanter', 'Time Warp'], simulateLive],
+  [warriorProfession, ['Healing Signet', 'Throw Bolas', 'Signet of Rage'], simulateLive],
+  [rangerProfession, ['Troll Unguent', 'Sharpening Stone', '"Strength of the Pack!"'], simulateLive],
+  [thiefProfession, ['Hide in Shadows', 'Spider Venom', 'Thieves Guild'], simulateLive]
 ]) {
   test(`${profession.id} rejects removed heal, utility, and elite skills before emitting effects`, () => {
     for (const name of names) {
       const skill = profession.catalog.skillsByName.get(name);
       const other = names.find((candidate) => candidate !== name);
       for (const selectedSkills of [[], {}, [other], { Utility1: other }]) {
-        const result = simulateGw2({
+        const result = simulate({
           profession,
           rotation: [name, { type: 'wait', durationMs: 5000 }],
           config: { ...config, selectedSkills }
@@ -43,7 +48,7 @@ for (const [profession, names] of [
       }
 
       for (const selectedSkills of [undefined, [name], { [skill.type]: name }]) {
-        const result = simulateGw2({ profession, rotation: [name], config: { ...config, selectedSkills } });
+        const result = simulate({ profession, rotation: [name], config: { ...config, selectedSkills } });
         assert.deepEqual(result.warnings, [], name);
         assert.equal(Boolean(result.steps[0].invalid), false, name);
       }
@@ -52,16 +57,16 @@ for (const [profession, names] of [
 }
 
 // Replacement faces must stay usable through their equipped parent, never as independent slot choices.
-for (const [profession, parent, child, specialization = 'Core'] of [
-  [necromancerProfession, 'Summon Blood Fiend', 'Taste of Death'],
-  [engineerProfession, 'Elite Mortar Kit', 'Stow Elite Mortar Kit'],
-  [mesmerProfession, 'Mantra of Pain', 'Power Spike'],
-  [rangerProfession, 'Water Spirit', 'Aqua Surge'],
-  [thiefProfession, 'Prepare Thousand Needles', 'Thousand Needles'],
-  [thiefProfession, 'Fist Flurry', 'Palm Strike', 'Daredevil']
+for (const [profession, parent, child, specialization = 'Core', simulate = simulateGw2] of [
+  [necromancerProfession, 'Summon Blood Fiend', 'Taste of Death', 'Core', simulateLive],
+  [engineerProfession, 'Elite Mortar Kit', 'Stow Elite Mortar Kit', 'Core', simulateLive],
+  [mesmerProfession, 'Mantra of Pain', 'Power Spike', 'Core', simulateLive],
+  [rangerProfession, 'Water Spirit', 'Aqua Surge', 'Core', simulateLive],
+  [thiefProfession, 'Prepare Thousand Needles', 'Thousand Needles', 'Core', simulateLive],
+  [thiefProfession, 'Fist Flurry', 'Palm Strike', 'Daredevil', simulateLive]
 ]) {
   test(`${profession.id} ${child} inherits its parent's selection`, () => {
-    const result = simulateGw2({
+    const result = simulate({
       profession,
       rotation: [parent, { type: 'wait', durationMs: 3000 }, child],
       config: { ...config, specialization, selectedSkills: [parent] }
@@ -69,7 +74,7 @@ for (const [profession, parent, child, specialization = 'Core'] of [
     assert.deepEqual(result.warnings, []);
     assert.equal(Boolean(result.steps.at(-1).invalid), false);
 
-    const removed = simulateGw2({
+    const removed = simulate({
       profession,
       rotation: [child],
       config: { ...config, specialization, selectedSkills: [] }

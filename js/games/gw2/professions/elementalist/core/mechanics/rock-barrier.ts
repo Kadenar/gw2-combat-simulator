@@ -1,48 +1,41 @@
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-/** Owns the Rock Barrier/Hurl flip window and its delayed root-skill recharge. */
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistRechargeQuery, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
+import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
-/** Mechanic-trigger handlers open and consume the cross-cast barrier release window. */
-export const elementalistRockBarrierMechanicHandlers = Object.freeze({
-  'elementalist.core.open-rock-barrier': ({
-    context,
-    at
-  }: {
-    context: ElementalistSchedulerContext;
-    at: number;
-  }): void => {
-    const rockBarrierProfile = requireBalanceProfileFromContext(context, PROFILE.rockBarrier);
-    // Store one exact deadline for Hurl availability, presentation, and natural recharge.
-    armSkillFlip(
-      professionCoreState(context).availableFlips,
-      ID.HURL,
-      at,
-      at + balanceProfileNumber(rockBarrierProfile, 'durationMultiplier')
+/** Releasing or expiring the stored barrier starts the root skill's held recharge once. */
+export function releaseRockBarrier(runtime: ElementalistRuntime): void {
+  if (!consumeSkillFlip(runtime.profession.core.availableFlips, ID.HURL)) return;
+  runtime.cancelOwner({ id: 'elementalist.rock-barrier', generation: 0 });
+  const root = runtime.helpers.skillsById.get(ID.ROCK_BARRIER);
+  if (root) {
+    runtime.cooldownController.startRecharge(
+      root,
+      runtime.time,
+      elementalistRechargeWork(runtime, root, Number(root.cooldown ?? 0), true)
     );
-  },
-  'elementalist.core.release-rock-barrier': ({
-    context,
-    at
-  }: {
-    context: ElementalistSchedulerContext;
-    at: number;
-  }): void => {
-    consumeSkillFlip(professionCoreState(context).availableFlips, ID.HURL);
-    const root = context.catalog.skillsById.get(ID.ROCK_BARRIER);
-    if (root) {
-      const releaseQuery: ElementalistRechargeQuery = { rockBarrierRelease: true };
-      context.cooldownController.startRecharge(
-        root,
-        at,
-        context.rechargeDurationFor(root, at, releaseQuery) * context.cooldownController.rate(root, at)
-      );
-    }
+    resetAutoattackChains(runtime, [root.id]);
   }
-});
+}
+
+/** The flip and its expiry share a deadline; replacing a barrier retires its previous timer. */
+export const elementalistRockBarrierTasks = {
+  'elementalist.core.open-rock-barrier'(runtime: ElementalistRuntime): void {
+    const expiresAt =
+      runtime.time +
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.rockBarrier), 'durationMultiplier');
+    armSkillFlip(runtime.profession.core.availableFlips, ID.HURL, runtime.time, expiresAt);
+    runtime.cancelOwner({ id: 'elementalist.rock-barrier', generation: 0 });
+    runtime.schedule('elementalist.core.release-rock-barrier', expiresAt, null, {
+      id: 'elementalist.rock-barrier',
+      generation: 0
+    });
+  },
+  'elementalist.core.release-rock-barrier': releaseRockBarrier
+};

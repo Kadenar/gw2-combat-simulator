@@ -1,27 +1,15 @@
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type {
-  BalanceProfile,
-  CanonicalCatalog,
-  Skill,
-  SkillId,
-  StrikeTick,
-  StrikeEffect
-} from '#gw2/platform/engine/skills/types.js';
+import type { BalanceProfile, Skill, SkillId, StrikeTick, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
-import type {
-  AmmoState,
-  CastCommand,
-  ScheduledTask,
-  SchedulerContext,
-  SchedulerPolicy
-} from '#gw2/platform/execution/types.js';
-import type { MesmerCoreState, MesmerResolverState } from '#gw2/professions/mesmer/core/state.js';
+import type { AmmoState } from '#gw2/platform/execution/types.js';
+import type { MesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import type { MesmerChronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import type { MesmerMirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerTroubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
@@ -38,7 +26,6 @@ import type {
   MesmerTraitDamage
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type {
-  MesmerPendingResource,
   MesmerResourceDefinition,
   MesmerResourceSpendDetails
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
@@ -97,24 +84,6 @@ export interface MesmerPlanningState {
   readonly continuumRemaining: number;
 }
 
-export interface MesmerSchedulerTaskPayloads {
-  readonly partyBuff: { readonly event: SimulationEventBase };
-  readonly resourceGain: MesmerPendingResource;
-  readonly bladeSpend: {
-    readonly reservationId: string;
-    readonly sourceSkill: string;
-    readonly rotationIndex: number;
-  };
-  readonly continuumExpire: { readonly expiresAt: number };
-}
-
-export type MesmerSchedulerTask<TPayload extends keyof MesmerSchedulerTaskPayloads> = Omit<
-  ScheduledTask<MesmerSchedulerTaskPayloads[TPayload]>,
-  'payload'
-> & {
-  readonly payload: MesmerSchedulerTaskPayloads[TPayload];
-};
-
 export interface MesmerSpecializationSelection {
   readonly name: string;
   readonly traits?: string;
@@ -128,15 +97,15 @@ export interface MesmerCanonicalBuild extends Gw2CanonicalBuild {
   initialResource: number;
 }
 
-/** Prepared family-wide scheduler input after build normalization. */
+/** Prepared family-wide simulation input after build normalization. */
 export interface MesmerConfig extends Gw2Config {
   readonly specialization: string;
   readonly primaryWeapon: string;
 }
 
 export type MesmerResolverContext = Gw2ResolverRuntime & {
-  config: MesmerConfig;
-  profession: MesmerResolverState;
+  config: Gw2Config;
+  profession: MesmerRuntimeState;
 };
 
 export type MesmerResolverEvent = Gw2ResolverEvent & {
@@ -144,49 +113,12 @@ export type MesmerResolverEvent = Gw2ResolverEvent & {
   readonly conversionTimes?: readonly number[];
 };
 
-export interface MesmerSchedulerPolicy extends SchedulerPolicy<MesmerRuntimeState> {
-  critical(context: SchedulerContext<MesmerRuntimeState>, event: SimulationEvent): Gw2CriticalResult;
-  isCombatActive(): boolean;
-  combatBeganAt(): number | null;
-  requireCriticalFacts(): void;
-}
-
-export type MesmerSchedulerContext = Omit<
-  SchedulerContext<MesmerRuntimeState>,
-  'config' | 'catalog' | 'schedulerPolicy'
-> & {
-  readonly config: MesmerConfig;
-  readonly catalog: CanonicalCatalog<MesmerSkill>;
-  readonly schedulerPolicy: MesmerSchedulerPolicy;
-  mesmerRuntime?: MesmerRuntime;
-};
-
-export type MesmerPrecastContext = MesmerSchedulerContext & {
-  readonly command: CastCommand;
-  readonly commandIndex: number;
-  readonly skill: MesmerSkill;
-  readonly start: number;
-  readonly ammo: AmmoState | null;
-};
-
-export type MesmerCastContext = MesmerPrecastContext & {
-  readonly action: SimulationEvent;
-  readonly fullEnd: number;
-  readonly effectiveEnd: number;
-  readonly rechargeWork: number;
-  readonly ammoLockoutWork: number;
-  readonly rechargeStart: number;
-  readonly rechargeReadyAt: number | null;
-  readonly reservationId: string;
-};
-
-export type MesmerHandlerContext = MesmerCastContext & {
-  readonly mesmerRuntime: MesmerRuntime;
-};
+/** All mechanic owners mutate the shared live runtime. */
+export type MesmerRuntime = Gw2Runtime<MesmerRuntimeState>;
 
 /** Scheduler-local dependencies assembled once for the active Mesmer module. */
-export interface MesmerRuntime {
-  context: MesmerSchedulerContext;
+export interface MesmerMechanics {
+  context: MesmerRuntime;
   traits: ReadonlySet<number>;
   resourceDefinition: MesmerResourceDefinition;
   skillsById: ReadonlyMap<SkillId, MesmerSkill>;
@@ -272,17 +204,18 @@ export interface MesmerInstrument extends Partial<StrikeEffect> {
 }
 
 export type MesmerShatterResolver = (
-  context: MesmerCastContext,
+  context: MesmerRuntime,
   request: MesmerShatterResolverRequest
 ) => readonly MesmerShatterTraitHit[];
 
 export type MesmerSkillCompletionHandler = (
-  context: MesmerCastContext,
+  context: MesmerRuntime,
+  cast: RuntimeCast,
   skill: MesmerSkill,
   at: number
 ) => boolean | MesmerShatterResolution;
 
-export type MesmerShatterResolvedHandler = (context: MesmerCastContext, resolution: MesmerShatterResolution) => void;
+export type MesmerShatterResolvedHandler = (context: MesmerRuntime, resolution: MesmerShatterResolution) => void;
 
 export type MesmerAddEvent = (
   event: MesmerEventExtra & {
@@ -323,7 +256,7 @@ export interface MesmerProfessionActionController {
   consumeResources(at: number, details?: MesmerResourceSpendDetails): number;
   currentResource(): number;
   handleShatter(
-    context: MesmerCastContext,
+    context: MesmerRuntime,
     skill: MesmerSkill,
     at: number,
     resourcesSpent?: number | null,
@@ -336,18 +269,3 @@ export interface MesmerProfessionActionController {
 
 export type MesmerEmitDerivedEvent = (cause: SimulationEvent, event: SimulationEventBase) => unknown;
 export type MesmerRefreshAmmo = (skill: MesmerSkill, at: number) => AmmoState | null;
-
-export interface MesmerRechargeContext {
-  readonly cooldownController: import('#gw2/platform/execution/types.js').CooldownController;
-  readonly at?: number;
-  readonly start?: number;
-  readonly skill: MesmerSkill;
-  readonly config: MesmerConfig;
-  readonly ammoCastLockout?: boolean;
-  readonly mesmerRuntime?: MesmerRuntime;
-}
-
-export interface MesmerMaximumAmmoContext {
-  readonly skill: MesmerSkill;
-  readonly mesmerRuntime?: MesmerRuntime;
-}

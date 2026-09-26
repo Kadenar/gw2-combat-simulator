@@ -16,25 +16,24 @@ import {
   holosmithResolverEventHandlers,
   consumeSolarFocusingLens
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-effects.js';
-import { handleEngineerState } from '#gw2/professions/engineer/family-state.js';
 import {
   handleRangerPoisonousStrikes,
   handleRangerBloodThirst
 } from '#gw2/professions/ranger/core/mechanics/event-handlers.js';
-import { rangerCoreSkillHandlers } from '#gw2/professions/ranger/core/execution/index.js';
+import { rangerCoreLive } from '#gw2/professions/ranger/core/live.js';
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
 import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/mechanics/skill-reactions.js';
 import { reactToSoulbeastDamage } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
-import { consumeArtifact } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
-import { advanceAntiquaryResources } from '#gw2/professions/thief/specializations/antiquary/mechanics/resources.js';
-import { handleThiefState, projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
+import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Real state owners and catalogs isolate grant contracts without relying on saved rotation packets.
 function contextFor(profession, specialization, selectedTraitIds = []) {
   const config = { specialization, selectedTraitIds };
   const runtime = profession.resolveRuntime(config);
-  const state = runtime.createProfessionState(config);
+  const state = runtime.createState(config);
   const events = [];
   const emit = (event) => {
     events.push(event);
@@ -124,8 +123,8 @@ test('Blood Thirst grants twelve seconds, replaces remaining charges, and respec
   const core = context.profession.core;
   const skill = context.catalog.skillsById.get(RANGER.CRIPPLING_SHOT);
   const grant = (at) => {
-    context.effectiveEnd = at;
-    rangerCoreSkillHandlers['ranger.crippling-shot'].afterEffects(context, skill);
+    context.time = at;
+    rangerCoreLive.onCastComplete(context, { skill, start: at, fullEnd: at, effectiveEnd: at });
     const event = context.events.at(-1);
     assert.equal(event.duration, 12);
     handleRangerBloodThirst(context, event);
@@ -160,10 +159,9 @@ test('Blood Thirst grants twelve seconds, replaces remaining charges, and respec
   assert.equal(context.events.length, count);
 });
 
-test('Solar Focusing Lens keeps not-before eligibility and resolver spending across snapshots', () => {
+test('Solar Focusing Lens keeps not-before eligibility and live spending', () => {
   const context = contextFor(engineerProfession, 'Holosmith', [ENGINEER.SOLAR_FOCUSING_LENS]);
   const state = context.profession.specialization.state;
-  const snapshot = snapshotProfessionState(context.profession);
   const grant = holosmithResolverEventHandlers['engineer.solar-focusing-lens'];
   grant(context, { at: 1.001, stacks: 2, duration: 1 });
   assert.equal(state.solarFocusingLens.expiresAt, 2.04);
@@ -172,7 +170,6 @@ test('Solar Focusing Lens keeps not-before eligibility and resolver spending acr
   assert.equal(consumeSolarFocusingLens(context, { ...hit, at: 1.1, actorType: 'effect' }), undefined);
   assert.equal(state.solarFocusingLens.charges, 2);
   assert.deepEqual(consumeSolarFocusingLens(context, { ...hit, at: 1.001 }), { solarFocusingLens: true });
-  handleEngineerState(context, { at: 1.5, state: snapshot });
   assert.equal(state.solarFocusingLens.charges, 1);
   assert.equal(state.solarFocusingLens.expiresAt, 2.04);
   grant(context, { at: 2.001, stacks: 2, duration: 1 });
@@ -182,38 +179,71 @@ test('Solar Focusing Lens keeps not-before eligibility and resolver spending acr
   assert.equal(state.solarFocusingLens.charges, 1);
 });
 
-test('Mistburn replaces generations, preserves resolved spending, and excludes its granting hit', () => {
-  const context = contextFor(thiefProfession, 'Antiquary');
-  const state = context.profession.specialization.state;
-  const mortar = context.catalog.skillsById.get(THIEF.MISTBURN_MORTAR);
-  consumeArtifact(context, mortar);
-  const initial = state.mistburn.charges;
-  assert.ok(initial > 1);
-  const snapshot = snapshotProfessionState(context.profession);
-  const hit = { at: 2, actorType: 'player', coefficient: 0 };
-  for (const event of [
-    { ...hit, skillId: mortar.id },
-    { ...hit, coefficient: undefined },
-    { ...hit, actorType: 'effect' }
-  ]) {
-    antiquaryResolverEventReactions.damage(context, event);
-  }
-
-  assert.equal(state.mistburn.charges, initial);
-  antiquaryResolverEventReactions.damage(context, hit);
-  assert.equal(state.mistburn.charges, initial - 1, 'zero coefficient is still an authored strike');
-  assert.equal(context.events.at(-1).condition, 'Burning');
-  handleThiefState(context, { at: 2.1, state: snapshot });
-  assert.equal(state.mistburn.charges, initial - 1);
-  assert.equal(snapshot.mistburn.charges, initial, 'resolver state must remain detached from scheduler snapshots');
-  context.effectiveEnd = 3;
-  consumeArtifact(context, mortar);
-  assert.equal(state.mistburn.charges, initial);
-  assert.equal(state.mistburnGeneration, snapshot.mistburnGeneration + 1);
-  antiquaryResolverEventReactions.damage(context, { ...hit, at: state.mistburn.expiresAt });
-  assert.equal(state.mistburn.charges, initial);
-  advanceAntiquaryResources(context, state.mistburn.expiresAt);
-  assert.equal(state.mistburn.charges, 0);
+test('Mistburn replaces grants, spends on eligible strikes, and excludes its granting hit', () => {
+  // Swipe and Mortar complete at 0.8 s; a second pair completes the replacement at 3.8 s.
+  const observed = {};
+  const hit = { type: 'damage', actorType: 'player', coefficient: 0 };
+  const react = (runtime, event) =>
+    antiquaryResolverEventReactions.damage(runtime, { ...hit, at: runtime.time, ...event });
+  const charges = (runtime) => runtime.profession.specialization.state.mistburn.charges;
+  const result = runThief(
+    [
+      'Skritt Swipe',
+      'Mistburn Mortar',
+      { type: 'wait', durationMs: 2200 },
+      'Skritt Swipe',
+      'Mistburn Mortar',
+      { type: 'wait', durationMs: 10100 }
+    ],
+    { specialization: 'Antiquary' },
+    {
+      catalog: (live) => withSkill(live, THIEF.SKRITT_SWIPE, { cooldown: 0 }),
+      probes: [
+        [
+          2,
+          (runtime) => {
+            observed.initial = charges(runtime);
+            // The Mortar's own strikes, non-strike packets, and effect actors cannot spend a charge.
+            for (const event of [
+              { skillId: THIEF.MISTBURN_MORTAR },
+              { coefficient: undefined },
+              { actorType: 'effect' }
+            ])
+              react(runtime, event);
+            observed.ineligible = charges(runtime);
+            react(runtime, {});
+            observed.spent = charges(runtime);
+          }
+        ],
+        [3.9, (runtime) => (observed.replaced = charges(runtime))],
+        [
+          13.8,
+          (runtime) => {
+            react(runtime, {});
+            observed.atExpiry = charges(runtime);
+            observed.projected = projectThiefPlanningState({
+              profession: runtime.profession,
+              time: runtime.time
+            }).mistburn;
+          }
+        ]
+      ]
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.ok(observed.initial > 1);
+  assert.equal(observed.ineligible, observed.initial);
+  assert.equal(observed.spent, observed.initial - 1, 'zero coefficient is still an authored strike');
+  // The spent charge applies its Burning at the strike's own instant.
+  assert.ok(
+    result.resolvedEvents.some(
+      (event) => event.name === 'Mistburn Mortar — Charged Strike' && event.condition === 'Burning' && event.at === 2
+    )
+  );
+  assert.equal(observed.replaced, observed.initial);
+  // The grant expires at its exclusive deadline: a strike there spends nothing and the projection is empty.
+  assert.equal(observed.atExpiry, observed.initial);
+  assert.equal(observed.projected.charges, 0);
 });
 
 test('Mistburn projects its grant without aliases or mutations to runtime state', () => {
@@ -221,7 +251,7 @@ test('Mistburn projects its grant without aliases or mutations to runtime state'
   const state = context.profession.specialization.state;
   state.mistburn = { charges: 3, expiresAt: 5 };
   context.state.time = 2;
-  const projected = projectThiefPlanningState({ schedulerState: context.state });
+  const projected = projectThiefPlanningState({ ...context.state });
   assert.equal(projected.mistburn.charges, 3);
   assert.equal(projected.mistburn.expiresAt, 5);
   for (const internal of [state, snapshotProfessionState(context.profession), projected]) {
@@ -240,13 +270,13 @@ test('Mistburn projects its grant without aliases or mutations to runtime state'
   }
 
   context.state.time = 5;
-  assert.equal(projectThiefPlanningState({ schedulerState: context.state }).mistburn.charges, 0);
+  assert.equal(projectThiefPlanningState({ ...context.state }).mistburn.charges, 0);
   assert.equal(state.mistburn.charges, 3, 'projection must not expire the live runtime grant');
   state.mistburn.charges = 0;
   context.state.time = 2;
-  assert.equal(projectThiefPlanningState({ schedulerState: context.state }).mistburn.charges, 0);
+  assert.equal(projectThiefPlanningState({ ...context.state }).mistburn.charges, 0);
   const core = contextFor(thiefProfession, 'Core');
-  const inactive = projectThiefPlanningState({ schedulerState: core.state });
+  const inactive = projectThiefPlanningState({ ...core.state });
   assert.equal(inactive.mistburn.charges, 0);
   assert.equal(inactive.mistburn.expiresAt, 0);
 });

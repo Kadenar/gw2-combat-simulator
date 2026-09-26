@@ -1,3 +1,4 @@
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { requireBalanceNumber } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import {
   ELEMENTALIST_CORE_BALANCE_PROFILES,
@@ -5,12 +6,8 @@ import {
 } from '#gw2/professions/elementalist/core/profiles.js';
 import { type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
-import type { SkillId, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
-import type { CooldownController } from '#gw2/platform/execution/types.js';
-import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 
 /** The four elements, in the canonical order every attunement loop iterates. */
 export const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', 'Earth'] as const);
@@ -55,7 +52,6 @@ export interface ElementalistSummonedElementalState {
 export interface ElementalistCoreState {
   primaryAttunement: ElementalistAttunement;
   attunementEnteredAt: number;
-  attunementReadyAt: Record<ElementalistAttunement, number>;
   autoattackChains: Record<number, number>;
   autoattackCarryover: {
     root: number;
@@ -95,18 +91,6 @@ export interface ElementalistCoreState {
   arcaneEchoUntil: number;
 }
 
-interface ElementalistAttunementCooldownContext {
-  readonly state: {
-    readonly profession: { readonly core: ElementalistCoreState };
-    readonly time?: number;
-    readonly cooldowns?: Map<SkillId, number>;
-    readonly rechargeProgress?: Map<SkillId, RechargeProgress>;
-  };
-  readonly time?: number;
-  readonly cooldownController?: CooldownController;
-  readonly catalog?: CanonicalCatalog;
-}
-
 /** Narrows arbitrary config input to a valid attunement before it reaches state. */
 export function isElementalistAttunement(value: unknown): value is ElementalistAttunement {
   return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement);
@@ -123,7 +107,6 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
   return {
     primaryAttunement: primary,
     attunementEnteredAt: PRE_DWELLED_ATTUNEMENT_ENTERED_AT,
-    attunementReadyAt: { Fire: 0, Water: 0, Air: 0, Earth: 0 },
     autoattackChains: {},
     autoattackCarryover: null,
     pendingAutoattackCarryover: null,
@@ -175,55 +158,34 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
   };
 }
 
-/**
- * Single write path for an attunement's recharge: updates core state and mirrors
- * the value onto the scheduler cooldown for that attunement's skill so
- * availability and the UI agree.
- */
+/** Attunement readiness belongs to the shared cooldown controller, including temporary recharge rates. */
 export function setElementalistAttunementReadyAt(
-  context: ElementalistAttunementCooldownContext,
+  context: ElementalistRuntime,
   attunement: ElementalistAttunement,
   readyAt: number
 ): void {
-  const state = professionCoreState(context);
-  state.attunementReadyAt[attunement] = readyAt;
-  const schedulerState = context.state as { time?: number; cooldowns?: Map<number, number> } | undefined;
-  const cooldowns = schedulerState?.cooldowns;
-  if (!cooldowns) return;
-  const skillId = ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement];
-  const at = Number(schedulerState.time || 0);
-  const skill = context.catalog?.skillsById.get(skillId);
-  if (readyAt === cooldowns.get(skillId)) return;
-  if (skill && context.cooldownController && readyAt > at) {
-    state.attunementReadyAt[attunement] = context.cooldownController.startRecharge(
+  const skill = context.helpers.skillsById.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[attunement]);
+  if (!skill) throw new Error('Missing attunement skill.');
+  // Keeping an existing deadline must also keep the work already earned under earlier recharge rates.
+  if (context.cooldowns.get(skill.id) === readyAt) return;
+  if (readyAt > context.time)
+    context.cooldownController.startRecharge(
       skill,
-      at,
-      (readyAt - at) * context.cooldownController.rate(skill, at)
+      context.time,
+      (readyAt - context.time) * context.cooldownController.rate(skill, context.time)
     );
-    return;
-  }
-
-  context.state.rechargeProgress?.delete(skillId);
-  if (readyAt > Number(schedulerState.time || 0)) {
-    cooldowns.set(skillId, readyAt);
-  } else {
-    cooldowns.delete(skillId);
-  }
+  else context.cooldownController.clear(skill.id);
 }
 
-/** Clears every attunement recharge to now; the Core `onCooldownReset` hook. */
-export function resetElementalistAttunementCooldowns(context: ElementalistAttunementCooldownContext): void {
-  const at = Number((context.state as { time?: number } | undefined)?.time || context.time || 0);
-  for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
-    setElementalistAttunementReadyAt(context, attunement, at);
-  }
+/** Resets the actual attunement recharge pools at the shared reset boundary. */
+export function resetElementalistAttunementCooldowns(context: ElementalistRuntime): void {
+  for (const element of ELEMENTALIST_ATTUNEMENTS) setElementalistAttunementReadyAt(context, element, context.time);
 }
 
 // Core declares only the public fields present in every Elementalist runtime.
 const ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
   'primaryAttunement',
   'attunementEnteredAt',
-  'attunementReadyAt',
   'autoattackChains',
   'autoattackCarryover',
   'endurance',

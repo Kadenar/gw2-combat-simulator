@@ -1,16 +1,9 @@
+import { reaperLiveMechanics } from '#gw2/professions/necromancer/specializations/reaper/live.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import {
-  onConditionApplied,
-  onResolvedControl,
-  onResolvedDamage
-} from '#gw2/platform/profession-definition/mechanics.js';
+
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
-import { reaperResolverEventReactions } from '#gw2/professions/necromancer/specializations/reaper/mechanics/shroud-effects.js';
-import {
-  reaperAttributeRules,
-  reaperCastRules,
-  reaperSchedulerHooks
-} from '#gw2/professions/necromancer/specializations/reaper/mechanics/reaper-shroud.js';
+
+import { reaperAttributeRules } from '#gw2/professions/necromancer/specializations/reaper/mechanics/reaper-shroud.js';
 import { reaperState } from '#gw2/professions/necromancer/specializations/reaper/state.js';
 import { bindReaperUi } from '#gw2/professions/necromancer/specializations/reaper/presentation.js';
 import { REAPER_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/reaper/skills/index.js';
@@ -27,30 +20,11 @@ export const reaperModule = defineNativeModule({
       additional: [[ID.LIFE_REND, ID.LIFE_SLASH, ID.LIFE_REAP]]
     }
   }),
-  // Each phase gets isolated trait clocks: Chilling Victory advances in the scheduler, Chilling Nova in the resolver.
-  state: { scheduler: reaperState.create, resolver: reaperState.create },
+  // One state factory supplies the live combat owner.
+  state: { create: reaperState.create },
   mechanics: {
-    modifiers: reaperAttributeRules,
-    execution: {
-      castRules: reaperCastRules,
-      hooks: reaperSchedulerHooks
-    },
-    resolution: {
-      reactions: [
-        onResolvedDamage({
-          id: 'necromancer.reaper.damage',
-          handler: reaperResolverEventReactions.damage
-        }),
-        onResolvedControl({
-          id: 'necromancer.reaper.control',
-          handler: reaperResolverEventReactions.control
-        }),
-        onConditionApplied({
-          id: 'necromancer.reaper.condition',
-          handler: reaperResolverEventReactions.condition
-        })
-      ]
-    }
+    live: reaperLiveMechanics,
+    modifiers: reaperAttributeRules
   },
   presentation: bindReaperUi
 });

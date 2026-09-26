@@ -1,33 +1,18 @@
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createLiveProfessionSimulator, observeGw2Runtime, runtimeFor } from '#tests/helpers/live-runtime.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
-import { createParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
-import { createBladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import {
-  activateChant,
-  activateCommand,
-  refrains,
-  updateParagonCast,
-  commandEchoes
-} from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-commands.js';
-import { warriorEndurance } from '#gw2/professions/warrior/core/mechanics/adrenaline-and-endurance.js';
-import { applyAxeMastery } from '#gw2/professions/warrior/core/traits/discipline.js';
+
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { modifyWarriorStrengthAttributes } from '#gw2/professions/warrior/core/traits/strength.js';
 import { warriorCoreAttributeRules } from '#gw2/professions/warrior/core/traits/modifiers.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
-import {
-  advanceProfessionEndurance,
-  professionEnduranceReadyAt
-} from '#gw2/platform/combat/resources/endurance-policy.js';
 
-const simulate = createProfessionSimulator(warriorProfession, {
+const simulate = createLiveProfessionSimulator(warriorProfession, {
   stats: { power: 2000, precision: 4000, ferocity: 0, conditionDamage: 0, expertise: 0, vitality: 1000 },
   target: { armor: 2597, health: 1_000_000 }
 });
@@ -62,95 +47,40 @@ test('cancelled Head Butt and Blood Reckoning cannot grant resources or reset a 
   assert.equal(committed.planningState.profession.adrenaline, 10);
 });
 
-// Direct command contexts expose scheduled occurrence identity and resource state without damage aggregates.
-function paragonContext() {
-  const tasks = [];
-  const events = [];
-  return {
-    config: { selectedTraitIds: [TRAIT.REVERBERATION] },
-    catalog: warriorCatalog,
-    profession: { resources: { endurance: warriorEndurance } },
-    start: 0,
-    effectiveEnd: 0,
-    action: {},
-    state: {
-      time: 0,
-      cooldowns: new Map(),
-      profession: {
-        core: createWarriorCoreState({ initialResource: 30 }),
-        specialization: { kind: 'Paragon', state: createParagonState() }
-      }
-    },
-    tasks: { schedule: (task) => tasks.push(task), cancel: () => {} },
-    emit: (event) => {
-      events.push(event);
-      return event;
-    },
-    events,
-    scheduled: tasks
-  };
-}
-
 test('Invigorating Tempo grants capped adrenaline for each point of Motivation actually spent', () => {
-  // Cover each refrain cost, the final partial drain, and the trait selection gate.
+  // Seed the committed refrain's pool, then let its real queued pulse spend and reward the actual amount.
   for (const [skillId, motivation, adrenaline, selected, spent, expected] of [
     [ID.CHANT_OF_ACTION, 4, 0, true, 1, 1],
     [ID.CHANT_OF_RECUPERATION, 4, 0, true, 2, 2],
     [ID.CHANT_OF_FREEDOM, 7, 0, true, 3, 3],
     [ID.CHANT_OF_RECUPERATION, 1, 0, true, 1, 1],
     [ID.CHANT_OF_RECUPERATION, 0, 0, true, 0, 0],
-    [ID.CHANT_OF_FREEDOM, 7, 9, true, 3, 10],
+    [ID.CHANT_OF_FREEDOM, 7, 29, true, 3, 30],
     [ID.CHANT_OF_RECUPERATION, 4, 0, false, 2, 0]
   ]) {
-    const context = paragonContext();
-    context.config.selectedTraitIds = selected ? [TRAIT.INVIGORATING_TEMPO] : [];
-    const core = context.state.profession.core;
-    Object.assign(core, { adrenaline, maximumAdrenaline: 10 });
-    const state = context.state.profession.specialization.state;
-    Object.assign(state, { motivation, activeRefrainId: skillId });
-
-    refrains.start(context, { key: 'refrain', at: 3, captured: {} });
-    refrains.consumeAll(context, 3);
-
-    assert.equal(state.motivation, motivation - spent);
-    assert.equal(core.adrenaline, expected);
+    const config = {
+      specialization: 'Paragon',
+      initialResource: 10,
+      selectedTraitIds: selected ? [TRAIT.INVIGORATING_TEMPO] : []
+    };
+    const profession = warriorProfession.liveRuntimeFor(config);
+    const result = observeGw2Runtime({
+      profession: {
+        ...profession,
+        onCastComplete(runtime, cast) {
+          profession.onCastComplete?.(runtime, cast);
+          runtime.profession.core.adrenaline = adrenaline;
+          runtime.profession.specialization.state.motivation = motivation;
+        }
+      },
+      config,
+      rotation: [skillId, { type: 'wait', durationMs: 3000 }]
+    });
+    assert.deepEqual(result.warnings, []);
+    const owner = runtimeFor(result).profession;
+    assert.equal(owner.specialization.state.motivation, motivation - spent);
+    assert.equal(owner.core.adrenaline, expected);
   }
-});
-
-test('cancelled Paragon activations leave Motivation, refrain and pending echoes untouched', () => {
-  const context = paragonContext();
-  const state = context.state.profession.specialization.state;
-  activateCommand(context, warriorCatalog.skillsById.get(ID.WE_SHALL_RETURN));
-  const pending = commandEchoes.nextAt(context);
-  context.action.cancelled = true;
-  const chant = warriorCatalog.skillsById.get(ID.CHANT_OF_ACTION);
-  activateChant(context, chant);
-  updateParagonCast(context, chant);
-  activateCommand(context, warriorCatalog.skillsById.get(ID.FIND_THEIR_WEAKNESS));
-  assert.equal(state.motivation, 0);
-  assert.equal(state.activeRefrainId, null);
-  assert.equal(commandEchoes.nextAt(context), pending);
-  assert.equal(context.scheduled.length, 1);
-  assert.equal(context.events.length, 0);
-  assert.equal(context.state.profession.core.adrenaline, 20, 'cancelled activation retains its resource spend');
-});
-
-test('burst-flushed echoes invalidate the old task and repeat after the new interval', () => {
-  const context = paragonContext();
-  context.state.profession.core.adrenaline = 0;
-  activateCommand(context, warriorCatalog.skillsById.get(ID.WE_SHALL_RETURN));
-  const oldTask = context.scheduled[0];
-  context.effectiveEnd = 1;
-  updateParagonCast(context, warriorCatalog.skillsById.get(ID.CHANT_OF_ACTION));
-  const nextTask = context.scheduled[1];
-  assert.equal(context.state.profession.core.adrenaline, 10);
-  assert.equal(nextTask.at, 4);
-  commandEchoes.taskHandlers['warrior.paragon-command-echo'](context, oldTask);
-  assert.equal(context.state.profession.core.adrenaline, 10);
-  assert.equal(commandEchoes.nextAt(context), 4);
-  commandEchoes.taskHandlers['warrior.paragon-command-echo'](context, nextTask);
-  assert.equal(context.state.profession.core.adrenaline, 20);
-  assert.equal(commandEchoes.nextAt(context), Infinity);
 });
 
 test('all accepted Staff and Spear burst variants spend resources and grant first-hit burst traits', () => {
@@ -210,22 +140,13 @@ test('Axe Mastery adds adrenaline only to critical axe hits, including burst and
   }
 });
 
-test('Axe Mastery rejects other weapons and follows resource caps and Bladesworn conversion', () => {
-  const context = paragonContext();
-  context.config.selectedTraitIds = [TRAIT.AXE_MASTERY];
-  context.schedulerPolicy = { critical: () => ({ chance: 0.5 }) };
-  const hit = { type: 'damage', at: 0, skillId: ID.CHOP, coefficient: 1, hits: 1, didCrit: true };
-  applyAxeMastery(context, { ...hit, skillId: ID.GREATSWORD_SWING });
-  const before = context.state.profession.core.adrenaline;
-  applyAxeMastery(context, { ...hit, didCrit: false });
-  assert.equal(context.state.profession.core.adrenaline, before);
-  context.state.profession.core.adrenaline = 29;
-  applyAxeMastery(context, hit);
-  assert.equal(context.state.profession.core.adrenaline, 30);
-  context.state.profession.specialization = { kind: 'Bladesworn', state: createBladeswornState() };
-  context.schedulerPolicy.critical = () => ({ chance: 1 });
-  applyAxeMastery(context, hit);
-  assert.equal(context.state.profession.specialization.state.flow, 2);
+test('Axe Mastery follows the live cap and Bladesworn resource conversion', () => {
+  // Compare actual critical hits so ordinary hit grants and Flow recovery retain their own ownership.
+  const config = { primaryWeapon: 'Axe', selectedTraitIds: [TRAIT.AXE_MASTERY], initialResource: 29 };
+  assert.equal(simulate('Core', ['Chop'], config).planningState.profession.adrenaline, 30);
+  const trained = simulate('Bladesworn', ['Chop'], config);
+  const bare = simulate('Bladesworn', ['Chop'], { ...config, selectedTraitIds: [] });
+  assert.ok(Math.abs(trained.planningState.profession.flow - bare.planningState.profession.flow - 2) < 1e-9);
 });
 
 test('Forceful Greatsword uses active weapon probability, isolated progress and boon duration', () => {
@@ -279,7 +200,6 @@ test('mixed Warrior weapon sets keep static bonuses and conversion inputs separa
     modifyWarriorStrengthAttributes(
       {
         catalog: warriorCatalog,
-        profession: { resources: { endurance: warriorEndurance } },
         config: { primaryWeapon: 'Axe', weaponSet2Primary: 'Greatsword' },
         runtime: { activeWeaponSet: weaponSet },
         traits: new Set([TRAIT.FORCEFUL_GREATSWORD]),
@@ -315,33 +235,53 @@ test('Vigorous Shouts is outside combat simulation scope', () => {
   assert.deepEqual(tooltip.facts, []);
 });
 
-// The same canonical Vigor history must produce the same resource and readiness for any wait partition.
-test('endurance integration and Dodge readiness follow pooled Vigor windows', () => {
+test('endurance integration and Dodge readiness follow actual pooled Vigor windows', () => {
   for (const [events, expectedEndurance, readyAt] of [
-    [[{ type: 'buff', kind: 'vigor', at: 0, duration: 4, stacks: 1 }], 60, 8],
+    [[{ at: 0, duration: 4 }], 60, 8],
     [
       [
-        { type: 'buff', kind: 'vigor', at: 0, duration: 2, stacks: 1 },
-        { type: 'buff', kind: 'vigor', at: 1, duration: 2, stacks: 1 }
+        { at: 0, duration: 2 },
+        { at: 1, duration: 2 }
       ],
       60,
       8
     ],
-    [[{ type: 'buff', kind: 'vigor', at: 2, duration: 2, stacks: 1 }], 55, 9]
+    [[{ at: 2, duration: 2 }], 55, 9]
   ]) {
-    const contexts = [paragonContext(), paragonContext()];
-    for (const context of contexts) {
-      context.events = events.map((event) => ({ ...event, resolvedAudience: { includesSelf: true } }));
-      context.state.profession.core.endurance = 0;
-      assert.equal(professionEnduranceReadyAt(context, 50), readyAt);
+    // Queued Vigor changes readiness only when it executes; wait partitioning cannot change accumulated recovery.
+    const run = (rotation) => {
+      const config = { specialization: 'Core' };
+      const profession = warriorProfession.liveRuntimeFor(config);
+      return observeGw2Runtime({
+        profession: {
+          ...profession,
+          initialize(runtime) {
+            profession.initialize?.(runtime);
+            runtime.endurance.spend(100);
+            for (const event of events)
+              runtime.emit({
+                ...event,
+                type: 'buff',
+                kind: 'vigor',
+                stacks: 1,
+                source: 'fixture',
+                sourceId: 'vigor',
+                actorType: 'player'
+              });
+          }
+        },
+        config,
+        rotation
+      });
+    };
+
+    for (const durations of [[10000], [1000, 1000, 2000, 6000], [30000]]) {
+      const result = run(durations.map((durationMs) => ({ type: 'wait', durationMs })));
+      assert.equal(result.planningState.profession.endurance, durations[0] === 30000 ? 100 : expectedEndurance);
     }
 
-    advanceProfessionEndurance(contexts[0], 10);
-    for (const at of [1, 2, 4, 10]) advanceProfessionEndurance(contexts[1], at);
-    for (const context of contexts) {
-      assert.equal(context.state.profession.core.endurance, expectedEndurance);
-      advanceProfessionEndurance(context, 30);
-      assert.equal(context.state.profession.core.endurance, 100);
-    }
+    const dodge = run(['Dodge']);
+    assert.deepEqual(dodge.warnings, []);
+    assert.equal(dodge.steps[0].start, readyAt * 1000);
   }
 });

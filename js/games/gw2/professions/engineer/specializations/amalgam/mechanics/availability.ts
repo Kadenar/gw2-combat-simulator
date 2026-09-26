@@ -1,10 +1,10 @@
 import { amalgamState, resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { denySkillCast as denyEngineerCast } from '#gw2/professions/shared/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { EngineerPrecastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Rejects Amalgam actions that do not match the selected protocols or Double Helix trait. */
-export function amalgamCastAvailability(context: EngineerPrecastContext, skill: EngineerSkill): AvailabilityResult {
+export function amalgamCastAvailability(context: EngineerRuntime, skill: EngineerSkill): AvailabilityResult {
   if (context.config.specialization !== 'Amalgam') return { ready: true };
   // Direct availability queries must reject the inactive variant just as cast resolution selects the active one.
   if (resolveAmalgamSkillId(context.config, skill.id) !== skill.id) {

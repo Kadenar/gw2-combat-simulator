@@ -1,18 +1,11 @@
-import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/engine/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
-
-export const GW2_SCHEDULER_SIGIL_PREDICTION = 'critical-sigil';
 
 /** Both adapters use the same supported packet kinds; unsupported authored effects cannot silently become conditions. */
 export function createCriticalSigilEvent(name: string, proc: Gw2SigilProc, sourceSkill: string): SimulationEventBase {
   if (proc.effect === 'strike') return createSigilStrikeEvent(name, proc, sourceSkill);
   if (proc.effect === 'condition') return createSigilConditionEvent(name, proc, sourceSkill);
   throw new TypeError(`Unsupported critical sigil effect: ${name} (${proc.effect}).`);
-}
-
-/** Reports whether an event is a scheduler-only sigil prediction. */
-export function isSchedulerSigilPrediction(event: SimulationEvent): boolean {
-  return event.schedulerPrediction === GW2_SCHEDULER_SIGIL_PREDICTION;
 }
 
 function commonSigilEvent(

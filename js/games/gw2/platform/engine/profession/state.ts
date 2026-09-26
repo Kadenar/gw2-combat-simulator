@@ -27,20 +27,9 @@ export function flattenProfessionState<TState extends object = UnvalidatedFields
   return { ...runtime } as TState;
 }
 
-/** Flattens and deeply clones a family runtime at the scheduler/resolver boundary. */
+/** Flattens and deeply clones a family runtime for detached public observations. */
 export function snapshotProfessionState<TState extends object = UnvalidatedFields>(professionState: unknown): TState {
   return structuredClone(flattenProfessionState<TState>(professionState));
-}
-
-/** Restores flat snapshot fields to the specialization that declares them, otherwise Core. */
-export function restoreFlatProfessionState(coreState: object, specializationState: object, snapshot: unknown): void {
-  if (!snapshot || typeof snapshot !== 'object') return;
-  const core = coreState as DynamicFields;
-  const specialization = specializationState as DynamicFields;
-  for (const [key, value] of Object.entries(snapshot)) {
-    const owner = Object.hasOwn(specialization, key) ? specialization : core;
-    owner[key] = structuredClone(value);
-  }
 }
 
 /** Reads only the owned Core runtime slice; public projections are read by their presentation consumers. */

@@ -41,16 +41,16 @@ test('shared impacts schedule ordered effects with local attribution and timing 
   assert.deepEqual(
     packets.map(({ type, at, source, sourceId, skillId }) => [type, at, source, sourceId, skillId]),
     [
+      ['buff', 0.2, 'impacts', 1, 1],
       ['damage', 0.2, 'impact', 2, 1],
       ['blind', 0.2, 'impacts', 1, 1],
-      ['buff', 0.2, 'impacts', 1, 1],
       ['blind', 0.3, 'impacts', 1, 1]
     ]
   );
-  assert.deepEqual(packets[2].audience, { recipients: 'party', affectsSelf: false, maximumRecipients: 2 });
-  assert.equal(packets[2].actorType, 'effect');
-  assert.equal(packets[2].ownerActorType, 'player');
-  assert.deepEqual(packets[2].metadata, { packetKind: 'impact-boon' });
+  assert.deepEqual(packets[0].audience, { recipients: 'party', affectsSelf: false, maximumRecipients: 2 });
+  assert.equal(packets[0].actorType, 'effect');
+  assert.equal(packets[0].ownerActorType, 'player');
+  assert.deepEqual(packets[0].metadata, { packetKind: 'impact-boon' });
   assert.equal(Object.hasOwn(strike, 'atMs'), false);
 });
 
@@ -89,13 +89,13 @@ test('shared timeline defaults preserve packet indices and same-time scheduling 
       event.totalHits ?? event.totalApplications
     ]),
     [
+      ['buff', 100, 1, 2],
       ['damage', 100, 1, 3],
       ['condition', 100, 1, 2],
-      ['buff', 100, 1, 2],
+      ['buff', 300, 2, 2],
       ['damage', 300, 2, 3],
       ['damage', 300, 3, 3],
-      ['condition', 300, 2, 2],
-      ['buff', 300, 2, 2]
+      ['condition', 300, 2, 2]
     ]
   );
 });
@@ -226,7 +226,9 @@ test('runtime variants scale cast-bound launch timing while fixed pulse spacing 
       id: 'pulses',
       name: 'Pulses',
       catalog,
-      castRules: { modifyCastDuration: (_context, duration) => duration * multiplier }
+      live: {
+        castDurationMs: (_context, _skill, duration) => duration * multiplier
+      }
     });
     const result = simulateGw2({ profession, rotation: ['Pulses', { type: 'wait', durationMs: 3000 }] });
     for (const type of ['damage', 'blind', 'condition']) {

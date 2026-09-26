@@ -5,7 +5,9 @@
  * fragments. Weapon skills remain Core-owned because Weaponmaster Training
  * makes elite weapon families profession-wide.
  */
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+
 import { NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/profession-skills.js';
 import { NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
 import {
@@ -23,6 +25,17 @@ import { NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS } from '#gw2/professions/necr
 import { NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/weapons/sword.js';
 import { NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/weapons/torch.js';
 import { NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/weapons/warhorn.js';
+
+/** Lich's replacement bar is shared by cast legality and palette projection; it is not a life-force shroud. */
+export const NECROMANCER_LICH_SKILL_IDS: readonly SkillId[] = Object.freeze([
+  ID.DEATHLY_CLAWS,
+  ID.LICHS_GAZE,
+  ID.RIPPLE_OF_HORROR,
+  ID.MARCH_OF_UNDEATH,
+  ID.SUMMON_MADNESS,
+  ID.GRIM_SPECTER,
+  ID.EXIT_LICH_FORM
+]);
 
 export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   ...NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS,

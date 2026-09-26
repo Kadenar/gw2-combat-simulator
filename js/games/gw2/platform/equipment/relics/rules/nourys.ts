@@ -31,9 +31,8 @@ function nourysActiveAt(context: Gw2RelicRuntimeContext, state: Gw2RelicState, a
 }
 
 export const nourys = defineRelic({
-  timeline(ctx, state, _events, rotationEndTime) {
+  passiveTimeline(ctx, state, rotationEndTime) {
     const combatStart = nourysCombatStart(ctx, state);
-    state.combatStartTime = combatStart;
     let stacks = 0;
     for (let at = combatStart + NOURYS_STACK_INTERVAL; at <= rotationEndTime + EPSILON;) {
       stacks += 1;

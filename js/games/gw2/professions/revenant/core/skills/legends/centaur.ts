@@ -4,8 +4,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.PROTECTIVE_SOLACE]: {
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
-    handlerId: 'revenant.upkeep',
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/live-upkeep.ts`.
     castTimeMs: 0,
     // The parent recharges when its shield is released, rather than while it is active.
     cooldown: 0,
@@ -44,7 +43,6 @@ export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
   },
   [ID.DIMINISH_SOLACE]: {
     // Reuse upkeep teardown and availability checks for the matching active shield.
-    handlerId: 'revenant.upkeep-release',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -72,8 +70,7 @@ export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     legendId: 'LegendaryCentaur'
   },
   [ID.PROTECTIVE_SOLACE_ID_29310]: {
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
-    handlerId: 'revenant.upkeep',
+    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/live-upkeep.ts`.
     castTimeMs: 0,
     cooldown: 5,
     energyCost: 5,

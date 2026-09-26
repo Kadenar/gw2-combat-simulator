@@ -1,4 +1,4 @@
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { quantizeGw2ActionTimingMs, referenceCastTimeMs } from '#gw2/platform/skills/timing.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
@@ -31,8 +31,8 @@ function restoreLegacyDevastatorCast(
   return { ...action, end: action.start + castTimeMs, status: 'completed', expectedDurationMs: castTimeMs };
 }
 
-function kitName(skill: Skill | null): string | null {
-  if (skill?.handlerId !== 'engineer.kit-equip') return null;
+function kitName(skill: EngineerSkill | null): string | null {
+  if (skill?.kitTransition !== 'equip') return null;
   const name = String(skill.kitName || skill.name || '').trim();
   return name || null;
 }
@@ -43,7 +43,8 @@ function kitStow(
   action: RecordedLogAction
 ): RecordedLogAction | null {
   const skill = context.catalog?.skills.find(
-    (candidate) => candidate.handlerId === 'engineer.kit-stow' && normalized(candidate.kit) === normalized(kit)
+    (candidate) =>
+      (candidate as EngineerSkill).kitTransition === 'stow' && normalized(candidate.kit) === normalized(kit)
   );
   if (!skill || typeof skill.id !== 'number') return null;
   return {

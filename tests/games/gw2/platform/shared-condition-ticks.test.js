@@ -1,14 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { targetConditionActive, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
-import { refineNecromancerSchedulerConfig } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
-import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
-import { resolveTestGw2Stream } from '#tests/helpers/gw2-resolver.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-loop.js';
 import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
@@ -16,14 +13,24 @@ import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 // Resolver queries must follow executed state changes, including cache invalidation within one timestamp.
 test('samples and strikes see cooldown resets, snapshots, and swaps only after execution', () => {
   for (const output of ['detailed', 'score']) {
-    for (const reset of [
-      { type: 'marker', action: 'cooldown-reset' },
-      { type: 'cooldown_snapshot', cooldowns: {} }
-    ]) {
+    for (const reset of [{ type: 'fixture.reset' }, { type: 'fixture.rewind' }]) {
       const seen = [];
       const profession = defineProfession({
         id: 'timeline-resolution',
         name: 'Timeline resolution',
+        live: {
+          initialize(ctx) {
+            ctx.cooldownController.setReadyAt(1, 10);
+          },
+          eventHandlers: {
+            'fixture.reset'(ctx) {
+              ctx.cooldowns.clear();
+            },
+            'fixture.rewind'(ctx) {
+              ctx.cooldowns.clear();
+            }
+          }
+        },
         attributeRules: {
           modifyAttributes(context, attributes) {
             const cooldown = context.timeline.skillOnCooldownAt(1, context.time);
@@ -37,11 +44,11 @@ test('samples and strikes see cooldown resets, snapshots, and swaps only after e
         }
       });
       const owner = { source: 'Player', sourceId: 'probe', actorType: 'player' };
-      resolveTestGw2Stream({
+      resolveTestGw2Events({
         output,
         profession,
         config: { sigilSets: [{ names: [] }] },
-        stream: buildScheduledEventStream({
+        ...{
           events: [
             { ...owner, type: 'action', at: 0, skillId: 1, rechargeReadyAt: 10 },
             { ...owner, type: 'damage', at: 0, flatDamage: 1 },
@@ -51,8 +58,8 @@ test('samples and strikes see cooldown resets, snapshots, and swaps only after e
             { ...owner, type: 'weapon_set', at: 1, weaponSet: 2 },
             { ...owner, type: 'damage', at: 1, flatDamage: 1, priority: 10 }
           ],
-          rotationEndTime: 2
-        })
+          endTime: 2
+        }
       });
       assert.deepEqual(seen, [
         [1, 'condition', true, 1],
@@ -84,13 +91,9 @@ function resolve(
   events,
   { end = 2, combatStartTime, output = 'detailed', target = {}, query = {}, reactions = {} } = {}
 ) {
-  return resolveTestGw2Stream({
+  return resolveTestGw2Events({
     output,
-    stream: buildScheduledEventStream({
-      events,
-      rotationEndTime: end,
-      resolverHandoff: combatStartTime == null ? {} : { hasExplicitCombatStart: true, combatStartTime }
-    }),
+    ...{ events, ...(combatStartTime == null ? {} : { combatStartTime }), endTime: end },
     config: { target, sigilSets: [{ names: [] }] },
     traits: new Set(),
     professionReactions: reactions,
@@ -789,7 +792,7 @@ test('settlement reactions inherit their phase while direct hits and future buff
           ctx.queue.enqueue({ type: 'damage', at: 1, sourceId: 'proc', flatDamage: 1, damageKind: 'condition' });
           ctx.queue.enqueue({ type: 'buff', at: 2, sourceId: 'future', kind: 'might', duration: 1, stacks: 1 });
           assert.throws(() => ctx.queue.enqueue({ type: 'condition_buffer', at: 1, sourceId: 'rewind' }), /rewind/);
-          assert.throws(() => ctx.applyCondition(condition(0.999999)), /past/);
+          assert.throws(() => ctx.applyCondition(condition(0.999999)), /live clock/);
         },
         'buff.applied': (ctx, event) => observed.push([event.sourceId, ctx.queue.currentPhase]),
         'damage.resolved': (ctx, event) => observed.push([event.sourceId, ctx.queue.currentPhase])
@@ -923,29 +926,14 @@ test('non-damaging timed and permanent conditions synchronize later damage acros
   assert.equal(permanent.conditionDamage, 0);
 });
 
-test('health milestones and Necromancer feedback consume the committed shared-packet timeline', () => {
-  const result = resolve(
-    [
-      condition(0, { duration: 2 }),
-      condition(0, { duration: 2 }),
-      {
-        type: 'action',
-        at: 0,
-        actorType: 'player',
-        source: 'Player',
-        sourceId: NECROMANCER_SKILL_IDS.GRAVEDIGGER,
-        skillId: NECROMANCER_SKILL_IDS.GRAVEDIGGER,
-        name: 'Gravedigger'
-      }
-    ],
-    { target: { health: 200, conditions: { Bleeding: 1 } } }
-  );
+test('health milestones consume the committed shared-packet timeline', () => {
+  const result = resolve([condition(0, { duration: 2 }), condition(0, { duration: 2 })], {
+    target: { health: 200, conditions: { Bleeding: 1 } }
+  });
   const [milestone] = targetHealthBreakpointSnapshots(result, 200, [50]);
   assert.equal(milestone.at, 2);
   assert.equal(milestone.damage, 118);
   assert.equal(milestone.targetDamage, 162);
-  const config = refineNecromancerSchedulerConfig({ target: { health: 200 } }, result);
-  assert.equal(config._schedulerFeedback.targetBelowHalfAt, milestone.at);
 });
 
 // The first application joins the zero-anchored clock, including after a completely empty target window.

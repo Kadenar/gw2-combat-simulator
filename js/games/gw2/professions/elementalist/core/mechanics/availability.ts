@@ -18,7 +18,7 @@ import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { denySkillCast as unavailable } from '#gw2/professions/shared/availability.js';
-import type { ElementalistPrecastContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
 import {
   AURA_TRANSMUTE_SKILLS,
@@ -26,7 +26,10 @@ import {
   CONJURED_WEAPONS,
   HAMMER_ORB_SKILLS
 } from '#gw2/professions/elementalist/core/constants.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS
+} from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistElementalAvailability } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
 import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/traits/index.js';
@@ -42,10 +45,6 @@ import {
   weaponAttunementAvailable
 } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
-import {
-  advanceProfessionEndurance,
-  professionEnduranceReadyAt
-} from '#gw2/platform/combat/resources/endurance-policy.js';
 
 function ready(): AvailabilityResult {
   return { ready: true };
@@ -55,7 +54,7 @@ function ready(): AvailabilityResult {
  * First-match availability gate for every Core Elementalist skill: returns ready,
  * a permanent denial, or a denial carrying the time the command is worth retrying.
  */
-export function elementalistCoreAvailability(context: ElementalistPrecastContext, skill: Skill): AvailabilityResult {
+export function elementalistCoreAvailability(context: ElementalistRuntime, skill: Skill): AvailabilityResult {
   // Glyph summons and elemental command skills answer through their own gate first.
   const elementalAvailability = elementalistElementalAvailability(context, skill);
   if (elementalAvailability) return elementalAvailability;
@@ -77,10 +76,12 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
       return unavailable(skill, 'elementalist.same-attunement', `already attuned to ${target}.`);
     }
 
-    const naturalReadyAt = gw2CooldownReadyAt(Number(state.attunementReadyAt[target] || 0));
+    const naturalReadyAt = gw2CooldownReadyAt(
+      Number(context.cooldowns.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[target]) || 0)
+    );
     const freshAirReadyAt = target === 'Air' ? projectedFreshAirReadyAt(context, naturalReadyAt) : null;
     const readyAt = freshAirReadyAt == null ? naturalReadyAt : Math.min(naturalReadyAt, freshAirReadyAt);
-    return readyAt > context.start
+    return readyAt > context.time
       ? unavailable(skill, 'elementalist.attunement-recharge', `${target} recharges at ${readyAt.toFixed(3)}.`, readyAt)
       : ready();
   }
@@ -88,7 +89,6 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
   // Dodge settles endurance up to the current instant, then either passes or
   // reports the time regeneration covers the cost.
   if (Number(skill.id) === ID.DODGE) {
-    advanceProfessionEndurance(context, context.start);
     const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
     const enduranceCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
     return state.endurance + EPSILON >= enduranceCost
@@ -97,7 +97,7 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
           skill,
           'elementalist.endurance',
           `requires ${enduranceCost} endurance.`,
-          professionEnduranceReadyAt(context, enduranceCost, context.start)
+          context.endurance.readyAt(enduranceCost)
         );
   }
 
@@ -114,7 +114,7 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
     const weapon = pickupWeapon;
     // Missing or invalid ground copies must not become available at time zero.
     const expiresAt = state.conjurePickups[weapon];
-    return Number.isFinite(expiresAt) && expiresAt > context.start
+    return Number.isFinite(expiresAt) && expiresAt > context.time
       ? ready()
       : unavailable(skill, 'elementalist.conjure-pickup', `the ${weapon} pickup is unavailable or expired.`);
   }
@@ -124,7 +124,7 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
     const selected = selectedSkillNameSet(context.config.selectedSkills);
     // Flipped skills remain selectable through the equipped root without naming specialization-owned chains here.
     const selectedChainSkill = [...selected].some(
-      (selectedName) => context.catalog.skillsByName.get(selectedName)?.nextChainId === skill.id
+      (selectedName) => context.helpers.skillsByName.get(selectedName)?.nextChainId === skill.id
     );
     if (!isSelectedSlotSkill(skill, selected) && !selectedChainSkill) {
       return unavailable(skill, 'elementalist.not-equipped', 'the skill is not equipped.');
@@ -133,17 +133,17 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
 
   // Transmute skills consume a matching aura that must currently be active.
   const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
-  if (aura && !activeAura(state, aura, context.start)) {
+  if (aura && !activeAura(state, aura, context.time)) {
     return unavailable(skill, 'elementalist.aura-transmute', `requires an active ${aura}.`);
   }
 
   // Hurl and Rock Barrier share one barrier: Hurl needs it live, while a second
   // Rock Barrier waits for the current one to be thrown or to expire.
-  if (Number(skill.id) === ID.HURL && !skillFlipReady(state.availableFlips[ID.HURL], context.start)) {
+  if (Number(skill.id) === ID.HURL && !skillFlipReady(state.availableFlips[ID.HURL], context.time)) {
     return unavailable(skill, 'elementalist.rock-barrier', 'requires an active Rock Barrier.');
   }
 
-  if (Number(skill.id) === ID.ROCK_BARRIER && skillFlipReady(state.availableFlips[ID.HURL], context.start)) {
+  if (Number(skill.id) === ID.ROCK_BARRIER && skillFlipReady(state.availableFlips[ID.HURL], context.time)) {
     return unavailable(
       skill,
       'elementalist.rock-barrier-active',
@@ -176,7 +176,7 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
   if (hammerElements) {
     const hammerOrbsProfile = requireBalanceProfileFromContext(context, PROFILE.hammerOrbs);
     const retryAt = state.hammerOrbLastCastAt + balanceProfileNumber(hammerOrbsProfile, 'initialDelay');
-    if (retryAt > context.start + EPSILON) {
+    if (retryAt > context.time + EPSILON) {
       return unavailable(
         skill,
         'elementalist.hammer-orb-lockout',
@@ -188,7 +188,7 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
     if (
       hammerElements.some((element) => {
         const expiresAt = state.hammerOrbs[element];
-        return expiresAt != null && expiresAt >= context.start;
+        return expiresAt != null && expiresAt >= context.time;
       })
     ) {
       return unavailable(
@@ -201,7 +201,7 @@ export function elementalistCoreAvailability(context: ElementalistPrecastContext
 
   // Grand Finale needs at least one floating orb matching the current attunement.
   if (Number(skill.id) === ID.GRAND_FINALE) {
-    const compatible = activeHammerOrbElements(state, context.start).some((element) =>
+    const compatible = activeHammerOrbElements(state, context.time).some((element) =>
       hammerOrbMatchesAttunement(context, state, element)
     );
     if (!compatible) {

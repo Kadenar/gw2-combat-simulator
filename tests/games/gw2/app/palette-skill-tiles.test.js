@@ -67,7 +67,10 @@ test('a used 20-second skill displays 16 seconds under Alacrity', () => {
     const view = paletteSkillView(app, skill, true);
     assert.equal(view.cooldownLabel, label);
     assert.equal(view.disabled, true);
-    assert.equal(result.schedulerState.rechargeProgress.get(skill.id).work, 20);
+    assert.equal(
+      result.events.find((event) => event.type === 'action' && event.skillId === skill.id).rechargeProgress.work,
+      20
+    );
   }
 });
 
