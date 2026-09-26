@@ -1,7 +1,7 @@
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
-import { mesmerCoreAttributeRules } from '#gw2/professions/mesmer/core/traits/modifiers.js';
+import { mesmerCoreModifiers } from '#gw2/professions/mesmer/core/modifiers.js';
 import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import { projectMesmerPlanningState } from '#gw2/professions/mesmer/family-state.js';
 import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
@@ -22,7 +22,7 @@ export const mesmerCoreModule = defineNativeModule({
     create: createMesmerCoreState,
     project: projectMesmerPlanningState
   },
-  modifiers: mesmerCoreAttributeRules,
+  modifiers: mesmerCoreModifiers,
   hooks: mesmerCoreHooks,
   presentation: mesmerCoreUi
 });

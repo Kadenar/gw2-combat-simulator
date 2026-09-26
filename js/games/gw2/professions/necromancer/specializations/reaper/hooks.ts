@@ -8,7 +8,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
-import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/hooks.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import {
   reactToReaperDamage,
   reaperResolverEventReactions

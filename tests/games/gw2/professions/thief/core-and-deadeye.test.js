@@ -13,9 +13,9 @@ import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession
 import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/professions/thief/data/thief-supplemental-skills.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { thiefCoreModifierRules } from '#gw2/professions/thief/core/traits/modifiers.js';
+import { thiefCoreModifierRules } from '#gw2/professions/thief/core/modifiers.js';
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
-import { daredevilModifierRules } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodge-rules.js';
+import { daredevilModifiers } from '#gw2/professions/thief/specializations/daredevil/modifiers.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/core/profiles.js';
 import { DAREDEVIL_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 import { DEADEYE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
@@ -1280,8 +1280,8 @@ test('Daredevil follow-ups, delayed impacts, and endurance traits resolve', () =
     Math.abs(withSteal.planningState.profession.endurance - withoutSteal.planningState.profession.endurance - 50) < 1e-9
   );
 
-  const havoc = daredevilModifierRules.find((rule) => rule.id === 'thief.havoc-specialist');
-  const weakening = daredevilModifierRules.find((rule) => rule.id === 'thief.weakening-strikes');
+  const havoc = daredevilModifiers.find((rule) => rule.id === 'thief.havoc-specialist');
+  const weakening = daredevilModifiers.find((rule) => rule.id === 'thief.weakening-strikes');
 
   assert.equal(havoc.operation, 'multiply');
   assert.equal(havoc.factor, 1.15);

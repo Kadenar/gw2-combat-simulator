@@ -11,10 +11,8 @@ import type { RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { galeshotState, galeshotArrows } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-import {
-  applyGaleshotCycloneBowTraits,
-  galeshotCastAvailability
-} from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow-rules.js';
+import { applyGaleshotCycloneBowTraits } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
+import { galeshotCastAvailability } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 import {
   completeGaleshotSkill,
   reactToGaleshotMissile,

@@ -15,12 +15,12 @@ import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/at
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import { druidAttributeRules } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
-import { rangerCoreAttributeRules, rangerCoreModifierRules } from '#gw2/professions/ranger/core/traits/modifiers.js';
+import { druidModifiers } from '#gw2/professions/ranger/specializations/druid/modifiers.js';
+import { rangerCoreModifiers, rangerCoreModifierRules } from '#gw2/professions/ranger/core/modifiers.js';
 import {
-  soulbeastAttributeRules,
+  soulbeastModifiers,
   soulbeastModifierRules
-} from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
+} from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 
 // Attribute assertions use the same calculator composed into the Ranger adapter.
@@ -524,16 +524,13 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
 
   const baseAttributes = { power: 0, precision: 0, conditionDamage: 0, toughness: 0, vitality: 1000, ferocity: 0 };
   const druidContext = { config: {}, traits: new Set([TRAIT.NATURAL_FORTITUDE]) };
-  const druidAttributes = druidAttributeRules.modifyAttributes(
-    { catalog: rangerCatalog, ...druidContext },
-    baseAttributes
-  );
-  const coreAttributes = rangerCoreAttributeRules.modifyAttributes(druidContext, baseAttributes);
+  const druidAttributes = druidModifiers.modifyAttributes({ catalog: rangerCatalog, ...druidContext }, baseAttributes);
+  const coreAttributes = rangerCoreModifiers.modifyAttributes(druidContext, baseAttributes);
 
   assert.equal(druidAttributes.vitality, 1240);
   assert.equal(coreAttributes.vitality, 1000);
 
-  const soulbeastAttributes = soulbeastAttributeRules.modifyAttributes(
+  const soulbeastAttributes = soulbeastModifiers.modifyAttributes(
     {
       catalog: rangerCatalog,
       config: { selectedPet: 'Pig' },
@@ -1025,7 +1022,7 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
     runtime: { activeWeaponSet: 1 },
     query: { mightStacksAt: () => 0 }
   };
-  const petAttributes = rangerCoreAttributeRules.modifyAttributes(
+  const petAttributes = rangerCoreModifiers.modifyAttributes(
     { catalog: rangerCatalog, ...petTraitContext },
     {
       power: 2000,

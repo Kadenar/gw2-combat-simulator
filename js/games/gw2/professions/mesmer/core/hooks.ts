@@ -159,7 +159,7 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     'mesmer.core.restart-signet-illusions-passive': (runtime) => restartSignetIllusionsPassive(runtime, runtime.time),
     'mesmer.core.relock-signet-ether'(runtime, data) {
       const cast = (data as { cast: RuntimeCast }).cast;
-      const readyAt = runtime.time + cast.rechargeWork / runtime.cooldownController.rate(cast.skill, runtime.time);
+      const readyAt = runtime.time + cast.rechargeWork / runtime.cooldownController.rate(cast.skill);
       if (readyAt > Number(runtime.cooldowns.get(cast.skill.id) ?? 0))
         runtime.cooldownController.startRecharge(cast.skill, runtime.time, cast.rechargeWork);
     }

@@ -77,8 +77,8 @@ test('Infiltrator signet rearm replaces the pending resource pulse and follows c
     { probes: [0.5, 1.0005, 10, 11].map((at) => [at, observe]) }
   );
   assert.deepEqual(result.warnings, []);
-  // Activation starts the twenty-second recharge, so the next pulse waits ten seconds past it.
-  assert.equal(observed[0][1], 30);
+  // Activation starts the sixteen-second recharge under Alacrity, so the next pulse waits ten seconds past it.
+  assert.equal(observed[0][1], 26);
   // The reset rearms the pulse from the reset instant.
   assert.equal(observed[1][1], 11);
   assert.equal(observed[3][0] - observed[2][0], 2, 'one second of regeneration plus one discrete pulse');

@@ -4,11 +4,9 @@ import type { SkillTask } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
-import {
-  completeMirageSkill,
-  mirageAvailability,
-  mirageEndurance
-} from '#gw2/professions/mesmer/specializations/mirage/mechanics/ambush-rules.js';
+import { completeMirageSkill } from '#gw2/professions/mesmer/specializations/mirage/traits/self-deception.js';
+import { mirageEndurance } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
+import { mirageAvailability } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import {
   initializeMirageRuntime,
   mirageControllerFor

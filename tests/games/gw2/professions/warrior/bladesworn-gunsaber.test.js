@@ -60,22 +60,22 @@ test('Gunsaber equip and stow put the opposite action on a five-second cooldown'
 
   assert.deepEqual(result.warnings, []);
   for (let index = 2; index < result.steps.length; index += 1) {
-    assert.equal(result.steps[index].start - result.steps[index - 1].end, 5000);
+    assert.equal(result.steps[index].start - result.steps[index - 1].end, 4000);
   }
 
   const unsheathed = simulate(['__combat_start', ID.UNSHEATHE_GUNSABER]);
   const sheathed = simulate(['__combat_start', ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER]);
-  assert.equal(unsheathed.planningState.cooldowns['Sheathe Gunsaber'].remaining, 5000);
-  assert.equal(sheathed.planningState.cooldowns['Unsheathe Gunsaber'].remaining, 5000);
+  assert.equal(unsheathed.planningState.cooldowns['Sheathe Gunsaber'].remaining, 4000);
+  assert.equal(sheathed.planningState.cooldowns['Unsheathe Gunsaber'].remaining, 4000);
 });
 
 test('Dragon Trigger starts Unsheathe recharge only when entering from normal weapons', () => {
   // Existing Gunsaber entry preserves both running and expired cooldowns.
   for (const [beforeTrigger, remaining] of [
-    [[], 5000],
-    [[ID.UNSHEATHE_GUNSABER, { type: 'wait', durationMs: 1000 }], 4000],
+    [[], 4000],
+    [[ID.UNSHEATHE_GUNSABER, { type: 'wait', durationMs: 1000 }], 3000],
     [[ID.UNSHEATHE_GUNSABER, { type: 'wait', durationMs: 6000 }], 0],
-    [[ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, { type: 'wait', durationMs: 1000 }], 5000]
+    [[ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, { type: 'wait', durationMs: 1000 }], 4000]
   ]) {
     const result = simulate(['__combat_start', ...beforeTrigger, ID.DRAGON_TRIGGER]);
     assert.deepEqual(result.warnings, []);

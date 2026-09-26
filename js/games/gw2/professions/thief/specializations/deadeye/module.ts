@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
-import { deadeyeAttributeRules } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice-rules.js';
+import { deadeyeModifiers } from '#gw2/professions/thief/specializations/deadeye/modifiers.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { deadeyeUi } from '#gw2/professions/thief/specializations/deadeye/presentation.js';
 import { deadeyeHooks } from '#gw2/professions/thief/specializations/deadeye/hooks.js';
@@ -14,7 +14,7 @@ export const deadeyeModule = defineNativeModule({
     balanceProfiles: DEADEYE_BALANCE_PROFILES
   }),
   state: { create: deadeyeState.create },
-  modifiers: deadeyeAttributeRules,
+  modifiers: deadeyeModifiers,
   hooks: deadeyeHooks,
   presentation: deadeyeUi
 });

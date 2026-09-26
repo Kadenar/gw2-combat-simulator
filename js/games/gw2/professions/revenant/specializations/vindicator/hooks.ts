@@ -22,7 +22,7 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_AIRBORNE_MS, VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import { emitRevenantBuff, revenantCombatActive } from '#gw2/professions/revenant/core/events.js';
-import { revenantCastCommitted } from '#gw2/professions/revenant/core/hooks.js';
+import { revenantCastCommitted } from '#gw2/professions/revenant/core/events.js';
 import {
   emitRevenantInvocationProfile,
   emitRevenantInvocationSkill

@@ -6,11 +6,9 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import {
-  completeTroubadourPhantasm,
-  troubadourAvailability,
-  troubadourEndurance
-} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-rules.js';
+import { completeTroubadourPhantasm } from '#gw2/professions/mesmer/specializations/troubadour/traits/harmonize.js';
+import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
+import { troubadourAvailability } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
 import { initializeTroubadourRuntime } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
 import {
   scheduleTroubadourPerformance,

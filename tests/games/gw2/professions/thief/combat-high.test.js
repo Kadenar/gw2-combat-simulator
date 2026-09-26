@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { antiquaryModifierRules } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-rules.js';
+import { antiquaryModifiers } from '#gw2/professions/thief/specializations/antiquary/modifiers.js';
 import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -17,8 +17,8 @@ test('Combat High shares staggered stack expiry across grants, modifiers, projec
   assert.deepEqual(result.warnings, []);
   const profession = observedRuntime(result).profession;
   const state = profession.specialization.state;
-  const strike = antiquaryModifierRules.find((rule) => rule.id === 'thief.combat-high-strike');
-  const condition = antiquaryModifierRules.find((rule) => rule.id === 'thief.combat-high-condition');
+  const strike = antiquaryModifiers.find((rule) => rule.id === 'thief.combat-high-strike');
+  const condition = antiquaryModifiers.find((rule) => rule.id === 'thief.combat-high-condition');
   for (const [time, count] of [
     [0, 10],
     [1.999999, 10],

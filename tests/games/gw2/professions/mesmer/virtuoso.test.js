@@ -273,7 +273,7 @@ test('Rain of Swords pulses after its cast with fixed damage and vulnerability t
   );
 
   assert.equal(result.steps[0].end - result.steps[0].start, 680);
-  assert.equal(result.steps[1].start, 25_680);
+  assert.equal(result.steps[1].start, 20_680);
   assert.deepEqual(
     firstActivationDamage.map((event) => [Math.round((event.at - firstCastEnd) * 1000), event.coefficient]),
     [

@@ -133,8 +133,8 @@ test('Gunsaber transitions share recharge, reset chains, and retain the configur
   const owner = observedRuntime(result);
   const swaps = result.events.filter((event) => event.type === 'sigil_swap');
   assert.equal(swaps.length, 3);
-  close(swaps[1].at - swaps[0].at, 5);
-  close(swaps[2].at - swaps[1].at, 5);
+  close(swaps[1].at - swaps[0].at, 4);
+  close(swaps[2].at - swaps[1].at, 4);
   assert.equal(owner.activeWeaponSet, 1);
   assert.equal(state(result).gunsaberActive, true);
   assert.deepEqual(owner.profession.core.autoattackChains, {});
@@ -210,8 +210,8 @@ test('Gunsaber entry grants the selected party boon and resets Martial Cadence w
   );
   assert.equal(might.resolvedAudience.includesSelf, true);
   assert.equal(might.resolvedAudience.alliedPlayerCount, 4);
-  close(state(result).flow, 30);
-  close(observedRuntime(result).profession.core.soldierFocusReadyAt, 5);
+  close(state(result).flow, 24);
+  close(observedRuntime(result).profession.core.soldierFocusReadyAt, 4);
   assert.equal(
     result.events.some((event) => event.sourceId === TRAIT.FURIOUS_BURST),
     false
@@ -502,7 +502,7 @@ test('Lush Forest reduces current-bar recharge only and preserves the normal Art
     assert.deepEqual(trained.warnings, []);
     close(
       observedRuntime(bare).cooldowns.get(ID.CYCLONE_AXE) - observedRuntime(trained).cooldowns.get(ID.CYCLONE_AXE),
-      gunsaber ? 0 : 0.75
+      gunsaber ? 0 : 0.6
     );
   }
 

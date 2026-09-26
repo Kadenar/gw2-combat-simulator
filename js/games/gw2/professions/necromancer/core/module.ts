@@ -2,7 +2,7 @@ import { necromancerCoreHooks } from '#gw2/professions/necromancer/core/hooks.js
 
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
-import { necromancerCoreAttributeRules } from '#gw2/professions/necromancer/core/traits/modifiers.js';
+import { necromancerCoreModifiers } from '#gw2/professions/necromancer/core/modifiers.js';
 
 import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { projectNecromancerPlanningState } from '#gw2/professions/necromancer/family-state.js';
@@ -31,6 +31,6 @@ export const necromancerCoreModule = defineNativeModule({
     project: projectNecromancerPlanningState
   },
   hooks: necromancerCoreHooks,
-  modifiers: necromancerCoreAttributeRules,
+  modifiers: necromancerCoreModifiers,
   presentation: bindNecromancerCoreUi
 });

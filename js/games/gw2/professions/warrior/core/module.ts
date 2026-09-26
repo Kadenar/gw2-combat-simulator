@@ -6,7 +6,7 @@ import {
   WARRIOR_SWAP_WEAPONS,
   WARRIOR_WEAPON_STOW
 } from '#gw2/professions/warrior/core/skills/index.js';
-import { warriorCoreAttributeRules } from '#gw2/professions/warrior/core/traits/modifiers.js';
+import { warriorCoreModifiers } from '#gw2/professions/warrior/core/modifiers.js';
 import { warriorCoreHooks } from '#gw2/professions/warrior/core/hooks.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { projectWarriorPlanningState } from '#gw2/professions/warrior/family-state.js';
@@ -24,7 +24,7 @@ export const warriorCoreModule = defineNativeModule({
     create: createWarriorCoreState,
     project: projectWarriorPlanningState
   },
-  modifiers: warriorCoreAttributeRules,
+  modifiers: warriorCoreModifiers,
   hooks: warriorCoreHooks,
   presentation: bindWarriorCoreUi
 });

@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
-import { rangerCoreAttributeRules } from '#gw2/professions/ranger/core/traits/modifiers.js';
+import { rangerCoreModifiers } from '#gw2/professions/ranger/core/modifiers.js';
 import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
 import {
   RANGER_CORE_BASE_SKILL_MECHANICS,
@@ -20,7 +20,7 @@ export const rangerCoreModule = defineNativeModule({
     extraSkills: RANGER_CORE_EXTRA_SKILLS
   }),
   state: { create: createRangerCoreState, project: projectRangerPlanningState },
-  modifiers: rangerCoreAttributeRules,
+  modifiers: rangerCoreModifiers,
   hooks: rangerCoreHooks,
   presentation: bindRangerCoreUi
 });

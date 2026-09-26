@@ -14,6 +14,8 @@ import { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanic
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 
 const MISSILE_SKILL_IDS = new Set<number>([
   ID.RICOCHET,
@@ -267,4 +269,139 @@ export function completeGaleshotSkill(context: RangerRuntime, skill: RangerSkill
       'buff'
     )
   );
+}
+// Gate Galeshot casts by Cyclone Bow ownership, arrows, Wind Force, and the
+// Perilous Skies replacement before the shared Ranger checks run.
+
+export function galeshotCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {
+  const state = galeshotState.from(context);
+  if (skill.cycloneBowSkill && !state.cycloneBowActive) {
+    return deny(skill, 'ranger.cyclone-bow-inactive', 'summon the Cyclone Bow first.');
+  }
+
+  if (skill.id === ID.SUMMON_CYCLONE_BOW && state.cycloneBowActive) {
+    return deny(skill, 'ranger.cyclone-bow-active', 'the Cyclone Bow is already active.');
+  }
+
+  if (skill.id === ID.DISMISS_CYCLONE_BOW && !state.cycloneBowActive) {
+    return deny(skill, 'ranger.cyclone-bow-inactive', 'the Cyclone Bow is not active.');
+  }
+
+  if (Number(skill.arrowCost || 0) > state.arrows.value) {
+    return deny(skill, 'ranger.arrows', `requires ${skill.arrowCost} arrows.`);
+  }
+
+  const maximumWindForce = balanceProfileNumber(
+    requireBalanceProfileFromContext(context, PROFILE.resources),
+    'minimumStacks'
+  );
+  if (skill.id === ID.HAWKEYE && state.windForce < maximumWindForce) {
+    return deny(skill, 'ranger.wind-force', `requires ${maximumWindForce} Wind Force.`);
+  }
+
+  if (skill.id === ID.KEEN_SHOT && state.windForce >= maximumWindForce) {
+    return deny(skill, 'ranger.hawkeye-ready', 'Hawkeye replaces Keen Shot at 5 Wind Force.');
+  }
+
+  if (skill.id === ID.QUARRYS_PERIL && hasTrait(context, TRAIT.PERILOUS_SKIES)) {
+    return deny(skill, 'ranger.perilous-skies', 'Pelt replaces this skill.');
+  }
+
+  if (skill.id === ID.PELT && !hasTrait(context, TRAIT.PERILOUS_SKIES)) {
+    return deny(skill, 'ranger.perilous-skies', "select Perilous Skies to replace Quarry's Peril.");
+  }
+
+  if (state.cycloneBowActive && skill.type === 'Weapon' && !skill.cycloneBowSkill) {
+    return deny(skill, 'ranger.cyclone-bow-weapon-bar', 'the Cyclone Bow replaces weapon skills.');
+  }
+
+  return { ready: true };
+}
+
+export function applyGaleshotCycloneBowTraits(context: RangerRuntime, skill: RangerSkill): void {
+  const state = galeshotState.from(context);
+  if (skill.id === ID.HAWKEYE) {
+    if (hasTrait(context, TRAIT.GALE_FORCE)) {
+      const profile = requireBalanceProfileFromContext(context, PROFILE.galeForce);
+      const effect = requireEffect(profile, 'buff', 'gale-force');
+      // The damage window belongs to the buff, so a removed buff opens no window.
+      if (effect) {
+        const duration = effectNumber(profile, effect, 'duration');
+        // galeForceUntil is a timestamp, not a duration; compare against context.time in modifiers.
+        state.galeForceUntil = context.time + duration;
+        emitRangerBuff(
+          context,
+          rangerEvent(
+            {
+              at: context.time,
+              source: 'Trait',
+              sourceId: TRAIT.GALE_FORCE,
+              actorType: 'effect',
+              skillId: TRAIT.GALE_FORCE,
+              skillName: 'Gale Force',
+              kind: String(effect.kind),
+              duration,
+              stacks: effectNumber(profile, effect, 'stacks'),
+              triggeredBy: skill.name
+            },
+            'buff'
+          )
+        );
+      }
+    }
+
+    emitCloudburstBoons(context, skill);
+    return;
+  }
+
+  if (skill.id === ID.BLUSTER) {
+    // Wuthering Wind is primed by Bluster; the charge is only consumable at or
+    // after effectiveEnd so the same cast can't immediately trigger itself.
+    state.wutheringWindReady = hasTrait(context, TRAIT.WUTHERING_WIND);
+    state.wutheringWindReadyAt = context.time;
+    emitCloudburstBoons(context, skill);
+  }
+
+  if (
+    hasTrait(context, TRAIT.CLOUDBURST) &&
+    [ID.QUARRYS_PERIL, ID.SUPERSONIC_ARROW].includes(skill.id as typeof ID.QUARRYS_PERIL | typeof ID.SUPERSONIC_ARROW)
+  ) {
+    // Cloudburst trait: these two skills reset Bluster's cooldown on cast.
+    context.cooldownController.clear(ID.BLUSTER);
+  }
+}
+// Grant Cloudburst's profile-defined party boons from the qualifying reset skill
+// at cast completion.
+
+function emitCloudburstBoons(context: RangerRuntime, skill: RangerSkill): void {
+  if (!hasTrait(context, TRAIT.CLOUDBURST)) return;
+  const hawkeye = skill.id === ID.HAWKEYE;
+  const profile = requireBalanceProfileFromContext(context, PROFILE.cloudburst);
+  // Hawkeye owns separately named, stronger packets so removing one tier never borrows the other's values.
+  for (const name of hawkeye ? ['Hawkeye quickness', 'Hawkeye might'] : ['quickness', 'might']) {
+    const effect = requireEffect(profile, 'boon', name);
+    if (!effect) continue;
+    const kind = String(effect.boon);
+    emitRangerBuff(
+      context,
+      rangerEvent(
+        {
+          at: context.time,
+          source: 'Trait',
+          sourceId: TRAIT.CLOUDBURST,
+          actorType: 'effect',
+          skillId: TRAIT.CLOUDBURST,
+          skillName: 'Cloudburst',
+          name: `Cloudburst - ${kind}`,
+          kind,
+          boon: kind,
+          duration: effectNumber(profile, effect, 'duration'),
+          stacks: effectNumber(profile, effect, 'stacks'),
+          audience: { recipients: 'party' as const, maximumRecipients: 5 },
+          triggeredBy: skill.name
+        },
+        'buff'
+      )
+    );
+  }
 }

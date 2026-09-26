@@ -2,7 +2,7 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
 
-import { ritualistAttributeRules } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits-and-shards.js';
+import { ritualistModifiers } from '#gw2/professions/necromancer/specializations/ritualist/modifiers.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { bindRitualistUi } from '#gw2/professions/necromancer/specializations/ritualist/presentation.js';
 import { RITUALIST_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/ritualist/skills/index.js';
@@ -18,6 +18,6 @@ export const ritualistModule = defineNativeModule({
   // One state factory supplies the live combat owner.
   state: { create: ritualistState.create },
   hooks: ritualistHooks,
-  modifiers: ritualistAttributeRules,
+  modifiers: ritualistModifiers,
   presentation: bindRitualistUi
 });

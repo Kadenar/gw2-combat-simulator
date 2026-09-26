@@ -294,7 +294,7 @@ export function enterPhotonForge(context: EngineerRuntime, skill: EngineerSkill)
   startPassiveHeatCadence(context, at);
   // Photon Forge's kit lockout behaves as recharge, so route its six-second
   // base duration through the shared recharge rules that apply Alacrity.
-  state.kitLockoutUntil = at + baseKitLockout / context.cooldownController.rate(skill, at);
+  state.kitLockoutUntil = at + baseKitLockout / context.cooldownController.rate(skill);
   const solarFocusingLensProfile = requireBalanceProfileFromContext(context, PROFILE.solarFocusingLens);
   grantSolarFocusingLens(context, at, balanceProfileNumber(solarFocusingLensProfile, 'minimumStacks'));
   emitEngineerBarSwap(context, skill, at);

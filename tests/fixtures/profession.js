@@ -59,7 +59,7 @@ export const testProfession = defineProfession({
   resources: {
     createState: () => ({ charge: 0, controlEvents: 0 })
   },
-  attributeRules: {
+  modifiers: {
     modifyAttributes: (context, attributes) => ({
       ...attributes,
       power: attributes.power + (context.config.selectedTraitIds?.includes('fixture.power') ? 100 : 0)

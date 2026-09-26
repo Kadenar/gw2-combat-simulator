@@ -9,7 +9,7 @@ test('profession contract supplies defaults and deterministic hook ordering', ()
   const profession = defineProfession({
     id: 'ordered',
     name: 'Ordered',
-    attributeRules: {
+    modifiers: {
       modifyAttributes: [
         { id: 'later', order: 20, handler: () => calls.push('later') },
         { id: 'first', order: 10, handler: () => calls.push('first') },
@@ -49,7 +49,7 @@ test('profession contract supplies defaults and deterministic hook ordering', ()
 
 // Chained hooks receive the previous result even when an intermediate hook only observes it.
 test('attribute modifiers preserve values through observing hooks', () => {
-  for (const [container, hook] of [['attributeRules', 'modifyAttributes']]) {
+  for (const [container, hook] of [['modifiers', 'modifyAttributes']]) {
     const observed = [];
     const profession = defineProfession({
       id: 'chained',

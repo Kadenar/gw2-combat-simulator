@@ -6,24 +6,21 @@ import {
   expireSkillFlip,
   skillFlipReady
 } from '#gw2/platform/engine/skills/skill-flips.js';
-import {
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
-import { castWasInterrupted, gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import {
+  applyGuardianVirtueActivationTraits,
+  CORE_VIRTUES,
   guardianVirtueForSlot,
-  reactToJusticeHitWithOptions
+  reactToJusticeHitWithOptions,
+  refreshGuardianVirtues
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import {
-  modifyGuardianMaximumAmmo,
-  modifyGuardianRechargeDuration
-} from '#gw2/professions/guardian/core/traits/modifiers.js';
+import { modifyGuardianMaximumAmmo } from '#gw2/professions/guardian/core/mechanics/recharge.js';
+import { modifyGuardianRechargeDuration } from '#gw2/professions/guardian/core/mechanics/recharge.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
@@ -37,7 +34,6 @@ import {
 import {
   completeGuardianHealTraits,
   completeGuardianIgnition,
-  emitGuardianBoon,
   guardianComboFields,
   guardianTraitEffects,
   guardianTraitTasks,
@@ -50,75 +46,6 @@ import {
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
 const FLIP_EXPIRY = 'guardian.weapon-flip-expiry';
 const readyVirtueActivations = new WeakSet<RuntimeCast>();
-const CORE_VIRTUES = [
-  [ID.JUSTICE, 'justice'],
-  [ID.RESOLVE, 'resolve'],
-  [ID.COURAGE, 'courage']
-] as const;
-
-const DRAGONHUNTER_VIRTUES = [
-  [ID.SPEAR_OF_JUSTICE, 'justice'],
-  [ID.WINGS_OF_RESOLVE, 'resolve'],
-  [ID.SHIELD_OF_COURAGE, 'courage']
-] as const;
-
-const WILLBENDER_VIRTUES = [
-  [ID.RUSHING_JUSTICE, 'justice'],
-  [ID.FLOWING_RESOLVE, 'resolve'],
-  [ID.CRASHING_COURAGE, 'courage']
-] as const;
-
-const LUMINARY_VIRTUES = [
-  [ID.RADIANT_JUSTICE, 'justice'],
-  [ID.RADIANT_RESOLVE, 'resolve'],
-  [ID.RADIANT_COURAGE, 'courage']
-] as const;
-
-/** Recharge-backed virtue projections follow the shared cast controller, including Alacrity and explicit resets. */
-export function refreshGuardianVirtues(runtime: Runtime): void {
-  const kind = runtime.profession.specialization.kind;
-  const virtues =
-    kind === 'Core'
-      ? CORE_VIRTUES
-      : kind === 'Dragonhunter'
-        ? DRAGONHUNTER_VIRTUES
-        : kind === 'Willbender'
-          ? WILLBENDER_VIRTUES
-          : kind === 'Luminary'
-            ? LUMINARY_VIRTUES
-            : null;
-  if (!virtues) return;
-  runtime.cooldownController.refresh(runtime.time);
-  for (const [id, virtue] of virtues)
-    runtime.profession.core.virtueReadyAt[virtue] = gw2CooldownReadyAt(runtime.cooldowns.get(id) ?? 0);
-}
-
-/** Committed activation boons sample live attributes and retain their selected component and party ownership. */
-function virtueBuff(runtime: Runtime, cast: RuntimeCast, trait: number, kind: string, party = false): void {
-  if (!hasTrait(runtime, trait)) return;
-  const profile = requireBalanceProfileFromContext(runtime, trait);
-  const type = kind === 'guardian-inspiring-virtue' ? 'buff' : 'boon';
-  const effect = requireEffect(profile, type, kind);
-  if (!effect) return;
-  const duration = effectNumber(profile, effect, 'duration');
-  const event = {
-    type: 'buff' as const,
-    at: runtime.time,
-    source: 'guardian',
-    sourceId: trait,
-    actorType: 'player' as const,
-    skillId: cast.skill.id,
-    skillName: cast.skill.name,
-    activationId: cast.id,
-    name: profile.name,
-    kind,
-    stacks: effectNumber(profile, effect, 'stacks'),
-    duration,
-    audience: { recipients: party ? ('party' as const) : ('self' as const) }
-  };
-  emitGuardianBoon(runtime, event);
-}
-
 /** Virtue state changes once on commitment; report packets do not restore a second copy of that state. */
 function completeCoreVirtue(runtime: Runtime, cast: RuntimeCast, virtue: GuardianVirtue): void {
   refreshGuardianVirtues(runtime);
@@ -129,20 +56,6 @@ function completeCoreVirtue(runtime: Runtime, cast: RuntimeCast, virtue: Guardia
   if (!readyVirtueActivations.has(cast)) return;
   applyGuardianVirtueActivationTraits(runtime, cast, virtue);
   if (virtue === 'justice') triggerGuardianFuriousFocus(runtime, cast);
-}
-
-/** Core and elite owners invoke the same activation boons after admitting their own passive-readiness gate. */
-export function applyGuardianVirtueActivationTraits(runtime: Runtime, cast: RuntimeCast, virtue: GuardianVirtue): void {
-  virtueBuff(
-    runtime,
-    cast,
-    TRAIT.INSPIRED_VIRTUE,
-    virtue === 'justice' ? 'might' : virtue === 'resolve' ? 'regeneration' : 'protection',
-    true
-  );
-  virtueBuff(runtime, cast, TRAIT.VIRTUE_OF_RESOLUTION, 'resolution');
-  virtueBuff(runtime, cast, TRAIT.INSPIRING_VIRTUE, 'guardian-inspiring-virtue');
-  if (virtue === 'courage') virtueBuff(runtime, cast, TRAIT.INDOMITABLE_COURAGE, 'stability');
 }
 
 /** A completed refresh readies actual recharge and ammo pools; cancellation leaves every existing owner intact. */

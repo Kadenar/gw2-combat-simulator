@@ -267,7 +267,7 @@ export interface SimulationEventBase<TType extends string = string> {
   readonly weaponStrengthProfileId?: string;
   readonly weaponStrength?: number;
   readonly cooldownReduction?: number;
-  /** Committed base work lets passive effects follow subsequent Alacrity changes. */
+  /** Committed base work keeps passive cooldown queries aligned with scheduling and rewinds. */
   readonly rechargeProgress?: RechargeProgress;
   readonly rechargeProgressBySkillId?: Readonly<Record<string, RechargeProgress>>;
   readonly audience?: EffectAudience;

@@ -8,14 +8,14 @@ import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/con
 import type {
   NormalizedProfessionContract,
   ProfessionDefinition,
-  ProfessionAttributeRuleDefinition,
+  ProfessionModifierDefinition,
   ProfessionFamilyContract,
   ProfessionFamilyDefinition,
   ProfessionModuleDefinition,
   ProfessionSource
 } from '#gw2/platform/engine/profession/types.js';
 import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
-import { ATTRIBUTE_HOOK_NAMES, assertDefinition, defineProfession } from '#gw2/platform/engine/profession/contract.js';
+import { MODIFIER_HOOK_NAMES, assertDefinition, defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import {
   assertModuleDefinition,
   composeHookContainer,
@@ -32,21 +32,21 @@ import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/
  * The compiler is single-owner (normally Core) so GW2 damage buckets are
  * compiled once after Core and active-specialization declarations are merged.
  */
-function composeModuleAttributeRules(modules: readonly NamedModule<object>[]): ProfessionAttributeRuleDefinition {
-  const result = composeHookContainer(modules, 'attributeRules', ATTRIBUTE_HOOK_NAMES);
+function composeModuleModifiers(modules: readonly NamedModule<object>[]): ProfessionModifierDefinition {
+  const result = composeHookContainer(modules, 'modifiers', MODIFIER_HOOK_NAMES);
   const declarations = modules.flatMap((entry) => {
-    const value = entry.module.attributeRules?.modifierRules;
+    const value = entry.module.modifiers?.modifierRules;
     if (value == null) return [];
     if (!Array.isArray(value)) {
-      throw new TypeError(`${entry.name} attributeRules.modifierRules must be an array.`);
+      throw new TypeError(`${entry.name} modifiers.modifierRules must be an array.`);
     }
 
     return value;
   });
   const compiler = singleOwnerValue(
     modules,
-    (module) => module.attributeRules?.compileModifierRules,
-    'attributeRules.compileModifierRules'
+    (module) => module.modifiers?.compileModifierRules,
+    'modifiers.compileModifierRules'
   );
   if (!declarations.length) return result;
   if (typeof compiler !== 'function') {
@@ -55,10 +55,10 @@ function composeModuleAttributeRules(modules: readonly NamedModule<object>[]): P
 
   const compiled = compiler(declarations);
   if (!compiled || typeof compiled !== 'object' || Array.isArray(compiled)) {
-    throw new TypeError('attributeRules.compileModifierRules must return a hook object.');
+    throw new TypeError('modifiers.compileModifierRules must return a hook object.');
   }
 
-  for (const name of ATTRIBUTE_HOOK_NAMES) {
+  for (const name of MODIFIER_HOOK_NAMES) {
     const hook = compiled[name];
     if (hook == null) continue;
     result[name] = [...(result[name] || []), hook];
@@ -90,7 +90,7 @@ function composeRuntimeDefinition<TProfessionState extends object, TBuild extend
       createState: (config) => composeStateFragments(genericModules, config) as TProfessionState,
       ...(projectPlanningState == null ? {} : { projectPlanningState })
     },
-    attributeRules: composeModuleAttributeRules(genericModules)
+    modifiers: composeModuleModifiers(genericModules)
   };
 }
 

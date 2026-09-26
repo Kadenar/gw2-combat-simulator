@@ -4,7 +4,7 @@ import { boonApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { timedBuffAt } from '#gw2/platform/results/query.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { luminaryModifierRules } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge-rules.js';
+import { luminaryModifiers } from '#gw2/professions/guardian/specializations/luminary/modifiers.js';
 import { bindLuminaryUi } from '#gw2/professions/guardian/specializations/luminary/presentation.js';
 import { LUMINARY_INITIAL_STATE_SKILL_IDS as INITIAL } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
@@ -79,7 +79,7 @@ test('Radiant Armaments damage and display agree through the final live microsec
   const result = runGuardian([wait(1), ID.ENTER_RADIANT_FORGE, ID.DAZZLING_HAMMER], settings);
   const buff = result.events.find((event) => event.kind === 'guardian-radiant-armaments');
   const expiry = boonApplicationsAt(result.events, buff.kind, buff.at)[0].expiresAt;
-  const rule = luminaryModifierRules.find((entry) => entry.id === 'guardian.radiant-armaments');
+  const rule = luminaryModifiers.find((entry) => entry.id === 'guardian.radiant-armaments');
   for (const time of [expiry - 0.000001, expiry, expiry + 0.000001]) {
     assert.equal(rule.when({ events: result.events, time }), time < expiry);
     assert.equal(Boolean(timedBuffAt(result, buff.kind, time)), time < expiry);
@@ -142,7 +142,7 @@ test('Radiant Forge exits exactly once at its canonical form deadline', () => {
   assert.equal(exits.length, 1);
   assert.equal(exits[0].at, 20.001);
   assert.equal(state(result).radiantForge, false);
-  assert.equal(observedRuntime(result).cooldowns.get(ID.ENTER_RADIANT_FORGE), 25.001);
+  assert.equal(observedRuntime(result).cooldowns.get(ID.ENTER_RADIANT_FORGE), 24.001);
 });
 
 test('spear illumination expires before accepting a cast at its deadline', () => {

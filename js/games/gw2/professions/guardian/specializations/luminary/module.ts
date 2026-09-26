@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
-import { luminaryAttributeRules } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge-rules.js';
+import { luminaryModifiers } from '#gw2/professions/guardian/specializations/luminary/modifiers.js';
 import { luminaryHooks } from '#gw2/professions/guardian/specializations/luminary/hooks.js';
 import {
   LUMINARY_SKILL_MECHANICS,
@@ -20,7 +20,7 @@ export const luminaryModule = defineNativeModule({
     balanceProfiles: LUMINARY_BALANCE_PROFILES
   }),
   state: { create: luminaryState.create },
-  modifiers: luminaryAttributeRules,
+  modifiers: luminaryModifiers,
   hooks: luminaryHooks,
   presentation: bindLuminaryUi
 });

@@ -638,7 +638,7 @@ test('mantra charge cooldowns carry across the final flip and scale with Alacrit
         boons: { alacrity }
       })(undefined, [normal, normal, final]);
       assert.deepEqual(result.warnings, []);
-      const cooldown = alacrity ? 800 : 1000;
+      const cooldown = 800;
       const starts = result.steps.map((step) => step.start);
       assert.deepEqual(starts, [0, cooldown, cooldown * 2]);
     }

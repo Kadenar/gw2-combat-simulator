@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 
 import { elementalistNativeModules } from '#gw2/professions/elementalist/profession.js';
@@ -65,6 +66,44 @@ test('profession modules register runtime behavior only through hooks', () => {
       assert.equal(module.data.handlers, undefined, `${label}/data.handlers`);
     }
   }
+});
+
+// Each manifest key maps to a same-named sibling file, so readers find a module's hooks and modifiers by name.
+const MODULE_FILE_BY_KEY = Object.freeze({ hooks: 'hooks.js', modifiers: 'modifiers.js' });
+
+test('module manifests import hooks and modifiers from sibling hooks.ts and modifiers.ts', () => {
+  const professionsUrl = new URL('../../../../js/games/gw2/professions/', import.meta.url);
+  for (const profession of Object.keys(PROFESSION_MODULES)) {
+    const specializations = readdirSync(new URL(`${profession}/specializations/`, professionsUrl));
+    for (const directory of ['core', ...specializations.map((name) => `specializations/${name}`)]) {
+      const label = `${profession}/${directory}`;
+      const source = readFileSync(new URL(`${label}/module.ts`, professionsUrl), 'utf8');
+      for (const [key, file] of Object.entries(MODULE_FILE_BY_KEY)) {
+        const binding = source.match(new RegExp(`^\\s+${key}: (\\w+),?$`, 'm'))?.[1];
+        assert.ok(binding, `${label} declares ${key}`);
+        const specifier = [...source.matchAll(/import \{([^}]*)\} from '([^']+)';/g)].find(([, names]) =>
+          new RegExp(`\\b${binding}\\b`).test(names)
+        )?.[2];
+        assert.equal(specifier, `#gw2/professions/${label}/${file}`, `${label}.${key}`);
+      }
+    }
+  }
+});
+
+// A hooks file only assembles its module's callbacks; shared helpers live in mechanics/ or traits/ so nothing cycles back.
+test('only a module manifest imports its hooks file', () => {
+  const sourceRoot = new URL('../../../../js/games/gw2/', import.meta.url);
+  const importers = [];
+  for (const entry of readdirSync(sourceRoot, { recursive: true })) {
+    const file = String(entry).replaceAll('\\', '/');
+    if (!file.endsWith('.ts')) continue;
+    const source = readFileSync(new URL(file, sourceRoot), 'utf8');
+    for (const [, owner] of source.matchAll(/from '#gw2\/(professions\/[^']+)\/hooks\.js'/g)) {
+      if (file !== `${owner}/module.ts`) importers.push(`${file} -> ${owner}/hooks.js`);
+    }
+  }
+
+  assert.deepEqual(importers, []);
 });
 
 test('independent simulations never share a mutable state instance', () => {

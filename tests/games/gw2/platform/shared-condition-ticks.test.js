@@ -31,7 +31,7 @@ test('samples and strikes see cooldown resets, snapshots, and swaps only after e
             }
           }
         },
-        attributeRules: {
+        modifiers: {
           modifyAttributes(context, attributes) {
             const cooldown = context.timeline.skillOnCooldownAt(1, context.time);
             const weaponSet = context.timeline.activeWeaponSetAt(context.time);
@@ -234,7 +234,7 @@ test('non-damaging conditions preserve other skills modifiers, expiry, and repor
     const profession = defineProfession({
       id: 'condition-state-probe',
       name: 'Condition state probe',
-      attributeRules: {
+      modifiers: {
         modifyStrikeDamage: (context, base) =>
           base * (1 + targetConditionCount(context)) * (targetConditionActive(context, 'Chilled') ? 2 : 1),
         modifyConditionDamage: (context, base) =>

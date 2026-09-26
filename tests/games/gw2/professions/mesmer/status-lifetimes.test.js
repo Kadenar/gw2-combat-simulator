@@ -7,7 +7,7 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
 import { projectMesmerPlanningState } from '#gw2/professions/mesmer/family-state.js';
 import { initializeMirageRuntime } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
-import { mirageAvailability } from '#gw2/professions/mesmer/specializations/mirage/mechanics/ambush-rules.js';
+import { mirageAvailability } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import { mirageUi } from '#gw2/professions/mesmer/specializations/mirage/presentation.js';
 
 // Real profiles and specialization initialization isolate the lifetime contracts from rotation and cast timing.

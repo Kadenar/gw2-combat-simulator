@@ -56,7 +56,7 @@ Use this table as the first place to look.
 | Skill availability rule                                               | The owning skill or mechanic module                   |
 | Resource gain/spend/regeneration                                      | `mechanics/<resource>.ts`                             |
 | Cast lifecycle behavior                                               | Owner-local `execution/<concept>.ts`                  |
-| Declarative trait modifier                                            | `traits/modifiers.ts` or `traits/<trait-line>.ts`     |
+| Declarative trait modifier                                            | `modifiers.ts`, or `traits/<trait-line>.ts` it gathers |
 | Complex trait proc or imperative behavior                             | `traits/index.ts` or `traits/<trait-line>.ts`         |
 | Scheduler-specific skill implementation                               | Owner-local `execution/<concept>.ts`                  |
 | Custom scheduled event definitions                                    | `events.ts` or mechanic-specific file                 |
@@ -466,11 +466,13 @@ Every profession uses the same layout:
     module.ts              manifest only
     state.ts               <Profession>CoreState next to its factory
     hooks.ts               cast hooks, tasks, and reactions
+    modifiers.ts           modifier rules and imperative modify* callbacks
     mechanics/  skills/  traits/  presentation.ts  profiles.ts
   specializations/<name>/
     module.ts              manifest only
     state.ts               <Name>State next to its factory
     hooks.ts               module runtime hooks when needed
+    modifiers.ts           module modifier rules when needed
     mechanics/  skills/  traits/  presentation.ts  profiles.ts  [types.ts for module-only skill fields]
 ```
 
@@ -584,13 +586,16 @@ Do not place temporary runtime mechanics in application build state just because
 Executable behavior uses one hook contract beside declarative modifier rules:
 
 ```ts
-modifiers: berserkerAttributeRules,
+modifiers: berserkerModifiers,
 hooks: berserkerHooks,
 ```
 
 Hooks cover availability, cast acceptance/completion, recharge reservation, resource policies, named tasks, custom
 events, and combat reactions. Each receives the same state and clock. Module validation rejects unknown module
-fields, including retired execution/resolution sections; no adapter translates them. Keep logic in owner-local files and wire it in `module.ts`.
+fields, including retired execution/resolution sections; no adapter translates them. Keep logic in owner-local files and wire it in `module.ts`. Each key has a same-named sibling file: `modifiers.ts`
+assembles modifier rules and `modify*` callbacks, and `hooks.ts` assembles runtime callbacks. Trait-line or mechanic files
+may own the pieces those files gather. Only `module.ts` imports `hooks.ts`; helpers that specializations, mechanics, or presentation share
+live in `mechanics/` or `traits/`.
 
 ---
 
@@ -661,11 +666,11 @@ core/
 │   ├── index.ts
 │   └── greatsword.ts
 ├── traits/
-│   ├── index.ts
-│   └── modifiers.ts
+│   └── index.ts
 ├── mechanics/
 │   ├── adrenaline-and-endurance.ts
 │   └── availability.ts
+├── modifiers.ts
 ├── profiles.ts
 ├── state.ts
 └── presentation.ts
@@ -720,7 +725,7 @@ export const berserkerModule = defineNativeModule({
     create: berserkerState.create
   },
 
-  modifiers: berserkerAttributeRules,
+  modifiers: berserkerModifiers,
   hooks: berserkerHooks,
 
   presentation: berserkerUi

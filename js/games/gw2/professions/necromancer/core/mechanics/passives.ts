@@ -12,7 +12,7 @@ import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/hooks.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import {
   reactToVampiricPresenceAlliedHit,
   reactToTasteForBloodAlliedHit

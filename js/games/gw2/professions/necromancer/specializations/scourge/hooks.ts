@@ -16,7 +16,7 @@ import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
 import { denySkillCast } from '#gw2/professions/shared/availability.js';
-import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/hooks.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { removeNecromancerSelfCondition } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';

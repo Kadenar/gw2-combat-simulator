@@ -48,6 +48,6 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast): vo
     name: 'Mimic',
     targetSkillId: skill.id,
     targetSkillName: skill.name,
-    reduction: cast.rechargeWork / context.cooldownController.rate(skill, at)
+    reduction: cast.rechargeWork / context.cooldownController.rate(skill)
   });
 }

@@ -1,6 +1,6 @@
 /**
  * Owns Soulbeast mode-toggle and pet-swap action fragments.
- * Persistent merge state and transitions remain in `mechanics/beastmode.ts` and `hooks.ts`.
+ * Persistent merge state and transitions remain in `mechanics/beastmode-effects.ts` and `hooks.ts`.
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';

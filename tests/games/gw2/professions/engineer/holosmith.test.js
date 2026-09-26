@@ -15,7 +15,7 @@ import { holosmithProfileStrikeFactor } from '#gw2/professions/engineer/speciali
 import { holosmithCastAvailability } from '#gw2/professions/engineer/specializations/holosmith/mechanics/availability.js';
 import { applyCoronaBurstHeat } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
-import { holosmithModifierRules } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-rules.js';
+import { holosmithModifierRules } from '#gw2/professions/engineer/specializations/holosmith/modifiers.js';
 import { createHolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { createMechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { mechanistCastAvailability } from '#gw2/professions/engineer/specializations/mechanist/mechanics/availability.js';
@@ -549,7 +549,7 @@ test('Photon Forge passive heat restarts its cadence on each entry', () => {
     .map((event) => event.at);
 
   // Each Forge entry owns a fresh 100 ms passive timer; manual exit invalidates the old timer.
-  assert.deepEqual(passiveHeatTimes, [0.35, 1.38]);
+  assert.deepEqual(passiveHeatTimes, [0.35, 1.18]);
 });
 
 test('Overheat blocks Forge and weapon inputs until the rotation exits', () => {
@@ -657,7 +657,7 @@ test('Overheat delays its tool-belt minimum cooldown until the damage effect', (
       { type: 'wait', durationMs: 5000 },
       'Grenade Barrage'
     ]),
-    [0, 25680]
+    [0, 22360]
   );
 });
 

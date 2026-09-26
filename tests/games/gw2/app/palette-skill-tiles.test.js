@@ -56,7 +56,7 @@ test('a used 20-second skill displays 16 seconds under Alacrity', () => {
   });
   const skill = profession.catalog.skillsById.get(990020);
   for (const [alacrity, label] of [
-    [false, '20.00s'],
+    [false, '16.00s'],
     [true, '16.00s']
   ]) {
     const result = simulateGw2({ profession, rotation: [skill.name], config: { boons: { alacrity } } });
@@ -331,7 +331,7 @@ test('Gunsaber tile shows the shared cooldown after direct or Dragon Trigger ent
 
     assert.deepEqual(result.warnings, []);
     assert.equal(skill.name, 'Sheathe Gunsaber');
-    assert.equal(view.cooldownLabel, '5.00s');
+    assert.equal(view.cooldownLabel, '4.00s');
     assert.equal(view.disabled, true);
   }
 });

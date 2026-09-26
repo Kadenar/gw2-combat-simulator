@@ -10,9 +10,9 @@ import { initializeTroubadourRuntime } from '#gw2/professions/mesmer/specializat
 import { completeTroubadourPerformance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import {
   applyTroubadourAttributes,
-  troubadourEndurance,
   troubadourModifierRules
-} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-rules.js';
+} from '#gw2/professions/mesmer/specializations/troubadour/modifiers.js';
+import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
 import { resolveTroubadourTale } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/tales.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
 import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';

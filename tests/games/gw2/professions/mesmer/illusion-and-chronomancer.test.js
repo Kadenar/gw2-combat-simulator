@@ -62,7 +62,7 @@ test('Lingering Thoughts recharges one ammo count every six seconds', () => {
 
   assert.deepEqual(
     result.steps.map((step) => step.start),
-    [0, 1200, 6920]
+    [0, 1120, 5720]
   );
   assert.equal(result.planningState.ammo['Lingering Thoughts'].rechargeWork, 6);
 });
@@ -1366,7 +1366,7 @@ test('Well of Precognition schedules protection pulses and an endurance grant at
   const endurance = events.find((event) => event.type === 'resource' && event.resource === 'endurance');
   assert.equal(endurance.at, field.expiresAt);
   assert.equal(endurance.amount, 30);
-  assert.equal(result.planningState.cooldowns['Well of Precognition'].readyAt - cast.end, 60000);
+  assert.equal(result.planningState.cooldowns['Well of Precognition'].readyAt - cast.end, 40000);
   assert.deepEqual(result.warnings, []);
 });
 

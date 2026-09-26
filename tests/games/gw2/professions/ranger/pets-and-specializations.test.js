@@ -46,8 +46,8 @@ import {
 import { GALESHOT_BALANCE_PROFILE_IDS } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { GALESHOT_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { soulbeastCastAvailability } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
-import { untamedCastAvailability } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash.js';
+import { soulbeastCastAvailability } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
+import { untamedCastAvailability } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import { RANGER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/ranger/family-state.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 
@@ -598,10 +598,10 @@ test('queued Beast commands never delay player skills', () => {
   assert.equal(rapidFire.start, 0);
   assert.equal(pointBlankShot.start, rapidFire.end);
   assert.equal(poisonActions.length, 2);
-  assert.equal(poisonActions[1].at - poisonActions[0].at >= 29.999, true);
+  assert.equal(poisonActions[1].at - poisonActions[0].at >= 23.999, true);
 });
 
-test('Ranger pet commands require Alacrity on the active pet', () => {
+test('Ranger pet commands always use permanent Alacrity', () => {
   const config = {
     selectedPet: 'Fanged Iboga',
     boons: { alacrity: true }
@@ -619,8 +619,8 @@ test('Ranger pet commands require Alacrity on the active pet', () => {
     return result.planningState.cooldowns['Narcotic Spores'].readyAt - step.end;
   };
 
-  assert.equal(rechargeMs(playerAlacrity), 15000);
-  assert.equal(rechargeMs(petAlacrity), 14900);
+  assert.equal(rechargeMs(playerAlacrity), 12000);
+  assert.equal(rechargeMs(petAlacrity), 12020);
   const petAlacrityApplication = petAlacrity.events.find(
     (event) => event.type === 'buff' && event.kind === 'alacrity' && event.resolvedAudience.includesSummons
   );
@@ -799,7 +799,7 @@ test('Tiger uses its documented attributes and nominal Bite recharge', () => {
   );
 });
 
-test('Ranger autonomous pet cooldowns use only pet Alacrity', () => {
+test('Ranger autonomous pet cooldowns assume permanent Alacrity', () => {
   const config = {
     selectedPet: 'Carrion Devourer',
     boons: { alacrity: true },
@@ -816,7 +816,7 @@ test('Ranger autonomous pet cooldowns use only pet Alacrity', () => {
       (event) => event.type === 'action' && event.skillId === ID.PET_TAIL_LASH && event.autonomousPetSkill
     ).length;
 
-  assert.equal(tailLashes(baseline), 1);
+  assert.equal(tailLashes(baseline), 2);
   assert.equal(tailLashes(petAlacrity), 2);
 });
 

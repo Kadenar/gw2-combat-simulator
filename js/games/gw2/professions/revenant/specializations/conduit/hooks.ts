@@ -30,7 +30,7 @@ import {
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/revenant/core/profiles.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import { emitRevenantBuff, revenantCombatActive } from '#gw2/professions/revenant/core/events.js';
-import { revenantCastCommitted } from '#gw2/professions/revenant/core/hooks.js';
+import { revenantCastCommitted } from '#gw2/professions/revenant/core/events.js';
 import { emitRevenantInvocationProfile } from '#gw2/professions/revenant/core/traits/index.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { isRevenantUpkeep } from '#gw2/professions/revenant/data/upkeep-skills.js';
@@ -833,7 +833,7 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   availability(runtime, skill) {
     const state = conduit(runtime);
     if (BEGUILING_HAZE_SKILL_IDS.has(skill.id)) {
-      // Both skill identities share the main recharge; project its progress after any Alacrity changes.
+      // Both skill identities share the main recharge and its committed progress.
       if (state.beguilingHazeRecharge)
         state.beguilingHazeReadyAt = gw2CooldownReadyAt(
           runtime.cooldownController.project(skill, state.beguilingHazeRecharge)

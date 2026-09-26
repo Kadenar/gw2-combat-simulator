@@ -14,7 +14,8 @@ import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
 import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { denySkillCast } from '#gw2/professions/shared/availability.js';
-import { grantNecromancerLifeForce, necromancerLifeForce } from '#gw2/professions/necromancer/core/hooks.js';
+import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import {
   necromancerActiveBoonCompanionIds,

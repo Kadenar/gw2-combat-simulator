@@ -10,7 +10,7 @@ import {
 import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/hooks.js';
+import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { emitGuardianBoon, triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
 import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';

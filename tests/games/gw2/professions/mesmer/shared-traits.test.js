@@ -4,7 +4,7 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerCoreModifierRules } from '#gw2/professions/mesmer/core/traits/modifiers.js';
+import { mesmerCoreModifierRules } from '#gw2/professions/mesmer/core/modifiers.js';
 
 test('Mental Anguish uses explicit nested shatter eligibility', () => {
   // Only explicitly eligible packets receive this modifier.

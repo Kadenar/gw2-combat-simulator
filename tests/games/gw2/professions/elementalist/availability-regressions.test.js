@@ -9,7 +9,7 @@ import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core
 import { applyConjureState, captureConjurePickup } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
+import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
 
 test('Arcane Echo requires an armed, unexpired window and consumes it only once', () => {
   const echo = elementalistCatalog.skillsByName.get('Arcane Echo');

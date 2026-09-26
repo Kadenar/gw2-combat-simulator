@@ -10,7 +10,7 @@ import {
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { modifyWarriorArmsAttributes, warriorArmsModifierRules } from '#gw2/professions/warrior/core/traits/arms.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { bladeswornAttributeRules } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger-rules.js';
+import { bladeswornModifiers } from '#gw2/professions/warrior/specializations/bladesworn/modifiers.js';
 
 // Warrior's modifiers share duration semantics without gaining visibility into future timeline applications.
 test('Warrior Fury modifiers and boon counts survive individual packet expiry', () => {
@@ -116,7 +116,7 @@ test('Warrior and Bladesworn stacks preserve self audience, caps, expiry, and sa
     timeline: { timedStacks: () => 25, timedActive: () => true },
     runtime: { boons: new Map([['fierce-as-fire', applications]]) }
   };
-  const rule = bladeswornAttributeRules.modifierRules.find(({ id }) => id === 'warrior.fierce-as-fire');
+  const rule = bladeswornModifiers.modifierRules.find(({ id }) => id === 'warrior.fierce-as-fire');
   assert.equal(warriorActiveBuffStacks(context, 'fierce-as-fire', 10), 4);
   assert.equal(rule.amount(context, 'strikeDamage', rule.parameters), 0.04);
   assert.equal(warriorActiveBuffStacks(context, 'fierce-as-fire', 3), 3);

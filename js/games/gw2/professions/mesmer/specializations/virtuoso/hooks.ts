@@ -11,7 +11,7 @@ import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { initializeVirtuosoRuntime } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/runtime.js';
-import { virtuosoAvailability } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/blades-and-bladesongs.js';
+import { virtuosoAvailability } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesongs.js';
 import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 
 /** Blade resources follow committed spending, accepted Bleeding, and actual shared critical outcomes. */

@@ -8,10 +8,7 @@ import type {
   Skill,
   SkillId
 } from '#gw2/platform/engine/skills/types.js';
-import type {
-  ProfessionFamilyContract,
-  ProfessionAttributeRuleDefinition
-} from '#gw2/platform/engine/profession/types.js';
+import type { ProfessionFamilyContract, ProfessionModifierDefinition } from '#gw2/platform/engine/profession/types.js';
 import type { Gw2Build, ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
 
 import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
@@ -71,15 +68,15 @@ export interface NativeModuleDefinition<
   TState extends object,
   TProjectOptions extends object,
   TProjectedState extends object,
-  TModifierEscape extends ProfessionAttributeRuleDefinition,
+  TModifiers extends ProfessionModifierDefinition,
   TPresentation extends object
 > {
   readonly id: TId;
   readonly data: NativeModuleCatalogData;
   readonly state: NativeStateDefinition<TState, TProjectOptions, TProjectedState>;
   readonly resources?: ResourcePolicies & { readonly endurance?: EndurancePolicy };
-  /** Declarative modifier rules or an explicit legacy modifier hook bundle. */
-  readonly modifiers?: readonly Gw2ModifierRule[] | TModifierEscape;
+  /** Declarative modifier rules, or rules plus imperative `modify*` callbacks for ordered or stateful math. */
+  readonly modifiers?: readonly Gw2ModifierRule[] | TModifiers;
   /** Runtime hooks execute against the single chronological owner. */
   readonly hooks?: NativeModuleHooks;
   readonly presentation?: TPresentation | ((catalog: Readonly<CanonicalCatalog>) => TPresentation);
@@ -90,9 +87,9 @@ export interface NativeModule<
   TState extends object = object,
   TProjectOptions extends object = object,
   TProjectedState extends object = object,
-  TModifierEscape extends ProfessionAttributeRuleDefinition = object,
+  TModifiers extends ProfessionModifierDefinition = object,
   TPresentation extends object = object
-> extends NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifierEscape, TPresentation> {
+> extends NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation> {
   readonly kind: 'native-profession-module';
 }
 

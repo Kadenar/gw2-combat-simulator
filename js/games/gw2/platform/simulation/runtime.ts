@@ -32,7 +32,7 @@ import {
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
-import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
+import { gw2BaseRecharge, gw2RechargeRate } from '#gw2/platform/engine/skills/recharge.js';
 import {
   autoattackChainAvailability,
   advanceAutoattackChains,
@@ -209,10 +209,10 @@ export function runGw2Runtime<T extends object>({
   // Controller closures follow the one runtime clock; the initializer object is not retained as separate state.
   const cooldownController = createCooldownController({
     state: Object.assign(base, clocks),
-    rechargeDuration: (skill, at) => rechargeWorkFor(skill) / cooldownController.rate(skill, at),
+    rechargeDuration: (skill) => rechargeWorkFor(skill) / cooldownController.rate(skill),
     maximumAmmo: (skill) =>
       profession.maximumAmmo?.(runtime, skill, Number(skill.ammo ?? 0)) ?? Number(skill.ammo ?? 0),
-    rechargeIntervals: (skill, start, end) => query.timeline.rechargeIntervals(skill, start, end),
+    rate: (skill) => gw2RechargeRate(config, skill),
     skillFor: (id) => profession.catalog.skillsById.get(id)
   });
   runtime = Object.assign(base, {

@@ -6,7 +6,7 @@ import { replaceAutoattackChains } from '#gw2/platform/skills/autoattack-chain-c
 /**
  * Chronomancer-owned Continuum Split checkpoints and restoration.
  */
-import type { CooldownController } from '#gw2/platform/execution/types.js';
+import type { AvailabilityResult, CooldownController } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerAddEvent, MesmerRefreshAmmo } from '#gw2/professions/mesmer/types.js';
 import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
@@ -14,6 +14,7 @@ import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mecha
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/types.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 interface ContinuumControllerOptions {
   readonly state: MesmerRuntime;
@@ -60,7 +61,7 @@ export function createContinuumController({
     state.cooldowns.clear();
     for (const [id, ready] of restoredCooldowns) state.cooldowns.set(id, ready);
     if (splitReady) state.cooldowns.set(continuum.splitId, at + splitReady - openAt);
-    // Restore base progress under the current boon timeline, not the checkpoint's old recharge speed.
+    // Restore the saved base work at the rewind timestamp so later reductions retain the checkpoint progress.
     const restoredProgress = new Map([
       ...[...state.rechargeProgress].filter(([id]) => unaffectedCooldownIds.has(id)),
       ...[...continuum.remainingRechargeWork].map(([id, work]) => [id, { startedAt: at, work }] as const)
@@ -178,5 +179,19 @@ export function createContinuumController({
   return {
     beginContinuumSplit,
     restoreContinuum
+  };
+}
+
+/** Continuum Shift is castable only while Continuum Split is active. */
+export function chronomancerAvailability(context: MesmerRuntime, skill: MesmerSkill): AvailabilityResult {
+  if (skill.id !== ID.CONTINUUM_SHIFT || chronomancerState.from(context).continuum) {
+    return { ready: true };
+  }
+
+  return {
+    ready: false,
+    retryAt: null,
+    code: 'mesmer.continuum-inactive',
+    reason: `${skill.name} requires an active Continuum Split.`
   };
 }

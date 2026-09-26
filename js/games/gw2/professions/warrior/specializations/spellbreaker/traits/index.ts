@@ -21,9 +21,6 @@ import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 type Runtime = Gw2Runtime<WarriorRuntimeState>;
 
-// Kick grants 2 Attacker's Insight stacks instead of 1 against defiant targets.
-const DOUBLE_DEFIANT_CONTROL_INSIGHT_SKILLS = new Set<number>([ID.KICK]);
-
 function gainAttackersInsight(
   context: Runtime,
   state: { attackerInsightExpiries: number[] },
@@ -45,13 +42,12 @@ function gainAttackersInsight(
 }
 
 function attackerInsightApplications(context: Runtime, event: Gw2ResolverEvent): number {
-  return DOUBLE_DEFIANT_CONTROL_INSIGHT_SKILLS.has(Number(event.skillId)) && context.config.target?.defiant === true
-    ? 2
-    : 1;
+  // Kick grants 2 Attacker's Insight stacks instead of 1 against defiant targets.
+  return ID.KICK == Number(event.skillId) && context.config.target?.defiant === true ? 2 : 1;
 }
 
 function triggerMagebaneTether(context: Runtime, state: SpellbreakerState, skill: WarriorSkill, at: number): boolean {
-  // The live recharge controller integrates only accepted Alacrity applications.
+  // The live recharge controller uses the permanent Alacrity rate.
   const project = (progress: RechargeProgress): number => context.cooldownController.project(skill, progress);
   if (state.magebaneTetherRecharge) state.magebaneTetherReadyAt = project(state.magebaneTetherRecharge);
   if (at < gw2CooldownReadyAt(state.magebaneTetherReadyAt) || !isInternalCooldownReady(at, state.magebaneTetherReadyAt))

@@ -36,7 +36,7 @@ export type ProfessionHook =
 export type ProfessionHookEntry = ProfessionHook | readonly ProfessionHook[];
 
 /** Attribute-phase rules a module contributes, plus its declarative modifier fragments. */
-export interface ProfessionAttributeRuleDefinition {
+export interface ProfessionModifierDefinition {
   readonly modifyAttributes?: ProfessionHookEntry;
   readonly modifyCriticalChance?: ProfessionHookEntry;
   readonly modifyCriticalDamage?: ProfessionHookEntry;
@@ -48,7 +48,7 @@ export interface ProfessionAttributeRuleDefinition {
   readonly modifierRules?: readonly Gw2ModifierRule[];
   readonly compileModifierRules?: (declarations: readonly Gw2ModifierRule[]) => {
     readonly [
-      K in Exclude<keyof ProfessionAttributeRuleDefinition, 'modifierRules' | 'compileModifierRules'>
+      K in Exclude<keyof ProfessionModifierDefinition, 'modifierRules' | 'compileModifierRules'>
     ]?: ProfessionHook;
   };
 }
@@ -61,7 +61,7 @@ export interface ProfessionDefinition<TProfessionState extends object = object, 
   readonly catalog?: CanonicalCatalog;
   readonly build?: ProfessionBuildDefinition<TBuild>;
   readonly resources?: ProfessionResourceDefinition<TProfessionState>;
-  readonly attributeRules?: ProfessionAttributeRuleDefinition;
+  readonly modifiers?: ProfessionModifierDefinition;
   /** Runtime callbacks composed over the normalized attribute and planning hooks. */
   readonly hooks?: Partial<RuntimeProfession<TProfessionState>>;
   readonly ui?: Partial<ProfessionUiContract>;
@@ -83,7 +83,7 @@ export interface ProfessionModuleDefinition<TModuleState extends object = object
   readonly id: string;
   readonly catalog?: ProfessionModuleCatalogFragment;
   readonly resources?: ProfessionResourceDefinition<TModuleState>;
-  readonly attributeRules?: ProfessionAttributeRuleDefinition;
+  readonly modifiers?: ProfessionModifierDefinition;
   readonly ui?: Partial<ProfessionUiContract>;
 }
 

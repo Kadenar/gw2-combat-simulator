@@ -59,7 +59,7 @@ test('Time Warp schedules immediate and one-second pulses throughout its etherea
   assert.equal(field.fieldType, 'Ethereal');
   assert.equal(field.at, castEnd);
   assert.equal(field.expiresAt - field.at, 5);
-  assert.equal(result.planningState.cooldowns['Time Warp'].readyAt - result.steps[0].end, 120000);
+  assert.equal(result.planningState.cooldowns['Time Warp'].readyAt - result.steps[0].end, 96000);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -75,7 +75,7 @@ test('Feedback instantly creates a six-second ethereal field with a 32-second re
   assert.equal(field.fieldType, 'Ethereal');
   assert.equal(field.at, cast.start / 1000);
   assert.equal(field.expiresAt - field.at, 6);
-  assert.equal(result.planningState.cooldowns.Feedback.readyAt - cast.start, 32000);
+  assert.equal(result.planningState.cooldowns.Feedback.readyAt - cast.start, 25600);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -121,7 +121,7 @@ test('Signet of the Ether re-locks 300ms after its cast completes', () => {
   const cast = result.steps[0];
   const cooldown = result.planningState.cooldowns['Signet of the Ether'];
 
-  assert.equal(cooldown.readyAt, Math.ceil((cast.end + 30300) / 40) * 40);
+  assert.equal(cooldown.readyAt, Math.ceil((cast.end + 24300) / 40) * 40);
 });
 
 test('Signet of Illusions passively generates one resource every ten combat seconds', () => {
@@ -200,7 +200,7 @@ test('Signet of Illusions restarts its ten-second cycle after recharge', () => {
 
   assert.deepEqual(
     passiveEvents.map((event) => event.at),
-    [result.steps[0].end / 1000 + 70]
+    [result.steps[0].end / 1000 + 58, result.steps[0].end / 1000 + 68]
   );
 });
 

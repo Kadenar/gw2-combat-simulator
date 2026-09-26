@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
-import { specterAttributeRules } from '#gw2/professions/thief/specializations/specter/mechanics/shadow-shroud-rules.js';
+import { specterModifiers } from '#gw2/professions/thief/specializations/specter/modifiers.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import { specterUi } from '#gw2/professions/thief/specializations/specter/presentation.js';
 import { SPECTER_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/specter/skills/index.js';
@@ -14,7 +14,7 @@ export const specterModule = defineNativeModule({
     balanceProfiles: SPECTER_BALANCE_PROFILES
   }),
   state: { create: specterState.create },
-  modifiers: specterAttributeRules,
+  modifiers: specterModifiers,
   hooks: specterHooks,
   presentation: specterUi
 });

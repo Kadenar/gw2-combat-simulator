@@ -491,7 +491,7 @@ test('Inspiring Imagery grants boons at field expiry and closes Abstraction', ()
       [field.expiresAt, 'fury', 1, 9]
     ]
   );
-  assert.equal(result.planningState.cooldowns['Inspiring Imagery'].readyAt, Math.ceil((cast.end + 12000) / 40) * 40);
+  assert.equal(result.planningState.cooldowns['Inspiring Imagery'].readyAt, Math.ceil((cast.end + 9600) / 40) * 40);
   assert.equal(result.steps.at(-1).invalid, true);
   assert.match(result.warnings[0], /Inspiring Imagery is not active/);
 });

@@ -39,13 +39,12 @@ export function completeArcaneEcho(context: ElementalistRuntime, cast: RuntimeCa
   const arcaneEcho = context.helpers.skillsById.get(ID.ARCANE_ECHO);
   if (arcaneEcho) {
     // At weapon-cast completion, add that work to Arcane Echo's remaining base-recharge work.
-    // Reprojecting the combined work preserves progress already earned and lets later Alacrity changes affect it.
+    // Project combined work at the permanent recharge rate while preserving progress already earned.
     const currentReadyAt = Number(context.cooldowns.get(arcaneEcho.id) || cast.effectiveEnd);
     const progress = context.rechargeProgress.get(arcaneEcho.id);
     const work = progress
       ? context.cooldownController.remaining(arcaneEcho, progress, cast.effectiveEnd)
-      : Math.max(0, currentReadyAt - cast.effectiveEnd) *
-        context.cooldownController.rate(arcaneEcho, cast.effectiveEnd);
+      : Math.max(0, currentReadyAt - cast.effectiveEnd) * context.cooldownController.rate(arcaneEcho);
     context.cooldownController.startRecharge(arcaneEcho, cast.effectiveEnd, work + addedWork);
   }
 }

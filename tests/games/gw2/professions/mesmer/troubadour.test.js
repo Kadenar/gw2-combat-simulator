@@ -419,7 +419,7 @@ test('Tale of the Honorable Rogue owns its Aegis, note gate, and two-charge timi
 
   assert.deepEqual(
     casts.map((step) => step.start),
-    [0, 4000, 25000]
+    [0, 3200, 20000]
   );
   assert.equal(result.planningState.profession.resource, 0);
   assert.equal(aegis.length, 3);

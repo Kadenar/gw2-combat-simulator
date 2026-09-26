@@ -7,15 +7,13 @@ import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { gw2RechargeRate } from '#gw2/platform/engine/skills/recharge.js';
 
-// Rewound passive cooldowns keep their saved work while later Alacrity changes their completion.
-test('Continuum snapshots keep passive cooldown queries aligned with restored recharge', () => {
+// Rewound cooldowns keep their saved work at the permanent Chronomancer recharge rate.
+test('Continuum snapshots restore recharge work at the permanent Chronomancer rate', () => {
   const skill = { id: 980000, name: 'Signet', cooldown: 10 };
   const skillsById = new Map([[skill.id, skill]]);
   const config = { specialization: 'Chronomancer' };
-  const events = [];
-  const timeline = createGw2TimelineIndex({ config, events, skillsById });
   const state = {
     time: 0,
     ammo: new Map(),
@@ -27,7 +25,7 @@ test('Continuum snapshots keep passive cooldown queries aligned with restored re
     state,
     rechargeDuration: () => 10,
     skillFor: (id) => skillsById.get(id),
-    rechargeIntervals: timeline.rechargeIntervals
+    rate: (skill) => gw2RechargeRate(config, skill)
   });
   const continuum = createContinuumController({
     state,
@@ -37,31 +35,14 @@ test('Continuum snapshots keep passive cooldown queries aligned with restored re
     refreshAmmo: cooldown.refreshAmmo,
     consumeResources: () => 0,
     triggerShatterTraits: () => {},
-    addEvent: (event) => events.push(event),
+    addEvent: () => {},
     durationPerSource: 3
   });
   cooldown.startRecharge(skill, 0);
   continuum.beginContinuumSplit({ id: 980001 }, 1);
   continuum.restoreContinuum(4, 'test');
   assert.equal(state.cooldowns.get(skill.id), 13);
-  events.push({
-    type: 'buff',
-    kind: 'alacrity',
-    at: 5,
-    duration: 4,
-    stacks: 1,
-    resolvedAudience: {
-      includesSelf: true,
-      includesSummons: false,
-      alliedPlayerCount: 0,
-      companionIds: [],
-      recipientCount: 1
-    }
-  });
-  cooldown.refresh(11);
-  assert.equal(state.cooldowns.get(skill.id), 11);
-
-  assert.equal(state.cooldowns.get(skill.id) > 11, false);
+  assert.deepEqual(state.rechargeProgress.get(skill.id), { startedAt: 4, work: 13.5 });
 });
 
 // A rewind preserves the remaining cast lockout even when recharge reduction subsequently returns a charge.

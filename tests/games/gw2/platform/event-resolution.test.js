@@ -250,7 +250,7 @@ test('resolver profession state changes are chronological and preserve counters'
         active: profession.active
       })
     },
-    attributeRules: {
+    modifiers: {
       modifyStrikeDamage(context, value) {
         return context.runtime.profession.active ? value * 2 : value;
       }
@@ -441,7 +441,7 @@ test('resolver modifiers receive stable trait, event, and runtime context', () =
     id: 'context-fixture',
     name: 'Context Fixture',
     catalog,
-    attributeRules: {
+    modifiers: {
       modifyStrikeDamage(context, multiplier) {
         observed = {
           actorType: context.actorType,

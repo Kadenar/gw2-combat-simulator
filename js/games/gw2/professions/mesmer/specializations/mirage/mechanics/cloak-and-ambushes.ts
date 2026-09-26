@@ -1,5 +1,5 @@
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import { canonicalTime, EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 /** Mirage-owned cloak, ambush, and deception behavior. */
@@ -31,6 +31,9 @@ import type {
 
 import type { MesmerConditionApplication, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 interface MirageActionControllerOptions {
   readonly state: MesmerRuntime;
@@ -478,3 +481,76 @@ export function createMirageActionController({
     pickUpMirror
   };
 }
+
+/** Gates Mirage Cloak dodges on endurance, mirror pickups on an available mirror, and ambushes on an active or queued ambush window. */
+export function mirageAvailability(context: MesmerRuntime, skill: MesmerSkill): AvailabilityResult {
+  if (skill.id === ID.DODGE_MIRAGE_CLOAK) {
+    const state = mirageState.from(context);
+    const cost = Number(skill.resourceCost ?? 50);
+    if (state.endurance >= cost - EPSILON) return { ready: true };
+    return {
+      ready: false,
+      retryAt: context.endurance.readyAt(cost),
+      code: 'mesmer.endurance',
+      reason: `Dodge requires ${cost} endurance.`
+    };
+  }
+
+  if (skill.id === ID.PICK_UP_MIRAGE_MIRROR) {
+    const mirrors = mirageState.from(context).mirrors;
+    if (mirrors.some((mirror) => isTimeInWindow(context.time, mirror.availableAt, mirror.expiresAt))) {
+      return { ready: true };
+    }
+
+    // A queued mirror-creation trigger is a valid retry boundary even though
+    // the mirror does not enter specialization state until that task executes.
+    const retryAt = Math.min(
+      ...mirageState.from(context).pendingMirrorAts,
+      ...mirrors.filter((mirror) => mirror.expiresAt > context.time).map((mirror) => mirror.availableAt)
+    );
+    return {
+      ready: false,
+      retryAt: Number.isFinite(retryAt) ? retryAt : null,
+      code: 'mesmer.mirage-mirror',
+      reason: 'No Mirage Mirror is available to pick up.'
+    };
+  }
+
+  if (!skill.ambush) return { ready: true };
+  const runtime = mesmerMechanicsFor(context);
+  const activeAmbush = runtime.ambushAttacks[runtime.activePrimaryWeapon()];
+  const state = mirageState.from(context);
+  // An ambush selected during the preceding cast remains queued through its lockout. A later wait or cooldown
+  // cannot extend that queue: the preceding cast must still occupy the lane at this action's start.
+  const queuedAmbush = context.history
+    .filter((event) => event.type === 'action')
+    .some(
+      (action) =>
+        action.actorType === 'player' &&
+        action.at < state.ambushUntil &&
+        action.at < context.time - EPSILON &&
+        Number(action.castLockoutEndsAt ?? action.endsAt) >= context.time - EPSILON
+    );
+  if (
+    activeAmbush &&
+    activeAmbush.name === skill.name &&
+    state.ambushSource &&
+    (state.ambushUntil > context.time || queuedAmbush)
+  ) {
+    return { ready: true };
+  }
+
+  return {
+    ready: false,
+    retryAt: null,
+    code: 'mesmer.ambush',
+    reason: `${skill.name} has no active Mirage Cloak ambush window.`
+  };
+}
+
+/** Binds shared endurance operations to this module's live pool and balance rules. */
+export const mirageEndurance: EndurancePolicy<MesmerRuntime> = {
+  state: (context) => mirageState.from(context),
+  maximum: () => 100,
+  regenerationRate: (_context, vigor) => (vigor ? 7.5 : 5)
+};

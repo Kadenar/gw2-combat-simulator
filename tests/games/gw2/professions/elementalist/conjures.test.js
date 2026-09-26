@@ -4,7 +4,7 @@ import test from 'node:test';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { modifyElementalistAttributes } from '#gw2/professions/elementalist/core/traits/modifiers.js';
+import { modifyElementalistAttributes } from '#gw2/professions/elementalist/core/modifiers.js';
 
 const hammerOptions = {
   lines: [['Fire'], ['Air'], ['Arcane']],
@@ -77,7 +77,7 @@ test('a late ground pickup grants a fresh lifetime, is consumed once, and keeps 
   });
   assert.deepEqual(result.warnings, []);
   const leaps = result.steps.filter((step) => step.skill === 'Lightning Leap');
-  assert.equal(leaps[1].start - leaps[0].end, 8000);
+  assert.equal(leaps[1].start - leaps[0].end, 6400);
   assert.equal(result.planningState.profession.conjureEquipped, 'Lightning Hammer');
   assert.deepEqual(result.planningState.profession.conjurePickups, {});
 
@@ -106,7 +106,7 @@ test('Conjure Lightning Hammer keeps its sixty-second recharge across bundle exp
   });
   assert.deepEqual(result.warnings, []);
   const casts = result.steps.filter((step) => step.skill === 'Conjure Lightning Hammer');
-  assert.equal(casts[1].start - casts[0].end, 60000);
+  assert.equal(casts[1].start - casts[0].end, 48000);
 });
 
 test('picking up the second conjure after twenty-nine seconds starts a fresh thirty-second window', () => {

@@ -7,10 +7,8 @@ import { createObservedProfessionSimulator } from '#tests/helpers/observed-runti
 import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import {
-  amalgamAttributeRules,
-  amalgamMaximumAmmo
-} from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-rules.js';
+import { amalgamModifiers } from '#gw2/professions/engineer/specializations/amalgam/modifiers.js';
+import { amalgamMaximumAmmo } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
@@ -410,9 +408,9 @@ test('Mercurial Tendencies reduces Evolve recharge after control', () => {
   });
   const evolveStart = (result) => result.steps.filter((step) => step.skillId === ID.EVOLVE_BASE)[1].start;
 
-  assert.equal(evolveStart(baseline) - evolveStart(reduced), 2480);
+  assert.equal(evolveStart(baseline) - evolveStart(reduced), 2000);
   const proc = reduced.events.find((event) => event.type === 'proc' && event.name === 'Mercurial Tendencies');
-  assert.equal(proc.cooldownReduction, 2.5);
+  assert.equal(proc.cooldownReduction, 2);
 });
 
 test('Willing Host and Symbiotic Synergy apply their damage windows', () => {
@@ -502,12 +500,12 @@ test('Evolve aliases use only the trait-selected identity and share its charges 
     assert.deepEqual([...observedRuntime(result).ammo.keys()], traited ? [skillId] : []);
     const [first, second, third] = result.steps;
     // Both Evolve identities recover from activation rather than cast completion.
-    assert.ok(third.start >= first.start + 40000);
+    assert.ok(third.start >= first.start + 32000);
     if (traited) {
       assert.equal(observedRuntime(result).ammo.get(skillId).maximum, 2);
-      assert.ok(second.start < first.start + 40000);
+      assert.ok(second.start < first.start + 32000);
     } else {
-      assert.ok(second.start >= first.start + 40000);
+      assert.ok(second.start >= first.start + 32000);
     }
 
     for (const name of ['Evolve', 'Evolve (Base)', 'Evolve (Double Helix)']) {
@@ -558,11 +556,11 @@ test('Evolve scales only its eligible static attribute pool', () => {
   });
 
   assert.deepEqual(
-    amalgamAttributeRules.modifyAttributes(context([]), resolved),
+    amalgamModifiers.modifyAttributes(context([]), resolved),
     Object.fromEntries(attributes.map((attribute) => [attribute, 1600]))
   );
   assert.deepEqual(
-    amalgamAttributeRules.modifyAttributes(context([TRAIT.DOUBLE_HELIX]), resolved),
+    amalgamModifiers.modifyAttributes(context([TRAIT.DOUBLE_HELIX]), resolved),
     Object.fromEntries(attributes.map((attribute) => [attribute, 1700]))
   );
 });
@@ -664,7 +662,7 @@ test('Plasmatic State models both phases as one cast', () => {
 
   assert.equal(
     Math.round((result.planningState.cooldowns['Plasmatic State'].readyAt / 1000 - action.at) * 1000),
-    25_480
+    20_480
   );
   assert.equal(
     result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Plasmatic State').length,

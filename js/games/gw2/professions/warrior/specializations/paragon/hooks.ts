@@ -11,7 +11,7 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/hooks.js';
+import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';

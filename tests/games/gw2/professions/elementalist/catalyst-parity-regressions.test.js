@@ -11,9 +11,9 @@ import {
   applyCatalystEmpowerment,
   applyCatalystResolvedDamage
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
-import { catalystAttributeRules } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-and-empowerment.js';
+import { catalystModifiers } from '#gw2/professions/elementalist/specializations/catalyst/modifiers.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import { catalystModifierRules } from '#gw2/professions/elementalist/specializations/catalyst/traits/modifiers.js';
+import { catalystModifierRules } from '#gw2/professions/elementalist/specializations/catalyst/modifiers.js';
 import { createNativeApp, runNative, resolvedAndScheduledEvents } from '#tests/helpers/elementalist-simulation.js';
 
 // Elemental Empowerment scales Condition Damage supplied before combat by traits and utility conversions.
@@ -178,7 +178,7 @@ test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
 
   assert.deepEqual(state.elementalEmpowermentExpiries, [22, 23, 24, 25, 26, 27, 28, 29, 30, 31]);
 
-  const attributes = catalystAttributeRules.modifyAttributes(
+  const attributes = catalystModifiers.modifyAttributes(
     {
       catalog: elementalistCatalog,
       traits: new Set(['Elemental Empowerment', 'Empowered Empowerment']),

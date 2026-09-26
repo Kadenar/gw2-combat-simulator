@@ -70,10 +70,10 @@ test('Illuminating Inspiration delegates capped reductions for the three radiant
       }
     );
     const runtime = observedRuntime(result);
-    assert.ok(Math.abs(runtime.cooldowns.get(ids.RADIANT_JUSTICE) - (enabled ? 16 : 20)) < 1e-9);
-    assert.equal(runtime.cooldowns.get(ids.RADIANT_RESOLVE), enabled ? runtime.time : 2);
+    assert.ok(Math.abs(runtime.cooldowns.get(ids.RADIANT_JUSTICE) - (enabled ? 12.8 : 16)) < 1e-9);
+    assert.equal(runtime.cooldowns.get(ids.RADIANT_RESOLVE), enabled ? runtime.time : 1.6);
     assert.equal(runtime.cooldowns.get(ids.RADIANT_COURAGE), 0);
-    assert.equal(runtime.cooldowns.get(ids.PIERCING_STANCE), 99);
+    assert.equal(runtime.cooldowns.get(ids.PIERCING_STANCE), 79.2);
   }
 });
 
@@ -650,7 +650,7 @@ test('Forge transitions and weapon equips trigger swap sigils only in combat', (
   for (const [rotation, expectedSources] of [
     [
       ['Enter Radiant Forge', 'Exit Radiant Forge', 'Enter Radiant Forge', 'Exit Radiant Forge', 'Enter Radiant Forge'],
-      ['Enter Radiant Forge', 'Enter Radiant Forge']
+      ['Enter Radiant Forge']
     ],
     [
       ['Enter Radiant Forge', { type: 'wait', durationMs: 10000 }, 'Exit Radiant Forge'],

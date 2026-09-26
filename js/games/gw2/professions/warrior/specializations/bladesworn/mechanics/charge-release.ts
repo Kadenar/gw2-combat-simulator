@@ -1,5 +1,5 @@
 import { DRAGON_TRIGGER_ENTRY_RESOURCE_REASON } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
-import { ENTER_DRAGON_TRIGGER_REASON } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger-rules.js';
+import { ENTER_DRAGON_TRIGGER_REASON } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import type { ProfessionChargeReleaseContext } from '#gw2/platform/profession-presentation/types.js';
 
 /** Release choices are actual independent prefix runs, including their pending effects, cooldowns, and charge stalls. */

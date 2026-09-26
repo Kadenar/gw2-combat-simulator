@@ -57,3 +57,7 @@ export function requestedDragonCharges(
   if (configured == null) return maximumCharges;
   return clamp(configured, 1, maximumCharges);
 }
+// Shared reason string so both the availability check and the charge-release
+// projection surface the same message in the UI.
+
+export const ENTER_DRAGON_TRIGGER_REASON = 'Enter Dragon Trigger before using this skill.';

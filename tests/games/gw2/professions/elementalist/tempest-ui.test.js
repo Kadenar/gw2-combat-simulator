@@ -119,7 +119,7 @@ test('Tempest overload singularity delays a newly entered attunement but not the
 
   const unbuffedApp = createTempestApp(['Fire Attunement'], { alacrity: false });
 
-  assert.equal(elementalistProfession.ui.paletteSkillAvailability(paletteContext(unbuffedApp), fire).retryAt, 6);
+  assert.equal(elementalistProfession.ui.paletteSkillAvailability(paletteContext(unbuffedApp), fire).retryAt, 4.8);
   const transcendentApp = createTempestApp(['Fire Attunement'], { tempestTraits: '1-1-1' });
 
   assert.equal(elementalistProfession.ui.paletteSkillAvailability(paletteContext(transcendentApp), fire).retryAt, 3.2);

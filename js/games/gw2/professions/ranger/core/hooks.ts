@@ -19,7 +19,7 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { rangerCoreCastAvailability } from '#gw2/professions/ranger/core/mechanics/availability.js';
 import { rangerEndurance } from '#gw2/professions/ranger/core/mechanics/resources.js';
-import { rangerRechargeWork } from '#gw2/professions/ranger/core/traits/modifiers.js';
+import { rangerRechargeWork } from '#gw2/professions/ranger/core/mechanics/recharge.js';
 import {
   applyRangerDodgeTraits,
   applyRangerPetSwapTraits,

@@ -664,7 +664,7 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
 
   assert.deepEqual(core.warnings, []);
   assert.ok(
-    result.procSteps.some((step) => step.skill === 'Gleam Saber — Sword Recharge' && step.cooldownReduction === 1)
+    result.procSteps.some((step) => step.skill === 'Gleam Saber — Sword Recharge' && step.cooldownReduction === 0.8)
   );
 });
 

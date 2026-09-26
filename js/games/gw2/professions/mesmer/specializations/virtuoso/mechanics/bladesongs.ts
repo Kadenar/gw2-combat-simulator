@@ -11,6 +11,8 @@ import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Resolves Virtuoso Bladesong packets and reports their actual impact timing to shared shatter traits. */
 export function resolveBladesong(
@@ -108,4 +110,18 @@ export function resolveBladesong(
   }
 
   throw new Error(`Unsupported Bladesong kind: ${shatter.kind}.`);
+}
+
+/** Requires at least one stocked blade before a Virtuoso bladesong can begin. */
+export function virtuosoAvailability(context: MesmerRuntime, skill: MesmerSkill): AvailabilityResult {
+  if (!mesmerMechanicsFor(context).shatters[skill.id] || mesmerMechanicsFor(context).actions.currentResource() >= 1) {
+    return { ready: true };
+  }
+
+  return {
+    ready: false,
+    retryAt: null,
+    code: 'mesmer.no-blades',
+    reason: `${skill.name} requires at least one blade.`
+  };
 }

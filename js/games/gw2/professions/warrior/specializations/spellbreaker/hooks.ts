@@ -71,7 +71,7 @@ export const spellbreakerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> 
     'damage.resolved'(runtime, event) {
       const state = spellbreakerState.from(runtime);
       const previous = state.magebaneTetherUntil;
-      // The existing resolver helper reprojects recharge from actual Alacrity before admitting each opportunity.
+      // The resolver checks committed recharge at the permanent Alacrity rate before admitting each opportunity.
       reactToSpellbreakerDamage(runtime, event);
       if (state.magebaneTetherUntil !== previous) {
         state.magebaneTetherUntil = canonicalTime(state.magebaneTetherUntil);

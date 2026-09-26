@@ -22,7 +22,7 @@ type EventReaction<TContext, TEvent, TDetails, TResult> = (
   event: TEvent,
   details?: TDetails
 ) => TResult | undefined;
-type HookCategory = 'attribute' | 'resource';
+type HookCategory = 'modifier' | 'resource';
 
 /**
  * Each hook belongs to one definition container; state projection belongs to
@@ -31,13 +31,13 @@ type HookCategory = 'attribute' | 'resource';
  */
 const HOOK_DEFINITIONS = Object.freeze([
   ['projectPlanningState', 'resource'],
-  ['modifyAttributes', 'attribute'],
-  ['modifyCriticalChance', 'attribute'],
-  ['modifyCriticalDamage', 'attribute'],
-  ['modifyStrikeDamage', 'attribute'],
-  ['modifyConditionDamage', 'attribute'],
-  ['modifyConditionBaseDuration', 'attribute'],
-  ['modifyConditionDuration', 'attribute']
+  ['modifyAttributes', 'modifier'],
+  ['modifyCriticalChance', 'modifier'],
+  ['modifyCriticalDamage', 'modifier'],
+  ['modifyStrikeDamage', 'modifier'],
+  ['modifyConditionDamage', 'modifier'],
+  ['modifyConditionBaseDuration', 'modifier'],
+  ['modifyConditionDuration', 'modifier']
 ] as const satisfies readonly (readonly [string, HookCategory])[]);
 
 // Filtering by category preserves the corresponding container's finite set of hook names.
@@ -48,7 +48,7 @@ const hookNamesWith = <TCategory extends HookCategory>(category: TCategory) =>
   >[0][];
 
 const HOOK_NAMES = Object.freeze(HOOK_DEFINITIONS.map(([name]) => name));
-export const ATTRIBUTE_HOOK_NAMES = hookNamesWith('attribute');
+export const MODIFIER_HOOK_NAMES = hookNamesWith('modifier');
 
 const NOOP: ComposableHook = (..._args) => undefined;
 const IDENTITY_SECOND_ARGUMENT: ComposableHook = (...args) => args[1];
@@ -215,17 +215,17 @@ export function defineProfession<TProfessionState extends object, TBuild extends
     throw new TypeError('Endurance requires state, maximum, and regenerationRate callbacks.');
   }
 
-  const attributeRules = definition.attributeRules || {};
+  const modifiers = definition.modifiers || {};
   assertCallbackContainer(resources, ['createState', 'projectPlanningState'], 'resources');
   const sources: UnvalidatedFields = {
     projectPlanningState: resources.projectPlanningState,
-    modifyAttributes: attributeRules.modifyAttributes,
-    modifyCriticalChance: attributeRules.modifyCriticalChance,
-    modifyCriticalDamage: attributeRules.modifyCriticalDamage,
-    modifyStrikeDamage: attributeRules.modifyStrikeDamage,
-    modifyConditionDamage: attributeRules.modifyConditionDamage,
-    modifyConditionBaseDuration: attributeRules.modifyConditionBaseDuration,
-    modifyConditionDuration: attributeRules.modifyConditionDuration
+    modifyAttributes: modifiers.modifyAttributes,
+    modifyCriticalChance: modifiers.modifyCriticalChance,
+    modifyCriticalDamage: modifiers.modifyCriticalDamage,
+    modifyStrikeDamage: modifiers.modifyStrikeDamage,
+    modifyConditionDamage: modifiers.modifyConditionDamage,
+    modifyConditionBaseDuration: modifiers.modifyConditionBaseDuration,
+    modifyConditionDuration: modifiers.modifyConditionDuration
   };
 
   const composedHooks: DynamicFields = {};

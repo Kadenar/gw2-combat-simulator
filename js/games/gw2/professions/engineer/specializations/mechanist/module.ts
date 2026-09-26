@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
-import { mechanistAttributeRules } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-rules.js';
+import { mechanistModifiers } from '#gw2/professions/engineer/specializations/mechanist/modifiers.js';
 import { mechanistHooks } from '#gw2/professions/engineer/specializations/mechanist/hooks.js';
 import { MECHANIST_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/index.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
@@ -16,7 +16,7 @@ export const mechanistModule = defineNativeModule({
     balanceProfiles: MECHANIST_BALANCE_PROFILES
   }),
   state: { create: mechanistState.create },
-  modifiers: mechanistAttributeRules,
+  modifiers: mechanistModifiers,
   hooks: mechanistHooks,
   presentation: mechanistUi
 });

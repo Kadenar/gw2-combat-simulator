@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
-import { willbenderAttributeRules } from '#gw2/professions/guardian/specializations/willbender/mechanics/virtue-rules.js';
+import { willbenderModifiers } from '#gw2/professions/guardian/specializations/willbender/modifiers.js';
 import { willbenderHooks } from '#gw2/professions/guardian/specializations/willbender/hooks.js';
 import { WILLBENDER_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/willbender/skills/index.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
@@ -17,7 +17,7 @@ export const willbenderModule = defineNativeModule({
     balanceProfiles: WILLBENDER_BALANCE_PROFILES
   }),
   state: { create: willbenderState.create },
-  modifiers: willbenderAttributeRules,
+  modifiers: willbenderModifiers,
   hooks: willbenderHooks,
   presentation: bindWillbenderUi
 });

@@ -1,7 +1,7 @@
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { clamp } from '#kernel/core/numeric.js';
-import { projectRecharge, type RechargeProgress, type RechargeInterval } from '#gw2/platform/engine/skills/recharge.js';
+import { projectRecharge, type RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 /**
  * Shared cooldown and ammo-charge recharge state machine. Owns the common
  * between-cast lockout and charge bookkeeping (recharge timers, charge
@@ -14,7 +14,7 @@ import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 interface CooldownControllerOptions {
   readonly state: Pick<Gw2Runtime, 'time' | 'ammo' | 'cooldowns' | 'rechargeProgress'>;
   readonly rechargeDuration: (skill: Skill, at: number) => number;
-  readonly rechargeIntervals?: (skill: Skill, start: number, end: number) => Iterable<RechargeInterval>;
+  readonly rate?: (skill: Skill) => number;
   readonly skillFor?: (id: SkillId) => Skill | undefined;
   readonly maximumAmmo?: (skill: Skill) => number;
 }
@@ -27,7 +27,7 @@ interface CooldownControllerOptions {
 export function createCooldownController({
   state,
   rechargeDuration,
-  rechargeIntervals = (_skill, start, end) => [{ start, end, rate: 1 }],
+  rate = () => 1,
   skillFor = () => undefined,
   maximumAmmo = (skill) => Number(skill.ammo || 0)
 }: CooldownControllerOptions): Readonly<CooldownController> {
@@ -39,25 +39,13 @@ export function createCooldownController({
     throw new TypeError('Cooldown controller requires rechargeDuration.');
   }
 
-  const rate = (skill: Skill, at: number): number => {
-    for (const interval of rechargeIntervals(skill, at, Infinity)) return interval.rate;
-    return 1;
-  };
+  // Permanent Alacrity turns elapsed time directly into base recharge work.
+  const remaining = (skill: Skill, progress: RechargeProgress, at: number): number =>
+    Math.max(0, progress.work - Math.max(0, at - progress.startedAt) * rate(skill));
 
-  // Integrate only elapsed base-recharge work. A change in rate never retroactively changes completed progress.
-  const remaining = (skill: Skill, progress: RechargeProgress, at: number): number => {
-    let work = progress.work;
-    for (const interval of rechargeIntervals(skill, progress.startedAt, Math.max(progress.startedAt, at))) {
-      work -= (interval.end - interval.start) * interval.rate;
-    }
+  const project = (skill: Skill, progress: RechargeProgress): number => projectRecharge(progress, rate(skill));
 
-    return Math.max(0, work);
-  };
-
-  const project = (skill: Skill, progress: RechargeProgress): number =>
-    projectRecharge(progress, rechargeIntervals(skill, progress.startedAt, Infinity));
-
-  const startRecharge = (skill: Skill, at: number, work = rechargeDuration(skill, at) * rate(skill, at)): number => {
+  const startRecharge = (skill: Skill, at: number, work = rechargeDuration(skill, at) * rate(skill)): number => {
     const progress = { startedAt: at, work: Math.max(0, work) };
     state.rechargeProgress.set(skill.id, progress);
     const readyAt = project(skill, progress);
@@ -112,7 +100,7 @@ export function createCooldownController({
       state.ammo.set(skill.id, {
         charges: maximum,
         maximum,
-        rechargeWork: Math.max(0, Number(rechargeDuration(skill, at) || 0)) * rate(skill, at),
+        rechargeWork: Math.max(0, Number(rechargeDuration(skill, at) || 0)) * rate(skill),
         nextRechargeAt: null
       });
     }
@@ -159,7 +147,7 @@ export function createCooldownController({
     ammo.charges -= 1;
     if (ammo.nextRechargeAt == null) {
       // A cast carries its selected recharge through completion; direct resource spends still query at their anchor.
-      ammo.rechargeWork = Math.max(0, committedRechargeWork ?? rechargeDuration(skill, at) * rate(skill, at));
+      ammo.rechargeWork = Math.max(0, committedRechargeWork ?? rechargeDuration(skill, at) * rate(skill));
       ammo.rechargeProgress = { startedAt: at, work: ammo.rechargeWork };
       ammo.nextRechargeAt = project(skill, ammo.rechargeProgress);
     }
@@ -202,7 +190,7 @@ export function createCooldownController({
     ammo.rechargeProgress = { startedAt: at, work: currentWork - reducedWork };
     ammo.nextRechargeAt = project(skill, ammo.rechargeProgress);
     refreshAmmo(skill, at);
-    return reducedWork / rate(skill, at);
+    return reducedWork / rate(skill);
   };
 
   /** Applies game-adjusted recharge progress to ammo or an ordinary cooldown without passing its ready time. */
@@ -217,7 +205,7 @@ export function createCooldownController({
     if (!progress) {
       // Explicit fixed deadlines keep their existing policy when reduced.
       const readyAt = state.cooldowns.get(skill.id) || 0;
-      const reducedBy = clamp(requested / rate(skill, at), 0, readyAt - at);
+      const reducedBy = clamp(requested / rate(skill), 0, readyAt - at);
       if (reducedBy) setReadyAt(skill.id, readyAt - reducedBy);
       return reducedBy;
     }
@@ -226,7 +214,7 @@ export function createCooldownController({
     const reducedWork = Math.min(requested, work);
     if (!reducedWork) return 0;
     startRecharge(skill, at, work - reducedWork);
-    return reducedWork / rate(skill, at);
+    return reducedWork / rate(skill);
   };
 
   /**

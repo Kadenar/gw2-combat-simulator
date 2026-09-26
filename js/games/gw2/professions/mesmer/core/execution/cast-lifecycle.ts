@@ -148,7 +148,7 @@ export function settleMesmerSkillFlips(
     const parentReadyAt = parent ? state.cooldowns.get(parent.id) : null;
     if (parent && parentReadyAt != null) {
       const progress = state.rechargeProgress.get(parent.id);
-      const rate = context.cooldownController.rate(parent, at);
+      const rate = context.cooldownController.rate(parent);
       const work = progress
         ? context.cooldownController.remaining(parent, progress, at)
         : Math.max(0, parentReadyAt - at) * rate;

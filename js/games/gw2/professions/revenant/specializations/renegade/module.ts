@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
-import { renegadeAttributeRules } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-rules.js';
+import { renegadeModifiers } from '#gw2/professions/revenant/specializations/renegade/modifiers.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import { renegadeUi } from '#gw2/professions/revenant/specializations/renegade/presentation.js';
 import { RENEGADE_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/renegade/skills/index.js';
@@ -17,7 +17,7 @@ export const renegadeModule = defineNativeModule({
     balanceProfiles: RENEGADE_BALANCE_PROFILES
   }),
   state: { create: renegadeState.create },
-  modifiers: renegadeAttributeRules,
+  modifiers: renegadeModifiers,
   hooks: renegadeHooks,
   presentation: renegadeUi
 });

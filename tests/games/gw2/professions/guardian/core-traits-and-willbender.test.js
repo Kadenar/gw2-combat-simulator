@@ -92,9 +92,9 @@ test('Guardian recharge applies Alacrity, ammo, and trait reductions', () => {
   })(undefined, ['Hail of Justice', 'Hail of Justice', 'Hail of Justice']);
 
   assert.equal(alacrity.planningState.cooldowns['Virtue of Justice'].readyAt, 16000);
-  assert.equal(virtuous.planningState.cooldowns['Virtue of Justice'].readyAt, 17000);
+  assert.equal(virtuous.planningState.cooldowns['Virtue of Justice'].readyAt, 13600);
   assert.equal(ammo.planningState.ammo['Hail of Justice'].charges, 0);
-  assert.equal(ammo.steps[2].start, ammo.steps[0].end + 10000);
+  assert.equal(ammo.steps[2].start, ammo.steps[0].end + 8000);
   assert.deepEqual(ammo.warnings, []);
 });
 
@@ -114,8 +114,8 @@ test('Zealous Blade reduces every Greatsword skill recharge by 20%', () => {
       return Number((observedRuntime(result).cooldowns.get(skill.id) - rechargeStart).toFixed(3));
     });
 
-  assert.deepEqual(rechargeDurations([]), [8, 10, 12, 25]);
-  assert.deepEqual(rechargeDurations([GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE]), [6.4, 8, 9.6, 20]);
+  assert.deepEqual(rechargeDurations([]), [6.4, 8, 9.6, 20]);
+  assert.deepEqual(rechargeDurations([GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE]), [5.12, 6.4, 7.68, 16]);
 });
 
 test('Willbender utilities use the supplied physical skill profiles', () => {
@@ -433,7 +433,7 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
     3
   );
   assert.equal(
-    full.procSteps.some((step) => step.skill === 'Restorative Virtues' && step.detail === '0.28s weapon recharge'),
+    full.procSteps.some((step) => step.skill === 'Restorative Virtues' && step.detail === '0.224s weapon recharge'),
     true
   );
   assert.equal(full.events.find((event) => event.type === 'buff' && event.name === 'Lethal Tempo').duration, 4);
@@ -566,7 +566,7 @@ test('Willbender flame replacement and Phoenix Protocol follow virtue triggers',
     ).length;
 
   assert.equal(flameCount(overlapping, GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES), 10);
-  assert.equal(overlapping.steps[1].start - overlapping.steps[0].start, 1040);
+  assert.equal(overlapping.steps[1].start - overlapping.steps[0].start, 920);
   assert.equal(flameCount(replaced, GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES), 1);
   assert.equal(flameCount(replaced, GUARDIAN_SKILL_IDS.WILLBENDER_FLAMES_ID_62618), 5);
   // Every live virtue contributes independently to the aggregate trigger counter.
@@ -835,7 +835,7 @@ test("Radiant Fire upgrades Zealot's Flame duration, recharge, and ammo", () => 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     flameActions.map((event) => event.at),
-    [0, 1.08, 12]
+    [0, 1.08, 9.6]
   );
   assert.equal(result.planningState.ammo["Zealot's Flame"].maximum, 2);
   assert.equal(flameBurns.length, 12);
@@ -936,7 +936,7 @@ for (const [name, recharge, boons, duration] of [
         stats: { ...config.stats, concentration: alacrity ? 750 : 0 },
         allies: { count: 4 }
       })(undefined, [name, name, name]);
-      const rate = alacrity ? 1.25 : 1;
+      const rate = 1.25;
       assert.deepEqual(result.warnings, []);
       assert.deepEqual(
         result.steps.map((step) => step.start),
@@ -1001,8 +1001,8 @@ test('Guardian results advance to cooldown expiry before recasting', () => {
   );
 
   const casts = result.steps.filter((step) => step.skill === 'Virtue of Justice');
-  assert.equal(casts[1].start - casts[0].start, 20000);
+  assert.equal(casts[1].start - casts[0].start, 16000);
   assert.ok(result.steps.every((step) => !step.invalid));
-  assert.equal(result.planningState.cooldowns['Virtue of Justice'].readyAt, casts[1].end + 20000);
+  assert.equal(result.planningState.cooldowns['Virtue of Justice'].readyAt, casts[1].end + 16000);
   assert.deepEqual(result.warnings, []);
 });

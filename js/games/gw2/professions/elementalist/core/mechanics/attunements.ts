@@ -55,8 +55,7 @@ export function targetAttunement(skill: Skill): ElementalistAttunement | null {
 export function elementalistAttunementRechargeDuration(
   context: ElementalistRuntime,
   skill: Skill,
-  seconds: number,
-  at: number
+  seconds: number
 ): number {
   if (!context.combatActive) return 0;
   let adjusted = seconds;
@@ -71,7 +70,7 @@ export function elementalistAttunementRechargeDuration(
     adjusted = Math.max(0, adjusted - balanceProfileNumber(flowStateProfile, 'rechargeReduction'));
   }
 
-  return adjusted / context.cooldownController.rate(skill, at);
+  return adjusted / context.cooldownController.rate(skill);
 }
 
 /**
@@ -119,8 +118,7 @@ export function onAttunementComplete(
       previous,
       Math.max(
         attunementReadyAtBefore[previous],
-        at +
-          elementalistAttunementRechargeDuration(context, skill, balanceProfileNumber(resourcesProfile, 'recharge'), at)
+        at + elementalistAttunementRechargeDuration(context, skill, balanceProfileNumber(resourcesProfile, 'recharge'))
       )
     );
     for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
@@ -128,12 +126,7 @@ export function onAttunementComplete(
       const existingReadyAt = attunementReadyAtBefore[attunement];
       const defaultReadyAt =
         at +
-        elementalistAttunementRechargeDuration(
-          context,
-          skill,
-          balanceProfileNumber(resourcesProfile, 'initialDelay'),
-          at
-        );
+        elementalistAttunementRechargeDuration(context, skill, balanceProfileNumber(resourcesProfile, 'initialDelay'));
       // Pending hits may reset Air later; they cannot shorten an actual cooldown before resolving.
       const nextReadyAt = Math.max(existingReadyAt, defaultReadyAt);
       setElementalistAttunementReadyAt(context, attunement, nextReadyAt);

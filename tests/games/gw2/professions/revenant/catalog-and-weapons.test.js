@@ -1309,11 +1309,11 @@ test('Revenant spear packets reduce Abyssal Raze count recharge on hit', () => {
 
   assert.deepEqual(
     rechargeProcs.map((proc) => proc.detail),
-    ['1s', '1s', '3s', '5s', '1.96s']
+    ['0.8s', '0.8s', '2.4s', '4s', '0.96s']
   );
   assert.deepEqual(
     rechargeProcs.map((proc) => proc.cooldownReduction),
-    [1, 1, 3, 5, 1.96]
+    [0.8, 0.8, 2.4, 4, 0.96]
   );
   assert.deepEqual(
     rechargeProcs.map((proc) => [proc.sourceSkill, proc.icon]),
@@ -1414,7 +1414,7 @@ test('spear reductions advance base Raze recharge once per activation at its rec
         boons: { alacrity }
       });
       const reductions = result.procSteps.filter((proc) => proc.skill.endsWith('Abyssal Raze recharge'));
-      const rate = alacrity ? 1.25 : 1;
+      const rate = 1.25;
       assert.deepEqual(result.warnings, []);
       assert.deepEqual(
         reductions.map((proc) => proc.cooldownReduction),
@@ -1459,7 +1459,7 @@ test('Abyssal Raze blasts Abyssal Blot for Dark Aura without Leeching Bolts', ()
 test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
   const result = simulate(
     'Core',
-    ['Abyssal Raze', 'Abyssal Raze', 'Abyssal Raze', { type: 'wait', durationMs: 9100 }, 'Abyssal Strike'],
+    ['Abyssal Raze', 'Abyssal Raze', 'Abyssal Raze', { type: 'wait', durationMs: 7100 }, 'Abyssal Strike'],
     {
       primaryWeapon: 'Spear',
       secondaryWeapon: '',
@@ -1469,17 +1469,17 @@ test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
 
   assert.equal(result.warnings.length, 0);
 
-  assert.equal(observedRuntime(result).ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt, 14.6);
+  assert.equal(observedRuntime(result).ammo.get(SKILL.ABYSSAL_RAZE).nextRechargeAt, 11.8);
   assert.deepEqual(result.planningState.cooldowns['Abyssal Raze'], {
-    readyAt: 14600,
-    remaining: 1180
+    readyAt: 11800,
+    remaining: 780
   });
 });
 
 test('Abyssal Raze recharge reduction carries overflow into the next count', () => {
   const result = simulate(
     'Core',
-    ['Abyssal Raze', 'Abyssal Raze', 'Abyssal Raze', { type: 'wait', durationMs: 10300 }, 'Abyssal Strike'],
+    ['Abyssal Raze', 'Abyssal Raze', 'Abyssal Raze', { type: 'wait', durationMs: 8100 }, 'Abyssal Strike'],
     {
       primaryWeapon: 'Spear',
       secondaryWeapon: '',
@@ -1489,7 +1489,7 @@ test('Abyssal Raze recharge reduction carries overflow into the next count', () 
 
   const rechargeProc = result.procSteps.find((proc) => proc.skill.endsWith('Abyssal Raze recharge'));
 
-  assert.equal(rechargeProc.cooldownReduction, 1);
+  assert.equal(rechargeProc.cooldownReduction, 0.8);
   // Verify serial recharge overflow independently of the separate between-cast lockout.
   const { charges, maximum, rechargeWork, nextRechargeAt } = observedRuntime(result).ammo.get(SKILL.ABYSSAL_RAZE);
   assert.deepEqual(
@@ -1498,7 +1498,7 @@ test('Abyssal Raze recharge reduction carries overflow into the next count', () 
       charges: 1,
       maximum: 3,
       rechargeWork: 15,
-      nextRechargeAt: 29.6
+      nextRechargeAt: 23.82
     }
   );
   assert.equal(result.planningState.cooldowns['Abyssal Raze'], undefined);
@@ -1517,7 +1517,7 @@ test('Crushing Abyss scales Raze and triggers at three stacks on weapon swap', (
   assert.equal(result.warnings.length, 0);
   assert.deepEqual(
     result.steps.filter((step) => step.skill === 'Abyssal Raze').map((step) => step.start),
-    [0, 1600, 3200]
+    [0, 1400, 2800]
   );
   const razes = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Abyssal Raze');
 

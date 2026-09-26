@@ -1212,7 +1212,7 @@ test('Signet of Undeath grants four life force per passive pulse and suspends du
   const first = simulate('Core', [wait(3000)], config);
   const second = simulate('Core', [wait(3000), wait(3000)], config);
   const recharging = simulate('Core', ['Signet of Undeath', wait(6000)], config);
-  const resumed = simulate('Core', ['Signet of Undeath', wait(78000)], config);
+  const resumed = simulate('Core', ['Signet of Undeath', wait(63000)], config);
   for (const result of [first, second, recharging, resumed]) assert.deepEqual(result.warnings, []);
   assert.equal(first.planningState.profession.lifeForce.value, 4);
   assert.equal(second.planningState.profession.lifeForce.value, 8);

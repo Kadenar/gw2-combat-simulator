@@ -7,10 +7,8 @@
  */
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
-import {
-  tempestAttributeRules,
-  tempestHooks
-} from '#gw2/professions/elementalist/specializations/tempest/mechanics/overloads.js';
+import { tempestHooks } from '#gw2/professions/elementalist/specializations/tempest/hooks.js';
+import { tempestModifiers } from '#gw2/professions/elementalist/specializations/tempest/modifiers.js';
 import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
 import { tempestUi } from '#gw2/professions/elementalist/specializations/tempest/presentation.js';
 import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
@@ -24,7 +22,7 @@ export const tempestModule = defineNativeModule({
     balanceProfiles: TEMPEST_BALANCE_PROFILES
   }),
   state: { create: tempestState.create },
-  modifiers: tempestAttributeRules,
+  modifiers: tempestModifiers,
   hooks: tempestHooks,
   presentation: tempestUi
 });

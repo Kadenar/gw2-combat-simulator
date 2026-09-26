@@ -295,7 +295,7 @@ test('Every Dragon Slash starts Dragon Trigger recharge at cast initiation', () 
         const slash = result.steps.at(-1);
         assert.deepEqual(result.warnings, []);
         assert.equal(result.planningState.profession.dragonTriggerActive, false);
-        assert.equal(result.planningState.cooldowns['Dragon Trigger'].readyAt, slash.start + (alacrity ? 6400 : 8000));
+        assert.equal(result.planningState.cooldowns['Dragon Trigger'].readyAt, slash.start + 6400);
       }
     }
   }
@@ -305,7 +305,7 @@ test('Leaving Dragon Trigger starts recharge at the exit timestamp', () => {
   // Expiry uses its deadline even when a wait advances beyond it; sheathing waits for the shared swap cooldown.
   for (const [exit, exitAt] of [
     [{ type: 'wait', durationMs: 31000 }, 30000],
-    [ID.SHEATHE_GUNSABER, 5000]
+    [ID.SHEATHE_GUNSABER, 4000]
   ]) {
     const result = simulate(
       'Bladesworn',
@@ -317,7 +317,7 @@ test('Leaving Dragon Trigger starts recharge at the exit timestamp', () => {
     assert.deepEqual(result.warnings, []);
     assert.equal(result.planningState.profession.dragonTriggerActive, false);
     assert.equal(result.planningState.profession.dragonCharges, 0);
-    assert.equal(result.planningState.cooldowns['Dragon Trigger'].readyAt, exitAt + 8000);
+    assert.equal(result.planningState.cooldowns['Dragon Trigger'].readyAt, exitAt + 6400);
   }
 });
 

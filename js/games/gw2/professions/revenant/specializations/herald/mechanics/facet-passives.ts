@@ -16,7 +16,7 @@ import {
 import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState
-} from '#gw2/professions/revenant/core/traits/modifiers.js';
+} from '#gw2/professions/revenant/core/modifiers.js';
 import { HERALD_DRACONIC_ECHO_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';

@@ -11,8 +11,8 @@ import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerCoreCriticalReactions } from '#gw2/professions/ranger/core/traits/skirmishing.js';
-import { rangerCoreModifierRules } from '#gw2/professions/ranger/core/traits/modifiers.js';
-import { druidModifierRules } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
+import { rangerCoreModifierRules } from '#gw2/professions/ranger/core/modifiers.js';
+import { druidModifierRules } from '#gw2/professions/ranger/specializations/druid/modifiers.js';
 
 const baseConfig = Object.freeze({
   initialAstralForce: 100,
@@ -303,7 +303,7 @@ test('Light on Your Feet applies its six-second buff and shortbow upgrades', () 
     selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
   });
 
-  assert.equal(shortbow.steps[1].start, Math.ceil((shortbow.steps[0].end + 6400) / 40) * 40);
+  assert.equal(shortbow.steps[1].start, Math.ceil((shortbow.steps[0].end + 5120) / 40) * 40);
 
   const upgrades = simulate(['Poison Volley', 'Crippling Shot', 'Concussion Shot'], {
     primaryWeapon: 'Shortbow',

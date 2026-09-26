@@ -22,14 +22,14 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
-import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/modifiers.js';
+import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/mechanics/life-siphon.js';
 import {
   emitRevenantBuff,
   emitRevenantPacket,
   emitRevenantProfile,
   revenantCombatActive
 } from '#gw2/professions/revenant/core/events.js';
-import { revenantCastCommitted } from '#gw2/professions/revenant/core/hooks.js';
+import { revenantCastCommitted } from '#gw2/professions/revenant/core/events.js';
 import {
   emitRevenantInvocationProfile,
   emitRevenantInvocationSkill

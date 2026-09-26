@@ -1,6 +1,6 @@
 /**
  * Owns Reaper Shroud entry, exit, and weapon skill fragments.
- * Persistent shroud state remains in `mechanics/reaper-shroud.ts`.
+ * Shroud attribute modifiers live in `modifiers.ts`; shroud state and reactions live in `hooks.ts` and `mechanics/shroud-effects.ts`.
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';

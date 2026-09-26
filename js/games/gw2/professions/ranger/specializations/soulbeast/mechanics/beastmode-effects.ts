@@ -16,13 +16,15 @@ import {
 import type { BalanceProfile, ConditionEffect, StatusEffect, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
-import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import type { RangerResolverContext, RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
+import { rangerPetByName, selectedRangerPet } from '#gw2/professions/ranger/core/state.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { grantMaulAttackOfOpportunity } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
 
 /** Shared stance opportunities resolve against the one live stance cooldown. */
 export const soulbeastEventHandlers = Object.freeze({ 'ranger.shared-stance-hit': handleSharedStanceHit });
@@ -475,4 +477,28 @@ export function reactToRangerWinterBite(context: RangerResolverContext, event: G
   const profile = requireBalanceProfileFromContext(context, PROFILE.wintersBite);
   const weakness = requireEffect(profile, 'condition', 'Weakness');
   if (weakness) queueProfileCondition(context, event, profile, weakness, ID.WINTERS_BITE, "Winter's Bite");
+}
+
+export function soulbeastCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {
+  const state = soulbeastState.from(context);
+  const toggle = skill.id === ID.BEASTMODE || skill.id === ID.LEAVE_BEASTMODE;
+  // Wrong-pet check must precede the beastmode-active check: a skill can be a beastmodeSkill
+  // but still invalid if it belongs to a different pet than the one currently selected.
+  if (skill.beastmodeSkill && !toggle && !selectedRangerPet(context.config)?.beastmodeSkillIds.includes(skill.id)) {
+    return deny(skill, 'ranger.inactive-merged-pet-skill', 'select the pet that grants this merged Beast skill.');
+  }
+
+  if (skill.beastmodeSkill && !state.beastmodeActive && skill.id !== ID.BEASTMODE) {
+    return deny(skill, 'ranger.beastmode-inactive', 'enter Beastmode first.');
+  }
+
+  if (skill.id === ID.BEASTMODE && state.beastmodeActive) {
+    return deny(skill, 'ranger.beastmode-active', 'Beastmode is already active.');
+  }
+
+  if (skill.id === ID.LEAVE_BEASTMODE && !state.beastmodeActive) {
+    return deny(skill, 'ranger.beastmode-inactive', 'Beastmode is not active.');
+  }
+
+  return { ready: true };
 }

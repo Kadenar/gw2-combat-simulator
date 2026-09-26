@@ -51,16 +51,17 @@ cooldowns stay inspectable.
 Every profession is authored with `platform/profession-definition/profession.ts`. A module is a vertical slice declared
 with `defineNativeModule()`:
 
-| Section               | Owns                                                                           |
-| --------------------- | ------------------------------------------------------------------------------ |
-| `data`                | Generated identities, skill mechanics, traits, weapon hands, and chains        |
-| `state`               | One `create` factory and optional detached public `project` projection         |
-| `hooks`               | Availability, cast hooks, named tasks, resource policies, and combat reactions |
-| `modifiers`           | Declarative formula and attribute rules                                        |
-| `presentation`        | UI contributions, optionally catalog-aware                                     |
+| Section        | Owns                                                                           |
+| -------------- | ------------------------------------------------------------------------------ |
+| `data`         | Generated identities, skill mechanics, traits, weapon hands, and chains        |
+| `state`        | One `create` factory and optional detached public `project` projection         |
+| `hooks`        | Availability, cast hooks, named tasks, resource policies, and combat reactions |
+| `modifiers`    | Declarative formula and attribute rules                                        |
+| `presentation` | UI contributions, optionally catalog-aware                                     |
 
-TypeScript and native module validation reject unknown module fields and retired state sections. `defineNativeProfession()` composes Core
-with the selected specialization and exposes `runtimeFor(config)`. There is one mutable state instance per run.
+TypeScript and native module validation reject unknown module fields and retired state sections.
+`defineNativeProfession()` composes Core with the selected specialization and exposes `runtimeFor(config)`. There is one
+mutable state instance per run.
 
 ### Catalog assembly
 
@@ -88,6 +89,7 @@ cooldowns, and dynamic state are separate checks.
   skill aggregate; tests compose inventories under `tests/`.
 - `mechanics/*.ts` (or `mechanics.ts`) — owner-local, concept-named triggered effects and state machines.
 - `hooks.ts` — cast hooks, tasks, and reactions for behavior declarative effects cannot express.
+- `modifiers.ts` — the module's modifier rules plus imperative `modify*` attribute and damage callbacks.
 - `catalog.ts` — module tuple and assembled catalog, re-exported by `profession.ts`. Only `build/` imports it directly.
 
 ### Authoring workflow
@@ -100,9 +102,9 @@ cooldowns, and dynamic state are separate checks.
 
 ## Profession contract
 
-Native professions expose identity, catalog, build and UI contracts, and `runtimeFor(config)`. The returned runtime
-owns `createState`, `projectPlanningState`, availability/cast/recharge hooks, named tasks, custom event handlers,
-resource policies, and stage-specific reactions. The application surface stays separate from execution.
+Native professions expose identity, catalog, build and UI contracts, and `runtimeFor(config)`. The returned runtime owns
+`createState`, `projectPlanningState`, availability/cast/recharge hooks, named tasks, custom event handlers, resource
+policies, and stage-specific reactions. The application surface stays separate from execution.
 
 Standalone fixtures can use `defineProfession({ id, name, catalog, resources: { createState }, hooks })`. Optional hooks
 default to no-op or identity behavior. A module with only declarative skill data needs no hooks.
@@ -112,8 +114,8 @@ default to no-op or identity behavior. A module with only declarative skill data
 
 ### Families
 
-A family exposes immutable metadata and cached active-runtime composition. `runtimeFor(config)` selects Core plus
-the active elite; missing or Core selects Core alone, and unknown elites throw. `resolveProfession(config)` supplies
+A family exposes immutable metadata and cached active-runtime composition. `runtimeFor(config)` selects Core plus the
+active elite; missing or Core selects Core alone, and unknown elites throw. `resolveProfession(config)` supplies
 normalized catalog and attribute metadata to application consumers; it does not create a second gameplay state.
 
 - State shape: `{ core, specialization: { kind, state } }` — a plain object, no proxies. Core mechanics use `core`;
@@ -121,7 +123,7 @@ normalized catalog and attribute metadata to application consumers; it does not 
 - `createProfessionFamilyUi()` is more lenient: an unknown/Core-trait-line/missing name selects Core. Lists compose Core
   then elite, availability callbacks may veto, presenters delegate on `undefined`, and selection replacement asks the
   elite first.
-- Modifier rules: modules contribute inert `attributeRules.modifierRules`; exactly one module supplies
+- Modifier rules: modules contribute inert `modifiers.modifierRules`; exactly one module supplies
   `compileModifierRules`, and the family compiles Core + active elite once, preserving the single additive-damage
   bucket.
 
@@ -151,6 +153,10 @@ outcome and claim one ICD; no scheduling prediction exists.
   observation policies bound delayed work without recursively extending the rotation.
 - Cast/interrupt commitment and lifetime generations determine whether pending work survives cancellation. Committed
   projectiles can outlive a cast. Finite actor tasks schedule bounded work, not an unbounded future history.
+- Application builds always enable console Quickness and Alacrity. Recharge uses a constant 1.25× rate for players and
+  summons, or 1.5× for Chronomancer player skills, while explicit Alacrity exemptions retain their base rate. Cooldown
+  calculations do not sample boon grants, extensions, or expiry. Boon events remain available for reporting and other
+  effects.
 - Player health stays at 100%; target health remains live. Attribute preview health is a separate input.
 - Build adapters provide attribute provenance so static rules apply once; dynamic modifiers always read live facts.
 

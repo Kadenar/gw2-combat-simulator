@@ -19,7 +19,7 @@ import {
   applyCatalystResolvedDamage
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
 import { applyWeaveSelfAttunement } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
-import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
+import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
 import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import { commitRechargeDuration } from '#gw2/professions/elementalist/specializations/evoker/mechanics/recharge.js';
 import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';

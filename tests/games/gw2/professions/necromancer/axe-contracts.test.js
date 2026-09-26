@@ -108,14 +108,14 @@ test('Unholy Feast gates its delayed burst below half health and clips it to the
   );
 });
 
-// Explicit weapon recharges remain fixed when Alacrity is absent.
+// Weapon recharges use permanent Alacrity from their completed cast anchors.
 test('axe weapon cooldowns begin at completed cast recharge anchors', () => {
   for (const [name, seconds] of [
     ['Ghastly Claws', 6],
     ['Unholy Feast', 10]
   ]) {
     const result = simulate('Core', [name]);
-    assert.equal(result.planningState.cooldowns[name].readyAt - result.steps[0].end, seconds * 1000);
+    assert.equal(result.planningState.cooldowns[name].readyAt - result.steps[0].end, (seconds * 1000) / 1.25);
     assert.deepEqual(result.warnings, []);
   }
 });

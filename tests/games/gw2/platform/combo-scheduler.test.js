@@ -222,7 +222,7 @@ test('combo boons use profession duration modifiers at the combo time with finis
     id: 'combo-duration-fixture',
     name: 'Combo Duration Fixture',
     catalog: createCanonicalCatalog(),
-    attributeRules: {
+    modifiers: {
       // Distinct live bonuses make a wrong timestamp or player-forced actor observable.
       modifyAttributes(context, stats) {
         const bonus = context.time < 2 ? 0 : context.actorType === 'summon' ? 150 : 300;

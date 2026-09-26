@@ -102,7 +102,7 @@ test('Hilt Bash dazes normal targets, stuns defiant targets, and triggers player
 test('Hilt Bash refreshes either Maul ID only after completing its cast', () => {
   for (const maulId of [ID.MAUL_SOULBEAST, ID.MAUL_BASE]) {
     const normal = simulate('Core', [maulId, maulId]);
-    assert.equal(normal.steps[1].start, Math.ceil((normal.steps[0].end + 4000) / 40) * 40);
+    assert.equal(normal.steps[1].start, Math.ceil((normal.steps[0].end + 3200) / 40) * 40);
     const refreshed = simulate('Core', [maulId, ID.HILT_BASH, maulId]);
     assert.equal(refreshed.steps[2].start, refreshed.steps[1].end);
     const interrupted = simulate('Core', [

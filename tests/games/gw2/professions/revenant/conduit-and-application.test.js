@@ -16,7 +16,7 @@ import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpe
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 
-const revenantAttributeRules = Object.freeze({
+const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {
     return revenantProfession
       .resolveProfession(context?.config || {})
@@ -494,7 +494,7 @@ test('Pain Absorption grants its base boons and changes cost and recharge only i
       const actions = formed.events.filter(
         (event) => event.type === 'action' && event.skillId === SKILL.PAIN_ABSORPTION
       );
-      const recharge = 5 / (alacrity ? 1.25 : 1);
+      const recharge = 5 / 1.25;
       assert.equal(actions.length, 2);
       // Each Mesmer-form cast reserves the shortened recharge from its full end; the repeat waits exactly for it.
       assert.ok(Math.abs(rechargeReadyAt(first, SKILL.PAIN_ABSORPTION) - actions[0].fullEndsAt - recharge) < 1e-9);
@@ -545,14 +545,14 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
   assert.equal(result.warnings.length, 0);
   assert.deepEqual(
     result.steps.filter((step) => step.skill === 'Banish Enchantment').map((step) => step.start),
-    [0, 5440]
+    [0, 4440]
   );
   const banishes = result.events.filter((event) => event.type === 'action' && event.skillName === 'Banish Enchantment');
   assert.deepEqual(
     [banishes[1].at, rechargeReadyAt(result, SKILL.BANISH_ENCHANTMENT)].map((readyAt, index) =>
       Number((readyAt - banishes[index].fullEndsAt).toFixed(6))
     ),
-    [5, 5]
+    [4, 4]
   );
 
   const expiringDuringCast = simulate(
@@ -575,7 +575,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
   assert.equal(expiringDuringCast.warnings.length, 0);
   assert.deepEqual(
     expiringDuringCast.steps.filter((step) => step.skill === 'Banish Enchantment').map((step) => step.start),
-    [0, 6740, 12200]
+    [0, 6740, 11200]
   );
   // Replaying each prefix exposes the reservation left by that cast; the post-expiry cast adds none.
   const expiringRotation = [
@@ -597,7 +597,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
         SKILL.BANISH_ENCHANTMENT
       )
     ),
-    [5.44, 12.18, 12.18]
+    [4.44, 11.18, 11.18]
   );
 
   const blockedAnguish = simulate('Conduit', ['Cosmic Wisdom', 'Call to Anguish'], {
@@ -776,8 +776,8 @@ test('Release Potential strength is independent of the equipped weapon set', () 
 });
 
 // The profession's shared-identity gate must follow the same accumulated work as the ammo controller.
-test('Beguiling Haze main recharge gains intermittent Alacrity after its follow-ups', () => {
-  // A four-second Alacrity window after the follow-ups advances the main recharge by exactly one second.
+test('Beguiling Haze main recharge ignores transient Alacrity after its follow-ups', () => {
+  // Transient Alacrity after the follow-ups cannot change the permanent recharge rate.
   const config = {
     ...baseConfig,
     specialization: 'Conduit',
@@ -803,7 +803,7 @@ test('Beguiling Haze main recharge gains intermittent Alacrity after its follow-
     }
   });
   assert.deepEqual(hasted.warnings, []);
-  assert.equal(hasted.steps.at(-1).start / 1000, gw2CooldownReadyAt(originalReadyAt - 1));
+  assert.equal(hasted.steps.at(-1).start / 1000, gw2CooldownReadyAt(originalReadyAt));
 });
 
 test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
@@ -1308,7 +1308,7 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
 
   assert.equal(
     observedRuntime(kinetic).cooldowns.get(revenantCatalog.skillsByName.get('Release Potential: Warrior').id),
-    kinetic.steps[0].end / 1000 + 8
+    kinetic.steps[0].end / 1000 + 6.4
   );
 
   const cosmic = simulate('Conduit', ['__combat_start', 'Cosmic Wisdom', 'Swap Legends', 'Release Potential: Mesmer'], {
@@ -1379,7 +1379,7 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
       }
     }
   };
-  const attributes = revenantAttributeRules.modifyAttributes(context, {
+  const attributes = revenantModifiers.modifyAttributes(context, {
     power: 1000,
     precision: 1000,
     toughness: 1000,
@@ -1395,7 +1395,7 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
   assert.equal(attributes.ferocity, 300);
   assert.equal(attributes.precision, 1150);
   assert.equal(attributes.conditionDamage, 150);
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(context, 1), 1.75);
+  assert.equal(revenantModifiers.modifyStrikeDamage(context, 1), 1.75);
 
   const numinousContext = {
     ...context,
@@ -1407,7 +1407,7 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
       selectedTraitIds: [TRAIT.YEARNING_EMPOWERMENT, TRAIT.NUMINOUS_GIFT]
     }
   };
-  const numinousAttributes = revenantAttributeRules.modifyAttributes(numinousContext, {
+  const numinousAttributes = revenantModifiers.modifyAttributes(numinousContext, {
     conditionDurationBonuses: {
       Poisoned: 10,
       Torment: 10
@@ -1419,7 +1419,7 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
     Torment: 10
   });
   assert.equal(
-    revenantAttributeRules.modifyConditionDuration(
+    revenantModifiers.modifyConditionDuration(
       {
         ...numinousContext,
         condition: 'Poisoned'
@@ -1440,7 +1440,7 @@ test("Conduit runtime rejects Vindicator's Alliance legend", () => {
   assert.equal(result.planningState.profession.activeLegendId, LEGEND.ASSASSIN);
 });
 
-test('Alacrity changes cooldowns but never passive energy regeneration', () => {
+test('console Alacrity settings never change passive energy regeneration', () => {
   const rotation = ['__combat_start', { type: 'wait', durationMs: 5000 }];
   const without = simulate('Core', rotation, {
     initialEnergy: 0,

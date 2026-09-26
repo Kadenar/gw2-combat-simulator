@@ -8,7 +8,7 @@ import { createObservedProfessionSimulator } from '#tests/helpers/observed-runti
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { engineerMechHasQuickness } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
-import { mechanistRechargeWork } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-rules.js';
+import { mechanistRechargeWork } from '#gw2/professions/engineer/specializations/mechanist/mechanics/recharge.js';
 
 // Mechanist contracts cover signet passives, mech boon state, inheritance, and command effects.
 const baseConfig = Object.freeze({
@@ -647,7 +647,7 @@ describe('Mechanist grandmaster active effects', () => {
     const mortarSteps = dynamo.steps.filter((step) => step.skill === 'Jade Mortar');
 
     assert.equal(mortarSteps[0].end - mortarSteps[0].start, 1620);
-    assert.equal(mortarSteps[1].start - mortarSteps[0].start, 16000);
+    assert.equal(mortarSteps[1].start - mortarSteps[0].start, 12800);
     assert.equal(
       dynamo.events.filter((event) => event.type === 'buff' && event.kind === 'quickness' && event.duration === 2.5)
         .length,
@@ -806,6 +806,6 @@ describe('Mechanist grandmaster active effects', () => {
     const signetRecharge = simulate('Mechanist', ['Force Signet', 'Force Signet'], jDriveConfig);
     const signetSteps = signetRecharge.steps.filter((step) => step.skill === 'Force Signet');
 
-    assert.equal(signetSteps[1].start - signetSteps[0].end, 22800);
+    assert.equal(signetSteps[1].start - signetSteps[0].end, 18240);
   });
 });

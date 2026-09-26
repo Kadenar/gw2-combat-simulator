@@ -2,7 +2,7 @@ import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { EngineerRuntimeState, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
-import { scrapperMaximumAmmo } from '#gw2/professions/engineer/specializations/scrapper/traits/modifiers.js';
+import { scrapperMaximumAmmo } from '#gw2/professions/engineer/specializations/scrapper/traits/ex-machina.js';
 import { applyScrapperCastTraits } from '#gw2/professions/engineer/specializations/scrapper/traits/index.js';
 import {
   scrapperResolverEventReactions,

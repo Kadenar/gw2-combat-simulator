@@ -1,10 +1,8 @@
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
-import {
-  chronomancerAvailability,
-  observeChronomancerEvent
-} from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/chronomancer-rules.js';
+import { observeChronomancerEvent } from '#gw2/professions/mesmer/specializations/chronomancer/traits/danger-time.js';
+import { chronomancerAvailability } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
 import {
   chronomancerControllerFor,
   initializeChronomancerRuntime

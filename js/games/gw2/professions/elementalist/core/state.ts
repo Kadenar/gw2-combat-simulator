@@ -172,7 +172,7 @@ export function setElementalistAttunementReadyAt(
     context.cooldownController.startRecharge(
       skill,
       context.time,
-      (readyAt - context.time) * context.cooldownController.rate(skill, context.time)
+      (readyAt - context.time) * context.cooldownController.rate(skill)
     );
   else context.cooldownController.clear(skill.id);
 }

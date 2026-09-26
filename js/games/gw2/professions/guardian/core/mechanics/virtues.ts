@@ -19,10 +19,15 @@ import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type {
   GuardianResolverContext,
   GuardianResolverEvent,
+  GuardianRuntimeState,
   GuardianSkill,
   GuardianVirtue
 } from '#gw2/professions/guardian/types.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import { emitGuardianBoon } from '#gw2/professions/guardian/core/traits/index.js';
 
+type Runtime = Gw2Runtime<GuardianRuntimeState>;
 const VIRTUES_BY_SLOT: readonly (GuardianVirtue | null)[] = Object.freeze([null, 'justice', 'resolve', 'courage']);
 
 /** Decodes the slot's trailing digit; each caller owns its skill eligibility checks. */
@@ -141,4 +146,84 @@ export function reactToJusticeHitWithOptions(
     skillName,
     passiveBurnDuration
   });
+}
+
+/** Core virtue skills and the virtue each one activates; hooks resolve completed casts through the same table. */
+export const CORE_VIRTUES = [
+  [GUARDIAN_SKILL_IDS.JUSTICE, 'justice'],
+  [GUARDIAN_SKILL_IDS.RESOLVE, 'resolve'],
+  [GUARDIAN_SKILL_IDS.COURAGE, 'courage']
+] as const;
+const DRAGONHUNTER_VIRTUES = [
+  [GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE, 'justice'],
+  [GUARDIAN_SKILL_IDS.WINGS_OF_RESOLVE, 'resolve'],
+  [GUARDIAN_SKILL_IDS.SHIELD_OF_COURAGE, 'courage']
+] as const;
+const WILLBENDER_VIRTUES = [
+  [GUARDIAN_SKILL_IDS.RUSHING_JUSTICE, 'justice'],
+  [GUARDIAN_SKILL_IDS.FLOWING_RESOLVE, 'resolve'],
+  [GUARDIAN_SKILL_IDS.CRASHING_COURAGE, 'courage']
+] as const;
+const LUMINARY_VIRTUES = [
+  [GUARDIAN_SKILL_IDS.RADIANT_JUSTICE, 'justice'],
+  [GUARDIAN_SKILL_IDS.RADIANT_RESOLVE, 'resolve'],
+  [GUARDIAN_SKILL_IDS.RADIANT_COURAGE, 'courage']
+] as const;
+/** Recharge-backed virtue projections follow the shared cast controller, including Alacrity and explicit resets. */
+export function refreshGuardianVirtues(runtime: Runtime): void {
+  const kind = runtime.profession.specialization.kind;
+  const virtues =
+    kind === 'Core'
+      ? CORE_VIRTUES
+      : kind === 'Dragonhunter'
+        ? DRAGONHUNTER_VIRTUES
+        : kind === 'Willbender'
+          ? WILLBENDER_VIRTUES
+          : kind === 'Luminary'
+            ? LUMINARY_VIRTUES
+            : null;
+  if (!virtues) return;
+  runtime.cooldownController.refresh(runtime.time);
+  for (const [id, virtue] of virtues)
+    runtime.profession.core.virtueReadyAt[virtue] = gw2CooldownReadyAt(runtime.cooldowns.get(id) ?? 0);
+}
+
+/** Committed activation boons sample live attributes and retain their selected component and party ownership. */
+function virtueBuff(runtime: Runtime, cast: RuntimeCast, trait: number, kind: string, party = false): void {
+  if (!hasTrait(runtime, trait)) return;
+  const profile = requireBalanceProfileFromContext(runtime, trait);
+  const type = kind === 'guardian-inspiring-virtue' ? 'buff' : 'boon';
+  const effect = requireEffect(profile, type, kind);
+  if (!effect) return;
+  const duration = effectNumber(profile, effect, 'duration');
+  const event = {
+    type: 'buff' as const,
+    at: runtime.time,
+    source: 'guardian',
+    sourceId: trait,
+    actorType: 'player' as const,
+    skillId: cast.skill.id,
+    skillName: cast.skill.name,
+    activationId: cast.id,
+    name: profile.name,
+    kind,
+    stacks: effectNumber(profile, effect, 'stacks'),
+    duration,
+    audience: { recipients: party ? ('party' as const) : ('self' as const) }
+  };
+  emitGuardianBoon(runtime, event);
+}
+
+/** Core and elite owners invoke the same activation boons after admitting their own passive-readiness gate. */
+export function applyGuardianVirtueActivationTraits(runtime: Runtime, cast: RuntimeCast, virtue: GuardianVirtue): void {
+  virtueBuff(
+    runtime,
+    cast,
+    GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
+    virtue === 'justice' ? 'might' : virtue === 'resolve' ? 'regeneration' : 'protection',
+    true
+  );
+  virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION, 'resolution');
+  virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE, 'guardian-inspiring-virtue');
+  if (virtue === 'courage') virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE, 'stability');
 }

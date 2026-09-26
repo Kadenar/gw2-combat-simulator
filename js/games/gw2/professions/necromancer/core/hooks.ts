@@ -1,7 +1,6 @@
 import { canonicalTime, isTimeInWindow, isInternalCooldownReady } from '#kernel/core/clock.js';
-import { modifyNecromancerRechargeStart } from '#gw2/professions/necromancer/core/traits/modifiers.js';
+import { modifyNecromancerRechargeStart } from '#gw2/professions/necromancer/core/mechanics/recharge.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
-import { resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
@@ -23,7 +22,7 @@ import {
   runNecromancerLifeForceDepletion
 } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
-import { castCompleted, gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
+import { castCompleted } from '#gw2/platform/skills/timing.js';
 import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
@@ -33,7 +32,6 @@ import {
 } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type {
   NecromancerRuntime,
@@ -70,7 +68,6 @@ import {
 } from '#gw2/professions/necromancer/core/mechanics/sword-chain.js';
 import {
   initializeNecromancerPassives,
-  nextNecromancerPassiveGain,
   startNecromancerAlliedOpportunities,
   necromancerPassiveTasks
 } from '#gw2/professions/necromancer/core/mechanics/passives.js';
@@ -86,8 +83,9 @@ import {
   necromancerMinionTasks,
   ownsNecromancerMinionSkill
 } from '#gw2/professions/necromancer/core/mechanics/minions.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import { DEPLETION, necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 
-const DEPLETION = 'necromancer.life-force-depleted';
 const LICH_EXPIRY = 'necromancer.lich-expiry';
 const FLIP_EXPIRY = 'necromancer.flip-expiry';
 const GRAVEDIGGER_RESET = 'necromancer.gravedigger-reset';
@@ -233,28 +231,6 @@ function exitLich(runtime: NecromancerRuntime): void {
   grantNecromancerLifeForce(runtime, 15);
 }
 
-/** Grants accepted outcomes directly to the current pool, applying percentage capacity and Gluttony once. */
-export function grantNecromancerLifeForce(runtime: NecromancerRuntime, percent: number): void {
-  if (!(percent > 0)) return;
-  const multiplier = hasTrait(runtime, TRAIT.GLUTTONY)
-    ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.GLUTTONY), 'lifeForceGainMultiplier')
-    : 1;
-  runtime.resourceController.grant(
-    'lifeForce',
-    ((percent * runtime.profession.core.lifeForce.maximum) / 100) * multiplier
-  );
-}
-
-/** Every gain or rate change replaces the prior depletion wake; obsolete generations cannot end a later shroud. */
-function refreshDepletion(runtime: NecromancerRuntime): void {
-  const state = runtime.profession.core;
-  runtime.cancelOwner({ id: DEPLETION, generation: state.lifeForceWakeGeneration });
-  state.lifeForceWakeGeneration++;
-  const at = gw2CooldownReadyAt(resourceDepletionAt(state.lifeForce));
-  if (Number.isFinite(at))
-    runtime.schedule(DEPLETION, at, null, { id: DEPLETION, generation: state.lifeForceWakeGeneration }, -300);
-}
-
 function transition(runtime: NecromancerRuntime, entering: boolean, skill?: NecromancerSkill): void {
   const kind = entering ? 'shroudEntryMs' : 'shroudExitMs';
   lockTransitionInput(runtime, kind, skill);
@@ -270,7 +246,7 @@ function transition(runtime: NecromancerRuntime, entering: boolean, skill?: Necr
 }
 
 /** Exit mutates the same state seen by attacks and starts entry recharge only after the form ends. */
-export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
+function exitNecromancerShroud(runtime: NecromancerRuntime): void {
   const state = runtime.profession.core;
   if (!state.activeShroud || state.activeShroud === 'lich') return;
   // Depletion has no cast completion; the actual form exit still invalidates its pending attack chain.
@@ -299,31 +275,6 @@ export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
   transition(runtime, false);
   soulBarbs(runtime);
 }
-
-export const necromancerLifeForce: ResourcePolicy<NecromancerRuntime> = {
-  kind: 'continuous',
-  state: (runtime) => runtime.profession.core.lifeForce,
-  maximum: () => 100,
-  initial: (runtime) => Number(runtime.config.initialResource ?? 100),
-  recovery(runtime) {
-    const state = runtime.profession.core;
-    return state.activeShroud && state.activeShroud !== 'lich'
-      ? (-state.lifeForce.maximum *
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(runtime, state.activeShroudProfileId || PROFILE.shroud),
-            'lifeForceDrain'
-          )) /
-          100
-      : 0;
-  },
-  depletion: { refresh: refreshDepletion, stop: refreshDepletion },
-  nextChange(runtime, cost) {
-    if (cost > runtime.profession.core.lifeForce.maximum) return Infinity;
-    // An overlapping request can await the already accepted cast lane; intervening hits decide the actual gain.
-    const completion = runtime.cursor.endTime();
-    return Math.min(nextNecromancerPassiveGain(runtime, cost), completion > runtime.time ? completion : Infinity);
-  }
-};
 
 /** Landed player packets own weapon gains and the post-hit half-health test; no predicted observation is replayed. */
 function damage(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
@@ -617,7 +568,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
       );
     return { ready: true };
   },
-  // Recharge traits select work once at acceptance; later Alacrity changes only the shared recharge rate.
+  // Recharge traits select work once at acceptance; the shared controller applies permanent Alacrity.
   rechargeWork(runtime, skill, work) {
     if (skill.shroudEntry || skill.rechargeOnMinionDeath) return 0;
     if (skill.categories?.includes('Corruption') && hasTrait(runtime, TRAIT.MASTER_OF_CORRUPTION))

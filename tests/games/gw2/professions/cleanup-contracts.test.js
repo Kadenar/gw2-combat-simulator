@@ -12,17 +12,17 @@ import { FIREBRAND_BALANCE_PROFILE_IDS as FB } from '#gw2/professions/guardian/s
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
-import { soulbeastAttributeRules } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
+import { soulbeastModifiers } from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as SB } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { GALESHOT_BALANCE_PROFILE_IDS as GALE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
-import { conduitModifierRules } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity-rules.js';
+import { conduitModifierRules } from '#gw2/professions/revenant/specializations/conduit/modifiers.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { REVENANT_SKILL_IDS as R, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as W, WARRIOR_TRAIT_IDS as WT } from '#gw2/professions/warrior/data/ids.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { paragonAttributeRules } from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-motivation.js';
+import { paragonModifiers } from '#gw2/professions/warrior/specializations/paragon/modifiers.js';
 
 // Exercise exits directly so a large time advance cannot silently move the cooldown's origin.
 test('Forge exits finalize once at the actual transition and clear weapon state', () => {
@@ -157,7 +157,7 @@ test('Soulbeast reconciles raw and precomputed archetypes across merge state and
         conditionDamage: 0,
         precision: 1000
       };
-      const actual = soulbeastAttributeRules.modifyAttributes(
+      const actual = soulbeastModifiers.modifyAttributes(
         {
           config: { selectedPet: 'Pig', attributeProvenance: { professionStaticRulesApplied: precomputed } },
           catalog: { balanceProfilesById: profiles },
@@ -271,7 +271,7 @@ test('Paragon renamed refrains replace, project, exhaust, and recover from missi
   const combat = { type: 'combat-start' };
   const action = run([combat]);
   const freedom = run([combat, W.CHANT_OF_FREEDOM]);
-  const rule = paragonAttributeRules.modifierRules.find(({ id }) => id === 'warrior.strengthening-stanzas');
+  const rule = paragonModifiers.modifierRules.find(({ id }) => id === 'warrior.strengthening-stanzas');
   for (const [result, id, applies] of [
     [action, W.CHANT_OF_ACTION, true],
     [freedom, W.CHANT_OF_FREEDOM, false]

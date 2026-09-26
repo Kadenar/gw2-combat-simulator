@@ -4,7 +4,7 @@ import {
   BLADESWORN_SHARP_AS_THE_WIND_SKILLS,
   BLADESWORN_SKILL_MECHANICS
 } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
-import { bladeswornAttributeRules } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger-rules.js';
+import { bladeswornModifiers } from '#gw2/professions/warrior/specializations/bladesworn/modifiers.js';
 import { bladeswornHooks } from '#gw2/professions/warrior/specializations/bladesworn/hooks.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { bladeswornUi } from '#gw2/professions/warrior/specializations/bladesworn/presentation.js';
@@ -27,7 +27,7 @@ export const bladeswornModule = defineNativeModule({
   state: {
     create: bladeswornState.create
   },
-  modifiers: bladeswornAttributeRules,
+  modifiers: bladeswornModifiers,
   hooks: bladeswornHooks,
   presentation: bladeswornUi
 });

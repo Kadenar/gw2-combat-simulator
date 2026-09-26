@@ -11,7 +11,7 @@ import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/s
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/traits/modifiers.js';
+import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
 import {
   deferThiefCompletion,
   emitDeferredThiefBuff,

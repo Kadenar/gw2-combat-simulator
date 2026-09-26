@@ -1,7 +1,7 @@
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { rangerCoreModifierRules } from '#gw2/professions/ranger/core/traits/modifiers.js';
+import { rangerCoreModifierRules } from '#gw2/professions/ranger/core/modifiers.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';

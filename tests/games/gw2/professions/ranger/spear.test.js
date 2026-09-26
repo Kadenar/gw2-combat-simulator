@@ -46,8 +46,8 @@ test('Panther charges recharge serially and do not share recharge with Spider', 
   ]);
   assert.deepEqual(result.warnings, []);
   const prowl = result.steps.filter((step) => step.skillId === ID.PANTHERS_PROWL);
-  assert.ok(prowl[1].start < prowl[0].end + 10_000);
-  assert.equal(prowl[2].start, prowl[0].end + 10_000);
+  assert.ok(prowl[1].start < prowl[0].end + 8000);
+  assert.equal(prowl[2].start, prowl[0].end + 8000);
   assert.equal(result.planningState.ammoBySkillId[ID.PANTHERS_PROWL].charges, 0);
 });
 

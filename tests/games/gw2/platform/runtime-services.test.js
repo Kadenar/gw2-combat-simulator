@@ -414,18 +414,18 @@ test('live recharge anchors compose once per cast and reject nonfinite results',
   const runtime = profession.runtimeFor({ specialization: 'Elite' });
   const result = runGw2Runtime({ profession: runtime, config, rotation: [cast(991002), cast(991002)] });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.steps[1].start, 2520);
+  assert.equal(result.steps[1].start, 2120);
   assert.deepEqual(calls, [
     ['Core', 0, 0],
     ['Elite', 0, 0],
-    ['Core', 2.52, 2.52],
-    ['Elite', 2.52, 2.52]
+    ['Core', 2.12, 2.12],
+    ['Elite', 2.12, 2.12]
   ]);
   assert.deepEqual(completions, [
     ['Core', 0.5, 0.5],
     ['Elite', 0.5, 0.5],
-    ['Core', 3.02, 3.02],
-    ['Elite', 3.02, 3.02]
+    ['Core', 2.62, 2.62],
+    ['Elite', 2.62, 2.62]
   ]);
   assert.throws(
     () =>
@@ -449,7 +449,7 @@ test('live public projections observe planning after death without exposing cont
       project(input) {
         projections++;
         for (const key of ['schedulerState', 'schedulerContext', 'queue', 'query']) assert.equal(key in input, false);
-        assert.equal(input.time, 4);
+        assert.equal(input.time, 3.6);
         assert.equal(input.catalog.skillsById.get(991002).name, 'Channel');
         assert.equal(input.config.target.health, 1);
         return { counts: { uses: input.profession.core.uses, hits: input.profession.core.hits } };
@@ -475,7 +475,7 @@ test('live public projections observe planning after death without exposing cont
   const result = run(rotation, options, profession);
   // Planning includes self commands after death, while combat retains the earlier detached boundary.
   assert.deepEqual(result.planningState.profession.counts, { uses: 2, hits: 1 });
-  assert.equal(result.planningState.cooldowns.Channel.readyAt, 6000);
+  assert.equal(result.planningState.cooldowns.Channel.readyAt, 5200);
   assert.equal(result.combatState.profession.uses, 1);
   assert.equal('privateGeneration' in result.planningState.profession, false);
   result.planningState.profession.counts.uses = 999;
@@ -811,9 +811,9 @@ test('recharge entitlements are reserved once at acceptance and completion obser
   const result = run([cast(991002), cast(991002)], {}, profession);
   assert.deepEqual(calls, [
     ['reserve', 0],
-    ['complete', 1, 2],
-    ['reserve', 2],
-    ['complete', 3, 4]
+    ['complete', 1, 1.8],
+    ['reserve', 1.8],
+    ['complete', 2.8, 2.8 + 0.8]
   ]);
   assert.equal(result.planningState.profession.grants, 2);
 });

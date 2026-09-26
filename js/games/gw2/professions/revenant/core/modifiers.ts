@@ -1,0 +1,212 @@
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { buffMatchesAudience, GW2_STANDARD_BOONS, sumActiveStacks } from '#gw2/platform/combat/boons.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import {
+  boonActive,
+  playerHealthFraction,
+  targetConditionActive,
+  targetHealthBelow,
+  targetHealthFraction,
+  vulnerabilityStacks
+} from '#gw2/platform/combat/query/runtime-query.js';
+import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { readProfessionCoreState, readProfessionSpecializationState } from '#gw2/platform/engine/profession/state.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import type { RevenantConfig, RevenantState } from '#gw2/professions/revenant/types.js';
+import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
+
+export interface RevenantModifierContext extends Gw2ModifierContext {
+  readonly config?: RevenantConfig;
+}
+
+function revenantRuntimeState(context: RevenantModifierContext): object | undefined {
+  return context.runtime?.profession ?? context.state?.profession;
+}
+
+export function revenantRuntimeCoreState(context: RevenantModifierContext): Partial<RevenantCoreState> {
+  return readProfessionCoreState<RevenantCoreState>(revenantRuntimeState(context));
+}
+
+export function revenantRuntimeSpecializationState(
+  context: RevenantModifierContext,
+  expectedKind: string
+): Partial<RevenantState> {
+  return readProfessionSpecializationState<RevenantState>(revenantRuntimeState(context), expectedKind) || {};
+}
+
+export function revenantTimedBuff(context: RevenantModifierContext, kind: string): boolean {
+  if (context.config?.boons?.[kind]) return true;
+  return (context.runtime?.boons?.get(kind) || []).some(
+    (application) => application.at <= context.time && application.expiresAt > context.time
+  );
+}
+
+function activeOffhand(context: RevenantModifierContext): boolean {
+  const set = Number(context.runtime?.activeWeaponSet || 1);
+  return Boolean(gw2ConfiguredWeaponSet(context.config, set)[1]);
+}
+
+// Count distinct self-affecting boons active at the query time for Revenant
+// modifiers that scale with boon variety.
+export function revenantActiveBoonCount(context: RevenantModifierContext): number {
+  return GW2_STANDARD_BOONS.filter((boon) => boonActive(context, boon)).length;
+}
+
+export const revenantCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'revenant.ferocious-aggression',
+    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+    operation: 'damage-additive',
+    amount: 0.1,
+    // Grant the bonus only while permanent or simulated Fury affects the player.
+    when: (context) =>
+      isGw2PlayerModifierOwnedEvent(context.event) &&
+      hasTrait(context, TRAIT.FEROCIOUS_AGGRESSION) &&
+      boonActive(context, 'fury')
+  },
+  {
+    id: 'revenant.rising-tide',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.1,
+    when: (context) =>
+      isGw2PlayerModifierOwnedEvent(context.event) &&
+      hasTrait(context, TRAIT.RISING_TIDE) &&
+      playerHealthFraction(context) > 0.75
+  },
+  {
+    id: 'revenant.acolyte-of-torment',
+    target: MODIFIER_TARGET.CONDITION_DAMAGE,
+    operation: 'multiply',
+    factor: 1.1,
+    when: (context) =>
+      isGw2PlayerModifierOwnedEvent(context.event) &&
+      context.condition === 'Torment' &&
+      hasTrait(context, TRAIT.ACOLYTE_OF_TORMENT)
+  },
+  {
+    id: 'revenant.dwarven-battle-training',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.1,
+    when: (context) =>
+      isGw2PlayerModifierOwnedEvent(context.event) &&
+      hasTrait(context, TRAIT.DWARVEN_BATTLE_TRAINING) &&
+      targetConditionActive(context, 'Weakness')
+  },
+  {
+    id: 'revenant.vicious-reprisal',
+    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+    operation: 'damage-additive',
+    amount: 0.1,
+    when: (context) =>
+      isGw2PlayerModifierOwnedEvent(context.event) &&
+      hasTrait(context, TRAIT.VICIOUS_REPRISAL) &&
+      boonActive(context, 'resolution')
+  },
+  {
+    id: 'revenant.destructive-impulses',
+    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+    operation: 'damage-additive',
+    amount: (context) => (activeOffhand(context) ? 0.075 : 0.05),
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.DESTRUCTIVE_IMPULSES)
+  },
+  {
+    id: 'revenant.unsuspecting-strikes',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.2,
+    when: (context) =>
+      isGw2PlayerModifierOwnedEvent(context.event) &&
+      hasTrait(context, TRAIT.UNSUSPECTING_STRIKES) &&
+      targetHealthFraction(context) > 0.8
+  },
+  {
+    id: 'revenant.targeted-destruction',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: (context) => 1 + vulnerabilityStacks(context) * 0.005,
+    when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TARGETED_DESTRUCTION)
+  },
+  {
+    id: 'revenant.swift-termination',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.2,
+    when: (context) =>
+      isGw2PlayerModifierOwnedEvent(context.event) &&
+      hasTrait(context, TRAIT.SWIFT_TERMINATION) &&
+      targetHealthBelow(context, 0.5)
+  }
+]);
+
+function modifyCoreCriticalChance(context: RevenantModifierContext, chance: number): number {
+  return hasTrait(context, TRAIT.ROILING_MISTS) && boonActive(context, 'fury')
+    ? chance + balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.ROILING_MISTS), 'criticalChance')
+    : chance;
+}
+
+// Apply Revenant's condition- and skill-specific base duration modifiers before
+// shared Expertise scaling.
+function modifyCoreConditionDuration(context: RevenantModifierContext, duration: number): number {
+  let modified = duration;
+  if (hasTrait(context, TRAIT.PACT_OF_PAIN) && !professionStaticRulesApplied(context.config)) {
+    const pactOfPainProfile = requireBalanceProfileFromContext(context, TRAIT.PACT_OF_PAIN);
+    modified += balanceProfileNumber(pactOfPainProfile, 'conditionDurationBonus');
+  }
+
+  if (
+    isDamagingCondition(context.condition) &&
+    hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) &&
+    !professionStaticRulesApplied(context.config)
+  ) {
+    const yearningEmpowermentProfile = requireBalanceProfileFromContext(context, TRAIT.YEARNING_EMPOWERMENT);
+    modified += balanceProfileNumber(yearningEmpowermentProfile, 'conditionDurationBonus');
+  }
+
+  return modified;
+}
+
+// Reconcile build-time Revenant attributes with live legend, upkeep, and trait
+// state without double-applying static bonuses.
+function modifyCoreAttributes(context: RevenantModifierContext, attributes: Gw2Stats): Gw2Stats {
+  const modified = { ...attributes } as Record<string, number>;
+  if (hasTrait(context, TRAIT.NOTORIETY)) {
+    const baseMight = boundedNumber(context.config?.boons?.might || 0, 0, 0, 25);
+    // Notoriety converts only the player's Might; retain explicit zero stacks and the remaining configured cap.
+    const dynamicMight = sumActiveStacks(
+      context.runtime?.boons?.get('might') || [],
+      (application) =>
+        buffMatchesAudience(application, 'all') &&
+        application.at <= context.time &&
+        application.expiresAt > context.time,
+      (application) => Number(application.stacks ?? 1),
+      25 - baseMight
+    );
+    const might = baseMight + dynamicMight;
+    const notorietyProfile = requireBalanceProfileFromContext(context, TRAIT.NOTORIETY);
+    modified.power = Number(modified.power || 0) + might * balanceProfileNumber(notorietyProfile, 'attributePerStack');
+    modified.conditionDamage =
+      Number(modified.conditionDamage || 0) - might * balanceProfileNumber(notorietyProfile, 'attributePerStack');
+  }
+
+  return modified;
+}
+
+export const revenantCoreModifiers = Object.freeze({
+  modifyAttributes: modifyCoreAttributes,
+  modifyCriticalChance: modifyCoreCriticalChance,
+  modifyConditionDuration: modifyCoreConditionDuration,
+  modifierRules: revenantCoreModifierRules,
+  compileModifierRules: compileGw2ModifierRules
+});

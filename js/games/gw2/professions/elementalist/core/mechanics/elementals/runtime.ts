@@ -140,13 +140,6 @@ function actionRate(context: ElementalistRuntime, at: number): number {
   return elementalBoonActive(context, 'quickness', at) ? 1.5 : 1;
 }
 
-// Alacrity speeds up the secondary-attack cooldown recharge (Flame Burst / Enervating Punch).
-function summonRechargeRate(context: ElementalistRuntime, at: number): number {
-  return elementalBoonActive(context, 'alacrity', at)
-    ? Number(context.config.alacrityRechargeRate || GW2_ALACRITY_RECHARGE_RATE)
-    : 1;
-}
-
 /** Summons read only applications addressed to their current companion identity. */
 function elementalBoonActive(context: ElementalistRuntime, kind: string, at: number): boolean {
   return (
@@ -256,8 +249,7 @@ function startFlameBurst(context: ElementalistRuntime, at: number): void {
   const rate = actionRate(context, at);
   const elemental = professionCoreState(context).summonedElemental;
   const action = beginSummonAction(context, at, profile.skillId, 'Flame Burst', profile.animationEnd / rate);
-  elemental.secondaryAttackReadyAt =
-    at + profile.animationEnd / rate + profile.cooldown / summonRechargeRate(context, at);
+  elemental.secondaryAttackReadyAt = at + profile.animationEnd / rate + profile.cooldown / GW2_ALACRITY_RECHARGE_RATE;
   scheduleImpact(context, at + profile.impact / rate, 'flame-burst', action);
   const nextAt = at + profile.recovery / rate;
   elemental.busyUntil = nextAt;
@@ -298,8 +290,7 @@ function startEnervatingPunch(context: ElementalistRuntime, at: number): void {
   const rate = actionRate(context, at);
   const elemental = professionCoreState(context).summonedElemental;
   const action = beginSummonAction(context, at, profile.skillId, 'Enervating Punch', profile.animationEnd / rate);
-  elemental.secondaryAttackReadyAt =
-    at + profile.animationEnd / rate + profile.cooldown / summonRechargeRate(context, at);
+  elemental.secondaryAttackReadyAt = at + profile.animationEnd / rate + profile.cooldown / GW2_ALACRITY_RECHARGE_RATE;
   scheduleImpact(context, at + profile.impact / rate, 'enervating-punch', action);
   const nextAt = at + profile.recovery / rate;
   elemental.busyUntil = nextAt;

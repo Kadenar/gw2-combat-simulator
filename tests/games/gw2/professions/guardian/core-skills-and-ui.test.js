@@ -453,7 +453,7 @@ test('Justice passive counts individual hits and respects its active cooldown', 
   assert.equal(passive.combatState.profession.justiceHitCount, 4);
   assert.equal(activated.combatState.profession.justiceActiveBurns, 1);
   assert.equal(activated.combatState.profession.justicePassiveBurns, 0);
-  assert.equal(activated.combatState.profession.virtueReadyAt.justice, 20);
+  assert.equal(activated.combatState.profession.virtueReadyAt.justice, 16);
   assert.equal(permeating.combatState.profession.justicePassiveBurns, 4);
   assert.equal(permeating.combatState.profession.justiceHitCount, 2);
   assert.equal(radiantPassive.combatState.profession.justicePassiveBurns, 2);
@@ -550,7 +550,7 @@ test('Sword of Justice waits for ammo recharge after exhausting its charges', ()
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.steps.map((step) => step.start),
-    [0, 1600, 3200, 15600]
+    [0, 1400, 2800, 12600]
   );
 });
 

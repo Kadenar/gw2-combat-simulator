@@ -1,7 +1,7 @@
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
-import { troubadourAttributeRules } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-rules.js';
+import { troubadourModifiers } from '#gw2/professions/mesmer/specializations/troubadour/modifiers.js';
 import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
 import {
@@ -22,7 +22,7 @@ export const troubadourModule = defineNativeModule({
   state: {
     create: troubadourState.create
   },
-  modifiers: troubadourAttributeRules,
+  modifiers: troubadourModifiers,
   hooks: troubadourHooks,
   presentation: troubadourUi
 });

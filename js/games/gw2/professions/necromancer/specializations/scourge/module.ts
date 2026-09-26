@@ -2,7 +2,7 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
 
-import { scourgeAttributeRules } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-rules.js';
+import { scourgeModifiers } from '#gw2/professions/necromancer/specializations/scourge/modifiers.js';
 import { scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import { scourgeHooks } from '#gw2/professions/necromancer/specializations/scourge/hooks.js';
 import { bindScourgeUi } from '#gw2/professions/necromancer/specializations/scourge/presentation.js';
@@ -17,6 +17,6 @@ export const scourgeModule = defineNativeModule({
   }),
   state: { create: scourgeState.create },
   hooks: scourgeHooks,
-  modifiers: scourgeAttributeRules,
+  modifiers: scourgeModifiers,
   presentation: bindScourgeUi
 });

@@ -739,7 +739,7 @@ test('profession condition-duration hooks remain under the GW2 cap', () => {
     id: 'duration-cap-fixture',
     name: 'Duration Cap Fixture',
     catalog,
-    attributeRules: {
+    modifiers: {
       modifyConditionDuration: (_context, duration) => duration * 2
     }
   });

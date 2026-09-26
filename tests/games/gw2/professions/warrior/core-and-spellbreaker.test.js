@@ -21,10 +21,10 @@ import { WARRIOR_WEAPON_STOW } from '#gw2/professions/warrior/core/skills/action
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/profiles.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { warriorCoreAttributeRules } from '#gw2/professions/warrior/core/traits/modifiers.js';
+import { warriorCoreModifiers } from '#gw2/professions/warrior/core/modifiers.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { berserkerModule } from '#gw2/professions/warrior/specializations/berserker/module.js';
-import { berserkerAttributeRules } from '#gw2/professions/warrior/specializations/berserker/mechanics/berserk-rules.js';
+import { berserkerModifiers } from '#gw2/professions/warrior/specializations/berserker/modifiers.js';
 import { BERSERKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import { bladeswornModule } from '#gw2/professions/warrior/specializations/bladesworn/module.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
@@ -32,7 +32,7 @@ import { paragonModule } from '#gw2/professions/warrior/specializations/paragon/
 import { PARAGON_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { spellbreakerModule } from '#gw2/professions/warrior/specializations/spellbreaker/module.js';
 import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
-import { spellbreakerAttributeRules } from '#gw2/professions/warrior/specializations/spellbreaker/mechanics/full-counter-rules.js';
+import { spellbreakerModifiers } from '#gw2/professions/warrior/specializations/spellbreaker/modifiers.js';
 import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
@@ -679,7 +679,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
 
   assert.equal(arc.criticalChance, 0.4);
 
-  const attributes = berserkerAttributeRules.modifyAttributes(
+  const attributes = berserkerModifiers.modifyAttributes(
     {
       catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.BLOOD_REACTION] },
@@ -702,7 +702,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     conditionDamage: 390
   });
 
-  const bloodReactionOutsideBerserk = berserkerAttributeRules.modifyAttributes(
+  const bloodReactionOutsideBerserk = berserkerModifiers.modifyAttributes(
     {
       catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.BLOOD_REACTION] },
@@ -725,7 +725,7 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
     conditionDamage: 120
   });
 
-  const greatFortitude = berserkerAttributeRules.modifyAttributes(
+  const greatFortitude = berserkerModifiers.modifyAttributes(
     {
       catalog: warriorCatalog,
       config: { selectedTraitIds: [TRAIT.GREAT_FORTITUDE] },
@@ -1157,7 +1157,7 @@ test('Warrior dagger bursts always apply their boonless-target multiplier', () =
     ['warrior.breaching-strike-boonless', ID.BREACHING_STRIKE],
     ['warrior.slicing-maelstrom-boonless', ID.SLICING_MAELSTROM]
   ]) {
-    const rule = warriorCoreAttributeRules.modifierRules.find((rule) => rule.id === id);
+    const rule = warriorCoreModifiers.modifierRules.find((rule) => rule.id === id);
     const context = { profession: warriorProfession, config: { target: { boonless: false } }, event: { skillId } };
     assert.equal(rule.when(context), true);
     assert.equal(rule.factor, 1.5);
@@ -1366,7 +1366,7 @@ test('Rifle Butt restores rifle ammunition and readies Kill Shot', () => {
     [2, 2, 2]
   );
   assert.equal(result.planningState.cooldowns['Kill Shot'], undefined);
-  assert.equal(result.planningState.cooldowns['Rifle Butt'].remaining, 12_020);
+  assert.equal(result.planningState.cooldowns['Rifle Butt'].remaining, 9620);
 });
 
 test('Spellbreaker control grants independent Insight stacks and No Escape', () => {
@@ -1390,7 +1390,7 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
     true
   );
 
-  const attributes = spellbreakerAttributeRules.modifyAttributes(
+  const attributes = spellbreakerModifiers.modifyAttributes(
     {
       catalog: warriorCatalog,
       time: 10,

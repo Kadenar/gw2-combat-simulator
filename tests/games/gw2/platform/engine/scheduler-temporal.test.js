@@ -141,7 +141,7 @@ test('a recovered ammo charge cannot cast before its lockout expires', () => {
   assert.equal(recoveredCharges, 1);
   assert.deepEqual(
     result.steps.filter((step) => step.skill === 'Ammo Cast').map((step) => step.start),
-    [5000, 5000]
+    [4000, 4000]
   );
   assert.deepEqual(result.warnings, []);
 });
@@ -177,7 +177,7 @@ test('skill recharge reduction accepts game-specific base-to-wall-time conversio
   const controller = createCooldownController({
     state,
     rechargeDuration: () => 8,
-    rechargeIntervals: (_skill, start, end) => [{ start, end, rate: 1.25 }]
+    rate: () => 1.25
   });
 
   controller.spendAmmo(ammo, 0);
@@ -511,8 +511,8 @@ test('committed interrupted casts retain their lane while cancelled attempts rel
 
   assert.equal(interruptedAction.endsAt, 0.4);
   assert.equal(interruptedAction.castLockoutEndsAt, 1);
-  assert.equal(scheduled.planningState.cooldowns[interruptedAction.skillName].readyAt / 1000, 10.4);
-  assert.equal(scheduled.planningState.cooldowns[interruptedAction.skillName].readyAt / 1000, 10.4);
+  assert.equal(scheduled.planningState.cooldowns[interruptedAction.skillName].readyAt / 1000, 8.4);
+  assert.equal(scheduled.planningState.cooldowns[interruptedAction.skillName].readyAt / 1000, 8.4);
   assert.equal(scheduled.steps[0].end, 400);
   assert.equal(scheduled.steps[0].castLockoutEnd, 1000);
   assert.equal(swapAction.at, 0.4);
@@ -522,7 +522,7 @@ test('committed interrupted casts retain their lane while cancelled attempts rel
   assert.equal(scheduled.steps[2].start, 400);
   assert.equal(scheduled.steps[3].start, 1000);
   assert.equal(uninterruptedAction.endsAt, 1);
-  assert.equal(uninterrupted.planningState.cooldowns[uninterruptedAction.skillName].readyAt / 1000, 11);
+  assert.equal(uninterrupted.planningState.cooldowns[uninterruptedAction.skillName].readyAt / 1000, 9);
 });
 
 test('queued instant casts use the combat marker when their requested overlap has passed', () => {

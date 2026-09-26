@@ -4,7 +4,7 @@ import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
-import { untamedCastAvailability } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash.js';
+import { untamedCastAvailability } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import { bindUntamedUi } from '#gw2/professions/ranger/specializations/untamed/presentation.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 

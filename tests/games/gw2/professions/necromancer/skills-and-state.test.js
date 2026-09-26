@@ -978,9 +978,9 @@ test('Scourge shades use ammo and shade skills spend life force', () => {
     initialResource: 30
   });
 
-  assert.equal(ammo.planningState.profession.shades.length, 2);
+  assert.equal(ammo.planningState.profession.shades.length, 3);
   assert.equal(ammo.planningState.profession.lifeForce.value, 100);
-  assert.equal(ammo.steps[3].start, ammo.steps[0].end + 15000);
+  assert.equal(ammo.steps[3].start, ammo.steps[0].end + 12000);
   assert.deepEqual(ammo.warnings, []);
   assert.ok(
     Math.abs(
@@ -1079,7 +1079,7 @@ test('Scourge barrier, shroud, and greater-shade traits trigger precisely', () =
     true
   );
   assert.equal(greaterShade.planningState.profession.shades.length, 0);
-  assert.equal(greaterShade.steps[1].start, Math.ceil((greaterShade.steps[0].end + 18750) / 40) * 40);
+  assert.equal(greaterShade.steps[1].start, Math.ceil((greaterShade.steps[0].end + 15000) / 40) * 40);
   assert.equal(sandstormTorment?.duration, 5);
   assert.equal(sandstormTorment?.at, 3.5);
   assert.equal(
@@ -1509,7 +1509,7 @@ test('Isolate and Distress expose the follow-up and reset Perforate', () => {
     ),
     440
   );
-  assert.equal(observedRuntime(delayedHitWindow).cooldowns.get(ID.ISOLATE), 18.44);
+  assert.equal(observedRuntime(delayedHitWindow).cooldowns.get(ID.ISOLATE), 14.84);
   assert.equal(result.steps[3].start < 8000, true);
   assert.equal(
     result.events.filter(

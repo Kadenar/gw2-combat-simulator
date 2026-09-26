@@ -1,7 +1,7 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
-import { vindicatorAttributeRules } from '#gw2/professions/revenant/specializations/vindicator/mechanics/alliance-and-dodge-rules.js';
+import { vindicatorModifiers } from '#gw2/professions/revenant/specializations/vindicator/modifiers.js';
 import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
 import { VINDICATOR_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/vindicator/skills/index.js';
@@ -17,7 +17,7 @@ export const vindicatorModule = defineNativeModule({
     balanceProfiles: VINDICATOR_BALANCE_PROFILES
   }),
   state: { create: vindicatorState.create },
-  modifiers: vindicatorAttributeRules,
+  modifiers: vindicatorModifiers,
   hooks: vindicatorHooks,
   presentation: vindicatorUi
 });

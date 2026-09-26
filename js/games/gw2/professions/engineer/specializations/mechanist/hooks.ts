@@ -8,7 +8,7 @@ import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
-import { mechanistRechargeWork } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-rules.js';
+import { mechanistRechargeWork } from '#gw2/professions/engineer/specializations/mechanist/mechanics/recharge.js';
 import { mechanistCastAvailability } from '#gw2/professions/engineer/specializations/mechanist/mechanics/availability.js';
 import {
   activateOverclockSignet,

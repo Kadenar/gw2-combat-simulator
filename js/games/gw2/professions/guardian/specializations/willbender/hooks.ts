@@ -17,7 +17,8 @@ import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-a
 import { castCompleted, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { denySkillCast } from '#gw2/professions/shared/availability.js';
-import { applyGuardianVirtueActivationTraits, refreshGuardianVirtues } from '#gw2/professions/guardian/core/hooks.js';
+import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { emitGuardianBoon, triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
 import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -227,7 +228,7 @@ function reduceWeapons(runtime: Runtime, cause: Gw2ResolverEvent): void {
     );
     const gain = Math.min(amount, Math.max(0, available - pending));
     state.pendingWeaponCooldownReduction[id] = pending + gain;
-    reduction += gain / runtime.cooldownController.rate(skill, runtime.time);
+    reduction += gain / runtime.cooldownController.rate(skill);
   }
 
   if (reduction > 0)

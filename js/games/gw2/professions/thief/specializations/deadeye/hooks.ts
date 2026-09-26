@@ -36,21 +36,11 @@ import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/mechanics/stolen-skills.js';
 
 const DEADEYE_COMPLETE = 'thief.deadeye-complete';
 const DEADEYE_MARK_EXPIRY = 'thief.deadeye-mark-expire';
 
-export const DEADEYE_STOLEN_SKILL_IDS: readonly SkillId[] = Object.freeze([
-  ID.STEAL_TIME,
-  ID.STEAL_WARMTH,
-  ID.STEAL_RESISTANCE,
-  ID.STEAL_PRECISION,
-  ID.STEAL_HEALTH,
-  ID.STEAL_STRENGTH,
-  ID.STEAL_DURABILITY,
-  ID.STEAL_DEFENSES,
-  ID.STEAL_MOBILITY
-]);
 const STOLEN_SKILLS = new Set<SkillId>(DEADEYE_STOLEN_SKILL_IDS);
 
 /** Acceptance facts: malice before consumption and whether a stolen skill will grant stealth. */

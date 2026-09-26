@@ -27,7 +27,7 @@ import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js'
 import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { grantKallasFervor } from '#gw2/professions/revenant/specializations/renegade/hooks.js';
 
-const revenantAttributeRules = Object.freeze({
+const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {
     return revenantProfession.resolveProfession(context?.config || {}).modifyAttributes(context, value);
   },
@@ -88,7 +88,7 @@ test('Ferocious Aggression follows self Fury activation and expiry for strike an
   };
 
   // Only self Fury grants the additive bonus, including both edges of its active window.
-  for (const modify of [revenantAttributeRules.modifyStrikeDamage, revenantAttributeRules.modifyConditionDamage]) {
+  for (const modify of [revenantModifiers.modifyStrikeDamage, revenantModifiers.modifyConditionDamage]) {
     for (const [time, expected] of [
       [0, 1],
       [1, 1.1],
@@ -673,13 +673,10 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
     }
   });
 
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(modifierContext([]), 1), 1.1);
-  assert.equal(revenantAttributeRules.modifyConditionDamage(modifierContext([], 'Burning'), 1), 1.1);
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(modifierContext([TRAIT.LASTING_LEGACY]), 1), 1.25);
-  assert.equal(
-    revenantAttributeRules.modifyConditionDamage(modifierContext([TRAIT.LASTING_LEGACY], 'Burning'), 1),
-    1.15
-  );
+  assert.equal(revenantModifiers.modifyStrikeDamage(modifierContext([]), 1), 1.1);
+  assert.equal(revenantModifiers.modifyConditionDamage(modifierContext([], 'Burning'), 1), 1.1);
+  assert.equal(revenantModifiers.modifyStrikeDamage(modifierContext([TRAIT.LASTING_LEGACY]), 1), 1.25);
+  assert.equal(revenantModifiers.modifyConditionDamage(modifierContext([TRAIT.LASTING_LEGACY], 'Burning'), 1), 1.15);
   const additiveContext = modifierContext([
     TRAIT.DESTRUCTIVE_IMPULSES,
     TRAIT.FEROCIOUS_AGGRESSION,
@@ -689,9 +686,9 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
   additiveContext.config.boons.fury = true;
   additiveContext.config.secondaryWeapon = 'Sword';
   additiveContext.damageInputs = { strikeSigilBonus: 0.05, conditionSigilBonus: 0.05 };
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(additiveContext, 1), 1.475);
+  assert.equal(revenantModifiers.modifyStrikeDamage(additiveContext, 1), 1.475);
   additiveContext.condition = 'Burning';
-  assert.ok(Math.abs(revenantAttributeRules.modifyConditionDamage(additiveContext, 1) - 1.375) < 1e-12);
+  assert.ok(Math.abs(revenantModifiers.modifyConditionDamage(additiveContext, 1) - 1.375) < 1e-12);
 });
 
 test('Renegade critical traits and Blood Fury use their supplied intervals', () => {
@@ -724,7 +721,7 @@ test('Renegade critical traits and Blood Fury use their supplied intervals', () 
 
   assert.ok(Math.abs(bleeding.naturalExpiresAt - bleeding.at - 3.75) < 1e-9);
   assert.equal(
-    revenantAttributeRules.modifyConditionDuration(
+    revenantModifiers.modifyConditionDuration(
       {
         config: {
           specialization: 'Renegade',
@@ -740,7 +737,7 @@ test('Renegade critical traits and Blood Fury use their supplied intervals', () 
     1.7
   );
   assert.equal(
-    revenantAttributeRules.modifyConditionDuration(
+    revenantModifiers.modifyConditionDuration(
       {
         config: {
           specialization: 'Renegade',
@@ -845,13 +842,13 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
     }
   });
 
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(context(TRAIT.HEARTPIERCER), 1), 1.15);
+  assert.equal(revenantModifiers.modifyStrikeDamage(context(TRAIT.HEARTPIERCER), 1), 1.15);
   assert.equal(
-    revenantAttributeRules.modifyConditionDamage(context(TRAIT.HEARTPIERCER, { condition: 'Bleeding' }), 1),
+    revenantModifiers.modifyConditionDamage(context(TRAIT.HEARTPIERCER, { condition: 'Bleeding' }), 1),
     1.25
   );
   assert.equal(
-    revenantAttributeRules.modifyCriticalChance(
+    revenantModifiers.modifyCriticalChance(
       context(TRAIT.BRUTAL_MOMENTUM, {
         runtime: {
           profession: {
@@ -866,7 +863,7 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
   );
   assert.ok(
     Math.abs(
-      revenantAttributeRules.modifyCriticalChance(
+      revenantModifiers.modifyCriticalChance(
         context(TRAIT.BRUTAL_MOMENTUM, {
           runtime: {
             profession: {
@@ -1199,7 +1196,7 @@ test('Soulcleave procs both damage packets and recharges from dismissal', () => 
   assert.equal(
     result.steps.at(-1).start,
     Math.ceil(
-      (dismiss.end + revenantCatalog.skillsByName.get("Soulcleave's Summit").manualReleaseCooldown * 1000) / 40
+      (dismiss.end + (revenantCatalog.skillsByName.get("Soulcleave's Summit").manualReleaseCooldown * 1000) / 1.25) / 40
     ) * 40
   );
 });
@@ -1231,7 +1228,7 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   const release = odds.steps.find((step) => step.skill === 'Relinquish Power');
   assert.equal(
     odds.steps.at(-1).start,
-    release.end + revenantCatalog.skillsByName.get('Impossible Odds').manualReleaseCooldown * 1000
+    release.end + (revenantCatalog.skillsByName.get('Impossible Odds').manualReleaseCooldown * 1000) / 1.25
   );
   assert.ok(
     odds.resolvedEvents.some(
@@ -1274,7 +1271,7 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   const impossible = revenantCatalog.skillsByName.get('Impossible Odds');
 
   // Starvation at one second starts the authored starvation cooldown from that boundary.
-  assert.equal(observedRuntime(starved).cooldowns.get(impossible.id) - impossible.starvationCooldown, 1);
+  assert.equal(observedRuntime(starved).cooldowns.get(impossible.id), 1 + impossible.starvationCooldown / 1.25);
   assert.equal(starved.planningState.profession.activeUpkeeps.length, 0);
 });
 
@@ -1318,7 +1315,7 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
   assert.equal(dodges[2].coefficient, dodges[0].coefficient);
   assert.equal(result.planningState.profession.reaversCurseUntil, 0);
   assert.equal(
-    revenantAttributeRules.modifyStrikeDamage(
+    revenantModifiers.modifyStrikeDamage(
       {
         config: {
           specialization: 'Vindicator',
@@ -1554,7 +1551,7 @@ test('Selfish Spirit uses its cooldown rather than ammo charges', () => {
   // The channel's recharge begins when it ends; the second cast waits for that recharge.
   assert.equal(
     result.steps[1].start,
-    result.steps[0].end + revenantCatalog.skillsById.get(SKILL.SELFISH_SPIRIT).cooldown * 1000
+    result.steps[0].end + (revenantCatalog.skillsById.get(SKILL.SELFISH_SPIRIT).cooldown * 1000) / 1.25
   );
 });
 

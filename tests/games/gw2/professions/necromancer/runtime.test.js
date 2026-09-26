@@ -3,7 +3,7 @@ import test from 'node:test';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/hooks.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { completeNecromancerMinion } from '#gw2/professions/necromancer/core/mechanics/minions.js';
 import { addSoulShards } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { minionDefinitionForSkill } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
@@ -861,7 +861,7 @@ test('consumption cancels only the removed creature and starts summon recharge a
   const native = necromancerProfession.runtimeFor(base);
   const recharge = native.catalog.skillsById.get(ID.SUMMON_BONE_MINIONS).cooldown;
   const deathAt = result.steps.findLast((step) => step.skillId != null).end / 1000;
-  assert.equal(observedRuntime(result).cooldowns.get(ID.SUMMON_BONE_MINIONS), deathAt + recharge);
+  assert.equal(observedRuntime(result).cooldowns.get(ID.SUMMON_BONE_MINIONS), deathAt + recharge / 1.25);
   assert.equal(observedRuntime(one).cooldowns.has(ID.SUMMON_BONE_MINIONS), false);
 });
 
@@ -1010,7 +1010,7 @@ test('automatic shroud depletion refreshes Soul Barbs and starts entry recharge 
   );
   assert.equal(grants.length, 2);
   assert.equal(grants[1].at, exit.at);
-  assert.equal(observedRuntime(result).cooldowns.get(ID.REAPERS_SHROUD), exit.at + 10);
+  assert.equal(observedRuntime(result).cooldowns.get(ID.REAPERS_SHROUD), exit.at + 8);
 });
 
 test('Lich expiry owns an exact deadline and never invokes life-force shroud entry traits', () => {
@@ -1300,7 +1300,7 @@ test('Core recharge traits commit modified work for corruption and shroud skills
     const skill = native.catalog.skillsById.get(skillId);
     const multiplier = native.catalog.balanceProfilesById.get(trait).rechargeMultiplier;
     const result = simulate([...(entry ? [cast(ID.DEATH_SHROUD)] : []), cast(skillId)], config);
-    const expected = result.steps.at(-1).end / 1000 + skill.cooldown * multiplier;
+    const expected = result.steps.at(-1).end / 1000 + (skill.cooldown * multiplier) / 1.25;
     assert.ok(
       Math.abs(observedRuntime(result).cooldowns.get(skillId) - expected) < 0.000001,
       `${skill.name}: ${observedRuntime(result).cooldowns.get(skillId)} expected ${expected}`

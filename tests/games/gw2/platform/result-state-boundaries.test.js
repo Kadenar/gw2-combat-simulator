@@ -93,7 +93,7 @@ test('surviving combat and planning share the requested observation boundary', (
     assert.equal(result.planningState.atSeconds, end);
     assert.equal(result.combatState.atSeconds, end);
     assert.equal(result.combatState.profession.resolvedHits, 4);
-    assert.equal(result.planningState.cooldowns.Later.remaining, (22 - end) * 1000);
+    assert.equal(result.planningState.cooldowns.Later.remaining, (18 - end) * 1000);
   }
 });
 

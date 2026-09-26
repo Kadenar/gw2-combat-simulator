@@ -4,11 +4,11 @@ import test from 'node:test';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { guardianBoonActive } from '#gw2/professions/guardian/core/traits/modifiers.js';
+import { guardianBoonActive } from '#gw2/professions/guardian/core/modifiers.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { firebrandModifierRules } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes-and-mantras.js';
+import { firebrandModifiers } from '#gw2/professions/guardian/specializations/firebrand/modifiers.js';
 
 // Build real recipient metadata so player queries can distinguish shared, ally-only, and companion-only applications.
 function buff(kind, audience = { recipients: 'self' }) {
@@ -56,7 +56,7 @@ test('Guardian boons prefer live self applications over later same-time timeline
 test('Firebrand Imbued Haste follows the live duration pool and its expiry', () => {
   const event = buff('quickness');
   const context = { time: 4, timeline: createGw2TimelineIndex({ events: [event] }), runtime: { boons: new Map() } };
-  const rule = firebrandModifierRules.find(({ id }) => id === 'guardian.firebrand.imbued-haste-attributes');
+  const rule = firebrandModifiers.find(({ id }) => id === 'guardian.firebrand.imbued-haste-attributes');
   assert.equal(rule.amount({ catalog: guardianCatalog, ...context }, 'attributeConditionDamage', rule.parameters), 0);
   recordBuffApplication(context.runtime.boons, event);
   recordBuffApplication(context.runtime.boons, event);

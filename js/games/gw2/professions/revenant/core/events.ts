@@ -6,8 +6,9 @@ import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { BalanceProfile, Skill, SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { Gw2Runtime, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { RevenantRuntimeState } from '#gw2/professions/revenant/types.js';
+import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 
 export type RevenantRuntime = Gw2Runtime<RevenantRuntimeState>;
 
@@ -133,4 +134,9 @@ export function emitRevenantProfile(
     }))
       emitRevenantPacket(runtime, event, cause);
   }
+}
+
+/** A cast committed when it reached its full duration or passed its declared commit point. */
+export function revenantCastCommitted(cast: RuntimeCast): boolean {
+  return !cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd);
 }

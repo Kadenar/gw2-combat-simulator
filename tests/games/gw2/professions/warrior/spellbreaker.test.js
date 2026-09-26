@@ -98,7 +98,7 @@ test('Magebane starts at impact after its triggering damage and expires without 
   assert.equal(state(missed).magebaneTetherRecharge, null);
 });
 
-test('Magebane recharge integrates actual temporary Alacrity and admits the next action tick', () => {
+test('Magebane recharge ignores temporary Alacrity and admits the next action tick', () => {
   for (const at of [0, 2]) {
     const source = {
       runtimeFor(config) {
@@ -117,7 +117,7 @@ test('Magebane recharge integrates actual temporary Alacrity and admits the next
               stacks: 1,
               duration: 4.08
             });
-            for (const at of [0, 10.99, 11])
+            for (const at of [0, 9.6, 9.64])
               runtime.emit({
                 type: 'damage',
                 at,
@@ -137,9 +137,9 @@ test('Magebane recharge integrates actual temporary Alacrity and admits the next
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(
       result.procSteps.filter((proc) => proc.skill === 'Magebane Tether').map((proc) => proc.start),
-      [0, 11000]
+      [0, 9640]
     );
-    assert.equal(state(result).magebaneTetherUntil, 19);
+    assert.equal(state(result).magebaneTetherUntil, 17.64);
   }
 });
 

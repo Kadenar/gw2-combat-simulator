@@ -3,7 +3,7 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
 
-import { reaperAttributeRules } from '#gw2/professions/necromancer/specializations/reaper/mechanics/reaper-shroud.js';
+import { reaperModifiers } from '#gw2/professions/necromancer/specializations/reaper/modifiers.js';
 import { reaperState } from '#gw2/professions/necromancer/specializations/reaper/state.js';
 import { bindReaperUi } from '#gw2/professions/necromancer/specializations/reaper/presentation.js';
 import { REAPER_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/reaper/skills/index.js';
@@ -23,6 +23,6 @@ export const reaperModule = defineNativeModule({
   // One state factory supplies the live combat owner.
   state: { create: reaperState.create },
   hooks: reaperHooks,
-  modifiers: reaperAttributeRules,
+  modifiers: reaperModifiers,
   presentation: bindReaperUi
 });

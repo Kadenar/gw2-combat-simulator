@@ -10,8 +10,8 @@ import {
   observedRuntime
 } from '#tests/helpers/observed-runtime.js';
 
-// Transient Alacrity changes real recharge progress; the next action tick admits a new tether.
-test('Magebane Tether integrates Alacrity gained or lost during its recharge', () => {
+// Permanent Alacrity sets recharge progress; the next action tick admits a new tether.
+test('Magebane Tether ignores Alacrity gained or lost during its recharge', () => {
   for (const alacrityAt of [0, 2]) {
     const config = { specialization: 'Spellbreaker', selectedTraitIds: [TRAIT.MAGEBANE_TETHER] };
     const profession = warriorProfession.runtimeFor(config);
@@ -32,7 +32,7 @@ test('Magebane Tether integrates Alacrity gained or lost during its recharge', (
             sourceId: 'fixture',
             actorType: 'player'
           });
-          for (const at of [0, 10.99, 11])
+          for (const at of [0, 9.6, 9.64])
             runtime.emit({
               type: 'damage',
               actorType: 'player',
@@ -58,8 +58,8 @@ test('Magebane Tether integrates Alacrity gained or lost during its recharge', (
       rotation: [{ type: 'wait', durationMs: 11000 }]
     });
     assert.deepEqual(result.warnings, []);
-    assert.deepEqual(windows, [8, 0, 19]);
-    assert.equal(observedRuntime(result).profession.specialization.state.magebaneTetherUntil, 19);
+    assert.deepEqual(windows, [8, 0, 17.64]);
+    assert.equal(observedRuntime(result).profession.specialization.state.magebaneTetherUntil, 17.64);
   }
 });
 
@@ -336,7 +336,7 @@ test('Peak Performance and Magebane Tether use their logged recharge timing', ()
       boons: { alacrity }
     }).procSteps.filter(({ skill }) => skill === 'Magebane Tether').length;
 
-  assert.equal(magebaneProcs(false), 1);
+  assert.equal(magebaneProcs(false), 2);
   assert.equal(magebaneProcs(true), 2);
 });
 

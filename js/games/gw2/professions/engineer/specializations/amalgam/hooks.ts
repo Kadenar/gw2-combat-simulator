@@ -5,7 +5,7 @@ import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { amalgamCastAvailability } from '#gw2/professions/engineer/specializations/amalgam/mechanics/availability.js';
-import { amalgamMaximumAmmo } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-rules.js';
+import { amalgamMaximumAmmo } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 import {
   activateAmalgamMorph,
   activatePlasmaticState,

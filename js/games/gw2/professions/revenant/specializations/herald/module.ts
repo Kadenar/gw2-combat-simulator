@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
-import { heraldAttributeRules } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-rules.js';
+import { heraldModifiers } from '#gw2/professions/revenant/specializations/herald/modifiers.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import { heraldUi } from '#gw2/professions/revenant/specializations/herald/presentation.js';
 import { HERALD_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/index.js';
@@ -15,7 +15,7 @@ export const heraldModule = defineNativeModule({
     balanceProfiles: HERALD_BALANCE_PROFILES
   }),
   state: { create: heraldState.create },
-  modifiers: heraldAttributeRules,
+  modifiers: heraldModifiers,
   hooks: heraldHooks,
   presentation: heraldUi
 });

@@ -13,7 +13,7 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { availability as evokerAvailability } from '#gw2/professions/elementalist/specializations/evoker/mechanics/availability.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-attunements.js';
+import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
 
 test('every Elementalist specialization can prepare attunements without precombat recharge', () => {
   // Cover each recharge override, including Weave Self, with and without an explicit future combat marker.
@@ -62,7 +62,7 @@ test('attunement recharge resumes after an explicit combat marker or the first h
     const swaps = result.steps.filter((step) => step.skill.endsWith(' Attunement'));
     assert.deepEqual(result.warnings, []);
     assert.equal(swaps[1].start, swaps[0].start);
-    assert.equal(swaps[3].start - swaps[2].start, 10000);
+    assert.equal(swaps[3].start - swaps[2].start, 8000);
   }
 });
 

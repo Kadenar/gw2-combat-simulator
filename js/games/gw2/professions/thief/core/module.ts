@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
-import { thiefCoreAttributeRules } from '#gw2/professions/thief/core/traits/modifiers.js';
+import { thiefCoreModifiers } from '#gw2/professions/thief/core/modifiers.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
@@ -17,7 +17,7 @@ export const thiefCoreModule = defineNativeModule({
     extraSkills: THIEF_CORE_EXTRA_SKILLS
   }),
   state: { create: createThiefCoreState, project: projectThiefPlanningState },
-  modifiers: thiefCoreAttributeRules,
+  modifiers: thiefCoreModifiers,
   hooks: thiefCoreHooks,
   presentation: thiefCoreUi
 });

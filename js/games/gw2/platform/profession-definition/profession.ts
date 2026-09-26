@@ -9,7 +9,7 @@ import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js
 import { denyCast } from '#gw2/platform/engine/skills/availability.js';
 import type {
   ProfessionFamilyDefinition,
-  ProfessionAttributeRuleDefinition,
+  ProfessionModifierDefinition,
   ProfessionModuleCatalogFragment,
   ProfessionModuleDefinition
 } from '#gw2/platform/engine/profession/types.js';
@@ -104,11 +104,11 @@ export function defineNativeModule<
   TState extends object,
   TProjectOptions extends object = object,
   TProjectedState extends object = object,
-  TModifierEscape extends ProfessionAttributeRuleDefinition = object,
+  TModifiers extends ProfessionModifierDefinition = object,
   TPresentation extends object = object
 >(
-  definition: NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifierEscape, TPresentation>
-): NativeModule<TId, TState, TProjectOptions, TProjectedState, TModifierEscape, TPresentation> {
+  definition: NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation>
+): NativeModule<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation> {
   assertNativeModuleDefinition(definition);
   return Object.freeze({
     ...definition,
@@ -140,7 +140,7 @@ function compileNativeModule(
       createState: module.state.create as (config: Readonly<ProfessionConfig>) => UnvalidatedFields,
       ...(module.state.project == null ? {} : { projectPlanningState: module.state.project })
     },
-    attributeRules: modifiers as ProfessionAttributeRuleDefinition | undefined,
+    modifiers: modifiers as ProfessionModifierDefinition | undefined,
     get ui() {
       if (compiledUi) return compiledUi;
       const presentation =

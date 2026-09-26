@@ -515,7 +515,7 @@ test('Satiate expires after three seconds and base sword cooldowns continue duri
 
     assert.deepEqual(result.warnings, [], `${parent} -> ${followUp}`);
     const readyAt = result.planningState.cooldowns[parent].readyAt / 1000;
-    assert.equal(readyAt - parentAction.endsAt, cooldown, parent);
+    assert.ok(Math.abs(readyAt - parentAction.endsAt - cooldown / 1.25) < 1e-9, parent);
     assert.ok(readyAt > followUpAction.at, parent);
   }
 });
@@ -1443,8 +1443,8 @@ test('bone minion recharge starts after both minions are destroyed', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(explosions.length, 2);
   assert.equal(summons.length, 2);
-  assert.equal(explosions[1].start, explosions[0].end + 1000);
-  assert.equal(summons[1].start, explosions[1].end + 16000);
+  assert.equal(explosions[1].start, explosions[0].end + 800);
+  assert.equal(summons[1].start, explosions[1].end + 12800);
   assert.equal(result.planningState.profession.activeMinions['bone-minion'], 2);
 });
 
@@ -1694,8 +1694,8 @@ test('Sinister Shroud reduces shroud-skill recharge by fifteen percent', () => {
   });
   // Read the actual final recharge pool; accepted action facts never predict its later readiness.
   for (const [result, rechargeMs] of [
-    [base, 7000],
-    [sinister, 5950]
+    [base, 5600],
+    [sinister, 4760]
   ]) {
     const last = result.steps.filter((step) => step.skill === 'Anguish').at(-1);
     assert.equal(Math.round(observedRuntime(result).cooldowns.get(ID.ANGUISH) * 1000 - last.end), rechargeMs);
@@ -1704,7 +1704,7 @@ test('Sinister Shroud reduces shroud-skill recharge by fifteen percent', () => {
   assert.equal(
     base.steps.filter((step) => step.skill === 'Anguish')[1].start -
       sinister.steps.filter((step) => step.skill === 'Anguish')[1].start,
-    1040
+    840
   );
 });
 

@@ -124,12 +124,7 @@ export function applyEvokerAttunementRechargePolicy(
       Math.max(
         Number(readyAtBefore[previous] || 0),
         event.at +
-          elementalistAttunementRechargeDuration(
-            context,
-            skill,
-            balanceProfileNumber(resourcesProfile, 'recharge'),
-            event.at
-          )
+          elementalistAttunementRechargeDuration(context, skill, balanceProfileNumber(resourcesProfile, 'recharge'))
       )
     );
   }
@@ -139,12 +134,7 @@ export function applyEvokerAttunementRechargePolicy(
     const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
     const defaultReadyAt =
       event.at +
-      elementalistAttunementRechargeDuration(
-        context,
-        skill,
-        balanceProfileNumber(resourcesProfile, 'recharge'),
-        event.at
-      );
+      elementalistAttunementRechargeDuration(context, skill, balanceProfileNumber(resourcesProfile, 'recharge'));
     const existingReadyAt = Number(readyAtBefore[attunement] || 0);
     const preservedRemaining = Math.max(0, existingReadyAt - event.at);
     // if the attunement already had less time left than the new default, keep the shorter timer

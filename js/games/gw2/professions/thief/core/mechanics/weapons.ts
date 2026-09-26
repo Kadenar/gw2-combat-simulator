@@ -93,7 +93,7 @@ function prepareTrap(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const trap = THIEF_PREPARATIONS.find((candidate) => candidate.prepareId === cast.skill.id);
   if (!trap) return;
   const skill = cast.skill as ThiefSkill;
-  const delay = Number(skill.durationMultiplier ?? 3) / runtime.cooldownController.rate(cast.skill, runtime.time);
+  const delay = Number(skill.durationMultiplier ?? 3) / runtime.cooldownController.rate(cast.skill);
   armSkillFlip(runtime.profession.core.availableFlips, trap.triggerId, runtime.time + delay, Infinity, runtime.time);
 }
 

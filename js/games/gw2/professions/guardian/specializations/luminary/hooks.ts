@@ -20,10 +20,11 @@ import {
   guardianVirtueForSlot,
   reactToJusticeHitWithOptions
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { applyGuardianVirtueActivationTraits, refreshGuardianVirtues } from '#gw2/professions/guardian/core/hooks.js';
+import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { emitGuardianBoon, triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
 import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
-import { modifyGuardianRechargeDuration } from '#gw2/professions/guardian/core/traits/modifiers.js';
+import { modifyGuardianRechargeDuration } from '#gw2/professions/guardian/core/mechanics/recharge.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';

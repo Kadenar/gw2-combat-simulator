@@ -193,7 +193,7 @@ export function completeGuardianIgnition(runtime: Runtime, cast: RuntimeCast): v
   runtime.profession.core.symbolIgnitionUntil = canonicalTime(runtime.time + effectNumber(profile, field, 'duration'));
 }
 
-/** Ready Justice activations claim real symbol recharge; transient Alacrity changes work already in progress. */
+/** Ready Justice activations claim symbol recharge at the permanent Alacrity rate. */
 export function triggerGuardianFuriousFocus(runtime: Runtime, cast: RuntimeCast): void {
   if (!hasTrait(runtime, TRAIT.FURIOUS_FOCUS)) return;
   const state = runtime.profession.core;

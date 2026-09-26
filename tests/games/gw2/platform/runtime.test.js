@@ -241,13 +241,13 @@ test('completion commits cooldowns and ammo before the next command at the same 
   const casts = run([cast(990001), cast(990001)], { profession });
   assert.deepEqual(
     casts.steps.map((step) => step.start),
-    [0, 3000]
+    [0, 2600]
   );
-  assert.equal(completion[0].readyAt, 3);
+  assert.equal(completion[0].readyAt, 2.6);
   const ammo = run([cast(990007), cast(990007), cast(990007)], { profession });
   assert.deepEqual(
     ammo.steps.map((step) => step.start),
-    [0, 520, 2000]
+    [0, 400, 1600]
   );
   assert.equal(completion.find((entry) => entry.id === 990007).charges, 1);
 });
@@ -265,8 +265,8 @@ test('ammo lockouts use persistent recharge modifiers without consuming another 
   });
   // A charge's short lockout gets the persistent reduction; its full recharge also gets the one-shot entitlement.
   assert.equal(claims, 2);
-  assert.equal(result.steps[1].start, 400);
-  assert.equal(result.planningState.ammoBySkillId[990007].nextRechargeAt, 0.8);
+  assert.equal(result.steps[1].start, 320);
+  assert.equal(result.planningState.ammoBySkillId[990007].nextRechargeAt, 0.64);
 });
 
 test('a final completion can extend input recovery before the tail is fixed once', () => {
@@ -430,7 +430,7 @@ test('lethal siblings finish but post-death hits grant nothing while self comman
   assert.equal(result.combatState.profession.hits, 1);
   assert.equal(result.planningState.atSeconds, 2);
   assert.equal(result.planningState.profession.hits, 1);
-  assert.equal(result.planningState.cooldowns.Cast.readyAt, 4000);
+  assert.equal(result.planningState.cooldowns.Cast.readyAt, 3600);
   result.planningState.profession.hits = 999;
   assert.equal(result.combatState.profession.hits, 1);
   assert.equal(run([wait(1000), cast(990001)], { ...options, output: 'score' }).totalDamage, 20);
@@ -480,11 +480,11 @@ test('cooldown waits settle accepted resource gains before a hard affordability 
   };
 
   const accepted = simulate(1);
-  assert.deepEqual(accepted.attempts, [2]);
+  assert.deepEqual(accepted.attempts, [1.6]);
   assert.deepEqual(accepted.result.warnings, []);
-  assert.equal(accepted.result.steps[0].start, 2000);
+  assert.equal(accepted.result.steps[0].start, 1600);
   const late = simulate(3);
-  assert.deepEqual(late.attempts, [2]);
+  assert.deepEqual(late.attempts, [1.6]);
   assert.equal(late.result.steps[0].invalid, true);
   assert.equal(late.result.planningState.profession.energy.value, 0);
 });
@@ -564,7 +564,7 @@ test('derived effects inherit their cause and settle before an independent same-
   ]);
 });
 
-test('an actual recharge-rate grant refreshes cooldown estimates before readiness is reconsidered', () => {
+test('transient Alacrity grants leave the permanent cooldown rate unchanged', () => {
   const result = run([cast(990001), cast(990001)], {
     profession: fixture({
       initialize(runtime) {
@@ -581,7 +581,7 @@ test('an actual recharge-rate grant refreshes cooldown estimates before readines
       }
     })
   });
-  assert.equal(result.steps[1].start, 2800);
+  assert.equal(result.steps[1].start, 2600);
 });
 
 test('same-time condition owners finish their lethal batch without granting new post-death reactions', () => {

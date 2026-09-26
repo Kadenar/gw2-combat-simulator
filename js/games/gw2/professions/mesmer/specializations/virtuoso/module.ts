@@ -1,7 +1,7 @@
 import { virtuosoHooks } from '#gw2/professions/mesmer/specializations/virtuoso/hooks.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
-import { virtuosoAttributeRules } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/blades-and-bladesongs.js';
+import { virtuosoModifiers } from '#gw2/professions/mesmer/specializations/virtuoso/modifiers.js';
 import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import { virtuosoUi } from '#gw2/professions/mesmer/specializations/virtuoso/presentation.js';
 import { MESMER_VIRTUOSO_SKILL_MECHANICS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
@@ -16,7 +16,7 @@ export const virtuosoModule = defineNativeModule({
   state: {
     create: virtuosoState.create
   },
-  modifiers: virtuosoAttributeRules,
+  modifiers: virtuosoModifiers,
   hooks: virtuosoHooks,
   presentation: virtuosoUi
 });

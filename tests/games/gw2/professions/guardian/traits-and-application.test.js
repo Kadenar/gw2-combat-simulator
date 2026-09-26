@@ -14,7 +14,7 @@ import { applyGuardianBuildAttributeRules } from '#gw2/professions/guardian/buil
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
-import { guardianCoreAttributeRules } from '#gw2/professions/guardian/core/traits/modifiers.js';
+import { guardianCoreModifiers } from '#gw2/professions/guardian/core/modifiers.js';
 import { projectGuardianPlanningState, snapshotGuardianState } from '#gw2/professions/guardian/family-state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 
@@ -70,7 +70,7 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
     );
   const result = run();
   const profession = observedRuntime(result).profession;
-  const rule = guardianCoreAttributeRules.modifierRules.find((entry) => entry.id === 'guardian.symbolic-avenger');
+  const rule = guardianCoreModifiers.modifierRules.find((entry) => entry.id === 'guardian.symbolic-avenger');
   assert.equal(profession.core.symbolicAvengerExpirations.length, 5);
   for (const [at, stacks] of [
     [15, 5],

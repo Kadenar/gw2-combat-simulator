@@ -344,7 +344,7 @@ test('Fractured Glass resolves seven measured packets with per-hit Vulnerability
   );
 
   assert.equal(casts[0].end - casts[0].start, 880);
-  assert.equal(casts[1].start - casts[0].end, 1000);
+  assert.equal(casts[1].start - casts[0].end, 800);
   assert.deepEqual(
     damage.slice(0, 7).map((event) => [Math.round((event.at - firstCastStart) * 1000), event.coefficient]),
     [
@@ -532,7 +532,7 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
   );
 
   assert.equal(dune.planningState.profession.availableAmbush.source, 'Dune Cloak');
-  assert.equal(dune.planningState.cooldowns['Mind Wrack'].readyAt, 11000);
+  assert.equal(dune.planningState.cooldowns['Mind Wrack'].readyAt, 8800);
 
   const twoClones = simulateMesmer(
     ['Mind Wrack'],

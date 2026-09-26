@@ -286,3 +286,14 @@ export function reactToMercurialTendencies(context: EngineerRuntime, event: Engi
     cooldownReduction: reducedBy
   });
 }
+
+/** Only the selected Double Helix variant may use Evolve ammo, including profiled capacity edits. */
+export function amalgamMaximumAmmo(context: EngineerRuntime, skill: EngineerSkill, maximum: number): number {
+  if (!skill || !EVOLVE_SKILL_IDS.has(Number(skill.id))) return maximum;
+  return skill.id === ID.EVOLVE_DOUBLE_HELIX && hasTrait(context.config, TRAIT.DOUBLE_HELIX)
+    ? Math.max(
+        balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.evolve), 'maximumStacks'),
+        Number(maximum || 0)
+      )
+    : 0;
+}

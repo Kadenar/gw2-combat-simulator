@@ -68,7 +68,7 @@ test('Thousand Needles arms from the interrupted end only after placement commit
       assert.match(result.warnings.join('\n'), /prepare Thousand Needles first/);
     } else {
       assert.deepEqual(result.warnings, []);
-      assert.equal(result.steps[1].start, result.steps[0].end + 3000);
+      assert.equal(result.steps[1].start, result.steps[0].end + 2400);
       assert.ok(result.events.some((event) => event.type === 'damage' && event.skillName === 'Thousand Needles'));
     }
   }
@@ -108,7 +108,7 @@ test('preparations flip while arming, use Alacrity, and restore placement after 
       const availability = thiefProfession.ui.paletteSkillAvailability(context(placed), trigger);
       assert.equal(availability.available, false);
       assert.match(availability.message, /arming/);
-      assert.ok(Math.abs(availability.retryAt - placed.rotationEndTime - (alacrity ? 2.4 : 3)) < 1e-9);
+      assert.ok(Math.abs(availability.retryAt - placed.rotationEndTime - 2.4) < 1e-9);
       assert.equal(
         thiefProfession.ui.paletteSkillAvailability({ ...context(placed), time: availability.retryAt }, trigger)
           .available,

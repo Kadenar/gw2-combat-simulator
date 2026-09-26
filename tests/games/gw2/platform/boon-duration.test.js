@@ -336,7 +336,7 @@ test('declarative generic buffs use shared timed state without boon-duration sca
   assert.equal(application?.duration, 10);
 });
 
-test('GW2 duration-stacks Alacrity from repeated grants', () => {
+test('repeated Alacrity grants do not change permanent recharge', () => {
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -369,5 +369,5 @@ test('GW2 duration-stacks Alacrity from repeated grants', () => {
       'Stacked Alacrity Cooldown'
     ]
   });
-  assert.equal(result.planningState.cooldowns['Stacked Alacrity Cooldown'].readyAt, 12760);
+  assert.equal(result.planningState.cooldowns['Stacked Alacrity Cooldown'].readyAt, 11000);
 });

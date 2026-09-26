@@ -18,7 +18,7 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/resources.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
-import { engineerRechargeWork } from '#gw2/professions/engineer/core/traits/modifiers.js';
+import { engineerRechargeWork } from '#gw2/professions/engineer/core/mechanics/recharge.js';
 import {
   handleAirBlast,
   handleConduitSurge,

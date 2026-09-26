@@ -1,7 +1,7 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { engineerCoreAttributeRules } from '#gw2/professions/engineer/core/traits/modifiers.js';
+import { engineerCoreModifiers } from '#gw2/professions/engineer/core/modifiers.js';
 import {
   ENGINEER_CORE_EXTRA_SKILLS,
   ENGINEER_CORE_SKILL_MECHANICS
@@ -26,7 +26,7 @@ export const engineerCoreModule = defineNativeModule({
     create: createEngineerCoreState,
     project: projectEngineerPlanningState
   },
-  modifiers: engineerCoreAttributeRules,
+  modifiers: engineerCoreModifiers,
   hooks: engineerCoreHooks,
   presentation: bindEngineerCoreUi
 });

@@ -47,12 +47,12 @@ test('attunement recharge applies trait reductions in order and stays free befor
     cooldownController: { rate: () => 1.25 }
   };
   const skill = elementalistCatalog.skillsById.get(ID.FIRE_ATTUNEMENT);
-  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4, 0), 1.92);
+  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4), 1.92);
   // Weave Self's two-second base still receives both selected traits: (2 * 0.85 - 1) / 1.25.
-  assert.ok(Math.abs(elementalistAttunementRechargeDuration(context, skill, 2, 0) - 0.56) < 1e-12);
+  assert.ok(Math.abs(elementalistAttunementRechargeDuration(context, skill, 2) - 0.56) < 1e-12);
   context.combatActive = false;
-  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4, 0), 0);
-  assert.equal(elementalistAttunementRechargeDuration(context, skill, 2, 0), 0);
+  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4), 0);
+  assert.equal(elementalistAttunementRechargeDuration(context, skill, 2), 0);
 });
 
 // Validate evaluated catalogs so shared/generated packets and direct statuses cannot reintroduce off-grid offsets.
@@ -213,8 +213,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
         traits: selectedGw2TraitValues(traitConfig, preview)
       },
       preview.skillsById.get(ID.FIRE_ATTUNEMENT),
-      10,
-      0
+      10
     ),
     8
   );

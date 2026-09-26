@@ -1056,7 +1056,7 @@ test('core attunements enforce and report their individual recharge', () => {
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     swaps.map((step) => step.start),
-    [0, 1280, 8520]
+    [0, 1040, 6800]
   );
   assert.equal(result.planningState.profession.primaryAttunement, 'Fire');
   assert.ok(result.planningState.cooldowns['Air Attunement'].remaining > 1000);
@@ -1087,7 +1087,7 @@ test('core attunements enforce and report their individual recharge', () => {
   );
 
   assert.equal(waterView.disabled, true);
-  assert.equal(waterView.cooldownLabel, '8.52s');
+  assert.equal(waterView.cooldownLabel, '6.80s');
 });
 
 test('Ride the Lightning receives its on-hit cooldown reduction', () => {
@@ -1104,7 +1104,7 @@ test('Ride the Lightning receives its on-hit cooldown reduction', () => {
   const action = result.events.find((event) => event.type === 'action' && event.skillName === 'Ride the Lightning');
 
   assert.ok(action);
-  assert.equal(observedRuntime(result).cooldowns.get(action.skillId) - action.endsAt, 10);
+  assert.ok(Math.abs(observedRuntime(result).cooldowns.get(action.skillId) - action.endsAt - 8) < 1e-9);
 });
 
 test('Fresh Air grants ferocity when entering Air, not when resetting it', () => {
@@ -1135,7 +1135,7 @@ test('Weaver attunements use the shared four-second recharge', () => {
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     swaps.map((step) => step.start),
-    [0, 4000]
+    [0, 3200]
   );
 });
 
@@ -1172,8 +1172,8 @@ test('Unravel resets the current Weaver recharge, fully attunes for five seconds
       [0, 'Air Attunement', undefined, 'Air', 'Fire'],
       [0, 'Unravel', 'Fire', 'Air', 'Air'],
       [0, 'Fire Attunement', undefined, 'Fire', 'Fire'],
-      [4, 'Earth Attunement', undefined, 'Earth', 'Earth'],
-      [8, 'Air Attunement', undefined, 'Air', 'Earth']
+      [3.2, 'Earth Attunement', undefined, 'Earth', 'Earth'],
+      [6.4, 'Air Attunement', undefined, 'Air', 'Earth']
     ]
   );
   assert.equal(result.planningState.profession.unravelUntil, 5);

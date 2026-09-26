@@ -12,7 +12,7 @@ import {
   heraldPassiveModifierRules,
   modifyHeraldPassiveAttributes
 } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
-import { revenantCoreAttributeRules } from '#gw2/professions/revenant/core/traits/modifiers.js';
+import { revenantCoreModifiers } from '#gw2/professions/revenant/core/modifiers.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
@@ -112,7 +112,7 @@ test("Assassin's Presence pulses during idle combat and attacks cannot move the 
   assert.ok(pulses(idle).every((event) => event.duration === 3 && event.resolvedAudience.includesSelf));
   assert.ok(idle.events.some((event) => event.sourceId === TRAIT.INCENSED_RESPONSE));
   assert.equal(
-    revenantCoreAttributeRules.modifyCriticalChance(
+    revenantCoreModifiers.modifyCriticalChance(
       {
         config: { ...config, selectedTraitIds: [...config.selectedTraitIds, TRAIT.ROILING_MISTS] },
         time: 1,

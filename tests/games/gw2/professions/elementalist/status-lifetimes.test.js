@@ -52,12 +52,12 @@ test('Rock Barrier availability, palette, and natural recharge share an exact de
           );
         }
       })),
-      { at: 40, run: (r) => assert.equal(r.cooldowns.get(root.id), 38.301) },
+      { at: 40, run: (r) => assert.equal(r.cooldowns.get(root.id), 36.701) },
       { at: 41, run: elementalistRockBarrierTasks['elementalist.core.open-rock-barrier'] },
       { at: 42, run: elementalistRockBarrierTasks['elementalist.core.release-rock-barrier'] }
     ]
   });
-  assert.equal(observedRuntime(result).cooldowns.get(root.id), 50);
+  assert.equal(observedRuntime(result).cooldowns.get(root.id), 48.4);
   assert.equal(result.planningState.profession.availableFlips[ID.HURL], undefined);
 });
 
@@ -103,7 +103,7 @@ test('elemental teardown clears the command and starts the glyph recharge once',
     const r = observedRuntime(result);
     assert.equal(r.profession.core.summonedElemental.element, null);
     assert.deepEqual(r.profession.core.availableFlips, {});
-    assert.equal(r.cooldowns.get(glyph.id), 160.301);
+    assert.equal(r.cooldowns.get(glyph.id), 152.301);
     assert.ok(!result.events.some((e) => e.type === 'action' && e.actorType === 'summon' && e.at >= 120.301));
   }
 });

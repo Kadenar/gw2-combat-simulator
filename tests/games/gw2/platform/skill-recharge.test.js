@@ -7,8 +7,8 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 
-// Minimal recharges isolate boon-rate integration and tick detection from profession rotations.
-test('cooldowns and serial ammo integrate intermittent Alacrity before checking the absolute tick', () => {
+// Minimal recharges isolate permanent Alacrity and tick detection from profession rotations.
+test('cooldowns and serial ammo assume permanent Alacrity before checking the absolute tick', () => {
   const profession = defineProfession({
     id: 'alacrity-recharge',
     name: 'Alacrity recharge',
@@ -27,12 +27,13 @@ test('cooldowns and serial ammo integrate intermittent Alacrity before checking 
   });
   const wait = (durationMs) => ({ type: 'wait', durationMs });
   for (const [rotation, boons, expected] of [
-    [['Cooldown', 'Cooldown'], {}, 10],
+    [['Cooldown', 'Cooldown'], {}, 8],
+    [['Cooldown', 'Cooldown'], { alacrity: false }, 8],
     [['Cooldown', 'Cooldown'], { alacrity: true }, 8],
-    [['Cooldown', wait(2000), 'Alacrity', 'Cooldown'], {}, 9],
-    [['Alacrity', 'Cooldown', 'Cooldown'], {}, 9],
-    [['Cooldown', 'Alacrity', wait(6000), 'Alacrity', 'Cooldown'], {}, 8.4],
-    [['Ammo', 'Ammo', wait(2000), 'Alacrity', 'Ammo'], {}, 9]
+    [['Cooldown', wait(2000), 'Alacrity', 'Cooldown'], {}, 8],
+    [['Alacrity', 'Cooldown', 'Cooldown'], {}, 8],
+    [['Cooldown', 'Alacrity', wait(6000), 'Alacrity', 'Cooldown'], {}, 8],
+    [['Ammo', 'Ammo', wait(2000), 'Alacrity', 'Ammo'], {}, 8]
   ]) {
     const result = simulateGw2({ profession, rotation, config: { boons } });
     const action = result.events.findLast((event) => event.type === 'action');
@@ -41,8 +42,8 @@ test('cooldowns and serial ammo integrate intermittent Alacrity before checking 
   }
 });
 
-// A boon learned after reservation changes deadlines without changing the cast's committed base amounts.
-test('Alacrity gained during a cast updates reserved recharge and the independent ammo lockout', () => {
+// Transient grants cannot change the permanent recharge rate or the independent ammo lockout.
+test('Alacrity gained during a cast leaves reserved recharge and the independent ammo lockout unchanged', () => {
   for (const ammo of [false, true]) {
     const profession = defineProfession({
       id: 'reserved-recharge',
@@ -80,16 +81,16 @@ test('Alacrity gained during a cast updates reserved recharge and the independen
             onCastComplete(runtime, cast) {
               if (cast.start !== 0) return;
               if (ammo) {
-                assert.equal(runtime.ammo.get(990011).nextRechargeAt, 21.25);
-                assert.equal(runtime.ammo.get(990011).lockoutReadyAt, 6.25);
-              } else assert.equal(runtime.cooldowns.get(990011), 21.25);
+                assert.equal(runtime.ammo.get(990011).nextRechargeAt, 18);
+                assert.equal(runtime.ammo.get(990011).lockoutReadyAt, 6);
+              } else assert.equal(runtime.cooldowns.get(990011), 18);
             }
           };
         }
       },
       rotation: ['Reserved', 'Reserved']
     });
-    assert.equal(result.events.findLast((event) => event.type === 'action').at, ammo ? 6.28 : 21.28);
+    assert.equal(result.events.findLast((event) => event.type === 'action').at, ammo ? 6 : 18);
     assert.deepEqual(result.warnings, []);
   }
 });
@@ -112,8 +113,8 @@ test('ordinary and ammo cooldowns wait for their detection tick even one microse
       id: 990010,
       name: 'Tick cooldown',
       castTimeMs: 0,
-      cooldown: 0.38,
-      ...(ammo ? { ammo: 2, ammoRecharge: 0.38, ammoCastLockout: 0 } : {}),
+      cooldown: 0.475,
+      ...(ammo ? { ammo: 2, ammoRecharge: 0.475, ammoCastLockout: 0 } : {}),
       effects: []
     };
     const profession = defineProfession({
@@ -179,10 +180,10 @@ test('Warrior ammo preserves charge recovery and its independent cast lockout', 
     rotation: [skill.id, skill.id, skill.id]
   });
   assert.equal(seen[0].ammo.charges, 1);
-  assert.equal(seen[0].ammo.nextRechargeAt, seen[0].end + 16);
-  assert.equal(seen[1].start, gw2CooldownReadyAt(seen[0].end + 1));
+  assert.equal(seen[0].ammo.nextRechargeAt, seen[0].end + 12.8);
+  assert.equal(seen[1].start, gw2CooldownReadyAt(seen[0].end + 0.8));
   assert.equal(seen[1].ammo.charges, 0);
-  assert.equal(seen[2].start, gw2CooldownReadyAt(seen[0].end + 16));
+  assert.equal(seen[2].start, gw2CooldownReadyAt(seen[0].end + 12.8));
   assert.deepEqual(result.warnings, []);
 });
 
@@ -215,14 +216,14 @@ test('declarative ammo consumes and recharges shared charges', () => {
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'damage').length, 2);
   assert.deepEqual(
     result.events.filter((event) => event.type === 'action').map((event) => event.at),
-    [0, 0.28]
+    [0, 0.2]
   );
   assert.deepEqual(result.planningState.ammo['Fixture Ammo'], {
     charges: 1,
     maximum: 2,
     rechargeWork: 5,
-    nextRechargeAt: 10,
-    lockoutReadyAt: 0.56
+    nextRechargeAt: 8,
+    lockoutReadyAt: 0.4
   });
 });
 
@@ -268,7 +269,7 @@ test('end state projects ammo and cooldowns at the resolution boundary', () => {
     assert.equal(result.planningState.atSeconds * 1000, time);
     assert.equal(result.planningState.ammo[skill.name].charges, charges);
     assert.equal(result.planningState.ammoBySkillId[skill.id].charges, charges);
-    assert.deepEqual(result.planningState.cooldowns[skill.name], { readyAt: 30000, remaining: 30000 - time });
+    assert.deepEqual(result.planningState.cooldowns[skill.name], { readyAt: 24000, remaining: 24000 - time });
     rotationDamage ??= result.totalDamage;
     assert.ok(rotationDamage > 0);
     assert.equal(result.totalDamage, rotationDamage * (time > 1000 ? 2 : 1));
@@ -284,7 +285,7 @@ test("shared scheduler detects a skill's cooldown expiry on the next action tick
         name: 'Fixture Cooldown',
         type: 'Utility',
         castTimeMs: 0,
-        cooldown: 0.3,
+        cooldown: 0.375,
         effects: [{ type: 'strike', coefficient: 1 }]
       }
     ]

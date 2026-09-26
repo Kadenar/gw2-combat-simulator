@@ -5,20 +5,20 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { denySkillCast } from '#gw2/professions/shared/availability.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
-import { modifyRevenantLifeSiphon } from '#gw2/professions/revenant/core/traits/modifiers.js';
+import { modifyRevenantLifeSiphon } from '#gw2/professions/revenant/core/mechanics/life-siphon.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { isRevenantUpkeep, isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import {
   emitDeferredRevenantBuff,
   REVENANT_EMIT_TASK,
+  revenantCastCommitted,
   revenantCombatActive
 } from '#gw2/professions/revenant/core/events.js';
 import {
@@ -96,11 +96,6 @@ const upkeepCosts = new WeakMap<RuntimeCast, number>();
 /** Releases are identified through the live catalog's upkeep parents. */
 function upkeepRelease(runtime: RevenantRuntime, skill: Skill): boolean {
   return isRevenantUpkeepRelease(skill, (id) => runtime.helpers.skillsById.get(id));
-}
-
-/** A cast committed when it reached its full duration or passed its declared commit point. */
-export function revenantCastCommitted(cast: RuntimeCast): boolean {
-  return !cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd);
 }
 
 function resourceProfile(runtime: RevenantRuntime) {

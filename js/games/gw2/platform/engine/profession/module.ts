@@ -165,7 +165,7 @@ export function composeModuleCatalog(modules: readonly NamedModule<object>[]): R
 }
 
 function hookValues<
-  TContainer extends 'attributeRules',
+  TContainer extends 'modifiers',
   TName extends Exclude<
     keyof NonNullable<ProfessionModuleDefinition[TContainer]>,
     'modifierRules' | 'compileModifierRules' | 'taskHandlers' | 'skillMechanicHandlers'
@@ -182,7 +182,7 @@ function hookValues<
 
 /** Retains only the requested hook slots; runtime normalization still validates each contributed handler. */
 export function composeHookContainer<
-  TContainer extends 'attributeRules',
+  TContainer extends 'modifiers',
   TName extends Exclude<
     keyof NonNullable<ProfessionModuleDefinition[TContainer]>,
     'modifierRules' | 'compileModifierRules' | 'taskHandlers' | 'skillMechanicHandlers'

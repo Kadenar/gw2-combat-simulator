@@ -4,7 +4,7 @@ import test from 'node:test';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { galeshotModifierRules } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow-rules.js';
+import { galeshotModifiers } from '#gw2/professions/ranger/specializations/galeshot/modifiers.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const simulate = createObservedProfessionSimulator(rangerProfession, {
@@ -72,7 +72,7 @@ test('Avatar depletion schedules an earlier exit than the duration limit', () =>
 
 // Check both boon sources and ownership at the actual start/expiry boundaries.
 test('Bird of Prey accepts permanent and timed movement buffs only for player-owned damage', () => {
-  const rule = galeshotModifierRules.find(({ id }) => id === 'ranger.bird-of-prey');
+  const rule = galeshotModifiers.find(({ id }) => id === 'ranger.bird-of-prey');
   const context = {
     config: { selectedTraitIds: [TRAIT.BIRD_OF_PREY] },
     event: { actorType: 'player' },

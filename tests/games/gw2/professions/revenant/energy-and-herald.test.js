@@ -34,7 +34,7 @@ import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpe
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(applyRevenantBuildAttributeRules);
 
-const revenantAttributeRules = Object.freeze({
+const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {
     return revenantProfession
       .resolveProfession(context?.config || {})
@@ -333,7 +333,7 @@ test('a cooldown-queued Revenant skill recovers Energy before its next cast', ()
     result.steps.map((step) => [step.skill, step.start]),
     [
       ['Phase Traversal', 0],
-      ['Phase Traversal', result.steps[0].end + 5000]
+      ['Phase Traversal', result.steps[0].end + 4000]
     ]
   );
 });
@@ -629,7 +629,7 @@ test('Corruption traits update attributes, duration, and chill triggers', () => 
     )
   );
   assert.equal(
-    revenantAttributeRules.modifyConditionDamage(
+    revenantModifiers.modifyConditionDamage(
       {
         config: { selectedTraitIds: [TRAIT.ACOLYTE_OF_TORMENT] },
         event: { actorType: 'player' },
@@ -650,7 +650,7 @@ test('Notoriety applies its Might conversion at runtime without negative UI attr
   assert.equal(attributes['Condition Damage'].traits, 75);
   assert.equal(attributes['Condition Damage'].final, 75);
 
-  const runtime = revenantAttributeRules.modifyAttributes(
+  const runtime = revenantModifiers.modifyAttributes(
     {
       config: {
         specialization: 'Core',
@@ -685,7 +685,7 @@ test('Retribution and Invocation traits use live combat state', () => {
   });
 
   assert.equal(
-    revenantAttributeRules.modifyStrikeDamage(
+    revenantModifiers.modifyStrikeDamage(
       context(TRAIT.RISING_TIDE, {
         config: { playerHealthFraction: 1 }
       }),
@@ -693,9 +693,9 @@ test('Retribution and Invocation traits use live combat state', () => {
     ),
     1.1
   );
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(context(TRAIT.DWARVEN_BATTLE_TRAINING), 1), 1.1);
+  assert.equal(revenantModifiers.modifyStrikeDamage(context(TRAIT.DWARVEN_BATTLE_TRAINING), 1), 1.1);
   assert.equal(
-    revenantAttributeRules.modifyConditionDamage(
+    revenantModifiers.modifyConditionDamage(
       context(TRAIT.VICIOUS_REPRISAL, {
         config: { boons: { resolution: true } }
       }),
@@ -704,7 +704,7 @@ test('Retribution and Invocation traits use live combat state', () => {
     1.1
   );
   assert.equal(
-    revenantAttributeRules.modifyCriticalChance(
+    revenantModifiers.modifyCriticalChance(
       {
         config: {
           selectedTraitIds: [TRAIT.ROILING_MISTS],
@@ -758,14 +758,14 @@ test('Forceful Persistence counts active upkeeps additively with Ferocious Aggre
     [[SKILL.IMPOSSIBLE_ODDS, SKILL.FACET_OF_NATURE], 1.45]
   ]) {
     context.runtime.profession.core.activeUpkeeps = skills.map((skillId) => ({ skillId }));
-    assert.ok(Math.abs(revenantAttributeRules.modifyStrikeDamage(context, 1) - expected) < 1e-9);
-    assert.equal(revenantAttributeRules.modifyConditionDamage(context, 1), 1.1);
+    assert.ok(Math.abs(revenantModifiers.modifyStrikeDamage(context, 1) - expected) < 1e-9);
+    assert.equal(revenantModifiers.modifyConditionDamage(context, 1), 1.1);
   }
 
   context.config.boons.fury = false;
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(context, 1), 1.35);
+  assert.equal(revenantModifiers.modifyStrikeDamage(context, 1), 1.35);
   context.config.selectedTraitIds = [];
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(context, 1), 1);
+  assert.equal(revenantModifiers.modifyStrikeDamage(context, 1), 1);
 });
 
 test('Devastation modifiers and Battle Scars use supplied thresholds', () => {
@@ -797,7 +797,7 @@ test('Devastation modifiers and Battle Scars use supplied thresholds', () => {
   ];
 
   for (const [traitId, options, expected] of strikeCases) {
-    assert.equal(revenantAttributeRules.modifyStrikeDamage(modifierContext(traitId, options), 1), expected);
+    assert.equal(revenantModifiers.modifyStrikeDamage(modifierContext(traitId, options), 1), expected);
   }
 
   const destructiveWithForce = modifierContext(TRAIT.DESTRUCTIVE_IMPULSES, {
@@ -806,7 +806,7 @@ test('Devastation modifiers and Battle Scars use supplied thresholds', () => {
 
   // Equipment selection supplies the evaluator with an explicit Force contribution.
   destructiveWithForce.damageInputs = { strikeSigilBonus: 0.05 };
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(destructiveWithForce, 1), 1.125);
+  assert.equal(revenantModifiers.modifyStrikeDamage(destructiveWithForce, 1), 1.125);
 
   const scars = simulate('Core', ['Enchanted Daggers', 'Phase Traversal'], {
     selectedTraitIds: [TRAIT.BATTLE_SCARRED],
@@ -870,7 +870,7 @@ test('Devastation boon procs respect combat intervals and skill categories', () 
         event.duration === 10
     )
   );
-  const notorietyStats = revenantAttributeRules.modifyAttributes(
+  const notorietyStats = revenantModifiers.modifyAttributes(
     {
       config: { selectedTraitIds: [TRAIT.NOTORIETY], boons: { might: 0 } },
       time: 1,
@@ -1080,7 +1080,7 @@ test('starvation waits for the absolute action tick and preserves its boundary a
       assert.equal(starvationReadyAt, undefined);
     } else {
       // Shutdown at 120 ms starts the four-second starvation cooldown from that tick.
-      assert.equal(starvationReadyAt, 4.12);
+      assert.equal(starvationReadyAt, 0.12 + 4 / 1.25);
       assert.ok(Math.abs(result.planningState.profession.energy.value - 5 * (elapsedMs / 1000 - 0.12)) < 1e-9);
     }
   }
@@ -1300,7 +1300,7 @@ test('Nature survives swaps into every legend and switches its consume without r
       legend === LEGEND.DWARF ? [['stability', 2, 4]] : []
     );
     const consumeStep = consumed.steps.find((step) => step.skillId === consumeId);
-    assert.equal(consumed.planningState.cooldowns['Facet of Nature'].readyAt, consumeStep.end + 20000);
+    assert.equal(consumed.planningState.cooldowns['Facet of Nature'].readyAt, consumeStep.end + 16000);
   }
 });
 
@@ -1430,7 +1430,7 @@ test('True Nature variants share their twenty-second parent cooldown across lege
   const firstTrueNature = result.steps.find((step) => step.skill === 'True Nature');
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(facetSteps[1].start, firstTrueNature.end + 20000);
+  assert.equal(facetSteps[1].start, firstTrueNature.end + 16000);
   for (const skillId of [
     SKILL.TRUE_NATURE_ASSASSIN,
     SKILL.TRUE_NATURE_DWARF,
@@ -1460,7 +1460,7 @@ test('Herald consume skills apply their cooldown to the parent facet', () => {
     const consumeStep = result.steps.find((step) => step.skill === consume);
 
     assert.deepEqual(result.warnings, [], facet);
-    const readyAt = consumeStep.end + cooldown * 1000;
+    const readyAt = consumeStep.end + (cooldown * 1000) / 1.25;
 
     assert.deepEqual(result.planningState.cooldowns[facet], {
       readyAt,
@@ -1586,7 +1586,7 @@ test('Herald consume skills apply their full outgoing profiles', () => {
     startingLegend: LEGEND.DRAGON
   });
 
-  assert.equal(observedRuntime(gaze).cooldowns.get(revenantCatalog.skillsByName.get('Gaze of Darkness').id), 15);
+  assert.equal(observedRuntime(gaze).cooldowns.get(revenantCatalog.skillsByName.get('Gaze of Darkness').id), 12);
   assert.ok(
     gaze.events.some(
       (event) => event.type === 'blind' && event.skillName === 'Gaze of Darkness' && event.duration === 5
@@ -1658,8 +1658,8 @@ test('Herald consume skills apply their full outgoing profiles', () => {
     }
   };
 
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(burstContext, 1), 1.1);
-  assert.equal(revenantAttributeRules.modifyConditionDamage(burstContext, 1), 1.05);
+  assert.equal(revenantModifiers.modifyStrikeDamage(burstContext, 1), 1.1);
+  assert.equal(revenantModifiers.modifyConditionDamage(burstContext, 1), 1.05);
   const reinforcedPotencyContext = {
     config: {
       specialization: 'Herald',
@@ -1682,7 +1682,7 @@ test('Herald consume skills apply their full outgoing profiles', () => {
     runtime: { boons: new Map(), profession: {} }
   };
 
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(reinforcedPotencyContext, 1), 1.1);
+  assert.equal(revenantModifiers.modifyStrikeDamage(reinforcedPotencyContext, 1), 1.1);
 
   const chaos = simulate('Herald', ['Facet of Chaos', 'Chaotic Release'], {
     selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],

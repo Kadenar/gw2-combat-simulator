@@ -429,8 +429,8 @@ test('Restorative Virtues reduces only the currently equipped weapon cooldowns',
       runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(id), 0, 2);
     strike(runtime, 1);
   });
-  assert.equal(observedRuntime(result).cooldowns.get(ID.CHAINS_OF_LIGHT), 1.72);
-  assert.equal(observedRuntime(result).cooldowns.get(ID.SYMBOL_OF_BLADES), 2);
+  assert.equal(observedRuntime(result).cooldowns.get(ID.CHAINS_OF_LIGHT), 1.376);
+  assert.equal(observedRuntime(result).cooldowns.get(ID.SYMBOL_OF_BLADES), 1.6);
 });
 
 test('Willbender Repose belongs to a completed Flash Combo and expires without touching a later occurrence', () => {
@@ -552,8 +552,8 @@ test('Firebrand page exhaustion waits on the selected recovery policy and disabl
 test('Firebrand normal and final mantra charges share lockout and automatically rearm after root recharge', () => {
   const result = run([ID.FLAME_RUSH, ID.FLAME_RUSH, ID.FLAME_SURGE, ID.FLAME_RUSH], firebrand);
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.steps[2].start, 2000);
-  assert.equal(result.steps[3].start, 22000);
+  assert.equal(result.steps[2].start, 1600);
+  assert.equal(result.steps[3].start, 17600);
   assert.equal(observedRuntime(result).ammo.get(ID.FLAME_RUSH).charges, 2);
   assert.ok(core(result).availableFlips[ID.FLAME_RUSH]);
   assert.equal(core(result).availableFlips[ID.FLAME_SURGE], undefined);
@@ -578,12 +578,12 @@ test('Firebrand explicit recharge resets invalidate pending mantra wakes and res
   assert.equal(observedRuntime(result).cooldowns.has(ID.MANTRA_OF_FLAME), false);
 });
 
-test('Firebrand mantra recharge wakes follow actual Alacrity segments and preserve later charge spends', () => {
+test('Firebrand mantra recharge wakes ignore transient Alacrity and preserve later charge spends', () => {
   const result = run([ID.FLAME_RUSH, ID.FLAME_RUSH, ID.FLAME_SURGE, ID.FLAME_RUSH, wait(1100)], firebrand, (runtime) =>
     boon(runtime, 'alacrity', 5, 4)
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.steps[3].start, 21000);
+  assert.equal(result.steps[3].start, 17600);
   assert.equal(observedRuntime(result).ammo.get(ID.FLAME_RUSH).charges, 2);
 });
 
@@ -815,7 +815,7 @@ test('Justice armed during post-death planning cannot be consumed by a rejected 
   assert.equal(core(result).justiceHitCount, 1);
 });
 
-test('temporary Alacrity readies the Core passive on the same action tick as its virtue', () => {
+test('permanent Alacrity readies the Core passive on the same action tick as its virtue', () => {
   const patched = withPatchPreview(guardianProfession, {
     id: 'short-justice',
     label: 'Short Justice',
@@ -844,15 +844,15 @@ test('temporary Alacrity readies the Core passive on the same action tick as its
         actorType: 'player'
       });
       strike(runtime, 0.1);
-      strike(runtime, 10.99);
-      strike(runtime, 11);
+      strike(runtime, 9.59);
+      strike(runtime, 9.6);
     },
     patched
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(core(result).justiceActiveBurns, 1);
   assert.equal(core(result).justiceHitCount, 1);
-  assert.equal(core(result).virtueReadyAt.justice, 11);
+  assert.equal(core(result).virtueReadyAt.justice, 9.6);
 });
 
 test('removed Justice packets cannot arm an active charge or advance the passive counter', () => {
@@ -1278,9 +1278,9 @@ test('Writ and Consecration extensions keep cast ownership and do not survive an
   }
 });
 
-test('Furious Focus integrates transient Alacrity and keeps its exclusive deadline across rotation cooldown resets', () => {
+test('Furious Focus ignores transient Alacrity and keeps its exclusive deadline across rotation cooldown resets', () => {
   const result = run(
-    [ID.JUSTICE, wait(9000), { type: 'cooldown-reset' }, ID.JUSTICE, wait(40), { type: 'cooldown-reset' }, ID.JUSTICE],
+    [ID.JUSTICE, wait(8000), { type: 'cooldown-reset' }, ID.JUSTICE, wait(40), { type: 'cooldown-reset' }, ID.JUSTICE],
     { selectedTraitIds: [TRAIT.FURIOUS_FOCUS] },
     (runtime) => boon(runtime, 'alacrity', 1, 4)
   );
@@ -1290,9 +1290,9 @@ test('Furious Focus integrates transient Alacrity and keeps its exclusive deadli
   );
   assert.deepEqual(
     starts.map((event) => event.at),
-    [0, 9.04]
+    [0, 8.04]
   );
-  assert.equal(core(result).furiousFocusRecharge.startedAt, 9.04);
+  assert.equal(core(result).furiousFocusRecharge.startedAt, 8.04);
 });
 
 test('removed trait components neither claim heal cooldowns nor start recurring Might work', () => {
@@ -1486,7 +1486,7 @@ test('Dragonhunter passive Courage preserves its cadence while actual recharge s
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
     result.events.filter((event) => event.name === 'Shield of Courage — Passive Aegis').map((event) => event.at),
-    [0, 4, 5]
+    [0, 3, 4, 5]
   );
 });
 

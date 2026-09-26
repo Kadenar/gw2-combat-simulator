@@ -11,7 +11,7 @@ import type { RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
-import { untamedCastAvailability } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash.js';
+import { untamedCastAvailability } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import {
   reactToUntamedControl,
   reactToUntamedDamage

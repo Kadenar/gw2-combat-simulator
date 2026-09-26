@@ -174,7 +174,7 @@ test('Feverish Pulse reduces other chants even when its Alacrity component is re
   close(
     observedRuntime(bare).cooldowns.get(ID.CHANT_OF_ACTION) -
       observedRuntime(trained).cooldowns.get(ID.CHANT_OF_ACTION),
-    2
+    1.6
   );
   assert.equal(
     observedRuntime(bare).cooldowns.get(ID.CHANT_OF_FREEDOM),

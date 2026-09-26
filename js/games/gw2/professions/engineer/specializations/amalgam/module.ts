@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
-import { amalgamAttributeRules } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-rules.js';
+import { amalgamModifiers } from '#gw2/professions/engineer/specializations/amalgam/modifiers.js';
 import { amalgamHooks } from '#gw2/professions/engineer/specializations/amalgam/hooks.js';
 import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
@@ -16,7 +16,7 @@ export const amalgamModule = defineNativeModule({
     balanceProfiles: AMALGAM_BALANCE_PROFILES
   }),
   state: { create: amalgamState.create },
-  modifiers: amalgamAttributeRules,
+  modifiers: amalgamModifiers,
   hooks: amalgamHooks,
   presentation: bindAmalgamUi
 });

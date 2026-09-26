@@ -81,7 +81,7 @@ test('starvation cancels Conduit resource and dagger ticks at the boundary', () 
   // Continuous Energy settlement wins over a discrete upkeep tick at the same instant.
   const result = simulate('Conduit', ['Cosmic Wisdom', 'Impossible Odds', wait(4100)], { initialEnergy: 8 });
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).cooldowns.get(SKILL.IMPOSSIBLE_ODDS), 3 + 4);
+  assert.equal(observedRuntime(result).cooldowns.get(SKILL.IMPOSSIBLE_ODDS), 3 + 4 / 1.25);
   assert.equal(affinity(result), 1, 'the starved upkeep grants no tick at its three-second deadline');
   assert.deepEqual(daggerTimes(result), [1, 2]);
   assert.equal(result.planningState.profession.activeUpkeeps.length, 0);

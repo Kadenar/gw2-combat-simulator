@@ -10,8 +10,8 @@ import { paletteActionSkills } from '#gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { applyElementalistBuildAttributeRules } from '#gw2/professions/elementalist/build/attributes.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { elementalistCoreModifierRules } from '#gw2/professions/elementalist/core/traits/modifiers.js';
-import { weaverModifierRules } from '#gw2/professions/elementalist/specializations/weaver/traits/modifiers.js';
+import { elementalistCoreModifierRules } from '#gw2/professions/elementalist/core/modifiers.js';
+import { weaverModifierRules } from '#gw2/professions/elementalist/specializations/weaver/modifiers.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 // Attribute assertions use the same calculator composed into the Elementalist adapter.
@@ -510,7 +510,7 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
 
   assert.deepEqual(
     flow.steps.filter((step) => String(step.skill).endsWith(' Attunement')).map((step) => step.start),
-    [0, 3000]
+    [0, 2400]
   );
 
   const flowDualAttack = runNative({
@@ -529,7 +529,8 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
   );
 
   assert.ok(
-    Math.abs(observedRuntime(flowDualAttack).cooldowns.get(moltenMeteor.skillId) - moltenMeteor.endsAt - 9.6) < 1e-9
+    Math.abs(observedRuntime(flowDualAttack).cooldowns.get(moltenMeteor.skillId) - moltenMeteor.endsAt - 9.6 / 1.25) <
+      1e-9
   );
 
   const pursuit = runNative({
@@ -756,7 +757,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   assert.equal(result.planningState.profession.summonedElemental.element, 'Fire');
   const barrageActions = elementalActions.filter((event) => event.skillName === 'Flame Barrage');
   assert.equal(barrageActions.length, 2);
-  assert.equal(barrageActions[1].at - barrageActions[0].at, 15);
+  assert.equal(barrageActions[1].at - barrageActions[0].at, 12);
   assert.ok(
     elementalActions.some(
       (event) =>
@@ -946,7 +947,7 @@ test('selected Earth Elemental auto-summons, attacks, and executes Stomp', () =>
   assert.equal(Math.round(stompDamage.at * 1000), 1560);
   assert.deepEqual(
     summonActions.filter((event) => event.skillName === 'Stomp').map((event) => Math.round(event.at * 1000)),
-    [0, 18000]
+    [0, 14400]
   );
   assert.equal(cripple.condition, 'Crippled');
   assert.equal(cripple.duration, 5);

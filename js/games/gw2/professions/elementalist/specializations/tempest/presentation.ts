@@ -34,15 +34,11 @@ function overloadPaletteAvailability(context: ElementalistUiContext, skill: Skil
 
   // Mirror scheduler dwell rules so the palette exposes singularity as a
   // visible temporary lockout, including trait and Alacrity adjustments.
-  const assumptions = build?.assumptions;
-  const config = context.config;
-  const boons = config?.boons;
   const overloadsProfile = requireBalanceProfileFromContext(context, PROFILE.overloads);
   const dwell =
     (hasTrait(context, 'Transcendent Tempest')
       ? balanceProfileNumber(overloadsProfile, 'durationMultiplier')
-      : balanceProfileNumber(overloadsProfile, 'initialDelay')) /
-    (Boolean(boons?.alacrity ?? assumptions?.alacrity) ? 1.25 : 1);
+      : balanceProfileNumber(overloadsProfile, 'initialDelay')) / 1.25;
   const retryAt = enteredAt + dwell;
   const available = Number(context.time || 0) + 1e-9 >= retryAt;
   return {

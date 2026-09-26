@@ -16,7 +16,7 @@ import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 const repoUrl = (path) => new URL(`../../../../../${path}`, import.meta.url);
 
 // Overload and attunement hold the same remaining work as actual Alacrity applications change.
-test('Tempest attunement lockouts follow overload recharge through temporary Alacrity', () => {
+test('Tempest attunement lockouts keep overload recharge unchanged by temporary Alacrity', () => {
   for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
     const overloadId = ELEMENTALIST_OVERLOAD_SKILL_IDS[element],
       attunementId = ELEMENTALIST_ATTUNEMENT_SKILL_IDS[element];
@@ -66,7 +66,7 @@ test('Tempest attunement lockouts follow overload recharge through temporary Ala
       ]
     });
     assert.deepEqual(result.warnings, []);
-    assert.ok(second < first, element);
+    assert.equal(second, first, element);
     assert.equal(result.events.findLast((e) => e.type === 'action').at, gw2CooldownReadyAt(second));
   }
 });
@@ -80,7 +80,7 @@ test('Tempest overload completion preserves a longer attunement lockout', () => 
     initialize: (r) => r.cooldownController.startRecharge(r.helpers.skillsById.get(id), 0, 60)
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).cooldowns.get(id), 60);
+  assert.equal(observedRuntime(result).cooldowns.get(id), 48);
   assert.deepEqual(observedRuntime(result).rechargeProgress.get(id), { startedAt: 0, work: 60 });
 });
 
@@ -136,7 +136,7 @@ test('Alacrity shortens overload dwell and Lucid Singularity follows hit timing'
   const baseEntry = baseline.events.find((event) => event.type === 'elementalist.attunement' && event.to === 'Fire');
   const baseOverload = baseline.events.find((event) => event.type === 'action' && event.skillName === 'Overload Fire');
   // Dwell scales with Alacrity; the trait follows overload hits and rewards completion.
-  assert.ok(Math.abs(overload.at - attunement.at - (baseOverload.at - baseEntry.at) / 1.25) < 0.001);
+  assert.ok(Math.abs(overload.at - attunement.at - (baseOverload.at - baseEntry.at)) < 0.001);
   const hits = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Overload Fire');
   assert.ok(alacrity.length > 1);
   assert.ok(alacrity.every((buff) => hits.some((hit) => hit.at === buff.at) || buff.at === overload.endsAt));

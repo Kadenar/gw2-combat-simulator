@@ -7,7 +7,7 @@ import test from 'node:test';
 import { createMesmerEventEmitters } from '#gw2/professions/mesmer/core/mechanics/illusions/event-emission.js';
 import { EPSILON } from '#kernel/core/clock.js';
 import { scheduleMesmerPhantasmEffects } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { completeTroubadourPhantasm } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-rules.js';
+import { completeTroubadourPhantasm } from '#gw2/professions/mesmer/specializations/troubadour/traits/harmonize.js';
 
 test('phantasm packet and Harmonize commitment preserve their interruption tolerances', () => {
   // Synthetic summon progress checks the commitment contract without pinning authored skill timings.

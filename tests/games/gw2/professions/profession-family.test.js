@@ -330,7 +330,7 @@ function testModule(id, options = {}) {
     resources: options.resources || {
       createState: () => (id === 'Core' ? { coreReady: true } : { eliteReady: true })
     },
-    attributeRules: options.attributeRules,
+    modifiers: options.modifiers,
     ui: options.ui
   });
 }
@@ -432,7 +432,7 @@ test('profession families resolve Core or one known elite and cache contracts', 
 test('family hook order is deterministic and duplicate hook ids fail', () => {
   const calls = [];
   const core = testModule('Core', {
-    attributeRules: {
+    modifiers: {
       modifyAttributes: {
         id: 'core.initialize',
         order: 20,
@@ -441,7 +441,7 @@ test('family hook order is deterministic and duplicate hook ids fail', () => {
     }
   });
   const elite = testModule('Elite', {
-    attributeRules: {
+    modifiers: {
       modifyAttributes: {
         id: 'elite.initialize',
         order: 10,
@@ -462,10 +462,10 @@ test('family hook order is deterministic and duplicate hook ids fail', () => {
     () =>
       testFamily(
         testModule('Core', {
-          attributeRules: { modifyAttributes: duplicate }
+          modifiers: { modifyAttributes: duplicate }
         }),
         testModule('Elite', {
-          attributeRules: { modifyAttributes: duplicate }
+          modifiers: { modifyAttributes: duplicate }
         })
       ).resolveProfession({ specialization: 'Elite' }),
     /Duplicate modifyAttributes hook id: same\.initialize/
@@ -483,14 +483,14 @@ test('family attribute declarations compile after active module composition', ()
   });
   const core = defineProfessionModule({
     ...testModule('Core'),
-    attributeRules: {
+    modifiers: {
       modifierRules: [{ id: 'core.rule' }],
       compileModifierRules
     }
   });
   const elite = defineProfessionModule({
     ...testModule('Elite'),
-    attributeRules: {
+    modifiers: {
       modifierRules: [{ id: 'elite.rule' }]
     }
   });

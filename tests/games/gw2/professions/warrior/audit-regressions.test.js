@@ -13,7 +13,7 @@ import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build
 import { applyWarriorBuildAttributeRules } from '#gw2/professions/warrior/build/attributes.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
 import { modifyWarriorStrengthAttributes } from '#gw2/professions/warrior/core/traits/strength.js';
-import { warriorCoreAttributeRules } from '#gw2/professions/warrior/core/traits/modifiers.js';
+import { warriorCoreModifiers } from '#gw2/professions/warrior/core/modifiers.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 
 const simulate = createObservedProfessionSimulator(warriorProfession, {
@@ -225,7 +225,7 @@ test('Vigorous Shouts is outside combat simulation scope', () => {
     calculate(build).attributes['Healing Power'].final,
     calculate(build, [], 1, 'Vigorous Shouts').attributes['Healing Power'].final
   );
-  const attributes = warriorCoreAttributeRules.modifyAttributes(
+  const attributes = warriorCoreModifiers.modifyAttributes(
     { catalog: warriorCatalog, config: { stats: { power: 2000 } }, traits: new Set([TRAIT.VIGOROUS_SHOUTS]), time: 0 },
     { power: 2000, healingPower: 50 }
   );

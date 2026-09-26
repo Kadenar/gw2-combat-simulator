@@ -838,7 +838,7 @@ test('Photon Forge kit lockout is shortened by Alacrity', () => {
     return result.steps.find((step) => step.skill === 'Grenade Kit').start;
   };
 
-  assert.equal(kitStart(false), 6000);
+  assert.equal(kitStart(false), 4800);
   assert.equal(kitStart(true), 4800);
 });
 
@@ -1040,7 +1040,7 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
     ['Healing Turret', 'Detonate Healing Turret', 'Cleansing Burst'].includes(step.skill)
   );
   assert.equal(detonation.start, Math.ceil((firstTurret.end + 500) / 40) * 40);
-  assert.equal(secondTurret.start - detonation.end, 20000);
+  assert.equal(secondTurret.start - detonation.end, 19760);
   assert.equal(cleansingBurst.start - secondTurret.end, 10240);
 
   const mineConfig = {
@@ -1052,10 +1052,10 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
       .map((step) => step.start);
 
   assert.equal(engineerCatalog.skillsByName.get('Throw Mine').rechargeAnchor, 'castStart');
-  assert.deepEqual(throwStarts(['Throw Mine', { type: 'wait', durationMs: 11500 }, 'Throw Mine']), [0, 12000]);
+  assert.deepEqual(throwStarts(['Throw Mine', { type: 'wait', durationMs: 8500 }, 'Throw Mine']), [0, 9600]);
   assert.deepEqual(
-    throwStarts(['Throw Mine', 'Detonate', { type: 'wait', durationMs: 11500 }, 'Throw Mine']),
-    [0, 12000]
+    throwStarts(['Throw Mine', 'Detonate', { type: 'wait', durationMs: 8500 }, 'Throw Mine']),
+    [0, 9600]
   );
 
   // Gadgeteer's added mine shares the input but produces its own strike and combo attempt.

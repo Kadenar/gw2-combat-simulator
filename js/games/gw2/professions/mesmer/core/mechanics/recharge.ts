@@ -44,7 +44,7 @@ export function mesmerRechargeWork(context: MesmerRuntime, skill: MesmerSkill, s
     return Math.max(0, baseCooldown * multiplier - reduction);
   }
 
-  // Shared recharge already uses the owner's current Alacrity rate, including transient grants.
+  // Shared recharge already uses the owner's permanent Alacrity rate.
   return sharedDuration * multiplier;
 }
 

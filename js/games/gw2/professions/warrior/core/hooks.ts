@@ -31,6 +31,7 @@ import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/s
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
+import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 
 type WarriorRuntime = Gw2Runtime<WarriorRuntimeState>;
 const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
@@ -435,22 +436,6 @@ function burstTier(runtime: WarriorRuntime, spent: number): number {
     : spent >= balanceProfileNumber(profile, 'threshold')
       ? 2
       : 1;
-}
-
-/** Accepted gains mutate the current pool immediately, capped by its owning specialization. */
-export function grantWarriorAdrenaline(runtime: WarriorRuntime, amount: number): void {
-  if (!Number.isFinite(amount) || amount < 0)
-    throw new RangeError('Adrenaline grants must be finite and non-negative.');
-  // Bladesworn converts authored and trait grants into its single Flow pool.
-  const specialization = runtime.profession.specialization;
-  if (specialization.kind === 'Bladesworn') {
-    const state = specialization.state;
-    state.flow = Math.min(state.maximumFlow, state.flow + amount);
-    return;
-  }
-
-  const state = runtime.profession.core;
-  state.adrenaline = Math.min(state.maximumAdrenaline, state.adrenaline + amount);
 }
 
 /** Each pulse checks current recharge and then schedules only its next occurrence, preserving cadence while suppressed. */

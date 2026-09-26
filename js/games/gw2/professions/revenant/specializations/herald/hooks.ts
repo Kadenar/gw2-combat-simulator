@@ -16,7 +16,7 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { emitRevenantBuff, revenantCombatActive } from '#gw2/professions/revenant/core/events.js';
-import { revenantCastCommitted } from '#gw2/professions/revenant/core/hooks.js';
+import { revenantCastCommitted } from '#gw2/professions/revenant/core/events.js';
 import {
   emitRevenantInvocationProfile,
   emitRevenantInvocationSkill

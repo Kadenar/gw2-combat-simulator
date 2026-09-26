@@ -1,6 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
-import { daredevilAttributeRules } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodge-rules.js';
+import { daredevilModifiers } from '#gw2/professions/thief/specializations/daredevil/modifiers.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import { DAREDEVIL_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/daredevil/skills/index.js';
 import { DAREDEVIL_BALANCE_PROFILES } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
@@ -14,7 +14,7 @@ export const daredevilModule = defineNativeModule({
     balanceProfiles: DAREDEVIL_BALANCE_PROFILES
   }),
   state: { create: daredevilState.create },
-  modifiers: daredevilAttributeRules,
+  modifiers: daredevilModifiers,
   hooks: daredevilHooks,
   presentation: daredevilUi
 });
