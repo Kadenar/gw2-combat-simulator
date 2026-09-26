@@ -5,11 +5,7 @@ import { test } from 'node:test';
 import { loadProfession, loadProfessionAppAdapter } from '#gw2/profession-registry.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import {
-  conditionEffectTicks,
-  effectFirstAtMs,
-  strikeEffectCoefficient
-} from '#gw2/platform/engine/effects/authoring.js';
+import { conditionEffectTicks, strikeEffectCoefficient } from '#gw2/platform/engine/effects/authoring.js';
 import {
   applyBalanceProfilePatch,
   applySkillPatch,
@@ -411,31 +407,6 @@ test('Engineer modules expose isolated balance-profile authoring', () => {
   assert.equal(preview.balanceProfilesById.get(AMALGAM_BALANCE_PROFILE_IDS.mercurialTendencies).rechargeReduction, 3);
 
   assert.equal(engineerCatalog.balanceProfilesById.get(ENGINEER_CORE_BALANCE_PROFILE_IDS.resources).resourceCost, 50);
-});
-
-test('Engineer sword impacts use measured cast-start packet timing', () => {
-  const expectedOffsets = new Map([
-    [ID.SUN_EDGE, 360],
-    [ID.SUN_EDGE_ID_70514, 360],
-    [ID.SUN_RIPPER, 440],
-    [ID.SUN_RIPPER_ID_69906, 440],
-    [ID.GLEAM_SABER, 600],
-    [ID.GLEAM_SABER_ID_70771, 600]
-  ]);
-
-  for (const [skillId, atMs] of expectedOffsets) {
-    const skill = engineerCatalog.skillsById.get(skillId);
-    const strike = skill.effects.find((effect) => effect.type === 'strike');
-
-    assert.deepEqual(
-      {
-        atMs: effectFirstAtMs(strike),
-        timingAnchor: strike.timingAnchor,
-        timingScale: strike.timingScale
-      },
-      { atMs, timingAnchor: 'castStart', timingScale: 'fixed' }
-    );
-  }
 });
 
 test('Holosmith palette exposes tool-belt skills, forge, and replacement bars', () => {

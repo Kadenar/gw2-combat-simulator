@@ -526,20 +526,20 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
   const holosmithRuntime = engineerProfession.resolveProfession({ specialization: 'Holosmith' });
 
   for (const id of [
-    ID.SUN_EDGE_ID_70514,
-    ID.SUN_RIPPER_ID_69906,
-    ID.GLEAM_SABER_ID_70771,
-    ID.RADIANT_ARC_ID_69565,
+    ID.SUN_EDGE_NON_HOLOSMITH,
+    ID.SUN_RIPPER_NON_HOLOSMITH,
+    ID.GLEAM_SABER_NON_HOLOSMITH,
+    ID.RADIANT_ARC_NON_HOLOSMITH,
     ID.REFRACTION_CUTTER_NON_HOLOSMITH
   ]) {
     assert.equal(skill(id).specialization, '');
   }
 
   assert.equal(mechanistRuntime.catalog.skillsById.has(ID.GLEAM_SABER), false);
-  assert.equal(mechanistRuntime.catalog.skillsById.has(ID.GLEAM_SABER_ID_70771), true);
+  assert.equal(mechanistRuntime.catalog.skillsById.has(ID.GLEAM_SABER_NON_HOLOSMITH), true);
   assert.equal(
     holosmithRuntime.weaponSkillMatchesSet(
-      holosmithRuntime.catalog.skillsById.get(ID.GLEAM_SABER_ID_70771),
+      holosmithRuntime.catalog.skillsById.get(ID.GLEAM_SABER_NON_HOLOSMITH),
       ['Sword'],
       { specialization: 'Holosmith' }
     ),
@@ -575,14 +575,14 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
   assert.equal(skill(ID.REFRACTION_CUTTER).effects[1].comboFinishers[0].chance, 1);
   assert.equal(strikeEffectCoefficient(skill(ID.REFRACTION_CUTTER_BLADE).effects[0]), 0.4);
 
-  assert.equal(strikeEffectCoefficient(skill(ID.SUN_EDGE_ID_70514).effects[0]), 0.96);
-  assert.equal(strikeEffectCoefficient(skill(ID.SUN_RIPPER_ID_69906).effects[0]), 1.02);
-  assert.equal(strikeEffectCoefficient(skill(ID.GLEAM_SABER_ID_70771).effects[0]), 1.65);
-  assert.equal(strikeEffectCoefficient(skill(ID.RADIANT_ARC_ID_69565).effects[0]), 2.5);
-  assert.equal(skill(ID.RADIANT_ARC_ID_69565).cooldown, 14);
-  assert.equal(skill(ID.RADIANT_ARC_ID_69565).comboFinishers[0].finisherType, 'Leap');
+  assert.equal(strikeEffectCoefficient(skill(ID.SUN_EDGE_NON_HOLOSMITH).effects[0]), 0.96);
+  assert.equal(strikeEffectCoefficient(skill(ID.SUN_RIPPER_NON_HOLOSMITH).effects[0]), 1.02);
+  assert.equal(strikeEffectCoefficient(skill(ID.GLEAM_SABER_NON_HOLOSMITH).effects[0]), 1.65);
+  assert.equal(strikeEffectCoefficient(skill(ID.RADIANT_ARC_NON_HOLOSMITH).effects[0]), 2.5);
+  assert.equal(skill(ID.RADIANT_ARC_NON_HOLOSMITH).cooldown, 14);
+  assert.equal(skill(ID.RADIANT_ARC_NON_HOLOSMITH).comboFinishers[0].finisherType, 'Leap');
   assert.deepEqual(
-    skill(ID.RADIANT_ARC_ID_69565)
+    skill(ID.RADIANT_ARC_NON_HOLOSMITH)
       .effects.slice(1)
       .flatMap((effect) =>
         effect.type === 'condition'
@@ -604,7 +604,7 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
   assert.equal(refraction.effects[1].comboFinishers[0].chance, 1);
   assert.equal(conditionEffectTicks(refraction.effects[2]).length, 2);
 
-  const replaced = simulate('Holosmith', [{ type: 'cast', skillId: ID.SUN_EDGE_ID_70514 }]);
+  const replaced = simulate('Holosmith', [{ type: 'cast', skillId: ID.SUN_EDGE_NON_HOLOSMITH }]);
 
   assert.match(replaced.warnings[0], /Holosmith replaces this sword skill/);
 
@@ -631,9 +631,9 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
 
   const result = simulate('Mechanist', [
     { type: 'cast', skillId: ID.REFRACTION_CUTTER_NON_HOLOSMITH },
-    { type: 'cast', skillId: ID.SUN_EDGE_ID_70514 },
-    { type: 'cast', skillId: ID.SUN_RIPPER_ID_69906 },
-    { type: 'cast', skillId: ID.GLEAM_SABER_ID_70771 },
+    { type: 'cast', skillId: ID.SUN_EDGE_NON_HOLOSMITH },
+    { type: 'cast', skillId: ID.SUN_RIPPER_NON_HOLOSMITH },
+    { type: 'cast', skillId: ID.GLEAM_SABER_NON_HOLOSMITH },
     { type: 'wait', durationMs: 200 }
   ]);
   const blades = result.resolvedEvents.filter(
@@ -654,10 +654,10 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
     'Core',
     [
       { type: 'cast', skillId: ID.REFRACTION_CUTTER_NON_HOLOSMITH },
-      { type: 'cast', skillId: ID.SUN_EDGE_ID_70514 },
-      { type: 'cast', skillId: ID.SUN_RIPPER_ID_69906 },
-      { type: 'cast', skillId: ID.GLEAM_SABER_ID_70771 },
-      { type: 'cast', skillId: ID.RADIANT_ARC_ID_69565 }
+      { type: 'cast', skillId: ID.SUN_EDGE_NON_HOLOSMITH },
+      { type: 'cast', skillId: ID.SUN_RIPPER_NON_HOLOSMITH },
+      { type: 'cast', skillId: ID.GLEAM_SABER_NON_HOLOSMITH },
+      { type: 'cast', skillId: ID.RADIANT_ARC_NON_HOLOSMITH }
     ],
     { primaryWeapon: 'Sword', secondaryWeapon: 'Pistol' }
   );

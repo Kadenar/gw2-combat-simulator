@@ -17,7 +17,7 @@ function restoreEiMissingSunEdge(
   context: LogActionNormalizationContext,
   actions: readonly RecordedLogAction[]
 ): readonly RecordedLogAction[] {
-  const sunEdge = context.catalog?.skills.find((skill) => Number(skill.id) === ID.SUN_EDGE_ID_70514) || null;
+  const sunEdge = context.catalog?.skills.find((skill) => Number(skill.id) === ID.SUN_EDGE_NON_HOLOSMITH) || null;
   const castTimeMs = referenceCastTimeMs(sunEdge);
   if (!sunEdge || castTimeMs <= 0) return actions;
 
@@ -25,21 +25,21 @@ function restoreEiMissingSunEdge(
   for (const action of actions) {
     const previous = restored.at(-1);
     if (
-      previous?.rawSkillId === ID.RADIANT_ARC_ID_69565 &&
-      action.rawSkillId === ID.SUN_RIPPER_ID_69906 &&
+      previous?.rawSkillId === ID.RADIANT_ARC_NON_HOLOSMITH &&
+      action.rawSkillId === ID.SUN_RIPPER_NON_HOLOSMITH &&
       quantizeGw2ActionTimingMs(action.start - previous.end) === castTimeMs
     ) {
       restored.push({
         start: previous.end,
         end: action.start,
-        rawSkillId: ID.SUN_EDGE_ID_70514,
+        rawSkillId: ID.SUN_EDGE_NON_HOLOSMITH,
         rawName: sunEdge.name,
         status: 'completed',
         eventIndex: action.eventIndex - 0.5,
         isSwap: false,
         metadataAccurate: false,
         expectedDurationMs: castTimeMs,
-        canonicalSkillId: ID.SUN_EDGE_ID_70514,
+        canonicalSkillId: ID.SUN_EDGE_NON_HOLOSMITH,
         canonicalName: sunEdge.name
       });
     }

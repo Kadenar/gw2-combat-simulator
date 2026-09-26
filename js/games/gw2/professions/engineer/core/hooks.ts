@@ -158,7 +158,7 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
     if (skill.flipParentName) consumeSkillFlip(state.availableFlips, skill.id);
     completeEngineerTurret(runtime, cast);
     if (skill.id !== ID.ELECTRIC_ARTILLERY || !castWasInterrupted(cast)) completeEngineerSpear(runtime, cast);
-    if (skill.id === ID.GLEAM_SABER || skill.id === ID.GLEAM_SABER_ID_70771)
+    if (skill.id === ID.GLEAM_SABER || skill.id === ID.GLEAM_SABER_NON_HOLOSMITH)
       reduceRecharge(
         runtime,
         cast,

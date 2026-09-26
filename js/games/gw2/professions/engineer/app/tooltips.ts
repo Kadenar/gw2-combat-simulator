@@ -311,7 +311,7 @@ const familySkillIds: Record<keyof typeof familyTooltips, readonly SkillId[]> = 
     ID.LAUNCH_WALL
   ],
   'engineer.mine-field': [ID.MINE_FIELD],
-  'engineer.gleam-saber': [ID.GLEAM_SABER_ID_70771, ID.GLEAM_SABER],
+  'engineer.gleam-saber': [ID.GLEAM_SABER_NON_HOLOSMITH, ID.GLEAM_SABER],
   'engineer.dodge': [ID.DODGE],
   'engineer.photon-forge-enter': [ID.ENGAGE_PHOTON_FORGE],
   'engineer.photon-forge-exit': [ID.DEACTIVATE_PHOTON_FORGE, ID.DEACTIVATE_PHOTON_FORGE_HOT],
@@ -453,10 +453,6 @@ export const engineerTooltips: ProfessionTooltips = {
       ]
     }),
     [ID.SUN_EDGE]: skillTooltip(
-      "Strike with your sword. Holosmith's current heat tier increases this strike.",
-      (balanceContext) => heatStrikeFacts(balanceContext, HOLOSMITH.swordHeatTier)
-    ),
-    [ID.SUN_EDGE_ID_70514]: skillTooltip(
       "Strike with your sword. Holosmith's current heat tier increases this strike.",
       (balanceContext) => heatStrikeFacts(balanceContext, HOLOSMITH.swordHeatTier)
     ),

@@ -27,14 +27,19 @@ export const ENGINEER_SKILL_IDS: Readonly<Record<string, number>> = Object.freez
   DODGE: -5,
   STOW_ELITE_MORTAR_KIT: -301,
   ...stableNameIndex([
-    ...SKILLS.map((skill) => [skill.name, skill.id] as const),
+    // Distinguish non-Holosmith sword variants that share API names with Holosmith skills.
+    ...SKILLS.map(
+      (skill) =>
+        [
+          [69565, 69906, 70514, 70771, 71121].includes(Number(skill.id)) ? `${skill.name} Non Holosmith` : skill.name,
+          skill.id
+        ] as const
+    ),
     ...ENGINEER_SUPPLEMENTAL_SKILLS.map((skill) => [skill.name, skill.id] as const)
   ]),
   // The API names both variants Evolve; semantic IDs distinguish the trait-selected actions.
   EVOLVE_BASE: 76642,
-  EVOLVE_DOUBLE_HELIX: 76651,
-  // The API names both Sword 1 variants Refraction Cutter; this is the non-Holosmith one.
-  REFRACTION_CUTTER_NON_HOLOSMITH: 71121
+  EVOLVE_DOUBLE_HELIX: 76651
 });
 
 export const ENGINEER_TRAIT_IDS = stableNameIndex(

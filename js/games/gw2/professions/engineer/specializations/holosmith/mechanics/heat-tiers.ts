@@ -44,9 +44,9 @@ export function holosmithEventMetadata(event: unknown): HolosmithEventMetadata {
   return (event && typeof event === 'object' ? event : {}) as HolosmithEventMetadata;
 }
 
+// Only Holosmith skill variants receive heat scaling; Core sword variants never do.
 const HEAT_STRIKE_PROFILES: ReadonlyMap<string, SkillId> = new Map([
   [String(ID.SUN_EDGE), PROFILE.swordHeatTier],
-  [String(ID.SUN_EDGE_ID_70514), PROFILE.swordHeatTier],
   [String(ID.SUN_RIPPER), PROFILE.swordHeatTier],
   [String(ID.GLEAM_SABER), PROFILE.swordHeatTier],
   [String(ID.BLADE_BURST), PROFILE.bladeBurstHeatTier],
