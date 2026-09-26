@@ -10,7 +10,6 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { ElementalistCanonicalBuild, ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
@@ -85,13 +84,6 @@ export type ElementalistSimulationEvent = SimulationEvent & {
   readonly aura?: string;
   readonly coefficient?: number;
   readonly condition?: string;
-  readonly fieldType?: string;
-};
-
-/** The resolver-phase counterpart of ElementalistSimulationEvent, seen when damage is computed. */
-export type ElementalistResolverEvent = Gw2ResolverEvent & {
-  readonly application?: Gw2ResolverEvent;
-  readonly aura?: string;
   readonly fieldType?: string;
 };
 

@@ -1,7 +1,7 @@
 import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
-import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { timeKey } from '#kernel/core/clock.js';
 
 /**
  * Canonical event schema shared by the unified runtime and reports.
@@ -149,20 +149,6 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
   }
 
   return candidate as SimulationEvent;
-}
-
-/**
- * Validates and freezes an event before it enters a scheduled event stream.
- */
-export function createEvent(event: unknown): Readonly<SimulationEvent> {
-  const normalized = Object.fromEntries(
-    Object.entries({
-      schemaVersion: EVENT_SCHEMA_VERSION,
-      ...assertSimulationEvent(event),
-      at: canonicalTime((event as SimulationEvent).at)
-    }).filter(([, value]) => value !== undefined)
-  );
-  return Object.freeze(normalized as unknown as SimulationEvent);
 }
 
 /** Defines emitted events and recipient metadata shared by scheduling, resolution, and presentation. */

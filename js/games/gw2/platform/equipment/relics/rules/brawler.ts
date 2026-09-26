@@ -7,9 +7,6 @@ import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 
 export const brawler = defineRelic({
   createState: () => ({ readyAt: 0, buffUntil: 0 }),
-  timeline(_ctx, state, events) {
-    state.combatMarker = events.find((event) => event.type === 'combat_start');
-  },
   boon(ctx, state, event) {
     // Preparation can leave a buff running, but only the equipped relic can trigger again after the marker.
     const marker = state.combatMarker as SimulationEvent | undefined;

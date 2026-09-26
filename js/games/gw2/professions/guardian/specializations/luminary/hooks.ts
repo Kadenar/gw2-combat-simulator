@@ -81,7 +81,6 @@ function exitForge(runtime: Runtime, cast?: RuntimeCast): void {
 
   state.radiantForge = false;
   state.radiantForgeEndsAt = 0;
-  state.radiantForgeEnteredAt = 0;
   state.forgeActivationId = null;
   state.radiantWeapon = '';
   state.glaringBurstSwordSlow = false;
@@ -118,7 +117,6 @@ function enterForge(runtime: Runtime, cast: RuntimeCast): void {
   const state = luminaryState.from(runtime);
   state.radiantForge = true;
   state.radiantForgeEndsAt = canonicalTime(runtime.time + effectNumber(profile, effect, 'duration'));
-  state.radiantForgeEnteredAt = runtime.time;
   state.forgeActivationId = cast.id;
   state.radiantWeapon = '';
   state.glaringBurstSwordSlow = false;

@@ -45,8 +45,6 @@ export interface NecromancerCoreState {
   activeMinions: Record<string, number>;
   minionGenerations: Record<string, number>;
   minionAttackGenerations: Record<string, number>;
-  minionAttackAnchors: Record<string, number>;
-  minionAttackCycleOffsets: Record<string, number>;
   /** Actual next attacks survive command pauses without reconstructing progress from elapsed time. */
   minionAttackCursors: Record<string, { cycleIndex: number; attackIndex: number }>;
   /** Expiry timestamps for armed flip skills; persistent exits and minion commands use Infinity. */
@@ -60,7 +58,6 @@ export interface NecromancerCoreState {
   lichEndsAt: number;
   /** Re-entering the timed form owns a new cancellable expiry. */
   lichGeneration: number;
-  pendingShroudEntryId?: SkillId | null;
   targetChilledUntil: number;
   targetControlledUntil: number;
   dreadUntil: number;
@@ -162,8 +159,6 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     activeMinions: {},
     minionGenerations: {},
     minionAttackGenerations: {},
-    minionAttackAnchors: {},
-    minionAttackCycleOffsets: {},
     minionAttackCursors: {},
     availableFlips: {},
     autoattackChains: {},

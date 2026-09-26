@@ -264,12 +264,10 @@ export interface ProfessionResultUiContext<TProfessionState = unknown> extends P
   readonly profession?: object | null;
 }
 
-/** Event-log rows; the caller owns time/resource formatting, while `eventLogState` tracks presenter changes per render. */
+/** Event-log rows; the caller owns time and resource formatting. */
 export interface ProfessionEventLogContext<
   TProfessionState = unknown
-> extends ProfessionResultUiContext<TProfessionState> {
-  readonly eventLogState?: Map<string, unknown>;
-}
+> extends ProfessionResultUiContext<TProfessionState> {}
 
 /** Rotation state snapshot at the inspected point. */
 export interface ProfessionStateSnapshotContext<

@@ -13,8 +13,7 @@ import {
 import {
   relicConditionDurationBonus,
   relicOutgoingDamageBonus,
-  relicStrikeMultiplier,
-  recordPassiveRelicTimeline
+  relicStrikeMultiplier
 } from '#gw2/platform/equipment/relics/query.js';
 import { sigilCriticalContribution } from '#gw2/platform/equipment/sigils/rules.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
@@ -509,16 +508,14 @@ test('Aristocracy requires a landed condition with eligible explicit ownership',
 
 test('Nourys owns its generic stack cadence and additive damage window', () => {
   const relic = createRelicRuntime('Nourys');
-  const procSteps = [];
-  const context = {
-    relic,
-    combatStartTime: 2,
-    recordProc(kind, name, at, sourceSkill, detail) {
-      procSteps.push({ kind, name, at, sourceSkill, detail });
-    }
-  };
+  const context = { relic, combatStartTime: 2 };
 
-  recordPassiveRelicTimeline(context, [], 70);
+  // Reporting observes the passive hook after the live runtime reaches its combat boundary.
+  const result = simulateMesmer(
+    [{ type: 'wait', durationMs: 2000 }, '__combat_start', { type: 'wait', durationMs: 68000 }],
+    { relic: 'Nourys', target: { health: 0 } }
+  );
+  assert.deepEqual(result.warnings, []);
 
   assert.equal(relicOutgoingDamageBonus(context, 'strike', 31.999), 0);
   assert.equal(relicOutgoingDamageBonus(context, 'strike', 32), 0.25);
@@ -526,7 +523,7 @@ test('Nourys owns its generic stack cadence and additive damage window', () => {
   assert.equal(relicOutgoingDamageBonus(context, 'condition', 37), 0);
   assert.equal(relicOutgoingDamageBonus(context, 'strike', 67), 0.25);
   assert.deepEqual(
-    procSteps.filter(({ name }) => name === 'Relic of Nourys').map(({ at }) => at),
+    result.procSteps.filter(({ skill }) => skill === 'Relic of Nourys').map(({ start }) => start / 1000),
     [32, 67]
   );
 });

@@ -1,6 +1,5 @@
 import type { Gw2CriticalChanceContributor } from '#gw2/platform/combat/query/combat-query.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ConditionWork } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
@@ -111,8 +110,6 @@ export type Gw2EventQueue = StableEventQueue<Gw2ResolverEvent>;
 export type Gw2ResolverEventHandler = (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => unknown;
 
 export type Gw2ResolverEventHandlers = Readonly<Record<string, Gw2ResolverEventHandler>>;
-
-export type Gw2ResolverHandlerRegistry = HandlerRegistry<Gw2ResolverRuntime, Gw2ResolverEvent>;
 
 export type Gw2ResolverReaction = (
   context: Gw2ResolverRuntime,

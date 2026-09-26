@@ -13,7 +13,6 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 export interface HolosmithState {
   heat: number;
   maximumHeat: number;
-  heatUpdatedAt: number;
   passiveHeatAt: number | null;
   enhancedCapacityMightAt: number;
   photonForgeActive: boolean;
@@ -44,7 +43,6 @@ export function createHolosmithState(config: EngineerConfig = {}): HolosmithStat
   return {
     heat: initialHeat,
     maximumHeat,
-    heatUpdatedAt: 0,
     passiveHeatAt: null,
     enhancedCapacityMightAt: Infinity,
     photonForgeActive: false,

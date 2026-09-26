@@ -130,7 +130,3 @@ export interface MesmerSkill extends Skill {
   readonly resource?: MesmerSkillResource | null;
   readonly mesmerMechanic?: MesmerMechanic;
 }
-
-export type MesmerSkillCatalogFragment = Partial<Skill> & {
-  readonly id: number;
-};

@@ -115,8 +115,6 @@ export function simulationEventLogRows(
     });
   };
 
-  // Keep presenter bookkeeping local to this render so snapshots can report meaningful changes.
-  const professionLogState = new Map<string, unknown>();
   // Shared events a slice does not present keep their generic fallback row instead of a diagnostic.
   const pushProfessionRow = (event: SimulationEvent, fallback?: () => void): void => {
     const normalized = normalizeEventLogDescriptor(
@@ -125,8 +123,7 @@ export function simulationEventLogRows(
           result,
           build,
           profession,
-          specialization,
-          eventLogState: professionLogState
+          specialization
         },
         event
       )

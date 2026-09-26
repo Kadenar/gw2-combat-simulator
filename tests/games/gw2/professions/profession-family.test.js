@@ -546,7 +546,6 @@ const inactiveStateKeys = Object.freeze({
     'resummonedSpiritAutoCycle',
     'weaponSpells',
     'soulTwistingAvailable',
-    'pendingSoulTwistSkill',
     'painfulBondUntil',
     'painfulBondPulseAnchorAt'
   ]
@@ -684,7 +683,6 @@ const guardianInactiveStateKeys = Object.freeze({
   Luminary: [
     'radiantForge',
     'radiantForgeEndsAt',
-    'radiantForgeEnteredAt',
     'radiantWeapon',
     'radiantWeaponsUsed',
     'empoweredArmamentsUntil',

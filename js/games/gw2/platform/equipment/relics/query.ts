@@ -1,8 +1,7 @@
 /** Exposes pure timestamped relic contributions to combat queries. */
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2RelicContext, Gw2RelicRuntimeContext } from '#gw2/platform/equipment/relics/types.js';
-import { createRelicRuntime, invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
-import { normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
+import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
 
 /**
  * Calculates the strike multiplier supplied by the selected relic.
@@ -47,22 +46,4 @@ export function relicConditionDurationBonus(ctx: Gw2RelicRuntimeContext | null |
  */
 export function relicConditionDamageBonus(ctx: Gw2RelicRuntimeContext | null | undefined, at: number): number {
   return Number(invokeRelicHook(ctx, 'conditionDamageBonus', at) ?? 0);
-}
-
-/**
- * Records passive proc timelines for relics that do not need resolver state.
- */
-export function recordPassiveRelicTimeline(
-  ctx: Gw2RelicContext,
-  events: readonly SimulationEvent[],
-  rotationEndTime: number
-): void {
-  invokeRelicHook(ctx, 'timeline', events, rotationEndTime);
-  invokeRelicHook(ctx, 'passiveTimeline', rotationEndTime);
-  ctx.precastRelics = normalizePrecastRelics(ctx.config?.precastRelics)
-    .filter((name) => name !== ctx.relic?.name)
-    .map(createRelicRuntime);
-  for (const relic of ctx.precastRelics) {
-    relic.rules.timeline?.(ctx, relic.state, events, rotationEndTime);
-  }
 }

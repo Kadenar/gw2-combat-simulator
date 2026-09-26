@@ -36,21 +36,6 @@ function resolvedReaction<
   });
 }
 
-/** Adjusts a damage packet using live resolver state before its damage is calculated. */
-export function onResolvingDamage<
-  TContext extends Gw2ResolverRuntime,
-  TEvent extends Gw2ResolverEvent,
-  TDetails extends object = object
->(
-  declaration: Readonly<{
-    id: string;
-    order?: number;
-    handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
-  }>
-): ResolvedReaction<TContext, TEvent, TDetails> {
-  return resolvedReaction('damage.resolving', declaration);
-}
-
 /** Creates an ordered resolver reaction for resolved damage. */
 export function onResolvedDamage<
   TContext extends Gw2ResolverRuntime,
@@ -64,36 +49,6 @@ export function onResolvedDamage<
   }>
 ): ResolvedReaction<TContext, TEvent, TDetails> {
   return resolvedReaction('damage.resolved', declaration);
-}
-
-/** Creates an ordered resolver reaction for resolved combos. */
-export function onComboResolved<
-  TContext extends Gw2ResolverRuntime,
-  TEvent extends Gw2ResolverEvent,
-  TDetails extends object = object
->(
-  declaration: Readonly<{
-    id: string;
-    order?: number;
-    handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
-  }>
-): ResolvedReaction<TContext, TEvent, TDetails> {
-  return resolvedReaction('combo.resolved', declaration);
-}
-
-/** Creates an ordered resolver reaction for applied auras. */
-export function onAuraApplied<
-  TContext extends Gw2ResolverRuntime,
-  TEvent extends Gw2ResolverEvent,
-  TDetails extends object = object
->(
-  declaration: Readonly<{
-    id: string;
-    order?: number;
-    handler: (context: TContext, event: TEvent, details?: TDetails) => object | void;
-  }>
-): ResolvedReaction<TContext, TEvent, TDetails> {
-  return resolvedReaction('aura.applied', declaration);
 }
 
 export interface ResolvedCriticalHitOptions<

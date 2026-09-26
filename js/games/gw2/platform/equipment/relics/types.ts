@@ -157,12 +157,6 @@ export interface Gw2RelicRule {
   readonly completed?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
   readonly activate?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
   readonly passiveTimeline?: (context: Gw2RelicContext, state: Gw2RelicState, end: number) => unknown;
-  readonly timeline?: (
-    context: Gw2RelicContext,
-    state: Gw2RelicState,
-    events: readonly SimulationEvent[],
-    rotationEndTime: number
-  ) => unknown;
   readonly boon?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
   readonly combo?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
   readonly strikeMultiplier?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => number;

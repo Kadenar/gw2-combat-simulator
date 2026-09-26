@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { assertSimulationEvent, COMMON_EVENT_TYPES, createEvent } from '#gw2/platform/engine/events/events.js';
+import { assertSimulationEvent, COMMON_EVENT_TYPES } from '#gw2/platform/engine/events/events.js';
 
-// Event envelopes and scheduled streams validate boundaries and preserve immutable snapshots.
+// The live event boundary validates explicit ownership before execution.
 test('event ownership is required regardless of legacy source labels', () => {
   for (const source of ['Player', 'Trait', 'Phantasm', 'Environment']) {
     assert.throws(
-      () => createEvent({ type: 'damage', at: 0, source, sourceId: 'missing-actor', coefficient: 1 }),
+      () => assertSimulationEvent({ type: 'damage', at: 0, source, sourceId: 'missing-actor', coefficient: 1 }),
       /actorType.*required/
     );
   }

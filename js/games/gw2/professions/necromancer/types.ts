@@ -6,7 +6,6 @@ import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '#gw2/p
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2QueryRuntime } from '#gw2/platform/combat/query/combat-query.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import type { HarbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import type { ReaperState } from '#gw2/professions/necromancer/specializations/reaper/state.js';
@@ -84,10 +83,6 @@ export type NecromancerResolverEvent = Gw2ResolverEvent & {
 export type NecromancerResolverContext = Gw2ResolverRuntime & {
   config: NecromancerConfig;
   profession: NecromancerRuntimeState;
-};
-
-export type NecromancerQueryRuntime = Gw2QueryRuntime & {
-  readonly profession?: NecromancerRuntimeState | Partial<NecromancerState> | null;
 };
 
 export interface NecromancerUiContext extends Omit<ProfessionUiCallbackContext<Partial<NecromancerState>>, 'build'> {

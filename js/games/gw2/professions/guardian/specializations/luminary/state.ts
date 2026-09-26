@@ -6,7 +6,6 @@ import {
 export interface GuardianLuminaryState {
   radiantForge: boolean;
   radiantForgeEndsAt: number;
-  radiantForgeEnteredAt: number;
   forgeActivationId: string | null;
   radiantWeapon: string;
   radiantWeaponsUsed: Record<string, boolean>;
@@ -27,7 +26,6 @@ export function createLuminaryState(): GuardianLuminaryState {
   return {
     radiantForge: false,
     radiantForgeEndsAt: 0,
-    radiantForgeEnteredAt: 0,
     // Exact expiry work belongs to one entry, even if the form is replaced before it runs.
     forgeActivationId: null,
     radiantWeapon: '',

@@ -433,7 +433,6 @@ function triggerVentExhaust(context: EngineerRuntime, triggeringSkill: EngineerS
   // Vent heat immediately after its combat packets are queued at the same timestamp.
   const state = holosmithState.from(context);
   state.heat = Math.max(0, state.heat - Math.max(0, Number(ventExhaust.heatLoss || 0)));
-  state.heatUpdatedAt = at;
   if (state.heat === 0 && !state.photonForgeActive) state.overheated = false;
   reportHeat(context, 'vent-exhaust');
 }
@@ -496,7 +495,6 @@ export const photonForgeTasks: RuntimeProfession<EngineerRuntimeState>['tasks'] 
     const state = holosmithState.from(context);
     if (state.passiveHeatAt !== data || context.time !== data) return;
     applyPassiveHeat(context, context.time);
-    state.heatUpdatedAt = context.time;
     // Overheat can replace the cadence while applying this tick.
     if (state.passiveHeatAt !== data) return;
     const coolingGrace =
@@ -528,7 +526,6 @@ export const photonForgeTasks: RuntimeProfession<EngineerRuntimeState>['tasks'] 
     if (state.overheated || (!state.photonForgeActive && !payload.persistsOutsideForge)) return;
     const previous = state.heat;
     state.heat = grantCapped(state.heat, payload.amount, state.maximumHeat);
-    state.heatUpdatedAt = context.time;
     triggerInstantEnhancedCapacityMight(context, context.time, previous);
     reportHeat(context, 'heat');
   },
