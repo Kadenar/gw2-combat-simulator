@@ -1,8 +1,5 @@
 import { playerDamageTotal } from '#gw2/platform/combat/state/target-health.js';
-import type {
-  assertScheduledEventStream as assertPlatformStream,
-  Gw2ResolverHandoff
-} from '#gw2/platform/engine/events/scheduled-stream.js';
+import { finalizeConditionApplications } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2SimulationScore } from '#gw2/platform/simulation/types.js';
 import type { Gw2ResolverEvent, Gw2ResolverResult } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -37,38 +34,36 @@ function addCastsToBreakdown(ctx: Gw2ResolverRuntime, events: readonly Gw2Resolv
   return output;
 }
 
-/**
- * Shapes the resolver result from drained runtime state: DPS window, sorted
- * breakdowns, effective-window event/proc filtering, and cast counts.
- */
-export function buildResolverResult(
+/** Derives numeric windows and totals directly from completed combat state in either execution path. */
+export function buildSimulationScore(
   ctx: Gw2ResolverRuntime,
-  scheduled: ReturnType<typeof assertPlatformStream>,
-  handoff: Gw2ResolverHandoff
-): Gw2ResolverResult | Gw2SimulationScore {
+  rotationEndTime: number,
+  hasExplicitCombatStart: boolean
+): Gw2SimulationScore {
+  if (ctx.horizon == null) throw new TypeError('Results require a known observation end.');
   const totalDamage = playerDamageTotal(ctx);
   const effectiveEnd = ctx.deathTime ?? ctx.horizon;
-  const explicitCombatStart = Number(handoff.combatStartTime || 0);
+  const explicitCombatStart = ctx.combatStartTime ?? 0;
   // DPS always begins with the first surviving positive damage event. An
   // explicit Combat Start only filters earlier combat events and provides the
   // fallback for a damage-free encounter; it is not itself damage.
-  const dpsStart = ctx.firstHitTime ?? (handoff.hasExplicitCombatStart ? explicitCombatStart : 0);
+  const dpsStart = ctx.firstHitTime ?? (hasExplicitCombatStart ? explicitCombatStart : 0);
   const dpsWindow = Math.max(0, effectiveEnd - dpsStart);
   const damagePerSecond = (damage: number): number => (dpsWindow > 0 ? damage / dpsWindow : 0);
   // Environment DPS uses the target-active window and never borrows the
   // player's first-hit observation boundary.
-  const environmentStart = handoff.hasExplicitCombatStart ? explicitCombatStart : 0;
+  const environmentStart = hasExplicitCombatStart ? explicitCombatStart : 0;
   const environmentWindow = Math.max(0, effectiveEnd - environmentStart);
   const environmentDamagePerSecond = (damage: number): number =>
     environmentWindow > 0 ? damage / environmentWindow : 0;
 
   const score: Gw2SimulationScore = {
     output: 'score',
-    rotationEndTime: scheduled.rotationEndTime,
+    rotationEndTime,
     observationEndTime: ctx.horizon,
     combatEndTime: effectiveEnd,
-    combatStartTime: handoff.hasExplicitCombatStart ? explicitCombatStart : ctx.firstHitTime,
-    hasExplicitCombatStart: Boolean(handoff.hasExplicitCombatStart),
+    combatStartTime: hasExplicitCombatStart ? (ctx.combatStartTime ?? null) : ctx.firstHitTime,
+    hasExplicitCombatStart,
     dpsStartTime: dpsStart,
     dpsWindow,
     firstHitTime: ctx.firstHitTime,
@@ -82,10 +77,30 @@ export function buildResolverResult(
     environmentDps: environmentDamagePerSecond(ctx.environmentDamage),
     warnings: [...new Set(ctx.warnings)]
   };
-  // Stop before filtering, sorting, casts, and table projections when only numerical output was requested.
-  if (!ctx.reporting) return score;
+  return score;
+}
+
+/** Presentation consumes executed events and an optional detached combat boundary, never a scheduler handoff. */
+export function buildCombatResult(
+  ctx: Gw2ResolverRuntime,
+  score: Gw2SimulationScore,
+  events: readonly Gw2ResolverEvent[],
+  combatState: Gw2ResolverResult['combatState'] = {
+    atSeconds: score.combatEndTime,
+    profession: structuredClone(ctx.profession)
+  }
+): Gw2ResolverResult {
+  const effectiveEnd = score.combatEndTime;
+  finalizeConditionApplications(ctx, effectiveEnd);
+  const damagePerSecond = (damage: number): number => (score.dpsWindow > 0 ? damage / score.dpsWindow : 0);
+  const environmentWindow = Math.max(
+    0,
+    effectiveEnd - (score.hasExplicitCombatStart ? Number(score.combatStartTime || 0) : 0)
+  );
+  const environmentDamagePerSecond = (damage: number): number =>
+    environmentWindow > 0 ? damage / environmentWindow : 0;
   const { output, ...numeric } = score;
-  const effectiveEvents = scheduled.events.filter((event) => event.at <= effectiveEnd) as Gw2ResolverEvent[];
+  const effectiveEvents = events.filter((event) => event.at <= effectiveEnd) as Gw2ResolverEvent[];
   const casts = addCastsToBreakdown(ctx, effectiveEvents);
   return {
     ...numeric,
@@ -110,7 +125,7 @@ export function buildResolverResult(
       }))
       .sort((left, right) => right.damage - left.damage),
     events: effectiveEvents,
-    resolvedEvents: ctx.resolved.sort((left, right) => left.at - right.at),
+    resolvedEvents: ctx.resolved.filter((event) => event.at <= effectiveEnd).sort((left, right) => left.at - right.at),
     procSteps: ctx.procSteps
       .filter((step) => step.start <= Math.round(effectiveEnd * 1000 + 0.1))
       .sort((left, right) => left.start - right.start),
@@ -119,6 +134,6 @@ export function buildResolverResult(
       mode: ctx.random.mode,
       seed: ctx.random.seed
     },
-    combatState: { atSeconds: effectiveEnd, profession: ctx.profession }
+    combatState
   };
 }

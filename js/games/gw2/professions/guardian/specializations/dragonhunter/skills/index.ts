@@ -12,15 +12,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     // The virtue commits at 520 ms, allowing the remaining animation to be cancelled.
     interruptCommitMs: 520,
     cooldown: 20,
-    // Custom: Tracks the tether, decorates its strike, and schedules justice pulses; see `dragonhunter/execution/virtues.ts`.
-    handlerId: 'guardian.dragonhunter-justice',
-    // The completed tether activation exposes Hunter's Verdict for the tether window.
-    mechanicTriggers: [
-      {
-        type: 'guardian.dragonhunter.arm-hunters-verdict',
-        timingAnchor: 'castEnd'
-      }
-    ],
     effects: [
       {
         type: 'strike',
@@ -51,15 +42,11 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   },
   [ID.SHIELD_OF_COURAGE]: {
     castTimeMs: 0,
-    // Custom: Activates the virtue and updates passive/readiness state; see `core/mechanics/virtues.ts`.
-    handlerId: 'guardian.virtue',
     effects: []
   },
   [ID.WINGS_OF_RESOLVE]: {
     castTimeMs: 0,
     cooldown: 25,
-    // Custom: Runs the core virtue transition plus Dragonhunter virtue traits; see `dragonhunter/execution/virtues.ts`.
-    handlerId: 'guardian.dragonhunter-virtue',
     effects: []
   },
   [ID.DRAGONS_MAW]: {
@@ -123,8 +110,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   [ID.HUNTERS_VERDICT]: {
     castTimeMs: 0,
     cooldown: 40,
-    // Custom: Breaks the active Spear of Justice tether and cancels later pulses; see `dragonhunter/execution/virtues.ts`.
-    handlerId: 'guardian.hunters-verdict',
     effects: [
       {
         type: 'control',

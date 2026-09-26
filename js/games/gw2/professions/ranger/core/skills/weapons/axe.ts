@@ -7,6 +7,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 const WHIRLING_DEFENSE_TICK_OFFSETS_MS = [200, 360, 600, 840, 1040, 1280, 1520, 1680, 1920, 2160, 2360, 2600] as const;
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
+// Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
 export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RICOCHET]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -14,6 +15,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        projectile: true,
         coefficient: 0.9,
         comboFinishers: [
           {
@@ -31,14 +33,14 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         stacks: 1
       }
     ]),
-    castTimeMs: 600,
-    missileHits: 1
+    castTimeMs: 600
   },
   [ID.SPLITBLADE]: {
     interruptCommitMs: 480,
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        projectile: true,
         coefficient: 2.5,
         hits: 5,
         comboFinishers: [
@@ -58,14 +60,14 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       }
     ]),
     // Match the observed median Quickness animation, rounded to the 40 ms action tick.
-    castTimeMs: 560,
-    missileHits: 5
+    castTimeMs: 560
   },
   [ID.WINTERS_BITE]: {
     interruptCommitMs: 360,
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
+        projectile: true,
         coefficient: 1.8
       },
       {
@@ -81,24 +83,18 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         duration: 4
       }
     ]),
-    castTimeMs: 520,
-    // Custom: Arms the Winter's Bite follow-up state; see `core/execution/index.ts`.
-    handlerId: 'ranger.winters-bite',
-    missileHits: 1
+    castTimeMs: 520
+    // Custom: Arms the Winter's Bite follow-up state; see `core/hooks.ts`.
   },
   [ID.PATH_OF_SCARS]: {
     interruptCommitMs: 360,
     // Both range variants share the same weapon-slot recharge after completion.
-    mechanicTriggers: [
-      {
-        type: 'ranger.core.sync-path-of-scars-cooldown',
-        timingAnchor: 'castEnd'
-      }
-    ],
+
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
+        projectile: true,
         ticks: [
           { atMs: 400, coefficient: 1.2 },
           // Use the short return window for normal, close-range throws.
@@ -119,8 +115,7 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
         controlKind: 'pull'
       }
     ]),
-    castTimeMs: 440,
-    missileHits: 2
+    castTimeMs: 440
   },
   [ID.WHIRLING_DEFENSE]: {
     interruptMode: 'per-packet',
@@ -171,18 +166,13 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 440,
     rechargeAnchor: 'castStart',
     cooldown: 15,
-    missileHits: 2,
     // Both range variants share the same weapon-slot recharge after completion.
-    mechanicTriggers: [
-      {
-        type: 'ranger.core.sync-path-of-scars-cooldown',
-        timingAnchor: 'castEnd'
-      }
-    ],
+
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
+        projectile: true,
         // Range changes the return timing, but both variants belong to the same damage breakdown row.
         damageBreakdownName: 'Path of Scars',
         ticks: [

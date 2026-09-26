@@ -1,4 +1,5 @@
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
@@ -8,12 +9,10 @@ import type { CanonicalCatalog, SkillId } from '#gw2/platform/engine/skills/type
 import type {
   PaletteSkillAvailability,
   ProfessionEffectPresentation,
-  ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView
 } from '#gw2/platform/profession-presentation/types.js';
 import type {
-  NecromancerSimulationEvent,
   NecromancerSkill,
   NecromancerState,
   NecromancerUiContext,
@@ -21,16 +20,8 @@ import type {
 } from '#gw2/professions/necromancer/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { actualNecromancerLifeForceCost } from '#gw2/professions/necromancer/core/state.js';
+import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
 
-const LICH_SKILLS: readonly SkillId[] = Object.freeze([
-  ID.DEATHLY_CLAWS,
-  ID.LICHS_GAZE,
-  ID.RIPPLE_OF_HORROR,
-  ID.MARCH_OF_UNDEATH,
-  ID.SUMMON_MADNESS,
-  ID.GRIM_SPECTER,
-  ID.EXIT_LICH_FORM
-]);
 const HALF_HEALTH_TRAITS = new Set(['Siphoned Power', 'Spiteful Fortitude', 'Chill of Death', 'Close to Death']);
 const NECROMANCER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
   {
@@ -120,7 +111,7 @@ export function necromancerTransformPaletteGroups(
     groups.push({
       id: 'lich',
       label: 'Lch',
-      skillIds: [...LICH_SKILLS],
+      skillIds: [...NECROMANCER_LICH_SKILL_IDS],
       color: '#78b886'
     });
   }
@@ -168,7 +159,7 @@ function necromancerCorePaletteAvailability(
 
   // Once transformed, only the corresponding replacement bar remains available.
   if (active === 'lich') {
-    const available = new Set(LICH_SKILLS).has(skill.id);
+    const available = NECROMANCER_LICH_SKILL_IDS.includes(skill.id);
     return {
       available,
       message: available ? '' : 'Unavailable while Lich Form is active'
@@ -213,50 +204,6 @@ function necromancerCorePaletteAvailability(
   }
 
   return { available: true, message: '' };
-}
-
-/** Formats Necromancer-specific state events while hiding internal lifecycle packets. */
-function necromancerEventLogRow(
-  _context: NecromancerUiContext,
-  event: NecromancerSimulationEvent
-): ProfessionEventLogDescriptor | null | undefined {
-  // Internal lifecycle and per-recipient trigger packets only support combat
-  // resolution; hiding them keeps bookkeeping out of the player event log.
-  if (
-    [
-      // Scheduler feedback is internal observation data, not a player action.
-      'necromancer.target-condition-count',
-      'necromancer.life-force-gain',
-      'necromancer.blight',
-      'necromancer.summon-attack',
-      'necromancer.taste-for-blood-grant',
-      'necromancer.taste-for-blood-allied-hit',
-      'necromancer.vampiric-presence-allied-hit'
-    ].includes(event?.type)
-  ) {
-    return null;
-  }
-
-  if (event?.type !== 'necromancer.state' && event?.type !== 'necromancer.life-force') return undefined;
-  // Summarize only player-facing resource and transform fields from state snapshots.
-  const state = event.state || {};
-  const details = [`Life force ${Number(state.lifeForce?.value || 0).toFixed(1)}%`];
-  if (state.activeShroud) details.push(`Shroud ${state.activeShroud}`);
-  if (Number(state.blight || 0) > 0) {
-    details.push(`Blight ${Number(state.blight)}`);
-  }
-
-  if (Number(state.soulShardGrant?.charges || 0) > 0) {
-    details.push(`Soul shards ${state.soulShardGrant?.charges}`);
-  }
-
-  return {
-    type: event.type,
-    description: [event.reason || 'State', ...details].join(' · '),
-    className: 'resource',
-    order: 30,
-    flags: []
-  };
 }
 
 /** Returns target-health boundaries required by selected traits and threshold-dependent weapons. */
@@ -331,10 +278,21 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog>): NecromancerUiSlice {
   return Object.freeze({
+    // Self conditions are observable transfer resources; they never imply simulated incoming player damage.
+    eventLogRow: (_context: NecromancerUiContext, event: SimulationEvent) =>
+      event.type === 'self_condition'
+        ? {
+            type: 'Self condition',
+            description: String(event.name ?? event.condition ?? 'Self condition'),
+            className: 'event-condition',
+            order: 0,
+            flags: []
+          }
+        : undefined,
     assumptionControls: [...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS, ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS],
     // Core owns both labels because the effects remain available across Necromancer specializations.
     effectPresentations: () => [...NECROMANCER_EFFECT_PRESENTATIONS],
-    eventLogRow: necromancerEventLogRow,
+
     targetHealthThresholds: necromancerCoreTargetHealthThresholds,
     paletteGroups: (context: NecromancerUiContext) =>
       necromancerUiSpecialization(context) === 'Core'

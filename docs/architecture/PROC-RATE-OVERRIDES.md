@@ -4,7 +4,9 @@ The build editor exposes **Proc rate overrides** for selected, supported traits.
 the field blank or use Reset to inherit the active balance profile. Changes rerun the simulation and invalidate
 dependent comparisons. Rates apply to seeded rolls in both simulation modes; trigger eligibility, internal cooldowns,
 and effects remain unchanged. Critical procs first require the hit's shared `didCrit` outcome, then roll any separate
-trait proc chance. Shrapnel rolls directly for each eligible explosion.
+trait proc chance. Shrapnel rolls directly for each eligible explosion. All eligibility, draws, and cooldown claims
+execute once on the unified clock; rejected target effects do not consume a draw or claim. See
+[resource and proc lifecycle](SIMULATION-EVENT-CLOCK.md#resource-and-proc-lifecycle).
 
 For supported condition procs, Analysis displays activations in the Hits column. The primary resolved effect carries
 `metadata.procCount`; secondary effects do not repeat it. The count is independent of condition stacks and damage ticks,

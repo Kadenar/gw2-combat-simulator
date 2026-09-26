@@ -1,4 +1,4 @@
-import type { SchedulerStep } from '#gw2/platform/execution/types.js';
+import type { SimulationStep } from '#gw2/platform/execution/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { mountRotationWarnings } from '#ui/rotation/warnings.js';
@@ -16,7 +16,7 @@ export interface RotationWarningItem {
 }
 
 export function rotationWarningItems(result: Gw2SimulationResult | null | undefined): RotationWarningItem[] {
-  const invalidSteps = new Map<string, SchedulerStep[]>();
+  const invalidSteps = new Map<string, SimulationStep[]>();
   for (const step of result?.steps || []) {
     if (!step.invalid || !step.invalidReason) continue;
     const matches = invalidSteps.get(step.invalidReason) || [];

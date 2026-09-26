@@ -13,7 +13,6 @@ import type {
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 
 const BOW_SKILLS = Object.freeze([
@@ -51,7 +50,7 @@ function visibleBowSkills(context: RangerUiContext) {
 }
 
 // Mirror Galeshot's runtime resource, replacement, and temporary weapon-bar gates
-// in the palette without mutating scheduler state.
+// in the palette without mutating live state.
 function availability(context: RangerUiContext, skill: RangerSkill): PaletteSkillAvailability {
   const state = rangerUiState(context);
   if (skill.id === ID.DISMISS_CYCLONE_BOW && !state.cycloneBowActive) {
@@ -101,8 +100,6 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog>): RangerUiSli
   return Object.freeze({
     // null = suppress the row entirely; undefined = fall through to default rendering.
     // State-sync events are internal bookkeeping and should not appear in the log.
-    eventLogRow: (_context: RangerUiContext, event: SimulationEvent) =>
-      event.type === 'ranger.galeshot-state' ? null : undefined,
     paletteGroups: (context: RangerUiContext): ProfessionPaletteGroup[] => [
       rangerPetPaletteGroup(catalog, context, { stackId: GALESHOT_PALETTE_STACK }),
       {
@@ -130,11 +127,11 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog>): RangerUiSli
     ],
     timelineWeaponLineTransition: (context: RangerUiContext) => {
       const skill = context.skill as RangerSkill | undefined;
-      if (skill?.handlerId === 'ranger.cyclone-bow-enter') {
+      if (skill?.id === ID.SUMMON_CYCLONE_BOW) {
         return 'Cyclone Bow';
       }
 
-      if (skill?.handlerId === 'ranger.cyclone-bow-exit') {
+      if (skill?.id === ID.DISMISS_CYCLONE_BOW) {
         return null;
       }
 

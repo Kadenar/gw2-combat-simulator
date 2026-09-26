@@ -23,7 +23,7 @@ import { ANTIQUARY_BALANCE_PROFILE_IDS as ANTIQUARY } from '#gw2/professions/thi
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
-import type { SkillEffect, TooltipFact } from '#gw2/platform/engine/skills/types.js';
+import type { SkillEffect, SkillId, TooltipFact } from '#gw2/platform/engine/skills/types.js';
 import { requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 /** Malice changes individual packets; display their base values and name the affected packet explicitly. */
@@ -219,6 +219,448 @@ const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
 };
 
 /** Local wording distinguishes conditional packets from simultaneous effects and reads numbers from their owners. */
+/** Shared descriptions for skill families with the same live behavior. */
+const familyTooltips = {
+  'thief.weapon-swap': skillTooltip(
+    'Switch weapon sets, leave Kneel, and trigger applicable swap effects. Quick Pockets restores initiative only when swapping in combat.'
+  ),
+  'thief.dodge': skillTooltip(
+    'Spend endurance to dodge and trigger supported dodge traits. Daredevil applies only the selected dodge package. Silent Scope can grant a stealth-attack charge when malice exceeds its threshold.',
+    (balanceContext) => [
+      profileFact(balanceContext, CORE.resources, 'resourceCost', 'Endurance cost'),
+      ...[DD.boundingDodger, DD.lotusTraining, DD.unhinderedCombatant].flatMap((id) => {
+        const profile = tooltipProfile(balanceContext, id);
+        return simulationEffectFacts(profile.effects, `alternative: ${profile.name}`).facts;
+      })
+    ]
+  ),
+  'thief.steal': skillTooltip(
+    'Trigger stealing traits and obtain a stolen-skill choice. Using a choice consumes the held use; Improvisation allows a second use of the same chosen skill.'
+  ),
+  'thief.stolen-skill': skillTooltip(
+    'Use the held stolen skill and consume a use. When Improvisation permits another use, it must be the same chosen skill.'
+  ),
+  'thief.stealth-attack': stealthAttack,
+  'thief.deadeye-stealth-attack': stealthAttack,
+  'thief.spear-stealth-attack': stealthAttack,
+  'thief.deadeye-spear-stealth-attack': stealthAttack,
+  'thief.prepare-trap': skillTooltip(
+    'Place a preparation. After its recharge-scaled arming delay, its trigger remains available until used. Placement starts the parent recharge independently.',
+    (_c, selected) => [
+      { name: 'Base arming delay', detail: tooltipSeconds(tooltipNumber(selected, 'durationMultiplier')) }
+    ]
+  ),
+  'thief.activate-trap': skillTooltip(
+    'Activate and consume the armed preparation. Its trigger recharge also delays the next placement if that would otherwise be ready sooner.'
+  ),
+  'thief.venom': (balanceContext, entity) => {
+    const id =
+      entity.id === ID.SPIDER_VENOM
+        ? CORE.spiderVenomProc
+        : entity.id === ID.SKALE_VENOM
+          ? CORE.skaleVenomProc
+          : CORE.devourerVenomProc;
+    return profileTooltip(
+      id,
+      'Grant venom charges to yourself and configured allies. Each eligible player strike consumes one charge from each active venom. Recasts add independently expiring charges; allied applications follow the configured venom assumptions.',
+      (_c, profileId) => [
+        profileFact(balanceContext, profileId, 'maximumStacks', 'Charges granted per recipient'),
+        profileFact(balanceContext, profileId, 'durationMultiplier', 'Charge lifetime', tooltipSeconds)
+      ],
+      'per consumed charge'
+    )(balanceContext, entity);
+  },
+  'thief.assassins-signet': profileTooltip(
+    CORE.assassinsSignet,
+    'Passively grants power while ready. Activation temporarily replaces the passive bonus with the larger active bonus; the passive returns when recharge ends.',
+    (balanceContext, id) => [
+      profileFact(balanceContext, id, 'attributeBonus', 'Passive power'),
+      profileFact(balanceContext, id, 'attributePerStack', 'Active power'),
+      profileFact(balanceContext, id, 'durationMultiplier', 'Active duration', tooltipSeconds)
+    ]
+  ),
+  'thief.thieves-guild': (balanceContext, entity) => {
+    const profile = (balanceContext.catalog.skillsById.get(entity.id) as ThiefSkill).summonAttack!;
+    return {
+      description:
+        'Summon thieves that run their attack rotations while combat is active. The final thief depends on your specialization. Their strikes use fixed companion attributes; their conditions inherit your condition attributes. Lifetime begins when casting starts, including time before combat. Recasting replaces the previous guild.',
+      facts: [
+        { name: 'Lifetime', detail: tooltipSeconds(profile.duration) },
+        { name: 'Companion power', detail: tooltipDecimal(profile.basePower) },
+        { name: 'Companion critical chance', detail: tooltipPercent(profile.criticalChance) },
+        { name: 'Companion critical damage', detail: `${tooltipDecimal(profile.criticalDamage * 100)}%` },
+        ...profile.summons.flatMap((summon) =>
+          (summon.attacks || []).flatMap(
+            (attack) =>
+              simulationEffectFacts(
+                [
+                  {
+                    type: 'strike',
+                    actorType: 'summon',
+                    coefficient: attack.coefficientPerHit * (attack.hits ?? 1),
+                    hits: attack.hits ?? 1
+                  },
+                  ...(attack.conditions || []).map((condition): SkillEffect => ({
+                    ...condition,
+                    type: 'condition',
+                    actorType: 'summon'
+                  }))
+                ],
+                `${summon.name}${summon.variant ? ': core alternative' : ''} · ${attack.name}, per attack`
+              ).facts
+          )
+        )
+      ]
+    };
+  },
+  'thief.kneel': skillTooltip(
+    'Kneel to replace rifle skills with their kneeling variants and increase initiative regeneration. Free Action or swapping weapons ends Kneel.',
+    (balanceContext) => [
+      profileFact(
+        balanceContext,
+        CORE.resources,
+        'kneelingInitiativeRegenerationBonus',
+        'Additional initiative per second'
+      )
+    ]
+  ),
+  'thief.free-action': skillTooltip(
+    'Stand up, ending Kneel and restoring the standing rifle skills and initiative regeneration.'
+  ),
+  'thief.deadeyes-mark': skillTooltip(
+    'Mark the target, trigger stealing traits, and grant the configured Deadeye stolen skill. Marked initiative attacks build malice on their first hit, with additional gain from critical hits. Remarking preserves existing malice; Malicious Intent adds its grant.',
+    (balanceContext) => [
+      profileFact(balanceContext, DE.resources, 'durationMultiplier', 'Mark duration', tooltipSeconds),
+      profileFact(balanceContext, DE.resources, 'maximumStacks', 'Maximum malice'),
+      profileFact(balanceContext, DE.resources, 'minimumStacks', 'Maximum malice with Maleficent Seven'),
+      profileFact(balanceContext, DE.resources, 'resourceGain', 'Malice per initiative attack'),
+      profileFact(balanceContext, DE.resources, 'playerStacks', 'Additional malice from a critical hit')
+    ]
+  ),
+  'thief.deadeye-mercy': profileTooltip(
+    DE.mercy,
+    "Consume current malice, restore initiative, and recharge Deadeye's Mark. Clears the Maleficent Seven cycle so it can trigger again.",
+    (balanceContext, id) => [
+      profileFact(balanceContext, id, 'resourceGain', 'Base initiative restored'),
+      profileFact(balanceContext, id, 'attributePerStack', 'Additional initiative per malice')
+    ]
+  ),
+  'thief.deadeye-shadow-flare': skillTooltip(
+    'Create a damaging field and temporarily unlock Shadow Swap. Its strikes deal increased damage against your active mark.',
+    (balanceContext) => [
+      profileFact(balanceContext, DE.shadowFlare, 'durationMultiplier', 'Shadow Swap window', tooltipSeconds),
+      modifierFact(
+        balanceContext,
+        'thief.shadow-flare-marked',
+        'factor',
+        'Strike damage against your mark',
+        tooltipFactorChange
+      )
+    ]
+  ),
+  'thief.deadeye-shadow-swap': skillTooltip(
+    'Consume the Shadow Flare follow-up and shadowstep to the field. Its strike deals increased damage against your active mark.',
+    (balanceContext) => [
+      modifierFact(
+        balanceContext,
+        'thief.shadow-flare-marked',
+        'factor',
+        'Strike damage against your mark',
+        tooltipFactorChange
+      )
+    ]
+  ),
+  'thief.deadeye-shadow-meld': skillTooltip(
+    'Remove Revealed when activation begins, then grant stealth. Cantrip-use traits apply.'
+  ),
+  'thief.deadeye-stolen-skill': (balanceContext, entity) => ({
+    description:
+      'Consume the held Deadeye stolen skill. Its boons affect the party. Having enough malice also grants stealth; this does not consume malice. Stolen-skill traits apply.',
+    facts: simulationEffectFacts(
+      balanceContext.catalog.skillsById
+        .get(entity.id)!
+        .effects?.map((effect): SkillEffect =>
+          effect.type === 'boon' ? { ...effect, audience: { recipients: 'party' } } : effect
+        )
+        .filter((effect) => !(effect.type === 'buff' && effect.kind === 'stealth'))
+    ).facts
+  }),
+  'thief.spear-chain': (balanceContext, entity) => {
+    const selected = balanceContext.catalog.skillsById.get(entity.id)!;
+    const stage = spearChainStageForSkill(entity.id);
+    let description =
+      stage === 0
+        ? 'Lead attack: advances the spear chain to follow-up attacks.'
+        : stage === 1
+          ? 'Requires a lead attack; advances the spear chain to finishers.'
+          : stage === 2
+            ? 'Requires a follow-up attack; completes the spear chain and restores lead attacks.'
+            : "Apply this spear skill's supported effects.";
+    const facts = [...simulationEffectFacts(selected.effects).facts];
+    if (entity.id === ID.FALLING_SPIDER) {
+      description += ' Following Entangling Asp empowers its strike and adds bleeding and poison stacks.';
+      facts.push(
+        profileFact(
+          balanceContext,
+          CORE.fallingSpiderEmpowered,
+          'damageMultiplier',
+          'Strike damage after Entangling Asp',
+          tooltipFactorChange
+        ),
+        profileFact(
+          balanceContext,
+          CORE.fallingSpiderEmpowered,
+          'resourceGain',
+          'Additional bleeding and poison stacks after Entangling Asp'
+        )
+      );
+    } else if (entity.id === ID.UNSUSPECTING_STRIKE)
+      description += ' Applies additional bleeding against a target above the supported high-health threshold.';
+    else if (entity.id === ID.DISTRACTING_THROW) {
+      description =
+        'At the start of a spear chain, or after a finisher, this acts as a lead attack. Following a finisher also starts a strike-damage bonus.';
+      facts.push(
+        profileFact(balanceContext, CORE.distractingThrow, 'durationMultiplier', 'Bonus duration', tooltipSeconds),
+        modifierFact(balanceContext, 'thief.distracting-throw-finisher', 'amount', 'Strike damage after a finisher')
+      );
+    }
+
+    return { description, facts };
+  },
+  'thief.siphon': skillTooltip(
+    'Siphon the target, trigger stealing traits, and gain Shadow Force. Replaces the held stolen-skill pool without granting a stolen skill.',
+    (balanceContext) => [
+      profileFact(balanceContext, SPECTER.resources, 'lifeForceGain', 'Shadow Force gained'),
+      profileFact(
+        balanceContext,
+        SPECTER.amplifiedSiphoning,
+        'resourceGain',
+        'Additional Shadow Force with Amplified Siphoning'
+      )
+    ]
+  ),
+  'thief.shadow-shroud-enter': (balanceContext) => {
+    const profile = tooltipProfile(balanceContext, SPECTER.enterShadowShroud);
+    return {
+      description:
+        'Enter Shadow Shroud and replace the skill bar. Shadow Force drains continuously; depletion exits shroud automatically. Grant barrier to the tethered ally, enabling supported barrier traits. Manual exit has a brief initial lockout.',
+      facts: [
+        profileFact(balanceContext, SPECTER.resources, 'maximumStacks', 'Maximum Shadow Force'),
+        profileFact(
+          balanceContext,
+          SPECTER.resources,
+          'lifeForceDrain',
+          'Maximum Shadow Force drained per second',
+          (value) => `${tooltipDecimal(value * 100)}%`
+        ),
+        ...simulationEffectFacts(
+          profile.effects?.map((effect) => ({
+            ...effect,
+            audience: {
+              recipients: 'party',
+              affectsSelf: false,
+              maximumRecipients: tooltipNumber(profile, 'maximumTargets')
+            }
+          }))
+        ).facts
+      ]
+    };
+  },
+  'thief.shadow-shroud-exit': skillTooltip(
+    'Leave Shadow Shroud, stop its Shadow Force drain, and restore the weapon bar. Supported shroud-exit and swap effects apply.'
+  ),
+  'thief.shadow-shroud-skill': (balanceContext, entity) => {
+    const facts = [...simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects).facts];
+    // Tooltips retain the same skill-to-boon identity as execution after a packet is removed.
+    const boonName =
+      entity.id === ID.GRASPING_SHADOWS
+        ? 'alacrity'
+        : entity.id === ID.DAWNS_REPOSE
+          ? 'protection'
+          : entity.id === ID.MIND_SHOCK
+            ? 'aegis'
+            : null;
+    if (boonName) {
+      const profile = tooltipProfile(balanceContext, SPECTER.shadeStep);
+      const boon = requireEffect(profile, 'boon', boonName);
+      if (boon) facts.push(...simulationEffectFacts([boon], 'party; requires Shadestep and a completed cast').facts);
+    }
+
+    if (entity.id === ID.DAWNS_REPOSE) {
+      const profile = tooltipProfile(balanceContext, SPECTER.dawnsReposeBarrier);
+      facts.push(
+        ...simulationEffectFacts(
+          profile.effects?.map((effect) => ({
+            ...effect,
+            audience: {
+              recipients: 'party',
+              affectsSelf: false,
+              maximumRecipients: tooltipNumber(profile, 'maximumTargets')
+            }
+          }))
+        ).facts
+      );
+    }
+
+    return {
+      description:
+        'Use this skill while in Shadow Shroud. Qualifying completed casts also apply their Shadestep boon; interrupted casts do not receive that completion bonus.',
+      facts
+    };
+  },
+  'thief.artifact': artifactTooltip,
+  'thief.reshuffle': skillTooltip(
+    'Replace the available artifact choices. Retains the number of artifact uses remaining.'
+  ),
+  'thief.skritt-swipe': skillTooltip(
+    'Trigger stealing traits and replace held artifacts with a new choice pool. Grants the base artifact use plus supported Skritt Swipe bonuses; resets the initiative-spending counter.',
+    (balanceContext) => [
+      profileFact(balanceContext, ANTIQUARY.resources, 'maximumStacks', 'Base artifact uses'),
+      profileFact(
+        balanceContext,
+        ANTIQUARY.prolificPlunderer,
+        'resourceGain',
+        'Additional uses with Prolific Plunderer'
+      ),
+      profileFact(balanceContext, CORE.improvisation, 'resourceGain', 'Additional uses with Improvisation')
+    ]
+  ),
+  'thief.skritt-scuffle': profileTooltip(
+    ANTIQUARY.scuffle,
+    'Summon an assistant that immediately pilfers artifacts and repeats while active. Each pilfer replaces artifact choices and resets base uses. Multiple assistants run independently.',
+    (balanceContext, id) => [
+      profileFact(balanceContext, id, 'durationMultiplier', 'Assistant duration', tooltipSeconds),
+      profileFact(balanceContext, id, 'pulseInterval', 'Pilfer interval', tooltipSeconds)
+    ]
+  ),
+  'thief.forged-surfer': (balanceContext) => ({
+    description:
+      'Consume the artifact and schedule its dash followed by bombs. The configured bomb-hit assumption determines how many bombs connect. Recasting replaces the previous sequence. Meticulous Custodian substitutes its enhanced packets.',
+    facts: [
+      profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'initialDelay', 'Dash delay', tooltipSeconds),
+      profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'pulseInterval', 'Bomb interval', tooltipSeconds),
+      profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'maximumStacks', 'Maximum bomb hits'),
+      ...[ANTIQUARY.forgedSurfer, ANTIQUARY.forgedSurferMeticulous].flatMap((id) =>
+        tooltipProfile(balanceContext, id).effects!.flatMap(
+          (effect) =>
+            simulationEffectFacts(
+              [effect],
+              `${id === ANTIQUARY.forgedSurfer ? 'base' : 'with Meticulous Custodian'} · ${effect.name === 'Dash' ? 'dash' : 'per bomb'}`
+            ).facts
+        )
+      )
+    ]
+  }),
+  'thief.double-edge': (balanceContext, entity) => {
+    const description =
+      "Succeeds when ready. Reusing during recharge takes the configured success or backfire outcome; Scoundrel's Luck guarantees a risky success and consumes its charge. Backfire locks further reuse until recharge ends.";
+    if (entity.id === ID.STONE_SUMMIT_CANNON) {
+      const success = tooltipProfile(balanceContext, ANTIQUARY.cannonSuccess);
+      return {
+        description,
+        facts: [
+          ...simulationEffectFacts(success.effects, 'success').facts,
+          ...simulationEffectFacts(tooltipProfile(balanceContext, ANTIQUARY.cannonBackfire).effects, 'backfire').facts,
+          profileFact(balanceContext, ANTIQUARY.cannonBackfire, 'initialDelay', 'Backfire delay', tooltipSeconds)
+        ]
+      };
+    }
+
+    if (entity.id === ID.CANACH_COIN_TOSS)
+      return {
+        description: `${description} Coin tosses follow a deterministic alternating sequence. Heads restores more initiative than tails; backfire reduces the initiative returned.`,
+        facts: []
+      };
+    return {
+      description: `${description} Antivenom's healing and self-damage do not vary player health in combat simulation.`,
+      facts: simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects, 'success only').facts
+    };
+  }
+} satisfies Record<string, DescribeSimulationTooltip>;
+
+/** Family descriptions bind to canonical skill identities; skill-specific entries below take precedence. */
+const FAMILY_SKILL_IDS: Readonly<Record<keyof typeof familyTooltips, readonly SkillId[]>> = {
+  'thief.weapon-swap': [ID.SWAP_WEAPONS],
+  'thief.dodge': [ID.DODGE],
+  'thief.steal': [ID.STEAL],
+  'thief.stolen-skill': [ID.SOUL_STONE_VENOM, ID.DETONATE_PLASMA, ID.THROW_MAGNETIC_BOMB],
+  'thief.stealth-attack': [
+    ID.SNEAK_ATTACK,
+    ID.SURPRISE_SHOT,
+    ID.HOOK_STRIKE,
+    ID.SHADOWSQUALL,
+    ID.DEATHS_JUDGMENT,
+    ID.BACKSTAB,
+    ID.TACTICAL_STRIKE,
+    ID.CUNNING_SALVO
+  ],
+  'thief.deadeye-stealth-attack': [
+    ID.MALICIOUS_DEATHS_JUDGMENT,
+    ID.MALICIOUS_SURPRISE_SHOT,
+    ID.MALICIOUS_SNEAK_ATTACK,
+    ID.MALICIOUS_BACKSTAB,
+    ID.MALICIOUS_TACTICAL_STRIKE,
+    ID.MALICIOUS_SHADOWSQUALL,
+    ID.MALICIOUS_HOOK_STRIKE,
+    ID.MALICIOUS_CUNNING_SALVO
+  ],
+  'thief.spear-stealth-attack': [ID.ASHEN_ASSAULT],
+  'thief.deadeye-spear-stealth-attack': [ID.MALICIOUS_ASHEN_ASSAULT],
+  'thief.prepare-trap': [ID.PREPARE_THOUSAND_NEEDLES, ID.PREPARE_PITFALL],
+  'thief.activate-trap': [ID.PITFALL, ID.THOUSAND_NEEDLES],
+  'thief.venom': [ID.SPIDER_VENOM, ID.SKALE_VENOM, ID.DEVOURER_VENOM],
+  'thief.assassins-signet': [ID.ASSASSINS_SIGNET],
+  'thief.thieves-guild': [ID.THIEVES_GUILD],
+  'thief.kneel': [ID.KNEEL],
+  'thief.free-action': [ID.FREE_ACTION],
+  'thief.deadeyes-mark': [ID.DEADEYES_MARK],
+  'thief.deadeye-mercy': [ID.MERCY],
+  'thief.deadeye-shadow-flare': [ID.SHADOW_FLARE],
+  'thief.deadeye-shadow-swap': [ID.SHADOW_SWAP],
+  'thief.deadeye-shadow-meld': [ID.SHADOW_MELD],
+  'thief.deadeye-stolen-skill': [
+    ID.STEAL_WARMTH,
+    ID.STEAL_RESISTANCE,
+    ID.STEAL_PRECISION,
+    ID.STEAL_HEALTH,
+    ID.STEAL_STRENGTH,
+    ID.STEAL_TIME,
+    ID.STEAL_DURABILITY,
+    ID.STEAL_DEFENSES,
+    ID.STEAL_MOBILITY
+  ],
+  'thief.spear-chain': [
+    ID.ENTANGLING_ASP,
+    ID.DISTRACTING_THROW,
+    ID.UNSUSPECTING_STRIKE,
+    ID.MANTIS_STING,
+    ID.VAMPIRIC_SLASH,
+    ID.BARBED_SPEAR,
+    ID.SHATTERING_ASSAULT,
+    ID.FALLING_SPIDER
+  ],
+  'thief.siphon': [ID.SIPHON],
+  'thief.shadow-shroud-enter': [ID.ENTER_SHADOW_SHROUD],
+  'thief.shadow-shroud-exit': [ID.EXIT_SHADOW_SHROUD],
+  'thief.shadow-shroud-skill': [ID.ETERNAL_NIGHT, ID.GRASPING_SHADOWS, ID.DAWNS_REPOSE, ID.MIND_SHOCK, ID.HAUNT_SHOT],
+  'thief.artifact': [
+    ID.HOLO_DANCER_DECOY,
+    ID.EXALTED_HAMMER,
+    ID.CHAK_SHIELD,
+    ID.ZEPHYRITE_SUN_CRYSTAL,
+    ID.SUMMON_KRYPTIS_TURRET,
+    ID.MISTBURN_MORTAR,
+    ID.METAL_LEGION_GUITAR,
+    ID.METAL_LEGION_GUITAR_ID_76591,
+    ID.ZEPHYRITE_SUN_CRYSTAL_ID_76733
+  ],
+  'thief.reshuffle': [ID.RESHUFFLE],
+  'thief.skritt-swipe': [ID.SKRITT_SWIPE],
+  'thief.skritt-scuffle': [ID.SKRITT_SCUFFLE],
+  'thief.forged-surfer': [ID.FORGED_SURFER_DASH],
+  'thief.double-edge': [ID.STONE_SUMMIT_CANNON, ID.ANTIVENOM_DRAUGHT, ID.CANACH_COIN_TOSS]
+};
+
 export const thiefTooltips: ProfessionTooltips = {
   skillFacts: (_c, entity) => [
     ...[
@@ -233,365 +675,12 @@ export const thiefTooltips: ProfessionTooltips = {
       ? []
       : [{ name: 'Follow-up window', detail: tooltipSeconds(tooltipNumber(entity, 'flipDuration')) }])
   ],
-  handlers: {
-    'thief.weapon-swap': skillTooltip(
-      'Switch weapon sets, leave Kneel, and trigger applicable swap effects. Quick Pockets restores initiative only when swapping in combat.'
-    ),
-    'thief.dodge': skillTooltip(
-      'Spend endurance to dodge and trigger supported dodge traits. Daredevil applies only the selected dodge package. Silent Scope can grant a stealth-attack charge when malice exceeds its threshold.',
-      (balanceContext) => [
-        profileFact(balanceContext, CORE.resources, 'resourceCost', 'Endurance cost'),
-        ...[DD.boundingDodger, DD.lotusTraining, DD.unhinderedCombatant].flatMap((id) => {
-          const profile = tooltipProfile(balanceContext, id);
-          return simulationEffectFacts(profile.effects, `alternative: ${profile.name}`).facts;
-        })
-      ]
-    ),
-    'thief.steal': skillTooltip(
-      'Trigger stealing traits and obtain a stolen-skill choice. Using a choice consumes the held use; Improvisation allows a second use of the same chosen skill.'
-    ),
-    'thief.stolen-skill': skillTooltip(
-      'Use the held stolen skill and consume a use. When Improvisation permits another use, it must be the same chosen skill.'
-    ),
-    'thief.stealth-attack': stealthAttack,
-    'thief.deadeye-stealth-attack': stealthAttack,
-    'thief.spear-stealth-attack': stealthAttack,
-    'thief.deadeye-spear-stealth-attack': stealthAttack,
-    'thief.prepare-trap': skillTooltip(
-      'Place a preparation. After its recharge-scaled arming delay, its trigger remains available until used. Placement starts the parent recharge independently.',
-      (_c, selected) => [
-        { name: 'Base arming delay', detail: tooltipSeconds(tooltipNumber(selected, 'durationMultiplier')) }
-      ]
-    ),
-    'thief.activate-trap': skillTooltip(
-      'Activate and consume the armed preparation. Its trigger recharge also delays the next placement if that would otherwise be ready sooner.'
-    ),
-    'thief.venom': (balanceContext, entity) => {
-      const id =
-        entity.id === ID.SPIDER_VENOM
-          ? CORE.spiderVenomProc
-          : entity.id === ID.SKALE_VENOM
-            ? CORE.skaleVenomProc
-            : CORE.devourerVenomProc;
-      return profileTooltip(
-        id,
-        'Grant venom charges to yourself and configured allies. Each eligible player strike consumes one charge from each active venom. Recasts add independently expiring charges; allied applications follow the configured venom assumptions.',
-        (_c, profileId) => [
-          profileFact(balanceContext, profileId, 'maximumStacks', 'Charges granted per recipient'),
-          profileFact(balanceContext, profileId, 'durationMultiplier', 'Charge lifetime', tooltipSeconds)
-        ],
-        'per consumed charge'
-      )(balanceContext, entity);
-    },
-    'thief.assassins-signet': profileTooltip(
-      CORE.assassinsSignet,
-      'Passively grants power while ready. Activation temporarily replaces the passive bonus with the larger active bonus; the passive returns when recharge ends.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeBonus', 'Passive power'),
-        profileFact(balanceContext, id, 'attributePerStack', 'Active power'),
-        profileFact(balanceContext, id, 'durationMultiplier', 'Active duration', tooltipSeconds)
-      ]
-    ),
-    'thief.thieves-guild': (balanceContext, entity) => {
-      const profile = (balanceContext.catalog.skillsById.get(entity.id) as ThiefSkill).summonAttack!;
-      return {
-        description:
-          'Summon thieves that run their attack rotations while combat is active. The final thief depends on your specialization. Their strikes use fixed companion attributes; their conditions inherit your condition attributes. Lifetime begins when casting starts, including time before combat. Recasting replaces the previous guild.',
-        facts: [
-          { name: 'Lifetime', detail: tooltipSeconds(profile.duration) },
-          { name: 'Companion power', detail: tooltipDecimal(profile.basePower) },
-          { name: 'Companion critical chance', detail: tooltipPercent(profile.criticalChance) },
-          { name: 'Companion critical damage', detail: `${tooltipDecimal(profile.criticalDamage * 100)}%` },
-          ...profile.summons.flatMap((summon) =>
-            (summon.attacks || []).flatMap(
-              (attack) =>
-                simulationEffectFacts(
-                  [
-                    {
-                      type: 'strike',
-                      actorType: 'summon',
-                      coefficient: attack.coefficientPerHit * (attack.hits ?? 1),
-                      hits: attack.hits ?? 1
-                    },
-                    ...(attack.conditions || []).map((condition): SkillEffect => ({
-                      ...condition,
-                      type: 'condition',
-                      actorType: 'summon'
-                    }))
-                  ],
-                  `${summon.name}${summon.variant ? ': core alternative' : ''} · ${attack.name}, per attack`
-                ).facts
-            )
-          )
-        ]
-      };
-    },
-    'thief.kneel': skillTooltip(
-      'Kneel to replace rifle skills with their kneeling variants and increase initiative regeneration. Free Action or swapping weapons ends Kneel.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          CORE.resources,
-          'kneelingInitiativeRegenerationBonus',
-          'Additional initiative per second'
-        )
-      ]
-    ),
-    'thief.free-action': skillTooltip(
-      'Stand up, ending Kneel and restoring the standing rifle skills and initiative regeneration.'
-    ),
-    'thief.deadeyes-mark': skillTooltip(
-      'Mark the target, trigger stealing traits, and grant the configured Deadeye stolen skill. Marked initiative attacks build malice on their first hit, with additional gain from critical hits. Remarking preserves existing malice; Malicious Intent adds its grant.',
-      (balanceContext) => [
-        profileFact(balanceContext, DE.resources, 'durationMultiplier', 'Mark duration', tooltipSeconds),
-        profileFact(balanceContext, DE.resources, 'maximumStacks', 'Maximum malice'),
-        profileFact(balanceContext, DE.resources, 'minimumStacks', 'Maximum malice with Maleficent Seven'),
-        profileFact(balanceContext, DE.resources, 'resourceGain', 'Malice per initiative attack'),
-        profileFact(balanceContext, DE.resources, 'playerStacks', 'Additional malice from a critical hit')
-      ]
-    ),
-    'thief.deadeye-mercy': profileTooltip(
-      DE.mercy,
-      "Consume current malice, restore initiative, and recharge Deadeye's Mark. Clears the Maleficent Seven cycle so it can trigger again.",
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'resourceGain', 'Base initiative restored'),
-        profileFact(balanceContext, id, 'attributePerStack', 'Additional initiative per malice')
-      ]
-    ),
-    'thief.deadeye-shadow-flare': skillTooltip(
-      'Create a damaging field and temporarily unlock Shadow Swap. Its strikes deal increased damage against your active mark.',
-      (balanceContext) => [
-        profileFact(balanceContext, DE.shadowFlare, 'durationMultiplier', 'Shadow Swap window', tooltipSeconds),
-        modifierFact(
-          balanceContext,
-          'thief.shadow-flare-marked',
-          'factor',
-          'Strike damage against your mark',
-          tooltipFactorChange
-        )
-      ]
-    ),
-    'thief.deadeye-shadow-swap': skillTooltip(
-      'Consume the Shadow Flare follow-up and shadowstep to the field. Its strike deals increased damage against your active mark.',
-      (balanceContext) => [
-        modifierFact(
-          balanceContext,
-          'thief.shadow-flare-marked',
-          'factor',
-          'Strike damage against your mark',
-          tooltipFactorChange
-        )
-      ]
-    ),
-    'thief.deadeye-shadow-meld': skillTooltip(
-      'Remove Revealed when activation begins, then grant stealth. Cantrip-use traits apply.'
-    ),
-    'thief.deadeye-stolen-skill': (balanceContext, entity) => ({
-      description:
-        'Consume the held Deadeye stolen skill. Its boons affect the party. Having enough malice also grants stealth; this does not consume malice. Stolen-skill traits apply.',
-      facts: simulationEffectFacts(
-        balanceContext.catalog.skillsById
-          .get(entity.id)!
-          .effects?.map((effect): SkillEffect =>
-            effect.type === 'boon' ? { ...effect, audience: { recipients: 'party' } } : effect
-          )
-          .filter((effect) => !(effect.type === 'buff' && effect.kind === 'stealth'))
-      ).facts
-    }),
-    'thief.spear-chain': (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id)!;
-      const stage = spearChainStageForSkill(entity.id);
-      let description =
-        stage === 0
-          ? 'Lead attack: advances the spear chain to follow-up attacks.'
-          : stage === 1
-            ? 'Requires a lead attack; advances the spear chain to finishers.'
-            : stage === 2
-              ? 'Requires a follow-up attack; completes the spear chain and restores lead attacks.'
-              : "Apply this spear skill's supported effects.";
-      const facts = [...simulationEffectFacts(selected.effects).facts];
-      if (entity.id === ID.FALLING_SPIDER) {
-        description += ' Following Entangling Asp empowers its strike and adds bleeding and poison stacks.';
-        facts.push(
-          profileFact(
-            balanceContext,
-            CORE.fallingSpiderEmpowered,
-            'damageMultiplier',
-            'Strike damage after Entangling Asp',
-            tooltipFactorChange
-          ),
-          profileFact(
-            balanceContext,
-            CORE.fallingSpiderEmpowered,
-            'resourceGain',
-            'Additional bleeding and poison stacks after Entangling Asp'
-          )
-        );
-      } else if (entity.id === ID.UNSUSPECTING_STRIKE)
-        description += ' Applies additional bleeding against a target above the supported high-health threshold.';
-      else if (entity.id === ID.DISTRACTING_THROW) {
-        description =
-          'At the start of a spear chain, or after a finisher, this acts as a lead attack. Following a finisher also starts a strike-damage bonus.';
-        facts.push(
-          profileFact(balanceContext, CORE.distractingThrow, 'durationMultiplier', 'Bonus duration', tooltipSeconds),
-          modifierFact(balanceContext, 'thief.distracting-throw-finisher', 'amount', 'Strike damage after a finisher')
-        );
-      }
-
-      return { description, facts };
-    },
-    'thief.siphon': skillTooltip(
-      'Siphon the target, trigger stealing traits, and gain Shadow Force. Replaces the held stolen-skill pool without granting a stolen skill.',
-      (balanceContext) => [
-        profileFact(balanceContext, SPECTER.resources, 'lifeForceGain', 'Shadow Force gained'),
-        profileFact(
-          balanceContext,
-          SPECTER.amplifiedSiphoning,
-          'resourceGain',
-          'Additional Shadow Force with Amplified Siphoning'
-        )
-      ]
-    ),
-    'thief.shadow-shroud-enter': (balanceContext) => {
-      const profile = tooltipProfile(balanceContext, SPECTER.enterShadowShroud);
-      return {
-        description:
-          'Enter Shadow Shroud and replace the skill bar. Shadow Force drains continuously; depletion exits shroud automatically. Grant barrier to the tethered ally, enabling supported barrier traits. Manual exit has a brief initial lockout.',
-        facts: [
-          profileFact(balanceContext, SPECTER.resources, 'maximumStacks', 'Maximum Shadow Force'),
-          profileFact(
-            balanceContext,
-            SPECTER.resources,
-            'lifeForceDrain',
-            'Maximum Shadow Force drained per second',
-            (value) => `${tooltipDecimal(value * 100)}%`
-          ),
-          ...simulationEffectFacts(
-            profile.effects?.map((effect) => ({
-              ...effect,
-              audience: {
-                recipients: 'party',
-                affectsSelf: false,
-                maximumRecipients: tooltipNumber(profile, 'maximumTargets')
-              }
-            }))
-          ).facts
-        ]
-      };
-    },
-    'thief.shadow-shroud-exit': skillTooltip(
-      'Leave Shadow Shroud, stop its Shadow Force drain, and restore the weapon bar. Supported shroud-exit and swap effects apply.'
-    ),
-    'thief.shadow-shroud-skill': (balanceContext, entity) => {
-      const facts = [...simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects).facts];
-      // Tooltips retain the same skill-to-boon identity as execution after a packet is removed.
-      const boonName =
-        entity.id === ID.GRASPING_SHADOWS
-          ? 'alacrity'
-          : entity.id === ID.DAWNS_REPOSE
-            ? 'protection'
-            : entity.id === ID.MIND_SHOCK
-              ? 'aegis'
-              : null;
-      if (boonName) {
-        const profile = tooltipProfile(balanceContext, SPECTER.shadeStep);
-        const boon = requireEffect(profile, 'boon', boonName);
-        if (boon) facts.push(...simulationEffectFacts([boon], 'party; requires Shadestep and a completed cast').facts);
-      }
-
-      if (entity.id === ID.DAWNS_REPOSE) {
-        const profile = tooltipProfile(balanceContext, SPECTER.dawnsReposeBarrier);
-        facts.push(
-          ...simulationEffectFacts(
-            profile.effects?.map((effect) => ({
-              ...effect,
-              audience: {
-                recipients: 'party',
-                affectsSelf: false,
-                maximumRecipients: tooltipNumber(profile, 'maximumTargets')
-              }
-            }))
-          ).facts
-        );
-      }
-
-      return {
-        description:
-          'Use this skill while in Shadow Shroud. Qualifying completed casts also apply their Shadestep boon; interrupted casts do not receive that completion bonus.',
-        facts
-      };
-    },
-    'thief.artifact': artifactTooltip,
-    'thief.reshuffle': skillTooltip(
-      'Replace the available artifact choices. Retains the number of artifact uses remaining.'
-    ),
-    'thief.skritt-swipe': skillTooltip(
-      'Trigger stealing traits and replace held artifacts with a new choice pool. Grants the base artifact use plus supported Skritt Swipe bonuses; resets the initiative-spending counter.',
-      (balanceContext) => [
-        profileFact(balanceContext, ANTIQUARY.resources, 'maximumStacks', 'Base artifact uses'),
-        profileFact(
-          balanceContext,
-          ANTIQUARY.prolificPlunderer,
-          'resourceGain',
-          'Additional uses with Prolific Plunderer'
-        ),
-        profileFact(balanceContext, CORE.improvisation, 'resourceGain', 'Additional uses with Improvisation')
-      ]
-    ),
-    'thief.skritt-scuffle': profileTooltip(
-      ANTIQUARY.scuffle,
-      'Summon an assistant that immediately pilfers artifacts and repeats while active. Each pilfer replaces artifact choices and resets base uses. Multiple assistants run independently.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'durationMultiplier', 'Assistant duration', tooltipSeconds),
-        profileFact(balanceContext, id, 'pulseInterval', 'Pilfer interval', tooltipSeconds)
-      ]
-    ),
-    'thief.forged-surfer': (balanceContext) => ({
-      description:
-        'Consume the artifact and schedule its dash followed by bombs. The configured bomb-hit assumption determines how many bombs connect. Recasting replaces the previous sequence. Meticulous Custodian substitutes its enhanced packets.',
-      facts: [
-        profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'initialDelay', 'Dash delay', tooltipSeconds),
-        profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'pulseInterval', 'Bomb interval', tooltipSeconds),
-        profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'maximumStacks', 'Maximum bomb hits'),
-        ...[ANTIQUARY.forgedSurfer, ANTIQUARY.forgedSurferMeticulous].flatMap((id) =>
-          tooltipProfile(balanceContext, id).effects!.flatMap(
-            (effect) =>
-              simulationEffectFacts(
-                [effect],
-                `${id === ANTIQUARY.forgedSurfer ? 'base' : 'with Meticulous Custodian'} · ${effect.name === 'Dash' ? 'dash' : 'per bomb'}`
-              ).facts
-          )
-        )
-      ]
-    }),
-    'thief.double-edge': (balanceContext, entity) => {
-      const description =
-        "Succeeds when ready. Reusing during recharge takes the configured success or backfire outcome; Scoundrel's Luck guarantees a risky success and consumes its charge. Backfire locks further reuse until recharge ends.";
-      if (entity.id === ID.STONE_SUMMIT_CANNON) {
-        const success = tooltipProfile(balanceContext, ANTIQUARY.cannonSuccess);
-        return {
-          description,
-          facts: [
-            ...simulationEffectFacts(success.effects, 'success').facts,
-            ...simulationEffectFacts(tooltipProfile(balanceContext, ANTIQUARY.cannonBackfire).effects, 'backfire')
-              .facts,
-            profileFact(balanceContext, ANTIQUARY.cannonBackfire, 'initialDelay', 'Backfire delay', tooltipSeconds)
-          ]
-        };
-      }
-
-      if (entity.id === ID.CANACH_COIN_TOSS)
-        return {
-          description: `${description} Coin tosses follow a deterministic alternating sequence. Heads restores more initiative than tails; backfire reduces the initiative returned.`,
-          facts: []
-        };
-      return {
-        description: `${description} Antivenom's healing and self-damage do not vary player health in combat simulation.`,
-        facts: simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects, 'success only').facts
-      };
-    }
-  },
   skills: {
+    ...Object.fromEntries(
+      Object.entries(FAMILY_SKILL_IDS).flatMap(([family, ids]) =>
+        ids.map((id) => [id, familyTooltips[family as keyof typeof familyTooltips]])
+      )
+    ),
     [ID.UNLOAD]: skillTooltip(
       'Fire the volley. Restore initiative only if the final bullet is reached and the attack is not cancelled.',
       (balanceContext) => [

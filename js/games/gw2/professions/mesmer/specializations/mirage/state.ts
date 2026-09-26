@@ -8,6 +8,7 @@ export interface MesmerMirageMirror {
 }
 
 export interface MesmerMirageState {
+  pendingMirrorAts: number[];
   endurance: number;
 
   enduranceUpdatedAt: number;
@@ -20,6 +21,7 @@ export interface MesmerMirageState {
 
 function createMirageState(_config: Partial<MesmerConfig> = {}): MesmerMirageState {
   return {
+    pendingMirrorAts: [],
     // Mirage starts with two dodges' worth of continuously regenerating endurance.
     endurance: 100,
 

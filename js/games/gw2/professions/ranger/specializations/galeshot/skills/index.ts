@@ -8,6 +8,7 @@ const CYCLONE_BOW_PALETTE_TILE = 'galeshot-cyclone-bow';
 // Keen Shot flips to Hawkeye at full Wind Force without creating a second weapon tile.
 const CYCLONE_BOW_ONE_PALETTE_TILE = 'galeshot-cyclone-bow-one';
 
+// Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
 export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.WHIRLWIND]: {
     evades: true,
@@ -17,18 +18,16 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
   [ID.MISTRAL]: {
     castTimeMs: 320,
     effects: [],
-    arrowsRestored: 1,
-    // Custom: Restores arrows and opens the Mistral buff window; see `galeshot/execution/index.ts`.
-    handlerId: 'ranger.mistral'
+    arrowsRestored: 1
+    // Custom: Restores arrows and opens the Mistral buff window; see `galeshot/hooks.ts`.
   },
   [ID.SUMMON_CYCLONE_BOW]: {
     castTimeMs: 0,
     paletteTileId: CYCLONE_BOW_PALETTE_TILE,
     paletteTileOrder: 1,
     effects: [],
-    // Custom: Equips Cyclone Bow, resets chains, and emits weapon-swap/state events; see `galeshot/execution/index.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'ranger.cyclone-bow-enter'
+    // Custom: Equips Cyclone Bow, resets chains, and emits weapon-swap/state events; see `galeshot/hooks.ts`.
+    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
   },
   [ID.PERFECT_STORM]: {
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -53,9 +52,8 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       }
     ]),
     castTimeMs: 600,
-    arrowsRestored: 2,
-    // Custom: Restores Cyclone Bow arrows and emits state; see `galeshot/execution/index.ts`.
-    handlerId: 'ranger.galeshot-arrows'
+    arrowsRestored: 2
+    // Custom: Restores Cyclone Bow arrows and emits state; see `galeshot/hooks.ts`.
   },
   [ID.WIND_SHEAR]: {
     effects: [
@@ -78,14 +76,14 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     paletteTileId: CYCLONE_BOW_PALETTE_TILE,
     paletteTileOrder: 2,
     effects: [],
-    // Custom: Stows Cyclone Bow, clears Wind Force, and emits weapon-swap/state events; see `galeshot/execution/index.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'ranger.cyclone-bow-exit'
+    // Custom: Stows Cyclone Bow, clears Wind Force, and emits weapon-swap/state events; see `galeshot/hooks.ts`.
+    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
   },
   [ID.PIERCING_GALES]: {
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [480, 480, 520, 520, 600].map((atMs) => ({
           atMs,
           coefficient: 0.7
@@ -101,10 +99,8 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       }
     ],
     castTimeMs: 640,
-    arrowsRestored: 1,
-    // Custom: Restores Cyclone Bow arrows and emits state; see `galeshot/execution/index.ts`.
-    handlerId: 'ranger.galeshot-arrows',
-    missileHits: 5
+    arrowsRestored: 1
+    // Custom: Restores Cyclone Bow arrows and emits state; see `galeshot/hooks.ts`.
   },
   [ID.SOOTHING_BREEZE]: {
     effects: [],
@@ -117,6 +113,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [{ atMs: 480, coefficient: 0.75 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -131,6 +128,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [800, 920, 1040, 1160, 1280].map((atMs) => ({
           atMs,
           coefficient: 1.36
@@ -140,14 +138,15 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       }
     ],
     arrowCost: 0,
-    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/execution/index.ts`.
-    handlerId: 'ranger.cyclone-bow-skill',
+    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/hooks.ts`.
+
     castTimeMs: 880
   },
   [ID.BLUSTER]: {
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [520, 600, 640].map((atMs) => ({
           atMs,
           coefficient: 0.64
@@ -157,8 +156,8 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       }
     ],
     arrowCost: 1,
-    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/execution/index.ts`.
-    handlerId: 'ranger.cyclone-bow-skill',
+    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/hooks.ts`.
+
     castTimeMs: 680,
     windForceGain: 1,
     windForceApplyMs: 480
@@ -168,6 +167,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [{ atMs: 280, coefficient: 0.8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -180,8 +180,8 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       }
     ],
     arrowCost: 1,
-    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/execution/index.ts`.
-    handlerId: 'ranger.cyclone-bow-skill',
+    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/hooks.ts`.
+
     castTimeMs: 520,
     windForceGain: 1,
     windForceApplyMs: 240
@@ -190,6 +190,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [{ atMs: 800, coefficient: 2.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
@@ -203,8 +204,8 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       }
     ],
     arrowCost: 2,
-    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/execution/index.ts`.
-    handlerId: 'ranger.cyclone-bow-skill',
+    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/hooks.ts`.
+
     castTimeMs: 680,
     interruptCommitMs: 320,
     retainsCastLockoutAfterInterrupt: true,
@@ -215,14 +216,15 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [{ atMs: 800, coefficient: 2.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
     ],
     arrowCost: 1,
-    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/execution/index.ts`.
-    handlerId: 'ranger.cyclone-bow-skill',
+    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/hooks.ts`.
+
     castTimeMs: 680,
     windForceGain: 1,
     windForceApplyMs: 280
@@ -231,6 +233,7 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: [
       {
         type: 'strike',
+        projectile: true,
         ticks: [{ atMs: 800, coefficient: 4 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -241,8 +244,8 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       }
     ],
     arrowCost: 3,
-    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/execution/index.ts`.
-    handlerId: 'ranger.cyclone-bow-skill',
+    // Custom: Spends arrows, updates Wind Force, and applies Cyclone Bow traits; see `galeshot/hooks.ts`.
+
     castTimeMs: 1000,
     windForceGain: 2,
     windForceApplyMs: 760

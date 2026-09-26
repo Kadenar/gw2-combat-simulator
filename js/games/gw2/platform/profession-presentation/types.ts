@@ -1,7 +1,7 @@
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 /** Defines application presentation callbacks independently of the executable profession runtime. */
 import type { SkillId, Skill, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
-import type { RotationCommand, SchedulerConfig } from '#gw2/platform/execution/types.js';
+import type { CastCommand, RotationCommand, ProfessionConfig } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2CanonicalBuild, Gw2BuildResources, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/simulation/types.js';
@@ -228,7 +228,7 @@ export interface ProfessionUiContext<TProfessionState = unknown> {
   readonly resources?: Readonly<Partial<Record<ResourceKey | 'endurance', { readonly maximum: number }>>>;
   readonly specialization?: string;
   /** Simulation config selection, used when a resolved runtime's UI is queried outside the application. */
-  readonly config?: SchedulerConfig;
+  readonly config?: ProfessionConfig;
   readonly build?: Gw2CanonicalBuild | null;
   readonly catalog?: CanonicalCatalog | null;
   readonly professionState?: TProfessionState;
@@ -264,12 +264,10 @@ export interface ProfessionResultUiContext<TProfessionState = unknown> extends P
   readonly profession?: object | null;
 }
 
-/** Event-log rows; the caller owns time/resource formatting, while `eventLogState` tracks presenter changes per render. */
+/** Event-log rows; the caller owns time and resource formatting. */
 export interface ProfessionEventLogContext<
   TProfessionState = unknown
-> extends ProfessionResultUiContext<TProfessionState> {
-  readonly eventLogState?: Map<string, unknown>;
-}
+> extends ProfessionResultUiContext<TProfessionState> {}
 
 /** Rotation state snapshot at the inspected point. */
 export interface ProfessionStateSnapshotContext<
@@ -281,9 +279,9 @@ export interface ProfessionStateSnapshotContext<
 
 /** Charge-release choices for one skill inserted at a rotation index. */
 export interface ProfessionChargeReleaseContext {
-  readonly events?: readonly SimulationEvent[];
-  readonly insertionIndex?: number;
   readonly skill?: Skill;
+  /** Each request executes a fresh prefix, optionally followed by one candidate release. */
+  readonly preview?: (command?: CastCommand) => Pick<Gw2SimulationResult, 'events' | 'steps' | 'planningState'>;
 }
 
 /** Timeline weapon-line tracking: the initial line, or the transition caused by one rotation entry. */

@@ -8,9 +8,11 @@ export interface BerserkerState {
   berserkUntil: number;
   fireAuraUntil: number;
   kingOfFiresReadyAt: number;
+  /** Actual completed activations let delayed hits react without reading action history. */
+  completedActivations: Record<string, number>;
 }
 
-/** Declares Berserker's public compatibility fields and inactive values. */
+/** Declares Berserker's public mode fields and inactive values. */
 export const BERSERKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   berserkActive: false,
   berserkUntil: 0
@@ -21,9 +23,10 @@ function createBerserkerState(): BerserkerState {
   return {
     berserkActive: false,
     berserkUntil: 0,
-    // Scheduler aura observation and detonation tasks own this window; resolver state leaves it at zero.
+    // Aura acquisition, consumption, and expiry share this current window.
     fireAuraUntil: 0,
-    kingOfFiresReadyAt: 0
+    kingOfFiresReadyAt: 0,
+    completedActivations: {}
   };
 }
 

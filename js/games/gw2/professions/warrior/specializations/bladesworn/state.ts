@@ -8,7 +8,6 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 export interface BladeswornState {
   flow: number;
   maximumFlow: number;
-  flowUpdatedAt: number;
   flowStabilizerWindows: Array<{
     startedAt: number;
     expiresAt: number;
@@ -26,7 +25,6 @@ export interface BladeswornState {
   dragonChargeTickCount: number;
   dragonCharges: number;
   dragonChargesPerInterval: number;
-  dragonTriggerRotationIndex: number;
   dragonTriggerFlowSpent: number;
   dragonTriggerEventActivationId: string;
   tacticalReloadUntil: number;
@@ -38,12 +36,9 @@ export interface BladeswornState {
     supercharged: boolean;
   }>;
   gunsAndGloryUntil: number;
-  ammoRoundsSpentByActivation: Record<string, number>;
-  ammoStartedFullByActivation: Record<string, boolean>;
-  dragonAdrenalineSpentByActivation: Record<string, number>;
 }
 
-/** Declares Bladesworn's public compatibility fields and inactive values. */
+/** Declares Bladesworn's public fields and inactive values. */
 export const BLADESWORN_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   flow: 0,
   maximumFlow: 100,
@@ -61,7 +56,6 @@ export function createBladeswornState(config: Gw2Config = {}): BladeswornState {
   return {
     flow: boundedNumber(config.initialResource ?? 0, 0, 0, 100),
     maximumFlow: 100,
-    flowUpdatedAt: 0,
     flowStabilizerWindows: [],
     traitPositiveFlowStartedAt: 0,
     traitPositiveFlowUntil: 0,
@@ -75,16 +69,25 @@ export function createBladeswornState(config: Gw2Config = {}): BladeswornState {
     dragonChargeTickCount: 0,
     dragonCharges: 0,
     dragonChargesPerInterval: 1,
-    dragonTriggerRotationIndex: -1,
     dragonTriggerFlowSpent: 0,
     dragonTriggerEventActivationId: '',
     tacticalReloadUntil: 0,
     overchargedCartridgeWindows: [],
-    gunsAndGloryUntil: 0,
-    ammoRoundsSpentByActivation: {},
-    ammoStartedFullByActivation: {},
-    dragonAdrenalineSpentByActivation: {}
+    gunsAndGloryUntil: 0
   };
 }
 
 export const bladeswornState = defineProfessionSpecializationState('Bladesworn', createBladeswornState);
+
+/** The most recent live cartridge occurrence supplies both the strike bonus and Burning payload. */
+export function activeCartridgeWindow(
+  windows: readonly BladeswornState['overchargedCartridgeWindows'][number][],
+  at: number
+) {
+  for (let index = windows.length - 1; index >= 0; index--) {
+    const window = windows[index];
+    if (window.startedAt <= at && window.expiresAt > at) return window;
+  }
+
+  return undefined;
+}

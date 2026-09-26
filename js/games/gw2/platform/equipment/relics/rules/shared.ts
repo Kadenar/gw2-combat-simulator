@@ -1,5 +1,5 @@
 /** Helpers shared by more than one relic rule module. */
-import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
+import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
@@ -73,57 +73,45 @@ export function timedStrikeBuff(
       : 1;
 }
 
-/** Replays completed slot skills, retaining precombat elapsed time and each relic's own cooldown. */
+/** Activates buffs from live completed slot skills, retaining precombat elapsed time and each relic's own cooldown. */
 export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2RelicRule> {
   const director = skillType === 'Heal';
   const relicName = director ? 'Director' : 'Mount Balrior';
   const name = director ? 'Relic of the Director' : 'Relic of Mount Balrior';
+  function activate(ctx: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) {
+    const at = event.at;
+    (state.activationTimes as number[]).push(at);
+    ctx.recordProc('relic', name, at, event.skillName, 'activated', '', null, at + 6);
+    if (director) {
+      ctx.queue.enqueue({
+        type: 'condition',
+        at,
+        source: 'Relic',
+        sourceId: 'relic.director',
+        actorType: 'effect',
+        ownerActorType: 'player',
+        skillName: name,
+        name,
+        triggeredBy: event.skillName,
+        offTarget: Boolean(event.offTarget),
+        condition: 'Vulnerability',
+        stacks: 8,
+        duration: 8
+      });
+    }
+  }
+
   return defineRelic({
-    createState: () => ({ activationTimes: [] }),
-    timeline(ctx, state, events, rotationEndTime) {
-      const activationTimes = state.activationTimes as number[];
-      activationTimes.length = 0;
-      const combatMarker = events.find((event) => event.type === 'combat_start');
-      const combatStart = ctx.combatStartTime;
-      const casts = events
-        .filter(
-          (event) =>
-            event.type === 'action' && event.skillType === skillType && isGw2PlayerActorEvent(event) && !event.cancelled
-        )
-        .sort((a, b) => Number(a.endsAt ?? a.at) - Number(b.endsAt ?? b.at));
-      let readyAt = -Infinity;
-      for (const cast of casts) {
-        const completedAt = Number(cast.endsAt ?? cast.at);
-        // A cast completed immediately before the marker is still preparation, even at the same timestamp.
-        const precombat =
-          combatStart != null &&
-          completedAt <= combatStart &&
-          (!combatMarker || compareTimelineEvents(cast, combatMarker) < 0);
-        if (precombat ? !ctx.config.precastRelics?.includes(relicName) : ctx.config.relic !== relicName) continue;
-        if (completedAt > rotationEndTime + EPSILON || !isInternalCooldownReady(completedAt, readyAt)) continue;
-        readyAt = completedAt + (director ? 15 : 30);
-        // Balrior assumes the player remains in its area, which appears one second after using the elite.
-        const at = completedAt + (director ? 0 : 1);
-        activationTimes.push(at);
-        ctx.recordProc('relic', name, at, cast.skillName, 'activated', '', null, at + 6);
-        if (director) {
-          ctx.queue.enqueue({
-            type: 'condition',
-            at,
-            source: 'Relic',
-            sourceId: 'relic.director',
-            actorType: 'effect',
-            ownerActorType: 'player',
-            skillName: name,
-            name,
-            triggeredBy: cast.skillName,
-            offTarget: Boolean(cast.offTarget),
-            condition: 'Vulnerability',
-            stacks: 8,
-            duration: 8
-          });
-        }
-      }
+    createState: () => ({ activationTimes: [], readyAt: -Infinity }),
+    activate,
+    completed(ctx, state, event) {
+      if (event.skillType !== skillType || event.cancelled || !isGw2PlayerActorEvent(event)) return;
+      // The runtime supplies completion time and whether the marker has executed; pending casts cannot activate buffs.
+      const precombat = event.precombat === true;
+      if (precombat ? !ctx.config.precastRelics?.includes(relicName) : ctx.config.relic !== relicName) return;
+      if (!isInternalCooldownReady(event.at, state.readyAt)) return;
+      state.readyAt = event.at + (director ? 15 : 30);
+      ctx.queue.enqueue({ ...event, type: 'relic.activate', sourceId: relicName, at: event.at + (director ? 0 : 1) });
     },
     strikeMultiplier(ctx, state, event) {
       const active = (state.activationTimes as number[]).some((at) => at <= event.at && event.at < at + 6);

@@ -13,7 +13,6 @@ import {
   MESMER_DUPLICATE_SKILL_NAMES
 } from '#gw2/professions/mesmer/data/duplicate-skill-names.js';
 import { TRAITS } from '#gw2/professions/mesmer/data/traits-data.js';
-import { prepareMesmerSkillForCatalog } from '#gw2/professions/mesmer/data/skill-preparation.js';
 import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NativeCatalogOptions } from '#gw2/platform/profession-definition/module-types.js';
 
@@ -83,10 +82,10 @@ function prepareMechanics(
     Object.fromEntries(
       Object.entries(mechanics).map(([id, skill]) => [
         id,
-        prepareMesmerSkillForCatalog({
+        {
           ...skill,
           id: Number(id)
-        })
+        }
       ])
     )
   );
@@ -137,11 +136,9 @@ export function createMesmerModuleData(
       ...supplementalSkillMechanics
     }),
     skillOverrides,
-    extraSkills: extraSkills.map((skill) =>
-      prepareMesmerSkillForCatalog({
-        ...skill,
-        id: Number(skill.id)
-      })
-    )
+    extraSkills: extraSkills.map((skill) => ({
+      ...skill,
+      id: Number(skill.id)
+    }))
   });
 }

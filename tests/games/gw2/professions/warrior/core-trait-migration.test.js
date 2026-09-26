@@ -1,79 +1,119 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
-import { observeWarriorEvent } from '#gw2/professions/warrior/core/traits/index.js';
 import {
-  applyFuriousBurst,
-  applySunderingBurst,
-  reactToWarriorDamage
-} from '#gw2/professions/warrior/core/traits/arms.js';
-import { applyCullTheWeak, applyStalwartStrength } from '#gw2/professions/warrior/core/traits/defense.js';
-import { applyAggressiveOnslaught } from '#gw2/professions/warrior/core/traits/strength.js';
+  createObservedProfessionSimulator,
+  observeGw2Runtime,
+  observedRuntime
+} from '#tests/helpers/observed-runtime.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
-// Each migrated final gate must keep its key, eligibility and claim-before-effect ordering.
-for (const [key, trait, handler, literalDuration] of [
-  ['lesserSignetMight', TRAIT.SIGNET_MASTERY, reactToWarriorDamage],
-  ['stalwartStrength', TRAIT.STALWART_STRENGTH, applyStalwartStrength],
-  ['aggressiveOnslaught', TRAIT.AGGRESSIVE_ONSLAUGHT, applyAggressiveOnslaught],
-  ['cullTheWeak', TRAIT.CULL_THE_WEAK, applyCullTheWeak, 5],
-  ['sunderingBurst', TRAIT.SUNDERING_BURST, (c, e) => applySunderingBurst(c, e, true, 1)],
-  ['furiousBurst', TRAIT.FURIOUS_BURST, (c) => applyFuriousBurst(c, { id: 1, name: 'Swap Weapons' })]
+// Each live trigger must claim only its own gate before emitting its effects.
+for (const [key, trait, trigger, literalDuration] of [
+  ['lesserSignetMight', TRAIT.SIGNET_MASTERY, 'damage'],
+  ['stalwartStrength', TRAIT.STALWART_STRENGTH, 'control'],
+  ['aggressiveOnslaught', TRAIT.AGGRESSIVE_ONSLAUGHT, 'control'],
+  ['cullTheWeak', TRAIT.CULL_THE_WEAK, 'damage', 5],
+  ['sunderingBurst', TRAIT.SUNDERING_BURST, 'damage'],
+  ['furiousBurst', TRAIT.FURIOUS_BURST, 'swap'],
+  ['opportunist', TRAIT.OPPORTUNIST, 'control']
 ]) {
-  test(`${key} reserves only its eligible opportunity before effects`, () => {
+  test(key + ' preserves eligibility, exclusive readiness, and claim-before-effect ordering', () => {
     for (const duration of literalDuration == null ? [2, 0] : [literalDuration]) {
-      const core = createWarriorCoreState();
-      core.traitProcReadyAt.unrelated = 99;
-      const catalog = warriorProfession.catalog;
-      const profiles = new Map(catalog.balanceProfilesById);
-      profiles.set(trait, { ...profiles.get(trait), internalCooldown: duration });
-      let emitted = 0;
-      const context = {
-        config: { selectedTraitIds: [], target: { health: 100, startingHealthFraction: 0.4 } },
-        catalog: { ...catalog, balanceProfilesById: profiles },
-        profession: warriorProfession,
-        state: { time: 1, profession: { core, specialization: { kind: 'Core', state: {} } } },
-        effectiveEnd: 1,
-        helpers: { skillsById: catalog.skillsById },
-        query: { statsAt: () => ({}) },
-        recordProc() {},
-        emit(event) {
-          assert.equal(core.traitProcReadyAt[key], event.at + duration);
-          emitted += 1;
-          return event;
-        },
-        emitDerived(_cause, event) {
-          return this.emit(event);
-        },
-        queue: {
-          enqueue(event) {
-            return context.emit(event);
-          }
-        }
-      };
-      const opportunity = (at) => {
-        context.effectiveEnd = at;
-        handler(context, { type: 'control', at, actorType: 'player', coefficient: 1 });
-      };
+      for (const [at, selected, expected] of [
+        [1, false, false],
+        [1, true, false],
+        [1.0000004, true, false],
+        [1.000001, true, true]
+      ]) {
+        const config = {
+          specialization: 'Core',
+          selectedTraitIds: selected ? [trait] : [],
+          initialResource: 0,
+          primaryWeapon: 'Axe',
+          swapPrimaryWeapon: 'Mace',
+          target: { health: 1000000, startingHealthFraction: 0.4, armor: 2597 },
+          stats: { power: 2000, precision: 4000 }
+        };
+        const native = warriorProfession.runtimeFor(config);
+        const profiles = new Map(native.catalog.balanceProfilesById);
+        profiles.set(trait, { ...profiles.get(trait), internalCooldown: duration });
+        let emitted = 0;
+        const result = observeGw2Runtime({
+          config,
+          profession: {
+            ...native,
+            catalog: { ...native.catalog, balanceProfilesById: profiles },
+            initialize(runtime) {
+              native.initialize(runtime);
+              const core = runtime.profession.core;
+              Object.assign(runtime.procs.readyAt, { [trait]: 1, unrelated: 99 });
+              const enqueue = runtime.queue.enqueue.bind(runtime.queue);
+              runtime.queue.enqueue = (event) => {
+                if (event.sourceId === trait) {
+                  assert.equal(runtime.procs.readyAt[trait], canonicalTime(event.at + duration));
+                  if (trait === TRAIT.OPPORTUNIST) assert.equal(core.targetControlledUntil, 0);
+                  emitted += 1;
+                }
 
-      opportunity(1);
-      assert.deepEqual(core.traitProcReadyAt, { unrelated: 99 });
-      context.config.selectedTraitIds = [trait];
-      opportunity(1);
-      assert.ok(emitted > 0);
-      const count = emitted;
-      opportunity(1 + duration);
-      opportunity(1 + duration + 0.0000004);
-      assert.equal(emitted, count);
-      opportunity(1 + duration + 0.000001);
-      assert.ok(emitted > count);
-      assert.equal(core.traitProcReadyAt.unrelated, 99);
+                return enqueue(event);
+              };
+
+              if (trigger !== 'swap')
+                runtime.emit({
+                  type: trigger,
+                  at,
+                  actorType: 'player',
+                  source: 'warrior',
+                  sourceId: ID.KILL_SHOT,
+                  skillId: ID.KILL_SHOT,
+                  skillName: 'Kill Shot',
+                  activationId: 'burst',
+                  coefficient: 1,
+                  forceCrit: true,
+                  weaponStrengthProfileId: 'weapon.rifle',
+                  controlKind: 'stun',
+                  duration: 1
+                });
+            }
+          },
+          rotation: [{ type: 'wait', durationMs: at * 1000 }, ...(trigger === 'swap' ? ['Swap Weapons'] : [])]
+        });
+        assert.deepEqual(result.warnings, []);
+        const runtime = observedRuntime(result);
+        assert.equal(emitted > 0, expected);
+        assert.equal(runtime.procs.readyAt[trait], expected ? canonicalTime(at + duration) : 1);
+        assert.equal(runtime.procs.readyAt.unrelated, 99);
+      }
     }
   });
 }
+
+// Ineligible control and conditions cannot consume Opportunist's shared player-only gate.
+test('Opportunist ignores summons, effect immobilization, and unrelated player conditions', () => {
+  const config = { specialization: 'Core', selectedTraitIds: [TRAIT.OPPORTUNIST], initialResource: 0 };
+  const native = warriorProfession.runtimeFor(config);
+  const result = observeGw2Runtime({
+    config,
+    rotation: [{ type: 'wait', durationMs: 1000 }],
+    profession: {
+      ...native,
+      initialize(runtime) {
+        native.initialize(runtime);
+        for (const event of [
+          { type: 'control', actorType: 'summon', controlKind: 'stun' },
+          { type: 'condition', actorType: 'effect', condition: 'Immobilized' },
+          { type: 'condition', actorType: 'player', condition: 'Bleeding' }
+        ])
+          runtime.emit({ ...event, at: 1, source: 'fixture', sourceId: 'fixture', duration: 1, stacks: 1 });
+      }
+    }
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual({ ...observedRuntime(result).procs.readyAt }, {});
+  assert.equal(observedRuntime(result).profession.core.adrenaline, 0);
+});
 
 const baseConfig = Object.freeze({
   stats: {
@@ -87,72 +127,8 @@ const baseConfig = Object.freeze({
   target: { armor: 2597, health: 3_970_000, defiant: true, conditions: {} }
 });
 
-// Keep the proc on the scheduler observer path, including eligibility and reentrant emission order.
-test('Opportunist claims its ICD before Fury and target-control bookkeeping', () => {
-  for (const internalCooldown of [1, 0]) {
-    const core = createWarriorCoreState();
-    const events = [];
-    const catalog = warriorProfession.catalog;
-    const profiles = new Map(catalog.balanceProfilesById);
-    profiles.set(TRAIT.OPPORTUNIST, { ...profiles.get(TRAIT.OPPORTUNIST), internalCooldown });
-    const control = { type: 'control', actorType: 'player', at: 1, skillName: 'Fixture control' };
-    const context = {
-      config: { selectedTraitIds: [TRAIT.OPPORTUNIST] },
-      catalog: { ...catalog, balanceProfilesById: profiles },
-      profession: warriorProfession,
-      state: { time: 1, profession: { core, specialization: { kind: 'Core', state: {} } } },
-      events,
-      emitDerived(_cause, event) {
-        assert.equal(core.traitProcReadyAt.opportunist, event.at + internalCooldown);
-        // The first grant precedes both the control window and any induced same-time opportunity.
-        if (events.length === 0) assert.equal(core.targetControlledUntil, 0);
-        events.push(event);
-        observeWarriorEvent(context, { ...control, at: event.at });
-        return event;
-      }
-    };
-    for (const event of [
-      { ...control, actorType: 'summon' },
-      { ...control, type: 'condition', condition: 'Bleeding' },
-      { ...control, type: 'condition', condition: 'Immobilized', actorType: 'effect' }
-    ])
-      observeWarriorEvent(context, event);
-    context.config.selectedTraitIds = [];
-    observeWarriorEvent(context, control);
-    assert.deepEqual(core.traitProcReadyAt, {});
-    assert.equal(core.adrenaline, 0);
-    assert.equal(events.length, 0);
-    core.targetControlledUntil = 0;
-    context.config.selectedTraitIds = [TRAIT.OPPORTUNIST];
-    observeWarriorEvent(context, control);
-    assert.equal(events.length, 1);
-    assert.equal(core.adrenaline, 5);
-    assert.equal(events[0].sourceId, TRAIT.OPPORTUNIST);
-    assert.equal(events[0].kind, 'fury');
-    assert.equal(events[0].duration, 3);
-    assert.equal(core.targetControlledUntil, 2);
-    observeWarriorEvent(context, { ...control, at: 1 + internalCooldown });
-    assert.equal(events.length, 1);
-    observeWarriorEvent(context, { ...control, type: 'condition', condition: 'Immobilized', at: 3 });
-    assert.equal(events.length, 2);
-    assert.equal(core.adrenaline, 10);
-  }
-});
-
-// Run the smallest Core rotation that reaches a migrated trait through the public dispatcher.
-function simulate(rotation, config = {}) {
-  return simulateGw2({
-    profession: warriorProfession,
-    rotation,
-    config: {
-      ...baseConfig,
-      ...config,
-      specialization: 'Core',
-      stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) }
-    }
-  });
-}
+// Run each trait through the registered live Core and actual impact dispatcher.
+const simulate = createObservedProfessionSimulator(warriorProfession, baseConfig);
 
 const traitCases = [
   {
@@ -169,7 +145,7 @@ const traitCases = [
     verify: (result) =>
       assert.equal(
         result.planningState.profession.endurance -
-          simulate(['Dodge', 'Eviscerate'], { initialResource: 30 }).planningState.profession.endurance,
+          simulate('Core', ['Dodge', 'Eviscerate'], { initialResource: 30 }).planningState.profession.endurance,
         15
       )
   },
@@ -338,6 +314,6 @@ const traitCases = [
 
 for (const { name, trait, extraTraits = [], rotation, config, verify } of traitCases) {
   test(`${name} remains behaviorally reachable through the Core trait dispatcher`, () => {
-    verify(simulate(rotation, { ...config, selectedTraitIds: [trait, ...extraTraits] }));
+    verify(simulate('Core', rotation, { ...config, selectedTraitIds: [trait, ...extraTraits] }));
   });
 }

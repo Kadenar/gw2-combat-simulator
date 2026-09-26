@@ -15,7 +15,6 @@ import type {
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import type {
-  EngineerResolverEvent,
   EngineerSkill,
   EngineerUiContext,
   EngineerUiSelection,
@@ -197,8 +196,6 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog>): EngineerUiSlice {
   return Object.freeze({
-    eventLogRow: (_context: EngineerUiContext, event: EngineerResolverEvent) =>
-      event?.type === 'engineer.state' ? null : undefined,
     assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,
     rotationStateSnapshot: amalgamStateSnapshot,
     skillBarGroups: (context: EngineerUiContext) => amalgamSkillBarGroups(catalog, context),

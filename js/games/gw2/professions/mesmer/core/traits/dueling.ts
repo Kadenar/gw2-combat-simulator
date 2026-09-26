@@ -1,3 +1,4 @@
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 /** Owns imperative Core Mesmer Dueling trait effects. */
 import {
@@ -10,7 +11,6 @@ import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerState } from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
@@ -20,19 +20,18 @@ import type {
   MesmerEmitDerivedEvent,
   MesmerResolverContext,
   MesmerResolverEvent,
-  MesmerRuntime,
-  MesmerRuntimeState
+  MesmerMechanics
 } from '#gw2/professions/mesmer/types.js';
 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 export interface MesmerDuelingCriticalContext {
-  readonly state: SchedulerState<MesmerRuntimeState>;
+  readonly state: MesmerRuntime;
   readonly traits: ReadonlySet<number>;
   readonly emitEvent: MesmerEmitDerivedEvent;
   readonly boonDuration: (boon: string, baseDuration: number) => number;
   readonly addTraitProc: MesmerAddTraitProc;
-  readonly balanceProfile: MesmerRuntime['balanceProfile'];
+  readonly balanceProfile: MesmerMechanics['balanceProfile'];
 }
 
 interface FencersFinesseContext {
@@ -41,7 +40,7 @@ interface FencersFinesseContext {
   readonly addTraitProc: MesmerAddTraitProc;
 }
 
-type BlindingDissipationContext = Pick<MesmerRuntime, 'traits' | 'addEvent' | 'addTraitProc'>;
+type BlindingDissipationContext = Pick<MesmerMechanics, 'traits' | 'addEvent' | 'addTraitProc'>;
 
 // Attach Ineptitude's Confusion to a qualifying blindness application through
 // the resolver condition hook, preserving causal attribution.
@@ -82,9 +81,9 @@ export function triggerIneptitudeFromInterrupt(context: MesmerResolverContext, e
   // A removed Confusion packet owns no interrupt cooldown.
   if (!requireEffect(ineptitudeProfile, 'condition', 'Confusion')) return;
   const defiant = Boolean(context.config.target?.defiant);
-  if (defiant && !isInternalCooldownReady(event.at, context.profession.ineptitudeReadyAt)) return;
+  if (defiant && !isInternalCooldownReady(event.at, context.profession.core.ineptitudeReadyAt)) return;
   if (defiant) {
-    context.profession.ineptitudeReadyAt = event.at + balanceProfileNumber(ineptitudeProfile, 'internalCooldown');
+    context.profession.core.ineptitudeReadyAt = event.at + balanceProfileNumber(ineptitudeProfile, 'internalCooldown');
   }
 
   applyIneptitudeConfusion(context, { ...event, count: defiant ? 1 : event.count }, 'interrupt → blind → confusion');
@@ -109,7 +108,7 @@ export function triggerBlindingDissipation(
 
 /** Emits Fencer's Finesse stacks at the materialized sword-hit cadence. */
 export function emitFencersFinesseStacks(
-  context: FencersFinesseContext & Pick<MesmerRuntime, 'balanceProfile'>,
+  context: FencersFinesseContext & Pick<MesmerMechanics, 'balanceProfile'>,
   skill: MesmerSkill,
   hitTimes: readonly number[],
   hits: number | undefined

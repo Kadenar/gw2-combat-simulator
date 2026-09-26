@@ -1,8 +1,8 @@
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineProfessionApp } from '#gw2/app/create-adapter.js';
 import { professionRegistry } from '#gw2/app/profession-registry.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 
 test('shared eligibility precedes profession filters and cast state changes', () => {
@@ -25,30 +25,14 @@ test('shared eligibility precedes profession filters and cast state changes', ()
       defineNativeModule({
         id: 'Core',
         data: { generatedSkills: [weapon, excluded, wrongSpecialization] },
-        state: { scheduler: () => ({ resource: 10 }) },
-        mechanics: {
-          execution: {
-            availability: {
-              phase: 'scheduler',
-              hook: 'availability',
-              id: 'fixture.state-check',
-              order: 0,
-              handler: () => {
-                stateChecks += 1;
-                return { ready: true };
-              }
-            },
-            castLifecycle: [
-              {
-                phase: 'scheduler',
-                hook: 'onCastStart',
-                id: 'fixture.spend',
-                order: 0,
-                handler: ({ state }) => {
-                  state.profession.core.resource -= 1;
-                }
-              }
-            ]
+        state: { create: () => ({ resource: 10 }) },
+        hooks: {
+          availability() {
+            stateChecks++;
+            return { ready: true };
+          },
+          onCastStart(runtime) {
+            runtime.profession.core.resource--;
           }
         },
         presentation: { paletteSkillAvailability: () => ({ available: true, message: '' }) }
@@ -75,21 +59,24 @@ test('shared eligibility precedes profession filters and cast state changes', ()
   assert.equal(profession.ui.paletteSkillAvailability(context, weapon).available, true);
 
   // A rejected command cannot run state checks, spend a resource, or begin its recharge.
-  const scheduler = createScheduler({ profession, config: context });
-  const rejected = scheduler.run([
-    { type: 'cast', skillId: excluded.id },
-    { type: 'cast', skillId: wrongSpecialization.id }
-  ]);
+  const rejected = simulateGw2({
+    profession,
+    config: context,
+    rotation: [
+      { type: 'cast', skillId: excluded.id },
+      { type: 'cast', skillId: wrongSpecialization.id }
+    ]
+  });
   assert.equal(stateChecks, 0);
-  assert.equal(rejected.state.profession.core.resource, 10);
-  assert.equal(rejected.state.cooldowns.size, 0);
+  assert.equal(rejected.planningState.profession.resource, 10);
+  assert.equal(Object.keys(rejected.planningState.cooldowns).length, 0);
   assert.ok(rejected.steps.every((step) => step.invalid));
   assert.equal(rejected.warnings.length, 2);
 
-  const accepted = createScheduler({ profession, config: context }).run([{ type: 'cast', skillId: weapon.id }]);
+  const accepted = simulateGw2({ profession, config: context, rotation: [{ type: 'cast', skillId: weapon.id }] });
   assert.deepEqual(accepted.warnings, []);
-  assert.equal(accepted.state.profession.core.resource, 9);
-  assert.ok(accepted.state.cooldowns.get(weapon.id) > 0);
+  assert.equal(accepted.planningState.profession.resource, 9);
+  assert.ok(accepted.planningState.cooldowns[weapon.name].readyAt > 0);
 });
 
 test('every profession inherits build rejection in browser, palette, and resolved runtime', async () => {
@@ -97,7 +84,7 @@ test('every profession inherits build rejection in browser, palette, and resolve
     const adapter = await entry.loadAppAdapter();
     for (const specialization of ['Core', ...adapter.profession.specializationIds]) {
       const context = { specialization };
-      const runtime = adapter.profession.resolveRuntime(context);
+      const runtime = adapter.profession.runtimeFor(context);
       for (const skill of [
         { id: -90001, name: 'Other specialization action', type: 'Action', specialization: 'Other specialization' },
         { id: 90002, name: 'Excluded weapon', type: 'Weapon', simulatorExcluded: true }

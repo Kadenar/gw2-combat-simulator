@@ -1,61 +1,32 @@
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import { EPSILON } from '#kernel/core/clock.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 
-import {
-  denySkillCast as denyEngineerCast,
-  selectedSlotSkillAvailability
-} from '#gw2/professions/shared/availability.js';
+import { denySkillCast as denyEngineerCast } from '#gw2/platform/engine/skills/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import type { EngineerPrecastContext, EngineerSkill } from '#gw2/professions/engineer/types.js';
-import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Enforces Core Engineer resource, kit, flip, and toolbelt prerequisites after shared build eligibility. */
-export function engineerCoreCastAvailability(
-  context: EngineerPrecastContext,
-  skill: EngineerSkill
-): AvailabilityResult {
-  const selection = selectedSlotSkillAvailability(context, skill);
-  if (selection) return selection;
+export function engineerCoreCastAvailability(context: EngineerRuntime, skill: EngineerSkill): AvailabilityResult {
   const state = professionCoreState(context);
-  if (skill.id === ID.DODGE) {
-    const resourcesProfile = requireBalanceProfileFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources);
-    const enduranceCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
-    // epsilon prevents floating-point rounding from blocking a dodge at exactly the threshold
-    return Number(state.endurance || 0) + EPSILON >= enduranceCost
-      ? { ready: true }
-      : denyEngineerCast(
-          skill,
-          'engineer.insufficient-endurance',
-          `requires ${enduranceCost} endurance.`,
-          professionEnduranceReadyAt(context, enduranceCost)
-        );
-  }
-
   if (skill.id === ID.HEALING_TURRET && state.healingTurretActivationId) {
     return denyEngineerCast(skill, 'engineer.healing-turret-active', 'the deployed turret must be detonated first.');
   }
 
   const artillery = state.availableFlips[ID.ELECTRIC_ARTILLERY];
-  if (skill.id === ID.ELECTRIC_ARTILLERY && !skillFlipReady(artillery, context.start)) {
+  if (skill.id === ID.ELECTRIC_ARTILLERY && !skillFlipReady(artillery, context.time)) {
     // The stored window carries readiness even while its palette tile is hidden.
     const retryAt = Number(artillery?.availableAt || 0);
     return denyEngineerCast(
       skill,
       'engineer.electric-artillery-inactive',
       'Lightning Rod has not finished charging.',
-      retryAt > context.start ? retryAt : null
+      retryAt > context.time ? retryAt : null
     );
   }
 
-  if (skill.id === ID.LIGHTNING_ROD && artillery && (artillery.expiresAt ?? Infinity) > context.start) {
+  if (skill.id === ID.LIGHTNING_ROD && artillery && (artillery.expiresAt ?? Infinity) > context.time) {
     // block re-cast while EA is available OR while the charge window is still open (both share the slot)
     return denyEngineerCast(
       skill,
@@ -85,7 +56,7 @@ export function engineerCoreCastAvailability(
     return denyEngineerCast(skill, 'engineer.weapon-bar-replaced', 'the active kit replaces weapon skills.');
   }
 
-  if (skill.handlerId === 'engineer.kit-equip') {
+  if (skill.kitTransition === 'equip') {
     if (!selectedSkillNameSet(context.config.selectedSkills).has(skill.kitName || skill.name)) {
       return denyEngineerCast(skill, 'engineer.kit-not-equipped', 'the kit is not selected in a slot.');
     }
@@ -100,9 +71,9 @@ export function engineerCoreCastAvailability(
   }
 
   if (
-    skill.handlerId === 'engineer.consume-flip' &&
+    skill.flipParentName != null &&
     // availableFlips is populated by the parent skill's handler; absent = parent hasn't fired yet
-    !skillFlipReady(state.availableFlips[skill.id], context.start)
+    !skillFlipReady(state.availableFlips[skill.id], context.time)
   ) {
     return denyEngineerCast(
       skill,

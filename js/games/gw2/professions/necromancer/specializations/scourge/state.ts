@@ -3,9 +3,9 @@ import {
   defineProfessionSpecializationState
 } from '#gw2/platform/engine/profession/state.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
 
 export interface ScourgeState {
+  shadeGeneration: number;
   shades: number[];
   demonicLoreReadyAt: number;
   nourishingAshesReadyAt: number;
@@ -19,13 +19,12 @@ export const SCOURGE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
 /** Creates Scourge's timed shade and trait-cooldown runtime state. */
 export function createScourgeState(): ScourgeState {
   const state: ScourgeState = {
+    shadeGeneration: 0,
     // Each entry is an absolute expiry timestamp; the array length is the active shade count
     shades: [],
     demonicLoreReadyAt: 0,
     nourishingAshesReadyAt: 0
   };
-  // Demonic Lore advances independently of scheduler-owned shades and Nourishing Ashes.
-  registerNecromancerResolverFields(state, ['demonicLoreReadyAt']);
   return state;
 }
 
@@ -34,6 +33,5 @@ export function purgeScourgeTimedState(state: ScourgeState, at: number): void {
   state.shades = purgeExpiredStacks(state.shades, at);
 }
 
-// Both scheduler and resolver share the same factory — shade expiry is read in
-// attribute rules (Sand Sage bonus) and must therefore be live in the resolver too
+// Shade lifetime and Sand Sage attributes read the same state.
 export const scourgeState = defineProfessionSpecializationState('Scourge', createScourgeState);

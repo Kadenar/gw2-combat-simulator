@@ -8,10 +8,9 @@ import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/pr
 export function withActivePatchPreview<
   const TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
-  TSimulation extends object = object,
   TBuild extends Gw2Build = Gw2Build
 >(
-  profession: NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild>
-): NativePatchAuthoringContract<TModules, TPresentation, TSimulation, TBuild> {
+  profession: NativeProfessionContract<TModules, TPresentation, TBuild>
+): NativePatchAuthoringContract<TModules, TPresentation, TBuild> {
   return withPatchPreview(profession, activePatchPreview);
 }

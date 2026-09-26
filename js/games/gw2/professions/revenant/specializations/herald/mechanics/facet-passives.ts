@@ -1,11 +1,6 @@
-import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import {
   requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -21,13 +16,8 @@ import {
 import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState
-} from '#gw2/professions/revenant/core/traits/modifiers.js';
-import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
-import {
-  HERALD_DRACONIC_ECHO_PROFILE_ID,
-  HERALD_NATURE_ASSASSIN_PROFILE_ID
-} from '#gw2/professions/revenant/specializations/herald/profiles.js';
-import type { RevenantResolverContext, RevenantResolverEvent } from '#gw2/professions/revenant/types.js';
+} from '#gw2/professions/revenant/core/modifiers.js';
+import { HERALD_DRACONIC_ECHO_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 
@@ -111,46 +101,4 @@ export function modifyHeraldPassiveAttributes(context: Gw2ModifierContext, attri
           )
         : 0)
   };
-}
-
-/** Only resolved player strikes trigger Assassin Nature; effect-owned siphons cannot recurse. */
-export function resolveNatureSiphon(context: RevenantResolverContext, event: RevenantResolverEvent): void {
-  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || event.cancelled) return;
-  const core = professionCoreState(context);
-  const state = heraldState.from(context);
-  const active = core.activeUpkeeps.some(
-    (upkeep) => upkeep.skillId === ID.FACET_OF_NATURE && Number(upkeep.startsAt || 0) <= event.at
-  );
-  const legend = active ? core.activeLegendId : state.lingeringFacets[ID.FACET_OF_NATURE]?.legendId;
-  if (
-    legend !== LEGEND.ASSASSIN ||
-    !heraldFacetPassiveActive(core, state, ID.FACET_OF_NATURE, event.at) ||
-    !isInternalCooldownReady(event.at, state.natureSiphonReadyAt)
-  )
-    return;
-  const profile = requireBalanceProfileFromContext(context, HERALD_NATURE_ASSASSIN_PROFILE_ID);
-  const strike = requireEffect(profile, 'strike', 'Life Siphon');
-  // The cooldown gates only the siphon, so a removed strike leaves it ready.
-  if (!strike) return;
-  state.natureSiphonReadyAt = event.at + balanceProfileNumber(profile, 'cooldown');
-  context.queue.enqueue(
-    buildResolverStrike({
-      at: event.at,
-      source: 'revenant',
-      sourceId: ID.FACET_OF_NATURE,
-      skillId: ID.FACET_OF_NATURE,
-      skillName: profile.name,
-      name: 'Facet of Nature — Life Siphon',
-      actorType: 'effect',
-      ownerActorType: 'player',
-      coefficient: 0,
-
-      noCrit: true,
-      lifeSiphon: true,
-      flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
-      flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
-      skillWeapon: 'Unequipped',
-      triggeredBy: event.skillName
-    })
-  );
 }

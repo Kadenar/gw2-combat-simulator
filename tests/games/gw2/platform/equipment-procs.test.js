@@ -4,8 +4,7 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { resolveTestGw2Stream } from '#tests/helpers/gw2-resolver.js';
-import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 
 // Equipment procs consume eligible hits, sampled critical outcomes, and the active weapon set.
@@ -38,7 +37,7 @@ test('Thief relic progresses on individual hits instead of an aggregate hit', ()
 });
 
 test('a damage packet removed before resolution cannot trigger critical sigils', () => {
-  const stream = buildScheduledEventStream({
+  const scenario = {
     events: [
       {
         type: 'marker',
@@ -52,10 +51,10 @@ test('a damage packet removed before resolution cannot trigger critical sigils',
         detail: 'cancelled before resolver handoff'
       }
     ],
-    rotationEndTime: 2
-  });
-  const result = resolveTestGw2Stream({
-    stream,
+    endTime: 2
+  };
+  const result = resolveTestGw2Events({
+    ...scenario,
     config: {
       sigilSets: [{ names: ['Air', 'Earth', 'Torment'] }]
     },
@@ -145,7 +144,7 @@ test("seeded critical sigils consume the hit's single sampled crit outcome", () 
   const stochastic = run('stochastic');
   const random = createSimulationRandom({ mode: 'stochastic', seed: 37 });
   const expectedOutcomes = Array.from({ length: 6 }, () => random.roll(0.5, 'critical:player'));
-  const sourceHits = stochastic.events.filter(
+  const sourceHits = stochastic.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillName === 'Flying Cutter'
   );
 
@@ -208,7 +207,9 @@ test('critical-strike food consumes seeded crit and proc outcomes in stochastic 
       randomness: { mode: 'stochastic', seed }
     })
   );
-  const sourceHits = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter');
+  const sourceHits = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillName === 'Flying Cutter'
+  );
   const procRandom = createSimulationRandom({ mode: 'stochastic', seed });
   let expectedProcs = 0;
   let foodReadyAt = -Infinity;

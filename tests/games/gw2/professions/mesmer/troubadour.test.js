@@ -10,7 +10,7 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 
 // A launched Drum wave keeps its damage and disable proc, with distinct breakdown attribution.
@@ -50,7 +50,7 @@ test('committed Drum interruptions preserve separate Syncopate and delayed-wave 
 
 // Trait-owned scheduling must keep honoring balance edits for both the disable proc and delayed wave.
 test('Syncopate reads patched damage from its trait profile', () => {
-  const result = simulateGw2({
+  const result = runMesmer({
     profession: withPatchPreview(mesmerProfession, {
       id: 'syncopate-test',
       label: 'Syncopate test',
@@ -419,7 +419,7 @@ test('Tale of the Honorable Rogue owns its Aegis, note gate, and two-charge timi
 
   assert.deepEqual(
     casts.map((step) => step.start),
-    [0, 4000, 25000]
+    [0, 3200, 20000]
   );
   assert.equal(result.planningState.profession.resource, 0);
   assert.equal(aegis.length, 3);
@@ -561,14 +561,17 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
   assert.match(resourceHtml, />Flute</);
   for (const index of [0, 2]) {
     const spend = result.events.find(
-      (event) => event.type === 'resource' && event.reason === 'profession mechanic' && event.rotationIndex === index
+      (event) =>
+        event.type === 'resource' &&
+        event.reason === 'profession mechanic' &&
+        event.activationId === result.steps[index].activationId
     );
 
     assert.ok(spend);
-    const action = result.events.find((event) => event.type === 'action' && event.name === spend.sourceSkill);
+    const action = result.events.find((event) => event.type === 'action' && event.activationId === spend.activationId);
 
     assert.ok(action);
-    assert.equal(spend.sourceSkill, action.name);
+    assert.equal(spend.activationId, action.activationId);
     assert.ok(Math.abs(spend.at - action.fullEndsAt) < 0.00001);
   }
 

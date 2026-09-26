@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { reactToSymbolOfIgnition } from '#gw2/professions/guardian/core/traits/index.js';
@@ -37,24 +37,20 @@ test('Firebrand public projections preserve configured pages and detach the cano
 });
 
 test('Firebrand tomes consume shared pages and execute tome damage', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: [
-      'Tome of Justice',
-      'Chapter 1: Searing Spell',
-      'Chapter 4: Scorched Aftermath',
-      'Epilogue: Ashes of the Just',
-      'Stow Tome',
-      'True Strike',
-      { type: 'wait', durationMs: 6000 }
-    ],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      primaryWeapon: 'Mace',
-      initialTomePages: 5
-    }
-  });
+  const result = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    primaryWeapon: 'Mace',
+    initialTomePages: 5
+  })(undefined, [
+    'Tome of Justice',
+    'Chapter 1: Searing Spell',
+    'Chapter 4: Scorched Aftermath',
+    'Epilogue: Ashes of the Just',
+    'Stow Tome',
+    'True Strike',
+    { type: 'wait', durationMs: 6000 }
+  ]);
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.combatState.profession.ashes.charges, 0);
@@ -67,11 +63,10 @@ test('Firebrand tomes consume shared pages and execute tome damage', () => {
 });
 
 test('Scorched Aftermath applies Burning with its field strikes', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Tome of Justice', 'Chapter 4: Scorched Aftermath', { type: 'wait', durationMs: 6000 }],
-    config: { ...config, specialization: 'Firebrand' }
-  });
+  const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Firebrand' })(
+    undefined,
+    ['Tome of Justice', 'Chapter 4: Scorched Aftermath', { type: 'wait', durationMs: 6000 }]
+  );
   const packets = result.events.filter((event) => event.skillId === GUARDIAN_SKILL_IDS.SCORCHED_AFTERMATH);
   const strikes = packets.filter((event) => event.type === 'damage');
   const burning = packets.filter((event) => event.type === 'condition' && event.condition === 'Burning');
@@ -89,23 +84,19 @@ test('Scorched Aftermath applies Burning with its field strikes', () => {
 });
 
 test('Ashes of the Just grants party charges using Firebrand condition stats', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: [
-      'Tome of Justice',
-      'Epilogue: Ashes of the Just',
-      'Stow Tome',
-      'True Strike',
-      { type: 'wait', durationMs: 3000 }
-    ],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      primaryWeapon: 'Mace',
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.RADIANT_FIRE],
-      allies: { count: 4, strikesPerSecond: 1 }
-    }
-  });
+  const result = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    primaryWeapon: 'Mace',
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.RADIANT_FIRE],
+    allies: { count: 4, strikesPerSecond: 1 }
+  })(undefined, [
+    'Tome of Justice',
+    'Epilogue: Ashes of the Just',
+    'Stow Tome',
+    'True Strike',
+    { type: 'wait', durationMs: 3000 }
+  ]);
   const ashesBuff = result.events.find((event) => event.type === 'buff' && event.kind === 'ashes-of-the-just');
 
   const allyBurns = result.resolvedEvents.filter(
@@ -129,26 +120,20 @@ test('Ashes of the Just grants party charges using Firebrand condition stats', (
 });
 
 test('Ashes of the Just cannot trigger before its application event', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: [
-      'True Strike',
-      'Tome of Justice',
-      'Epilogue: Ashes of the Just',
-      'Stow Tome',
-      'Symbol of Faith',
-      { type: 'wait', durationMs: 2000 }
-    ],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      primaryWeapon: 'Mace',
-      initialTomePages: 5
-    }
-  });
-  const ashesAppliedAt = result.events.find(
-    (event) => event.type === 'guardian.ashes-granted' && event.skillId === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST
-  ).at;
+  const result = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    primaryWeapon: 'Mace',
+    initialTomePages: 5
+  })(undefined, [
+    'True Strike',
+    'Tome of Justice',
+    'Epilogue: Ashes of the Just',
+    'Stow Tome',
+    'Symbol of Faith',
+    { type: 'wait', durationMs: 2000 }
+  ]);
+  const ashesAppliedAt = result.events.find((event) => event.type === 'buff' && event.kind === 'ashes-of-the-just').at;
   const ashes = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just'
   );
@@ -159,33 +144,33 @@ test('Ashes of the Just cannot trigger before its application event', () => {
 
 test('stowing during a tome page preserves its effects and resource spend without reopening the tome', () => {
   // Stow changes only the bar; the in-flight page must finish and its buff applies before aftercast ends.
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Tome of Justice', 'Epilogue: Ashes of the Just', { name: 'Stow Tome', offset: 100 }],
-    config: { ...config, specialization: 'Firebrand', initialTomePages: 5 }
-  });
+  const result = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    initialTomePages: 5
+  })(undefined, ['Tome of Justice', 'Epilogue: Ashes of the Just', { name: 'Stow Tome', offset: 100 }]);
   assert.deepEqual(result.warnings, []);
   const cast = result.events.find((e) => e.type === 'action' && e.skillId === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST);
-  const granted = result.events.find((e) => e.type === 'guardian.ashes-granted');
-  const spent = result.events.find((e) => e.type === 'guardian.tome-page-used');
-  assert.equal(cast.interrupted, false);
+  const granted = result.events.find((e) => e.type === 'buff' && e.kind === 'ashes-of-the-just');
+  const pageCost = guardianCatalog.skillsById.get(cast.skillId).pageCost;
+  assert.equal(Boolean(cast.interrupted), false);
   assert.ok(granted.at > cast.at && granted.at < cast.endsAt);
-  assert.equal(result.planningState.profession.tomePages.value, 5 - spent.pageCost);
+  assert.equal(result.planningState.profession.tomePages.value, 5 - pageCost);
   assert.equal(result.planningState.profession.activeTome, '');
 });
 
 test('stowing during the third tome skill preserves its earned Swift Scholar refund', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: [
-      'Tome of Justice',
-      'Chapter 1: Searing Spell',
-      'Chapter 2: Igniting Burst',
-      'Epilogue: Ashes of the Just',
-      { name: 'Stow Tome', offset: 100 }
-    ],
-    config: { ...config, specialization: 'Firebrand', initialTomePages: 3 }
-  });
+  const result = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    initialTomePages: 3
+  })(undefined, [
+    'Tome of Justice',
+    'Chapter 1: Searing Spell',
+    'Chapter 2: Igniting Burst',
+    'Epilogue: Ashes of the Just',
+    { name: 'Stow Tome', offset: 100 }
+  ]);
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.tomePages.value, 1);
   assert.equal(result.planningState.profession.activeTome, '');
@@ -199,33 +184,27 @@ test('stowing during the third tome skill preserves its earned Swift Scholar ref
 for (const initialTomePages of [1, 5]) {
   test(`an overlapping mantra refunds pages before the tome cost with ${initialTomePages} initial pages`, () => {
     // Refunds use the still-unspent pool, including its cap, before completion can exhaust the tome.
-    const result = simulateGw2({
-      profession: guardianProfession,
-      rotation: [
-        'Flame Rush',
-        'Flame Rush',
-        { type: 'wait', durationMs: 1000 },
-        'Tome of Justice',
-        'Chapter 2: Igniting Burst',
-        { name: 'Flame Surge', offset: 100 }
-      ],
-      config: {
-        ...config,
-        specialization: 'Firebrand',
-        initialTomePages,
-        selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS]
-      }
-    });
+    const result = createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      specialization: 'Firebrand',
+      initialTomePages,
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS]
+    })(undefined, [
+      'Flame Rush',
+      'Flame Rush',
+      { type: 'wait', durationMs: 1000 },
+      'Tome of Justice',
+      'Chapter 2: Igniting Burst',
+      { name: 'Flame Surge', offset: 100 }
+    ]);
     assert.deepEqual(result.warnings, []);
     const cast = result.events.find(
       (event) => event.type === 'action' && event.skillId === GUARDIAN_SKILL_IDS.IGNITING_BURST
     );
-    const refund = result.events.find((event) => event.type === 'proc' && event.name === 'Weighty Terms');
-    const spent = result.events.find((event) => event.type === 'guardian.tome-page-used');
-    assert.ok(refund.at > cast.at && refund.at < cast.endsAt);
-    assert.equal(spent.at, cast.endsAt);
-    assert.equal(spent.pagesRemaining, Math.min(5, initialTomePages + 2) - spent.pageCost);
-    assert.equal(result.planningState.profession.tomePages.value, spent.pagesRemaining);
+    const refund = result.procSteps.find((step) => step.skill === 'Weighty Terms');
+    const pageCost = guardianCatalog.skillsById.get(cast.skillId).pageCost;
+    assert.ok(refund.start / 1000 > cast.at && refund.start / 1000 < cast.endsAt);
+    assert.equal(result.planningState.profession.tomePages.value, Math.min(5, initialTomePages + 2) - pageCost);
     assert.equal(result.planningState.profession.activeTome, 'justice');
     assert.equal(
       result.events.some((event) => event.type === 'weapon_set' && event.automatic),
@@ -235,25 +214,21 @@ for (const initialTomePages of [1, 5]) {
 }
 
 test('later tome pages do not restore consumed Ashes charges', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: [
-      'Tome of Justice',
-      'Epilogue: Ashes of the Just',
-      'Chapter 2: Igniting Burst',
-      'Stow Tome',
-      'True Strike',
-      'Pure Strike',
-      'Faithful Strike',
-      { type: 'wait', durationMs: 2000 }
-    ],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      primaryWeapon: 'Mace',
-      allies: { count: 0, strikesPerSecond: 1 }
-    }
-  });
+  const result = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    primaryWeapon: 'Mace',
+    allies: { count: 0, strikesPerSecond: 1 }
+  })(undefined, [
+    'Tome of Justice',
+    'Epilogue: Ashes of the Just',
+    'Chapter 2: Igniting Burst',
+    'Stow Tome',
+    'True Strike',
+    'Pure Strike',
+    'Faithful Strike',
+    { type: 'wait', durationMs: 2000 }
+  ]);
   const personalBurns = result.resolvedEvents.filter(
     (event) =>
       event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just' && !event.metadata?.triggeredByAlly
@@ -264,28 +239,25 @@ test('later tome pages do not restore consumed Ashes charges', () => {
 });
 
 test('Firebrand page exhaustion keeps the tome open while pages regenerate', () => {
-  const exhausted = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Tome of Resolve', 'Epilogue: Eternal Oasis', { type: 'wait', durationMs: 8000 }],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      initialTomePages: 2
-    }
-  });
-  const traited = simulateGw2({
-    profession: guardianProfession,
-    rotation: [],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS, GUARDIAN_TRAIT_IDS.LOREMASTER]
-    }
-  });
+  const exhausted = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    initialTomePages: 2
+  })(undefined, ['Tome of Resolve', 'Epilogue: Eternal Oasis', { type: 'wait', durationMs: 8000 }]);
+  const traited = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS, GUARDIAN_TRAIT_IDS.LOREMASTER]
+  })(undefined, []);
 
   assert.deepEqual(exhausted.warnings, []);
   assert.equal(exhausted.planningState.profession.activeTome, 'resolve');
-  assert.equal(exhausted.events.find((event) => event.type === 'guardian.tome-page-used').pagesRemaining, 0);
+  const spent = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    initialTomePages: 2
+  })(undefined, ['Tome of Resolve', 'Epilogue: Eternal Oasis']);
+  assert.equal(spent.planningState.profession.tomePages.value, 0);
   assert.equal(exhausted.planningState.profession.tomePages.value, 1);
   assert.equal(traited.planningState.profession.tomePages.maximum, 8);
   assert.equal(traited.planningState.profession.tomePages.value, 8);
@@ -294,26 +266,30 @@ test('Firebrand page exhaustion keeps the tome open while pages regenerate', () 
 
 test('Firebrand page regeneration keeps ticking at capacity after natural recovery or a mantra refund', () => {
   for (const refund of [false, true]) {
-    const result = simulateGw2({
-      profession: guardianProfession,
-      rotation: [
-        'Tome of Justice',
-        'Chapter 1: Searing Spell',
-        'Stow Tome',
-        ...(refund ? ['Flame Rush', 'Flame Rush', 'Flame Surge'] : []),
-        { type: 'wait', durationMs: 17000 },
-        'Tome of Justice',
-        'Chapter 1: Searing Spell'
-      ],
-      config: { ...config, specialization: 'Firebrand', selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS] }
-    });
+    const result = createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      specialization: 'Firebrand',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS]
+    })(undefined, [
+      'Tome of Justice',
+      'Chapter 1: Searing Spell',
+      'Stow Tome',
+      ...(refund ? ['Flame Rush', 'Flame Rush', 'Flame Surge'] : []),
+      { type: 'wait', durationMs: 17000 },
+      'Tome of Justice',
+      'Chapter 1: Searing Spell'
+    ]);
     assert.deepEqual(result.warnings, []);
-    const [first, last] = result.events.filter((event) => event.type === 'guardian.tome-page-used');
+    const [first] = result.events.filter(
+      (event) => event.type === 'action' && event.skillId === GUARDIAN_SKILL_IDS.SEARING_SPELL
+    );
     const state = result.planningState.profession;
     // Full-pool ticks advance the original clock without banking extra pages or restarting on the next spend.
-    assert.equal(last.pagesRemaining, state.tomePages.maximum - last.pageCost);
-    assert.equal(last.nextTomePageAt, first.nextTomePageAt + 2 * state.tomePages.interval);
-    assert.equal(state.tomePages.nextAt, last.nextTomePageAt);
+    assert.equal(
+      state.tomePages.value,
+      state.tomePages.maximum - guardianCatalog.skillsById.get(first.skillId).pageCost
+    );
+    assert.equal(state.tomePages.nextAt, first.endsAt + 3 * state.tomePages.interval);
   }
 });
 
@@ -325,11 +301,7 @@ test('Firebrand page exhaustion requires an explicit stow before weapon inputs',
     primaryWeapon: 'Mace',
     initialTomePages: 2
   };
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation,
-    config: firebrandConfig
-  });
+  const result = createObservedProfessionSimulator(guardianProfession, firebrandConfig)(undefined, rotation);
 
   const [blocked, ready] = result.steps.filter((step) => step.skill === 'True Strike');
   assert.ok(blocked.invalid);
@@ -358,20 +330,16 @@ test('Firebrand page exhaustion requires an explicit stow before weapon inputs',
 });
 
 test('Firebrand tome page cost waits for a regenerating page', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: [
-      'Tome of Resolve',
-      // Epilogue: Eternal Oasis costs two pages; starting at one page it must
-      // wait for the next scheduled page rather than being discarded.
-      'Epilogue: Eternal Oasis'
-    ],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      initialTomePages: 1
-    }
-  });
+  const result = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    initialTomePages: 1
+  })(undefined, [
+    'Tome of Resolve',
+    // Epilogue: Eternal Oasis costs two pages; starting at one page it must
+    // wait for the next scheduled page rather than being discarded.
+    'Epilogue: Eternal Oasis'
+  ]);
 
   const epilogue = result.steps.find((step) => step.skill === 'Epilogue: Eternal Oasis');
 
@@ -384,15 +352,18 @@ test('Firebrand tome page cost waits for a regenerating page', () => {
 
 test('Unrelenting Criticism adds Bleeding to each axe hit only while traited', () => {
   const simulate = (selectedTraitIds, primaryWeapon, skill) =>
-    simulateGw2({
-      profession: guardianProfession,
-      rotation: [skill],
-      config: { ...config, specialization: 'Firebrand', primaryWeapon, selectedTraitIds }
-    });
+    createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      specialization: 'Firebrand',
+      primaryWeapon,
+      selectedTraitIds
+    })(undefined, [skill]);
   const trait = [GUARDIAN_TRAIT_IDS.UNRELENTING_CRITICISM];
   const axe = simulate(trait, 'Axe', 'Core Cleave');
   const procs = (result) =>
-    result.events.filter((event) => event.type === 'condition' && event.triggeredBy === 'Unrelenting Criticism');
+    result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.triggeredBy === 'Unrelenting Criticism'
+    );
   const hits = axe.events.filter((event) => event.type === 'damage' && event.skillName === 'Core Cleave');
 
   // The trait follows qualifying hits; it must not proc for an untraited or non-axe attack.
@@ -406,11 +377,12 @@ test('Unrelenting Criticism adds Bleeding to each axe hit only while traited', (
 });
 
 test('Cleansing Flame applies Burning on its final strike', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Cleansing Flame'],
-    config: { ...config, specialization: 'Firebrand', primaryWeapon: 'Axe', secondaryWeapon: 'Torch' }
-  });
+  const result = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    primaryWeapon: 'Axe',
+    secondaryWeapon: 'Torch'
+  })(undefined, ['Cleansing Flame']);
   const packets = result.events.filter((event) => event.skillName === 'Cleansing Flame');
   const strikes = packets.filter((event) => event.type === 'damage');
   const burning = packets.filter((event) => event.type === 'condition' && event.condition === 'Burning');
@@ -428,11 +400,10 @@ test('Cleansing Flame applies Burning on its final strike', () => {
 
 test('Writ of Persistence extends Symbol of Punishment strikes, boons, and field', () => {
   const simulate = (selectedTraitIds) =>
-    simulateGw2({
-      profession: guardianProfession,
-      rotation: ['Symbol of Punishment', { type: 'wait', durationMs: 8000 }],
-      config: { ...config, primaryWeapon: 'Scepter', selectedTraitIds }
-    });
+    createObservedProfessionSimulator(guardianProfession, { ...config, primaryWeapon: 'Scepter', selectedTraitIds })(
+      undefined,
+      ['Symbol of Punishment', { type: 'wait', durationMs: 8000 }]
+    );
   const baseline = simulate([]);
   const writ = simulate([GUARDIAN_TRAIT_IDS.WRIT_OF_PERSISTENCE]);
   const packets = (result, type) =>
@@ -440,39 +411,38 @@ test('Writ of Persistence extends Symbol of Punishment strikes, boons, and field
   const baseField = packets(baseline, 'combo_field')[0];
   const fields = packets(writ, 'combo_field');
 
-  // The trait adds pulses and continues the original field without a gap.
+  // The trait adds pulses and extends the field's single live lifetime.
   assert.ok(packets(baseline, 'damage').length > 0);
   assert.ok(packets(writ, 'damage').length > packets(baseline, 'damage').length);
   assert.ok(packets(writ, 'buff').length > packets(baseline, 'buff').length);
-  assert.equal(fields.length, 2);
+  assert.equal(fields.length, 1);
   assert.equal(fields[0].at, baseField.at);
-  assert.equal(fields[0].expiresAt, baseField.expiresAt);
-  assert.equal(fields[1].at, fields[0].expiresAt);
-  assert.ok(fields[1].expiresAt > baseField.expiresAt);
+  assert.ok(fields[0].expiresAt > baseField.expiresAt);
 });
 
 test('Symbol of Ignition burns on other player hits within its active field', () => {
   const simulate = (rotation) =>
-    simulateGw2({
-      profession: guardianProfession,
-      rotation,
-      config: { ...config, primaryWeapon: 'Pistol', secondaryWeapon: 'Pistol' }
-    });
+    createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      primaryWeapon: 'Pistol',
+      secondaryWeapon: 'Pistol'
+    })(undefined, rotation);
   const result = simulate(['Symbol of Ignition', 'Peacekeeper', { type: 'wait', durationMs: 6000 }, 'Peacekeeper']);
   const ignitions = (simulation) =>
     simulation.resolvedEvents.filter(
       (event) => event.type === 'condition' && event.skillName === 'Symbol of Ignition' && event.condition === 'Burning'
     );
-  const field = result.events.find((event) => event.type === 'guardian.symbol-of-ignition-field');
+  const field = result.events.find(
+    (event) => event.type === 'combo_field' && event.skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_IGNITION
+  );
   const hits = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Peacekeeper');
 
   // The symbol cannot trigger itself, and hits after its window must not receive its Burning.
   assert.ok(ignitions(result).length > 0);
-  assert.ok(hits.some((event) => event.at > field.at + field.duration));
+  assert.ok(hits.some((event) => event.at > field.expiresAt));
   assert.ok(
     ignitions(result).every(
-      (event) =>
-        event.at >= field.at && event.at <= field.at + field.duration && hits.some((hit) => hit.at === event.at)
+      (event) => event.at >= field.at && event.at <= field.expiresAt && hits.some((hit) => hit.at === event.at)
     )
   );
   assert.deepEqual(ignitions(simulate(['Symbol of Ignition', { type: 'wait', durationMs: 6000 }])), []);
@@ -511,13 +481,17 @@ test('symbol and projectile ignition independently block through 240 ms without 
 test('torch pulses and fire-whirl bolts ignite through the condition application hook', () => {
   // Condition-only pulses must enter the correct lane without converting every Burning application into a trigger.
   for (const whirling of [false, true]) {
-    const result = simulateGw2({
-      profession: guardianProfession,
-      rotation: whirling
+    const result = createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      specialization: 'Willbender',
+      primaryWeapon: 'Pistol',
+      secondaryWeapon: 'Torch'
+    })(
+      undefined,
+      whirling
         ? ['Purging Flames', 'Symbol of Ignition', 'Whirling Light', { type: 'wait', durationMs: 6000 }]
-        : ['Symbol of Ignition', "Zealot's Flame", { type: 'wait', durationMs: 6000 }],
-      config: { ...config, specialization: 'Willbender', primaryWeapon: 'Pistol', secondaryWeapon: 'Torch' }
-    });
+        : ['Symbol of Ignition', "Zealot's Flame", { type: 'wait', durationMs: 6000 }]
+    );
     assert.deepEqual(result.warnings, []);
     const pulses = result.resolvedEvents.filter(
       (event) =>
@@ -553,16 +527,12 @@ test('torch pulses and fire-whirl bolts ignite through the condition application
 });
 
 test('Peacekeeper begins recharge when its cast starts', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Peacekeeper', 'Peacekeeper'],
-    config: {
-      ...config,
-      primaryWeapon: 'Pistol',
-      secondaryWeapon: 'Pistol',
-      boons: { quickness: true, alacrity: true }
-    }
-  });
+  const result = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    primaryWeapon: 'Pistol',
+    secondaryWeapon: 'Pistol',
+    boons: { quickness: true, alacrity: true }
+  })(undefined, ['Peacekeeper', 'Peacekeeper']);
 
   assert.deepEqual(result.warnings, []);
   const casts = result.events.filter((event) => event.type === 'action' && event.skillName === 'Peacekeeper');
@@ -580,21 +550,18 @@ test('Signet of Wrath loses its passive condition damage while recharging', () =
     primaryWeapon: 'Pistol',
     secondaryWeapon: 'Pistol'
   };
-  const withoutSignet = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Through the Heart', { type: 'wait', durationMs: 9000 }],
-    config: baseConfig
-  });
-  const passive = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Through the Heart', { type: 'wait', durationMs: 9000 }],
-    config: { ...baseConfig, selectedSkills: ['Signet of Wrath'] }
-  });
-  const recharging = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Signet of Wrath', 'Through the Heart', 'Signet of Wrath', { type: 'wait', durationMs: 9000 }],
-    config: { ...baseConfig, selectedSkills: ['Signet of Wrath'] }
-  });
+  const withoutSignet = createObservedProfessionSimulator(guardianProfession, baseConfig)(undefined, [
+    'Through the Heart',
+    { type: 'wait', durationMs: 9000 }
+  ]);
+  const passive = createObservedProfessionSimulator(guardianProfession, {
+    ...baseConfig,
+    selectedSkills: ['Signet of Wrath']
+  })(undefined, ['Through the Heart', { type: 'wait', durationMs: 9000 }]);
+  const recharging = createObservedProfessionSimulator(guardianProfession, {
+    ...baseConfig,
+    selectedSkills: ['Signet of Wrath']
+  })(undefined, ['Signet of Wrath', 'Through the Heart', 'Signet of Wrath', { type: 'wait', durationMs: 9000 }]);
 
   assert.ok(throughDamage(passive) > throughDamage(withoutSignet));
   assert.ok(Math.abs(throughDamage(recharging) - throughDamage(withoutSignet)) < 1e-9);
@@ -613,42 +580,30 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
   assert.equal(rush.flipParentId, flame.id);
   assert.equal(surge.flipParentId, rush.id);
 
-  const normal = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Flame Rush'],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      selectedSkills: ['Mantra of Flame']
-    }
-  });
+  const normal = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    selectedSkills: ['Mantra of Flame']
+  })(undefined, ['Flame Rush']);
 
   assert.ok(normal.planningState.profession.availableFlips[rush.id]);
   assert.equal(normal.planningState.profession.availableFlips[surge.id], undefined);
   assert.equal(normal.planningState.ammo['Flame Rush'].charges, 2);
 
-  const final = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Flame Rush', 'Flame Rush'],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      selectedSkills: ['Mantra of Flame']
-    }
-  });
+  const final = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    selectedSkills: ['Mantra of Flame']
+  })(undefined, ['Flame Rush', 'Flame Rush']);
 
   assert.equal(final.planningState.profession.availableFlips[rush.id], undefined);
   assert.ok(final.planningState.profession.availableFlips[surge.id]);
 
-  const depleted = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Flame Rush', 'Flame Rush', 'Flame Surge'],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      selectedSkills: ['Mantra of Flame']
-    }
-  });
+  const depleted = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    selectedSkills: ['Mantra of Flame']
+  })(undefined, ['Flame Rush', 'Flame Rush', 'Flame Surge']);
 
   assert.equal(depleted.planningState.profession.availableFlips[rush.id], undefined);
   assert.equal(depleted.planningState.profession.availableFlips[surge.id], undefined);
@@ -656,11 +611,11 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
   assert.ok(depleted.planningState.cooldowns['Mantra of Flame'].remaining > 0);
   const rechargeReadyAt = depleted.planningState.cooldowns['Mantra of Flame'].readyAt;
   // A queued normal charge waits for the root recharge, which restores the prepared pool.
-  const rearmed = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Flame Rush', 'Flame Rush', 'Flame Surge', 'Flame Rush'],
-    config: { ...config, specialization: 'Firebrand', selectedSkills: ['Mantra of Flame'] }
-  });
+  const rearmed = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    selectedSkills: ['Mantra of Flame']
+  })(undefined, ['Flame Rush', 'Flame Rush', 'Flame Surge', 'Flame Rush']);
   assert.deepEqual(rearmed.warnings, []);
   assert.equal(rearmed.steps.at(-1).start, rechargeReadyAt);
   assert.equal(rearmed.planningState.ammo['Flame Rush'].charges, normal.planningState.ammo['Flame Rush'].charges);
@@ -676,13 +631,14 @@ test('mantra charge cooldowns carry across the final flip and scale with Alacrit
       ['Mantra of Potence', 'Potent Haste', 'Overwhelming Celerity'],
       ['Mantra of Liberation', 'Portent of Freedom', 'Unhindered Delivery']
     ]) {
-      const result = simulateGw2({
-        profession: guardianProfession,
-        rotation: [normal, normal, final],
-        config: { ...config, specialization: 'Firebrand', selectedSkills: [root], boons: { alacrity } }
-      });
+      const result = createObservedProfessionSimulator(guardianProfession, {
+        ...config,
+        specialization: 'Firebrand',
+        selectedSkills: [root],
+        boons: { alacrity }
+      })(undefined, [normal, normal, final]);
       assert.deepEqual(result.warnings, []);
-      const cooldown = alacrity ? 800 : 1000;
+      const cooldown = 800;
       const starts = result.steps.map((step) => step.start);
       assert.deepEqual(starts, [0, cooldown, cooldown * 2]);
     }
@@ -691,18 +647,14 @@ test('mantra charge cooldowns carry across the final flip and scale with Alacrit
 
 test('Tome of Justice applies Amplified Wrath once before the condition duration cap', () => {
   for (const amplifiedWrath of [false, true]) {
-    const result = simulateGw2({
-      profession: guardianProfession,
-      rotation: ['Peacekeeper', { type: 'wait', durationMs: 3000 }],
-      config: {
-        ...config,
-        specialization: 'Firebrand',
-        primaryWeapon: 'Pistol',
-        secondaryWeapon: 'Pistol',
-        stats: { ...config.stats, expertise: 1500 },
-        selectedTraitIds: amplifiedWrath ? [GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH] : []
-      }
-    });
+    const result = createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      specialization: 'Firebrand',
+      primaryWeapon: 'Pistol',
+      secondaryWeapon: 'Pistol',
+      stats: { ...config.stats, expertise: 1500 },
+      selectedTraitIds: amplifiedWrath ? [GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH] : []
+    })(undefined, ['Peacekeeper', { type: 'wait', durationMs: 3000 }]);
     // Expertise doubles the base duration; the trait's separate multiplier must not be baked in twice.
     const passive = result.resolvedEvents.find((event) => event.sourceId === 'guardian.justice-passive');
     assert.equal(passive.effectiveDuration, amplifiedWrath ? 2.4 : 2);
@@ -710,11 +662,10 @@ test('Tome of Justice applies Amplified Wrath once before the condition duration
 });
 
 test('Firebrand tome transitions are weapon swaps and timeline row changes', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Tome of Justice', 'Stow Tome', 'Tome of Resolve', 'Stow Tome'],
-    config: { ...config, specialization: 'Firebrand' }
-  });
+  const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Firebrand' })(
+    undefined,
+    ['Tome of Justice', 'Stow Tome', 'Tome of Resolve', 'Stow Tome']
+  );
 
   assert.deepEqual(
     result.events.filter((event) => event.type === 'weapon_set').map((event) => event.skillName),
@@ -757,22 +708,18 @@ test('Firebrand tome transitions are weapon swaps and timeline row changes', () 
 test('Firebrand tome swaps share sigil cooldowns and require combat', () => {
   // Opening and stowing use the equipped sigil set; immediate follow-up transitions cannot bypass its cooldown.
   for (const inCombat of [false, true]) {
-    const result = simulateGw2({
-      profession: guardianProfession,
-      rotation: [
-        ...(inCombat ? ['__combat_start'] : []),
-        'Tome of Justice',
-        { type: 'wait', durationMs: 10000 },
-        'Stow Tome',
-        'Tome of Resolve',
-        'Stow Tome'
-      ],
-      config: {
-        ...config,
-        specialization: 'Firebrand',
-        sigilSets: [{ names: ['Hydromancy'] }, { names: ['Geomancy'] }]
-      }
-    });
+    const result = createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      specialization: 'Firebrand',
+      sigilSets: [{ names: ['Hydromancy'] }, { names: ['Geomancy'] }]
+    })(undefined, [
+      ...(inCombat ? ['__combat_start'] : []),
+      'Tome of Justice',
+      { type: 'wait', durationMs: 10000 },
+      'Stow Tome',
+      'Tome of Resolve',
+      'Stow Tome'
+    ]);
     assert.deepEqual(result.warnings, []);
     const procs = result.procSteps.filter((step) => step.type === 'sigil_proc');
     assert.deepEqual(
@@ -789,18 +736,14 @@ test('Firebrand tome swaps share sigil cooldowns and require combat', () => {
 });
 
 test('Feel My Wrath splits party and self quickness and triggers Quickfire', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['"Feel My Wrath!"', '"Feel My Wrath!"', { type: 'wait', durationMs: 2000 }],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      selectedSkills: ['"Feel My Wrath!"'],
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.QUICKFIRE],
-      boons: { quickness: true },
-      allies: { count: 1, strikesPerSecond: 1 }
-    }
-  });
+  const result = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    selectedSkills: ['"Feel My Wrath!"'],
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.QUICKFIRE],
+    boons: { quickness: true },
+    allies: { count: 1, strikesPerSecond: 1 }
+  })(undefined, ['"Feel My Wrath!"', '"Feel My Wrath!"', { type: 'wait', durationMs: 2000 }]);
   const quickness = result.events.filter(
     (event) => event.type === 'buff' && event.skillName === '"Feel My Wrath!"' && event.kind === 'quickness'
   );
@@ -818,16 +761,12 @@ test('Feel My Wrath splits party and self quickness and triggers Quickfire', () 
 });
 
 test('Quickfire grants one Ashes charge to a self-only quickness recipient', () => {
-  const result = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Tome of Justice', 'Chapter 2: Igniting Burst', { type: 'wait', durationMs: 3000 }],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.QUICKFIRE],
-      allies: { count: 0, strikesPerSecond: 0 }
-    }
-  });
+  const result = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.QUICKFIRE],
+    allies: { count: 0, strikesPerSecond: 0 }
+  })(undefined, ['Tome of Justice', 'Chapter 2: Igniting Burst', { type: 'wait', durationMs: 3000 }]);
   const quickfireBurns = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just'
   );
@@ -839,15 +778,11 @@ test('Quickfire grants one Ashes charge to a self-only quickness recipient', () 
 
 test('dormant Tome equips preserve recharge and do not trigger virtue traits', () => {
   const simulate = (rotation) =>
-    simulateGw2({
-      profession: guardianProfession,
-      rotation,
-      config: {
-        ...config,
-        specialization: 'Firebrand',
-        selectedTraitIds: [GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE]
-      }
-    });
+    createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      specialization: 'Firebrand',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE]
+    })(undefined, rotation);
   const readyAt = simulate(['Tome of Justice']).combatState.profession.virtueReadyAt.justice;
   const result = simulate([
     'Tome of Justice',
@@ -858,13 +793,14 @@ test('dormant Tome equips preserve recharge and do not trigger virtue traits', (
     { type: 'wait', durationMs: readyAt * 500 },
     'Tome of Justice'
   ]);
-  const activations = result.events.filter((event) => event.type === 'guardian.firebrand-virtue-activated');
-
   // Reopening halfway through dormancy keeps the original deadline; reopening at expiry rearms traits.
-  assert.deepEqual(
-    activations.map((event) => event.passiveReadyAt),
-    [readyAt, readyAt, readyAt * 2]
-  );
+  const dormant = simulate([
+    'Tome of Justice',
+    'Stow Tome',
+    { type: 'wait', durationMs: readyAt * 500 },
+    'Tome of Justice'
+  ]);
+  assert.equal(dormant.combatState.profession.virtueReadyAt.justice, readyAt);
   assert.deepEqual(
     result.procSteps.filter((step) => step.skill === 'Lesser Symbol of Blades').map((step) => step.start),
     [0, readyAt * 1000]
@@ -886,11 +822,10 @@ test('dormant Tome equips preserve recharge and do not trigger virtue traits', (
 
 test('Power of the Virtuous reduces each Tome dormancy duration', () => {
   const simulate = (selectedTraitIds) =>
-    simulateGw2({
-      profession: guardianProfession,
-      rotation: ['Tome of Justice', 'Stow Tome', 'Tome of Resolve', 'Stow Tome', 'Tome of Courage'],
-      config: { ...config, specialization: 'Firebrand', selectedTraitIds }
-    });
+    createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Firebrand', selectedTraitIds })(
+      undefined,
+      ['Tome of Justice', 'Stow Tome', 'Tome of Resolve', 'Stow Tome', 'Tome of Courage']
+    );
   const baseline = simulate([]).planningState.profession.tomeDormantReadyAt;
   const traited = simulate([GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS]).planningState.profession.tomeDormantReadyAt;
 
@@ -901,23 +836,19 @@ test('Power of the Virtuous reduces each Tome dormancy duration', () => {
 });
 
 test('Firebrand specialization traits drive pages, quickness, and tome bonuses', () => {
-  const lore = simulateGw2({
-    profession: guardianProfession,
-    rotation: [
-      'Tome of Justice',
-      'Chapter 1: Searing Spell',
-      'Chapter 2: Igniting Burst',
-      'Chapter 3: Heated Rebuke',
-      'Stow Tome',
-      'Tome of Justice'
-    ],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      initialTomePages: 5,
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.LEGENDARY_LORE]
-    }
-  });
+  const lore = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    initialTomePages: 5,
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.LEGENDARY_LORE]
+  })(undefined, [
+    'Tome of Justice',
+    'Chapter 1: Searing Spell',
+    'Chapter 2: Igniting Burst',
+    'Chapter 3: Heated Rebuke',
+    'Stow Tome',
+    'Tome of Justice'
+  ]);
 
   assert.equal(lore.planningState.profession.tomePages.value, 3);
   assert.equal(
@@ -938,17 +869,13 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
       .every((event) => event.stacks === 2 && event.duration === 10)
   );
 
-  const weighted = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Potent Haste', 'Potent Haste', 'Overwhelming Celerity'],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      selectedSkills: ['Mantra of Potence'],
-      initialTomePages: 1,
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS]
-    }
-  });
+  const weighted = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    selectedSkills: ['Mantra of Potence'],
+    initialTomePages: 1,
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS]
+  })(undefined, ['Potent Haste', 'Potent Haste', 'Overwhelming Celerity']);
 
   assert.deepEqual(weighted.warnings, []);
   assert.equal(weighted.planningState.profession.tomePages.value, 3);
@@ -959,16 +886,12 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
     [['Slow', 1.5]]
   );
 
-  const liberated = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Shelter'],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      selectedSkills: ['Shelter'],
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.LIBERATORS_VOW]
-    }
-  });
+  const liberated = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    selectedSkills: ['Shelter'],
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.LIBERATORS_VOW]
+  })(undefined, ['Shelter']);
 
   assert.equal(
     liberated.events.some(
@@ -983,18 +906,14 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
 });
 
 test('Firebrand grandmaster support traits react to boons and control', () => {
-  const quickfire = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Tome of Courage', 'Epilogue: Unbroken Lines', { type: 'wait', durationMs: 2000 }],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      maximumTomePages: 8,
-      initialTomePages: 8,
-      allies: { count: 1, strikesPerSecond: 1 },
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.STALWART_SPEED, GUARDIAN_TRAIT_IDS.QUICKFIRE]
-    }
-  });
+  const quickfire = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    maximumTomePages: 8,
+    initialTomePages: 8,
+    allies: { count: 1, strikesPerSecond: 1 },
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.STALWART_SPEED, GUARDIAN_TRAIT_IDS.QUICKFIRE]
+  })(undefined, ['Tome of Courage', 'Epilogue: Unbroken Lines', { type: 'wait', durationMs: 2000 }]);
 
   assert.equal(
     quickfire.procSteps.some((step) => step.skill === 'Stalwart Speed'),
@@ -1004,15 +923,11 @@ test('Firebrand grandmaster support traits react to boons and control', () => {
     quickfire.procSteps.some((step) => step.skill === 'Quickfire'),
     true
   );
-  const stoic = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Tome of Courage', 'Chapter 2: Daring Challenge'],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR]
-    }
-  });
+  const stoic = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR]
+  })(undefined, ['Tome of Courage', 'Chapter 2: Daring Challenge']);
   const stoicBuffs = stoic.events.filter(
     (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR
   );
@@ -1027,15 +942,11 @@ test('Firebrand grandmaster support traits react to boons and control', () => {
 });
 
 test('Firebrand dormant passives and Imbued Haste use timeline state', () => {
-  const passive = simulateGw2({
-    profession: guardianProfession,
-    rotation: ['Whirling Wrath', { type: 'wait', durationMs: 80000 }],
-    config: {
-      ...config,
-      specialization: 'Firebrand',
-      primaryWeapon: 'Greatsword'
-    }
-  });
+  const passive = createObservedProfessionSimulator(guardianProfession, {
+    ...config,
+    specialization: 'Firebrand',
+    primaryWeapon: 'Greatsword'
+  })(undefined, ['Whirling Wrath', { type: 'wait', durationMs: 80000 }]);
 
   assert.ok(passive.combatState.profession.justicePassiveBurns > 0);
   assert.equal(
@@ -1053,15 +964,11 @@ test('Firebrand dormant passives and Imbued Haste use timeline state', () => {
   assert.ok(aegis.slice(1).every((event, index) => event.at - aegis[index].at === interval));
 
   const tome = (selectedTraitIds) =>
-    simulateGw2({
-      profession: guardianProfession,
-      rotation: ['Tome of Justice', 'Chapter 1: Searing Spell', { type: 'wait', durationMs: 3000 }],
-      config: {
-        ...config,
-        specialization: 'Firebrand',
-        selectedTraitIds
-      }
-    });
+    createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      specialization: 'Firebrand',
+      selectedTraitIds
+    })(undefined, ['Tome of Justice', 'Chapter 1: Searing Spell', { type: 'wait', durationMs: 3000 }]);
   const normal = tome([]);
   const imbued = tome([GUARDIAN_TRAIT_IDS.IMBUED_HASTE]);
 

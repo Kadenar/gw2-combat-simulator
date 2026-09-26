@@ -227,7 +227,8 @@ export interface Gw2ResolverRuntime {
   readonly damageDiagnostics: boolean;
   config: Gw2Config;
   traits: ReadonlySet<string | number>;
-  horizon: number;
+  /** Unknown until the live cursor and its occupied lanes finish. */
+  horizon: number | null;
   query: Readonly<Gw2CombatQuery>;
   helpers: Gw2ResolverHelpers;
   queue: Gw2EventQueue;
@@ -248,6 +249,7 @@ export interface Gw2ResolverRuntime {
   lastHitTime: number | null;
   deathTime: number | null;
   combatStartTime?: number | null;
+  combatStartPending?: boolean;
   activeWeaponSet: number;
   combo: Gw2ComboRuntimeState;
   relic: Gw2RelicRuntime;
@@ -256,6 +258,7 @@ export interface Gw2ResolverRuntime {
   sigil: {
     severanceUntil: number;
     readyAt: Map<string, number>;
+    doomPending?: boolean;
   };
   food: { readyAt: number };
   random: Readonly<SimulationRandom>;
@@ -295,7 +298,7 @@ export interface CreateGw2ResolverRuntimeStateOptions {
   readonly reporting?: boolean;
   readonly config: Gw2Config;
   readonly traits?: ReadonlySet<string | number>;
-  readonly horizon: number;
+  readonly horizon: number | null;
   readonly query: Readonly<Gw2CombatQuery>;
   readonly helpers: Gw2ResolverHelpers;
   readonly queue: Gw2EventQueue;

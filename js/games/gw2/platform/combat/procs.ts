@@ -1,4 +1,31 @@
 import { isInternalCooldownReady, timeKey } from '#kernel/core/clock.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+
+/** One registry per simulation owns trait deadlines; profile IDs isolate unrelated procs and patches retune claims. */
+export function createProcRegistry(context: () => Gw2Runtime) {
+  const readyAt: Record<string, number> = Object.create(null);
+  return {
+    /** Live deadlines also support mechanic-owned resets and reconstruction without another private trait map. */
+    readyAt,
+    claim(profileId: SkillId, key: SkillId = profileId): boolean {
+      const runtime = context();
+      return tryConsumeProcCooldown(
+        readyAt,
+        key,
+        runtime.time,
+        balanceProfileNumber(requireBalanceProfileFromContext(runtime, profileId), 'internalCooldown')
+      );
+    },
+    reset(key: SkillId): void {
+      delete readyAt[key];
+    }
+  };
+}
 
 /** Claims a caller-owned ICD after eligibility checks, before effects can trigger another reaction. */
 export function tryConsumeProcCooldown(

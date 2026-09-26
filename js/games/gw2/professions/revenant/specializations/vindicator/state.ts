@@ -21,5 +21,5 @@ function createVindicatorState(): VindicatorState {
   };
 }
 
-// Both scheduler and resolver call create independently; state is NOT shared across phases.
+// Vindicator's slice of the single live runtime state.
 export const vindicatorState = defineProfessionSpecializationState('Vindicator', createVindicatorState);

@@ -7,7 +7,6 @@ import {
   isGw2PlayerActorEvent,
   isGw2PlayerModifierOwnedEvent
 } from '#gw2/platform/combat/state/event-ownership.js';
-import { createGw2EventPreparer } from '#gw2/platform/execution/gw2-policy/event-preparer.js';
 import { weaponStrengthProfileIdForEvent } from '#gw2/platform/equipment/weapons/strength.js';
 
 test('non-weapon effect ownership has one canonical classifier', () => {
@@ -58,106 +57,4 @@ test('modifier ownership is independent from proc actor ownership', () => {
     }),
     'summon'
   );
-});
-
-test('event preparation groups related triggered packets per simulation pass', () => {
-  let activationOrder = 0;
-  const context = {
-    catalog: {
-      skillsById: new Map(),
-      skillsByName: new Map()
-    },
-    config: { primaryWeapon: 'Dagger' },
-    state: { activeWeaponSet: 1, profession: {} },
-    createActivationId(kind) {
-      activationOrder += 1;
-
-      return `${kind}:test:${activationOrder}`;
-    }
-  };
-  const preparer = createGw2EventPreparer();
-  const packet = {
-    type: 'damage',
-    at: 1,
-    source: 'Trait',
-    sourceId: 'trait.proc',
-    actorType: 'effect',
-    skillName: 'Trait Proc',
-    coefficient: 0.5,
-    activationId: 'cast:7',
-    triggeredBy: 'cast:7'
-  };
-
-  const first = preparer.prepare(context, packet);
-  const second = preparer.prepare(context, { ...packet, at: 1.25 });
-  const unrelated = preparer.prepare(context, {
-    ...packet,
-    at: 1.5,
-    sourceId: 'trait.other'
-  });
-
-  assert.equal(first.activationId, 'effect:test:1');
-  assert.equal(second.activationId, first.activationId);
-  assert.equal(unrelated.activationId, 'effect:test:2');
-  assert.equal(first.weaponStrengthProfileId, 'nonweapon.unequipped');
-  assert.equal(second.weaponStrengthProfileId, 'nonweapon.unequipped');
-  assert.equal(activationOrder, 2);
-
-  // A player-owned nonweapon proc keeps its actor while sharing only its own packet strength roll.
-  const playerProc = {
-    ...packet,
-    actorType: 'player',
-    source: 'Renamed proc',
-    sourceId: 'player.proc',
-    weaponStrengthProfileId: 'nonweapon.unequipped'
-  };
-  const playerFirst = preparer.prepare(context, playerProc);
-  const playerSecond = preparer.prepare(context, { ...playerProc, at: 1.25 });
-  assert.equal(playerFirst.actorType, 'player');
-  assert.equal(playerFirst.activationId, 'effect:test:3');
-  assert.equal(playerSecond.activationId, playerFirst.activationId);
-
-  const marker = {
-    type: 'marker',
-    actorType: 'environment',
-    at: 2,
-    source: 'System',
-    sourceId: 'marker'
-  };
-
-  assert.equal(preparer.prepare(context, marker), marker);
-});
-
-test('event preparation resolves capped boon recipients before handoff', () => {
-  const context = {
-    catalog: { skillsById: new Map(), skillsByName: new Map() },
-    config: {
-      allies: { count: 4, strikesPerSecond: 1 },
-      sharePlayerBoonsWithSummons: true
-    },
-    state: { activeWeaponSet: 1, profession: {} },
-    createActivationId: () => 'unused'
-  };
-  const prepared = createGw2EventPreparer().prepare(context, {
-    type: 'buff',
-    actorType: 'player',
-    at: 1,
-    source: 'Player',
-    sourceId: 'party-fury',
-    kind: 'fury',
-    duration: 5,
-    audience: {
-      recipients: 'party',
-      maximumRecipients: 5,
-      eligibleCompanionIds: ['summon:one', 'summon:two']
-    }
-  });
-
-  assert.deepEqual(prepared.resolvedAudience, {
-    includesSelf: true,
-    includesSummons: false,
-    alliedPlayerCount: 4,
-    companionIds: [],
-    recipientCount: 5
-  });
 });

@@ -1,4 +1,4 @@
-import { resolverTimedEffect } from '#gw2/platform/profession-definition/mechanics.js';
+import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber,
@@ -16,10 +16,10 @@ import {
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
 import { kineticAcceleratorBoons } from '#gw2/professions/engineer/specializations/scrapper/traits/kinetic-accelerators.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
-import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
+import type { EngineerRuntime, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
 
 // Grants 1 might if stability is active and the 1s ICD has elapsed, then reschedules the pulse.
-function triggerMassMomentum(context: EngineerResolverContext, event: EngineerResolverEvent): void | false {
+export function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEvent): void | false {
   if (!hasTrait(context, TRAIT.MASS_MOMENTUM) || activeBoonStacks(context, 'stability', 1, event.at) === 0)
     return false;
   const state = procState(context);
@@ -43,27 +43,20 @@ function triggerMassMomentum(context: EngineerResolverContext, event: EngineerRe
 
   const interval = balanceProfileNumber(massMomentumProfile, 'pulseInterval');
   const next = Math.max(event.at + interval, Number(state.massMomentum || 0));
-  if (interval > 0 && massMomentum.nextAt(context) > next)
-    massMomentum.start(context, { key: 'stability', at: next, captured: event });
+  const live = scrapperState.from(context);
+  if (interval > 0 && live.massMomentumAt > next) {
+    live.massMomentumAt = next;
+    context.schedule('engineer.mass-momentum', next, event);
+  }
 }
 
-// A single pending resolver occurrence deduplicates hit/boon triggers and rechecks live Stability.
-const massMomentum = resolverTimedEffect<EngineerResolverContext, EngineerResolverEvent>({
-  id: 'engineer.mass-momentum-pulse',
-  interval: (context) =>
-    balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.massMomentum), 'pulseInterval'),
-  effectsAt(context, at, event) {
-    return triggerMassMomentum(context, { ...event, at });
-  }
-});
-
 // Only real damage hits (coefficient > 0) trigger the pulse; 0-coeff events are skipped.
-function reactToScrapperDamage(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+function reactToScrapperDamage(context: EngineerRuntime, event: EngineerResolverEvent): void {
   if (Number(event.coefficient) > 0) triggerMassMomentum(context, event);
 }
 
 /** Reacts to might thresholds and stability applications that can start Scrapper trait procs. */
-function reactToScrapperBuff(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+function reactToScrapperBuff(context: EngineerRuntime, event: EngineerResolverEvent): void {
   const kind = String(event.kind || '').toLowerCase();
   // Applied Force (GM trait): reaching 10+ might stacks triggers 3s stability on a 10s ICD.
   if (
@@ -101,16 +94,12 @@ function reactToScrapperBuff(context: EngineerResolverContext, event: EngineerRe
 }
 
 /** Every surviving combo grants boons once, including finishers created only during resolution. */
-function reactToScrapperCombo(context: EngineerResolverContext, event: EngineerResolverEvent): void {
+function reactToScrapperCombo(context: EngineerRuntime, event: EngineerResolverEvent): void {
   const boons = kineticAcceleratorBoons(context, event);
   if (!boons.length) return;
   for (const boon of boons) queueResolverBoon(context, event, boon);
   recordTrait(context, 'Kinetic Accelerators', event);
 }
-
-export const scrapperResolverEventHandlers = Object.freeze({
-  ...massMomentum.eventHandlers
-});
 
 export const scrapperResolverEventReactions = Object.freeze({
   damage: reactToScrapperDamage,

@@ -1,5 +1,23 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2WeaponMatcherContext, Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+
+/** Validate the current equipped set while retaining unrestricted builds with no configured weapons. */
+export function isGw2WeaponSkillEquipped(
+  context: Gw2WeaponMatcherContext & { readonly config: Gw2Config; readonly weaponSet: number },
+  skill: Skill,
+  matcher?: Gw2WeaponSkillMatcher
+): boolean {
+  const hasExplicitRequirement =
+    skill.requiredMainHand != null ||
+    skill.requiredOffHand != null ||
+    skill.weaponSet?.mainHand != null ||
+    skill.weaponSet?.offHand != null;
+  if (!hasExplicitRequirement && (skill.type !== 'Weapon' || !skill.weapon)) return true;
+  const configured = gw2ConfiguredWeaponSet(context.config, context.weaponSet === 2 ? 2 : 1);
+  return configured.every((value) => !value) || weaponSkillMatchesSet(matcher, skill, configured, context);
+}
 
 function slotNumber(skill: Skill): number {
   return Number(String(skill?.slot || '').match(/(\d+)$/)?.[1] || 0);

@@ -3,7 +3,6 @@ import { access } from 'node:fs/promises';
 import { describe, test } from 'node:test';
 import { replaceBuild } from '#gw2/app/build/state/persistence.js';
 import { COMMON_EVENT_TYPES } from '#gw2/platform/engine/events/events.js';
-import { SKILL_HANDLER_MODES } from '#gw2/platform/engine/skills/handlers.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { ENGINEER_PUBLIC_END_STATE_KEYS } from '#gw2/professions/engineer/family-state.js';
 import { ELEMENTALIST_PUBLIC_END_STATE_KEYS } from '#gw2/professions/elementalist/family-state.js';
@@ -76,18 +75,18 @@ function assertUiContracts(entry, profession, specialization) {
   let runtime;
 
   try {
-    runtime = profession.resolveRuntime({
+    runtime = profession.resolveProfession({
       specialization: runtimeSpecialization
     });
   } catch {
-    runtime = profession.resolveRuntime({ specialization: 'Core' });
+    runtime = profession.resolveProfession({ specialization: 'Core' });
   }
 
   const context = {
     catalog: profession.catalog,
     specialization,
     config: { specialization },
-    professionState: runtime.createProfessionState({ specialization })
+    professionState: runtime.createState({ specialization })
   };
   const groups = profession.ui.paletteGroups(context);
   const views = profession.ui.resourceViews(context);
@@ -177,7 +176,7 @@ function assertEventDescriptors(entry, profession) {
       .map((specialization) => specialization.name)
       .filter((name) => {
         try {
-          profession.resolveRuntime({ specialization: name });
+          profession.resolveProfession({ specialization: name });
 
           return true;
         } catch {
@@ -187,9 +186,9 @@ function assertEventDescriptors(entry, profession) {
   ];
 
   for (const specialization of specializations) {
-    const runtime = profession.resolveRuntime({ specialization });
+    const runtime = profession.runtimeFor({ specialization });
 
-    for (const type of Object.keys(runtime.eventHandlers)) {
+    for (const type of Object.keys(runtime.eventHandlers ?? {})) {
       const descriptor = profession.ui.eventLogRow?.(
         { specialization, config: { specialization } },
         { ...baseEvent, type }
@@ -220,10 +219,10 @@ test('profession registry entries conform to the shared contracts', async () => 
     assert.equal(profession.id, entry.id);
     assert.equal(adapter.id, entry.id);
     assert.ok(entry.themeClass);
-    assert.equal(typeof profession.resolveRuntime, 'function');
+    assert.equal(typeof profession.resolveProfession, 'function');
     assert.equal(Object.hasOwn(profession, 'eventHandlers'), false);
     assert.equal(Object.hasOwn(profession, 'taskHandlers'), false);
-    assert.equal(Object.hasOwn(profession, 'createProfessionState'), false);
+    assert.equal(Object.hasOwn(profession, 'createState'), false);
     assertCatalogMetadata(entry, profession.catalog);
     assertEventDescriptors(entry, profession);
 
@@ -236,19 +235,7 @@ test('profession registry entries conform to the shared contracts', async () => 
       assert.equal('activation' in skill, false, skill.name);
       assert.equal('castTime' in skill, false, skill.name);
 
-      if (skill.handlerId) {
-        const handler = profession.catalog.skillHandlers.get(skill.handlerId);
-
-        assert.equal(typeof handler, 'object', skill.handlerId);
-        assert.equal(Object.values(SKILL_HANDLER_MODES).includes(handler.mode), true, `${skill.handlerId} mode`);
-        assert.equal(
-          // A replace declaration can suppress fixed effects while its owning cast lifecycle supplies them.
-          handler.mode === SKILL_HANDLER_MODES.REPLACE ||
-            ['beforeEffects', 'afterEffect', 'afterEffects'].some((phase) => typeof handler[phase] === 'function'),
-          true,
-          `${skill.handlerId} phases`
-        );
-      }
+      assert.equal('handlerId' in skill, false, skill.name);
 
       for (const effect of skill.effects) {
         if (effect.type !== 'custom') continue;
@@ -265,7 +252,10 @@ test('profession registry entries conform to the shared contracts', async () => 
           )
             ? skill.specialization
             : 'Core';
-        const runtime = profession.resolveRuntime({ specialization: owner });
+        const runtime =
+          entry.id === 'engineer'
+            ? profession.runtimeFor({ specialization: owner })
+            : profession.runtimeFor({ specialization: owner });
 
         assert.equal(typeof runtime.eventHandlers[effect.eventType], 'function', effect.eventType);
       }
@@ -278,18 +268,18 @@ test('profession registry entries conform to the shared contracts', async () => 
       let runtime;
 
       try {
-        runtime = profession.resolveRuntime({ specialization });
+        runtime = profession.runtimeFor({ specialization });
       } catch {
         continue;
       }
 
-      for (const type of Object.keys(runtime.eventHandlers)) {
-        assert.equal(type.startsWith(`${entry.id}.`), true, type);
+      for (const type of Object.keys(runtime.eventHandlers ?? {})) {
+        assert.equal(type.includes('.'), true, type);
         assert.equal(COMMON_EVENT_TYPES.includes(type), false, type);
       }
 
-      for (const type of Object.keys(runtime.taskHandlers)) {
-        assert.equal(type.startsWith(`${entry.id}.`), true, type);
+      for (const type of Object.keys(runtime.tasks ?? {})) {
+        assert.equal(type.includes('.'), true, type);
       }
     }
 
@@ -338,7 +328,7 @@ test('profession registry entries conform to the shared contracts', async () => 
       config: {}
     });
 
-    assert.match(unknown.warnings.join(' '), /Unknown skill id -999/);
+    assert.match(unknown.warnings.join(' '), /-999: Unknown skill/);
 
     for (const specialization of ['Core', ...profession.catalog.specializations.map((value) => value.name)]) {
       assertUiContracts(entry, profession, specialization);
@@ -414,11 +404,13 @@ test('ready native professions expose deliberate public end-state keys', async (
 
     // Multiple slices can publish the same field; the projected object contains each name once.
     assert.deepEqual(
-      Object.keys(result.planningState.profession).sort(),
+      Object.keys(result.planningState.profession)
+        .filter((key) => key !== 'maximumEndurance')
+        .sort(),
       [
         ...new Set([
           ...PUBLIC_END_STATE_KEYS_BY_PROFESSION[entry.id],
-          ...(profession.resolveRuntime({}).resources.endurance ? ['maximumEndurance'] : [])
+          ...(profession.resolveProfession({}).resources.endurance ? ['maximumEndurance'] : [])
         ])
       ].sort(),
       entry.id

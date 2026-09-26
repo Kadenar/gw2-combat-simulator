@@ -10,10 +10,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2.4 },
       { type: 'condition', condition: 'Bleeding', stacks: 2, duration: 10 }
-    ]),
-    // Dark Pact cannot gain life force: simulated targets have no boons to remove.
-    // Custom: Applies self-bleeding and target immobilize only after the first hit; see `core/mechanics/conditions.ts`.
-    handlerId: 'necromancer.dark-pact'
+    ])
   },
   [ID.NECROTIC_SLASH]: {
     castTimeMs: 360,
@@ -63,9 +60,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
         type: 'blind',
         duration: 6
       }
-    ],
-    // Custom: Moves a skill-specific number of active self-conditions to the target; see `core/mechanics/conditions.ts`.
-    handlerId: 'necromancer.condition-transfer'
+    ]
   },
   [ID.ENFEEBLING_BLOOD]: {
     castTimeMs: 840,
@@ -91,8 +86,6 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
-    ],
-    // Custom: Applies Life Siphon's self-bleeding on its first resolved hit; see `core/mechanics/conditions.ts`.
-    handlerId: 'necromancer.life-siphon'
+    ]
   }
 });

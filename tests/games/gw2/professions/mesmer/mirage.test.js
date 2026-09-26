@@ -344,7 +344,7 @@ test('Fractured Glass resolves seven measured packets with per-hit Vulnerability
   );
 
   assert.equal(casts[0].end - casts[0].start, 880);
-  assert.equal(casts[1].start - casts[0].end, 1000);
+  assert.equal(casts[1].start - casts[0].end, 800);
   assert.deepEqual(
     damage.slice(0, 7).map((event) => [Math.round((event.at - firstCastStart) * 1000), event.coefficient]),
     [
@@ -532,7 +532,7 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
   );
 
   assert.equal(dune.planningState.profession.availableAmbush.source, 'Dune Cloak');
-  assert.equal(dune.planningState.cooldowns['Mind Wrack'].readyAt, 11000);
+  assert.equal(dune.planningState.cooldowns['Mind Wrack'].readyAt, 8800);
 
   const twoClones = simulateMesmer(
     ['Mind Wrack'],
@@ -650,7 +650,7 @@ test('Mirage can queue an ambush before its window closes without extending the 
       assert.equal(ambush.start, 1600);
       assert.deepEqual(result.warnings, []);
     } else {
-      assert.deepEqual(result.warnings, ['Fractured Glass has no active Mirage Cloak ambush window.']);
+      assert.deepEqual(result.warnings, ['Fractured Glass: Fractured Glass has no active Mirage Cloak ambush window.']);
     }
   }
 });
@@ -750,12 +750,12 @@ test('Sigil of Energy restores one Mirage dodge charge on weapon swap', () => {
     })
   );
   const dodges = result.steps.filter((step) => step.skill === 'Dodge / Mirage Cloak' && !step.invalid);
-  const energy = result.events.find((event) => event.type === 'proc' && event.sourceId === 'sigil.energy');
+  const energy = result.procSteps.find((proc) => proc.skill === 'Sigil of Energy');
 
   assert.deepEqual(result.warnings, []);
   assert.equal(dodges.length, 3);
   assert.ok(energy);
-  assert.equal(dodges[2].start, energy.at * 1000);
+  assert.equal(dodges[2].start, energy.start);
 });
 
 test("Nomad's Endurance grants vigor on shatter and uses it for damage", () => {

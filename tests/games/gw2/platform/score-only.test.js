@@ -3,7 +3,6 @@ import { test } from 'node:test';
 import { loadProfession } from '#gw2/app/profession-registry.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { MAX_SCHEDULER_REFINEMENT_PASSES } from '#gw2/platform/simulation/pipeline.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
 import { applyElementalistResolverAura } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
 
@@ -48,32 +47,6 @@ test('combo and aura handlers skip score report rows while preserving state and 
   }
 });
 
-test('feedback reports exhausted refinement but accepts convergence on the final allowed pass', () => {
-  // A bounded synthetic feedback rule distinguishes slow convergence from a permanently unstable schedule.
-  for (const required of [1, MAX_SCHEDULER_REFINEMENT_PASSES, Infinity]) {
-    const profession = defineProfession({
-      id: 'feedback-boundary',
-      name: 'Feedback boundary',
-      simulation: {
-        refineSchedulerConfig(config) {
-          return Number(config.feedbackStep || 0) >= required
-            ? null
-            : { ...config, feedbackStep: Number(config.feedbackStep || 0) + 1 };
-        }
-      }
-    });
-    for (const output of ['detailed', 'score']) {
-      const result = simulateGw2({ profession, rotation: [], output, damageDiagnostics: true });
-      assert.deepEqual(
-        result.warnings,
-        required === Infinity
-          ? [`Scheduler feedback did not converge after ${MAX_SCHEDULER_REFINEMENT_PASSES} refinement passes.`]
-          : []
-      );
-    }
-  }
-});
-
 test('score skips end-state projection for a custom profession without feedback', () => {
   let projections = 0;
   const profession = defineProfession({
@@ -94,7 +67,13 @@ test('score skips end-state projection for a custom profession without feedback'
 });
 
 // Short casts exercise profession reporting writers; exact parity covers every numeric score field.
-async function parity(id, rotation, config, observationPolicy = { kind: 'tail', durationMs: 2500 }) {
+async function parity(
+  id,
+  rotation,
+  config,
+  observationPolicy = { kind: 'tail', durationMs: 2500 },
+  simulate = simulateGw2
+) {
   const profession = await loadProfession(id);
   const options = {
     profession,
@@ -107,8 +86,8 @@ async function parity(id, rotation, config, observationPolicy = { kind: 'tail', 
       ...config
     }
   };
-  const detailed = simulateGw2(options);
-  const score = simulateGw2({ ...options, output: 'score' });
+  const detailed = simulate(options);
+  const score = simulate({ ...options, output: 'score' });
   for (const [key, value] of Object.entries(score)) {
     if (key !== 'output') assert.deepEqual(value, detailed[key], `${id}: ${key}`);
   }
@@ -123,17 +102,17 @@ async function parity(id, rotation, config, observationPolicy = { kind: 'tail', 
   return { detailed, score };
 }
 
-for (const [id, skill, primaryWeapon] of [
-  ['elementalist', 'Fireball', 'Staff'],
-  ['engineer', 'Rifle Burst', 'Rifle'],
+for (const [id, skill, primaryWeapon, simulate] of [
+  ['elementalist', 'Fireball', 'Staff', simulateGw2],
+  ['engineer', 'Rifle Burst', 'Rifle', simulateGw2],
   ['guardian', 'Sword of Wrath', 'Sword'],
   ['mesmer', 'Mind Slash', 'Sword'],
-  ['ranger', 'Splitblade', 'Axe'],
+  ['ranger', 'Splitblade', 'Axe', simulateGw2],
   ['revenant', 'Preparation Thrust', 'Sword'],
   ['thief', 'Heartseeker', 'Dagger'],
-  ['warrior', 'Chop', 'Axe']
+  ['warrior', 'Chop', 'Axe', simulateGw2]
 ]) {
-  test(`score output preserves ${id} combat`, () => parity(id, [skill], { primaryWeapon }));
+  test(`score output preserves ${id} combat`, () => parity(id, [skill], { primaryWeapon }, undefined, simulate));
 }
 
 test('score preserves fractional conditions, caps, on-crit procs, relic ICD and explicit DPS boundaries', async () => {
@@ -163,23 +142,35 @@ test('score preserves finite health, missing health and environment attribution'
 test('score preserves relic activation and weapon-swap condition procs', async () => {
   const relic = await parity('mesmer', ['Distortion', 'Mind Slash'], { primaryWeapon: 'Sword', relic: 'Fireworks' });
   assert.ok(relic.detailed.procSteps.some((step) => step.type === 'relic_proc'));
-  const swap = await parity('warrior', ['Chop', 'Swap Weapons', 'Chop'], {
-    primaryWeapon: 'Axe',
-    secondaryWeapon: 'Axe',
-    weaponSet2Primary: 'Axe',
-    weaponSet2Secondary: 'Axe',
-    sigilSets: [{ names: ['Force', 'Accuracy'] }, { names: ['Geomancy', 'Doom'] }]
-  });
+  const swap = await parity(
+    'warrior',
+    ['Chop', 'Swap Weapons', 'Chop'],
+    {
+      primaryWeapon: 'Axe',
+      secondaryWeapon: 'Axe',
+      weaponSet2Primary: 'Axe',
+      weaponSet2Secondary: 'Axe',
+      sigilSets: [{ names: ['Force', 'Accuracy'] }, { names: ['Geomancy', 'Doom'] }]
+    },
+    undefined,
+    simulateGw2
+  );
   assert.ok(swap.score.conditionDamage > 0);
   assert.equal(swap.detailed.planningState.activeWeaponSet, 2);
 });
 
-test('Necromancer retains ordinary feedback passes for Gravedigger and condition/environment health', () =>
-  parity('necromancer', ['Nightfall', 'Gravedigger', 'Gravedigger'], {
-    specialization: 'Reaper',
-    primaryWeapon: 'Greatsword',
-    target: { armor: 2597, health: 40000, startingHealthFraction: 0.6, conditions: { Bleeding: 10 } }
-  }));
+test('Necromancer score retains live Gravedigger and condition/environment health outcomes', () =>
+  parity(
+    'necromancer',
+    ['Nightfall', 'Gravedigger', 'Gravedigger'],
+    {
+      specialization: 'Reaper',
+      primaryWeapon: 'Greatsword',
+      target: { armor: 2597, health: 40000, startingHealthFraction: 0.6, conditions: { Bleeding: 10 } }
+    },
+    undefined,
+    simulateGw2
+  ));
 
 test('Ranger retains live pet condition applications across swaps', async () => {
   const { detailed } = await parity(
@@ -189,7 +180,9 @@ test('Ranger retains live pet condition applications across swaps', async () => 
       primaryWeapon: 'Axe',
       selectedPet: 'Lynx',
       selectedPet2: 'Tiger'
-    }
+    },
+    undefined,
+    simulateGw2
   );
   assert.ok(
     detailed.resolvedEvents.some(

@@ -1,10 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { createGw2ComboRuntimeState, registerComboField, resolveComboAttempt } from '#gw2/platform/combos/events.js';
-import { resolveTestGw2Stream } from '#tests/helpers/gw2-resolver.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 
@@ -70,11 +69,8 @@ function finisher(attemptId, fieldBinding, overrides = {}) {
 }
 
 function resolve(events, config = {}) {
-  return resolveTestGw2Stream({
-    stream: buildScheduledEventStream({
-      events,
-      rotationEndTime: 10
-    }),
+  return resolveTestGw2Events({
+    ...{ events, endTime: 10 },
     config: { target: {}, sigilSets: [{ names: [] }], ...config },
     traits: new Set(),
     query,
@@ -107,8 +103,8 @@ test('combo boon resolution samples changing live concentration instead of confi
       )
     )
   ];
-  const result = resolveTestGw2Stream({
-    stream: buildScheduledEventStream({ events, rotationEndTime: 4 }),
+  const result = resolveTestGw2Events({
+    ...{ events, endTime: 4 },
     config: { target: {}, stats: { concentration: 0 } },
     traits: new Set(),
     helpers,
@@ -376,6 +372,7 @@ test('target death rejects distinct same-time combo finishers and reactions', ()
             at: 0.5,
             effectAt: 0.5,
             activationId: `post-death:${index + 1}`,
+            priority: 1,
             finisherType: 'Blast'
           }
         )

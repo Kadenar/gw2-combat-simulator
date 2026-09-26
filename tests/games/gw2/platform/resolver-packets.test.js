@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import {
   buildResolverBuff,
   buildResolverCondition,
@@ -22,7 +21,7 @@ import {
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { queueCondition } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { queueSoulbeastBuff } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
-import { resolveTestGw2Stream } from '#tests/helpers/gw2-resolver.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 
 const trigger = {
   type: 'damage',
@@ -36,6 +35,7 @@ const trigger = {
   noCrit: true,
   weaponStrength: 1000,
   activationId: 'activation',
+  causalOrder: 1,
   hitIndex: 7,
   totalHits: 9,
   metadata: { procCount: 99 },
@@ -45,13 +45,10 @@ const trigger = {
 // Exercise actual resolver state so immediate and queued conditions cannot accidentally trade places.
 test('derived conditions preserve immediate visibility and same-time queued ordering', () => {
   const trace = [];
-  resolveTestGw2Stream({
+  resolveTestGw2Events({
     config: { target: { armor: 2597, conditions: {} } },
     traits: new Set(),
-    stream: buildScheduledEventStream({
-      events: [trigger, { ...trigger, sourceId: 'observer' }],
-      rotationEndTime: 2
-    }),
+    ...{ events: [trigger, { ...trigger, sourceId: 'observer' }], endTime: 2 },
     professionReactions: {
       'damage.resolved'(context, event) {
         if (event.sourceId === 'trigger') {
@@ -191,7 +188,7 @@ test('derived boons scale once using live stats while preserving fixed durations
 });
 
 // A derived strike owns its finisher and does not inherit the triggering player's proc eligibility.
-test('Engineer derived combo finishers inherit the constructed strike owner', () => {
+test('Engineer derived strikes retain their owner and one combo descriptor', () => {
   const packets = [];
   const context = {
     combo: { fields: new Map() },
@@ -210,15 +207,16 @@ test('Engineer derived combo finishers inherit the constructed strike owner', ()
     ownerActorType: 'player',
     comboFinisher: { ownerId: 'engineer', attemptId: 'blast:1', finisherType: 'Blast' }
   });
-  const [strike, finisher] = packets;
+  const [strike] = packets;
+  assert.equal(packets.length, 1);
   assert.equal(strike.hitIndex, 1);
   assert.equal(strike.skillId, undefined);
   assert.equal(strike.skillWeapon, 'Unequipped');
   assert.equal(strike.holosmithStrikeFactor, undefined);
-  assert.equal(finisher.type, 'combo_finisher');
-  assert.equal(finisher.sourceId, 42);
-  assert.equal(finisher.actorType, 'effect');
-  assert.equal(finisher.ownerActorType, 'player');
+  assert.equal(strike.comboFinishers[0].finisherType, 'Blast');
+  assert.equal(strike.sourceId, 42);
+  assert.equal(strike.actorType, 'effect');
+  assert.equal(strike.ownerActorType, 'player');
 });
 
 // Delayed paired effects use the captured heat tier rather than current profession state.
@@ -258,10 +256,10 @@ test('neutral strike construction preserves the flat siphon formula and no-crit 
     noCrit: true,
     lifeSiphon: true
   });
-  const result = resolveTestGw2Stream({
+  const result = resolveTestGw2Events({
     config: { stats: { power: 2000, precision: 4000, ferocity: 1500 }, target: { armor: 9000 } },
     traits: new Set(),
-    stream: buildScheduledEventStream({ events: [siphon], rotationEndTime: 2 })
+    ...{ events: [siphon], endTime: 2 }
   });
   assert.equal(result.strikeDamage, 109);
   assert.equal(result.resolvedEvents.find((event) => event.type === 'damage').critEligible, false);

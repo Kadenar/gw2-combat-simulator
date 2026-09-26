@@ -59,7 +59,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, Partial<S
   [ID.DEFENSIVE_PROTOCOL_THORNS]: {
     countsAsToolbeltSkill: true,
     // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
-    handlerId: 'engineer.amalgam-morph',
+
     castTimeMs: 0,
     cooldown: 20,
     effects: [
@@ -461,7 +461,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, Partial<S
   [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104]: {
     countsAsToolbeltSkill: true,
     // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
-    handlerId: 'engineer.amalgam-morph',
+
     castTimeMs: 0,
     cooldown: 20,
     effects: [
@@ -478,7 +478,7 @@ export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, Partial<S
   [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163]: {
     countsAsToolbeltSkill: true,
     // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
-    handlerId: 'engineer.amalgam-morph',
+
     castTimeMs: 0,
     cooldown: 20,
     effects: [

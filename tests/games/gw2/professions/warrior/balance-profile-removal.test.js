@@ -2,21 +2,18 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import {
+  createObservedProfessionSimulator,
+  observeGw2Runtime,
+  observedRuntime
+} from '#tests/helpers/observed-runtime.js';
 import { warriorProfession, warriorCatalog } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/warrior/core/profiles.js';
 import { BLADESWORN_BALANCE_PROFILE_IDS as BLADESWORN } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { BERSERKER_BALANCE_PROFILE_IDS as BERSERKER } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PARAGON } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
-import { applyMarchingOrders } from '#gw2/professions/warrior/core/traits/tactics.js';
-import { applySunderingBurst } from '#gw2/professions/warrior/core/traits/arms.js';
-import { applyGunsaberEntryTraits } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
-import { handleKingOfFiresDetonationTask } from '#gw2/professions/warrior/specializations/berserker/traits/index.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
-import { useArtillerySlash } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger.js';
-import { observeSpellbreakerEvent } from '#gw2/professions/warrior/specializations/spellbreaker/traits/index.js';
-import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 
@@ -27,7 +24,7 @@ function run(balanceProfiles, specialization, rotation, config = {}, skills = {}
     label: 'Warrior removal',
     professions: { warrior: { balanceProfiles, skills } }
   });
-  const result = createProfessionSimulator(profession, {
+  const result = createObservedProfessionSimulator(profession, {
     stats: { power: 2000, precision: 1000, ferocity: 0, conditionDamage: 1000 },
     target: { armor: 2597, health: 1_000_000, defiant: true }
   })(specialization, rotation, { patchId: 'warrior-removal', ...config });
@@ -35,61 +32,46 @@ function run(balanceProfiles, specialization, rotation, config = {}, skills = {}
   return result;
 }
 
-function contextFor(specialization, selectedTraitIds, balanceProfiles) {
-  const config = { specialization, selectedTraitIds };
-  const profession = warriorProfession.resolveRuntime(config);
-  const events = [];
-  return {
-    config,
-    profession,
-    catalog: applyBalanceProfilePatch(profession.catalog, { balanceProfiles }),
-    state: { profession: profession.createProfessionState(config), time: 0 },
-    events,
-    // Direct trait calls model a context already in combat so combat-only traits can proc.
-    schedulerPolicy: { combatBeganAt: () => 0 },
-    skill: profession.catalog.skillsById.get(ID.UNSHEATHE_GUNSABER),
-    emit(event) {
-      events.push(event);
-      return event;
-    },
-    emitDerived(_cause, event) {
-      return this.emit(event);
-    }
-  };
-}
-
 test('removed Marching Orders Might preserves Soldier Focus cooldown and sibling traits', () => {
-  const context = contextFor('Core', [TRAIT.MARCHING_ORDERS], {
-    [CORE.marchingOrders]: { ...remove('boon', 'might'), fields: { internalCooldown: { from: 10, to: 7 } } }
-  });
-  assert.equal(applyMarchingOrders(context, { at: 1 }), true);
-  assert.equal(context.state.profession.core.soldierFocusReadyAt, 8);
-  assert.deepEqual(context.events, []);
-  const result = run({ [CORE.marchingOrders]: remove('boon', 'might') }, 'Core', [ID.EVISCERATE], {
-    initialResource: 30,
-    primaryWeapon: 'Axe',
-    selectedTraitIds: [TRAIT.MARCHING_ORDERS, TRAIT.SOLDIERS_COMFORT, TRAIT.MARTIAL_CADENCE]
-  });
-  assert.ok(result.events.some((e) => e.kind === 'protection'));
-  assert.ok(result.events.some((e) => e.kind === 'stability'));
+  // The accepted hit claims Focus even when its Might component is removed.
+  const result = run(
+    { [CORE.marchingOrders]: { ...remove('boon', 'might'), fields: { internalCooldown: { from: 10, to: 7 } } } },
+    'Core',
+    [ID.EVISCERATE],
+    {
+      initialResource: 30,
+      primaryWeapon: 'Axe',
+      selectedTraitIds: [TRAIT.MARCHING_ORDERS, TRAIT.SOLDIERS_COMFORT, TRAIT.MARTIAL_CADENCE]
+    }
+  );
+  const hit = result.events.find((event) => event.type === 'damage' && event.skillId === ID.EVISCERATE);
+  assert.equal(observedRuntime(result).profession.core.soldierFocusReadyAt, hit.at + 7);
+  assert.ok(result.events.some((event) => event.kind === 'protection'));
+  assert.ok(result.events.some((event) => event.kind === 'stability'));
   assert.equal(
-    result.events.some((e) => e.sourceId === TRAIT.MARCHING_ORDERS && e.type === 'buff'),
+    result.events.some((event) => event.sourceId === TRAIT.MARCHING_ORDERS && event.type === 'buff'),
     false
   );
 });
 
 test('Sundering Burst removal cannot substitute its surviving critical variant', () => {
-  const context = contextFor('Core', [TRAIT.SUNDERING_BURST], {
-    [CORE.sunderingBurst]: {
-      ...remove('condition', 'Burst'),
-      effects: [{ type: 'condition', name: 'Critical burst', stacks: { from: 10, to: 13 } }]
-    }
-  });
-  applySunderingBurst(context, { at: 1 }, true, 0);
-  assert.deepEqual(context.events, []);
-  assert.equal(context.state.profession.core.traitProcReadyAt.sunderingBurst, 6);
-  applySunderingBurst(context, { at: 7 }, true, 1);
-  assert.equal(context.events[0].stacks, 13);
+  for (const precision of [0, 10000]) {
+    const result = run(
+      {
+        [CORE.sunderingBurst]: {
+          ...remove('condition', 'Burst'),
+          effects: [{ type: 'condition', name: 'Critical burst', stacks: { from: 10, to: 13 } }]
+        }
+      },
+      'Core',
+      [ID.EVISCERATE],
+      { initialResource: 30, primaryWeapon: 'Axe', selectedTraitIds: [TRAIT.SUNDERING_BURST], stats: { precision } }
+    );
+    const hit = result.events.find((event) => event.type === 'damage');
+    const proc = result.events.find((event) => event.sourceId === TRAIT.SUNDERING_BURST);
+    assert.equal(proc?.stacks, precision === 0 ? undefined : 13);
+    assert.equal(observedRuntime(result).procs.readyAt[TRAIT.SUNDERING_BURST], hit.at + 5);
+  }
 });
 
 for (const [profile, type, name, skill, weapon] of [
@@ -174,29 +156,34 @@ test('removed Heat the Soul Quickness preserves Fury and Might', () => {
 });
 
 test('removed King of Fires strike preserves Burning and consumes the aura', () => {
-  const context = contextFor('Berserker', [TRAIT.KING_OF_FIRES], {
-    [BERSERKER.kingOfFires]: remove('strike', 'Strike')
+  const result = run({ [BERSERKER.kingOfFires]: remove('strike', 'Strike') }, 'Berserker', ['Chop', ID.BERSERK], {
+    primaryWeapon: 'Axe',
+    initialResource: 30,
+    stats: { precision: 10000 },
+    selectedTraitIds: [TRAIT.KING_OF_FIRES]
   });
-  context.state.profession.specialization.state.fireAuraUntil = 5;
-  handleKingOfFiresDetonationTask(context, { at: 1, payload: { skillId: ID.BERSERK } });
   assert.equal(
-    context.events.some((e) => e.type === 'damage'),
+    result.events.some((event) => event.type === 'damage' && event.sourceId === TRAIT.KING_OF_FIRES),
     false
   );
-  assert.ok(context.events.some((e) => e.type === 'condition'));
-  assert.equal(context.state.profession.specialization.state.fireAuraUntil, 0);
+  assert.ok(result.events.some((event) => event.type === 'condition' && event.sourceId === TRAIT.KING_OF_FIRES));
+  assert.equal(observedRuntime(result).profession.specialization.state.fireAuraUntil, 0);
 });
 
 for (const trait of [TRAIT.UNSEEN_SWORD, TRAIT.SHARP_AS_THE_WIND, TRAIT.RIVERS_FLOW]) {
-  test(`removed Positive Flow for ${trait} preserves its entry packet and cooldown`, () => {
-    const context = contextFor('Bladesworn', [trait], { [trait]: remove('buff', 'positive-flow') });
-    applyGunsaberEntryTraits(context, 1);
-    const state = context.state.profession.specialization.state;
+  test('removed Positive Flow preserves its entry packet and cooldown: ' + trait, () => {
+    const result = run(
+      { [trait]: remove('buff', 'positive-flow') },
+      'Bladesworn',
+      ['__combat_start', { type: 'wait', durationMs: 1000 }, ID.UNSHEATHE_GUNSABER],
+      { selectedTraitIds: [trait] }
+    );
+    const state = observedRuntime(result).profession.specialization.state;
     assert.equal(state.traitPositiveFlowUntil, 0);
     assert.equal(state.gunsaberSwapTraitReadyAt, 5);
-    assert.ok(context.events.length > 0);
+    assert.ok(result.events.some((event) => event.sourceId === trait));
     assert.equal(
-      context.events.some((e) => e.kind === 'positive-flow'),
+      result.events.some((event) => event.kind === 'positive-flow'),
       false
     );
   });
@@ -276,51 +263,41 @@ test('zero Empower Allies and Paragon intervals disable queued recurrence', () =
     { initialResource: 30 }
   );
   assert.equal(refrain.planningState.profession.motivation, 4);
-  assert.equal(refrain.events.filter((e) => e.type === 'warrior.paragon-state').length, 1);
+  assert.equal(refrain.planningState.profession.activeRefrain, 'Chant of Action');
 });
 
 test('Artillery Slash keeps ammo variant identity after first-strike removal and a surviving edit', () => {
   for (const charges of [1, 2]) {
-    const context = contextFor('Bladesworn', [], {
-      [BLADESWORN.artillerySlash]: {
-        ...remove('strike', 'One round'),
-        effects: [{ type: 'strike', name: 'Two rounds', coefficient: { from: 3, to: 4 } }]
-      }
-    });
-    Object.assign(context, {
-      ammo: { charges, maximum: 2 },
-      effectiveEnd: 1,
-      rechargeStart: 0,
-      rechargeWork: 1,
-      ammoLockoutWork: 1,
-      reservationId: 'artillery',
-      action: {},
-      replaceEvent: (event, updates) => ({ ...event, ...updates })
-    });
-    Object.assign(context.state, { ammo: new Map(), cooldowns: new Map(), rechargeProgress: new Map() });
-    context.cooldownController = createCooldownController({ state: context.state, rechargeDuration: () => 1 });
-    useArtillerySlash(context, context.catalog.skillsById.get(ID.ARTILLERY_SLASH));
-    const strike = context.events.find((e) => e.type === 'damage');
+    const result = run(
+      {
+        [BLADESWORN.artillerySlash]: {
+          ...remove('strike', 'One round'),
+          effects: [{ type: 'strike', name: 'Two rounds', coefficient: { from: 3, to: 4 } }]
+        }
+      },
+      'Bladesworn',
+      [ID.UNSHEATHE_GUNSABER, ID.ARTILLERY_SLASH],
+      {},
+      { [ID.ARTILLERY_SLASH]: { fields: { ammo: { from: 2, to: charges } } } }
+    );
+    const strike = result.events.find((event) => event.type === 'damage');
     assert.equal(strike?.coefficient, charges === 1 ? undefined : 4);
-    assert.ok(context.events.some((e) => e.type === 'control'));
-    assert.equal(context.state.profession.specialization.state.ammoRoundsSpentByActivation.artillery, charges);
+    assert.ok(result.events.some((event) => event.type === 'control'));
+    assert.equal(observedRuntime(result).ammo.get(ID.ARTILLERY_SLASH).charges, 0);
   }
 });
 
 test('removed Spellbreaker buffs cannot retain Insight stacks or a tether window', () => {
-  const context = contextFor('Spellbreaker', [TRAIT.ATTACKERS_INSIGHT, TRAIT.MAGEBANE_TETHER], {
-    [TRAIT.ATTACKERS_INSIGHT]: remove('buff', 'attackers-insight'),
-    [TRAIT.MAGEBANE_TETHER]: remove('buff', 'magebane-tether')
-  });
-  observeSpellbreakerEvent(context, { type: 'control', actorType: 'player', skillId: ID.KICK, at: 1 });
-  observeSpellbreakerEvent(context, {
-    type: 'damage',
-    actorType: 'player',
-    skillId: ID.BREACHING_STRIKE,
-    coefficient: 1,
-    at: 2
-  });
-  const state = context.state.profession.specialization.state;
+  const result = run(
+    {
+      [TRAIT.ATTACKERS_INSIGHT]: remove('buff', 'attackers-insight'),
+      [TRAIT.MAGEBANE_TETHER]: remove('buff', 'magebane-tether')
+    },
+    'Spellbreaker',
+    ['Kick', ID.BREACHING_STRIKE],
+    { initialResource: 20, primaryWeapon: 'Dagger', selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT, TRAIT.MAGEBANE_TETHER] }
+  );
+  const state = observedRuntime(result).profession.specialization.state;
   assert.deepEqual(state.attackerInsightExpiries, []);
   assert.equal(state.magebaneTetherUntil, 0);
 });
@@ -328,11 +305,10 @@ test('removed Spellbreaker buffs cannot retain Insight stacks or a tether window
 test('Paragon opening Might removal preserves Fury, Motivation, and tooltip identity', () => {
   const profiles = { [PARAGON.chants]: remove('boon', 'might') };
   const result = run(profiles, 'Paragon', [ID.CHANT_OF_ACTION], { initialResource: 30 });
-  const entry = result.events.find((e) => e.type === 'warrior.paragon-state' && e.state?.motivation > 0);
-  assert.ok(entry);
+  assert.equal(result.planningState.profession.motivation, 4);
   assert.ok(result.events.some((e) => e.kind === 'fury'));
   const catalog = applyBalanceProfilePatch(warriorCatalog, { balanceProfiles: profiles });
-  const tooltip = warriorTooltips.handlers['warrior.chant']({ catalog }, catalog.skillsById.get(ID.CHANT_OF_ACTION));
+  const tooltip = warriorTooltips.skills[ID.CHANT_OF_ACTION]({ catalog }, catalog.skillsById.get(ID.CHANT_OF_ACTION));
   assert.equal(
     tooltip.facts.some((f) => /vigor/i.test(f.name)),
     false
@@ -340,31 +316,31 @@ test('Paragon opening Might removal preserves Fury, Motivation, and tooltip iden
   assert.ok(tooltip.facts.some((f) => /fury/i.test(f.name)));
 });
 
-test('Warrior handlers reject missing profiles and invalid required scalars contextually', () => {
-  const context = contextFor('Core', [TRAIT.MARCHING_ORDERS], {});
-  const profiles = new Map(context.catalog.balanceProfilesById);
-  const original = profiles.get(CORE.marchingOrders);
-  context.catalog = {
-    ...context.catalog,
-    balanceProfilesById: profiles,
-    balanceDataContext: { professionId: 'warrior', patchId: 'broken' }
+test('Warrior live owners reject missing profiles and invalid required scalars contextually', () => {
+  const config = {
+    specialization: 'Core',
+    primaryWeapon: 'Axe',
+    initialResource: 30,
+    selectedTraitIds: [TRAIT.MARCHING_ORDERS]
   };
+  const profession = warriorProfession.runtimeFor(config);
+  const profiles = new Map(profession.catalog.balanceProfilesById);
+  const original = profiles.get(CORE.marchingOrders);
+  const balanceDataContext = { professionId: 'warrior', patchId: 'broken' };
+  const catalog = { ...profession.catalog, balanceProfilesById: profiles, balanceDataContext };
+  const simulate = () =>
+    observeGw2Runtime({ profession: { ...profession, catalog }, config, rotation: ['Eviscerate'] });
   profiles.delete(CORE.marchingOrders);
-  assert.throws(
-    () => applyMarchingOrders(context, { at: 1 }),
-    /profession=warrior patch=broken.*missing required profile/
-  );
-  // Resolved profiles carry their own source, so diagnostics need no runtime context.
-  const { balanceDataContext } = context.catalog;
+  assert.throws(simulate, /profession=warrior patch=broken.*missing required profile/);
   for (const value of [undefined, null, '10', NaN, Infinity]) {
     profiles.set(CORE.marchingOrders, { ...original, internalCooldown: value, balanceDataContext });
-    assert.throws(
-      () => applyMarchingOrders(context, { at: 1 }),
-      /profession=warrior patch=broken.*field=internalCooldown/
-    );
+    assert.throws(simulate, /profession=warrior patch=broken.*field=internalCooldown/);
   }
 
   profiles.set(CORE.marchingOrders, { ...original, internalCooldown: 0 });
-  assert.equal(applyMarchingOrders(context, { at: 1 }), true);
-  assert.equal(context.state.profession.core.soldierFocusReadyAt, 1);
+  const result = simulate();
+  assert.equal(
+    observedRuntime(result).profession.core.soldierFocusReadyAt,
+    result.events.find((event) => event.type === 'damage').at
+  );
 });

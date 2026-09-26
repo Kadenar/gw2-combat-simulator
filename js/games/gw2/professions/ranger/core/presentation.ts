@@ -1,4 +1,4 @@
-import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { weaponFlipBlock } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/simulation/randomness.js';
@@ -176,10 +176,9 @@ function rangerCorePaletteAvailability(
 
   const state = rangerUiState(context);
   const availableFlips = state.availableFlips || {};
-  const flipParent = skill.flipParentId == null ? null : catalog.skillsById.get(Number(skill.flipParentId));
   const spearStealthFlipId = RANGER_SPEAR_STEALTH_FLIP_BY_PARENT[Number(skill.id)];
   const isSpearStealthAttack = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
-  // Share the scheduler's spear gate so ordinary stealth and Hunter's Prowess produce the same palette.
+  // Share the live spear gate so ordinary stealth and Hunter's Prowess produce the same palette.
   if (isSpearStealthAttack || spearStealthFlipId != null) {
     const available = rangerSpearStealthAvailable(state, Number(context.time || 0));
     if (isSpearStealthAttack && !available)
@@ -189,24 +188,13 @@ function rangerCorePaletteAvailability(
     return { available: true, message: '' };
   }
 
-  if (
-    skill.type === 'Weapon' &&
-    !isRangerHammerVariant(skill.id) &&
-    flipParent?.flipSkillId === skill.id &&
-    !skillFlipReady(availableFlips[String(skill.id)], Number(context.time || 0))
-  ) {
-    return { available: false, message: `Use ${flipParent?.name || 'its opening weapon skill'} first` };
-  }
-
-  if (
-    skill.type === 'Weapon' &&
-    !isRangerHammerVariant(skill.id) &&
-    skill.flipSkillId != null &&
-    skill.flipSkillId !== skill.nextChainId &&
-    skillFlipReady(availableFlips[String(skill.flipSkillId)], Number(context.time || 0))
-  ) {
-    return { available: false, message: 'Use or wait out the active follow-up skill' };
-  }
+  // The palette reads the same weapon follow-up rule as runtime availability.
+  const flipBlock = isRangerHammerVariant(skill.id)
+    ? null
+    : weaponFlipBlock(availableFlips, catalog.skillsById, skill, Number(context.time || 0));
+  if (flipBlock?.kind === 'closed')
+    return { available: false, message: `Use ${flipBlock.parent.name || 'its opening weapon skill'} first` };
+  if (flipBlock?.kind === 'open') return { available: false, message: 'Use or wait out the active follow-up skill' };
 
   if (!skill.petSkill) return { available: true, message: '' };
   const available = !skill.petAutonomousSkill && activePetSkillIds(context).includes(skill.id);

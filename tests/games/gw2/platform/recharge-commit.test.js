@@ -1,317 +1,213 @@
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { snapshotProfessionState } from '#gw2/platform/engine/profession/state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { projectThiefPlanningState } from '#gw2/professions/thief/family-state.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 
-// Small authored skills isolate reservation ownership from profession damage and cast timing data.
-function commitmentScheduler(ammo = false) {
-  return createScheduler({
-    profession: defineProfession({
-      id: 'recharge-commit',
-      name: 'Recharge Commit',
-      catalog: createCanonicalCatalog({
-        generated: [
-          {
-            id: 980001,
-            name: 'Long Cast',
-            castTimeMs: 1000,
-            cooldown: 10,
-            ...(ammo ? { ammo: 2, ammoRecharge: 10, ammoCastLockout: 6 } : {}),
-            effects: []
-          },
-          { id: 980002, name: 'Concurrent Cast', castTimeMs: 0, cooldown: 10, effects: [] }
-        ]
-      }),
-      resources: { createProfessionState: () => ({ charges: 1, commits: [], reject: false }) },
-      castRules: {
-        availability: ({ state }) =>
-          state.profession.reject
-            ? { ready: false, retryAt: null, code: 'test.rejected', reason: 'Intentionally unavailable.' }
-            : { ready: true },
-        modifyRechargeDuration: (_context, duration) => duration / 2,
-        commitRechargeDuration: [
-          ({ state, skill }, duration) => {
-            state.profession.commits.push(skill.id);
-            if (!state.profession.charges) return duration;
-            state.profession.charges -= 1;
-            return duration / 2;
-          },
-          (_context, duration) => duration * 0.8
-        ]
-      }
-    })
-  });
-}
-
-test('queries and ammo initialization do not commit; overlapping casts retain their selected recharge', () => {
-  for (const ammo of [false, true]) {
-    const scheduler = commitmentScheduler(ammo);
-    const { context, state } = scheduler;
-    const skill = context.catalog.skillsById.get(980001);
-    assert.equal(context.rechargeDurationFor(skill, 2), 5);
-    assert.equal(context.rechargeDurationFor(skill, 2), 5);
-    context.cooldownController.ensureAmmo(skill);
-    assert.equal(state.profession.charges, 1);
-    assert.deepEqual(state.profession.commits, []);
-
-    assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);
-    assert.equal(state.profession.charges, 0);
-    assert.equal(scheduler.cast({ type: 'cast', skillId: 980002, concurrentOffsetMs: 100 }), true);
-    // A new grant while the first cast is in flight belongs to a later cast.
-    state.profession.charges = 1;
-    scheduler.advanceTo(1);
-    assert.equal(state.profession.charges, 1);
-    assert.deepEqual(state.profession.commits, [980001, 980002]);
-    assert.equal(state.cooldowns.get(980002), 4.1);
-    if (ammo) {
-      assert.equal(state.ammo.get(skill.id).rechargeWork, 2);
-      assert.equal(state.ammo.get(skill.id).nextRechargeAt, 3);
-      assert.equal(state.ammo.get(skill.id).lockoutReadyAt, 4);
-      assert.equal(state.cooldowns.get(skill.id), 4);
-    } else {
-      assert.equal(state.cooldowns.get(skill.id), 3);
-    }
-
-    assert.deepEqual(scheduler.warnings, []);
-  }
-});
-
-test('unavailable and cancelled attempts leave recharge entitlements unspent', () => {
-  const scheduler = commitmentScheduler();
-  scheduler.state.profession.reject = true;
-  assert.equal(scheduler.cast({ type: 'cast', skillId: 980001 }), false);
-  assert.deepEqual(scheduler.warnings, ['Intentionally unavailable.']);
-  scheduler.state.profession.reject = false;
-  assert.equal(scheduler.cast({ type: 'cast', skillId: 980001, interruptAfterMs: 100 }), true);
-  scheduler.advanceTo(1);
-  assert.equal(scheduler.events.find((event) => event.type === 'action').cancelled, true);
-  assert.equal(scheduler.state.profession.charges, 1);
-  assert.deepEqual(scheduler.state.profession.commits, []);
-});
-
-test('non-cast recharge queries supply their requested time to legacy start-based rules', () => {
-  const scheduler = createScheduler({
-    profession: defineProfession({
-      id: 'recharge-time',
-      name: 'Recharge Time',
-      castRules: { modifyRechargeDuration: ({ start }, duration) => (start < 5 ? duration / 2 : duration) }
-    })
-  });
-  const skill = { id: 980001, cooldown: 10 };
-  assert.equal(scheduler.context.rechargeDurationFor(skill, 4), 5);
-  assert.equal(scheduler.context.rechargeDurationFor(skill, 5), 10);
-  assert.equal(scheduler.state.time, 0);
-});
-
+// Persistent queries cannot consume one-shot benefits; reservation spends them once on an eligible cast.
 test('Elementalist queries preserve Core and Evoker benefits; an eligible cast consumes both once', () => {
-  const scheduler = createScheduler({
-    profession: elementalistProfession,
-    config: {
-      specialization: 'Evoker',
-      primaryWeapon: 'Pistol',
-      secondaryWeapon: 'Dagger',
-      startAttunement: 'Fire',
-      selectedTraitIds: [ELEMENTALIST_TRAIT_IDS.ELEMENTAL_BALANCE]
-    }
+  const config = {
+    specialization: 'Evoker',
+    primaryWeapon: 'Pistol',
+    secondaryWeapon: 'Dagger',
+    startAttunement: 'Fire',
+    selectedTraitIds: [ELEMENTALIST_TRAIT_IDS.ELEMENTAL_BALANCE]
+  };
+  const native = elementalistProfession.runtimeFor(config),
+    skill = native.catalog.skillsByName.get('Raging Ricochet');
+  const result = runElementalist({
+    config,
+    rotation: [skill.id],
+    initialize: (r) => {
+      Object.assign(r.profession.core, { spearNextRechargeReduction: true, dazingDischargeUntil: 10 });
+      r.profession.specialization.state.elementalBalanceUntil = 10;
+      const before = structuredClone(r.profession);
+      for (const weapon of native.catalog.skills.filter((s) => s.type === 'Weapon'))
+        native.rechargeWork(r, weapon, weapon.cooldown);
+      assert.deepEqual(r.profession, before);
+    },
+    timeline: [
+      {
+        at: 0.001,
+        run: (r) => {
+          assert.equal(r.profession.core.dazingDischargeUntil, 0);
+          assert.equal(r.profession.specialization.state.elementalBalanceUntil, 0);
+          r.profession.core.dazingDischargeUntil = 20;
+          r.profession.specialization.state.elementalBalanceUntil = 20;
+        }
+      }
+    ]
   });
-  const { context, state } = scheduler;
-  const core = state.profession.core;
-  const evoker = state.profession.specialization.state;
-  core.spearNextRechargeReduction = true;
-  core.dazingDischargeUntil = 10;
-  evoker.elementalBalanceUntil = 10;
-  const before = structuredClone(state.profession);
-  // Evoker's bulk-reduction caller visits all weapons, including skills that are already ready.
-  for (const skill of context.catalog.skills.filter((candidate) => candidate.type === 'Weapon')) {
-    assert.equal(context.rechargeDurationFor(skill, 1), context.rechargeDurationFor(skill, 1));
-  }
-
-  assert.deepEqual(state.profession, before);
-
-  const skill = context.catalog.skillsByName.get('Raging Ricochet');
-  const persistent = context.rechargeDurationFor(skill);
-  assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);
-  assert.equal(core.spearNextRechargeReduction, true);
-  assert.equal(core.dazingDischargeUntil, 0);
-  assert.equal(evoker.elementalBalanceUntil, 0);
-  const action = scheduler.events.find((event) => event.type === 'action');
-  assert.ok(Math.abs(action.rechargeReadyAt - action.endsAt - persistent * 0.67 * 0.34) < 1e-9);
-  core.dazingDischargeUntil = 20;
-  evoker.elementalBalanceUntil = 20;
-  scheduler.advanceTo(action.endsAt);
-  assert.equal(core.dazingDischargeUntil, 20);
-  assert.equal(evoker.elementalBalanceUntil, 20);
-  assert.deepEqual(scheduler.warnings, []);
+  const r = observedRuntime(result),
+    action = result.events.find((e) => e.type === 'action');
+  assert.ok(Math.abs(r.cooldowns.get(skill.id) - action.endsAt - (skill.cooldown * 0.67 * 0.34) / 1.25) < 1e-9);
+  assert.equal(r.profession.core.spearNextRechargeReduction, true);
+  assert.equal(r.profession.core.dazingDischargeUntil, 20);
+  assert.equal(r.profession.specialization.state.elementalBalanceUntil, 20);
+  assert.deepEqual(result.warnings, []);
 });
 
 test('spear recharge empowerment survives an autoattack and belongs to the next non-autoattack cast', () => {
-  const scheduler = createScheduler({
-    profession: elementalistProfession,
-    config: { primaryWeapon: 'Spear', startAttunement: 'Fire' }
+  const skill = elementalistProfession.catalog.skillsByName.get('Blazing Barrage');
+  const auto = runElementalist({
+    config: { primaryWeapon: 'Spear' },
+    rotation: ['Flame Spear'],
+    initialize: (r) => {
+      r.profession.core.spearNextRechargeReduction = true;
+    }
   });
-  const { context, state } = scheduler;
-  state.profession.core.spearNextRechargeReduction = true;
-  const auto = context.catalog.skillsByName.get('Flame Spear');
-  assert.equal(scheduler.cast({ type: 'cast', skillId: auto.id }), true);
-  assert.equal(state.profession.core.spearNextRechargeReduction, true);
-  const skill = context.catalog.skillsByName.get('Blazing Barrage');
-  const persistent = context.rechargeDurationFor(skill);
-  assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);
-  assert.equal(state.profession.core.spearNextRechargeReduction, false);
-  const action = scheduler.events.find((event) => event.type === 'action' && event.skillId === skill.id);
-  assert.ok(Math.abs(action.rechargeReadyAt - action.endsAt - persistent * 0.67) < 1e-9);
-  assert.deepEqual(scheduler.warnings, []);
+  assert.equal(observedRuntime(auto).profession.core.spearNextRechargeReduction, true);
+  const result = runElementalist({
+    config: { primaryWeapon: 'Spear' },
+    rotation: ['Flame Spear', skill.id],
+    initialize: (r) => {
+      r.profession.core.spearNextRechargeReduction = true;
+    }
+  });
+  const action = result.events.find((e) => e.type === 'action' && e.skillId === skill.id);
+  assert.equal(observedRuntime(result).profession.core.spearNextRechargeReduction, false);
+  assert.ok(
+    Math.abs(observedRuntime(result).cooldowns.get(skill.id) - action.endsAt - (skill.cooldown * 0.67) / 1.25) < 1e-9
+  );
+  assert.deepEqual(result.warnings, []);
 });
 
 test('expired pistol and Elemental Balance windows cannot discount a new cast', () => {
-  const scheduler = createScheduler({
-    profession: elementalistProfession,
+  const skill = elementalistProfession.catalog.skillsByName.get('Raging Ricochet');
+  const result = runElementalist({
     config: {
       specialization: 'Evoker',
       primaryWeapon: 'Pistol',
-      startAttunement: 'Fire',
       selectedTraitIds: [ELEMENTALIST_TRAIT_IDS.ELEMENTAL_BALANCE]
+    },
+    rotation: [{ type: 'wait', durationMs: 1000 }, skill.id],
+    initialize: (r) => {
+      r.profession.core.dazingDischargeUntil = 1;
+      r.profession.specialization.state.elementalBalanceUntil = 1;
     }
   });
-  const { context, state } = scheduler;
-  state.profession.core.dazingDischargeUntil = 1;
-  state.profession.specialization.state.elementalBalanceUntil = 1;
-  scheduler.advanceTo(1);
-  const skill = context.catalog.skillsByName.get('Raging Ricochet');
-  const persistent = context.rechargeDurationFor(skill);
-  assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);
-  const action = scheduler.events.find((event) => event.type === 'action');
-  assert.ok(Math.abs(action.rechargeReadyAt - action.endsAt - persistent) < 1e-9);
-  assert.deepEqual(scheduler.warnings, []);
+  const action = result.events.find((e) => e.type === 'action');
+  assert.ok(Math.abs(observedRuntime(result).cooldowns.get(skill.id) - action.endsAt - skill.cooldown / 1.25) < 1e-9);
+  assert.deepEqual(result.warnings, []);
 });
 
 test('Antiquary preserves charges across queries and consumes FIFO once per utility, including preparation arming', () => {
-  const scheduler = createScheduler({
-    profession: thiefProfession,
-    config: { specialization: 'Antiquary', selectedSkills: ['Prepare Thousand Needles', 'Prepare Pitfall'] }
+  const config = { specialization: 'Antiquary', selectedSkills: ['Prepare Thousand Needles', 'Prepare Pitfall'] };
+  const native = thiefProfession.runtimeFor(config);
+  const placement = thiefProfession.catalog.skillsByName.get('Prepare Thousand Needles');
+  const rotation = [{ type: 'wait', durationMs: 1000 }, 'Prepare Thousand Needles', 'Prepare Pitfall'];
+  const holo = (runtime) => runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations;
+  const projected = (runtime) =>
+    projectThiefPlanningState({ profession: runtime.profession, time: runtime.time })
+      .holoUtilityCooldownReductionExpirations;
+  const observed = {};
+  const recharge = (result) => observedRuntime(result).cooldowns.get(placement.id) - 1;
+  const persistent = recharge(runThief(rotation.slice(0, 2), config));
+  const result = runThief(rotation, config, {
+    initialize(runtime) {
+      // Grant order differs from expiry order: the first live grant must be consumed first.
+      runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations = [0, 10, 5];
+    },
+    probes: [
+      [
+        1,
+        (runtime) => {
+          observed.projected = projected(runtime);
+          observed.keys = [
+            Object.hasOwn(runtime.profession.specialization.state, 'holoUtilityCooldownReductionExpiresAt'),
+            Object.hasOwn(snapshotProfessionState(runtime.profession), 'holoUtilityCooldownReductionExpiresAt')
+          ];
+          // Recharge queries are pure; only an accepted cast reserves an entitlement.
+          const before = structuredClone(holo(runtime));
+          native.rechargeWork(runtime, placement, 10);
+          native.rechargeWork(runtime, thiefProfession.catalog.skillsByName.get('Backstab'), 10);
+          observed.afterQueries = [...holo(runtime)];
+          observed.before = before;
+        }
+      ],
+      [1.0005, (runtime) => (observed.afterNeedles = [[...holo(runtime)], projected(runtime)])]
+    ]
   });
-  const { context, state } = scheduler;
-  const antiquary = state.profession.specialization.state;
-  scheduler.advanceTo(1);
-  // Grant order differs from expiry order: the first live grant must be consumed first.
-  antiquary.holoUtilityCooldownReductionExpirations = [0, 10, 5];
-  const projected = () => projectThiefPlanningState({ schedulerState: state, resolverState: state.profession });
-  assert.deepEqual(projected().holoUtilityCooldownReductionExpirations, [10, 5]);
-  assert.equal(Object.hasOwn(antiquary, 'holoUtilityCooldownReductionExpiresAt'), false);
-  assert.equal(
-    Object.hasOwn(snapshotProfessionState(state.profession), 'holoUtilityCooldownReductionExpiresAt'),
-    false
-  );
-  const placement = context.catalog.skillsByName.get('Prepare Thousand Needles');
-  const persistent = context.rechargeDurationFor(placement, 1);
-  const before = structuredClone(antiquary);
-  assert.equal(context.rechargeDurationFor(placement, 1), persistent);
-  context.rechargeDurationFor(context.catalog.skillsByName.get('Backstab'), 1);
-  assert.deepEqual(antiquary, before);
-
-  assert.equal(scheduler.cast({ type: 'cast', skillId: placement.id }), true);
-  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [5]);
-  const action = scheduler.events.find((event) => event.type === 'action');
-  assert.ok(Math.abs(action.rechargeReadyAt - action.at - persistent * 0.2) < 1e-9);
-  scheduler.advanceTo(action.endsAt);
-  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [5]);
-  assert.deepEqual(projected().holoUtilityCooldownReductionExpirations, [5]);
-
-  const pitfall = context.catalog.skillsByName.get('Prepare Pitfall');
-  assert.equal(scheduler.cast({ type: 'cast', skillId: pitfall.id }), true);
-  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, []);
-  assert.deepEqual(projected().holoUtilityCooldownReductionExpirations, []);
-  assert.deepEqual(scheduler.warnings, []);
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(observed.projected, [10, 5]);
+  assert.deepEqual(observed.keys, [false, false]);
+  assert.deepEqual(observed.afterQueries, observed.before);
+  assert.deepEqual(observed.afterNeedles, [[5], [5]]);
+  assert.ok(Math.abs(recharge(result) - persistent * 0.2) < 1e-9);
+  assert.deepEqual(holo(observedRuntime(result)), []);
+  assert.deepEqual(result.planningState.profession.holoUtilityCooldownReductionExpirations, []);
 });
 
-// Exercise the real profession gates and completion hooks, beyond the shared scheduler cancellation check.
+// Rejection and precommit cancellation leave discounts available for the next committed weapon activation.
 test('rejected and cancelled Elementalist casts preserve empowerments for the next committed weapon cast', () => {
-  const scheduler = createScheduler({
-    profession: elementalistProfession,
-    config: {
-      specialization: 'Evoker',
-      primaryWeapon: 'Pistol',
-      startAttunement: 'Fire',
-      selectedTraitIds: [ELEMENTALIST_TRAIT_IDS.ELEMENTAL_BALANCE]
-    }
-  });
-  const { context, state } = scheduler;
-  const core = state.profession.core;
-  const evoker = state.profession.specialization.state;
-  core.dazingDischargeUntil = 10;
-  evoker.elementalBalanceUntil = 10;
-  const explosion = context.catalog.skillsByName.get('Elemental Explosion');
-  assert.equal(scheduler.cast({ type: 'cast', skillId: explosion.id }), false);
-  assert.equal(scheduler.warnings.length, 1);
-  assert.match(scheduler.warnings[0], /requires all four elemental bullets/);
-  assert.equal(core.dazingDischargeUntil, 10);
-  assert.equal(evoker.elementalBalanceUntil, 10);
+  const config = {
+    specialization: 'Evoker',
+    primaryWeapon: 'Pistol',
+    selectedTraitIds: [ELEMENTALIST_TRAIT_IDS.ELEMENTAL_BALANCE]
+  };
+  const ricochet = elementalistProfession.catalog.skillsByName.get('Raging Ricochet');
+  const rotation = ['Elemental Explosion', { type: 'cast', skillId: ricochet.id, interruptAfterMs: 0 }];
+  const initialize = (r) => {
+    r.profession.core.dazingDischargeUntil = 10;
+    r.profession.specialization.state.elementalBalanceUntil = 10;
+  };
 
-  const ricochet = context.catalog.skillsByName.get('Raging Ricochet');
-  assert.equal(scheduler.cast({ type: 'cast', skillId: ricochet.id, interruptAfterMs: 0 }), true);
-  scheduler.advanceTo(0);
-  assert.equal(scheduler.events.find((event) => event.type === 'action').cancelled, true);
-  assert.equal(core.dazingDischargeUntil, 10);
-  assert.equal(evoker.elementalBalanceUntil, 10);
-  const salvo = context.catalog.skillsByName.get('Searing Salvo');
-  assert.equal(scheduler.cast({ type: 'cast', skillId: salvo.id }), true);
-  assert.equal(core.dazingDischargeUntil, 0);
-  assert.equal(evoker.elementalBalanceUntil, 0);
-  assert.equal(scheduler.warnings.length, 1);
+  const cancelled = runElementalist({ config, rotation, initialize });
+  assert.equal(cancelled.warnings.length, 1);
+  assert.match(cancelled.warnings[0], /requires all four elemental bullets/);
+  assert.equal(observedRuntime(cancelled).profession.core.dazingDischargeUntil, 10);
+  assert.equal(observedRuntime(cancelled).profession.specialization.state.elementalBalanceUntil, 10);
+  const committed = runElementalist({ config, rotation: [...rotation, 'Searing Salvo'], initialize });
+  assert.equal(observedRuntime(committed).profession.core.dazingDischargeUntil, 0);
+  assert.equal(observedRuntime(committed).profession.specialization.state.elementalBalanceUntil, 0);
+  assert.equal(committed.warnings.length, 1);
 });
 
 test('Holo-Dancer charges survive healing, unavailable utilities, and cancellation, then expire independently', () => {
-  const scheduler = createScheduler({
-    profession: thiefProfession,
-    config: {
-      specialization: 'Antiquary',
-      selectedSkills: ['Hide in Shadows', 'Prepare Thousand Needles', 'Prepare Pitfall']
-    }
+  const config = {
+    specialization: 'Antiquary',
+    selectedSkills: ['Hide in Shadows', 'Prepare Thousand Needles', 'Prepare Pitfall']
+  };
+  const needles = thiefProfession.catalog.skillsByName.get('Prepare Thousand Needles');
+  const holo = (runtime) => [...runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations];
+  const projected = (runtime, time = runtime.time) =>
+    projectThiefPlanningState({ profession: runtime.profession, time }).holoUtilityCooldownReductionExpirations;
+  const observed = [];
+  const rotation = [
+    'Hide in Shadows',
+    "Assassin's Signet",
+    { type: 'cast', skillId: needles.id, interruptAfterMs: 0 },
+    'Prepare Pitfall',
+    { type: 'wait', durationMs: 40000 },
+    'Prepare Thousand Needles'
+  ];
+  const result = runThief(rotation, config, {
+    initialize(runtime) {
+      runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations = [30, 35, 40];
+    },
+    // Heal, rejected, and cancelled casts spend nothing; the committed utility spends the oldest entry.
+    probes: [
+      [
+        20,
+        (runtime) => observed.push(holo(runtime), projected(runtime), projected(runtime, 35), projected(runtime, 40))
+      ]
+    ]
   });
-  const { context, state } = scheduler;
-  const antiquary = state.profession.specialization.state;
-  antiquary.holoUtilityCooldownReductionExpirations = [30, 35, 40];
-  const projected = () => projectThiefPlanningState({ schedulerState: state, resolverState: state.profession });
-  const heal = context.catalog.skillsByName.get('Hide in Shadows');
-  assert.equal(scheduler.cast({ type: 'cast', skillId: heal.id }), true);
-  scheduler.advanceTo(scheduler.events.find((event) => event.type === 'action').endsAt);
-  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [30, 35, 40]);
-  const unselected = context.catalog.skillsByName.get("Assassin's Signet");
-  assert.equal(scheduler.cast({ type: 'cast', skillId: unselected.id }), false);
-  assert.equal(scheduler.warnings.length, 1);
-  assert.match(scheduler.warnings[0], /not equipped/);
-  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [30, 35, 40]);
-
-  const needles = context.catalog.skillsByName.get('Prepare Thousand Needles');
-  assert.equal(scheduler.cast({ type: 'cast', skillId: needles.id, interruptAfterMs: 0 }), true);
-  scheduler.advanceTo(state.time);
-  const cancelled = scheduler.events.find((event) => event.type === 'action' && event.skillId === needles.id);
+  assert.equal(result.warnings.length, 1);
+  assert.match(result.warnings[0], /not equipped/);
+  const cancelled = result.events.find((event) => event.type === 'action' && event.skillId === needles.id);
   assert.equal(cancelled.cancelled, true);
-  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [30, 35, 40]);
-  const pitfall = context.catalog.skillsByName.get('Prepare Pitfall');
-  assert.equal(scheduler.cast({ type: 'cast', skillId: pitfall.id }), true);
-  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [35, 40]);
-  assert.deepEqual(projected().holoUtilityCooldownReductionExpirations, [35, 40]);
+  assert.deepEqual(observed, [[35, 40], [35, 40], [40], []]);
 
-  scheduler.advanceTo(35);
-  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, [40]);
-  assert.deepEqual(projected().holoUtilityCooldownReductionExpirations, [40]);
-
-  scheduler.advanceTo(40);
-  // Natural expiry normalizes public output before any utility cast can prune it.
-  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, []);
-  assert.deepEqual(projected().holoUtilityCooldownReductionExpirations, []);
-  const persistent = context.rechargeDurationFor(needles);
-  assert.equal(scheduler.cast({ type: 'cast', skillId: needles.id }), true);
-  const action = scheduler.events.findLast((event) => event.type === 'action');
-  assert.equal(action.rechargeReadyAt - action.at, persistent);
-  assert.deepEqual(antiquary.holoUtilityCooldownReductionExpirations, []);
-  assert.deepEqual(projected().holoUtilityCooldownReductionExpirations, []);
-  assert.equal(scheduler.warnings.length, 1);
+  // After natural expiry the final utility receives its full recharge and finds nothing to spend.
+  const last = result.steps.at(-1);
+  const recharge = observedRuntime(result).cooldowns.get(needles.id) - last.start / 1000;
+  const persistent = observedRuntime(runThief(['Prepare Thousand Needles'], config)).cooldowns.get(needles.id) - 0;
+  assert.ok(Math.abs(recharge - persistent) < 1e-9);
+  assert.deepEqual(result.planningState.profession.holoUtilityCooldownReductionExpirations, []);
 });

@@ -41,7 +41,7 @@ for (const [professionId, patch] of Object.entries(activePatchPreview.profession
   profession.catalogFor?.(activePatchPreview.id);
 
   for (const specialization of ['Core', ...(profession.specializationIds || [])]) {
-    profession.resolveRuntime({
+    profession.resolveProfession({
       specialization,
       patchId: activePatchPreview.id
     });

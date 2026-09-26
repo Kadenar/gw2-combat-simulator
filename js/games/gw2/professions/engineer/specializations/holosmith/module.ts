@@ -1,17 +1,7 @@
-import { afterSkillEffects, onResolvingDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
-import { holosmithSkillHandlers } from '#gw2/professions/engineer/specializations/holosmith/execution/index.js';
-import {
-  consumeSolarFocusingLens,
-  holosmithResolverEventHandlers
-} from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-effects.js';
-import {
-  holosmithAdvancedSchedulerHooks,
-  holosmithAfterCast,
-  holosmithAttributeRules,
-  holosmithCastRules
-} from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-rules.js';
+import { holosmithModifiers } from '#gw2/professions/engineer/specializations/holosmith/modifiers.js';
+import { holosmithHooks } from '#gw2/professions/engineer/specializations/holosmith/hooks.js';
 import {
   HOLOSMITH_AUTOATTACK_CHAINS,
   HOLOSMITH_SKILL_MECHANICS
@@ -36,21 +26,9 @@ export const holosmithModule = defineNativeModule({
     },
     autoattackChains: { additional: HOLOSMITH_AUTOATTACK_CHAINS }
   }),
-  // Scheduler and resolver share the same state factory so heat values are consistent
-  // when the resolver reads them during damage attribution.
-  state: { scheduler: holosmithState.create, resolver: holosmithState.create },
-  mechanics: {
-    modifiers: holosmithAttributeRules,
-    execution: {
-      skillHandlers: holosmithSkillHandlers,
-      castRules: holosmithCastRules,
-      castLifecycle: [afterSkillEffects(holosmithAfterCast)],
-      hooks: holosmithAdvancedSchedulerHooks
-    },
-    resolution: {
-      reactions: [onResolvingDamage({ id: 'engineer.solar-focusing-lens', handler: consumeSolarFocusingLens })],
-      hooks: { eventHandlers: holosmithResolverEventHandlers }
-    }
-  },
+  // Heat tasks and impact formulas read the same live specialization state.
+  state: { create: holosmithState.create },
+  modifiers: holosmithModifiers,
+  hooks: holosmithHooks,
   presentation: bindHolosmithUi
 });

@@ -1,14 +1,9 @@
-import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import { necromancerCoreHooks } from '#gw2/professions/necromancer/core/hooks.js';
+
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
-import {
-  necromancerCoreAttributeRules,
-  necromancerCoreCastRules
-} from '#gw2/professions/necromancer/core/traits/modifiers.js';
-import {
-  necromancerCoreResolverEventHandlers,
-  necromancerCoreResolverEventReactions
-} from '#gw2/professions/necromancer/core/mechanics/reactions.js';
+import { necromancerCoreModifiers } from '#gw2/professions/necromancer/core/modifiers.js';
+
 import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { projectNecromancerPlanningState } from '#gw2/professions/necromancer/family-state.js';
 import { bindNecromancerCoreUi } from '#gw2/professions/necromancer/core/presentation.js';
@@ -16,15 +11,12 @@ import {
   NECROMANCER_CORE_BASE_SKILL_MECHANICS,
   NECROMANCER_CORE_EXTRA_SKILLS
 } from '#gw2/professions/necromancer/core/skills/index.js';
-import { necromancerCoreSkillHandlers } from '#gw2/professions/necromancer/core/execution/index.js';
+
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { NECROMANCER_CORE_BALANCE_PROFILES } from '#gw2/professions/necromancer/core/profiles.js';
-import { necromancerGreatswordSkillMechanicHandlers } from '#gw2/professions/necromancer/core/execution/greatsword.js';
-import { necromancerSchedulerHooks } from '#gw2/professions/necromancer/core/execution/hooks.js';
 
 export const necromancerCoreModule = defineNativeModule({
   id: 'Core',
-  resources: { lifeForce: necromancerLifeForce },
   data: createNecromancerModuleData('Core', {
     skillMechanics: NECROMANCER_CORE_BASE_SKILL_MECHANICS,
     extraSkills: NECROMANCER_CORE_EXTRA_SKILLS,
@@ -35,22 +27,10 @@ export const necromancerCoreModule = defineNativeModule({
     }
   }),
   state: {
-    scheduler: createNecromancerCoreState,
-    resolver: createNecromancerCoreState,
+    create: createNecromancerCoreState,
     project: projectNecromancerPlanningState
   },
-  mechanics: {
-    modifiers: necromancerCoreAttributeRules,
-    execution: {
-      skillHandlers: necromancerCoreSkillHandlers,
-      castRules: necromancerCoreCastRules,
-      skillMechanicHandlers: necromancerGreatswordSkillMechanicHandlers,
-      hooks: necromancerSchedulerHooks
-    },
-    resolution: {
-      hooks: { eventHandlers: necromancerCoreResolverEventHandlers },
-      reactions: necromancerCoreResolverEventReactions
-    }
-  },
+  hooks: necromancerCoreHooks,
+  modifiers: necromancerCoreModifiers,
   presentation: bindNecromancerCoreUi
 });

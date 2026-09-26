@@ -1,3 +1,4 @@
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
@@ -10,9 +11,9 @@ import {
   applyCatalystEmpowerment,
   applyCatalystResolvedDamage
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
-import { catalystAttributeRules } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/jade-sphere-and-empowerment.js';
+import { catalystModifiers } from '#gw2/professions/elementalist/specializations/catalyst/modifiers.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import { catalystModifierRules } from '#gw2/professions/elementalist/specializations/catalyst/traits/modifiers.js';
+import { catalystModifierRules } from '#gw2/professions/elementalist/specializations/catalyst/modifiers.js';
 import { createNativeApp, runNative, resolvedAndScheduledEvents } from '#tests/helpers/elementalist-simulation.js';
 
 // Elemental Empowerment scales Condition Damage supplied before combat by traits and utility conversions.
@@ -119,8 +120,8 @@ test('Catalyst grants one aura and one set of trait stacks per aura source', () 
     });
     const events = resolvedAndScheduledEvents(result);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.combatState.profession.activeAuras.length, 1);
-    assert.equal(result.combatState.profession.elementalEmpowermentExpiries.length, 4);
+    assert.equal(observedRuntime(result).profession.core.activeAuras.length, 1);
+    assert.equal(observedRuntime(result).profession.specialization.state.elementalEmpowermentExpiries.length, 4);
     assert.equal(
       events
         .filter((event) => event.type === 'buff' && event.kind === 'empowering auras')
@@ -141,9 +142,9 @@ test('Frigid Flurry can finish combos with either initial ice-bullet state', () 
       rotation: ['Deploy Jade Sphere (Water)', 'Frigid Flurry', 1000]
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.combatState.profession.activeAuras.length, 1);
-    assert.equal(result.combatState.profession.activeAuras[0].type, 'Frost Aura');
-    assert.equal(result.combatState.profession.elementalEmpowermentExpiries.length, 4);
+    assert.equal(observedRuntime(result).profession.core.activeAuras.length, 1);
+    assert.equal(observedRuntime(result).profession.core.activeAuras[0].type, 'Frost Aura');
+    assert.equal(observedRuntime(result).profession.specialization.state.elementalEmpowermentExpiries.length, 4);
   }
 });
 
@@ -177,7 +178,7 @@ test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
 
   assert.deepEqual(state.elementalEmpowermentExpiries, [22, 23, 24, 25, 26, 27, 28, 29, 30, 31]);
 
-  const attributes = catalystAttributeRules.modifyAttributes(
+  const attributes = catalystModifiers.modifyAttributes(
     {
       catalog: elementalistCatalog,
       traits: new Set(['Elemental Empowerment', 'Empowered Empowerment']),

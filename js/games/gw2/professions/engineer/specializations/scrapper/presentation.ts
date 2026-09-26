@@ -4,27 +4,16 @@ import {
   namedSkillId,
   uniqueIdsBySkillName
 } from '#gw2/professions/engineer/core/presentation.js';
-import type { ProfessionEventLogDescriptor } from '#gw2/platform/profession-presentation/types.js';
-import type { EngineerResolverEvent, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
+import type { EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
 
 // First 4 toolbelt slots + Function Gyro as the F5 mechanic skill.
 function scrapperProfessionSkills(catalog: Readonly<CanonicalCatalog>, context: EngineerUiContext) {
   return [...engineerToolbeltSkillIds(catalog, context).slice(0, 4), namedSkillId(catalog, 'Function Gyro')];
 }
 
-// null = hide from the event log; undefined = fall through to default rendering.
-// Internal pulse bookkeeping and state events are not meaningful to the user.
-function scrapperEventLogRow(
-  _context: EngineerUiContext,
-  event: EngineerResolverEvent
-): ProfessionEventLogDescriptor | null | undefined {
-  return ['engineer.mass-momentum-pulse', 'engineer.state'].includes(event?.type) ? null : undefined;
-}
-
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindScrapperUi(catalog: Readonly<CanonicalCatalog>): EngineerUiSlice {
   return Object.freeze({
-    eventLogRow: scrapperEventLogRow,
     paletteGroups: (context: EngineerUiContext) => [
       {
         id: 'engineer-profession',

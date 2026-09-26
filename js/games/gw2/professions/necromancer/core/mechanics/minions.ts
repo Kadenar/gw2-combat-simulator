@@ -1,535 +1,363 @@
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
-import { actorLoop } from '#gw2/platform/profession-definition/mechanics.js';
-import { canonicalTime, EPSILON } from '#kernel/core/clock.js';
+import { NECROMANCER_MINION_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/core/profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
-import {
-  emitSkillCondition,
-  emitSkillControl,
-  emitSkillDamage
-} from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { emitNecromancerStateSnapshot } from '#gw2/professions/necromancer/family-state.js';
-/**
- * Minion summon and command handlers.
- *
- * `summonMinion` records the minion in `state.activeMinions`, arms its command
- * flip skill, and queues recurring `necromancer.summon-attack` events for the
- * minion's autoattack. `minionCommand` fires the active (damage/condition/
- * control), optionally consuming the minion. `summonMadness` spawns the timed
- * Unstable Horrors (attack + explosion per summon). Exports
- * `necromancerMinionSkillHandlers`.
- */
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
+import { buildResolverStrike, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
+import { quantizeGw2ActionDurationUp, summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   runCreatureSummonReactions,
-  gainNecromancerLifeForce,
   necromancerCreatureStrikeMultiplier
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import type { ScheduledTask } from '#gw2/platform/execution/types.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  NecromancerCastContext,
-  NecromancerRechargeQuery,
-  NecromancerSkill
-} from '#gw2/professions/necromancer/types.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   commandDefinitionFor,
   minionDefinitionFor,
   minionDefinitionForSkill,
   summonWeaponStrength,
-  type MinionCommandDefinition,
+  type MinionAttack,
   type MinionDefinition
 } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
-import {
-  castWasInterrupted,
-  quantizeGw2ActionDurationUp,
-  summonQuicknessCastTimeMs
-} from '#gw2/platform/skills/timing.js';
-import { gw2BuffActiveForAudience } from '#gw2/platform/execution/gw2-policy/policy.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
-const MINION_COMMAND_IMPACT_TASK = 'necromancer.minion-command-impact';
-const MINION_ATTACK_TASK = 'necromancer.minion-attack';
+const ATTACK = 'necromancer.minion-attack';
+const COMMAND = 'necromancer.minion-command-impact';
+const HORROR_SPAWN = 'necromancer.horror-spawn';
+const HORROR_EXPIRE = 'necromancer.horror-expire';
+const owner = (key: string, generation: number) => ({ id: `minion:${key}`, generation });
+const companion = (key: string, index: number) => `minion:${key}:${index}`;
+const actionTime = (at: number) => quantizeGw2ActionDurationUp(at * 1000) / 1000;
 
-interface MinionAttackTaskPayload {
-  readonly skillId: SkillId;
-  readonly minionKey: string;
-  readonly generation: number;
-  readonly attackGeneration: number;
-  readonly cycleIndex: number;
-  readonly minionIndex: number;
-  readonly attackIndex: number;
-  readonly controlUntil: number;
-  readonly controlKind?: string;
+interface MinionWork {
+  skillId: SkillId;
+  key: string;
+  generation: number;
+  attackGeneration: number;
+  index: number;
+  activationId: string;
+  controlUntil?: number;
+  controlKind?: string;
+  attack?: MinionAttack;
+  offTarget?: boolean;
+  consumed?: boolean;
 }
 
-function minionAttackOwner(key: string, attackGeneration: number): string {
-  return `minion:${key}:${attackGeneration}`;
+export function ownsNecromancerMinionSkill(skill: NecromancerSkill): boolean {
+  return Boolean(
+    NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skill.id)] || skill.minionKey || skill.id === ID.SUMMON_MADNESS
+  );
 }
 
-// Queue cancellation at the command timestamp so an old autonomous attack generation cannot fire afterward.
-function queueMinionAttackStop(
-  context: NecromancerCastContext,
-  key: string,
-  attackGeneration: number,
-  at: number
-): void {
-  if (attackGeneration <= 0) return;
-  minionActions.stop(context, at, minionAttackOwner(key, attackGeneration));
+interface HorrorWork {
+  skillId: SkillId;
+  activationId: string;
+  index: number;
 }
 
-// Stamp summon-specific damage attributes only when the active profile supplies a complete independent formula.
-function summonStrikeMetadata(
-  context: NecromancerCastContext,
-  definition?: MinionDefinition,
-  damagePerCoefficient = definition?.damagePerCoefficient
-): Readonly<Record<string, number | boolean>> {
-  if (!definition || !Number.isFinite(Number(definition.basePower)) || !Number.isFinite(Number(damagePerCoefficient))) {
-    return {};
-  }
-
-  return {
-    summonBasePower: Number(definition.basePower),
-    summonDamagePerCoefficient: Number(damagePerCoefficient),
-    summonCriticalChance: Number(definition.criticalChance ?? 0.05),
-    summonCriticalDamage: Number(definition.criticalDamage ?? 1.5),
-    summonStrikeMultiplier:
-      (hasTrait(context, TRAIT.NECROMANTIC_CORRUPTION) ? 1.25 : 1) * necromancerCreatureStrikeMultiplier(context),
-    independentSummonStrike: true
-  };
-}
-
-// Start a summon's autonomous attack generation at its declared delay, cancelling
-// the prior generation before the replacement loop begins.
-function queueSummonAttacks(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-  definition: MinionDefinition,
-  at: number,
-  {
-    initialDelay = definition.initialDelay ?? definition.interval,
-    controlUntil = 0,
-    controlKind,
-
-    initialCycleIndex = 0
-  }: {
-    readonly initialDelay?: number;
-    readonly controlUntil?: number;
-    readonly controlKind?: string;
-
-    readonly initialCycleIndex?: number;
-  } = {}
-): void {
-  // A generation change cancels the prior owner's loop without touching newly queued attacks.
-  const generation = Number(professionCoreState(context).minionGenerations[definition.key] || 0);
-  const attackGeneration = Number(professionCoreState(context).minionAttackGenerations[definition.key] || 0);
-  queueMinionAttackStop(context, definition.key, attackGeneration - 1, at);
-  // Each creature owns a clock because capped party boons can reach only one copy of a minion.
-  for (let minionIndex = 0; minionIndex < definition.count; minionIndex += 1) {
-    minionActions.start(context, at, {
-      key: `minion:${definition.key}:${minionIndex}`,
-      firstAt: quantizeGw2ActionDurationUp((at + Number(initialDelay)) * 1000) / 1000,
-      ownerId: minionAttackOwner(definition.key, attackGeneration),
-      state: {
-        skillId: skill.id,
-        minionKey: definition.key,
-        generation,
-        attackGeneration,
-        cycleIndex: initialCycleIndex + 1,
-        minionIndex,
-        attackIndex: 0,
-        controlUntil,
-        controlKind
-      }
-    });
-  }
-}
-
-// Advance one creature's attack chain, sampling its own Quickness between attacks while retaining fixed idle gaps.
-function stepMinionAttack(
-  context: NecromancerCastContext,
-  at: number,
-  payload: MinionAttackTaskPayload
-): { at: number; state: MinionAttackTaskPayload } | null {
-  const skill = context.catalog.skillsById.get(payload.skillId);
-  const definition = skill ? minionDefinitionForSkill(context, skill.id) : undefined;
-  if (!skill || !definition || definition.key !== payload.minionKey) return null;
-
-  // Keep the same ordinary or alternating packet set for every attack in this cycle.
-  const defaultAttacks = definition.attacks || [
-    {
-      name: `${skill.name} - Minion Attack`,
-      coefficient: definition.coefficient,
-      offset: 0
-    }
-  ];
-  const alternateEvery = Number(definition.alternateEvery || 0);
-  const attacks =
-    definition.alternateAttacks?.length && alternateEvery > 0 && payload.cycleIndex % alternateEvery === 0
-      ? definition.alternateAttacks
-      : defaultAttacks;
-  const attack = attacks[payload.attackIndex];
-  if (!attack) return null;
-  const summonOwner = `minion:${definition.key}:${payload.minionIndex}`;
-  const damagePerCoefficient = attack.damagePerCoefficient ?? definition.damagePerCoefficient;
-  context.emit({
-    type: 'necromancer.summon-attack',
-    at: at,
-    source: 'Minion',
-    sourceId: attack.skillId ?? skill.id,
-    actorType: 'summon',
-    skillId: attack.skillId ?? skill.id,
-    skillName: attack.name,
-    parentSkillName: attack.skillId ? skill.name : '',
-    name: attack.name,
-    icon: attack.icon || skill.icon || '',
-    coefficient: attack.coefficient,
-    deferredComboFinishers: attack.comboFinishers,
-    onHitCondition: attack.condition,
-    // Command control includes the final impact at its exact deadline, without a grace period.
-    controlKind: attack.controlKind || (at <= payload.controlUntil ? payload.controlKind : undefined),
-
-    ...(Number.isFinite(Number(damagePerCoefficient))
-      ? {}
-      : {
-          weaponStrength: attack.weaponStrength ?? definition.weaponStrength ?? summonWeaponStrength(context)
-        }),
-    requiresMinion: definition.key,
-    requiresMinionIndex: payload.minionIndex,
-    requiresMinionGeneration: payload.generation,
-    requiresMinionAttackGeneration: payload.attackGeneration,
-    summonKind: 'minion',
-    summonCount: 1,
-    summonOwner,
-    summonOwnerBase: `minion:${definition.key}`,
-    ...summonStrikeMetadata(context, definition, damagePerCoefficient)
-  });
-  const nextAttackIndex = (payload.attackIndex + 1) % attacks.length;
-  const interval =
-    nextAttackIndex === 0
-      ? definition.interval - Number(attack.offset || 0)
-      : Number(attacks[nextAttackIndex].offset || 0) - Number(attack.offset || 0);
-  const castTimeMs = Number(attack.castTimeMs || 0);
-  const quickness =
-    context.config.sharePlayerBoonsWithSummons !== false &&
-    gw2BuffActiveForAudience(context, 'quickness', at, 'summon', summonOwner);
-  // Fist and unmeasured attacks declare no accelerable duration; never divide their entire repeat interval.
-  const savedMs = quickness ? castTimeMs - summonQuicknessCastTimeMs(null, castTimeMs) : 0;
-  const nextAt = quantizeGw2ActionDurationUp(at * 1000 + Math.max(0, interval * 1000 - savedMs)) / 1000;
-  if (nextAt > at && (context.observationEndTime == null || nextAt <= context.observationEndTime + EPSILON)) {
-    return {
-      at: nextAt,
-      state: {
-        ...payload,
-        attackIndex: nextAttackIndex,
-        cycleIndex: payload.cycleIndex + Number(nextAttackIndex === 0)
-      }
+/** Each staggered horror has a unique lifetime; leaving Lich or casting again does not replace already-created creatures. */
+function spawnHorror(runtime: NecromancerRuntime, data: unknown): void {
+  const work = data as HorrorWork;
+  const skill = runtime.helpers.skillsById.get(work.skillId) as NecromancerSkill;
+  const key = `unstable-horror:${work.activationId}:${work.index}`;
+  const expiresAt = canonicalTime(runtime.time + Number(skill.summonDuration));
+  runtime.profession.core.activeMinions[key] = 1;
+  runCreatureSummonReactions(runtime, skill, runtime.time, 1, `${work.activationId}:horror:${work.index}`);
+  runtime.schedule(HORROR_EXPIRE, expiresAt, key, undefined, -20);
+  for (const effect of skill.effects ?? []) {
+    if (effect.type !== 'strike') continue;
+    const attribution = {
+      source: 'Minion',
+      sourceId: `unstable-horror.${work.index}`,
+      actorType: 'summon' as const,
+      skillId: skill.id,
+      skillName: String(effect.name ?? `Unstable Horror - ${effect.packetLabel}`),
+      parentSkillName: skill.name,
+      activationId: `${work.activationId}:horror:${work.index}`,
+      summonKind: 'minion',
+      summonCount: 1,
+      summonOwner: companion(key, 0),
+      summonOwnerBase: `minion:${key}`
     };
+    for (const { event } of materializeSkillEffectApplications({
+      skill,
+      effect,
+      start: runtime.time,
+      fullEnd: runtime.time,
+      baseEvent: attribution
+    })) {
+      // The terminal explosion is allowed at expiry; profile ticks beyond this creature's lifetime cannot attack.
+      if (canonicalTime(event.at) <= expiresAt) runtime.emit(event);
+    }
   }
+}
 
+/** Active creatures own their commands and prevent death-gated summons from bypassing recharge. */
+export function necromancerMinionAvailability(runtime: NecromancerRuntime, skill: NecromancerSkill) {
+  const definition = Boolean(NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skill.id)])
+    ? minionDefinitionForSkill(runtime, skill.id)
+    : undefined;
+  const active = runtime.profession.core.activeMinions;
+  if (definition && skill.rechargeOnMinionDeath && active[definition.key] > 0)
+    return denySkillCast(skill, 'necromancer.minion-active', 'its summoned minion is still alive.');
+  if (Boolean(skill.minionKey) && !(active[String(skill.minionKey)] > 0))
+    return denySkillCast(skill, 'necromancer.minion-inactive', 'its summoned minion is not alive.');
   return null;
 }
 
-/** Each concrete minion shares action serialization and replacement while retaining its attack selection and attribution. */
-export const minionActions = actorLoop({ id: MINION_ATTACK_TASK, step: stepMinionAttack });
+function active(runtime: NecromancerRuntime, work: MinionWork): boolean {
+  const state = runtime.profession.core;
+  return (
+    state.activeMinions[work.key] > work.index &&
+    state.minionGenerations[work.key] === work.generation &&
+    state.minionAttackGenerations[work.key] === work.attackGeneration
+  );
+}
 
-// Materialize explicitly timed command packets once per summoned minion while
-// binding them to the current summon and attack generations.
-function queueMinionCommandAttacks(
-  context: NecromancerCastContext,
+/** Lifetime validation happens before packets enter the shared strike, condition, control, and combo paths. */
+function emitAttack(
+  runtime: NecromancerRuntime,
+  work: MinionWork,
   skill: NecromancerSkill,
-  definition: MinionCommandDefinition
+  definition: MinionDefinition,
+  attack: MinionAttack
 ): void {
-  const minion = minionDefinitionFor(context, definition.minion);
-  if (!minion || !definition.attacks?.length) return;
-  const state = professionCoreState(context);
-  const generation = Number(state.minionGenerations[minion.key] || 0);
-  const attackGeneration = Number(state.minionAttackGenerations[minion.key] || 0);
-  // Expand each command packet across active copies while retaining the current generation guards.
-  for (const attack of definition.attacks) {
-    const damagePerCoefficient = attack.damagePerCoefficient ?? minion.damagePerCoefficient;
-    for (let index = 0; index < minion.count; index += 1) {
-      context.emit({
-        type: 'necromancer.summon-attack',
-        at: context.effectiveEnd + Number(attack.offset || 0),
-        source: 'Minion',
-        sourceId: attack.skillId ?? skill.id,
-        actorType: 'summon',
-        skillId: attack.skillId ?? skill.id,
-        skillName: attack.name,
-        parentSkillName: skill.name,
-        name: attack.name,
-        icon: attack.icon || skill.icon || '',
-        coefficient: attack.coefficient,
-        deferredComboFinishers: attack.comboFinishers,
-        onHitCondition: attack.condition,
-        controlKind: attack.controlKind,
+  const sourceId = attack.skillId ?? skill.id;
+  const attribution = {
+    at: runtime.time,
+    source: 'Minion',
+    sourceId,
+    actorType: 'summon' as const,
+    skillId: sourceId,
+    skillName: attack.name,
+    parentSkillName: attack.skillId ? skill.name : '',
+    activationId: work.activationId,
+    offTarget: work.offTarget,
+    summonKind: 'minion',
+    summonCount: 1,
+    summonOwner: companion(work.key, work.index),
+    summonOwnerBase: `minion:${work.key}`
+  };
+  if (Number(attack.coefficient) > 0)
+    runtime.emit(
+      buildResolverStrike({
+        ...attribution,
+        coefficient: Number(attack.coefficient),
+        icon: attack.icon || skill.icon,
+        comboFinishers: attack.comboFinishers,
+        skillWeapon: 'Unequipped',
+        canCrit: true,
+        weaponStrength: attack.weaponStrength ?? definition.weaponStrength ?? summonWeaponStrength(runtime),
+        summonBasePower: definition.basePower,
+        summonDamagePerCoefficient: attack.damagePerCoefficient ?? definition.damagePerCoefficient,
+        summonCriticalChance: definition.criticalChance,
+        summonCriticalDamage: definition.criticalDamage,
+        summonStrikeMultiplier:
+          (hasTrait(runtime, TRAIT.NECROMANTIC_CORRUPTION) ? 1.25 : 1) * necromancerCreatureStrikeMultiplier(runtime),
+        independentSummonStrike: true
+      })
+    );
+  if (attack.condition)
+    runtime.emit(
+      buildResolverCondition({
+        ...attribution,
+        condition: String(attack.condition[0]),
+        stacks: Number(attack.condition[1]),
+        duration: Number(attack.condition[2])
+      })
+    );
+  const controlKind =
+    attack.controlKind || (runtime.time <= Number(work.controlUntil ?? -1) ? work.controlKind : undefined);
+  if (controlKind) runtime.emit({ ...attribution, type: 'control', controlKind });
+}
 
-        ...(Number.isFinite(Number(damagePerCoefficient))
-          ? {}
-          : {
-              weaponStrength: attack.weaponStrength ?? minion.weaponStrength ?? summonWeaponStrength(context)
-            }),
-        requiresMinion: minion.key,
-        requiresMinionIndex: index,
-        requiresMinionGeneration: generation,
-        requiresMinionAttackGeneration: attackGeneration,
-        summonKind: 'minion',
-        summonCount: 1,
-        summonOwner: `minion:${minion.key}:${index}`,
-        summonOwnerBase: `minion:${minion.key}`,
-        ...summonStrikeMetadata(context, minion, damagePerCoefficient)
+function replaceAttacks(runtime: NecromancerRuntime, key: string): void {
+  const state = runtime.profession.core;
+  runtime.cancelOwner(owner(key, state.minionAttackGenerations[key] ?? 0));
+  state.minionAttackGenerations[key] = (state.minionAttackGenerations[key] ?? 0) + 1;
+}
+
+function scheduleAttack(runtime: NecromancerRuntime, at: number, work: MinionWork): void {
+  runtime.schedule(ATTACK, actionTime(at), work, owner(work.key, work.attackGeneration));
+}
+
+/** Each creature advances only its executed cursor, so command pauses preserve the actual attack chain. */
+function attack(runtime: NecromancerRuntime, data: unknown): void {
+  const work = data as MinionWork;
+  if (!active(runtime, work) || runtime.deathTime != null) return;
+  const skill = runtime.helpers.skillsById?.get(work.skillId) as NecromancerSkill | undefined;
+  const definition = skill && minionDefinitionForSkill(runtime, skill.id);
+  if (!skill || !definition) return;
+  const cursor = runtime.profession.core.minionAttackCursors[companion(work.key, work.index)];
+  const attacks =
+    definition.alternateAttacks?.length &&
+    Number(definition.alternateEvery) > 0 &&
+    cursor.cycleIndex % Number(definition.alternateEvery) === 0
+      ? definition.alternateAttacks
+      : definition.attacks;
+  const packet = attacks?.[cursor.attackIndex];
+  if (!packet || !attacks) return;
+  emitAttack(
+    runtime,
+    { ...work, activationId: `${work.activationId}:${cursor.cycleIndex}:${cursor.attackIndex}` },
+    skill,
+    definition,
+    packet
+  );
+  cursor.attackIndex = (cursor.attackIndex + 1) % attacks.length;
+  const interval =
+    cursor.attackIndex === 0
+      ? definition.interval - Number(packet.offset ?? 0)
+      : Number(attacks[cursor.attackIndex].offset ?? 0) - Number(packet.offset ?? 0);
+  cursor.cycleIndex += Number(cursor.attackIndex === 0);
+  const quickness =
+    runtime.config.sharePlayerBoonsWithSummons !== false &&
+    runtime.query.timeline.buffStacksAt('quickness', runtime.time, 0, 1, 'summon', companion(work.key, work.index)) > 0;
+  const castTimeMs = Number(packet.castTimeMs ?? 0);
+  const saved = quickness ? castTimeMs - summonQuicknessCastTimeMs(null, castTimeMs) : 0;
+  const next = actionTime(runtime.time + Math.max(0, interval - saved / 1000));
+  if (next > runtime.time) scheduleAttack(runtime, next, work);
+}
+
+function commandImpact(runtime: NecromancerRuntime, data: unknown): void {
+  const work = data as MinionWork;
+  // Consuming commands commit their explosion before removing the creature; other delayed commands retain ownership.
+  if (!work.consumed && !active(runtime, work)) return;
+  const skill = runtime.helpers.skillsById?.get(work.skillId) as NecromancerSkill | undefined;
+  const minion = skill && minionDefinitionFor(runtime, work.key);
+  if (!skill || !minion) return;
+  if (work.attack) return emitAttack(runtime, work, skill, minion, work.attack);
+  const command = commandDefinitionFor(skill);
+  emitAttack(runtime, work, skill, minion, {
+    name: skill.name,
+    coefficient: command.coefficient,
+    controlKind: command.control === 'blind' ? undefined : command.control
+  });
+  const attribution = {
+    at: runtime.time,
+    source: 'Minion',
+    sourceId: skill.id,
+    actorType: 'summon' as const,
+    skillId: skill.id,
+    skillName: skill.name,
+    activationId: work.activationId,
+    offTarget: work.offTarget,
+    summonKind: 'minion',
+    summonCount: 1,
+    summonOwner: companion(work.key, work.index),
+    summonOwnerBase: `minion:${work.key}`
+  };
+  for (const condition of command.conditions ?? [])
+    runtime.emit(
+      buildResolverCondition({
+        ...attribution,
+        condition: String(condition[0]),
+        stacks: Number(condition[1]),
+        duration: Number(condition[2])
+      })
+    );
+  if (command.control === 'blind') runtime.emit({ ...attribution, type: 'blind', duration: command.blindDuration });
+}
+
+/** Successful completion creates or commands the current generation; interrupted casts never acquire a creature. */
+export function completeNecromancerMinion(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+  const skill = cast.skill as NecromancerSkill;
+  if (!ownsNecromancerMinionSkill(skill)) return;
+  if (skill.id === ID.SUMMON_MADNESS) {
+    for (let index = 0; index < Number(skill.summons); index++)
+      runtime.schedule(HORROR_SPAWN, runtime.time + index * Number(skill.summonInterval), {
+        skillId: skill.id,
+        activationId: cast.id,
+        index
+      });
+    return;
+  }
+
+  const state = runtime.profession.core;
+  const definition = Boolean(NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skill.id)])
+    ? minionDefinitionForSkill(runtime, skill.id)
+    : minionDefinitionFor(runtime, String(skill.minionKey));
+  if (!definition) return;
+  const key = definition.key;
+  if (Boolean(NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skill.id)])) {
+    replaceAttacks(runtime, key);
+    state.activeMinions[key] = definition.count;
+    state.minionGenerations[key] = (state.minionGenerations[key] ?? 0) + 1;
+    // Traits observe the concrete completed summon once, including each member of a multi-creature grant.
+    runCreatureSummonReactions(runtime, skill, runtime.time, definition.count, cast.id);
+    if (definition.commandId != null) armSkillFlip(state.availableFlips, definition.commandId, runtime.time);
+    if (skill.rechargeOnMinionDeath) runtime.cooldownController.clear(skill.id);
+    for (let index = 0; index < definition.count; index++) {
+      state.minionAttackCursors[companion(key, index)] = { cycleIndex: 1, attackIndex: 0 };
+      scheduleAttack(runtime, runtime.time + (definition.initialDelay ?? definition.interval), {
+        skillId: skill.id,
+        key,
+        index,
+        generation: state.minionGenerations[key],
+        attackGeneration: state.minionAttackGenerations[key],
+        activationId: `${cast.id}:${index}`
       });
     }
-  }
-}
 
-// Establish a fresh minion generation, arm its command, publish state, and start autonomous attacks.
-function summonMinion(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
-  // Interrupted summons never create a creature, arm its command, or start its attack clock.
-  if (castWasInterrupted(context)) return true;
-  const definition = minionDefinitionForSkill(context, skill.id);
-  if (!definition) return false;
-  const state = professionCoreState(context);
-  // Replace the active generation and arm its command flip before scheduling attacks.
-  state.activeMinions[definition.key] = definition.count;
-  state.minionGenerations[definition.key] = Number(state.minionGenerations[definition.key] || 0) + 1;
-  state.minionAttackGenerations[definition.key] = Number(state.minionAttackGenerations[definition.key] || 0) + 1;
-  state.minionAttackAnchors[definition.key] =
-    quantizeGw2ActionDurationUp(
-      (context.effectiveEnd + Number(definition.initialDelay ?? definition.interval)) * 1000
-    ) / 1000;
-  state.minionAttackCycleOffsets[definition.key] = 0;
-  if (definition.commandId) {
-    armSkillFlip(state.availableFlips, definition.commandId, context.effectiveEnd);
-  }
-
-  if (skill.rechargeOnMinionDeath) {
-    context.cooldownController.clear(skill.id);
-  }
-
-  // Publish the summon before reactions and autonomous attack scheduling consume the new state.
-  emitNecromancerStateSnapshot(context, context.effectiveEnd, 'minion-summoned', { dedupeAcrossSourceIds: true });
-  runCreatureSummonReactions(context, skill, context.effectiveEnd, definition.count);
-  queueSummonAttacks(context, skill, definition, context.effectiveEnd);
-  return true;
-}
-
-// Emit the immediate, non-ticked portion of a minion command through canonical
-// damage, condition, control, and blind event paths.
-function emitMinionCommandEffects(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-  definition: MinionCommandDefinition,
-  at: number
-): void {
-  const minion = minionDefinitionFor(context, definition.minion);
-  // Immediate damage and conditions use canonical emission helpers for normal resolver handling.
-  if (Number(definition.coefficient || 0) > 0) {
-    emitSkillDamage(context, skill, {
-      at,
-      source: 'Minion',
-      actorType: 'summon',
-      coefficient: Number(definition.coefficient),
-      summonKind: 'minion',
-      ...summonStrikeMetadata(context, minion)
-    });
-  }
-
-  if (definition.condition) {
-    emitSkillCondition(context, {
-      skill,
-      at,
-      source: 'Minion',
-      actorType: 'summon',
-      condition: String(definition.condition[0]),
-      stacks: Number(definition.condition[1]),
-      duration: Number(definition.condition[2])
-    });
-  }
-
-  for (const condition of definition.conditions || []) {
-    emitSkillCondition(context, {
-      skill,
-      at,
-      source: 'Minion',
-      actorType: 'summon',
-      condition: String(condition[0]),
-      stacks: Number(condition[1]),
-      duration: Number(condition[2])
-    });
-  }
-
-  // Control and blind remain separate event types because their downstream reactions differ.
-  if (definition.control && definition.control !== 'blind') {
-    emitSkillControl(context, skill, {
-      at: context.effectiveEnd,
-      controlKind: definition.control
-    });
-  }
-
-  if (definition.control === 'blind') {
-    context.emit({
-      type: 'blind',
-      at,
-      source: 'Minion',
-      sourceId: skill.id,
-      actorType: 'summon',
-      skillId: skill.id,
-      skillName: skill.name,
-      duration: Number(definition.blindDuration || 0)
-    });
-  }
-}
-
-// Pause a commanded minion's autonomous loop, preserve its cycle position, and
-// resume after recovery without allowing stale scheduled generations to fire.
-function restartMinionAttacks(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-  definition: MinionCommandDefinition
-): void {
-  const minion = minionDefinitionFor(context, definition.minion);
-  if (!minion || !Number.isFinite(Number(minion.commandRecoveryDelay))) return;
-  const state = professionCoreState(context);
-  // Derive the next cycle index from the prior cadence so a command pause cannot reset alternation.
-  const previousAnchor = Number(state.minionAttackAnchors[minion.key] || context.effectiveEnd);
-  const previousOffset = Number(state.minionAttackCycleOffsets[minion.key] || 0);
-  const completedSinceAnchor =
-    context.effectiveEnd + EPSILON >= previousAnchor
-      ? Math.floor((context.effectiveEnd - previousAnchor + EPSILON) / minion.interval) + 1
-      : 0;
-  const nextCycleIndex = previousOffset + completedSinceAnchor;
-  state.minionAttackGenerations[minion.key] = Number(state.minionAttackGenerations[minion.key] || 0) + 1;
-  if (skill.flipParentId == null) return;
-  const summonSkill = context.catalog.skillsById.get(skill.flipParentId);
-  if (!summonSkill) return;
-  // A fresh attack generation invalidates the old loop and resumes after command recovery.
-  state.minionAttackAnchors[minion.key] =
-    quantizeGw2ActionDurationUp((context.effectiveEnd + Number(minion.commandRecoveryDelay)) * 1000) / 1000;
-  state.minionAttackCycleOffsets[minion.key] = nextCycleIndex;
-  queueSummonAttacks(context, summonSkill, minion, context.effectiveEnd, {
-    initialDelay: minion.commandRecoveryDelay,
-    controlUntil: canonicalTime(context.effectiveEnd + Number(definition.controlWindow || 0)),
-    controlKind: definition.control,
-
-    initialCycleIndex: nextCycleIndex
-  });
-}
-
-// Dispatch a command's timed or immediate effects, then reconcile minion counts,
-// flip availability, autonomous attacks, and death-triggered summon recharge.
-function minionCommand(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
-  const definition = commandDefinitionFor(skill);
-  if (!definition.minion) return false;
-  restartMinionAttacks(context, skill, definition);
-  // Dispatch explicitly timed attacks, one delayed impact, or immediate effects as declared.
-  const impactDelay = Math.max(0, Number(definition.impactDelay || 0));
-  if (definition.attacks?.length) {
-    queueMinionCommandAttacks(context, skill, definition);
-  } else if (impactDelay > 0) {
-    context.tasks.schedule({
-      id: `${context.reservationId}:minion-command-impact`,
-      type: MINION_COMMAND_IMPACT_TASK,
-      at: context.effectiveEnd + impactDelay,
-      ownerId: context.reservationId,
-      payload: { skillId: skill.id }
-    });
-  } else {
-    emitMinionCommandEffects(context, skill, definition, context.effectiveEnd);
-  }
-
-  // Reconcile consumed minions, command flips, attack ownership, and summon-skill recharge together.
-  if (definition.consumes) {
-    const remaining = Math.max(
-      0,
-      Number(professionCoreState(context).activeMinions[definition.minion] || 0) - definition.consumes
-    );
-    if (remaining) {
-      professionCoreState(context).activeMinions[definition.minion] = remaining;
-      armSkillFlip(professionCoreState(context).availableFlips, skill.id, context.effectiveEnd);
-    } else {
-      delete professionCoreState(context).activeMinions[definition.minion];
-      consumeSkillFlip(professionCoreState(context).availableFlips, skill.id);
-      queueMinionAttackStop(
-        context,
-        definition.minion,
-        Number(professionCoreState(context).minionAttackGenerations[definition.minion] || 0),
-        context.effectiveEnd
-      );
-      const summon = skill.flipParentId == null ? undefined : context.catalog.skillsById.get(skill.flipParentId);
-      if (summon?.rechargeOnMinionDeath) {
-        const deathQuery: NecromancerRechargeQuery = { minionDeathRecharge: true };
-        const recharge = context.rechargeDurationFor(summon, context.effectiveEnd, deathQuery);
-        if (recharge > 0) {
-          context.cooldownController.startRecharge(
-            summon,
-            context.effectiveEnd,
-            recharge * context.cooldownController.rate(summon, context.effectiveEnd)
-          );
-        }
-      }
-    }
-  } else if (Number(professionCoreState(context).activeMinions[definition.minion] || 0) > 0) {
-    armSkillFlip(professionCoreState(context).availableFlips, skill.id, context.effectiveEnd);
-  }
-
-  emitNecromancerStateSnapshot(context, context.effectiveEnd, 'minion-command', { dedupeAcrossSourceIds: true });
-  return true;
-}
-
-// Resolve a delayed command impact only if its owning minion is still active,
-// then award hit-confirmed life force.
-function handleMinionCommandImpact(
-  context: NecromancerCastContext,
-  task: ScheduledTask<{ readonly skillId: SkillId }>
-): void {
-  if (!task.payload) return;
-  const skill = context.catalog.skillsById.get(task.payload.skillId);
-  const definition = skill ? commandDefinitionFor(skill) : undefined;
-  if (!skill || !definition || !(Number(professionCoreState(context).activeMinions[definition.minion] || 0) > 0))
     return;
-  emitMinionCommandEffects(context, skill, definition, task.at);
-  gainNecromancerLifeForce(context, Number(definition.lifeForceGain || 0), task.at, 'minion-command-hit');
-}
-
-// Stagger each temporary horror summon and give its attack and explosion unique
-// ownership so simultaneous creatures remain independently attributable.
-function summonMadness(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
-  const start = context.effectiveEnd;
-  // Give each staggered horror independent attribution for its attack and terminal explosion.
-  for (let index = 0; index < Number(skill.summons || 0); index += 1) {
-    const summonAt = start + index * Number(skill.summonInterval || 0);
-    runCreatureSummonReactions(context, skill, summonAt);
-    // Preserve every authored strike tick relative to this horror's summon time.
-    for (const effect of skill.effects || []) {
-      if (effect.type !== 'strike') continue;
-      for (const tick of strikeEffectTicks(effect)) {
-        emitSkillDamage(context, skill, {
-          at: summonAt + Number(tick.atMs) / 1000,
-          name: String(effect.name || `Unstable Horror - ${effect.packetLabel}`),
-          source: 'Minion',
-          sourceId: `unstable-horror.${index}`,
-          actorType: 'summon',
-          coefficient: Number(tick.coefficient),
-          summonKind: 'minion'
-        });
-      }
-    }
   }
 
-  return true;
+  if (!(state.activeMinions[key] > 0)) return;
+  const command = commandDefinitionFor(skill);
+  const summon = skill.flipParentId == null ? undefined : runtime.helpers.skillsById?.get(skill.flipParentId);
+  if (definition.commandRecoveryDelay != null && summon) {
+    replaceAttacks(runtime, key);
+    for (let index = 0; index < state.activeMinions[key]; index++)
+      scheduleAttack(runtime, runtime.time + definition.commandRecoveryDelay, {
+        skillId: summon.id,
+        key,
+        index,
+        generation: state.minionGenerations[key],
+        attackGeneration: state.minionAttackGenerations[key],
+        activationId: `${cast.id}:resume:${index}`,
+        controlUntil: runtime.time + Number(command.controlWindow ?? 0),
+        controlKind: command.control
+      });
+  }
+
+  const work: MinionWork = {
+    skillId: skill.id,
+    key,
+    index: Number(command.consumes) > 0 ? state.activeMinions[key] - 1 : 0,
+    generation: state.minionGenerations[key],
+    attackGeneration: state.minionAttackGenerations[key],
+    activationId: cast.id,
+    offTarget: cast.command.offTarget,
+    consumed: Number(command.consumes) > 0
+  };
+  const delay = Math.max(0, Number(cast.command.impactDelayMs ?? 0) / 1000);
+  const queueCommand = (at: number, payload: MinionWork) =>
+    runtime.schedule(COMMAND, at, payload, payload.consumed ? undefined : owner(key, payload.attackGeneration));
+  if (command.attacks?.length) {
+    for (const packet of command.attacks)
+      for (let index = 0; index < state.activeMinions[key]; index++)
+        queueCommand(runtime.time + Number(packet.offset ?? 0) + delay, { ...work, index, attack: packet });
+  } else queueCommand(runtime.time + Number(command.impactDelay ?? 0) + delay, work);
+  if (Number(command.consumes) > 0) {
+    state.activeMinions[key] = Math.max(0, state.activeMinions[key] - Number(command.consumes));
+    if (!state.activeMinions[key]) {
+      delete state.activeMinions[key];
+      consumeSkillFlip(state.availableFlips, skill.id);
+      replaceAttacks(runtime, key);
+      if (summon?.rechargeOnMinionDeath)
+        runtime.cooldownController.startRecharge(summon, runtime.time, gw2BaseRecharge(summon));
+    }
+  }
 }
 
-/** Maps minion summon and command handler keys to their cast implementations. */
-export const necromancerMinionSkillHandlers = Object.freeze({
-  'necromancer.minion': summonMinion,
-  'necromancer.minion-command': minionCommand,
-  'necromancer.summon-madness': summonMadness
-});
-
-/** Maps minion scheduler task types to autonomous attack and delayed-command handlers. */
-export const necromancerMinionTaskHandlers = Object.freeze({
-  ...minionActions.taskHandlers,
-  [MINION_COMMAND_IMPACT_TASK]: handleMinionCommandImpact
-});
+export const necromancerMinionTasks = {
+  [ATTACK]: attack,
+  [COMMAND]: commandImpact,
+  [HORROR_SPAWN]: spawnHorror,
+  [HORROR_EXPIRE](runtime: NecromancerRuntime, key: unknown) {
+    delete runtime.profession.core.activeMinions[String(key)];
+  }
+};

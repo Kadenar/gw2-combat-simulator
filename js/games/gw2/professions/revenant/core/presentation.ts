@@ -8,13 +8,13 @@ import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.
 import { getActiveTraits } from '#gw2/professions/revenant/data/traits-data.js';
 import { revenantLegend, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
+import { isRevenantUpkeep, isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
+import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import type {
   PaletteSkillAvailability,
-  ProfessionEventLogDescriptor,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import type {
-  RevenantResolverEvent,
   RevenantSkill,
   RevenantState,
   RevenantUiContext,
@@ -60,21 +60,9 @@ function revenantTimelineSkillIcon(context: RevenantUiContext = {}): string {
   return revenantLegend(destination || '')?.icon || '';
 }
 
-function revenantEventLogRow(
-  _context: RevenantUiContext,
-  event: RevenantResolverEvent
-): ProfessionEventLogDescriptor | undefined {
-  if (event?.type !== 'revenant.state') return undefined;
-  return {
-    type: event.type,
-    description: `${event.reason || 'State'} - ` + `Energy ${displayedRevenantEnergy(event.state?.energy?.value)}`,
-    className: 'resource',
-    order: 30,
-    flags: []
-  };
-}
-
+/** Palette gates identify upkeeps and their releases through the bound application catalog. */
 export function revenantCorePaletteSkillAvailability(
+  catalog: Readonly<CanonicalCatalog>,
   context: RevenantUiContext = {},
   skill: RevenantSkill
 ): PaletteSkillAvailability {
@@ -87,7 +75,7 @@ export function revenantCorePaletteSkillAvailability(
 
   // A free release is selectable only while armed, so low Energy cannot flip an inactive upkeep's tile.
   if (
-    skill.handlerId === 'revenant.upkeep-release' &&
+    isRevenantUpkeepRelease(skill, (id) => catalog.skillsById.get(id)) &&
     !skillFlipReady(state.availableFlips?.[skill.id], Number(context.time || 0))
   ) {
     return { available: false, message: 'Activate the matching upkeep skill first' };
@@ -102,7 +90,7 @@ export function revenantCorePaletteSkillAvailability(
   }
 
   if (skill.id === SKILL.SWAP_LEGENDS || skill.paletteLegendId) {
-    // Both destination tiles use the scheduler's remaining recharge, including temporary Alacrity.
+    // Both destination tiles use the live remaining recharge, which Alacrity does not accelerate.
     const remaining = Number(context.cooldowns?.['Swap Legends']?.remaining || 0);
     if (remaining > 0) {
       return {
@@ -131,7 +119,7 @@ export function revenantCorePaletteSkillAvailability(
 
   // Check if the skill is an upkeep and if it is currently active
   const upkeepActive =
-    skill.handlerId === 'revenant.upkeep' && (state.activeUpkeeps || []).some((upkeep) => upkeep.skillId === skill.id);
+    isRevenantUpkeep(skill) && (state.activeUpkeeps || []).some((upkeep) => upkeep.skillId === skill.id);
   if (upkeepActive) {
     return {
       available: false,
@@ -188,68 +176,71 @@ function revenantCoreStateSnapshot(context: RevenantUiContext): RotationStateSna
   return items;
 }
 
-export const revenantCoreUi: RevenantUiSlice = Object.freeze({
-  assumptionControls: Object.freeze([
-    ...REVENANT_ASSUMPTION_CONTROLS,
-    ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
-    ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
-  ]),
-  targetHealthThresholds: (context: RevenantUiContext = {}) => {
-    const traits = getActiveTraits(context.build?.specializations || []);
-    return traits.some((trait) => trait.name === 'Swift Termination') ? [0.5] : [];
-  },
-  slotLoadout: revenantLegendLoadout,
-  rotationStateSnapshot: revenantCoreStateSnapshot,
-  timelineSkillIcon: revenantTimelineSkillIcon,
-  paletteGroups: (context: RevenantUiContext) => {
-    const loadout = revenantLegendLoadout.view(context);
-    const activeLegend = activeRevenantLegend(context);
-    const destination = loadout.bars.find((legend) => legend.id !== activeLegend);
+/** Binds Core presentation to the application catalog, whose upkeep parents identify release skills. */
+export function bindRevenantCoreUi(catalog: Readonly<CanonicalCatalog>): RevenantUiSlice {
+  return Object.freeze({
+    assumptionControls: Object.freeze([
+      ...REVENANT_ASSUMPTION_CONTROLS,
+      ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
+      ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
+    ]),
+    targetHealthThresholds: (context: RevenantUiContext = {}) => {
+      const traits = getActiveTraits(context.build?.specializations || []);
+      return traits.some((trait) => trait.name === 'Swift Termination') ? [0.5] : [];
+    },
+    slotLoadout: revenantLegendLoadout,
+    rotationStateSnapshot: revenantCoreStateSnapshot,
+    timelineSkillIcon: revenantTimelineSkillIcon,
+    paletteGroups: (context: RevenantUiContext) => {
+      const loadout = revenantLegendLoadout.view(context);
+      const activeLegend = activeRevenantLegend(context);
+      const destination = loadout.bars.find((legend) => legend.id !== activeLegend);
 
-    return [
-      {
-        id: 'revenant-profession',
-        label: 'F',
-        skillIds: [SKILL.ANCIENT_ECHO],
-        // The F1 tile always invokes the other selected legend; after swapping,
-        // the previous legend becomes this same tile's destination.
-        skillEntries: destination
-          ? [
-              {
-                skillId: -4,
-                displayName: destination.compactLabel,
-                fullDisplayName: destination.label,
-                icon: revenantLegend(destination.id)?.icon || '',
-                paletteLegendId: destination.id
-              }
-            ]
-          : [],
-        color: '#a84f54',
-        className: 'revenant-f-skills',
-        resourceAnchor: true
-      }
-    ];
-  },
-  paletteSkillAvailability: revenantCorePaletteSkillAvailability,
-  resourceViews: (context: RevenantUiContext) => {
-    const state = revenantUiState(context);
-    return [
-      {
-        id: 'energy',
-        singular: 'energy',
-        plural: 'energy',
-        maximum: 100,
-        value: displayedRevenantEnergy(state.energy?.value ?? context.initialEnergy ?? 50),
-        startMaximum: 100,
-        canStart: true,
-        buildKey: 'initialEnergy' as const,
-        step: 1,
-        displayMode: 'bar',
-        pipStyle: 'compact-profession-resource-revenant-energy',
-        shortLabel: 'E',
-        statusLabel: 'Current'
-      }
-    ];
-  },
-  eventLogRow: revenantEventLogRow
-});
+      return [
+        {
+          id: 'revenant-profession',
+          label: 'F',
+          skillIds: [SKILL.ANCIENT_ECHO],
+          // The F1 tile always invokes the other selected legend; after swapping,
+          // the previous legend becomes this same tile's destination.
+          skillEntries: destination
+            ? [
+                {
+                  skillId: -4,
+                  displayName: destination.compactLabel,
+                  fullDisplayName: destination.label,
+                  icon: revenantLegend(destination.id)?.icon || '',
+                  paletteLegendId: destination.id
+                }
+              ]
+            : [],
+          color: '#a84f54',
+          className: 'revenant-f-skills',
+          resourceAnchor: true
+        }
+      ];
+    },
+    paletteSkillAvailability: (context: RevenantUiContext, skill: RevenantSkill) =>
+      revenantCorePaletteSkillAvailability(catalog, context, skill),
+    resourceViews: (context: RevenantUiContext) => {
+      const state = revenantUiState(context);
+      return [
+        {
+          id: 'energy',
+          singular: 'energy',
+          plural: 'energy',
+          maximum: 100,
+          value: displayedRevenantEnergy(state.energy?.value ?? context.initialEnergy ?? 50),
+          startMaximum: 100,
+          canStart: true,
+          buildKey: 'initialEnergy' as const,
+          step: 1,
+          displayMode: 'bar',
+          pipStyle: 'compact-profession-resource-revenant-energy',
+          shortLabel: 'E',
+          statusLabel: 'Current'
+        }
+      ];
+    }
+  });
+}

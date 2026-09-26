@@ -6,21 +6,21 @@ import { describe, test } from 'node:test';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { loadProfession, loadProfessionAppAdapter, professionOptions } from '#gw2/app/profession-registry.js';
-import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/family.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { applyRangerBuildAttributeRules } from '#gw2/professions/ranger/build/attributes.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import { druidAttributeRules } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
-import { rangerCoreAttributeRules, rangerCoreModifierRules } from '#gw2/professions/ranger/core/traits/modifiers.js';
+import { druidModifiers } from '#gw2/professions/ranger/specializations/druid/modifiers.js';
+import { rangerCoreModifiers, rangerCoreModifierRules } from '#gw2/professions/ranger/core/modifiers.js';
 import {
-  soulbeastAttributeRules,
+  soulbeastModifiers,
   soulbeastModifierRules
-} from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode.js';
+} from '#gw2/professions/ranger/specializations/soulbeast/modifiers.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 
 // Attribute assertions use the same calculator composed into the Ranger adapter.
@@ -51,7 +51,7 @@ const baseConfig = Object.freeze({
 });
 
 // Keep scenario defaults local while sharing simulation setup and nested config merging.
-const simulate = createProfessionSimulator(rangerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(rangerProfession, baseConfig);
 
 describe('Ranger skill-bar selections', () => {
   test('Soulbeast pet selections update merged Beast skills', () => {
@@ -61,7 +61,7 @@ describe('Ranger skill-bar selections', () => {
       specialization: 'Soulbeast',
       config: { specialization: 'Soulbeast', selectedPet: build.selectedPet },
       catalog: rangerCatalog,
-      professionState: rangerProfession.resolveRuntime({ specialization: 'Soulbeast' }).createProfessionState({
+      professionState: rangerProfession.resolveProfession({ specialization: 'Soulbeast' }).createState({
         specialization: 'Soulbeast',
         selectedPet: build.selectedPet
       })
@@ -146,8 +146,8 @@ describe('Ranger skill-bar selections', () => {
         initialUntamedState: build.initialUntamedState
       },
       professionState: rangerProfession
-        .resolveRuntime({ specialization: 'Untamed' })
-        .createProfessionState({ specialization: 'Untamed' })
+        .resolveProfession({ specialization: 'Untamed' })
+        .createState({ specialization: 'Untamed' })
     };
 
     assert.equal(
@@ -178,7 +178,7 @@ describe('Ranger skill-bar selections', () => {
       true
     );
     for (const specialization of ['Core', 'Druid', 'Soulbeast', 'Untamed', 'Galeshot']) {
-      const runtime = rangerProfession.resolveRuntime({ specialization });
+      const runtime = rangerProfession.resolveProfession({ specialization });
       const context = {
         build,
         specialization,
@@ -187,7 +187,7 @@ describe('Ranger skill-bar selections', () => {
           selectedHammerSkillIds: build.selectedHammerSkillIds
         },
         catalog: rangerCatalog,
-        professionState: runtime.createProfessionState({ specialization })
+        professionState: runtime.createState({ specialization })
       };
       const hammer = rangerProfession.ui
         .skillBarGroups(context)
@@ -301,8 +301,8 @@ describe('Galeshot Cyclone Bow', () => {
     const inactiveContext = {
       specialization: 'Galeshot',
       professionState: rangerProfession
-        .resolveRuntime({ specialization: 'Galeshot' })
-        .createProfessionState({ specialization: 'Galeshot' })
+        .resolveProfession({ specialization: 'Galeshot' })
+        .createState({ specialization: 'Galeshot' })
     };
     const galeshotPaletteGroups = rangerProfession.ui.paletteGroups(inactiveContext);
 
@@ -524,16 +524,13 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
 
   const baseAttributes = { power: 0, precision: 0, conditionDamage: 0, toughness: 0, vitality: 1000, ferocity: 0 };
   const druidContext = { config: {}, traits: new Set([TRAIT.NATURAL_FORTITUDE]) };
-  const druidAttributes = druidAttributeRules.modifyAttributes(
-    { catalog: rangerCatalog, ...druidContext },
-    baseAttributes
-  );
-  const coreAttributes = rangerCoreAttributeRules.modifyAttributes(druidContext, baseAttributes);
+  const druidAttributes = druidModifiers.modifyAttributes({ catalog: rangerCatalog, ...druidContext }, baseAttributes);
+  const coreAttributes = rangerCoreModifiers.modifyAttributes(druidContext, baseAttributes);
 
   assert.equal(druidAttributes.vitality, 1240);
   assert.equal(coreAttributes.vitality, 1000);
 
-  const soulbeastAttributes = soulbeastAttributeRules.modifyAttributes(
+  const soulbeastAttributes = soulbeastModifiers.modifyAttributes(
     {
       catalog: rangerCatalog,
       config: { selectedPet: 'Pig' },
@@ -632,7 +629,7 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
   // Verify Poison Master's multiplier before packet rounding, which need not preserve an exact aggregate ratio.
   for (const selected of [false, true]) {
     const query = createGw2CombatQuery({
-      profession: resolveProfessionRuntime(rangerProfession, { specialization: 'Core' }),
+      profession: resolveProfessionContract(rangerProfession, { specialization: 'Core' }),
       config: {},
       traits: new Set(selected ? [TRAIT.POISON_MASTER] : [])
     });
@@ -1025,7 +1022,7 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
     runtime: { activeWeaponSet: 1 },
     query: { mightStacksAt: () => 0 }
   };
-  const petAttributes = rangerCoreAttributeRules.modifyAttributes(
+  const petAttributes = rangerCoreModifiers.modifyAttributes(
     { catalog: rangerCatalog, ...petTraitContext },
     {
       power: 2000,

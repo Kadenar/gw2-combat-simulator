@@ -1,89 +1,299 @@
-import { EPSILON, isTimeInWindow } from '#kernel/core/clock.js';
-import { observeTargetConditionCount } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
-import { emitSkillBuff, emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-/**
- * Condition-manipulation skill handlers.
- *
- * Necromancer corruption skills self-inflict a condition (tracked in
- * `state.selfConditions` with duration scaled by the player's condition-duration
- * stats) which transfer skills later fling onto the target. Also holds the
- * direct condition burst for Devouring Darkness. Exports the
- * `necromancerConditionSkillHandlers` map plus the self-condition
- * apply/purge/transfer helpers reused by shroud/scheduler code.
- */
-import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
-import { selectedGw2TraitValues } from '#gw2/platform/combat/state/traits.js';
-import { isDamagingCondition } from '#gw2/platform/combat/state/targets.js';
-import { createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
-import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
+import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { effectFirstAtMs } from '#gw2/platform/engine/effects/authoring.js';
+import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import {
-  requireBalanceProfileFromContext,
   effectNumber,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
+import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { castCompleted } from '#gw2/platform/skills/timing.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
   NECROMANCER_CORRUPTION_PROFILE_IDS
 } from '#gw2/professions/necromancer/core/profiles.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import type {
-  NecromancerCastContext,
-  NecromancerEmissionContext,
-  NecromancerQueryRuntime,
-  NecromancerSchedulerContext,
-  NecromancerSimulationEvent,
-  NecromancerSkill
-} from '#gw2/professions/necromancer/types.js';
+import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
+import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { NecromancerCoreState, NecromancerSelfCondition } from '#gw2/professions/necromancer/core/state.js';
 
-// Rebuild the combat query at the application timestamp so relic and trait duration effects use historical state.
-function conditionDurationMultiplier(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-  condition: string,
-  at: number
-): number {
-  const event: NecromancerSimulationEvent = {
-    type: 'self_condition',
-    at,
-    skillId: skill.id,
-    skillName: skill.name,
-    source: 'necromancer',
-    sourceId: skill.id,
-    actorType: 'player',
-    condition,
-    selfCondition: true
-  };
-  const traits = selectedGw2TraitValues(context.config, context.catalog);
-  const historicalRelicContext = {
-    relic: createRelicTimelineRuntime(context.config.relic, context.events)
-  };
-  const query = createGw2CombatQuery({
-    profession: context.profession,
-    config: context.config,
-    events: context.events,
-    traits,
-    conditionDurationBonus: (runtime, time) =>
-      relicConditionDurationBonus(runtime?.relic ? runtime : historicalRelicContext, time)
-  });
-  // Expertise does not extend Necromancer self-inflicted conditions. Other
-  // duration bonuses still apply, matching the in-game corruption behavior.
-  const stats = {
-    ...query.statsAt(at, event, context.state as unknown as NecromancerQueryRuntime),
-    expertise: 0
-  };
-  return query.conditionDurationMultiplier(
-    condition,
-    at,
-    stats,
-    event,
-    context.state as unknown as NecromancerQueryRuntime
+const CORRUPTION = 'necromancer.corruption';
+const TRANSFER = 'necromancer.transfer';
+const DEVOURING = 'necromancer.devouring-impact';
+const EXPIRY = 'necromancer.self-condition-expiry';
+interface ConditionWork {
+  skillId: SkillId;
+  activationId?: string;
+  offTarget?: boolean;
+}
+
+function purge(runtime: NecromancerRuntime): void {
+  runtime.profession.core.selfConditions = runtime.profession.core.selfConditions.filter((application) =>
+    isTimeInWindow(runtime.time, application.appliedAt, application.expiresAt)
   );
 }
+
+/** Self-inflicted durations use actual trait/relic state while excluding Expertise, without constructing another query world. */
+function applySelfCondition(
+  runtime: NecromancerRuntime,
+  skill: NecromancerSkill,
+  condition: string,
+  stacks: number,
+  duration: number
+): void {
+  const event = {
+    type: 'self_condition' as const,
+    at: runtime.time,
+    source: 'necromancer',
+    sourceId: skill.id,
+    actorType: 'player' as const,
+    skillId: skill.id,
+    skillName: skill.name,
+    condition,
+    stacks,
+    selfCondition: true
+  };
+  const stats = { ...runtime.query.statsAt(runtime.time, event, runtime), expertise: 0 };
+  const effectiveDuration =
+    duration * runtime.query.conditionDurationMultiplier(condition, runtime.time, stats, event, runtime);
+  if (!(effectiveDuration > 0) || !(stacks > 0)) return;
+  purge(runtime);
+  const expiresAt = canonicalTime(runtime.time + effectiveDuration);
+  runtime.profession.core.selfConditions.push({
+    condition,
+    stacks,
+    appliedAt: runtime.time,
+    expiresAt,
+    sourceSkillId: skill.id,
+    sourceSkillName: skill.name
+  });
+  runtime.emit({ ...event, name: `${skill.name} — self ${condition}`, duration: effectiveDuration, expiresAt });
+  runtime.schedule(EXPIRY, expiresAt, null, undefined, -20);
+}
+
+/** A transfer removes actual applications and preserves their remaining duration, without scaling them a second time. */
+function transfer(
+  runtime: NecromancerRuntime,
+  skill: NecromancerSkill,
+  maximum: number,
+  work: ConditionWork,
+  latest = false
+): number {
+  if (
+    !(maximum > 0) ||
+    work.offTarget ||
+    runtime.deathTime != null ||
+    runtime.combatStartPending ||
+    (runtime.combatStartTime != null && runtime.time < runtime.combatStartTime)
+  )
+    return 0;
+  purge(runtime);
+  const state = runtime.profession.core;
+  const types = new Set<string>();
+  if (!latest)
+    for (const application of state.selfConditions) {
+      if (types.size >= maximum) break;
+      types.add(application.condition);
+    }
+
+  const selected = latest
+    ? state.selfConditions.slice(-maximum)
+    : state.selfConditions.filter((application) => types.has(application.condition));
+  state.selfConditions = state.selfConditions.filter((application) => !selected.includes(application));
+  for (const application of selected)
+    runtime.emit(
+      buildResolverCondition({
+        at: runtime.time,
+        source: 'necromancer',
+        sourceId: skill.id,
+        actorType: 'player',
+        skillId: skill.id,
+        skillName: skill.name,
+        activationId: work.activationId,
+        name: `${skill.name} — Transferred ${application.condition}`,
+        condition: application.condition,
+        stacks: application.stacks,
+        duration: application.expiresAt - runtime.time,
+        fixedDuration: true,
+        transferredCondition: true,
+        transferredFromSkillId: application.sourceSkillId
+      })
+    );
+  return selected.length;
+}
+
+function corruption(runtime: NecromancerRuntime, data: unknown): void {
+  const work = data as ConditionWork;
+  const skill = runtime.helpers.skillsById.get(work.skillId) as NecromancerSkill;
+  const profile = requireBalanceProfileFromContext(runtime, NECROMANCER_CORRUPTION_PROFILE_IDS[skill.id]);
+  for (const effect of profile.effects ?? []) {
+    if (effect.requiredTrait != null && !hasTrait(runtime, Number(effect.requiredTrait))) continue;
+    if (effect.type === 'condition')
+      applySelfCondition(
+        runtime,
+        skill,
+        String(effect.condition),
+        effectNumber(profile, effect, 'stacks'),
+        effectNumber(profile, effect, 'duration')
+      );
+    else if (effect.type === 'boon') {
+      const event = {
+        type: 'buff' as const,
+        at: runtime.time,
+        source: 'necromancer',
+        sourceId: skill.id,
+        actorType: 'player' as const,
+        skillId: skill.id,
+        skillName: skill.name,
+        activationId: work.activationId,
+        kind: String(effect.boon),
+        duration: effectNumber(profile, effect, 'duration'),
+        stacks: effectNumber(profile, effect, 'stacks'),
+        audience:
+          effect.audience?.recipients === 'party'
+            ? { ...effect.audience, eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime) }
+            : effect.audience
+      };
+      queueResolverBoon(runtime, event, event);
+    }
+  }
+}
+
+/** First-hit effects and Plague Sending run only after an accepted player strike. */
+export function reactToNecromancerConditions(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
+  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+  const skill = runtime.helpers.skillsById.get(event.skillId ?? event.sourceId) as NecromancerSkill | undefined;
+  if (!skill) return;
+  const work = { skillId: skill.id, activationId: event.activationId };
+  if (Number(event.hitIndex ?? 1) === 1) {
+    const profileId =
+      skill.id === ID.LIFE_SIPHON ? PROFILE.lifeSiphonOnHit : skill.id === ID.DARK_PACT ? PROFILE.darkPactOnHit : null;
+    if (profileId) {
+      const profile = requireBalanceProfileFromContext(runtime, profileId);
+      for (const effect of profile.effects ?? []) {
+        if (effect.type !== 'condition') continue;
+        const condition = String(effect.condition);
+        const stacks = effectNumber(profile, effect, 'stacks');
+        const duration = effectNumber(profile, effect, 'duration');
+        if (effect.target === 'self') applySelfCondition(runtime, skill, condition, stacks, duration);
+        else
+          runtime.emitDerived(
+            event,
+            buildResolverCondition({
+              at: runtime.time,
+              source: 'necromancer',
+              sourceId: skill.id,
+              actorType: 'player',
+              skillId: skill.id,
+              skillName: skill.name,
+              condition,
+              stacks,
+              duration
+            })
+          );
+      }
+    }
+
+    if (Number(skill.conditionsTransferred) > 0) transfer(runtime, skill, Number(skill.conditionsTransferred), work);
+  }
+
+  const state = runtime.profession.core;
+  if (
+    state.plagueSendingArmed &&
+    transfer(
+      runtime,
+      skill,
+      balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.PLAGUE_SENDING), 'maximumConditions'),
+      work,
+      true
+    )
+  ) {
+    state.plagueSendingArmed = false;
+    state.plagueSendingEntrySkillId = null;
+  }
+}
+
+/** Custom condition owners schedule only committed work; travel postpones the impact's live observation. */
+export function scheduleNecromancerConditions(runtime: NecromancerRuntime, cast: RuntimeCast): void {
+  const skill = cast.skill as NecromancerSkill;
+  const work: ConditionWork = { skillId: skill.id, activationId: cast.id, offTarget: cast.command.offTarget };
+  if (NECROMANCER_CORRUPTION_PROFILE_IDS[skill.id]) {
+    const first = skill.effects?.find((effect) => effect.type === 'strike');
+    const timing = first && scaleCastBoundTiming(cast, skill, first);
+    const committedBloodIsPower =
+      skill.id === ID.BLOOD_IS_POWER &&
+      first &&
+      timing?.type === 'strike' &&
+      cast.start + Number(effectFirstAtMs(timing) ?? 0) / 1000 <= cast.effectiveEnd;
+    if (castCompleted(cast) || committedBloodIsPower) runtime.schedule(CORRUPTION, cast.effectiveEnd, work);
+  }
+
+  // Only the signet transfers without a hit; removing Deathly Swarm's strike must not create a completion transfer.
+  if (skill.id === ID.PLAGUE_SIGNET && castCompleted(cast))
+    runtime.schedule(TRANSFER, cast.effectiveEnd + Number(cast.command.impactDelayMs ?? 0) / 1000, work);
+  if (skill.id === ID.DEVOURING_DARKNESS) {
+    const impactAt = canonicalTime(cast.start + (cast.fullEnd - cast.start) * 0.8);
+    if (impactAt <= cast.effectiveEnd)
+      runtime.schedule(DEVOURING, impactAt + Number(cast.command.impactDelayMs ?? 0) / 1000, work);
+  }
+}
+
+/** The impact reads conditions before emitting its own Torment; a removed strike leaves the condition packet independent. */
+function devouring(runtime: NecromancerRuntime, data: unknown): void {
+  const work = data as ConditionWork;
+  const skill = runtime.helpers.skillsById.get(work.skillId) as NecromancerSkill;
+  const count = Math.min(
+    Number(skill.maximumConditions),
+    targetConditionCount({ config: runtime.config, query: runtime.query, runtime, time: runtime.time })
+  );
+  const event = {
+    at: runtime.time,
+    source: 'necromancer',
+    sourceId: skill.id,
+    actorType: 'player' as const,
+    skillId: skill.id,
+    skillName: skill.name,
+    activationId: work.activationId,
+    offTarget: work.offTarget,
+    metadata: { necromancerConditionCount: count }
+  };
+  const strike = skill.effects?.find((effect) => effect.type === 'strike');
+  const torment = skill.effects?.find((effect) => effect.type === 'condition');
+  if (strike)
+    runtime.emit(
+      buildResolverStrike({
+        ...event,
+        coefficient: effectNumber(skill, strike, 'coefficient'),
+        skillWeapon: skill.weapon
+      })
+    );
+  if (torment && count > 0)
+    runtime.emit(
+      buildResolverCondition({
+        ...event,
+        condition: String(torment.condition),
+        stacks: count * effectNumber(skill, torment, 'stacks'),
+        duration: effectNumber(skill, torment, 'duration')
+      })
+    );
+}
+
+export const necromancerConditionTasks = {
+  [CORRUPTION]: corruption,
+  [DEVOURING]: devouring,
+  [EXPIRY]: purge,
+  [TRANSFER](runtime: NecromancerRuntime, data: unknown) {
+    const work = data as ConditionWork;
+    const skill = runtime.helpers.skillsById.get(work.skillId) as NecromancerSkill;
+    transfer(runtime, skill, Number(skill.conditionsTransferred), work);
+  }
+};
 
 /** Removes expired or not-yet-active self-condition applications and returns the remaining active set. */
 function purgeNecromancerSelfConditions(state: NecromancerCoreState, at: number): NecromancerSelfCondition[] {
@@ -108,291 +318,3 @@ export function removeNecromancerSelfCondition(
 
   state.selfConditions = active.filter((application) => !selected.has(application.condition));
 }
-
-/** Records a duration-scaled self-condition and emits the canonical state event used by later transfers. */
-function applyNecromancerSelfCondition(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-  condition: string,
-  stacks: number,
-  duration: number,
-  at = context.effectiveEnd
-): void {
-  const effectiveDuration =
-    Math.max(0, Number(duration || 0)) * conditionDurationMultiplier(context, skill, condition, at);
-  if (!(effectiveDuration > 0) || !(Number(stacks) > 0)) return;
-  const application: NecromancerSelfCondition = {
-    condition,
-    stacks: Number(stacks),
-    appliedAt: at,
-    expiresAt: at + effectiveDuration,
-    sourceSkillId: skill.id,
-    sourceSkillName: skill.name
-  };
-  // Persist before emission so reactions observing the event see the newly active application.
-  purgeNecromancerSelfConditions(professionCoreState(context), at);
-  professionCoreState(context).selfConditions.push(application);
-  context.emit({
-    type: 'self_condition',
-    at,
-    source: 'necromancer',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    name: `${skill.name} — self ${condition}`,
-    condition,
-    stacks: Number(stacks),
-    duration: effectiveDuration,
-    expiresAt: application.expiresAt
-  });
-}
-
-// Preserve the remaining duration and source attribution when converting a self-condition into a target packet.
-function emitTransferredApplication(
-  context: NecromancerEmissionContext,
-  skill: NecromancerSkill,
-  application: NecromancerSelfCondition,
-  at: number
-): void {
-  const duration = application.expiresAt - at;
-  const common = {
-    at,
-    source: 'necromancer',
-    sourceId: skill.id,
-    actorType: 'player',
-    skillId: skill.id,
-    skillName: skill.name,
-    name: `${skill.name} — Transferred ${application.condition}`,
-    stacks: application.stacks,
-    duration,
-    fixedDuration: true,
-    transferredCondition: true,
-    transferredFromSkillId: application.sourceSkillId
-  } as const;
-  // Emit through the canonical condition path so damaging and non-damaging applications resolve uniformly.
-  emitSkillCondition(context, {
-    ...common,
-
-    condition: application.condition,
-    nonDamaging: !isDamagingCondition(application.condition)
-  });
-}
-
-/** Transfers eligible active self-conditions to the target and removes the source applications. */
-function transferNecromancerSelfConditions(
-  context: NecromancerEmissionContext,
-  skill: NecromancerSkill,
-  maximumConditionTypes: number,
-  at = context.effectiveEnd ?? context.state.time,
-  {
-    latestApplications = false
-  }: {
-    readonly latestApplications?: boolean;
-  } = {}
-): number {
-  const state = professionCoreState(context);
-  const active = purgeNecromancerSelfConditions(state, at);
-  // Plague Sending consumes the newest applications regardless of condition type.
-  if (latestApplications) {
-    const transferred = active.slice(-maximumConditionTypes);
-    if (!transferred.length) return 0;
-    const retained = new Set(transferred);
-    state.selfConditions = active.filter((application) => !retained.has(application));
-    for (const application of transferred) {
-      emitTransferredApplication(context, skill, application, at);
-    }
-
-    return transferred.length;
-  }
-
-  // Ordinary transfers select the oldest distinct condition types and move every stack of each selected type.
-  const selected = new Set<string>();
-  for (const application of active) {
-    if (selected.size >= maximumConditionTypes) break;
-    selected.add(application.condition);
-  }
-
-  if (!selected.size) return 0;
-  const transferred = active.filter((application) => selected.has(application.condition));
-  state.selfConditions = active.filter((application) => !selected.has(application.condition));
-  for (const application of transferred) {
-    emitTransferredApplication(context, skill, application, at);
-  }
-
-  return transferred.length;
-}
-
-// Apply a corruption skill's base and trait-added self-conditions, then resolve any armed Plague Sending transfer.
-function corruption(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
-  if (skill.id === ID.BLOOD_IS_POWER) {
-    const strike = skill.effects?.find((effect) => effect.type === 'strike' && effectFirstAtMs(effect) != null);
-    const atMs = strike?.type === 'strike' ? effectFirstAtMs(strike) : undefined;
-    const runtimeCastMs = Math.max(0, context.fullEnd - context.start) * 1000;
-    const strikeAtMs =
-      strike?.timingScale === 'cast'
-        ? projectCastRelativeEffectTimingMs(skill, runtimeCastMs, Number(atMs))
-        : Number(atMs ?? runtimeCastMs);
-    // Declarative packets are discarded after this handler runs, so suppress self-corruption when no strike committed.
-    if (Math.round((context.effectiveEnd - context.start) * 1000) < Math.round(strikeAtMs)) return false;
-  }
-
-  const profileId = NECROMANCER_CORRUPTION_PROFILE_IDS[skill.id];
-  if (!profileId) return false;
-  const mechanics = requireBalanceProfileFromContext(context, profileId);
-  // Base corruptions always land before Master of Corruption additions so transfer order stays deterministic.
-  for (const application of mechanics.effects || []) {
-    if (application.type !== 'condition') continue;
-    if (application.requiredTrait != null && !hasTrait(context, Number(application.requiredTrait))) continue;
-    applyNecromancerSelfCondition(
-      context,
-      skill,
-      String(application.condition),
-      effectNumber(mechanics, application, 'stacks'),
-      effectNumber(mechanics, application, 'duration')
-    );
-  }
-
-  // An armed shroud transfer consumes the newest corruption applications from this cast first.
-  if (professionCoreState(context).plagueSendingArmed) {
-    const transferred = transferNecromancerSelfConditions(context, skill, 2, context.effectiveEnd, {
-      latestApplications: true
-    });
-    if (transferred) {
-      professionCoreState(context).plagueSendingArmed = false;
-      professionCoreState(context).plagueSendingEntrySkillId = null;
-    }
-  }
-
-  for (const effect of mechanics.effects || []) {
-    if (effect.type !== 'boon') continue;
-    if (!effect.boon) throw new Error(`Missing corruption boon: ${profileId}`);
-    emitSkillBuff(context, skill, {
-      at: context.effectiveEnd,
-      kind: effect.boon,
-      duration: effect.duration,
-      stacks: effect.stacks,
-      audience: effect.audience
-    });
-  }
-
-  return false;
-}
-
-// Use the selected skill's distinct-condition limit for both combat and tooltip presentation.
-function transfer(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
-  transferNecromancerSelfConditions(context, skill, Number(skill.conditionsTransferred));
-  return false;
-}
-
-// Apply Life Siphon's self-bleed once on the first resolved strike packet.
-function lifeSiphonSelfBleed(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-  event: NecromancerSimulationEvent
-): void {
-  if (event?.type !== 'damage' || Number(event.hitIndex || 1) !== 1) return;
-  applyFirstHitConditions(context, skill, PROFILE.lifeSiphonOnHit, event.at);
-}
-
-// Apply Dark Pact's self-bleed and immobilize only after its first strike confirms a hit.
-function darkPactOnHit(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-  event: NecromancerSimulationEvent
-): void {
-  if (event?.type !== 'damage' || Number(event.hitIndex || 1) !== 1) return;
-  applyFirstHitConditions(context, skill, PROFILE.darkPactOnHit, event.at);
-}
-
-/** Keep first-hit eligibility in execution while reading its condition payload from selected balance data. */
-function applyFirstHitConditions(
-  context: NecromancerCastContext,
-  skill: NecromancerSkill,
-  profileId: string,
-  at: number
-): void {
-  const profile = requireBalanceProfileFromContext(context, profileId);
-  for (const effect of profile.effects || []) {
-    if (effect.type !== 'condition') continue;
-    if (!effect.condition) throw new Error(`Invalid first-hit condition: ${profileId}`);
-    if (effect.target === 'self') {
-      applyNecromancerSelfCondition(
-        context,
-        skill,
-        String(effect.condition),
-        effectNumber(profile, effect, 'stacks'),
-        effectNumber(profile, effect, 'duration'),
-        at
-      );
-    } else {
-      emitSkillCondition(context, {
-        skill,
-        at,
-        condition: effect.condition,
-        stacks: effectNumber(profile, effect, 'stacks'),
-        duration: effectNumber(profile, effect, 'duration')
-      });
-    }
-  }
-}
-
-// Sample live conditions before this impact adds its own Torment, capped at five.
-function devouringDarkness(context: NecromancerCastContext, skill: NecromancerSkill): boolean {
-  const impactAt = context.start + (context.fullEnd - context.start) * 0.8;
-  if (impactAt > context.effectiveEnd + EPSILON) return true;
-  // The strike and scaled Torment are independent skill packets; either survives the other's removal.
-  const strike = skill.effects?.find((effect) => effect.type === 'strike');
-  const torment = skill.effects?.find((effect) => effect.type === 'condition');
-  const maximum = Number(skill.maximumConditions);
-  const count = Math.min(maximum, observeTargetConditionCount(context, impactAt, maximum));
-  if (strike)
-    emitSkillDamage(context, skill, { at: impactAt, coefficient: effectNumber(skill, strike, 'coefficient') });
-  if (torment && count > 0) {
-    emitSkillCondition(context, {
-      skill,
-      at: impactAt,
-      condition: String(torment.condition),
-      stacks: count * effectNumber(skill, torment, 'stacks'),
-      duration: effectNumber(skill, torment, 'duration')
-    });
-  }
-
-  return true;
-}
-
-/** Transfers Plague Sending conditions on the first eligible player strike after the trait is armed. */
-export function observeNecromancerPlagueSendingEvent(
-  context: NecromancerSchedulerContext,
-  event: NecromancerSimulationEvent
-): void {
-  const state = professionCoreState(context);
-  if (
-    !state.plagueSendingArmed ||
-    event.type !== 'damage' ||
-    event.actorType !== 'player' ||
-    !(Number(event.coefficient) > 0)
-  )
-    return;
-  const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
-  if (!skill || Number(state.plagueSendingEntrySkillId) === Number(event.skillId)) return;
-  const transferred = transferNecromancerSelfConditions(
-    context,
-    skill,
-    balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PLAGUE_SENDING), 'maximumConditions'),
-    event.at,
-    { latestApplications: true }
-  );
-  if (!transferred) return;
-  state.plagueSendingArmed = false;
-  state.plagueSendingEntrySkillId = null;
-}
-
-/** Maps condition-manipulation handler keys to their cast and on-hit implementations. */
-export const necromancerConditionSkillHandlers = Object.freeze({
-  'necromancer.corruption': corruption,
-  'necromancer.condition-transfer': transfer,
-  'necromancer.life-siphon': lifeSiphonSelfBleed,
-  'necromancer.dark-pact': darkPactOnHit,
-  'necromancer.devouring-darkness': devouringDarkness
-});

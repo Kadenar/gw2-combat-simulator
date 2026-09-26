@@ -237,6 +237,12 @@ export interface ProfessionRuntimeApi {
     options?: RandomDistributionOptions
   ): RandomDistributionSummary;
   rotationPlanningStateAt(app: ProfessionAppState, insertionIndex: number): Gw2SimulationResult['planningState'];
+  /** Simulates a prefix and optional candidate commands with the original combat-start boundary. */
+  rotationPreviewAt(
+    app: ProfessionAppState,
+    insertionIndex: number,
+    appended?: readonly RotationCommand[]
+  ): Gw2SimulationResult;
   baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest;
   calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput;
   runSimulation(app: ProfessionAppState): Gw2SimulationResult;

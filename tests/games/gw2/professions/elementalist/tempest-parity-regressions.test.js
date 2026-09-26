@@ -1,7 +1,7 @@
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
@@ -15,72 +15,73 @@ import { loadProfessionAppAdapter } from '#gw2/app/profession-registry.js';
 
 const repoUrl = (path) => new URL(`../../../../../${path}`, import.meta.url);
 
-// Each overload and its attunement must retain identical recharge progress as temporary Alacrity changes.
-test('Tempest attunement lockouts follow overload recharge through temporary Alacrity', () => {
+// Overload and attunement hold the same remaining work as actual Alacrity applications change.
+test('Tempest attunement lockouts keep overload recharge unchanged by temporary Alacrity', () => {
   for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
-    const config = { specialization: 'Tempest', startAttunement: element, boons: {} };
-    const scheduler = createScheduler({
-      profession: elementalistProfession,
-      config,
-      schedulerPolicy: createGw2SchedulerPolicy(config)
-    });
-    const grantAlacrity = (at, duration) =>
-      scheduler.context.emit({
-        type: 'buff',
-        kind: 'alacrity',
-        at,
-        duration,
-        stacks: 1,
-        source: 'fixture',
-        sourceId: 'fixture',
-        actorType: 'player'
-      });
-    const overloadId = ELEMENTALIST_OVERLOAD_SKILL_IDS[element];
-    const attunementId = ELEMENTALIST_ATTUNEMENT_SKILL_IDS[element];
-    scheduler.run(['__combat_start']);
-    scheduler.advanceTo(5);
-    grantAlacrity(5, 8);
-    assert.equal(scheduler.cast({ type: 'cast', skillId: overloadId }), true);
-    scheduler.advanceTo(scheduler.events.findLast((event) => event.type === 'action').endsAt);
-    const readyAt = scheduler.state.cooldowns.get(overloadId);
-    assert.equal(scheduler.state.cooldowns.get(attunementId), readyAt, element);
-    assert.equal(scheduler.state.profession.core.attunementReadyAt[element], readyAt, element);
-
-    scheduler.advanceTo(14);
-    grantAlacrity(14, 4);
-    scheduler.advanceTo(14);
-    const updatedReadyAt = scheduler.state.cooldowns.get(overloadId);
-    assert.ok(updatedReadyAt < readyAt, element);
-    assert.equal(scheduler.state.cooldowns.get(attunementId), updatedReadyAt, element);
+    const overloadId = ELEMENTALIST_OVERLOAD_SKILL_IDS[element],
+      attunementId = ELEMENTALIST_ATTUNEMENT_SKILL_IDS[element];
     const other = element === 'Fire' ? 'Water' : 'Fire';
-    assert.equal(scheduler.cast({ type: 'cast', skillId: ELEMENTALIST_ATTUNEMENT_SKILL_IDS[other] }), true);
-    assert.equal(scheduler.cast({ type: 'cast', skillId: attunementId }), true);
-    assert.equal(
-      scheduler.events.findLast((event) => event.type === 'action').at,
-      gw2CooldownReadyAt(updatedReadyAt),
-      element
-    );
-    assert.deepEqual(scheduler.warnings, []);
+    let first, second;
+    const grant = (at, duration) => ({
+      at,
+      run: (runtime) =>
+        runtime.emit({
+          type: 'buff',
+          kind: 'alacrity',
+          at,
+          duration,
+          stacks: 1,
+          source: 'fixture',
+          sourceId: 'fixture',
+          actorType: 'player'
+        })
+    });
+    const result = runElementalist({
+      config: { specialization: 'Tempest', startAttunement: element, boons: {} },
+      rotation: [
+        '__combat_start',
+        { type: 'wait', durationMs: 5000 },
+        overloadId,
+        { type: 'wait', durationMs: 6000 },
+        ELEMENTALIST_ATTUNEMENT_SKILL_IDS[other],
+        attunementId
+      ],
+      timeline: [
+        grant(5, 8),
+        {
+          at: 10,
+          run: (r) => {
+            first = r.cooldowns.get(overloadId);
+            assert.equal(r.cooldowns.get(attunementId), first, element);
+          }
+        },
+        grant(14, 4),
+        {
+          at: 14.001,
+          run: (r) => {
+            second = r.cooldowns.get(overloadId);
+            assert.equal(r.cooldowns.get(attunementId), second, element);
+          }
+        }
+      ]
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(second, first, element);
+    assert.equal(result.events.findLast((e) => e.type === 'action').at, gw2CooldownReadyAt(second));
   }
 });
 
-// Completing an overload must not replace a longer attunement recharge already in progress.
+// A completed overload cannot shorten a longer recharge already owned by the attunement.
 test('Tempest overload completion preserves a longer attunement lockout', () => {
-  const config = { specialization: 'Tempest', startAttunement: 'Fire', boons: {} };
-  const scheduler = createScheduler({
-    profession: elementalistProfession,
-    config,
-    schedulerPolicy: createGw2SchedulerPolicy(config)
+  const id = ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Fire;
+  const result = runElementalist({
+    config: { specialization: 'Tempest', startAttunement: 'Fire', boons: {} },
+    rotation: [ELEMENTALIST_OVERLOAD_SKILL_IDS.Fire],
+    initialize: (r) => r.cooldownController.startRecharge(r.helpers.skillsById.get(id), 0, 60)
   });
-  const attunementId = ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Fire;
-  const attunement = scheduler.context.catalog.skillsById.get(attunementId);
-  scheduler.context.cooldownController.startRecharge(attunement, 0, 60);
-  assert.equal(scheduler.cast({ type: 'cast', skillId: ELEMENTALIST_OVERLOAD_SKILL_IDS.Fire }), true);
-  scheduler.advanceTo(scheduler.events.findLast((event) => event.type === 'action').endsAt);
-  assert.equal(scheduler.state.cooldowns.get(attunementId), 60);
-  assert.equal(scheduler.state.profession.core.attunementReadyAt.Fire, 60);
-  assert.deepEqual(scheduler.state.rechargeProgress.get(attunementId), { startedAt: 0, work: 60 });
-  assert.deepEqual(scheduler.warnings, []);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(observedRuntime(result).cooldowns.get(id), 48);
+  assert.deepEqual(observedRuntime(result).rechargeProgress.get(id), { startedAt: 0, work: 60 });
 });
 
 // A two-skill rotation isolates the instant-cast scheduling rule without
@@ -104,7 +105,7 @@ test('delayed Tempest shouts do not advance the serial rotation lane', async () 
   };
 
   adapter.recalculate(app);
-  const result = adapter.runSimulation(app);
+  const result = runElementalist({ config: adapter.simulationConfig(app), rotation: build.rotation });
   const [shout, followingSerialCast] = result.steps;
 
   assert.equal(shout.skill, 'Feel the Burn!');
@@ -135,7 +136,7 @@ test('Alacrity shortens overload dwell and Lucid Singularity follows hit timing'
   const baseEntry = baseline.events.find((event) => event.type === 'elementalist.attunement' && event.to === 'Fire');
   const baseOverload = baseline.events.find((event) => event.type === 'action' && event.skillName === 'Overload Fire');
   // Dwell scales with Alacrity; the trait follows overload hits and rewards completion.
-  assert.ok(Math.abs(overload.at - attunement.at - (baseOverload.at - baseEntry.at) / 1.25) < 0.001);
+  assert.ok(Math.abs(overload.at - attunement.at - (baseOverload.at - baseEntry.at)) < 0.001);
   const hits = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Overload Fire');
   assert.ok(alacrity.length > 1);
   assert.ok(alacrity.every((buff) => hits.some((hit) => hit.at === buff.at) || buff.at === overload.endsAt));

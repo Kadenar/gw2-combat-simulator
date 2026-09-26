@@ -11,9 +11,7 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
       { type: 'strike', coefficient: 1.2 },
       { type: 'condition', condition: 'Torment', stacks: 2, duration: 9 },
       { type: 'control', controlKind: 'control' }
-    ]),
-    // Custom: Grants party Might scaled by the target's condition count; see `core/execution/torch.ts`.
-    handlerId: 'necromancer.oppressive-collapse'
+    ])
   },
   [ID.HARROWING_WAVE]: {
     castTimeMs: 440,

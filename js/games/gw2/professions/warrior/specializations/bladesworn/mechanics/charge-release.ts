@@ -1,131 +1,48 @@
-import { canonicalTime } from '#kernel/core/clock.js';
-import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
-import {
-  DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
-  dragonSlashCoefficient,
-  projectDragonCharges,
-  type DragonFlowRateSegment
-} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
-import { ENTER_DRAGON_TRIGGER_REASON } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber-and-trigger-rules.js';
+import { DRAGON_TRIGGER_ENTRY_RESOURCE_REASON } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { ENTER_DRAGON_TRIGGER_REASON } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import type { ProfessionChargeReleaseContext } from '#gw2/platform/profession-presentation/types.js';
 
-function eventRotationIndex(event: SimulationEvent): number | null {
-  const rotationIndex = Number(event.rotationIndex);
-  return Number.isInteger(rotationIndex) ? rotationIndex : null;
-}
-
-// Finds the most recent Dragon Trigger entry that has not yet been released.
-// An entry is considered released when a "profession mechanic" dragon-charges
-// resource event with a later rotationIndex exists in the event list.
-function activeDragonTriggerEntry(events: readonly SimulationEvent[], insertionIndex: number): SimulationEvent | null {
-  const entries = events
-    .filter((event) => {
-      const rotationIndex = eventRotationIndex(event);
-      return (
-        event.type === 'resource' &&
-        event.reason === DRAGON_TRIGGER_ENTRY_RESOURCE_REASON &&
-        rotationIndex != null &&
-        rotationIndex < insertionIndex
-      );
-    })
-    .sort((left, right) => Number(eventRotationIndex(left)) - Number(eventRotationIndex(right)));
-  const entry = entries.at(-1) || null;
-  if (!entry) return null;
-  const entryIndex = Number(eventRotationIndex(entry));
-  const released = events.some((event) => {
-    const rotationIndex = eventRotationIndex(event);
-    return (
-      event.type === 'resource' &&
-      event.reason === 'profession mechanic' &&
-      event.resource === 'dragon charges' &&
-      rotationIndex != null &&
-      rotationIndex > entryIndex &&
-      rotationIndex < insertionIndex
-    );
+/** Release choices are actual independent prefix runs, including their pending effects, cooldowns, and charge stalls. */
+export function dragonChargeReleaseProjection({ skill, preview }: ProfessionChargeReleaseContext) {
+  const unavailable = { rows: [], unavailableMessage: ENTER_DRAGON_TRIGGER_REASON };
+  if (!skill || !preview) return unavailable;
+  const prefix = preview();
+  const state = prefix.planningState.profession as { readonly dragonTriggerActive?: boolean } | null;
+  if (!state?.dragonTriggerActive) return unavailable;
+  const entry = prefix.events
+    .filter((event) => event.type === 'resource' && event.reason === DRAGON_TRIGGER_ENTRY_RESOURCE_REASON)
+    .at(-1);
+  if (!entry) return unavailable;
+  const maximum = Number(entry.maximumCharges);
+  const interval = Number(entry.chargesPerInterval);
+  if (!(Number.isInteger(maximum) && maximum > 0 && Number.isInteger(interval) && interval > 0))
+    throw new TypeError('Dragon Trigger entry must record positive integer charge limits.');
+  const levels: number[] = [];
+  for (let charges = interval; charges < maximum; charges += interval) levels.push(charges);
+  levels.push(maximum);
+  const rows = levels.map((charges) => {
+    const result = preview({ type: 'cast', skillId: skill.id, releaseAtCharges: charges });
+    const step = result.steps.at(-1);
+    const release =
+      step?.activationId == null
+        ? undefined
+        : result.events.find(
+            (event) =>
+              event.type === 'resource' &&
+              event.reason === 'profession mechanic' &&
+              event.resource === 'dragon charges' &&
+              event.activationId === step.activationId
+          );
+    return {
+      charges: release ? Number(release.chargesReached) : charges,
+      at: release?.at ?? prefix.planningState.atSeconds,
+      delta: release ? release.at - entry.at : 0,
+      flowAfter: release ? Number(release.flowAfter) : null,
+      coefficient: release ? Number(release.coefficient) : 0,
+      disabled: !release,
+      reason: release ? '' : (step?.invalidReason ?? 'No release occurred at this insertion point.')
+    };
   });
-  return released ? null : entry;
-}
-
-// Validate serialized Flow-rate segments from the Dragon Trigger entry event
-// before using them in release projection.
-function flowRateSegments(value: unknown): readonly DragonFlowRateSegment[] {
-  if (!Array.isArray(value)) return [];
-  return value.flatMap((candidate) => {
-    if (!candidate || typeof candidate !== 'object') return [];
-    const segment = candidate as UnvalidatedFields;
-    const start = Number(segment.start);
-    const end = Number(segment.end);
-    const flowPerSecond = Number(segment.flowPerSecond);
-    return Number.isFinite(start) && Number.isFinite(end) && Number.isFinite(flowPerSecond) && end > start
-      ? [{ start, end, flowPerSecond }]
-      : [];
-  });
-}
-
-// Reconstruct the active Dragon Trigger window at an insertion point and project
-// the earliest reachable Flow, charge, coefficient, and failure reason per tier.
-export function dragonChargeReleaseProjection(context: {
-  readonly events?: readonly SimulationEvent[];
-  readonly insertionIndex?: number;
-  readonly skill?: Skill;
-}) {
-  const events = context.events || [];
-  const insertionIndex = Number(context.insertionIndex);
-  const skill = context.skill;
-  const entry = activeDragonTriggerEntry(events, insertionIndex);
-  if (!entry || !skill) {
-    return { rows: [], unavailableMessage: ENTER_DRAGON_TRIGGER_REASON };
-  }
-
-  const startTime = Number(entry.at);
-  const firstTickAt = Number(entry.nextChargeAt);
-  const deadline = Number(entry.deadline);
-  const maximumCharges = Math.max(1, Number(entry.maximumCharges));
-  const chargesPerInterval = Math.max(1, Number(entry.chargesPerInterval));
-  const projection = projectDragonCharges({
-    startTime,
-    firstTickAt,
-    flow: Number(entry.value),
-    maximumFlow: Number(entry.maximumFlow),
-    maximumCharges,
-    chargesPerInterval,
-    tickAt: (tickIndex) => startTime + dragonChargeTickOffsetSeconds(tickIndex),
-    flowPerInterval: Number(entry.flowPerInterval),
-    flowRateSegments: flowRateSegments(entry.flowRateSegments),
-    deadline
-  });
-  const minimum = Number(skill.dragonSlashMinimumCoefficient || 0);
-  const maximum = Number(skill.dragonSlashMaximumCoefficient ?? minimum);
-  const chargeLevels: number[] = [];
-  for (let charges = chargesPerInterval; charges < maximumCharges; charges += chargesPerInterval) {
-    chargeLevels.push(charges);
-  }
-
-  chargeLevels.push(maximumCharges);
-
-  const stalled = projection.some((tick) => !tick.granted);
-  return {
-    rows: chargeLevels.map((charges, index) => {
-      const tick = projection.find((candidate) => candidate.granted && candidate.charges === charges);
-      const earliestAt = startTime + dragonChargeTickOffsetSeconds(index + 1);
-      const pastDeadline = canonicalTime(earliestAt) > deadline;
-      return {
-        charges,
-        at: tick?.at ?? earliestAt,
-        delta: (tick?.at ?? earliestAt) - startTime,
-        flowAfter: tick?.flowAfter ?? null,
-        coefficient: dragonSlashCoefficient(minimum, maximum, charges, maximumCharges),
-        disabled: !tick,
-        reason: tick
-          ? ''
-          : pastDeadline
-            ? 'Past the Dragon Trigger deadline.'
-            : stalled
-              ? 'Insufficient Flow before Dragon Trigger ended.'
-              : 'Unreachable in this charge window.'
-      };
-    })
-  };
+  // Waiting for another gate can make several thresholds release the same actual charge count.
+  return { rows: rows.filter((row, index) => rows.findIndex((other) => other.charges === row.charges) === index) };
 }

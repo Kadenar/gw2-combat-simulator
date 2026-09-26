@@ -2,11 +2,13 @@
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
+// Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
 export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.CRIPPLING_TALON]: {
     effects: [
       {
         type: 'strike',
+        projectile: true,
         coefficient: 0.9,
         hits: 1,
         comboFinishers: [
@@ -99,10 +101,9 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     ],
 
     cooldown: 6,
-    castTimeMs: 600,
+    castTimeMs: 600
     // Double Arc arms the pet's next two attacks; the weapon hit does not poison directly.
-    // Custom: Arms Poisonous Strikes charges and duration after the attack; see `core/execution/index.ts`.
-    handlerId: 'ranger.poisonous-strikes'
+    // Custom: Arms Poisonous Strikes charges and duration after the attack; see `core/hooks.ts`.
   },
   [ID.DEADLY_DELIVERY]: {
     effects: [

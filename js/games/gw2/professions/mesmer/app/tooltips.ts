@@ -176,28 +176,42 @@ export const mesmerTooltips: ProfessionTooltips = {
         : [{ name: 'Endurance spent', detail: tooltipDecimal(tooltipNumber(selected, 'resourceCost')) }])
     ];
   },
-  handlers: {
-    'mesmer.phantasm': phantasmTooltip,
-    'mesmer.shatter': shatterTooltip,
-    'mesmer.bladesong': shatterTooltip,
-    'mesmer.weapon-swap': skillTooltip(
+
+  // Bind native mechanic descriptions to their canonical skill identities.
+  skills: {
+    ...Object.fromEntries(
+      Object.keys(MESMER_CORE_PHANTASM_ATTACK_TIMINGS).map((id) => [
+        Number(id),
+        phantasmTooltip as DescribeSimulationTooltip
+      ])
+    ),
+    ...Object.fromEntries(
+      Object.keys({ ...MESMER_CORE_SHATTERS, ...MESMER_CHRONOMANCER_SHATTERS }).map((id) => [
+        Number(id),
+        shatterTooltip as DescribeSimulationTooltip
+      ])
+    ),
+    ...Object.fromEntries(
+      Object.keys(MESMER_VIRTUOSO_SHATTERS).map((id) => [Number(id), shatterTooltip as DescribeSimulationTooltip])
+    ),
+    [ID.SWAP_WEAPONS]: skillTooltip(
       'Switch weapon sets. Existing illusions keep their own weapons and attack patterns.'
     ),
-    'mesmer.axes-of-symmetry': skillTooltip(
+    [ID.AXES_OF_SYMMETRY]: skillTooltip(
       'Strike and confuse your target. Each axe clone present when the cast begins performs its own additional strike and applies confusion.'
     ),
-    'mesmer.mental-collapse': skillTooltip(
+    [ID.MENTAL_COLLAPSE]: skillTooltip(
       'Strike your target and reset Mind the Gap. Consuming Clarity also stuns the target.',
       (_c, entity) =>
         simulationEffectFacts((entity as MesmerSkill).clarityEffects, 'additional effect with Clarity').facts
     ),
-    'mesmer.inspiring-imagery': (balanceContext, entity) => ({
+    [ID.INSPIRING_IMAGERY]: (balanceContext, entity) => ({
       description:
         'Create an ethereal field and open Abstraction. If the image expires naturally, gain its boons. Detonating it with Abstraction ends the field and replaces this boon outcome with the follow-up attack.',
       facts: simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects, 'on natural expiry only')
         .facts
     }),
-    'mesmer.continuum-split': skillTooltip(
+    [ID.CONTINUUM_SPLIT]: skillTooltip(
       'Spend your clones to open a window whose duration counts yourself and each clone spent. At expiry, restore the captured cooldown, ammunition, and autoattack-chain state. Clones, damage, and boons are not rewound. Fragmentation extends the window.',
       (balanceContext) => [
         profileFact(
@@ -209,79 +223,92 @@ export const mesmerTooltips: ProfessionTooltips = {
         )
       ]
     ),
-    'mesmer.continuum-shift': skillTooltip(
+    [ID.CONTINUUM_SHIFT]: skillTooltip(
       'End the active Continuum Split and restore its captured cooldown, ammunition, and autoattack-chain state immediately.'
     ),
-    'mesmer.ambush': (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id)!;
-      const profile = tooltipProfile(balanceContext, MIRAGE_AMBUSH_PROFILE_IDS[String(selected.weapon)]);
-      // Describe repeated statuses with the same independent cadence used by the runtime.
-      const { player } = mesmerProfiledAmbush(
-        balanceContext,
-        MESMER_MIRAGE_AMBUSH_SKILLS[String(selected.weapon)],
-        MIRAGE_AMBUSH_PROFILE_IDS[String(selected.weapon)]
-      );
-      const playerPackets = (player.ticks ?? player.statusAtMs)?.length ?? 1;
-      const facts = (profile.effects || []).flatMap((effect) => {
-        const clone = effect.source === 'Clone';
-        const repeated = !clone && (effect.type === 'boon' || (effect.type === 'condition' && effect.source == null));
-        return simulationEffectFacts(
-          [
-            {
-              ...effect,
-              actorType: clone ? 'summon' : 'player',
-              applications: (effect.applications ?? 1) * (repeated ? playerPackets : 1),
-              ...(effect.type === 'boon'
-                ? {
-                    audience: {
-                      recipients: clone || selected.id === ID.CHAOS_VORTEX ? 'party' : 'self',
-                      ...(clone || selected.id === ID.CHAOS_VORTEX ? { maximumRecipients: 5 } : {})
-                    }
+    ...Object.fromEntries(
+      Object.keys(MIRAGE_AMBUSH_PROFILE_IDS)
+        .map((weapon) => MESMER_MIRAGE_AMBUSH_SKILLS[weapon].id)
+        .map((id) => [
+          Number(id),
+          ((balanceContext, entity) => {
+            const selected = balanceContext.catalog.skillsById.get(entity.id)!;
+            const profile = tooltipProfile(balanceContext, MIRAGE_AMBUSH_PROFILE_IDS[String(selected.weapon)]);
+            // Describe repeated statuses with the same independent cadence used by the runtime.
+            const { player } = mesmerProfiledAmbush(
+              balanceContext,
+              MESMER_MIRAGE_AMBUSH_SKILLS[String(selected.weapon)],
+              MIRAGE_AMBUSH_PROFILE_IDS[String(selected.weapon)]
+            );
+            const playerPackets = (player.ticks ?? player.statusAtMs)?.length ?? 1;
+            const facts = (profile.effects || []).flatMap((effect) => {
+              const clone = effect.source === 'Clone';
+              const repeated =
+                !clone && (effect.type === 'boon' || (effect.type === 'condition' && effect.source == null));
+              return simulationEffectFacts(
+                [
+                  {
+                    ...effect,
+                    actorType: clone ? 'summon' : 'player',
+                    applications: (effect.applications ?? 1) * (repeated ? playerPackets : 1),
+                    ...(effect.type === 'boon'
+                      ? {
+                          audience: {
+                            recipients: clone || selected.id === ID.CHAOS_VORTEX ? 'party' : 'self',
+                            ...(clone || selected.id === ID.CHAOS_VORTEX ? { maximumRecipients: 5 } : {})
+                          }
+                        }
+                      : {})
                   }
-                : {})
-            }
-          ],
-          clone ? 'per clone with Infinite Horizon, when cloak is granted' : 'player ambush'
-        ).facts;
-      });
-      facts.push(...simulationEffectFacts(selected.effects?.filter((effect) => effect.type === 'control')).facts);
-      return {
-        description:
-          "Use this weapon's ambush during the Mirage Cloak ambush window, then consume that window. With Infinite Horizon, existing clones perform their own weapon ambush when cloak is granted. Ambush traits can add further effects." +
-          (selected.id === ID.MIRAGE_THRUST ? ' This player ambush also creates a clone.' : ''),
-        facts
-      };
-    },
-    'mesmer.instrument': (balanceContext, entity) => ({
-      description:
-        "Perform this instrument's attack, then spend your notes to keep the instrument active. Additional notes extend its duration. Different instruments can overlap; a new performance replaces the same instrument's previous window. Instrument and note-spending traits apply.",
-      facts: [
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, TROUBADOUR_INSTRUMENT_PROFILE_IDS[Number(entity.id)]).effects
-        ).facts,
-        ...simulationEffectFacts(
-          balanceContext.catalog.skillsById.get(entity.id)!.effects?.filter((effect) => effect.type === 'control')
-        ).facts,
-        profileFact(
-          balanceContext,
-          TROUBADOUR.instruments,
-          'durationMultiplier',
-          'Base instrument duration',
-          tooltipSeconds
-        ),
-        profileFact(
-          balanceContext,
-          TROUBADOUR.instruments,
-          'durationPerTier',
-          'Additional duration per note',
-          tooltipSeconds
-        ),
-        ...([ID.HARMONIOUS_HARP, ID.HARMONIOUS_HARP_ALTERNATE].some((id) => id === entity.id)
-          ? simulationEffectFacts(tooltipProfile(balanceContext, TROUBADOUR.instruments).effects).facts
-          : [])
-      ]
-    }),
-    'mesmer.crescendo': (balanceContext) => ({
+                ],
+                clone ? 'per clone with Infinite Horizon, when cloak is granted' : 'player ambush'
+              ).facts;
+            });
+            facts.push(...simulationEffectFacts(selected.effects?.filter((effect) => effect.type === 'control')).facts);
+            return {
+              description:
+                "Use this weapon's ambush during the Mirage Cloak ambush window, then consume that window. With Infinite Horizon, existing clones perform their own weapon ambush when cloak is granted. Ambush traits can add further effects." +
+                (selected.id === ID.MIRAGE_THRUST ? ' This player ambush also creates a clone.' : ''),
+              facts
+            };
+          }) as DescribeSimulationTooltip
+        ])
+    ),
+    ...Object.fromEntries(
+      Object.keys(TROUBADOUR_INSTRUMENT_PROFILE_IDS).map((id) => [
+        Number(id),
+        ((balanceContext, entity) => ({
+          description:
+            "Perform this instrument's attack, then spend your notes to keep the instrument active. Additional notes extend its duration. Different instruments can overlap; a new performance replaces the same instrument's previous window. Instrument and note-spending traits apply.",
+          facts: [
+            ...simulationEffectFacts(
+              tooltipProfile(balanceContext, TROUBADOUR_INSTRUMENT_PROFILE_IDS[Number(entity.id)]).effects
+            ).facts,
+            ...simulationEffectFacts(
+              balanceContext.catalog.skillsById.get(entity.id)!.effects?.filter((effect) => effect.type === 'control')
+            ).facts,
+            profileFact(
+              balanceContext,
+              TROUBADOUR.instruments,
+              'durationMultiplier',
+              'Base instrument duration',
+              tooltipSeconds
+            ),
+            profileFact(
+              balanceContext,
+              TROUBADOUR.instruments,
+              'durationPerTier',
+              'Additional duration per note',
+              tooltipSeconds
+            ),
+            ...([ID.HARMONIOUS_HARP, ID.HARMONIOUS_HARP_ALTERNATE].some((id) => id === entity.id)
+              ? simulationEffectFacts(tooltipProfile(balanceContext, TROUBADOUR.instruments).effects).facts
+              : [])
+          ]
+        })) as DescribeSimulationTooltip
+      ])
+    ),
+    [ID.CRESCENDO]: (balanceContext) => ({
       description:
         'Strike with increased damage for each instrument still active when the attack lands. Fragmentation increases that bonus. Altered Chord adds an effect from your most recent instrument; Life of the Party grants boons, and Fortissimo generates notes over time.',
       facts: [
@@ -297,9 +324,7 @@ export const mesmerTooltips: ProfessionTooltips = {
           tooltipPercent
         )
       ]
-    })
-  },
-  skills: {
+    }),
     [ID.CHAOS_STORM]: skillTooltip(
       'Create a storm that strikes repeatedly, dazes on its opening pulse, and poisons the target on the subsequent condition pulses.',
       (_c, entity) => simulationEffectFacts([(entity as MesmerSkill).mesmerMechanic!.chaosStormPoison!]).facts
@@ -375,7 +400,7 @@ export const mesmerTooltips: ProfessionTooltips = {
               tooltipProfile(balanceContext, MIRAGE.mechanics).effects?.filter((effect) => effect.type === 'buff'),
               'mirror pickup window'
             ).facts,
-            ...(entity.mechanicTriggers || [])
+            ...((entity as MesmerSkill).tasks || [])
               .filter((trigger) => trigger.type === 'mesmer.mirage.create-mirror')
               .map((trigger) => ({
                 name: 'Mirror creation',

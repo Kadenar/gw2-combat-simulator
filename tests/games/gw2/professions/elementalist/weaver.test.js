@@ -1,13 +1,17 @@
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { WEAVER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/weaver/profiles.js';
-import { primordialStance } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
+import {
+  schedulePrimordialStance,
+  primordialStancePulse
+} from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
 
 test('Weaver hammer orbs require both distinct hands and respect Unravel replacement skills', () => {
   // Exercise the public gate so hammer resource checks cannot bypass hand or replacement-state validation.
@@ -125,8 +129,7 @@ test('Weaver can cancel a carried autoattack by starting the current primary cha
 });
 
 test('Primordial Stance schedules unique authored pulse times without emitting placeholder packets', () => {
-  // Each variant uses the replacement registry and timing policy while retaining its activation owner.
-  const runtime = elementalistProfession.resolveRuntime({ specialization: 'Weaver' });
+  // Coincident authored applications share a pulse; each task retains its activation owner.
   for (const id of [
     ID.PRIMORDIAL_STANCE_FIRE,
     ID.PRIMORDIAL_STANCE_WATER,
@@ -134,38 +137,23 @@ test('Primordial Stance schedules unique authored pulse times without emitting p
     ID.PRIMORDIAL_STANCE_EARTH
   ]) {
     const canonical = elementalistCatalog.skillsById.get(id);
-    const effect = canonical.effects.find((candidate) => candidate.type === 'condition');
+    const effect = canonical.effects.find((effect) => effect.type === 'condition');
     const skill = {
       ...canonical,
       effects: [{ ...effect, ticks: [0, 1250, 1250, 3000].map((atMs) => ({ ...effect.ticks[0], atMs })) }]
     };
+    const cast = { skill, id: 'stance', command: {}, start: 10, fullEnd: 10, effectiveEnd: 10 };
     const scheduled = [];
-    const handler = runtime.skillHandlerFor(skill);
-    assert.equal(handler.mode, 'replace');
-    handler.beforeEffects(
-      {
-        start: 10,
-        fullEnd: 10,
-        effectiveEnd: 10,
-        reservationId: 'stance',
-        state: {},
-        schedulerPolicy: {
-          effectTiming: (_context, _skill, authored) => ({
-            ...authored,
-            ticks: authored.ticks.map((tick) => ({ ...tick, atMs: tick.atMs * 2 }))
-          })
-        },
-        tasks: { schedule: (task) => scheduled.push(task) },
-        emit: () => assert.fail('Pulses must wait for their scheduled tasks'),
-        replaceEvent: () => assert.fail('No placeholder packets should be emitted')
-      },
+    schedulePrimordialStance(
+      { schedule: (type, at, data, owner) => scheduled.push({ type, at, data, owner }) },
+      cast,
       skill
     );
     assert.deepEqual(
       scheduled.map((task) => task.at),
-      [12.5, 16]
+      [11.25, 13]
     );
-    assert.ok(scheduled.every((task) => task.ownerId === 'stance' && task.payload.captured.sourceId === id));
+    assert.ok(scheduled.every((task) => task.owner.id === cast.id && task.data === cast));
   }
 });
 
@@ -187,7 +175,7 @@ test('Primordial Stance retains dynamic profile patches and activation ownership
       }
     }
   });
-  const result = simulateGw2({
+  const result = runElementalist({
     profession,
     config: {
       specialization: 'Weaver',
@@ -220,24 +208,26 @@ test('Primordial Stance retains dynamic profile patches and activation ownership
 test('Primordial Stance does not restore removed profile effects through fallback values', () => {
   // Removing the active attunement's condition and strike leaves this pulse with nothing to emit.
   const context = {
-    catalog: applyBalanceProfilePatch(elementalistCatalog, {
+    helpers: applyBalanceProfilePatch(elementalistCatalog, {
       balanceProfiles: {
         [WEAVER_BALANCE_PROFILE_IDS.primordialStance]: {
           removeEffects: [{ type: 'strike' }, { type: 'condition', name: 'Fire' }]
         }
       }
     }),
-    state: {
-      profession: {
-        core: { primaryAttunement: 'Fire' },
-        specialization: { kind: 'Weaver', state: { secondaryAttunement: 'Fire' } }
-      }
+    time: 1,
+    profession: {
+      core: { primaryAttunement: 'Fire' },
+      specialization: { kind: 'Weaver', state: { secondaryAttunement: 'Fire' } }
     },
     tasks: { schedule: () => 'pulse', cancel: () => {} },
     emit: () => assert.fail('Removed profile effects must not emit')
   };
-  const id = primordialStance.start(context, { times: [1], captured: { sourceId: ID.PRIMORDIAL_STANCE_FIRE } });
-  primordialStance.consume(context, id, 1);
+  primordialStancePulse(context, {
+    skill: elementalistCatalog.skillsById.get(ID.PRIMORDIAL_STANCE_FIRE),
+    id: 'stance',
+    command: {}
+  });
 });
 
 test('Primordial Stance variants share charges and count recharge', () => {
@@ -338,7 +328,7 @@ test('Weaver mechanics execute through native hooks', () => {
   assert.ok(weaveSelfFire.at > weaveSelf.at);
   assert.ok(weaveSelfFire.at < weaveSelf.endsAt);
   assert.equal(
-    weaveSelf.rechargeReadyAt - weaveSelfFire.at,
+    observedRuntime(result).cooldowns.get(weaveSelf.skillId) - weaveSelfFire.at,
     elementalistCatalog.skillsByName.get('Weave Self').cooldown / 1.25
   );
 });

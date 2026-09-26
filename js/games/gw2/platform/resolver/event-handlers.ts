@@ -45,9 +45,8 @@ function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions:
 /**
  * Connects shared hit and condition resolvers directly to standard GW2 event handlers.
  *
- * Swap, control, and strike sigils are materialized by the shared GW2
- * scheduler policy. Resolver reactions own critical Air/Earth/Torment effects
- * so only surviving damage packets can trigger them.
+ * The unified runtime applies swap, control, and strike equipment reactions to actual events.
+ * Critical sigils share the resolved hit outcome and claim their ICD once.
  */
 export function createGw2ResolverEventHandlers({
   hitResolution,
@@ -66,6 +65,8 @@ export function createGw2ResolverEventHandlers({
     marker: noop,
     proc: noop,
     resource: noop,
+    // Self conditions are observable resources, never incoming damage in the fixed-full-health simulation.
+    self_condition: noop,
     'gw2.transition-lockout'(ctx, event) {
       // Preserve forced recovery for timeline occupancy without applying combat effects.
       if (ctx.reporting) ctx.resolved.push(event);

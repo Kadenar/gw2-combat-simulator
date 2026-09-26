@@ -1,5 +1,10 @@
 import test from 'node:test';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 
 import { assertManifestRegressions } from './preset-benchmark.js';
 
-test('Warrior presets load and stay within 1% DPS', () => assertManifestRegressions('warrior'));
+// Exercise the registered live family until the common application entry cuts over in phase 6.
+test('Warrior presets load and stay within 1% DPS', () =>
+  assertManifestRegressions('warrior', (adapter, rotation, config) =>
+    runGw2Runtime({ profession: adapter.profession.runtimeFor(config), config, rotation })
+  ));

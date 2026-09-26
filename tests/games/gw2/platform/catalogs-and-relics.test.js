@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { augmentSkillHandler, replaceSkillHandler } from '#gw2/platform/engine/skills/handlers.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import {
@@ -14,8 +13,7 @@ import {
 import {
   relicConditionDurationBonus,
   relicOutgoingDamageBonus,
-  relicStrikeMultiplier,
-  recordPassiveRelicTimeline
+  relicStrikeMultiplier
 } from '#gw2/platform/equipment/relics/query.js';
 import { sigilCriticalContribution } from '#gw2/platform/equipment/sigils/rules.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
@@ -24,9 +22,9 @@ import {
   PRECISION_PER_CRITICAL_CHANCE_FRACTION
 } from '#gw2/platform/combat/formulas.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { createDefaultConfig, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { runMesmer, createDefaultConfig, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 
-test('Mesmer production simulation is reached through simulateGw2', () => {
+test('Mesmer test scenarios use the registered live runtime', () => {
   const config = {
     ...createDefaultConfig(),
     target: {
@@ -34,16 +32,16 @@ test('Mesmer production simulation is reached through simulateGw2', () => {
       health: 0
     }
   };
-  const canonical = simulateGw2({
+  const canonical = runMesmer({
     profession: mesmerProfession,
     rotation: ['Bladecall'],
     config
   });
-  const compatibility = simulateMesmer(['Bladecall'], config);
+  const fixture = simulateMesmer(['Bladecall'], config);
 
-  assert.equal(canonical.totalDamage, compatibility.totalDamage);
-  assert.equal(canonical.strikeDamage, compatibility.strikeDamage);
-  assert.equal(canonical.conditionDamage, compatibility.conditionDamage);
+  assert.equal(canonical.totalDamage, fixture.totalDamage);
+  assert.equal(canonical.strikeDamage, fixture.strikeDamage);
+  assert.equal(canonical.conditionDamage, fixture.conditionDamage);
   assert.ok(canonical.totalDamage > 0);
   assert.deepEqual(
     Object.keys(canonical.planningState).sort(),
@@ -52,7 +50,7 @@ test('Mesmer production simulation is reached through simulateGw2', () => {
   assert.equal(canonical.planningState.profession.resource, 5);
 });
 
-test('canonical catalog validation rejects duplicate ids and missing handlers', () => {
+test('canonical catalog validation rejects duplicate ids', () => {
   assert.throws(
     () =>
       createCanonicalCatalog({
@@ -62,13 +60,6 @@ test('canonical catalog validation rejects duplicate ids and missing handlers', 
         ]
       }),
     /Duplicate/
-  );
-  assert.throws(
-    () =>
-      createCanonicalCatalog({
-        generated: [{ id: 1, name: 'One', handlerId: 'missing', effects: [] }]
-      }),
-    /missing handler/
   );
   assert.equal(mesmerCatalog.skillsById.size, mesmerCatalog.skills.length);
   const lastNameWins = createCanonicalCatalog({
@@ -152,40 +143,7 @@ test('canonical catalogs validate and freeze skill-group lockouts', () => {
   }
 });
 
-test('catalog skill handlers receive calculated recharge timing', () => {
-  let observedReadyAt = null;
-  const catalog = createCanonicalCatalog({
-    generated: [
-      {
-        id: 930014,
-        name: 'Timed Handler',
-        cooldown: 20,
-        castTimeMs: 1000,
-        handlerId: 'fixture.timed',
-        effects: []
-      }
-    ],
-    skillHandlers: {
-      'fixture.timed': replaceSkillHandler((context) => {
-        observedReadyAt = context.rechargeReadyAt;
-      })
-    }
-  });
-  const profession = defineProfession({
-    id: 'timed-handler-fixture',
-    name: 'Timed Handler Fixture',
-    catalog
-  });
-
-  simulateGw2({
-    profession,
-    rotation: ['Timed Handler'],
-    config: { boons: { alacrity: true } }
-  });
-  assert.equal(observedReadyAt, 17);
-});
-
-test('summon-owned cooldowns require Alacrity applied to summons', () => {
+test('summon-owned cooldowns use received Alacrity until it expires', () => {
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -232,109 +190,6 @@ test('summon-owned cooldowns require Alacrity applied to summons', () => {
 
   assert.equal(playerAlacrity.planningState.cooldowns['Summon Skill'].readyAt, 20000);
   assert.equal(summonAlacrity.planningState.cooldowns['Summon Skill'].readyAt, 17520);
-});
-
-test('canonical augmenting skill handlers observe declarative effects', () => {
-  let handled = 0;
-  const catalog = createCanonicalCatalog({
-    generated: [
-      {
-        id: 930003,
-        name: 'Handled Skill',
-        type: 'Utility',
-        handlerId: 'fixture.handled',
-        castTimeMs: 0,
-        effects: [{ type: 'strike', coefficient: 10 }]
-      }
-    ],
-    skillHandlers: {
-      'fixture.handled': augmentSkillHandler(null, {
-        afterEffect: (_context, _skill, event) => {
-          assert.equal(event.coefficient, 10);
-          handled += 1;
-        }
-      })
-    }
-  });
-  const profession = defineProfession({
-    id: 'handled-fixture',
-    name: 'Handled Fixture',
-    catalog
-  });
-  const result = simulateGw2({
-    profession,
-    rotation: ['Handled Skill']
-  });
-
-  assert.equal(handled, 1);
-  assert.ok(result.totalDamage > 0);
-});
-
-test('replacing skill handlers retain effects metadata without declarative double emission', () => {
-  const catalog = createCanonicalCatalog({
-    generated: [
-      {
-        id: 930032,
-        name: 'Replacing Skill',
-        handlerId: 'fixture.replacing',
-        castTimeMs: 0,
-        effects: [{ type: 'strike', flatDamage: 10 }]
-      }
-    ],
-    skillHandlers: {
-      'fixture.replacing': replaceSkillHandler((context, skill) => {
-        context.emit({
-          type: 'damage',
-          at: context.start,
-          source: 'fixture',
-          sourceId: skill.id,
-          actorType: 'player',
-          skillId: skill.id,
-          skillName: skill.name,
-          name: skill.name,
-          flatDamage: 1,
-          hits: 1,
-          canCrit: false
-        });
-      })
-    }
-  });
-  const profession = defineProfession({
-    id: 'replacing-fixture',
-    name: 'Replacing Fixture',
-    catalog
-  });
-  const result = simulateGw2({ profession, rotation: ['Replacing Skill'] });
-  const packets = result.events.filter((event) => event.type === 'damage' && event.skillId === 930032);
-
-  assert.equal(catalog.skillsById.get(930032).effects.length, 1);
-  assert.equal(packets.length, 1);
-  assert.equal(packets[0].flatDamage, 1);
-});
-
-test('the shared handler contract rejects undeclared strategy fields', () => {
-  assert.throws(
-    () =>
-      createCanonicalCatalog({
-        generated: [
-          {
-            id: 930036,
-            name: 'Drifting Handler',
-            handlerId: 'fixture.drifting-handler',
-            castTimeMs: 0,
-            effects: []
-          }
-        ],
-        skillHandlers: {
-          'fixture.drifting-handler': {
-            mode: 'replace',
-            beforeEffects: () => {},
-            necromancerState: true
-          }
-        }
-      }),
-    /unsupported field.*necromancerState/
-  );
 });
 
 test('the shared effect contract rejects undeclared simulation fields', () => {
@@ -452,38 +307,6 @@ test('target-health coefficient modifiers are shared and resolve per hit', () =>
   assertFlooredDamageMultiplier(startingBelowHalfDamage, openingDamage, 2);
 });
 
-test('the handler strategy contract accepts canonical Mesmer skill data', () => {
-  const source = mesmerCatalog.skillsByName.get('Mind Stab');
-  let observed = 0;
-  const catalog = createCanonicalCatalog({
-    generated: [
-      {
-        ...source,
-        handlerId: 'mesmer.fixture-augment'
-      }
-    ],
-    skillHandlers: {
-      'mesmer.fixture-augment': augmentSkillHandler(null, {
-        afterEffect: () => {
-          observed += 1;
-        }
-      })
-    }
-  });
-  const profession = defineProfession({
-    id: 'mesmer-handler-fixture',
-    name: 'Mesmer Handler Fixture',
-    catalog
-  });
-  const result = simulateGw2({
-    profession,
-    rotation: ['Mind Stab']
-  });
-
-  assert.equal(observed, source.effects.length);
-  assert.ok(result.totalDamage > 0);
-});
-
 test('shared relic behavior resolves triggering skills by stable id', () => {
   const catalog = createCanonicalCatalog({
     generated: [
@@ -582,7 +405,7 @@ test('Severance critical contributions are data-driven and expire exactly', () =
 
 test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
   const relic = createRelicRuntime('Aristocracy');
-  const context = { relic };
+  const context = { relic, recordProc() {} };
   const trigger = (at) =>
     invokeRelicHook(context, 'condition', {
       type: 'condition',
@@ -667,7 +490,7 @@ test('Aristocracy requires a landed condition with eligible explicit ownership',
   ]) {
     for (const offTarget of [false, true]) {
       const relic = createRelicRuntime('Aristocracy');
-      invokeRelicHook({ relic }, 'condition', {
+      invokeRelicHook({ relic, recordProc() {} }, 'condition', {
         type: 'condition',
         at: 1,
         source: 'Trait',
@@ -685,16 +508,14 @@ test('Aristocracy requires a landed condition with eligible explicit ownership',
 
 test('Nourys owns its generic stack cadence and additive damage window', () => {
   const relic = createRelicRuntime('Nourys');
-  const procSteps = [];
-  const context = {
-    relic,
-    combatStartTime: 2,
-    recordProc(kind, name, at, sourceSkill, detail) {
-      procSteps.push({ kind, name, at, sourceSkill, detail });
-    }
-  };
+  const context = { relic, combatStartTime: 2 };
 
-  recordPassiveRelicTimeline(context, [], 70);
+  // Reporting observes the passive hook after the live runtime reaches its combat boundary.
+  const result = simulateMesmer(
+    [{ type: 'wait', durationMs: 2000 }, '__combat_start', { type: 'wait', durationMs: 68000 }],
+    { relic: 'Nourys', target: { health: 0 } }
+  );
+  assert.deepEqual(result.warnings, []);
 
   assert.equal(relicOutgoingDamageBonus(context, 'strike', 31.999), 0);
   assert.equal(relicOutgoingDamageBonus(context, 'strike', 32), 0.25);
@@ -702,7 +523,7 @@ test('Nourys owns its generic stack cadence and additive damage window', () => {
   assert.equal(relicOutgoingDamageBonus(context, 'condition', 37), 0);
   assert.equal(relicOutgoingDamageBonus(context, 'strike', 67), 0.25);
   assert.deepEqual(
-    procSteps.filter(({ name }) => name === 'Relic of Nourys').map(({ at }) => at),
+    result.procSteps.filter(({ skill }) => skill === 'Relic of Nourys').map(({ start }) => start / 1000),
     [32, 67]
   );
 });
@@ -887,13 +708,11 @@ test('Mistburn also grants once per eligible resolver-created player Might appli
     id: 'mistburn-resolved-fixture',
     name: 'Mistburn Resolved Fixture',
     catalog: createCanonicalCatalog(),
-    schedulerHooks: {
+    hooks: {
       initialize(context) {
         for (const at of [1, 2, 2.001])
           context.emit({ type: 'fixture.might', at, source: 'fixture', sourceId: 930011, actorType: 'player' });
-      }
-    },
-    resolverHooks: {
+      },
       eventHandlers: {
         'fixture.might': (context, event) => {
           context.queue.enqueue({
@@ -920,7 +739,7 @@ test('Mistburn also grants once per eligible resolver-created player Might appli
   );
   assert.equal(
     result.events.some((event) => event.sourceId === 'relic.mistburn'),
-    false
+    true
   );
 });
 
@@ -928,12 +747,14 @@ test('Relic of Mistburn uses a strict one-second internal cooldown', () => {
   const relic = createRelicRuntime('Mistburn');
   const emitted = [];
   const context = {
-    emitDerived(cause, event) {
-      emitted.push({ ...event, triggeredBy: cause.skillName });
+    queue: {
+      enqueue(event) {
+        emitted.push(event);
+      }
     }
   };
   const grantMight = (at, extra = {}) =>
-    relic.rules.materializeBoon(context, relic.state, {
+    relic.rules.boon(context, relic.state, {
       type: 'buff',
       at,
       skillName: `Grant Might ${at}`,

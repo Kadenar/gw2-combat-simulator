@@ -4,47 +4,11 @@ import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 
-test('scheduler recharge sees reentrant grants and same-length replacements before the next cast', () => {
-  // A nested grant is indexed before its observation callback runs, and replacing it must invalidate cached windows.
-  const skill = { id: 990020, name: 'Cached recharge', castTimeMs: 0, cooldown: 10, effects: [] };
-  let grant;
-  let nestedReadyAt;
-  const owner = { source: 'fixture', sourceId: 'fixture', actorType: 'player' };
-  const profession = defineProfession({
-    id: 'cached-recharge',
-    name: 'Cached Recharge',
-    catalog: createCanonicalCatalog({ generated: [skill] }),
-    schedulerHooks: {
-      onEventScheduled(context, event) {
-        if (event.type !== 'marker' || event.action !== 'grant-alacrity') return;
-        grant = context.emit({ ...owner, type: 'buff', kind: 'alacrity', at: 2, duration: 4, stacks: 1 });
-        context.cooldownController.refresh(2);
-        nestedReadyAt = context.state.cooldowns.get(skill.id);
-      }
-    }
-  });
-  const scheduler = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() });
-  scheduler.cast({ type: 'cast', skillId: skill.id });
-  scheduler.advanceTo(2);
-  assert.equal(scheduler.state.cooldowns.get(skill.id), 10);
-  scheduler.context.emit({ ...owner, type: 'marker', action: 'grant-alacrity', at: 2 });
-  assert.equal(nestedReadyAt, 9);
-  grant = scheduler.context.replaceEvent(grant, { cancelled: true });
-  scheduler.context.cooldownController.refresh(2);
-  assert.equal(scheduler.state.cooldowns.get(skill.id), 10);
-  scheduler.context.replaceEvent(grant, { cancelled: false, duration: 8 });
-  scheduler.context.cooldownController.refresh(2);
-  assert.equal(scheduler.state.cooldowns.get(skill.id), 8.4);
-  assert.deepEqual(scheduler.warnings, []);
-});
-
-// Minimal recharges isolate boon-rate integration and tick detection from profession rotations.
-test('cooldowns and serial ammo integrate intermittent Alacrity before checking the absolute tick', () => {
+// Minimal recharges isolate permanent Alacrity and tick detection from profession rotations.
+test('cooldowns and serial ammo assume permanent Alacrity before checking the absolute tick', () => {
   const profession = defineProfession({
     id: 'alacrity-recharge',
     name: 'Alacrity recharge',
@@ -63,12 +27,13 @@ test('cooldowns and serial ammo integrate intermittent Alacrity before checking 
   });
   const wait = (durationMs) => ({ type: 'wait', durationMs });
   for (const [rotation, boons, expected] of [
-    [['Cooldown', 'Cooldown'], {}, 10],
+    [['Cooldown', 'Cooldown'], {}, 8],
+    [['Cooldown', 'Cooldown'], { alacrity: false }, 8],
     [['Cooldown', 'Cooldown'], { alacrity: true }, 8],
-    [['Cooldown', wait(2000), 'Alacrity', 'Cooldown'], {}, 9],
-    [['Alacrity', 'Cooldown', 'Cooldown'], {}, 9],
-    [['Cooldown', 'Alacrity', wait(6000), 'Alacrity', 'Cooldown'], {}, 8.4],
-    [['Ammo', 'Ammo', wait(2000), 'Alacrity', 'Ammo'], {}, 9]
+    [['Cooldown', wait(2000), 'Alacrity', 'Cooldown'], {}, 8],
+    [['Alacrity', 'Cooldown', 'Cooldown'], {}, 8],
+    [['Cooldown', 'Alacrity', wait(6000), 'Alacrity', 'Cooldown'], {}, 8],
+    [['Ammo', 'Ammo', wait(2000), 'Alacrity', 'Ammo'], {}, 8]
   ]) {
     const result = simulateGw2({ profession, rotation, config: { boons } });
     const action = result.events.findLast((event) => event.type === 'action');
@@ -77,8 +42,8 @@ test('cooldowns and serial ammo integrate intermittent Alacrity before checking 
   }
 });
 
-// A boon learned after reservation changes deadlines without changing the cast's committed base amounts.
-test('Alacrity gained during a cast updates reserved recharge and the independent ammo lockout', () => {
+// Transient grants cannot change the permanent recharge rate or the independent ammo lockout.
+test('Alacrity gained during a cast leaves reserved recharge and the independent ammo lockout unchanged', () => {
   for (const ammo of [false, true]) {
     const profession = defineProfession({
       id: 'reserved-recharge',
@@ -96,30 +61,37 @@ test('Alacrity gained during a cast updates reserved recharge and the independen
         ]
       })
     });
-    const scheduler = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() });
-    scheduler.cast({ type: 'cast', skillId: 990011 });
-    scheduler.advanceTo(1);
-    scheduler.context.emit({
-      type: 'buff',
-      kind: 'alacrity',
-      at: 1,
-      duration: 4,
-      stacks: 1,
-      source: 'fixture',
-      sourceId: 'fixture',
-      actorType: 'player'
+    const result = simulateGw2({
+      profession: {
+        runtimeFor(config) {
+          return {
+            ...profession.runtimeFor(config),
+            initialize(runtime) {
+              runtime.emit({
+                type: 'buff',
+                kind: 'alacrity',
+                at: 1,
+                duration: 4,
+                stacks: 1,
+                source: 'fixture',
+                sourceId: 'fixture',
+                actorType: 'player'
+              });
+            },
+            onCastComplete(runtime, cast) {
+              if (cast.start !== 0) return;
+              if (ammo) {
+                assert.equal(runtime.ammo.get(990011).nextRechargeAt, 18);
+                assert.equal(runtime.ammo.get(990011).lockoutReadyAt, 6);
+              } else assert.equal(runtime.cooldowns.get(990011), 18);
+            }
+          };
+        }
+      },
+      rotation: ['Reserved', 'Reserved']
     });
-    scheduler.advanceTo(2);
-    if (ammo) {
-      assert.equal(scheduler.state.ammo.get(990011).nextRechargeAt, 21.25);
-      assert.equal(scheduler.state.ammo.get(990011).lockoutReadyAt, 6.25);
-    } else {
-      assert.equal(scheduler.state.cooldowns.get(990011), 21.25);
-    }
-
-    scheduler.cast({ type: 'cast', skillId: 990011 });
-    assert.equal(scheduler.events.findLast((event) => event.type === 'action').at, ammo ? 6.28 : 21.28);
-    assert.deepEqual(scheduler.warnings, []);
+    assert.equal(result.events.findLast((event) => event.type === 'action').at, ammo ? 6 : 18);
+    assert.deepEqual(result.warnings, []);
   }
 });
 
@@ -141,8 +113,8 @@ test('ordinary and ammo cooldowns wait for their detection tick even one microse
       id: 990010,
       name: 'Tick cooldown',
       castTimeMs: 0,
-      cooldown: 0.38,
-      ...(ammo ? { ammo: 2, ammoRecharge: 0.38, ammoCastLockout: 0 } : {}),
+      cooldown: 0.475,
+      ...(ammo ? { ammo: 2, ammoRecharge: 0.475, ammoCastLockout: 0 } : {}),
       effects: []
     };
     const profession = defineProfession({
@@ -187,49 +159,32 @@ test('GW2 base recharge accepts finite cooldowns and defaults missing or invalid
   assert.equal(gw2BaseRecharge({}), 0);
 });
 
-// Scheduler queries use the same finite base selection without mistaking charge recharge for cast lockout.
-test('scheduler recharge queries share base selection and preserve independent ammo lockouts', () => {
-  const { context } = createScheduler({
-    profession: defineProfession({ id: 'recharge-query', name: 'Recharge Query' })
-  });
-  const skill = { id: 990021, ammo: 2, ammoRecharge: 8, cooldown: 10, ammoCastLockout: 0.5 };
-  assert.equal(context.rechargeDurationFor(skill), 8);
-  assert.equal(context.rechargeDurationFor(skill, 0, { ammoCastLockout: true }), 0.5);
-  assert.equal(context.rechargeDurationFor({ ...skill, ammoRecharge: Infinity }), 10);
-});
-
 // Each spent charge recovers independently of the between-cast lockout.
 test('Warrior ammo preserves charge recovery and its independent cast lockout', () => {
-  const scheduler = createScheduler({
-    profession: warriorProfession,
-    config: { selectedSkills: ['Throw Bolas'] }
+  const config = { selectedSkills: ['Throw Bolas'] };
+  const native = warriorProfession.runtimeFor(config);
+  const skill = native.catalog.skillsByName.get('Throw Bolas');
+  const seen = [];
+  const result = simulateGw2({
+    profession: {
+      runtimeFor: () => ({
+        ...native,
+        onCastComplete(runtime, cast) {
+          native.onCastComplete?.(runtime, cast);
+          if (cast.skill.id === skill.id)
+            seen.push({ start: cast.start, end: cast.effectiveEnd, ammo: { ...runtime.ammo.get(skill.id) } });
+        }
+      })
+    },
+    config,
+    rotation: [skill.id, skill.id, skill.id]
   });
-  const { context, state } = scheduler;
-  const skill = context.catalog.skillsByName.get('Throw Bolas');
-  assert.equal(skill.cooldown, 16);
-  assert.equal(skill.ammoCastLockout, 1);
-  assert.equal(Object.hasOwn(skill, 'recharge'), false);
-
-  assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);
-  const first = scheduler.events.findLast((event) => event.type === 'action');
-  scheduler.advanceTo(first.endsAt);
-  const ammo = state.ammo.get(skill.id);
-  assert.equal(ammo.charges, 1);
-  assert.equal(ammo.nextRechargeAt, first.endsAt + 16);
-  assert.equal(state.cooldowns.get(skill.id), first.endsAt + 1);
-
-  assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);
-  const second = scheduler.events.findLast((event) => event.type === 'action');
-  assert.equal(second.at, gw2CooldownReadyAt(first.endsAt + 1));
-  scheduler.advanceTo(second.endsAt);
-  assert.equal(ammo.charges, 0);
-  assert.equal(state.cooldowns.get(skill.id), first.endsAt + 16);
-  scheduler.advanceTo(gw2CooldownReadyAt(first.endsAt + 16));
-  context.cooldownController.refreshAmmo(skill, state.time);
-  assert.equal(ammo.charges, 1);
-  assert.equal(ammo.nextRechargeAt, gw2CooldownReadyAt(first.endsAt + 16) + 16);
-  assert.equal(state.cooldowns.has(skill.id), false);
-  assert.deepEqual(scheduler.warnings, []);
+  assert.equal(seen[0].ammo.charges, 1);
+  assert.equal(seen[0].ammo.nextRechargeAt, seen[0].end + 12.8);
+  assert.equal(seen[1].start, gw2CooldownReadyAt(seen[0].end + 0.8));
+  assert.equal(seen[1].ammo.charges, 0);
+  assert.equal(seen[2].start, gw2CooldownReadyAt(seen[0].end + 12.8));
+  assert.deepEqual(result.warnings, []);
 });
 
 test('declarative ammo consumes and recharges shared charges', () => {
@@ -261,14 +216,14 @@ test('declarative ammo consumes and recharges shared charges', () => {
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'damage').length, 2);
   assert.deepEqual(
     result.events.filter((event) => event.type === 'action').map((event) => event.at),
-    [0, 0.28]
+    [0, 0.2]
   );
   assert.deepEqual(result.planningState.ammo['Fixture Ammo'], {
     charges: 1,
     maximum: 2,
     rechargeWork: 5,
-    nextRechargeAt: 10,
-    lockoutReadyAt: 0.56
+    nextRechargeAt: 8,
+    lockoutReadyAt: 0.4
   });
 });
 
@@ -314,7 +269,7 @@ test('end state projects ammo and cooldowns at the resolution boundary', () => {
     assert.equal(result.planningState.atSeconds * 1000, time);
     assert.equal(result.planningState.ammo[skill.name].charges, charges);
     assert.equal(result.planningState.ammoBySkillId[skill.id].charges, charges);
-    assert.deepEqual(result.planningState.cooldowns[skill.name], { readyAt: 30000, remaining: 30000 - time });
+    assert.deepEqual(result.planningState.cooldowns[skill.name], { readyAt: 24000, remaining: 24000 - time });
     rotationDamage ??= result.totalDamage;
     assert.ok(rotationDamage > 0);
     assert.equal(result.totalDamage, rotationDamage * (time > 1000 ? 2 : 1));
@@ -330,7 +285,7 @@ test("shared scheduler detects a skill's cooldown expiry on the next action tick
         name: 'Fixture Cooldown',
         type: 'Utility',
         castTimeMs: 0,
-        cooldown: 0.3,
+        cooldown: 0.375,
         effects: [{ type: 'strike', coefficient: 1 }]
       }
     ]
@@ -357,4 +312,68 @@ test("shared scheduler detects a skill's cooldown expiry on the next action tick
   assert.equal(result.planningState.atSeconds * 1000, 320);
   assert.equal(result.planningState.cooldowns['Fixture Cooldown'].readyAt, 640);
   assert.deepEqual(result.warnings, []);
+});
+
+// Delayed shared grants and extensions affect only elapsed summon recharge, including serial ammo.
+test('summon recharge requires shared player Alacrity and accounts for its expiry', () => {
+  for (const ammo of [false, true]) {
+    for (const sharePlayerBoonsWithSummons of [false, true]) {
+      for (const extension of [false, true]) {
+        const skill = {
+          id: 990020,
+          name: 'Summon recharge',
+          castTimeMs: 0,
+          cooldown: 10,
+          rechargeBuffAudience: 'summon',
+          effects: [],
+          ...(ammo ? { ammo: 2, ammoRecharge: 10 } : {})
+        };
+        const profession = defineProfession({
+          id: 'summon-recharge',
+          name: 'Summon recharge',
+          catalog: createCanonicalCatalog({ generated: [skill] })
+        });
+        const result = simulateGw2({
+          profession: {
+            runtimeFor(config) {
+              return {
+                ...profession.runtimeFor(config),
+                initialize(runtime) {
+                  const owner = { source: 'fixture', sourceId: 'fixture', actorType: 'player' };
+                  runtime.emit({
+                    ...owner,
+                    type: 'buff',
+                    kind: 'alacrity',
+                    at: 2,
+                    duration: 4,
+                    stacks: 1,
+                    audience: { recipients: 'party', eligibleCompanionIds: ['fixture-summon'] }
+                  });
+                  if (extension)
+                    runtime.emit({
+                      ...owner,
+                      type: 'boon_extension',
+                      at: 3,
+                      kind: 'alacrity',
+                      duration: 2,
+                      extensionAudience: 'all'
+                    });
+                }
+              };
+            }
+          },
+          rotation: [skill.id, ...(ammo ? [skill.id] : []), skill.id],
+          config: {
+            specialization: 'Chronomancer',
+            boons: { alacrity: true },
+            allies: { count: 0 },
+            sharePlayerBoonsWithSummons
+          }
+        });
+        const expected = sharePlayerBoonsWithSummons ? (extension ? 8.52 : 9) : 10;
+        assert.equal(result.events.findLast((event) => event.type === 'action').at, expected);
+        assert.deepEqual(result.warnings, []);
+      }
+    }
+  }
 });

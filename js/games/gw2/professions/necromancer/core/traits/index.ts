@@ -1,14 +1,7 @@
-import { scheduleSkillLifeForceGain } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 /** Dispatches Core Necromancer trait lines in their established cross-line reaction order. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type {
-  NecromancerCastContext,
-  NecromancerResolverContext,
-  NecromancerResolverEvent,
-  NecromancerSkill
-} from '#gw2/professions/necromancer/types.js';
+import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 import {
   applyBitterChill,
   applyChillingDarkness,
@@ -19,29 +12,19 @@ import {
 import {
   applyChillOfDeath,
   applyChillOfDeathCondition,
-  applyMaliciousSwarm,
   applyReapersMight,
-  applySignetsOfSuffering,
-  applySiphonedPower,
-  applySpitefulFortitude
+  applySiphonedPower
 } from '#gw2/professions/necromancer/core/traits/spite.js';
+import { applyDhuumfire, applyUnyieldingBlast } from '#gw2/professions/necromancer/core/traits/soul-reaping.js';
 import {
-  applyDhuumfire,
-  applyFearOfDeath,
-  applyUnyieldingBlast
-} from '#gw2/professions/necromancer/core/traits/soul-reaping.js';
-import {
-  applyOverflowingThirst,
   applyOverflowingThirstDamage,
-  applyTransfusion,
   applyVampiric,
   applyVampiricPresence,
   reactToTasteForBloodAlliedHit,
   reactToTasteForBloodGrant,
   reactToVampiricPresenceAlliedHit
 } from '#gw2/professions/necromancer/core/traits/blood-magic.js';
-import { applyCorruptorsFervor, applyDarkDefense } from '#gw2/professions/necromancer/core/traits/death-magic.js';
-import { castCompleted } from '#gw2/platform/skills/timing.js';
+import { applyCorruptorsFervor } from '#gw2/professions/necromancer/core/traits/death-magic.js';
 
 export {
   applyTraitCondition,
@@ -55,56 +38,6 @@ export {
   reactToTasteForBloodGrant,
   reactToVampiricPresenceAlliedHit
 };
-
-/** Reconciles completed-cast flips and Fear of Death before later trait effects are emitted. */
-function updateNecromancerCastState(context: NecromancerCastContext, skill: NecromancerSkill): void {
-  const state = professionCoreState(context);
-  const completed = castCompleted(context);
-  if (!completed) return;
-
-  const chainNext = context.catalog.autoattackChainPositions.get(Number(skill.id))?.next;
-  // Arm explicit timed flips while leaving autoattack chains and minion commands to their dedicated controllers.
-  if (
-    skill.flipSkillId != null &&
-    skill.flipSkillId !== chainNext &&
-    skill.flipSkillId !== skill.nextChainId &&
-    skill.handlerId !== 'necromancer.minion' &&
-    // Dedicated flip handlers own their active windows; cooldowns must not extend those windows.
-    skill.handlerId !== 'necromancer.flip'
-  ) {
-    const flip = context.catalog.skillsById.get(skill.flipSkillId);
-    if (flip && flip.name !== skill.name && flip.flipParentId === skill.id) {
-      armSkillFlip(
-        state.availableFlips,
-        flip.id,
-        context.effectiveEnd,
-        context.rechargeStart + Math.max(1, Number(skill.flipDuration ?? skill.cooldown ?? 5))
-      );
-    }
-  }
-
-  // A completed child cast consumes its own armed flip unless it is a persistent shroud exit.
-  if (skill.flipParentId != null && !skill.shroudExit && skill.handlerId !== 'necromancer.minion-command') {
-    consumeSkillFlip(state.availableFlips, skill.id);
-  }
-
-  applyFearOfDeath(context, skill);
-}
-
-/** Grants cast-start traits before the activating skill can consume their state. */
-export function applyNecromancerCastStartTraits(context: NecromancerCastContext, skill: NecromancerSkill): void {
-  applyOverflowingThirst(context, skill);
-}
-
-/** Applies completion-gated Core trait effects before finalizing shared life-force state. */
-export function applyNecromancerAfterCastTraits(context: NecromancerCastContext, skill: NecromancerSkill): void {
-  updateNecromancerCastState(context, skill);
-  applyDarkDefense(context, skill);
-  applySignetsOfSuffering(context, skill);
-  applyMaliciousSwarm(context, skill);
-  applyTransfusion(context, skill);
-  scheduleSkillLifeForceGain(context, skill);
-}
 
 /** Applies all Core Necromancer traits triggered by one resolved player or summon strike. */
 export function reactToNecromancerCoreDamage(
@@ -121,7 +54,6 @@ export function reactToNecromancerCoreDamage(
   applyVampiric(context, event);
   applyReapersMight(context, event, firstHit, shroudSkillOne);
   applySiphonedPower(context, event);
-  applySpitefulFortitude(context, event);
   applyChillOfDeath(context, event);
   applyDhuumfire(context, event, skill?.dhuumfireDuration, shroudSkillOne);
   applyUnyieldingBlast(context, event, firstHit, shroudSkillOne);

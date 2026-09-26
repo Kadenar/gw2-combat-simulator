@@ -23,6 +23,6 @@ export interface MesmerResourceDefinition {
 }
 
 export interface MesmerResourceSpendDetails {
-  readonly sourceSkill?: string;
-  readonly rotationIndex?: number | null;
+  /** Resource spends belong to their accepted cast, including delayed commitment. */
+  readonly activationId?: string;
 }

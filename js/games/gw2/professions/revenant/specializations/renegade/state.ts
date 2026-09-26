@@ -13,7 +13,7 @@ export interface RenegadeState {
   razorclawsRage: ChargeGrant;
   endlessEnmityReadyAt: number;
   bloodFuryReadyAt: number;
-  /** Scheduler-owned deadline for Brutal Momentum's Vigor reaction. */
+  /** Deadline for Brutal Momentum's Vigor reaction to applied Fury. */
   brutalMomentumReadyAt: number;
   soulcleaveReadyAt: number;
 }

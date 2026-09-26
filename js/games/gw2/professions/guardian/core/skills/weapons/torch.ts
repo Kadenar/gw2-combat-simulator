@@ -49,6 +49,8 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Par
     )
   },
   [ID.ZEALOTS_FLAME]: {
+    // Zealot's Fire stays available while the flame burns; Radiant Fire lengthens it.
+    flipDuration: 3,
     // Fire sets this lockout; another actual skill clears it at commitment.
     lockouts: [{ group: 'guardian-zealots-flame-after-fire', durationMs: 400 }],
     castTimeMs: 0,

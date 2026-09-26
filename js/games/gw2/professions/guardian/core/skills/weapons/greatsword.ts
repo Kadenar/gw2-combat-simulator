@@ -139,6 +139,8 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.BINDING_BLADE]: {
     castTimeMs: 480,
+    // Pull Self stays available for the tether's lifetime.
+    flipDuration: 10,
     effects: [
       {
         type: 'strike',

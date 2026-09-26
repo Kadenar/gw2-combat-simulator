@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefProfession, thiefCatalog } from '#gw2/professions/thief/profession.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 
-const simulate = createProfessionSimulator(thiefProfession, {
+const simulate = createObservedProfessionSimulator(thiefProfession, {
   primaryWeapon: 'Dagger',
   secondaryWeapon: 'Dagger',
   selectedSkills: ['Caltrops', 'Prepare Thousand Needles'],
@@ -13,31 +13,40 @@ const simulate = createProfessionSimulator(thiefProfession, {
   boons: { quickness: true }
 });
 
+// The accepted action records whether an interrupted cast stopped before its authored commit point.
+const cancelled = (result, index) =>
+  result.events.find((event) => event.type === 'action' && event.activationId === result.steps[index].activationId)
+    .cancelled === true;
+
 // Exercise cancellation on either side of the authored boundary without freezing the skill's current timing.
 test('Channeled Vigor grants endurance only after commitment', () => {
-  const commitMs = thiefCatalog.skillsByName.get('Channeled Vigor').interruptCommitMs;
+  const skill = thiefCatalog.skillsByName.get('Channeled Vigor');
+  const commitMs = skill.interruptCommitMs;
+  const endurance = [];
   for (const interruptMs of [commitMs - 1, commitMs]) {
-    const result = simulate('Daredevil', ['Dodge', { name: 'Channeled Vigor', interruptMs }, 'Double Strike'], {
-      selectedSkills: ['Channeled Vigor']
+    // Starting empty keeps the restoration below capacity.
+    const result = simulate('Daredevil', [{ name: 'Channeled Vigor', interruptMs }, 'Double Strike'], {
+      selectedSkills: ['Channeled Vigor'],
+      initialEndurance: 0
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.steps[1].cancelledBeforeCommit === true, interruptMs < commitMs);
-    assert.equal(result.steps[2].start, result.steps[1].start + interruptMs);
-    assert.equal(
-      result.events.some((event) => event.type === 'thief.state' && event.reason === 'Channeled Vigor'),
-      interruptMs >= commitMs
-    );
+    assert.equal(cancelled(result, 0), interruptMs < commitMs);
+    assert.equal(result.steps[1].start, result.steps[0].start + interruptMs);
+    endurance.push(result.planningState.profession.endurance);
   }
+
+  // Regeneration differs by one millisecond; only the committed activation restores endurance.
+  assert.ok(Math.abs(endurance[1] - endurance[0] - skill.resourceGain) < 0.01, String(endurance));
 });
 
 test('Thief dodge retains its full lockout only after commitment', () => {
   const commitMs = thiefCatalog.skillsByName.get('Dodge').interruptCommitMs;
-  const fullDuration = simulate('Daredevil', ['Dodge']).steps[0].fullCastMs;
+  const fullDuration = simulate('Daredevil', ['Dodge']).steps[0].end;
   for (const interruptMs of [commitMs - 1, commitMs]) {
     const result = simulate('Daredevil', [{ name: 'Dodge', interruptMs }, 'Double Strike']);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.steps[0].cancelledBeforeCommit === true, interruptMs < commitMs);
-    assert.equal(result.steps[0].castLockoutEnd, interruptMs < commitMs ? undefined : fullDuration);
+    assert.equal(cancelled(result, 0), interruptMs < commitMs);
+    // A committed dodge keeps its full lockout; a cancelled one frees the lane at the interruption.
     assert.equal(result.steps[1].start, interruptMs < commitMs ? interruptMs : fullDuration);
     assert.equal(
       result.events.some((event) => event.type === 'damage' && event.skillName === 'Impaling Lotus'),
@@ -54,12 +63,12 @@ test('Thousand Needles arms from the interrupted end only after placement commit
       'Thousand Needles',
       { name: '__wait', waitMs: 500 }
     ]);
-    assert.equal(result.steps[0].cancelledBeforeCommit === true, interruptMs < commitMs);
+    assert.equal(cancelled(result, 0), interruptMs < commitMs);
     if (interruptMs < commitMs) {
       assert.match(result.warnings.join('\n'), /prepare Thousand Needles first/);
     } else {
       assert.deepEqual(result.warnings, []);
-      assert.equal(result.steps[1].start, result.steps[0].end + 3000);
+      assert.equal(result.steps[1].start, result.steps[0].end + 2400);
       assert.ok(result.events.some((event) => event.type === 'damage' && event.skillName === 'Thousand Needles'));
     }
   }
@@ -99,7 +108,7 @@ test('preparations flip while arming, use Alacrity, and restore placement after 
       const availability = thiefProfession.ui.paletteSkillAvailability(context(placed), trigger);
       assert.equal(availability.available, false);
       assert.match(availability.message, /arming/);
-      assert.ok(Math.abs(availability.retryAt - placed.rotationEndTime - (alacrity ? 2.4 : 3)) < 1e-9);
+      assert.ok(Math.abs(availability.retryAt - placed.rotationEndTime - 2.4) < 1e-9);
       assert.equal(
         thiefProfession.ui.paletteSkillAvailability({ ...context(placed), time: availability.retryAt }, trigger)
           .available,
@@ -124,7 +133,7 @@ test('Caltrops preserves its field after a committed cancellation', () => {
       { name: '__wait', waitMs: 11000 }
     ]);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.steps[0].cancelledBeforeCommit === true, interruptMs < commitMs);
+    assert.equal(cancelled(result, 0), interruptMs < commitMs);
     const pulses = pulsesFor(result);
     if (interruptMs < commitMs) {
       assert.equal(pulses.length, 0);

@@ -80,8 +80,8 @@ function queueChillingNovaChill(
   );
 }
 
-/** Resolves summon combo finishers and Chilling Nova from one eligible damage packet. */
-function reactToDamage(
+/** Resolves Chilling Nova from actual strikes; combo production belongs to the caller's runtime. */
+export function reactToReaperDamage(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
   details: NativeResolvedDamageDetails = {}
@@ -93,7 +93,6 @@ function reactToDamage(
     if (chill) queueChillingNovaChill(context, event, profile, chill);
   }
 
-  resolveSummonOwnedComboFinisher(context, event);
   chillingNovaCriticalHit.handler(context, event, details);
 }
 
@@ -139,7 +138,14 @@ function reactToControl(context: NecromancerResolverContext, event: NecromancerR
 }
 
 export const reaperResolverEventReactions = Object.freeze({
-  damage: reactToDamage,
+  damage(
+    context: NecromancerResolverContext,
+    event: NecromancerResolverEvent,
+    details: NativeResolvedDamageDetails = {}
+  ) {
+    resolveSummonOwnedComboFinisher(context, event);
+    reactToReaperDamage(context, event, details);
+  },
   condition: reactToCondition,
   control: reactToControl
 });

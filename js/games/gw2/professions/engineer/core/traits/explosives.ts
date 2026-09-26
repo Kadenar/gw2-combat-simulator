@@ -6,7 +6,7 @@ import {
   balanceProfileNumber,
   effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -21,14 +21,14 @@ import {
   resolverSkill
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import type {
-  EngineerCastContext,
+  EngineerRuntime,
   EngineerResolverContext,
   EngineerResolverEvent,
   EngineerSkill
 } from '#gw2/professions/engineer/types.js';
 
 /** Schedules Grenadier's lesser barrage from an eligible healing cast after its internal cooldown. */
-export function applyGrenadier(context: EngineerCastContext, skill: EngineerSkill, at: number): void {
+export function applyGrenadier(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   const state = professionCoreState(context);
   if (
     !hasTrait(context.config, TRAIT.GRENADIER) ||
@@ -43,7 +43,7 @@ export function applyGrenadier(context: EngineerCastContext, skill: EngineerSkil
   const coefficient = effectNumber(grenadierProfile, grenadier, 'coefficient');
   // Emit distinct packets so per-hit reactions and attribution retain the barrage sequence.
   for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
-    emitSkillDamage(context, {
+    emitEngineerEvent(context, 'damage', {
       at,
       source: 'Trait',
       sourceId: TRAIT.GRENADIER,

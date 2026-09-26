@@ -1,10 +1,10 @@
 import { ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
-import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { timeKey } from '#kernel/core/clock.js';
 
 /**
- * Canonical event schema shared by the platform scheduler and resolver.
+ * Canonical event schema shared by the unified runtime and reports.
  * Professions may add custom types, but every event crossing the boundary must
  * still satisfy this base shape.
  */
@@ -89,7 +89,7 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
     throw new Error('Event schemaVersion is invalid.');
   }
 
-  // Every producer must declare ownership before an event crosses the scheduler/resolver boundary.
+  // Every producer must declare ownership before an event enters the live queue.
   if (!ACTOR_TYPES.has(event.actorType as SimulationActorType)) {
     throw new Error('Event actorType is invalid. A valid actorType is required.');
   }
@@ -151,20 +151,6 @@ export function assertSimulationEvent(candidate: unknown): SimulationEvent {
   return candidate as SimulationEvent;
 }
 
-/**
- * Validates and freezes an event before it enters a scheduled event stream.
- */
-export function createEvent(event: unknown): Readonly<SimulationEvent> {
-  const normalized = Object.fromEntries(
-    Object.entries({
-      schemaVersion: EVENT_SCHEMA_VERSION,
-      ...assertSimulationEvent(event),
-      at: canonicalTime((event as SimulationEvent).at)
-    }).filter(([, value]) => value !== undefined)
-  );
-  return Object.freeze(normalized as unknown as SimulationEvent);
-}
-
 /** Defines emitted events and recipient metadata shared by scheduling, resolution, and presentation. */
 
 export type EffectRecipientScope = 'self' | 'party' | 'summons';
@@ -211,6 +197,13 @@ export interface EffectMetadata {
   readonly largeHitboxOnly?: boolean;
   readonly legendId?: string;
   readonly necromancerBlight?: number;
+  /** Immutable burst inputs captured before resource spending; later hits cannot change the selected tier. */
+  readonly warriorAdrenalineSpent?: number;
+  readonly warriorBurstTier?: number;
+  /** Shares Devouring Darkness's pre-application observation between its independent impact packets. */
+  readonly necromancerConditionCount?: number;
+  /** Addle retains only its activation-time shard gate while later impacts use live resource state. */
+  readonly necromancerAddleImmobilize?: boolean;
   readonly necromancerShroudSkillOne?: boolean;
   readonly packetKind?: string;
   readonly radiantWeapon?: string;
@@ -253,14 +246,14 @@ export interface SimulationEventBase<TType extends string = string> {
   /** The action's skill grants an evade window, independently of ordinary dodge actions. */
   readonly evades?: boolean;
   readonly activationId?: string;
-  /** Monotone identity assigned when the scheduler emits the event. */
+  /** Monotone identity assigned when the runtime emits the event. */
   readonly eventOrder?: number;
   /** Same-timestamp position of an event derived from another scheduled event. */
   readonly causalOrder?: number;
   readonly weaponStrengthProfileId?: string;
   readonly weaponStrength?: number;
   readonly cooldownReduction?: number;
-  /** Committed base work lets passive effects follow subsequent Alacrity changes. */
+  /** Committed base work keeps passive cooldown queries aligned with scheduling and rewinds. */
   readonly rechargeProgress?: RechargeProgress;
   readonly rechargeProgressBySkillId?: Readonly<Record<string, RechargeProgress>>;
   readonly audience?: EffectAudience;
@@ -333,7 +326,6 @@ export type ConditionEvent = SimulationEventBase<'condition'> & ConditionEventFi
 /** Named core payloads preserve permissive external inputs while making ordinary effect work discoverable. */
 export interface BuffEvent extends SimulationEventBase<'buff'> {
   readonly fixedDuration?: boolean;
-  readonly schedulerBoonPrediction?: boolean;
 }
 
 export interface BoonExtensionEvent extends SimulationEventBase<'boon_extension'> {

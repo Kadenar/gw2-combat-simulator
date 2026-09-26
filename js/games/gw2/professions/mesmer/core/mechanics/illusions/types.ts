@@ -76,7 +76,7 @@ export interface MesmerResourceController {
 }
 
 export interface MesmerCriticalTraitDispatcher {
-  process(event: SimulationEvent): void;
+  process(event: SimulationEvent, chance: number): void;
 }
 
 export interface MesmerCloneAttackStep {

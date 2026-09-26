@@ -38,7 +38,7 @@ const empoweredSkill: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id);
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
   const profile = tooltipProfile(balanceContext, HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(entity.id)]);
-  const elixir = selected.handlerId === 'necromancer.elixir';
+  const elixir = selected.categories?.includes('Elixir');
   const base = simulationEffectFacts(selected.effects);
   const empowered = simulationEffectFacts(profile.effects);
   return {
@@ -58,10 +58,366 @@ const empoweredSkill: DescribeSimulationTooltip = (balanceContext, entity) => {
 };
 
 /** Describes implemented Necromancer mechanics locally; numbers remain in selected rules and profiles. */
+const barrierTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Apply these effects and trigger selected Scourge traits that grant boons when you apply barrier. Barrier absorption and incoming damage are outside simulation scope.'
+);
+
+const oppressiveCollapseTooltip: DescribeSimulationTooltip = skillTooltip(
+  "Strike and control your target. Gain party might for each distinct condition on the target when its strike lands, up to the skill's condition limit."
+);
+
+const shadeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+  const id = Number(entity.id);
+  const description = (
+    {
+      [ID.MANIFEST_SAND_SHADE]:
+        'Manifest a timed shade and strike your target. Shade skills share this strike and Torment application. Sand Savant replaces the ordinary shade limit and lifetime with its greater-shade values.',
+      [ID.NEFARIOUS_FAVOR]:
+        'Trigger the shared shade attack and remove an active self-condition type. Sadistic Searing adds its Burning effect.',
+      [ID.SAND_CASCADE]:
+        'Trigger the shared shade attack and applicable barrier traits. Barrier absorption is outside simulation scope.',
+      [ID.GARISH_PILLAR]: 'Trigger the shared shade attack and fear your target.',
+      [ID.DESERT_SHROUD]:
+        'Trigger the shared shade attack, followed by repeated strikes and Torment. Activates applicable shroud and barrier traits.',
+      [ID.SANDSTORM_SHROUD]:
+        'Trigger the shared shade attack, pulse party protection and barrier traits, then detonate for damage, Torment, and a final protection grant. Activates applicable shroud traits.'
+    } as Record<number, string>
+  )[id];
+  if (!description) throw new Error(`Unknown shade skill: ${id}`);
+  const profileId = (
+    {
+      [ID.GARISH_PILLAR]: SCOURGE.garishPillar,
+      [ID.DESERT_SHROUD]: SCOURGE.desertShroud,
+      [ID.SANDSTORM_SHROUD]: SCOURGE.sandstormShroud
+    } as Record<number, string>
+  )[id];
+  const shared = simulationEffectFacts(
+    tooltipProfile(balanceContext, SCOURGE.shade).effects?.filter((effect) => effect.type !== 'buff'),
+    'shared shade attack'
+  );
+  return {
+    description,
+    facts: [
+      ...shared.facts,
+      ...(profileId ? simulationEffectFacts(tooltipProfile(balanceContext, profileId).effects).facts : []),
+      ...(id === ID.MANIFEST_SAND_SHADE
+        ? [
+            profileFact(balanceContext, SCOURGE.shade, 'maximumStacks', 'Maximum ordinary shades'),
+            ...simulationEffectFacts(
+              tooltipProfile(balanceContext, SCOURGE.shade).effects?.filter((effect) => effect.type === 'buff'),
+              'ordinary shade'
+            ).facts,
+            profileFact(balanceContext, SCOURGE.sandSavant, 'maximumStacks', 'Maximum shades with Sand Savant'),
+            ...simulationEffectFacts(
+              tooltipProfile(balanceContext, SCOURGE.sandSavant).effects,
+              'with Sand Savant; replaces ordinary shade'
+            ).facts
+          ]
+        : [])
+    ]
+  };
+};
+
+const innervateTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Command the corresponding active spirit to apply its listed effects and restore life force. The spirit must be available for the command.'
+);
+
+const weaponSpellTooltip: DescribeSimulationTooltip = skillTooltip(
+  "Grant weapon-spell charges to yourself and eligible party recipients. Their qualifying strikes spend charges to trigger the listed attack, with an independent interval for each recipient. Wielder's Boon grants allies your full charge count.",
+  (balanceContext, entity) => {
+    const profileId = (
+      {
+        [ID.NIGHTMARE_WEAPON]: RITUALIST.nightmareWeaponProc,
+        [ID.SPLINTER_WEAPON]: RITUALIST.splinterWeaponProc
+      } as Record<number, string>
+    )[Number(entity.id)];
+    return profileId
+      ? [
+          ...simulationEffectFacts(tooltipProfile(balanceContext, profileId).effects, 'per charge spent').facts,
+          profileFact(balanceContext, profileId, 'internalCooldown', 'Minimum interval per recipient', tooltipSeconds)
+        ]
+      : [];
+  }
+);
+
+const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+  const selected = balanceContext.catalog.skillsById.get(entity.id);
+  if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+  const id = Number(entity.id);
+  if (id === ID.ESSENCE_BLAST)
+    return skillTooltip("Strike your target. Each active spirit increases this attack's damage.", (context) => [
+      modifierFact(
+        context,
+        'necromancer.essence-blast-active-spirits',
+        'damagePerSpirit',
+        'Strike damage per active spirit'
+      )
+    ])(balanceContext, entity);
+  if (id === ID.SUMMON_SPIRITS)
+    return {
+      description:
+        'Command available active spirits to perform their coordinated attacks. Spirits still in their opening attack cannot participate. Wanderlust also dazes; Preservation has no direct damage from this command.',
+      facts: [
+        ...simulationEffectFacts(
+          tooltipProfile(balanceContext, RITUALIST.anguish).effects?.slice(2, 3),
+          'requires Anguish'
+        ).facts,
+        ...simulationEffectFacts(
+          tooltipProfile(balanceContext, RITUALIST.wanderlust).effects?.slice(3, 4),
+          'requires Wanderlust'
+        ).facts
+      ]
+    };
+  const profile = tooltipProfile(balanceContext, RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID[id]);
+  return {
+    description:
+      'Summon or replace this spirit, apply its opening effects, and start its autonomous attacks. Busy spirits skip recurring attack opportunities.' +
+      (id === ID.ANGUISH
+        ? ' Anguish opens with cripple and vulnerability; its first barrage hit applies Painful Bond for recurring damage.'
+        : id === ID.WANDERLUST
+          ? ' Wanderlust opens with a strike and a lingering field that successively applies chill, vulnerability, weakness, and slow.'
+          : ' Preservation grants party protection and vigor.'),
+    facts: [
+      ...simulationEffectFacts(selected.effects, 'on summon').facts,
+      ...simulationEffectFacts(profile.effects?.slice(0, id === ID.WANDERLUST ? 3 : 2)).facts,
+      profileFact(
+        balanceContext,
+        RITUALIST.resources,
+        'pulseInterval',
+        'Autonomous attack pulse interval',
+        tooltipSeconds
+      ),
+      ...(id === ID.ANGUISH
+        ? [
+            ...simulationEffectFacts(
+              tooltipProfile(balanceContext, RITUALIST.painfulBond).effects?.filter((effect) => effect.type === 'buff')
+            ).facts,
+            ...simulationEffectFacts(
+              tooltipProfile(balanceContext, RITUALIST.painfulBond).effects?.filter(
+                (effect) => effect.type === 'strike'
+              ),
+              'per Painful Bond pulse'
+            ).facts,
+            profileFact(
+              balanceContext,
+              RITUALIST.painfulBond,
+              'pulseInterval',
+              'Painful Bond pulse interval',
+              tooltipSeconds
+            )
+          ]
+        : [])
+    ]
+  };
+};
+
+const darkBarrageTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+  const selected = balanceContext.catalog.skillsById.get(entity.id);
+  if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+  const base = simulationEffectFacts(selected.effects, 'without Doom Approaches');
+  const profile = tooltipProfile(balanceContext, HARBINGER.darkBarrageDoomApproaches);
+  const replacement = simulationEffectFacts(
+    profile.effects?.map((effect) => ({ ...effect, applications: tooltipNumber(profile, 'pulseCount') })),
+    'with Doom Approaches; per projectile, replaces base volley'
+  );
+  return {
+    description:
+      'Channel a volley of strikes, each applying Torment. Doom Approaches replaces the ordinary volley with a faster sequence. Interruption retains only the projectiles already fired.',
+    facts: [...base.facts, ...replacement.facts],
+    incomplete: base.incomplete || replacement.incomplete
+  };
+};
+
+const conditionTransferTooltip: DescribeSimulationTooltip = skillTooltip(
+  "Transfer the oldest distinct self-condition types to your target, up to this skill's transfer limit. Transfer every stack of each selected type with its remaining duration.",
+  (_context, skill) => [
+    { name: 'Conditions Transferred', detail: tooltipDecimal(tooltipNumber(skill, 'conditionsTransferred')) }
+  ]
+);
+
+const lichTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Enter Lich Form to replace your weapon skills temporarily. Leaving the form restores your weapon bar and grants life force. This transform uses its own duration instead of draining life force.'
+);
+
+const flipTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Apply these effects and unlock the corresponding temporary follow-up. Using a follow-up consumes its availability.'
+);
+
+const summonMadnessTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+  const selected = balanceContext.catalog.skillsById.get(entity.id);
+  if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+  const effects = simulationEffectFacts(selected.effects, 'per horror');
+  return {
+    ...effects,
+    description:
+      'Summon temporary horrors in sequence. Each horror attacks and then explodes; the listed effects are for one horror.',
+    facts: [
+      { name: 'Horrors summoned', detail: String(tooltipNumber(selected, 'summons')) },
+      { name: 'Interval between summons', detail: tooltipSeconds(tooltipNumber(selected, 'summonInterval')) },
+      ...effects.facts
+    ]
+  };
+};
+
+const graspingDarknessTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Launch a delayed strike that chills and pulls your target. Gain life force when it hits. Once launched, the projectile survives a later interruption.'
+);
+
+const nightfallTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Create a pulsing field that strikes, blinds, and cripples your target. Each strike pulse generates life force. Committed pulses survive interruption.'
+);
+
+const chillingScytheTooltip: DescribeSimulationTooltip = skillTooltip(
+  "Strike and chill your target. A committed hit resets Gravedigger's recharge."
+);
+
+const deadlySliceTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Strike your target and gain a Soul Shard after the attack.'
+);
+
+const sinisterStabTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Strike and chill your target, then gain a Soul Shard.'
+);
+
+const extirpateTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Strike your target, gain might, and apply weakness and the Extirpation marker. The first hit grants Soul Shards. Target boon denial is outside simulation scope.'
+);
+
+const addleTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Strike and daze your target, gaining Soul Shards. Having enough Soul Shards before activation also immobilizes the target. Against a defiant target or one activating skills, gain additional life force and Soul Shards.'
+);
+
+const perforateTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Strike repeatedly. Each hit can consume an available Soul Shard for an additional life-steal strike. Soul Shard damage increases against a low-health target.',
+  (balanceContext) => [
+    ...simulationEffectFacts(tooltipProfile(balanceContext, PROFILE.soulShards).effects, 'per Soul Shard consumed')
+      .facts,
+    profileFact(
+      balanceContext,
+      PROFILE.soulShards,
+      'threshold',
+      'Soul Shard target health threshold',
+      (value) => `${tooltipDecimal(value * 100)}%`
+    ),
+    profileFact(
+      balanceContext,
+      PROFILE.soulShards,
+      'damageMultiplier',
+      'Soul Shard damage below threshold',
+      tooltipFactorChange
+    )
+  ]
+);
+
+const distressTooltip: DescribeSimulationTooltip = skillTooltip(
+  "Consume this follow-up, reset Perforate's recharge, and gain Soul Shards. Includes the additional Soul Shards for the simulator's single target."
+);
+
+const elixirTooltip: DescribeSimulationTooltip = empoweredSkill;
+
+const blightSkillTooltip: DescribeSimulationTooltip = empoweredSkill;
+
+const shroudTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+  const selected = balanceContext.catalog.skillsById.get(entity.id);
+  if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+  if (selected.shroudExit)
+    return {
+      description:
+        'Leave shroud, restore your weapon skills, and begin the shroud-entry recharge. Triggers applicable shroud-exit traits.',
+      facts: []
+    };
+  const profileId = String(selected.shroudProfileId);
+  return {
+    description: `Enter shroud, replace your weapon skills, and trigger applicable shroud-entry traits. Life force drains while shroud is active.${selected.shroudEntry === 'harbinger' ? " Gain Blight on the shroud's recurring resource pulse." : ''}`,
+    facts: [
+      {
+        name: 'Minimum life force to enter',
+        detail: lifeForce(tooltipNumber(selected, 'minimumShroudLifeForcePercent'))
+      },
+      profileFact(balanceContext, profileId, 'lifeForceDrain', 'Life force drained per second', lifeForce),
+      ...(selected.shroudEntry === 'harbinger'
+        ? [
+            profileFact(balanceContext, profileId, 'blightGain', 'Blight per pulse'),
+            profileFact(balanceContext, profileId, 'pulseInterval', 'Blight pulse interval', tooltipSeconds)
+          ]
+        : [])
+    ]
+  };
+};
+
+const minionTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+  const profileId = NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(entity.id)];
+  const profile = tooltipProfile(balanceContext, profileId);
+  const effects = simulationEffectFacts(profile.effects, 'per minion attack cycle');
+  return {
+    ...effects,
+    description:
+      "Summon persistent minions that attack independently and unlock their command skill. Summon recharge begins when the corresponding minions die. Attack values use the minion's own attributes." +
+      (profile.alternateEvery ? ' The alternate volley replaces the normal volley at the listed cadence.' : ''),
+    facts: [
+      profileFact(balanceContext, profileId, 'minionCount', 'Minions summoned'),
+      profileFact(balanceContext, profileId, 'pulseInterval', 'Base attack cycle', tooltipSeconds),
+      ...(profile.alternateEvery
+        ? [profileFact(balanceContext, profileId, 'alternateEvery', 'Alternate volley every N cycles')]
+        : []),
+      ...effects.facts
+    ]
+  };
+};
+
+const minionCommandTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Command the corresponding active minion to apply these effects. A consumed minion is removed; surviving minions resume their autonomous attacks.',
+  (_c, entity) =>
+    entity.consumes == null
+      ? []
+      : [{ name: 'Minions consumed', detail: tooltipDecimal(tooltipNumber(entity, 'consumes')) }]
+);
+
+const corruptionTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Applies the listed target effects and self-conditions. Master of Corruption adds its listed self-condition. Expertise does not extend self-conditions; they can be transferred to the target.',
+  (balanceContext, entity) => {
+    const profileId = NECROMANCER_CORRUPTION_PROFILE_IDS[entity.id];
+    return profileId ? simulationEffectFacts(tooltipProfile(balanceContext, profileId).effects).facts : [];
+  }
+);
+
+const darkPactTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Strike and bleed your target. The first hit also immobilizes the target and makes you bleed. The simulated target has no boons to remove, so this skill generates no life force.',
+  (balanceContext) =>
+    simulationEffectFacts(tooltipProfile(balanceContext, PROFILE.darkPactOnHit).effects, 'on the first hit').facts
+);
+
+const lifeSiphonTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Channel repeated strikes. The first hit makes you bleed. Healing is outside combat simulation scope.',
+  (balanceContext) =>
+    simulationEffectFacts(tooltipProfile(balanceContext, PROFILE.lifeSiphonOnHit).effects, 'on the first hit').facts
+);
+
+const devouringDarknessTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+  const selected = balanceContext.catalog.skillsById.get(entity.id);
+  if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
+  return {
+    description:
+      'Strike your target and apply Torment for each distinct condition already on it. Count conditions before this attack applies its own Torment.',
+    facts: [
+      ...simulationEffectFacts(selected.effects?.filter((effect) => effect.type === 'strike')).facts,
+      ...simulationEffectFacts(
+        selected.effects?.filter((effect) => effect.type === 'condition'),
+        'per distinct target condition'
+      ).facts,
+      { name: 'Condition Threshold', detail: String(tooltipNumber(selected, 'maximumConditions')) }
+    ]
+  };
+};
+
+const weaponSwapTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Swap to your other weapon set and trigger applicable weapon-swap effects.'
+);
+
 export const necromancerTooltips: ProfessionTooltips = {
   skillFacts: (_c, entity) =>
     Object.entries({
-      lifeForceGain: 'Life force on cast completion',
+      lifeForceGain: 'Life force gained',
       lifeForcePerCondition: 'Life force per condition',
       lifeForcePerHit: 'Life force per hit',
       lifeForcePerPulse: 'Life force per pulse',
@@ -84,337 +440,80 @@ export const necromancerTooltips: ProfessionTooltips = {
               }
             ]
       ),
-  handlers: {
-    'necromancer.barrier': skillTooltip(
-      'Apply these effects and trigger selected Scourge traits that grant boons when you apply barrier. Barrier absorption and incoming damage are outside simulation scope.'
-    ),
-    'necromancer.oppressive-collapse': skillTooltip(
-      "Strike and control your target. Gain party might for each distinct condition on the target at cast completion, up to the skill's condition limit."
-    ),
-    'necromancer.shade': (balanceContext, entity) => {
-      const id = Number(entity.id);
-      const description = (
-        {
-          [ID.MANIFEST_SAND_SHADE]:
-            'Manifest a timed shade and strike your target. Shade skills share this strike and Torment application. Sand Savant replaces the ordinary shade limit and lifetime with its greater-shade values.',
-          [ID.NEFARIOUS_FAVOR]:
-            'Trigger the shared shade attack and remove an active self-condition type. Sadistic Searing adds its Burning effect.',
-          [ID.SAND_CASCADE]:
-            'Trigger the shared shade attack and applicable barrier traits. Barrier absorption is outside simulation scope.',
-          [ID.GARISH_PILLAR]: 'Trigger the shared shade attack and fear your target.',
-          [ID.DESERT_SHROUD]:
-            'Trigger the shared shade attack, followed by repeated strikes and Torment. Activates applicable shroud and barrier traits.',
-          [ID.SANDSTORM_SHROUD]:
-            'Trigger the shared shade attack, pulse party protection and barrier traits, then detonate for damage, Torment, and a final protection grant. Activates applicable shroud traits.'
-        } as Record<number, string>
-      )[id];
-      if (!description) throw new Error(`Unknown shade skill: ${id}`);
-      const profileId = (
-        {
-          [ID.GARISH_PILLAR]: SCOURGE.garishPillar,
-          [ID.DESERT_SHROUD]: SCOURGE.desertShroud,
-          [ID.SANDSTORM_SHROUD]: SCOURGE.sandstormShroud
-        } as Record<number, string>
-      )[id];
-      const shared = simulationEffectFacts(
-        tooltipProfile(balanceContext, SCOURGE.shade).effects?.filter((effect) => effect.type !== 'buff'),
-        'shared shade attack'
-      );
-      return {
-        description,
-        facts: [
-          ...shared.facts,
-          ...(profileId ? simulationEffectFacts(tooltipProfile(balanceContext, profileId).effects).facts : []),
-          ...(id === ID.MANIFEST_SAND_SHADE
-            ? [
-                profileFact(balanceContext, SCOURGE.shade, 'maximumStacks', 'Maximum ordinary shades'),
-                ...simulationEffectFacts(
-                  tooltipProfile(balanceContext, SCOURGE.shade).effects?.filter((effect) => effect.type === 'buff'),
-                  'ordinary shade'
-                ).facts,
-                profileFact(balanceContext, SCOURGE.sandSavant, 'maximumStacks', 'Maximum shades with Sand Savant'),
-                ...simulationEffectFacts(
-                  tooltipProfile(balanceContext, SCOURGE.sandSavant).effects,
-                  'with Sand Savant; replaces ordinary shade'
-                ).facts
-              ]
-            : [])
-        ]
-      };
-    },
-    'necromancer.innervate': skillTooltip(
-      'Command the corresponding active spirit to apply its listed effects and restore life force. The spirit must be available for the command.'
-    ),
-    'necromancer.weapon-spell': skillTooltip(
-      "Grant weapon-spell charges to yourself and eligible party recipients. Their qualifying strikes spend charges to trigger the listed attack, with an independent interval for each recipient. Wielder's Boon grants allies your full charge count.",
-      (balanceContext, entity) => {
-        const profileId = (
-          {
-            [ID.NIGHTMARE_WEAPON]: RITUALIST.nightmareWeaponProc,
-            [ID.SPLINTER_WEAPON]: RITUALIST.splinterWeaponProc
-          } as Record<number, string>
-        )[Number(entity.id)];
-        return profileId
-          ? [
-              ...simulationEffectFacts(tooltipProfile(balanceContext, profileId).effects, 'per charge spent').facts,
-              profileFact(
-                balanceContext,
-                profileId,
-                'internalCooldown',
-                'Minimum interval per recipient',
-                tooltipSeconds
-              )
-            ]
-          : [];
-      }
-    ),
-    'necromancer.ritualist': (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id);
-      if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
-      const id = Number(entity.id);
-      if (id === ID.ESSENCE_BLAST)
-        return skillTooltip("Strike your target. Each active spirit increases this attack's damage.", (context) => [
-          modifierFact(
-            context,
-            'necromancer.essence-blast-active-spirits',
-            'damagePerSpirit',
-            'Strike damage per active spirit'
-          )
-        ])(balanceContext, entity);
-      if (id === ID.SUMMON_SPIRITS)
-        return {
-          description:
-            'Command available active spirits to perform their coordinated attacks. Spirits still in their opening attack cannot participate. Wanderlust also dazes; Preservation has no direct damage from this command.',
-          facts: [
-            ...simulationEffectFacts(
-              tooltipProfile(balanceContext, RITUALIST.anguish).effects?.slice(2, 3),
-              'requires Anguish'
-            ).facts,
-            ...simulationEffectFacts(
-              tooltipProfile(balanceContext, RITUALIST.wanderlust).effects?.slice(3, 4),
-              'requires Wanderlust'
-            ).facts
-          ]
-        };
-      const profile = tooltipProfile(balanceContext, RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID[id]);
-      return {
-        description:
-          'Summon or replace this spirit, apply its opening effects, and start its autonomous attacks. Busy spirits skip recurring attack opportunities.' +
-          (id === ID.ANGUISH
-            ? ' Anguish opens with cripple and vulnerability; its first barrage hit applies Painful Bond for recurring damage.'
-            : id === ID.WANDERLUST
-              ? ' Wanderlust opens with a strike and a lingering field that successively applies chill, vulnerability, weakness, and slow.'
-              : ' Preservation grants party protection and vigor.'),
-        facts: [
-          ...simulationEffectFacts(selected.effects, 'on summon').facts,
-          ...simulationEffectFacts(profile.effects?.slice(0, id === ID.WANDERLUST ? 3 : 2)).facts,
-          profileFact(
-            balanceContext,
-            RITUALIST.resources,
-            'pulseInterval',
-            'Autonomous attack pulse interval',
-            tooltipSeconds
-          ),
-          ...(id === ID.ANGUISH
-            ? [
-                ...simulationEffectFacts(
-                  tooltipProfile(balanceContext, RITUALIST.painfulBond).effects?.filter(
-                    (effect) => effect.type === 'buff'
-                  )
-                ).facts,
-                ...simulationEffectFacts(
-                  tooltipProfile(balanceContext, RITUALIST.painfulBond).effects?.filter(
-                    (effect) => effect.type === 'strike'
-                  ),
-                  'per Painful Bond pulse'
-                ).facts,
-                profileFact(
-                  balanceContext,
-                  RITUALIST.painfulBond,
-                  'pulseInterval',
-                  'Painful Bond pulse interval',
-                  tooltipSeconds
-                )
-              ]
-            : [])
-        ]
-      };
-    },
-    'necromancer.dark-barrage': (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id);
-      if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
-      const base = simulationEffectFacts(selected.effects, 'without Doom Approaches');
-      const profile = tooltipProfile(balanceContext, HARBINGER.darkBarrageDoomApproaches);
-      const replacement = simulationEffectFacts(
-        profile.effects?.map((effect) => ({ ...effect, applications: tooltipNumber(profile, 'pulseCount') })),
-        'with Doom Approaches; per projectile, replaces base volley'
-      );
-      return {
-        description:
-          'Channel a volley of strikes, each applying Torment. Doom Approaches replaces the ordinary volley with a faster sequence. Interruption retains only the projectiles already fired.',
-        facts: [...base.facts, ...replacement.facts],
-        incomplete: base.incomplete || replacement.incomplete
-      };
-    },
-    'necromancer.condition-transfer': skillTooltip(
-      "Transfer the oldest distinct self-condition types to your target, up to this skill's transfer limit. Transfer every stack of each selected type with its remaining duration.",
-      (_context, skill) => [
-        { name: 'Conditions Transferred', detail: tooltipDecimal(tooltipNumber(skill, 'conditionsTransferred')) }
-      ]
-    ),
-    'necromancer.lich': skillTooltip(
-      'Enter Lich Form to replace your weapon skills temporarily. Leaving the form restores your weapon bar and grants life force. This transform uses its own duration instead of draining life force.'
-    ),
-    'necromancer.flip': skillTooltip(
-      'Apply these effects and unlock the corresponding temporary follow-up. Using a follow-up consumes its availability.'
-    ),
-    'necromancer.summon-madness': (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id);
-      if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
-      const effects = simulationEffectFacts(selected.effects, 'per horror');
-      return {
-        ...effects,
-        description:
-          'Summon temporary horrors in sequence. Each horror attacks and then explodes; the listed effects are for one horror.',
-        facts: [
-          { name: 'Horrors summoned', detail: String(tooltipNumber(selected, 'summons')) },
-          { name: 'Interval between summons', detail: tooltipSeconds(tooltipNumber(selected, 'summonInterval')) },
-          ...effects.facts
-        ]
-      };
-    },
-    'necromancer.grasping-darkness': skillTooltip(
-      'Launch a delayed strike that chills and pulls your target. Gain life force when it hits. Once launched, the projectile survives a later interruption.'
-    ),
-    'necromancer.nightfall': skillTooltip(
-      'Create a pulsing field that strikes, blinds, and cripples your target. Each strike pulse generates life force. Committed pulses survive interruption.'
-    ),
-    'necromancer.chilling-scythe': skillTooltip(
-      "Strike and chill your target. A committed hit resets Gravedigger's recharge."
-    ),
-    'necromancer.deadly-slice': skillTooltip('Strike your target and gain a Soul Shard after the attack.'),
-    'necromancer.sinister-stab': skillTooltip('Strike and chill your target, then gain a Soul Shard.'),
-    'necromancer.extirpate': skillTooltip(
-      'Strike your target, gain might, and apply weakness and the Extirpation marker. The first hit grants Soul Shards. Target boon denial is outside simulation scope.'
-    ),
-    'necromancer.addle': skillTooltip(
-      'Strike and daze your target, gaining Soul Shards. Having enough Soul Shards before activation also immobilizes the target. Against a defiant target or one activating skills, gain additional life force and Soul Shards.'
-    ),
-    'necromancer.perforate': skillTooltip(
-      'Strike repeatedly. Each hit can consume an available Soul Shard for an additional life-steal strike. Soul Shard damage increases against a low-health target.',
-      (balanceContext) => [
-        ...simulationEffectFacts(tooltipProfile(balanceContext, PROFILE.soulShards).effects, 'per Soul Shard consumed')
-          .facts,
-        profileFact(
-          balanceContext,
-          PROFILE.soulShards,
-          'threshold',
-          'Soul Shard target health threshold',
-          (value) => `${tooltipDecimal(value * 100)}%`
-        ),
-        profileFact(
-          balanceContext,
-          PROFILE.soulShards,
-          'damageMultiplier',
-          'Soul Shard damage below threshold',
-          tooltipFactorChange
-        )
-      ]
-    ),
-    'necromancer.distress': skillTooltip(
-      "Consume this follow-up, reset Perforate's recharge, and gain Soul Shards. Includes the additional Soul Shards for the simulator's single target."
-    ),
-    'necromancer.elixir': empoweredSkill,
-    'necromancer.blight-skill': empoweredSkill,
-    'necromancer.shroud': (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id);
-      if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
-      if (selected.shroudExit)
-        return {
-          description:
-            'Leave shroud, restore your weapon skills, and begin the shroud-entry recharge. Triggers applicable shroud-exit traits.',
-          facts: []
-        };
-      const profileId = String(selected.shroudProfileId);
-      return {
-        description: `Enter shroud, replace your weapon skills, and trigger applicable shroud-entry traits. Life force drains while shroud is active.${selected.shroudEntry === 'harbinger' ? " Gain Blight on the shroud's recurring resource pulse." : ''}`,
-        facts: [
-          {
-            name: 'Minimum life force to enter',
-            detail: lifeForce(tooltipNumber(selected, 'minimumShroudLifeForcePercent'))
-          },
-          profileFact(balanceContext, profileId, 'lifeForceDrain', 'Life force drained per second', lifeForce),
-          ...(selected.shroudEntry === 'harbinger'
-            ? [
-                profileFact(balanceContext, profileId, 'blightGain', 'Blight per pulse'),
-                profileFact(balanceContext, profileId, 'pulseInterval', 'Blight pulse interval', tooltipSeconds)
-              ]
-            : [])
-        ]
-      };
-    },
-    'necromancer.minion': (balanceContext, entity) => {
-      const profileId = NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(entity.id)];
-      const profile = tooltipProfile(balanceContext, profileId);
-      const effects = simulationEffectFacts(profile.effects, 'per minion attack cycle');
-      return {
-        ...effects,
-        description:
-          "Summon persistent minions that attack independently and unlock their command skill. Summon recharge begins when the corresponding minions die. Attack values use the minion's own attributes." +
-          (profile.alternateEvery ? ' The alternate volley replaces the normal volley at the listed cadence.' : ''),
-        facts: [
-          profileFact(balanceContext, profileId, 'minionCount', 'Minions summoned'),
-          profileFact(balanceContext, profileId, 'pulseInterval', 'Base attack cycle', tooltipSeconds),
-          ...(profile.alternateEvery
-            ? [profileFact(balanceContext, profileId, 'alternateEvery', 'Alternate volley every N cycles')]
-            : []),
-          ...effects.facts
-        ]
-      };
-    },
-    'necromancer.minion-command': skillTooltip(
-      'Command the corresponding active minion to apply these effects. A consumed minion is removed; surviving minions resume their autonomous attacks.',
-      (_c, entity) =>
-        entity.consumes == null
-          ? []
-          : [{ name: 'Minions consumed', detail: tooltipDecimal(tooltipNumber(entity, 'consumes')) }]
-    ),
-    'necromancer.corruption': skillTooltip(
-      'Applies the listed target effects and self-conditions. Master of Corruption adds its listed self-condition. Expertise does not extend self-conditions; they can be transferred to the target.',
-      (balanceContext, entity) => {
-        const profileId = NECROMANCER_CORRUPTION_PROFILE_IDS[entity.id];
-        return profileId ? simulationEffectFacts(tooltipProfile(balanceContext, profileId).effects).facts : [];
-      }
-    ),
-    'necromancer.dark-pact': skillTooltip(
-      'Strike and bleed your target. The first hit also immobilizes the target and makes you bleed. The simulated target has no boons to remove, so this skill generates no life force.',
-      (balanceContext) =>
-        simulationEffectFacts(tooltipProfile(balanceContext, PROFILE.darkPactOnHit).effects, 'on the first hit').facts
-    ),
-    'necromancer.life-siphon': skillTooltip(
-      'Channel repeated strikes. The first hit makes you bleed. Healing is outside combat simulation scope.',
-      (balanceContext) =>
-        simulationEffectFacts(tooltipProfile(balanceContext, PROFILE.lifeSiphonOnHit).effects, 'on the first hit').facts
-    ),
-    'necromancer.devouring-darkness': (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id);
-      if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
-      return {
-        description:
-          'Strike your target and apply Torment for each distinct condition already on it. Count conditions before this attack applies its own Torment.',
-        facts: [
-          ...simulationEffectFacts(selected.effects?.filter((effect) => effect.type === 'strike')).facts,
-          ...simulationEffectFacts(
-            selected.effects?.filter((effect) => effect.type === 'condition'),
-            'per distinct target condition'
-          ).facts,
-          { name: 'Condition Threshold', detail: String(tooltipNumber(selected, 'maximumConditions')) }
-        ]
-      };
-    },
-    'necromancer.weapon-swap': skillTooltip('Swap to your other weapon set and trigger applicable weapon-swap effects.')
-  },
   skills: {
+    // Custom descriptions bind to canonical skill IDs independently of execution registration.
+    [ID.SERPENT_SIPHON]: barrierTooltip,
+    [ID.SAND_FLARE]: barrierTooltip,
+    [ID.OPPRESSIVE_COLLAPSE]: oppressiveCollapseTooltip,
+    [ID.NEFARIOUS_FAVOR]: shadeTooltip,
+    [ID.SAND_CASCADE]: shadeTooltip,
+    [ID.GARISH_PILLAR]: shadeTooltip,
+    [ID.DESERT_SHROUD]: shadeTooltip,
+    [ID.MANIFEST_SAND_SHADE]: shadeTooltip,
+    [ID.SANDSTORM_SHROUD]: shadeTooltip,
+    [ID.INNERVATE_PRESERVATION]: innervateTooltip,
+    [ID.INNERVATE_WANDERLUST]: innervateTooltip,
+    [ID.INNERVATE_ANGUISH]: innervateTooltip,
+    [ID.NIGHTMARE_WEAPON]: weaponSpellTooltip,
+    [ID.SPLINTER_WEAPON]: weaponSpellTooltip,
+    [ID.SUMMON_SPIRITS]: ritualistTooltip,
+    [ID.PRESERVATION]: ritualistTooltip,
+    [ID.ANGUISH]: ritualistTooltip,
+    [ID.WANDERLUST]: ritualistTooltip,
+    [ID.ESSENCE_BLAST]: ritualistTooltip,
+    [ID.DARK_BARRAGE]: darkBarrageTooltip,
+    [ID.PLAGUE_SIGNET]: conditionTransferTooltip,
+    [ID.DEATHLY_SWARM]: conditionTransferTooltip,
+    [ID.PUTRID_MARK]: conditionTransferTooltip,
+    [ID.SUFFER]: conditionTransferTooltip,
+    [ID.LICH_FORM]: lichTooltip,
+    [ID.DARK_PATH]: flipTooltip,
+    [ID.RIPPLE_OF_HORROR]: flipTooltip,
+    [ID.INFUSING_TERROR]: flipTooltip,
+    [ID.SUMMON_MADNESS]: summonMadnessTooltip,
+    [ID.GRASPING_DARKNESS]: graspingDarknessTooltip,
+    [ID.NIGHTFALL]: nightfallTooltip,
+    [ID.CHILLING_SCYTHE]: chillingScytheTooltip,
+    [ID.DEADLY_SLICE]: deadlySliceTooltip,
+    [ID.SINISTER_STAB]: sinisterStabTooltip,
+    [ID.EXTIRPATE]: extirpateTooltip,
+    [ID.ADDLE]: addleTooltip,
+    [ID.PERFORATE]: perforateTooltip,
+    [ID.DISTRESS]: distressTooltip,
+    [ID.ELIXIR_OF_BLISS]: elixirTooltip,
+    [ID.ELIXIR_OF_RISK]: elixirTooltip,
+    [ID.ELIXIR_OF_IGNORANCE]: elixirTooltip,
+    [ID.ELIXIR_OF_AMBITION]: elixirTooltip,
+    [ID.ELIXIR_OF_ANGUISH]: elixirTooltip,
+    [ID.ELIXIR_OF_PROMISE]: elixirTooltip,
+    [ID.VORACIOUS_ARC]: blightSkillTooltip,
+    [ID.DEVOURING_CUT]: blightSkillTooltip,
+    [ID.DEATH_SHROUD]: shroudTooltip,
+    [ID.END_DEATH_SHROUD]: shroudTooltip,
+    [ID.EXIT_HARBINGER_SHROUD]: shroudTooltip,
+    [ID.HARBINGER_SHROUD]: shroudTooltip,
+    [ID.REAPERS_SHROUD]: shroudTooltip,
+    [ID.EXIT_REAPERS_SHROUD]: shroudTooltip,
+    [ID.EXIT_RITUALISTS_SHROUD]: shroudTooltip,
+    [ID.RITUALISTS_SHROUD]: shroudTooltip,
+    [ID.SUMMON_BONE_FIEND]: minionTooltip,
+    [ID.SUMMON_BONE_MINIONS]: minionTooltip,
+    [ID.SUMMON_BLOOD_FIEND]: minionTooltip,
+    [ID.SUMMON_SHADOW_FIEND]: minionTooltip,
+    [ID.SUMMON_FLESH_GOLEM]: minionTooltip,
+    [ID.PUTRID_EXPLOSION]: minionCommandTooltip,
+    [ID.RIGOR_MORTIS]: minionCommandTooltip,
+    [ID.TASTE_OF_DEATH]: minionCommandTooltip,
+    [ID.HAUNT]: minionCommandTooltip,
+    [ID.CHARGE]: minionCommandTooltip,
+    [ID.BLOOD_IS_POWER]: corruptionTooltip,
+    [ID.CONSUME_CONDITIONS]: corruptionTooltip,
+    [ID.PLAGUELANDS]: corruptionTooltip,
+    [ID.CORROSIVE_POISON_CLOUD]: corruptionTooltip,
+    [ID.DARK_PACT]: darkPactTooltip,
+    [ID.LIFE_SIPHON]: lifeSiphonTooltip,
+    [ID.DEVOURING_DARKNESS]: devouringDarknessTooltip,
+    [ID.SWAP_WEAPONS]: weaponSwapTooltip,
     // Passive signet packets have separate profile IDs and must accompany the active skill facts.
     [ID.SIGNET_OF_SPITE]: skillTooltip(
       'Passively grants power while its passive is available. Activate to inflict the listed conditions.',
@@ -684,7 +783,7 @@ export const necromancerTooltips: ProfessionTooltips = {
       'on shroud skill 1'
     ),
     [TRAIT.SOUL_MARKS]: traitTooltip('Mark skills generate additional life force.', (balanceContext, id) => [
-      profileFact(balanceContext, id, 'lifeForceGain', 'Life force per completed mark', lifeForce)
+      profileFact(balanceContext, id, 'lifeForceGain', 'Life force per landed mark', lifeForce)
     ]),
     [TRAIT.SPEED_OF_SHADOWS]: traitTooltip('Entering shroud grants swiftness.'),
     [TRAIT.SOUL_BARBS]: traitTooltip(

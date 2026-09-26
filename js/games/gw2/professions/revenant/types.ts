@@ -1,7 +1,5 @@
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { CastContext, CastLifecycleContext, SchedulerContext } from '#gw2/platform/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -70,36 +68,6 @@ export interface RevenantRuntimeState {
     | { kind: 'Conduit'; state: ConduitState };
 }
 
-export type RevenantSchedulerContext = SchedulerContext<RevenantRuntimeState> & {
-  readonly catalog: CanonicalCatalog<RevenantSkill>;
-  readonly config: RevenantConfig;
-  readonly schedulerPolicy: SchedulerContext<RevenantRuntimeState>['schedulerPolicy'] & {
-    readonly combatBeganAt?: () => number | null;
-    readonly critical?: (context: RevenantSchedulerContext, event: SimulationEvent) => { readonly chance?: number };
-    readonly isCombatActive?: () => boolean;
-    readonly requireCriticalFacts?: () => void;
-  };
-};
-
-export type RevenantCastContext = CastLifecycleContext<RevenantRuntimeState> & {
-  readonly catalog: CanonicalCatalog<RevenantSkill>;
-  readonly config: RevenantConfig;
-  readonly skill: RevenantSkill;
-};
-
-export type RevenantPrecastContext = CastContext<RevenantRuntimeState> & {
-  readonly catalog: CanonicalCatalog<RevenantSkill>;
-  readonly config: RevenantConfig;
-  readonly skill: RevenantSkill;
-};
-
-export type RevenantRechargeContext = RevenantSchedulerContext & {
-  readonly skill?: RevenantSkill;
-  readonly at: number;
-  readonly start?: number;
-  readonly hasBuff?: (kind: string, at?: number) => boolean;
-};
-
 /** Explicit cost inputs shared by simulation and palette calculations. */
 export interface RevenantEnergyCostInput {
   readonly specialization: string;
@@ -111,7 +79,6 @@ export interface RevenantEnergyCostInput {
 
 export type RevenantResolverEvent = Gw2ResolverEvent & {
   readonly lifeSiphon?: boolean;
-  readonly state?: Partial<RevenantState>;
 };
 
 export type RevenantResolverContext = Gw2ResolverRuntime & {

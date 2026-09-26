@@ -1,4 +1,4 @@
-import { resolveProfessionRuntime } from '#gw2/platform/engine/profession/family.js';
+import { resolveProfessionContract } from '#gw2/platform/engine/profession/family.js';
 import { availableProcRateProfiles, normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
@@ -12,7 +12,7 @@ export function mountProcRateOverrides(app: ProfessionAppState, expanded = true)
     specialization: app.adapter.eliteSpecialization(app.build),
     patchId: app.patchId
   };
-  const catalog = resolveProfessionRuntime(app.profession, config).catalog;
+  const catalog = resolveProfessionContract(app.profession, config).catalog;
   const profiles = availableProcRateProfiles(
     catalog,
     (app.attributeData?.activeTraits || []).map((trait) => trait.id)

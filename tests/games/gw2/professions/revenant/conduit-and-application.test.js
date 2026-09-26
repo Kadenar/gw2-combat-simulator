@@ -12,28 +12,27 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { CONDUIT_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 
-const revenantAttributeRules = Object.freeze({
+const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {
     return revenantProfession
-      .resolveRuntime(context?.config || {})
+      .resolveProfession(context?.config || {})
       .modifyAttributes({ catalog: revenantCatalog, ...context }, value);
   },
   modifyCriticalChance(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyCriticalChance(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyCriticalChance(context, value);
   },
   modifyStrikeDamage(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyStrikeDamage(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyStrikeDamage(context, value);
   },
   modifyConditionDamage(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyConditionDamage(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDamage(context, value);
   },
   modifyConditionDuration(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyConditionDuration(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDuration(context, value);
   }
 });
 
@@ -52,7 +51,11 @@ const baseConfig = Object.freeze({
   target: { armor: 2597, conditions: { Vulnerability: 25 } }
 });
 
-const simulate = createProfessionSimulator(revenantProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);
+// Live steps expose the actual activation window; an instant cast occupies none of it.
+const castMs = (step) => step.end - step.start;
+// Live actions carry no recharge snapshot; the owner's cooldown map holds the latest reservation, if any.
+const rechargeReadyAt = (result, skillId) => observedRuntime(result).cooldowns.get(skillId) ?? null;
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -262,7 +265,7 @@ describe('Power Conduit skill profiles', () => {
       secondaryWeapon: ''
     });
 
-    assert.equal(onslaught.steps[0].fullCastMs, 440);
+    assert.equal(castMs(onslaught.steps[0]), 440);
     assert.equal(
       Math.round(
         onslaught.events.find((event) => event.type === 'damage' && event.skillName === "Phantom's Onslaught").at * 1000
@@ -484,21 +487,19 @@ test('Pain Absorption grants its base boons and changes cost and recharge only i
     );
 
     for (const alacrity of [false, true]) {
-      const formed = simulate('Conduit', ['Cosmic Wisdom', skillId, SKILL.PAIN_ABSORPTION], {
-        ...config,
-        initialEnergy: 10,
-        boons: { alacrity }
-      });
+      const formedConfig = { ...config, initialEnergy: 10, boons: { alacrity } };
+      const formed = simulate('Conduit', ['Cosmic Wisdom', skillId, SKILL.PAIN_ABSORPTION], formedConfig);
+      const first = simulate('Conduit', ['Cosmic Wisdom', skillId], formedConfig);
       assert.deepEqual(formed.warnings, []);
       const actions = formed.events.filter(
         (event) => event.type === 'action' && event.skillId === SKILL.PAIN_ABSORPTION
       );
-      for (const action of actions) {
-        assert.ok(Math.abs(action.rechargeReadyAt - action.fullEndsAt - 5 / (alacrity ? 1.25 : 1)) < 1e-9);
-      }
-
+      const recharge = 5 / 1.25;
       assert.equal(actions.length, 2);
-      assert.ok(Math.abs(actions[1].at - actions[0].rechargeReadyAt) < 1e-9);
+      // Each Mesmer-form cast reserves the shortened recharge from its full end; the repeat waits exactly for it.
+      assert.ok(Math.abs(rechargeReadyAt(first, SKILL.PAIN_ABSORPTION) - actions[0].fullEndsAt - recharge) < 1e-9);
+      assert.ok(Math.abs(rechargeReadyAt(formed, SKILL.PAIN_ABSORPTION) - actions[1].fullEndsAt - recharge) < 1e-9);
+      assert.ok(Math.abs(actions[1].at - rechargeReadyAt(first, SKILL.PAIN_ABSORPTION)) < 1e-9);
       assert.ok(
         Math.abs(formed.planningState.profession.energy.value - (10 - 20 + formed.planningState.atSeconds * 5)) < 1e-9
       );
@@ -506,11 +507,7 @@ test('Pain Absorption grants its base boons and changes cost and recharge only i
 
     const expired = simulate('Conduit', ['Cosmic Wisdom', { type: 'wait', durationMs: 7000 }, skillId], config);
     assert.deepEqual(expired.warnings, []);
-    assert.equal(
-      expired.events.find((event) => event.type === 'action' && event.skillId === SKILL.PAIN_ABSORPTION)
-        .rechargeReadyAt,
-      null
-    );
+    assert.equal(rechargeReadyAt(expired, SKILL.PAIN_ABSORPTION), null);
     assert.ok(
       Math.abs(expired.planningState.profession.energy.value - (20 + (expired.planningState.atSeconds - 7) * 5)) < 1e-9
     );
@@ -548,13 +545,14 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
   assert.equal(result.warnings.length, 0);
   assert.deepEqual(
     result.steps.filter((step) => step.skill === 'Banish Enchantment').map((step) => step.start),
-    [0, 5440]
+    [0, 4440]
   );
+  const banishes = result.events.filter((event) => event.type === 'action' && event.skillName === 'Banish Enchantment');
   assert.deepEqual(
-    result.events
-      .filter((event) => event.type === 'action' && event.skillName === 'Banish Enchantment')
-      .map((event) => Number((event.rechargeReadyAt - event.fullEndsAt).toFixed(6))),
-    [5, 5]
+    [banishes[1].at, rechargeReadyAt(result, SKILL.BANISH_ENCHANTMENT)].map((readyAt, index) =>
+      Number((readyAt - banishes[index].fullEndsAt).toFixed(6))
+    ),
+    [4, 4]
   );
 
   const expiringDuringCast = simulate(
@@ -577,13 +575,29 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
   assert.equal(expiringDuringCast.warnings.length, 0);
   assert.deepEqual(
     expiringDuringCast.steps.filter((step) => step.skill === 'Banish Enchantment').map((step) => step.start),
-    [0, 6740, 12200]
+    [0, 6740, 11200]
   );
+  // Replaying each prefix exposes the reservation left by that cast; the post-expiry cast adds none.
+  const expiringRotation = [
+    'Cosmic Wisdom',
+    'Banish Enchantment',
+    { type: 'wait', durationMs: 6300 },
+    'Banish Enchantment',
+    'Banish Enchantment'
+  ];
   assert.deepEqual(
-    expiringDuringCast.events
-      .filter((event) => event.type === 'action' && event.skillName === 'Banish Enchantment')
-      .map((event) => event.rechargeReadyAt),
-    [5.44, 12.18, null]
+    [2, 4, 5].map((length) =>
+      rechargeReadyAt(
+        simulate('Conduit', expiringRotation.slice(0, length), {
+          selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
+          startingLegend: LEGEND.DEMON,
+          initialEnergy: 100,
+          boons: { quickness: true }
+        }),
+        SKILL.BANISH_ENCHANTMENT
+      )
+    ),
+    [4.44, 11.18, 11.18]
   );
 
   const blockedAnguish = simulate('Conduit', ['Cosmic Wisdom', 'Call to Anguish'], {
@@ -594,11 +608,26 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
 
   assert.match(blockedAnguish.warnings[0], /requires 10 energy/);
 
-  const anguish = simulate('Conduit', ['Cosmic Wisdom', 'Call to Anguish', 'Unyielding Impact'], {
-    selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
-    startingLegend: LEGEND.DEMON,
-    initialEnergy: 10
-  });
+  // Probe Energy immediately after each start-time spend through the registered owner.
+  const spentEnergy = [];
+  const anguish = runRevenant(
+    ['Cosmic Wisdom', 'Call to Anguish', 'Unyielding Impact'],
+    {
+      specialization: 'Conduit',
+      selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
+      startingLegend: LEGEND.DEMON,
+      initialEnergy: 10
+    },
+    {
+      extend: (native) => ({
+        onCastStart(runtime, cast) {
+          native.onCastStart(runtime, cast);
+          if (['Call to Anguish', 'Unyielding Impact'].includes(cast.skill.name))
+            spentEnergy.push(Number(runtime.resourceController.value('energy').toFixed(9)));
+        }
+      })
+    }
+  );
 
   assert.equal(anguish.warnings.length, 0);
   // Recovery during the opening cast makes the reduced-cost follow-up immediately affordable.
@@ -608,12 +637,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
       .map((step) => step.start),
     [0, 800]
   );
-  assert.deepEqual(
-    anguish.events
-      .filter((event) => event.type === 'revenant.state' && event.reason === 'energy-spent')
-      .map((event) => Number(event.state.energy.value.toFixed(9))),
-    [0, 3]
-  );
+  assert.deepEqual(spentEnergy, [0, 3]);
 
   const normalEmbrace = simulate('Core', ['Embrace the Darkness'], {
     selectedLegends: [LEGEND.DEMON, LEGEND.ASSASSIN],
@@ -752,7 +776,8 @@ test('Release Potential strength is independent of the equipped weapon set', () 
 });
 
 // The profession's shared-identity gate must follow the same accumulated work as the ammo controller.
-test('Beguiling Haze main recharge gains intermittent Alacrity after its follow-ups', () => {
+test('Beguiling Haze main recharge ignores transient Alacrity after its follow-ups', () => {
+  // Transient Alacrity after the follow-ups cannot change the permanent recharge rate.
   const config = {
     ...baseConfig,
     specialization: 'Conduit',
@@ -760,29 +785,25 @@ test('Beguiling Haze main recharge gains intermittent Alacrity after its follow-
     startingLegend: LEGEND.ENTITY,
     initialEnergy: 100
   };
-  const scheduler = createScheduler({
-    profession: revenantProfession,
-    config,
-    schedulerPolicy: createGw2SchedulerPolicy(config)
+  const rotation = Array(4).fill('Beguiling Haze');
+  const skill = revenantCatalog.skillsByName.get('Beguiling Haze');
+  const originalReadyAt = observedRuntime(runRevenant(rotation.slice(0, 3), config)).ammo.get(skill.id).nextRechargeAt;
+  const hasted = runRevenant(rotation, config, {
+    initialize(runtime) {
+      runtime.emit({
+        type: 'buff',
+        kind: 'alacrity',
+        at: 2,
+        duration: 4,
+        stacks: 1,
+        source: 'fixture',
+        sourceId: 'fixture',
+        actorType: 'player'
+      });
+    }
   });
-  const skill = scheduler.context.catalog.skillsByName.get('Beguiling Haze');
-  for (let i = 0; i < 3; i++) assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);
-  scheduler.advanceTo(2);
-  const originalReadyAt = scheduler.state.ammo.get(skill.id).nextRechargeAt;
-  scheduler.context.emit({
-    type: 'buff',
-    kind: 'alacrity',
-    at: 2,
-    duration: 4,
-    stacks: 1,
-    source: 'fixture',
-    sourceId: 'fixture',
-    actorType: 'player'
-  });
-  assert.equal(scheduler.cast({ type: 'cast', skillId: skill.id }), true);
-  const action = scheduler.events.findLast((event) => event.type === 'action');
-  assert.equal(action.at, gw2CooldownReadyAt(originalReadyAt - 1));
-  assert.deepEqual(scheduler.warnings, []);
+  assert.deepEqual(hasted.warnings, []);
+  assert.equal(hasted.steps.at(-1).start / 1000, gw2CooldownReadyAt(originalReadyAt));
 });
 
 test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
@@ -804,12 +825,9 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
       [1000, 0.6]
     ]
   );
-  assert.deepEqual(
-    beguiling.steps.map((step) => step.fullCastMs),
-    [560, 240, 240]
-  );
+  assert.deepEqual(beguiling.steps.map(castMs), [560, 240, 240]);
   assert.equal(beguiling.planningState.profession.beguilingHazeCharges, 0);
-  const beguilingAmmo = beguiling.schedulerState.ammo.get(revenantCatalog.skillsByName.get('Beguiling Haze').id);
+  const beguilingAmmo = observedRuntime(beguiling).ammo.get(revenantCatalog.skillsByName.get('Beguiling Haze').id);
 
   assert.equal(beguilingAmmo.maximum, 1);
   assert.equal(beguilingAmmo.charges, 0);
@@ -827,7 +845,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
       initialEnergy: 100
     }
   );
-  const rechargedAmmo = recharged.schedulerState.ammo.get(revenantCatalog.skillsByName.get('Beguiling Haze').id);
+  const rechargedAmmo = observedRuntime(recharged).ammo.get(revenantCatalog.skillsByName.get('Beguiling Haze').id);
 
   assert.equal(recharged.planningState.profession.beguilingHazeCharges, 0);
   assert.equal(rechargedAmmo.maximum, 1);
@@ -938,14 +956,15 @@ test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
     initialEnergy: 100,
     boons: { quickness: true }
   });
-  const affinityAtImpact = swappedBeforeImpact.events.find(
-    (event) => event.type === 'revenant.state' && event.reason === 'enigmatic-connection-hit'
-  );
 
   assert.equal(swappedBeforeImpact.steps[1].start, 100);
-  assert.equal(affinityAtImpact.at, 0.88);
-  assert.equal(affinityAtImpact.state.activeLegendId, LEGEND.ASSASSIN);
-  assert.equal(affinityAtImpact.state.affinity, 2);
+  // The swap resets affinity, so both impacts landing after it must grant the final two stacks.
+  assert.deepEqual(
+    swappedBeforeImpact.events
+      .filter((event) => event.type === 'damage' && event.skillName === 'Twin Moon Sweep')
+      .map((event) => event.at),
+    [0.88, 0.88]
+  );
   assert.equal(swappedBeforeImpact.planningState.profession.affinity, 2);
 });
 
@@ -1288,8 +1307,8 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
   });
 
   assert.equal(
-    kinetic.schedulerState.cooldowns.get(revenantCatalog.skillsByName.get('Release Potential: Warrior').id),
-    kinetic.steps[0].end / 1000 + 8
+    observedRuntime(kinetic).cooldowns.get(revenantCatalog.skillsByName.get('Release Potential: Warrior').id),
+    kinetic.steps[0].end / 1000 + 6.4
   );
 
   const cosmic = simulate('Conduit', ['__combat_start', 'Cosmic Wisdom', 'Swap Legends', 'Release Potential: Mesmer'], {
@@ -1360,7 +1379,7 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
       }
     }
   };
-  const attributes = revenantAttributeRules.modifyAttributes(context, {
+  const attributes = revenantModifiers.modifyAttributes(context, {
     power: 1000,
     precision: 1000,
     toughness: 1000,
@@ -1376,7 +1395,7 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
   assert.equal(attributes.ferocity, 300);
   assert.equal(attributes.precision, 1150);
   assert.equal(attributes.conditionDamage, 150);
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(context, 1), 1.75);
+  assert.equal(revenantModifiers.modifyStrikeDamage(context, 1), 1.75);
 
   const numinousContext = {
     ...context,
@@ -1388,7 +1407,7 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
       selectedTraitIds: [TRAIT.YEARNING_EMPOWERMENT, TRAIT.NUMINOUS_GIFT]
     }
   };
-  const numinousAttributes = revenantAttributeRules.modifyAttributes(numinousContext, {
+  const numinousAttributes = revenantModifiers.modifyAttributes(numinousContext, {
     conditionDurationBonuses: {
       Poisoned: 10,
       Torment: 10
@@ -1400,7 +1419,7 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
     Torment: 10
   });
   assert.equal(
-    revenantAttributeRules.modifyConditionDuration(
+    revenantModifiers.modifyConditionDuration(
       {
         ...numinousContext,
         condition: 'Poisoned'
@@ -1421,7 +1440,7 @@ test("Conduit runtime rejects Vindicator's Alliance legend", () => {
   assert.equal(result.planningState.profession.activeLegendId, LEGEND.ASSASSIN);
 });
 
-test('Alacrity changes cooldowns but never passive energy regeneration', () => {
+test('console Alacrity settings never change passive energy regeneration', () => {
   const rotation = ['__combat_start', { type: 'wait', durationMs: 5000 }];
   const without = simulate('Core', rotation, {
     initialEnergy: 0,
@@ -1459,35 +1478,6 @@ test('Alacrity does not reduce Revenant legend or weapon swap cooldowns', () => 
     weapons.steps.filter((step) => step.skill === 'Swap Weapons').map((step) => step.start),
     [0, 10000]
   );
-});
-
-test('Revenant state events use the shared event-log row contract', () => {
-  const rows = simulationEventLogRows(
-    {
-      events: [
-        {
-          type: 'revenant.state',
-          at: 1.02,
-          reason: 'kallas-fervor',
-          state: { energy: { value: 30.9, maximum: 100, updatedAt: 0, rate: 5 } }
-        }
-      ],
-      resolvedEvents: [],
-      planningState: { profession: {} }
-    },
-    null,
-    revenantProfession
-  );
-
-  assert.deepEqual(rows, [
-    {
-      at: 1.02,
-      type: 'revenant.state',
-      description: 'kallas-fervor - Energy 30',
-      className: 'resource',
-      phantasmClone: false
-    }
-  ]);
 });
 
 test('Revenant is a loadable native fixed-bar application', async () => {

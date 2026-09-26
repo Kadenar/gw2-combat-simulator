@@ -11,7 +11,9 @@ export function prepareSimulationConfig(defaults, userConfig = {}, { duration = 
     target: {
       ...defaults.target,
       ...(userConfig.target || {}),
-      conditions: hasTargetConditions ? { ...(userConfig.target?.conditions || {}) } : { ...defaults.target.conditions }
+      conditions: hasTargetConditions
+        ? { ...(userConfig.target?.conditions || {}) }
+        : { ...defaults.target?.conditions }
     }
   };
 }

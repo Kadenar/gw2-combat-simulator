@@ -3,7 +3,7 @@ import {
   PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS,
   PATCHABLE_EFFECT_NUMERIC_FIELDS
 } from '#gw2/integrations/patches/authoring/fields.js';
-import { deepFreeze } from '#gw2/integrations/patches/authoring/immutable.js';
+import { deepFreeze, cloneCatalogData } from '#gw2/integrations/patches/authoring/immutable.js';
 import {
   normalizeSkillEffects,
   requireBalanceNumber,
@@ -508,7 +508,7 @@ export function normalizeAuthoringSkillEdit(source: Skill | BalanceProfile, edit
   delete normalized.effects;
 
   const liveEffects = source.effects || [];
-  const patchedEffects = structuredClone(liveEffects);
+  const patchedEffects = cloneCatalogData(liveEffects);
   for (const patch of shorthandEffects(edit)) {
     for (const { index, effect } of selectedEffects(patchedEffects, patch, source.name)) {
       patchEffect(effect, patch, `${source.name}.effects[${index}]`);
@@ -554,7 +554,7 @@ export function normalizeAuthoringSkillEdit(source: Skill | BalanceProfile, edit
 /** Produces an immutable patched skill without mutating the live catalog record. */
 function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string): Skill {
   const ownerLabel = `${label} skill=${skill.id} (${skill.name})`;
-  const clone = structuredClone(skill) as Skill;
+  const clone = cloneCatalogData(skill);
   const mutable = clone as unknown as MutableRecord;
   const fields: Record<string, NumEdit> = {
     ...(edit.fields || {}),
@@ -612,7 +612,7 @@ function migrateBalanceProfileFields(key: string, edit: SkillPatchEdit): SkillPa
 /** Produces an immutable patched balance profile using the shared sparse patch grammar. */
 function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit, label: string): BalanceProfile {
   const ownerLabel = `${label} profile=${profile.id} (${profile.name})`;
-  const clone = structuredClone(profile) as BalanceProfile;
+  const clone = cloneCatalogData(profile);
   const mutable = clone as unknown as MutableRecord;
   const fields: Record<string, NumEdit> = {
     ...(edit.fields || {}),

@@ -63,11 +63,11 @@ export function bindDruidUi(catalog: Readonly<CanonicalCatalog>): RangerUiSlice 
     ],
     timelineWeaponLineTransition: (context: RangerUiContext) => {
       const skill = context.skill as RangerSkill | undefined;
-      if (skill?.handlerId === 'ranger.celestial-avatar-enter') {
+      if (skill?.id === ID.CELESTIAL_AVATAR) {
         return 'Celestial Avatar';
       }
 
-      if (skill?.handlerId === 'ranger.celestial-avatar-exit') {
+      if (skill?.id === ID.RELEASE_CELESTIAL_AVATAR) {
         // null signals end of CA section on the timeline without starting a new named line
         return null;
       }

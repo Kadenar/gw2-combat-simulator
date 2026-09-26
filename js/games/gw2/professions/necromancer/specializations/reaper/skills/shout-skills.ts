@@ -41,9 +41,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effects: [
       { type: 'strike', coefficient: 1.5, hits: 1 },
       { type: 'condition', condition: 'Chilled', stacks: 1, duration: 3 }
-    ],
-    // Custom: Moves a skill-specific number of active self-conditions to the target; see `core/mechanics/conditions.ts`.
-    handlerId: 'necromancer.condition-transfer'
+    ]
   },
   [ID.RISE]: {
     castTimeMs: 360,

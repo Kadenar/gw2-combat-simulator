@@ -1,14 +1,37 @@
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
-import { recordPassiveRelicTimeline, relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
+import { invokeRelicHook } from '#gw2/platform/equipment/relics/runtime.js';
+import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { migrateGuardianBuild, validateGuardianBuild } from '#gw2/professions/guardian/build/build.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+
+// Minimal slot casts exercise live completion and activation timing without profession mechanics.
+const slotProfession = defineProfession({
+  id: 'slot-relic-fixture',
+  name: 'Slot Relic Fixture',
+  catalog: createCanonicalCatalog({
+    generated: [
+      ...['Heal', 'Elite', 'Utility'].flatMap((type, index) => [
+        { id: 940000 + index * 2, name: type, type, castTimeMs: 500, effects: [] },
+        { id: 940001 + index * 2, name: 'Instant ' + type, type, castTimeMs: 0, effects: [] }
+      ]),
+      {
+        id: 940010,
+        name: 'Strike',
+        type: 'Weapon',
+        weapon: 'Sword',
+        castTimeMs: 0,
+        effects: [{ type: 'strike', coefficient: 1 }]
+      },
+      { id: 940011, name: 'Control', type: 'Utility', castTimeMs: 0, effects: [{ type: 'control' }] }
+    ]
+  })
+});
 
 // Saved preparation is opt-in, survives JSON persistence, and rejects unsupported or duplicate selections.
 test('precast relic selections migrate and validate independently of the combat relic', () => {
@@ -88,29 +111,41 @@ test('Brawler precasts carry their remaining buff into combat without reactivati
 });
 
 test('both preparation buffs combine with the combat relic and stop triggering at Combat Start', () => {
-  const procs = [];
-  const ctx = {
-    config: {
-      relic: 'Claw',
-      precastRelics: ['Director', 'Mount Balrior'],
-      target: { conditions: { Vulnerability: 25 } }
-    },
-    relic: createRelicRuntime('Claw'),
-    combatStartTime: 2,
-    queue: new StableEventQueue(),
-    recordProc: (...args) => procs.push(args)
+  const config = {
+    relic: 'Claw',
+    precastRelics: ['Director', 'Mount Balrior'],
+    target: { conditions: { Vulnerability: 25 } }
   };
-  ctx.relic.state.buffUntil = 10;
-  const action = (at, skillType) => ({ type: 'action', at, endsAt: at, skillType, actorType: 'player' });
-  recordPassiveRelicTimeline(
-    ctx,
-    [action(0, 'Elite'), action(0.5, 'Heal'), action(40, 'Elite'), action(41, 'Heal')],
-    45
+  const rotation = [
+    'Elite',
+    'Heal',
+    { type: 'wait', durationMs: 1000 },
+    '__combat_start',
+    'Control',
+    'Strike',
+    { type: 'wait', durationMs: 6000 },
+    'Strike',
+    { type: 'wait', durationMs: 32000 },
+    'Elite',
+    'Heal',
+    { type: 'wait', durationMs: 1000 },
+    'Strike'
+  ];
+  const result = simulateGw2({ profession: slotProfession, config, rotation });
+  const baseline = simulateGw2({
+    profession: slotProfession,
+    config: { ...config, relic: '', precastRelics: [] },
+    rotation
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(baseline.warnings, []);
+  const hits = (simulation) => simulation.resolvedEvents.filter((event) => event.type === 'damage');
+  for (const [index, multiplier] of [1.07 * 1.1 * 1.15, 1.07, 1].entries())
+    assertFlooredDamageMultiplier(hits(result)[index].damage, hits(baseline)[index].damage, multiplier);
+  assert.equal(
+    result.procSteps.filter((step) => ['Relic of the Director', 'Relic of Mount Balrior'].includes(step.skill)).length,
+    2
   );
-  assert.equal(procs.length, 2);
-  assert.ok(Math.abs(relicStrikeMultiplier(ctx, { at: 2, actorType: 'player' }) - 1.07 * 1.1 * 1.15) < 1e-10);
-  assert.equal(relicStrikeMultiplier(ctx, { at: 8, actorType: 'player' }), 1.07);
-  assert.equal(relicStrikeMultiplier(ctx, { at: 42, actorType: 'player' }), 1);
 });
 
 for (const [relic, skill] of [
@@ -148,27 +183,14 @@ for (const [relic, skill] of [
 }
 
 test('instant preparation at the combat timestamp respects marker ordering', () => {
-  const procs = [];
-  const ctx = {
-    config: { relic: '', precastRelics: ['Director'] },
-    relic: createRelicRuntime(''),
-    combatStartTime: 0,
-    queue: new StableEventQueue(),
-    recordProc: (...args) => procs.push(args)
-  };
-  const action = (eventOrder) => ({
-    type: 'action',
-    skillType: 'Heal',
-    at: 0,
-    endsAt: 0,
-    actorType: 'player',
-    eventOrder
-  });
-  const marker = { type: 'combat_start', at: 0, eventOrder: 1 };
-  recordPassiveRelicTimeline(ctx, [marker, action(2)], 1);
-  assert.equal(procs.length, 0);
-  recordPassiveRelicTimeline(ctx, [action(0), marker], 1);
-  assert.equal(procs.length, 1);
+  for (const [rotation, expected] of [
+    [['__combat_start', 'Instant Heal'], 0],
+    [['Instant Heal', '__combat_start'], 1]
+  ]) {
+    const result = simulateGw2({ profession: slotProfession, config: { precastRelics: ['Director'] }, rotation });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.procSteps.filter((step) => step.skill === 'Relic of the Director').length, expected);
+  }
 });
 
 // Minimal completed casts isolate trigger eligibility, cooldown boundaries and half-open buff windows.
@@ -177,41 +199,40 @@ for (const [relic, skillType, cooldown, delay, multiplier] of [
   ['Mount Balrior', 'Elite', 30, 1, 1.15]
 ]) {
   test(`${relic} uses completed player casts and preserves precombat cooldowns`, () => {
-    const procs = [];
-    const ctx = {
-      relic: createRelicRuntime(relic),
-      config: { relic, precastRelics: [relic], target: { conditions: { Vulnerability: 1 } } },
-      combatStartTime: 4,
-      queue: new StableEventQueue(),
-      recordProc: (...args) => procs.push(args)
-    };
-    const cast = (endsAt, overrides = {}) => ({
-      type: 'action',
-      at: endsAt - 0.5,
-      endsAt,
-      skillType,
-      skillName: 'Trigger',
-      actorType: 'player',
-      ...overrides
+    const config = { relic, precastRelics: [relic], target: { conditions: { Vulnerability: 1 } } };
+    const result = observeGw2Runtime({
+      profession: slotProfession.runtimeFor(config),
+      config,
+      rotation: [
+        { type: 'cast', skillId: slotProfession.catalog.skillsByName.get(skillType).id, interruptAfterMs: 0 },
+        'Instant Utility',
+        { type: 'wait', durationMs: 500 },
+        skillType,
+        'Instant ' + skillType,
+        { type: 'wait', durationMs: 3000 },
+        '__combat_start',
+        { type: 'wait', durationMs: (cooldown - 3) * 1000 },
+        'Instant ' + skillType,
+        { type: 'wait', durationMs: 1 },
+        'Instant ' + skillType,
+        { type: 'wait', durationMs: 2000 }
+      ]
     });
-    recordPassiveRelicTimeline(
-      ctx,
-      [
-        cast(0.5, { cancelled: true }),
-        cast(0.6, { actorType: 'summon' }),
-        cast(0.7, { skillType: 'Utility' }),
-        cast(1),
-        cast(2),
-        cast(1 + cooldown),
-        cast(1.001 + cooldown)
-      ].reverse(),
-      40
+    assert.deepEqual(result.warnings, []);
+    const ctx = observedRuntime(result);
+    const procs = result.procSteps.filter(
+      (step) => step.skill === 'Relic of the ' + relic || step.skill === 'Relic of ' + relic
     );
+    // A summon completion cannot claim a player relic even once its cooldown is ready.
+    const readyAt = ctx.relic.state.readyAt;
+    invokeRelicHook(ctx, 'completed', { type: 'action', at: 100, skillType, actorType: 'summon' });
+    assert.equal(ctx.relic.state.readyAt, readyAt);
+
     assert.deepEqual(
-      procs.map((proc) => proc[2]),
-      [1 + delay, 1.001 + cooldown + delay]
+      procs.map((proc) => proc.start),
+      [(1 + delay) * 1000, (1 + cooldown + delay) * 1000 + 1]
     );
-    assert.equal(procs[0][7], 7 + delay);
+    assert.equal(procs[0].expiresAt / 1000, 7 + delay);
     const strike = (at, overrides = {}) =>
       relicStrikeMultiplier(ctx, {
         type: 'damage',
@@ -226,17 +247,25 @@ for (const [relic, skillType, cooldown, delay, multiplier] of [
     assert.equal(strike(4, { actorType: 'summon' }), 1);
     assert.equal(strike(4, { actorType: 'effect', ownerActorType: 'player' }), multiplier);
     if (relic === 'Director') {
-      const queued = Array.from({ length: ctx.queue.length }, () => ctx.queue.dequeue());
-      assert.ok(
-        queued.every((event) => event.condition === 'Vulnerability' && event.stacks === 8 && event.duration === 8)
+      const applications = result.resolvedEvents.filter(
+        (event) => event.type === 'condition' && event.sourceId === 'relic.director'
       );
-      ctx.config.target.conditions = {};
-      assert.equal(strike(4), 1);
+      assert.ok(applications.length > 0);
+      assert.ok(
+        applications.every((event) => event.condition === 'Vulnerability' && event.stacks === 8 && event.duration === 8)
+      );
+      assert.equal(
+        relicStrikeMultiplier(
+          { relic: ctx.relic, config: { target: { conditions: {} } } },
+          { at: 4, actorType: 'player' }
+        ),
+        1
+      );
     }
   });
 }
 
-// Real scheduler casts must carry their slot type and aim into relic effects without moving the DPS start.
+// Real runtime casts must carry their slot type and aim into relic effects without moving the DPS start.
 for (const [relic, skill, delay, bonus] of [
   ['Director', 'Ether Feast', 0, 1.1],
   ['Mount Balrior', 'Mass Invisibility', 1, 1.15]

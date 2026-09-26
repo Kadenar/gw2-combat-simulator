@@ -51,7 +51,7 @@ function isAristocracyApplication(event: SimulationEvent): boolean {
   );
 }
 
-function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent): void {
+function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent): AristocracyActivation | undefined {
   if (!isAristocracyApplication(event) || !isInternalCooldownReady(event.at, state.readyAt)) {
     return;
   }
@@ -67,6 +67,7 @@ function applyAristocracyTrigger(state: AristocracyState, event: SimulationEvent
     event
   };
   state.activations.push(activation);
+  return activation;
 }
 
 function replayAristocracyTimeline(events: readonly SimulationEvent[], combatStartTime: number): AristocracyState {
@@ -105,31 +106,22 @@ function aristocracyActivationAt(state: AristocracyState, at: number): Aristocra
 
 export const aristocracy = defineRelic({
   createState: createAristocracyState,
-  // Scheduler state and resolver state consume the same condition fact independently.
-  materializeCondition(ctx, state, event) {
-    if (ctx.hasExplicitCombatStart && ctx.combatStartTime == null) return;
-    if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON) return;
-    applyAristocracyTrigger(state as AristocracyState, event);
-  },
   condition(ctx, state, event) {
     if (ctx.combatStartTime != null && event.at < ctx.combatStartTime - EPSILON) return;
-    applyAristocracyTrigger(state as AristocracyState, event);
-  },
-  timeline(ctx, _state, events) {
-    const replay = replayAristocracyTimeline(events, ctx.combatStartTime ?? -Infinity);
-    for (const activation of replay.activations) {
+    // Actual applications own both the stack claim and its report; previews still use pure timeline queries.
+    const activation = applyAristocracyTrigger(state as AristocracyState, event);
+    if (activation)
       ctx.recordProc(
         'relic',
         'Relic of Aristocracy',
         activation.at,
-        activation.event.skillName,
+        event.skillName,
         `${activation.stacks}/${ARISTOCRACY_MAX_STACKS} stacks`,
         '',
         null,
         activation.expiresAt,
         { stacks: activation.stacks, maximumStacks: ARISTOCRACY_MAX_STACKS }
       );
-    }
   },
   conditionDurationBonus(_ctx, state, at) {
     const activation = aristocracyActivationAt(state as AristocracyState, at);

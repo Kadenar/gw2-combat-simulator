@@ -28,10 +28,11 @@ actual inputs. Capture makes no additional modifier queries or random draws. The
 present, including the six-decimal simulation timestamp and effective phase; its usual activation grouping is not a
 complete execution trace.
 
-Score output suppresses diagnostics, including its detailed fallback. Scheduler feedback passes also omit capture. When
-a diagnostic run needs feedback (such as Necromancer), the final configuration and seed are replayed once to capture
-only the final detailed result. This adds one simulation pass for that diagnostic run; ordinary runs retain their
-existing pass count.
+Score output suppresses report collections and diagnostics. Both outputs execute the same runtime once, with the same
+state transitions and random draws. Detailed diagnostics capture the actual hit calculations and critical-sigil
+eligibility, claim, and suppression decisions. They do not predict effects or rerun the simulation.
+
+The optional profiler reports `preparation`, `execution`, and `reporting` durations, once each per call.
 
 Timeline seconds are canonicalized to the nearest microsecond. At a shared timestamp, condition sampling and payouts
 finish before ordinary strikes. Observation cutoffs include eligible work exactly at the cutoff and exclude later
@@ -211,7 +212,7 @@ Unknown, unavailable, or mistimed skills can produce warnings instead of the res
 
 ## Observation policy
 
-Rotation duration and observation duration are separate. By default, the resolver stops at the end of the entered
+Rotation duration and observation duration are separate. By default, combat observation stops at the end of the entered
 commands:
 
 ```js
@@ -300,33 +301,33 @@ defaults.
 
 The commonly useful result fields are:
 
-| Field                                       | Meaning                                                                                         |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `rotationEndTime`                           | End of the entered rotation, in absolute timeline seconds                                       |
-| `observationEndTime`                        | Requested observation end, including any tail, in seconds                                       |
-| `combatEndTime`                             | Target death or observation end, in seconds                                                     |
-| `combatStartTime`, `hasExplicitCombatStart` | Precast/combat boundary and whether a marker supplied it                                        |
-| `dpsStartTime`, `dpsWindow`                 | Reference time and measured DPS window                                                          |
-| `firstHitTime`, `lastHitTime`, `deathTime`  | Damage and target-death timing                                                                  |
-| `totalDamage`, `dps`                        | Overall result                                                                                  |
-| `strikeDamage`, `conditionDamage`           | Damage split                                                                                    |
-| `breakdown`, `conditionBreakdown`           | Raw contribution data                                                                           |
-| `casts`                                     | Aggregate cast counts                                                                           |
-| `events`, `resolvedEvents`                  | Scheduler and resolver timelines                                                                |
-| `warnings`                                  | Invalid or constrained rotation behavior                                                        |
-| `planningState`                             | Scheduler-only prediction at `atSeconds`: cooldowns, ammo, weapon set, and profession resources |
-| `combatState`                               | Resolver-owned event state through its `atSeconds` boundary; not a complete player snapshot     |
-| `randomness`                                | Actual resolution mode and seed                                                                 |
+| Field                                       | Meaning                                                                                     |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `rotationEndTime`                           | End of the entered rotation, in absolute timeline seconds                                   |
+| `observationEndTime`                        | Requested observation end, including any tail, in seconds                                   |
+| `combatEndTime`                             | Target death or observation end, in seconds                                                 |
+| `combatStartTime`, `hasExplicitCombatStart` | Precast/combat boundary and whether a marker supplied it                                    |
+| `dpsStartTime`, `dpsWindow`                 | Reference time and measured DPS window                                                      |
+| `firstHitTime`, `lastHitTime`, `deathTime`  | Damage and target-death timing                                                              |
+| `totalDamage`, `dps`                        | Overall result                                                                              |
+| `strikeDamage`, `conditionDamage`           | Damage split                                                                                |
+| `breakdown`, `conditionBreakdown`           | Raw contribution data                                                                       |
+| `casts`                                     | Aggregate cast counts                                                                       |
+| `events`, `resolvedEvents`                  | Dispatched packets (including attempted misses/precasts) and committed combat reports       |
+| `warnings`                                  | Invalid or constrained rotation behavior                                                    |
+| `planningState`                             | Observed continuation at `atSeconds`: cooldowns, ammo, weapon set, and profession resources |
+| `combatState`                               | Detached profession state at the combat boundary; not a complete player snapshot            |
+| `randomness`                                | Actual resolution mode and seed                                                             |
 
 All boundary times and both state projections' `atSeconds` values use absolute timeline seconds. Planning continues
-through the requested horizon after target death; combat effects stop at `combatEndTime`. Planning projections never
-receive resolver state. Cooldown `readyAt` and `remaining` values retain milliseconds; ammo recharge timestamps retain
-seconds. The editor obtains rotation/insertion state through `rotationPlanningStateAt`, excluding observation tails when
-appending.
+through the requested horizon after target death; combat effects stop at `combatEndTime`. Both projections come from the
+same live state at their respective boundaries. Cooldown `readyAt` and `remaining` values retain milliseconds; ammo
+recharge timestamps retain seconds. The editor obtains rotation/insertion state through `rotationPlanningStateAt`,
+excluding observation tails when appending.
 
 The old `duration`, `endState`, top-level `profession`, and standalone `snapshot` result fields are removed. Use
-`combatState.profession` for resolved effects and `planningState.profession` for predicted resources. Neither projection
-is a resumable checkpoint. Resolver records may retain expiry timestamps; evaluate active effects at
+`combatState.profession` for resolved effects and `planningState.profession` for observed resources. Neither projection
+is a resumable checkpoint. Combat records may retain expiry timestamps; evaluate active effects at
 `combatState.atSeconds`, never at the later planning time.
 
 Use `skillBreakdownRows(result)` for a stable per-skill table instead of reimplementing aggregation over raw events.

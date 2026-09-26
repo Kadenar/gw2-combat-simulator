@@ -71,9 +71,8 @@ export interface NativePatchAuthoringMetadata {
 export type NativePatchAuthoringContract<
   TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
-  TSimulation extends object = object,
   TBuild extends Gw2Build = Gw2Build
-> = NativeProfessionContract<TModules, TPresentation, TSimulation, TBuild> & {
+> = NativeProfessionContract<TModules, TPresentation, TBuild> & {
   readonly preview: PatchPreview | null;
   readonly catalogFor: (patchId?: string) => Readonly<CanonicalCatalog>;
   readonly balanceContextFor: (patchId?: string) => ProfessionBalanceContext;

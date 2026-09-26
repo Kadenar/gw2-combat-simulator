@@ -39,15 +39,15 @@ for (const profession of professions.length
   const timings = [];
   const scoreTimings = [];
   let result;
-  let schedulingPasses = 0;
+  let executions = 0;
   for (let run = -3; run < 10; run++) {
     const start = performance.now();
     const equipment = ordinaryEquipmentAt(space, 0n);
     const generated = performance.now();
     const config = evaluator.prepare(equipment);
     const prepared = performance.now();
-    const phases = { scheduling: 0, resolution: 0, reporting: 0, refinement: 0 };
-    schedulingPasses = 0;
+    const phases = { preparation: 0, execution: 0, reporting: 0 };
+    executions = 0;
     result = simulateGw2({
       profession: adapter.profession,
       rotation: build.rotation,
@@ -55,7 +55,7 @@ for (const profession of professions.length
       observationPolicy: request.observationPolicy,
       onPhase(phase, duration) {
         phases[phase] += duration;
-        if (phase === 'scheduling') schedulingPasses++;
+        if (phase === 'execution') executions++;
       }
     });
     const simulated = performance.now();
@@ -65,7 +65,7 @@ for (const profession of professions.length
       timings.push({
         ...phases,
         generation: generated - start,
-        preparation: prepared - generated,
+        buildPreparation: prepared - generated,
         simulation: simulated - prepared,
         serialization: serialized - simulated,
         total: serialized - start
@@ -119,10 +119,9 @@ for (const profession of professions.length
     medianMs: Object.fromEntries(
       [
         'generation',
+        'buildPreparation',
         'preparation',
-        'scheduling',
-        'resolution',
-        'refinement',
+        'execution',
         'reporting',
         'simulation',
         'serialization',
@@ -143,7 +142,7 @@ for (const profession of professions.length
     rotationEndTime: result.rotationEndTime,
     events: result.resolvedEvents.length,
     ticks: result.resolvedEvents.reduce((sum, event) => sum + (event.damageTicks?.length || 0), 0),
-    schedulingPasses,
+    executions,
     warnings: result.warnings
   });
 }

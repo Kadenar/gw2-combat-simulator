@@ -7,15 +7,13 @@ import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
+import { gw2RechargeRate } from '#gw2/platform/engine/skills/recharge.js';
 
-// Rewound passive cooldowns keep their saved work while later Alacrity changes their completion.
-test('Continuum snapshots keep passive cooldown queries aligned with restored recharge', () => {
+// Rewound cooldowns keep their saved work at the permanent Chronomancer recharge rate.
+test('Continuum snapshots restore recharge work at the permanent Chronomancer rate', () => {
   const skill = { id: 980000, name: 'Signet', cooldown: 10 };
   const skillsById = new Map([[skill.id, skill]]);
   const config = { specialization: 'Chronomancer' };
-  const events = [];
-  const timeline = createGw2TimelineIndex({ config, events, skillsById });
   const state = {
     time: 0,
     ammo: new Map(),
@@ -27,7 +25,7 @@ test('Continuum snapshots keep passive cooldown queries aligned with restored re
     state,
     rechargeDuration: () => 10,
     skillFor: (id) => skillsById.get(id),
-    rechargeIntervals: timeline.rechargeIntervals
+    rechargeIntervals: (skill, start, end) => [{ start, end, rate: gw2RechargeRate(config, skill) }]
   });
   const continuum = createContinuumController({
     state,
@@ -37,32 +35,14 @@ test('Continuum snapshots keep passive cooldown queries aligned with restored re
     refreshAmmo: cooldown.refreshAmmo,
     consumeResources: () => 0,
     triggerShatterTraits: () => {},
-    addEvent: (event) => events.push(event),
+    addEvent: () => {},
     durationPerSource: 3
   });
   cooldown.startRecharge(skill, 0);
   continuum.beginContinuumSplit({ id: 980001 }, 1);
   continuum.restoreContinuum(4, 'test');
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 11), true);
-  events.push({
-    type: 'buff',
-    kind: 'alacrity',
-    at: 5,
-    duration: 4,
-    stacks: 1,
-    resolvedAudience: {
-      includesSelf: true,
-      includesSummons: false,
-      alliedPlayerCount: 0,
-      companionIds: [],
-      recipientCount: 1
-    }
-  });
-  cooldown.refresh(11);
-  assert.equal(state.cooldowns.get(skill.id), 11);
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 10.999999), true);
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 11), false);
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 4), true);
+  assert.equal(state.cooldowns.get(skill.id), 13);
+  assert.deepEqual(state.rechargeProgress.get(skill.id), { startedAt: 4, work: 13.5 });
 });
 
 // A rewind preserves the remaining cast lockout even when recharge reduction subsequently returns a charge.
@@ -260,7 +240,7 @@ test('Chronophantasma conversions preserve clone spends across a Continuum Split
   );
   const spends = result.events
     .filter((event) => event.type === 'resource' && event.reason === 'profession mechanic')
-    .map((event) => [event.sourceSkill, -event.amount]);
+    .map((event) => [result.steps.find((step) => step.activationId === event.activationId)?.skill, -event.amount]);
 
   assert.deepEqual(spends, [
     ['Continuum Split', 2],
@@ -353,8 +333,8 @@ test('mid-rotation concurrent Continuum Split does not restore expired cooldowns
     })
   );
 
-  assert.equal(result.steps[3].start, 14580);
-  assert.equal(result.steps[5].start, result.steps[4].end);
+  assert.equal(result.steps.find((step) => step.skill === 'Continuum Split').start, 14580);
+  assert.equal(result.steps.at(-1).start, result.steps.at(-2).end);
 });
 
 test('Split Second shatter traits affect only the first strike from each source', () => {

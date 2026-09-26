@@ -1,3 +1,4 @@
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /**
  * Evoker attunement behaviour layered over the Core Elementalist system.
  *
@@ -12,12 +13,12 @@ import {
   balanceProfileNumber,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   isElementalistAttunement,
@@ -52,7 +53,7 @@ const EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES = new Set<Skill['id']>([
 
 // reports whether the trait may proc now, arming its next Evocation ICD window when it may
 function consumeEvokerAttunementTraitCooldown(
-  context: ElementalistSchedulerContext,
+  context: ElementalistRuntime,
   state: EvokerState,
   at: number,
   profileId: Skill['id']
@@ -72,30 +73,29 @@ function consumeEvokerAttunementTraitCooldown(
  * reports whether the skill was an attunement swap at all so the caller can tell
  * Core the transition is already handled.
  */
-export function completeEvokerAttunement(context: ElementalistCastContext, skill: Skill): boolean {
+export function completeEvokerAttunement(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): boolean {
   const target = targetAttunement(skill);
   if (!target) return false;
 
   const state = evokerState.from(context);
-  const at = context.effectiveEnd;
+  const at = cast.effectiveEnd;
   // Apply each configured ICD only when its element is the Evoker's selected specialization.
   const shouldTriggerAttunementTrait = ({ attunement, profileId }: ElementalistAttunementTraitTrigger): boolean =>
     !EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES.has(profileId) ||
     state.element !== attunement ||
-    consumeEvokerAttunementTraitCooldown(context as never, state, at, profileId);
+    consumeEvokerAttunementTraitCooldown(context, state, at, profileId);
 
-  onAttunementComplete(context, skill, target, { shouldTriggerAttunementTrait });
+  onAttunementComplete(context, cast, skill, target, { shouldTriggerAttunementTrait });
   return true;
 }
 
 /**
  * Rewrites attunement readiness after a swap, giving the elements that were not
  * entered the short Evoker off-attunement recharge while keeping any shorter
- * cooldown that was already running (snapshotted by `availability.ts` before the
- * swap fired).
+ * cooldown that was already running, captured by the actual transition before it changed recharge.
  */
 export function applyEvokerAttunementRechargePolicy(
-  context: ElementalistSchedulerContext,
+  context: ElementalistRuntime,
   event: SimulationEvent,
   state: EvokerState
 ): void {
@@ -109,11 +109,7 @@ export function applyEvokerAttunementRechargePolicy(
 
   const previous = event.from;
   const target = event.to;
-  const skill = context.catalog.skillsById.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[target])!;
-  const commandIndex = Number(event.commandIndex);
-  // snapshot captured by availability.ts before the swap; lets us honor shorter cooldowns already in progress
-  const preserved = state.pendingOffAttunementRemainingByCommand[commandIndex] || {};
-  delete state.pendingOffAttunementRemainingByCommand[commandIndex];
+  const skill = context.helpers.skillsById.get(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[target])!;
   const readyAtBefore =
     event.attunementReadyAtBefore && typeof event.attunementReadyAtBefore === 'object'
       ? (event.attunementReadyAtBefore as Partial<Record<ElementalistAttunement, number>>)
@@ -128,12 +124,7 @@ export function applyEvokerAttunementRechargePolicy(
       Math.max(
         Number(readyAtBefore[previous] || 0),
         event.at +
-          elementalistAttunementRechargeDuration(
-            context,
-            skill,
-            balanceProfileNumber(resourcesProfile, 'recharge'),
-            event.at
-          )
+          elementalistAttunementRechargeDuration(context, skill, balanceProfileNumber(resourcesProfile, 'recharge'))
       )
     );
   }
@@ -143,14 +134,9 @@ export function applyEvokerAttunementRechargePolicy(
     const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
     const defaultReadyAt =
       event.at +
-      elementalistAttunementRechargeDuration(
-        context,
-        skill,
-        balanceProfileNumber(resourcesProfile, 'recharge'),
-        event.at
-      );
+      elementalistAttunementRechargeDuration(context, skill, balanceProfileNumber(resourcesProfile, 'recharge'));
     const existingReadyAt = Number(readyAtBefore[attunement] || 0);
-    const preservedRemaining = Number(preserved[attunement] || 0);
+    const preservedRemaining = Math.max(0, existingReadyAt - event.at);
     // if the attunement already had less time left than the new default, keep the shorter timer
     const nextReadyAt =
       preservedRemaining > 0 && preservedRemaining < defaultReadyAt - event.at
@@ -162,14 +148,15 @@ export function applyEvokerAttunementRechargePolicy(
 
 // fires the attunement-enter effects for Specialized Elements without actually swapping attunement
 export function triggerSpecializedElementEntry(
-  context: ElementalistCastContext,
+  context: ElementalistRuntime,
+  cast: RuntimeCast,
   skill: Skill,
   element: ElementalistAttunement
 ): void {
-  const at = context.effectiveEnd;
+  const at = cast.effectiveEnd;
   const state = evokerState.from(context);
   const procReady = (profileId: Skill['id']): boolean =>
-    consumeEvokerAttunementTraitCooldown(context as never, state, at, profileId);
+    consumeEvokerAttunementTraitCooldown(context, state, at, profileId);
 
   context.emit({
     type: 'elementalist.attunement-enter',
@@ -182,10 +169,10 @@ export function triggerSpecializedElementEntry(
   });
   if (element === 'Fire') {
     if (hasTrait(context, 'Sunspot') && procReady(CORE_PROFILE.sunspot)) {
-      triggerSunspot(context as never, at, skill.id);
+      triggerSunspot(context, at, skill.id);
     }
   } else if (element === 'Air') {
-    triggerElectricDischarge(context as never, at, skill.id);
+    triggerElectricDischarge(context, at, skill.id);
     // Synthetic entry shares the Air grants; Fresh Air below has its own entry semantics.
     applyOneWithAir(context, at, skill);
     applyInscriptionAirEntry(context, at, skill);
@@ -194,7 +181,8 @@ export function triggerSpecializedElementEntry(
       const freshAirProfile = requireBalanceProfileFromContext(context, CORE_PROFILE.freshAir);
       const freshAir = requireEffect(freshAirProfile, 'buff', 'fresh-air');
       if (freshAir) {
-        emitSkillBuff(context, skill, {
+        emitElementalistBuff(context, {
+          skill: skill,
           at,
           source: skill.name,
           sourceId: skill.id,
@@ -208,11 +196,11 @@ export function triggerSpecializedElementEntry(
     }
   } else if (element === 'Earth') {
     if (hasTrait(context, 'Earthen Blast') && procReady(CORE_PROFILE.earthenBlast)) {
-      triggerEarthenBlast(context as never, at, skill.id);
+      triggerEarthenBlast(context, at, skill.id);
     }
 
     if (hasTrait(context, 'Rock Solid') && procReady(CORE_PROFILE.rockSolid)) {
-      grantElementalistRockSolid(context as never, at, skill.id);
+      grantElementalistRockSolid(context, at, skill.id);
     }
   }
 }

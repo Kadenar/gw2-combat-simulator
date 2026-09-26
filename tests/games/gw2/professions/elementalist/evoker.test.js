@@ -1,3 +1,4 @@
+import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
@@ -5,23 +6,45 @@ import { elementalistCatalog, elementalistProfession } from '#gw2/professions/el
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/engine/skills/recharge.js';
 import { evokerState, grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { onEventScheduled } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
-import { applyElectricEnchantmentsRetrospectively } from '#gw2/professions/elementalist/specializations/evoker/mechanics/enchantments.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import { EVOKER_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/specializations/evoker/profiles.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { afterCast } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
+import { modifyFamiliarEffects } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
+
+test('Altruistic Aspect grants its meditation boon only when selected and the cast commits', () => {
+  // Use one meditation with no other boon traits to expose the missing completion hook.
+  const run = (traits, interrupted = false) =>
+    runElementalist({
+      config: {
+        specialization: 'Evoker',
+        evokerElement: 'Fire',
+        autoSummonElemental: false,
+        selectedTraitIds: traits,
+        selectedSkills: ["Fox's Fury"]
+      },
+      rotation: [
+        {
+          type: 'cast',
+          skillId: elementalistCatalog.skillsByName.get("Fox's Fury").id,
+          ...(interrupted ? { interruptAfterMs: 0 } : {})
+        }
+      ]
+    }).resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'might');
+  const base = run([]);
+  const boon = run(['Altruistic Aspect']);
+  assert.equal(boon.length, base.length + 1);
+  assert.equal(boon.at(-1).stacks, 3);
+  assert.equal(boon.at(-1).duration, 10);
+  assert.deepEqual(run(['Altruistic Aspect'], true), run([], true));
+});
 
 test('Ignite retains its final burning tier until the inactivity window expires', () => {
   // Exercise the familiar state transition independently of weapon recharge and rotation timing.
   const state = evokerState.create();
-  const event = { type: 'condition', condition: 'Burning', activationId: 'ignite' };
-  const context = {
-    catalog: elementalistCatalog,
-    state: { profession: { specialization: { kind: 'Evoker', state } } },
-    reservationId: 'ignite',
-    events: [event],
-    replaceEvent: (target, updates) => Object.assign(target, updates)
-  };
+  const skill = elementalistCatalog.skillsByName.get('Ignite');
+  const context = { helpers: elementalistCatalog, profession: { specialization: { kind: 'Evoker', state } } };
   for (const [start, duration] of [
     [0, 2],
     [1, 0.5],
@@ -31,180 +54,134 @@ test('Ignite retains its final burning tier until the inactivity window expires'
     [18, 1.5],
     [33, 2]
   ]) {
-    context.start = start;
-    afterCast(context, elementalistCatalog.skillsByName.get('Ignite'));
-    assert.equal(event.duration, duration);
+    const effects = modifyFamiliarEffects(context, { skill, start, id: 'ignite' }, [
+      { type: 'condition', condition: 'Burning', duration: 99 }
+    ]);
+    assert.equal(effects[0].duration, duration);
   }
 });
 
-// Exercise real event observers, including immutable replacement and reentrant proc emission.
-function enchantmentHarness() {
-  const state = evokerState.create({ evokerElement: 'Air' });
-  const events = [];
-  const context = {
-    catalog: elementalistCatalog,
-    profession: { id: 'elementalist' },
-    state: { time: 3, profession: { specialization: { kind: 'Evoker', state } } },
-    combatStartTime: 2,
-    effectiveEnd: 3,
-    events,
-    eventByOrder: (order) => events.find((event) => event.eventOrder === order),
-    replaceEvent(event, updates) {
-      const index = events.findIndex((candidate) => candidate.eventOrder === event.eventOrder);
-      return (events[index] = { ...events[index], ...updates });
+// Queue impacts out of order; only an accepted live strike may spend an active grant.
+function enchantments({ hits, grants, timeline = [] }) {
+  return runElementalist({
+    config: { specialization: 'Evoker', evokerElement: 'Air', autoSummonElemental: false },
+    rotation: [{ type: 'wait', durationMs: 2000 }, '__combat_start', { type: 'wait', durationMs: 20000 }],
+    initialize: (r) => {
+      for (const [at, fields = {}] of hits)
+        emitElementalistDamage(r, {
+          at,
+          sourceId: 42,
+          skillId: 42,
+          skillName: 'Fixture',
+          actorType: 'player',
+          coefficient: 1,
+          skillWeapon: 'Unequipped',
+          ...fields
+        });
     },
-    emit(event) {
-      const scheduled = { ...event, eventOrder: events.length };
-      events.push(scheduled);
-      onEventScheduled(context, scheduled);
-      return scheduled;
-    },
-    emitDerived(cause, event) {
-      assert.equal(context.eventByOrder(cause.eventOrder).electricEnchantmentConsumed, true);
-      return context.emit({ ...event, activationId: cause.activationId });
-    }
-  };
-  const hit = (at, fields = {}) =>
-    context.emit({
-      type: 'damage',
-      actorType: 'player',
-      coefficient: 1,
-      skillId: 42,
-      activationId: 'hit',
-      at,
-      ...fields
-    });
-  return { state, context, events, hit };
+    timeline: [
+      ...grants.map(([at, charges, duration]) => ({
+        at,
+        priority: -30,
+        run: (r) => grantElectricEnchantments(evokerState.from(r), at, charges, duration)
+      })),
+      ...timeline
+    ]
+  });
 }
 
-test('Electric Enchantment consumes queued post-grant hits chronologically and only once', () => {
-  // Immutable replacement leaves stale references behind; neither traversal may spend the same hit twice.
-  const { state, context, events, hit } = enchantmentHarness();
-  const later = hit(4);
-  const earlier = hit(3);
-  const preGrant = hit(2.5);
-  const precombat = hit(1);
-  const summon = hit(3, { actorType: 'summon' });
-  const zero = hit(3, { coefficient: 0 });
-  grantElectricEnchantments(state, context.effectiveEnd, 1, 6);
-  applyElectricEnchantmentsRetrospectively(context, state);
-  assert.equal(
-    state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
-    0
-  );
-  assert.equal(context.eventByOrder(earlier.eventOrder).electricEnchantmentConsumed, true);
-  for (const event of [later, preGrant, precombat, summon, zero]) {
-    assert.notEqual(context.eventByOrder(event.eventOrder).electricEnchantmentConsumed, true);
-  }
+const enchantedHits = (result) =>
+  result.resolvedEvents.filter((e) => e.type === 'damage' && e.skillName === 'Electric Enchantment');
 
-  grantElectricEnchantments(state, context.effectiveEnd, 2, 6);
-  onEventScheduled(context, earlier);
-  assert.equal(
-    state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
-    2
-  );
-  applyElectricEnchantmentsRetrospectively(context, state);
-  applyElectricEnchantmentsRetrospectively(context, state);
-  assert.equal(
-    state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
-    1
-  );
-  // A subsequently scheduled strike consumes the remaining charge exactly once.
-  const forward = hit(5);
-  assert.equal(context.eventByOrder(forward.eventOrder).electricEnchantmentConsumed, true);
-  assert.equal(
-    state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
-    0
-  );
-  onEventScheduled(context, forward);
-  assert.equal(
-    state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
-    0
-  );
-  const payloads = events.filter((event) => event.source === 'Electric Enchantment');
-  assert.equal(payloads.length, 9);
-  for (const event of payloads) {
-    assert.ok(event.at >= context.effectiveEnd);
-    assert.equal(event.sourceId, 42);
-    assert.equal(event.actorType, 'effect');
-    if (event.type !== 'proc') {
-      assert.equal(event.ownerActorType, 'player');
-      assert.equal(event.activationId, 'hit');
-    }
-  }
-});
-
-test('Electric Enchantment enforces each grant window for queued and subsequently scheduled strikes', () => {
-  // Both scheduling paths share the same inclusive grant and exclusive expiry boundaries.
-  for (const queued of [false, true]) {
-    for (const at of [2.5, 3, 8.999, 9, 10]) {
-      const { state, context, hit } = enchantmentHarness();
-      let strike;
-      if (queued) strike = hit(at);
-      grantElectricEnchantments(state, 3, 1, 6);
-      if (queued) applyElectricEnchantmentsRetrospectively(context, state);
-      else strike = hit(at);
-      assert.equal(context.eventByOrder(strike.eventOrder).electricEnchantmentConsumed === true, at >= 3 && at < 9);
-    }
-  }
-});
-
-test('Electric Enchantment keeps overlapping grants independent and preserves charges when queuing expired hits', () => {
-  const { state, context, hit } = enchantmentHarness();
-  grantElectricEnchantments(state, 3, 2, 6);
-  grantElectricEnchantments(state, 7, 2, 6);
-  context.state.time = 7;
-  // A far-future packet cannot discard charges needed by a subsequently scheduled earlier hit.
-  const future = hit(20);
-  assert.notEqual(context.eventByOrder(future.eventOrder).electricEnchantmentConsumed, true);
-  hit(8);
+test('Electric Enchantment consumes accepted post-grant hits chronologically and only once', () => {
+  const result = enchantments({
+    hits: [[5], [4], [3], [2.5], [1], [3, { actorType: 'effect' }], [3, { coefficient: 0 }], [3, { offTarget: true }]],
+    grants: [[3, 2, 6]]
+  });
   assert.deepEqual(
-    state.electricEnchantmentGrants.map((grant) => grant.charges),
-    [1, 2]
+    enchantedHits(result).map((e) => e.at),
+    [3, 4]
   );
-  context.state.time = 9;
-  hit(9);
-  assert.deepEqual(state.electricEnchantmentGrants, [{ at: 7, expiresAt: 13, charges: 1, readyAt: 0 }]);
-  context.state.time = 13;
-  const expired = hit(13);
-  assert.notEqual(context.eventByOrder(expired.eventOrder).electricEnchantmentConsumed, true);
   assert.equal(
-    state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
+    evokerState.from(observedRuntime(result)).electricEnchantmentGrants.reduce((sum, g) => sum + g.charges, 0),
     0
   );
 });
 
-test('Electric Enchantment skips an earlier-expiring grant that has not activated yet', () => {
-  const { state, hit } = enchantmentHarness();
-  grantElectricEnchantments(state, 3, 1, 20);
-  grantElectricEnchantments(state, 7, 1, 1);
-  hit(6);
-  assert.deepEqual(
-    state.electricEnchantmentGrants.map(({ at, charges }) => [at, charges]),
-    [
-      [7, 1],
-      [3, 0]
+test('Electric Enchantment includes grant time and excludes expiry for queued strikes', () => {
+  for (const at of [2.5, 3, 8.999999, 9, 10]) {
+    const result = enchantments({ hits: [[at]], grants: [[3, 1, 6]] });
+    assert.equal(enchantedHits(result).length, at >= 3 && at < 9 ? 1 : 0);
+  }
+});
+
+test('Electric Enchantment keeps overlapping grants independent of future queued hits', () => {
+  const result = enchantments({
+    hits: [[20], [8], [9], [13]],
+    grants: [
+      [3, 2, 6],
+      [7, 2, 6]
+    ],
+    timeline: [
+      {
+        at: 8.001,
+        run: (r) =>
+          assert.deepEqual(
+            evokerState.from(r).electricEnchantmentGrants.map((g) => g.charges),
+            [1, 2]
+          )
+      },
+      {
+        at: 9.001,
+        run: (r) =>
+          assert.deepEqual(
+            evokerState.from(r).electricEnchantmentGrants.map((g) => g.charges),
+            [1]
+          )
+      }
     ]
+  });
+  assert.deepEqual(
+    enchantedHits(result).map((e) => e.at),
+    [8, 9]
   );
-  hit(7);
-  assert.equal(
-    state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
-    0
+});
+
+test('Electric Enchantment cannot spend a grant that has not arrived', () => {
+  const result = enchantments({
+    hits: [[7], [6]],
+    grants: [
+      [3, 1, 20],
+      [7, 1, 1]
+    ]
+  });
+  assert.deepEqual(
+    enchantedHits(result).map((e) => e.at),
+    [6, 7]
   );
 });
 
 test('Electric Enchantment spends the earliest expiry even when the shorter grant arrives later', () => {
-  const { state, hit } = enchantmentHarness();
-  grantElectricEnchantments(state, 3, 1, 10);
-  grantElectricEnchantments(state, 4, 1, 6);
-  hit(5);
-  assert.deepEqual(
-    state.electricEnchantmentGrants.map((grant) => [grant.expiresAt, grant.charges]),
-    [
-      [10, 0],
-      [13, 1]
+  enchantments({
+    hits: [[5]],
+    grants: [
+      [3, 1, 10],
+      [4, 1, 6]
+    ],
+    timeline: [
+      {
+        at: 5.001,
+        run: (r) =>
+          assert.deepEqual(
+            evokerState.from(r).electricEnchantmentGrants.map((g) => [g.expiresAt, g.charges]),
+            [
+              [10, 0],
+              [13, 1]
+            ]
+          )
+      }
     ]
-  );
+  });
 });
 
 test('Familiar and meditation enchantments cannot enhance a strike after their idle expiry', () => {
@@ -230,7 +207,11 @@ test('Familiar and meditation enchantments cannot enhance a strike after their i
       });
       assert.deepEqual(result.warnings, []);
       const attack = result.events.find((event) => event.type === 'damage' && event.skillName === 'Fire Strike');
-      assert.equal(attack.electricEnchantmentConsumed === true, wait < duration, `${skill}: late strike`);
+      assert.equal(
+        enchantedHits(result).some((event) => event.at === attack.at),
+        wait < duration,
+        `${skill}: late strike`
+      );
     }
   }
 });
@@ -240,7 +221,7 @@ test('Elemental Balance reports the same patched duration used for its active wi
   const state = evokerState.create({ evokerElement: 'Fire' });
   const events = [];
   const context = {
-    catalog: applyBalanceProfilePatch(elementalistCatalog, {
+    helpers: applyBalanceProfilePatch(elementalistCatalog, {
       balanceProfiles: {
         [EVOKER_BALANCE_PROFILE_IDS.elementalBalance]: {
           fields: { durationMultiplier: { from: 5, to: 8 } }
@@ -248,11 +229,11 @@ test('Elemental Balance reports the same patched duration used for its active wi
       }
     }),
     traits: new Set(['Elemental Balance']),
-    state: { profession: { specialization: { kind: 'Evoker', state } } },
+    profession: { specialization: { kind: 'Evoker', state } },
     emit: (event) => events.push(event)
   };
   for (const at of [1, 2]) {
-    onEventScheduled(context, { type: 'elementalist.attunement-enter', at, to: 'Fire' });
+    onAcceptedEvent(context, { type: 'elementalist.attunement-enter', at, to: 'Fire' });
   }
 
   assert.equal(state.elementalBalanceUntil, 10);
@@ -451,7 +432,7 @@ test('Specialized Elements familiar casts reduce active weapon recharge', () => 
     const baseline = simulate('1-1-1', alacrity);
     const specialized = simulate('1-1-3', alacrity);
     const weaponSkill = elementalistCatalog.skillsByName.get('Flame Uprising');
-    const reduction = (gw2BaseRecharge(weaponSkill) * 1000 * 0.1) / (alacrity ? GW2_ALACRITY_RECHARGE_RATE : 1);
+    const reduction = (gw2BaseRecharge(weaponSkill) * 1000 * 0.1) / GW2_ALACRITY_RECHARGE_RATE;
 
     assert.deepEqual(baseline.warnings, []);
     assert.deepEqual(specialized.warnings, []);
@@ -503,7 +484,9 @@ test('Evoker preserves off-attunement recharge while waiting for a swap', () => 
   const fire = result.events.find((event) => event.type === 'action' && event.skillName === 'Fire Attunement');
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(fire.at, dazing.endsAt);
+  const air = result.events.find((event) => event.type === 'elementalist.attunement' && event.to === 'Air');
+  assert.ok(fire.at >= dazing.endsAt);
+  assert.equal(fire.at, Math.ceil((air.at + 1.5 / 1.25) * 25) / 25);
 });
 
 test('Evoker concurrent actions wait for an active familiar cast', () => {

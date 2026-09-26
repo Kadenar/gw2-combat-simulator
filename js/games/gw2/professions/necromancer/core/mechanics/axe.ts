@@ -3,51 +3,16 @@ import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-he
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
 import type { DamageEvent } from '#gw2/platform/engine/events/events.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { predictNecromancerLifeForceGain } from '#gw2/professions/necromancer/core/mechanics/scheduler-feedback.js';
-import type {
-  NecromancerResolverContext,
-  NecromancerResolverEvent,
-  NecromancerSchedulerContext,
-  NecromancerSimulationEvent
-} from '#gw2/professions/necromancer/types.js';
+import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
-/** Grants Ghastly Claws life force for each scheduled packet in the same pass, before later casts spend it. */
-export function predictGhastlyClawsLifeForce(
-  context: NecromancerSchedulerContext,
-  event: NecromancerSimulationEvent
-): void {
-  if (event.type !== 'damage' || event.actorType !== 'player' || event.offTarget === true) return;
-  if (Number(event.skillId) !== ID.GHASTLY_CLAWS) return;
-  predictNecromancerLifeForceGain(
-    context,
-    event,
-    Number(context.catalog.skillsById.get(ID.GHASTLY_CLAWS)?.lifeForcePerHit || 0)
-  );
-}
-
-/** Resolve axe bonuses on actual hits so interruption, live health, and resource feedback share the same packets. */
-export function reactToNecromancerAxeDamage(
+/** Axe health bonuses observe the resolved crossing hit without recording a gain for another pass. */
+export function reactToNecromancerAxeHealth(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent
 ): void {
-  if (event.actorType !== 'player') return;
-  const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
-  if (!skill) return;
-
-  if (skill.id === ID.GHASTLY_CLAWS) {
-    // Refinement verifies the scheduler's per-packet prediction against these landed packets, including interruptions.
-    context.resolved.push({
-      type: 'necromancer.life-force-gain',
-      at: event.at,
-      source: 'necromancer',
-      sourceId: skill.id,
-      actorType: 'player',
-      amount: Number(skill.lifeForcePerHit || 0)
-    });
-    return;
-  }
-
-  if (skill.id !== ID.RENDING_CLAWS && skill.id !== ID.UNHOLY_FEAST) return;
+  if (event.actorType !== 'player' || !(Number(event.coefficient) > 0)) return;
+  const skill = context.helpers.skillsById?.get(event.skillId ?? event.sourceId);
+  if (!skill || (skill.id !== ID.RENDING_CLAWS && skill.id !== ID.UNHOLY_FEAST)) return;
   if (!remainingTargetHealthBelow(context.config, context, 0.5)) return;
 
   if (skill.id === ID.RENDING_CLAWS) {

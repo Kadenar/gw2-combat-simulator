@@ -1,13 +1,13 @@
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 /** Owns hit history that survives one Mesmer cast and triggers threshold packets across activations. */
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import type { SchedulerState } from '#gw2/platform/execution/types.js';
-import type { MesmerAddDamage, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
+import type { MesmerAddDamage } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Records actual player hit times and emits each completed tracked-hit group. */
 export function scheduleMesmerTrackedHits(
-  state: SchedulerState<MesmerRuntimeState>,
+  state: MesmerRuntime,
   addDamage: MesmerAddDamage,
   skill: MesmerSkill,
   playerHitTimes: readonly number[]

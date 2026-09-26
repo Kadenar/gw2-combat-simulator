@@ -40,18 +40,19 @@ const applyElementalistPatch = (patch) => applyBalanceProfilePatch(applySkillPat
 // Flat Flow State reduction follows Elemental Enchantment's multiplier and precedes Alacrity's recharge rate.
 test('attunement recharge applies trait reductions in order and stays free before combat', () => {
   const context = {
-    catalog: elementalistCatalog,
+    helpers: elementalistCatalog,
     config: { selectedTraitIds: [TRAIT.ELEMENTAL_ENCHANTMENT, TRAIT.FLOW_STATE] },
-    schedulerPolicy: { isCombatActive: () => true },
+    combatActive: true,
+    traits: new Set(['Elemental Enchantment', TRAIT.FLOW_STATE]),
     cooldownController: { rate: () => 1.25 }
   };
   const skill = elementalistCatalog.skillsById.get(ID.FIRE_ATTUNEMENT);
-  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4, 0), 1.92);
+  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4), 1.92);
   // Weave Self's two-second base still receives both selected traits: (2 * 0.85 - 1) / 1.25.
-  assert.ok(Math.abs(elementalistAttunementRechargeDuration(context, skill, 2, 0) - 0.56) < 1e-12);
-  context.schedulerPolicy.isCombatActive = () => false;
-  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4, 0), 0);
-  assert.equal(elementalistAttunementRechargeDuration(context, skill, 2, 0), 0);
+  assert.ok(Math.abs(elementalistAttunementRechargeDuration(context, skill, 2) - 0.56) < 1e-12);
+  context.combatActive = false;
+  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4), 0);
+  assert.equal(elementalistAttunementRechargeDuration(context, skill, 2), 0);
 });
 
 // Validate evaluated catalogs so shared/generated packets and direct statuses cannot reintroduce off-grid offsets.
@@ -98,7 +99,7 @@ test('Elementalist is registered through the generic profession contract', async
   assert.ok(profession.catalog.skills.every((skill) => skill.icon));
   assert.ok(profession.catalog.traits.every((trait) => trait.icon));
   assert.ok(profession.catalog.specializations.every((specialization) => specialization.icon));
-  assert.equal(profession.simulation, null);
+  assert.equal('simulation' in profession, false);
   assert.equal(adapter.id, 'elementalist');
 });
 
@@ -204,15 +205,15 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
   assert.equal(
     elementalistAttunementRechargeDuration(
       {
-        catalog: preview,
+        helpers: preview,
         config: traitConfig,
-        state: { time: 0 },
+        time: 0,
+        combatActive: true,
         cooldownController: { rate: () => 1 },
         traits: selectedGw2TraitValues(traitConfig, preview)
       },
       preview.skillsById.get(ID.FIRE_ATTUNEMENT),
-      10,
-      0
+      10
     ),
     8
   );

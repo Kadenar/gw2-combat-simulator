@@ -1,4 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 
 // Keep the imported Weapon Stow action visually distinct in the simulator timeline.
 // Resolve the shared icon from the repository asset root so Vite can bundle it with the profession module.
@@ -41,11 +42,10 @@ export const WARRIOR_DODGE: Skill = Object.freeze({
   nextChainId: null,
   flipSkillId: null,
   castTimeMs: 800,
+  cost: { resource: 'endurance' as const, profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } },
 
   rechargeAnchor: 'castStart',
   simulatorExcluded: false,
-  // Custom: Spends endurance and applies Reckless Dodge; see `core/execution/index.ts`.
-  handlerId: 'warrior.dodge',
   effects: []
 });
 
@@ -67,8 +67,6 @@ export const WARRIOR_SWAP_WEAPONS: Skill = Object.freeze({
   castTimeMs: 0,
   rechargeAnchor: 'castStart',
   simulatorExcluded: false,
-  // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
   inputCategory: 'weapon-swap', // Count the explicit bar-changing input in effort summaries.
-  handlerId: 'warrior.weapon-swap',
   effects: []
 });

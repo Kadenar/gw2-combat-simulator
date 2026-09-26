@@ -11,21 +11,14 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerResolverContext } from '#gw2/professions/ranger/types.js';
+import type { RangerResolverContext, RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
 
 const AMBUSH_SKILL_IDS = new Set<number>([ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
-
-function handleUntamedState(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  // Sync the resolver's independent copy of rangerUnleashed from the scheduler-emitted event.
-  untamedState.from(context).rangerUnleashed = event.rangerUnleashed === true;
-}
-
-export const untamedEventHandlers = Object.freeze({
-  'ranger.untamed-state': handleUntamedState
-});
 
 /** Queue fresh boons with shared duration scaling while preserving the trait's recipient selection. */
 function queueTraitBuff(
@@ -221,4 +214,32 @@ export function reactToUntamedControl(context: RangerResolverContext, event: Gw2
       );
     }
   }
+}
+
+export function untamedCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {
+  const state = untamedState.from(context);
+  if (skill.id === ID.UNLEASH_RANGER && state.rangerUnleashed) {
+    return deny(skill, 'ranger.ranger-unleashed', 'the ranger is already unleashed.');
+  }
+
+  if (skill.id === ID.UNLEASH_PET && !state.rangerUnleashed) {
+    return deny(skill, 'ranger.pet-unleashed', 'the pet is already unleashed.');
+  }
+
+  if (skill.unleashedPetSkill && state.rangerUnleashed) {
+    return deny(skill, 'ranger.pet-not-unleashed', 'Unleash Pet first.');
+  }
+
+  if (skill.unleashedAmbushSkill) {
+    if (!state.rangerUnleashed) {
+      return deny(skill, 'ranger.not-unleashed', 'Unleash Ranger first.');
+    }
+
+    // ambushReadyUntil is a deadline, not a cooldown: the window closes when time reaches it.
+    if (context.time >= state.ambushReadyUntil) {
+      return deny(skill, 'ranger.ambush-unavailable', 'unleash to make an ambush available.');
+    }
+  }
+
+  return { ready: true };
 }

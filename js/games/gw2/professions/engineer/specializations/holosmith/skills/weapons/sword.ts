@@ -1,6 +1,6 @@
 /**
  * Owns Holosmith sword skill fragments and heat-aware sword variants.
- * Sword cast behavior shared with Core lives in `core/execution/sword.ts`.
+ * Sword cast behavior shared with Core lives in `core/hooks.ts`.
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -176,8 +176,8 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     ])
   },
   [ID.GLEAM_SABER]: {
-    // Custom: Recharges the other sword skills after the cast; see `core/execution/sword.ts`.
-    handlerId: 'engineer.gleam-saber',
+    // Custom: Recharges the other sword skills after the cast; see `core/hooks.ts`.
+
     castTimeMs: 720,
     // Commit the strike and recharge at 600 ms while retaining the full cast lockout.
     interruptCommitMs: 600,

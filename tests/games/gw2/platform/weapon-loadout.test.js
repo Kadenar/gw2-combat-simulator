@@ -35,14 +35,14 @@ test('profession weapon eligibility is shared with headless simulation', () => {
           weapons: ['Sword'],
           weaponHands: { Sword: 'mh' }
         },
-        state: { scheduler: () => ({}) }
+        state: { create: () => ({}) }
       }),
-      defineNativeModule({ id: 'Elite', data: {}, state: { scheduler: () => ({}) } })
+      defineNativeModule({ id: 'Elite', data: {}, state: { create: () => ({}) } })
     ]
   });
   assert.equal(family.weaponSkillMatchesSet, weaponSkillMatchesSet);
   for (const specialization of ['Core', 'Elite']) {
-    const runtime = family.resolveRuntime({ specialization });
+    const runtime = family.resolveProfession({ specialization });
     assert.equal(runtime.weaponSkillMatchesSet, weaponSkillMatchesSet);
     assert.equal(runtime.ui, undefined);
     const result = simulateGw2({

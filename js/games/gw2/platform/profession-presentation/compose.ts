@@ -1,4 +1,4 @@
-import type { SchedulerConfig, SchedulerContext } from '#gw2/platform/execution/types.js';
+import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
 import type { ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 /**
  * Profession UI composition. Combines Core, active-specialization, and family
@@ -225,9 +225,9 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
                     maximum: policy!.maximum({
                       ...(selected.context as object),
                       config: ((selected.context as UiSelectionCandidate).config ??
-                        selected.context) as SchedulerConfig,
+                        selected.context) as ProfessionConfig,
                       catalog: (selected.context as UiSelectionCandidate).catalog ?? definition.catalog
-                    } as SchedulerContext)
+                    } as never)
                   }
                 ])
             )

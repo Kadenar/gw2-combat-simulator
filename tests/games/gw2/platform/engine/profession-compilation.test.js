@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import { onBuffApplied, onConditionApplied, onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
+import { onResolvedDamage } from '#gw2/platform/profession-definition/mechanics.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
@@ -10,25 +10,14 @@ test('mixed-stage reaction arrays retain dispatch ownership and stable order aft
   const calls = [];
   const reactions = Object.freeze([
     onResolvedDamage({ id: 'late', order: 20, handler: () => calls.push('late') }),
-    onConditionApplied({ id: 'shared', handler: () => calls.push('condition') }),
+    { stage: 'condition.applied', id: 'shared', order: 0, handler: () => calls.push('condition') },
     onResolvedDamage({ id: 'shared', order: 0, handler: () => calls.push('tie-first') }),
-    onBuffApplied({ id: 'shared', handler: () => calls.push('buff') }),
+    { stage: 'buff.applied', id: 'shared', order: 0, handler: () => calls.push('buff') },
     onResolvedDamage({ id: 'tie-second', order: 0, handler: () => calls.push('tie-second') }),
     onResolvedDamage({ id: 'early', order: -10, handler: () => calls.push('early') })
   ]);
-  const profession = defineNativeProfession({
-    id: 'mixed-reactions',
-    name: 'Mixed reactions',
-    modules: [
-      defineNativeModule({
-        id: 'Core',
-        data: {},
-        state: { scheduler: () => ({}) },
-        mechanics: { resolution: { reactions } }
-      })
-    ]
-  }).resolveRuntime({});
-  const registry = createGw2ResolverReactionRegistry({ professionReactions: profession.eventReactions });
+  const contributions = Object.groupBy(reactions, (reaction) => reaction.stage);
+  const registry = createGw2ResolverReactionRegistry({ contributions });
   for (const [stage, type, expected] of [
     ['damage.resolved', 'damage', ['early', 'tie-first', 'tie-second', 'late']],
     ['condition.applied', 'condition', ['condition']],
@@ -51,7 +40,7 @@ test('native runtime compilation defers presentation until the application reque
       defineNativeModule({
         id: 'Core',
         data: {},
-        state: { scheduler: () => ({}) },
+        state: { create: () => ({}) },
         presentation() {
           presentations += 1;
           return { resourceViews: () => [{ id: 'resource', maximum: 3, value: 1 }] };
@@ -59,7 +48,7 @@ test('native runtime compilation defers presentation until the application reque
       })
     ]
   });
-  const runtime = profession.resolveRuntime({});
+  const runtime = profession.resolveProfession({});
   assert.equal(Object.hasOwn(runtime, 'ui'), false);
   assert.equal(Object.hasOwn(runtime, 'migrateBuild'), false);
   assert.deepEqual(simulateGw2({ profession: runtime, rotation: [] }).warnings, []);
@@ -69,5 +58,5 @@ test('native runtime compilation defers presentation until the application reque
   assert.equal(presentations, 1);
   assert.equal(profession.ui, ui);
   assert.equal(ui.resourceViews({}).length, 1);
-  assert.equal(profession.resolveRuntime({}), runtime);
+  assert.equal(profession.resolveProfession({}), runtime);
 });

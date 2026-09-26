@@ -37,7 +37,6 @@ export interface AntiquaryState extends ThiefStealthAttackChargeState {
   antiquaryDamageUntil: number;
   combatHighExpirations: number[];
   mistburn: ChargeGrant;
-  mistburnGeneration: number;
   kryptisDamageUntil: number;
   chakInitiativeRefundUntil: number;
   holoUtilityCooldownReductionExpirations: number[];
@@ -63,8 +62,6 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
     stealthAttackCharges: 0,
     stealthAttackExpiresAt: 0,
     mistburn: grantCharges(0, 0),
-    // Snapshot reconciliation uses this identity to preserve charges already spent by the resolver.
-    mistburnGeneration: 0,
     kryptisDamageUntil: 0,
     chakInitiativeRefundUntil: 0,
     holoUtilityCooldownReductionExpirations: [],

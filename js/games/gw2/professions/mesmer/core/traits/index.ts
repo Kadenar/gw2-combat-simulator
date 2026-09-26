@@ -8,7 +8,7 @@ import {
   type MesmerDuelingCriticalContext
 } from '#gw2/professions/mesmer/core/traits/dueling.js';
 import { triggerMaimTheDisillusioned } from '#gw2/professions/mesmer/core/traits/illusions.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import type { MesmerMechanics } from '#gw2/professions/mesmer/types.js';
 
 export { scheduleBountifulBlades, triggerDazzling } from '#gw2/professions/mesmer/core/traits/domination.js';
 export {
@@ -39,7 +39,7 @@ export function triggerMesmerCriticalTraits(
 
 /** Preserves Maim before Illusionary Membrane after shatter packet resolution. */
 export function triggerMesmerPostShatterTraits(
-  context: Readonly<Pick<MesmerRuntime, 'traits' | 'addEvent' | 'addCondition' | 'addTraitProc' | 'balanceProfile'>>,
+  context: Readonly<Pick<MesmerMechanics, 'traits' | 'addEvent' | 'addCondition' | 'addTraitProc' | 'balanceProfile'>>,
   shatter: MesmerShatter | undefined,
   resolution: MesmerShatterResolution
 ): void {

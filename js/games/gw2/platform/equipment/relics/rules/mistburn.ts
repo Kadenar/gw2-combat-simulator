@@ -38,10 +38,6 @@ function mistburnGrant(state: Gw2RelicState, event: SimulationEvent): Simulation
 
 export const mistburn = defineRelic({
   createState: () => ({ readyAt: 0 }),
-  materializeBoon(ctx, state, event) {
-    const grant = mistburnGrant(state, event);
-    if (grant) ctx.emitDerived(event, { ...grant, schedulerBoonPrediction: true });
-  },
   boon(ctx, state, event) {
     const grant = mistburnGrant(state, event);
     if (grant) ctx.queue.enqueue(grant);

@@ -1,3 +1,4 @@
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /** Imperative Arcane trait behavior; callers preserve cross-line ordering through the trait index. */
 import {
   requireBalanceProfileFromContext,
@@ -6,7 +7,7 @@ import {
   effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
-import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import { emitElementalistBuff, emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
@@ -17,11 +18,7 @@ import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import type {
-  ElementalistCastContext as ElementalistLifecycleContext,
-  ElementalistSchedulerContext,
-  ElementalistResolverContext
-} from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime, ElementalistResolverContext } from '#gw2/professions/elementalist/types.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import {
   elementalistEventSkill,
@@ -37,7 +34,7 @@ import {
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 
 /** Grants Arcane Prowess might for one completed attunement transition. */
-export function applyArcaneProwess(context: ElementalistSchedulerContext, at: number, sourceId: Skill['id']): void {
+export function applyArcaneProwess(context: ElementalistRuntime, at: number, sourceId: Skill['id']): void {
   if (hasTrait(context, 'Arcane Prowess')) {
     emitProfiledBuff(context, at, PROFILE.arcaneProwess, 'Might', 'Arcane Prowess', sourceId);
   }
@@ -45,7 +42,7 @@ export function applyArcaneProwess(context: ElementalistSchedulerContext, at: nu
 
 /** Grants Elemental Attunement's boon matching the element just entered. */
 export function grantElementalAttunementBoon(
-  context: ElementalistSchedulerContext,
+  context: ElementalistRuntime,
   at: number,
   attunement: ElementalistAttunement,
   sourceId: Skill['id']
@@ -56,7 +53,7 @@ export function grantElementalAttunementBoon(
 
 /** Accumulates Bountiful Power swaps and grants each completed threshold's timed effects. */
 export function triggerBountifulPower(
-  context: ElementalistSchedulerContext,
+  context: ElementalistRuntime,
   at: number,
   stacks: number,
   sourceId: Skill['id']
@@ -73,7 +70,8 @@ export function triggerBountifulPower(
     emitProfiledBuff(context, at, PROFILE.bountifulPower, 'Quickness', 'Bountiful Power', sourceId);
     const active = requireEffect(bountifulPowerProfile, 'buff', 'Damage Window');
     if (active) {
-      emitSkillBuff(context, elementalistEventSkill(context, 'Bountiful Power', sourceId), {
+      emitElementalistBuff(context, {
+        skill: elementalistEventSkill(context, 'Bountiful Power', sourceId),
         at,
         source: 'Bountiful Power',
         sourceId,
@@ -88,10 +86,10 @@ export function triggerBountifulPower(
 }
 
 // Materialize the current attunement's dodge proc while tracking an independent elemental ICD.
-export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skill: Skill): void {
+export function triggerEvasiveArcana(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   if (!hasTrait(context, 'Evasive Arcana')) return;
   const state = professionCoreState(context);
-  const at = context.effectiveEnd;
+  const at = cast.effectiveEnd;
   const attunement = state.primaryAttunement;
   const key = `evasiveArcana${attunement}`;
   const evasiveArcanaProfile = requireBalanceProfileFromContext(context, PROFILE.evasiveArcana);
@@ -112,7 +110,7 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
   if (attunement === 'Fire') {
     const evasiveArcanaFireStrike = requireEffect(evasiveArcanaProfile, 'strike', 'Fire');
     if (evasiveArcanaFireStrike) {
-      emitSkillDamage(context, {
+      emitElementalistDamage(context, {
         at,
         source,
         sourceId: skill.id,
@@ -139,7 +137,7 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
   } else if (attunement === 'Earth') {
     const evasiveArcanaEarthStrike = requireEffect(evasiveArcanaProfile, 'strike', 'Earth');
     if (evasiveArcanaEarthStrike) {
-      emitSkillDamage(context, {
+      emitElementalistDamage(context, {
         at,
         source,
         sourceId: skill.id,
@@ -174,13 +172,14 @@ export function triggerEvasiveArcana(context: ElementalistLifecycleContext, skil
 }
 
 /** Applies Arcane Lightning's shared ferocity window and named Arcane-skill follow-up. */
-export function applyArcaneLightning(context: ElementalistLifecycleContext, skill: Skill): void {
+export function applyArcaneLightning(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   if (!hasTrait(context, 'Arcane Lightning') || skill.skillFamily !== 'Arcane') return;
-  const at = context.effectiveEnd;
+  const at = cast.effectiveEnd;
   const arcaneLightningProfile = requireBalanceProfileFromContext(context, PROFILE.arcaneLightning);
   const arcaneWindow = requireEffect(arcaneLightningProfile, 'buff', 'Arcane Lightning');
   if (arcaneWindow) {
-    emitSkillBuff(context, skill, {
+    emitElementalistBuff(context, {
+      skill: skill,
       at,
       source: skill.name,
       sourceId: skill.id,
@@ -212,7 +211,7 @@ export function applyArcaneLightning(context: ElementalistLifecycleContext, skil
 }
 
 /** Grants Elemental Lockdown's attunement-specific boon after a classified control event. */
-export function applyElementalLockdown(context: ElementalistSchedulerContext, event: SimulationEvent): void {
+export function applyElementalLockdown(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = professionCoreState(context);
   if (!hasTrait(context, 'Elemental Lockdown')) return;
   const elementalLockdownProfile = requireBalanceProfileFromContext(context, PROFILE.elementalLockdown);

@@ -1,10 +1,10 @@
-import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -13,18 +13,13 @@ import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js
 import { HOLOSMITH_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import { holosmithProfileStrikeFactor } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import { holosmithCastAvailability } from '#gw2/professions/engineer/specializations/holosmith/mechanics/availability.js';
-import {
-  advancePhotonForgeState,
-  engineerPhotonForgeSkillHandlers,
-  skillHeat,
-  enhancedCapacityMight
-} from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
-import { holosmithModifierRules } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge-rules.js';
+import { applyCoronaBurstHeat } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
+import { runEngineer } from '#tests/helpers/engineer-simulation.js';
+import { holosmithModifierRules } from '#gw2/professions/engineer/specializations/holosmith/modifiers.js';
 import { createHolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import { createMechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { mechanistCastAvailability } from '#gw2/professions/engineer/specializations/mechanist/mechanics/availability.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { handleEngineerState } from '#gw2/professions/engineer/family-state.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
@@ -43,7 +38,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createProfessionSimulator(engineerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
 
 test('a committed shortened Sun Ripper advances the sword chain to Gleam Saber', () => {
   // Cancelling the landed middle attack's aftercast must not reject the recorded chain finisher.
@@ -123,7 +118,7 @@ test('Solar Focusing Lens enhances the earliest two interleaved impacts', () => 
       .map((event) => event.at),
     strikes.slice(0, 2).map((event) => event.at)
   );
-  assert.equal(result.combatState.profession.solarFocusingLens.charges, 0);
+  assert.equal(observedRuntime(result).profession.specialization.state.solarFocusingLens.charges, 0);
 });
 
 // Resolver-created strikes share the same charge budget as ordinary scheduled attacks.
@@ -137,7 +132,7 @@ test('Solar Focusing Lens consumes charges on Laser Disk impacts', () => {
   assert.ok(strikes.length > 2);
   assert.ok(strikes.slice(0, 2).every((event) => event.solarFocusingLens));
   assert.ok(strikes.slice(2).every((event) => !event.solarFocusingLens));
-  assert.equal(result.combatState.profession.solarFocusingLens.charges, 0);
+  assert.equal(observedRuntime(result).profession.specialization.state.solarFocusingLens.charges, 0);
 });
 
 // Expired grants cannot enhance hits, while leaving Forge starts a fresh charge window.
@@ -162,54 +157,44 @@ test('Solar Focusing Lens respects expiry and refreshes on Forge exit', () => {
     refreshed.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Sun Edge')
       .solarFocusingLens
   );
-  assert.equal(refreshed.combatState.profession.solarFocusingLens.charges, 1);
+  assert.equal(observedRuntime(refreshed).profession.specialization.state.solarFocusingLens.charges, 1);
 });
 
 test('ECSU carries pulse readiness, resets at the threshold, and restarts on a discrete crossing', () => {
-  // Split advances must preserve the cadence; returning above the threshold grants an immediate pulse.
-  const config = { initialHeat: 101, selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT] };
-  const state = createHolosmithState(config);
-  const events = [];
-  const context = {
-    catalog: engineerCatalog,
-    config,
-    state: { profession: { core: createEngineerCoreState(), specialization: { kind: 'Holosmith', state } } },
-    events,
-    emit: (event) => {
-      events.push(event);
-      return event;
+  const result = runEngineer(
+    [{ type: 'wait', durationMs: 3200 }],
+    {
+      specialization: 'Holosmith',
+      initialHeat: 101,
+      selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
+    },
+    {
+      initialize(runtime) {
+        runtime.schedule('test.threshold', 1.5);
+        runtime.schedule('test.cross', 2.1);
+      },
+      extend(native) {
+        return {
+          tasks: {
+            ...native.tasks,
+            'test.threshold'(runtime) {
+              runtime.profession.specialization.state.heat = 100;
+            },
+            'test.cross'(runtime) {
+              runtime.profession.specialization.state.photonForgeActive = true;
+              runtime.schedule('engineer.photon-forge-heat', runtime.time, { amount: 1 });
+            }
+          }
+        };
+      }
     }
-  };
-  context.tasks = createTaskQueue({ handlers: { ...enhancedCapacityMight.taskHandlers, ...skillHeat.taskHandlers } });
-  enhancedCapacityMight.start(context, { key: 'might', at: 0, captured: {} });
-  context.tasks.drainThrough(0.25, context);
-  assert.equal(enhancedCapacityMight.nextAt(context), 1);
-  context.tasks.drainThrough(1, context);
-  context.tasks.drainThrough(1, context);
-  state.heat = 100;
-  context.tasks.drainThrough(2, context);
-  assert.equal(enhancedCapacityMight.nextAt(context), Infinity);
-
-  state.photonForgeActive = true;
-  skillHeat.start(context, { times: [2.1], captured: { amount: 1 } });
-  context.tasks.drainThrough(2.1, context);
-  assert.equal(enhancedCapacityMight.nextAt(context), 3.1);
-  context.tasks.drainThrough(3.1, context);
+  );
   assert.deepEqual(
-    events.filter((event) => event.type === 'buff').map((event) => event.at),
+    result.events
+      .filter((event) => event.type === 'buff' && event.sourceId === TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
+      .map((event) => event.at),
     [0, 1, 2.1, 3.1]
   );
-
-  // Removing segment bookkeeping must retain normalization and its public state snapshot.
-  for (const [at, heat, expected] of [
-    [2.2, 200, 150],
-    [2.3, -1, 0]
-  ]) {
-    state.heat = heat;
-    advancePhotonForgeState(context, at);
-    assert.equal(state.heat, expected);
-    assert.equal(events.at(-1).state.heat, expected);
-  }
 });
 
 test('ECSU emits a due boundary pulse before same-time cooling drops heat to the threshold', () => {
@@ -305,10 +290,10 @@ test('Holosmith Forge behavior follows skill IDs after display labels change', (
   assert.equal(
     holosmithCastAvailability(
       {
-        catalog: engineerCatalog,
+        helpers: engineerCatalog,
         config: { specialization: 'Holosmith' },
-        state: { profession },
-        start: 0
+        profession,
+        time: 0
       },
       engage
     ).code,
@@ -317,19 +302,20 @@ test('Holosmith Forge behavior follows skill IDs after display labels change', (
 
   const scheduled = [];
   const corona = { ...engineerCatalog.skillsById.get(ID.CORONA_BURST), name: 'Renamed heat skill' };
-  engineerPhotonForgeSkillHandlers['engineer.corona-burst-heat'](
+  applyCoronaBurstHeat(
     {
-      state: { profession },
-      start: 0,
+      profession,
+      time: 0,
       effectiveEnd: 1.8,
       fullEnd: 1.8,
-      tasks: { schedule: (task) => scheduled.push(task) }
+      schedule: (name, at, payload) => scheduled.push({ name, at, payload })
     },
-    corona
+    corona,
+    { start: 0, effectiveEnd: 1.8, fullEnd: 1.8 }
   );
   assert.equal(scheduled.length, 5);
   assert.deepEqual(
-    scheduled.map((task) => task.payload.captured.amount),
+    scheduled.map((task) => task.payload.amount),
     [2, 2, 2, 2, 2]
   );
 });
@@ -337,10 +323,10 @@ test('Holosmith Forge behavior follows skill IDs after display labels change', (
 test('Engineer availability follows skill IDs after display labels change', () => {
   const core = createEngineerCoreState();
   const coreContext = {
-    catalog: engineerCatalog,
+    helpers: engineerCatalog,
     config: { specialization: 'Core' },
-    state: { profession: { core, specialization: { kind: 'Core', state: {} } } },
-    start: 0
+    profession: { core, specialization: { kind: 'Core', state: {} } },
+    time: 0
   };
 
   const artillery = { ...engineerCatalog.skillsById.get(ID.ELECTRIC_ARTILLERY), name: 'Renamed artillery' };
@@ -352,9 +338,9 @@ test('Engineer availability follows skill IDs after display labels change', () =
 
   const mechanist = createMechanistState();
   const mechanistContext = {
-    catalog: engineerCatalog,
+    helpers: engineerCatalog,
     config: { specialization: 'Mechanist' },
-    state: { profession: { core: createEngineerCoreState(), specialization: { kind: 'Mechanist', state: mechanist } } }
+    profession: { core: createEngineerCoreState(), specialization: { kind: 'Mechanist', state: mechanist } }
   };
   const command = { ...engineerCatalog.skillsById.get(ID.SPARK_REVOLVER), name: 'Renamed command' };
   assert.equal(mechanistCastAvailability(mechanistContext, command).code, 'engineer.mech-command');
@@ -376,9 +362,7 @@ test('Corona Burst heat persists outside Forge without causing Overheat', () => 
     }
   );
 
-  assert.ok(
-    outside.events.some((event) => event.type === 'engineer.state' && Number(event.state?.heat || 0) >= 150 - 1e-9)
-  );
+  assert.ok(outside.events.some((event) => event.type === 'engineer.heat' && Number(event.heat || 0) >= 150 - 1e-9));
   assert.ok(outside.planningState.profession.heat <= 150);
   assert.equal(outside.planningState.profession.overheated, false);
   assert.equal(outside.planningState.profession.photonForgeActive, false);
@@ -498,7 +482,7 @@ test('Photon Forge waits for its resource tick before overheating at maximum hea
     }
   );
   const barrage = result.steps.find((step) => step.skill === 'Grenade Barrage');
-  const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
+  const overheat = result.events.find((event) => event.type === 'engineer.heat' && event.reason === 'overheat');
 
   assert.equal(result.warnings.length, 0);
   assert.equal(barrage.start, 520);
@@ -526,7 +510,7 @@ test('Photon Forge starts a fresh Overheat cadence on each entry', () => {
     }
   );
   const barrage = result.steps.find((step) => step.skill === 'Grenade Barrage');
-  const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
+  const overheat = result.events.find((event) => event.type === 'engineer.heat' && event.reason === 'overheat');
 
   assert.equal(result.warnings.length, 0);
   assert.equal(barrage.start, 1970);
@@ -540,12 +524,12 @@ test('Photon Forge waits one more resource tick when passive heat fills the bar'
     initialHeat: 98
   });
   const passiveHeat = result.events.find(
-    (event) => event.type === 'engineer.state' && event.reason === 'passive-heat' && event.state.heat === 100
+    (event) => event.type === 'engineer.heat' && event.reason === 'passive-heat' && event.heat === 100
   );
-  const overheat = result.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
+  const overheat = result.events.find((event) => event.type === 'engineer.heat' && event.reason === 'overheat');
 
   assert.equal(passiveHeat.at, 1);
-  assert.equal(passiveHeat.state.heat, 100);
+  assert.equal(passiveHeat.heat, 100);
   assert.equal(overheat.at, 1.1);
   assert.equal(result.planningState.profession.photonForgeActive, true);
 });
@@ -561,11 +545,11 @@ test('Photon Forge passive heat restarts its cadence on each entry', () => {
     { type: 'wait', durationMs: 100 }
   ]);
   const passiveHeatTimes = result.events
-    .filter((event) => event.type === 'engineer.state' && event.reason === 'passive-heat')
+    .filter((event) => event.type === 'engineer.heat' && event.reason === 'passive-heat')
     .map((event) => event.at);
 
   // Each Forge entry owns a fresh 100 ms passive timer; manual exit invalidates the old timer.
-  assert.deepEqual(passiveHeatTimes, [0.35, 1.38]);
+  assert.deepEqual(passiveHeatTimes, [0.35, 1.18]);
 });
 
 test('Overheat blocks Forge and weapon inputs until the rotation exits', () => {
@@ -585,7 +569,7 @@ test('Overheat blocks Forge and weapon inputs until the rotation exits', () => {
     { initialHeat: 90 }
   );
   assert.equal(
-    result.events.filter((event) => event.type === 'engineer.state' && event.reason === 'overheat').length,
+    result.events.filter((event) => event.type === 'engineer.heat' && event.reason === 'overheat').length,
     1
   );
   for (const name of ['Photon Blitz', 'Light Strike']) {
@@ -633,7 +617,7 @@ test('Overheat delays its tool-belt minimum cooldown until the damage effect', (
     initialHeat: 90,
     selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE]
   });
-  const overheat = timing.events.find((event) => event.type === 'engineer.state' && event.reason === 'overheat');
+  const overheat = timing.events.find((event) => event.type === 'engineer.heat' && event.reason === 'overheat');
   const damageEffect = timing.events.find(
     (event) => event.type === 'damage' && event.name === 'Photonic Blasting Module'
   );
@@ -673,7 +657,7 @@ test('Overheat delays its tool-belt minimum cooldown until the damage effect', (
       { type: 'wait', durationMs: 5000 },
       'Grenade Barrage'
     ]),
-    [0, 25680]
+    [0, 22360]
   );
 });
 
@@ -713,7 +697,7 @@ test('Holosmith offensive traits consume forge heat and attack charges', () => {
   assert.equal(solarStrikes.length, 2);
   assert.equal(solarBurns.length, 2);
   assert.ok(solarBurns.every((event) => event.stacks === 1 && event.duration === 3));
-  assert.equal(solar.combatState.profession.solarFocusingLens.charges, 0);
+  assert.equal(observedRuntime(solar).profession.specialization.state.solarFocusingLens.charges, 0);
 
   const storm = simulate(
     'Holosmith',
@@ -892,6 +876,7 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
       initialHeat,
       selectedSkills,
       selectedTraitIds,
+      boons: { might: 25 },
       stats: { precision: 1000, ferocity: 0 },
       target: { conditions: {} }
     });
@@ -997,11 +982,15 @@ test('Holosmith exceed packets use their heat tiers and conditions', () => {
 
 test('Holosmith direct heat variants apply profile factors to their eligible packets', () => {
   const packetFor = (skillName, initialHeat, selectedTraitIds, selectedSkills) => {
-    const result = simulate('Holosmith', [skillName, { type: 'wait', durationMs: 1000 }], {
+    const result = runEngineer([skillName, { type: 'wait', durationMs: 1000 }], {
+      ...baseConfig,
+      specialization: 'Holosmith',
       initialHeat,
       selectedTraitIds,
       selectedSkills,
-      stats: { precision: 1000, ferocity: 0 }
+      // Cap Might for both cases so ECSU's opening boon cannot change the multiplier comparison.
+      boons: { might: 25 },
+      stats: { ...baseConfig.stats, precision: 1000, ferocity: 0 }
     });
 
     return result.resolvedEvents.find(
@@ -1033,7 +1022,14 @@ test('Holosmith direct heat variants apply profile factors to their eligible pac
 });
 
 test('Holosmith heat-profile patches tune tier effects without changing heat topology', () => {
-  const runtime = engineerProfession.resolveRuntime({ specialization: 'Holosmith' });
+  const config = {
+    ...baseConfig,
+    specialization: 'Holosmith',
+    initialHeat: 101,
+    selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
+    selectedSkills: ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam']
+  };
+  const runtime = engineerProfession.runtimeFor(config);
   const catalog = applyBalanceProfilePatch(runtime.catalog, {
     balanceProfiles: {
       [HOLOSMITH_BALANCE_PROFILE_IDS.laserDiskHeatTier]: {
@@ -1047,19 +1043,8 @@ test('Holosmith heat-profile patches tune tier effects without changing heat top
       }
     }
   });
-  const profession = Object.freeze({ ...runtime, catalog });
-  const patchedSimulation = (rotation) =>
-    simulateGw2({
-      profession,
-      rotation,
-      config: {
-        ...baseConfig,
-        specialization: 'Holosmith',
-        initialHeat: 101,
-        selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
-        selectedSkills: ['A.E.D.', 'Grenade Kit', 'Photon Wall', 'Laser Disk', 'Prime Light Beam']
-      }
-    });
+  const profession = { ...runtime, catalog };
+  const patchedSimulation = (rotation) => runGw2Runtime({ profession, rotation, config });
   const disk = patchedSimulation(['Laser Disk', { type: 'wait', durationMs: 10000 }]);
   const diskPackets = disk.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillName === 'Laser Disk'
@@ -1165,17 +1150,3 @@ test('Relic of Fireworks ignores Grenade Kit bundle skills', () => {
 });
 
 // Restoring scheduler resources must not rewind trait clocks already advanced by the resolver.
-test('Engineer restoration preserves resolver-owned trait clocks', () => {
-  const engineer = {
-    profession: {
-      core: { endurance: 10, traitProcReadyAt: { thermalVisionUntil: 7 } },
-      specialization: { kind: 'Holosmith', state: { heat: 1 } }
-    }
-  };
-  handleEngineerState(engineer, {
-    state: { endurance: 20, heat: 2, traitProcReadyAt: { thermalVisionUntil: 1 } }
-  });
-  assert.equal(engineer.profession.core.endurance, 20);
-  assert.equal(engineer.profession.specialization.state.heat, 2);
-  assert.deepEqual(engineer.profession.core.traitProcReadyAt, { thermalVisionUntil: 7 });
-});

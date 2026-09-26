@@ -1,5 +1,6 @@
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type {
+  MesmerMechanics,
   MesmerRuntime,
   MesmerShatterResolver,
   MesmerShatterResolvedHandler,
@@ -15,12 +16,17 @@ import type {
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerConditionApplication } from '#gw2/professions/mesmer/data/types.js';
 
-export function mesmerRuntimeFor(
-  context: { readonly mesmerRuntime?: MesmerRuntime } | null | undefined
-): MesmerRuntime {
-  const runtime = context?.mesmerRuntime;
+const mechanics = new WeakMap<MesmerRuntime, MesmerMechanics>();
+
+/** Binds immutable tables and mechanic helpers to their single live simulation owner. */
+export function registerMesmerMechanics(context: MesmerRuntime, value: MesmerMechanics): void {
+  mechanics.set(context, value);
+}
+
+export function mesmerMechanicsFor(context: MesmerRuntime): MesmerMechanics {
+  const runtime = mechanics.get(context);
   if (!runtime) {
-    throw new Error('Mesmer scheduler runtime is not initialized.');
+    throw new Error('Mesmer live mechanics are not initialized.');
   }
 
   return runtime;
@@ -28,11 +34,11 @@ export function mesmerRuntimeFor(
 
 /** Resolve a named condition without reconstructing an explicitly removed packet. */
 export function mesmerConditionFromProfile(
-  context: { readonly mesmerRuntime?: MesmerRuntime } | null | undefined,
+  context: MesmerRuntime,
   id: number | string,
   name: string
 ): MesmerConditionApplication | undefined {
-  const effect = requireEffect(requireBalanceProfileFromContext(mesmerRuntimeFor(context), id), 'condition', name);
+  const effect = requireEffect(requireBalanceProfileFromContext(mesmerMechanicsFor(context), id), 'condition', name);
   return effect ? { ...effect, summonKind: undefined, name: effect.condition! } : undefined;
 }
 
@@ -53,7 +59,7 @@ export interface MesmerRuntimeManifest {
 }
 
 /** Folds a specialization's mechanics manifest into the shared runtime. */
-export function applyMesmerRuntimeManifest(runtime: MesmerRuntime, manifest: MesmerRuntimeManifest): void {
+export function applyMesmerRuntimeManifest(runtime: MesmerMechanics, manifest: MesmerRuntimeManifest): void {
   if (manifest.ambushAttacks) {
     Object.assign(runtime.ambushAttacks, manifest.ambushAttacks);
   }

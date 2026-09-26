@@ -1,13 +1,7 @@
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
-import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
-import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  GuardianResolverContext,
-  GuardianSchedulerContext,
-  GuardianSkill
-} from '#gw2/professions/guardian/types.js';
+import type { GuardianResolverContext, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 
 const TRAIT_BY_ID = new Map(
@@ -20,42 +14,6 @@ const TRAIT_BY_ID = new Map(
 /** Provides shared Guardian trait metadata and resolver emissions without making trait lines import the dispatcher. */
 export function guardianTraitIcon(traitId: SkillId): string {
   return TRAIT_BY_ID.get(Number(traitId))?.icon || '';
-}
-
-// Emit a normalized Guardian proc marker with trait icon and triggering-skill
-// attribution shared by core and specialization rules.
-export function emitGuardianProc(
-  context: GuardianSchedulerContext,
-  {
-    name,
-    at,
-    sourceSkill,
-    detail = '',
-    icon = '',
-    procType = 'trait',
-    source = 'Trait'
-  }: {
-    readonly name: string;
-    readonly at: number;
-    readonly sourceSkill: string;
-    readonly detail?: string;
-    readonly icon?: string;
-    readonly procType?: string;
-    readonly source?: string;
-  }
-): void {
-  context.emit({
-    type: 'proc',
-    procType,
-    at,
-    source,
-    sourceId: name,
-    actorType: 'effect',
-    name,
-    sourceSkill,
-    detail,
-    icon
-  });
 }
 
 export function isGuardianSymbolSkill(skill: GuardianSkill | undefined, fallbackName = ''): boolean {
@@ -82,42 +40,4 @@ export function recordGuardianTraitProc(
   detail: string
 ): void {
   context.recordProc('trait', name, at, sourceSkill, detail, guardianTraitIcon(traitId));
-}
-
-// Queue a resolver-owned buff with canonical trait attribution and explicit
-// recipient semantics.
-export function queueGuardianResolverBuff(
-  context: GuardianResolverContext,
-  {
-    at,
-    sourceId,
-    skillName,
-    kind,
-    duration,
-    stacks = 1,
-    priority = -5
-  }: {
-    readonly at: number;
-    readonly sourceId: SkillId;
-    readonly skillName: string;
-    readonly kind: string;
-    readonly duration: number;
-    readonly stacks?: number;
-    readonly priority?: number;
-  }
-): void {
-  const durationEvent = buildResolverBuff({
-    at,
-    source: 'guardian',
-    sourceId,
-    actorType: 'player',
-    skillId: sourceId,
-    skillName,
-    // Keep boon attribution separate from the associated strike's display row.
-    name: undefined,
-    kind,
-    duration,
-    stacks
-  });
-  queueResolverBoon(context, durationEvent, { ...durationEvent, priority });
 }

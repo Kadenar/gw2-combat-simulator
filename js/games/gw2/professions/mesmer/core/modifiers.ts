@@ -1,0 +1,289 @@
+/** Applies Core Mesmer trait and equipment modifiers at the shared modifier boundary. */
+import {
+  requireBalanceProfileFromContext,
+  balanceProfileNumber
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
+import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { boonActive, targetConditionActive, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
+import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
+
+export function illusionSource(context: Gw2ModifierContext): boolean {
+  return ['clone', 'phantasm'].includes(String(context.event?.summonKind || ''));
+}
+
+export function timedStacks(context: Gw2ModifierContext, kind: string, duration: number, maximum: number): number {
+  return context.timeline?.timedStacks(kind, context.time, duration, maximum) || 0;
+}
+
+export function timedActive(context: Gw2ModifierContext, kind: string): boolean {
+  return Boolean(context.timeline?.timedActive(kind, context.time));
+}
+
+/** Resolve immutable loadout and patched profile values once for each combat query. */
+function prepareCoreAttributeFacts(context: Gw2ModifierContext) {
+  const selectedSkills = selectedSkillNameSet(context.config?.selectedSkills);
+  const chaoticPersistence = hasTrait(context, PROFILE.chaoticPersistence);
+  const signetOfMidnightProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfMidnight);
+  const signetOfDominationProfile = requireBalanceProfileFromContext(context, PROFILE.signetOfDomination);
+  const fencersFinesseProfile = requireBalanceProfileFromContext(context, PROFILE.fencersFinesse);
+  return {
+    midnightSelected: selectedSkills.has('Signet of Midnight'),
+    dominationSelected: selectedSkills.has('Signet of Domination'),
+    midnightBonus: balanceProfileNumber(signetOfMidnightProfile, 'expertiseBonus'),
+    dominationBonus: balanceProfileNumber(signetOfDominationProfile, 'conditionDamageBonus'),
+    chaoticExpertiseBonus: chaoticPersistence
+      ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.chaoticPersistence), 'expertiseBonus')
+      : 0,
+    chaoticConcentrationBonus: chaoticPersistence
+      ? balanceProfileNumber(
+          requireBalanceProfileFromContext(context, PROFILE.chaoticPersistence),
+          'concentrationBonus'
+        )
+      : 0,
+    fencerDuration: balanceProfileNumber(fencersFinesseProfile, 'durationMultiplier'),
+    fencerMaximum: balanceProfileNumber(fencersFinesseProfile, 'maximumStacks'),
+    fencerPerStack: balanceProfileNumber(fencersFinesseProfile, 'attributePerStack')
+  };
+}
+
+const coreAttributeFacts = new WeakMap<
+  NonNullable<Gw2ModifierContext['query']>,
+  ReturnType<typeof prepareCoreAttributeFacts>
+>();
+
+// Reconcile build-time bonuses with live stacks and cooldowns; detached editor queries remain uncached.
+export function applyMesmerCoreAttributes(context: Gw2ModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
+  let facts = context.query ? coreAttributeFacts.get(context.query) : undefined;
+  if (!facts) {
+    facts = prepareCoreAttributeFacts(context);
+    if (context.query) coreAttributeFacts.set(context.query, facts);
+  }
+
+  const { midnightSelected, midnightBonus, dominationSelected, dominationBonus, chaoticExpertiseBonus } = facts;
+  const staticApplied = professionStaticRulesApplied(context.config);
+  const regenerationDelta =
+    Number(boonActive(context, 'regeneration')) - Number(staticApplied && Boolean(context.config?.boons?.regeneration));
+  const midnight = midnightSelected && context.timeline?.skillOnCooldownAt(10234, context.time) ? midnightBonus : 0;
+  const domination =
+    dominationSelected && context.timeline?.skillOnCooldownAt(10232, context.time) ? dominationBonus : 0;
+  return {
+    ...attributes,
+    power: Number(attributes.power || 0),
+    precision: Number(attributes.precision || 0),
+    ferocity:
+      Number(attributes.ferocity || 0) +
+      timedStacks(context, 'fencer', facts.fencerDuration, facts.fencerMaximum) * facts.fencerPerStack,
+    conditionDamage:
+      Number(attributes.conditionDamage || 0) +
+      (dominationSelected && !staticApplied ? dominationBonus : 0) -
+      domination,
+    expertise:
+      Number(attributes.expertise || 0) +
+      regenerationDelta * chaoticExpertiseBonus +
+      (midnightSelected && !staticApplied ? midnightBonus : 0) -
+      midnight,
+    concentration: Number(attributes.concentration || 0) + regenerationDelta * facts.chaoticConcentrationBonus
+  };
+}
+
+const modifierParameters = (values: Record<string, number>): Readonly<Record<string, number>> => Object.freeze(values);
+
+function superiorityComplexTargetControlled(context: Gw2ModifierContext): boolean {
+  return ['Fear', 'Taunt'].some((condition) => targetConditionActive(context, condition));
+}
+
+function superiorityComplexFactor(context: Gw2ModifierContext): number {
+  const target = context.config?.target;
+  const superiorityComplexProfile = requireBalanceProfileFromContext(context, TRAIT.SUPERIORITY_COMPLEX);
+  // Generic disables apply only to non-defiant targets, while configured Fear
+  // or Taunt remains an explicit control condition on defiant targets.
+  return (target?.disabled && !target.defiant) ||
+    superiorityComplexTargetControlled(context) ||
+    targetHealthBelow(context, balanceProfileNumber(superiorityComplexProfile, 'threshold'))
+    ? balanceProfileNumber(superiorityComplexProfile, 'lowHealthOrDisabledFactor')
+    : balanceProfileNumber(superiorityComplexProfile, 'highHealthFactor');
+}
+
+export const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
+  {
+    id: 'mesmer.master-of-fragmentation-critical-chance',
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: 'add',
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION), 'criticalChance'),
+    // Improve every native F1 strike, including repeats, without affecting trait procs or afterimages.
+    when: (context) =>
+      hasTrait(context, TRAIT.MASTER_OF_FRAGMENTATION) &&
+      isGw2PlayerActorEvent(context.event) &&
+      context.event?.sourceId === context.event?.skillId &&
+      [ID.MIND_WRACK, ID.SPLIT_SECOND, ID.BLADESONG_HARMONY, ID.LIVELY_LUTE, ID.LIVELY_LUTE_ALTERNATE].some(
+        (id) => id === context.event?.skillId
+      )
+  },
+  {
+    id: 'mesmer.phantasmal-fury-critical-chance',
+    target: MODIFIER_TARGET.CRITICAL_CHANCE,
+    operation: 'add',
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.PHANTASMAL_FURY), 'criticalChance'),
+    when: (context) => context.event?.summonKind === 'phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FURY)
+  },
+  {
+    id: 'mesmer.superiority-complex',
+    target: MODIFIER_TARGET.CRITICAL_DAMAGE,
+    operation: 'multiply',
+
+    factor: superiorityComplexFactor,
+    when: (context) => hasTrait(context, TRAIT.SUPERIORITY_COMPLEX) && !illusionSource(context)
+  },
+  {
+    id: 'mesmer.compounding-power',
+    conditionSampleInvariant: true,
+    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+    operation: 'damage-additive',
+    parameters: modifierParameters({
+      duration: 8,
+      maximumStacks: 5,
+      // Match the supplied PvE logs' embedded buff formulas: 1% outgoing strike damage per active stack.
+      strikePerStack: 0.01,
+      conditionPerStack: 0.01
+    }),
+    amount: (context, target, parameters) => {
+      // Illusion strikes use summon ownership, while their applied conditions inherit the Mesmer's outgoing modifiers.
+      if (target === MODIFIER_TARGET.STRIKE_DAMAGE && illusionSource(context)) return 0;
+      return (
+        timedStacks(context, 'compounding', parameters.duration, parameters.maximumStacks) *
+        (target === MODIFIER_TARGET.STRIKE_DAMAGE ? parameters.strikePerStack : parameters.conditionPerStack)
+      );
+    }
+  },
+  {
+    id: 'mesmer.illusionary-membrane',
+    conditionSampleInvariant: true,
+    target: MODIFIER_TARGET.CONDITION_DAMAGE,
+    operation: 'damage-additive',
+    amount: 0.07,
+    when: (context) => timedActive(context, 'illusionary-membrane')
+  },
+  {
+    id: 'mesmer.mind-stab-vulnerability',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: modifierParameters({ baseFactor: 1, damagePerStack: 0.01 }),
+    factor: (context, _target, parameters) =>
+      parameters.baseFactor +
+      Number(context.query?.vulnerabilityStacksAt(context.time, context.runtime) || 0) * parameters.damagePerStack,
+    order: 100,
+    when: (context) => context.event?.skillName === 'Mind Stab'
+  },
+  {
+    id: 'mesmer.fragility',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: modifierParameters({ baseFactor: 1, damagePerStack: 0.005 }),
+    factor: (context, _target, parameters) =>
+      parameters.baseFactor +
+      Number(context.query?.vulnerabilityStacksAt(context.time, context.runtime) || 0) * parameters.damagePerStack,
+    order: 100,
+    when: (context) => hasTrait(context, TRAIT.FRAGILITY) && !illusionSource(context)
+  },
+  {
+    id: 'mesmer.vicious-expression',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    // The target never has boons, so the full bonus always applies.
+    factor: 1.15,
+    order: 100,
+    when: (context) => hasTrait(context, TRAIT.VICIOUS_EXPRESSION)
+  },
+  {
+    id: 'mesmer.empowered-illusions',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.15,
+    order: 100,
+    when: (context) => illusionSource(context) && hasTrait(context, TRAIT.EMPOWERED_ILLUSIONS)
+  },
+  {
+    id: 'mesmer.phantasmal-force',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: modifierParameters({ baseFactor: 1, damagePerMight: 0.01 }),
+    factor: (context, _target, parameters) =>
+      parameters.baseFactor +
+      context.query!.mightStacksAt(context.time, context.runtime, context.event) * parameters.damagePerMight,
+    order: 100,
+    when: (context) => context.event?.summonKind === 'phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FORCE)
+  },
+  {
+    id: 'mesmer.mental-anguish',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: modifierParameters({
+      activatingFactor: 1.25,
+      idleFactor: 1.5
+    }),
+    factor: (context, _target, parameters) =>
+      context.config?.target?.activatingSkills ? parameters.activatingFactor : parameters.idleFactor,
+    order: 100,
+    // Repeat packets are still shatter damage, but the skill contract limits shatter traits to the first strike.
+    when: (context) => Boolean(context.event?.metadata?.shatterTraitEligible) && hasTrait(context, TRAIT.MENTAL_ANGUISH)
+  },
+  {
+    id: 'mesmer.egotism',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    factor: 1.1,
+    order: 100,
+    when: (context) =>
+      hasTrait(context, TRAIT.EGOTISM) &&
+      !illusionSource(context) &&
+      Number(context.config?.target?.health || 0) > 0 &&
+      targetHealthLoss(context.config, context.runtime) > 0
+  },
+  {
+    id: 'mesmer.event-final-multiplier',
+    target: MODIFIER_TARGET.STRIKE_DAMAGE,
+    operation: 'multiply',
+    parameters: modifierParameters({ fallbackFactor: 1 }),
+    factor: (context, _target, parameters) => Number(context.event?.multiplier ?? parameters.fallbackFactor),
+    order: 1000
+  },
+  {
+    id: 'mesmer.malicious-sorcery',
+    target: MODIFIER_TARGET.CONDITION_DURATION,
+    operation: 'add',
+    amount: (context) =>
+      balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.MALICIOUS_SORCERY), 'durationMultiplier'),
+    // Panel-derived simulation stats already contain this static bonus; provenance keeps direct simulations compatible.
+    when: (context) =>
+      context.condition === 'Confusion' &&
+      hasTrait(context, TRAIT.MALICIOUS_SORCERY) &&
+      !professionStaticRulesApplied(context.config)
+  }
+]);
+
+function compileMesmerModifierRules(rules: readonly Gw2ModifierRule[]): ReturnType<typeof createModifierHooks> {
+  return createModifierHooks({
+    rules,
+    damageBuckets: {
+      strikeDamage: {
+        includeSigil: (context) => !illusionSource(context)
+      }
+    }
+  });
+}
+
+export const mesmerCoreModifiers = Object.freeze({
+  modifyAttributes: applyMesmerCoreAttributes,
+  modifierRules: mesmerCoreModifierRules,
+  compileModifierRules: compileMesmerModifierRules
+});

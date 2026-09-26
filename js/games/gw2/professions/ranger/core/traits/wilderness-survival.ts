@@ -1,7 +1,7 @@
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 /** Owns Core Ranger Wilderness Survival condition and control-triggered trait behavior. */
-import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -17,14 +17,14 @@ import {
   isPlayerStrike,
   queueCondition
 } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import type { RangerCastContext, RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 
 // On an eligible heal, consume Child of Earth's ICD and emit the initial
 // immobilize followed by the profile-defined Muddy Terrain condition pulses.
-export function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill): void {
+export function emitChildOfEarth(context: RangerRuntime, skill: RangerSkill): void {
   const state = professionCoreState(context);
-  if (!hasTrait(context, TRAIT.CHILD_OF_EARTH) || !isInternalCooldownReady(context.start, state.childOfEarthReadyAt)) {
+  if (!hasTrait(context, TRAIT.CHILD_OF_EARTH) || !isInternalCooldownReady(context.time, state.childOfEarthReadyAt)) {
     return;
   }
 
@@ -36,38 +36,48 @@ export function emitChildOfEarth(context: RangerCastContext, skill: RangerSkill)
   );
   // The cooldown gates the lesser field; with every packet removed there is nothing to gate.
   if (!immobilized && !pulses.length) return;
-  state.childOfEarthReadyAt = context.start + balanceProfileNumber(profile, 'internalCooldown');
-  const at = context.effectiveEnd;
+  state.childOfEarthReadyAt = context.time + balanceProfileNumber(profile, 'internalCooldown');
+  const at = context.time;
   if (immobilized)
-    emitSkillCondition(context, {
-      at,
-      source: 'Trait',
-      actorType: 'effect',
-      skillId: TRAIT.CHILD_OF_EARTH,
-      skillName: 'Child of Earth',
-      name: 'Lesser Muddy Terrain - Immobilized',
-      condition: String(immobilized.condition),
-      duration: effectNumber(profile, immobilized, 'duration'),
-      stacks: effectNumber(profile, immobilized, 'stacks'),
-      triggeredBy: skill.name
-    });
+    context.emit(
+      rangerEvent(
+        {
+          at,
+          source: 'Trait',
+          actorType: 'effect',
+          skillId: TRAIT.CHILD_OF_EARTH,
+          skillName: 'Child of Earth',
+          name: 'Lesser Muddy Terrain - Immobilized',
+          condition: String(immobilized.condition),
+          duration: effectNumber(profile, immobilized, 'duration'),
+          stacks: effectNumber(profile, immobilized, 'stacks'),
+          triggeredBy: skill.name
+        },
+        'condition'
+      )
+    );
   const applications = balanceProfileNumber(profile, 'maximumStacks');
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   for (let application = 0; application < applications; application += 1) {
     for (const effect of pulses) {
       const condition = String(effect.condition);
-      emitSkillCondition(context, {
-        at: at + application * interval,
-        source: 'Trait',
-        actorType: 'effect',
-        skillId: TRAIT.CHILD_OF_EARTH,
-        skillName: 'Child of Earth',
-        name: `Lesser Muddy Terrain - ${condition}`,
-        condition,
-        duration: effectNumber(profile, effect, 'duration'),
-        stacks: effectNumber(profile, effect, 'stacks'),
-        triggeredBy: skill.name
-      });
+      context.emit(
+        rangerEvent(
+          {
+            at: at + application * interval,
+            source: 'Trait',
+            actorType: 'effect',
+            skillId: TRAIT.CHILD_OF_EARTH,
+            skillName: 'Child of Earth',
+            name: `Lesser Muddy Terrain - ${condition}`,
+            condition,
+            duration: effectNumber(profile, effect, 'duration'),
+            stacks: effectNumber(profile, effect, 'stacks'),
+            triggeredBy: skill.name
+          },
+          'condition'
+        )
+      );
     }
   }
 }

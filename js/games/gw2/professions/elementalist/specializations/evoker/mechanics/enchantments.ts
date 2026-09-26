@@ -5,13 +5,12 @@ import { canonicalTime } from '#kernel/core/clock.js';
  *
  * Stacks are armed elsewhere - familiar completions and a few Evoker utility
  * skills - and spent here by attaching a strike plus condition package to the
- * player strikes that consume them, marking each consumed strike so it can never
- * be charged twice.
+ * accepted player strikes that consume them. Each accepted impact dispatches once.
  */
-import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import { emitElementalistCondition, emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
-import type { ElementalistCastContext, ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { emitElementalistProc } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELECTRIC_ENCHANTMENT_ICON } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import {
@@ -22,12 +21,12 @@ import { EVOKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementa
 
 // Materialize Electric Enchantment's strike and condition package for the invoking
 // skill while preserving shared event attribution.
-function emitElectricEnchantment(context: ElementalistSchedulerContext, event: SimulationEvent): void {
+function emitElectricEnchantment(context: ElementalistRuntime, event: SimulationEvent): void {
   const galvanicEnchantmentProfile = requireBalanceProfileFromContext(context, PROFILE.galvanicEnchantment);
   const strike = requireEffect(galvanicEnchantmentProfile, 'strike', 'Galvanic Enchantment');
   const burning = requireEffect(galvanicEnchantmentProfile, 'condition', 'Burning');
   if (strike) {
-    emitSkillDamage(context, {
+    emitElementalistDamage(context, {
       cause: event,
 
       at: event.at,
@@ -42,7 +41,7 @@ function emitElectricEnchantment(context: ElementalistSchedulerContext, event: S
   }
 
   if (burning) {
-    emitSkillCondition(context, {
+    emitElementalistCondition(context, {
       cause: event,
 
       at: event.at,
@@ -68,45 +67,15 @@ function emitElectricEnchantment(context: ElementalistSchedulerContext, event: S
     });
 }
 
-/** Marks the canonical hit before emission so repeated or reentrant processing cannot spend it twice. */
+/** Consumes one currently active grant at an accepted hit, preferring the earliest expiry. */
 export function consumeElectricEnchantment(
-  context: ElementalistSchedulerContext,
+  context: ElementalistRuntime,
   state: EvokerState,
   event: SimulationEvent
 ): void {
-  const current = context.eventByOrder(Number(event.eventOrder)) || event;
-  // Scheduling a far-future packet must not expire charges still usable by an earlier, later-scheduled strike.
-  expireElectricEnchantments(state, Math.min(context.state.time, current.at));
-  if (current.electricEnchantmentConsumed === true) return;
-  // The eligible grant owns spending; no separate total needs to stay synchronized.
+  expireElectricEnchantments(state, context.time);
   const grant = state.electricEnchantmentGrants.find(
-    (candidate) => current.at >= canonicalTime(candidate.at) && consumeCharge(candidate, current.at)
+    (candidate) => event.at >= canonicalTime(candidate.at) && consumeCharge(candidate, event.at)
   );
-  if (!grant) return;
-  context.replaceEvent(current, { electricEnchantmentConsumed: true });
-  emitElectricEnchantment(context, current);
-}
-
-/**
- * Spends armed stacks on already-queued player strikes at or after the grant's
- * completion time, earliest first. Earlier hits cannot consume newly granted
- * stacks, even when they were scheduled during the same cast.
- */
-export function applyElectricEnchantmentsRetrospectively(context: ElementalistCastContext, state: EvokerState): void {
-  // electricEnchantmentConsumed prevents double-consuming the same hit if this runs twice
-  // sorted chronologically so the earliest hits in the window consume stacks first
-  const candidates = context.events
-    .filter(
-      (event) =>
-        event.type === 'damage' &&
-        event.actorType === 'player' &&
-        Number(event.coefficient || 0) > 0 &&
-        event.at >= canonicalTime(context.effectiveEnd) &&
-        event.electricEnchantmentConsumed !== true
-    )
-    .sort((left, right) => left.at - right.at);
-  for (const event of candidates) {
-    if (!state.electricEnchantmentGrants.some((grant) => grant.charges > 0)) break;
-    consumeElectricEnchantment(context, state, event);
-  }
+  if (grant) emitElectricEnchantment(context, event);
 }

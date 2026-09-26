@@ -40,9 +40,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       }
     ]),
     castTimeMs: 960,
-    adrenalineGain: 10,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } }]
   },
   [ID.GUN_FLAME]: {
     effects: [
@@ -66,9 +64,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    primalBurst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    primalBurst: true
   },
   [ID.SKULL_GRINDER]: {
     effects: [
@@ -104,9 +100,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    primalBurst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    primalBurst: true
   },
   [ID.ARC_DIVIDER]: {
     skillWeapon: 'Greatsword',
@@ -122,9 +116,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    primalBurst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    primalBurst: true
   },
   [ID.SCORCHED_EARTH]: {
     skillWeapon: 'Longbow',
@@ -151,9 +143,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    primalBurst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    primalBurst: true
   },
   [ID.WILD_BLOW]: {
     effects: [
@@ -176,9 +166,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       }
     ],
     castTimeMs: 600,
-    adrenalineGain: 5,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 5 } }]
   },
   [ID.SHATTERING_BLOW]: {
     // Share impact timing while preserving independent payloads and declaration order.
@@ -201,34 +189,26 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       }
     ]),
     castTimeMs: 520,
-    adrenalineGain: 5,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 5 } }]
   },
   [ID.BERSERK]: {
     castTimeMs: 0,
     effects: [],
     adrenalineCost: 30,
     burstTier: 3,
-    adrenalineGain: 10,
-    // Custom: Spends adrenaline, enters Berserk, and applies entry traits; see `berserker/execution/index.ts`.
-    handlerId: 'warrior.berserk'
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } }]
   },
   [ID.BLOOD_RECKONING]: {
     effects: [],
     castTimeMs: 280,
     dualWieldCastTimeMs: 240,
-    adrenalineGain: 10,
-    // Custom: Applies adrenaline gain and resets all primal-burst cooldowns; see `berserker/execution/index.ts`.
-    handlerId: 'warrior.blood-reckoning'
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } }]
   },
   [ID.OUTRAGE]: {
     castTimeMs: 0,
     effects: [],
-    adrenalineGain: 10,
-    stunbreak: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 10 } }],
+    stunbreak: true
   },
   [ID.HEAD_BUTT]: {
     movementSkill: true,
@@ -245,12 +225,10 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]),
     castTimeMs: 800,
     interruptCommitMs: 760,
-    adrenalineGain: 30,
+    sideEffects: [{ on: 'castComplete', do: { type: 'warrior.adrenaline', amount: 30 } }],
     // Head Butt stuns both the foe and the player. The self-stun holds the cast
     // lane for 1s unless broken by a stunbreak (Outrage) or negated by stability.
-    selfStunMs: 1000,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    selfStunMs: 1000
   },
   [ID.FLAMING_FLURRY]: {
     skillWeapon: 'Sword',
@@ -278,9 +256,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    primalBurst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    primalBurst: true
   },
   [ID.DECAPITATE]: {
     skillWeapon: 'Axe',
@@ -303,9 +279,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    primalBurst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    primalBurst: true
   },
   [ID.RUPTURING_SMASH]: {
     movementSkill: true,
@@ -340,9 +314,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    primalBurst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    primalBurst: true
   },
   [ID.SLICING_MAELSTROM]: {
     cooldown: 5,
@@ -357,9 +329,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    primalBurst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    primalBurst: true
   },
   [ID.RAMPART_SPLITTER]: {
     effects: [
@@ -379,9 +349,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    primalBurst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    primalBurst: true
   },
   [ID.WILD_THROW]: {
     interruptMode: 'per-packet',
@@ -424,8 +392,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     adrenalineCost: 10,
     burstTier: 1,
     burst: true,
-    primalBurst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    primalBurst: true
   }
 });

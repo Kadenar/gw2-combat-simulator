@@ -11,7 +11,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   [ID.DEACTIVATE_PHOTON_FORGE]: {
     // Custom: Leaves Photon Forge and starts passive heat decay; see `holosmith/mechanics/photon-forge.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'engineer.photon-forge-exit',
+
     castTimeMs: 0,
     cooldown: 6,
     effects: [],
@@ -21,7 +21,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   },
   [ID.FLASH_CUTTER_STORM]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
-    handlerId: 'engineer.heat',
+
     castTimeMs: 560,
     cooldown: 0,
     heatGain: 3,
@@ -50,7 +50,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   },
   [ID.BRIGHT_SLASH_STORM]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
-    handlerId: 'engineer.heat',
+
     castTimeMs: 520,
     cooldown: 0,
     heatGain: 3,
@@ -81,7 +81,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   },
   [ID.HOLOGRAPHIC_SHOCKWAVE]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
-    handlerId: 'engineer.heat',
+
     castTimeMs: 520,
     cooldown: 15,
     heatGain: 25,
@@ -107,7 +107,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   [ID.ENGAGE_PHOTON_FORGE]: {
     // Custom: Enters Photon Forge and starts its heat lifecycle; see `holosmith/mechanics/photon-forge.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'engineer.photon-forge-enter',
+
     castTimeMs: 0,
     cooldown: 1,
     effects: [],
@@ -117,7 +117,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   },
   [ID.HOLO_LEAP]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
-    handlerId: 'engineer.heat',
+
     castTimeMs: 520,
     cooldown: 2,
     heatGain: 7,
@@ -170,7 +170,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   },
   [ID.LIGHT_STRIKE_STORM]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
-    handlerId: 'engineer.heat',
+
     castTimeMs: 360,
     cooldown: 0,
     heatGain: 3,
@@ -203,7 +203,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   },
   [ID.CORONA_BURST]: {
     // Custom: Schedules committed heat pulses that persist after Forge exit; see `holosmith/mechanics/photon-forge.ts`.
-    handlerId: 'engineer.corona-burst-heat',
+
     castTimeMs: 480,
     interruptCommitMs: 400,
     cooldown: 6,
@@ -281,7 +281,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   },
   [ID.LIGHT_STRIKE]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
-    handlerId: 'engineer.heat',
+
     castTimeMs: 360,
     interruptCommitMs: 200,
     cooldown: 0,
@@ -302,7 +302,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   [ID.DEACTIVATE_PHOTON_FORGE_HOT]: {
     // Custom: Leaves Photon Forge and starts passive heat decay; see `holosmith/mechanics/photon-forge.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'engineer.photon-forge-exit',
+
     castTimeMs: 0,
     cooldown: 6,
     effects: [],
@@ -312,7 +312,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   },
   [ID.BRIGHT_SLASH]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
-    handlerId: 'engineer.heat',
+
     castTimeMs: 520,
     // The report's shortest successful cast is 441 ms (440 on the replay grid); hit timing alone is not a cutoff.
     interruptCommitMs: 440,
@@ -332,7 +332,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   },
   [ID.PHOTON_BLITZ]: {
     // Custom: Adds heat per completed projectile launch; see `holosmith/mechanics/photon-forge.ts`.
-    handlerId: 'engineer.photon-blitz-heat',
+
     castTimeMs: 1320,
     // Each launched projectile and matching burn survive independently when the channel ends early.
     interruptMode: 'per-packet',
@@ -371,7 +371,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
   },
   [ID.FLASH_CUTTER]: {
     // Custom: Adds skill heat and handles overheat transitions; see `holosmith/mechanics/photon-forge.ts`.
-    handlerId: 'engineer.heat',
+
     castTimeMs: 520,
     interruptCommitMs: 480,
     cooldown: 0,

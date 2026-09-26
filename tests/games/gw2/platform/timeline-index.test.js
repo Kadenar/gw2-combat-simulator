@@ -1,3 +1,4 @@
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -5,103 +6,33 @@ import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-inde
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
 
-test('recharge windows reuse prepared history across skills, clock changes, and unrelated appends', () => {
-  // Count source reads to enforce reuse without asserting wall-clock timings or exposing cache internals.
-  let durationReads = 0;
-  const grant = buffEvent({ kind: 'alacrity', at: 2, stacks: 1 });
-  Object.defineProperty(grant, 'duration', {
-    enumerable: true,
-    get: () => {
-      durationReads += 1;
-      return 4;
-    }
-  });
-  const events = [grant];
-  const timeline = createGw2TimelineIndex({ events });
-  const progress = { startedAt: 0, work: 10 };
-  assert.equal(timeline.rechargeReadyAt({ id: 1, name: 'First' }, progress), 9);
-  const readsAfterPreparation = durationReads;
-  assert.ok(readsAfterPreparation > 0);
-  events.push({ type: 'damage', at: 3 }, buffEvent({ kind: 'might', at: 3 }), {
-    type: 'boon_extension',
-    kind: 'vigor',
-    at: 3,
-    duration: 2
-  });
-  assert.equal(timeline.rechargeReadyAt({ id: 2, name: 'Second' }, progress), 9);
-  assert.deepEqual([...timeline.rechargeIntervals({ id: 1 }, 3, 4)], [{ start: 3, end: 4, rate: 1.25 }]);
-  assert.deepEqual([...timeline.rechargeIntervals({ id: 1 }, 0, 1)], [{ start: 0, end: 1, rate: 1 }]);
-  assert.equal(durationReads, readsAfterPreparation);
+// Constant recharge rates bypass boon history, including explicit false console inputs.
+test('player recharge never samples Alacrity grants or expiry', () => {
+  for (const alacrity of [undefined, false, true]) {
+    const events = [
+      {
+        get type() {
+          throw new Error('Recharge sampled boon history');
+        }
+      }
+    ];
+    const timeline = createGw2TimelineIndex({ events, config: { boons: { alacrity } } });
+    assert.equal(timeline.rechargeReadyAt({ id: 1, rechargeBuffAudience: 'self' }, { startedAt: 2, work: 10 }), 10);
+    assert.equal(timeline.rechargeReadyAt({ id: 2, rechargeIgnoresAlacrity: true }, { startedAt: 2, work: 10 }), 12);
+  }
 });
 
-test('recharge windows invalidate on replacement, cancellation, late appends, extensions, and truncation', () => {
-  // Historical queries must see the current event identities even when replacement leaves the array length unchanged.
+test('Chronomancer recharge applies its increased rate only to player skills', () => {
+  const timeline = createGw2TimelineIndex({ config: { specialization: 'Chronomancer' } });
   const skill = { id: 1, name: 'Recharge' };
   const progress = { startedAt: 0, work: 10 };
-  const events = [buffEvent({ kind: 'alacrity', at: 2, duration: 4, stacks: 1 })];
-  const timeline = createGw2TimelineIndex({ events });
-  const readyAt = () => timeline.rechargeReadyAt(skill, progress);
-  const replace = (updates) => {
-    const previous = events[0];
-    events[0] = { ...previous, ...updates };
-    timeline.onEventReplaced(previous, events[0]);
-  };
-
-  assert.equal(readyAt(), 9);
-  replace({ duration: 8 });
-  assert.equal(readyAt(), 8.4);
-  replace({ cancelled: true });
-  assert.equal(readyAt(), 10);
-  replace({
-    cancelled: false,
-    resolvedAudience: { ...events[0].resolvedAudience, includesSelf: false, includesSummons: true }
-  });
-  assert.equal(readyAt(), 10);
-  assert.equal(timeline.rechargeReadyAt({ ...skill, rechargeBuffAudience: 'summon' }, progress), 8.4);
-  events.push(
-    buffEvent({
-      kind: 'alacrity',
-      at: 0,
-      duration: 4,
-      stacks: 1,
-      resolvedAudience: { ...events[0].resolvedAudience, includesSelf: true, includesSummons: false }
-    })
-  );
-  assert.equal(readyAt(), 9);
-  events.push({ type: 'boon_extension', at: 1, duration: 2 });
-  assert.equal(readyAt(), 8.5);
-  const extension = events[2];
-  events[2] = { ...extension, cancelled: true };
-  timeline.onEventReplaced(extension, events[2]);
-  assert.equal(readyAt(), 9);
-  replace({ type: 'marker' });
+  assert.equal(timeline.rechargeReadyAt(skill, progress), 10 / 1.5);
   assert.equal(timeline.rechargeReadyAt({ ...skill, rechargeBuffAudience: 'summon' }, progress), 10);
-  events.length = 0;
-  assert.equal(readyAt(), 10);
+  assert.equal(timeline.rechargeReadyAt({ ...skill, name: 'Swap Weapons' }, progress), 10);
 });
 
-test('recharge windows keep phase histories and Chronomancer audience rates separate', () => {
-  // Resolved history must not borrow predicted grants; permanent self Alacrity cannot become a summon assumption.
-  const grant = buffEvent({ kind: 'alacrity', at: 0, duration: 4, stacks: 1 });
-  const resolvedEvents = [];
-  const scheduled = createGw2TimelineIndex({ events: [grant], config: { specialization: 'Chronomancer' } });
-  const resolved = createGw2TimelineIndex({ events: resolvedEvents, resolved: true });
-  const skill = { id: 1, name: 'Recharge' };
-  const progress = { startedAt: 0, work: 10 };
-  assert.equal(scheduled.rechargeReadyAt(skill, progress), 8);
-  assert.equal(resolved.rechargeReadyAt(skill, progress), 10);
-  resolvedEvents.push(grant);
-  assert.equal(resolved.rechargeReadyAt(skill, progress), 9);
-  const permanent = createGw2TimelineIndex({ config: { specialization: 'Chronomancer', boons: { alacrity: true } } });
-  assert.equal(permanent.rechargeReadyAt(skill, progress), 10 / 1.5);
-  assert.equal(permanent.rechargeReadyAt({ ...skill, rechargeBuffAudience: 'summon' }, progress), 10);
-  assert.equal(permanent.rechargeReadyAt({ ...skill, name: 'Swap Weapons' }, progress), 10);
-});
-
-// Passive cooldown checks must match scheduling as Alacrity starts and expires after the cast.
+// Passive cooldown checks use permanent Alacrity regardless of transient grants.
 test('passive cooldown queries integrate committed recharge and retain historical reset boundaries', () => {
   const skill = { id: 990001, name: 'Passive skill', castTimeMs: 0, cooldown: 10, effects: [] };
   const profession = defineProfession({
@@ -109,48 +40,53 @@ test('passive cooldown queries integrate committed recharge and retain historica
     name: 'Passive recharge',
     catalog: createCanonicalCatalog({ generated: [skill] })
   });
-  const scheduler = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() });
-  scheduler.cast({ type: 'cast', skillId: skill.id });
-  scheduler.advanceTo(2);
-  const { timeline } = createGw2CombatQuery({ profession, events: scheduler.events });
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 9), true);
   const owner = { source: 'fixture', sourceId: 'fixture', actorType: 'player' };
-  scheduler.context.emit({ ...owner, type: 'buff', kind: 'alacrity', at: 2, duration: 4, stacks: 1 });
-  scheduler.advanceTo(9);
-  assert.equal(scheduler.state.cooldowns.get(skill.id), 9);
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 9), false);
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 8.999999), true);
-  const resolved = createGw2CombatQuery({ profession, resolvedTimelineEvents: scheduler.events }).timeline;
-  assert.equal(resolved.skillOnCooldownAt(skill.id, 0), true);
-  assert.equal(resolved.skillOnCooldownAt(skill.id, 9), false);
-  assert.equal(resolved.skillOnCooldownAt(skill.id, 8.999999), true);
-  scheduler.context.emit({ ...owner, type: 'marker', action: 'cooldown-reset', at: 5 });
+  const result = simulateGw2({
+    profession: {
+      runtimeFor(config) {
+        return {
+          ...profession.runtimeFor(config),
+          initialize(runtime) {
+            runtime.emit({ ...owner, type: 'buff', kind: 'alacrity', at: 2, duration: 4, stacks: 1 });
+          }
+        };
+      }
+    },
+    rotation: [skill.id, { type: 'wait', durationMs: 9000 }]
+  });
+  const timeline = createGw2CombatQuery({ profession, events: result.events }).timeline;
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 8), false);
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 7.999999), true);
+  result.events.push({ ...owner, type: 'marker', action: 'cooldown-reset', at: 5 });
   assert.equal(timeline.skillOnCooldownAt(skill.id, 5), false);
   assert.equal(timeline.skillOnCooldownAt(skill.id, 4.999999), true);
 });
 
-test('passive cooldown queries honor recharge anchors, boon extensions, and the completion tick', () => {
+test('passive cooldown queries honor recharge anchors and completion ticks despite boon extensions', () => {
   const skill = { id: 990001, name: 'Passive skill', castTimeMs: 2000, cooldown: 10, effects: [] };
   const profession = defineProfession({
     id: 'passive-extension',
     name: 'Passive extension',
     catalog: createCanonicalCatalog({ generated: [skill] })
   });
-  const scheduler = createScheduler({ profession, schedulerPolicy: createGw2SchedulerPolicy() });
-  scheduler.cast({ type: 'cast', skillId: skill.id });
-  const { timeline } = createGw2CombatQuery({ profession, events: scheduler.events });
   const owner = { source: 'fixture', sourceId: 'fixture', actorType: 'player' };
-  scheduler.context.emit({ ...owner, type: 'buff', kind: 'alacrity', at: 1, duration: 4, stacks: 1 });
-  scheduler.advanceTo(2);
-  // Only coverage after the committed cast-end anchor accelerates recharge.
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 11.25), true);
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 11.28), false);
-  scheduler.context.emit({ ...owner, type: 'boon_extension', at: 3, duration: 2 });
-  scheduler.advanceTo(10.75);
-  assert.equal(scheduler.state.cooldowns.get(skill.id), 10.75);
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 10.75), true);
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 10.759999), true);
-  assert.equal(timeline.skillOnCooldownAt(skill.id, 10.76), false);
+  const result = simulateGw2({
+    profession: {
+      runtimeFor(config) {
+        return {
+          ...profession.runtimeFor(config),
+          initialize(runtime) {
+            runtime.emit({ ...owner, type: 'buff', kind: 'alacrity', at: 1, duration: 4, stacks: 1 });
+            runtime.emit({ ...owner, type: 'boon_extension', at: 3, duration: 2 });
+          }
+        };
+      }
+    },
+    rotation: [skill.id, { type: 'wait', durationMs: 10000 }]
+  });
+  const timeline = createGw2CombatQuery({ profession, events: result.events }).timeline;
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 9.999999), true);
+  assert.equal(timeline.skillOnCooldownAt(skill.id, 10), false);
 });
 
 // Adjacent microseconds remain distinct for swaps, actions, snapshots, resets, and recharge deadlines.
@@ -186,57 +122,6 @@ test('new Compounding Power stacks do not refresh earlier stacks', () => {
   assert.equal(timeline.timedStacks('compounding', 7, 8, 5), 2);
   assert.equal(timeline.timedStacks('compounding', 8, 8, 5), 1);
   assert.equal(timeline.timedStacks('compounding', 15, 8, 5), 0);
-});
-
-test('scheduler replacements invalidate already-read combat history', () => {
-  // Exercise the production policy connection, including replacements followed by ordinary appends.
-  let timeline;
-  const profession = defineProfession({
-    id: 'timeline-fixture',
-    name: 'Timeline Fixture',
-    catalog: createCanonicalCatalog(),
-    attributeRules: {
-      modifyAttributes(context, attributes) {
-        timeline = context.timeline;
-        return attributes;
-      }
-    }
-  });
-  const policy = createGw2SchedulerPolicy();
-  const { context } = createScheduler({ profession, schedulerPolicy: policy });
-  const owner = { source: 'fixture', sourceId: 'fixture.history', actorType: 'player' };
-  policy.critical(context, { ...owner, type: 'damage', at: 0, coefficient: 1 });
-  const buff = context.emit({ ...owner, type: 'buff', at: 0, kind: 'might', duration: 1, stacks: 1 });
-  const action = context.emit({ ...owner, type: 'action', at: 0, skillId: 1, rechargeReadyAt: 1 });
-  assert.equal(timeline.timedStacks('might', 0.5, 0, 25), 1);
-  assert.equal(timeline.skillOnCooldownAt(1, 0.5), true);
-
-  context.replaceEvent(buff, { duration: 10 });
-  context.replaceEvent(action, { rechargeReadyAt: 10 });
-  context.emit({ ...owner, type: 'marker', at: 1 });
-  assert.equal(timeline.timedStacks('might', 2, 0, 25), context.buffStacks('might', 2));
-  assert.equal(timeline.timedStacks('might', 2, 0, 25), 1);
-  assert.equal(timeline.skillOnCooldownAt(1, 2), true);
-
-  const snapshot = context.emit({ ...owner, type: 'cooldown_snapshot', at: 3, cooldowns: { 1: 10 } });
-  assert.equal(timeline.skillOnCooldownAt(1, 4), true);
-  context.replaceEvent(snapshot, { cooldowns: {} });
-  assert.equal(timeline.skillOnCooldownAt(1, 4), false);
-  assert.equal(timeline.skillOnCooldownAt(1, 2), true);
-
-  const firstSwap = context.emit({ ...owner, type: 'weapon_set', at: 2, weaponSet: 2 });
-  context.emit({ ...owner, type: 'weapon_set', at: 2, weaponSet: 1 });
-  assert.equal(timeline.activeWeaponSetAt(2), 1);
-  context.replaceEvent(firstSwap, { at: 3 });
-  assert.equal(timeline.activeWeaponSetAt(2), 1);
-  assert.equal(timeline.activeWeaponSetAt(3), 2);
-
-  // Type changes must remove old buckets and add newly indexed event types.
-  const marker = context.replaceEvent(buff, { type: 'marker' });
-  assert.equal(timeline.timedStacks('might', 2, 0, 25), 0);
-  context.replaceEvent(marker, { type: 'buff', kind: 'fury' });
-  assert.equal(timeline.timedActive('fury', 2), true);
-  assert.equal(timeline.timedActive('might', 2), false);
 });
 
 function weaponSetEvent(at, causalOrder, weaponSet) {

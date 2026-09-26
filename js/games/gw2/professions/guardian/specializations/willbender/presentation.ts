@@ -12,19 +12,10 @@ import {
 import { WILLBENDER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/willbender/profiles.js';
 import type {
   ProfessionEffectPresentation,
-  ProfessionEventLogDescriptor,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import type { GuardianResolverEvent, GuardianUiContext, GuardianUiSlice } from '#gw2/professions/guardian/types.js';
+import type { GuardianUiContext, GuardianUiSlice } from '#gw2/professions/guardian/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
-
-function willbenderEventLogRow(
-  _context: GuardianUiContext,
-  event: GuardianResolverEvent
-): ProfessionEventLogDescriptor | null | undefined {
-  if (event.type.startsWith('guardian.willbender-')) return null; // null = explicitly suppress; internal scheduler events should not appear in the log
-  return undefined; // undefined = defer to the default renderer for all other event types
-}
 
 const VIRTUE_NAMES = Object.freeze(['Rushing Justice', 'Flowing Resolve', 'Crashing Courage']);
 
@@ -90,7 +81,6 @@ function willbenderEffectPresentations(context: GuardianUiContext): ProfessionEf
 export function bindWillbenderUi(catalog: Readonly<CanonicalCatalog>): GuardianUiSlice {
   return Object.freeze({
     effectPresentations: willbenderEffectPresentations,
-    eventLogRow: willbenderEventLogRow,
     rotationStateSnapshot: willbenderStateSnapshot,
     paletteGroups: (context: GuardianUiContext) => [
       {

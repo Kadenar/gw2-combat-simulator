@@ -19,19 +19,14 @@ export function engineerEvent(context: Gw2ModifierContext): EngineerSimulationEv
   return (context.event || undefined) as EngineerSimulationEvent | undefined;
 }
 
-/** Reads Core Engineer state from a resolver-side modifier context. */
+/** Reads Core state from the live simulation or the isolated attribute preview. */
 export function engineerRuntimeState(context: Gw2ModifierContext): Partial<EngineerState> {
-  return readProfessionCoreState<EngineerState>(context.runtime?.profession);
-}
-
-/** Reads Core Engineer state from a scheduler-side modifier context. */
-export function engineerSchedulerState(context: Gw2ModifierContext): Partial<EngineerState> {
   return readProfessionCoreState<EngineerState>(
-    (context.state as { readonly profession?: unknown } | undefined)?.profession
+    context.runtime?.profession ?? (context.state as { readonly profession?: unknown } | undefined)?.profession
   );
 }
 
-/** Reads the expected specialization state from either scheduler or resolver modifier contexts. */
+/** Reads the active specialization in simulation or attribute preview. */
 export function engineerSpecializationState(context: Gw2ModifierContext, expectedKind: string): Partial<EngineerState> {
   const state =
     context.runtime?.profession ?? (context.state as { readonly profession?: unknown } | undefined)?.profession;

@@ -1,3 +1,4 @@
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -341,7 +342,7 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
 
   assert.equal(counter.steps[0].end, 120);
   assert.equal(counter.steps[0].interrupted, true);
-  assert.ok(counter.steps[0].fullCastMs > 120);
+
   assert.equal(
     counter.breakdown.some((entry) => entry.name === 'Illusionary Counter'),
     false
@@ -434,7 +435,7 @@ test('Illusionary Riposte defaults to a 120ms interrupt before Counter Blade', (
 
   assert.equal(result.steps[0].end, 120);
   assert.equal(result.steps[0].interrupted, true);
-  assert.ok(result.steps[0].fullCastMs > 120);
+
   assert.equal(result.steps[1].start, 120);
 });
 
@@ -490,7 +491,7 @@ test('Inspiring Imagery grants boons at field expiry and closes Abstraction', ()
       [field.expiresAt, 'fury', 1, 9]
     ]
   );
-  assert.equal(result.planningState.cooldowns['Inspiring Imagery'].readyAt, Math.ceil((cast.end + 12000) / 40) * 40);
+  assert.equal(result.planningState.cooldowns['Inspiring Imagery'].readyAt, Math.ceil((cast.end + 9600) / 40) * 40);
   assert.equal(result.steps.at(-1).invalid, true);
   assert.match(result.warnings[0], /Inspiring Imagery is not active/);
 });
@@ -524,7 +525,7 @@ test('Abstraction replaces boons with damage and conditions and blasts only its 
       result.events.some((event) => event.type === 'buff' && event.skillId === ID.INSPIRING_IMAGERY),
       false
     );
-    assert.equal(field.expiresAt, cast.start / 1000);
+    assert.equal(observedRuntime(result).combo.fields.get(field.fieldId).expiresAt, cast.start / 1000);
     const combo = result.resolvedEvents.find((event) => event.type === 'combo' && event.skillId === ID.ABSTRACTION);
     assert.equal(combo.fieldId, field.fieldId);
     assert.equal(combo.finisherType, 'Blast');

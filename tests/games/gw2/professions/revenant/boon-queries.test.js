@@ -6,11 +6,11 @@ import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import {
   revenantActiveBoonCount,
-  revenantCoreAttributeRules,
+  revenantCoreModifiers,
   revenantCoreModifierRules,
   revenantTimedBuff
-} from '#gw2/professions/revenant/core/traits/modifiers.js';
-import { renegadeModifierRules } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-rules.js';
+} from '#gw2/professions/revenant/core/modifiers.js';
+import { renegadeModifierRules } from '#gw2/professions/revenant/specializations/renegade/modifiers.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 // Recipient metadata keeps player boons distinct from party-only and companion-only applications.
@@ -33,7 +33,7 @@ test('Revenant and Renegade use live self boons, duration stacking, and timeline
   const reprisal = revenantCoreModifierRules.find(({ id }) => id === 'revenant.vicious-reprisal');
   const bloodFury = renegadeModifierRules.find(({ id }) => id === 'revenant.blood-fury-bleeding-duration');
   const criticalBonus = (value) =>
-    revenantCoreAttributeRules.modifyCriticalChance({ catalog: revenantCatalog, ...value }, 0);
+    revenantCoreModifiers.modifyCriticalChance({ catalog: revenantCatalog, ...value }, 0);
   assert.equal(revenantActiveBoonCount({ ...context, runtime: undefined }), 2);
   assert.equal(bloodFury.when({ ...context, runtime: undefined }), true);
   for (const kind of ['fury', 'resolution']) {
@@ -81,29 +81,26 @@ test('Notoriety converts configured and live self Might with explicit zero stack
     { at: 4, expiresAt: 10, stacks: 0, resolvedAudience: { includesSelf: true } }
   );
   const attributes = { power: 1000, conditionDamage: 1000 };
-  assert.deepEqual(revenantCoreAttributeRules.modifyAttributes({ catalog: revenantCatalog, ...context }, attributes), {
+  assert.deepEqual(revenantCoreModifiers.modifyAttributes({ catalog: revenantCatalog, ...context }, attributes), {
     power: 1070,
     conditionDamage: 930
   });
   assert.deepEqual(
-    revenantCoreAttributeRules.modifyAttributes({ catalog: revenantCatalog, ...context, time: 5 }, attributes),
+    revenantCoreModifiers.modifyAttributes({ catalog: revenantCatalog, ...context, time: 5 }, attributes),
     {
       power: 1250,
       conditionDamage: 750
     }
   );
   assert.deepEqual(
-    revenantCoreAttributeRules.modifyAttributes({ catalog: revenantCatalog, ...context, time: 10 }, attributes),
+    revenantCoreModifiers.modifyAttributes({ catalog: revenantCatalog, ...context, time: 10 }, attributes),
     {
       power: 1040,
       conditionDamage: 960
     }
   );
   assert.deepEqual(
-    revenantCoreAttributeRules.modifyAttributes(
-      { catalog: revenantCatalog, ...context, runtime: undefined },
-      attributes
-    ),
+    revenantCoreModifiers.modifyAttributes({ catalog: revenantCatalog, ...context, runtime: undefined }, attributes),
     {
       power: 1040,
       conditionDamage: 960

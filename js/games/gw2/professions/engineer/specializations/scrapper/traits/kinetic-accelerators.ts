@@ -8,14 +8,11 @@ import {
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
 import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
-import type { EngineerResolverContext, EngineerSchedulerContext } from '#gw2/professions/engineer/types.js';
+import type { EngineerResolverContext } from '#gw2/professions/engineer/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 
-/** Share grants and the Whirl-only claim while each phase retains its own state and boon application. */
-export function kineticAcceleratorBoons(
-  context: EngineerSchedulerContext | EngineerResolverContext,
-  event: SimulationEvent
-) {
+/** Each accepted combo grants boons once, with a live Whirl-only internal cooldown. */
+export function kineticAcceleratorBoons(context: EngineerResolverContext, event: SimulationEvent) {
   if (
     !hasTrait(context, TRAIT.KINETIC_ACCELERATORS) ||
     event.type !== 'combo' ||

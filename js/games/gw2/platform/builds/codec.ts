@@ -222,8 +222,9 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
 
   function toApplicationBuild(build: unknown): TBuild {
     const migrated = migrateBuild(build);
-    // Application timings assume permanent Quickness, including when restoring older builds.
+    // Console timing boons stay active when creating or restoring application builds.
     migrated.assumptions.quickness = true;
+    migrated.assumptions.alacrity = true;
     return migrated;
   }
 

@@ -23,3 +23,11 @@ test('charge release row times are relative to the combat-start marker', () => {
     '10 charges · 23.280s (+2.480s) · 44.72 Flow · 20.40 coefficient'
   );
 });
+
+// Rejected candidates expose availability without presenting placeholder simulation values.
+test('unreachable charge release rows show no invented time or Flow', () => {
+  assert.equal(
+    chargeReleaseRowLabel({ charges: 5, at: 0, delta: 0, flowAfter: null, coefficient: 0, disabled: true }),
+    '5 charges · unavailable'
+  );
+});

@@ -117,12 +117,12 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     ammo: 2,
     ammoRecharge: 25,
     ammoCastLockout: 4,
-    mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
+    tasks: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
   [ID.TALE_OF_THE_SECOND_SCION]: {
     castTimeMs: 666.666666667,
-    mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
+    tasks: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
   [ID.FLUSTERING_FLUTE]: {
@@ -151,7 +151,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   [ID.TALE_OF_THE_SOULKEEPER]: {
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
-    mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
+    tasks: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
   [ID.CRESCENDO]: {
@@ -170,12 +170,12 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   },
   [ID.TALE_OF_THE_AUGUST_QUEEN]: {
     castTimeMs: 666.666666667,
-    mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
+    tasks: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
   [ID.TALE_OF_THE_TORTURED_MASTERMIND]: {
     castTimeMs: 400,
-    mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
+    tasks: TROUBADOUR_TALE_TRIGGERS,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -239,7 +239,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   [ID.TALE_OF_THE_VALIANT_MARSHAL]: {
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
-    mechanicTriggers: TROUBADOUR_TALE_TRIGGERS,
+    tasks: TROUBADOUR_TALE_TRIGGERS,
     effects: []
   },
   [ID.LIVELY_LUTE_ALTERNATE]: {
@@ -286,8 +286,9 @@ export const MESMER_TROUBADOUR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     specialization: 'Troubadour',
     castTimeMs: 0,
     resourceCost: 50,
+    cost: { resource: 'endurance', spendOn: 'castCommit' },
     // Mayhem reacts to the completed dodge rather than a Core Mesmer skill-id branch.
-    mechanicTriggers: [
+    tasks: [
       {
         type: 'mesmer.troubadour.dodge',
         timingAnchor: 'castEnd'

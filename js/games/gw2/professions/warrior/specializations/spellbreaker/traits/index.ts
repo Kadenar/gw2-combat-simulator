@@ -1,3 +1,4 @@
+import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -5,32 +6,23 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
-import { emitSkillCondition } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-
 import { SPELLBREAKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import {
   spellbreakerState,
   type SpellbreakerState
 } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
-import type {
-  WarriorResolverContext,
-  WarriorResolverEvent,
-  WarriorSchedulerContext,
-  WarriorSimulationEvent,
-  WarriorSkill
-} from '#gw2/professions/warrior/types.js';
-
-// Kick grants 2 Attacker's Insight stacks instead of 1 against defiant targets.
-const DOUBLE_DEFIANT_CONTROL_INSIGHT_SKILLS = new Set<number>([ID.KICK]);
+import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+type Runtime = Gw2Runtime<WarriorRuntimeState>;
 
 function gainAttackersInsight(
-  context: WarriorSchedulerContext | WarriorResolverContext,
+  context: Runtime,
   state: { attackerInsightExpiries: number[] },
   at: number,
   applications = 1
@@ -49,26 +41,14 @@ function gainAttackersInsight(
   });
 }
 
-function attackerInsightApplications(
-  context: WarriorSchedulerContext | WarriorResolverContext,
-  event: WarriorSimulationEvent | WarriorResolverEvent
-): number {
-  return DOUBLE_DEFIANT_CONTROL_INSIGHT_SKILLS.has(Number(event.skillId)) && context.config.target?.defiant === true
-    ? 2
-    : 1;
+function attackerInsightApplications(context: Runtime, event: Gw2ResolverEvent): number {
+  // Kick grants 2 Attacker's Insight stacks instead of 1 against defiant targets.
+  return ID.KICK == Number(event.skillId) && context.config.target?.defiant === true ? 2 : 1;
 }
 
-function triggerMagebaneTether(
-  context: WarriorSchedulerContext | WarriorResolverContext,
-  state: SpellbreakerState,
-  skill: WarriorSkill,
-  at: number
-): boolean {
-  // Both execution stages use engine-owned progress so transient Alacrity updates the entire recharge.
-  const project = (progress: RechargeProgress): number =>
-    'cooldownController' in context
-      ? context.cooldownController.project(skill, progress)
-      : context.query.timeline.rechargeReadyAt(skill, progress);
+function triggerMagebaneTether(context: Runtime, state: SpellbreakerState, skill: WarriorSkill, at: number): boolean {
+  // The live recharge controller uses the permanent Alacrity rate.
+  const project = (progress: RechargeProgress): number => context.cooldownController.project(skill, progress);
   if (state.magebaneTetherRecharge) state.magebaneTetherReadyAt = project(state.magebaneTetherRecharge);
   if (at < gw2CooldownReadyAt(state.magebaneTetherReadyAt) || !isInternalCooldownReady(at, state.magebaneTetherReadyAt))
     return false;
@@ -83,58 +63,7 @@ function triggerMagebaneTether(
   return true;
 }
 
-// Target boons never exist; only control and burst damage drive Attacker's
-// Insight, No Escape, and Magebane Tether state without cross-event duplication.
-export function observeSpellbreakerEvent(context: WarriorSchedulerContext, event: WarriorSimulationEvent): void {
-  if (event.actorType !== 'player') return;
-  if (event.type === 'control') {
-    if (hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
-      gainAttackersInsight(
-        context,
-        spellbreakerState.from(context),
-        event.at,
-        attackerInsightApplications(context, event)
-      );
-    }
-
-    if (
-      hasTrait(context, TRAIT.NO_ESCAPE) &&
-      ['daze', 'stun'].includes(String(event.controlKind || '').toLowerCase())
-    ) {
-      const noEscapeProfile = requireBalanceProfileFromContext(context, PROFILE.noEscape);
-      const effect = requireEffect(noEscapeProfile, 'condition', 'Immobilized');
-      if (effect)
-        emitSkillCondition(context, {
-          cause: event,
-
-          at: event.at,
-          source: 'Trait',
-          sourceId: TRAIT.NO_ESCAPE,
-          actorType: 'effect',
-          skillId: event.skillId,
-          skillName: event.skillName,
-          name: 'No Escape - Immobilized',
-          condition: 'Immobilized',
-          stacks: effectNumber(noEscapeProfile, effect, 'stacks'),
-          duration: effectNumber(noEscapeProfile, effect, 'duration')
-        });
-    }
-
-    return;
-  }
-
-  if (event.type !== 'damage' || !(Number(event.coefficient) > 0)) {
-    return;
-  }
-
-  if (!hasTrait(context, TRAIT.MAGEBANE_TETHER)) return;
-  const skill = event.skillId == null ? undefined : context.catalog.skillsById.get(event.skillId);
-  if (skill?.burst) {
-    triggerMagebaneTether(context, spellbreakerState.from(context), skill, event.at);
-  }
-}
-
-export function reactToSpellbreakerControl(context: WarriorResolverContext, event: WarriorResolverEvent): void {
+export function reactToSpellbreakerControl(context: Runtime, event: Gw2ResolverEvent): void {
   if (event.actorType === 'player' && hasTrait(context, TRAIT.ATTACKERS_INSIGHT)) {
     gainAttackersInsight(
       context,
@@ -147,7 +76,7 @@ export function reactToSpellbreakerControl(context: WarriorResolverContext, even
 
 // Trigger resolver-side Magebane Tether only from a qualifying player burst hit
 // and record the proc when its cooldown admits a new window.
-export function reactToSpellbreakerDamage(context: WarriorResolverContext, event: WarriorResolverEvent): void {
+export function reactToSpellbreakerDamage(context: Runtime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || !hasTrait(context, TRAIT.MAGEBANE_TETHER)) {
     return;
   }

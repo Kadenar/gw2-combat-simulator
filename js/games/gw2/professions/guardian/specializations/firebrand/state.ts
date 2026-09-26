@@ -1,7 +1,6 @@
 import {
   createDiscreteResourceClock,
-  type DiscreteResourceClock,
-  type ResourcePolicy
+  type DiscreteResourceClock
 } from '#gw2/platform/combat/resources/resource-policy.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import {
@@ -16,12 +15,11 @@ import {
   defineProfessionSpecializationState
 } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-
 import {
   FIREBRAND_BALANCE_PROFILE_IDS as PROFILE,
   FIREBRAND_BALANCE_PROFILES
 } from '#gw2/professions/guardian/specializations/firebrand/profiles.js';
-import type { GuardianConfig, GuardianSchedulerContext } from '#gw2/professions/guardian/types.js';
+import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 export interface GuardianFirebrandState {
@@ -36,6 +34,7 @@ export interface GuardianFirebrandState {
   stalwartSpeedReadyAt: number;
   quickfireReadyAt: number;
   mantraRechargeReadyAt: Record<string, number>;
+  mantraWakeGenerations: Record<string, number>;
 }
 
 /** Normalizes page overrides against trait capacity and starts regeneration only below the cap. */
@@ -64,7 +63,7 @@ function initialTomePageState(
 
 export function createFirebrandState(config: GuardianConfig = {}): GuardianFirebrandState {
   const archivistOfWhispers = hasTrait(config, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS);
-  // Standalone state starts from canonical declarations; scheduler initialization selects the active patch.
+  // Standalone state starts from canonical declarations; live initialization selects the active patch.
   const profileContext = {
     balanceProfile: (id: string | number) => FIREBRAND_BALANCE_PROFILES.find((profile) => profile.id === id)
   };
@@ -100,7 +99,8 @@ export function createFirebrandState(config: GuardianConfig = {}): GuardianFireb
     liberatorsVowReadyAt: 0,
     stalwartSpeedReadyAt: 0,
     quickfireReadyAt: 0,
-    mantraRechargeReadyAt: {}
+    mantraRechargeReadyAt: {},
+    mantraWakeGenerations: {}
   };
 }
 
@@ -118,18 +118,10 @@ export const FIREBRAND_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   mantraRechargeReadyAt: {}
 } satisfies Partial<GuardianFirebrandState>);
 
-// Ashes remains a profession-owned charge effect; page initialization belongs to its resource policy.
-export function initializeFirebrandBalanceState(context: GuardianSchedulerContext): void {
-  const state = firebrandState.from(context);
-  const ashesProfile = requireBalanceProfileFromContext(context, PROFILE.ashes);
-  const burn = requireEffect(ashesProfile, 'condition', 'Burning');
-  state.ashesBurnDuration = burn ? effectNumber(ashesProfile, burn, 'duration') : 0;
-}
-
 export const firebrandState = defineProfessionSpecializationState('Firebrand', createFirebrandState);
 
 /** Keeps page tuning local while the platform owns recovery, grants and spending. */
-function pageTuning(context: GuardianSchedulerContext) {
+export function firebrandPageTuning(context: { readonly config: GuardianConfig }) {
   const archivistOfWhispers = hasTrait(context, GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS);
 
   const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
@@ -147,11 +139,3 @@ function pageTuning(context: GuardianSchedulerContext) {
     interval
   };
 }
-
-export const firebrandPages: ResourcePolicy<GuardianSchedulerContext> = {
-  kind: 'discrete',
-  state: (context) => firebrandState.from(context).tomePages,
-  maximum: (context) => pageTuning(context).maximum,
-  initial: (context) => pageTuning(context).initial,
-  recovery: (context) => ({ interval: pageTuning(context).interval, amount: 1, start: 'first-spend' })
-};

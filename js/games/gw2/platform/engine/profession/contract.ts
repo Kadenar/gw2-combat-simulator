@@ -1,22 +1,12 @@
-import {
-  initializeProfessionResources,
-  resourcePolicies,
-  validateResourcePolicies
-} from '#gw2/platform/combat/resources/resource-policy.js';
+import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
+import { resourcePolicies, validateResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
 /**
  * Profession contract normalization. Validates sparse profession definitions
  * and composes deterministic no-op-safe hooks for the neutral engine.
  */
 import type { DynamicFields, UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import type { AvailabilityResult, SchedulerConfig, SchedulerContext } from '#gw2/platform/execution/types.js';
-import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
-import type {
-  NormalizedProfessionContract,
-  ProfessionDefinition,
-  ProfessionSimulationDefinition
-} from '#gw2/platform/engine/profession/types.js';
-import { CAST_READY, foldAvailability } from '#gw2/platform/engine/skills/availability.js';
-import { initializeProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
+import type { ProfessionConfig } from '#gw2/platform/execution/types.js';
+import type { NormalizedProfessionContract, ProfessionDefinition } from '#gw2/platform/engine/profession/types.js';
 
 type ComposableHook = (...args: any[]) => unknown;
 
@@ -32,7 +22,7 @@ type EventReaction<TContext, TEvent, TDetails, TResult> = (
   event: TEvent,
   details?: TDetails
 ) => TResult | undefined;
-type HookCategory = 'scheduler' | 'cast' | 'attribute' | 'resource';
+type HookCategory = 'modifier' | 'resource';
 
 /**
  * Each hook belongs to one definition container; state projection belongs to
@@ -40,30 +30,14 @@ type HookCategory = 'scheduler' | 'cast' | 'attribute' | 'resource';
  * silently miss a subset list.
  */
 const HOOK_DEFINITIONS = Object.freeze([
-  ['prepareEvent', 'scheduler'],
-  ['initialize', 'scheduler'],
-  ['availability', 'cast'],
-  ['afterCast', 'scheduler'],
-  ['advance', 'scheduler'],
   ['projectPlanningState', 'resource'],
-  ['onCastStart', 'scheduler'],
-  ['onCastComplete', 'scheduler'],
-  ['onCooldownReset', 'scheduler'],
-  ['onEventScheduled', 'scheduler'],
-  ['onWeaponSwap', 'scheduler'],
-  ['modifySkillId', 'cast'],
-  ['modifyCastDuration', 'cast'],
-  ['modifyRechargeDuration', 'cast'],
-  ['commitRechargeDuration', 'cast'],
-  ['modifyRechargeStart', 'cast'],
-  ['modifyMaximumAmmo', 'cast'],
-  ['modifyAttributes', 'attribute'],
-  ['modifyCriticalChance', 'attribute'],
-  ['modifyCriticalDamage', 'attribute'],
-  ['modifyStrikeDamage', 'attribute'],
-  ['modifyConditionDamage', 'attribute'],
-  ['modifyConditionBaseDuration', 'attribute'],
-  ['modifyConditionDuration', 'attribute']
+  ['modifyAttributes', 'modifier'],
+  ['modifyCriticalChance', 'modifier'],
+  ['modifyCriticalDamage', 'modifier'],
+  ['modifyStrikeDamage', 'modifier'],
+  ['modifyConditionDamage', 'modifier'],
+  ['modifyConditionBaseDuration', 'modifier'],
+  ['modifyConditionDuration', 'modifier']
 ] as const satisfies readonly (readonly [string, HookCategory])[]);
 
 // Filtering by category preserves the corresponding container's finite set of hook names.
@@ -74,13 +48,10 @@ const hookNamesWith = <TCategory extends HookCategory>(category: TCategory) =>
   >[0][];
 
 const HOOK_NAMES = Object.freeze(HOOK_DEFINITIONS.map(([name]) => name));
-export const SCHEDULER_HOOK_NAMES = hookNamesWith('scheduler');
-export const CAST_HOOK_NAMES = hookNamesWith('cast');
-export const ATTRIBUTE_HOOK_NAMES = hookNamesWith('attribute');
+export const MODIFIER_HOOK_NAMES = hookNamesWith('modifier');
 
 const NOOP: ComposableHook = (..._args) => undefined;
 const IDENTITY_SECOND_ARGUMENT: ComposableHook = (...args) => args[1];
-const READY_CAST: ComposableHook = (..._args) => CAST_READY;
 
 /**
  * Normalizes one hook or hook list into an order-stable array.
@@ -135,22 +106,9 @@ function orderedHooks(value: unknown, hookName: string): OrderedHook[] {
 function composeHooks(value: unknown, hookName: string, fallback: ComposableHook): ComposableHook {
   const hooks = orderedHooks(value, hookName);
   if (!hooks.length) return fallback;
-  if (hookName === 'availability') {
-    return (context: UnvalidatedFields, skill: Skill) =>
-      foldAvailability(
-        (function* () {
-          for (const hook of hooks) {
-            const availability = hook.handler(context, skill) as AvailabilityResult;
-            if (availability.ready !== false) continue;
-            yield availability;
-          }
-        })()
-      );
-  }
-
   // Recharge commitment also chains Core and elite contributions, but is invoked only for accepted casts.
   // Preparers and modifiers preserve the current value when a hook returns undefined.
-  if (hookName === 'prepareEvent' || hookName === 'commitRechargeDuration' || hookName.startsWith('modify')) {
+  if (hookName.startsWith('modify')) {
     const composed = (context: UnvalidatedFields, initialValue: unknown) =>
       hooks.reduce((chainedValue: unknown, hook) => {
         const next = hook.handler(context, chainedValue);
@@ -235,106 +193,6 @@ function assertCallbackContainer(container: object, names: readonly string[], sc
   for (const name of names) assertOptionalCallback(container, name, scope);
 }
 
-function assertHandlerMap(value: unknown, scope: string): void {
-  if (value == null) return;
-  if (typeof value !== 'object' || Array.isArray(value)) {
-    throw new TypeError(`${scope} must be an object.`);
-  }
-
-  for (const [name, handler] of Object.entries(value)) {
-    if (typeof handler !== 'function') {
-      throw new TypeError(`${scope}.${name} must be a function.`);
-    }
-  }
-}
-
-/** Validates trigger timing metadata and guarantees every active skill has one owning handler. */
-function assertSkillMechanicTriggers(
-  catalog: CanonicalCatalog | undefined,
-  handlers: Readonly<Record<string, unknown>>,
-  professionId: string
-): void {
-  for (const skill of catalog?.skills || []) {
-    for (const trigger of skill.mechanicTriggers || []) {
-      if (!trigger || typeof trigger !== 'object' || !String(trigger.type || '').trim()) {
-        throw new TypeError(`${professionId} skill ${skill.name} has a mechanic trigger without a type.`);
-      }
-
-      if (!Object.hasOwn(handlers, trigger.type)) {
-        throw new TypeError(`${professionId} skill ${skill.name} references unknown mechanic trigger ${trigger.type}.`);
-      }
-
-      if (trigger.atMs != null && (!Number.isFinite(Number(trigger.atMs)) || Number(trigger.atMs) < 0)) {
-        throw new TypeError(`${professionId} skill ${skill.name} mechanic trigger atMs must be non-negative.`);
-      }
-
-      if (trigger.timingAnchor != null && trigger.timingAnchor !== 'castStart' && trigger.timingAnchor !== 'castEnd') {
-        throw new TypeError(`${professionId} skill ${skill.name} has an invalid mechanic trigger timingAnchor.`);
-      }
-
-      if (trigger.timingScale != null && trigger.timingScale !== 'cast' && trigger.timingScale !== 'fixed') {
-        throw new TypeError(`${professionId} skill ${skill.name} has an invalid mechanic trigger timingScale.`);
-      }
-
-      if (trigger.count != null && (!Number.isFinite(Number(trigger.count)) || Number(trigger.count) < 0)) {
-        throw new TypeError(`${professionId} skill ${skill.name} mechanic trigger count must be non-negative.`);
-      }
-    }
-  }
-}
-
-function assertShallowUnchanged(value: UnvalidatedFields, snapshot: UnvalidatedFields, label: string): void {
-  const keys = Object.keys(value);
-  const priorKeys = Object.keys(snapshot);
-  if (
-    keys.length !== priorKeys.length ||
-    keys.some((key) => !Object.hasOwn(snapshot, key)) ||
-    priorKeys.some((key) => value[key] !== snapshot[key])
-  ) {
-    throw new TypeError(`simulation.refineSchedulerConfig must not mutate prior ${label}.`);
-  }
-}
-
-function normalizeSimulation(
-  simulation: ProfessionSimulationDefinition | null | undefined
-): ProfessionSimulationDefinition | null {
-  if (simulation == null) return null;
-  if (typeof simulation !== 'object' || Array.isArray(simulation)) {
-    throw new TypeError('simulation must be an object.');
-  }
-
-  assertOptionalCallback(simulation, 'refineSchedulerConfig', 'simulation');
-  if (!simulation.refineSchedulerConfig) {
-    return Object.freeze({ ...simulation });
-  }
-
-  const refine = simulation.refineSchedulerConfig as (config: object, result: object) => unknown;
-  return Object.freeze({
-    ...simulation,
-    refineSchedulerConfig(config: UnvalidatedFields, result: UnvalidatedFields): object | null {
-      if (!config || typeof config !== 'object' || !result || typeof result !== 'object') {
-        throw new TypeError('simulation.refineSchedulerConfig requires config and result objects.');
-      }
-
-      const configSnapshot = { ...config };
-      const resultSnapshot = { ...result };
-      const refined = refine(config, result);
-      assertShallowUnchanged(config, configSnapshot, 'config');
-      assertShallowUnchanged(result, resultSnapshot, 'result');
-      if (refined == null) return null;
-      if (typeof refined !== 'object' || Array.isArray(refined)) {
-        throw new TypeError('simulation.refineSchedulerConfig must return an object or null.');
-      }
-
-      if (refined === config) {
-        throw new TypeError('simulation.refineSchedulerConfig must return a new config object.');
-      }
-
-      return refined as object;
-    }
-  });
-}
-
 /**
  * Creates an immutable profession contract with stable defaults for every
  * optional capability. The returned object is what the engine depends on; raw
@@ -343,7 +201,7 @@ function normalizeSimulation(
 
 export function defineProfession<TProfessionState extends object, TBuild extends object = object>(
   definition: ProfessionDefinition<TProfessionState, TBuild>
-): Readonly<NormalizedProfessionContract<TProfessionState, object, object>> {
+): Readonly<NormalizedProfessionContract<TProfessionState>> {
   assertDefinition(definition);
   const resources = definition.resources || {};
   validateResourcePolicies(resources);
@@ -357,107 +215,42 @@ export function defineProfession<TProfessionState extends object, TBuild extends
     throw new TypeError('Endurance requires state, maximum, and regenerationRate callbacks.');
   }
 
-  const attributeRules = definition.attributeRules || {};
-  const castRules = definition.castRules || {};
-  const schedulerHooks = definition.schedulerHooks || {};
-  const resolverHooks = definition.resolverHooks || {};
-  assertCallbackContainer(
-    resources,
-    ['createProfessionState', 'createResolverState', 'projectPlanningState'],
-    'resources'
-  );
-  assertHandlerMap(schedulerHooks.taskHandlers, 'schedulerHooks.taskHandlers');
-  assertHandlerMap(schedulerHooks.skillMechanicHandlers, 'schedulerHooks.skillMechanicHandlers');
-  assertHandlerMap(resolverHooks.eventHandlers, 'resolverHooks.eventHandlers');
-  const skillMechanicHandlers = Object.freeze({ ...(schedulerHooks.skillMechanicHandlers || {}) });
-  for (const type of Object.keys(skillMechanicHandlers)) {
-    if (Object.hasOwn(schedulerHooks.taskHandlers || {}, type)) {
-      throw new TypeError(`${definition.id} registers ${type} as both a task and skill mechanic handler.`);
-    }
-  }
-
-  assertSkillMechanicTriggers(definition.catalog, skillMechanicHandlers, definition.id);
-  const catalogSkillHandlers =
-    definition.catalog?.skillHandlers instanceof Map ? definition.catalog.skillHandlers : new Map();
+  const modifiers = definition.modifiers || {};
+  assertCallbackContainer(resources, ['createState', 'projectPlanningState'], 'resources');
   const sources: UnvalidatedFields = {
-    prepareEvent: schedulerHooks.prepareEvent,
-    initialize: schedulerHooks.initialize,
-    availability: castRules.availability,
-    afterCast: schedulerHooks.afterCast,
-    advance: schedulerHooks.advance,
     projectPlanningState: resources.projectPlanningState,
-    onCastStart: schedulerHooks.onCastStart,
-    onCastComplete: schedulerHooks.onCastComplete,
-    onCooldownReset: schedulerHooks.onCooldownReset,
-    onEventScheduled: schedulerHooks.onEventScheduled,
-    onWeaponSwap: schedulerHooks.onWeaponSwap,
-    modifySkillId: castRules.modifySkillId,
-    modifyCastDuration: castRules.modifyCastDuration,
-    modifyRechargeDuration: castRules.modifyRechargeDuration,
-    commitRechargeDuration: castRules.commitRechargeDuration,
-    modifyRechargeStart: castRules.modifyRechargeStart,
-    modifyMaximumAmmo: castRules.modifyMaximumAmmo,
-    modifyAttributes: attributeRules.modifyAttributes,
-    modifyCriticalChance: attributeRules.modifyCriticalChance,
-    modifyCriticalDamage: attributeRules.modifyCriticalDamage,
-    modifyStrikeDamage: attributeRules.modifyStrikeDamage,
-    modifyConditionDamage: attributeRules.modifyConditionDamage,
-    modifyConditionBaseDuration: attributeRules.modifyConditionBaseDuration,
-    modifyConditionDuration: attributeRules.modifyConditionDuration
+    modifyAttributes: modifiers.modifyAttributes,
+    modifyCriticalChance: modifiers.modifyCriticalChance,
+    modifyCriticalDamage: modifiers.modifyCriticalDamage,
+    modifyStrikeDamage: modifiers.modifyStrikeDamage,
+    modifyConditionDamage: modifiers.modifyConditionDamage,
+    modifyConditionBaseDuration: modifiers.modifyConditionBaseDuration,
+    modifyConditionDuration: modifiers.modifyConditionDuration
   };
 
-  const hooks: DynamicFields = {};
+  const composedHooks: DynamicFields = {};
   for (const name of HOOK_NAMES) {
-    const fallback =
-      name === 'availability'
-        ? READY_CAST
-        : name === 'prepareEvent' || name === 'commitRechargeDuration' || name.startsWith('modify')
-          ? IDENTITY_SECOND_ARGUMENT
-          : NOOP;
-    hooks[name] = composeHooks(sources[name], name, fallback);
+    const fallback = name.startsWith('modify') ? IDENTITY_SECOND_ARGUMENT : NOOP;
+    composedHooks[name] = composeHooks(sources[name], name, fallback);
   }
 
   const profession = {
     id: definition.id,
     name: definition.name,
     weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
-    catalog: definition.catalog || {
-      skills: [],
-      traits: [],
-      specializations: []
-    },
-    skillHandlerFor: (skill: Skill) => catalogSkillHandlers.get(String(skill?.handlerId || '')) || null,
-    createProfessionState(config: Readonly<SchedulerConfig>) {
-      const state = resources.createProfessionState?.(config) ?? {};
-      // State factories serve simulation and preview; both start with the active policy's capacity.
-      initializeProfessionEndurance({
-        config,
-        catalog: definition.catalog,
-        profession: { resources: { ...resourcePolicies(resources), endurance: resources.endurance ?? null } },
-        state: { time: 0, profession: state }
-      } as SchedulerContext<TProfessionState>);
-      initializeProfessionResources({
-        config,
-        catalog: definition.catalog,
-        profession: { resources },
-        state: { time: 0, profession: state }
-      } as SchedulerContext<TProfessionState>);
-      return state;
-    },
-    createResolverState: resources.createResolverState || null,
+    catalog: definition.catalog ?? createCanonicalCatalog(),
+    createState: (config: Readonly<ProfessionConfig>) => resources.createState?.(config) ?? {},
     resources: Object.freeze({ ...resourcePolicies(resources), endurance: resources.endurance ?? null }),
-    taskHandlers: Object.freeze({
-      ...(schedulerHooks.taskHandlers || {})
-    }),
-    skillMechanicHandlers,
-    ...hooks,
-    eventHandlers: Object.freeze({
-      ...(resolverHooks.eventHandlers || {})
-    }),
-    eventReactions: createEventReactions(resolverHooks.eventReactions),
-    simulation: normalizeSimulation(definition.simulation)
+    ...composedHooks,
+    // Sparse standalone professions use the same runtime hooks as native family modules.
+    runtimeFor() {
+      return {
+        ...profession,
+        resources: resourcePolicies(resources),
+        endurance: resources.endurance,
+        ...definition.hooks
+      };
+    }
   };
-  return Object.freeze(profession) as unknown as Readonly<
-    NormalizedProfessionContract<TProfessionState, object, object>
-  >;
+  return Object.freeze(profession) as unknown as Readonly<NormalizedProfessionContract<TProfessionState>>;
 }

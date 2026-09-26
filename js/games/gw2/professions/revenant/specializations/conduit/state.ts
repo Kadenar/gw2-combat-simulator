@@ -1,4 +1,12 @@
 import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
+import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import {
   definePublicStateDefaults,
   defineProfessionSpecializationState
 } from '#gw2/platform/engine/profession/state.js';
@@ -12,7 +20,6 @@ export interface ConduitState {
   beguilingHazeCharges: number;
   beguilingHazeReadyAt: number;
   beguilingHazeRecharge: RechargeProgress | null;
-  beguilingHazeMainReservations: string[];
   energyCostOverrides: Record<string, number>;
   mistfireReadyAt: number;
 }
@@ -44,7 +51,6 @@ export function createConduitState(): ConduitState {
     beguilingHazeReadyAt: 0,
     beguilingHazeRecharge: null,
     // Tracks in-flight main-cast reservations so follow-up charges arm exactly once per main cast, not per follow-up.
-    beguilingHazeMainReservations: [],
     // Only populated during Mesmer form; cleared on form exit so native legend skill costs are restored.
     energyCostOverrides: {},
     mistfireReadyAt: 0
@@ -52,3 +58,15 @@ export function createConduitState(): ConduitState {
 }
 
 export const conduitState = defineProfessionSpecializationState('Conduit', createConduitState);
+
+/** Kinetic Insight adds a virtual +2 affinity for scaling without changing the stored value. */
+export function effectiveConduitAffinity(runtime: RevenantRuntime): number {
+  const maximum = Math.max(
+    1,
+    balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.affinity), 'maximumStacks')
+  );
+  return Math.min(
+    maximum,
+    Number(conduitState.from(runtime).affinity || 0) + (hasTrait(runtime, TRAIT.KINETIC_INSIGHT) ? 2 : 0)
+  );
+}

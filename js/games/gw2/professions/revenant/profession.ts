@@ -33,7 +33,7 @@ export const revenantProfession = defineNativeProfession({
       },
       {
         id: 'revenant.beguiling-haze-resets',
-        when: ({ interruptingSkill }) => interruptingSkill.handlerId === 'revenant.beguiling-haze',
+        interruptingSkillIds: [ID.BEGUILING_HAZE, ID.BEGUILING_HAZE_ID_76805],
         decision: 'reset'
       },
       {

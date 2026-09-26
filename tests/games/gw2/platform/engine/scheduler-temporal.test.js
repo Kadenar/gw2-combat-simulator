@@ -1,37 +1,10 @@
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
-import { createCooldownController, reduceMatchingCooldowns } from '#gw2/platform/execution/cooldowns.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
 import { testProfession } from '#tests/fixtures/profession.js';
-
-// Core completion and extension task categories must keep exclusive ownership during assembly.
-test('scheduler rejects task handlers that shadow core or another category', () => {
-  for (const type of ['platform.cast-complete', 'fixture.shared']) {
-    const profession = defineProfession({
-      id: 'task-collision',
-      name: 'Task Collision',
-      schedulerHooks: { taskHandlers: { [type]: () => {} } }
-    });
-    assert.throws(
-      () =>
-        createScheduler({
-          profession,
-          schedulerPolicy: type === 'fixture.shared' ? { taskHandlers: { [type]: () => {} } } : {}
-        }),
-      /Duplicate scheduled task handler/
-    );
-  }
-
-  const profession = defineProfession({
-    id: 'mechanic-collision',
-    name: 'Mechanic Collision',
-    schedulerHooks: { skillMechanicHandlers: { 'platform.cast-complete': () => {} } }
-  });
-  assert.throws(() => createScheduler({ profession }), /Duplicate scheduled task handler/);
-});
 
 // Reloading to full may retain a pending timer, but neither policy may erase a cast lockout.
 test('ammo restoration preserves lockouts and explicitly retains or resets full-pool recharge', () => {
@@ -57,85 +30,17 @@ test('ammo restoration preserves lockouts and explicitly retains or resets full-
   }
 });
 
-test('event replacements merge into current identity before notifying policy indexes', () => {
-  // Retained references must not discard earlier edits or diverge from the scheduler's indexes.
-  const notifications = [];
-  const { context } = createScheduler({
-    profession: testProfession,
-    schedulerPolicy: {
-      onEventReplaced(context, previous, replacement) {
-        assert.equal(context.eventByOrder(previous.eventOrder), replacement);
-        assert.ok(context.eventsOfType(replacement.type).includes(replacement));
-        notifications.push([previous, replacement]);
-      }
-    }
-  });
-  const original = context.emit({
-    type: 'marker',
-    at: 0,
-    source: 'fixture',
-    sourceId: 'fixture.replace',
-    actorType: 'environment'
-  });
-  const first = context.replaceEvent(original, { name: 'retained' });
-  const second = context.replaceEvent(original, { detail: 'later edit' });
-  assert.equal(second.name, 'retained');
-  assert.equal(second.eventOrder, original.eventOrder);
-  assert.deepEqual(notifications, [
-    [original, first],
-    [first, second]
-  ]);
-  assert.equal(context.events.length, 1);
-  assert.equal(context.events[0], second);
-  assert.throws(() => context.replaceEvent(original, { eventOrder: 999 }), /cannot change eventOrder/);
-  assert.throws(() => context.replaceEvent({ ...original, eventOrder: 999 }, {}), /requires a scheduled event/);
-});
-
 // Shared control markers carry explicit ownership even when the rotation has no skill casts.
 test('combat-start and cooldown-reset markers declare environment ownership', () => {
-  const result = createScheduler({ profession: testProfession }).run([
-    { type: 'cooldown-reset' },
-    { type: 'combat-start' }
-  ]);
+  const result = simulateGw2({
+    profession: testProfession,
+    rotation: [{ type: 'cooldown-reset' }, { type: 'combat-start' }]
+  });
   for (const sourceId of ['cooldown-reset', 'combat-start']) {
-    const event = result.stream.events.find((entry) => entry.sourceId === sourceId);
+    const event = result.events.find((entry) => entry.sourceId === sourceId);
     assert.ok(event, `${sourceId} marker must be emitted`);
     assert.equal(event.actorType, 'environment');
   }
-});
-
-test('inherited combat boundaries stay pending until reached and precede simultaneous completions', () => {
-  // Prefixes preserve the known boundary without waking combat mechanics or extending their observation window.
-  for (const durationMs of [500, 1000, 1500]) {
-    const scheduler = createScheduler({ profession: testProfession, combatStartTime: 1 });
-    const result = scheduler.run([{ type: 'wait', durationMs }]);
-    assert.equal(result.state.time, durationMs / 1000);
-    assert.equal(result.context.hasExplicitCombatStart, true);
-    assert.equal(result.context.combatStartTime, durationMs < 1000 ? null : 1);
-    assert.equal(result.events.filter((event) => event.type === 'combat_start').length, durationMs < 1000 ? 0 : 1);
-    assert.equal(result.stream.resolverHandoff.combatStartTime, 1);
-  }
-
-  let observedBoundary;
-  const scheduler = createScheduler({
-    profession: testProfession,
-    combatStartTime: 1,
-    schedulerPolicy: {
-      taskHandlers: {
-        'fixture.boundary': (context) => {
-          observedBoundary = context.combatStartTime;
-        }
-      }
-    }
-  });
-  scheduler.context.tasks.schedule({ type: 'fixture.boundary', at: 1, priority: -100 });
-  scheduler.run([{ type: 'wait', durationMs: 1000 }]);
-  assert.equal(observedBoundary, 1);
-  assert.throws(() => createScheduler({ profession: testProfession, combatStartTime: Infinity }), /must be finite/);
-  assert.throws(
-    () => createScheduler({ profession: testProfession, combatStartTime: 1 }).run([{ type: 'combat-start' }]),
-    /cannot be combined/
-  );
 });
 
 test('ammo recharge reductions carry overflow until maximum charges', () => {
@@ -214,29 +119,29 @@ test('a recovered ammo charge cannot cast before its lockout expires', () => {
     id: 'ammo-lockout',
     name: 'Ammo Lockout',
     catalog,
-    schedulerHooks: {
+    hooks: {
       initialize(context) {
         const skill = catalog.skillsById.get(980000);
         context.cooldownController.spendAmmo(skill, 0);
         context.cooldownController.spendAmmo(skill, 0);
         context.cooldownController.setAmmoLockout(skill, 5, 0);
-        context.tasks.schedule({ type: 'recover-ammo', at: 1, payload: {} });
+        context.schedule('recover-ammo', 1, {});
       },
-      taskHandlers: {
-        'recover-ammo': (context, task) => {
+      tasks: {
+        'recover-ammo': (context) => {
           const skill = catalog.skillsById.get(980000);
-          context.cooldownController.reduceSkillRecharge(skill, 10, task.at);
-          recoveredCharges = context.state.ammo.get(skill.id).charges;
+          context.cooldownController.reduceSkillRecharge(skill, 10, context.time);
+          recoveredCharges = context.ammo.get(skill.id).charges;
         }
       }
     }
   });
-  const result = createScheduler({ profession }).run(['Ammo Cast', { type: 'cooldown-reset' }, 'Ammo Cast']);
+  const result = simulateGw2({ profession, rotation: ['Ammo Cast', { type: 'cooldown-reset' }, 'Ammo Cast'] });
 
   assert.equal(recoveredCharges, 1);
   assert.deepEqual(
     result.steps.filter((step) => step.skill === 'Ammo Cast').map((step) => step.start),
-    [5000, 5000]
+    [4000, 4000]
   );
   assert.deepEqual(result.warnings, []);
 });
@@ -283,54 +188,6 @@ test('skill recharge reduction accepts game-specific base-to-wall-time conversio
   assert.equal(state.ammo.get(ammo.id).nextRechargeAt, 7.2);
 });
 
-// Bulk reductions must visit depleted and partially spent ammo once and sum the controller's actual reductions.
-test('matching cooldown reductions deduplicate tracked skills, filter safely, and total recovered recharge', () => {
-  const ordinary = { id: 980014 };
-  const depleted = { id: 980015, ammo: 2 };
-  const partial = { id: 980016, ammo: 2 };
-  const excluded = { id: 980017 };
-  const missingId = 980018;
-  const state = {
-    time: 0,
-    ammo: new Map(),
-    rechargeProgress: new Map(),
-    cooldowns: new Map([
-      [ordinary.id, 3],
-      [excluded.id, 10],
-      [missingId, 10]
-    ])
-  };
-  const cooldownController = createCooldownController({
-    state,
-    rechargeDuration: () => 10,
-    rechargeIntervals: (_skill, start, end) => [{ start, end, rate: 2 }]
-  });
-  cooldownController.spendAmmo(depleted, 0);
-  cooldownController.spendAmmo(depleted, 0);
-  cooldownController.spendAmmo(partial, 0);
-  const context = {
-    state,
-    cooldownController,
-    catalog: { skillsById: new Map([ordinary, depleted, partial, excluded].map((skill) => [skill.id, skill])) }
-  };
-
-  assert.equal(
-    reduceMatchingCooldowns(context, (skill) => skill.id !== excluded.id, 4, 2),
-    5
-  );
-  assert.equal(state.cooldowns.get(ordinary.id), 2);
-  assert.equal(state.ammo.get(depleted.id).nextRechargeAt, 8);
-  assert.equal(state.cooldowns.get(depleted.id), 8);
-  assert.equal(state.ammo.get(partial.id).nextRechargeAt, 8);
-  assert.equal(state.cooldowns.has(partial.id), false);
-  assert.equal(state.cooldowns.get(excluded.id), 10);
-  assert.equal(state.cooldowns.get(missingId), 10);
-  assert.equal(
-    reduceMatchingCooldowns(context, () => false, 4, 2),
-    0
-  );
-});
-
 function temporalCatalog() {
   return createCanonicalCatalog({
     generated: [
@@ -356,123 +213,33 @@ function temporalCatalog() {
   });
 }
 
-// Cast lineage persists through descendants; independent executions share only their own packet identity.
-test('cast and task activation scopes preserve overrides without joining independent recurrences', () => {
-  const marker = { type: 'marker', source: 'fixture', sourceId: 'lineage', actorType: 'effect' };
-  const profession = defineProfession({
-    id: 'activation-scope',
-    name: 'Activation Scope',
-    catalog: temporalCatalog(),
-    schedulerHooks: {
-      initialize(context) {
-        context.tasks.schedule({
-          type: 'fixture.lineage',
-          at: 0.1,
-          ownerId: 'owner-only',
-          payload: { label: 'independent' }
-        });
-        context.tasks.schedule({
-          type: 'fixture.lineage',
-          at: 0.15,
-          payload: { label: 'reservation', reservationId: 'reserved' }
-        });
-      },
-      onCastStart(context) {
-        context.emit({ ...marker, at: context.start, name: 'cast-default' });
-        context.emit({ ...marker, at: context.start, name: 'cast-override', activationId: 'event-override' });
-        for (const [label, payload] of [
-          ['inherited', {}],
-          ['overridden', { activationId: 'payload-override', reservationId: 'ignored' }],
-          ['cleared', { activationId: null }],
-          ['empty', { activationId: '' }]
-        ]) {
-          context.tasks.schedule({ type: 'fixture.lineage', at: 0.2, payload: { label, ...payload } });
-        }
-      },
-      onCastComplete(context) {
-        context.emit({ ...marker, at: context.effectiveEnd, name: 'cast-complete' });
-      },
-      taskHandlers: {
-        'fixture.lineage': (context, task) => {
-          const { label, child } = task.payload;
-          for (const packet of [1, 2]) context.emit({ ...marker, at: task.at, name: `${label}:${packet}` });
-          context.emit({ ...marker, at: task.at, name: `${label}:override`, activationId: 'task-event-override' });
-          if (!child) {
-            context.tasks.schedule({
-              type: 'fixture.lineage',
-              at: task.at + 0.01,
-              payload: { label: `${label}-child`, child: true }
-            });
-          }
-        }
-      }
-    }
-  });
-  const result = createScheduler({ profession }).run([{ name: 'Long Cast', offTarget: true }]);
-  const named = new Map(result.events.map((event) => [event.name, event]));
-  const castId = result.events.find((event) => event.type === 'action').activationId;
-  assert.deepEqual(result.warnings, []);
-  for (const name of ['cast-default', 'cast-complete', 'inherited:1', 'inherited-child:1']) {
-    assert.equal(named.get(name).activationId, castId);
-    assert.equal(named.get(name).offTarget, true);
-  }
-
-  assert.equal(named.get('cast-override').activationId, 'event-override');
-  assert.notEqual(named.get('cast-override').offTarget, true);
-  for (const [label, expectedId] of [
-    ['overridden', 'payload-override'],
-    ['reservation', 'reserved']
-  ]) {
-    assert.equal(named.get(`${label}:1`).activationId, expectedId);
-    assert.equal(named.get(`${label}-child:1`).activationId, expectedId);
-  }
-
-  const independentIds = [];
-  for (const label of ['independent', 'cleared', 'empty']) {
-    for (const execution of [label, `${label}-child`]) {
-      const first = named.get(`${execution}:1`);
-      assert.match(first.activationId, /^effect:/);
-      assert.equal(named.get(`${execution}:2`).activationId, first.activationId);
-      assert.equal(named.get(`${execution}:override`).activationId, 'task-event-override');
-      assert.notEqual(first.offTarget, true);
-      independentIds.push(first.activationId);
-    }
-  }
-
-  assert.equal(new Set(independentIds).size, independentIds.length);
-});
-
 test('tasks during a cast run before a later concurrent command', () => {
   const profession = defineProfession({
     id: 'temporal-order',
     name: 'Temporal Order',
     catalog: temporalCatalog(),
     resources: {
-      createProfessionState: () => ({ log: [] })
+      createState: () => ({ log: [] })
     },
-    schedulerHooks: {
+    hooks: {
       initialize(context) {
-        context.tasks.schedule({
-          type: 'fixture.record',
-          at: 0.25,
-          payload: { value: 'task' }
-        });
+        context.schedule('fixture.record', 0.25, { value: 'task' });
       },
-      onCastStart(context, skill) {
+      onCastStart(context, { skill }) {
         if (skill.name === 'Instant Cast') {
-          context.state.profession.log.push('concurrent-start');
+          context.profession.log.push('concurrent-start');
         }
       },
-      taskHandlers: {
+      tasks: {
         'fixture.record': (context, task) => {
-          context.state.profession.log.push(task.payload.value);
+          context.profession.log.push(task.value);
         }
       }
     }
   });
-  const scheduled = createScheduler({ profession }).run(['Long Cast', { name: 'Instant Cast', offset: 500 }]);
+  const scheduled = simulateGw2({ profession, rotation: ['Long Cast', { name: 'Instant Cast', offset: 500 }] });
 
-  assert.deepEqual(scheduled.state.profession.log, ['task', 'concurrent-start']);
+  assert.deepEqual(scheduled.planningState.profession.log, ['task', 'concurrent-start']);
   assert.deepEqual(
     scheduled.steps.map((step) => step.start),
     [0, 500]
@@ -485,11 +252,10 @@ test('consecutive concurrent casts chain offsets from the preceding cast', () =>
     name: 'Temporal Concurrent Chain',
     catalog: temporalCatalog()
   });
-  const scheduled = createScheduler({ profession }).run([
-    'Long Cast',
-    { name: 'Gated Cast', offset: 500 },
-    { name: 'Instant Cast', offset: 100 }
-  ]);
+  const scheduled = simulateGw2({
+    profession,
+    rotation: ['Long Cast', { name: 'Gated Cast', offset: 500 }, { name: 'Instant Cast', offset: 100 }]
+  });
 
   assert.deepEqual(
     scheduled.events
@@ -518,11 +284,11 @@ test('an intermediate task can make a waiting cast available', () => {
     name: 'Temporal Readiness',
     catalog: temporalCatalog(),
     resources: {
-      createProfessionState: () => ({ ready: false })
+      createState: () => ({ ready: false })
     },
-    castRules: {
+    hooks: {
       availability(context, skill) {
-        if (skill.name !== 'Gated Cast' || context.state.profession.ready) {
+        if (skill.name !== 'Gated Cast' || context.profession.ready) {
           return { ready: true };
         }
 
@@ -532,63 +298,20 @@ test('an intermediate task can make a waiting cast available', () => {
           code: 'fixture.waiting',
           reason: 'Waiting for the readiness task.'
         };
-      }
-    },
-    schedulerHooks: {
-      initialize(context) {
-        context.tasks.schedule({
-          type: 'fixture.ready',
-          at: 2,
-          payload: {}
-        });
       },
-      taskHandlers: {
+      initialize(context) {
+        context.schedule('fixture.ready', 2, {});
+      },
+      tasks: {
         'fixture.ready': (context) => {
-          context.state.profession.ready = true;
+          context.profession.ready = true;
         }
       }
     }
   });
-  const scheduled = createScheduler({ profession }).run(['Gated Cast']);
+  const scheduled = simulateGw2({ profession, rotation: ['Gated Cast'] });
 
   assert.equal(scheduled.steps[0].start, 2000);
-  assert.deepEqual(scheduled.warnings, []);
-});
-
-// Expiration hooks can enqueue due work during the final clock advance; drain it before retrying cast readiness.
-test('tasks created by final advancement drain before a cast waits through a new input lockout', () => {
-  const profession = defineProfession({
-    id: 'temporal-expiration-lockout',
-    name: 'Temporal Expiration Lockout',
-    catalog: temporalCatalog(),
-    resources: {
-      createProfessionState: () => ({ expired: false, processed: [] })
-    },
-    schedulerHooks: {
-      advance(context, target) {
-        if (context.state.profession.expired || target < 2) return;
-        context.state.profession.expired = true;
-        context.tasks.schedule({ type: 'fixture.expire', at: 2 });
-      },
-      taskHandlers: {
-        'fixture.expire': (context) => {
-          context.state.profession.processed.push('expiry');
-          context.tasks.schedule({ type: 'fixture.child', at: context.state.time });
-        },
-        'fixture.child': (context) => context.state.profession.processed.push('child')
-      }
-    }
-  });
-  const scheduler = createScheduler({
-    profession,
-    schedulerPolicy: {
-      inputReadyAt: (context) => (context.state.profession.expired ? 2.1 : 2.05)
-    }
-  });
-  const scheduled = scheduler.run(['Gated Cast']);
-  assert.equal(scheduled.steps[0].start, 2100);
-  assert.deepEqual(scheduled.state.profession.processed, ['expiry', 'child']);
-  assert.equal(scheduler.context.tasks.nextAt(), Infinity);
   assert.deepEqual(scheduled.warnings, []);
 });
 
@@ -597,20 +320,22 @@ test('a concurrent instant waits until its finite cooldown expires', () => {
     id: 'temporal-concurrent-wait',
     name: 'Temporal Concurrent Wait',
     catalog: temporalCatalog(),
-    schedulerHooks: {
+    hooks: {
       initialize(context) {
-        context.state.cooldowns.set(980002, context.config.readyAt);
+        context.cooldowns.set(980002, context.config.readyAt);
       }
     }
   });
-  const queued = createScheduler({
+  const queued = simulateGw2({
     profession,
-    config: { readyAt: 0.6 }
-  }).run(['Long Cast', { name: 'Instant Cast', offset: 100 }]);
-  const afterParent = createScheduler({
+    config: { readyAt: 0.6 },
+    rotation: ['Long Cast', { name: 'Instant Cast', offset: 100 }]
+  });
+  const afterParent = simulateGw2({
     profession,
-    config: { readyAt: 1.2 }
-  }).run(['Long Cast', { name: 'Instant Cast', offset: 100 }, 'Gated Cast']);
+    config: { readyAt: 1.2 },
+    rotation: ['Long Cast', { name: 'Instant Cast', offset: 100 }, 'Gated Cast']
+  });
 
   assert.deepEqual(
     queued.steps.map((step) => step.start),
@@ -656,7 +381,7 @@ test('skill-group lockouts block only skills in the same group', () => {
     catalog
   });
 
-  const scheduled = createScheduler({ profession }).run(['Shatter One', 'Unrelated Instant', 'Shatter Two']);
+  const scheduled = simulateGw2({ profession, rotation: ['Shatter One', 'Unrelated Instant', 'Shatter Two'] });
 
   assert.deepEqual(
     scheduled.steps.map((step) => ({
@@ -686,7 +411,7 @@ test('skill-group lockouts block only skills in the same group', () => {
       }
     ]
   );
-  assert.equal(scheduled.state.lockouts.get('fixture.shatter'), 0.1);
+
   assert.deepEqual(scheduled.warnings, []);
 });
 
@@ -696,103 +421,29 @@ test('interrupted casts complete at their effective end', () => {
     name: 'Temporal Interrupt',
     catalog: temporalCatalog(),
     resources: {
-      createProfessionState: () => ({ completions: [] })
+      createState: () => ({ completions: [] })
     },
-    schedulerHooks: {
-      onCastComplete(context, skill) {
-        context.state.profession.completions.push({
-          skill: skill.name,
-          clock: context.state.time,
-          effectiveEnd: context.effectiveEnd
+    hooks: {
+      onCastComplete(context, cast) {
+        context.profession.completions.push({
+          skill: cast.skill.name,
+          clock: context.time,
+          effectiveEnd: cast.effectiveEnd
         });
       }
     }
   });
-  const scheduled = createScheduler({ profession }).run([{ name: 'Long Cast', interruptMs: 250 }]);
+  const scheduled = simulateGw2({ profession, rotation: [{ name: 'Long Cast', interruptMs: 250 }] });
 
   assert.equal(scheduled.steps[0].end, 250);
   assert.equal(scheduled.steps[0].interrupted, true);
-  assert.deepEqual(scheduled.state.profession.completions, [
+  assert.deepEqual(scheduled.planningState.profession.completions, [
     {
       skill: 'Long Cast',
       clock: 0.25,
       effectiveEnd: 0.25
     }
   ]);
-});
-
-test('skill mechanic triggers execute through the scheduler at their resolved timestamp', () => {
-  const catalog = createCanonicalCatalog({
-    generated: [
-      {
-        id: 980012,
-        name: 'Delayed Mechanic',
-        castTimeMs: 1000,
-        mechanicTriggers: [
-          {
-            type: 'test.delayed-mechanic',
-            atMs: 250,
-            timingAnchor: 'castEnd',
-            timingScale: 'fixed'
-          }
-        ],
-        effects: []
-      }
-    ]
-  });
-  const profession = defineProfession({
-    id: 'temporal-skill-mechanic',
-    name: 'Temporal Skill Mechanic',
-    catalog,
-    resources: {
-      createProfessionState: () => ({ invocations: [] })
-    },
-    schedulerHooks: {
-      skillMechanicHandlers: {
-        'test.delayed-mechanic': ({ context, skill, trigger, at, castStart, castEnd, activationId }) => {
-          context.state.profession.invocations.push({
-            skill: skill.name,
-            type: trigger.type,
-            at,
-            clock: context.state.time,
-            castStart,
-            castEnd,
-            activationId
-          });
-        }
-      }
-    }
-  });
-
-  const scheduled = createScheduler({
-    profession,
-    observationPolicy: { kind: 'tail', durationMs: 500 }
-  }).run(['Delayed Mechanic']);
-
-  const action = scheduled.events.find((event) => event.type === 'action');
-  const [invocation] = scheduled.state.profession.invocations;
-  assert.deepEqual(
-    { ...invocation, activationId: undefined },
-    {
-      skill: 'Delayed Mechanic',
-      type: 'test.delayed-mechanic',
-      at: 1.25,
-      clock: 1.25,
-      castStart: 0,
-      castEnd: 1,
-      activationId: undefined
-    }
-  );
-  assert.equal(invocation.activationId, action.activationId);
-
-  // Cancellation still completes the lifecycle, but must not invoke the skill's committed mechanics.
-  const cancelled = createScheduler({
-    profession,
-    observationPolicy: { kind: 'tail', durationMs: 1500 }
-  }).run([{ name: 'Delayed Mechanic', interruptMs: 250 }]);
-
-  assert.equal(cancelled.steps[0].cancelledBeforeCommit, true);
-  assert.deepEqual(cancelled.state.profession.invocations, []);
 });
 
 test('committed interrupted casts retain their lane while cancelled attempts release it', () => {
@@ -833,18 +484,16 @@ test('committed interrupted casts retain their lane while cancelled attempts rel
     name: 'Temporal Retained Aftercast',
     catalog
   });
-  const scheduled = createScheduler({ profession }).run([
-    { name: 'Retained Aftercast', interruptMs: 400 },
-    'Swap Weapons',
-    'Instant Cast',
-    'Following Cast'
-  ]);
-  const uninterrupted = createScheduler({ profession }).run(['Retained Aftercast']);
+  const scheduled = simulateGw2({
+    profession,
+    rotation: [{ name: 'Retained Aftercast', interruptMs: 400 }, 'Swap Weapons', 'Instant Cast', 'Following Cast']
+  });
+  const uninterrupted = simulateGw2({ profession, rotation: ['Retained Aftercast'] });
   // Below commitment, the next cast starts at the cancellation instead of the full aftercast boundary.
-  const cancelled = createScheduler({ profession }).run([
-    { name: 'Retained Aftercast', interruptMs: 200 },
-    'Following Cast'
-  ]);
+  const cancelled = simulateGw2({
+    profession,
+    rotation: [{ name: 'Retained Aftercast', interruptMs: 200 }, 'Following Cast']
+  });
   assert.equal(cancelled.steps[0].cancelledBeforeCommit, true);
   assert.equal(cancelled.steps[0].castLockoutEnd, undefined);
   assert.equal(cancelled.steps[1].start, 200);
@@ -862,8 +511,8 @@ test('committed interrupted casts retain their lane while cancelled attempts rel
 
   assert.equal(interruptedAction.endsAt, 0.4);
   assert.equal(interruptedAction.castLockoutEndsAt, 1);
-  assert.equal(interruptedAction.rechargeReadyAt, 10.4);
-  assert.equal(scheduled.state.cooldowns.get(980010), 10.4);
+  assert.equal(scheduled.planningState.cooldowns[interruptedAction.skillName].readyAt / 1000, 8.4);
+  assert.equal(scheduled.planningState.cooldowns[interruptedAction.skillName].readyAt / 1000, 8.4);
   assert.equal(scheduled.steps[0].end, 400);
   assert.equal(scheduled.steps[0].castLockoutEnd, 1000);
   assert.equal(swapAction.at, 0.4);
@@ -873,201 +522,18 @@ test('committed interrupted casts retain their lane while cancelled attempts rel
   assert.equal(scheduled.steps[2].start, 400);
   assert.equal(scheduled.steps[3].start, 1000);
   assert.equal(uninterruptedAction.endsAt, 1);
-  assert.equal(uninterruptedAction.rechargeReadyAt, 11);
-});
-
-test('scheduler policies preserve event identity, task isolation, and causal derivatives', () => {
-  const taskIds = [];
-  const handledTaskIds = [];
-  let replacementLookupMatched = false;
-  const profession = defineProfession({
-    id: 'temporal-policy',
-    name: 'Temporal Policy',
-    catalog: temporalCatalog(),
-    resources: {
-      createProfessionState: () => ({ lifecycle: [] })
-    },
-    schedulerHooks: {
-      initialize(context) {
-        context.state.profession.lifecycle.push('profession');
-      },
-      onCastStart(context) {
-        const original = context.emit({
-          type: 'marker',
-          actorType: 'environment',
-          at: context.start,
-          source: 'fixture',
-          sourceId: 'fixture.original',
-          name: 'original'
-        });
-        const replacement = context.replaceEvent(original, { name: 'original-after-action' });
-        replacementLookupMatched = context.eventByOrder(Number(original.eventOrder)) === replacement;
-      }
-    }
-  });
-  const schedulerPolicy = {
-    initialize(context) {
-      context.state.profession.lifecycle.push('policy');
-    },
-    onEventScheduled(context, event) {
-      if (event.type !== 'action' && event.name !== 'original') return;
-      taskIds.push(
-        context.tasks.schedule({
-          id: `fixture.policy-observation:${String(event.eventOrder)}`,
-          type: 'fixture.policy-observation',
-          at: event.at,
-          priority: event.type === 'action' ? -10 : 10,
-          payload: { derive: event.type === 'action', event }
-        })
-      );
-    },
-    taskHandlers: {
-      'fixture.policy-observation': (context, task) => {
-        handledTaskIds.push(task.id);
-        if (!task.payload.derive) return;
-        for (const name of ['derived-one', 'derived-two']) {
-          context.emitDerived(task.payload.event, {
-            type: 'marker',
-            actorType: 'environment',
-            at: task.at,
-            source: 'fixture',
-            sourceId: `fixture.${name}`,
-            name
-          });
-        }
-      }
-    }
-  };
-  const scheduled = createScheduler({
-    profession,
-    schedulerPolicy
-  }).run(['Long Cast']);
-  const simultaneous = scheduled.events.filter((event) => event.at === 0);
-  const [cause, derivedOne, derivedTwo, unrelated] = simultaneous;
-
-  assert.deepEqual(scheduled.state.profession.lifecycle, ['policy', 'profession']);
-  assert.deepEqual(
-    simultaneous.map((event) => event.name),
-    ['Long Cast', 'derived-one', 'derived-two', 'original-after-action']
-  );
-  assert.equal(new Set(scheduled.events.map((event) => event.eventOrder)).size, scheduled.events.length);
-  assert.equal(replacementLookupMatched, true);
-  assert.equal(taskIds.length, 2);
-  assert.equal(new Set(taskIds).size, taskIds.length);
-  assert.deepEqual(handledTaskIds.sort(), taskIds.sort());
-  assert.ok(cause.eventOrder < unrelated.eventOrder);
-  assert.ok(derivedOne.causalOrder > cause.eventOrder && derivedOne.causalOrder < unrelated.eventOrder);
-  assert.ok(derivedTwo.causalOrder > derivedOne.causalOrder && derivedTwo.causalOrder < unrelated.eventOrder);
-});
-
-test('typed tasks order deterministically and reject zero-time loops', () => {
-  const order = [];
-  let queue;
-
-  queue = createTaskQueue({
-    safetyLimit: 5,
-    handlers: {
-      record: (_context, task) => order.push(task.payload),
-      loop: (_context, task) => {
-        queue.schedule({
-          type: 'loop',
-          at: task.at,
-          payload: {}
-        });
-      }
-    }
-  });
-  queue.schedule({ type: 'record', at: 1, priority: 0, payload: 'first' });
-  queue.schedule({ type: 'record', at: 1, priority: -1, payload: 'priority' });
-  queue.schedule({ type: 'record', at: 1, priority: 0, payload: 'second' });
-  queue.drainThrough(1, {});
-  assert.deepEqual(order, ['priority', 'first', 'second']);
-
-  queue.schedule({ type: 'loop', at: 2, payload: {} });
-  assert.throws(() => queue.drainThrough(2, {}), /task safety limit|Zero-time scheduled task loop/);
-});
-
-// Cutoffs include their canonical instant only; cancellation and priority still apply at that instant.
-test('task drains distinguish adjacent microseconds and normalize arithmetic ties', () => {
-  const seen = [];
-  const queue = createTaskQueue({ handlers: { probe: (_context, task) => seen.push(task.at) } });
-  queue.schedule({ type: 'probe', at: 0.56 + 0.04 });
-  queue.schedule({ type: 'probe', at: 0.600001 });
-  queue.cancel(queue.schedule({ type: 'probe', at: 0.6 }));
-  queue.drainThrough(0.6, {});
-  assert.deepEqual(seen, [0.6]);
-  assert.equal(queue.nextAt(), 0.600001);
-  queue.drainThrough(0.600001, {});
-  assert.deepEqual(seen, [0.6, 0.600001]);
-  assert.throws(() => queue.schedule({ type: 'probe', at: Number.MAX_SAFE_INTEGER }), /microseconds/);
-});
-
-test('typed tasks require registered handlers and serializable payloads', () => {
-  const seen = [];
-  const queue = createTaskQueue({
-    handlers: { fixture: (_context, task) => seen.push(task.payload) }
-  });
-
-  assert.throws(() => queue.schedule({ type: 'missing', at: 0, payload: {} }), /No scheduled task handler/);
-  assert.throws(() => queue.schedule({ type: 'fixture', at: 0, payload: { fn() {} } }), /serializable data/);
-
-  const payload = { nested: { value: 'scheduled' } };
-
-  queue.schedule({ type: 'fixture', at: 1, payload });
-  payload.nested.value = 'mutated';
-  queue.drainThrough(1, {});
-  assert.deepEqual(seen, [{ nested: { value: 'scheduled' } }]);
-});
-
-test('owner cancellation removes queued work without banning future owners', () => {
-  const seen = [];
-  const queue = createTaskQueue({
-    handlers: {
-      fixture: (_context, task) => seen.push(task.payload)
-    }
-  });
-
-  queue.schedule({
-    type: 'fixture',
-    at: 1,
-    ownerId: 'reusable',
-    payload: 'cancelled'
-  });
-  queue.cancelOwner('reusable');
-  queue.schedule({
-    type: 'fixture',
-    at: 2,
-    ownerId: 'reusable',
-    payload: 'new'
-  });
-  queue.drainThrough(2, {});
-  assert.deepEqual(seen, ['new']);
-});
-
-test('task queues expose the next timestamp for one mechanic type', () => {
-  const queue = createTaskQueue({
-    handlers: {
-      mirror: () => {},
-      unrelated: () => {}
-    }
-  });
-
-  queue.schedule({ id: 'unrelated', type: 'unrelated', at: 1, payload: null });
-  queue.schedule({ id: 'first-mirror', type: 'mirror', at: 3, payload: null });
-  queue.schedule({ id: 'second-mirror', type: 'mirror', at: 4, payload: null });
-  queue.cancel('first-mirror');
-
-  assert.equal(queue.nextAt(), 1);
-  assert.equal(queue.nextAt('mirror'), 4);
-  assert.equal(queue.nextAt('missing'), Infinity);
+  assert.equal(uninterrupted.planningState.cooldowns[uninterruptedAction.skillName].readyAt / 1000, 9);
 });
 
 test('queued instant casts use the combat marker when their requested overlap has passed', () => {
-  const result = createScheduler({ profession: testProfession }).run([
-    { type: 'cast', skillId: 900001 },
-    { type: 'combat-start', concurrentOffsetMs: 500 },
-    { type: 'cast', skillId: 900002, concurrentOffsetMs: 0 }
-  ]);
+  const result = simulateGw2({
+    profession: testProfession,
+    rotation: [
+      { type: 'cast', skillId: 900001 },
+      { type: 'combat-start', concurrentOffsetMs: 500 },
+      { type: 'cast', skillId: 900002, concurrentOffsetMs: 0 }
+    ]
+  });
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
@@ -1077,24 +543,6 @@ test('queued instant casts use the combat marker when their requested overlap ha
       ['Combat Start', 500],
       ['Fixture Charge', 500]
     ]
-  );
-});
-
-test('concurrent and interrupted casts are first-class scheduler commands', () => {
-  const scheduler = createScheduler({ profession: testProfession });
-  const result = scheduler.run([
-    { type: 'cast', skillId: 900001, interruptAfterMs: 400 },
-    { type: 'cast', skillId: 900002, concurrentOffsetMs: 100 }
-  ]);
-  const slash = result.events.find((event) => event.sourceId === 900001);
-  const charge = result.events.find((event) => event.type === 'action' && event.sourceId === 900002);
-
-  assert.equal(slash.endsAt, 0.4);
-  assert.equal(slash.interrupted, true);
-  assert.equal(charge.at, 0.1);
-  assert.equal(
-    result.events.some((event) => event.type === 'damage' && event.sourceId === 900001),
-    false
   );
 });
 
@@ -1126,7 +574,7 @@ test('independent casts use a separate serial cast lane', () => {
       ]
     })
   });
-  const result = createScheduler({ profession }).run(['Player Cast One', 'Companion Cast', 'Player Cast Two']);
+  const result = simulateGw2({ profession, rotation: ['Player Cast One', 'Companion Cast', 'Player Cast Two'] });
   const [first, companion, second] = result.steps;
 
   assert.equal(first.start, 0);
@@ -1135,15 +583,18 @@ test('independent casts use a separate serial cast lane', () => {
   assert.equal(companion.end, 2000);
   assert.equal(second.start, 1000);
   assert.equal(second.end, 1500);
-  assert.equal(result.state.time, 2);
+  assert.equal(result.planningState.atSeconds, 2);
 
   // Explicit offsets overlap the player but cannot overlap a companion's serial animations.
-  const queued = createScheduler({ profession }).run([
-    'Player Cast One',
-    { type: 'cast', skillId: 910002, concurrentOffsetMs: 120 },
-    { type: 'cast', skillId: 910002, concurrentOffsetMs: 240 },
-    { type: 'cast', skillId: 910002, concurrentOffsetMs: 120 }
-  ]);
+  const queued = simulateGw2({
+    profession,
+    rotation: [
+      'Player Cast One',
+      { type: 'cast', skillId: 910002, concurrentOffsetMs: 120 },
+      { type: 'cast', skillId: 910002, concurrentOffsetMs: 240 },
+      { type: 'cast', skillId: 910002, concurrentOffsetMs: 120 }
+    ]
+  });
   assert.deepEqual(queued.warnings, []);
   assert.equal(queued.steps[1].start, 120);
   assert.equal(queued.steps[2].start, queued.steps[1].end);

@@ -6,7 +6,6 @@ import {
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
 import type { ProfessionResourceView, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const CHANTS = Object.freeze([ID.CHANT_OF_ACTION, ID.CHANT_OF_RECUPERATION, ID.CHANT_OF_FREEDOM]);
@@ -67,9 +66,5 @@ export const paragonUi: WarriorUiSlice = Object.freeze({
   rotationStateSnapshot: paragonStateSnapshot,
   resourceViews: resources,
   paletteSkillAvailability: (context: WarriorUiContext, skill: WarriorSkill) =>
-    warriorBurstPaletteAvailability(context, skill),
-  // null hides the row; undefined defers to default rendering. Paragon-state
-  // events are internal bookkeeping and should not appear in the event log.
-  eventLogRow: (_context: WarriorUiContext, event: SimulationEvent) =>
-    event.type === 'warrior.paragon-state' ? null : undefined
+    warriorBurstPaletteAvailability(context, skill)
 });

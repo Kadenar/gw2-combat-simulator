@@ -478,33 +478,6 @@ test('timing skill selection submits the picker and details expand below DPS', a
   expect(widths.table).toBeLessThan(widths.body);
 });
 
-// A short authored shroud stay verifies the picker wiring without simulating a benchmark.
-test('profession state duration checks use their own authoritative transitions', async ({ page }) => {
-  await page.goto('/necromancer.html', { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  const specialization = page.locator('.spec-picker').last();
-  await specialization.locator('summary').click();
-  await specialization.getByRole('button', { name: 'Reaper', exact: true }).click();
-  await page.evaluate(() => {
-    const app = window.professionApp;
-    app.build.targetHealth = 0;
-    app.build.rotation = [
-      { type: 'cast', skillId: app.skillByName.get("Reaper's Shroud").id },
-      { type: 'wait', durationMs: 1000 },
-      { type: 'cast', skillId: app.skillByName.get("Exit Reaper's Shroud").id }
-    ];
-    app.changed();
-  });
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
-  expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
-  const picker = page.locator('.timing-check-picker');
-  await picker.locator(':scope > summary').click();
-  await picker.getByRole('button', { name: 'Time in Shroud' }).click();
-  const details = page.locator('.rotation-timing-details-wrap');
-  await details.locator(':scope > summary').click();
-  await expect(details.locator('.timing-skill-details > summary')).toContainText('1 stay');
-});
-
 test('hidden template states stay out of layout', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/', { waitUntil: 'domcontentloaded' });

@@ -1,11 +1,10 @@
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { isAutoattackSkill } from '#gw2/platform/engine/skills/autoattack-chains.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
-import { simulateDeclarativeGw2 } from '#gw2/platform/simulation/pipeline.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 
 // Minimal commands isolate input accounting from damage formulas and saved benchmark rotations.
@@ -24,6 +23,7 @@ const catalog = createCanonicalCatalog({
     {
       id: 980011,
       name: 'Channel',
+      weapon: 'Sword',
       castTimeMs: 1000,
       effects: [{ type: 'strike', ticks: [200, 500, 900].map((atMs) => ({ atMs, coefficient: 1 })) }]
     }
@@ -32,8 +32,8 @@ const catalog = createCanonicalCatalog({
 const profession = defineProfession({ id: 'apm-fixture', name: 'APM fixture', catalog });
 
 function analyze(rotation, options = {}) {
-  const scheduled = createScheduler({ profession, ...options }).run(rotation);
-  return { scheduled, metrics: rotationApm(scheduled, rotation, catalog, options.startingTime ?? 0) };
+  const scheduled = simulateGw2({ profession, config: { weaponStrength: 1000 }, ...options, rotation });
+  return { scheduled, metrics: scheduled.rotationApm };
 }
 
 test('150 executed inputs over 90 seconds give unrounded 100 APM', () => {
@@ -81,11 +81,9 @@ test('multi-hit effects, passive activations and duplicate scheduler records can
   const rotation = ['Channel'];
   const { scheduled } = analyze(rotation);
   const duplicated = {
+    ...scheduled,
     steps: [...scheduled.steps, ...scheduled.steps, { ...scheduled.steps[0], ri: 50, activationId: 'effect:1' }],
-    stream: {
-      ...scheduled.stream,
-      events: [...scheduled.stream.events, { type: 'action', activationId: 'effect:1', skillId: 980011, at: 0.5 }]
-    }
+    events: [...scheduled.events, { type: 'action', activationId: 'effect:1', skillId: 980011, at: 0.5 }]
   };
   assert.equal(rotationApm(duplicated, rotation, catalog).actionCount, 1);
 });
@@ -94,14 +92,13 @@ test('an interrupted activation and its explicit swap count, but invalid and syn
   const { scheduled, metrics } = analyze([
     { name: 'Replacement', interruptMs: 0 },
     'Swap',
-    'Unknown command',
     'Initial',
     { name: 'Instant', initialStateDurationMs: 500 },
     '__cooldown_reset',
     { type: 'wait', durationMs: 1000 }
   ]);
   assert.equal(scheduled.steps[0].interrupted, true);
-  assert.equal(scheduled.steps[2].invalid, true);
+  assert.equal(analyze(['Unknown command']).scheduled.steps[0].invalid, true);
   assert.equal(metrics.actionCount, 2);
   assert.equal(metrics.apm, 120);
   assert.equal(analyze([{ name: 'Replacement', interruptMs: 100 }]).metrics.actionCount, 1);
@@ -121,8 +118,6 @@ test('combat-start excludes precasts, includes carried cast time, and ignores ob
     assert.equal(metrics.castingTimeSeconds, 0.5);
     assert.equal(metrics.apm, 60);
   }
-
-  assert.ok(Math.abs(analyze(['Replacement'], { startingTime: 5 }).metrics.durationSeconds - 0.6) < 1e-10);
 });
 
 test('fractional marker boundaries use exact activation seconds instead of rounded display timestamps', () => {
@@ -207,7 +202,7 @@ test('canonical autoattack metadata covers kits, transformed bars and manual rep
 });
 
 test('detailed pipeline exposes input metrics independently of the damage observation duration', () => {
-  const result = simulateDeclarativeGw2({
+  const result = simulateGw2({
     profession: testProfession,
     rotation: ['Fixture Slash'],
     observationPolicy: { kind: 'tail', durationMs: 5000 }

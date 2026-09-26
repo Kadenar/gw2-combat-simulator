@@ -42,7 +42,11 @@ export function resolverTimedEffect<TContext extends Gw2ResolverRuntime, TCaptur
     nextAt(context, at) {
       const interval = definition.interval(context.resolver);
       const next = canonicalTime(at + interval);
-      return interval > 0 && next > at && next <= context.resolver.horizon + EPSILON ? next : null;
+      return interval > 0 &&
+        next > at &&
+        (context.resolver.horizon == null || next <= context.resolver.horizon + EPSILON)
+        ? next
+        : null;
     }
   });
 

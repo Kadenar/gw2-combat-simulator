@@ -7,7 +7,6 @@ import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.RESIST_THE_DARKNESS]: {
     // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
-    handlerId: 'revenant.upkeep-release',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,
@@ -126,7 +125,6 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   },
   [ID.EMBRACE_THE_DARKNESS]: {
     // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
-    handlerId: 'revenant.upkeep',
     castTimeMs: 440,
     interruptCommitMs: 400,
     cooldown: 3,
@@ -165,7 +163,6 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   },
   [ID.RELINQUISH_POWER]: {
     // Custom: Releases the active upkeep skill and exposes its parent again; see `core/mechanics/upkeep.ts`.
-    handlerId: 'revenant.upkeep-release',
     castTimeMs: 0,
     cooldown: 0,
     energyCost: 0,

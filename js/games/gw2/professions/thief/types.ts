@@ -1,12 +1,5 @@
 import type { ProfessionUiCallbackContext } from '#gw2/platform/profession-presentation/types.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type {
-  CastContext,
-  CastLifecycleContext,
-  ScheduledTask,
-  SchedulerContext,
-  SchedulerState
-} from '#gw2/platform/execution/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type {
   Gw2CanonicalBuild,
@@ -116,44 +109,14 @@ export interface ThiefSkill extends Skill {
   readonly movementSkill?: boolean;
   readonly preservesStealth?: boolean;
   readonly shadowShroudSkill?: boolean;
+  /** Marks the two Shadow Shroud bar transitions so replay and live owners can order and select them. */
+  readonly shadowShroudTransition?: 'enter' | 'exit';
   readonly spearStealthAttack?: boolean;
   readonly stealthAttack?: boolean;
   readonly stealTraitSkill?: boolean;
   readonly stealRechargeMode?: 'multiplicative' | 'additive';
   readonly summonAttack?: ThiefSummonAttack;
 }
-
-export type ThiefSchedulerContext = SchedulerContext<ThiefRuntimeState> & {
-  /** Active specialization completion runs after Core steal resources and before its final snapshot. */
-  onThiefStealComplete?: (context: ThiefCastContext) => void;
-  readonly catalog: CanonicalCatalog<ThiefSkill>;
-  readonly config: ThiefConfig;
-};
-
-export type ThiefPrecastContext = CastContext<ThiefRuntimeState> & {
-  readonly catalog: CanonicalCatalog<ThiefSkill>;
-  readonly config: ThiefConfig;
-  readonly skill: ThiefSkill;
-};
-
-export type ThiefCastContext = CastLifecycleContext<ThiefRuntimeState> &
-  Pick<ThiefSchedulerContext, 'onThiefStealComplete'> & {
-    readonly catalog: CanonicalCatalog<ThiefSkill>;
-    readonly config: ThiefConfig;
-    readonly skill: ThiefSkill;
-  };
-
-export type ThiefResourceContext = ThiefSchedulerContext & {
-  readonly start?: number;
-};
-
-export type ThiefEmissionContext = ThiefSchedulerContext & {
-  readonly skill?: ThiefSkill;
-};
-
-export type ThiefScheduledTask<TPayload = object> = Omit<ScheduledTask<TPayload>, 'payload'> & {
-  readonly payload: TPayload;
-};
 
 export type ThiefSimulationEvent = SimulationEvent & {
   readonly application?: ThiefSimulationEvent;
@@ -162,8 +125,6 @@ export type ThiefSimulationEvent = SimulationEvent & {
   readonly coefficient?: number;
   readonly condition?: string;
   readonly deadeyeMaliceSnapshot?: number;
-  readonly reason?: string;
-  readonly state?: Partial<ThiefState>;
 };
 
 export type ThiefResolverEvent = Gw2ResolverEvent & {
@@ -171,7 +132,6 @@ export type ThiefResolverEvent = Gw2ResolverEvent & {
   readonly bonusAboveNinetyStacks?: number;
   readonly deadeyeMaliceSnapshot?: number;
   readonly lifeSiphon?: boolean;
-  readonly state?: Partial<ThiefState>;
 };
 
 export type ThiefResolverContext = Gw2ResolverRuntime & {
@@ -179,10 +139,6 @@ export type ThiefResolverContext = Gw2ResolverRuntime & {
   profession: ThiefRuntimeState;
   readonly state?: { readonly profession: ThiefRuntimeState };
 };
-
-export interface ThiefPlanningStateProjectionOptions {
-  readonly schedulerState: SchedulerState<ThiefRuntimeState>;
-}
 
 export interface ThiefUiContext extends Omit<
   ProfessionUiCallbackContext<ThiefRuntimeState | Partial<ThiefState>>,

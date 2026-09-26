@@ -1,11 +1,11 @@
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCoreCriticalHitDefinitions } from '#gw2/professions/engineer/core/traits/index.js';
-import { engineerCoreSchedulerHooks } from '#gw2/professions/engineer/core/execution/hooks.js';
 
 const baseConfig = Object.freeze({
   selectedSkills: ['Healing Turret', 'Grenade Kit', 'Throw Mine', 'Elixir Gun', 'Supply Crate'],
@@ -22,17 +22,7 @@ const baseConfig = Object.freeze({
 
 // Run the smallest Core rotation that reaches a migrated trait through the public dispatcher.
 function simulate(rotation, config = {}) {
-  return simulateGw2({
-    profession: engineerProfession,
-    rotation,
-    config: {
-      ...baseConfig,
-      ...config,
-      specialization: 'Core',
-      stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) }
-    }
-  });
+  return createObservedProfessionSimulator(engineerProfession, baseConfig)('Core', rotation, config);
 }
 
 const wait = { type: 'wait', durationMs: 100 };
@@ -147,7 +137,7 @@ const traitCases = [
     name: 'Thermal Vision',
     trait: TRAIT.THERMAL_VISION,
     rotation: ['Blowtorch', wait],
-    verify: (result) => assert.ok(result.combatState.profession.traitProcReadyAt.thermalVisionUntil > 0)
+    verify: (result) => assert.ok(observedRuntime(result).profession.core.traitProcReadyAt.thermalVisionUntil > 0)
   },
   {
     name: 'Sanguine Array',
@@ -214,13 +204,9 @@ for (const { name, trait, extraTraits = [], rotation, config, verify } of traitC
   });
 }
 
-test('Engineer critical and scheduled-event definitions preserve their public order', () => {
+test('Engineer critical definitions preserve their reaction order', () => {
   assert.deepEqual(
     engineerCoreCriticalHitDefinitions.map((definition) => definition.id),
     ['engineer.core.serrated-steel', 'engineer.core.no-scope', 'engineer.core.incendiary-powder-player']
-  );
-  assert.deepEqual(
-    engineerCoreSchedulerHooks.onEventScheduled.map((hook) => hook.id),
-    ['engineer.mine-field', 'engineer.hgh-duration']
   );
 });

@@ -1,12 +1,8 @@
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { CanonicalCatalog, Skill } from '#gw2/platform/engine/skills/types.js';
-import type { CastLifecycleContext, SchedulerContext, SchedulerState } from '#gw2/platform/execution/types.js';
-import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
+import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/types.js';
 import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import type { BerserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
@@ -46,7 +42,6 @@ export interface WarriorSkill extends Skill {
    */
   readonly dualWieldCastTimeMs?: number;
   readonly adrenalineCost?: number;
-  readonly adrenalineGain?: number;
   readonly flowGain?: number;
   readonly burst?: boolean;
   readonly burstTier?: number;
@@ -63,38 +58,9 @@ export interface WarriorSkill extends Skill {
   readonly dragonSlashMaximumBurningDuration?: number;
 }
 
-export type WarriorSchedulerContext = SchedulerContext<WarriorRuntimeState> & {
-  readonly catalog: CanonicalCatalog<WarriorSkill>;
-  readonly config: Gw2Config;
-  /** Lets trait initialization request GW2 critical facts when the policy provides them. */
-  readonly schedulerPolicy: Partial<Pick<Gw2SchedulerPolicy, 'requireCriticalFacts'>>;
-};
-
-export type WarriorCastContext = CastLifecycleContext<WarriorRuntimeState> & {
-  readonly catalog: CanonicalCatalog<WarriorSkill>;
-  readonly config: Gw2Config;
-  /** Exposes observed combat start so in-combat-only traits can gate runs without an explicit marker. */
-  readonly schedulerPolicy: Partial<Pick<Gw2SchedulerPolicy, 'combatBeganAt'>>;
-};
-
-export type WarriorSimulationEvent = SimulationEvent & {
-  readonly coefficient?: number;
-  readonly condition?: string;
-  readonly state?: Partial<WarriorState>;
-};
-
-export type WarriorResolverEvent = Gw2ResolverEvent & {
-  readonly state?: Partial<WarriorState>;
-};
-
 export type WarriorResolverContext = Gw2ResolverRuntime & {
   profession: WarriorRuntimeState;
 };
-
-export interface WarriorPlanningStateProjectionOptions {
-  readonly schedulerContext: WarriorSchedulerContext;
-  readonly schedulerState: SchedulerState<WarriorRuntimeState>;
-}
 
 export interface WarriorUiContext extends Omit<
   ProfessionUiCallbackContext<WarriorRuntimeState | Partial<WarriorState>>,

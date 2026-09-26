@@ -5,14 +5,14 @@ import test from 'node:test';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { migrateRangerBuild } from '#gw2/professions/ranger/build/build.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import { rangerCoreCriticalReactions } from '#gw2/professions/ranger/core/mechanics/reactions.js';
-import { rangerCoreModifierRules } from '#gw2/professions/ranger/core/traits/modifiers.js';
-import { druidModifierRules } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar-rules.js';
+import { rangerCoreCriticalReactions } from '#gw2/professions/ranger/core/traits/skirmishing.js';
+import { rangerCoreModifierRules } from '#gw2/professions/ranger/core/modifiers.js';
+import { druidModifierRules } from '#gw2/professions/ranger/specializations/druid/modifiers.js';
 
 const baseConfig = Object.freeze({
   initialAstralForce: 100,
@@ -36,17 +36,14 @@ const baseConfig = Object.freeze({
 });
 
 function simulate(rotation, config = {}) {
-  return simulateGw2({
-    profession: rangerProfession,
-    rotation,
-    config: {
-      ...baseConfig,
-      ...config,
-      specialization: 'Druid',
-      stats: { ...baseConfig.stats, ...(config.stats || {}) },
-      target: { ...baseConfig.target, ...(config.target || {}) }
-    }
-  });
+  const options = {
+    ...baseConfig,
+    ...config,
+    specialization: 'Druid',
+    stats: { ...baseConfig.stats, ...config.stats },
+    target: { ...baseConfig.target, ...config.target }
+  };
+  return observeGw2Runtime({ profession: rangerProfession.runtimeFor(options), rotation, config: options });
 }
 
 test('condition Druid weapon timings and packets use configured profiles', () => {
@@ -306,7 +303,7 @@ test('Light on Your Feet applies its six-second buff and shortbow upgrades', () 
     selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
   });
 
-  assert.equal(shortbow.steps[1].start, Math.ceil((shortbow.steps[0].end + 6400) / 40) * 40);
+  assert.equal(shortbow.steps[1].start, Math.ceil((shortbow.steps[0].end + 5120) / 40) * 40);
 
   const upgrades = simulate(['Poison Volley', 'Crippling Shot', 'Concussion Shot'], {
     primaryWeapon: 'Shortbow',

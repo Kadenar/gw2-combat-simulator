@@ -2,7 +2,7 @@ import { engineerUiState } from '#gw2/professions/engineer/core/presentation.js'
 import { getActiveTraits } from '#gw2/professions/engineer/data/traits-data.js';
 import { selectedMechCommands } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { EngineerResolverEvent, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
+import type { EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
 
 // Prefer the editable build's traits, but fall back to simulation state when a
 // historical result is inspected without a complete build projection.
@@ -14,8 +14,6 @@ function mechanistCommandSkills(context: EngineerUiContext): SkillId[] {
 }
 
 export const mechanistUi: EngineerUiSlice = Object.freeze({
-  eventLogRow: (_context: EngineerUiContext, event: EngineerResolverEvent) =>
-    event?.type === 'engineer.state' ? null : undefined,
   paletteGroups: (context: EngineerUiContext) => [
     {
       id: 'engineer-profession',

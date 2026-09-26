@@ -1,10 +1,7 @@
 import { buildResolverStrike, buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { activeBoonStacks as queryActiveBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import {
-  enqueueGw2OwnedComboFinisher,
-  type EnqueueGw2OwnedComboFinisherOptions
-} from '#gw2/platform/resolver/combo-resolution.js';
+import type { EnqueueGw2OwnedComboFinisherOptions } from '#gw2/platform/resolver/combo-resolution.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
@@ -58,7 +55,7 @@ export function resolverSkill(
   return context.helpers.skillsById?.get(skillId) as EngineerSkill | undefined;
 }
 
-/** Enqueues one derived Engineer strike and materializes any attached combo finisher. */
+/** Queues one derived strike; the shared runtime attempts its finisher when the strike actually resolves. */
 export function queueDamage(
   context: EngineerResolverContext,
   event: EngineerResolverEvent,
@@ -76,7 +73,7 @@ export function queueDamage(
     weaponStrengthProfileId
   }: QueueDamageOptions
 ): void {
-  const damage = context.queue.enqueue(
+  context.queue.enqueue(
     buildResolverStrike({
       at,
       skillName: name,
@@ -89,6 +86,7 @@ export function queueDamage(
       ...(ownerActorType == null ? {} : { ownerActorType }),
       // skillId only on player events — summon/effect damage should not carry the parent skill ID
       skillId: actorType === 'player' ? event.skillId : undefined,
+      ...(actorType === 'player' ? { activationId: event.activationId, offTarget: event.offTarget } : {}),
       // "Spear" default for player spear skills; non-player damage uses "Unequipped" for weapon lookups
       skillWeapon: actorType === 'player' ? 'Spear' : 'Unequipped',
       noCrit,
@@ -113,13 +111,6 @@ export function queueDamage(
       triggeredBy: event.skillName
     })
   );
-  if (comboFinisher) {
-    enqueueGw2OwnedComboFinisher(context, damage, {
-      ...comboFinisher,
-      at,
-      effectAt: at
-    });
-  }
 }
 
 /** Enqueues a derived Engineer buff after applying the shared boon-duration rules. */
@@ -171,6 +162,7 @@ export function applyEngineerDerivedCondition(
     source: actorType === 'effect' ? 'Trait' : 'engineer',
     sourceId: sourceId ?? event.skillId ?? event.sourceId,
     actorType,
+    offTarget: event.offTarget,
     // Derived summon conditions retain the triggering companion's concrete identity.
     ...(actorType === 'summon'
       ? { summonOwner: event.summonOwner, independentConditionOwner: event.independentConditionOwner }

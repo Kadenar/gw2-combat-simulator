@@ -1,3 +1,5 @@
+import type { Gw2PlanningStateInput } from '#gw2/platform/simulation/types.js';
+import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 /**
  * Elementalist end-state boundary.
  *
@@ -14,10 +16,7 @@ import { ELEMENTALIST_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/elem
 import { CATALYST_PUBLIC_STATE_PROJECTION } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { EVOKER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { WEAVER_PUBLIC_STATE_PROJECTION } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import type {
-  ElementalistPlanningStateProjectionOptions,
-  ElementalistState
-} from '#gw2/professions/elementalist/types.js';
+import type { ElementalistState } from '#gw2/professions/elementalist/types.js';
 
 // Compose public metadata once; runtime initialization and resolver ownership stay with each slice.
 const ELEMENTALIST_PUBLIC_STATE_PROJECTION = composePublicStateProjections([
@@ -32,12 +31,12 @@ export const ELEMENTALIST_PUBLIC_END_STATE_KEYS = ELEMENTALIST_PUBLIC_STATE_PROJ
 
 /** Projects the family aggregate while preserving the established public result shape. */
 export function projectElementalistPlanningState({
-  schedulerState
-}: ElementalistPlanningStateProjectionOptions): Pick<
+  profession
+}: Gw2PlanningStateInput<ElementalistRuntimeState>): Pick<
   ElementalistState,
   (typeof ELEMENTALIST_PUBLIC_END_STATE_KEYS)[number]
 > {
-  const state = snapshotProfessionState<ElementalistState>(schedulerState.profession);
+  const state = snapshotProfessionState<ElementalistState>(profession);
   return projectPublicProfessionState(
     state,
     ELEMENTALIST_PUBLIC_END_STATE_KEYS,

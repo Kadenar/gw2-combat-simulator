@@ -28,9 +28,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 1000,
     adrenalineCost: 10,
     burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    burst: true
   },
   [ID.NATURAL_HEALING]: {
     effects: [],
@@ -55,9 +53,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 560,
     adrenalineCost: 10,
     burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    burst: true
   },
   [ID.ARCING_SLICE_ID_42707]: {
     effects: [
@@ -83,9 +79,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    burst: true
   },
   [ID.COMBUSTIVE_SHOT_ID_42803]: {
     effects: [
@@ -106,9 +100,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 500,
     adrenalineCost: 10,
     burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    burst: true
   },
   [ID.BREAK_ENCHANTMENTS]: {
     effects: [
@@ -137,9 +129,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ],
     adrenalineCost: 10,
     burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    burst: true
   },
   [ID.FULL_COUNTER]: {
     // The counterattack only occurs after absorbing an incoming attack. The
@@ -148,9 +138,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 1000,
     adrenalineCost: 10,
     burstTier: 1,
-    burst: true,
-    // Custom: Spends adrenaline and opens the Full Counter trigger window; see `spellbreaker/execution/index.ts`.
-    handlerId: 'warrior.full-counter'
+    burst: true
   },
   [ID.WINDS_OF_DISENCHANTMENT]: {
     comboFields: [
@@ -187,9 +175,7 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    burst: true
   },
   [ID.HARRIERS_TOSS_ID_73014]: {
     effects: [
@@ -208,8 +194,6 @@ export const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 333,
     adrenalineCost: 10,
     burstTier: 1,
-    burst: true,
-    // Custom: Applies adrenaline gain/spend, burst traits, and tier-dependent packets; see `core/execution/index.ts`.
-    handlerId: 'warrior.resource'
+    burst: true
   }
 });

@@ -14,31 +14,20 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { BalanceProfile, ConditionEffect, StatusEffect, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
-import { applyBoonExtension } from '#gw2/platform/combat/boons.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerResolverContext, RangerSchedulerContext } from '#gw2/professions/ranger/types.js';
-import { rangerPetByName } from '#gw2/professions/ranger/core/state.js';
+import type { RangerResolverContext, RangerSkill, RangerRuntime } from '#gw2/professions/ranger/types.js';
+import { rangerPetByName, selectedRangerPet } from '#gw2/professions/ranger/core/state.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { grantMaulAttackOfOpportunity } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
+import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
 
-function handleSoulbeastModeEvent(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  soulbeastState.from(context).beastmodeActive = event.active === true;
-}
-
-// Retain the legacy event handler while sharing chronological, self-only extension semantics.
-export function handleRangerBoonExtension(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  applyBoonExtension(context.boons, event);
-}
-
-export const soulbeastEventHandlers = Object.freeze({
-  'ranger.shared-stance-hit': handleSharedStanceHit,
-  'ranger.beastmode': handleSoulbeastModeEvent,
-  'ranger.boon-extension': handleRangerBoonExtension
-});
+/** Shared stance opportunities resolve against the one live stance cooldown. */
+export const soulbeastEventHandlers = Object.freeze({ 'ranger.shared-stance-hit': handleSharedStanceHit });
 
 export function activeSoulbeastBuff(context: RangerResolverContext, kind: string, at: number): boolean {
   // These personal stance queries cannot borrow a companion's or ally's application.
@@ -403,7 +392,7 @@ export function reactToSoulbeastCondition(context: RangerResolverContext, event:
 // Essence of Speed reacts to each quickness application and extends all other boons by 2 s, with a 5 s ICD.
 // Quickness itself is excluded from the extension to prevent runaway stacking.
 export function essenceOfSpeedExtension(
-  context: RangerResolverContext | RangerSchedulerContext,
+  context: RangerResolverContext,
   event: Gw2ResolverEvent
 ): Gw2ResolverEvent | null {
   const state = soulbeastState.from(context);
@@ -431,11 +420,21 @@ export function essenceOfSpeedExtension(
   };
 }
 
-/** Resolver-derived Quickness retains its own extension; scheduled predictions are discarded at handoff. */
+/** Quickness extends existing boons once; shared attacks wait for an actual combat boundary. */
 export function reactToSoulbeastBuff(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const extension = essenceOfSpeedExtension(context, event);
   if (extension) context.queue.enqueue(extension);
+  if (context.combatStartPending) {
+    if (event.kind === 'one-wolf-pack' || event.kind === 'vulture-stance')
+      soulbeastState.from(context).pendingSharedStances.push(event);
+    return;
+  }
 
+  scheduleSharedStance(context, event);
+}
+
+/** A delayed engagement keeps the original stance expiry. */
+export function scheduleSharedStance(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   // Shared windows use the existing ally attack assumptions and end at half the personal duration.
   if (event.kind !== 'one-wolf-pack' && event.kind !== 'vulture-stance') return;
   const maximumAllies = event.resolvedAudience?.alliedPlayerCount ?? 0;
@@ -478,4 +477,28 @@ export function reactToRangerWinterBite(context: RangerResolverContext, event: G
   const profile = requireBalanceProfileFromContext(context, PROFILE.wintersBite);
   const weakness = requireEffect(profile, 'condition', 'Weakness');
   if (weakness) queueProfileCondition(context, event, profile, weakness, ID.WINTERS_BITE, "Winter's Bite");
+}
+
+export function soulbeastCastAvailability(context: RangerRuntime, skill: RangerSkill): AvailabilityResult {
+  const state = soulbeastState.from(context);
+  const toggle = skill.id === ID.BEASTMODE || skill.id === ID.LEAVE_BEASTMODE;
+  // Wrong-pet check must precede the beastmode-active check: a skill can be a beastmodeSkill
+  // but still invalid if it belongs to a different pet than the one currently selected.
+  if (skill.beastmodeSkill && !toggle && !selectedRangerPet(context.config)?.beastmodeSkillIds.includes(skill.id)) {
+    return deny(skill, 'ranger.inactive-merged-pet-skill', 'select the pet that grants this merged Beast skill.');
+  }
+
+  if (skill.beastmodeSkill && !state.beastmodeActive && skill.id !== ID.BEASTMODE) {
+    return deny(skill, 'ranger.beastmode-inactive', 'enter Beastmode first.');
+  }
+
+  if (skill.id === ID.BEASTMODE && state.beastmodeActive) {
+    return deny(skill, 'ranger.beastmode-active', 'Beastmode is already active.');
+  }
+
+  if (skill.id === ID.LEAVE_BEASTMODE && !state.beastmodeActive) {
+    return deny(skill, 'ranger.beastmode-inactive', 'Beastmode is not active.');
+  }
+
+  return { ready: true };
 }

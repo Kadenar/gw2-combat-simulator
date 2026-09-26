@@ -1,16 +1,17 @@
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCalculateAttributes } from '#gw2/platform/builds/attributes.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { createNativeApp, runNative, resolvedAndScheduledEvents } from '#tests/helpers/elementalist-simulation.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { paletteActionSkills } from '#gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { applyElementalistBuildAttributeRules } from '#gw2/professions/elementalist/build/attributes.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { elementalistCoreModifierRules } from '#gw2/professions/elementalist/core/traits/modifiers.js';
-import { weaverModifierRules } from '#gw2/professions/elementalist/specializations/weaver/traits/modifiers.js';
+import { elementalistCoreModifierRules } from '#gw2/professions/elementalist/core/modifiers.js';
+import { weaverModifierRules } from '#gw2/professions/elementalist/specializations/weaver/modifiers.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 // Attribute assertions use the same calculator composed into the Elementalist adapter.
@@ -28,7 +29,7 @@ test('Persisting Flames grants stacks from Fire Sphere without extending profess
         selectedSkills: { Elite: 'Conjure Fiery Greatsword' },
         rotation: [skillName, 6000]
       });
-      const result = simulateGw2({
+      const result = runElementalist({
         profession: elementalistProfession,
         rotation: commands,
         config: {
@@ -68,7 +69,7 @@ test('Persisting Flames extends Flamewall from eight seconds to ten', () => {
       selectedSkills: { Elite: 'Conjure Fiery Greatsword' },
       rotation: ['Flamewall', 12000]
     });
-    const result = simulateGw2({
+    const result = runElementalist({
       profession: elementalistProfession,
       rotation: commands,
       config: {
@@ -147,7 +148,7 @@ test("Fox's Fury applies the PvE high-Might burn", () => {
     });
     const config = elementalistAppAdapter.simulationConfig(app);
     config.boons.quickness = quickness;
-    const result = simulateGw2({ profession: elementalistProfession, rotation: commands, config });
+    const result = runElementalist({ profession: elementalistProfession, rotation: commands, config });
     const action = result.events.find((event) => event.type === 'action' && event.skillName === "Fox's Fury");
     const hit = result.events.find((event) => event.type === 'damage' && event.skillName === "Fox's Fury");
 
@@ -509,7 +510,7 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
 
   assert.deepEqual(
     flow.steps.filter((step) => String(step.skill).endsWith(' Attunement')).map((step) => step.start),
-    [0, 3000]
+    [0, 2400]
   );
 
   const flowDualAttack = runNative({
@@ -527,7 +528,10 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
     (event) => event.type === 'action' && event.skillName === 'Molten Meteor'
   );
 
-  assert.ok(Math.abs(moltenMeteor.rechargeReadyAt - moltenMeteor.endsAt - 9.6) < 1e-9);
+  assert.ok(
+    Math.abs(observedRuntime(flowDualAttack).cooldowns.get(moltenMeteor.skillId) - moltenMeteor.endsAt - 9.6 / 1.25) <
+      1e-9
+  );
 
   const pursuit = runNative({
     lines: [['Fire'], ['Air'], ['Weaver', '2-3-1']],
@@ -671,7 +675,7 @@ test('Evoker traits enforce familiar boons, enchantments, and charge rules', () 
   );
   assert.equal(
     boons.events.some(
-      (event) => event.type === 'buff' && event.source === "Fox's Fury" && event.kind === 'might' && event.stacks === 3
+      (event) => event.type === 'buff' && event.source === "Fox's Fury" && event.kind === 'might' && event.stacks === 8
     ),
     true
   );
@@ -692,14 +696,14 @@ test('Evoker traits enforce familiar boons, enchantments, and charge rules', () 
 
 test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () => {
   // The pet waits through Burst recovery before starting its next action, without requiring a player command.
-  const result = runNative({
-    lines: [['Fire'], ['Air'], ['Arcane']],
-    rotation: ['Glyph of Elementals', 7000],
-    startAttunement: 'Fire',
-    assumptions: {
-      ...elementalistProfession.createBuildDefaults().assumptions,
-      quickness: false
-    }
+  const result = runElementalist({
+    config: {
+      specialization: 'Core',
+      autoSummonElemental: false,
+      selectedSkills: { Elite: 'Glyph of Elementals' },
+      boons: { quickness: false }
+    },
+    rotation: ['__combat_start', 'Glyph of Elementals', { type: 'wait', durationMs: 7000 }]
   });
   const elementalActions = result.events.filter((event) => event.type === 'action' && event.actorType === 'summon');
   const flameBurst = result.events.find((event) => event.type === 'damage' && event.skillName === 'Flame Burst');
@@ -730,15 +734,22 @@ test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () 
 
 test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => {
   // Commands preempt the pet, retain their cooldown, and pair each projectile with its own burn.
-  const result = runNative({
-    lines: [['Fire'], ['Air'], ['Arcane']],
-    rotation: ['Glyph of Elementals', 1000, 'Flame Barrage', 'Flame Barrage', 4000],
-    startAttunement: 'Air',
-    assumptions: {
-      ...elementalistProfession.createBuildDefaults().assumptions,
-      quickness: false,
-      alacrity: false
-    }
+  const result = runElementalist({
+    config: {
+      specialization: 'Core',
+      startAttunement: 'Air',
+      autoSummonElemental: false,
+      selectedSkills: { Elite: 'Glyph of Elementals' },
+      boons: { quickness: false, alacrity: false }
+    },
+    rotation: [
+      '__combat_start',
+      'Glyph of Elementals',
+      { type: 'wait', durationMs: 1000 },
+      'Flame Barrage',
+      'Flame Barrage',
+      { type: 'wait', durationMs: 4000 }
+    ]
   });
   const elementalActions = result.events.filter((event) => event.type === 'action' && event.actorType === 'summon');
 
@@ -746,7 +757,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   assert.equal(result.planningState.profession.summonedElemental.element, 'Fire');
   const barrageActions = elementalActions.filter((event) => event.skillName === 'Flame Barrage');
   assert.equal(barrageActions.length, 2);
-  assert.equal(barrageActions[1].at - barrageActions[0].at, 15);
+  assert.equal(barrageActions[1].at - barrageActions[0].at, 12);
   assert.ok(
     elementalActions.some(
       (event) =>
@@ -854,7 +865,7 @@ test('Flame Barrage cannot apply future projectile burns outside the observation
     rotation: ['Flame Barrage'],
     assumptions: { ...elementalistProfession.createBuildDefaults().assumptions, targetConditions: {} }
   });
-  const result = simulateGw2({
+  const result = runElementalist({
     profession: elementalistProfession,
     rotation: commands,
     config: elementalistAppAdapter.simulationConfig(app),
@@ -936,7 +947,7 @@ test('selected Earth Elemental auto-summons, attacks, and executes Stomp', () =>
   assert.equal(Math.round(stompDamage.at * 1000), 1560);
   assert.deepEqual(
     summonActions.filter((event) => event.skillName === 'Stomp').map((event) => Math.round(event.at * 1000)),
-    [0, 18000]
+    [0, 14400]
   );
   assert.equal(cripple.condition, 'Crippled');
   assert.equal(cripple.duration, 5);
@@ -1162,4 +1173,54 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
   assert.doesNotMatch(pickupHtml, /data-skill="__drop_bundle"/);
   assert.match(pickupHtml, /data-skill="Flame Uprising"/);
   assert.match(pickupHtml, /class="[^"]*pal-context-disabled[^"]*" data-skill="Frost Volley"/);
+});
+
+// Console Alacrity never supplies a companion boon; only a received party grant changes its recharge.
+test('elemental autonomous cooldowns require shared player Alacrity', () => {
+  for (const [element, secondary, cooldown] of [
+    ['Fire', 'Flame Burst', 15],
+    ['Earth', 'Enervating Punch', 8]
+  ]) {
+    for (const sharePlayerBoonsWithSummons of [false, true]) {
+      for (const grant of [false, true]) {
+        const result = runElementalist({
+          config: {
+            specialization: 'Core',
+            startAttunement: element,
+            selectedSkills: { Elite: element === 'Fire' ? 'Glyph of Elementals' : 'Glyph of Elementals (Earth)' },
+            boons: { alacrity: true },
+            allies: { count: 0 },
+            sharePlayerBoonsWithSummons
+          },
+          rotation: ['__combat_start', { type: 'wait', durationMs: 7000 }],
+          timeline: [
+            {
+              at: 0.04,
+              run(runtime) {
+                if (grant)
+                  runtime.emit({
+                    type: 'buff',
+                    kind: 'alacrity',
+                    at: 0.04,
+                    duration: 30,
+                    stacks: 1,
+                    source: 'fixture',
+                    sourceId: 'fixture',
+                    actorType: 'player',
+                    audience: { recipients: 'party' }
+                  });
+              }
+            }
+          ]
+        });
+        const action = result.events.find((event) => event.type === 'action' && event.skillName === secondary);
+        assert.ok(action, element);
+        const readyAt = observedRuntime(result).profession.core.summonedElemental.secondaryAttackReadyAt;
+        assert.ok(
+          Math.abs(readyAt - action.endsAt - cooldown / (grant && sharePlayerBoonsWithSummons ? 1.25 : 1)) < 1e-8
+        );
+        assert.deepEqual(result.warnings, []);
+      }
+    }
+  }
 });

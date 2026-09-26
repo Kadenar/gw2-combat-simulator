@@ -5,7 +5,7 @@ import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { createDefaultConfig, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { formatConcurrentTimelineBadge, formatInterruptTimelineBadge } from '#gw2/app/rotation/timeline/model.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
@@ -62,7 +62,7 @@ test('Lingering Thoughts recharges one ammo count every six seconds', () => {
 
   assert.deepEqual(
     result.steps.map((step) => step.start),
-    [0, 1200, 6920]
+    [0, 1120, 5720]
   );
   assert.equal(result.planningState.ammo['Lingering Thoughts'].rechargeWork, 6);
 });
@@ -248,7 +248,7 @@ test('Master of Misdirection reduces shatter cooldowns by 15%', () => {
     })
   );
 
-  assert.equal(result.steps[1].start, 2010);
+  assert.ok(Math.abs(result.steps.find((step) => step.skillId != null).start - 2010) < 1e-9);
   assert.equal(result.planningState.cooldowns['Continuum Split'].readyAt, 61520);
 });
 
@@ -310,8 +310,8 @@ test('Chronomancer shatter boons use boon duration and include Continuum Split',
 
 test('Chronomancer shatter boons consume patched balance-profile values', () => {
   const profession = {
-    resolveRuntime(config) {
-      const runtime = mesmerProfession.resolveRuntime(config);
+    runtimeFor(config) {
+      const runtime = mesmerProfession.runtimeFor(config);
 
       return {
         ...runtime,
@@ -342,7 +342,7 @@ test('Chronomancer shatter boons consume patched balance-profile values', () => 
     }),
     { duration: 600 }
   );
-  const result = simulateGw2({
+  const result = runMesmer({
     profession,
     rotation: ['Split Second'],
     config
@@ -488,8 +488,8 @@ test('shift-queued Rewinder waits past its parent cast for cooldown expiry', () 
     })
   );
 
-  assert.equal(result.steps[2].end, 10440);
-  assert.equal(result.steps[3].start, 12000);
+  assert.equal(result.steps.find((step) => step.skill === 'Bladecall').end, 10440);
+  assert.equal(result.steps.findLast((step) => step.skill === 'Rewinder').start, 12000);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -1366,7 +1366,7 @@ test('Well of Precognition schedules protection pulses and an endurance grant at
   const endurance = events.find((event) => event.type === 'resource' && event.resource === 'endurance');
   assert.equal(endurance.at, field.expiresAt);
   assert.equal(endurance.amount, 30);
-  assert.equal(result.planningState.cooldowns['Well of Precognition'].readyAt - cast.end, 60000);
+  assert.equal(result.planningState.cooldowns['Well of Precognition'].readyAt - cast.end, 40000);
   assert.deepEqual(result.warnings, []);
 });
 

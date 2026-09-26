@@ -10,7 +10,7 @@ import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-pro
 import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/combat/state/traits.js';
 import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
-import { registerNecromancerResolverFields } from '#gw2/professions/necromancer/core/mechanics/state-reconciliation.js';
+
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
@@ -32,6 +32,9 @@ export interface NecromancerTasteForBloodApplication {
 
 export interface NecromancerCoreState {
   lifeForce: ResourceClock;
+  lifeForceWakeGeneration: number;
+  /** Readiness reads the next actual passive wake without crediting a future grant. */
+  passiveNextAt: Record<string, number>;
   lifeForceCostMultiplier: number;
   activeShroud: string;
   activeShroudEntryId?: SkillId | null;
@@ -42,16 +45,19 @@ export interface NecromancerCoreState {
   activeMinions: Record<string, number>;
   minionGenerations: Record<string, number>;
   minionAttackGenerations: Record<string, number>;
-  minionAttackAnchors: Record<string, number>;
-  minionAttackCycleOffsets: Record<string, number>;
+  /** Actual next attacks survive command pauses without reconstructing progress from elapsed time. */
+  minionAttackCursors: Record<string, { cycleIndex: number; attackIndex: number }>;
   /** Expiry timestamps for armed flip skills; persistent exits and minion commands use Infinity. */
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
+  /** Each sword continuation replaces its prior expiry owner. */
+  swordChainGeneration: number;
   selfConditions: NecromancerSelfCondition[];
   plagueSendingArmed: boolean;
   plagueSendingEntrySkillId: SkillId | null;
   lichEndsAt: number;
-  pendingShroudEntryId?: SkillId | null;
+  /** Re-entering the timed form owns a new cancellable expiry. */
+  lichGeneration: number;
   targetChilledUntil: number;
   targetControlledUntil: number;
   dreadUntil: number;
@@ -142,6 +148,8 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
   const state: NecromancerCoreState = {
     lifeForce: { value: clamp(Number(config.initialResource ?? 100), 0, 100), maximum: 100, rate: 0, updatedAt: 0 },
     lifeForceCostMultiplier: necromancerLifeForceCostMultiplier(config),
+    lifeForceWakeGeneration: 0,
+    passiveNextAt: {},
     activeShroud: '',
     activeShroudEntryId: null,
     activeShroudExitId: null,
@@ -151,14 +159,15 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     activeMinions: {},
     minionGenerations: {},
     minionAttackGenerations: {},
-    minionAttackAnchors: {},
-    minionAttackCycleOffsets: {},
+    minionAttackCursors: {},
     availableFlips: {},
     autoattackChains: {},
+    swordChainGeneration: 0,
     selfConditions: [],
     plagueSendingArmed: false,
     plagueSendingEntrySkillId: null,
     lichEndsAt: 0,
+    lichGeneration: 0,
     targetChilledUntil: 0,
     targetControlledUntil: 0,
     dreadUntil: 0,
@@ -167,14 +176,5 @@ export function createNecromancerCoreState(config: NecromancerConfig = {}): Necr
     traitProcReadyAt: {},
     tasteForBloodBuffs: {}
   };
-  registerNecromancerResolverFields(state, [
-    'targetChilledUntil',
-    'targetControlledUntil',
-    'dreadUntil',
-    'fearOfDeathReadyAt',
-    'vampiricPresenceReadyAt',
-    'traitProcReadyAt',
-    'tasteForBloodBuffs'
-  ]);
   return state;
 }

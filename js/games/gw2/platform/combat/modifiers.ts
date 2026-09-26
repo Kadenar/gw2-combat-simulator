@@ -1,5 +1,5 @@
 import type { SkillId, CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
-import type { SchedulerState } from '#gw2/platform/execution/types.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type {
   Gw2CombatQuery,
@@ -570,7 +570,7 @@ export interface Gw2ModifierContext {
   readonly sourceId?: SkillId | null;
   readonly actorType?: SimulationEvent['actorType'] | null;
   readonly profession?: { readonly catalog?: CanonicalCatalog };
-  readonly state?: Partial<SchedulerState> & { readonly boons?: Map<string, Gw2TimedBuffApplication[]> };
+  readonly state?: Partial<Gw2Runtime> & { readonly boons?: Map<string, Gw2TimedBuffApplication[]> };
 
   readonly config?: Gw2Config;
   readonly time: number;

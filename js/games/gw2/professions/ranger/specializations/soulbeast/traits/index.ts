@@ -1,39 +1,43 @@
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { gw2SchedulerBoonDuration } from '#gw2/platform/execution/gw2-policy/policy.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerCastContext, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 
 // Called from both enter- and exit-beastmode handlers; protection fires on every toggle regardless of direction.
-export function applyUnstoppableUnion(context: RangerCastContext, skill: RangerSkill): void {
+export function applyUnstoppableUnion(context: RangerRuntime, skill: RangerSkill): void {
   if (!hasTrait(context, TRAIT.UNSTOPPABLE_UNION)) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.unstoppableUnion);
   const effect = requireEffect(profile, 'boon', 'protection');
   if (!effect) return;
-  emitSkillBuff(context, {
-    at: context.start,
-    source: 'Trait',
-    sourceId: TRAIT.UNSTOPPABLE_UNION,
-    actorType: 'effect',
-    skillId: skill.id,
-    skillName: 'Unstoppable Union',
-    kind: String(effect.boon),
-    duration: gw2SchedulerBoonDuration(context, skill, String(effect.boon), effectNumber(profile, effect, 'duration')),
-    stacks: effectNumber(profile, effect, 'stacks')
-  });
+  context.emitProcedural(
+    rangerEvent(
+      {
+        at: context.time,
+        source: 'Trait',
+        sourceId: TRAIT.UNSTOPPABLE_UNION,
+        actorType: 'effect',
+        skillId: skill.id,
+        skillName: 'Unstoppable Union',
+        kind: String(effect.boon),
+        duration: effectNumber(profile, effect, 'duration'),
+        stacks: effectNumber(profile, effect, 'stacks')
+      },
+      'buff'
+    )
+  );
 }
 
 /** Share half the player's extended stance window without shortening the personal application. */
 export function emitSoulbeastStance(
-  context: RangerCastContext,
+  context: RangerRuntime,
   skill: RangerSkill,
   kind: string,
   baseDuration: number
@@ -44,7 +48,7 @@ export function emitSoulbeastStance(
       balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.leaderOfThePack), 'durationMultiplier')
     : baseDuration;
   const application = {
-    at: context.start,
+    at: context.time,
     source: 'ranger',
     sourceId: skill.id,
     actorType: 'player' as const,
@@ -54,13 +58,18 @@ export function emitSoulbeastStance(
     duration,
     stacks: 1
   };
-  emitSkillBuff(context, application);
+  context.emitProcedural(rangerEvent(application, 'buff'));
   if (shared) {
-    emitSkillBuff(context, {
-      ...application,
-      duration: duration * 0.5,
-      audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 4, eligibleCompanionIds: [] }
-    });
+    context.emitProcedural(
+      rangerEvent(
+        {
+          ...application,
+          duration: duration * 0.5,
+          audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 4, eligibleCompanionIds: [] }
+        },
+        'buff'
+      )
+    );
   }
 
   return duration;

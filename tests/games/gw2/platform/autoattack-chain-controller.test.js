@@ -1,7 +1,8 @@
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import {
   autoattackChainSkillAvailable,
@@ -17,7 +18,7 @@ const skill = (id, name, extra = {}) => ({
   ...extra
 });
 
-function chainProfession(autoattackChains) {
+function chainProfession(autoattackChains, root = {}) {
   const core = defineNativeModule({
     id: 'Core',
     data: {
@@ -28,7 +29,8 @@ function chainProfession(autoattackChains) {
           slot: 'Weapon_1',
           nextChainId: 2,
           castTimeMs: 1000,
-          interruptCommitMs: 500
+          interruptCommitMs: 500,
+          ...root
         }),
         skill(2, 'Second A', {
           type: 'Weapon',
@@ -111,8 +113,9 @@ function chainProfession(autoattackChains) {
       ]
     },
     state: {
-      scheduler: () => ({ autoattackChains: {} })
-    }
+      create: () => ({ autoattackChains: {} })
+    },
+    hooks: {}
   });
 
   return defineNativeProfession({
@@ -124,8 +127,67 @@ function chainProfession(autoattackChains) {
 }
 
 function chainState(result) {
-  return result.state.profession.core.autoattackChains;
+  return result.planningState.profession.autoattackChains;
 }
+
+// Live cases use canonical cast commitments even when target effects miss or reporting is disabled.
+const chainConfig = { stats: { power: 1000 }, target: { armor: 1000, health: 0, conditions: {} } };
+const cast = (skillId, flags = {}) => ({ type: 'cast', skillId, ...flags });
+const runChain = (rotation, profession = chainProfession().runtimeFor(chainConfig), extra = {}) =>
+  runGw2Runtime({ profession, config: chainConfig, rotation, ...extra });
+
+test('live chains reject out-of-order steps and commit each completion once', () => {
+  const rejected = runChain([cast(3)]);
+  assert.equal(rejected.warnings.length, 1);
+  assert.deepEqual(rejected.planningState.profession.autoattackChains, {});
+  const advanced = runChain([cast(1), cast(2)]);
+  assert.deepEqual(advanced.warnings, []);
+  assert.deepEqual(advanced.planningState.profession.autoattackChains, { 1: 3 });
+  const rotation = [cast(1), cast(2), cast(3)];
+  const complete = runChain(rotation);
+  assert.deepEqual(complete.planningState.profession.autoattackChains, {});
+  assert.deepEqual(complete.warnings, []);
+  assert.equal(runChain(rotation, undefined, { output: 'score' }).totalDamage, complete.totalDamage);
+});
+
+test('live chain interruptions use selected packet boundaries, including travel and cast-end ties', () => {
+  for (const interrupting of [cast(7), cast(7, { offTarget: true }), cast(11)])
+    assert.deepEqual(runChain([cast(1), interrupting]).planningState.profession.autoattackChains, {});
+  for (const preserving of [cast(8), cast(9), cast(10), cast(12), cast(7, { impactDelayMs: 2000 })])
+    assert.deepEqual(runChain([cast(1), preserving]).planningState.profession.autoattackChains, { 1: 2 });
+  const native = chainProfession().runtimeFor(chainConfig);
+  const removed = { ...native, modifyEffects: (_runtime, cast, effects) => (cast.skill.id === 7 ? [] : effects) };
+  assert.deepEqual(runChain([cast(1), cast(7)], removed).planningState.profession.autoattackChains, { 1: 2 });
+});
+
+test('an interrupted packet chain advances only after a retained packet reaches its cast boundary', () => {
+  const profession = chainProfession(undefined, {
+    interruptMode: 'per-packet',
+    effects: [{ type: 'strike', coefficient: 1, atMs: 200, timingAnchor: 'castStart' }]
+  }).runtimeFor(chainConfig);
+  assert.deepEqual(
+    runChain([cast(1, { interruptAfterMs: 100 })], profession).planningState.profession.autoattackChains,
+    {}
+  );
+  assert.deepEqual(
+    runChain([cast(1, { interruptAfterMs: 200 })], profession).planningState.profession.autoattackChains,
+    { 1: 2 }
+  );
+  assert.deepEqual(
+    runChain([cast(1, { interruptAfterMs: 200, offTarget: true })], profession).planningState.profession
+      .autoattackChains,
+    { 1: 2 }
+  );
+});
+
+test('live native composition keeps overrides scoped to their pending root', () => {
+  const profession = chainProfession({
+    overrides: [{ id: 'preserve-a', chainRootIds: [1], decision: 'preserve' }]
+  }).runtimeFor(chainConfig);
+  const result = runChain([cast(1), cast(4), cast(7)], profession);
+  assert.deepEqual(result.planningState.profession.autoattackChains, { 1: 2 });
+  assert.deepEqual(result.warnings, []);
+});
 
 // Palette projection accepts both legacy names and IDs without changing the captured chain state.
 test('autoattack availability defaults to the root and accepts named or numeric steps', () => {
@@ -146,10 +208,10 @@ test('autoattack availability defaults to the root and accepts named or numeric 
 
 test('native professions automatically gate and advance autoattack chains', () => {
   const profession = chainProfession();
-  const outOfOrder = createScheduler({ profession }).run(['Second A']);
-  const afterRoot = createScheduler({ profession }).run(['Root A']);
-  const afterSecond = createScheduler({ profession }).run(['Root A', 'Second A']);
-  const completed = createScheduler({ profession }).run(['Root A', 'Second A', 'Third A']);
+  const outOfOrder = simulateGw2({ profession, rotation: ['Second A'] });
+  const afterRoot = simulateGw2({ profession, rotation: ['Root A'] });
+  const afterSecond = simulateGw2({ profession, rotation: ['Root A', 'Second A'] });
+  const completed = simulateGw2({ profession, rotation: ['Root A', 'Second A', 'Third A'] });
 
   assert.match(outOfOrder.warnings[0], /cast Root A first/);
   assert.deepEqual(chainState(afterRoot), { 1: 2 });
@@ -159,12 +221,12 @@ test('native professions automatically gate and advance autoattack chains', () =
 
 test('only nonzero player casts with damage by cast end reset pending roots', () => {
   const profession = chainProfession();
-  const instant = createScheduler({ profession }).run(['Root A', 'Instant Damage', 'Second A']);
-  const nonDamaging = createScheduler({ profession }).run(['Root A', 'Non-damaging Cast', 'Second A']);
-  const delayed = createScheduler({ profession }).run(['Root A', 'Delayed Damage', 'Second A']);
-  const independent = createScheduler({ profession }).run(['Root A', 'Independent Damage', 'Second A']);
-  const weapon = createScheduler({ profession }).run(['Root A', 'Interrupting Weapon', 'Root A']);
-  const inclusive = createScheduler({ profession }).run(['Root A', 'Cast-end Damage', 'Root A']);
+  const instant = simulateGw2({ profession, rotation: ['Root A', 'Instant Damage', 'Second A'] });
+  const nonDamaging = simulateGw2({ profession, rotation: ['Root A', 'Non-damaging Cast', 'Second A'] });
+  const delayed = simulateGw2({ profession, rotation: ['Root A', 'Delayed Damage', 'Second A'] });
+  const independent = simulateGw2({ profession, rotation: ['Root A', 'Independent Damage', 'Second A'] });
+  const weapon = simulateGw2({ profession, rotation: ['Root A', 'Interrupting Weapon', 'Root A'] });
+  const inclusive = simulateGw2({ profession, rotation: ['Root A', 'Cast-end Damage', 'Root A'] });
 
   assert.deepEqual(instant.warnings, []);
   assert.deepEqual(chainState(instant), { 1: 3 });
@@ -182,8 +244,8 @@ test('only nonzero player casts with damage by cast end reset pending roots', ()
 
 test('pre-commit cancellation does not advance but a committed interruption does', () => {
   const profession = chainProfession();
-  const cancelled = createScheduler({ profession }).run([{ name: 'Root A', interruptMs: 200 }]);
-  const committed = createScheduler({ profession }).run([{ name: 'Root A', interruptMs: 600 }]);
+  const cancelled = simulateGw2({ profession, rotation: [{ name: 'Root A', interruptMs: 200 }] });
+  const committed = simulateGw2({ profession, rotation: [{ name: 'Root A', interruptMs: 600 }] });
 
   assert.equal(cancelled.steps[0].cancelledBeforeCommit, true);
   assert.deepEqual(chainState(cancelled), {});
@@ -193,11 +255,10 @@ test('pre-commit cancellation does not advance but a committed interruption does
 
 test('a cancelled unrelated weapon preserves pending roots by default', () => {
   const profession = chainProfession();
-  const result = createScheduler({ profession }).run([
-    'Root A',
-    { name: 'Interrupting Weapon', interruptMs: 200 },
-    'Second A'
-  ]);
+  const result = simulateGw2({
+    profession,
+    rotation: ['Root A', { name: 'Interrupting Weapon', interruptMs: 200 }, 'Second A']
+  });
 
   assert.equal(result.steps[1].cancelledBeforeCommit, true);
   assert.deepEqual(result.warnings, []);
@@ -215,11 +276,10 @@ test('an explicit per-root rule may reset on a cancelled interrupting cast', () 
       }
     ]
   });
-  const result = createScheduler({ profession }).run([
-    'Root A',
-    { name: 'Interrupting Weapon', interruptMs: 200 },
-    'Root A'
-  ]);
+  const result = simulateGw2({
+    profession,
+    rotation: ['Root A', { name: 'Interrupting Weapon', interruptMs: 200 }, 'Root A']
+  });
 
   assert.equal(result.steps[1].cancelledBeforeCommit, true);
   assert.deepEqual(result.warnings, []);
@@ -237,8 +297,8 @@ test('overrides are evaluated per pending root', () => {
       }
     ]
   });
-  const preserved = createScheduler({ profession }).run(['Root A', 'Interrupting Weapon', 'Second A']);
-  const reset = createScheduler({ profession }).run(['Root B', 'Interrupting Weapon', 'Second B']);
+  const preserved = simulateGw2({ profession, rotation: ['Root A', 'Interrupting Weapon', 'Second A'] });
+  const reset = simulateGw2({ profession, rotation: ['Root B', 'Interrupting Weapon', 'Second B'] });
 
   assert.deepEqual(preserved.warnings, []);
   assert.deepEqual(chainState(preserved), { 1: 3 });

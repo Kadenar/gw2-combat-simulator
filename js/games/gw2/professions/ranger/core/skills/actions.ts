@@ -4,6 +4,7 @@
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 
 export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
   {
@@ -18,8 +19,9 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
 
     rechargeAnchor: 'castStart',
     cooldown: 0,
-    // Custom: Spends endurance and applies Ranger dodge traits; see `execution/index.ts`.
-    handlerId: 'ranger.dodge',
+    cost: { resource: 'endurance', profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } },
+    // Custom: applies Ranger dodge traits; see `hooks.ts`.
+
     effects: []
   },
   {
@@ -33,8 +35,8 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     cooldown: 20,
-    // Custom: Switches pet slots and applies pet-swap traits; see `execution/index.ts`.
-    handlerId: 'ranger.pet-swap',
+    // Custom: Switches pet slots and applies pet-swap traits; see `hooks.ts`.
+
     effects: []
   },
   {
@@ -49,7 +51,7 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 10,
     // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
     inputCategory: 'weapon-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'ranger.weapon-swap',
+
     effects: []
   }
 ]);

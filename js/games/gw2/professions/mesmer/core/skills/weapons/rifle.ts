@@ -37,9 +37,8 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Parti
   [ID.INSPIRING_IMAGERY]: {
     castTimeMs: 500,
     // The image grants boons after its field expires unless Abstraction detonates it first.
-    handlerId: 'mesmer.inspiring-imagery',
     comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 2, startAnchor: 'castEnd' }],
-    mechanicTriggers: [{ type: 'mesmer.core.imagery-expire', atMs: 2000, timingAnchor: 'castEnd' }],
+    tasks: [{ type: 'mesmer.core.imagery-expire', atMs: 2000, timingAnchor: 'castEnd' }],
     effects: [
       { type: 'boon', boon: 'might', stacks: 12, duration: 9 },
       { type: 'boon', boon: 'fury', duration: 9 }

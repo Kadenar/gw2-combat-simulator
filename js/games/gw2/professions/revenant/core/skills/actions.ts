@@ -1,6 +1,6 @@
 /**
  * Owns simulator-only Core Revenant action declarations.
- * Their runtime behavior is registered through `execution/index.ts`.
+ * Their runtime behavior is registered through `core/hooks.ts`.
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -10,7 +10,6 @@ const actions: readonly Skill[] = [
     id: ID.SWAP_WEAPONS,
     // Custom: Performs the shared weapon-set transition; see `platform/equipment/weapons/swap.ts`.
     inputCategory: 'weapon-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'revenant.weapon-swap',
     name: 'Swap Weapons',
     description: 'Swap equipped weapon sets.',
     icon: 'https://wiki.guildwars2.com/images/c/ce/Weapon_Swap_Button.png',
@@ -23,9 +22,8 @@ const actions: readonly Skill[] = [
   },
   {
     id: ID.SWAP_LEGENDS,
-    // Custom: Switches legends and resets energy through `core/mechanics/legend-swap.ts`.
+    // Custom: Switches legends and resets energy through `core/hooks.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'revenant.legend-swap',
     name: 'Swap Legends',
     description: 'Invoke the other selected legend and reset energy.',
     icon: '',
@@ -33,13 +31,14 @@ const actions: readonly Skill[] = [
     slot: 'Profession_1',
     castTimeMs: 0,
     cooldown: 10,
+    // Invoking a legend always has a 10 second recharge; Alacrity does not shorten it.
+    rechargeIgnoresAlacrity: true,
     resourceGain: 50,
     effects: []
   },
   {
     id: ID.DODGE,
-    // Custom: Spends endurance and emits Revenant dodge state through `execution/actions.ts`.
-    handlerId: 'revenant.dodge',
+    // Custom: emits Revenant dodge state through `core/hooks.ts`.
     name: 'Dodge',
     description: 'Perform the selected dodge.',
     icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
@@ -48,6 +47,7 @@ const actions: readonly Skill[] = [
     castTimeMs: 0,
     cooldown: 0,
     resourceCost: 50,
+    cost: { resource: 'endurance' },
     effects: []
   }
 ];

@@ -1,3 +1,4 @@
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { projectRecharge, type RechargeProgress, type RechargeInterval } from '#gw2/platform/engine/skills/recharge.js';
@@ -7,34 +8,11 @@ import { projectRecharge, type RechargeProgress, type RechargeInterval } from '#
  * depletion, recharge reduction) so professions only override maximum ammo and
  * recharge duration instead of reimplementing the mechanics.
  */
-import type { AmmoState, CooldownController, SchedulerState } from '#gw2/platform/execution/types.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
+import type { AmmoState, CooldownController } from '#gw2/platform/execution/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 
-/** Reduces each matching tracked skill once across cooldown and ammo maps, returning the actual recharge recovered. */
-export function reduceMatchingCooldowns<TSkill extends Skill>(
-  context: {
-    readonly state: Pick<SchedulerState, 'cooldowns' | 'ammo'>;
-    readonly catalog: Pick<CanonicalCatalog<TSkill>, 'skillsById'>;
-    readonly cooldownController: Pick<CooldownController, 'reduceSkillRecharge'>;
-  },
-  predicate: (skill: TSkill) => boolean,
-  seconds: number,
-  at: number
-): number {
-  const ids = new Set([...context.state.cooldowns.keys(), ...context.state.ammo.keys()]);
-  let reducedBy = 0;
-  for (const skillId of ids) {
-    const skill = context.catalog.skillsById.get(skillId);
-    if (skill && predicate(skill)) {
-      reducedBy += context.cooldownController.reduceSkillRecharge(skill, seconds, at);
-    }
-  }
-
-  return reducedBy;
-}
-
-interface CooldownControllerOptions<TProfessionState extends object> {
-  readonly state: SchedulerState<TProfessionState>;
+interface CooldownControllerOptions {
+  readonly state: Pick<Gw2Runtime, 'time' | 'ammo' | 'cooldowns' | 'rechargeProgress'>;
   readonly rechargeDuration: (skill: Skill, at: number) => number;
   readonly rechargeIntervals?: (skill: Skill, start: number, end: number) => Iterable<RechargeInterval>;
   readonly skillFor?: (id: SkillId) => Skill | undefined;
@@ -46,27 +24,27 @@ interface CooldownControllerOptions<TProfessionState extends object> {
  * maximum ammo and recharge calculation without duplicating the state machine.
  *
  */
-export function createCooldownController<TProfessionState extends object>({
+export function createCooldownController({
   state,
   rechargeDuration,
   rechargeIntervals = (_skill, start, end) => [{ start, end, rate: 1 }],
   skillFor = () => undefined,
   maximumAmmo = (skill) => Number(skill.ammo || 0)
-}: CooldownControllerOptions<TProfessionState>): Readonly<CooldownController> {
+}: CooldownControllerOptions): Readonly<CooldownController> {
   if (!state?.ammo || !state?.cooldowns || !state?.rechargeProgress) {
-    throw new TypeError('Cooldown controller requires scheduler state.');
+    throw new TypeError('Cooldown controller requires live runtime state.');
   }
 
   if (typeof rechargeDuration !== 'function') {
     throw new TypeError('Cooldown controller requires rechargeDuration.');
   }
 
-  const rate = (skill: Skill, at: number): number => {
+  const rate = (skill: Skill, at = state.time): number => {
     for (const interval of rechargeIntervals(skill, at, Infinity)) return interval.rate;
     return 1;
   };
 
-  // Integrate only elapsed base-recharge work. A change in rate never retroactively changes completed progress.
+  // Integrate elapsed work so later boon changes never alter progress already earned.
   const remaining = (skill: Skill, progress: RechargeProgress, at: number): number => {
     let work = progress.work;
     for (const interval of rechargeIntervals(skill, progress.startedAt, Math.max(progress.startedAt, at))) {

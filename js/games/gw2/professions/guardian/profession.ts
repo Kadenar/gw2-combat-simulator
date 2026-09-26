@@ -12,6 +12,7 @@ export { guardianCatalog, guardianNativeModules } from '#gw2/professions/guardia
 export const guardianProfession = defineNativeProfession({
   id: 'guardian',
   name: 'Guardian',
+  requireEquippedSlotSkills: true,
   build: {
     createBuildDefaults: createGuardianBuildDefaults,
     migrateBuild: migrateGuardianBuild,

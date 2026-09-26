@@ -1,3 +1,4 @@
+import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
@@ -114,7 +115,8 @@ export const vindicatorUi: RevenantUiSlice = Object.freeze({
         id: 'endurance',
         singular: 'endurance',
         plural: 'endurance',
-        maximum: context.resources!.endurance!.maximum,
+        // Capacity is the shared Revenant bound used by live recovery.
+        maximum: REVENANT_MAXIMUM_ENDURANCE,
         value: Number(state.endurance ?? 100),
         canStart: false,
         step: 1,

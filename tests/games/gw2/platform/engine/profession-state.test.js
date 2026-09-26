@@ -3,14 +3,11 @@ import test from 'node:test';
 import {
   composePublicStateProjections,
   definePublicStateDefaults,
-  restoreFlatProfessionState,
   snapshotProfessionState,
   readProfessionCoreState,
   readProfessionSpecializationState,
   projectPublicProfessionState
 } from '#gw2/platform/engine/profession/state.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { testProfession } from '#tests/fixtures/profession.js';
 
 // Shared profession state preserves isolated runtime fields and detached public snapshots.
 test('profession snapshots flatten and deeply clone active runtime state', () => {
@@ -23,30 +20,6 @@ test('profession snapshots flatten and deeply clone active runtime state', () =>
   assert.deepEqual(snapshot, { resource: 10, nested: { value: 1 }, eliteResource: 2 });
   snapshot.nested.value = 9;
   assert.equal(runtime.core.nested.value, 1);
-});
-
-test('flat snapshot restoration routes declared specialization keys and clones values', () => {
-  const core = { resource: 1 };
-  const specialization = { eliteResource: 2, nested: {} };
-  const incoming = { resource: 3, eliteResource: 4, nested: { value: 5 } };
-
-  restoreFlatProfessionState(core, specialization, incoming);
-  assert.deepEqual(core, { resource: 3 });
-  assert.deepEqual(specialization, { eliteResource: 4, nested: { value: 5 } });
-  incoming.nested.value = 8;
-  assert.equal(specialization.nested.value, 5);
-});
-
-test('generic scheduler state contains no profession-specific fields', () => {
-  const state = createScheduler({ profession: testProfession }).state;
-
-  assert.deepEqual(
-    Object.keys(state).sort(),
-    ['activeWeaponSet', 'ammo', 'cooldowns', 'lockouts', 'profession', 'rechargeProgress', 'skillUses', 'time'].sort()
-  );
-  assert.deepEqual(state.profession, { charge: 0, controlEvents: 0 });
-  assert.equal(Object.hasOwn(state, 'clones'), false);
-  assert.equal(Object.hasOwn(state, 'numericResource'), false);
 });
 
 test('profession-state reads require nested ownership and cannot cross specialization kinds', () => {

@@ -21,8 +21,8 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     ]
   },
   [ID.LAUNCH_WALL]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/execution/index.ts`.
-    handlerId: 'engineer.consume-flip',
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/hooks.ts`.
+
     castTimeMs: 520,
     cooldown: 0.5,
     flipParentName: 'Photon Wall',
@@ -89,8 +89,8 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     ]
   },
   [ID.PHOTON_WALL]: {
-    // Custom: Arms this skill's follow-up palette flip; see `core/execution/index.ts`.
-    handlerId: 'engineer.arm-flip',
+    // Custom: Arms this skill's follow-up palette flip; see `core/hooks.ts`.
+
     castTimeMs: 400,
     cooldown: 25,
     paletteFlipSkillId: ID.LAUNCH_WALL,

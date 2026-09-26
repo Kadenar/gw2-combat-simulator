@@ -1,34 +1,44 @@
-import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createTaskQueue } from '#gw2/platform/execution/tasks.js';
-import { timedEffect, resourceDepletion, actorLoop } from '#gw2/platform/profession-definition/mechanics.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
+import { timedEffect } from '#gw2/platform/profession-definition/mechanics.js';
 import {
   activeChargeGrants,
   consumeCharge,
   expireCharges,
   grantCharges,
-  grantChargePool,
-  replayChargeGrants
+  grantChargePool
 } from '#gw2/platform/combat/resources/charges.js';
-import { advanceResource } from '#gw2/platform/combat/resources/resource-policy.js';
-import { advanceDiscreteResource, resourceDepletionAt, resourceValueAt } from '#gw2/platform/combat/resources/clock.js';
+import { advanceDiscreteResource, resourceValueAt } from '#gw2/platform/combat/resources/clock.js';
 
 // Use the real queue so generation, cancellation, priority, and insertion-order checks exercise dispatch together.
 function harness(definition, beforeTask = () => {}) {
   const context = { state: { time: 0 }, events: [] };
-  const queue = createTaskQueue({
-    handlers: Object.fromEntries(
-      Object.entries(definition.taskHandlers).map(([type, handler]) => [
-        type,
-        (ctx, task) => {
-          beforeTask(task.at);
-          ctx.state.time = task.at;
-          handler(ctx, task);
-        }
-      ])
-    )
-  });
+  const pending = new StableEventQueue();
+  let order = 0;
+  const cancelled = new Set();
+  const queue = {
+    schedule(task) {
+      const id = String(++order);
+      pending.enqueue({ ...task, id });
+      return id;
+    },
+    cancel(id) {
+      cancelled.add(id);
+    },
+    nextAt() {
+      return pending.peek()?.at ?? Infinity;
+    },
+    drainThrough(at, ctx) {
+      while (pending.peek()?.at <= at) {
+        const task = pending.dequeue();
+        if (cancelled.has(task.id)) continue;
+        beforeTask(task.at);
+        ctx.state.time = task.at;
+        definition.taskHandlers[task.type](ctx, task);
+      }
+    }
+  };
   context.tasks = queue;
   return { context, queue, through: (at) => queue.drainThrough(at, context) };
 }
@@ -99,7 +109,7 @@ test('charge refresh survives old expiry, preserves ICD, and keeps independent r
   expireCharges(grant, 5);
   assert.equal(consumeCharge(grant, 5, 2), true);
   assert.equal(grant.charges, 1);
-  const pool = { generation: 0, grants: {} };
+  const pool = { grants: {} };
   grantChargePool(pool, 'player', 0, 2, 4);
   grantChargePool(pool, 'player', 1, 3, 6);
   grantChargePool(pool, 'ally:1', 0, 2, 4);
@@ -111,69 +121,8 @@ test('charge refresh survives old expiry, preserves ICD, and keeps independent r
     [3]
   );
   active[0].charges = 1;
-  assert.equal(replayChargeGrants(active, pool.grants.player, pool.generation, 4)[0].charges, 1);
   assert.equal(consumeCharge(grantCharges(1, 4), 4), false);
   assert.equal(consumeCharge(grantCharges(1, 4), 4, 0, true), true);
-});
-
-test('resource changes settle accrued progress and replace depletion without admitting an old lifetime', () => {
-  const clock = { value: 10, maximum: 10, rate: -2, updatedAt: 0 };
-  const depletion = resourceDepletion({
-    id: 'depletion',
-    clock: () => clock,
-    depleted: (context, at) => context.events.push(at)
-  });
-  const { context, through } = harness(depletion, (at) => advanceResource(clock, at));
-  depletion.refresh(context);
-  // Settle the previous interval before changing the rate, as the resource policy does.
-  advanceResource(clock, 2);
-  clock.rate = -1;
-  anchorResourceClock(clock);
-  assert.equal(clock.value, 6);
-  advanceResource(clock, 3);
-  clock.value += 2;
-  anchorResourceClock(clock);
-  depletion.refresh(context);
-  assert.equal(resourceDepletionAt(clock), 10);
-  through(5);
-  assert.deepEqual(context.events, []);
-  depletion.stop(context);
-  clock.value = 4;
-  clock.updatedAt = 6;
-  anchorResourceClock(clock);
-  depletion.refresh(context);
-  through(10);
-  assert.deepEqual(context.events, [10]);
-  assert.deepEqual(advanceDiscreteResource(5, 5, 2, 2, 5), { value: 5, nextAt: 6 });
-  assert.deepEqual(advanceDiscreteResource(3, 5, 6, 2, 6), { value: 4, nextAt: 8 });
-});
-
-test('actor replacement and command recovery stop autonomous work while preserving produced effects', () => {
-  const actor = actorLoop({
-    id: 'actor',
-    readyAt: (context) => context.state.busyUntil ?? 0,
-    step(context, at, state) {
-      context.events.push({ at: at + 2, owner: state.owner });
-      return { at: at + 1, state };
-    }
-  });
-  const { context, through } = harness(actor);
-  actor.start(context, 0, { key: 'pet', ownerId: 'old', firstAt: 1, state: { owner: 'old' } });
-  through(0);
-  // A previously due action precedes same-time replacement, matching the queue's insertion-order contract.
-  actor.start(context, 1, { key: 'pet', ownerId: 'new', firstAt: 2, state: { owner: 'new' } });
-  actor.stop(context, 2, 'old');
-  through(1);
-  context.state.busyUntil = 3;
-  through(2);
-  assert.deepEqual(context.events, [{ at: 3, owner: 'old' }]);
-  through(3);
-  actor.stop(context, 3, 'new');
-  through(10);
-  assert.deepEqual(context.events, [
-    { at: 3, owner: 'old' },
-    { at: 5, owner: 'new' }
-  ]);
 });
 
 test('anchored accrual queries retain their original anchor', () => {
@@ -199,49 +148,4 @@ test('discrete resources grant on 40 ms ticks without early tolerance or cadence
   assert.deepEqual(full, { value: 8, nextAt: 0.1 });
   assert.deepEqual(advanceDiscreteResource(7, 8, full.nextAt, 0.05, 0.1), { value: 7, nextAt: 0.1 });
   assert.deepEqual(advanceDiscreteResource(7, 8, full.nextAt, 0.05, 0.12), { value: 8, nextAt: 0.15 });
-});
-
-test('resource depletion waits for the next tick while retaining fractional drain', () => {
-  const clock = { value: 1, maximum: 10, rate: -3, updatedAt: 0 };
-  const depletion = resourceDepletion({
-    id: 'tick-depletion',
-    clock: () => clock,
-    depleted: (context, at) => context.events.push(at)
-  });
-  const { context, queue, through } = harness(depletion, (at) => advanceResource(clock, at));
-  depletion.refresh(context);
-  assert.equal(queue.nextAt(), 0.36);
-  advanceResource(clock, 0.1);
-  assert.equal(clock.value, 0.7);
-  through(0.359);
-  assert.deepEqual(context.events, []);
-  through(0.36);
-  assert.deepEqual(context.events, [0.36]);
-});
-
-// Fractional recovery deadlines must settle on the queue clock, including replacement inside a callback.
-test('actor recovery rounds once and a callback replacement cannot revive its old loop', () => {
-  const actor = actorLoop({
-    id: 'rounded-actor',
-    readyAt: () => 0.1 + 0.2,
-    step(context, at, state) {
-      context.events.push([at, state.generation]);
-      if (state.generation === 1) {
-        actor.replace(context, { key: 'actor', ownerId: 'new', firstAt: 1, state: { generation: 2 } });
-        return { at: at + 0.1, state };
-      }
-
-      return null;
-    }
-  });
-  const { context, through, queue } = harness(actor);
-  actor.start(context, 0, { key: 'actor', ownerId: 'old', firstAt: 0.2, state: { generation: 1 } });
-  through(0.299999);
-  assert.deepEqual(context.events, []);
-  through(1);
-  assert.deepEqual(context.events, [
-    [0.3, 1],
-    [1, 2]
-  ]);
-  assert.equal(queue.nextAt(), Infinity);
 });

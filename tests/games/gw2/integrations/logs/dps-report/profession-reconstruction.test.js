@@ -943,7 +943,7 @@ test('normalizes Renegade warband variants and ignores generated Spear mine sign
   );
   const catalog = {
     skills: [
-      skill(28287, 'Embrace the Darkness', { castTimeMs: 440 }),
+      skill(28287, 'Embrace the Darkness', { castTimeMs: 440, upkeepCost: 6 }),
       skill(72938, 'Abyssal Blitz', { type: 'weapon', weapon: 'Spear', castTimeMs: 520 }),
       skill(73015, 'Abyssal Strike', {
         type: 'weapon',
@@ -954,9 +954,10 @@ test('normalizes Renegade warband variants and ignores generated Spear mine sign
       skill(73149, 'Blitz Mines', { type: 'weapon', weapon: 'Spear', castTimeMs: 0 }),
       skill(41220, "Darkrazor's Daring", { castTimeMs: 500 }),
       skill(72366, "Darkrazor's Daring", { castTimeMs: 0, simulatorExcluded: true }),
-      skill(26693, 'Resist the Darkness', { castTimeMs: 0, handlerId: 'revenant.upkeep-release' }),
+      // A release is identified by its upkeep flip parent.
+      skill(26693, 'Resist the Darkness', { castTimeMs: 0, flipParentId: 28287 }),
       skill(41858, 'Legendary Renegade Stance', { castTimeMs: 0 }),
-      skill(-4, 'Swap Legends', { castTimeMs: 0, handlerId: 'revenant.legend-swap' })
+      skill(-4, 'Swap Legends', { castTimeMs: 0 })
     ]
   };
 
@@ -995,8 +996,9 @@ test('normalizes Power Herald split weapon animations and automatic upkeep relea
     skills: [
       skill(27074, 'Deathstrike', { type: 'weapon', weapon: 'Sword', castTimeMs: 720 }),
       skill(28625, 'Deathstrike', { type: 'weapon', weapon: 'Sword', castTimeMs: 0 }),
-      skill(28382, 'Relinquish Power', { castTimeMs: 0, handlerId: 'revenant.upkeep-release' }),
-      skill(-4, 'Swap Legends', { castTimeMs: 0, handlerId: 'revenant.legend-swap' }),
+      skill(27107, 'Impossible Odds', { castTimeMs: 0, upkeepCost: 5 }),
+      skill(28382, 'Relinquish Power', { castTimeMs: 0, flipParentId: 27107 }),
+      skill(-4, 'Swap Legends', { castTimeMs: 0 }),
       skill(62895, "Phantom's Onslaught", {
         type: 'weapon',
         weapon: 'Greatsword',

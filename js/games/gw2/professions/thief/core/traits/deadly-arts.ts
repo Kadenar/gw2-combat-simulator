@@ -6,7 +6,6 @@ import {
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillCondition, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -14,69 +13,7 @@ import { skillForEvent } from '#gw2/platform/combat/query/event-skill.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
-import type { ThiefCastContext, ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
-
-/** Attribute on-steal poison to Serpent's Touch while retaining the triggering skill. */
-export function applySerpentsTouch(context: ThiefCastContext, at: number): void {
-  if (!hasTrait(context.config, TRAIT.SERPENTS_TOUCH)) return;
-
-  const serpentsTouchProfile = requireBalanceProfileFromContext(context, PROFILE.serpentsTouch);
-  const poison = requireEffect(serpentsTouchProfile, 'condition', 'Poisoned');
-  // Explicit removal suppresses this packet without restoring baseline tuning.
-  if (!poison) return;
-  emitSkillCondition(context, {
-    at,
-    source: 'Trait',
-    skillId: TRAIT.SERPENTS_TOUCH,
-    skillName: "Serpent's Touch",
-    triggeredBy: context.skill?.name,
-    condition: String(poison.condition),
-    duration: effectNumber(serpentsTouchProfile, poison, 'duration'),
-    stacks: hasTrait(context.config, TRAIT.POTENT_POISON)
-      ? balanceProfileNumber(serpentsTouchProfile, 'playerStacks')
-      : effectNumber(serpentsTouchProfile, poison, 'stacks'),
-    name: "Serpent's Touch — Poison"
-  });
-}
-
-export function applyMug(context: ThiefCastContext, at: number): void {
-  if (!hasTrait(context.config, TRAIT.MUG)) return;
-  const mugProfile = requireBalanceProfileFromContext(context, PROFILE.mug);
-  const strike = requireEffect(mugProfile, 'strike', 'Mug');
-  // Explicit removal suppresses this packet without restoring baseline tuning.
-  if (!strike) return;
-  emitSkillDamage(context, {
-    at,
-    source: 'Trait',
-    sourceId: TRAIT.MUG,
-    actorType: 'player',
-    skillId: context.skill?.id,
-    skillName: context.skill?.name,
-    name: 'Mug',
-    coefficient: effectNumber(mugProfile, strike, 'coefficient'),
-    hits: effectNumber(mugProfile, strike, 'hits'),
-    canCrit: false
-  });
-}
-
-export function applyEvenTheOdds(context: ThiefCastContext, at: number): void {
-  if (!hasTrait(context.config, TRAIT.EVEN_THE_ODDS)) return;
-  const evenTheOddsProfile = requireBalanceProfileFromContext(context, PROFILE.evenTheOdds);
-  const vulnerability = requireEffect(evenTheOddsProfile, 'condition', 'Vulnerability');
-  // Explicit removal suppresses this packet without restoring baseline tuning.
-  if (!vulnerability) return;
-  emitSkillCondition(context, {
-    at,
-    source: 'Trait',
-    skillId: context.skill?.id ?? null,
-    skillName: context.skill?.name ?? null,
-    condition: String(vulnerability.condition),
-    duration: effectNumber(evenTheOddsProfile, vulnerability, 'duration'),
-    stacks: effectNumber(evenTheOddsProfile, vulnerability, 'stacks'),
-    sourceId: TRAIT.EVEN_THE_ODDS,
-    name: 'Even the Odds — Vulnerability'
-  });
-}
+import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 
 /** The first landed strike of each dual attack applies poison, even when its cast is interrupted later. */
 export function applyDeadlyAmbition(context: ThiefResolverContext, event: ThiefResolverEvent): void {

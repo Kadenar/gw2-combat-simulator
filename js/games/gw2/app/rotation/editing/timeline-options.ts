@@ -20,14 +20,14 @@ import {
   timelineTargetImpactDetails
 } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { SchedulerStep } from '#gw2/platform/execution/types.js';
+import type { SimulationStep } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/skills/timing.js';
 import { openDurationEditor } from '#ui/rotation/editing/duration-editor.js';
 
 /** Uses the simulated duration when available so runtime instant-cast conversions get the correct editor mode. */
 function timelineFullCastMs(
-  step: SchedulerStep | null | undefined,
+  step: SimulationStep | null | undefined,
   skill: Pick<Skill, 'castTimeMs'> | undefined
 ): number {
   const simulatedDuration = Number(step?.fullCastMs);
@@ -92,6 +92,7 @@ function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Ev
     skill,
     insertionIndex: index,
     currentReleaseAtCharges: item.releaseAtCharges == null ? null : Number(item.releaseAtCharges),
+    command: item.command.type === 'cast' ? item.command : undefined,
     onApply(releaseAtCharges) {
       const currentEntry = app.build.rotation[index];
       if (currentEntry !== entry) return;

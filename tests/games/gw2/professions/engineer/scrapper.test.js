@@ -1,3 +1,4 @@
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -5,11 +6,9 @@ import { buildChartSeries } from '#gw2/app/results/model.js';
 import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { scrapperSchedulerHooks } from '#gw2/professions/engineer/specializations/scrapper/traits/modifiers.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { kineticAcceleratorBoons } from '#gw2/professions/engineer/specializations/scrapper/traits/kinetic-accelerators.js';
 import { createScrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
-import { scrapperResolverEventReactions } from '#gw2/professions/engineer/specializations/scrapper/traits/reactions.js';
-import { handleEngineerState } from '#gw2/professions/engineer/family-state.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 
 // Scrapper contracts cover trait procs, combo boons, and gyro fields.
@@ -30,7 +29,7 @@ const baseConfig = Object.freeze({
   }
 });
 
-const simulate = createProfessionSimulator(engineerProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
 
 function mechanic(name) {
   return engineerCatalog.skillsByName.get(name);
@@ -44,14 +43,14 @@ test('Function Gyro aliases share Ex Machina charges and canonical trait effects
     });
 
     assert.deepEqual(result.warnings, []);
-    assert.deepEqual([...result.schedulerState.ammo.keys()], [56920]);
-    assert.equal(result.schedulerState.ammo.get(56920).maximum, 2);
-    assert.equal(result.schedulerState.ammo.get(56920).charges, 0);
+    assert.deepEqual([...observedRuntime(result).ammo.keys()], [56920]);
+    assert.equal(observedRuntime(result).ammo.get(56920).maximum, 2);
+    assert.equal(observedRuntime(result).ammo.get(56920).charges, 0);
     assert.equal(result.events.filter((event) => event.type === 'control' && event.controlKind === 'daze').length, 2);
 
     const untraited = simulate('Scrapper', [skillId]);
     assert.deepEqual(untraited.warnings, []);
-    assert.equal(untraited.schedulerState.ammo.size, 0);
+    assert.equal(observedRuntime(untraited).ammo.size, 0);
   }
 });
 
@@ -210,8 +209,8 @@ test('Kinetic Accelerators emits party quickness and might from successful combo
   assert.equal(quickness.audience.recipients, 'party');
   assert.equal(quickness.duration, 3.52);
   assert.equal(might.audience.recipients, 'party');
-  // Concentration scales the base duration before rounding to a whole millisecond.
-  assert.equal(might.duration, 11.733);
+  // Concentration scales the base duration at the actual boon application.
+  assert.ok(Math.abs(might.duration - Math.round(10 * (1 + 260 / 1500) * 1000) / 1000) < 1e-9);
   assert.equal(might.stacks, 3);
   const chart = buildChartSeries(result, 40);
 
@@ -279,13 +278,7 @@ test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () =
       selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS],
       stats: { concentration: 0 }
     },
-    state: {
-      activeWeaponSet: 1,
-      profession: {
-        core: {},
-        specialization: { kind: 'Scrapper', state: createScrapperState() }
-      }
-    },
+    profession: { core: {}, specialization: { kind: 'Scrapper', state: createScrapperState() } },
     emitDerived(_event, boon) {
       boons.push(boon);
     }
@@ -297,11 +290,10 @@ test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () =
     sourceId: 1,
     actorType: 'player',
     skillName: `${finisherType} test`,
-    finisherType,
-    schedulerPrediction: 'combo-result'
+    finisherType
   });
 
-  const observe = scrapperSchedulerHooks.onEventScheduled.handler;
+  const observe = (context, event) => boons.push(...kineticAcceleratorBoons(context, event));
 
   observe(context, combo('Whirl', 1));
   observe(context, combo('Whirl', 2));
@@ -333,30 +325,7 @@ test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () =
   );
   assert.ok(boons.every((event) => event.audience?.recipients === 'party'));
   assert.ok(boons.every((event) => event.schedulerPrediction == null));
-  assert.ok(boons.every((event) => event.schedulerBoonPrediction === true));
-});
-
-test('Scrapper snapshots cannot rewind or pre-spend the resolver Whirl cooldown', () => {
-  const grants = [];
-  const context = {
-    catalog: engineerCatalog,
-    config: { selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS] },
-    profession: { core: {}, specialization: { kind: 'Scrapper', state: createScrapperState() } },
-    query: { statsAt: () => ({ concentration: 0 }) },
-    queue: { enqueue: (event) => grants.push(event) },
-    recordProc() {}
-  };
-  const whirl = (at) => scrapperResolverEventReactions.combo(context, { type: 'combo', at, finisherType: 'Whirl' });
-  // A stale snapshot must not allow a second grant, and a future prediction must not block the next valid grant.
-  whirl(1);
-  handleEngineerState(context, { state: { kineticAcceleratorsWhirlReadyAt: 0 } });
-  whirl(2);
-  handleEngineerState(context, { state: { kineticAcceleratorsWhirlReadyAt: 100 } });
-  whirl(4.001);
-  assert.deepEqual(
-    grants.filter((event) => event.kind === 'might').map((event) => event.at),
-    [1, 4.001]
-  );
+  assert.ok(boons.every((event) => event.schedulerBoonPrediction == null));
 });
 
 test('Scrapper 1-3-2 converts 13% of Power into Concentration', () => {

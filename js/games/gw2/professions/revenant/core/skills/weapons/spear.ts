@@ -6,8 +6,7 @@ import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ABYSSAL_BLITZ]: {
-    // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.
-    handlerId: 'revenant.spear-recharge',
+    // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/mechanics/weapons.ts`.
     castTimeMs: 520,
     cooldown: 10,
     energyCost: 10,
@@ -44,8 +43,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
   [ID.ABYSSAL_BLOT]: {
     // Abyssal Blot commits after 760 ms, preserving its field and delayed impacts after interruption.
     interruptCommitMs: 760,
-    // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.
-    handlerId: 'revenant.spear-recharge',
+    // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/mechanics/weapons.ts`.
     castTimeMs: 800,
     cooldown: 15,
     energyCost: 12,
@@ -113,8 +111,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.ABYSSAL_FORCE]: {
-    // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.
-    handlerId: 'revenant.spear-recharge',
+    // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/mechanics/weapons.ts`.
     castTimeMs: 520,
     cooldown: 6,
     energyCost: 4,
@@ -147,8 +144,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
   },
   [ID.ABYSSAL_STRIKE]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
-    // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/execution/spear.ts`.
-    handlerId: 'revenant.spear-recharge',
+    // Custom: Recharges Abyssal Raze after the qualifying hit; see `core/mechanics/weapons.ts`.
     castTimeMs: 520,
     interruptCommitMs: 396,
     cooldown: 0,
@@ -184,8 +180,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     )
   },
   [ID.ABYSSAL_RAZE]: {
-    // Custom: Consumes Crushing Abyss stacks and materializes the scaled raze packets; see `core/execution/spear.ts`.
-    handlerId: 'revenant.abyssal-raze',
+    // Custom: Consumes Crushing Abyss stacks and materializes the scaled raze packets; see `core/mechanics/weapons.ts`.
     castTimeMs: 600,
     cooldown: 1,
     ammoCastLockout: 1,

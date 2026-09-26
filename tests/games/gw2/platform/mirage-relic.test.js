@@ -1,8 +1,7 @@
-import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
-import { recordPassiveRelicTimeline } from '#gw2/platform/equipment/relics/query.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { testProfession } from '#tests/fixtures/profession.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -12,30 +11,43 @@ test('Mirage follows executed rotation dodges with a one-second ICD', () => {
   for (const skillName of ['Dodge', 'Dodge / Mirage Cloak', 'Dodge Jump', 'Evading attack']) {
     const action = (at, overrides = {}) => ({
       type: 'action',
+      source: 'fixture',
+      sourceId: 'evade',
       at,
       skillName,
       evades: skillName === 'Evading attack',
       actorType: 'player',
       ...overrides
     });
-    const ctx = { relic: createRelicRuntime('Mirage'), config: {}, combatStartTime: 3, queue: new StableEventQueue() };
-    recordPassiveRelicTimeline(
-      ctx,
-      [
-        action(5),
-        action(5.001),
-        action(2),
-        action(3, { cancelled: true }),
-        action(3, { actorType: 'summon' }),
-        action(4),
-        action(4.999),
-        action(5, { type: 'damage' }),
-        action(7, { skillName: 'Flying Cutter', evades: false }),
-        action(9)
-      ],
-      8
+    const result = runGw2Runtime({
+      profession: {
+        ...testProfession.runtimeFor({}),
+        initialize(runtime) {
+          // Queue real actions so the runtime owns ordering, eligibility and the observation cutoff.
+          for (const event of [
+            action(5),
+            action(5.001),
+            action(2),
+            action(3, { cancelled: true }),
+            action(3, { actorType: 'summon', summonKind: 'fixture' }),
+            action(4),
+            action(4.999),
+            action(5, { type: 'damage', flatDamage: 1 }),
+            action(7, { skillName: 'Flying Cutter', evades: false }),
+            action(9)
+          ])
+            runtime.emit(event);
+        }
+      },
+      config: { relic: 'Mirage' },
+      combatStartTime: 3,
+      rotation: [{ type: 'wait', durationMs: 8000 }],
+      observation: { kind: 'absolute', endTimeMs: 8000 }
+    });
+    assert.deepEqual(result.warnings, []);
+    const queued = result.resolvedEvents.filter(
+      (event) => event.type === 'condition' && event.sourceId === 'relic.mirage'
     );
-    const queued = Array.from({ length: ctx.queue.length }, () => ctx.queue.dequeue());
     assert.deepEqual(
       queued.map((event) => event.at),
       [4, 5.001]

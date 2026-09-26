@@ -3,12 +3,12 @@
  * packets before they join the canonical scheduler timeline.
  */
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { ElementalistSchedulerContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 // Preserve packets excluded by the configured hitbox as cancelled markers so
 // timing and diagnostics remain visible without contributing combat effects.
 export function prepareElementalistHitboxEvent(
-  context: ElementalistSchedulerContext,
+  context: ElementalistRuntime,
   event: SimulationEventBase
 ): SimulationEventBase {
   const preparedEvent = event;

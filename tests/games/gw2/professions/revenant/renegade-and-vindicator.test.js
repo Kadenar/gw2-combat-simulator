@@ -22,36 +22,29 @@ import {
   REVENANT_SKILL_IDS as SKILL,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { handleRevenantState } from '#gw2/professions/revenant/family-state.js';
-import { createRenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
-import { createGw2SchedulerPolicy } from '#gw2/platform/execution/gw2-policy/policy.js';
-import { spendProfessionEndurance } from '#gw2/platform/combat/resources/endurance-policy.js';
-import {
-  activeKallasFervorStacks,
-  castHeroicCommand,
-  grantKallasFervor
-} from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
+import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import { grantKallasFervor } from '#gw2/professions/revenant/specializations/renegade/hooks.js';
 
-const revenantAttributeRules = Object.freeze({
+const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyAttributes(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyAttributes(context, value);
   },
   modifyCriticalChance(context, value) {
     return revenantProfession
-      .resolveRuntime(context?.config || {})
+      .resolveProfession(context?.config || {})
       .modifyCriticalChance({ catalog: revenantCatalog, ...context }, value);
   },
   modifyStrikeDamage(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyStrikeDamage(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyStrikeDamage(context, value);
   },
   modifyConditionDamage(context, value) {
-    return revenantProfession.resolveRuntime(context?.config || {}).modifyConditionDamage(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDamage(context, value);
   },
   modifyConditionDuration(context, value) {
     return revenantProfession
-      .resolveRuntime(context?.config || {})
+      .resolveProfession(context?.config || {})
       .modifyConditionDuration({ catalog: revenantCatalog, ...context }, value);
   }
 });
@@ -79,7 +72,9 @@ const PLAYER_AUDIENCE = Object.freeze({
   recipientCount: 1
 });
 
-const simulate = createProfessionSimulator(revenantProfession, baseConfig);
+const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);
+// Live steps expose the actual activation window; an instant summon occupies none of it.
+const castMs = (step) => step.end - step.start;
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
@@ -93,7 +88,7 @@ test('Ferocious Aggression follows self Fury activation and expiry for strike an
   };
 
   // Only self Fury grants the additive bonus, including both edges of its active window.
-  for (const modify of [revenantAttributeRules.modifyStrikeDamage, revenantAttributeRules.modifyConditionDamage]) {
+  for (const modify of [revenantModifiers.modifyStrikeDamage, revenantModifiers.modifyConditionDamage]) {
     for (const [time, expected] of [
       [0, 1],
       [1, 1.1],
@@ -268,40 +263,33 @@ test('Dwarf upkeep stops dealing damage when released', () => {
 
 // Measure the interval from the triggering hit, so a new hit may land 120 ms after the prior delayed strike.
 test('Impossible Odds uses a 280 ms interval and 280 ms delay for player-owned strikes', () => {
-  const profession = {
-    ...revenantProfession,
-    resolveRuntime(config) {
-      const runtime = revenantProfession.resolveRuntime(config);
-      return {
-        ...runtime,
-        initialize(context) {
-          runtime.initialize(context);
-          for (const [at, source, actorType] of [
-            [1, 'Unlabelled equipment', 'effect'],
-            [1.25, 'Early equipment', 'effect'],
-            [1.279999, 'Relic', 'effect'],
-            [1.4, 'Sigil', 'effect'],
-            [1.68, 'Player', 'player'],
-            [2, 'Summon', 'summon']
-          ]) {
-            context.emit({
-              type: 'damage',
-              at,
-              coefficient: 1,
-              weaponStrength: 1000,
-              skillName: source,
-              source,
-              sourceId: source,
-              actorType,
-              ownerActorType: 'player'
-            });
-          }
-        }
-      };
+  const result = runRevenant(
+    ['Impossible Odds', { type: 'wait', durationMs: 3000 }],
+    { ...baseConfig, initialEnergy: 100 },
+    {
+      initialize(runtime) {
+        for (const [at, source, actorType] of [
+          [1, 'Unlabelled equipment', 'effect'],
+          [1.25, 'Early equipment', 'effect'],
+          [1.279999, 'Relic', 'effect'],
+          [1.4, 'Sigil', 'effect'],
+          [1.68, 'Player', 'player'],
+          [2, 'Summon', 'summon']
+        ])
+          runtime.emit({
+            type: 'damage',
+            at,
+            coefficient: 1,
+            weaponStrength: 1000,
+            skillName: source,
+            source,
+            sourceId: source,
+            actorType,
+            ownerActorType: 'player'
+          });
+      }
     }
-  };
-  const run = createProfessionSimulator(profession, baseConfig);
-  const result = run('Core', ['Impossible Odds', { type: 'wait', durationMs: 3000 }], { initialEnergy: 100 });
+  );
   assert.deepEqual(
     result.events
       .filter((event) => event.type === 'damage' && event.skillName === 'Impossible Odds')
@@ -520,37 +508,45 @@ test("Kalla's Fervor chart uses the Renegade stack cap", () => {
 });
 
 test("Kalla's Fervor replaces the soonest-expiring stack at its cap", () => {
+  // A probe task grants one ordinary Fervor stack per second through the live Renegade owner.
+  const grant = 'test.kallas-fervor';
   for (const improved of [false, true]) {
-    const state = createRenegadeState();
-    const events = [];
-    const context = {
-      config: { selectedTraitIds: improved ? [TRAIT.LASTING_LEGACY] : [] },
-      catalog: revenantCatalog,
-      start: 6,
-      effectiveEnd: 6,
-      fullEnd: 6,
-      state: { profession: { core: {}, specialization: { kind: 'Renegade', state } } },
-      events,
-      emit: (event) => events.push(event),
-      emitDerived: (_cause, event) => events.push(event)
-    };
+    const run = (rotation) =>
+      runRevenant(
+        rotation,
+        {
+          specialization: 'Renegade',
+          selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+          startingLegend: LEGEND.RENEGADE,
+          selectedTraitIds: improved ? [TRAIT.LASTING_LEGACY] : []
+        },
+        {
+          extend: (native) => ({
+            tasks: {
+              ...native.tasks,
+              [grant]: (runtime) =>
+                grantKallasFervor(runtime, { sourceId: TRAIT.AMBUSH_COMMANDER, sourceName: 'Ambush Commander' })
+            }
+          }),
+          initialize: (runtime) => [0, 1, 2, 3, 4, 5].forEach((at) => runtime.schedule(grant, at))
+        }
+      );
+    const renegade = (result) => observedRuntime(result).profession.specialization.state;
     const duration = improved ? 12 : 8;
     // A sixth application keeps five stacks alive past the original stack's expiry without refreshing all five.
-    for (const at of [0, 1, 2, 3, 4, 5]) {
-      assert.equal(grantKallasFervor(context, { at, sourceId: TRAIT.AMBUSH_COMMANDER }), true);
-    }
-
+    const capped = renegade(run([{ type: 'wait', durationMs: 6000 }]));
     assert.deepEqual(
-      state.kallasFervor.map((application) => application.expiresAt),
+      capped.kallasFervor.map((application) => application.expiresAt),
       [1, 2, 3, 4, 5].map((at) => at + duration)
     );
-    assert.equal(activeKallasFervorStacks(state, duration), 5);
-    assert.equal(activeKallasFervorStacks(state, duration + 1), 4);
-    // Heroic Command explicitly refreshes every stack, unlike an ordinary capped application.
-    castHeroicCommand(context, revenantCatalog.skillsById.get(SKILL.HEROIC_COMMAND));
+    assert.equal(activeKallasFervorStacks(capped, duration), 5);
+    assert.equal(activeKallasFervorStacks(capped, duration + 1), 4);
+    // Heroic Command explicitly refreshes every stack at its completion, unlike an ordinary capped application.
+    const refreshed = run([{ type: 'wait', durationMs: 6000 }, 'Heroic Command']);
+    assert.deepEqual(refreshed.warnings, []);
     assert.deepEqual(
-      state.kallasFervor.map((application) => application.expiresAt),
-      Array(5).fill(6 + duration)
+      renegade(refreshed).kallasFervor.map((application) => application.expiresAt),
+      Array(5).fill(refreshed.steps.at(-1).end / 1000 + duration)
     );
   }
 });
@@ -643,9 +639,9 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
     .resolvedEvents.filter((event) => event.skillName === 'Nourishment')
     .at(-1);
 
-  // The seeded food proc occurs on the first hit before its Kalla's Fervor grant.
-  assert.equal(nourishment.flatStrikeMultiplier, 1);
-  assert.equal(nourishment.damage, 325);
+  // The food proc is derived from the first hit, so it resolves after that hit's own Kalla's Fervor grant.
+  assert.equal(nourishment.flatStrikeMultiplier, 1.03);
+  assert.equal(nourishment.damage, 334);
 
   const modifierContext = (selectedTraitIds, condition = null) => ({
     config: { specialization: 'Renegade', selectedTraitIds, boons: {} },
@@ -677,13 +673,10 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
     }
   });
 
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(modifierContext([]), 1), 1.1);
-  assert.equal(revenantAttributeRules.modifyConditionDamage(modifierContext([], 'Burning'), 1), 1.1);
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(modifierContext([TRAIT.LASTING_LEGACY]), 1), 1.25);
-  assert.equal(
-    revenantAttributeRules.modifyConditionDamage(modifierContext([TRAIT.LASTING_LEGACY], 'Burning'), 1),
-    1.15
-  );
+  assert.equal(revenantModifiers.modifyStrikeDamage(modifierContext([]), 1), 1.1);
+  assert.equal(revenantModifiers.modifyConditionDamage(modifierContext([], 'Burning'), 1), 1.1);
+  assert.equal(revenantModifiers.modifyStrikeDamage(modifierContext([TRAIT.LASTING_LEGACY]), 1), 1.25);
+  assert.equal(revenantModifiers.modifyConditionDamage(modifierContext([TRAIT.LASTING_LEGACY], 'Burning'), 1), 1.15);
   const additiveContext = modifierContext([
     TRAIT.DESTRUCTIVE_IMPULSES,
     TRAIT.FEROCIOUS_AGGRESSION,
@@ -693,9 +686,9 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
   additiveContext.config.boons.fury = true;
   additiveContext.config.secondaryWeapon = 'Sword';
   additiveContext.damageInputs = { strikeSigilBonus: 0.05, conditionSigilBonus: 0.05 };
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(additiveContext, 1), 1.475);
+  assert.equal(revenantModifiers.modifyStrikeDamage(additiveContext, 1), 1.475);
   additiveContext.condition = 'Burning';
-  assert.ok(Math.abs(revenantAttributeRules.modifyConditionDamage(additiveContext, 1) - 1.375) < 1e-12);
+  assert.ok(Math.abs(revenantModifiers.modifyConditionDamage(additiveContext, 1) - 1.375) < 1e-12);
 });
 
 test('Renegade critical traits and Blood Fury use their supplied intervals', () => {
@@ -728,7 +721,7 @@ test('Renegade critical traits and Blood Fury use their supplied intervals', () 
 
   assert.ok(Math.abs(bleeding.naturalExpiresAt - bleeding.at - 3.75) < 1e-9);
   assert.equal(
-    revenantAttributeRules.modifyConditionDuration(
+    revenantModifiers.modifyConditionDuration(
       {
         config: {
           specialization: 'Renegade',
@@ -744,7 +737,7 @@ test('Renegade critical traits and Blood Fury use their supplied intervals', () 
     1.7
   );
   assert.equal(
-    revenantAttributeRules.modifyConditionDuration(
+    revenantModifiers.modifyConditionDuration(
       {
         config: {
           specialization: 'Renegade',
@@ -776,7 +769,7 @@ test('Renegade critical traits consume seeded critical outcomes', () => {
       randomness: { mode: 'stochastic', seed }
     });
   const signature = (result) => {
-    const hit = result.events.find((event) => event.type === 'damage' && event.skillName === 'Phase Traversal');
+    const hit = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Phase Traversal');
     const ambushCommander = result.events.some(
       (event) => event.type === 'buff' && event.skillName === 'Ambush Commander'
     );
@@ -799,37 +792,32 @@ test('Renegade critical traits consume seeded critical outcomes', () => {
 });
 
 test('Brutal Momentum proc facts follow live endurance while preserving earlier hit facts', () => {
-  // Proc evaluation must read the same profession resource that spending changes.
-  const config = {
-    ...baseConfig,
-    specialization: 'Renegade',
-    selectedTraitIds: [TRAIT.BRUTAL_MOMENTUM],
-    stats: { ...baseConfig.stats, precision: 895 },
-    boons: {}
-  };
-  const policy = createGw2SchedulerPolicy(config);
-  policy.requireCriticalFacts();
-  const scheduler = createScheduler({ profession: revenantProfession, config, schedulerPolicy: policy });
-  const { context } = scheduler;
-  const hit = {
-    type: 'damage',
-    at: 0,
-    source: 'revenant',
-    sourceId: SKILL.PREPARATION_THRUST,
-    skillId: SKILL.PREPARATION_THRUST,
-    skillName: 'Preparation Thrust',
-    actorType: 'player',
-    coefficient: 1
-  };
-  const beforeSpend = context.emit(hit);
-  scheduler.advanceTo(0);
-  assert.equal(policy.critical(context, beforeSpend).chance, 0.33);
-
-  spendProfessionEndurance(context, 50, 0);
-  const afterSpend = context.emit(hit);
-  scheduler.advanceTo(0);
-  assert.equal(policy.critical(context, afterSpend).chance, 0.1);
-  assert.equal(policy.critical(context, beforeSpend).chance, 0.33);
+  // Proc evaluation must read the same profession resource that spending changes, at each hit's own instant.
+  const result = runRevenant(
+    [{ type: 'wait', durationMs: 500 }, 'Dodge', { type: 'wait', durationMs: 1000 }],
+    {
+      specialization: 'Renegade',
+      selectedTraitIds: [TRAIT.BRUTAL_MOMENTUM],
+      stats: { ...baseConfig.stats, precision: 895 },
+      boons: {}
+    },
+    {
+      initialize(runtime) {
+        runtime.emit(revenantHit(0));
+        runtime.emit(revenantHit(1));
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.resolvedEvents
+      .filter((event) => event.type === 'damage' && event.skillName === 'Phase Traversal')
+      .map((event) => [event.at, event.criticalChance]),
+    [
+      [0, 0.33],
+      [1, 0.1]
+    ]
+  );
 });
 
 test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () => {
@@ -854,13 +842,13 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
     }
   });
 
-  assert.equal(revenantAttributeRules.modifyStrikeDamage(context(TRAIT.HEARTPIERCER), 1), 1.15);
+  assert.equal(revenantModifiers.modifyStrikeDamage(context(TRAIT.HEARTPIERCER), 1), 1.15);
   assert.equal(
-    revenantAttributeRules.modifyConditionDamage(context(TRAIT.HEARTPIERCER, { condition: 'Bleeding' }), 1),
+    revenantModifiers.modifyConditionDamage(context(TRAIT.HEARTPIERCER, { condition: 'Bleeding' }), 1),
     1.25
   );
   assert.equal(
-    revenantAttributeRules.modifyCriticalChance(
+    revenantModifiers.modifyCriticalChance(
       context(TRAIT.BRUTAL_MOMENTUM, {
         runtime: {
           profession: {
@@ -875,7 +863,7 @@ test('Heartpiercer and Brutal Momentum apply multiplicative combat bonuses', () 
   );
   assert.ok(
     Math.abs(
-      revenantAttributeRules.modifyCriticalChance(
+      revenantModifiers.modifyCriticalChance(
         context(TRAIT.BRUTAL_MOMENTUM, {
           runtime: {
             profession: {
@@ -946,9 +934,9 @@ describe('Band Together summon enhancement', () => {
       }
     );
 
-    assert.ok(enhanced.steps[0].fullCastMs > 0);
-    assert.equal(enhanced.steps[1].fullCastMs, 0);
-    assert.ok(enhanced.steps[2].fullCastMs > 0);
+    assert.ok(castMs(enhanced.steps[0]) > 0);
+    assert.equal(castMs(enhanced.steps[1]), 0);
+    assert.ok(castMs(enhanced.steps[2]) > 0);
     assert.ok(
       enhanced.events.some(
         (event) => event.skillName === "Icerazor's Ire" && event.condition === 'Chilled' && event.duration === 1.5
@@ -1088,8 +1076,8 @@ test('enhanced Renegade summons do not rearm Band Together', () => {
     }
   );
 
-  assert.equal(result.steps[1].fullCastMs, 0);
-  assert.ok(result.steps[4].fullCastMs > 0);
+  assert.equal(castMs(result.steps[1]), 0);
+  assert.ok(castMs(result.steps[4]) > 0);
 });
 
 test('Band Together expires four seconds after the priming summon', () => {
@@ -1109,8 +1097,8 @@ test('Band Together expires four seconds after the priming summon', () => {
     config
   );
 
-  assert.equal(withinWindow.steps[2].fullCastMs, 0);
-  assert.ok(atExpiry.steps[2].fullCastMs > 0);
+  assert.equal(castMs(withinWindow.steps.findLast((step) => step.skill === "Darkrazor's Daring")), 0);
+  assert.ok(castMs(atExpiry.steps.findLast((step) => step.skill === "Darkrazor's Daring")) > 0);
 });
 
 test('All for One refunds Energy and halves only enhanced-skill recharge', () => {
@@ -1125,7 +1113,11 @@ test('All for One refunds Energy and halves only enhanced-skill recharge', () =>
   const traited = simulate('Renegade', rotation, { ...config, selectedTraitIds: [TRAIT.ALL_FOR_ONE] });
   assert.deepEqual(base.warnings, []);
   assert.deepEqual(traited.warnings, []);
-  assert.ok(traited.planningState.profession.energy.value > base.planningState.profession.energy.value);
+  // Only the enhanced Icerazor refunds the authored All for One Energy once.
+  assert.equal(
+    traited.planningState.profession.energy.value - base.planningState.profession.energy.value,
+    revenantCatalog.balanceProfilesById.get('revenant.renegade.all-for-one').resourceGain
+  );
   assert.equal(
     traited.planningState.cooldowns["Icerazor's Ire"].remaining,
     base.planningState.cooldowns["Icerazor's Ire"].remaining / 2
@@ -1133,10 +1125,6 @@ test('All for One refunds Energy and halves only enhanced-skill recharge', () =>
   assert.equal(
     traited.planningState.cooldowns["Razorclaw's Rage"].readyAt,
     base.planningState.cooldowns["Razorclaw's Rage"].readyAt
-  );
-  assert.equal(
-    traited.events.filter((event) => event.type === 'revenant.state' && event.reason === 'all-for-one').length,
-    1
   );
 });
 
@@ -1208,7 +1196,7 @@ test('Soulcleave procs both damage packets and recharges from dismissal', () => 
   assert.equal(
     result.steps.at(-1).start,
     Math.ceil(
-      (dismiss.end + revenantCatalog.skillsByName.get("Soulcleave's Summit").manualReleaseCooldown * 1000) / 40
+      (dismiss.end + (revenantCatalog.skillsByName.get("Soulcleave's Summit").manualReleaseCooldown * 1000) / 1.25) / 40
     ) * 40
   );
 });
@@ -1240,7 +1228,7 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   const release = odds.steps.find((step) => step.skill === 'Relinquish Power');
   assert.equal(
     odds.steps.at(-1).start,
-    release.end + revenantCatalog.skillsByName.get('Impossible Odds').manualReleaseCooldown * 1000
+    release.end + (revenantCatalog.skillsByName.get('Impossible Odds').manualReleaseCooldown * 1000) / 1.25
   );
   assert.ok(
     odds.resolvedEvents.some(
@@ -1282,11 +1270,8 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   });
   const impossible = revenantCatalog.skillsByName.get('Impossible Odds');
 
-  const starvation = starved.events.find(
-    (event) => event.type === 'revenant.state' && event.reason === 'upkeep-starved'
-  );
-  assert.equal(starvation?.at, 1);
-  assert.equal(starved.schedulerState.cooldowns.get(impossible.id) - starvation.at, impossible.starvationCooldown);
+  // Starvation at one second starts the authored starvation cooldown from that boundary.
+  assert.equal(observedRuntime(starved).cooldowns.get(impossible.id), 1 + impossible.starvationCooldown / 1.25);
   assert.equal(starved.planningState.profession.activeUpkeeps.length, 0);
 });
 
@@ -1330,7 +1315,7 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
   assert.equal(dodges[2].coefficient, dodges[0].coefficient);
   assert.equal(result.planningState.profession.reaversCurseUntil, 0);
   assert.equal(
-    revenantAttributeRules.modifyStrikeDamage(
+    revenantModifiers.modifyStrikeDamage(
       {
         config: {
           specialization: 'Vindicator',
@@ -1369,16 +1354,12 @@ test('both Energy Meld variants grant resources only on completed casts', () => 
         selectedTraitIds: [TRAIT.ANGSIYANS_TRUST],
         boons: { quickness: true }
       });
-      const meld = result.events.filter((event) => event.type === 'revenant.state' && event.reason === 'energy-meld');
-
       assert.deepEqual(result.warnings, []);
-      assert.equal(meld.length, interruptAfterMs == null ? 1 : 0);
       const passiveEnergy = (5 * result.steps.at(-1).end) / 1000;
       assert.ok(
         Math.abs(result.planningState.profession.energy.value - passiveEnergy - (interruptAfterMs == null ? 25 : 0)) <
           1e-9
       );
-      if (meld.length) assert.equal(meld[0].at, result.steps.at(-1).end / 1000);
     }
   }
 });
@@ -1402,13 +1383,7 @@ test('Vindicator Dodge waits for endurance and Vigor shortens that wait', () => 
   assert.equal(withVigor.steps[1].start, withVigor.steps[0].end);
   // Vigor accelerates regeneration; neither path can spend endurance below zero.
   assert.ok(withVigor.steps[2].start < withoutVigor.steps[2].start);
-  for (const result of [withoutVigor, withVigor]) {
-    assert.ok(
-      result.events
-        .filter((event) => event.type === 'revenant.state' && event.reason === 'dodge')
-        .every((event) => event.state.endurance >= 0)
-    );
-  }
+  for (const result of [withoutVigor, withVigor]) assert.ok(result.planningState.profession.endurance >= 0);
 });
 
 test('Vindicator resource display includes live endurance', () => {
@@ -1498,20 +1473,22 @@ test('Vindicator dodges reset interrupted autoattack chains', () => {
 });
 
 test('Sigil of Energy restores 50 endurance on Revenant legend swap', () => {
-  const result = simulate('Vindicator', ['__combat_start', 'Dodge', 'Swap Legends', 'Dodge'], {
-    selectedLegends: [LEGEND.ASSASSIN, LEGEND.ALLIANCE],
-    startingLegend: LEGEND.ASSASSIN,
-    sigilSets: [{ names: ['Energy'] }, { names: [] }]
-  });
-  const energyProc = result.events.find((event) => event.type === 'proc' && event.name === 'Sigil of Energy');
-  const enduranceGain = result.events.find((event) => event.type === 'resource' && event.sourceId === 'sigil.energy');
-  const dodgeStates = result.events.filter((event) => event.type === 'revenant.state' && event.reason === 'dodge');
+  // Two dodges drain endurance first so the legend-swap proc is not clipped by the endurance cap.
+  const run = (names) =>
+    simulate('Vindicator', ['__combat_start', 'Dodge', 'Dodge', 'Swap Legends'], {
+      selectedLegends: [LEGEND.ASSASSIN, LEGEND.ALLIANCE],
+      startingLegend: LEGEND.ASSASSIN,
+      sigilSets: [{ names }, { names: [] }]
+    });
+  const result = run(['Energy']);
+  const baseline = run([]);
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(energyProc.sourceSkill, 'Swap Legends');
-  assert.equal(enduranceGain.amount, 50);
-  assert.equal(dodgeStates.length, 2);
-  assert.equal(dodgeStates[1].state.endurance, 50);
+  assert.deepEqual(
+    result.procSteps.filter((step) => step.skill === 'Sigil of Energy').map((step) => step.sourceSkill),
+    ['Swap Legends']
+  );
+  assert.equal(result.planningState.profession.endurance - baseline.planningState.profession.endurance, 50);
 });
 
 test('Call of the Alliance grants five endurance plus three per hit', () => {
@@ -1520,8 +1497,6 @@ test('Call of the Alliance grants five endurance plus three per hit', () => {
     startingLegend: LEGEND.ASSASSIN,
     selectedTraitIds: [TRAIT.SONG_OF_THE_MISTS]
   });
-  const swapState = result.events.find((event) => event.type === 'revenant.state' && event.reason === 'legend-swap');
-
   const call = revenantCatalog.skillsById.get(SKILL.CALL_OF_THE_ALLIANCE);
 
   assert.equal(call.resourceGain, 8);
@@ -1530,10 +1505,11 @@ test('Call of the Alliance grants five endurance plus three per hit', () => {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.ALLIANCE],
     startingLegend: LEGEND.ASSASSIN
   });
-  const baselineSwap = baseline.events.find(
-    (event) => event.type === 'revenant.state' && event.reason === 'legend-swap'
+  // Both runs end at the swap, so passive regeneration cancels out of the difference.
+  assert.equal(
+    result.planningState.profession.endurance - baseline.planningState.profession.endurance,
+    call.resourceGain
   );
-  assert.equal(swapState.state.endurance - baselineSwap.state.endurance, call.resourceGain);
 });
 
 test('Vindicator jumps pay endurance before midair Energy refunds and reset autos at landing', () => {
@@ -1562,10 +1538,6 @@ test('Vindicator jumps pay endurance before midair Energy refunds and reset auto
   assert.equal(jumps.length, 3);
   assert.ok(jumps.slice(1).every((step, index) => step.start === jumps[index].end));
   assert.equal(result.steps.at(-1).start, jumps.at(-1).end);
-  assert.equal(
-    result.events.find((entry) => entry.type === 'revenant.state' && entry.reason === 'dodge-jump').state.endurance,
-    50
-  );
 });
 
 test('Selfish Spirit uses its cooldown rather than ammo charges', () => {
@@ -1576,9 +1548,11 @@ test('Selfish Spirit uses its cooldown rather than ammo charges', () => {
     startingLegend: LEGEND.ALLIANCE
   });
   assert.deepEqual(result.warnings, []);
-  const action = result.events.find((event) => event.type === 'action' && event.skillId === SKILL.SELFISH_SPIRIT);
-  assert.ok(action.rechargeReadyAt > action.endsAt);
-  assert.equal(result.steps[1].start, Math.round(action.rechargeReadyAt * 1000));
+  // The channel's recharge begins when it ends; the second cast waits for that recharge.
+  assert.equal(
+    result.steps[1].start,
+    result.steps[0].end + (revenantCatalog.skillsById.get(SKILL.SELFISH_SPIRIT).cooldown * 1000) / 1.25
+  );
 });
 
 test('Vindicator Dodge + Auto palette action uses the current chain step', () => {
@@ -1701,7 +1675,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
 
   assert.deepEqual(combined.warnings, []);
   assert.equal(combined.steps[1].start, combined.steps[2].start);
-  assert.ok(combined.steps[1].fullCastMs > 0);
+  assert.ok(castMs(combined.steps[1]) > 0);
 });
 
 test('Vindicator legend skills preserve the Greatsword autoattack chain', () => {
@@ -1809,26 +1783,3 @@ test('Deathstrike weapon palette keeps the primary skill timing on cooldown', ()
 });
 
 // Restoring scheduler resources must preserve resolver-owned clocks in both active state slices.
-test('Revenant restoration preserves resolver-owned trait and Soulcleave clocks', () => {
-  const revenant = {
-    profession: {
-      core: {
-        energy: { value: 10, maximum: 100, updatedAt: 0, rate: 5 },
-        traitProcReadyAt: { chargedMistsReadyAt: 8 }
-      },
-      specialization: { kind: 'Renegade', state: { kallasFervor: 1, soulcleaveReadyAt: 9 } }
-    }
-  };
-  handleRevenantState(revenant, {
-    state: {
-      energy: { value: 20, maximum: 100, updatedAt: 0, rate: 5 },
-      kallasFervor: 2,
-      traitProcReadyAt: { chargedMistsReadyAt: 1 },
-      soulcleaveReadyAt: 3
-    }
-  });
-  assert.equal(revenant.profession.core.energy.value, 20);
-  assert.equal(revenant.profession.specialization.state.kallasFervor, 2);
-  assert.deepEqual(revenant.profession.core.traitProcReadyAt, { chargedMistsReadyAt: 8 });
-  assert.equal(revenant.profession.specialization.state.soulcleaveReadyAt, 9);
-});

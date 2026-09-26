@@ -1,3 +1,4 @@
+import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /**
  * Owns Core pistol-bullet loading, consumption, and enhanced payloads.
  *
@@ -11,11 +12,11 @@ import {
   balanceProfileNumber,
   effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { emitSkillBuff, emitSkillDamage } from '#gw2/platform/execution/gw2-policy/skill-events.js';
+import { emitElementalistBuff, emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
-import type { ElementalistCastContext as ElementalistLifecycleContext } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import {
   PISTOL_NO_CONSUME,
@@ -36,12 +37,11 @@ import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professio
  * otherwise the cast leaves one loaded. The no-consume and no-grant sets (the
  * Aerial Agility chain) opt out of one or both halves.
  */
-export function applyPistolState(context: ElementalistLifecycleContext, skill: Skill): void {
+export function applyPistolState(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
   if (skillWeapon(skill) !== 'Pistol') return;
   // A cancelled input cannot load or spend a bullet or apply its enhanced payload.
-  if (context.action?.cancelled === true) return;
   const state = professionCoreState(context);
-  const at = context.effectiveEnd;
+  const at = cast.effectiveEnd;
   const element = PISTOL_SKILL_ELEMENTS[Number(skill.id)];
   if (!element) return;
   // Spend branch: the enhanced payload differs per skill, so each is authored
@@ -68,17 +68,13 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
       // aftercast length and cancellation cannot move its enhanced detonation.
       const delay = balanceProfileNumber(frozenFusilladeProfile, 'initialDelay');
       const detonationAt =
-        context.start +
-        projectCastRelativeEffectTimingMs(
-          skill,
-          (context.fullEnd - context.start) * 1000,
-          Number(skill.interruptCommitMs)
-        ) /
+        cast.start +
+        projectCastRelativeEffectTimingMs(skill, (cast.fullEnd - cast.start) * 1000, Number(skill.interruptCommitMs)) /
           1000 +
         delay;
       const frozenFusilladeWaterBulletStrike = requireEffect(frozenFusilladeProfile, 'strike', 'Water Bullet');
       if (frozenFusilladeWaterBulletStrike) {
-        emitSkillDamage(context, {
+        emitElementalistDamage(context, {
           at: detonationAt,
           source: skill.name,
           sourceId: skill.id,
@@ -100,7 +96,8 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
       const shatteringStoneProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringStone);
       // Arm the buff on the event timeline so the resolver consumes its charges
       // in impact order, including attacks scheduled before this cast.
-      emitSkillBuff(context, skill, {
+      emitElementalistBuff(context, {
+        skill: skill,
         at,
         source: skill.name,
         kind: 'shattering stone',
@@ -110,7 +107,7 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
     } else if (skill.id === ID.BOULDER_BLAST) {
       // The projectile finisher is a separate non-weapon activation from the
       // pistol strike, so downstream combo damage must not reuse its roll.
-      emitSkillDamage(context, {
+      emitElementalistDamage(context, {
         at,
         source: skill.name,
         sourceId: skill.id,
@@ -119,7 +116,7 @@ export function applyPistolState(context: ElementalistLifecycleContext, skill: S
         skillId: skill.id,
         coefficient: 0,
         noCrit: true,
-        activationId: context.createActivationId('effect'),
+        activationId: `${cast.id}:boulder-finisher`,
         comboFinishers: [
           {
             ownerId: 'elementalist',

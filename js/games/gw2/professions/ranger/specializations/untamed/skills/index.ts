@@ -53,17 +53,11 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 0,
     cooldown: 1,
     // Both Unleash sides receive the same fixed, Alacrity-independent recharge.
-    mechanicTriggers: [
-      {
-        type: 'ranger.untamed.sync-unleash-cooldown',
-        timingAnchor: 'castEnd'
-      }
-    ],
+
     paletteTileId: UNLEASH_PALETTE_TILE,
     paletteTileOrder: 1,
-    effects: [],
-    // Custom: Transfers Unleash state to the ranger and may open an ambush window; see `untamed/execution/index.ts`.
-    handlerId: 'ranger.unleash-ranger'
+    effects: []
+    // Custom: Transfers Unleash state to the ranger and may open an ambush window; see `untamed/hooks.ts`.
   },
   [ID.EXPLODING_SPORES]: {
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -89,9 +83,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         controlKind: 'knockdown'
       }
     ]),
-    castTimeMs: 480,
-    // Custom: Chooses Might or Protection from the captured Unleash state; see `untamed/execution/index.ts`.
-    handlerId: 'ranger.exploding-spores'
+    castTimeMs: 480
+    // Custom: Chooses Might or Protection from the captured Unleash state; see `untamed/hooks.ts`.
   },
   [ID.FORESTS_FORTIFICATION]: {
     effects: [
@@ -134,9 +127,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         source: 'ranger-pet',
         actorType: 'summon'
       }
-    ],
-    // Custom: Applies pet-attributed Vulnerability only to defiant targets; see `untamed/execution/index.ts`.
-    handlerId: 'ranger.venomous-outburst'
+    ]
+    // Custom: Applies pet-attributed Vulnerability only to defiant targets; see `untamed/hooks.ts`.
   },
   [ID.RENDING_VINES]: {
     castTimeMs: 0,
@@ -173,17 +165,11 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     castTimeMs: 0,
     cooldown: 1,
     // Both Unleash sides receive the same fixed, Alacrity-independent recharge.
-    mechanicTriggers: [
-      {
-        type: 'ranger.untamed.sync-unleash-cooldown',
-        timingAnchor: 'castEnd'
-      }
-    ],
+
     paletteTileId: UNLEASH_PALETTE_TILE,
     paletteTileOrder: 2,
-    effects: [],
-    // Custom: Transfers Unleash state to the pet; see `untamed/execution/index.ts`.
-    handlerId: 'ranger.unleash-pet'
+    effects: []
+    // Custom: Transfers Unleash state to the pet; see `untamed/hooks.ts`.
   },
   [ID.RELENTLESS_WHIRL]: {
     interruptMode: 'per-packet',
@@ -237,9 +223,8 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         damageKind: 'life-steal'
       }
     ],
-    castTimeMs: 1560,
-    // Custom: Consumes the current unleashed-ambush window; see `untamed/execution/index.ts`.
-    handlerId: 'ranger.unleashed-ambush'
+    castTimeMs: 1560
+    // Custom: Consumes the current unleashed-ambush window; see `untamed/hooks.ts`.
   },
   [ID.DEFT_STRIKE]: {
     effects: [
@@ -284,8 +269,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
         damageKind: 'life-steal'
       }
     ],
-    castTimeMs: 960,
-    // Custom: Consumes the current unleashed-ambush window; see `untamed/execution/index.ts`.
-    handlerId: 'ranger.unleashed-ambush'
+    castTimeMs: 960
+    // Custom: Consumes the current unleashed-ambush window; see `untamed/hooks.ts`.
   }
 });

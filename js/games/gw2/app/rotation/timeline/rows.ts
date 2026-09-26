@@ -51,7 +51,7 @@ import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/res
 import { weaponSetActiveSegments, weaponSetDurationTotals } from '#gw2/app/rotation/timeline/timing/model.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { RotationCommand, SchedulerStep } from '#gw2/platform/execution/types.js';
+import type { RotationCommand, SimulationStep } from '#gw2/platform/execution/types.js';
 import { rotationInsertionGapHtml, rotationTimelineEntryHtml } from '#ui/rotation/insertion-cursor.js';
 
 /** The view retains a row's DOM node while both its identity and rendered HTML remain unchanged. */
@@ -108,7 +108,7 @@ export function timelineRowsView(
       ])
   );
   // ri < 0 marks injected/synthetic steps (e.g. auto-attacks) not tied to a rotation entry.
-  const steps = new Map<number, SchedulerStep>(
+  const steps = new Map<number, SimulationStep>(
     resultSteps.filter((step) => step.ri >= 0).map((step) => [step.ri, step])
   );
   const castOrdinals = timelineSkillCastOrdinals(resultSteps);
@@ -169,7 +169,7 @@ export function timelineRowsView(
   const transitionDelays = timelineTransitionDelayMarkers(
     resultSteps,
     results?.events || [],
-    Number(results?.schedulerState?.time || 0) * 1000
+    Number(results?.planningState?.atSeconds || 0) * 1000
   );
   for (const marker of deadTimes) {
     const markers = deadTimesByIndex.get(marker.insertionIndex) || [];

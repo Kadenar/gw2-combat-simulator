@@ -113,191 +113,243 @@ function strainFacts(
 }
 
 /** Engineer descriptions distinguish player, mech, and alternate proc payloads without running combat handlers. */
+const familyTooltips = {
+  'engineer.kit-equip': skillTooltip(
+    'Equip this kit, replacing the weapon bar. Kit transitions trigger supported swap and kit-equip traits.'
+  ),
+  'engineer.kit-stow': skillTooltip(
+    'Stow the active kit and return to the equipped weapon bar. Supported bar-swap effects apply.'
+  ),
+  'engineer.arm-flip': skillTooltip('Activate this skill and unlock its consumable follow-up.'),
+  'engineer.consume-flip': skillTooltip('Use and consume the follow-up unlocked by its parent skill.'),
+  'engineer.mine-field': skillTooltip(
+    'Place mines that detonate together. When cast before an explicit combat start, detonation waits for combat. Detonation counts as a second tool-belt activation for supported traits.'
+  ),
+  'engineer.gleam-saber': skillTooltip(
+    "Strike and reduce active recharge on your other sword skills. Holosmith's heat tier increases eligible sword strikes.",
+    (balanceContext) => heatStrikeFacts(balanceContext, HOLOSMITH.swordHeatTier)
+  ),
+  'engineer.dodge': skillTooltip(
+    'Spend endurance to dodge and refresh Explosive Entrance. Power Wrench and Adrenal Implant reduce their supported skill recharges. Thermal Release Valve triggers Vent Exhaust while in Photon Forge.',
+    (balanceContext) => [
+      profileFact(balanceContext, CORE.resources, 'resourceCost', 'Endurance cost'),
+      ...simulationEffectFacts(
+        balanceContext.catalog.skillsById.get(ID.VENT_EXHAUST)?.effects,
+        'requires Thermal Release Valve and active Photon Forge'
+      ).facts
+    ]
+  ),
+  'engineer.photon-forge-enter': skillTooltip(
+    'Enter Photon Forge, replace the weapon bar, and begin generating heat. Kits are briefly locked. Reaching maximum heat locks Forge attacks and starts overheat consequences; the rotation must still select the exit action. Applicable Forge-entry traits activate.',
+    (balanceContext) => [
+      profileFact(balanceContext, HOLOSMITH.heat, 'energyRegenerationPerSecond', 'Passive heat per second'),
+      profileFact(
+        balanceContext,
+        HOLOSMITH.heat,
+        'resourceGain',
+        'Additional heat per second with Light Density Amplifier'
+      ),
+      { name: 'Maximum heat', detail: tooltipDecimal(HOLOSMITH_HEAT.baseMaximum) },
+      {
+        name: 'Maximum heat with Enhanced Capacity Storage Unit',
+        detail: tooltipDecimal(HOLOSMITH_HEAT.enhancedCapacityMaximum)
+      }
+    ]
+  ),
+  'engineer.photon-forge-exit': skillTooltip(
+    'Leave Photon Forge and restore the weapon bar. Cooling begins after its delay and accelerates later. Photonic Blasting Module prevents cooling from ordinary exit; overheating still enables cooling. Forge-exit and bar-swap traits apply.',
+    (balanceContext) => [
+      profileFact(balanceContext, HOLOSMITH.heat, 'cooldown', 'Base Forge re-entry cooldown', tooltipSeconds),
+      { name: 'Cooling delay', detail: tooltipSeconds(HOLOSMITH_HEAT.coolingDelay) },
+      { name: 'Initial cooling per second', detail: tooltipDecimal(HOLOSMITH_HEAT.slowCoolingPerSecond) },
+      { name: 'Later cooling per second', detail: tooltipDecimal(HOLOSMITH_HEAT.fastCoolingPerSecond) }
+    ]
+  ),
+  'engineer.heat': skillTooltip(
+    'Use this Photon Forge attack and generate its heat on completion or a committed interruption.'
+  ),
+  'engineer.corona-burst-heat': skillTooltip(
+    "Emit the burst's pulses and generate heat per pulse. Once committed, scheduled heat pulses continue after leaving Photon Forge."
+  ),
+  'engineer.photon-blitz-heat': skillTooltip(
+    'Fire the channelled projectiles. Heat follows projectiles launched before the channel ends; interruption prevents later launches.'
+  ),
+  'engineer.overclock-signet': profileTooltip(
+    MECHANIST.overclock,
+    "Command the active mech to fire Jade Buster Cannon. Its basic attack loop pauses during the burst; mech quickness changes its attack rate. The signet's passive reduces other signet recharges, subject to its passive availability rules.",
+    (balanceContext, id) => [profileFact(balanceContext, id, 'packetCount', 'Cannon pulses')],
+    'companion effect · per cannon pulse'
+  ),
+  'engineer.conduit-surge': profileTooltip(
+    CORE.conduitSurge,
+    'Strike and burn the target, establishing Focused for subsequent spear attacks. Refreshing Focused preserves a longer existing window.',
+    (balanceContext, id) => [profileFact(balanceContext, id, 'durationMultiplier', 'Focused duration', tooltipSeconds)]
+  ),
+  'engineer.lightning-rod': (balanceContext) => ({
+    description:
+      'Start a repeating strike sequence that builds charges and later unlocks Electric Artillery. Each pulse checks whether the target is Focused. Recasting replaces the sequence and clears previous charges.',
+    facts: [CORE.lightningRod, CORE.focusedLightningRod].flatMap(
+      (id) =>
+        simulationEffectFacts(
+          tooltipProfile(balanceContext, id).effects,
+          id === CORE.lightningRod ? 'per pulse without Focused' : 'per pulse while Focused'
+        ).facts
+    )
+  }),
+  'engineer.electric-artillery': (balanceContext) => ({
+    description:
+      "Release the projectile and consume Lightning Rod's unexpired charges and follow-up. Charges are snapshotted on release; Focused is checked at impact. Charges extend burning and determine vulnerability stacks. Vulnerability duration is fixed.",
+    facts: [CORE.electricArtillery, CORE.focusedElectricArtillery].flatMap((id) => {
+      const qualifier = id === CORE.electricArtillery ? 'without Focused' : 'while Focused';
+      const profile = tooltipProfile(balanceContext, id);
+      return [
+        ...profile.effects!.flatMap(
+          (effect) =>
+            simulationEffectFacts(
+              [effect],
+              `${qualifier}${effect.type === 'condition' && effect.condition === 'Vulnerability' ? ' · per complete charge group' : effect.type === 'condition' && effect.condition === 'Burning' ? ' · base duration before charges' : ''}`
+            ).facts
+        ),
+        profileFact(balanceContext, id, 'maximumStacks', `Maximum charges counted ${qualifier}`),
+        profileFact(balanceContext, id, 'chargesPerVulnerability', `Charges per vulnerability group ${qualifier}`),
+        profileFact(
+          balanceContext,
+          id,
+          'burningDurationPerCharge',
+          `Burning duration added per charge ${qualifier}`,
+          tooltipSeconds
+        )
+      ];
+    })
+  }),
+  'engineer.roiling-skies': skillTooltip(
+    'Strike and cripple the target. Also stun it, or launch it instead while Focused.',
+    () => simulationEffectFacts([{ type: 'control', controlKind: 'stun' }], 'replaced by launch while Focused').facts
+  ),
+  'engineer.devastator': skillTooltip(
+    'Strike and burn the target. If Focused remains active at the end of the full cast, emit the delayed Focused Devastation follow-up.',
+    (balanceContext) =>
+      simulationEffectFacts(
+        balanceContext.catalog.skillsById.get(ID.FOCUSED_DEVASTATION)!.effects,
+        'additional follow-up while Focused'
+      ).facts
+  ),
+  'engineer.amalgam-morph': (balanceContext, entity) => {
+    const selected = balanceContext.catalog.skillsById.get(entity.id)!;
+    const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(entity.id);
+    const facts = [...simulationEffectFacts(selected.effects).facts];
+    let description =
+      'Activate this protocol and apply supported Morph and tool-belt traits. Silver Lining grants its corresponding strain on activation; otherwise Evolve grants selected strains.';
+    if (kind === 'thorns') {
+      description += ' Retaliation pulses require the damaging-field assumption.';
+      facts.push(
+        ...simulationEffectFacts(
+          tooltipProfile(balanceContext, AMALGAM.morphs).effects,
+          'per retaliation pulse; requires damaging-field assumption'
+        ).facts,
+        profileFact(balanceContext, AMALGAM.morphs, 'maximumStacks', 'Retaliation pulses'),
+        profileFact(balanceContext, AMALGAM.morphs, 'pulseInterval', 'Retaliation interval', tooltipSeconds)
+      );
+    }
+
+    if (kind) facts.push(...strainFacts(balanceContext, kind, 'requires Silver Lining'));
+    if (kind === 'demolish') description += ' Its strain grants stability and increases the bonuses of equipped gear.';
+    if (kind === 'obliterate') description += ' Its strain also grants power per might stack.';
+    if (kind === 'shred') description += ' Its strain also increases strike damage.';
+    return { description, facts };
+  },
+  'engineer.evolve': (balanceContext, entity) => ({
+    description:
+      'Enter Evolved form, increasing eligible attributes. Apply strains for the selected protocols, unless Silver Lining moved those grants to protocol activations. Symbiotic Synergy also recharges selected protocols. Double Helix selects the ammunition variant and larger attribute bonus.',
+    facts: [
+      profileFact(balanceContext, AMALGAM.evolve, 'durationMultiplier', 'Evolved duration', tooltipSeconds),
+      profileFact(
+        balanceContext,
+        AMALGAM.evolve,
+        entity.id === ID.EVOLVE_DOUBLE_HELIX ? 'coefficientMultiplier' : 'damageMultiplier',
+        'Eligible attribute increase',
+        tooltipFactorChange
+      ),
+      ...[...new Set(AMALGAM_MORPH_KIND_BY_SKILL_ID.values())].flatMap((kind) =>
+        strainFacts(balanceContext, kind, `${kind} protocol selected; without Silver Lining`)
+      )
+    ]
+  }),
+  'engineer.plasmatic-state': skillTooltip(
+    'Strike and burn foes, starting a temporary outgoing-damage bonus with the first strike.',
+    (balanceContext) => [
+      profileFact(
+        balanceContext,
+        AMALGAM.plasmaticState,
+        'durationMultiplier',
+        'Damage bonus duration',
+        tooltipSeconds
+      ),
+      modifierFact(balanceContext, 'engineer.plasmatic-state', 'amount', 'Strike and condition damage')
+    ]
+  )
+} satisfies Record<string, DescribeSimulationTooltip>;
+
+const familySkillIds: Record<keyof typeof familyTooltips, readonly SkillId[]> = {
+  'engineer.kit-equip': [ID.BOMB_KIT, ID.ELITE_MORTAR_KIT, ID.ELIXIR_GUN, ID.FLAMETHROWER, ID.GRENADE_KIT, ID.MED_KIT],
+  'engineer.kit-stow': [
+    ID.SWAP_WEAPONS,
+    ID.STOW_BOMB_KIT,
+    ID.STOW_ELITE_MORTAR_KIT,
+    ID.STOW_ELIXIR_GUN,
+    ID.STOW_FLAMETHROWER,
+    ID.STOW_GRENADE_KIT,
+    ID.STOW_MED_KIT
+  ],
+  'engineer.arm-flip': [ID.HEALING_TURRET, ID.THROW_MINE, ID.MAGNETIC_SHIELD, ID.STATIC_SHIELD, ID.PHOTON_WALL],
+  'engineer.consume-flip': [
+    ID.DETONATE_HEALING_TURRET,
+    ID.CLEANSING_BURST,
+    ID.DETONATE,
+    ID.THROW_SHIELD,
+    ID.MAGNETIC_INVERSION,
+    ID.LAUNCH_WALL
+  ],
+  'engineer.mine-field': [ID.MINE_FIELD],
+  'engineer.gleam-saber': [ID.GLEAM_SABER_ID_70771, ID.GLEAM_SABER],
+  'engineer.dodge': [ID.DODGE],
+  'engineer.photon-forge-enter': [ID.ENGAGE_PHOTON_FORGE],
+  'engineer.photon-forge-exit': [ID.DEACTIVATE_PHOTON_FORGE, ID.DEACTIVATE_PHOTON_FORGE_HOT],
+  'engineer.heat': [
+    ID.FLASH_CUTTER_STORM,
+    ID.BRIGHT_SLASH_STORM,
+    ID.HOLOGRAPHIC_SHOCKWAVE,
+    ID.HOLO_LEAP,
+    ID.LIGHT_STRIKE_STORM,
+    ID.LIGHT_STRIKE,
+    ID.BRIGHT_SLASH,
+    ID.FLASH_CUTTER
+  ],
+  'engineer.corona-burst-heat': [ID.CORONA_BURST],
+  'engineer.photon-blitz-heat': [ID.PHOTON_BLITZ],
+  'engineer.overclock-signet': [ID.OVERCLOCK_SIGNET],
+  'engineer.conduit-surge': [ID.CONDUIT_SURGE],
+  'engineer.lightning-rod': [ID.LIGHTNING_ROD],
+  'engineer.electric-artillery': [ID.ELECTRIC_ARTILLERY],
+  'engineer.roiling-skies': [ID.ROILING_SKIES],
+  'engineer.devastator': [ID.DEVASTATOR],
+  'engineer.amalgam-morph': [...AMALGAM_MORPH_KIND_BY_SKILL_ID.keys()],
+  'engineer.evolve': [ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX],
+  'engineer.plasmatic-state': [ID.PLASMATIC_STATE]
+};
+
 export const engineerTooltips: ProfessionTooltips = {
   skillFacts: (_c, entity) =>
     entity.heatGain == null
       ? []
       : [{ name: 'Heat generated by a full activation', detail: tooltipDecimal(tooltipNumber(entity, 'heatGain')) }],
-  handlers: {
-    'engineer.kit-equip': skillTooltip(
-      'Equip this kit, replacing the weapon bar. Kit transitions trigger supported swap and kit-equip traits.'
-    ),
-    'engineer.kit-stow': skillTooltip(
-      'Stow the active kit and return to the equipped weapon bar. Supported bar-swap effects apply.'
-    ),
-    'engineer.arm-flip': skillTooltip('Activate this skill and unlock its consumable follow-up.'),
-    'engineer.consume-flip': skillTooltip('Use and consume the follow-up unlocked by its parent skill.'),
-    'engineer.mine-field': skillTooltip(
-      'Place mines that detonate together. When cast before an explicit combat start, detonation waits for combat. Detonation counts as a second tool-belt activation for supported traits.'
-    ),
-    'engineer.gleam-saber': skillTooltip(
-      "Strike and reduce active recharge on your other sword skills. Holosmith's heat tier increases eligible sword strikes.",
-      (balanceContext) => heatStrikeFacts(balanceContext, HOLOSMITH.swordHeatTier)
-    ),
-    'engineer.dodge': skillTooltip(
-      'Spend endurance to dodge and refresh Explosive Entrance. Power Wrench and Adrenal Implant reduce their supported skill recharges. Thermal Release Valve triggers Vent Exhaust while in Photon Forge.',
-      (balanceContext) => [
-        profileFact(balanceContext, CORE.resources, 'resourceCost', 'Endurance cost'),
-        ...simulationEffectFacts(
-          balanceContext.catalog.skillsById.get(ID.VENT_EXHAUST)?.effects,
-          'requires Thermal Release Valve and active Photon Forge'
-        ).facts
-      ]
-    ),
-    'engineer.photon-forge-enter': skillTooltip(
-      'Enter Photon Forge, replace the weapon bar, and begin generating heat. Kits are briefly locked. Reaching maximum heat locks Forge attacks and starts overheat consequences; the rotation must still select the exit action. Applicable Forge-entry traits activate.',
-      (balanceContext) => [
-        profileFact(balanceContext, HOLOSMITH.heat, 'energyRegenerationPerSecond', 'Passive heat per second'),
-        profileFact(
-          balanceContext,
-          HOLOSMITH.heat,
-          'resourceGain',
-          'Additional heat per second with Light Density Amplifier'
-        ),
-        { name: 'Maximum heat', detail: tooltipDecimal(HOLOSMITH_HEAT.baseMaximum) },
-        {
-          name: 'Maximum heat with Enhanced Capacity Storage Unit',
-          detail: tooltipDecimal(HOLOSMITH_HEAT.enhancedCapacityMaximum)
-        }
-      ]
-    ),
-    'engineer.photon-forge-exit': skillTooltip(
-      'Leave Photon Forge and restore the weapon bar. Cooling begins after its delay and accelerates later. Photonic Blasting Module prevents cooling from ordinary exit; overheating still enables cooling. Forge-exit and bar-swap traits apply.',
-      (balanceContext) => [
-        profileFact(balanceContext, HOLOSMITH.heat, 'cooldown', 'Base Forge re-entry cooldown', tooltipSeconds),
-        { name: 'Cooling delay', detail: tooltipSeconds(HOLOSMITH_HEAT.coolingDelay) },
-        { name: 'Initial cooling per second', detail: tooltipDecimal(HOLOSMITH_HEAT.slowCoolingPerSecond) },
-        { name: 'Later cooling per second', detail: tooltipDecimal(HOLOSMITH_HEAT.fastCoolingPerSecond) }
-      ]
-    ),
-    'engineer.heat': skillTooltip(
-      'Use this Photon Forge attack and generate its heat on completion or a committed interruption.'
-    ),
-    'engineer.corona-burst-heat': skillTooltip(
-      "Emit the burst's pulses and generate heat per pulse. Once committed, scheduled heat pulses continue after leaving Photon Forge."
-    ),
-    'engineer.photon-blitz-heat': skillTooltip(
-      'Fire the channelled projectiles. Heat follows projectiles launched before the channel ends; interruption prevents later launches.'
-    ),
-    'engineer.overclock-signet': profileTooltip(
-      MECHANIST.overclock,
-      "Command the active mech to fire Jade Buster Cannon. Its basic attack loop pauses during the burst; mech quickness changes its attack rate. The signet's passive reduces other signet recharges, subject to its passive availability rules.",
-      (balanceContext, id) => [profileFact(balanceContext, id, 'packetCount', 'Cannon pulses')],
-      'companion effect · per cannon pulse'
-    ),
-    'engineer.conduit-surge': profileTooltip(
-      CORE.conduitSurge,
-      'Strike and burn the target, establishing Focused for subsequent spear attacks. Refreshing Focused preserves a longer existing window.',
-      (balanceContext, id) => [
-        profileFact(balanceContext, id, 'durationMultiplier', 'Focused duration', tooltipSeconds)
-      ]
-    ),
-    'engineer.lightning-rod': (balanceContext) => ({
-      description:
-        'Start a repeating strike sequence that builds charges and later unlocks Electric Artillery. Each pulse checks whether the target is Focused. Recasting replaces the sequence and clears previous charges.',
-      facts: [CORE.lightningRod, CORE.focusedLightningRod].flatMap(
-        (id) =>
-          simulationEffectFacts(
-            tooltipProfile(balanceContext, id).effects,
-            id === CORE.lightningRod ? 'per pulse without Focused' : 'per pulse while Focused'
-          ).facts
-      )
-    }),
-    'engineer.electric-artillery': (balanceContext) => ({
-      description:
-        "Release the projectile and consume Lightning Rod's unexpired charges and follow-up. Charges are snapshotted on release; Focused is checked at impact. Charges extend burning and determine vulnerability stacks. Vulnerability duration is fixed.",
-      facts: [CORE.electricArtillery, CORE.focusedElectricArtillery].flatMap((id) => {
-        const qualifier = id === CORE.electricArtillery ? 'without Focused' : 'while Focused';
-        const profile = tooltipProfile(balanceContext, id);
-        return [
-          ...profile.effects!.flatMap(
-            (effect) =>
-              simulationEffectFacts(
-                [effect],
-                `${qualifier}${effect.type === 'condition' && effect.condition === 'Vulnerability' ? ' · per complete charge group' : effect.type === 'condition' && effect.condition === 'Burning' ? ' · base duration before charges' : ''}`
-              ).facts
-          ),
-          profileFact(balanceContext, id, 'maximumStacks', `Maximum charges counted ${qualifier}`),
-          profileFact(balanceContext, id, 'chargesPerVulnerability', `Charges per vulnerability group ${qualifier}`),
-          profileFact(
-            balanceContext,
-            id,
-            'burningDurationPerCharge',
-            `Burning duration added per charge ${qualifier}`,
-            tooltipSeconds
-          )
-        ];
-      })
-    }),
-    'engineer.roiling-skies': skillTooltip(
-      'Strike and cripple the target. Also stun it, or launch it instead while Focused.',
-      () => simulationEffectFacts([{ type: 'control', controlKind: 'stun' }], 'replaced by launch while Focused').facts
-    ),
-    'engineer.devastator': skillTooltip(
-      'Strike and burn the target. If Focused remains active at the end of the full cast, emit the delayed Focused Devastation follow-up.',
-      (balanceContext) =>
-        simulationEffectFacts(
-          balanceContext.catalog.skillsById.get(ID.FOCUSED_DEVASTATION)!.effects,
-          'additional follow-up while Focused'
-        ).facts
-    ),
-    'engineer.amalgam-morph': (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id)!;
-      const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(entity.id);
-      const facts = [...simulationEffectFacts(selected.effects).facts];
-      let description =
-        'Activate this protocol and apply supported Morph and tool-belt traits. Silver Lining grants its corresponding strain on activation; otherwise Evolve grants selected strains.';
-      if (kind === 'thorns') {
-        description += ' Retaliation pulses require the damaging-field assumption.';
-        facts.push(
-          ...simulationEffectFacts(
-            tooltipProfile(balanceContext, AMALGAM.morphs).effects,
-            'per retaliation pulse; requires damaging-field assumption'
-          ).facts,
-          profileFact(balanceContext, AMALGAM.morphs, 'maximumStacks', 'Retaliation pulses'),
-          profileFact(balanceContext, AMALGAM.morphs, 'pulseInterval', 'Retaliation interval', tooltipSeconds)
-        );
-      }
 
-      if (kind) facts.push(...strainFacts(balanceContext, kind, 'requires Silver Lining'));
-      if (kind === 'demolish')
-        description += ' Its strain grants stability and increases the bonuses of equipped gear.';
-      if (kind === 'obliterate') description += ' Its strain also grants power per might stack.';
-      if (kind === 'shred') description += ' Its strain also increases strike damage.';
-      return { description, facts };
-    },
-    'engineer.evolve': (balanceContext, entity) => ({
-      description:
-        'Enter Evolved form, increasing eligible attributes. Apply strains for the selected protocols, unless Silver Lining moved those grants to protocol activations. Symbiotic Synergy also recharges selected protocols. Double Helix selects the ammunition variant and larger attribute bonus.',
-      facts: [
-        profileFact(balanceContext, AMALGAM.evolve, 'durationMultiplier', 'Evolved duration', tooltipSeconds),
-        profileFact(
-          balanceContext,
-          AMALGAM.evolve,
-          entity.id === ID.EVOLVE_DOUBLE_HELIX ? 'coefficientMultiplier' : 'damageMultiplier',
-          'Eligible attribute increase',
-          tooltipFactorChange
-        ),
-        ...[...new Set(AMALGAM_MORPH_KIND_BY_SKILL_ID.values())].flatMap((kind) =>
-          strainFacts(balanceContext, kind, `${kind} protocol selected; without Silver Lining`)
-        )
-      ]
-    }),
-    'engineer.plasmatic-state': skillTooltip(
-      'Strike and burn foes, starting a temporary outgoing-damage bonus with the first strike.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          AMALGAM.plasmaticState,
-          'durationMultiplier',
-          'Damage bonus duration',
-          tooltipSeconds
-        ),
-        modifierFact(balanceContext, 'engineer.plasmatic-state', 'amount', 'Strike and condition damage')
-      ]
-    )
-  },
   skills: {
+    ...Object.fromEntries(
+      Object.entries(familySkillIds).flatMap(([family, ids]) =>
+        ids.map((id) => [id, familyTooltips[family as keyof typeof familyTooltips]])
+      )
+    ),
     [ID.AIR_BLAST]: (balanceContext, entity) => {
       const effects = balanceContext.catalog.skillsById.get(entity.id)!.effects!;
       const burning = effects.find((effect) => effect.type === 'custom')?.event;

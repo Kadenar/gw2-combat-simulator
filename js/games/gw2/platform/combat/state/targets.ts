@@ -5,6 +5,15 @@ import { isTimeInWindow } from '#kernel/core/clock.js';
 
 const HOSTILE_TARGET_EVENT_TYPES = new Set(['damage', 'condition', 'condition_tick', 'control', 'blind']);
 
+/** Accepted player/summon target actions establish combat before their first damage payout. */
+export function isCombatEntryEvent(event: { readonly type: string; readonly actorType?: string }): boolean {
+  return (
+    event.type === 'combat_start' ||
+    (['damage', 'condition', 'control', 'blind'].includes(event.type) &&
+      ['player', 'summon'].includes(String(event.actorType)))
+  );
+}
+
 /** Identifies enemy-facing packets, which targeting options may suppress or delay independently of self effects. */
 export function isHostileTargetEvent(event: { readonly type: string }): boolean {
   return HOSTILE_TARGET_EVENT_TYPES.has(event.type);

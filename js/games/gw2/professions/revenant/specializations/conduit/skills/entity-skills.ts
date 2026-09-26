@@ -1,6 +1,6 @@
 /**
  * Owns Conduit entity-legend weapon and stance skill fragments.
- * Cast behavior is routed through `execution/entities.ts`.
+ * Cast behavior is routed through `conduit/hooks.ts`.
  */
 import { impactEffects } from '#gw2/platform/engine/effects/authoring.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
@@ -8,8 +8,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 // Both API identities represent the same skill, so one fragment keeps their simulation behavior synchronized.
 const BEGUILING_HAZE_SKILL: Partial<Skill> = {
-  // Custom: Selects initial/follow-up packets and charge state from affinity; see `execution/entities.ts`.
-  handlerId: 'revenant.beguiling-haze',
+  // Custom: Selects initial/follow-up packets and charge state from affinity; see `conduit/hooks.ts`.
   // Relic of Peitha impacts 320 ms after the strike, which lands 40 ms before either variant's cast end.
   shadowstepSkill: true,
   peithaImpactAnchor: 'castEnd',
@@ -35,8 +34,7 @@ const BEGUILING_HAZE_SKILL: Partial<Skill> = {
 
 // Both API identities represent the same skill, so one fragment keeps their simulation behavior synchronized.
 const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
-  // Custom: Materializes affinity-dependent strikes and state changes; see `execution/entities.ts`.
-  handlerId: 'revenant.twin-moon-sweep',
+  // Custom: Materializes affinity-dependent strikes and state changes; see `conduit/hooks.ts`.
   castTimeMs: 920,
   cooldown: 3,
   energyCost: 25,
@@ -121,8 +119,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   [ID.TWIN_MOON_SWEEP_ID_77001]: TWIN_MOON_SWEEP_SKILL,
   [ID.BEGUILING_HAZE]: BEGUILING_HAZE_SKILL,
   [ID.HEX_EATER_VORTEX]: {
-    // Custom: Materializes affinity-dependent pulses and charge consumption; see `execution/entities.ts`.
-    handlerId: 'revenant.hex-eater-vortex',
+    // Custom: Materializes affinity-dependent pulses and charge consumption; see `conduit/hooks.ts`.
     castTimeMs: 520,
     cooldown: 5,
     energyCost: 15,
@@ -153,8 +150,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     legendId: 'LegendaryEntity'
   },
   [ID.GLADIATORS_DEFENSE]: {
-    // Custom: Materializes affinity-dependent packets and defense state; see `execution/entities.ts`.
-    handlerId: 'revenant.gladiators-defense',
+    // Custom: Materializes affinity-dependent packets and defense state; see `conduit/hooks.ts`.
     // The stunbreak commits before the remaining animation, which the default input cancels.
     castTimeMs: 240,
     interruptCommitMs: 40,

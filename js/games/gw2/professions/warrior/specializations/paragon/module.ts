@@ -1,14 +1,10 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import { PARAGON_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
-import { paragonSkillHandlers } from '#gw2/professions/warrior/specializations/paragon/execution/index.js';
-import {
-  paragonAttributeRules,
-  paragonSchedulerHooks
-} from '#gw2/professions/warrior/specializations/paragon/mechanics/chants-and-motivation.js';
+import { paragonModifiers } from '#gw2/professions/warrior/specializations/paragon/modifiers.js';
+import { paragonHooks } from '#gw2/professions/warrior/specializations/paragon/hooks.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import { paragonUi } from '#gw2/professions/warrior/specializations/paragon/presentation.js';
-import { paragonResolverEventHandlers } from '#gw2/professions/warrior/specializations/paragon/mechanics/chant-effects.js';
 import { PARAGON_BALANCE_PROFILES } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 
 export const paragonModule = defineNativeModule({
@@ -17,16 +13,8 @@ export const paragonModule = defineNativeModule({
     skillMechanics: PARAGON_SKILL_MECHANICS,
     balanceProfiles: PARAGON_BALANCE_PROFILES
   }),
-  state: { scheduler: paragonState.create, resolver: paragonState.create },
-  mechanics: {
-    modifiers: paragonAttributeRules,
-    execution: {
-      skillHandlers: paragonSkillHandlers,
-      hooks: paragonSchedulerHooks
-    },
-    resolution: {
-      hooks: { eventHandlers: paragonResolverEventHandlers }
-    }
-  },
+  state: { create: paragonState.create },
+  modifiers: paragonModifiers,
+  hooks: paragonHooks,
   presentation: paragonUi
 });

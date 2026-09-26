@@ -93,7 +93,9 @@ test('target impact details preserve precombat applications and distinguish sepa
     ],
     [
       { activationId: 'first', type: 'damage', at: 1.8 },
-      { activationId: 'first', type: 'condition', at: 1.3 },
+      { activationId: 'first', type: 'condition', at: 1.3, eventOrder: 2, causalOrder: 2 },
+      // An explicit parent marks derived proc work; causal placement alone also belongs to ordinary live packets.
+      { activationId: 'first', type: 'condition', at: 1.1, eventOrder: 3, causalOrder: 1, parentEventOrder: 1 },
       { activationId: 'first', type: 'damage', at: 1.1, cancelled: true },
       { activationId: 'first', type: 'control', controlKind: 'initial-state', at: 1 },
       { activationId: 'second', type: 'damage', at: 3.6, offTarget: true },
@@ -148,13 +150,13 @@ test('Dragon Trigger excludes only its charge window from timeline gaps and tota
       const result = {
         steps: [
           { ri: 0, skill: 'Dragon Trigger', start: 1000, end: 1000 },
-          { ri: 1, skill: 'Dragon Slash', start, end: start + 500 }
+          { ri: 1, skill: 'Dragon Slash', activationId: 'slash', start, end: start + 500 }
         ],
         events: [
           {
             type: 'resource',
             reason: 'profession mechanic',
-            rotationIndex: 1,
+            activationId: 'slash',
             chargingSeconds,
             maximumChargingSeconds
           }

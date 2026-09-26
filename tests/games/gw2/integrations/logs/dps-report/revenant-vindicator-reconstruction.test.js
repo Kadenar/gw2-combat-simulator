@@ -4,7 +4,7 @@ import test from 'node:test';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 
 const report = parseDpsReport({
   durationMS: 2000,
@@ -29,21 +29,21 @@ const report = parseDpsReport({
   }
 });
 
+// The reconstructed rotation executes on the registered live Revenant family.
 function simulate(rotation, sigil) {
-  return simulateGw2({
-    profession: revenantProfession,
-    rotation,
-    config: {
-      specialization: 'Vindicator',
-      selectedLegends: ['LegendaryAssassin', 'LegendaryAlliance'],
-      startingLegend: 'LegendaryAssassin',
-      initialEnergy: 50,
-      sigilSets: [{ names: [sigil] }, { names: [] }],
-      stats: { power: 2000, precision: 1500, ferocity: 500, vitality: 1000 },
-      target: { armor: 2597, health: 4_000_000, conditions: {} }
-    }
-  });
+  const config = {
+    specialization: 'Vindicator',
+    selectedLegends: ['LegendaryAssassin', 'LegendaryAlliance'],
+    startingLegend: 'LegendaryAssassin',
+    initialEnergy: 50,
+    sigilSets: [{ names: [sigil] }, { names: [] }],
+    stats: { power: 2000, precision: 1500, ferocity: 500, vitality: 1000 },
+    target: { armor: 2597, health: 4_000_000, conditions: {} }
+  };
+  return runGw2Runtime({ profession: revenantProfession.runtimeFor(config), config, rotation });
 }
+
+const energyProcs = (result) => result.procSteps.filter((step) => step.skill === 'Sigil of Energy').length;
 
 test('dps.report Vindicator reconstruction includes takeoff and recognizes Energy sigil', () => {
   const reconstruction = reconstructDpsReportRotation(report, revenantCatalog);
@@ -54,13 +54,8 @@ test('dps.report Vindicator reconstruction includes takeoff and recognizes Energ
   assert.deepEqual(actionNames, ['Dodge Jump', 'Swap Legends', 'Dodge Jump']);
   // The source landing at 100 ms belongs to the jump beginning 600 ms earlier.
   assert.equal(reconstruction.timelineOriginMs, -500);
-  assert.equal(energy.steps.find((step) => step.skill === 'Dodge Jump').fullCastMs, 800);
-  assert.equal(
-    energy.events.filter((event) => event.type === 'resource' && event.sourceId === 'sigil.energy').length,
-    1
-  );
-  assert.equal(
-    other.events.filter((event) => event.type === 'resource' && event.sourceId === 'sigil.energy').length,
-    0
-  );
+  const jump = energy.steps.find((step) => step.skill === 'Dodge Jump');
+  assert.equal(jump.end - jump.start, 800);
+  assert.equal(energyProcs(energy), 1);
+  assert.equal(energyProcs(other), 0);
 });

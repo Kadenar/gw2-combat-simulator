@@ -1,6 +1,6 @@
 /**
  * Rotation normalization keeps downloaded legacy rotations and shorthand inputs at
- * the boundary while the scheduler and application use canonical commands.
+ * the boundary while the runtime and application use canonical commands.
  */
 import type { CatalogLookup } from '#gw2/platform/engine/skills/types.js';
 import type { RotationCommand } from '#gw2/platform/execution/types.js';
@@ -29,7 +29,7 @@ function positiveInteger(value: unknown, field: string): number {
 }
 
 /**
- * Converts one rotation entry into the canonical scheduler command shape.
+ * Converts one rotation entry into the canonical command shape.
  */
 function normalizeRotationCommand(entry: unknown, catalog: CatalogLookup | null = null): RotationCommand {
   if (typeof entry === 'number') return { type: 'cast', skillId: canonicalGw2SkillId(entry) };

@@ -1,7 +1,7 @@
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyMesmerCoreAttributes } from '#gw2/professions/mesmer/core/traits/modifiers.js';
+import { applyMesmerCoreAttributes } from '#gw2/professions/mesmer/core/modifiers.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 
 // Cached build facts must not freeze signet recharge or timed stacks, or leak across simulation/patch queries.

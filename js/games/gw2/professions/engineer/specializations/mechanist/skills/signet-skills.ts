@@ -15,7 +15,7 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<S
   },
   [ID.OVERCLOCK_SIGNET]: {
     // Orders the active mech to channel Jade Buster Cannon; see `mechanist/mechanics/mech.ts`.
-    handlerId: 'engineer.overclock-signet',
+
     castTimeMs: 0,
     cooldown: 90,
     effects: []

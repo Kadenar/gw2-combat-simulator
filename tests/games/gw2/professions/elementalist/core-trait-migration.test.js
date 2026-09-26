@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
@@ -43,7 +43,7 @@ function simulate(rotation, { traits, startAttunement = 'Fire', selectedSkills =
   elementalistAppAdapter.recalculate(app);
   const config = elementalistAppAdapter.simulationConfig(app);
 
-  return simulateGw2({
+  return runElementalist({
     profession: elementalistProfession,
     rotation: commands,
     config: {

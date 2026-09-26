@@ -8,7 +8,6 @@ import {
 import { remainingTargetHealthBelow, remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { boundedNumber, clamp } from '#kernel/core/numeric.js';
 
 interface RuntimeSkillEvent {
@@ -72,8 +71,7 @@ export function activeBoonStacks(context: Gw2ModifierContext, boon: string, maxi
   const base = permanent === true ? 1 : Number(permanent || 0);
   // Configured duration presence needs no history, but must still respect the caller's output cap.
   if (base > 0 && isDurationStackingBoon(boon)) return clamp(1, 0, maximum);
-  const schedulerState = context.state as { readonly boons?: Map<string, Gw2TimedBuffApplication[]> } | undefined;
-  const boons = context.runtime?.boons ?? schedulerState?.boons;
+  const boons = context.runtime?.boons;
   const applications = boons?.get(boon) || [];
   const dynamic = buffApplicationStacks(applications, boon, context.time, Infinity);
   return clamp((isDurationStackingBoon(boon) ? 0 : base) + dynamic, 0, maximum);

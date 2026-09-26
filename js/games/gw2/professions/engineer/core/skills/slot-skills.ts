@@ -10,8 +10,8 @@ const HEALING_TURRET_PALETTE_TILE = 'engineer-healing-turret';
 export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.HEALING_TURRET]: {
     // Custom: Arms Detonate Healing Turret, fires the automatic Cleansing Burst pulse, and starts the
-    // 10s overcharge window; see `core/mechanics/healing-turret.ts`.
-    handlerId: 'engineer.arm-flip',
+    // 10s overcharge window; see `core/mechanics/weapons.ts`.
+
     paletteFlipSkillId: ID.DETONATE_HEALING_TURRET,
     paletteTileId: HEALING_TURRET_PALETTE_TILE,
     paletteTileOrder: 1,
@@ -45,8 +45,8 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.DETONATE_HEALING_TURRET]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/execution/index.ts`.
-    handlerId: 'engineer.consume-flip',
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/hooks.ts`.
+
     flipParentName: 'Healing Turret',
     paletteTileId: HEALING_TURRET_PALETTE_TILE,
     paletteTileOrder: 2,
@@ -71,8 +71,8 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.CLEANSING_BURST]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/execution/index.ts`.
-    handlerId: 'engineer.consume-flip',
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/hooks.ts`.
+
     flipParentName: 'Healing Turret',
     paletteTileId: HEALING_TURRET_PALETTE_TILE,
     paletteTileOrder: 3,
@@ -96,16 +96,16 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.THROW_MINE]: {
-    // Custom: Arms this skill's follow-up palette flip; see `core/execution/index.ts`.
-    handlerId: 'engineer.arm-flip',
+    // Custom: Arms this skill's follow-up palette flip; see `core/hooks.ts`.
+
     paletteFlipSkillId: ID.DETONATE,
     castTimeMs: 360,
     cooldown: 12,
     rechargeAnchor: 'castStart'
   },
   [ID.DETONATE]: {
-    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/execution/index.ts`.
-    handlerId: 'engineer.consume-flip',
+    // Custom: Consumes the armed follow-up flip and related trait effects; see `core/hooks.ts`.
+
     flipParentName: 'Throw Mine',
     castTimeMs: 0,
     cooldown: 0,

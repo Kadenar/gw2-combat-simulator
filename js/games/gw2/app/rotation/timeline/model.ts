@@ -1,5 +1,5 @@
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { RotationCommand, SchedulerStep } from '#gw2/platform/execution/types.js';
+import type { RotationCommand, SimulationStep } from '#gw2/platform/execution/types.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/resolver/types.js';
 
@@ -44,7 +44,7 @@ export interface TimelineDeadTimeOptions {
   readonly includeExplicitWaits?: boolean;
 }
 
-interface TimelineDeadTimeStep extends SchedulerStep {
+interface TimelineDeadTimeStep extends SimulationStep {
   readonly type?: unknown;
   readonly partialFill?: {
     readonly startMs?: unknown;
@@ -54,7 +54,7 @@ interface TimelineDeadTimeStep extends SchedulerStep {
 
 /** Preserves millisecond timing in cast details so short waits are not displayed as rounded centiseconds. */
 export function formatTimelineCastDetails(
-  step: SchedulerStep | null | undefined,
+  step: SimulationStep | null | undefined,
   formatTime: (time: number) => string
 ): string {
   const start = Number(step?.start);
@@ -66,7 +66,7 @@ export function formatTimelineCastDetails(
 
 /** Read scheduled impacts so precombat suppression does not hide the timing needed to place Combat Start. */
 export function timelineTargetImpactDetails(
-  steps: readonly SchedulerStep[],
+  steps: readonly SimulationStep[],
   events: readonly SimulationEvent[]
 ): Map<string, string> {
   const details = new Map<string, string>();
@@ -85,14 +85,15 @@ export function timelineTargetImpactDetails(
  * so they follow that hit instead of being hits of the skill.
  */
 export function timelineImpactOffsets(
-  steps: readonly SchedulerStep[],
+  steps: readonly SimulationStep[],
   events: readonly SimulationEvent[]
 ): Map<string, number[]> {
   const impactTimes = new Map<string, Set<number>>();
   for (const event of events) {
     if (
       !event.activationId ||
-      event.causalOrder != null ||
+      // All live packets have causal placement; only explicit derivation excludes a proc from its cast's impacts.
+      event.parentEventOrder != null ||
       event.cancelled === true ||
       !['damage', 'condition', 'control', 'blind'].includes(event.type) ||
       event.controlKind === 'initial-state'
@@ -149,7 +150,7 @@ function isTimelineSkillStep(step: TimelineDeadTimeStep): boolean {
   );
 }
 
-export function timelineSkillCastOrdinals(steps: readonly SchedulerStep[] = []): Map<number, TimelineCastOrdinal> {
+export function timelineSkillCastOrdinals(steps: readonly SimulationStep[] = []): Map<number, TimelineCastOrdinal> {
   const casts = steps
     .filter(isTimelineSkillStep)
     .sort((left, right) => Number(left.start || 0) - Number(right.start || 0) || Number(left.ri) - Number(right.ri));
@@ -360,7 +361,7 @@ export function formatTimelineDuration(durationMs: unknown): string {
 
 export function formatTimelineSkillTooltip(
   name: unknown,
-  step: SchedulerStep | null | undefined,
+  step: SimulationStep | null | undefined,
   ordinal: TimelineCastOrdinal | null | undefined,
   formatTime: (time: number) => string,
   details: readonly string[] = []
@@ -511,7 +512,7 @@ export interface ProcTimelineMarker extends Gw2ProcStep {
   readonly expired?: boolean;
 }
 
-function procMarkerInsertionIndex(steps: readonly SchedulerStep[], start: number, rotationLength: number): number {
+function procMarkerInsertionIndex(steps: readonly SimulationStep[], start: number, rotationLength: number): number {
   return steps.find((step) => step.start > start)?.ri ?? rotationLength;
 }
 
@@ -774,16 +775,18 @@ export function shatterResourceSpends(
   result: Gw2SimulationResult | null | undefined
 ): Map<number, ShatterResourceSpend> {
   const spends = new Map<number, ShatterResourceSpend>();
+  // Match executed spends to their owning activation; future planning indices are not event identity.
+  const activations = new Map((result?.steps ?? []).map((step) => [step.activationId, step]));
   for (const event of result?.events || []) {
-    const rotationIndex = Number(event.rotationIndex);
-    if (event.type !== 'resource' || event.reason !== 'profession mechanic' || !Number.isInteger(rotationIndex)) {
+    const activation = event.activationId == null ? undefined : activations.get(event.activationId);
+    if (event.type !== 'resource' || event.reason !== 'profession mechanic' || activation?.ri == null) {
       continue;
     }
 
-    spends.set(rotationIndex, {
+    spends.set(activation.ri, {
       count: Math.abs(Number(event.amount || 0)),
       resource: String(event.resource || 'resources'),
-      sourceSkill: String(event.sourceSkill || ''),
+      sourceSkill: activation.skill,
       ...(event.requestedCharges == null ? {} : { requestedCharges: Number(event.requestedCharges) }),
       ...(event.maximumCharges == null ? {} : { maximumCharges: Number(event.maximumCharges) }),
       ...(event.chargesReached == null ? {} : { chargesReached: Number(event.chargesReached) }),
@@ -796,7 +799,7 @@ export function shatterResourceSpends(
   return spends;
 }
 
-export interface TimelineChargeFillStep extends SchedulerStep {
+export interface TimelineChargeFillStep extends SimulationStep {
   readonly partialFill?: {
     readonly startMs: number;
     readonly durationMs: number;
@@ -810,7 +813,7 @@ export interface TimelineChargeFillStep extends SchedulerStep {
  * full charge remains idle. Keep the fill anchored to entry, not release.
  */
 export function timelineStepsWithChargeFills(
-  steps: readonly SchedulerStep[],
+  steps: readonly SimulationStep[],
   resourceSpends: ReadonlyMap<number, ShatterResourceSpend>
 ): TimelineChargeFillStep[] {
   return steps.map((step) => {

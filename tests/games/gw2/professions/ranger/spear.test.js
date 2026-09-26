@@ -1,11 +1,12 @@
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
-const simulate = createProfessionSimulator(rangerProfession, {
+const simulate = createObservedProfessionSimulator(rangerProfession, {
   primaryWeapon: 'Spear',
   secondaryWeapon: '',
   selectedPet: 'Pig',
@@ -45,8 +46,8 @@ test('Panther charges recharge serially and do not share recharge with Spider', 
   ]);
   assert.deepEqual(result.warnings, []);
   const prowl = result.steps.filter((step) => step.skillId === ID.PANTHERS_PROWL);
-  assert.ok(prowl[1].start < prowl[0].end + 10_000);
-  assert.equal(prowl[2].start, prowl[0].end + 10_000);
+  assert.ok(prowl[1].start < prowl[0].end + 8000);
+  assert.equal(prowl[2].start, prowl[0].end + 8000);
   assert.equal(result.planningState.ammoBySkillId[ID.PANTHERS_PROWL].charges, 0);
 });
 
@@ -59,8 +60,8 @@ test('spear slots 2–4 commit identical cooldowns for base and stealth skills',
     for (const rotation of [[base], [ID.PANTHERS_PROWL, stealth], [ID.PANTHERS_PROWL, cast(stealth, 1)]]) {
       const result = simulate('Soulbeast', rotation);
       assert.deepEqual(result.warnings, []);
-      assert.ok(result.schedulerState.cooldowns.get(base) > 0);
-      assert.equal(result.schedulerState.cooldowns.get(base), result.schedulerState.cooldowns.get(stealth));
+      assert.ok(observedRuntime(result).cooldowns.get(base) > 0);
+      assert.equal(observedRuntime(result).cooldowns.get(base), observedRuntime(result).cooldowns.get(stealth));
     }
   }
 });

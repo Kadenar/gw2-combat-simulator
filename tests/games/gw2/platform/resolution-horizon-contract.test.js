@@ -5,7 +5,6 @@ import { EPSILON } from '#kernel/core/clock.js';
 
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
-import { createScheduler } from '#gw2/platform/execution/scheduler.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
 
@@ -13,6 +12,7 @@ const forbiddenHorizonField = ['extends', 'Resolution', 'Horizon'].join('');
 
 function fixtureConfig(overrides = {}) {
   return {
+    weaponStrength: 1000,
     stats: {
       power: 1000,
       precision: 1000,
@@ -21,7 +21,6 @@ function fixtureConfig(overrides = {}) {
       expertise: 0
     },
     target: { armor: 2597, ...(overrides.target || {}) },
-    weaponStrength: 1000,
     ...overrides
   };
 }
@@ -174,6 +173,7 @@ function contractProfession() {
       {
         id: 990010,
         name: 'Per-packet Channel',
+        weapon: 'Sword',
         castTimeMs: 1000,
         interruptMode: 'per-packet',
         effects: [
@@ -215,51 +215,41 @@ function contractProfession() {
     name: 'Resolution Contract',
     catalog,
     resources: {
-      createProfessionState: () => ({ actorActiveUntil: 0 })
+      createState: () => ({ actorActiveUntil: 0 })
     },
-    schedulerHooks: {
-      onCastStart(context, skill) {
+    hooks: {
+      onCastStart(context, { skill, start }) {
         if (skill.id !== 990005) return;
         context.emit({
           type: 'damage',
           actorType: 'player',
-          at: context.start + 2,
+          at: start + 2,
           source: 'Metadata Bait',
           sourceId: skill.id,
           flatDamage: 100,
           [forbiddenHorizonField]: true
         });
       },
-      onCastComplete(context, skill) {
+      onCastComplete(context, { skill, effectiveEnd }) {
         if (skill.id !== 990006) return;
-        context.state.profession.actorActiveUntil = context.effectiveEnd + 4;
-        context.tasks.schedule({
-          type: 'fixture.persistent-actor',
-          at: context.effectiveEnd + 1,
-          ownerId: context.reservationId,
-          payload: {}
-        });
+        context.profession.actorActiveUntil = effectiveEnd + 4;
+        context.schedule('fixture.persistent-actor', effectiveEnd + 1);
       },
-      taskHandlers: {
-        'fixture.persistent-actor': (context, task) => {
-          if (task.at > context.state.profession.actorActiveUntil + EPSILON) {
+      tasks: {
+        'fixture.persistent-actor': (context) => {
+          if (context.time > context.profession.actorActiveUntil + EPSILON) {
             return;
           }
 
           context.emit({
             type: 'damage',
-            at: task.at,
+            at: context.time,
             source: 'Persistent Actor',
             sourceId: 'fixture.actor',
             actorType: 'summon',
             flatDamage: 10
           });
-          context.tasks.schedule({
-            type: 'fixture.persistent-actor',
-            at: task.at + 1,
-            ownerId: task.ownerId,
-            payload: {}
-          });
+          context.schedule('fixture.persistent-actor', context.time + 1);
         }
       }
     }
@@ -295,11 +285,14 @@ test('delayed packets resolve during later casts and lethal packets clip them', 
 });
 
 test('terminal packets require an explicit observation tail or wait', () => {
-  const scheduled = createScheduler({ profession }).run(['Delayed Packet']);
+  const scheduled = simulateGw2({ profession, rotation: ['Delayed Packet'] });
 
-  assert.equal(scheduled.stream.rotationEndTime, 0.2);
-  assert.equal(scheduled.stream.resolutionEndTime, 0.2);
-  assert.ok(scheduled.events.some((event) => event.type === 'damage' && event.at === 0.8));
+  assert.equal(scheduled.rotationEndTime, 0.2);
+  assert.equal(scheduled.planningState.atSeconds, 0.2);
+  assert.equal(
+    scheduled.events.some((event) => event.type === 'damage' && event.at === 0.8),
+    false
+  );
 
   const defaultResult = simulateGw2({
     profession,
@@ -374,15 +367,16 @@ test('invalid and contradictory observation boundaries are rejected', () => {
     { kind: 'absolute', endTimeMs: Number.NaN },
     { kind: 'unknown' }
   ]) {
-    assert.throws(() => createScheduler({ profession, observationPolicy }), /Observation|observation/);
+    assert.throws(() => simulateGw2({ profession, observationPolicy, rotation: [] }), /Observation|observation/);
   }
 
   assert.throws(
     () =>
-      createScheduler({
+      simulateGw2({
         profession,
-        observationPolicy: { kind: 'absolute', endTimeMs: 100 }
-      }).run(['Delayed Packet']),
+        observationPolicy: { kind: 'absolute', endTimeMs: 100 },
+        rotation: ['Delayed Packet']
+      }),
     /cannot precede rotation end/
   );
 });
@@ -416,10 +410,10 @@ test('interrupt persistence requires the declared commit point', () => {
     /interruptCommitMs/
   );
 
-  const beforeCommit = createScheduler({ profession }).run([
-    { name: 'Committed Channel', interruptMs: 200 },
-    'Long Follow-up'
-  ]);
+  const beforeCommit = simulateGw2({
+    profession,
+    rotation: [{ name: 'Committed Channel', interruptMs: 200 }, 'Long Follow-up']
+  });
 
   assert.deepEqual(
     beforeCommit.events
@@ -429,10 +423,10 @@ test('interrupt persistence requires the declared commit point', () => {
     []
   );
 
-  const afterCommit = createScheduler({ profession }).run([
-    { name: 'Committed Channel', interruptMs: 400 },
-    'Long Follow-up'
-  ]);
+  const afterCommit = simulateGw2({
+    profession,
+    rotation: [{ name: 'Committed Channel', interruptMs: 400 }, 'Long Follow-up']
+  });
 
   assert.deepEqual(
     afterCommit.events
@@ -451,13 +445,13 @@ test('interrupt persistence requires the declared commit point', () => {
 });
 
 test('interrupt modes distinguish whole-effect commits from per-packet channels', () => {
-  const committed = createScheduler({ profession }).run([{ name: 'Default Commit Timeline', interruptMs: 400 }]);
+  const committed = simulateGw2({ profession, rotation: [{ name: 'Default Commit Timeline', interruptMs: 400 }] });
   assert.deepEqual(
     committed.events.filter((event) => event.type === 'damage').map((event) => event.at),
     []
   );
 
-  const channel = createScheduler({ profession }).run([{ name: 'Per-packet Channel', interruptMs: 600 }]);
+  const channel = simulateGw2({ profession, rotation: [{ name: 'Per-packet Channel', interruptMs: 600 }] });
   assert.deepEqual(
     channel.events.filter((event) => event.type === 'damage').map((event) => event.at),
     [0.2, 0.6]
@@ -578,13 +572,16 @@ test('dead time includes entire attempted casts below declared commit cutoffs an
 });
 
 test('persistent effects require their own declared interrupt cutoffs', () => {
-  const beforeSecondLaunch = createScheduler({ profession }).run([
-    {
-      name: 'Staged Projectiles',
-      interruptMs: 150
-    },
-    'Long Follow-up'
-  ]);
+  const beforeSecondLaunch = simulateGw2({
+    profession,
+    rotation: [
+      {
+        name: 'Staged Projectiles',
+        interruptMs: 150
+      },
+      'Long Follow-up'
+    ]
+  });
 
   assert.deepEqual(
     beforeSecondLaunch.events
@@ -594,13 +591,16 @@ test('persistent effects require their own declared interrupt cutoffs', () => {
     [0.1]
   );
 
-  const afterSecondLaunch = createScheduler({ profession }).run([
-    {
-      name: 'Staged Projectiles',
-      interruptMs: 400
-    },
-    'Long Follow-up'
-  ]);
+  const afterSecondLaunch = simulateGw2({
+    profession,
+    rotation: [
+      {
+        name: 'Staged Projectiles',
+        interruptMs: 400
+      },
+      'Long Follow-up'
+    ]
+  });
 
   assert.deepEqual(
     afterSecondLaunch.events
@@ -609,7 +609,7 @@ test('persistent effects require their own declared interrupt cutoffs', () => {
       .map((event) => event.at),
     [0.1, 0.8]
   );
-  assert.equal(afterSecondLaunch.stream.rotationEndTime, 2.4);
+  assert.equal(afterSecondLaunch.rotationEndTime, 2.4);
 });
 
 test('event metadata cannot extend an unrelated condition', () => {

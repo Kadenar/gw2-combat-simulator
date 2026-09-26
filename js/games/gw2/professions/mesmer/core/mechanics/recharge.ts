@@ -1,3 +1,5 @@
+import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 /** Applies Core Mesmer availability, recharge, and shatter-ammunition policy. */
 import {
@@ -5,10 +7,28 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerMaximumAmmoContext, MesmerRechargeContext } from '#gw2/professions/mesmer/types.js';
-import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
-import { mesmerRuntimeFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
+
+/** Both cast reservations and mantra parent adjustments use the same trait rules before flat shatter reductions. */
+const traitRecharge = compileRechargeRules<MesmerRuntimeState>([
+  {
+    trait: TRAIT.MASTER_OF_MISDIRECTION,
+    when: (runtime, skill) =>
+      Boolean(
+        mesmerMechanicsFor(runtime).shatters[Number(skill.id)] ||
+        mesmerMechanicsFor(runtime).instruments[Number(skill.id)]
+      ),
+    multiplier: { profile: PROFILE.masterOfMisdirection, field: 'rechargeMultiplier' }
+  },
+  {
+    trait: TRAIT.FENCERS_FINESSE,
+    when: (_runtime, skill) => skill.weapon === 'Sword',
+    multiplier: { profile: PROFILE.fencersFinesse, field: 'rechargeMultiplier' }
+  }
+]);
 
 /**
  * Calculates Mesmer recharge with special handling for ammo lockouts, weapon
@@ -16,38 +36,22 @@ import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mes
  *
  * Mesmer-adjusted recharge duration.
  */
-function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDuration: number): number {
-  const { skill } = context;
-  if (context.ammoCastLockout) return sharedDuration;
+export function mesmerRechargeWork(context: MesmerRuntime, skill: MesmerSkill, sharedDuration: number): number {
   if (skill.id === ID.SWAP_WEAPONS) {
     return sharedDuration === 0 ? 0 : Number(skill.cooldown || 0);
   }
 
-  const traits = mesmerRuntimeFor(context).traits;
-  let multiplier = 1;
-  if (
-    (mesmerRuntimeFor(context).shatters[skill.id] || mesmerRuntimeFor(context).instruments[skill.id]) &&
-    traits.has(TRAIT.MASTER_OF_MISDIRECTION)
-  )
-    multiplier *= balanceProfileNumber(
-      requireBalanceProfileFromContext(context, PROFILE.masterOfMisdirection),
-      'rechargeMultiplier'
-    );
-  if (skill.weapon === 'Sword' && traits.has(TRAIT.FENCERS_FINESSE)) {
-    const fencersFinesseProfile = requireBalanceProfileFromContext(context, PROFILE.fencersFinesse);
-    multiplier *= balanceProfileNumber(fencersFinesseProfile, 'rechargeMultiplier');
-  }
+  const multiplier = traitRecharge(context, skill, 1);
 
-  const rechargeRate = context.cooldownController.rate(skill, Number(context.at ?? context.start));
-  const shatter = mesmerRuntimeFor(context).shatters[skill.id];
+  const shatter = mesmerMechanicsFor(context).shatters[skill.id];
   if (shatter?.rechargeReductionPerSource) {
-    const clones = mesmerRuntimeFor(context).actions.currentResource();
+    const clones = mesmerMechanicsFor(context).actions.currentResource();
     const reduction = Number(shatter.rechargeReductionPerSource) * (clones + 1);
     const baseCooldown = gw2BaseRecharge(skill);
-    return Math.max(0, baseCooldown * multiplier - reduction) / rechargeRate;
+    return Math.max(0, baseCooldown * multiplier - reduction);
   }
 
-  // Shared recharge already uses the owner's current Alacrity rate, including transient grants.
+  // Shared recharge already uses the owner's permanent Alacrity rate.
   return sharedDuration * multiplier;
 }
 
@@ -56,24 +60,13 @@ function modifyMesmerRecharge(context: MesmerRechargeContext, sharedDuration: nu
  *
  * Mesmer-adjusted maximum charge count.
  */
-function modifyMesmerMaximumAmmo(context: MesmerMaximumAmmoContext, maximum: number): number {
-  const id = context.skill.id;
-  const runtime = mesmerRuntimeFor(context);
+export function mesmerMaximumAmmo(context: MesmerRuntime, skill: MesmerSkill, maximum: number): number {
+  // Inactive mantra flips have no charge pool; only their parent can rearm and refill them.
+  if (skill.flipParentId && !context.profession.core.availableFlips[skill.id]) return 0;
+  const id = skill.id;
+  const runtime = mesmerMechanicsFor(context);
   const isSlot1 = runtime.shatters[id]?.slot === 1 || runtime.instruments[id]?.slot === 1;
-  return isSlot1 && mesmerRuntimeFor(context).traits.has(TRAIT.SHATTER_STORM)
+  return isSlot1 && mesmerMechanicsFor(context).traits.has(TRAIT.SHATTER_STORM)
     ? balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.shatterStorm), 'maximumStacks')
     : maximum;
 }
-
-/**
- * Mesmer availability, recharge, ammo, and profession-owned scheduling rules.
- */
-export const mesmerCastRules = Object.freeze({
-  availability: {
-    id: 'mesmer.availability',
-    order: 10,
-    handler: mesmerAvailability
-  },
-  modifyRechargeDuration: modifyMesmerRecharge,
-  modifyMaximumAmmo: modifyMesmerMaximumAmmo
-});

@@ -35,11 +35,7 @@ profession application/runtime
       ↓
 simulateGw2()
       ↓
-scheduler
-      ↓
-scheduled event stream
-      ↓
-resolver
+unified runtime: commands, tasks, and combat reactions
       ↓
 simulation result
       ↓
@@ -60,7 +56,7 @@ Use this table as the first place to look.
 | Skill availability rule                                               | The owning skill or mechanic module                   |
 | Resource gain/spend/regeneration                                      | `mechanics/<resource>.ts`                             |
 | Cast lifecycle behavior                                               | Owner-local `execution/<concept>.ts`                  |
-| Declarative trait modifier                                            | `traits/modifiers.ts` or `traits/<trait-line>.ts`     |
+| Declarative trait modifier                                            | `modifiers.ts`, or `traits/<trait-line>.ts` it gathers |
 | Complex trait proc or imperative behavior                             | `traits/index.ts` or `traits/<trait-line>.ts`         |
 | Scheduler-specific skill implementation                               | Owner-local `execution/<concept>.ts`                  |
 | Custom scheduled event definitions                                    | `events.ts` or mechanic-specific file                 |
@@ -320,14 +316,10 @@ inputs. Game-neutral clocks, queues, and random streams remain in `js/kernel/`. 
 
 | Module                                             | Responsibility                                                        |
 | -------------------------------------------------- | --------------------------------------------------------------------- |
-| `execution/scheduler.ts`                           | Command coordination, cast lanes, and time advancement                |
-| `execution/scheduled-events.ts`                    | Event identity, indexes, replacement, and FIFO observation            |
+| `simulation/runtime.ts`                            | Command coordination, cast lanes, and time advancement                |
 | `execution/cast-lifecycle.ts`                      | Accepted cast reservations and completion/recharge commitment         |
 | `execution/effect-adapter.ts`                      | Effect scheduling and interruption filtering                          |
-| `execution/tasks.ts`                               | Ordered delayed state work                                            |
 | `execution/cooldowns.ts`                           | Cooldown and ammo state transitions                                   |
-| `execution/gw2-policy/`                            | GW2 event preparation and predicted combo/equipment reactions         |
-| `engine/events/scheduled-stream.ts`                | Scheduler-to-resolver event boundary                                  |
 | `engine/events/actors.ts`                          | Shared actor types and validation vocabulary                          |
 | `engine/effects/authoring.ts`                      | Effect constructors and authored packet readers                       |
 | `engine/effects/materializer.ts`                   | Pure effect expansion                                                 |
@@ -338,7 +330,7 @@ inputs. Game-neutral clocks, queues, and random streams remain in `js/kernel/`. 
 | `builds/profession-contract.ts`                    | Build callback validation and defaults                                |
 | `resolver/handler-registry.ts`                     | Exclusive resolver event-handler ownership                            |
 | `results/build-result.ts`                          | Resolver score and detailed report construction                       |
-| `results/end-state.ts`                             | Public planning state at the scheduler observation boundary           |
+| `results/end-state.ts`                             | Detached public planning state at the observation boundary            |
 
 Stable event ordering is owned by the game-neutral `js/kernel/events/queue.ts` module.
 
@@ -390,24 +382,23 @@ Important modules include:
 
 Combat-query selects visible state and equipment, formulas and modifiers calculate, and resolver handlers commit effects
 and dispatch reactions. Query contracts live in `combat/query/combat-query.ts` and `timeline-index.ts`; event payloads
-and validation live in `engine/events/events.ts`. Scheduled-stream contracts live with `scheduled-stream.ts`. Hit
-diagnostics, condition applications/private wakes, and mutable runtime types live with `hit-resolution.ts`,
-`condition-resolution.ts`, and `runtime-state.ts`. The shared event/result/reaction contracts remain in
-`resolver/types.ts`; fixed resolver wiring is composed in `resolve-timeline.ts`.
+and validation live in `engine/events/events.ts`. Internal work payloads and lifetime ownership live in
+`simulation/internal-work.ts`. Hit diagnostics, condition applications/private wakes, and mutable runtime types live
+with `hit-resolution.ts`, `condition-resolution.ts`, and `runtime-state.ts`. The shared event/result/reaction contracts
+remain in `resolver/types.ts`; live execution is composed in `simulation/runtime.ts`.
 
 Stable profession authoring lives under `js/games/gw2/platform/profession-definition/`. Optional balance-preview
 decoration and validation live under `js/games/gw2/integrations/patches/`.
 
-`execution/` owns scheduler execution and runtime state. Its `gw2-policy/` adapters prepare GW2 events, observe combat,
-and materializes combo/equipment procs; `resolver/` resolves those events and processes reactions. `simulation/`
-coordinates the phases without direct imports between execution and resolver implementations.
+`execution/` owns reusable rotation, reservation, cooldown, ammo, and interruption services. `resolver/` owns
+hit/condition calculation and reaction services. `simulation/runtime.ts` composes them into one live loop.
 
 Native profession compilation retains one public entry point in `profession-definition/profession.ts`. The compiled
 runtime has no UI or build callbacks. Applications use the family build contract and lazily initialized `ui` adapter;
 headless simulation can consume the runtime directly without initializing presentation factories.
 
 `results/query.ts` indexes committed resolver effects and shares combat stacking/expiry semantics. Report construction
-and planning-state projection live in `results/`, while feedback convergence remains in `simulation/pipeline.ts`.
+and detached planning-state projection live in `results/`.
 
 `engine/skills/balance-profiles.ts` owns catalog profile lookup; `combat/query/event-skill.ts` owns shared
 event-to-skill lookup without depending on resolver implementations. The shared damage-diagnostic contract lives beside
@@ -423,68 +414,12 @@ part of `ProfessionUiContract`.
 
 ---
 
-# Simulation phases
+# Simulation execution
 
-Combat simulation has two major phases.
-
-```text
-rotation
-   ↓
-scheduler
-   ↓
-scheduled events
-   ↓
-resolver
-   ↓
-result
-```
-
-## Scheduler
-
-The scheduler answers questions such as:
-
-- can this skill be used now?
-- how long does it cast?
-- when does its cooldown begin?
-- what resource does it spend?
-- what events should it emit?
-- what delayed state transitions should occur?
-
-Profession-owned scheduler behavior usually lives in:
-
-```text
-execution/
-availability.ts
-mechanics/<concept>.ts
-traits/<trait-line>.ts
-```
-
-depending on the mechanic.
-
-## Resolver
-
-The resolver answers questions such as:
-
-- how much damage does this strike deal?
-- did it crit?
-- what condition is applied?
-- which modifier applies?
-- how does the target state change?
-- what happens in reaction to the resolved event?
-
-Profession-specific resolution generally belongs in:
-
-```text
-mechanics/<concept>.ts
-mechanics/<large-concept>/resolution.ts
-traits/<trait-line>.ts
-```
-
-Shared GW2 resolution belongs in:
-
-```text
-js/games/gw2/platform/resolver/
-```
+One runtime interleaves command acceptance with internal work and combat events. Availability, cast duration, cooldowns,
+ammo, resources, strike damage, conditions, target health, and triggered effects share one live state. There is no
+scheduled-stream handoff, feedback pass, or replay-restored state. Score and detailed runs differ only in report
+retention. See [Architecture](ARCHITECTURE.md#runtime-and-simulation) and [Event clock](SIMULATION-EVENT-CLOCK.md).
 
 ---
 
@@ -530,12 +465,14 @@ Every profession uses the same layout:
   core/
     module.ts              manifest only
     state.ts               <Profession>CoreState next to its factory
-    execution/             skill handlers and scheduler hooks
+    hooks.ts               cast hooks, tasks, and reactions
+    modifiers.ts           modifier rules and imperative modify* callbacks
     mechanics/  skills/  traits/  presentation.ts  profiles.ts
   specializations/<name>/
     module.ts              manifest only
     state.ts               <Name>State next to its factory
-    execution/             only when the module needs handlers or hooks
+    hooks.ts               module runtime hooks when needed
+    modifiers.ts           module modifier rules when needed
     mechanics/  skills/  traits/  presentation.ts  profiles.ts  [types.ts for module-only skill fields]
 ```
 
@@ -551,8 +488,8 @@ No other files belong at the profession root. `catalog.ts` stays separate from `
 imports `build/`, and `build/` reads the catalog at module load; merging them creates an initialization cycle.
 
 Each `core/` or `specializations/<name>/` folder is one module. Its `module.ts` is a manifest: imports plus one exported
-`defineNativeModule(...)` call. Skill handler maps live in `execution/index.ts`, scheduler hooks in
-`execution/hooks.ts`, and each module's state interface in its `state.ts`.
+`defineNativeModule(...)` call. Runtime behavior is assembled in `hooks.ts`; each module's state interface stays in its
+`state.ts`.
 
 Code outside a profession folder imports only `profession.js`, `app/app-definition.js`, `build/build.js`,
 `build/attributes.js`, `types.js`, `data/**`, and `profiles.js` files. Log integrations import helpers from `data/`,
@@ -578,7 +515,7 @@ Exactly one specialization module is active for an elite-specialization build.
 
 ---
 
-# The four module boundaries
+# The module boundaries
 
 Every native module is declared through:
 
@@ -587,12 +524,13 @@ defineNativeModule({
   id,
   data,
   state,
-  mechanics,
+  modifiers,
+  hooks,
   presentation
 });
 ```
 
-These four fields are the most important ownership boundaries in the profession system.
+These fields are the most important ownership boundaries in the profession system.
 
 ## `data`
 
@@ -626,8 +564,7 @@ Example:
 
 ```ts
 state: {
-  scheduler: berserkerState.create,
-  resolver: berserkerState.create,
+  create: berserkerState.create,
 },
 ```
 
@@ -635,8 +572,7 @@ Core modules may also expose public end-state projection:
 
 ```ts
 state: {
-  scheduler: createWarriorCoreState,
-  resolver: createWarriorCoreState,
+  create: createWarriorCoreState,
   project: projectWarriorPlanningState,
 },
 ```
@@ -645,58 +581,21 @@ Do not place temporary runtime mechanics in application build state just because
 
 ---
 
-## `mechanics`
+## `modifiers` and `hooks`
 
-Executable combat behavior.
-
-Common contributions include:
+Executable behavior uses one hook contract beside declarative modifier rules:
 
 ```ts
-mechanics: {
-  modifiers,
-  execution: {
-    skillHandlers,
-    availability,
-    castLifecycle,
-    castRules,
-    hooks,
-  },
-  resolution: {
-    reactions,
-    hooks,
-  },
-}
+modifiers: berserkerModifiers,
+hooks: berserkerHooks,
 ```
 
-For example:
-
-```ts
-mechanics: {
-  modifiers: berserkerAttributeRules,
-  execution: {
-    skillHandlers: berserkerSkillHandlers,
-    castRules: berserkerCastRules,
-    hooks: berserkerSchedulerHooks,
-  },
-  resolution: {
-    reactions: berserkerReactions,
-  },
-},
-```
-
-The phase sections describe where behavior runs, not where its source file must live. A concept module such as
-`mechanics/adrenaline.ts` may export both an execution contribution and a resolution contribution. `module.ts` exposes
-those contributions once under the appropriate sections. Do not create execution and resolution copies of the same GW2
-definition.
-
-Native profession modules do not support flat phase fields or `data.handlers`. Register scheduler-owned behavior under
-`mechanics.execution` and resolver-owned behavior under `mechanics.resolution`. TypeScript checks field placement, but
-runtime validation does not reject unknown or retired fields; those fields register no behavior. Do not rely on a
-runtime error to detect a misplaced declaration.
-
-Mechanics should normally be implemented in owner-local files and assembled by `module.ts`.
-
-`module.ts` should remain an assembly file rather than becoming the place where large mechanics are implemented.
+Hooks cover availability, cast acceptance/completion, recharge reservation, resource policies, named tasks, custom
+events, and combat reactions. Each receives the same state and clock. Module validation rejects unknown module
+fields, including retired execution/resolution sections; no adapter translates them. Keep logic in owner-local files and wire it in `module.ts`. Each key has a same-named sibling file: `modifiers.ts`
+assembles modifier rules and `modify*` callbacks, and `hooks.ts` assembles runtime callbacks. Trait-line or mechanic files
+may own the pieces those files gather. Only `module.ts` imports `hooks.ts`; helpers that specializations, mechanics, or presentation share
+live in `mechanics/` or `traits/`.
 
 ---
 
@@ -767,11 +666,11 @@ core/
 │   ├── index.ts
 │   └── greatsword.ts
 ├── traits/
-│   ├── index.ts
-│   └── modifiers.ts
+│   └── index.ts
 ├── mechanics/
 │   ├── adrenaline-and-endurance.ts
 │   └── availability.ts
+├── modifiers.ts
 ├── profiles.ts
 ├── state.ts
 └── presentation.ts
@@ -823,18 +722,11 @@ export const berserkerModule = defineNativeModule({
   }),
 
   state: {
-    scheduler: berserkerState.create,
-    resolver: berserkerState.create
+    create: berserkerState.create
   },
 
-  mechanics: {
-    modifiers: berserkerAttributeRules,
-    execution: {
-      skillHandlers: berserkerSkillHandlers,
-      castRules: berserkerCastRules,
-      hooks: berserkerSchedulerHooks
-    }
-  },
+  modifiers: berserkerModifiers,
+  hooks: berserkerHooks,
 
   presentation: berserkerUi
 });
@@ -846,7 +738,7 @@ Keep implementation details outside this file.
 
 ## `skills/`
 
-Declarative simulator definitions for skills owned by the module. Imperative cast handlers belong under `execution/`.
+Declarative simulator definitions for skills owned by the module. Imperative cast behavior belongs in hooks.
 
 Examples:
 
@@ -866,12 +758,10 @@ Group related skills by weapon, slot family, transformation, or another recogniz
 
 ---
 
-## `execution/`
+## `hooks.ts`
 
-Imperative cast behavior owned by a skill or skill family. This includes handler registration, cast-phase routing, and
-delayed work that exists only to finish one cast. A nontrivial registry may live in `execution/index.ts`; `module.ts`
-may wire a small handler map directly. Use flat concept files such as `execution/greatsword.ts` when cast
-implementations need named owners.
+Assembles the module's cast hooks, named tasks, and combat reactions. Large implementations delegate to skill, trait, or
+mechanic files; all use the same runtime context. Delayed work carries data to a named task handler.
 
 ---
 
@@ -891,8 +781,7 @@ Defines module-owned runtime state.
 
 Typical responsibilities include:
 
-- initial scheduler state;
-- resolver state;
+- one initial live state;
 - specialization state accessor;
 - public end-state projection;
 - state snapshots.
@@ -907,8 +796,8 @@ Persistent profession and specialization systems whose state or lifecycle spans 
 GW2 concept names such as `shatters.ts`, `continuum-split.ts`, `pets.ts`, `beastmode.ts`, `life-force.ts`,
 `attunements.ts`, `energy.ts`, or `initiative-and-endurance.ts`.
 
-A mechanics module may contain scheduler declarations, resolver declarations, or both. Its exports must make that phase
-visible when assembled in `module.ts`. Shared strike and condition resolution stays under
+A mechanics module may contain cast hooks, named tasks, and resolved-event reactions. Its exports make those lifecycle
+points explicit when assembled in `hooks.ts` and wired as `hooks` in `module.ts`. Shared strike and condition resolution stays under
 `js/games/gw2/platform/resolver/`.
 
 Generic `rules.ts`, `handlers.ts`, and `resolver.ts` ownership files are retired. Keep a cohesive availability file when
@@ -1348,10 +1237,10 @@ presentation
 
 ```text
 before/during cast or delayed state
-→ scheduler side
+→ cast hook or named task
 
 damage/condition/result reaction
-→ resolver side
+→ combat reaction
 ```
 
 ## 4. Does it already have a source of truth?
@@ -1380,7 +1269,8 @@ defineNativeModule({
   id: 'New Specialization',
   data,
   state,
-  mechanics,
+  modifiers,
+  hooks,
   presentation
 });
 ```

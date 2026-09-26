@@ -5,6 +5,7 @@
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 export interface MesmerActiveEmission {
+  readonly offTarget?: boolean;
   readonly skill: MesmerSkill;
   readonly effectiveEnd: number;
   readonly activationId: string;

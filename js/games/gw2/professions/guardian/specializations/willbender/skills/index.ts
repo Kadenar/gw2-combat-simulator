@@ -30,8 +30,6 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   },
   [ID.CRASHING_COURAGE]: {
     castTimeMs: 680,
-    // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/execution/virtues.ts`.
-    handlerId: 'guardian.willbender-virtue',
     // Grant the virtue's defensive boons with its initial strike.
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -129,21 +127,12 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     castTimeMs: 520,
 
     ammoCastLockout: 0.5,
-    // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/execution/virtues.ts`.
-    handlerId: 'guardian.willbender-virtue',
     effects: []
   },
   [ID.FLASH_COMBO]: {
     castTimeMs: 680,
     cooldown: 20,
     interruptMode: 'per-packet',
-    // Flash Combo exposes Repose for six seconds after the cast completes.
-    mechanicTriggers: [
-      {
-        type: 'guardian.willbender.arm-repose',
-        timingAnchor: 'castEnd'
-      }
-    ],
     effects: [
       {
         type: 'strike',
@@ -164,8 +153,6 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   [ID.RUSHING_JUSTICE]: {
     castTimeMs: 480,
     rechargeAnchor: 'castStart',
-    // Custom: Runs the core virtue transition, Willbender windows, and flame scheduling; see `willbender/execution/virtues.ts`.
-    handlerId: 'guardian.willbender-virtue',
     // Keep the virtue's impact strike and initial Burning together.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {

@@ -8,17 +8,15 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { createHeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
-import { advanceRevenantEnergy } from '#gw2/professions/revenant/core/mechanics/energy.js';
 import {
   heraldPassiveModifierRules,
-  modifyHeraldPassiveAttributes,
-  resolveNatureSiphon
+  modifyHeraldPassiveAttributes
 } from '#gw2/professions/revenant/specializations/herald/mechanics/facet-passives.js';
-import { revenantCoreAttributeRules } from '#gw2/professions/revenant/core/traits/modifiers.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { revenantCoreModifiers } from '#gw2/professions/revenant/core/modifiers.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
-import { professionEnduranceReadyAt } from '#gw2/platform/combat/resources/endurance-policy.js';
 
 const base = {
   selectedLegends: [LEGEND.ASSASSIN, LEGEND.DRAGON],
@@ -27,41 +25,27 @@ const base = {
   boons: {},
   target: { armor: 2597, conditions: {} }
 };
-const simulate = createProfessionSimulator(revenantProfession, base);
+const simulate = createObservedProfessionSimulator(revenantProfession, base);
 const wait = (durationMs) => ({ type: 'wait', durationMs });
-const self = { includesSelf: true, alliedPlayerCount: 0, companionIds: [], recipientCount: 1 };
 
 // Minimal resource histories include delayed applications, pooled duration, and timestamped extension.
 test('Endurance accrual and readiness integrate the same Vigor windows regardless of wait boundaries', () => {
-  const events = [
-    { type: 'buff', at: 1, kind: 'vigor', duration: 2, stacks: 1, resolvedAudience: self },
-    { type: 'buff', at: 2, kind: 'vigor', duration: 1, stacks: 1, resolvedAudience: self },
-    { type: 'boon_extension', at: 3, kind: 'vigor', duration: 1, extensionAudience: 'self' }
-  ];
-  const run = (boundaries) => {
-    const core = createRevenantCoreState(base);
-    core.endurance = 0;
-    const context = {
-      config: base,
-      profession: revenantProfession.resolveRuntime({ specialization: 'Herald' }),
-      catalog: revenantCatalog,
-      events,
-      start: 0,
-      state: {
-        profession: { core, specialization: { kind: 'Herald', state: createHeraldState() } },
-        cooldowns: new Map()
-      },
-      tasks: { cancelOwner() {} },
-      schedulerPolicy: {},
-      emit() {}
-    };
-    assert.equal(professionEnduranceReadyAt(context, 50), 8);
-    for (const at of boundaries) advanceRevenantEnergy(context, at);
-    return core.endurance;
+  const initialize = (runtime) => {
+    runtime.profession.core.endurance = 0;
+    for (const event of [
+      { type: 'buff', at: 1, kind: 'vigor', duration: 2, stacks: 1 },
+      { type: 'buff', at: 2, kind: 'vigor', duration: 1, stacks: 1 },
+      { type: 'boon_extension', at: 3, kind: 'vigor', duration: 1, extensionAudience: 'self' }
+    ])
+      runtime.emit({ ...event, source: 'fixture', sourceId: 'fixture', actorType: 'player' });
   };
 
-  assert.equal(run([8]), 50);
-  assert.equal(run([1, 2, 3, 4, 5, 7, 8]), 50);
+  const run = (rotation) => runRevenant(rotation, base, { initialize });
+
+  // A 50-endurance Dodge becomes affordable exactly when the integrated Vigor windows reach its cost.
+  assert.equal(run(['Dodge']).steps[0].start, 8000);
+  for (const waits of [[8000], [1000, 1000, 1000, 1000, 1000, 2000, 1000]])
+    assert.equal(run(waits.map(wait)).planningState.profession.endurance, 50);
 });
 
 test('Vindicator Vigor produces equal endurance for equivalent public waits', () => {
@@ -128,7 +112,7 @@ test("Assassin's Presence pulses during idle combat and attacks cannot move the 
   assert.ok(pulses(idle).every((event) => event.duration === 3 && event.resolvedAudience.includesSelf));
   assert.ok(idle.events.some((event) => event.sourceId === TRAIT.INCENSED_RESPONSE));
   assert.equal(
-    revenantCoreAttributeRules.modifyCriticalChance(
+    revenantCoreModifiers.modifyCriticalChance(
       {
         config: { ...config, selectedTraitIds: [...config.selectedTraitIds, TRAIT.ROILING_MISTS] },
         time: 1,
@@ -200,33 +184,42 @@ test('Draconic Echo bonuses apply to active and retained facets only while selec
 });
 
 test('Assassin Nature procs only on eligible resolved strikes while its passive is available', () => {
-  const core = createRevenantCoreState(base);
-  core.activeUpkeeps = [{ skillId: SKILL.FACET_OF_NATURE, startsAt: 0 }];
-  const state = createHeraldState();
-  const emitted = [];
-  const profession = { core, specialization: { kind: 'Herald', state } };
-  const context = {
-    config: base,
-    catalog: revenantCatalog,
-    profession,
-    queue: { enqueue: (event) => emitted.push(event) }
-  };
-  const hit = { actorType: 'player', coefficient: 1, skillName: 'Test strike' };
-  resolveNatureSiphon(context, { ...hit, at: 1 });
-  // Rejected packets must not trigger siphons even after the initial proc's cooldown.
-  resolveNatureSiphon(context, { ...emitted[0], at: 2 });
-  resolveNatureSiphon(context, { ...hit, at: 2, cancelled: true });
-  resolveNatureSiphon(context, { ...hit, at: 2, coefficient: 0 });
-  assert.equal(emitted.length, 1);
-  assert.equal(emitted[0].flatStrikeBase, 53);
-  assert.equal(emitted[0].flatStrikePowerCoeff, 0.0666);
-  core.activeUpkeeps = [];
-  resolveNatureSiphon(context, { ...hit, at: 3 });
-  assert.equal(emitted.length, 1);
-  state.lingeringFacets[SKILL.FACET_OF_NATURE] = { startsAt: 3, expiresAt: 9, legendId: LEGEND.ASSASSIN };
-  resolveNatureSiphon(context, { ...hit, at: 4 });
-  resolveNatureSiphon(context, { ...hit, at: 9 });
-  assert.equal(emitted.length, 2);
+  // Probe tasks end the active facet and later retain it, isolating active and lingering eligibility.
+  const result = runRevenant(
+    [wait(10000)],
+    { ...base, specialization: 'Herald' },
+    {
+      extend: (native) => ({
+        tasks: {
+          ...native.tasks,
+          'test.end-facet': (runtime) => (runtime.profession.core.activeUpkeeps = []),
+          'test.retain-facet': (runtime) =>
+            (runtime.profession.specialization.state.lingeringFacets[SKILL.FACET_OF_NATURE] = {
+              startsAt: 3,
+              expiresAt: 9,
+              legendId: LEGEND.ASSASSIN
+            })
+        }
+      }),
+      initialize(runtime) {
+        runtime.profession.core.activeUpkeeps = [
+          { skillId: SKILL.FACET_OF_NATURE, startsAt: 0, upkeepCost: 0, empoweredNextPulse: false }
+        ];
+        runtime.schedule('test.end-facet', 2);
+        runtime.schedule('test.retain-facet', 3);
+        // A zero-coefficient packet cannot proc; the second strike falls inside the 0.52-second cooldown.
+        runtime.emit(revenantHit(0.5, { coefficient: 0 }));
+        for (const at of [1, 1.2, 2.5, 4, 9]) runtime.emit(revenantHit(at));
+      }
+    }
+  );
+  const siphons = result.resolvedEvents.filter((event) => event.name === 'Facet of Nature — Life Siphon');
+  // The siphon's own effect-owned packet never recurses, and the retained passive ends at its exclusive expiry.
+  assert.deepEqual(
+    siphons.map((event) => event.at),
+    [1, 4]
+  );
+  assert.ok(siphons.every((event) => event.flatStrikeBase === 53 && event.flatStrikePowerCoeff === 0.0666));
 });
 
 // The same live attributes feed skills, traits, equipment, and resolver-created combo boons.

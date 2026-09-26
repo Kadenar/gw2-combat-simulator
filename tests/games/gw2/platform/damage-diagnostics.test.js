@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildScheduledEventStream } from '#gw2/platform/engine/events/scheduled-stream.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-skill-catalog.js';
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { resolveTestGw2Stream } from '#tests/helpers/gw2-resolver.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
 
 // Minimal packets exercise each formula branch and expose query/RNG consumption without saved-rotation expectations.
@@ -48,10 +47,10 @@ function resolveHits(damageDiagnostics, output = 'detailed', target = { health: 
     actorType: 'player',
     ...event
   }));
-  const result = resolveTestGw2Stream({
+  const result = resolveTestGw2Events({
     damageDiagnostics,
     output,
-    stream: buildScheduledEventStream({ events, rotationEndTime: 5 }),
+    ...{ events, endTime: 5 },
     config: { target, randomness: { mode: 'stochastic', seed: 42 }, sigilSets: [{ names: [] }] },
     traits: new Set(),
     query: {
@@ -134,9 +133,9 @@ test('diagnostic factors reconstruct actual rounded packets without changing que
 });
 
 test('diagnostics capture settlement and environment health before the following hit', () => {
-  const result = resolveTestGw2Stream({
+  const result = resolveTestGw2Events({
     damageDiagnostics: true,
-    stream: buildScheduledEventStream({
+    ...{
       events: [
         {
           type: 'condition',
@@ -150,8 +149,8 @@ test('diagnostics capture settlement and environment health before the following
         },
         { type: 'damage', at: 1, source: 'Player', sourceId: 'hit', actorType: 'player', flatDamage: 1, priority: -100 }
       ],
-      rotationEndTime: 1
-    }),
+      endTime: 1
+    },
     config: { target: { health: 1000, startingHealthFraction: 0.53, conditions: { Bleeding: 1 } } },
     traits: new Set(),
     query: {
@@ -171,8 +170,8 @@ test('diagnostics capture settlement and environment health before the following
   assert.equal('ferocity' in calculation, false);
 });
 
-// Feedback must see ordinary results; only its final seeded configuration is replayed for requested diagnostics.
-test('public diagnostics capture once after feedback and are suppressed in score fallback', () => {
+// Capture observes the same actual execution and never adds a gameplay pass.
+test('public diagnostics capture one execution and are suppressed in score output', () => {
   const capture = [];
   const catalog = createCanonicalCatalog({
     generated: [
@@ -190,20 +189,14 @@ test('public diagnostics capture once after feedback and are suppressed in score
     weaponHands: { Axe: 'mh+oh' }
   });
   const profession = defineProfession({
-    id: 'diagnostic-feedback',
-    name: 'Diagnostic feedback',
+    id: 'diagnostic-live',
+    name: 'Diagnostic live',
     catalog,
-    resolverHooks: {
-      eventReactions: {
+    hooks: {
+      reactions: {
         'damage.resolved': (ctx) => {
           capture.push(ctx.damageDiagnostics);
         }
-      }
-    },
-    simulation: {
-      refineSchedulerConfig: (config, result) => {
-        assert.ok(result.resolvedEvents.every((event) => !event.damageCalculation));
-        return config.stats.power === 2000 ? null : { ...config, stats: { ...config.stats, power: 2000 } };
       }
     }
   });
@@ -217,15 +210,15 @@ test('public diagnostics capture once after feedback and are suppressed in score
     }
   };
   const plain = simulateGw2(options);
-  assert.deepEqual(capture.splice(0), [false, false]);
+  assert.deepEqual(capture.splice(0), [false]);
   const diagnostic = simulateGw2({ ...options, damageDiagnostics: true });
-  assert.deepEqual(capture.splice(0), [false, false, true]);
+  assert.deepEqual(capture.splice(0), [true]);
   const score = simulateGw2({ ...options, damageDiagnostics: true, output: 'score' });
-  assert.deepEqual(capture.splice(0), [false, false]);
+  assert.deepEqual(capture.splice(0), [false]);
   assert.equal(diagnostic.totalDamage, plain.totalDamage);
   assert.equal(score.totalDamage, plain.totalDamage);
-  assert.equal(diagnostic.resolvedEvents.find((event) => event.type === 'damage').damageCalculation.power, 2000);
+  assert.equal(diagnostic.resolvedEvents.find((event) => event.type === 'damage').damageCalculation.power, 1000);
   assert.deepEqual(diagnostic.randomness, plain.randomness);
-  simulateGw2({ ...options, profession: { ...profession, simulation: null }, damageDiagnostics: true });
+  simulateGw2({ ...options, profession, damageDiagnostics: true });
   assert.deepEqual(capture, [true]);
 });

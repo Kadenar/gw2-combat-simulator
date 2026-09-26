@@ -31,9 +31,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         audience: { recipients: 'party', maximumRecipients: 5 }
       }
     ],
-    usableInShroud: true,
-    // Custom: Emits party Aegis, Resistance, and Stability, then restores life force; see `ritualist/mechanics/spirits.ts`.
-    handlerId: 'necromancer.innervate'
+    usableInShroud: true
   },
   [ID.SUMMON_SPIRITS]: {
     castTimeMs: 0,
@@ -42,9 +40,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     slot: 'Weapon_5',
     shroud: 'ritualist',
     shroudSlot: 5,
-    specialization: 'Ritualist',
-    // Custom: Commands each available spirit's coordinated attack and updates its busy state; see `ritualist/mechanics/spirits.ts`.
-    handlerId: 'necromancer.ritualist'
+    specialization: 'Ritualist'
   },
   [ID.PRESERVATION]: {
     castTimeMs: 480,
@@ -63,17 +59,13 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     slot: 'Weapon_4',
     shroud: 'ritualist',
     shroudSlot: 4,
-    specialization: 'Ritualist',
-    // Custom: Summons Preservation, grants party Protection/Vigor, and schedules autoattacks; see `ritualist/mechanics/spirits.ts`.
-    handlerId: 'necromancer.ritualist'
+    specialization: 'Ritualist'
   },
   [ID.INNERVATE_WANDERLUST]: {
     castTimeMs: 0,
     innervateLifeForceGain: 10,
     effects: [{ type: 'control', controlKind: 'fear' }],
-    usableInShroud: true,
-    // Custom: Emits Wanderlust's Fear, then restores life force; see `ritualist/mechanics/spirits.ts`.
-    handlerId: 'necromancer.innervate'
+    usableInShroud: true
   },
   [ID.NIGHTMARE_WEAPON]: {
     castTimeMs: 240,
@@ -86,20 +78,18 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         allyStacks: 3,
         audience: { recipients: 'party', maximumRecipients: 5 }
       }
-    ],
-    // Custom: Snapshots recipient charges and schedules weapon-spell procs; see `ritualist/execution/weapon-spells.ts`.
-    handlerId: 'necromancer.weapon-spell'
+    ]
   },
   [ID.ANGUISH]: {
     castTimeMs: 560,
+    // Benchmark logs spawn the spirit ~480 ms into every cast, including casts whose aftercast is cancelled.
+    interruptCommitMs: 480,
     effects: [],
     type: 'Profession',
     slot: 'Weapon_2',
     shroud: 'ritualist',
     shroudSlot: 2,
-    specialization: 'Ritualist',
-    // Custom: Summons Anguish, emits its opening barrage, tracks its busy window, and schedules autoattacks; see `ritualist/mechanics/spirits.ts`.
-    handlerId: 'necromancer.ritualist'
+    specialization: 'Ritualist'
   },
   [ID.EXIT_RITUALISTS_SHROUD]: {
     castTimeMs: 0,
@@ -108,8 +98,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     specialization: 'Ritualist',
     shroudExit: 'ritualist',
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'necromancer.shroud'
+    inputCategory: 'bar-swap'
   },
   [ID.WANDERLUST]: {
     castTimeMs: 760,
@@ -118,9 +107,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     slot: 'Weapon_3',
     shroud: 'ritualist',
     shroudSlot: 3,
-    specialization: 'Ritualist',
-    // Custom: Summons Wanderlust, emits its opening/lingering sequence, and schedules autoattacks; see `ritualist/mechanics/spirits.ts`.
-    handlerId: 'necromancer.ritualist'
+    specialization: 'Ritualist'
   },
   [ID.SPLINTER_WEAPON]: {
     castTimeMs: 240,
@@ -133,9 +120,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         allyStacks: 3,
         audience: { recipients: 'party', maximumRecipients: 5 }
       }
-    ],
-    // Custom: Snapshots recipient charges and schedules weapon-spell procs; see `ritualist/execution/weapon-spells.ts`.
-    handlerId: 'necromancer.weapon-spell'
+    ]
   },
   [ID.INNERVATE_ANGUISH]: {
     castTimeMs: 0,
@@ -145,9 +130,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       { type: 'boon', boon: 'might', duration: 10, stacks: 8, audience: { recipients: 'party', maximumRecipients: 5 } },
       { type: 'boon', boon: 'fury', duration: 5, stacks: 1, audience: { recipients: 'party', maximumRecipients: 5 } }
     ],
-    usableInShroud: true,
-    // Custom: Emits Anguish's strike and party Might/Fury, then restores life force; see `ritualist/mechanics/spirits.ts`.
-    handlerId: 'necromancer.innervate'
+    usableInShroud: true
   },
   [ID.ESSENCE_BLAST]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
@@ -165,9 +148,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     slot: 'Weapon_1',
     shroud: 'ritualist',
     shroudSlot: 1,
-    specialization: 'Ritualist',
-    // Custom emission snapshots active spirits; the Ritualist modifier rule applies their damage increase.
-    handlerId: 'necromancer.ritualist'
+    specialization: 'Ritualist'
   },
   [ID.RITUALISTS_SHROUD]: {
     castTimeMs: 0,
@@ -178,8 +159,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     shroudProfileId: PROFILE.resources,
     minimumShroudLifeForcePercent: 10,
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/shroud.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'necromancer.shroud'
+    inputCategory: 'bar-swap'
   },
   [ID.RESILIENT_WEAPON]: {
     castTimeMs: 680,
@@ -192,8 +172,6 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
         allyStacks: 3,
         audience: { recipients: 'party', maximumRecipients: 5 }
       }
-    ],
-    // Custom: Snapshots recipient charges and schedules weapon-spell procs; see `ritualist/execution/weapon-spells.ts`.
-    handlerId: 'necromancer.weapon-spell'
+    ]
   }
 });

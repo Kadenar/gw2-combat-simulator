@@ -12,8 +12,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     castTimeMs: 0,
     effects: [],
     // Custom: Leaves Celestial Avatar and updates its state; see `druid/module.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'ranger.celestial-avatar-exit'
+    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
   },
   [ID.GLYPH_OF_THE_STARS]: {
     effects: [],
@@ -23,15 +22,13 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     castTimeMs: 0,
     effects: [],
     // Custom: Enters Celestial Avatar and initializes its astral-force state; see `druid/module.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'ranger.celestial-avatar-enter'
+    inputCategory: 'bar-swap' // Count the explicit bar-changing input in effort summaries.
   },
   [ID.COSMIC_RAY]: {
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     effects: [],
-    castTimeMs: 333,
+    castTimeMs: 333
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
-    handlerId: 'ranger.celestial-avatar-skill'
   },
   [ID.SEED_OF_LIFE]: {
     effects: [
@@ -43,9 +40,8 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
 
     cooldown: 4,
     castTimeMs: 0,
-    canCastConcurrently: true,
+    canCastConcurrently: true
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
-    handlerId: 'ranger.celestial-avatar-skill'
   },
   [ID.LUNAR_IMPACT]: {
     effects: [
@@ -64,9 +60,8 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
 
     cooldown: 8,
     // Match the measured Quickness animation from the condition Druid EVTC.
-    castTimeMs: 920,
+    castTimeMs: 920
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
-    handlerId: 'ranger.celestial-avatar-skill'
   },
   [ID.REJUVENATING_TIDES]: {
     effects: [
@@ -83,9 +78,8 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
         audience: { recipients: 'party' as const, maximumRecipients: 5 }
       }
     ],
-    castTimeMs: 480,
+    castTimeMs: 480
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
-    handlerId: 'ranger.celestial-avatar-skill'
   },
   [ID.NATURAL_CONVERGENCE]: {
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -164,8 +158,7 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]),
 
     cooldown: 10,
-    castTimeMs: 2080,
+    castTimeMs: 2080
     // Custom: Applies Celestial Avatar skill traits after the cast; see `druid/module.ts`.
-    handlerId: 'ranger.celestial-avatar-skill'
   }
 });

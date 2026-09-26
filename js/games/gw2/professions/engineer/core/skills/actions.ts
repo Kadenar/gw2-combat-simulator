@@ -4,9 +4,10 @@
  */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS } from '#gw2/professions/engineer/core/skills/kits/elite-mortar-kit.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
+import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 
-const extraSkills: Skill[] = [
+const extraSkills: EngineerSkill[] = [
   ...ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS,
   {
     id: ID.DODGE,
@@ -15,8 +16,9 @@ const extraSkills: Skill[] = [
     icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
     type: 'Action',
     slot: 'Action',
-    // Custom: Spends endurance and emits the Engineer dodge state; see `dodge.ts`.
-    handlerId: 'engineer.dodge',
+    cost: { resource: 'endurance', profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } },
+    // Custom: emits the Engineer dodge state for its dodge traits.
+
     // Quickness does not shorten the fixed evade animation recorded for ordinary dodge rolls.
 
     castTimeMs: 800,
@@ -32,7 +34,7 @@ const extraSkills: Skill[] = [
     slot: 'Action',
     // Custom: Stows the active kit and restores weapon state; see `../mechanics/kits.ts`.
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    handlerId: 'engineer.kit-stow',
+    kitTransition: 'stow',
     castTimeMs: 0,
     cooldown: 0,
     rechargeAnchor: 'castStart',

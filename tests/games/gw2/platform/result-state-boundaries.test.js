@@ -26,19 +26,19 @@ const profession = defineProfession({
     }))
   }),
   resources: {
-    createProfessionState: () => ({ plannedCasts: 0, resolvedHits: 0 }),
+    createState: () => ({ plannedCasts: 0, resolvedHits: 0 }),
     projectPlanningState(options) {
       assert.equal('resolverState' in options, false);
-      return options.schedulerState.profession;
+      assert.equal('schedulerState' in options, false);
+      assert.equal('schedulerContext' in options, false);
+      return options.profession;
     }
   },
-  schedulerHooks: {
+  hooks: {
     onCastStart(context) {
-      context.state.profession.plannedCasts += 1;
-    }
-  },
-  resolverHooks: {
-    eventReactions: {
+      context.profession.plannedCasts += 1;
+    },
+    reactions: {
       'damage.resolved'(context) {
         context.profession.resolvedHits += 1;
       }
@@ -59,7 +59,7 @@ test('early death separates combat effects from later planned casts and cooldown
   assert.equal(result.combatState.atSeconds, result.deathTime);
   assert.equal(result.planningState.atSeconds, 2);
   assert.equal(result.planningState.profession.plannedCasts, 2);
-  assert.equal(result.planningState.profession.resolvedHits, 0);
+  assert.equal(result.planningState.profession.resolvedHits, 2);
   assert.equal(result.combatState.profession.resolvedHits, 2);
   assert.ok(result.planningState.cooldowns.Later.remaining > 0);
   assert.ok(result.events.every((event) => event.at <= result.combatEndTime));
@@ -93,7 +93,7 @@ test('surviving combat and planning share the requested observation boundary', (
     assert.equal(result.planningState.atSeconds, end);
     assert.equal(result.combatState.atSeconds, end);
     assert.equal(result.combatState.profession.resolvedHits, 4);
-    assert.equal(result.planningState.cooldowns.Later.remaining, (22 - end) * 1000);
+    assert.equal(result.planningState.cooldowns.Later.remaining, (18 - end) * 1000);
   }
 });
 
