@@ -143,7 +143,7 @@ test('canonical catalogs validate and freeze skill-group lockouts', () => {
   }
 });
 
-test('summon-owned cooldowns assume permanent Alacrity', () => {
+test('summon-owned cooldowns use received Alacrity until it expires', () => {
   const catalog = createCanonicalCatalog({
     generated: [
       {
@@ -188,8 +188,8 @@ test('summon-owned cooldowns assume permanent Alacrity', () => {
     config: { boons: { alacrity: true } }
   });
 
-  assert.equal(playerAlacrity.planningState.cooldowns['Summon Skill'].readyAt, 16000);
-  assert.equal(summonAlacrity.planningState.cooldowns['Summon Skill'].readyAt, 16000);
+  assert.equal(playerAlacrity.planningState.cooldowns['Summon Skill'].readyAt, 20000);
+  assert.equal(summonAlacrity.planningState.cooldowns['Summon Skill'].readyAt, 17520);
 });
 
 test('the shared effect contract rejects undeclared simulation fields', () => {

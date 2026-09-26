@@ -6,7 +6,7 @@ import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skil
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { buildResolverStrike, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { quantizeGw2ActionDurationUp, summonQuicknessCastTimeMs } from '#gw2/platform/skills/timing.js';
-import { denySkillCast } from '#gw2/professions/shared/availability.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   runCreatureSummonReactions,
   necromancerCreatureStrikeMultiplier

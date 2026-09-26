@@ -14,7 +14,7 @@ import {
   type AutoattackChainTransition,
   type AutoattackChainTransitionResult
 } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { denySkillCast as unavailable } from '#gw2/professions/shared/availability.js';
+import { denySkillCast as unavailable } from '#gw2/platform/engine/skills/availability.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';

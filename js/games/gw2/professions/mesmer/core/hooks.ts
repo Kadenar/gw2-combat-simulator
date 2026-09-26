@@ -1,13 +1,11 @@
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerPendingResource } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { armSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { createMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime-controller.js';
 import { mesmerMechanicsFor, registerMesmerMechanics } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
@@ -22,7 +20,7 @@ import { completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
 import { mesmerRechargeWork, mesmerMaximumAmmo } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
 import { mesmerCoreEventHandlers, mesmerCoreEventReactions } from '#gw2/professions/mesmer/core/mechanics/reactions.js';
-import { emitMesmerEffects, emitMesmerPacket } from '#gw2/professions/mesmer/core/events.js';
+import { emitMesmerEffects } from '#gw2/professions/mesmer/core/events.js';
 import { restartSignetIllusionsPassive, signetIllusionsPulse } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { expireInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
 import { scheduleChaosStormPoison } from '#gw2/professions/mesmer/core/mechanics/chaos-storm.js';
@@ -104,22 +102,11 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     });
   },
   onCastComplete(runtime, cast) {
-    const cancelled = cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd);
+    const cancelled = cast.cancelled;
     // A committed block exposes its flip when the animation ends, before any delayed completion packets.
     if (!cancelled) settleMesmerSkillFlips(runtime, cast, cast.skill as MesmerSkill, runtime.time);
     if (!cancelled && cast.fullEnd > runtime.time) runtime.schedule('mesmer.cast-complete', cast.fullEnd, cast);
     else complete(runtime, cast);
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
-    // Authored mechanic deadlines enqueue live work; they never apply future state while materializing a cast.
-    for (const trigger of (cast.skill as MesmerSkill).mesmerTasks ?? []) {
-      const scale =
-        trigger.timingScale === 'cast' && Number(cast.skill.castTimeMs) > 0
-          ? ((cast.fullEnd - cast.start) * 1000) / Number(cast.skill.castTimeMs)
-          : 1;
-      const at =
-        (trigger.timingAnchor === 'castStart' ? cast.start : cast.fullEnd) + (Number(trigger.atMs ?? 0) * scale) / 1000;
-      runtime.schedule(trigger.type, at, { cast, trigger });
-    }
   },
   tasks: {
     'mesmer.flip-expire'(runtime, data) {
@@ -129,9 +116,6 @@ export const mesmerCoreHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
         delete runtime.profession.core.availableFlips[id];
     },
     'mesmer.cast-complete': (runtime, data) => complete(runtime, data as RuntimeCast),
-    'mesmer.packet': (runtime, data) => {
-      emitMesmerPacket(runtime, data as SimulationEventBase);
-    },
     'mesmer.clone-attack'(runtime, data) {
       const id = Number(data);
       const next = mesmerMechanicsFor(runtime).cloneAttackScheduler.handleTask(id, runtime.time);

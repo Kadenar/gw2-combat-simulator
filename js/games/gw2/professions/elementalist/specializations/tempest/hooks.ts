@@ -3,7 +3,6 @@ import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/c
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import { applyTempestResolverAura } from '#gw2/professions/elementalist/specializations/tempest/mechanics/aura-effects.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
@@ -15,8 +14,7 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
  * around a channel, the attunement lockout an overload leaves behind, and the aura/attunement event
  * reactions the specialization's remaining traits need.
  */
-import { denySkillCast } from '#gw2/professions/shared/availability.js';
-import { retryCast } from '#gw2/platform/engine/skills/availability.js';
+import { denySkillCast, retryCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -404,7 +402,7 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> 
     });
   },
   onCastComplete(runtime, cast) {
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     if (cast.skill.overload && cast.effectiveEnd < cast.fullEnd) return;
     withElementalistCast(runtime, cast, () => {
       onCastComplete(runtime, cast, cast.skill);

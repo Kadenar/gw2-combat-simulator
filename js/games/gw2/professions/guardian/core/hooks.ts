@@ -1,15 +1,13 @@
 import { canonicalTime } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { consumeSkillFlip, skillFlipReady, followUpOf } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
-  armSkillFlip,
-  consumeSkillFlip,
-  expireSkillFlip,
-  skillFlipReady
-} from '#gw2/platform/engine/skills/skill-flips.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect
+} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
-import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import {
@@ -21,7 +19,6 @@ import {
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { modifyGuardianMaximumAmmo } from '#gw2/professions/guardian/core/mechanics/recharge.js';
 import { modifyGuardianRechargeDuration } from '#gw2/professions/guardian/core/mechanics/recharge.js';
-import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -44,7 +41,6 @@ import {
 } from '#gw2/professions/guardian/core/traits/index.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
-const FLIP_EXPIRY = 'guardian.weapon-flip-expiry';
 const readyVirtueActivations = new WeakSet<RuntimeCast>();
 /** Virtue state changes once on commitment; report packets do not restore a second copy of that state. */
 function completeCoreVirtue(runtime: Runtime, cast: RuntimeCast, virtue: GuardianVirtue): void {
@@ -91,28 +87,15 @@ function completeWeapon(runtime: Runtime, cast: RuntimeCast): void {
       runtime.lockouts.set(lockout.group, canonicalTime(runtime.time + lockout.durationMs / 1000));
   } else if (skill.type !== 'Action') runtime.lockouts.delete('guardian-zealots-flame-after-fire');
   const flips = runtime.profession.core.availableFlips;
-  if (skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
-    const flip = runtime.helpers.skillsById.get(skill.flipSkillId);
-    if (flip?.flipParentId === skill.id) {
-      const duration =
-        skill.id === ID.ZEALOTS_FLAME
-          ? hasTrait(runtime, TRAIT.RADIANT_FIRE)
-            ? 4.5
-            : 3
-          : skill.id === ID.SHIELD_OF_ABSORPTION
-            ? 4
-            : skill.id === ID.BINDING_BLADE
-              ? 10
-              : Math.max(1, Number(skill.cooldown ?? 5));
-      const window = armSkillFlip(flips, flip.id, runtime.time, canonicalTime(runtime.time + duration));
-      runtime.schedule(
-        FLIP_EXPIRY,
-        window.expiresAt!,
-        { skillId: flip.id, identity: window.identity },
-        undefined,
-        -220
-      );
-    }
+  const followUp = followUpOf(runtime.helpers.skillsById, skill);
+  if (followUp) {
+    // Radiant Fire keeps Zealot's Flame burning longer; otherwise the window follows the skill's recharge.
+    const duration =
+      Number(skill.flipDuration ?? Math.max(1, Number(skill.cooldown ?? 5))) *
+      (skill.id === ID.ZEALOTS_FLAME && hasTrait(runtime, TRAIT.RADIANT_FIRE)
+        ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, TRAIT.RADIANT_FIRE), 'durationMultiplier')
+        : 1);
+    runtime.armFlip(followUp.id, { expiresAt: canonicalTime(runtime.time + duration), expiryPriority: -220 });
   }
 
   if (skill.flipParentId != null) consumeSkillFlip(flips, skill.id);
@@ -130,8 +113,6 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
     return guardianTraitEffects(runtime, cast, illuminatedSpearEffects(runtime, cast, effects));
   },
   availability(runtime, skill) {
-    const selected = selectedSlotSkillAvailability({ config: runtime.config, catalog: runtime.helpers }, skill);
-    if (selected) return selected;
     const glacial = hasTrait(runtime, TRAIT.GLACIAL_HEART);
     if (skill.id === ID.MIGHTY_BLOW && glacial)
       return denySkillCast(
@@ -159,7 +140,7 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
     if (runtime.profession.core.virtueReadyAt[virtue] <= runtime.time) readyVirtueActivations.add(cast);
   },
   onCastComplete(runtime, cast) {
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     completeWeapon(runtime, cast);
     completeSpearIllumination(runtime, cast);
     completeGuardianHealTraits(runtime, cast);
@@ -186,10 +167,6 @@ export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
   },
   tasks: {
     ...guardianTraitTasks,
-    [GUARDIAN_SPEAR_EXPIRY]: expireSpearIllumination,
-    [FLIP_EXPIRY](runtime, data) {
-      const { skillId, identity } = data as { skillId: SkillId; identity: number | string };
-      expireSkillFlip(runtime.profession.core.availableFlips, skillId, runtime.time, identity);
-    }
+    [GUARDIAN_SPEAR_EXPIRY]: expireSpearIllumination
   }
 };

@@ -8,7 +8,7 @@ import { createCanonicalCatalog } from '#gw2/platform/engine/skills/canonical-sk
 import { defineProfession } from '#gw2/platform/engine/profession/contract.js';
 
 // Constant recharge rates bypass boon history, including explicit false console inputs.
-test('recharge never samples Alacrity grants or expiry', () => {
+test('player recharge never samples Alacrity grants or expiry', () => {
   for (const alacrity of [undefined, false, true]) {
     const events = [
       {
@@ -18,8 +18,7 @@ test('recharge never samples Alacrity grants or expiry', () => {
       }
     ];
     const timeline = createGw2TimelineIndex({ events, config: { boons: { alacrity } } });
-    for (const rechargeBuffAudience of ['self', 'summon'])
-      assert.equal(timeline.rechargeReadyAt({ id: 1, rechargeBuffAudience }, { startedAt: 2, work: 10 }), 10);
+    assert.equal(timeline.rechargeReadyAt({ id: 1, rechargeBuffAudience: 'self' }, { startedAt: 2, work: 10 }), 10);
     assert.equal(timeline.rechargeReadyAt({ id: 2, rechargeIgnoresAlacrity: true }, { startedAt: 2, work: 10 }), 12);
   }
 });
@@ -29,7 +28,7 @@ test('Chronomancer recharge applies its increased rate only to player skills', (
   const skill = { id: 1, name: 'Recharge' };
   const progress = { startedAt: 0, work: 10 };
   assert.equal(timeline.rechargeReadyAt(skill, progress), 10 / 1.5);
-  assert.equal(timeline.rechargeReadyAt({ ...skill, rechargeBuffAudience: 'summon' }, progress), 8);
+  assert.equal(timeline.rechargeReadyAt({ ...skill, rechargeBuffAudience: 'summon' }, progress), 10);
   assert.equal(timeline.rechargeReadyAt({ ...skill, name: 'Swap Weapons' }, progress), 10);
 });
 

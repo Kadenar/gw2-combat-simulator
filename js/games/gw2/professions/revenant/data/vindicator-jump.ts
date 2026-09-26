@@ -19,6 +19,7 @@ export const VINDICATOR_JUMP_SKILL: Skill = Object.freeze({
   hotkeyAction: 'dodge',
 
   resourceCost: 50,
+  cost: { resource: 'endurance' as const },
   cooldown: 0,
   effects: []
 });

@@ -5,12 +5,14 @@ import {
   buffMatchesAudience,
   isDurationStackingBoon,
   isStandardBoon,
-  normalizeBoonDuration
+  normalizeBoonDuration,
+  prepareBoonWindows,
+  type BoonWindow
 } from '#gw2/platform/combat/boons.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
-import type { RechargeProgress } from '#gw2/platform/engine/skills/recharge.js';
-import { gw2RechargeRate, projectRecharge } from '#gw2/platform/engine/skills/recharge.js';
+import type { RechargeProgress, RechargeInterval } from '#gw2/platform/engine/skills/recharge.js';
+import { gw2RechargeIntervals, projectRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -85,12 +87,25 @@ export function createGw2TimelineIndex({
     cooldownCache.clear();
   };
 
+  let alacrityWindows: readonly BoonWindow[] | undefined;
+  // Reuse received summon windows until a boon grant or extension changes them.
+  const summonAlacrityWindows = (): readonly BoonWindow[] => {
+    refreshIndex();
+    return (alacrityWindows ??= prepareBoonWindows(events, 'alacrity', 'summon'));
+  };
+
+  const rechargeIntervals = (skill: Skill, start: number, end: number): Iterable<RechargeInterval> =>
+    gw2RechargeIntervals(config, summonAlacrityWindows, skill, start, end);
+  const rechargeReadyAt = (skill: Skill, progress: RechargeProgress): number =>
+    projectRecharge(progress, rechargeIntervals(skill, progress.startedAt, Infinity));
+
   let indexedLength = 0;
   let hasExtensions = false;
   const resetIndex = (): void => {
     clearQueryCache();
     for (const values of Object.values(indexed)) values.length = 0;
     indexedBuffs.clear();
+    alacrityWindows = undefined;
     indexedCooldowns.clear();
     indexedLength = 0;
     hasExtensions = false;
@@ -126,8 +141,13 @@ export function createGw2TimelineIndex({
     clearQueryCache();
     while (indexedLength < events.length) {
       const event = events[indexedLength++];
-      if (event.type === 'boon_extension') hasExtensions = true;
+      if (event.type === 'boon_extension') {
+        hasExtensions = true;
+        alacrityWindows = undefined;
+      }
+
       if (event.type === 'buff') {
+        if (event.kind === 'alacrity') alacrityWindows = undefined;
         indexBuff(event);
       }
 
@@ -298,10 +318,10 @@ export function createGw2TimelineIndex({
     }
 
     if (progress) {
-      // Project committed work with the same constant recharge rate used by scheduling.
+      // Project committed work with the same received-boon history used by scheduling.
       const skill = skillsById?.get(skillId);
       if (!skill) throw new Error(`Missing skill ${skillId} for passive recharge query.`);
-      readyAt = gw2CooldownReadyAt(projectRecharge(progress, gw2RechargeRate(config, skill)));
+      readyAt = gw2CooldownReadyAt(rechargeReadyAt(skill, progress));
     }
 
     const value = readyAt === Infinity || canonicalTime(readyAt) > time;
@@ -329,14 +349,13 @@ export function createGw2TimelineIndex({
     activeWeaponSetAt,
     activeSigilSetAt,
     skillOnCooldownAt,
-    rechargeReadyAt(skill: Skill, progress: RechargeProgress): number {
-      // Rewinds and passive queries share the scheduler's constant recharge rate.
-      return projectRecharge(progress, gw2RechargeRate(config, skill));
-    }
+    rechargeIntervals,
+    rechargeReadyAt
   });
 }
 
 export interface Gw2TimelineIndex {
+  rechargeIntervals(skill: Skill, start: number, end: number): Iterable<RechargeInterval>;
   rechargeReadyAt(skill: Skill, progress: RechargeProgress): number;
   /** Invalidates indexed history after the source owner replaces an event. */
   onEventReplaced(previous: SimulationEvent, replacement: SimulationEvent): void;

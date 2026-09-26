@@ -1,4 +1,4 @@
-import { emitRangerBuff, emitRangerDamage, rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { emitRangerDamage, rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import {
   requireBalanceProfileFromContext,
@@ -15,7 +15,7 @@ import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/
 
 import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
+import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
 
 const MISSILE_SKILL_IDS = new Set<number>([
   ID.RICOCHET,
@@ -249,8 +249,7 @@ export function completeGaleshotSkill(context: RangerRuntime, skill: RangerSkill
   // The cooldown gates only quickness, so a removed boon leaves it ready.
   if (!quickness) return;
   state.flockTogetherReadyAt = context.time + balanceProfileNumber(profile, 'internalCooldown');
-  emitRangerBuff(
-    context,
+  context.emitProcedural(
     rangerEvent(
       {
         at: context.time,
@@ -329,8 +328,7 @@ export function applyGaleshotCycloneBowTraits(context: RangerRuntime, skill: Ran
         const duration = effectNumber(profile, effect, 'duration');
         // galeForceUntil is a timestamp, not a duration; compare against context.time in modifiers.
         state.galeForceUntil = context.time + duration;
-        emitRangerBuff(
-          context,
+        context.emitProcedural(
           rangerEvent(
             {
               at: context.time,
@@ -382,8 +380,7 @@ function emitCloudburstBoons(context: RangerRuntime, skill: RangerSkill): void {
     const effect = requireEffect(profile, 'boon', name);
     if (!effect) continue;
     const kind = String(effect.boon);
-    emitRangerBuff(
-      context,
+    context.emitProcedural(
       rangerEvent(
         {
           at: context.time,

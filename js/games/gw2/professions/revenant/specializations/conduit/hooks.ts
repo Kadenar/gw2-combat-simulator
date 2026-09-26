@@ -16,7 +16,7 @@ import {
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
-import { denySkillCast } from '#gw2/professions/shared/availability.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -29,8 +29,6 @@ import {
 } from '#gw2/professions/revenant/data/legends.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/revenant/core/profiles.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
-import { emitRevenantBuff, revenantCombatActive } from '#gw2/professions/revenant/core/events.js';
-import { revenantCastCommitted } from '#gw2/professions/revenant/core/events.js';
 import { emitRevenantInvocationProfile } from '#gw2/professions/revenant/core/traits/index.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { isRevenantUpkeep } from '#gw2/professions/revenant/data/upkeep-skills.js';
@@ -70,7 +68,7 @@ function conduit(runtime: RevenantRuntime) {
 
 /** Affinity is combat-only and capped; reaching the cap grants Expanded Consciousness Energy. */
 function gainAffinity(runtime: RevenantRuntime, amount: number): void {
-  if (runtime.config.specialization !== 'Conduit' || !revenantCombatActive(runtime)) return;
+  if (runtime.config.specialization !== 'Conduit' || !runtime.combatStartedAt()) return;
   const state = conduit(runtime);
   const maximum = Math.max(
     1,
@@ -165,7 +163,7 @@ function boon(
   skill: Skill,
   fields: { at: number; kind: string; duration: number; stacks: number } & Partial<SimulationEventBase>
 ): void {
-  emitRevenantBuff(runtime, {
+  runtime.emitProcedural({
     type: 'buff',
     source: 'revenant',
     sourceId: skill.id,
@@ -726,7 +724,7 @@ function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast): void {
 function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const state = conduit(runtime);
   const core = runtime.profession.core;
-  const combat = revenantCombatActive(runtime);
+  const combat = runtime.combatStartedAt();
   // Entity invocation inherits Spirit Boon and Song of the Mists from Conduit's paired Core legend.
   if (core.activeLegendId === LEGEND.ENTITY && combat) {
     const paired = core.selectedLegendIds.find((legendId) => legendId !== LEGEND.ENTITY);
@@ -873,7 +871,7 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   rechargeWork(runtime, skill, work) {
     if (skill.id === ID.SWAP_LEGENDS) {
       // Precombat legend swaps stay free; Enhanced Embodiment scales the base in combat.
-      if (work === 0 || !revenantCombatActive(runtime) || !hasTrait(runtime, TRAIT.ENHANCED_EMBODIMENT)) return work;
+      if (work === 0 || !runtime.combatStartedAt() || !hasTrait(runtime, TRAIT.ENHANCED_EMBODIMENT)) return work;
       return (
         Math.max(0, Number(skill.cooldown ?? work)) *
         Math.max(
@@ -907,14 +905,14 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     if (skill.id === ID.GLADIATORS_DEFENSE && dervishCasts.has(cast)) dervishAttack(runtime, cast, cast.start);
     if (skill.id === ID.GLADIATORS_DEFENSE) gladiatorsDefense(runtime, cast);
     else if (skill.id === ID.HEX_EATER_VORTEX) hexEaterVortex(runtime, cast);
-    if (!revenantCastCommitted(cast)) return;
+    if (cast.cancelled) return;
     if (BEGUILING_HAZE_SKILL_IDS.has(skill.id)) beguilingHaze(runtime, cast);
     else if (TWIN_MOON_SKILL_IDS.has(skill.id)) twinMoonSweep(runtime, cast);
     else if (RELEASE_POTENTIAL_IDS.has(skill.id)) releasePotential(runtime, cast);
   },
   onCastComplete(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
-    const committed = revenantCastCommitted(cast);
+    const committed = !cast.cancelled;
     if (BEGUILING_HAZE_SKILL_IDS.has(skill.id)) {
       if (committed) completeBeguilingHaze(runtime, cast);
       else hazeMainCasts.delete(cast);

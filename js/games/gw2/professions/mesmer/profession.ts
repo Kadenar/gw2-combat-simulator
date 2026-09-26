@@ -13,6 +13,7 @@ export { mesmerCatalog, mesmerNativeModules } from '#gw2/professions/mesmer/cata
 export const mesmerProfession = defineNativeProfession({
   id: 'mesmer',
   name: 'Mesmer',
+  requireEquippedSlotSkills: true,
   catalog: MESMER_NATIVE_CATALOG_OPTIONS,
   build: {
     createBuildDefaults: createMesmerBuildDefaults,

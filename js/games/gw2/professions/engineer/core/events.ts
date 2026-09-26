@@ -1,10 +1,11 @@
-import { isStandardBoon } from '#gw2/platform/combat/boons.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
+import { splitStrikeHits } from '#gw2/platform/simulation/procedural-emission.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
-/** Trait and autonomous packets retain their owning skill while boons sample duration at application time. */
+/**
+ * Trait and autonomous packets retain their owning skill; the runtime defers future boons so their duration samples
+ * at application. A strike's `interval` spaces its equally divided hits, and `maximumDuration` caps a scaled buff.
+ */
 export function emitEngineerEvent(
   runtime: EngineerRuntime,
   type: string,
@@ -22,28 +23,16 @@ export function emitEngineerEvent(
     ...fields,
     type
   };
-  if (type === 'buff') {
-    if (event.at > runtime.time) {
-      runtime.schedule('engineer.buff', event.at, event);
-      return;
-    }
+  if (type === 'damage') {
+    for (const packet of splitStrikeHits(
+      { ...event, coefficient: Number(event.coefficient) },
+      Number(event.interval ?? 0)
+    ))
+      runtime.emitProcedural(packet);
+    return;
+  }
 
-    const kind = String(event.kind ?? '');
-    const duration =
-      isStandardBoon(kind) && !event.fixedDuration
-        ? gw2ResolverBoonDuration(runtime, event as Gw2ResolverEvent, kind, Number(event.duration))
-        : Number(event.duration);
-    runtime.emit({ ...event, duration: Math.min(duration, Number(event.maximumDuration ?? Infinity)) });
-  } else if (type === 'damage') {
-    const hits = Math.max(1, Math.trunc(Number(event.hits ?? 1)));
-    for (let index = 1; index <= hits; index++)
-      runtime.emit({
-        ...event,
-        at: event.at + (index - 1) * Number(event.interval ?? 0),
-        coefficient: Number(event.coefficient) / hits,
-        hits: 1,
-        hitIndex: event.hitIndex ?? index,
-        totalHits: event.totalHits ?? hits
-      });
-  } else runtime.emit(event);
+  runtime.emitProcedural(event, {
+    ...(type === 'buff' && event.maximumDuration != null ? { maximumDuration: Number(event.maximumDuration) } : {})
+  });
 }

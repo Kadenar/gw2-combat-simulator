@@ -10,7 +10,6 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { strikeEffectTicks } from '#gw2/platform/engine/effects/authoring.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { gw2EffectExpiresAt, projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
@@ -303,10 +302,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
     return label ? `Variant: ${label}` : undefined;
   },
   modifyEffects(runtime, cast, effects) {
-    if (cast.skill.id === ID.GLARING_BURST)
-      return cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)
-        ? []
-        : burstEffects(runtime, cast);
+    if (cast.skill.id === ID.GLARING_BURST) return cast.cancelled ? [] : burstEffects(runtime, cast);
     if (cast.skill.id !== ID.LUMINOUS_STAFF) return effects;
     // Symbol pulses grant their self boon even when the hostile pulse misses.
     return [
@@ -328,7 +324,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
     ];
   },
   onCastStart(runtime, cast) {
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     startLuminaryEffects(runtime, cast);
     const state = luminaryState.from(runtime);
     if (VIRTUES.includes(Number(cast.skill.id))) {
@@ -378,7 +374,7 @@ export const luminaryHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
     if (cast.skill.id === ID.RADIANT_BULWARK) state.radiantCourageShieldArmed = false;
   },
   onCastComplete(runtime, cast) {
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     const state = luminaryState.from(runtime);
     if (cast.skill.id === ID.ENTER_RADIANT_FORGE) enterForge(runtime, cast);
     if (cast.skill.id === ID.EXIT_RADIANT_FORGE) exitForge(runtime, cast);

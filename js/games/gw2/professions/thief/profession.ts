@@ -9,6 +9,7 @@ export { thiefCatalog, thiefNativeModules } from '#gw2/professions/thief/catalog
 export const thiefProfession = defineNativeProfession({
   id: 'thief',
   name: 'Thief',
+  requireEquippedSlotSkills: true,
   build: {
     createBuildDefaults: createThiefBuildDefaults,
     migrateBuild: migrateThiefBuild,

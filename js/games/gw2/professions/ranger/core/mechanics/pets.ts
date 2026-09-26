@@ -296,7 +296,10 @@ export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast)
   const recovery = Number(profile?.commandRecovery[String(skill.id)] || cast.effectiveEnd - cast.start);
   state.petCommandReadyAt = start + recovery;
   state.petCommandDelays[cast.id] = start - cast.start;
-  state.petCommandCooldowns[String(skill.id)] = start + cast.rechargeWork / context.cooldownController.rate(skill);
+  state.petCommandCooldowns[String(skill.id)] = context.cooldownController.project(skill, {
+    startedAt: start,
+    work: cast.rechargeWork
+  });
   context.schedule(PET_COMMAND_START_TASK, start, { cast, busyUntil: start + recovery }, owner(context));
 }
 
@@ -338,8 +341,8 @@ export const rangerPetTasks = {
 
     state.petAutoBusyUntil = context.time + recovery;
     if (selected.cooldown) {
-      // Pet recharge uses permanent Alacrity without sampling its boon history.
-      const rate = !profile.ignoresAlacrity ? GW2_ALACRITY_RECHARGE_RATE : 1;
+      // Autonomous pets use only Alacrity addressed to the active companion.
+      const rate = !profile.ignoresAlacrity && petBuff(context, 'alacrity') ? GW2_ALACRITY_RECHARGE_RATE : 1;
       const cooldown =
         selected.id === ID.CRIPPLING_ANGUISH_PET && quickness
           ? 12

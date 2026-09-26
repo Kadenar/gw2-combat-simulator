@@ -14,7 +14,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Ski
     // Use the observed Quickness cast as the timing reference.
     castTimeMs: 960,
     // The oasis starts pulsing during the cast; its mirror appears three seconds after that first pulse.
-    mesmerTasks: [
+    tasks: [
       {
         type: 'mesmer.mirage.create-mirror',
         count: 1,
@@ -30,7 +30,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Ski
     // The launched sand and its mirror survive cancellation of the remaining animation.
     interruptCommitMs: 320,
     // The ground mirror appears when the sand projectiles converge, after their damage packets.
-    mesmerTasks: [
+    tasks: [
       {
         type: 'mesmer.mirage.create-mirror',
         count: 1,
@@ -86,7 +86,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Ski
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
     // These instant Deceptions grant Mirage Cloak when their cast completes.
-    mesmerTasks: [
+    tasks: [
       {
         type: 'mesmer.mirage.grant-cloak',
         timingAnchor: 'castEnd'
@@ -98,7 +98,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Ski
     shadowstepSkill: true,
     castTimeMs: 0,
     rechargeAnchor: 'castStart',
-    mesmerTasks: [
+    tasks: [
       {
         type: 'mesmer.mirage.grant-cloak',
         timingAnchor: 'castEnd'
@@ -504,8 +504,9 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     cooldown: 0,
     resourceCost: 50,
+    cost: { resource: 'endurance', spendOn: 'castCommit' },
     // Mirage dodge spends endurance, grants cloak, and resolves dodge-triggered traits at completion.
-    mesmerTasks: [
+    tasks: [
       {
         type: 'mesmer.mirage.dodge',
         timingAnchor: 'castEnd'
@@ -524,7 +525,7 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     cooldown: 0,
     // Picking up the action consumes the available ground mirror at cast completion.
-    mesmerTasks: [
+    tasks: [
       {
         type: 'mesmer.mirage.pick-up-mirror',
         timingAnchor: 'castEnd'

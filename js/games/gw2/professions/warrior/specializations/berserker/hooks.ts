@@ -1,6 +1,5 @@
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import {
   balanceProfileNumber,
@@ -51,7 +50,7 @@ function traitBoons(runtime: Runtime, cast: RuntimeCast, trait: number, party = 
       duration,
       audience: { recipients: party ? ('party' as const) : ('self' as const) }
     };
-    runtime.emit({ ...event, duration: gw2ResolverBoonDuration(runtime, event, kind, duration) });
+    runtime.emitProcedural(event);
   }
 }
 

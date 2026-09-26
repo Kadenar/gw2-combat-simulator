@@ -7,16 +7,10 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import {
-  armSkillFlip,
-  consumeSkillFlip,
-  expireSkillFlip,
-  skillFlipReady
-} from '#gw2/platform/engine/skills/skill-flips.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
+import { consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import { castCompleted, gw2EffectExpiresAt } from '#gw2/platform/skills/timing.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { denySkillCast } from '#gw2/professions/shared/availability.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { emitGuardianBoon, triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
@@ -39,7 +33,6 @@ type Runtime = Gw2Runtime<GuardianRuntimeState>;
 const ACTIVATE = 'guardian.willbender.activate';
 const FLAMES = 'guardian.willbender.flames';
 const PULSE = 'guardian.willbender.pulse';
-const REPOSE = 'guardian.willbender.repose-expiry';
 const readyVirtues = new WeakSet<RuntimeCast>();
 const VIRTUES = [
   [ID.RUSHING_JUSTICE, 'justice'],
@@ -345,7 +338,7 @@ export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> =
     }));
   },
   onCastStart(runtime, cast) {
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     if (cast.skill.type === 'Weapon')
       willbenderState.from(runtime).weaponCastRecharge[cast.id] = {
         skillId: cast.skill.id,
@@ -375,7 +368,7 @@ export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> =
     delete state.pendingWeaponCooldownReduction[cast.id];
     delete state.weaponCastRecharge[cast.id];
     if (pending > 0) runtime.cooldownController.reduceSkillRecharge(cast.skill, pending, runtime.time);
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     const virtue = VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
     if (virtue) {
       refreshGuardianVirtues(runtime);
@@ -386,13 +379,7 @@ export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> =
     }
 
     if (cast.skill.id === ID.FLASH_COMBO && castCompleted(cast)) {
-      const window = armSkillFlip(
-        runtime.profession.core.availableFlips,
-        ID.REPOSE,
-        runtime.time,
-        canonicalTime(runtime.time + 6)
-      );
-      runtime.schedule(REPOSE, window.expiresAt!, window.identity, undefined, -220);
+      runtime.armFlip(ID.REPOSE, { expiresAt: canonicalTime(runtime.time + 6), expiryPriority: -220 });
     }
 
     if (cast.skill.id === ID.REPOSE) consumeSkillFlip(runtime.profession.core.availableFlips, ID.REPOSE);
@@ -403,9 +390,6 @@ export const willbenderHooks: Partial<RuntimeProfession<GuardianRuntimeState>> =
     [PULSE](runtime, data) {
       const event = data as Gw2ResolverEvent;
       runtime.emit(buildResolverStrike({ ...event, at: runtime.time, coefficient: Number(event.coefficient) }));
-    },
-    [REPOSE](runtime, identity) {
-      expireSkillFlip(runtime.profession.core.availableFlips, ID.REPOSE, runtime.time, identity as string | number);
     }
   },
   reactions: {

@@ -1,4 +1,4 @@
-import { emitRangerBuff, rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
@@ -57,8 +57,7 @@ export function applyRangerCommandTraits(context: RangerRuntime, skill: RangerSk
   }
 
   for (const [kind, application] of active) {
-    emitRangerBuff(
-      context,
+    context.emitProcedural(
       rangerEvent(
         {
           at: context.time,

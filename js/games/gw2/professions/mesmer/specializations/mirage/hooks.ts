@@ -3,7 +3,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 import type { SkillTask } from '#gw2/platform/engine/skills/types.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { completeMirageSkill } from '#gw2/professions/mesmer/specializations/mirage/traits/self-deception.js';
 import { mirageEndurance } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import { mirageAvailability } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
@@ -28,15 +27,15 @@ export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
   },
   onCastStart(runtime, cast) {
     const skill = cast.skill as MesmerSkill;
-    if (!skill.ambush || cancelledBeforeInterruptCommit(skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (!skill.ambush || cast.cancelled) return;
     withMesmerCastEmission(runtime, cast, skill, () =>
       mirageControllerFor(mesmerMechanicsFor(runtime)).executePlayerAmbush(skill, cast.fullEnd, cast.start)
     );
   },
   onCastComplete(runtime, cast) {
     completeMirageSkill(runtime, cast);
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
-    for (const trigger of (cast.skill as MesmerSkill).mesmerTasks ?? [])
+    if (cast.cancelled) return;
+    for (const trigger of cast.skill.tasks ?? [])
       if (trigger.type === 'mesmer.mirage.create-mirror') {
         // Readiness uses an actual queued creation deadline, without creating or spending a future mirror.
         mirageState
@@ -74,7 +73,6 @@ export const mirageHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     },
     'mesmer.mirage.dodge'(runtime, data) {
       const { cast } = data as TriggerData;
-      runtime.endurance.spend(Number(cast.skill.resourceCost ?? 50));
       const mechanics = mesmerMechanicsFor(runtime);
       mirageControllerFor(mechanics).grantMirageCloak(runtime.time, cast.skill.name);
       if (mechanics.traits.has(TRAIT.DECEPTIVE_EVASION))

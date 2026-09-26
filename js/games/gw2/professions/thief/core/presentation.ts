@@ -1,4 +1,4 @@
-import { skillFlipVisible, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { skillFlipVisible, skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/engine/skills/skill-flips.js';
 import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
 import { activeStackCount, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
@@ -101,12 +101,7 @@ function corePaletteSkillAvailability(context: ThiefUiContext = {}, skill: Thief
     };
   }
 
-  if (
-    skill.type === 'Weapon' &&
-    skill.flipSkillId != null &&
-    skill.flipSkillId !== skill.nextChainId &&
-    skillFlipReady(state.availableFlips?.[String(skill.flipSkillId)], Number(context.time || 0))
-  ) {
+  if (weaponFollowUpOpen(state.availableFlips, skill, Number(context.time || 0))) {
     return {
       available: false,
       message: 'Use or wait out the active follow-up skill'

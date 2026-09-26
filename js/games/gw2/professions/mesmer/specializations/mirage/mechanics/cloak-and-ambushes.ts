@@ -482,20 +482,8 @@ export function createMirageActionController({
   };
 }
 
-/** Gates Mirage Cloak dodges on endurance, mirror pickups on an available mirror, and ambushes on an active or queued ambush window. */
+/** Gates mirror pickups on an available mirror and ambushes on an active or queued ambush window. */
 export function mirageAvailability(context: MesmerRuntime, skill: MesmerSkill): AvailabilityResult {
-  if (skill.id === ID.DODGE_MIRAGE_CLOAK) {
-    const state = mirageState.from(context);
-    const cost = Number(skill.resourceCost ?? 50);
-    if (state.endurance >= cost - EPSILON) return { ready: true };
-    return {
-      ready: false,
-      retryAt: context.endurance.readyAt(cost),
-      code: 'mesmer.endurance',
-      reason: `Dodge requires ${cost} endurance.`
-    };
-  }
-
   if (skill.id === ID.PICK_UP_MIRAGE_MIRROR) {
     const mirrors = mirageState.from(context).mirrors;
     if (mirrors.some((mirror) => isTimeInWindow(context.time, mirror.availableAt, mirror.expiresAt))) {

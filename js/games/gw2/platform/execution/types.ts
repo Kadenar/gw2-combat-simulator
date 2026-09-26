@@ -41,7 +41,7 @@ export interface CooldownController {
   clear(skillId: SkillId): void;
   copy(sourceId: SkillId, targetId: SkillId): void;
   refresh(at: number): void;
-  rate(skill: Skill): number;
+  rate(skill: Skill, at?: number): number;
   project(skill: Skill, progress: RechargeProgress): number;
   remaining(skill: Skill, progress: RechargeProgress, at: number): number;
   ensureAmmo(skill: Skill, at?: number): AmmoState | null;

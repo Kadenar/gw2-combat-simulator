@@ -6,16 +6,13 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeProfession, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/resources.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
 import { engineerRechargeWork } from '#gw2/professions/engineer/core/mechanics/recharge.js';
@@ -121,9 +118,6 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
   onCastStart(runtime, cast) {
     if (cast.skill.independentCast) applyEngineerToolbeltTraits(runtime, cast.skill, runtime.time);
     if (cast.skill.id !== ID.DODGE) return;
-    runtime.endurance.spend(
-      balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'resourceCost')
-    );
     emitEngineerEvent(runtime, 'engineer.dodge', { at: runtime.time, activationId: cast.id }, cast.skill);
     for (const [trait, name, predicate] of [
       [TRAIT.POWER_WRENCH, 'Power Wrench', (skill: EngineerSkill) => skill.type === 'Elite' || skill.slot === 'Elite'],
@@ -140,7 +134,7 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
         );
   },
   onCastComplete(runtime, cast) {
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     const skill = cast.skill as EngineerSkill;
     const state = runtime.profession.core;
     if (skill.kitTransition) {
@@ -181,10 +175,7 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
 
     if (!castWasInterrupted(cast)) applyEngineerCastTraits(runtime, cast);
   },
-  tasks: {
-    ...engineerWeaponTasks,
-    'engineer.buff': (runtime, data) => emitEngineerEvent(runtime, 'buff', data as SimulationEventBase)
-  },
+  tasks: engineerWeaponTasks,
   eventHandlers: {
     'engineer.kinetic-battery': OBSERVABLE_EVENT_HANDLER,
     'engineer.air-blast': handleAirBlast,

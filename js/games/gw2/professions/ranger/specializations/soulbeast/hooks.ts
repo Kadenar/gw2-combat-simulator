@@ -3,7 +3,6 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { RangerRuntimeState } from '#gw2/professions/ranger/types.js';
@@ -27,7 +26,7 @@ import {
   applyUnstoppableUnion,
   emitSoulbeastStance
 } from '#gw2/professions/ranger/specializations/soulbeast/traits/index.js';
-import { emitRangerBuff, rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import { scheduleSharedStance } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 
 const commands = new Set<number>([ID.STRENGTH_OF_THE_PACK, ID.PROTECT_ME, ID.GUARD, ID.SIC_EM, ID.WE_HEAL_AS_ONE]);
@@ -44,7 +43,7 @@ export const soulbeastHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
   availability: soulbeastCastAvailability,
   onCastStart(runtime, cast) {
     const skill = cast.skill;
-    if (cancelledBeforeInterruptCommit(skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     if (skill.id === ID.BEASTMODE || skill.id === ID.LEAVE_BEASTMODE) {
       soulbeastState.from(runtime).beastmodeActive = skill.id === ID.BEASTMODE;
       setRangerPetActive(runtime, skill.id !== ID.BEASTMODE);
@@ -66,8 +65,7 @@ export const soulbeastHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
     }
 
     if (soulbeastState.from(runtime).beastmodeActive && skill.id === ID.SIC_EM)
-      emitRangerBuff(
-        runtime,
+      runtime.emitProcedural(
         rangerEvent(
           {
             at: runtime.time,

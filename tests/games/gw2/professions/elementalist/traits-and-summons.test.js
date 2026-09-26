@@ -1174,3 +1174,53 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
   assert.match(pickupHtml, /data-skill="Flame Uprising"/);
   assert.match(pickupHtml, /class="[^"]*pal-context-disabled[^"]*" data-skill="Frost Volley"/);
 });
+
+// Console Alacrity never supplies a companion boon; only a received party grant changes its recharge.
+test('elemental autonomous cooldowns require shared player Alacrity', () => {
+  for (const [element, secondary, cooldown] of [
+    ['Fire', 'Flame Burst', 15],
+    ['Earth', 'Enervating Punch', 8]
+  ]) {
+    for (const sharePlayerBoonsWithSummons of [false, true]) {
+      for (const grant of [false, true]) {
+        const result = runElementalist({
+          config: {
+            specialization: 'Core',
+            startAttunement: element,
+            selectedSkills: { Elite: element === 'Fire' ? 'Glyph of Elementals' : 'Glyph of Elementals (Earth)' },
+            boons: { alacrity: true },
+            allies: { count: 0 },
+            sharePlayerBoonsWithSummons
+          },
+          rotation: ['__combat_start', { type: 'wait', durationMs: 7000 }],
+          timeline: [
+            {
+              at: 0.04,
+              run(runtime) {
+                if (grant)
+                  runtime.emit({
+                    type: 'buff',
+                    kind: 'alacrity',
+                    at: 0.04,
+                    duration: 30,
+                    stacks: 1,
+                    source: 'fixture',
+                    sourceId: 'fixture',
+                    actorType: 'player',
+                    audience: { recipients: 'party' }
+                  });
+              }
+            }
+          ]
+        });
+        const action = result.events.find((event) => event.type === 'action' && event.skillName === secondary);
+        assert.ok(action, element);
+        const readyAt = observedRuntime(result).profession.core.summonedElemental.secondaryAttackReadyAt;
+        assert.ok(
+          Math.abs(readyAt - action.endsAt - cooldown / (grant && sharePlayerBoonsWithSummons ? 1.25 : 1)) < 1e-8
+        );
+        assert.deepEqual(result.warnings, []);
+      }
+    }
+  }
+});

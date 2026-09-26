@@ -1,4 +1,4 @@
-import { emitRangerBuff, rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -49,8 +49,7 @@ export function completeRangerTraits(context: RangerRuntime, skill: RangerSkill)
     const effect = wellspringProfile && requireEffect(wellspringProfile, 'boon', 'regeneration');
     if (wellspringProfile && effect) {
       const kind = String(effect.boon);
-      emitRangerBuff(
-        context,
+      context.emitProcedural(
         rangerEvent(
           {
             at: context.time,
@@ -82,8 +81,7 @@ export function completeRangerTraits(context: RangerRuntime, skill: RangerSkill)
   const windborneNotes = windborneNotesProfile && requireEffect(windborneNotesProfile, 'boon', 'regeneration');
   if (windborneNotesProfile && windborneNotes) {
     const kind = String(windborneNotes.boon);
-    emitRangerBuff(
-      context,
+    context.emitProcedural(
       rangerEvent(
         {
           at: context.time,
@@ -113,8 +111,7 @@ export function completeRangerTraits(context: RangerRuntime, skill: RangerSkill)
       const effect = requireEffect(profile, 'boon', name);
       if (!effect) continue;
       const kind = String(effect.boon);
-      emitRangerBuff(
-        context,
+      context.emitProcedural(
         rangerEvent(
           {
             at: context.time,
@@ -158,8 +155,7 @@ export function applyRangerBeastSkillTraits(
     if (effect) {
       state.rejuvenationReadyAt = context.time + balanceProfileNumber(profile, 'internalCooldown');
       const kind = String(effect.boon);
-      emitRangerBuff(
-        context,
+      context.emitProcedural(
         rangerEvent(
           {
             at: context.time,
@@ -251,8 +247,7 @@ export function applyRangerPetSwapTraits(context: RangerRuntime, skill: RangerSk
     }
 
     for (const boon of partyBoons) {
-      emitRangerBuff(
-        context,
+      context.emitProcedural(
         rangerEvent(
           {
             at,
@@ -295,8 +290,7 @@ export function applyRangerPetSwapTraits(context: RangerRuntime, skill: RangerSk
 
     // Emit Clarion Bond's boons before its condition and combo marker to preserve event ordering.
     for (const boon of partyBoons) {
-      emitRangerBuff(
-        context,
+      context.emitProcedural(
         rangerEvent(
           {
             at,

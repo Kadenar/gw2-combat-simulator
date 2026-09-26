@@ -9,14 +9,12 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
-import { denySkillCast } from '#gw2/professions/shared/availability.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { emitRevenantBuff, revenantCombatActive } from '#gw2/professions/revenant/core/events.js';
-import { revenantCastCommitted } from '#gw2/professions/revenant/core/events.js';
 import {
   emitRevenantInvocationProfile,
   emitRevenantInvocationSkill
@@ -65,7 +63,7 @@ function facetPulse(runtime: RevenantRuntime, data: unknown): void {
   const pulse = skill?.upkeepPulse as
     { readonly kind: string; readonly duration: number; readonly stacks: number } | undefined;
   if (!skill || !pulse) return;
-  emitRevenantBuff(runtime, {
+  runtime.emitProcedural({
     type: 'buff',
     at: runtime.time,
     source: 'revenant',
@@ -160,7 +158,7 @@ function grantCompassion(runtime: RevenantRuntime): void {
   const effect = requireEffect(profile, 'boon', 'quickness');
   // The cooldown gates only quickness, so a removed boon leaves the pulse ready.
   if (!effect) return;
-  emitRevenantBuff(runtime, {
+  runtime.emitProcedural({
     type: 'buff',
     at: runtime.time,
     source: 'revenant',
@@ -229,8 +227,7 @@ function sharedEmpowerment(runtime: RevenantRuntime, event: Gw2ResolverEvent): v
   if (!effect) return;
   // Reserve the ICD before emitting Might so the derived boon cannot recursively trigger the trait.
   state.sharedEmpowermentReadyAt = runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
-  emitRevenantBuff(
-    runtime,
+  runtime.emitProcedural(
     {
       type: 'buff',
       at: runtime.time,
@@ -245,7 +242,7 @@ function sharedEmpowerment(runtime: RevenantRuntime, event: Gw2ResolverEvent): v
       stacks: Math.max(1, effectNumber(profile, effect, 'stacks')),
       audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
     },
-    event
+    { cause: event }
   );
 }
 
@@ -328,18 +325,18 @@ export const heraldHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     return { ready: true };
   },
   onCastStart(runtime, cast) {
-    if (cast.skill.consume && revenantCastCommitted(cast)) startConsume(runtime, cast);
+    if (cast.skill.consume && !cast.cancelled) startConsume(runtime, cast);
   },
   onCastComplete(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
-    const committed = revenantCastCommitted(cast);
+    const committed = !cast.cancelled;
     if (committed && skill.consume) completeConsume(runtime, cast);
     if (committed && skill.id === ID.TRUE_NATURE_DRAGON && !castWasInterrupted(cast)) trueNatureDragon(runtime, cast);
     // Facet lifecycle changes aggregate upkeep before Elevated Compassion evaluates its threshold.
     if (committed) startFacet(runtime, skill);
     syncCompassion(runtime);
     if (!committed || skill.id !== ID.SWAP_LEGENDS) return;
-    if (runtime.profession.core.activeLegendId !== LEGEND.DRAGON || !revenantCombatActive(runtime)) return;
+    if (runtime.profession.core.activeLegendId !== LEGEND.DRAGON || !runtime.combatStartedAt()) return;
     if (hasTrait(runtime, TRAIT.SPIRIT_BOON))
       emitRevenantInvocationProfile(runtime, HERALD_SPIRIT_BOON_PROFILE_ID, TRAIT.SPIRIT_BOON);
     if (hasTrait(runtime, TRAIT.SONG_OF_THE_MISTS))

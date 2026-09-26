@@ -16,7 +16,7 @@ import { untamedState } from '#gw2/professions/ranger/specializations/untamed/st
 
 import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
+import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
 
 const AMBUSH_SKILL_IDS = new Set<number>([ID.RELENTLESS_WHIRL, ID.DEFT_STRIKE]);
 

@@ -12,12 +12,10 @@ import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import {
-  armThiefFlip,
   deferThiefCompletion,
   emitThiefBuff,
   emitThiefCondition,
-  takeThiefCompletion,
-  thiefCastCommitted
+  takeThiefCompletion
 } from '#gw2/professions/thief/core/events.js';
 import { grantThiefEndurance, grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { grantThiefStealth } from '#gw2/professions/thief/core/mechanics/stealth.js';
@@ -260,7 +258,7 @@ function completeDeadeyeCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const state = deadeyeState.from(runtime);
   const facts = castFacts.get(cast);
   castFacts.delete(cast);
-  const committed = thiefCastCommitted(cast);
+  const committed = !cast.cancelled;
   if (committed) {
     if (skill.id === ID.DEADEYES_MARK) completeDeadeyesMark(runtime, cast);
     else if (skill.id === ID.MALICIOUS_SNEAK_ATTACK && !castWasInterrupted(cast))
@@ -289,13 +287,12 @@ function completeDeadeyeCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
         balanceProfileNumber(mercy, 'resourceGain') + malice * balanceProfileNumber(mercy, 'attributePerStack')
       );
     } else if (skill.id === ID.SHADOW_FLARE)
-      armThiefFlip(
-        runtime,
-        ID.SHADOW_SWAP,
-        runtime.time,
-        runtime.time +
+      runtime.armFlip(ID.SHADOW_SWAP, {
+        availableAt: runtime.time,
+        expiresAt:
+          runtime.time +
           balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.shadowFlare), 'durationMultiplier')
-      );
+      });
     else if (skill.id === ID.SHADOW_SWAP) consumeSkillFlip(runtime.profession.core.availableFlips, ID.SHADOW_SWAP);
   }
 

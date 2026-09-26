@@ -400,7 +400,7 @@ export const mesmerTooltips: ProfessionTooltips = {
               tooltipProfile(balanceContext, MIRAGE.mechanics).effects?.filter((effect) => effect.type === 'buff'),
               'mirror pickup window'
             ).facts,
-            ...((entity as MesmerSkill).mesmerTasks || [])
+            ...((entity as MesmerSkill).tasks || [])
               .filter((trigger) => trigger.type === 'mesmer.mirage.create-mirror')
               .map((trigger) => ({
                 name: 'Mirror creation',

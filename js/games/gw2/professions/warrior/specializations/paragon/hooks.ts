@@ -1,7 +1,6 @@
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
 import {
   balanceProfileNumber,
@@ -9,7 +8,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -47,7 +45,7 @@ function boon(runtime: Runtime, skill: Skill, kind: string, duration: number, st
     duration,
     audience: { recipients: 'party' as const }
   };
-  runtime.emit({ ...event, duration: gw2ResolverBoonDuration(runtime, event, kind, duration) });
+  runtime.emitProcedural(event);
 }
 
 /** Replacing even the same chant invalidates the old pulse before arming a new cadence. */
@@ -263,7 +261,7 @@ export const paragonHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
     }
   },
   onCastStart(runtime, cast) {
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     if (
       cast.skill.burst &&
       !cast.skill.categories?.includes('Chant') &&
@@ -276,7 +274,7 @@ export const paragonHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
       );
   },
   onCastComplete(runtime, cast) {
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     if (cast.skill.categories?.includes('Chant')) activateChant(runtime, cast);
     if (cast.skill.categories?.includes('Command')) activateCommand(runtime, cast);
     if (cast.skill.burst)

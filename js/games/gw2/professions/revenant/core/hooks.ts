@@ -1,12 +1,12 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { armSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip, skillFlipReady, weaponFlipBlock } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
-import { denySkillCast } from '#gw2/professions/shared/availability.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
 import { VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
@@ -15,12 +15,6 @@ import { modifyRevenantLifeSiphon } from '#gw2/professions/revenant/core/mechani
 import { revenantEnergyCost } from '#gw2/professions/revenant/family-state.js';
 import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { isRevenantUpkeep, isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
-import {
-  emitDeferredRevenantBuff,
-  REVENANT_EMIT_TASK,
-  revenantCastCommitted,
-  revenantCombatActive
-} from '#gw2/professions/revenant/core/events.js';
 import {
   clearRevenantLegendFlips,
   empowerRevenantEmbrace,
@@ -41,7 +35,6 @@ import {
   completeRevenantImperialGuard,
   completeRevenantWeaponFlips,
   detonateRevenantBlossomingAura,
-  expireRevenantImperialGuard,
   reactRevenantDropTheHammer,
   reactRevenantSpearRecharge,
   revenantAbyssalRazeImpact,
@@ -49,7 +42,6 @@ import {
   revenantHitboxEffects,
   REVENANT_ABYSSAL_RAZE,
   REVENANT_BLOSSOMING_AURA,
-  REVENANT_IMPERIAL_GUARD_EXPIRY,
   startRevenantAbyssalRaze,
   startRevenantBlossomingAura,
   startRevenantWeaponCast
@@ -149,21 +141,11 @@ function revenantAvailability(runtime: RevenantRuntime, skill: Skill, _command: 
     return denySkillCast(skill, 'revenant.imperial-guard-inactive', 'channel Imperial Guard first.');
   if (skill.id === ID.IMPERIAL_GUARD && skillFlipReady(flips[ID.TRUE_STRIKE], now))
     return denySkillCast(skill, 'revenant.true-strike-ready', 'use or let True Strike expire first.');
-  const flipParent = skill.flipParentId == null ? null : runtime.helpers.skillsById.get(Number(skill.flipParentId));
-  if (
-    skill.type === 'Weapon' &&
-    skill.id !== ID.TRUE_STRIKE &&
-    flipParent?.flipSkillId === skill.id &&
-    !skillFlipReady(flips[Number(skill.id)], now)
-  )
-    return denySkillCast(skill, 'revenant.weapon-flip-inactive', `use ${flipParent.name} first.`);
-  if (
-    skill.type === 'Weapon' &&
-    skill.id !== ID.IMPERIAL_GUARD &&
-    skill.flipSkillId != null &&
-    skill.flipSkillId !== skill.nextChainId &&
-    skillFlipReady(flips[Number(skill.flipSkillId)], now)
-  )
+  // True Strike and Imperial Guard already answered above with their channel-specific reasons.
+  const flipBlock = weaponFlipBlock(flips, runtime.helpers.skillsById, skill, now);
+  if (flipBlock?.kind === 'closed')
+    return denySkillCast(skill, 'revenant.weapon-flip-inactive', `use ${flipBlock.parent.name} first.`);
+  if (flipBlock?.kind === 'open')
     return denySkillCast(skill, 'revenant.weapon-flip-active', 'use or wait out the active follow-up skill.');
   if (skill.id === ID.SWAP_LEGENDS) {
     const specialization = String(runtime.config.specialization || 'Core');
@@ -171,19 +153,6 @@ function revenantAvailability(runtime: RevenantRuntime, skill: Skill, _command: 
       core.selectedLegendIds.some((legendId) => !isLegalRevenantLegendId(legendId, specialization))
       ? denySkillCast(skill, 'revenant.legend-pair', 'select two legal legends.')
       : { ready: true };
-  }
-
-  if (DODGE_IDS.has(skill.id)) {
-    const cost = Math.max(0, Number(skill.resourceCost || 0));
-    const readyAt = runtime.endurance.readyAt(cost);
-    return readyAt != null && readyAt <= now + EPSILON
-      ? { ready: true }
-      : denySkillCast(
-          skill,
-          'revenant.insufficient-endurance',
-          `requires ${cost} endurance.`,
-          readyAt != null && Number.isFinite(readyAt) ? readyAt : null
-        );
   }
 
   if (skill.legendId && skill.legendId !== core.activeLegendId)
@@ -273,12 +242,12 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
   },
   onCastStart(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
-    if (DODGE_IDS.has(skill.id)) runtime.endurance.spend(Number(skill.resourceCost || 0));
-    else if (isRevenantUpkeep(skill)) upkeepCosts.set(cast, revenantEnergyCost(runtime, skill));
+    if (DODGE_IDS.has(skill.id)) return;
+    if (isRevenantUpkeep(skill)) upkeepCosts.set(cast, revenantEnergyCost(runtime, skill));
     else if (skill.id !== ID.SWAP_LEGENDS)
       runtime.resourceController.spend('energy', revenantEnergyCost(runtime, skill));
     startRevenantWeaponCast(runtime, cast);
-    if (!revenantCastCommitted(cast)) return;
+    if (cast.cancelled) return;
     startRevenantUpkeepCast(runtime, cast);
     if (skill.id === ID.BLOSSOMING_AURA) startRevenantBlossomingAura(runtime, cast);
     else if (skill.id === ID.DETONATE_BLOSSOMING_AURA) detonateRevenantBlossomingAura(runtime, cast);
@@ -286,7 +255,7 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
   },
   onCastComplete(runtime, cast) {
     const skill = cast.skill as RevenantSkill;
-    const committed = revenantCastCommitted(cast);
+    const committed = !cast.cancelled;
     const upkeepCost = upkeepCosts.get(cast);
     upkeepCosts.delete(cast);
     if (committed && upkeepCost != null) runtime.resourceController.spend('energy', upkeepCost);
@@ -311,7 +280,7 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
   },
   onCooldownReset(runtime) {
     // Restores in-combat Energy after the shared runtime resets cooldowns.
-    if (!revenantCombatActive(runtime)) return;
+    if (!runtime.combatStartedAt()) return;
     runtime.resourceController.grant('energy', runtime.profession.core.energy.maximum);
   },
   reactions: {
@@ -329,10 +298,8 @@ export const revenantCoreHooks: Partial<RuntimeProfession<RevenantRuntimeState>>
     'buff.applied': reactRevenantIncensedResponse
   },
   tasks: {
-    [REVENANT_EMIT_TASK]: emitDeferredRevenantBuff,
     [REVENANT_ENERGY_DEPLETED]: starveRevenantUpkeeps,
     [REVENANT_UPKEEP_PULSE]: revenantUpkeepPulse,
-    [REVENANT_IMPERIAL_GUARD_EXPIRY]: expireRevenantImperialGuard,
     [REVENANT_BLOSSOMING_AURA]: revenantBlossomingAuraPulse,
     [REVENANT_ABYSSAL_RAZE]: revenantAbyssalRazeImpact,
     [REVENANT_ASSASSINS_PRESENCE]: revenantAssassinsPresencePulse

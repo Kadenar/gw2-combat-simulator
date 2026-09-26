@@ -1,21 +1,15 @@
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/critical-procs.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { gw2ResolverBoonDuration, queueResolverBoon } from '#gw2/platform/resolver/boons.js';
+import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import { BRAVE_STRIDE_MOVEMENT_SKILL_IDS, reactToWarriorBuff } from '#gw2/professions/warrior/core/traits/strength.js';
 import { reactToWarriorDamage } from '#gw2/professions/warrior/core/traits/arms.js';
-import {
-  armSkillFlip,
-  consumeSkillFlip,
-  expireSkillFlip,
-  skillFlipReady
-} from '#gw2/platform/engine/skills/skill-flips.js';
+import { consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -24,7 +18,6 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { castCompleted, castWasInterrupted } from '#gw2/platform/skills/timing.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
@@ -35,7 +28,6 @@ import { grantWarriorAdrenaline } from '#gw2/professions/warrior/core/mechanics/
 
 type WarriorRuntime = Gw2Runtime<WarriorRuntimeState>;
 const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
-const COUNTER_EXPIRY = 'warrior.counterblow-expiry';
 const EMPOWER_PULSE = 'warrior.empower-allies-pulse';
 // These immutable reservation facts survive resource changes during the cast; they are not another resource pool.
 const burstSpends = new WeakMap<RuntimeCast, number>();
@@ -67,13 +59,7 @@ function traitEffects(
     if (effect.type === 'condition') {
       runtime.emitDerived(event, buildResolverCondition({ ...fields, condition: String(effect.condition) }));
     } else {
-      const kind = String(effect.boon || effect.kind);
-      runtime.emitDerived(event, {
-        ...fields,
-        type: 'buff',
-        kind,
-        duration: gw2ResolverBoonDuration(runtime, event, kind, fields.duration)
-      });
+      runtime.emitProcedural({ ...fields, type: 'buff', kind: String(effect.boon || effect.kind) }, { cause: event });
     }
   }
 }
@@ -224,7 +210,7 @@ function criticalTraits(
       stacks: 1,
       duration: 5
     };
-    runtime.emitDerived(event, { ...buff, duration: gw2ResolverBoonDuration(runtime, event, 'might', buff.duration) });
+    runtime.emitProcedural(buff, { cause: event });
   }
 
   if (hasTrait(runtime, TRAIT.BLOODLUST)) {
@@ -345,7 +331,9 @@ function castTraitBuff(
     stacks: effectNumber(profile, effect, 'stacks'),
     duration: effectNumber(profile, effect, 'duration')
   };
-  runtime.emit({ ...event, duration: gw2ResolverBoonDuration(runtime, event, kind, event.duration) });
+  // A modifier opening at a future impact is queued now, so it precedes the same-instant hits it modifies.
+  if (at > runtime.time) runtime.emit(event);
+  else runtime.emitProcedural(event);
 }
 
 /** Acceptance rewards survive later cancellation; Kick opens its modifier at the first authored impact. */
@@ -463,7 +451,7 @@ function empowerPulse(runtime: WarriorRuntime): void {
     duration: effectNumber(profile, might, 'duration'),
     audience: { recipients: 'party' as const }
   };
-  runtime.emit({ ...event, duration: gw2ResolverBoonDuration(runtime, event, 'might', event.duration) });
+  runtime.emitProcedural(event);
   runtime.schedule(EMPOWER_PULSE, canonicalTime(runtime.time + interval), null, undefined, -210);
 }
 
@@ -582,19 +570,6 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
   },
   availability(runtime, rawSkill) {
     const skill = rawSkill as WarriorSkill;
-    const selection = selectedSlotSkillAvailability({ config: runtime.config, catalog: runtime.helpers }, skill);
-    if (selection) return selection;
-    if (skill.id === ID.DODGE) {
-      const cost = balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'resourceCost');
-      if (runtime.profession.core.endurance < cost)
-        return {
-          ready: false,
-          retryAt: runtime.endurance.readyAt(cost),
-          code: 'warrior.endurance',
-          reason: `Dodge requires ${cost} endurance.`
-        };
-    }
-
     const state = runtime.profession.core;
     if (skill.id === ID.TACTICAL_BLOW && !skillFlipReady(state.availableFlips[ID.TACTICAL_BLOW], runtime.time))
       return {
@@ -631,10 +606,6 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
     startTraits(runtime, cast);
     // Attempting the manual follow-up consumes its occurrence, even if the attack is later canceled.
     if (cast.skill.id === ID.TACTICAL_BLOW) consumeSkillFlip(runtime.profession.core.availableFlips, ID.TACTICAL_BLOW);
-    if (cast.skill.id === ID.DODGE)
-      runtime.endurance.spend(
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'resourceCost')
-      );
     if (cast.skill.burst && !cast.skill.dragonSlash) {
       const state = runtime.profession.core;
       const spent = burstAdrenalineSpend(runtime, cast.skill);
@@ -766,13 +737,8 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
   },
   onCastComplete(runtime, cast) {
     // A committed block may release early; its follow-up inherits the remaining original channel window.
-    if (
-      cast.skill.id === ID.COUNTERBLOW &&
-      runtime.time < cast.fullEnd &&
-      !cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)
-    ) {
-      const window = armSkillFlip(runtime.profession.core.availableFlips, ID.TACTICAL_BLOW, runtime.time, cast.fullEnd);
-      runtime.schedule(COUNTER_EXPIRY, cast.fullEnd, window.identity, undefined, -20);
+    if (cast.skill.id === ID.COUNTERBLOW && runtime.time < cast.fullEnd && !cast.cancelled) {
+      runtime.armFlip(ID.TACTICAL_BLOW, { expiresAt: cast.fullEnd });
     }
 
     if (!castCompleted(cast)) return;
@@ -807,15 +773,7 @@ export const warriorCoreHooks: Partial<RuntimeProfession<WarriorRuntimeState>> =
   },
   tasks: {
     [SIGNET_PULSE]: signetPulse,
-    [EMPOWER_PULSE]: empowerPulse,
-    [COUNTER_EXPIRY](runtime, identity) {
-      expireSkillFlip(
-        runtime.profession.core.availableFlips,
-        ID.TACTICAL_BLOW,
-        runtime.time,
-        identity as number | string
-      );
-    }
+    [EMPOWER_PULSE]: empowerPulse
   },
   reactions: {
     'damage.resolving'(runtime, event) {

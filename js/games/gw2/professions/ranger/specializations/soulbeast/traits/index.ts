@@ -1,4 +1,4 @@
-import { emitRangerBuff, rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -17,8 +17,7 @@ export function applyUnstoppableUnion(context: RangerRuntime, skill: RangerSkill
   const profile = requireBalanceProfileFromContext(context, PROFILE.unstoppableUnion);
   const effect = requireEffect(profile, 'boon', 'protection');
   if (!effect) return;
-  emitRangerBuff(
-    context,
+  context.emitProcedural(
     rangerEvent(
       {
         at: context.time,
@@ -59,10 +58,9 @@ export function emitSoulbeastStance(
     duration,
     stacks: 1
   };
-  emitRangerBuff(context, rangerEvent(application, 'buff'));
+  context.emitProcedural(rangerEvent(application, 'buff'));
   if (shared) {
-    emitRangerBuff(
-      context,
+    context.emitProcedural(
       rangerEvent(
         {
           ...application,

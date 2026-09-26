@@ -75,7 +75,12 @@ export function runElementalist({
         for (const [index, entry] of timeline.entries())
           runtime.schedule('test.elementalist-check', entry.at, index, undefined, entry.priority);
       },
-      tasks: { ...native.tasks, 'test.elementalist-check': (runtime, index) => timeline[index].run(runtime) }
+      tasks: {
+        ...native.tasks,
+        'test.elementalist-check': (runtime, index) => timeline[index].run(runtime),
+        // Queues an arbitrary packet as owned work, so tests can cancel it before it executes.
+        'test.emit': (runtime, event) => runtime.emit(event)
+      }
     },
     config,
     rotation,

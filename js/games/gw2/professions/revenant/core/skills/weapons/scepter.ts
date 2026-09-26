@@ -109,6 +109,7 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.OTHERWORLDLY_BOND]: {
     castTimeMs: 520,
+    flipDuration: 7,
     cooldown: 8,
     energyCost: 5,
     effects: [

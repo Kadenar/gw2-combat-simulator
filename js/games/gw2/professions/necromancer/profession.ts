@@ -12,6 +12,7 @@ export { necromancerCatalog, necromancerNativeModules } from '#gw2/professions/n
 export const necromancerProfession = defineNativeProfession({
   id: 'necromancer',
   name: 'Necromancer',
+  requireEquippedSlotSkills: true,
   build: {
     createBuildDefaults: createNecromancerBuildDefaults,
     migrateBuild: migrateNecromancerBuild,

@@ -10,13 +10,11 @@ import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import {
-  armThiefFlip,
   deferThiefCompletion,
   emitThiefBuff,
   emitThiefCondition,
   emitThiefDamage,
-  takeThiefCompletion,
-  thiefCastCommitted
+  takeThiefCompletion
 } from '#gw2/professions/thief/core/events.js';
 import { grantThiefEndurance, thiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
@@ -172,13 +170,12 @@ function updatePalmStrike(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const flips = runtime.profession.core.availableFlips;
   if (cast.skill.id === ID.FIST_FLURRY) {
     if (cast.command.offTarget === true || castWasInterrupted(cast)) return;
-    armThiefFlip(
-      runtime,
-      ID.PALM_STRIKE,
-      runtime.time,
-      runtime.time +
+    runtime.armFlip(ID.PALM_STRIKE, {
+      availableAt: runtime.time,
+      expiresAt:
+        runtime.time +
         balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.palmStrike), 'durationMultiplier')
-    );
+    });
   } else if (cast.skill.id === ID.PALM_STRIKE) consumeSkillFlip(flips, ID.PALM_STRIKE);
 }
 
@@ -217,7 +214,7 @@ function weakeningStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {
 }
 
 function completeDaredevilCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  if (!thiefCastCommitted(cast)) return;
+  if (cast.cancelled) return;
   if (cast.skill.id === ID.DODGE) completeDaredevilDodge(runtime, cast);
   updatePalmStrike(runtime, cast);
   // Endurance Thief follows Core's steal resources.
@@ -264,7 +261,7 @@ export const daredevilHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
         runtime,
         balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.brawlersTenacity), 'resourceGain')
       );
-    if (skill.id === ID.DODGE && thiefCastCommitted(cast)) queueDodgePackets(runtime, cast);
+    if (skill.id === ID.DODGE && !cast.cancelled) queueDodgePackets(runtime, cast);
   },
   onCastComplete(runtime, cast) {
     deferThiefCompletion(runtime, DAREDEVIL_COMPLETE, cast);

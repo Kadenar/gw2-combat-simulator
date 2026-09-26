@@ -12,6 +12,7 @@ export { engineerCatalog, engineerNativeModules } from '#gw2/professions/enginee
 export const engineerProfession = defineNativeProfession({
   id: 'engineer',
   name: 'Engineer',
+  requireEquippedSlotSkills: true,
   build: {
     createBuildDefaults: createEngineerBuildDefaults,
     migrateBuild: migrateEngineerBuild,

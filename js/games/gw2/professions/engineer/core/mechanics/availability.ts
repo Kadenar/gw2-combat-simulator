@@ -1,40 +1,15 @@
 import { skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
-import { EPSILON } from '#kernel/core/clock.js';
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/engine/skills/balance-profiles.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
 
-import {
-  denySkillCast as denyEngineerCast,
-  selectedSlotSkillAvailability
-} from '#gw2/professions/shared/availability.js';
+import { denySkillCast as denyEngineerCast } from '#gw2/platform/engine/skills/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Enforces Core Engineer resource, kit, flip, and toolbelt prerequisites after shared build eligibility. */
 export function engineerCoreCastAvailability(context: EngineerRuntime, skill: EngineerSkill): AvailabilityResult {
-  const selection = selectedSlotSkillAvailability({ config: context.config, catalog: context.helpers }, skill);
-  if (selection) return selection;
   const state = professionCoreState(context);
-  if (skill.id === ID.DODGE) {
-    const resourcesProfile = requireBalanceProfileFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources);
-    const enduranceCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
-    // epsilon prevents floating-point rounding from blocking a dodge at exactly the threshold
-    return Number(state.endurance || 0) + EPSILON >= enduranceCost
-      ? { ready: true }
-      : denyEngineerCast(
-          skill,
-          'engineer.insufficient-endurance',
-          `requires ${enduranceCost} endurance.`,
-          context.endurance.readyAt(enduranceCost)
-        );
-  }
-
   if (skill.id === ID.HEALING_TURRET && state.healingTurretActivationId) {
     return denyEngineerCast(skill, 'engineer.healing-turret-active', 'the deployed turret must be detonated first.');
   }

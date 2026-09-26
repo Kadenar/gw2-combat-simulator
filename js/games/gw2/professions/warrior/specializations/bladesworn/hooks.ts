@@ -3,11 +3,9 @@ import { CAST_READY, denyCast, retryCast } from '#gw2/platform/engine/skills/ava
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import {
   balanceProfileNumber,
   effectNumber,
@@ -129,18 +127,13 @@ function gunsaberEntryTraits(runtime: Runtime, cast: RuntimeCast): void {
   } else {
     const might = requireEffect(profile, 'boon', 'might');
     if (might)
-      runtime.emit({
+      runtime.emitProcedural({
         ...event,
         type: 'buff',
         name: "River's Flow — Might",
         kind: 'might',
         stacks: effectNumber(profile, might, 'stacks'),
-        duration: gw2ResolverBoonDuration(
-          runtime,
-          { ...event, type: 'buff' },
-          'might',
-          effectNumber(profile, might, 'duration')
-        ),
+        duration: effectNumber(profile, might, 'duration'),
         audience: { recipients: 'party' }
       });
   }
@@ -208,10 +201,7 @@ function triggerTraitBuffs(runtime: Runtime, cast: RuntimeCast, trait: number, s
       priority: trait === TRAIT.BURST_MASTERY || trait === TRAIT.BERSERKERS_POWER ? 5 : 0,
       ...(trait === TRAIT.DARING_DRAGON ? { audience: { recipients: 'party' as const } } : {})
     };
-    runtime.emit({
-      ...event,
-      duration: gw2ResolverBoonDuration(runtime, event, kind, effectNumber(profile, effect, 'duration'))
-    });
+    runtime.emitProcedural({ ...event, duration: effectNumber(profile, effect, 'duration') });
   }
 }
 
@@ -657,11 +647,7 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = 
   },
   onCastStart(runtime, cast) {
     const state = bladeswornState.from(runtime);
-    if (
-      cast.skill.id === ID.TACTICAL_RELOAD &&
-      !cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)
-    )
-      runtime.schedule(RELOAD_COMPLETE, cast.fullEnd, cast);
+    if (cast.skill.id === ID.TACTICAL_RELOAD && !cast.cancelled) runtime.schedule(RELOAD_COMPLETE, cast.fullEnd, cast);
     if (cast.ammo) {
       const ammo = runtime.ammo.get(cast.skill.id)!;
       const artillery = cast.skill.id === ID.ARTILLERY_SLASH || cast.skill.id === ID.SHARP_ARTILLERY_SLASH;
@@ -672,10 +658,7 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = 
       if (artillery && ammo.charges > 1) ammo.charges = 1;
     }
 
-    if (
-      cast.skill.id === ID.OVERCHARGED_CARTRIDGES &&
-      !cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)
-    )
+    if (cast.skill.id === ID.OVERCHARGED_CARTRIDGES && !cast.cancelled)
       runtime.schedule(CARTRIDGE_ACTIVATE, canonicalTime(cast.start + (cast.fullEnd - cast.start) * (420 / 900)), cast);
     if (cast.skill.dragonSlash) {
       const maximum = maximumDragonCharges(runtime);
@@ -729,8 +712,7 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = 
   },
   onCastComplete(runtime, cast) {
     // Successful ammunition commitment earns its reward even when the remaining animation is interrupted.
-    if (!cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd))
-      ammoTraits(runtime, cast);
+    if (!cast.cancelled) ammoTraits(runtime, cast);
     if (!castCompleted(cast)) return;
     grantWarriorAdrenaline(runtime, Number(cast.skill.flowGain ?? 0));
     if (cast.skill.id === ID.UNSHEATHE_GUNSABER) swapGunsaber(runtime, cast, true);

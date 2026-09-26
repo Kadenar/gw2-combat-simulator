@@ -24,7 +24,7 @@ function recover(events, end, config = {}, timeline = []) {
         if (event.cancelled) {
           const packet = { ...event };
           delete packet.cancelled;
-          r.schedule('elementalist.packet', event.at, packet, { id: 'cancelled', generation: 0 });
+          r.schedule('test.emit', event.at, packet, { id: 'cancelled', generation: 0 });
           r.cancelOwner({ id: 'cancelled', generation: 0 });
         } else r.emit(event);
       }

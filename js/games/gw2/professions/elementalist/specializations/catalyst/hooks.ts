@@ -1,5 +1,5 @@
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
-import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
 import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import {
@@ -360,13 +360,13 @@ export const catalystHooks: Partial<RuntimeProfession<ElementalistRuntimeState>>
   tasks: {
     [CATALYST_BASE_EMPOWERMENT_TASK]: renewBaseEmpowerment,
     'elementalist.catalyst.relentless-fire'(runtime, data) {
-      activateRelentlessFire(runtime, (data as RuntimeCast).skill, runtime.time);
+      activateRelentlessFire(runtime, (data as SkillTaskData).cast.skill, runtime.time);
     },
     'elementalist.catalyst.shattering-ice'(runtime, data) {
-      activateShatteringIce(runtime, (data as RuntimeCast).skill, runtime.time);
+      activateShatteringIce(runtime, (data as SkillTaskData).cast.skill, runtime.time);
     },
     'elementalist.catalyst.elemental-celerity'(runtime, data) {
-      activateElementalCelerity(runtime, (data as RuntimeCast).skill, runtime.time);
+      activateElementalCelerity(runtime, (data as SkillTaskData).cast.skill, runtime.time);
     }
   },
 

@@ -46,6 +46,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
   },
   [ID.INFUSING_TERROR]: {
     castTimeMs: 0,
+    flipDuration: 6,
     effects: [],
     type: 'Profession',
     slot: 'Weapon_3',

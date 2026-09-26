@@ -1,7 +1,6 @@
-import { canonicalTime } from '#kernel/core/clock.js';
 import { normalizeEffectMetadata } from '#gw2/platform/engine/effects/contracts.js';
 import { buildResolverBuff, buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
+import { proceduralSkillWeapon, splitStrikeHits } from '#gw2/platform/simulation/procedural-emission.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -36,34 +35,17 @@ export function withElementalistCast(runtime: ElementalistRuntime, cast: Runtime
   }
 }
 
-/** Future buffs sample live duration at application, and owner-bound packets remain cancellable until impact. */
+/** Procedural packets inherit the owning cast's activation and targeting while a lifecycle callback runs. */
 export function emitElementalistPacket(
   runtime: ElementalistRuntime,
   event: SimulationEventBase,
   cause?: Gw2ResolverEvent
 ): void {
   const cast = emissions.get(runtime);
-  let packet: SimulationEventBase & { fixedDuration?: boolean } = {
-    ...(cast ? { activationId: cast.id, offTarget: cast.command.offTarget } : {}),
-    ...event
-  };
-  if (packet.type === 'buff' && canonicalTime(packet.at) > runtime.time) {
-    runtime.schedule('elementalist.packet', packet.at, packet);
-    return;
-  }
-
-  if (packet.type === 'buff' && packet.fixedDuration !== true)
-    packet = {
-      ...packet,
-      duration: gw2ResolverBoonDuration(
-        runtime,
-        packet as Gw2ResolverEvent,
-        String(packet.kind),
-        Number(packet.duration)
-      )
-    };
-  if (cause) runtime.emitDerived(cause, packet);
-  else runtime.emit(packet);
+  runtime.emitProcedural(
+    { ...(cast ? { activationId: cast.id, offTarget: cast.command.offTarget } : {}), ...event },
+    { cause }
+  );
 }
 
 /** Normalizes the procedural envelope before the shared runtime validates and queues it. */
@@ -87,23 +69,14 @@ export function emitElementalistDamage(runtime: ElementalistRuntime, packet: Pac
   // Trait and effect packets own their strength roll independently of the triggering cast.
   if (packet.activationId == null && packet.actorType === 'effect')
     packet = { ...packet, activationId: 'elementalist.effect:' + ++runtime.weaponStrengthActivationOrder };
-  const count = Math.max(1, Math.trunc(Number(packet.hits ?? 1)));
-  for (let index = 0; index < count; index++)
+  const { at, coefficient, hits, hitIndex, totalHits } = packet;
+  for (const hit of splitStrikeHits({ at, coefficient, hits, hitIndex, totalHits }, Number(packet.interval ?? 0)))
     emitElementalistPacket(
       runtime,
       buildResolverStrike({
         ...fields(packet),
-        at: packet.at + index * Number(packet.interval ?? 0),
-        coefficient: packet.coefficient / count,
-        hits: 1,
-        hitIndex: packet.hitIndex ?? index + 1,
-        totalHits: packet.totalHits ?? count,
-        skillWeapon:
-          packet.skillWeapon ??
-          (packet.skill
-            ? (packet.skill.skillWeapon ??
-              (packet.skill.type === 'Weapon' ? String(packet.skill.weapon ?? '') : 'Unequipped'))
-            : ''),
+        ...hit,
+        skillWeapon: packet.skillWeapon ?? (packet.skill ? proceduralSkillWeapon(packet.skill) : ''),
         canCrit: packet.canCrit !== false
       }),
       packet.cause

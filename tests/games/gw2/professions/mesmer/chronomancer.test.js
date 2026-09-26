@@ -25,7 +25,7 @@ test('Continuum snapshots restore recharge work at the permanent Chronomancer ra
     state,
     rechargeDuration: () => 10,
     skillFor: (id) => skillsById.get(id),
-    rate: (skill) => gw2RechargeRate(config, skill)
+    rechargeIntervals: (skill, start, end) => [{ start, end, rate: gw2RechargeRate(config, skill) }]
   });
   const continuum = createContinuumController({
     state,

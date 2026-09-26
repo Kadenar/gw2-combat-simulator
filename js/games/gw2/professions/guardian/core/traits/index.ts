@@ -11,7 +11,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boons.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
@@ -32,7 +31,6 @@ import type {
 } from '#gw2/professions/guardian/types.js';
 
 type Runtime = Gw2Runtime<GuardianRuntimeState>;
-const BOON = 'guardian.trait-boon';
 const MIGHT = 'guardian.righteous-might';
 const RESOLUTION_EXPIRY = 'guardian.resolution-expiry';
 const AVENGER_EXPIRY = 'guardian.symbolic-avenger-expiry';
@@ -218,26 +216,19 @@ export function triggerGuardianFuriousFocus(runtime: Runtime, cast: RuntimeCast)
   state.furiousFocusReadyAt = runtime.cooldownController.project(symbol, state.furiousFocusRecharge);
 }
 
-/** All Guardian-generated boons sample attributes at application; Resolution's selected trait scales once. */
+/** Guardian boons carry Virtue of Resolution's longer Resolution; the runtime defers and scales them like any boon. */
 export function emitGuardianBoon(runtime: Runtime, event: SimulationEventBase): void {
-  // Canonicalize before comparing: raw pulse addition can otherwise reschedule the same rounded timestamp forever.
-  event = { ...event, at: canonicalTime(event.at) };
-  if (event.at > runtime.time) {
-    runtime.schedule(BOON, event.at, event);
-    return;
-  }
-
-  const kind = String(event.kind);
   const multiplier =
-    kind === 'resolution' && hasTrait(runtime, TRAIT.VIRTUE_OF_RESOLUTION)
+    String(event.kind) === 'resolution' && hasTrait(runtime, TRAIT.VIRTUE_OF_RESOLUTION)
       ? balanceProfileNumber(
           requireBalanceProfileFromContext(runtime, PROFILE.virtueOfResolution),
           'durationMultiplier'
         )
       : 1;
-  runtime.emit({
+  runtime.emitProcedural({
     ...event,
-    duration: gw2ResolverBoonDuration(runtime, { ...event, type: 'buff' }, kind, Number(event.duration) * multiplier)
+    at: canonicalTime(event.at),
+    ...(multiplier === 1 ? {} : { duration: Number(event.duration) * multiplier })
   });
 }
 
@@ -486,7 +477,6 @@ export function reactToGuardianBuff(runtime: Runtime, event: Gw2ResolverEvent): 
 }
 
 export const guardianTraitTasks = {
-  [BOON]: (runtime: Runtime, event: unknown) => emitGuardianBoon(runtime, event as SimulationEventBase),
   [AVENGER_EXPIRY](runtime: Runtime, deadline: unknown) {
     const state = runtime.profession.core;
     if (Math.min(...state.symbolicAvengerExpirations) !== deadline) return;

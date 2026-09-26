@@ -1,12 +1,12 @@
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/rules.js';
-import { ACTION_SAFETY_LIMIT, canonicalTime } from '#kernel/core/clock.js';
+import { ACTION_SAFETY_LIMIT, canonicalTime, EPSILON } from '#kernel/core/clock.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import {
   normalizeObservationPolicy,
   observationEndTime,
   type ObservationPolicy
 } from '#kernel/execution/observation.js';
-import { normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
+import { isStandardBoon, normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
 import { prepareGw2ComboEvent } from '#gw2/platform/combos/events.js';
 import { finisherDescriptors, fieldDescriptors } from '#gw2/platform/combos/descriptors.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat/query/combat-query.js';
@@ -32,7 +32,7 @@ import {
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
-import { gw2BaseRecharge, gw2RechargeRate } from '#gw2/platform/engine/skills/recharge.js';
+import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import {
   autoattackChainAvailability,
   advanceAutoattackChains,
@@ -61,7 +61,8 @@ import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-st
 import { buildSimulationScore, buildCombatResult } from '#gw2/platform/results/build-result.js';
 import { planningState } from '#gw2/platform/results/end-state.js';
 import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
-import { flattenProfessionState } from '#gw2/platform/engine/profession/state.js';
+import { flattenProfessionState, readProfessionCoreState } from '#gw2/platform/engine/profession/state.js';
+import { armSkillFlip, expireSkillFlip, type SkillFlipWindows } from '#gw2/platform/engine/skills/skill-flips.js';
 import { createCriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
 import type { Gw2SimulationOptions } from '#gw2/platform/simulation/types.js';
 import {
@@ -71,6 +72,7 @@ import {
   summonQuicknessCastTimeMs
 } from '#gw2/platform/skills/timing.js';
 import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
+import { spendSkillCost } from '#gw2/platform/execution/skill-cost.js';
 import type {
   Gw2ResolverEvent,
   Gw2ResolverReactions,
@@ -78,13 +80,16 @@ import type {
 } from '#gw2/platform/resolver/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type {
+  FlipWindowOptions,
   Gw2Runtime,
+  ProceduralEmissionOptions,
   RuntimeCast,
   RuntimeProfession,
-  RuntimeWork
+  RuntimeWork,
+  SkillTaskData
 } from '#gw2/platform/simulation/runtime-state.js';
 import type { CastCommand } from '#gw2/platform/execution/types.js';
-import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2EventDraft } from '#gw2/platform/equipment/relics/types.js';
 
 /** One cursor, queue, profession instance and RNG own gameplay in both reporting modes. */
@@ -209,10 +214,10 @@ export function runGw2Runtime<T extends object>({
   // Controller closures follow the one runtime clock; the initializer object is not retained as separate state.
   const cooldownController = createCooldownController({
     state: Object.assign(base, clocks),
-    rechargeDuration: (skill) => rechargeWorkFor(skill) / cooldownController.rate(skill),
+    rechargeDuration: (skill, at) => rechargeWorkFor(skill) / cooldownController.rate(skill, at),
     maximumAmmo: (skill) =>
       profession.maximumAmmo?.(runtime, skill, Number(skill.ammo ?? 0)) ?? Number(skill.ammo ?? 0),
-    rate: (skill) => gw2RechargeRate(config, skill),
+    rechargeIntervals: (skill, start, end) => query.timeline.rechargeIntervals(skill, start, end),
     skillFor: (id) => profession.catalog.skillsById.get(id)
   });
   runtime = Object.assign(base, {
@@ -254,6 +259,66 @@ export function runGw2Runtime<T extends object>({
         parentEventOrder: cause.eventOrder,
         ...event
       });
+    },
+    emitProcedural(event: SimulationEventBase, options: ProceduralEmissionOptions = {}) {
+      const at = canonicalTime(Number(event.at));
+      const { cause } = options;
+      // A future buff waits for its own instant so its duration samples live stats there; a future owner-bound packet
+      // waits so retiring the owner cancels it. The work inherits the current causal placement, like any other task.
+      if (at > runtime.time && (event.type === 'buff' || options.owner)) {
+        enqueueWork(
+          makeWork({
+            type: 'runtime.procedural',
+            at,
+            priority: options.priority ?? 0,
+            owner: options.owner,
+            payload: {
+              event: {
+                ...(cause
+                  ? { activationId: cause.activationId, causalOrder: cause.causalOrder ?? cause.eventOrder }
+                  : {}),
+                ...event,
+                at
+              },
+              ...(options.fixedDuration == null ? {} : { fixedDuration: options.fixedDuration }),
+              ...(options.maximumDuration == null ? {} : { maximumDuration: options.maximumDuration })
+            }
+          })
+        );
+        return null;
+      }
+
+      const packet = event.type === 'buff' ? scaleProceduralBuff(event, options) : event;
+      return cause ? runtime.emitDerived(cause, packet) : runtime.emit(packet);
+    },
+    armFlip(
+      skillId: SkillId,
+      {
+        availableAt = runtime.time,
+        expiresAt = Infinity,
+        visibleAt,
+        identity,
+        expiryPriority = -20
+      }: FlipWindowOptions = {}
+    ) {
+      const window = armSkillFlip(flipWindows(), skillId, availableAt, expiresAt, visibleAt ?? availableAt, identity);
+      // The expiry only retires stale state: readiness already closes at the exclusive deadline.
+      if (window.expiresAt != null)
+        enqueueWork(
+          makeWork({
+            type: 'runtime.flip-expiry',
+            at: window.expiresAt,
+            priority: expiryPriority,
+            payload: { skillId, identity: window.identity }
+          })
+        );
+      return window;
+    },
+    combatStartedAt(at = runtime.time) {
+      // Setup casts that complete at the marker's own instant stay precombat until the cursor consumes the marker.
+      if (!runtime.hasExplicitCombatStart) return true;
+      if (runtime.combatStartPending || runtime.cursor.command?.type === 'combat-start') return false;
+      return runtime.combatStartTime != null && at + EPSILON >= runtime.combatStartTime;
     },
     emit(event: SimulationEventBase) {
       const prepared = profession.prepareEvent ? profession.prepareEvent(runtime, event) : event;
@@ -337,6 +402,52 @@ export function runGw2Runtime<T extends object>({
       duration: gw2ResolverBoonDuration(runtime, event, String(event.kind), Number(event.duration ?? 0))
     });
   });
+  /** Standard boons scale with boon duration at their application instant; other buffs keep their authored duration. */
+  function scaleProceduralBuff(
+    event: SimulationEventBase,
+    { fixedDuration, maximumDuration }: Pick<ProceduralEmissionOptions, 'fixedDuration' | 'maximumDuration'>
+  ): SimulationEventBase {
+    const kind = String(event.kind ?? '');
+    const duration =
+      !(fixedDuration ?? event.fixedDuration === true) && isStandardBoon(kind)
+        ? gw2ResolverBoonDuration(runtime, event as Gw2ResolverEvent, kind, Number(event.duration))
+        : event.duration;
+    if (maximumDuration != null) return { ...event, duration: Math.min(Number(duration), maximumDuration) };
+    return duration === event.duration ? event : { ...event, duration };
+  }
+
+  /** Authored skill tasks become live work at their deadlines; cast-scaled offsets follow the reserved duration. */
+  function scheduleSkillTasks(cast: RuntimeCast): void {
+    for (const trigger of cast.skill.tasks ?? []) {
+      const castTimeMs = Number(cast.skill.castTimeMs);
+      const scale =
+        trigger.timingScale === 'cast' && castTimeMs > 0 ? ((cast.fullEnd - cast.start) * 1000) / castTimeMs : 1;
+      const origin =
+        trigger.timingAnchor === 'castStart'
+          ? cast.start
+          : trigger.timingAnchor === 'castComplete'
+            ? cast.effectiveEnd
+            : cast.fullEnd;
+      const at = Math.max(runtime.time, origin + (Number(trigger.atMs ?? 0) * scale) / 1000);
+      runtime.schedule(trigger.type, at, { cast, trigger } satisfies SkillTaskData);
+    }
+  }
+
+  /** Every profession keeps its follow-up windows under one conventional key on its Core state. */
+  function flipWindows(): SkillFlipWindows {
+    const flips = readProfessionCoreState<{ availableFlips: SkillFlipWindows }>(runtime.profession).availableFlips;
+    if (!flips) throw new TypeError(`${profession.id} keeps no follow-up windows on its Core state.`);
+    return flips;
+  }
+
+  internal.register('runtime.flip-expiry', (_context, work) => {
+    if (work.type === 'runtime.flip-expiry')
+      expireSkillFlip(flipWindows(), work.payload.skillId, runtime.time, work.payload.identity);
+  });
+  internal.register('runtime.procedural', (_context, work) => {
+    // The deferred packet applies at the live clock now; its cause attribution already travels on the event.
+    if (work.type === 'runtime.procedural') runtime.emitProcedural(work.payload.event, work.payload);
+  });
   internal.register('runtime.task', (_context, work) => {
     if (work.type === 'runtime.task') profession.tasks![work.payload.name](runtime, work.payload.data);
   });
@@ -351,7 +462,7 @@ export function runGw2Runtime<T extends object>({
       cooldownController.setAmmoLockout(cast.skill, cast.ammoLockoutWork, cast.rechargeStart);
     } else if (cast.rechargeWork > 0)
       cooldownController.startRecharge(cast.skill, cast.rechargeStart, cast.rechargeWork);
-    const cancelled = cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd);
+    const cancelled = cast.cancelled;
     // Ordinary swaps commit one actual set transition before completion hooks and queued equipment reactions.
     if (cast.skill.inputCategory === 'weapon-swap' && !castWasInterrupted(cast)) {
       runtime.activeWeaponSet = runtime.activeWeaponSet === 1 ? 2 : 1;
@@ -383,7 +494,9 @@ export function runGw2Runtime<T extends object>({
       profession.autoattackChainOverrides
     );
     profession.onAutoattackChainTransition?.(runtime, cast, transition);
+    if (cast.skill.cost?.spendOn === 'castCommit' && !cast.cancelled) spendSkillCost(runtime, cast.skill);
     profession.onCastComplete?.(runtime, cast);
+    if (!cast.cancelled) scheduleSkillTasks(cast);
     const completion = assertSimulationEvent({
       type: 'action',
       at: runtime.time,
@@ -395,7 +508,7 @@ export function runGw2Runtime<T extends object>({
       skillType: cast.skill.type,
       activationId: cast.id,
       offTarget: cast.command.offTarget,
-      cancelled: cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd),
+      cancelled: cast.cancelled,
       // Preparation relics follow authored command order even when hostile eligibility includes the marker timestamp.
       precombat:
         runtime.combatStartPending ||
@@ -506,7 +619,7 @@ export function runGw2Runtime<T extends object>({
     const canonicalRechargeStart =
       (skill.rechargeAnchor === 'castStart' ? start : effectiveEnd) + Number(skill.rechargeOffsetMs ?? 0) / 1000;
     const rechargeStart =
-      profession.rechargeStart?.(runtime, { skill, start, fullEnd, effectiveEnd }, canonicalRechargeStart) ??
+      profession.rechargeStart?.(runtime, { skill, start, fullEnd, effectiveEnd, cancelled }, canonicalRechargeStart) ??
       canonicalRechargeStart;
     if (!Number.isFinite(rechargeStart)) throw new RangeError('Recharge start must be finite.');
     const cast = reservations.reserve({
@@ -522,7 +635,8 @@ export function runGw2Runtime<T extends object>({
       // Persistent recharge modifiers also govern the gap between charges; one-shot entitlements do not.
       ammoLockoutWork:
         ammo && Number(skill.ammoCastLockout) > 0 ? rechargeWorkFor(skill, Number(skill.ammoCastLockout)) : 0,
-      ammo
+      ammo,
+      cancelled
     });
     if (!runtime.inFlight.has(skill.id)) runtime.inFlight.set(skill.id, new Set());
     runtime.inFlight.get(skill.id)!.add(cast.id);
@@ -591,6 +705,8 @@ export function runGw2Runtime<T extends object>({
         causalOrder: action.eventOrder
       })
     );
+    // A declared cost is paid on acceptance unless the skill pays only for a committed activation.
+    if (skill.cost && skill.cost.spendOn !== 'castCommit') spendSkillCost(runtime, skill);
     profession.onCastStart?.(runtime, cast);
     // Custom skill owners select their packets once; scheduled effects still apply through the common live queue.
     for (const effect of profession.modifyEffects?.(runtime, cast, skill.effects ?? []) ?? skill.effects ?? []) {

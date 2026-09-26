@@ -9,7 +9,7 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 /**
  * Catalyst skill fragments: the four attunement-gated Deploy Jade Sphere profession
  * skills, each placing a five-second combo field of its element, and the three
- * augments whose `elementalistTasks` fire their Catalyst handler at cast end.
+ * augments whose `tasks` fire their Catalyst handler at cast end.
  */
 export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.DEPLOY_JADE_SPHERE_FIRE]: {
@@ -106,10 +106,10 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
     cooldown: 20,
     skillFamily: 'Augment',
     // Relentless Fire opens its damage window when the augment completes.
-    elementalistTasks: [
+    tasks: [
       {
         type: 'elementalist.catalyst.relentless-fire',
-        timingAnchor: 'castEnd'
+        timingAnchor: 'castComplete'
       }
     ],
     effects: []
@@ -124,10 +124,10 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
     cooldown: 20,
     skillFamily: 'Augment',
     // Shattering Ice opens its proc window when the augment completes.
-    elementalistTasks: [
+    tasks: [
       {
         type: 'elementalist.catalyst.shattering-ice',
-        timingAnchor: 'castEnd'
+        timingAnchor: 'castComplete'
       }
     ],
     // The activation only opens a proc window; successful attacks own every strike and chill packet.
@@ -143,10 +143,10 @@ export const CATALYST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> 
     cooldown: 90,
     skillFamily: 'Augment',
     // Elemental Celerity refreshes the active attunement and grants sphere boons on completion.
-    elementalistTasks: [
+    tasks: [
       {
         type: 'elementalist.catalyst.elemental-celerity',
-        timingAnchor: 'castEnd'
+        timingAnchor: 'castComplete'
       }
     ],
     effects: []

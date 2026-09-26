@@ -18,12 +18,7 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
-import {
-  emitRevenantBuff,
-  emitRevenantProfile,
-  revenantBoonActive,
-  revenantCombatActive
-} from '#gw2/professions/revenant/core/events.js';
+import { emitRevenantProfile, revenantBoonActive } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import type { SkillEffect, SkillId } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
@@ -50,8 +45,7 @@ interface TraitBuff {
 /** Trait boons apply at the current instant, retaining their trigger's attribution when one exists. */
 function traitBuff(runtime: RevenantRuntime, fields: TraitBuff, cause?: Gw2ResolverEvent | null): void {
   const { actorType = 'player', ...rest } = fields;
-  emitRevenantBuff(
-    runtime,
+  runtime.emitProcedural(
     {
       type: 'buff',
       at: runtime.time,
@@ -59,7 +53,7 @@ function traitBuff(runtime: RevenantRuntime, fields: TraitBuff, cause?: Gw2Resol
       actorType,
       ...rest
     },
-    cause
+    { cause }
   );
 }
 
@@ -121,8 +115,7 @@ function grantBattleScars(
   );
   core.battleScars = expiries;
   if (!added) return;
-  emitRevenantBuff(
-    runtime,
+  runtime.emitProcedural(
     {
       type: 'buff',
       at: runtime.time,
@@ -136,7 +129,7 @@ function grantBattleScars(
       duration,
       stacks: added
     },
-    cause
+    { cause }
   );
 }
 
@@ -160,7 +153,7 @@ export function completeRevenantCastTraits(runtime: RevenantRuntime, cast: Runti
       });
   }
 
-  if (revenantCombatActive(runtime) && isLegendaryStanceSkill(skill) && hasTrait(runtime, TRAIT.NOTORIETY)) {
+  if (runtime.combatStartedAt() && isLegendaryStanceSkill(skill) && hasTrait(runtime, TRAIT.NOTORIETY)) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.notoriety);
     const boon = requireEffect(profile, 'boon', 'might');
     if (boon)
@@ -190,7 +183,7 @@ export function completeRevenantCastTraits(runtime: RevenantRuntime, cast: Runti
 
 /** Core invocation traits run after a completed in-combat legend swap reaches its destination. */
 export function applyRevenantInvocationTraits(runtime: RevenantRuntime): void {
-  if (!revenantCombatActive(runtime)) return;
+  if (!runtime.combatStartedAt()) return;
   const legendId = runtime.profession.core.activeLegendId;
   // Every in-combat invocation grants Fury; Invoker's Rage no longer has an internal cooldown.
   if (hasTrait(runtime, TRAIT.INVOKERS_RAGE))
@@ -252,7 +245,7 @@ export function completeRevenantBrutality(runtime: RevenantRuntime, cast: Runtim
 export function reactRevenantIncensedResponse(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if (
     event.kind !== 'fury' ||
-    !revenantCombatActive(runtime) ||
+    !runtime.combatStartedAt() ||
     !hasTrait(runtime, TRAIT.INCENSED_RESPONSE) ||
     !isGw2PlayerModifierOwnedEvent(event) ||
     !gw2BoonApplicationRecipients(runtime.config, event).includesSelf
@@ -437,7 +430,7 @@ function viciousReprisal(runtime: RevenantRuntime, event: Gw2ResolverEvent): voi
 /** Expose Defenses applies its opening Vulnerability on the first landed in-combat strike. */
 function exposeDefenses(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   const core = runtime.profession.core;
-  if (core.exposeDefensesUsed || !revenantCombatActive(runtime) || !hasTrait(runtime, TRAIT.EXPOSE_DEFENSES)) return;
+  if (core.exposeDefensesUsed || !runtime.combatStartedAt() || !hasTrait(runtime, TRAIT.EXPOSE_DEFENSES)) return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.exposeDefenses);
   const condition = requireEffect(profile, 'condition', 'Vulnerability');
   // The one-use opener belongs to its packet, so a removed packet leaves it unspent.
@@ -523,8 +516,7 @@ export function completeRevenantEnchantedDaggers(runtime: RevenantRuntime, cast:
     ...grantCharges(charges, runtime.time + duration),
     readyAt: runtime.time
   };
-  emitRevenantBuff(
-    runtime,
+  runtime.emitProcedural(
     {
       type: 'buff',
       at: runtime.time,
@@ -539,8 +531,7 @@ export function completeRevenantEnchantedDaggers(runtime: RevenantRuntime, cast:
       duration,
       stacks: charges
     },
-    null,
-    true
+    { fixedDuration: true }
   );
 }
 
@@ -584,7 +575,7 @@ export function revenantAssassinsPresencePulse(runtime: RevenantRuntime): void {
     null,
     { id: REVENANT_ASSASSINS_PRESENCE, generation: core.assassinsPresenceGeneration }
   );
-  if (!revenantCombatActive(runtime)) return;
+  if (!runtime.combatStartedAt()) return;
   const boon = requireEffect(profile, 'boon', 'fury');
   // The pulse cadence is trait-owned and continues; only the removed Fury packet is skipped.
   if (!boon) return;

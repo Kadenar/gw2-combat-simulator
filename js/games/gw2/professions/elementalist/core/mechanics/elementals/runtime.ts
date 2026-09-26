@@ -135,6 +135,11 @@ function activeElemental(context: ElementalistRuntime, summonGeneration: number,
   );
 }
 
+// Only Alacrity received by this elemental accelerates its autonomous recharge.
+function rechargeRate(context: ElementalistRuntime, at: number): number {
+  return elementalBoonActive(context, 'alacrity', at) ? GW2_ALACRITY_RECHARGE_RATE : 1;
+}
+
 // Quickness speeds up the elemental's animations 50% (divides all timing offsets).
 function actionRate(context: ElementalistRuntime, at: number): number {
   return elementalBoonActive(context, 'quickness', at) ? 1.5 : 1;
@@ -249,7 +254,7 @@ function startFlameBurst(context: ElementalistRuntime, at: number): void {
   const rate = actionRate(context, at);
   const elemental = professionCoreState(context).summonedElemental;
   const action = beginSummonAction(context, at, profile.skillId, 'Flame Burst', profile.animationEnd / rate);
-  elemental.secondaryAttackReadyAt = at + profile.animationEnd / rate + profile.cooldown / GW2_ALACRITY_RECHARGE_RATE;
+  elemental.secondaryAttackReadyAt = at + profile.animationEnd / rate + profile.cooldown / rechargeRate(context, at);
   scheduleImpact(context, at + profile.impact / rate, 'flame-burst', action);
   const nextAt = at + profile.recovery / rate;
   elemental.busyUntil = nextAt;
@@ -290,7 +295,7 @@ function startEnervatingPunch(context: ElementalistRuntime, at: number): void {
   const rate = actionRate(context, at);
   const elemental = professionCoreState(context).summonedElemental;
   const action = beginSummonAction(context, at, profile.skillId, 'Enervating Punch', profile.animationEnd / rate);
-  elemental.secondaryAttackReadyAt = at + profile.animationEnd / rate + profile.cooldown / GW2_ALACRITY_RECHARGE_RATE;
+  elemental.secondaryAttackReadyAt = at + profile.animationEnd / rate + profile.cooldown / rechargeRate(context, at);
   scheduleImpact(context, at + profile.impact / rate, 'enervating-punch', action);
   const nextAt = at + profile.recovery / rate;
   elemental.busyUntil = nextAt;

@@ -38,7 +38,7 @@ export const MESMER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Parti
     castTimeMs: 500,
     // The image grants boons after its field expires unless Abstraction detonates it first.
     comboFields: [{ ownerId: 'mesmer', fieldType: 'Ethereal', duration: 2, startAnchor: 'castEnd' }],
-    mesmerTasks: [{ type: 'mesmer.core.imagery-expire', atMs: 2000, timingAnchor: 'castEnd' }],
+    tasks: [{ type: 'mesmer.core.imagery-expire', atMs: 2000, timingAnchor: 'castEnd' }],
     effects: [
       { type: 'boon', boon: 'might', stacks: 12, duration: 9 },
       { type: 'boon', boon: 'fury', duration: 9 }

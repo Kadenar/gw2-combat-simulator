@@ -110,7 +110,6 @@ export type MesmerTrackedHitDamage = Partial<MesmerStrikeEffect> & {
 
 export interface MesmerSkill extends Skill {
   /** Named live tasks preserve authored deadlines without scheduler handlers. */
-  readonly mesmerTasks?: readonly import('#gw2/platform/engine/skills/types.js').SkillTask[];
   /** Additional spear effects require the Clarity consumed by this activation. */
   readonly clarityEffects?: readonly SkillEffect[];
   readonly id: number;
@@ -121,7 +120,6 @@ export interface MesmerSkill extends Skill {
   readonly applyConditionsOnInterrupt?: boolean;
   readonly armedAtStart?: boolean;
   readonly flipDelay?: number;
-  readonly flipDuration?: number;
   readonly maxCloneEffects?: readonly MesmerConditionEffect[];
   readonly parentCooldownIncrease?: number;
   readonly phantasmSummonProgress?: number;

@@ -1,14 +1,9 @@
 import { observeElementalistTransition } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
-import type { RuntimeProfession, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
+import type { RuntimeProfession, SkillTaskData } from '#gw2/platform/simulation/runtime-state.js';
 import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type {
-  ElementalistRuntimeState,
-  ElementalistSkill,
-  ElementalistSimulationEvent
-} from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntimeState, ElementalistSimulationEvent } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
@@ -55,11 +50,7 @@ import {
   applyElementalistResolvedDamage,
   elementalistCoreCriticalReactions
 } from '#gw2/professions/elementalist/core/mechanics/reactions.js';
-import {
-  emitElementalistPacket,
-  emitElementalistDamage,
-  withElementalistCast
-} from '#gw2/professions/elementalist/core/events.js';
+import { emitElementalistDamage, withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   resetElementalistAttunementCooldowns
@@ -92,7 +83,7 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
       (event.type === 'damage' || event.type === 'condition') &&
       canonicalTime(event.at) > runtime.time
     ) {
-      runtime.schedule('elementalist.packet', event.at, event, { id: String(event.activationId), generation: 0 });
+      runtime.emitProcedural(event, { owner: { id: String(event.activationId), generation: 0 } });
       return null;
     }
 
@@ -124,22 +115,11 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
   },
   modifyComboFields: extendPersistingFlamesFields,
   onCastStart(runtime, cast) {
-    if (!cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd))
-      withElementalistCast(runtime, cast, () => elementalistOnCastStart(runtime, cast, cast.skill));
+    if (!cast.cancelled) withElementalistCast(runtime, cast, () => elementalistOnCastStart(runtime, cast, cast.skill));
   },
   onCastComplete(runtime, cast) {
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     withElementalistCast(runtime, cast, () => elementalistOnCastComplete(runtime, cast, cast.skill));
-    for (const trigger of (cast.skill as ElementalistSkill).elementalistTasks ?? []) {
-      const scale =
-        trigger.timingScale === 'cast' && Number(cast.skill.castTimeMs) > 0
-          ? ((cast.fullEnd - cast.start) * 1000) / Number(cast.skill.castTimeMs)
-          : 1;
-      const at =
-        (trigger.timingAnchor === 'castStart' ? cast.start : cast.effectiveEnd) +
-        (Number(trigger.atMs ?? 0) * scale) / 1000;
-      runtime.schedule(trigger.type, Math.max(runtime.time, at), cast);
-    }
   },
   onAutoattackChainTransition: observeElementalistAutoattackTransition,
   onCooldownReset: resetElementalistAttunementCooldowns,
@@ -150,12 +130,11 @@ export const elementalistCoreHooks: Partial<RuntimeProfession<ElementalistRuntim
     ...elementalistSignetTasks,
     ...elementalistSpearMechanicHandlers,
     'elementalist.expire-state': expireElementalistState,
-    'elementalist.packet': (runtime, data) => emitElementalistPacket(runtime, data as SimulationEventBase),
     'elementalist.fulgor-pulse'(runtime, data) {
       emitElementalistDamage(runtime, { ...(data as SimulationEventBase & { coefficient: number }), at: runtime.time });
     },
     'elementalist.core.consume-elemental-explosion'(runtime, data) {
-      const cast = data as RuntimeCast;
+      const { cast } = data as SkillTaskData;
       const effect = requireEffect(
         requireBalanceProfileFromContext(runtime, PROFILE.elementalExplosion),
         'buff',

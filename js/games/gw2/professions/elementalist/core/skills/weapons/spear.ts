@@ -6,7 +6,7 @@
  * the next qualifying spear cast) and the slot-5 Etching chains, where `Etching: X` places a
  * combo field and unlocks `Lesser X`, which three further casts upgrade to the full `X`.
  *
- * Declarative data only: the named `elementalistTasks` are implemented by
+ * Declarative data only: the named `tasks` are implemented by
  * `core/execution/index.ts`, the chain/stage gating lives in
  * `core/mechanics/availability.ts`, and the table is merged in by `core/skills/index.ts`.
  */
@@ -88,10 +88,10 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     cooldown: 15,
     skillFamily: 'Weapon skill',
     // Seethe empowers the next qualifying spear hit after completion.
-    elementalistTasks: [
+    tasks: [
       {
         type: 'elementalist.core.arm-spear-damage',
-        timingAnchor: 'castEnd'
+        timingAnchor: 'castComplete'
       }
     ],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -331,10 +331,10 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     cooldown: 15,
     skillFamily: 'Weapon skill',
     // Ripple empowers the next qualifying spear recharge after completion.
-    elementalistTasks: [
+    tasks: [
       {
         type: 'elementalist.core.arm-spear-recharge',
-        timingAnchor: 'castEnd'
+        timingAnchor: 'castComplete'
       }
     ],
     effects: []
@@ -490,10 +490,10 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     cooldown: 15,
     skillFamily: 'Weapon skill',
     // Energize guarantees the next qualifying spear critical hit after completion.
-    elementalistTasks: [
+    tasks: [
       {
         type: 'elementalist.core.arm-spear-critical',
-        timingAnchor: 'castEnd'
+        timingAnchor: 'castComplete'
       }
     ],
     effects: [
@@ -653,10 +653,10 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Pa
     cooldown: 15,
     skillFamily: 'Weapon skill',
     // Harden adds control to the next qualifying spear hit after completion.
-    elementalistTasks: [
+    tasks: [
       {
         type: 'elementalist.core.arm-spear-control',
-        timingAnchor: 'castEnd'
+        timingAnchor: 'castComplete'
       }
     ],
     effects: []

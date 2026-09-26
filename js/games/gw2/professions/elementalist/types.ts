@@ -67,7 +67,6 @@ export type ElementalistUiSlice = Partial<ProfessionUiContract<Partial<Elemental
 
 /** A catalog skill carrying the Elementalist-specific identity fields the modules read. */
 export interface ElementalistSkill extends Skill {
-  readonly elementalistTasks?: readonly import('#gw2/platform/engine/skills/types.js').SkillTask[];
   readonly attunement?: string;
   readonly aura?: string;
   readonly chainRoot?: SkillId;

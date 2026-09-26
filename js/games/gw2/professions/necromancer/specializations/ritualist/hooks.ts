@@ -12,8 +12,7 @@ import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/st
 import { buildResolverStrike, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
-import { denySkillCast } from '#gw2/professions/shared/availability.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
@@ -430,7 +429,7 @@ export const ritualistHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
   onCastComplete(runtime, cast) {
     ritualistSpellHooks.onCastComplete!(runtime, cast);
     // A cast cancelled after its commit point (aftercast cancel) still summons; earlier cancellation summons nothing.
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     const spirit = spiritDefinition(runtime, cast.skill.id);
     if (spirit) summon(runtime, cast, spirit);
     const innervate = INNERVATE.get(cast.skill.id);

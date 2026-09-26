@@ -11,15 +11,14 @@ import {
 import { buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { gw2CooldownReadyAt, castWasInterrupted } from '#gw2/platform/skills/timing.js';
 import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
-import { denySkillCast } from '#gw2/professions/shared/availability.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import {
   deferThiefCompletion,
   emitThiefBuff,
   emitThiefCondition,
-  takeThiefCompletion,
-  thiefCastCommitted
+  takeThiefCompletion
 } from '#gw2/professions/thief/core/events.js';
 import { completeThiefSteal, emitThiefStealTraits } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
@@ -223,7 +222,7 @@ function shadeStep(runtime: ThiefRuntime, cast: RuntimeCast): void {
 }
 
 function completeSpecterCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  if (!thiefCastCommitted(cast)) return;
+  if (cast.cancelled) return;
   const skill = cast.skill as ThiefSkill;
   const state = specterState.from(runtime);
   if (skill.id === ID.SIPHON) completeSiphon(runtime, cast);

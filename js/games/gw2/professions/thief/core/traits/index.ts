@@ -45,10 +45,8 @@ function resolverContext(runtime: ThiefRuntime): ThiefResolverContext {
   return runtime as unknown as ThiefResolverContext;
 }
 
-/** Dodges spend endurance at takeoff; Uncatchable's caltrop pulses are queued from the same instant. */
+/** Uncatchable's caltrop pulses are queued from the dodge's takeoff; the runtime has already paid its endurance. */
 export function startThiefDodge(runtime: ThiefRuntime, cast: RuntimeCast): void {
-  const resources = requireBalanceProfileFromContext(runtime, PROFILE.resources);
-  runtime.endurance.spend(balanceProfileNumber(resources, 'resourceCost'));
   if (!hasTrait(runtime, TRAIT.UNCATCHABLE)) return;
   // Each surviving condition owns its pulses; deleting Bleeding cannot remove Crippled.
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.uncatchable);

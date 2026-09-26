@@ -1,7 +1,7 @@
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip, consumeSkillFlip, followUpOf } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -9,10 +9,8 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import type { RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
-import type { SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -50,7 +48,7 @@ import {
 } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
 import { isRangerHammerVariant } from '#gw2/professions/ranger/data/hammer-variants.js';
-import { emitRangerBuff, rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 
 const spearAttacks = new Set(Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT));
 const critical = onResolvedCriticalHit(rangerCoreProfiledCriticalReaction);
@@ -101,9 +99,9 @@ function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast): void {
       { at: runtime.time, skillId: cast.skill.id, skillName: cast.skill.name, activationId: cast.id, kind, duration },
       'buff'
     );
-    if (pet > 0) emitRangerBuff(runtime, { ...event, stacks: pet, audience: { recipients: 'self' } });
+    if (pet > 0) runtime.emitProcedural({ ...event, stacks: pet, audience: { recipients: 'self' } });
     if (petActive && player > 0)
-      emitRangerBuff(runtime, {
+      runtime.emitProcedural({
         ...event,
         stacks: player,
         audience: {
@@ -142,11 +140,8 @@ function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast): void {
 
   if (skill.id === ID.ENDURING_SWING) runtime.endurance.grant(Number(skill.resourceGain ?? 15));
   if (skill.type !== 'Weapon' || isRangerHammerVariant(skill.id)) return;
-  if (skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
-    const flip = runtime.helpers.skillsById.get(skill.flipSkillId);
-    if (flip?.flipParentId === skill.id)
-      armSkillFlip(flips, flip.id, runtime.time, runtime.time + Number(skill.flipDuration || 5));
-  }
+  const followUp = followUpOf(runtime.helpers.skillsById, skill);
+  if (followUp) armSkillFlip(flips, followUp.id, runtime.time, runtime.time + Number(skill.flipDuration || 5));
 
   if (skill.flipParentId != null && !spearAttacks.has(Number(skill.id))) consumeSkillFlip(flips, skill.id);
 }
@@ -211,17 +206,12 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       state.revealedUntil = runtime.time + 3;
     }
 
-    if (skill.id === ID.DODGE)
-      runtime.endurance.spend(
-        balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.resources), 'resourceCost')
-      );
     if (skill.evades) applyRangerDodgeTraits(runtime);
-    if (cancelledBeforeInterruptCommit(skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     if (skill.id === ID.SHARPENING_STONE)
       grantSkillCharges(runtime, cast, 'ranger.sharpening-stone', PROFILE.sharpeningStone);
     if (skill.id === ID.SIC_EM && state.petActive)
-      emitRangerBuff(
-        runtime,
+      runtime.emitProcedural(
         rangerEvent(
           {
             at: runtime.time,
@@ -307,7 +297,6 @@ export const rangerCoreHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
   },
   tasks: {
     ...rangerPetTasks,
-    'ranger.buff': (runtime, data) => emitRangerBuff(runtime, data as SimulationEventBase),
     'ranger.stealth'(runtime, duration) {
       const state = runtime.profession.core;
       if (state.revealedUntil <= runtime.time)

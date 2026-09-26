@@ -1,5 +1,4 @@
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { scheduleSyncopateDrumWave } from '#gw2/professions/mesmer/specializations/troubadour/traits/syncopate.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -278,7 +277,7 @@ export function resolveCrescendo(context: MesmerRuntime, cast: RuntimeCast, skil
 
 /** Registers performance packets at cast start while leaving note spending and instrument state at completion. */
 export function scheduleTroubadourPerformance(context: MesmerRuntime, cast: RuntimeCast, skill: MesmerSkill): void {
-  if (cancelledBeforeInterruptCommit(skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+  if (cast.cancelled) return;
   const runtime = mesmerMechanicsFor(context);
   const instrument = runtime.instruments[skill.id];
   if (!instrument && skill.id !== ID.CRESCENDO) return;
@@ -308,7 +307,7 @@ export function scheduleTroubadourPerformance(context: MesmerRuntime, cast: Runt
 /** Commits Troubadour instrument state while preserving Harp's interrupt commit point. */
 export function completeTroubadourPerformance(context: MesmerRuntime, cast: RuntimeCast, skill: MesmerSkill): void {
   // Cancelled performances retain their notes; committed Harp interruptions still activate the instrument.
-  if (cancelledBeforeInterruptCommit(skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+  if (cast.cancelled) return;
 
   const runtime = mesmerMechanicsFor(context);
   const instrument = runtime.instruments[skill.id];

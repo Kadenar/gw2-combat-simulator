@@ -50,7 +50,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
   [ID.SIGNET_OF_ILLUSIONS]: {
     castTimeMs: 1120,
     // Restart the passive clone interval only after the active cast completes.
-    mesmerTasks: [
+    tasks: [
       {
         type: 'mesmer.core.restart-signet-illusions-passive',
         timingAnchor: 'castEnd'
@@ -151,7 +151,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
   },
   [ID.SIGNET_OF_THE_ETHER]: {
     // The live skill re-locks itself 300ms after completion despite resetting phantasms immediately.
-    mesmerTasks: [
+    tasks: [
       {
         type: 'mesmer.core.relock-signet-ether',
         atMs: 300,

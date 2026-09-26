@@ -4,6 +4,7 @@
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profiles.js';
 
 export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
   {
@@ -18,7 +19,8 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
 
     rechargeAnchor: 'castStart',
     cooldown: 0,
-    // Custom: Spends endurance and applies Ranger dodge traits; see `hooks.ts`.
+    cost: { resource: 'endurance', profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } },
+    // Custom: applies Ranger dodge traits; see `hooks.ts`.
 
     effects: []
   },

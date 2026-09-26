@@ -1,26 +1,18 @@
 import { EPSILON } from '#kernel/core/clock.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { pruneSkillFlips, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
+import { pruneSkillFlips, skillFlipReady, weaponFollowUpOpen } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
-import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
-import {
-  deferThiefCompletion,
-  emitDeferredThiefBuff,
-  takeThiefCompletion,
-  THIEF_EMIT_TASK,
-  THIEF_FLIP_EXPIRY,
-  expireThiefFlip,
-  thiefCastCommitted
-} from '#gw2/professions/thief/core/events.js';
+import { deferThiefCompletion, takeThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import {
   completeThiefCoreResources,
   grantThiefInitiative,
@@ -80,22 +72,8 @@ import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
  */
 function thiefAvailability(runtime: ThiefRuntime, rawSkill: Skill): AvailabilityResult {
   const skill = rawSkill as ThiefSkill;
-  const selection = selectedSlotSkillAvailability({ config: runtime.config, catalog: runtime.helpers }, skill);
-  if (selection) return selection;
   const core = runtime.profession.core;
   const now = runtime.time;
-  if (skill.id === ID.DODGE) {
-    const readyAt = runtime.endurance.readyAt(50);
-    return readyAt != null && readyAt <= now + EPSILON
-      ? { ready: true }
-      : denySkillCast(
-          skill,
-          'thief.endurance',
-          'requires 50 endurance.',
-          readyAt != null && Number.isFinite(readyAt) ? readyAt : null
-        );
-  }
-
   if (skill.type === 'Weapon' && skill.flipParentId != null && !skillFlipReady(core.availableFlips[skill.id], now)) {
     const parent = runtime.helpers.skillsById.get(Number(skill.flipParentId)) as ThiefSkill | undefined;
     return denySkillCast(
@@ -110,12 +88,8 @@ function thiefAvailability(runtime: ThiefRuntime, rawSkill: Skill): Availability
     return denySkillCast(skill, 'thief.spear-chain', `requires spear chain stage ${spearStage + 1}.`);
   const trap = thiefTrapAvailability(runtime, skill);
   if (trap) return trap;
-  if (
-    skill.type === 'Weapon' &&
-    skill.flipSkillId != null &&
-    skill.flipSkillId !== skill.nextChainId &&
-    skillFlipReady(core.availableFlips[skill.flipSkillId], now)
-  )
+  // A closed follow-up already answered above with its opener-specific reason.
+  if (weaponFollowUpOpen(core.availableFlips, skill, now))
     return denySkillCast(skill, 'thief.follow-up-active', 'use or wait out the active follow-up skill.');
 
   const [mainHand] = gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1);
@@ -186,7 +160,7 @@ const THIEF_CORE_COMPLETE = 'thief.core-complete';
 /** Core completion: resources, steals, stealth attacks, utilities, weapon state, and completion traits. */
 function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const skill = cast.skill as ThiefSkill;
-  const committed = thiefCastCommitted(cast);
+  const committed = !cast.cancelled;
   pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);
   completeThiefCoreResources(runtime, cast, committed);
   if (committed && skill.id === ID.STEAL) {
@@ -256,8 +230,6 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     'buff.applied': reactThiefCoreBuff
   },
   tasks: {
-    [THIEF_EMIT_TASK]: emitDeferredThiefBuff,
-    [THIEF_FLIP_EXPIRY]: expireThiefFlip,
     [THIEF_CORE_COMPLETE](runtime, data) {
       const cast = takeThiefCompletion(runtime, THIEF_CORE_COMPLETE, data);
       if (cast) completeThiefCast(runtime, cast);

@@ -17,7 +17,7 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
-import { denySkillCast as unavailable } from '#gw2/professions/shared/availability.js';
+import { denySkillCast as unavailable } from '#gw2/platform/engine/skills/availability.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
 import {
@@ -84,21 +84,6 @@ export function elementalistCoreAvailability(context: ElementalistRuntime, skill
     return readyAt > context.time
       ? unavailable(skill, 'elementalist.attunement-recharge', `${target} recharges at ${readyAt.toFixed(3)}.`, readyAt)
       : ready();
-  }
-
-  // Dodge settles endurance up to the current instant, then either passes or
-  // reports the time regeneration covers the cost.
-  if (Number(skill.id) === ID.DODGE) {
-    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-    const enduranceCost = balanceProfileNumber(resourcesProfile, 'resourceCost');
-    return state.endurance + EPSILON >= enduranceCost
-      ? ready()
-      : unavailable(
-          skill,
-          'elementalist.endurance',
-          `requires ${enduranceCost} endurance.`,
-          context.endurance.readyAt(enduranceCost)
-        );
   }
 
   // Synthetic bundle commands: dropping needs an equipped conjure, and picking one

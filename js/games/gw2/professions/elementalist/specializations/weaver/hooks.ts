@@ -2,7 +2,6 @@ import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/c
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { withElementalistCast } from '#gw2/professions/elementalist/core/events.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 /**
@@ -14,8 +13,7 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
  * imposes, the Unravel / Weave Self / Perfect Weave windows, Primordial Stance
  * pulses, and the traits that react to swaps and dual-skill completions.
  */
-import { denySkillCast } from '#gw2/professions/shared/availability.js';
-import { denyCast } from '#gw2/platform/engine/skills/availability.js';
+import { denySkillCast, denyCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber,
@@ -445,7 +443,7 @@ export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
       (event.type === 'damage' || event.type === 'condition') &&
       canonicalTime(event.at) > runtime.time
     ) {
-      runtime.schedule('elementalist.packet', event.at, event, { id: String(event.activationId), generation: 0 });
+      runtime.emitProcedural(event, { owner: { id: String(event.activationId), generation: 0 } });
       return null;
     }
 
@@ -453,18 +451,14 @@ export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
   },
   onCastStart(runtime, cast) {
     startWeaveSelfCast(runtime, cast, cast.skill);
-    if (
-      PRIMORDIAL_STANCES.has(Number(cast.skill.id)) &&
-      !cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)
-    )
+    if (PRIMORDIAL_STANCES.has(Number(cast.skill.id)) && !cast.cancelled)
       schedulePrimordialStance(runtime, cast, cast.skill);
   },
   modifyEffects(_runtime, cast, effects) {
     return PRIMORDIAL_STANCES.has(Number(cast.skill.id)) ? [] : effects;
   },
   onCastComplete(runtime, cast) {
-    if (!cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd))
-      withElementalistCast(runtime, cast, () => onCastComplete(runtime, cast, cast.skill));
+    if (!cast.cancelled) withElementalistCast(runtime, cast, () => onCastComplete(runtime, cast, cast.skill));
   },
 
   reactions: { 'control.resolved': onAcceptedEvent },

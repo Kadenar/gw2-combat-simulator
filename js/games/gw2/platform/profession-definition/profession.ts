@@ -6,7 +6,7 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
 import type { CanonicalCatalog } from '#gw2/platform/engine/skills/types.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/skill-eligibility.js';
-import { denyCast } from '#gw2/platform/engine/skills/availability.js';
+import { denyCast, selectedSlotSkillAvailability } from '#gw2/platform/engine/skills/availability.js';
 import type {
   ProfessionFamilyDefinition,
   ProfessionModifierDefinition,
@@ -27,6 +27,7 @@ import type {
 } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { validateAutoattackChainOptions } from '#gw2/platform/skills/autoattack-chain-controller.js';
+import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
 
 /** Policies a family exposes for capacity previews; their maximum reads only configuration and catalog. */
 type ProfessionResourcePreview = ReturnType<NonNullable<ProfessionFamilyDefinition['resourcesFor']>>;
@@ -261,8 +262,22 @@ export function defineNativeProfession<
         // Build eligibility precedes profession mechanics, including transformed skill bars.
         if (!isBuildSkillAvailable(skill, context.config))
           return denyCast('gw2.build-unavailable', `${skill.name} is unavailable for this build.`);
+        // Unequipped slot skills are rejected before any profession state gate can wait on them.
+        if (definition.requireEquippedSlotSkills) {
+          const slot = selectedSlotSkillAvailability({ config: context.config, catalog: context.helpers }, skill);
+          if (slot) return slot;
+        }
+
+        // A declared cost is paid from the live pool, so it rejects or waits before profession state gates.
+        const cost = skillCostAvailability(context, skill);
         let retryAt = context.time;
         let blocked: ReturnType<NonNullable<RuntimeProfession<State>['availability']>> = { ready: true };
+        if (cost && !cost.ready) {
+          if (cost.retryAt == null) return cost;
+          retryAt = Math.max(retryAt, cost.retryAt);
+          blocked = { ...cost, retryAt };
+        }
+
         for (const hook of hooks) {
           const result = hook.availability?.(context, skill, command);
           if (result && !result.ready) {

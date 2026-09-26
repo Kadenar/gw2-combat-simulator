@@ -1,4 +1,3 @@
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
@@ -36,7 +35,7 @@ export const holosmithHooks: Partial<RuntimeProfession<EngineerRuntimeState>> = 
     else if (Number(skill.heatGain) > 0) applyHeat(runtime, skill, cast);
   },
   onCastComplete(runtime, cast) {
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     if (cast.skill.id === ID.ENGAGE_PHOTON_FORGE) enterPhotonForge(runtime, cast.skill);
     else if (HOLOSMITH_FORGE_TOGGLE_SKILL_IDS.has(Number(cast.skill.id))) exitPhotonForge(runtime, cast.skill);
     handleHolosmithKitEquip(runtime, cast.skill);

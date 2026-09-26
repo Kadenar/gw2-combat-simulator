@@ -1,4 +1,4 @@
-import { emitRangerBuff, rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 /** Owns Core Ranger Skirmishing dodge, weapon-swap, and critical-hit trait behavior. */
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -36,8 +36,7 @@ export function applyRangerDodgeTraits(context: RangerRuntime, at = context.time
   const activeUntil = context.history
     .filter((event) => event.type === 'buff' && event.kind === kind && event.at <= at)
     .reduce((maximum, event) => Math.max(maximum, gw2EffectExpiresAt(event.at, Number(event.duration || 0))), at);
-  emitRangerBuff(
-    context,
+  context.emitProcedural(
     rangerEvent(
       {
         at,
@@ -70,8 +69,7 @@ export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: Range
     // The cooldown gates only swiftness, so a removed boon leaves it ready.
     if (effect) {
       state.tailWindReadyAt = at + balanceProfileNumber(profile, 'internalCooldown');
-      emitRangerBuff(
-        context,
+      context.emitProcedural(
         rangerEvent(
           {
             at,
@@ -101,8 +99,7 @@ export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: Range
     state.quickDrawReadyAt = at + balanceProfileNumber(profile, 'internalCooldown');
     state.quickDrawUntil = at + balanceProfileNumber(profile, 'durationMultiplier');
     if (effect)
-      emitRangerBuff(
-        context,
+      context.emitProcedural(
         rangerEvent(
           {
             at,
@@ -130,8 +127,7 @@ export function applyRangerWeaponSwapTraits(context: RangerRuntime, skill: Range
     // The cooldown gates only fury, so a removed boon leaves it ready.
     if (effect) {
       state.furiousGripReadyAt = at + balanceProfileNumber(profile, 'internalCooldown');
-      emitRangerBuff(
-        context,
+      context.emitProcedural(
         rangerEvent(
           {
             at,

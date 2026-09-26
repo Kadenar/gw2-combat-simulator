@@ -3,11 +3,7 @@ import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
  * Routes Core Elementalist casts to the skill families and persistent mechanics that own their behavior.
  * Catalog fragments remain in `skills/`; cross-cast state lives in `mechanics/`.
  */
-import {
-  requireBalanceProfileFromContext,
-  balanceProfileNumber,
-  requireEffect
-} from '#gw2/platform/engine/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -119,12 +115,8 @@ export function elementalistOnCastComplete(context: ElementalistRuntime, cast: R
   applyConjureState(context, cast, skill);
   applySpecialSkillProgression(context, cast, skill);
   shareAttunementVariantRecharge(context, cast, skill);
-  // Dodge is modeled as a cast, so endurance is caught up to now before its cost is spent.
-  if (Number(skill.id) === ID.DODGE) {
-    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-    context.endurance.spend(balanceProfileNumber(resourcesProfile, 'resourceCost'));
-    triggerEvasiveArcana(context, cast, skill);
-  }
+  // The runtime has already paid the committed dodge's declared endurance cost.
+  if (Number(skill.id) === ID.DODGE) triggerEvasiveArcana(context, cast, skill);
 
   completeArcaneEcho(context, cast, skill);
 

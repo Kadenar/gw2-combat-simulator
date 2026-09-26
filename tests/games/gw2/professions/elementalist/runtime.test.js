@@ -66,6 +66,7 @@ test('interrupting a familiar releases deferred weapon charges once', () => {
         start: 0,
         fullEnd: 1,
         effectiveEnd: 0,
+        cancelled: true,
         command: {}
       };
       evokerHooks.onCastComplete(runtime, cast);

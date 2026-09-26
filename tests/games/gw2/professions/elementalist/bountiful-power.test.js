@@ -30,6 +30,9 @@ for (const { threshold, progress, grants } of [
         assert.ok(events.length < 8, 'Bountiful Power exceeded the expected grant bound');
         events.push(event);
         return event;
+      },
+      emitProcedural(event) {
+        return this.emit(event);
       }
     };
 

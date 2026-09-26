@@ -114,6 +114,8 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.DARK_PATH]: {
     castTimeMs: 880,
+    // Dark Pursuit stays available briefly after the claw lands.
+    flipDuration: 3,
     effects: [
       {
         type: 'strike',
@@ -168,6 +170,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.RIPPLE_OF_HORROR]: {
     castTimeMs: 360,
+    flipDuration: 12,
     effects: [
       {
         type: 'strike',

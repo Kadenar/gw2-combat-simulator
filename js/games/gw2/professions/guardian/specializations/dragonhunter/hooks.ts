@@ -7,7 +7,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
@@ -139,10 +138,7 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
     refreshGuardianVirtues(runtime);
     if (runtime.profession.core.virtueReadyAt[virtue] > runtime.time) return;
     readyVirtues.add(cast);
-    if (
-      cast.skill.id === ID.SPEAR_OF_JUSTICE &&
-      !cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)
-    ) {
+    if (cast.skill.id === ID.SPEAR_OF_JUSTICE && !cast.cancelled) {
       const at = canonicalTime(
         cast.start + projectCastRelativeEffectTimingMs(cast.skill, (cast.fullEnd - cast.start) * 1000, 480) / 1000
       );
@@ -167,7 +163,7 @@ export const dragonhunterHooks: Partial<RuntimeProfession<GuardianRuntimeState>>
     ];
   },
   onCastComplete(runtime, cast) {
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     const virtue = cast.skill.categories?.includes('Virtue') ? guardianVirtueForSlot(cast.skill.slot) : null;
     if (virtue) {
       refreshGuardianVirtues(runtime);

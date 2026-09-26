@@ -149,6 +149,11 @@ export interface NativeProfessionDefinition<
   readonly autoattackChains?: Gw2AutoattackChainOptions;
   /** Equipment eligibility is shared by every runtime and the application adapter. */
   readonly weaponSkillMatchesSet?: Gw2WeaponSkillMatcher;
+  /**
+   * Heal, utility, and elite casts must be equipped in the build's selected slots, with a flip resolving through its
+   * root. Families whose bars are not chosen skill by skill, or that own a variant rule, leave it unset.
+   */
+  readonly requireEquippedSlotSkills?: boolean;
 }
 
 export type NativeProfessionContract<

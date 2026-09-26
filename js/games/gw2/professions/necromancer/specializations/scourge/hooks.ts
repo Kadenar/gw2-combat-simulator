@@ -11,11 +11,10 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/engine/effects/materializer.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
-import { denySkillCast } from '#gw2/professions/shared/availability.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { removeNecromancerSelfCondition } from '#gw2/professions/necromancer/core/mechanics/conditions.js';
@@ -299,10 +298,7 @@ export const scourgeHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> =
   },
   modifyEffects: (_runtime, cast, effects) => (SHADE_SKILLS.has(Number(cast.skill.id)) ? [] : effects),
   onCastStart(runtime, cast) {
-    if (
-      cast.skill.id === ID.MANIFEST_SAND_SHADE &&
-      !cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)
-    )
+    if (cast.skill.id === ID.MANIFEST_SAND_SHADE && !cast.cancelled)
       runtime.schedule(MANIFEST, canonicalTime(cast.start + ((cast.fullEnd - cast.start) * 11) / 12), cast);
   },
   onCastComplete: completeShade,

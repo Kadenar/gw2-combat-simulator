@@ -1,6 +1,5 @@
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
@@ -37,7 +36,7 @@ export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
   prepareEvent(runtime, event) {
     if (!FAMILIAR_ELEMENTS.has(event.skillId ?? event.sourceId) || event.type === 'action') return event;
     if (canonicalTime(event.at) > runtime.time && ['damage', 'condition', 'control', 'blind'].includes(event.type)) {
-      runtime.schedule('elementalist.packet', event.at, event, { id: String(event.activationId), generation: 0 });
+      runtime.emitProcedural(event, { owner: { id: String(event.activationId), generation: 0 } });
       return null;
     }
 
@@ -46,12 +45,11 @@ export const evokerHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> =
   modifyEffects: modifyFamiliarEffects,
   onCastStart(runtime, cast) {
     onCastStart(runtime, cast, cast.skill);
-    if (!cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd))
-      withElementalistCast(runtime, cast, () => startMeditationEffects(runtime, cast, cast.skill));
+    if (!cast.cancelled) withElementalistCast(runtime, cast, () => startMeditationEffects(runtime, cast, cast.skill));
   },
   onCastComplete(runtime, cast) {
     const state = evokerState.from(runtime);
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) {
+    if (cast.cancelled) {
       state.pendingWeaponCompletions = state.pendingWeaponCompletions.filter((entry) => entry.activationId !== cast.id);
       if (state.activeFamiliarCast?.reservationId === cast.id) {
         // Interrupting the familiar releases completed weapon grants without applying its charge reset.

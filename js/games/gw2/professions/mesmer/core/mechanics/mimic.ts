@@ -8,13 +8,12 @@ import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mes
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Arms Mimic on completion and consumes it on the next eligible completed utility skill. */
 export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast): void {
   const skill = cast.skill;
-  if (cancelledBeforeInterruptCommit(skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+  if (cast.cancelled) return;
 
   const at = canonicalTime(cast.fullEnd);
   const core = professionCoreState(context);

@@ -9,14 +9,14 @@ import {
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { castWasInterrupted, gw2CooldownReadyAt } from '#gw2/platform/skills/timing.js';
-import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
+import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
 import type { RuntimeProfession, RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { SkillEffect } from '#gw2/platform/engine/skills/types.js';
 import type { RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
-import { emitRangerBuff, rangerEvent } from '#gw2/professions/ranger/core/events.js';
+import { rangerEvent } from '#gw2/professions/ranger/core/events.js';
 import { applyRangerWeaponSwapTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import {
   reactToDruidCondition,
@@ -56,8 +56,7 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.naturalBalance);
     const effect = requireEffect(profile, 'buff', 'natural-balance');
     if (effect)
-      emitRangerBuff(
-        runtime,
+      runtime.emitProcedural(
         rangerEvent(
           {
             at: runtime.time,

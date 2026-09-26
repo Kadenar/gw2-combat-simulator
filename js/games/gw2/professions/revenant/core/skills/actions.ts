@@ -38,7 +38,7 @@ const actions: readonly Skill[] = [
   },
   {
     id: ID.DODGE,
-    // Custom: Spends endurance and emits Revenant dodge state through `core/hooks.ts`.
+    // Custom: emits Revenant dodge state through `core/hooks.ts`.
     name: 'Dodge',
     description: 'Perform the selected dodge.',
     icon: 'https://wiki.guildwars2.com/images/b/b2/Dodge.png',
@@ -47,6 +47,7 @@ const actions: readonly Skill[] = [
     castTimeMs: 0,
     cooldown: 0,
     resourceCost: 50,
+    cost: { resource: 'endurance' },
     effects: []
   }
 ];

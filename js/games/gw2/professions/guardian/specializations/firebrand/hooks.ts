@@ -7,7 +7,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
 import { buildResolverCondition } from '#gw2/platform/resolver/packets.js';
 import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/core/mechanics/virtues.js';
@@ -184,8 +183,7 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
     return firebrandMantraAvailability(runtime, skill);
   },
   onCastStart(runtime, cast) {
-    if (!cast.skill.tome || cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd))
-      return;
+    if (!cast.skill.tome || cast.cancelled) return;
     startFirebrandAshes(runtime, cast);
     const state = firebrandState.from(runtime);
     if (state.swiftScholarTome !== cast.skill.tome) {
@@ -202,7 +200,7 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
     }
   },
   onCastComplete(runtime, cast) {
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     completeFirebrandMantra(runtime, cast);
     const state = firebrandState.from(runtime);
     const skill = cast.skill;

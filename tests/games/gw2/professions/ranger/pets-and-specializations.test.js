@@ -601,7 +601,7 @@ test('queued Beast commands never delay player skills', () => {
   assert.equal(poisonActions[1].at - poisonActions[0].at >= 23.999, true);
 });
 
-test('Ranger pet commands always use permanent Alacrity', () => {
+test('Ranger pet commands require received Alacrity', () => {
   const config = {
     selectedPet: 'Fanged Iboga',
     boons: { alacrity: true }
@@ -619,8 +619,8 @@ test('Ranger pet commands always use permanent Alacrity', () => {
     return result.planningState.cooldowns['Narcotic Spores'].readyAt - step.end;
   };
 
-  assert.equal(rechargeMs(playerAlacrity), 12000);
-  assert.equal(rechargeMs(petAlacrity), 12020);
+  assert.equal(rechargeMs(playerAlacrity), 15000);
+  assert.equal(rechargeMs(petAlacrity) < rechargeMs(playerAlacrity), true);
   const petAlacrityApplication = petAlacrity.events.find(
     (event) => event.type === 'buff' && event.kind === 'alacrity' && event.resolvedAudience.includesSummons
   );
@@ -799,25 +799,42 @@ test('Tiger uses its documented attributes and nominal Bite recharge', () => {
   );
 });
 
-test('Ranger autonomous pet cooldowns assume permanent Alacrity', () => {
-  const config = {
-    selectedPet: 'Carrion Devourer',
-    boons: { alacrity: true },
-    stats: { concentration: 1500 }
-  };
-  const baseline = simulate('Core', ['__combat_start', { type: 'wait', durationMs: 24000 }], config);
-  const petAlacrity = simulate(
-    'Core',
-    ['"We Heal As One!"', '__combat_start', { type: 'wait', durationMs: 24000 }],
-    config
-  );
-  const tailLashes = (result) =>
-    result.events.filter(
-      (event) => event.type === 'action' && event.skillId === ID.PET_TAIL_LASH && event.autonomousPetSkill
-    ).length;
-
-  assert.equal(tailLashes(baseline), 2);
-  assert.equal(tailLashes(petAlacrity), 2);
+// One autonomous cooldown isolates the sharing policy from player cast timing.
+test('Ranger autonomous pet cooldowns require shared Alacrity', () => {
+  for (const sharePlayerBoonsWithSummons of [false, true]) {
+    for (const grant of [false, true]) {
+      const result = runRanger(
+        ['__combat_start', { type: 'wait', durationMs: 7000 }],
+        {
+          selectedPet: 'Carrion Devourer',
+          boons: { alacrity: true },
+          allies: { count: 0 },
+          sharePlayerBoonsWithSummons
+        },
+        {
+          initialize(runtime) {
+            if (grant)
+              runtime.emit({
+                type: 'buff',
+                kind: 'alacrity',
+                at: 0,
+                duration: 30,
+                stacks: 1,
+                source: 'fixture',
+                sourceId: 'fixture',
+                actorType: 'player',
+                audience: { recipients: 'party' }
+              });
+          }
+        }
+      );
+      const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.PET_TAIL_LASH);
+      assert.ok(action);
+      const readyAt = observedRuntime(result).profession.core.petAutoCooldowns[ID.PET_TAIL_LASH];
+      assert.equal(readyAt - action.at, grant && sharePlayerBoonsWithSummons ? 16 : 20);
+      assert.deepEqual(result.warnings, []);
+    }
+  }
 });
 
 test('Galeshot regenerates one arrow every five seconds regardless of permanent Alacrity', () => {

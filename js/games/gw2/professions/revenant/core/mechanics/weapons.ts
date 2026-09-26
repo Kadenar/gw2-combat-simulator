@@ -5,22 +5,19 @@ import {
   effectFirstAtMs,
   strikeEffectCoefficient
 } from '#gw2/platform/engine/effects/authoring.js';
-import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip, consumeSkillFlip, followUpOf } from '#gw2/platform/engine/skills/skill-flips.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/resolver/packets.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/skills/timing.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { emitRevenantBuff } from '#gw2/professions/revenant/core/events.js';
 import type { Skill, SkillEffect, StrikeEffect } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 
-export const REVENANT_IMPERIAL_GUARD_EXPIRY = 'revenant.imperial-guard-expire';
 export const REVENANT_BLOSSOMING_AURA = 'revenant.blossoming-aura';
 export const REVENANT_ABYSSAL_RAZE = 'revenant.abyssal-raze-impact';
-const WEAPON_FLIP_DURATION_BY_PARENT: Readonly<Record<number, number>> = Object.freeze({ [ID.OTHERWORLDLY_BOND]: 7 });
 
 interface AuraPulse {
   readonly index: number;
@@ -47,16 +44,14 @@ export function revenantHitboxEffects(
 /** Imperial Guard blocks from acceptance; its True Strike follow-up belongs to this exact channel. */
 export function startRevenantWeaponCast(runtime: RevenantRuntime, cast: RuntimeCast): void {
   if (cast.skill.id !== ID.IMPERIAL_GUARD) return;
-  armSkillFlip(
-    runtime.profession.core.availableFlips,
-    ID.TRUE_STRIKE,
-    cast.start,
-    canonicalTime(cast.effectiveEnd + 4),
-    cast.start,
-    cast.id
-  );
-  emitRevenantBuff(
-    runtime,
+  // The follow-up window belongs to this channel; a later channel's rearm survives this deadline.
+  runtime.armFlip(ID.TRUE_STRIKE, {
+    availableAt: cast.start,
+    expiresAt: canonicalTime(cast.effectiveEnd + 4),
+    identity: cast.id,
+    expiryPriority: 0
+  });
+  runtime.emitProcedural(
     {
       type: 'buff',
       at: cast.start,
@@ -71,25 +66,13 @@ export function startRevenantWeaponCast(runtime: RevenantRuntime, cast: RuntimeC
       duration: Math.max(0, cast.effectiveEnd - cast.start),
       stacks: 1
     },
-    null,
-    true
+    { fixedDuration: true }
   );
 }
 
-/** Imperial Guard's window expires by identity, so a later channel's follow-up survives an older deadline. */
+/** A completed True Strike consumes the window its Imperial Guard channel opened. */
 export function completeRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  if (cast.skill.id === ID.IMPERIAL_GUARD)
-    runtime.schedule(REVENANT_IMPERIAL_GUARD_EXPIRY, canonicalTime(cast.effectiveEnd + 4), { identity: cast.id });
-  else if (cast.skill.id === ID.TRUE_STRIKE) consumeSkillFlip(runtime.profession.core.availableFlips, ID.TRUE_STRIKE);
-}
-
-export function expireRevenantImperialGuard(runtime: RevenantRuntime, data: unknown): void {
-  expireSkillFlip(
-    runtime.profession.core.availableFlips,
-    ID.TRUE_STRIKE,
-    runtime.time,
-    (data as { identity: string }).identity
-  );
+  if (cast.skill.id === ID.TRUE_STRIKE) consumeSkillFlip(runtime.profession.core.availableFlips, ID.TRUE_STRIKE);
 }
 
 /** Committed weapon casts open their follow-up windows; follow-ups consume their own window. */
@@ -99,23 +82,13 @@ export function completeRevenantWeaponFlips(runtime: RevenantRuntime, cast: Runt
   if (skill.id === ID.CALL_TO_ANGUISH) armSkillFlip(flips, ID.UNYIELDING_IMPACT, runtime.time);
   else if (skill.id === ID.UNYIELDING_IMPACT) consumeSkillFlip(flips, ID.UNYIELDING_IMPACT);
   if (skill.type !== 'Weapon') return;
-  if (
-    skill.id !== ID.IMPERIAL_GUARD &&
-    skill.id !== ID.BLOSSOMING_AURA &&
-    skill.flipSkillId != null &&
-    skill.flipSkillId !== skill.nextChainId
-  ) {
-    const flip = runtime.helpers.skillsById.get(Number(skill.flipSkillId));
-    if (flip?.flipParentId === skill.id)
-      armSkillFlip(
-        flips,
-        flip.id,
-        runtime.time,
-        canonicalTime(
-          runtime.time + (WEAPON_FLIP_DURATION_BY_PARENT[Number(skill.id)] || Number(skill.flipDuration ?? 5))
-        )
-      );
-  }
+  // Imperial Guard and Blossoming Aura open their windows from their own channel and pulse owners.
+  const followUp =
+    skill.id !== ID.IMPERIAL_GUARD && skill.id !== ID.BLOSSOMING_AURA
+      ? followUpOf(runtime.helpers.skillsById, skill)
+      : undefined;
+  if (followUp)
+    armSkillFlip(flips, followUp.id, runtime.time, canonicalTime(runtime.time + Number(skill.flipDuration ?? 5)));
 
   if (skill.id !== ID.TRUE_STRIKE && skill.flipParentId != null) consumeSkillFlip(flips, skill.id);
 }
@@ -312,8 +285,7 @@ export function revenantAbyssalRazeImpact(runtime: RevenantRuntime, data: unknow
   runtime.profession.core.crushingAbyss = grant.expiries;
   const effectId = effect.sourceId ?? ID.ABYSSAL_RAZE;
   const effectName = String(effect.name || 'Crushing Abyss');
-  emitRevenantBuff(
-    runtime,
+  runtime.emitProcedural(
     {
       type: 'buff',
       at: runtime.time,
@@ -329,8 +301,7 @@ export function revenantAbyssalRazeImpact(runtime: RevenantRuntime, data: unknow
       duration,
       stacks: 1
     },
-    null,
-    true
+    { fixedDuration: true }
   );
   runtime.emit({
     type: 'proc',

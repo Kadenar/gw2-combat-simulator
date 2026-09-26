@@ -23,13 +23,7 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/mechanics/life-siphon.js';
-import {
-  emitRevenantBuff,
-  emitRevenantPacket,
-  emitRevenantProfile,
-  revenantCombatActive
-} from '#gw2/professions/revenant/core/events.js';
-import { revenantCastCommitted } from '#gw2/professions/revenant/core/events.js';
+import { emitRevenantProfile } from '#gw2/professions/revenant/core/events.js';
 import {
   emitRevenantInvocationProfile,
   emitRevenantInvocationSkill
@@ -96,8 +90,7 @@ export function grantKallasFervor(
     state.kallasFervor.sort((left, right) => left.expiresAt - right.expiresAt).shift();
   const duration = Math.max(0, effectNumber(profile, effect, 'duration'));
   state.kallasFervor.push({ at: runtime.time, expiresAt: runtime.time + duration });
-  emitRevenantBuff(
-    runtime,
+  runtime.emitProcedural(
     {
       type: 'buff',
       at: runtime.time,
@@ -111,8 +104,7 @@ export function grantKallasFervor(
       duration,
       stacks: effectNumber(profile, effect, 'stacks')
     },
-    cause,
-    true
+    { cause, fixedDuration: true }
   );
 }
 
@@ -259,7 +251,7 @@ function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast): void {
   for (let stack = 0; stack < Math.max(0, balanceProfileNumber(profile, 'fervorStacks')); stack += 1)
     grantKallasFervor(runtime, { sourceId: TRAIT.ASHEN_DEMEANOR, sourceName: profile.name });
   for (const effect of profile.effects?.filter((candidate) => candidate.type === 'boon') ?? [])
-    emitRevenantBuff(runtime, {
+    runtime.emitProcedural({
       type: 'buff',
       at: runtime.time,
       source: 'revenant',
@@ -292,8 +284,7 @@ function criticalTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent, hit?:
   // The cooldown gates only fury, so a removed boon leaves it ready.
   if (!effect) return;
   state.endlessEnmityReadyAt = runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
-  emitRevenantBuff(
-    runtime,
+  runtime.emitProcedural(
     {
       type: 'buff',
       at: runtime.time,
@@ -308,7 +299,7 @@ function criticalTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent, hit?:
       stacks: effectNumber(profile, effect, 'stacks'),
       audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
     },
-    event
+    { cause: event }
   );
 }
 
@@ -397,7 +388,7 @@ function soulcleavePlayer(runtime: RevenantRuntime, event: Gw2ResolverEvent): vo
       },
       skillWeaponFallback: 'Unequipped'
     }))
-      emitRevenantPacket(runtime, { ...packet, triggeredBy: event.skillName }, event);
+      runtime.emitProcedural({ ...packet, triggeredBy: event.skillName }, { cause: event });
 }
 
 /** Each assumed ally's Soulcleave proc arrives on its own cadence while the upkeep activation remains. */
@@ -424,7 +415,7 @@ function soulcleaveAllies(runtime: RevenantRuntime, data: unknown): void {
         },
         skillWeaponFallback: 'Unequipped'
       }))
-        emitRevenantPacket(runtime, {
+        runtime.emitProcedural({
           ...event,
           name: String(event.name || proc.name).replace(
             "Soulcleave's Summit — ",
@@ -454,8 +445,7 @@ function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
     // The cooldown gates only vigor, so a removed boon leaves it ready.
     if (effect) {
       state.brutalMomentumReadyAt = runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
-      emitRevenantBuff(
-        runtime,
+      runtime.emitProcedural(
         {
           type: 'buff',
           at: runtime.time,
@@ -468,7 +458,7 @@ function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
           duration: effectNumber(profile, effect, 'duration'),
           stacks: effectNumber(profile, effect, 'stacks')
         },
-        event
+        { cause: event }
       );
     }
   }
@@ -485,7 +475,7 @@ function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
 
 /** Swapping into Kalla in combat applies Spirit Boon and Song of the Mists, including two Fervor stacks. */
 function invokeRenegade(runtime: RevenantRuntime): void {
-  if (runtime.profession.core.activeLegendId !== LEGEND.RENEGADE || !revenantCombatActive(runtime)) return;
+  if (runtime.profession.core.activeLegendId !== LEGEND.RENEGADE || !runtime.combatStartedAt()) return;
   if (hasTrait(runtime, TRAIT.SPIRIT_BOON))
     emitRevenantInvocationProfile(runtime, RENEGADE_SPIRIT_BOON_PROFILE_ID, TRAIT.SPIRIT_BOON);
   const song = runtime.helpers.skillsById.get(ID.CALL_OF_THE_RENEGADE);
@@ -520,13 +510,13 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     return bandTogether.get(cast)?.enhanced ? [] : effects;
   },
   onCastStart(runtime, cast) {
-    const committed = revenantCastCommitted(cast);
+    const committed = !cast.cancelled;
     if (cast.skill.id === ID.ORDERS_FROM_ABOVE) ordersFromAbove(runtime, cast);
     else if (committed && RENEGADE_ENHANCED_SKILL_BY_ID[Number(cast.skill.id)] != null)
       beginBandTogether(runtime, cast);
   },
   onCastComplete(runtime, cast) {
-    const committed = revenantCastCommitted(cast);
+    const committed = !cast.cancelled;
     if (cast.skill.id === ID.HEROIC_COMMAND && !castWasInterrupted(cast)) heroicCommand(runtime, cast);
     if (committed) completeBandTogether(runtime, cast);
     ashenDemeanor(runtime, cast);

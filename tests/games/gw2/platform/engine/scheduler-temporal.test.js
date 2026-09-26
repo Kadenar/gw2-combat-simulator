@@ -177,7 +177,7 @@ test('skill recharge reduction accepts game-specific base-to-wall-time conversio
   const controller = createCooldownController({
     state,
     rechargeDuration: () => 8,
-    rate: () => 1.25
+    rechargeIntervals: (_skill, start, end) => [{ start, end, rate: 1.25 }]
   });
 
   controller.spendAmmo(ammo, 0);

@@ -8,7 +8,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { completeTroubadourPhantasm } from '#gw2/professions/mesmer/specializations/troubadour/traits/harmonize.js';
 import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
-import { troubadourAvailability } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
 import { initializeTroubadourRuntime } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
 import {
   scheduleTroubadourPerformance,
@@ -26,7 +25,6 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
   initialize: initializeTroubadourRuntime,
   endurance: troubadourEndurance,
-  availability: troubadourAvailability,
   modifyEffects(runtime, cast, effects) {
     return mesmerMechanicsFor(runtime).instruments[Number(cast.skill.id)] || cast.skill.id === ID.CRESCENDO
       ? []
@@ -71,7 +69,6 @@ export const troubadourHooks: Partial<RuntimeProfession<MesmerRuntimeState>> = {
     },
     'mesmer.troubadour.dodge'(runtime, data) {
       const cast = (data as { cast: RuntimeCast }).cast;
-      runtime.endurance.spend(Number(cast.skill.resourceCost ?? 50));
       const mechanics = mesmerMechanicsFor(runtime);
       if (!mechanics.traits.has(TRAIT.MAYHEM)) return;
       const flute = mechanics.skillsById.get(ID.FLUSTERING_FLUTE);

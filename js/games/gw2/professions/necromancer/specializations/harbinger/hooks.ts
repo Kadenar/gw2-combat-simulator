@@ -14,7 +14,6 @@ import {
   materializeSkillEffectApplications,
   scaleCastBoundTiming
 } from '#gw2/platform/engine/effects/materializer.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/skills/timing.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
@@ -285,7 +284,7 @@ export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
   },
   onCastStart(runtime, cast) {
     if (cast.skill.categories?.includes('Elixir')) {
-      if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+      if (cast.cancelled) return;
       const strike = cast.skill.effects?.find((effect) => effect.type === 'strike');
       const impactAt = strike
         ? effectFirstAt(cast.start, cast.fullEnd, scaleCastBoundTiming(cast, cast.skill, strike))
@@ -336,11 +335,7 @@ export const harbingerHooks: Partial<RuntimeProfession<NecromancerRuntimeState>>
     });
   },
   onCastComplete(runtime, cast) {
-    if (
-      cast.skill.id === ID.DARK_BARRAGE &&
-      !cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)
-    )
-      deathlyHaste(runtime, cast.skill);
+    if (cast.skill.id === ID.DARK_BARRAGE && !cast.cancelled) deathlyHaste(runtime, cast.skill);
   },
   tasks: {
     [BLIGHT](runtime) {

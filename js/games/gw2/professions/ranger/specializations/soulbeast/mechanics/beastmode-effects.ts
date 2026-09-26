@@ -24,7 +24,7 @@ import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/range
 import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { grantMaulAttackOfOpportunity } from '#gw2/professions/ranger/core/mechanics/greatsword.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/types.js';
-import { denySkillCast as deny } from '#gw2/professions/shared/availability.js';
+import { denySkillCast as deny } from '#gw2/platform/engine/skills/availability.js';
 
 /** Shared stance opportunities resolve against the one live stance cooldown. */
 export const soulbeastEventHandlers = Object.freeze({ 'ranger.shared-stance-hit': handleSharedStanceHit });

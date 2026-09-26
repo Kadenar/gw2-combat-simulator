@@ -72,7 +72,8 @@ test('Fervent Stance grants dual-attack Might only inside an armed window', () =
       helpers: elementalistCatalog,
       config: { selectedTraitIds: [] },
       effectiveEnd: at,
-      emit: (event) => events.push(event)
+      emit: (event) => events.push(event),
+      emitProcedural: (event) => events.push(event)
     };
     if (armed) weaverHooks.tasks['elementalist.weaver.arm-fervent-stance'](context);
     context.time = at;
@@ -154,7 +155,8 @@ test('conjure pickup availability and consumption require a finite, unexpired gr
         schedule() {},
         query: { statsAt: () => ({}) },
         config: {},
-        emit: (event) => events.push(event)
+        emit: (event) => events.push(event),
+        emitProcedural: (event) => events.push(event)
       };
       const expected = expiry === 0.1 || expiry === 1;
       assert.equal(elementalistCoreAvailability(context, skill).ready, expected, `${weapon}: ${expiry}`);

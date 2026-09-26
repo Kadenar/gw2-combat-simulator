@@ -1,4 +1,5 @@
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
+import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 
 // Keep the imported Weapon Stow action visually distinct in the simulator timeline.
 // Resolve the shared icon from the repository asset root so Vite can bundle it with the profession module.
@@ -41,6 +42,7 @@ export const WARRIOR_DODGE: Skill = Object.freeze({
   nextChainId: null,
   flipSkillId: null,
   castTimeMs: 800,
+  cost: { resource: 'endurance' as const, profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } },
 
   rechargeAnchor: 'castStart',
   simulatorExcluded: false,

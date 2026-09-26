@@ -5,7 +5,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { castWasInterrupted } from '#gw2/platform/skills/timing.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import type { RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { RangerRuntimeState } from '#gw2/professions/ranger/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -31,7 +30,7 @@ export const galeshotHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
     const skill = cast.skill;
     runtime.resourceController.spend('arrows', Number(skill.arrowCost || 0));
     if (skill.id === ID.HAWKEYE) state.windForce = 0;
-    if (cancelledBeforeInterruptCommit(skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     if (Number(skill.windForceGain) > 0) {
       const at = canonicalTime(cast.start + Number(skill.windForceApplyMs ?? skill.castTimeMs) / 1000);
       if (!castWasInterrupted(cast) || at <= cast.effectiveEnd)
@@ -46,7 +45,7 @@ export const galeshotHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       );
   },
   onCastComplete(runtime, cast) {
-    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
     const state = galeshotState.from(runtime);
     const skill = cast.skill;
     if (skill.id === ID.SUMMON_CYCLONE_BOW || skill.id === ID.DISMISS_CYCLONE_BOW) {

@@ -1,6 +1,7 @@
 /** Defines catalog skills and declarative effects so authored data stays independent of runtime implementations. */
 import type { EffectMetadata, EffectAudience, DamageEvent } from '#gw2/platform/engine/events/events.js';
 import type { SimulationActorType } from '#gw2/platform/engine/events/actors.js';
+import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 
 export type SkillId = string | number;
 
@@ -242,6 +243,8 @@ export interface Skill extends CatalogEntity {
   readonly parentId?: SkillId;
   readonly flipParentId?: SkillId | null;
   readonly flipSkillId?: SkillId | null;
+  /** Seconds a completed parent keeps its follow-up window open; professions supply their default when absent. */
+  readonly flipDuration?: number;
   readonly nextChainId?: SkillId | null;
   /** UI-only family key for skills that occupy one live combat-bar tile. */
   readonly paletteTileId?: SkillId | string;
@@ -254,6 +257,11 @@ export interface Skill extends CatalogEntity {
   readonly resource?: unknown;
   /** Amount of the resource selected by the consuming profession mechanic. */
   readonly resourceGain?: number;
+  /** Patchable amount a declared cost pays when it names no balance-profile field. */
+  readonly resourceCost?: number;
+  readonly cost?: SkillCost;
+  /** Named mechanic work a committed activation schedules; each task receives `{ cast, trigger }`. */
+  readonly tasks?: readonly SkillTask[];
 }
 
 /**
@@ -289,16 +297,31 @@ export interface BalanceProfile extends CatalogEntity {
   readonly [field: string]: unknown;
 }
 
+/**
+ * What an activation pays. The runtime rejects or waits for an unaffordable cast before any profession gate, then
+ * spends the amount on acceptance or, for `castCommit`, only when the activation completes past its commit point.
+ */
+export interface SkillCost {
+  readonly resource: 'endurance' | ResourceKey;
+  /** A balance-profile field that one patch retunes everywhere; otherwise the skill's own `resourceCost` is paid. */
+  readonly profileAmount?: { readonly profileId: SkillId; readonly field: string };
+  readonly spendOn?: 'castStart' | 'castCommit';
+}
+
 export interface SkillLockout {
   readonly group: string;
   readonly durationMs: number;
 }
 
-/** Authored deadlines for named work owned by the selected profession's live task registry. */
+/**
+ * Authored deadlines for named work owned by the selected profession's live task registry. A committed activation
+ * schedules each one after its completion owners run. `castEnd` is the reserved full end and `castComplete` the
+ * instant the activation actually ended, which differs only when a committed cast is interrupted.
+ */
 export interface SkillTask {
   readonly type: string;
   readonly atMs?: number;
-  readonly timingAnchor?: 'castStart' | 'castEnd';
+  readonly timingAnchor?: 'castStart' | 'castEnd' | 'castComplete';
   readonly timingScale?: 'cast' | 'fixed';
   readonly count?: number;
 }

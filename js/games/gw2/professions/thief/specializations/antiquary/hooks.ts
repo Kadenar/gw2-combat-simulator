@@ -10,7 +10,7 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
-import { denySkillCast } from '#gw2/professions/shared/availability.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import {
   THIEF_ARTIFACT_IDS,
   THIEF_SKILL_IDS as ID,
@@ -22,9 +22,7 @@ import {
   emitThiefBuff,
   emitThiefCondition,
   emitThiefDamage,
-  takeThiefCompletion,
-  thiefCastCommitted,
-  thiefCombatActive
+  takeThiefCompletion
 } from '#gw2/professions/thief/core/events.js';
 import { grantThiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { emitThiefStealTraits } from '#gw2/professions/thief/core/mechanics/steal.js';
@@ -464,7 +462,7 @@ function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast): voi
   if (Number(state.chakInitiativeRefundUntil || 0) > runtime.time) grantThiefInitiative(runtime, cost);
   // Initiative spent before combat begins does not count toward the threshold.
   if (
-    thiefCombatActive(runtime) &&
+    runtime.combatStartedAt() &&
     hasTrait(runtime, TRAIT.PRODIGIOUS_PINCHER) &&
     state.initiativeSpentSincePilfer >=
       balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.prodigiousPincher), 'threshold')
@@ -474,7 +472,7 @@ function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast): voi
 
 function completeAntiquaryCast(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const skill = cast.skill as ThiefSkill;
-  const committed = thiefCastCommitted(cast);
+  const committed = !cast.cancelled;
   if (skill.id === ID.SKRITT_SWIPE && committed) {
     emitThiefStealTraits(runtime, cast);
     pilferArtifacts(runtime, 'swipe');

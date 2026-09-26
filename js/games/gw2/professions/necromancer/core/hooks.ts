@@ -4,12 +4,7 @@ import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
-import {
-  armSkillFlip,
-  consumeSkillFlip,
-  skillFlipReady,
-  expireSkillFlip
-} from '#gw2/platform/engine/skills/skill-flips.js';
+import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   balanceProfileNumber,
   requireEffect,
@@ -21,9 +16,8 @@ import {
   runNecromancerShroudExit,
   runNecromancerLifeForceDepletion
 } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
-import { denySkillCast, selectedSlotSkillAvailability } from '#gw2/professions/shared/availability.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { castCompleted } from '#gw2/platform/skills/timing.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
 import { lockTransitionInput } from '#gw2/platform/skills/transition-delays.js';
 import {
@@ -87,14 +81,7 @@ import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mec
 import { DEPLETION, necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 
 const LICH_EXPIRY = 'necromancer.lich-expiry';
-const FLIP_EXPIRY = 'necromancer.flip-expiry';
 const GRAVEDIGGER_RESET = 'necromancer.gravedigger-reset';
-
-/** Expiry captures one occurrence; a prior timer cannot consume a rearmed follow-up. */
-function armFollowup(runtime: NecromancerRuntime, skillId: string | number, expiresAt: number): void {
-  const window = armSkillFlip(runtime.profession.core.availableFlips, skillId, runtime.time, expiresAt);
-  runtime.schedule(FLIP_EXPIRY, expiresAt, { skillId, identity: window.identity }, undefined, -20);
-}
 
 /** Entry and exit refresh Soul Barbs from the actual transition, including automatic depletion. */
 function soulBarbs(runtime: NecromancerRuntime): void {
@@ -435,11 +422,7 @@ function completionTraits(runtime: NecromancerRuntime, cast: RuntimeCast): void 
 
 function complete(runtime: NecromancerRuntime, cast: RuntimeCast): void {
   // Committed Gravedigger strikes retain their reset through an interrupted animation; sample health when its lockout ends.
-  if (
-    cast.skill.id === ID.GRAVEDIGGER &&
-    !cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)
-  )
-    runtime.schedule(GRAVEDIGGER_RESET, cast.fullEnd);
+  if (cast.skill.id === ID.GRAVEDIGGER && !cast.cancelled) runtime.schedule(GRAVEDIGGER_RESET, cast.fullEnd);
   if (!castCompleted(cast)) return;
   completeNecromancerMinion(runtime, cast);
   completeNecromancerWeapon(runtime, cast);
@@ -451,8 +434,7 @@ function complete(runtime: NecromancerRuntime, cast: RuntimeCast): void {
     [ID.DARK_PATH, ID.RIPPLE_OF_HORROR, ID.INFUSING_TERROR].some((id) => id === Number(skill.id)) &&
     skill.flipSkillId != null
   ) {
-    const duration = skill.id === ID.DARK_PATH ? 3 : skill.id === ID.INFUSING_TERROR ? 6 : 12;
-    armFollowup(runtime, skill.flipSkillId, runtime.time + duration);
+    runtime.armFlip(skill.flipSkillId, { expiresAt: runtime.time + Number(skill.flipDuration) });
   } else if (
     skill.flipSkillId != null &&
     skill.flipSkillId !== next &&
@@ -465,11 +447,9 @@ function complete(runtime: NecromancerRuntime, cast: RuntimeCast): void {
   ) {
     const flip = runtime.helpers.skillsById.get(skill.flipSkillId);
     if (flip && flip.name !== skill.name && flip.flipParentId === skill.id)
-      armFollowup(
-        runtime,
-        flip.id,
-        cast.rechargeStart + Math.max(1, Number(skill.flipDuration ?? skill.cooldown ?? 5))
-      );
+      runtime.armFlip(flip.id, {
+        expiresAt: cast.rechargeStart + Math.max(1, Number(skill.flipDuration ?? skill.cooldown ?? 5))
+      });
   }
 
   if (skill.flipParentId != null && !skill.shroudExit && !Boolean(skill.minionKey))
@@ -515,8 +495,6 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
   availability(runtime, rawSkill) {
     const skill = rawSkill as NecromancerSkill;
     const state = runtime.profession.core;
-    const slot = selectedSlotSkillAvailability({ config: runtime.config, catalog: runtime.helpers }, skill);
-    if (slot) return slot;
     if (skill.id === ID.DEVOURING_DARKNESS && !hasTrait(runtime, TRAIT.LINGERING_CURSE))
       return denySkillCast(skill, 'necromancer.trait-locked', 'requires Lingering Curse.');
     if (skill.id === ID.FEAST_OF_CORRUPTION && hasTrait(runtime, TRAIT.LINGERING_CURSE))
@@ -636,11 +614,7 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
       exitNecromancerShroud(runtime);
       runNecromancerLifeForceDepletion(runtime);
     },
-    [LICH_EXPIRY]: exitLich,
-    [FLIP_EXPIRY](runtime, data) {
-      const { skillId, identity } = data as { skillId: string | number; identity: string | number };
-      expireSkillFlip(runtime.profession.core.availableFlips, skillId, runtime.time, identity);
-    }
+    [LICH_EXPIRY]: exitLich
   },
   reactions: {
     'buff.applied'(runtime, event) {

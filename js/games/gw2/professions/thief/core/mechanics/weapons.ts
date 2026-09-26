@@ -7,7 +7,8 @@ import {
   armSkillFlip,
   consumeSkillFlip,
   skillFlipVisible,
-  type SkillFlipWindows
+  type SkillFlipWindows,
+  followUpOf
 } from '#gw2/platform/engine/skills/skill-flips.js';
 import {
   balanceProfileNumber,
@@ -15,18 +16,13 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { resetAutoattackChains } from '#gw2/platform/skills/autoattack-chain-controller.js';
-import { denySkillCast } from '#gw2/professions/shared/availability.js';
+import { denySkillCast } from '#gw2/platform/engine/skills/availability.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { addVenomCharges, conditionEffects, venomForSkill } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { thiefSpecializationGuildSummon } from '#gw2/professions/thief/family-state.js';
-import {
-  armThiefFlip,
-  emitThiefCondition,
-  emitThiefDamage,
-  thiefCombatActive
-} from '#gw2/professions/thief/core/events.js';
+import { emitThiefCondition, emitThiefDamage } from '#gw2/professions/thief/core/events.js';
 import {
   grantThiefEndurance,
   grantThiefInitiative,
@@ -238,16 +234,12 @@ export function completeThiefWeaponState(
   if (committed && Number(skill.resourceGain || 0) > 0) grantThiefEndurance(runtime, Number(skill.resourceGain));
   if (committed) updateSpearChain(runtime, skill);
   if (completed && AXE_RECALL_SKILLS.has(skill.id)) core.spinningAxeExpirations = [];
-  if (committed && skill.type === 'Weapon' && skill.flipSkillId != null && skill.flipSkillId !== skill.nextChainId) {
-    const flip = runtime.helpers.skillsById.get(Number(skill.flipSkillId));
-    if (flip?.flipParentId === skill.id)
-      armThiefFlip(
-        runtime,
-        flip.id,
-        runtime.time,
-        runtime.time + Number(skill.flipDuration ?? (skill.dualWieldOpener ? 4 : 5))
-      );
-  }
+  // Dual-wield openers keep their follow-up one second shorter unless the skill authors its own window.
+  const followUp = committed && skill.type === 'Weapon' ? followUpOf(runtime.helpers.skillsById, skill) : undefined;
+  if (followUp)
+    runtime.armFlip(followUp.id, {
+      expiresAt: runtime.time + Number(skill.flipDuration ?? (skill.dualWieldOpener ? 4 : 5))
+    });
 
   if (committed && skill.type === 'Weapon' && skill.flipParentId != null) consumeSkillFlip(flips, skill.id);
 }
@@ -292,7 +284,7 @@ function completeThiefWeaponSwap(runtime: ThiefRuntime): void {
   const core = runtime.profession.core;
   setThiefKneeling(runtime, false);
   if (
-    !thiefCombatActive(runtime) ||
+    !runtime.combatStartedAt() ||
     !hasTrait(runtime, TRAIT.QUICK_POCKETS) ||
     !isInternalCooldownReady(runtime.time, Number(core.quickPocketsReadyAt || 0))
   )

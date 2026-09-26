@@ -313,3 +313,67 @@ test("shared scheduler detects a skill's cooldown expiry on the next action tick
   assert.equal(result.planningState.cooldowns['Fixture Cooldown'].readyAt, 640);
   assert.deepEqual(result.warnings, []);
 });
+
+// Delayed shared grants and extensions affect only elapsed summon recharge, including serial ammo.
+test('summon recharge requires shared player Alacrity and accounts for its expiry', () => {
+  for (const ammo of [false, true]) {
+    for (const sharePlayerBoonsWithSummons of [false, true]) {
+      for (const extension of [false, true]) {
+        const skill = {
+          id: 990020,
+          name: 'Summon recharge',
+          castTimeMs: 0,
+          cooldown: 10,
+          rechargeBuffAudience: 'summon',
+          effects: [],
+          ...(ammo ? { ammo: 2, ammoRecharge: 10 } : {})
+        };
+        const profession = defineProfession({
+          id: 'summon-recharge',
+          name: 'Summon recharge',
+          catalog: createCanonicalCatalog({ generated: [skill] })
+        });
+        const result = simulateGw2({
+          profession: {
+            runtimeFor(config) {
+              return {
+                ...profession.runtimeFor(config),
+                initialize(runtime) {
+                  const owner = { source: 'fixture', sourceId: 'fixture', actorType: 'player' };
+                  runtime.emit({
+                    ...owner,
+                    type: 'buff',
+                    kind: 'alacrity',
+                    at: 2,
+                    duration: 4,
+                    stacks: 1,
+                    audience: { recipients: 'party', eligibleCompanionIds: ['fixture-summon'] }
+                  });
+                  if (extension)
+                    runtime.emit({
+                      ...owner,
+                      type: 'boon_extension',
+                      at: 3,
+                      kind: 'alacrity',
+                      duration: 2,
+                      extensionAudience: 'all'
+                    });
+                }
+              };
+            }
+          },
+          rotation: [skill.id, ...(ammo ? [skill.id] : []), skill.id],
+          config: {
+            specialization: 'Chronomancer',
+            boons: { alacrity: true },
+            allies: { count: 0 },
+            sharePlayerBoonsWithSummons
+          }
+        });
+        const expected = sharePlayerBoonsWithSummons ? (extension ? 8.52 : 9) : 10;
+        assert.equal(result.events.findLast((event) => event.type === 'action').at, expected);
+        assert.deepEqual(result.warnings, []);
+      }
+    }
+  }
+});

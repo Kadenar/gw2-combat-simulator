@@ -444,7 +444,8 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
     query: { statsAt: () => ({}) },
     effectiveEnd: 1,
     config: { selectedTraitIds: [] },
-    emit: (event) => pistolEvents.push(event)
+    emit: (event) => pistolEvents.push(event),
+    emitProcedural: (event) => pistolEvents.push(event)
   };
   const shatteringStone = {
     ...elementalistCatalog.skillsById.get(ID.SHATTERING_STONE),

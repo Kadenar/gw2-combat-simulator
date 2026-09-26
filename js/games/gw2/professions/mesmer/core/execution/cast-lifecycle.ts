@@ -7,7 +7,6 @@ import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { RuntimeCast } from '#gw2/platform/simulation/runtime-state.js';
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/effect-adapter.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { mesmerMechanicsFor } from '#gw2/professions/mesmer/core/mechanics/runtime.js';
 import { scheduleBountifulBlades } from '#gw2/professions/mesmer/core/traits/index.js';
@@ -187,7 +186,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast, sk
     }
 
     // Cancelled attempts still refund reservations and clear cast-local state, but grant no completion effects.
-    if (cancelledBeforeInterruptCommit(skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+    if (cast.cancelled) return;
 
     if (skill.id === ID.SWAP_WEAPONS) return;
     const specializationHandled = dispatchSpecializationCompletion(context, cast, skill, at);
@@ -217,11 +216,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast, sk
  */
 export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast, skill: MesmerSkill): void {
   const runtime = mesmerMechanicsFor(context);
-  if (
-    skill.id === ID.ABSTRACTION &&
-    !cancelledBeforeInterruptCommit(skill, cast.start, cast.fullEnd, cast.effectiveEnd)
-  )
-    detonateInspiringImagery(context, cast);
+  if (skill.id === ID.ABSTRACTION && !cast.cancelled) detonateInspiringImagery(context, cast);
 
   withMesmerCastEmission(context, cast, skill, () => scheduleBountifulBlades(context, cast, skill));
   const shatter = runtime.shatters[skill.id];
@@ -268,7 +263,7 @@ export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast, skill
     shatterSpendCommitted: !delayedResourceSpend,
     shatterSpent
   });
-  if (delayedResourceSpend && !cancelledBeforeInterruptCommit(skill, cast.start, cast.fullEnd, cast.effectiveEnd)) {
+  if (delayedResourceSpend && !cast.cancelled) {
     context.schedule(
       'mesmer.blade-spend',
       Math.min(cast.effectiveEnd, cast.start + (cast.fullEnd - cast.start) * spendProgress),

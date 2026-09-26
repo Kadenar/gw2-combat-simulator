@@ -21,8 +21,6 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_AIRBORNE_MS, VINDICATOR_JUMP_SKILL } from '#gw2/professions/revenant/data/vindicator-jump.js';
-import { emitRevenantBuff, revenantCombatActive } from '#gw2/professions/revenant/core/events.js';
-import { revenantCastCommitted } from '#gw2/professions/revenant/core/events.js';
 import {
   emitRevenantInvocationProfile,
   emitRevenantInvocationSkill
@@ -105,8 +103,7 @@ function land(runtime: RevenantRuntime, data: unknown): void {
       if (window) {
         const duration = Math.max(0, effectNumber(forerunner, window, 'duration'));
         state.forerunnerOfDeathUntil = runtime.time + duration;
-        emitRevenantBuff(
-          runtime,
+        runtime.emitProcedural(
           {
             type: 'buff',
             at: runtime.time,
@@ -121,8 +118,7 @@ function land(runtime: RevenantRuntime, data: unknown): void {
             duration,
             stacks: effectNumber(forerunner, window, 'stacks')
           },
-          null,
-          true
+          { fixedDuration: true }
         );
       }
     }
@@ -131,7 +127,7 @@ function land(runtime: RevenantRuntime, data: unknown): void {
   // Every declared condition and boon accompanies the landing.
   for (const secondary of profile.effects ?? []) {
     if (secondary.type === 'boon')
-      emitRevenantBuff(runtime, {
+      runtime.emitProcedural({
         type: 'buff',
         at: runtime.time,
         source: 'revenant',
@@ -181,7 +177,7 @@ function energyMeld(runtime: RevenantRuntime, cast: RuntimeCast): void {
   }
 
   // Angsiyan's Trust refunds Energy only in combat.
-  if (hasTrait(runtime, TRAIT.ANGSIYANS_TRUST) && revenantCombatActive(runtime))
+  if (hasTrait(runtime, TRAIT.ANGSIYANS_TRUST) && runtime.combatStartedAt())
     runtime.resourceController.grant(
       'energy',
       Math.max(
@@ -191,7 +187,7 @@ function energyMeld(runtime: RevenantRuntime, cast: RuntimeCast): void {
     );
   const vigor = song && requireEffect(song, 'boon', 'vigor');
   if (song && vigor)
-    emitRevenantBuff(runtime, {
+    runtime.emitProcedural({
       type: 'buff',
       at: runtime.time,
       source: 'revenant',
@@ -209,7 +205,7 @@ function energyMeld(runtime: RevenantRuntime, cast: RuntimeCast): void {
 
 /** Swapping into Alliance in combat applies Spirit Boon and Song of the Mists, which also restores endurance. */
 function invokeAlliance(runtime: RevenantRuntime): void {
-  if (runtime.profession.core.activeLegendId !== LEGEND.ALLIANCE || !revenantCombatActive(runtime)) return;
+  if (runtime.profession.core.activeLegendId !== LEGEND.ALLIANCE || !runtime.combatStartedAt()) return;
   if (hasTrait(runtime, TRAIT.SPIRIT_BOON))
     emitRevenantInvocationProfile(runtime, PROFILE.spiritBoon, TRAIT.SPIRIT_BOON);
   const song = runtime.helpers.skillsById.get(ID.CALL_OF_THE_ALLIANCE);
@@ -237,13 +233,13 @@ export const vindicatorHooks: Partial<RuntimeProfession<RevenantRuntimeState>> =
   onCastStart(runtime, cast) {
     // Landing-only inputs begin at the landing animation; full jumps land after their airborne time.
     if (cast.skill.id === ID.DODGE) scheduleLanding(runtime, cast, cast.start);
-    else if (cast.skill.id === VINDICATOR_JUMP_SKILL.id && revenantCastCommitted(cast))
+    else if (cast.skill.id === VINDICATOR_JUMP_SKILL.id && !cast.cancelled)
       scheduleLanding(runtime, cast, cast.start + VINDICATOR_AIRBORNE_MS / 1000);
   },
   onCastComplete(runtime, cast) {
     // Airborne autos may advance the chain; landing resets it before the next serial input.
     if (cast.skill.id === VINDICATOR_JUMP_SKILL.id) resetAutoattackChains(runtime);
-    if (!revenantCastCommitted(cast)) return;
+    if (cast.cancelled) return;
     if (ENERGY_MELD_IDS.has(cast.skill.id)) energyMeld(runtime, cast);
     if (cast.skill.id === ID.SWAP_LEGENDS) invokeAlliance(runtime);
   },
