@@ -147,13 +147,16 @@ export function applyRangerBeastSkillTraits(
   skill: RangerSkill,
   triggerPoisonMaster: boolean
 ): void {
-  const state = professionCoreState(context);
-  if (hasTrait(context, TRAIT.REJUVENATION) && isInternalCooldownReady(context.time, state.rejuvenationReadyAt)) {
+  if (
+    hasTrait(context, TRAIT.REJUVENATION) &&
+    isInternalCooldownReady(context.time, context.procs.deadline('ranger.core.rejuvenation'))
+  ) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.rejuvenation);
     const effect = requireEffect(profile, 'boon', 'regeneration');
     // The cooldown gates only regeneration, so a removed boon leaves the trait ready.
     if (effect) {
-      state.rejuvenationReadyAt = context.time + balanceProfileNumber(profile, 'internalCooldown');
+      context.procs.readyAt['ranger.core.rejuvenation'] =
+        context.time + balanceProfileNumber(profile, 'internalCooldown');
       const kind = String(effect.boon);
       context.emitProcedural(
         rangerEvent(
@@ -222,7 +225,6 @@ export function applyRangerBeastSkillTraits(
 // Materialize pet-swap party boons and Clarion Bond's lesser warhorn package,
 // including its condition and blast finisher, at the swap completion time.
 export function applyRangerPetSwapTraits(context: RangerRuntime, skill: RangerSkill): void {
-  const state = professionCoreState(context);
   const at = context.time;
   const partyBoons: Array<{
     sourceId: number;
@@ -272,10 +274,13 @@ export function applyRangerPetSwapTraits(context: RangerRuntime, skill: RangerSk
     partyBoons.length = 0;
   }
 
-  if (hasTrait(context, TRAIT.CLARION_BOND) && isInternalCooldownReady(context.time, state.clarionBondReadyAt)) {
+  if (
+    hasTrait(context, TRAIT.CLARION_BOND) &&
+    isInternalCooldownReady(context.time, context.procs.deadline('ranger.core.clarionBond'))
+  ) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.clarionBond);
     // The blast finisher is part of the lesser warhorn package, so the cooldown survives removed boons.
-    state.clarionBondReadyAt = context.time + balanceProfileNumber(profile, 'internalCooldown');
+    context.procs.readyAt['ranger.core.clarionBond'] = context.time + balanceProfileNumber(profile, 'internalCooldown');
     for (const name of ['fury', 'might', 'swiftness']) {
       const effect = requireEffect(profile, 'boon', name);
       if (!effect) continue;

@@ -24,6 +24,8 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     castTimeMs: 400
   },
   [ID.HILT_BASH]: {
+    // The completed activation refreshes its paired skill through the shared recharge owner.
+    sideEffects: [{ on: 'castComplete', do: { type: 'rechargeReset', skillIds: [ID.MAUL_SOULBEAST, ID.MAUL_BASE] } }],
     cooldown: 20,
 
     effects: [
@@ -47,7 +49,17 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     castTimeMs: 600
   },
   [ID.ENDURING_SWING]: {
-    resourceGain: 15,
+    // Only a fully completed chain finisher grants the selected endurance reward.
+    sideEffects: [
+      {
+        on: 'castComplete',
+        do: {
+          type: 'resourceGrant',
+          resource: 'endurance',
+          amount: { profile: ID.ENDURING_SWING, field: 'resourceGain' }
+        }
+      }
+    ],
     effects: [
       {
         type: 'strike',

@@ -291,7 +291,6 @@ function emitTraitSymbol(runtime: Runtime, trait: number, symbolId: SkillId, cau
 /** Heals commit their shared trait cooldowns only if a selected packet can actually be created. */
 export function completeGuardianHealTraits(runtime: Runtime, cast: RuntimeCast): void {
   if (cast.skill.type !== 'Heal') return;
-  const state = runtime.profession.core;
   const cause = {
     type: 'action' as const,
     at: runtime.time,
@@ -304,12 +303,14 @@ export function completeGuardianHealTraits(runtime: Runtime, cast: RuntimeCast):
   };
   if (
     hasTrait(runtime, TRAIT.HEALERS_RESOLUTION) &&
-    isInternalCooldownReady(runtime.time, state.healersResolutionReadyAt)
+    isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.core.healersResolution'))
   ) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.healersResolution);
     const effect = requireEffect(profile, 'boon', 'resolution');
     if (effect) {
-      state.healersResolutionReadyAt = canonicalTime(runtime.time + balanceProfileNumber(profile, 'internalCooldown'));
+      runtime.procs.readyAt['guardian.core.healersResolution'] = canonicalTime(
+        runtime.time + balanceProfileNumber(profile, 'internalCooldown')
+      );
       emitGuardianBoon(runtime, {
         ...cause,
         type: 'buff',
@@ -324,10 +325,10 @@ export function completeGuardianHealTraits(runtime: Runtime, cast: RuntimeCast):
 
   if (
     hasTrait(runtime, TRAIT.PROTECTORS_RESTORATION) &&
-    isInternalCooldownReady(runtime.time, state.protectorsRestorationReadyAt)
+    isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.core.protectorsRestoration'))
   ) {
     if (emitTraitSymbol(runtime, TRAIT.PROTECTORS_RESTORATION, ID.LESSER_SYMBOL_OF_PROTECTION, cause))
-      state.protectorsRestorationReadyAt = canonicalTime(
+      runtime.procs.readyAt['guardian.core.protectorsRestoration'] = canonicalTime(
         runtime.time +
           balanceProfileNumber(
             requireBalanceProfileFromContext(runtime, PROFILE.protectorsRestoration),
@@ -399,12 +400,14 @@ export function reactToGuardianDamage(runtime: Runtime, event: Gw2ResolverEvent,
   if (
     !(health > 0) ||
     !(targetHealthLoss(runtime.config, runtime) - damage > health * balanceProfileNumber(profile, 'threshold')) ||
-    !isInternalCooldownReady(runtime.time, state.zealotsResolutionReadyAt)
+    !isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.core.zealotsResolution'))
   )
     return;
   // Claim before the first queued symbol impact so same-time children cannot recursively claim it.
   if (emitTraitSymbol(runtime, TRAIT.ZEALOTS_RESOLUTION, ID.LESSER_SYMBOL_OF_RESOLUTION, event))
-    state.zealotsResolutionReadyAt = canonicalTime(runtime.time + balanceProfileNumber(profile, 'cooldown'));
+    runtime.procs.readyAt['guardian.core.zealotsResolution'] = canonicalTime(
+      runtime.time + balanceProfileNumber(profile, 'cooldown')
+    );
 }
 
 /** Resolution readiness follows the accepted self-boon pool, including its cap and extension records. */
@@ -542,11 +545,11 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
   }
 
   const projectile = event.projectile === true || burningBolt;
-  const cooldownKey = projectile ? 'symbolProjectileIgnitionReadyAt' : 'symbolIgnitionReadyAt';
+  const cooldownKey = projectile ? 'guardian.core.symbolProjectileIgnition' : 'guardian.core.symbolIgnition';
   // Match gw2combat's end-of-tick cooldown removal: the deadline itself is still blocked.
-  if (!isInternalCooldownReady(event.at, state[cooldownKey])) return;
+  if (!isInternalCooldownReady(event.at, context.procs.deadline(cooldownKey))) return;
 
-  state[cooldownKey] = event.at + balanceProfileNumber(symbolOfIgnitionProfile, 'internalCooldown');
+  context.procs.readyAt[cooldownKey] = event.at + balanceProfileNumber(symbolOfIgnitionProfile, 'internalCooldown');
   context.queue.enqueue(
     buildResolverCondition({
       at: event.at,

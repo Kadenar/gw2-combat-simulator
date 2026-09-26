@@ -1,6 +1,5 @@
 import { canonicalTime, isTimeInWindow, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { modifyNecromancerRechargeStart } from '#gw2/professions/necromancer/core/mechanics/recharge.js';
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
@@ -315,14 +314,7 @@ function completionTraits(runtime: NecromancerRuntime, cast: RuntimeCast): void 
   };
   if (skill.type === 'Heal' && hasTrait(runtime, TRAIT.DARK_DEFENSE)) {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.DARK_DEFENSE);
-    if (
-      tryConsumeProcCooldown(
-        state.traitProcReadyAt,
-        'darkDefense',
-        runtime.time,
-        balanceProfileNumber(profile, 'internalCooldown')
-      )
-    ) {
+    if (runtime.procs.claimCooldown('darkDefense', runtime.time, balanceProfileNumber(profile, 'internalCooldown'))) {
       addCarapace(
         state,
         balanceProfileNumber(profile, 'resourceGain'),
@@ -368,12 +360,7 @@ function completionTraits(runtime: NecromancerRuntime, cast: RuntimeCast): void 
     const strike = requireEffect(profile, 'strike', 'Strike');
     if (
       strike &&
-      tryConsumeProcCooldown(
-        state.traitProcReadyAt,
-        'maliciousSwarm',
-        runtime.time,
-        balanceProfileNumber(profile, 'internalCooldown')
-      )
+      runtime.procs.claimCooldown('maliciousSwarm', runtime.time, balanceProfileNumber(profile, 'internalCooldown'))
     )
       runtime.emit(
         buildResolverStrike({
@@ -421,8 +408,6 @@ function completionTraits(runtime: NecromancerRuntime, cast: RuntimeCast): void 
 }
 
 function complete(runtime: NecromancerRuntime, cast: RuntimeCast): void {
-  // Committed Gravedigger strikes retain their reset through an interrupted animation; sample health when its lockout ends.
-  if (cast.skill.id === ID.GRAVEDIGGER && !cast.cancelled) runtime.schedule(GRAVEDIGGER_RESET, cast.fullEnd);
   if (!castCompleted(cast)) return;
   completeNecromancerMinion(runtime, cast);
   completeNecromancerWeapon(runtime, cast);
@@ -636,15 +621,15 @@ export const necromancerCoreHooks: Partial<RuntimeProfession<NecromancerRuntimeS
     },
     'control.resolved'(runtime, event) {
       // Fear of Death belongs to an accepted fear application, so misses and pending travel grant nothing.
-      const state = runtime.profession.core;
       if (
         event.controlKind === 'fear' &&
         event.actorType !== 'summon' &&
         hasTrait(runtime, TRAIT.FEAR_OF_DEATH) &&
-        isInternalCooldownReady(runtime.time, state.fearOfDeathReadyAt)
+        isInternalCooldownReady(runtime.time, runtime.procs.deadline('necromancer.core.fearOfDeath'))
       ) {
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.FEAR_OF_DEATH);
-        state.fearOfDeathReadyAt = runtime.time + balanceProfileNumber(profile, 'internalCooldown');
+        runtime.procs.readyAt['necromancer.core.fearOfDeath'] =
+          runtime.time + balanceProfileNumber(profile, 'internalCooldown');
         grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
       }
 

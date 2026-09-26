@@ -91,10 +91,10 @@ test('Nourishing Ashes grants from accepted Burning before a subsequent shade co
   const config = { ...base, initialResource: 10, selectedTraitIds: [TRAIT.DHUUMFIRE, TRAIT.NOURISHING_ASHES] };
   const result = run([cast(ID.MANIFEST_SAND_SHADE), cast(ID.NEFARIOUS_FAVOR)], config);
   assert.deepEqual(result.warnings, []);
-  assert.equal(state(result).nourishingAshesReadyAt, 3.44);
+  assert.equal(observedRuntime(result).procs.deadline('necromancer.scourge.nourishingAshes'), 3.44);
   const missed = run([{ ...cast(ID.MANIFEST_SAND_SHADE), offTarget: true }, cast(ID.NEFARIOUS_FAVOR)], config);
   assert.equal(missed.steps.at(-1).invalid, true);
-  assert.equal(state(missed).nourishingAshesReadyAt, 0);
+  assert.equal(observedRuntime(missed).procs.deadline('necromancer.scourge.nourishingAshes'), 0);
   const pending = run([{ ...cast(ID.MANIFEST_SAND_SHADE), impactDelayMs: 1000 }, cast(ID.NEFARIOUS_FAVOR)], config);
   assert.equal(pending.steps.at(-1).invalid, true);
   assert.equal(pending.planningState.profession.lifeForce.value, 10);

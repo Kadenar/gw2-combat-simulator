@@ -116,14 +116,14 @@ function queueVampiricPresence(
   if (!effect) return;
   const readyAt =
     actorKey === 'self'
-      ? Number(state.vampiricPresenceReadyAt || 0)
-      : Number(state.traitProcReadyAt[`vampiricPresence:${actorKey}`] || 0);
+      ? Number(context.procs.deadline('necromancer.core.vampiricPresence') || 0)
+      : Number(context.procs.readyAt[`vampiricPresence:${actorKey}`] || 0);
   if (!intervalAlreadyApplied && !isInternalCooldownReady(event.at, readyAt)) return;
 
   if (!intervalAlreadyApplied) {
     const nextAt = event.at + balanceProfileNumber(profile, 'cooldown');
-    if (actorKey === 'self') state.vampiricPresenceReadyAt = nextAt;
-    else state.traitProcReadyAt[`vampiricPresence:${actorKey}`] = nextAt;
+    if (actorKey === 'self') context.procs.readyAt['necromancer.core.vampiricPresence'] = nextAt;
+    else context.procs.readyAt[`vampiricPresence:${actorKey}`] = nextAt;
   }
 
   // Both player and allied-recipient paths converge on the same attributed packet.

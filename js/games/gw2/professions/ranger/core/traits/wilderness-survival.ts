@@ -23,8 +23,10 @@ import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ran
 // On an eligible heal, consume Child of Earth's ICD and emit the initial
 // immobilize followed by the profile-defined Muddy Terrain condition pulses.
 export function emitChildOfEarth(context: RangerRuntime, skill: RangerSkill): void {
-  const state = professionCoreState(context);
-  if (!hasTrait(context, TRAIT.CHILD_OF_EARTH) || !isInternalCooldownReady(context.time, state.childOfEarthReadyAt)) {
+  if (
+    !hasTrait(context, TRAIT.CHILD_OF_EARTH) ||
+    !isInternalCooldownReady(context.time, context.procs.deadline('ranger.core.childOfEarth'))
+  ) {
     return;
   }
 
@@ -36,7 +38,7 @@ export function emitChildOfEarth(context: RangerRuntime, skill: RangerSkill): vo
   );
   // The cooldown gates the lesser field; with every packet removed there is nothing to gate.
   if (!immobilized && !pulses.length) return;
-  state.childOfEarthReadyAt = context.time + balanceProfileNumber(profile, 'internalCooldown');
+  context.procs.readyAt['ranger.core.childOfEarth'] = context.time + balanceProfileNumber(profile, 'internalCooldown');
   const at = context.time;
   if (immobilized)
     context.emit(
@@ -141,11 +143,10 @@ export function triggerArachnophobia(context: RangerResolverContext, event: Gw2R
 // Record the target-control window and dispatch Ranger traits that react to
 // canonical control events without replaying the source effect.
 export function reactToRangerCoreControl(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const state = professionCoreState(context);
   if (
     !hasTrait(context, TRAIT.CARNIVORE) ||
     (!isPlayerStrike(event) && !isPetStrike(event)) ||
-    !isInternalCooldownReady(event.at, state.carnivoreReadyAt)
+    !isInternalCooldownReady(event.at, context.procs.deadline('ranger.core.carnivore'))
   ) {
     return;
   }
@@ -154,7 +155,7 @@ export function reactToRangerCoreControl(context: RangerResolverContext, event: 
   const strike = requireEffect(profile, 'strike', 'Strike');
   // The cooldown gates only the life-steal strike, so a removed strike leaves it ready.
   if (!strike) return;
-  state.carnivoreReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+  context.procs.readyAt['ranger.core.carnivore'] = event.at + balanceProfileNumber(profile, 'internalCooldown');
   const hits = effectNumber(profile, strike, 'hits');
   context.queue.enqueue(
     buildResolverStrike({

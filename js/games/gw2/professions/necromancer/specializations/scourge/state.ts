@@ -7,8 +7,6 @@ import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.
 export interface ScourgeState {
   shadeGeneration: number;
   shades: number[];
-  demonicLoreReadyAt: number;
-  nourishingAshesReadyAt: number;
 }
 
 /** Declares Scourge's public compatibility field and inactive value. */
@@ -21,9 +19,7 @@ export function createScourgeState(): ScourgeState {
   const state: ScourgeState = {
     shadeGeneration: 0,
     // Each entry is an absolute expiry timestamp; the array length is the active shade count
-    shades: [],
-    demonicLoreReadyAt: 0,
-    nourishingAshesReadyAt: 0
+    shades: []
   };
   return state;
 }

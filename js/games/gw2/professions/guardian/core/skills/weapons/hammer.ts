@@ -4,6 +4,8 @@ import type { Skill } from '#gw2/platform/engine/skills/types.js';
 
 export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.BANISH]: {
+    // The completed activation refreshes its paired skill through the shared recharge owner.
+    sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.MIGHTY_BLOW] } }],
     castTimeMs: 520,
     effects: [
       {

@@ -6,7 +6,6 @@ import { resolverSourceSkill, buildResolverStrike, buildResolverCondition } from
  * combo-finisher traits (Elemental Epitome, Elemental Synergy), pay out Vicious
  * Empowerment, and queue the Shattering Ice packet.
  */
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import {
   requireBalanceProfileFromContext,
   balanceProfileNumber,
@@ -90,13 +89,11 @@ export function applyCatalystResolverAura(context: ElementalistRuntime, event: G
  */
 export function applyCatalystComboTraits(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   const core = professionCoreState(context);
-  const state = catalystState.from(context);
   const attunement = core.primaryAttunement;
   if (
     hasTrait(context, 'Elemental Epitome') &&
-    tryConsumeProcCooldown(
-      state.elementalEpitomeReadyAt,
-      attunement,
+    context.procs.claimCooldown(
+      `elementalist.catalyst.elementalEpitome:${attunement}`,
       event.at,
       balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.elementalEpitome), 'internalCooldown')
     )
@@ -110,9 +107,8 @@ export function applyCatalystComboTraits(context: ElementalistRuntime, event: Gw
 
   if (
     hasTrait(context, 'Elemental Synergy') &&
-    tryConsumeProcCooldown(
-      state.elementalSynergyReadyAt,
-      attunement,
+    context.procs.claimCooldown(
+      `elementalist.catalyst.elementalSynergy:${attunement}`,
       event.at,
       balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.elementalSynergy), 'internalCooldown')
     )
@@ -159,10 +155,10 @@ export function applyViciousEmpowerment(context: Gw2ResolverRuntime, event: Gw2R
     return;
   }
 
-  const state = catalystState.from(context);
-  if (!isInternalCooldownReady(event.at, state.viciousEmpowermentReadyAt)) return;
+  if (!isInternalCooldownReady(event.at, context.procs.deadline('elementalist.catalyst.viciousEmpowerment'))) return;
   const viciousEmpowermentProfile = requireBalanceProfileFromContext(context, PROFILE.viciousEmpowerment);
-  state.viciousEmpowermentReadyAt = event.at + balanceProfileNumber(viciousEmpowermentProfile, 'internalCooldown');
+  context.procs.readyAt['elementalist.catalyst.viciousEmpowerment'] =
+    event.at + balanceProfileNumber(viciousEmpowermentProfile, 'internalCooldown');
   const empowerment = requireEffect(viciousEmpowermentProfile, 'buff', 'Empowerment');
   const might = requireEffect(viciousEmpowermentProfile, 'boon', 'Might');
   if (empowerment) {
@@ -195,7 +191,7 @@ export function applyCatalystEmpowerment(context: Gw2ResolverRuntime, event: Gw2
     const state = catalystState.from(context);
     state.shatteringIceUntil = gw2EffectExpiresAt(event.at, Math.max(0, Number(event.duration || 0)));
     // Refreshing the buff rearms its first strike; subsequent strikes use the canonical strict ICD.
-    state.shatteringIceReadyAt = 0;
+    context.procs.readyAt['elementalist.catalyst.shatteringIce'] = 0;
     return;
   }
 
@@ -228,13 +224,14 @@ export function applyCatalystResolvedDamage(context: Gw2ResolverRuntime, event: 
     event.skillName === 'Shattering Ice Proc' ||
     !(Number(event.coefficient) > 0) ||
     state.shatteringIceUntil <= event.at ||
-    !isInternalCooldownReady(event.at, state.shatteringIceReadyAt)
+    !isInternalCooldownReady(event.at, context.procs.deadline('elementalist.catalyst.shatteringIce'))
   ) {
     return;
   }
 
   const shatteringIceProfile = requireBalanceProfileFromContext(context, PROFILE.shatteringIce);
-  state.shatteringIceReadyAt = event.at + balanceProfileNumber(shatteringIceProfile, 'internalCooldown');
+  context.procs.readyAt['elementalist.catalyst.shatteringIce'] =
+    event.at + balanceProfileNumber(shatteringIceProfile, 'internalCooldown');
   const strike = requireEffect(shatteringIceProfile, 'strike', 'Shattering Ice - Triggered Packet');
   const chilled = requireEffect(shatteringIceProfile, 'condition', 'Chilled');
   if (strike) {

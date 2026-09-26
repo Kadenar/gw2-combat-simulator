@@ -7,7 +7,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
@@ -40,8 +39,7 @@ export function triggerChaoticInterruption(context: MesmerRuntime, event: Simula
   }
 
   const defiant = Boolean(context.config.target?.defiant);
-  const core = professionCoreState(context);
-  if (defiant && !isInternalCooldownReady(event.at, Number(core.traitReadyAt[TRAIT.CHAOTIC_INTERRUPTION] || 0))) {
+  if (defiant && !isInternalCooldownReady(event.at, Number(context.procs.readyAt[TRAIT.CHAOTIC_INTERRUPTION] || 0))) {
     return;
   }
 
@@ -68,7 +66,7 @@ export function triggerChaoticInterruption(context: MesmerRuntime, event: Simula
   context.cooldownController.reduceSkillRecharge(target, reduction, event.at);
 
   if (defiant) {
-    core.traitReadyAt[TRAIT.CHAOTIC_INTERRUPTION] =
+    context.procs.readyAt[TRAIT.CHAOTIC_INTERRUPTION] =
       event.at + balanceProfileNumber(chaoticInterruptionProfile, 'internalCooldown');
   }
 
@@ -111,7 +109,7 @@ export function triggerMethodOfMadness(
   storm: MesmerTraitDamage
 ): void {
   if (!context.traits.has(TRAIT.METHOD_OF_MADNESS)) return;
-  const readyAt = professionCoreState(context.state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] || 0;
+  const readyAt = context.state.procs.readyAt[TRAIT.METHOD_OF_MADNESS] || 0;
   if (!isInternalCooldownReady(at, readyAt)) return;
   // A removed storm has no attack, proc, or attack-owned cooldown.
   if (storm.type !== 'strike') return;
@@ -133,5 +131,5 @@ export function triggerMethodOfMadness(
     }
   );
   context.addTraitProc('Method of Madness', at, skill.name);
-  professionCoreState(context.state).traitReadyAt[TRAIT.METHOD_OF_MADNESS] = at + Number(storm.cooldown || 0);
+  context.state.procs.readyAt[TRAIT.METHOD_OF_MADNESS] = at + Number(storm.cooldown || 0);
 }

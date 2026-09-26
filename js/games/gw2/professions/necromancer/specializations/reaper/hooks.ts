@@ -65,10 +65,11 @@ export const reaperHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> = 
       if (
         hasTrait(runtime, TRAIT.CHILLING_VICTORY) &&
         runtime.query.targetHasCondition('Chilled', runtime.time, runtime) &&
-        isInternalCooldownReady(runtime.time, specialization.state.chillingVictoryReadyAt)
+        isInternalCooldownReady(runtime.time, runtime.procs.deadline('necromancer.reaper.chillingVictory'))
       ) {
         const profile = requireBalanceProfileFromContext(runtime, PROFILE.chillingVictory);
-        specialization.state.chillingVictoryReadyAt = runtime.time + balanceProfileNumber(profile, 'cooldown');
+        runtime.procs.readyAt['necromancer.reaper.chillingVictory'] =
+          runtime.time + balanceProfileNumber(profile, 'cooldown');
         grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
       }
     },

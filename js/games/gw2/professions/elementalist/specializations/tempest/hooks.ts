@@ -46,7 +46,6 @@ import {
 } from '#gw2/professions/elementalist/data/ids.js';
 import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profiles.js';
 import { TEMPEST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/specializations/tempest/profiles.js';
-import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
 
 // Overloads that count for a full spear etching; Overload Water is not one of them.
 const FULL_ETCHING_CHARGE_SKILLS = new Set<number>([ID.OVERLOAD_FIRE, ID.OVERLOAD_AIR, ID.OVERLOAD_EARTH]);
@@ -333,17 +332,6 @@ function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: 
   }
 }
 
-// Elemental Enchantment shortens overload recharges only.
-function modifyRechargeDuration(context: ElementalistRuntime, skill: Skill, duration: number): number {
-  return skill.overload && hasTrait(context, 'Elemental Enchantment')
-    ? duration *
-        balanceProfileNumber(
-          requireBalanceProfileFromContext(context, CORE_PROFILE.elementalEnchantment),
-          'rechargeMultiplier'
-        )
-    : duration;
-}
-
 // Attribute every overload-sourced event to the profession mechanic rather than a held weapon.
 function prepareEvent(_context: ElementalistRuntime, event: SimulationEventBase): SimulationEventBase {
   return Object.values(ELEMENTALIST_OVERLOAD_SKILL_IDS).includes(Number(event.skillId ?? event.sourceId))
@@ -362,10 +350,10 @@ function onAttunementEvent(context: ElementalistRuntime, event: SimulationEvent)
 
   // Latent Stamina: vigor on attuning to water, throttled by its own internal cooldown stamp.
   if (event.type === 'elementalist.attunement' && event.to === 'Water' && hasTrait(context, 'Latent Stamina')) {
-    const state = tempestState.from(context);
-    if (isInternalCooldownReady(event.at, state.latentStaminaReadyAt)) {
+    if (isInternalCooldownReady(event.at, context.procs.deadline('elementalist.tempest.latentStamina'))) {
       const latentStaminaProfile = requireBalanceProfileFromContext(context, PROFILE.latentStamina);
-      state.latentStaminaReadyAt = event.at + balanceProfileNumber(latentStaminaProfile, 'internalCooldown');
+      context.procs.readyAt['elementalist.tempest.latentStamina'] =
+        event.at + balanceProfileNumber(latentStaminaProfile, 'internalCooldown');
       const vigor = requireEffect(latentStaminaProfile, 'boon', 'Vigor');
       const sourceId = event.skillId ?? event.sourceId;
       if (vigor) {
@@ -393,7 +381,14 @@ export const tempestHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> 
     registerElementalistEliteEvents(runtime, onAttunementEvent);
   },
   availability,
-  rechargeWork: modifyRechargeDuration,
+  // Overload-only trait tuning uses the same live recharge rules as other professions.
+  rechargeRules: [
+    {
+      trait: 'Elemental Enchantment',
+      when: (_context, skill) => Boolean(skill.overload),
+      multiplier: { profile: CORE_PROFILE.elementalEnchantment, field: 'rechargeMultiplier' }
+    }
+  ],
   prepareEvent,
   onCastStart(runtime, cast) {
     withElementalistCast(runtime, cast, () => {

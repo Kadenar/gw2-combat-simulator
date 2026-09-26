@@ -31,7 +31,6 @@ export interface ThiefCoreState {
   enduranceUpdatedAt: number;
   leadAttackExpirations: number[];
   fluidStrikesUntil: number;
-  quickPocketsReadyAt: number;
   spearChainStage: number;
   spearPreviousSkillId: SkillId | null;
   spearLastWasFinisher: boolean;
@@ -45,7 +44,7 @@ export interface ThiefCoreState {
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   traitProcProgress: Record<string, number>;
-  traitProcReadyAt: Record<string, number>;
+
   /** The pending Infiltrator's Signet pulse instant; earlier queued pulses retire themselves. */
   infiltratorsSignetPulseAt: number | null;
   /** The instant a landed strike last broke stealth, claimable by one same-instant stealth attack. */
@@ -83,7 +82,6 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     enduranceUpdatedAt: 0,
     leadAttackExpirations: [],
     fluidStrikesUntil: 0,
-    quickPocketsReadyAt: 0,
     spearChainStage: 0,
     spearPreviousSkillId: null,
     spearLastWasFinisher: false,
@@ -97,7 +95,7 @@ export function createThiefCoreState(config: ThiefConfig = {}): ThiefCoreState {
     availableFlips: {},
     autoattackChains: {},
     traitProcProgress: {},
-    traitProcReadyAt: {},
+
     infiltratorsSignetPulseAt: null,
     strikeBrokeStealthAt: null,
     scepterChainExpiresAt: null
@@ -118,7 +116,6 @@ const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[] = Obje
 
   'leadAttackExpirations',
   'fluidStrikesUntil',
-  'quickPocketsReadyAt',
   'spearChainStage',
   'spearPreviousSkillId',
   'spearLastWasFinisher',

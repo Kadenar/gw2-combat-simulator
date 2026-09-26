@@ -162,7 +162,7 @@ test('Thief zero Quick Pockets gain matches a swap without the trait', () => {
   );
   assert.deepEqual(zero.warnings, []);
   // The swap still claims Quick Pockets' cooldown; its zero grant leaves the pool unchanged.
-  assert.ok(observedRuntime(zero).profession.core.quickPocketsReadyAt > 0);
+  assert.ok(observedRuntime(zero).procs.deadline('thief.core.quickPockets') > 0);
   assert.equal(
     observedRuntime(zero).resourceController.value('initiative'),
     observedRuntime(baseline).resourceController.value('initiative')

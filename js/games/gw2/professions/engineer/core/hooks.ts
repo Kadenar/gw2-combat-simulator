@@ -97,8 +97,7 @@ export const engineerCoreHooks: Partial<RuntimeProfession<EngineerRuntimeState>>
   },
   onCombatStart: detonateMines,
   modifyEffects(runtime, cast, effects) {
-    if (customSpear.has(Number(cast.skill.id)) || (cast.skill.id === ID.MINE_FIELD && runtime.combatStartPending))
-      return [];
+    if (customSpear.has(Number(cast.skill.id))) return [];
     if (cast.skill.id !== ID.DETONATE || !hasTrait(runtime.config, TRAIT.GADGETEER)) return effects;
     return effects.flatMap<SkillEffect>((effect) =>
       effect.type === 'strike'

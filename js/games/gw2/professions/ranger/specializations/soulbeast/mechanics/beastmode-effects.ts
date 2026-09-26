@@ -241,10 +241,9 @@ function handleSharedStanceHit(context: RangerResolverContext, event: Gw2Resolve
   const allyIndex = event.metadata?.triggeredByAlly;
   if (!allyIndex) return;
   const key = `${event.kind}:${allyIndex}`;
-  const state = soulbeastState.from(context);
-  if (!isInternalCooldownReady(event.at, state.alliedStanceReadyAt[key] ?? 0)) return;
+  if (!isInternalCooldownReady(event.at, context.procs.readyAt[`ranger.soulbeast.alliedStance:${key}`] ?? 0)) return;
   queueStanceProc(context, event, event.kind === 'one-wolf-pack', (internalCooldown) => {
-    state.alliedStanceReadyAt[key] = event.at + internalCooldown;
+    context.procs.readyAt[`ranger.soulbeast.alliedStance:${key}`] = event.at + internalCooldown;
   });
 }
 
@@ -262,22 +261,22 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
     activeSoulbeastBuff(context, 'one-wolf-pack', event.at) &&
     // Personal One Wolf Pack intentionally includes its 1s deadline: observed Frost Trap pulses each echo at 1s cadence.
     // The shared strict ICD helper would skip alternate pulses; canonical times avoid needing an epsilon here.
-    canonicalTime(event.at) >= canonicalTime(state.oneWolfPackReadyAt)
+    canonicalTime(event.at) >= canonicalTime(context.procs.deadline('ranger.soulbeast.oneWolfPack'))
   ) {
     // 1-second ICD between echoes even within a single multi-hit skill.
     queueStanceProc(context, event, true, (internalCooldown) => {
-      state.oneWolfPackReadyAt = event.at + internalCooldown;
+      context.procs.readyAt['ranger.soulbeast.oneWolfPack'] = event.at + internalCooldown;
     });
   }
 
   // Vulture Stance procs per player hit with a 0.25 s ICD; effect-sourced hits (e.g. OWP echoes) are excluded.
   if (
     activeSoulbeastBuff(context, 'vulture-stance', event.at) &&
-    isInternalCooldownReady(event.at, state.vultureStanceReadyAt) &&
+    isInternalCooldownReady(event.at, context.procs.deadline('ranger.soulbeast.vultureStance')) &&
     isPlayerStrike(event)
   ) {
     queueStanceProc(context, event, false, (internalCooldown) => {
-      state.vultureStanceReadyAt = event.at + internalCooldown;
+      context.procs.readyAt['ranger.soulbeast.vultureStance'] = event.at + internalCooldown;
     });
   }
 
@@ -296,12 +295,16 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
     if (weakness) queueProfileCondition(context, event, profile, weakness, TRAIT.WILTING_STRIKE, 'Wilting Strike');
   }
 
-  if (hasTrait(context, TRAIT.GO_FOR_THE_EYES) && isInternalCooldownReady(event.at, state.goForTheEyesReadyAt)) {
+  if (
+    hasTrait(context, TRAIT.GO_FOR_THE_EYES) &&
+    isInternalCooldownReady(event.at, context.procs.deadline('ranger.soulbeast.goForTheEyes'))
+  ) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.goForTheEyes);
     const blind = requireEffect(profile, 'blind', 'Blind');
     // The cooldown gates only the blind, so a removed blind leaves it ready.
     if (blind) {
-      state.goForTheEyesReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+      context.procs.readyAt['ranger.soulbeast.goForTheEyes'] =
+        event.at + balanceProfileNumber(profile, 'internalCooldown');
       context.queue.enqueue({
         type: 'blind',
         at: event.at,
@@ -316,12 +319,16 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
     }
   }
 
-  if (hasTrait(context, TRAIT.GO_FOR_THE_THROAT) && isInternalCooldownReady(event.at, state.goForTheThroatReadyAt)) {
+  if (
+    hasTrait(context, TRAIT.GO_FOR_THE_THROAT) &&
+    isInternalCooldownReady(event.at, context.procs.deadline('ranger.soulbeast.goForTheThroat'))
+  ) {
     const profile = requireBalanceProfileFromContext(context, CORE_PROFILE.goForTheThroat);
     // Merged Soulbeasts receive only the player's buff; the pet variant has no recipient here.
     const lesserSicEm = requireEffect(profile, 'buff', 'lesser-sic-em');
     if (lesserSicEm) {
-      state.goForTheThroatReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+      context.procs.readyAt['ranger.soulbeast.goForTheThroat'] =
+        event.at + balanceProfileNumber(profile, 'internalCooldown');
       const duration = effectNumber(profile, lesserSicEm, 'duration');
       context.recordProc(
         'trait',
@@ -341,19 +348,23 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
 // Translate canonical control into Soulbeast trait reactions after the control
 // window has been accepted by the core resolver.
 export function reactToSoulbeastControl(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const state = soulbeastState.from(context);
   if (hasTrait(context, TRAIT.TWICE_AS_VICIOUS)) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.twiceAsVicious);
     const buff = requireEffect(profile, 'buff', 'twice-as-vicious');
     if (buff) queueProfileBuff(context, event, profile, buff, 'Twice as Vicious', TRAIT.TWICE_AS_VICIOUS);
   }
 
-  if (hasTrait(context, TRAIT.BESTIAL_RAGE) && isInternalCooldownReady(event.at, state.bestialRageReadyAt)) {
+  if (
+    hasTrait(context, TRAIT.BESTIAL_RAGE) &&
+    isInternalCooldownReady(event.at, context.procs.deadline('ranger.soulbeast.bestialRage'))
+  ) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.bestialRage);
     const might = requireEffect(profile, 'boon', 'might');
     const fury = requireEffect(profile, 'boon', 'fury');
     // Either surviving boon keeps the shared cooldown; removing both leaves no proc to gate.
-    if (might || fury) state.bestialRageReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+    if (might || fury)
+      context.procs.readyAt['ranger.soulbeast.bestialRage'] =
+        event.at + balanceProfileNumber(profile, 'internalCooldown');
     if (might) queueProfileBuff(context, event, profile, might, 'Bestial Rage', TRAIT.BESTIAL_RAGE);
     if (fury) queueProfileBuff(context, event, profile, fury, 'Bestial Rage', TRAIT.BESTIAL_RAGE);
   }
@@ -395,18 +406,18 @@ export function essenceOfSpeedExtension(
   context: RangerResolverContext,
   event: Gw2ResolverEvent
 ): Gw2ResolverEvent | null {
-  const state = soulbeastState.from(context);
   if (
     event.kind !== 'quickness' ||
     !event.resolvedAudience?.includesSelf ||
     !hasTrait(context, TRAIT.ESSENCE_OF_SPEED) ||
-    !isInternalCooldownReady(event.at, state.essenceOfSpeedReadyAt)
+    !isInternalCooldownReady(event.at, context.procs.deadline('ranger.soulbeast.essenceOfSpeed'))
   ) {
     return null;
   }
 
   const profile = requireBalanceProfileFromContext(context, PROFILE.essenceOfSpeed);
-  state.essenceOfSpeedReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+  context.procs.readyAt['ranger.soulbeast.essenceOfSpeed'] =
+    event.at + balanceProfileNumber(profile, 'internalCooldown');
   return {
     type: 'boon_extension',
     at: event.at,

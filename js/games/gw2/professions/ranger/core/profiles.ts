@@ -50,6 +50,8 @@ export const RANGER_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Enduring Swing's completed-chain endurance reward is independent of its strike packet.
+  variant(ID.ENDURING_SWING, 'Enduring Swing', { resourceGain: 15, effects: [] }),
   {
     id: RANGER_CORE_BALANCE_PROFILE_IDS.resources,
     name: 'Ranger Endurance',

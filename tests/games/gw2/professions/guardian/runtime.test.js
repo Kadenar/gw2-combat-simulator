@@ -631,7 +631,7 @@ test('Firebrand Quickfire refresh preserves charges past an older expiry and exc
   const rejected = run([wait(1000)], { ...firebrand, selectedTraitIds: [TRAIT.QUICKFIRE] }, (runtime) =>
     boon(runtime, 'quickness', 0, 1, { audience: { recipients: 'summons', affectsSelf: false } })
   );
-  assert.equal(fb(rejected).quickfireReadyAt, 0);
+  assert.equal(observedRuntime(rejected).procs.deadline('guardian.firebrand.quickfire'), 0);
   assert.equal(fb(rejected).ashes.charges, 0);
 });
 
@@ -736,8 +736,8 @@ test('removed Firebrand components preserve independent page grants and Might wi
   assert.deepEqual(result.warnings, []);
   assert.equal(fb(result).tomePages.value, 2);
   assert.equal(fb(result).ashes.charges, 0);
-  assert.equal(fb(result).quickfireReadyAt, 0);
-  assert.equal(fb(result).stalwartSpeedReadyAt, 0);
+  assert.equal(observedRuntime(result).procs.deadline('guardian.firebrand.quickfire'), 0);
+  assert.equal(observedRuntime(result).procs.deadline('guardian.firebrand.stalwartSpeed'), 0);
   assert.ok(result.resolvedEvents.some((event) => event.kind === 'might' && event.skillId === ID.ASHES_OF_THE_JUST));
   assert.equal(
     result.resolvedEvents.some((event) => event.condition === 'Slow'),
@@ -1122,7 +1122,7 @@ test("Zealot's Resolution excludes the threshold-crossing hit and gives its chil
   assert.ok(child.every((event) => event.at === 0.2));
   assert.ok(child.every((event) => event.activationId === child[0].activationId));
   assert.notEqual(child[0].activationId, 'impact-0.2');
-  assert.equal(core(triggered).zealotsResolutionReadyAt, 30.2);
+  assert.equal(observedRuntime(triggered).procs.deadline('guardian.core.zealotsResolution'), 30.2);
 });
 
 test('Righteous Instincts extends one cadence and rejects stale ticks after a new Resolution window', () => {
@@ -1177,12 +1177,12 @@ test('heal traits commit independently, retain party scope, and sample later boo
     allies: { count: 2 }
   };
   const canceled = run([{ skillId: ID.SHELTER, interruptAfterMs: 1 }, wait(3000)], config);
-  assert.equal(core(canceled).healersResolutionReadyAt, 0);
-  assert.equal(core(canceled).protectorsRestorationReadyAt, 0);
+  assert.equal(observedRuntime(canceled).procs.deadline('guardian.core.healersResolution'), 0);
+  assert.equal(observedRuntime(canceled).procs.deadline('guardian.core.protectorsRestoration'), 0);
   const committed = run([ID.SHELTER, 'Swap Weapons', wait(2000)], config);
   assert.deepEqual(committed.warnings, []);
-  assert.ok(core(committed).healersResolutionReadyAt > 0);
-  assert.ok(core(committed).protectorsRestorationReadyAt > 0);
+  assert.ok(observedRuntime(committed).procs.deadline('guardian.core.healersResolution') > 0);
+  assert.ok(observedRuntime(committed).procs.deadline('guardian.core.protectorsRestoration') > 0);
   const protection = committed.resolvedEvents.filter(
     (event) => event.type === 'buff' && event.skillId === ID.LESSER_SYMBOL_OF_PROTECTION
   );
@@ -1324,8 +1324,8 @@ test('removed trait components neither claim heal cooldowns nor start recurring 
     patched
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(core(result).healersResolutionReadyAt, 0);
-  assert.equal(core(result).protectorsRestorationReadyAt, 0);
+  assert.equal(observedRuntime(result).procs.deadline('guardian.core.healersResolution'), 0);
+  assert.equal(observedRuntime(result).procs.deadline('guardian.core.protectorsRestoration'), 0);
   assert.equal(
     result.events.some((event) => event.sourceId === TRAIT.RIGHTEOUS_INSTINCTS),
     false

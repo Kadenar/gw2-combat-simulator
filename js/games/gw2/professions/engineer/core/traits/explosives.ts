@@ -14,7 +14,6 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 import {
   applyEngineerDerivedCondition,
-  procState,
   queueBuff,
   queueDamage,
   recordTrait,
@@ -29,16 +28,15 @@ import type {
 
 /** Schedules Grenadier's lesser barrage from an eligible healing cast after its internal cooldown. */
 export function applyGrenadier(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  const state = professionCoreState(context);
   if (
     !hasTrait(context.config, TRAIT.GRENADIER) ||
-    !isInternalCooldownReady(at, Number(state.traitProcReadyAt.grenadier || 0))
+    !isInternalCooldownReady(at, Number(context.procs.readyAt.grenadier || 0))
   )
     return;
   const grenadierProfile = requireBalanceProfileFromContext(context, PROFILE.grenadier);
   const grenadier = requireEffect(grenadierProfile, 'strike', 'Grenadier');
   if (!grenadier) return;
-  state.traitProcReadyAt.grenadier = at + balanceProfileNumber(grenadierProfile, 'internalCooldown');
+  context.procs.readyAt.grenadier = at + balanceProfileNumber(grenadierProfile, 'internalCooldown');
   const hits = Number(grenadier.hits);
   const coefficient = effectNumber(grenadierProfile, grenadier, 'coefficient');
   // Emit distinct packets so per-hit reactions and attribution retain the barrage sequence.
@@ -66,13 +64,16 @@ export function applyGrenadier(context: EngineerRuntime, skill: EngineerSkill, a
 
 /** Rearms Explosive Entrance after a resolved Engineer dodge. */
 export function resetExplosiveEntrance(context: EngineerResolverContext): void {
-  procState(context).explosiveEntranceFired = false;
+  professionCoreState(context).explosiveEntranceFired = false;
 }
 
 /** Queues Explosive Entrance once for the next eligible player strike. */
 export function applyExplosiveEntrance(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  const state = procState(context);
-  if (event.actorType !== 'player' || !hasTrait(context, TRAIT.EXPLOSIVE_ENTRANCE) || state.explosiveEntranceFired) {
+  if (
+    event.actorType !== 'player' ||
+    !hasTrait(context, TRAIT.EXPLOSIVE_ENTRANCE) ||
+    professionCoreState(context).explosiveEntranceFired
+  ) {
     return;
   }
 
@@ -80,7 +81,7 @@ export function applyExplosiveEntrance(context: EngineerResolverContext, event: 
   const explosiveEntranceStrike = requireEffect(explosiveEntranceProfile, 'strike', 'Explosive Entrance');
   if (explosiveEntranceStrike) {
     // Only a surviving packet consumes this once-per-dodge proc.
-    state.explosiveEntranceFired = true;
+    professionCoreState(context).explosiveEntranceFired = true;
     queueDamage(context, event, {
       name: 'Explosive Entrance',
       coefficient: effectNumber(explosiveEntranceProfile, explosiveEntranceStrike, 'coefficient'),
@@ -121,7 +122,7 @@ export function applyShortFuse(
   event: EngineerResolverEvent,
   explosion: boolean
 ): void {
-  const state = procState(context);
+  const state = context.procs.readyAt;
   if (
     !explosion ||
     !hasTrait(context, TRAIT.SHORT_FUSE) ||
@@ -247,7 +248,7 @@ function isAimAssistedProjectile(context: EngineerResolverContext, event: Engine
 
 /** Queues Aim-Assisted Rocket, upgrading every fifth eligible proc to Orbital Command Strike. */
 export function applyAimAssistedRocket(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  const state = procState(context);
+  const state = context.procs.readyAt;
   if (
     !hasTrait(context, TRAIT.AIM_ASSISTED_ROCKET) ||
     !isAimAssistedProjectile(context, event) ||
@@ -258,10 +259,11 @@ export function applyAimAssistedRocket(context: EngineerResolverContext, event: 
 
   const aimAssistedRocketProfile = requireBalanceProfileFromContext(context, PROFILE.aimAssistedRocket);
   state.aimAssistedRocket = event.at + balanceProfileNumber(aimAssistedRocketProfile, 'internalCooldown');
-  state.aimAssistedRocketCount = Number(state.aimAssistedRocketCount || 0) + 1;
+  professionCoreState(context).aimAssistedRocketCount =
+    Number(professionCoreState(context).aimAssistedRocketCount || 0) + 1;
   // Every fifth projectile upgrades to Orbital Command Strike with its two-second call-down delay.
   const alternateEvery = balanceProfileNumber(aimAssistedRocketProfile, 'maximumStacks');
-  const orbital = state.aimAssistedRocketCount % alternateEvery === 0;
+  const orbital = professionCoreState(context).aimAssistedRocketCount % alternateEvery === 0;
   const rocket = requireEffect(aimAssistedRocketProfile, 'strike', orbital ? 'Orbital Strike' : 'Rocket');
   if (rocket) {
     queueDamage(context, event, {

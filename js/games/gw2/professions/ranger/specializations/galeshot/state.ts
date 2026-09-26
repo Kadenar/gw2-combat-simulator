@@ -26,8 +26,7 @@ export interface GaleshotState {
   wutheringWindReady: boolean;
   wutheringWindReadyAt: number;
   wutheringWindActivationIds: Record<string, boolean>;
-  thrillOfTheCatchReadyAt: number;
-  flockTogetherReadyAt: number;
+
   missileHits: number;
 }
 
@@ -39,8 +38,7 @@ export const GALESHOT_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   galeForceUntil: 0,
   mistralUntil: 0,
   wutheringWindReady: false,
-  thrillOfTheCatchReadyAt: 0,
-  flockTogetherReadyAt: 0,
+
   missileHits: 0
 } satisfies Partial<RangerState>);
 
@@ -58,8 +56,7 @@ function createGaleshotState(config: RangerConfig = {}): GaleshotState {
     // tracks per-activation-id to prevent double-firing when a multi-hit skill
     // lands several pet-hit tasks for the same cast window
     wutheringWindActivationIds: {},
-    thrillOfTheCatchReadyAt: 0,
-    flockTogetherReadyAt: 0,
+
     missileHits: 0
   };
 }

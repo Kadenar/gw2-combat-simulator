@@ -25,14 +25,15 @@ export function onAcceptedEvent(context: ElementalistRuntime, event: SimulationE
     event.type === 'condition' &&
     event.condition === 'Burning' &&
     state.element === 'Fire' &&
-    isInternalCooldownReady(event.at, state.ignitePassiveReadyAt)
+    isInternalCooldownReady(event.at, context.procs.deadline('elementalist.evoker.ignitePassive'))
   ) {
     const evocationProfile = requireBalanceProfileFromContext(context, PROFILE.evocation);
     const might = requireEffect(evocationProfile, 'boon', 'Fire Familiar');
     const sourceId = event.skillId ?? event.sourceId;
     if (might) {
       const igniteProfile = requireBalanceProfileFromContext(context, PROFILE.ignite);
-      state.ignitePassiveReadyAt = event.at + balanceProfileNumber(igniteProfile, 'pulseInterval');
+      context.procs.readyAt['elementalist.evoker.ignitePassive'] =
+        event.at + balanceProfileNumber(igniteProfile, 'pulseInterval');
       emitElementalistBuff(context, {
         skill: elementalistEventSkill(context, 'Fire Familiar', sourceId),
         at: event.at,

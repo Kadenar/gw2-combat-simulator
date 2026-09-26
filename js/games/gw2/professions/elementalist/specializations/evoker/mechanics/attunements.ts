@@ -14,7 +14,6 @@ import {
   requireEffect
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { emitElementalistBuff } from '#gw2/professions/elementalist/core/events.js';
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
@@ -54,18 +53,12 @@ const EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES = new Set<Skill['id']>([
 // reports whether the trait may proc now, arming its next Evocation ICD window when it may
 function consumeEvokerAttunementTraitCooldown(
   context: ElementalistRuntime,
-  state: EvokerState,
   at: number,
   profileId: Skill['id']
 ): boolean {
   const evocationProfile = requireBalanceProfileFromContext(context, PROFILE.evocation);
   // Both real and familiar-triggered entries share a per-profile claim before downstream effects.
-  return tryConsumeProcCooldown(
-    state.attunementTraitProcReadyAt,
-    String(profileId),
-    at,
-    balanceProfileNumber(evocationProfile, 'internalCooldown')
-  );
+  return context.procs.claimCooldown(String(profileId), at, balanceProfileNumber(evocationProfile, 'internalCooldown'));
 }
 
 /**
@@ -83,7 +76,7 @@ export function completeEvokerAttunement(context: ElementalistRuntime, cast: Run
   const shouldTriggerAttunementTrait = ({ attunement, profileId }: ElementalistAttunementTraitTrigger): boolean =>
     !EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES.has(profileId) ||
     state.element !== attunement ||
-    consumeEvokerAttunementTraitCooldown(context, state, at, profileId);
+    consumeEvokerAttunementTraitCooldown(context, at, profileId);
 
   onAttunementComplete(context, cast, skill, target, { shouldTriggerAttunementTrait });
   return true;
@@ -154,9 +147,7 @@ export function triggerSpecializedElementEntry(
   element: ElementalistAttunement
 ): void {
   const at = cast.effectiveEnd;
-  const state = evokerState.from(context);
-  const procReady = (profileId: Skill['id']): boolean =>
-    consumeEvokerAttunementTraitCooldown(context, state, at, profileId);
+  const procReady = (profileId: Skill['id']): boolean => consumeEvokerAttunementTraitCooldown(context, at, profileId);
 
   context.emit({
     type: 'elementalist.attunement-enter',

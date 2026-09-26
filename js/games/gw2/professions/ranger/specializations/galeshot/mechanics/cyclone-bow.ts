@@ -43,6 +43,7 @@ function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
       delete state.mistralPathOfScars[event.activationId];
     }
   }
+
   if (!enhanced) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.mistral);
   const strike = requireEffect(profile, 'strike', 'Strike');
@@ -205,17 +206,17 @@ export function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEve
 export function reactToGaleshotControl(context: RangerRuntime, event: Gw2ResolverEvent): void {
   if (event.actorType !== 'player' && event.actorType !== 'summon') return;
 
-  const state = galeshotState.from(context);
   if (
     !hasTrait({ config: context.config }, TRAIT.THRILL_OF_THE_CATCH) ||
-    !isInternalCooldownReady(context.time, state.thrillOfTheCatchReadyAt)
+    !isInternalCooldownReady(context.time, context.procs.deadline('ranger.galeshot.thrillOfTheCatch'))
   ) {
     return;
   }
 
   // 0.25 s ICD prevents one multi-hit ability from restoring more than one arrow.
   const profile = requireBalanceProfileFromContext(context, PROFILE.thrillOfTheCatch);
-  state.thrillOfTheCatchReadyAt = context.time + balanceProfileNumber(profile, 'internalCooldown');
+  context.procs.readyAt['ranger.galeshot.thrillOfTheCatch'] =
+    context.time + balanceProfileNumber(profile, 'internalCooldown');
   context.resourceController.grant('arrows', balanceProfileNumber(profile, 'resourceGain'));
 }
 
@@ -232,11 +233,10 @@ function isBeastSkill(skill: RangerSkill): boolean {
 // Commit Galeshot resource spending, Wind Force transitions, Cyclone Bow state,
 // and completed-skill trait effects from one activation.
 export function completeGaleshotSkill(context: RangerRuntime, skill: RangerSkill): void {
-  const state = galeshotState.from(context);
   if (
     !hasTrait(context, TRAIT.FLOCK_TOGETHER) ||
     !isBeastSkill(skill) ||
-    !isInternalCooldownReady(context.time, state.flockTogetherReadyAt)
+    !isInternalCooldownReady(context.time, context.procs.deadline('ranger.galeshot.flockTogether'))
   ) {
     return;
   }
@@ -245,7 +245,8 @@ export function completeGaleshotSkill(context: RangerRuntime, skill: RangerSkill
   const quickness = requireEffect(profile, 'boon', 'quickness');
   // The cooldown gates only quickness, so a removed boon leaves it ready.
   if (!quickness) return;
-  state.flockTogetherReadyAt = context.time + balanceProfileNumber(profile, 'internalCooldown');
+  context.procs.readyAt['ranger.galeshot.flockTogether'] =
+    context.time + balanceProfileNumber(profile, 'internalCooldown');
   context.emitProcedural(
     rangerEvent(
       {

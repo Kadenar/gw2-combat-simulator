@@ -86,21 +86,21 @@ function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2Res
   const duration = balanceProfileNumber(profile, 'durationMultiplier');
   const internalCooldown = balanceProfileNumber(profile, 'internalCooldown');
   if (isPlayerStrike(event)) {
-    if (!isInternalCooldownReady(event.at, state.ferociousSymbiosisPetReadyAt)) return;
+    if (!isInternalCooldownReady(event.at, context.procs.deadline('ranger.untamed.ferociousSymbiosisPet'))) return;
     // A player hit builds Pet stacks (cross-buff: player hits power the pet).
     state.ferociousSymbiosisPetStacks =
       event.at < state.ferociousSymbiosisPetUntil ? Math.min(maximumStacks, state.ferociousSymbiosisPetStacks + 1) : 1;
     state.ferociousSymbiosisPetUntil = event.at + duration;
-    state.ferociousSymbiosisPetReadyAt = event.at + internalCooldown;
+    context.procs.readyAt['ranger.untamed.ferociousSymbiosisPet'] = event.at + internalCooldown;
   } else if (isPetStrike(event)) {
-    if (!isInternalCooldownReady(event.at, state.ferociousSymbiosisPlayerReadyAt)) return;
+    if (!isInternalCooldownReady(event.at, context.procs.deadline('ranger.untamed.ferociousSymbiosisPlayer'))) return;
     // A pet hit builds Player stacks (cross-buff: pet hits power the player).
     state.ferociousSymbiosisPlayerStacks =
       event.at < state.ferociousSymbiosisPlayerUntil
         ? Math.min(maximumStacks, state.ferociousSymbiosisPlayerStacks + 1)
         : 1;
     state.ferociousSymbiosisPlayerUntil = event.at + duration;
-    state.ferociousSymbiosisPlayerReadyAt = event.at + internalCooldown;
+    context.procs.readyAt['ranger.untamed.ferociousSymbiosisPlayer'] = event.at + internalCooldown;
   }
 }
 
@@ -176,14 +176,15 @@ export function reactToUntamedControl(context: RangerResolverContext, event: Gw2
   const state = untamedState.from(context);
   if (
     hasTrait(context, TRAIT.DEBILITATING_BLOWS) &&
-    isInternalCooldownReady(event.at, state.debilitatingBlowsReadyAt)
+    isInternalCooldownReady(event.at, context.procs.deadline('ranger.untamed.debilitatingBlows'))
   ) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.debilitatingBlows);
     // Unleash state determines which condition is applied: Poisoned when Ranger unleashed, Slow otherwise.
     const condition = requireEffect(profile, 'condition', state.rangerUnleashed ? 'Poisoned' : 'Slow');
     // The cooldown gates only the selected condition, so a removed packet leaves it ready.
     if (condition) {
-      state.debilitatingBlowsReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+      context.procs.readyAt['ranger.untamed.debilitatingBlows'] =
+        event.at + balanceProfileNumber(profile, 'internalCooldown');
       queueTraitCondition(
         context,
         event,
@@ -196,13 +197,17 @@ export function reactToUntamedControl(context: RangerResolverContext, event: Gw2
     }
   }
 
-  if (hasTrait(context, TRAIT.ENHANCING_IMPACT) && isInternalCooldownReady(event.at, state.enhancingImpactReadyAt)) {
+  if (
+    hasTrait(context, TRAIT.ENHANCING_IMPACT) &&
+    isInternalCooldownReady(event.at, context.procs.deadline('ranger.untamed.enhancingImpact'))
+  ) {
     const profile = requireBalanceProfileFromContext(context, PROFILE.enhancingImpact);
     // Unleash state determines the boon: Quickness when Ranger unleashed, Stability otherwise.
     const effect = requireEffect(profile, 'boon', state.rangerUnleashed ? 'quickness' : 'stability');
     // The cooldown gates only the selected boon, so a removed packet leaves it ready.
     if (effect) {
-      state.enhancingImpactReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+      context.procs.readyAt['ranger.untamed.enhancingImpact'] =
+        event.at + balanceProfileNumber(profile, 'internalCooldown');
       queueTraitBuff(
         context,
         event,

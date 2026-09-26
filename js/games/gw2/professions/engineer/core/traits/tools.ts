@@ -27,15 +27,14 @@ export function isEngineerToolbeltSkill(skill: EngineerSkill | undefined): boole
 
 /** Applies Streamlined Kits on kit entry and adds Grenade Kit's mine strike when appropriate. */
 export function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
-  const state = professionCoreState(context);
   if (
     skill.kitTransition !== 'equip' ||
     !hasTrait(context.config, TRAIT.STREAMLINED_KITS) ||
-    !isInternalCooldownReady(at, Number(state.traitProcReadyAt.streamlinedKits || 0))
+    !isInternalCooldownReady(at, Number(context.procs.readyAt.streamlinedKits || 0))
   )
     return;
   const streamlinedKitsProfile = requireBalanceProfileFromContext(context, PROFILE.streamlinedKits);
-  state.traitProcReadyAt.streamlinedKits = at + balanceProfileNumber(streamlinedKitsProfile, 'internalCooldown');
+  context.procs.readyAt.streamlinedKits = at + balanceProfileNumber(streamlinedKitsProfile, 'internalCooldown');
   // Every eligible kit entry grants the shared swiftness effect.
   const streamlinedKitsSwiftness = requireEffect(streamlinedKitsProfile, 'boon', 'swiftness');
   if (streamlinedKitsSwiftness) {

@@ -45,6 +45,14 @@ export const WARRIOR_CORE_BALANCE_PROFILE_IDS = Object.freeze({
 });
 
 export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
+  // Critical Might is independently patchable and removable without changing Keen Strike's attack.
+  {
+    id: ID.KEEN_STRIKE,
+    name: 'Keen Strike — Critical Might',
+    profileKind: 'skill-variant',
+    parentId: ID.KEEN_STRIKE,
+    effects: [{ name: 'Might', type: 'boon', boon: 'might', stacks: 1, duration: 5 }]
+  },
   {
     id: WARRIOR_CORE_BALANCE_PROFILE_IDS.resources,
     name: 'Warrior Core Resources',

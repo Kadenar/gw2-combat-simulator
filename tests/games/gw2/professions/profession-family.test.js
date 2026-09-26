@@ -534,8 +534,8 @@ test('canonical simulation resolves the selected live source once', () => {
 });
 
 const inactiveStateKeys = Object.freeze({
-  Reaper: ['chillingNovaReadyAt', 'chillingVictoryReadyAt'],
-  Scourge: ['shades', 'demonicLoreReadyAt', 'nourishingAshesReadyAt'],
+  Reaper: [],
+  Scourge: ['shades'],
   Harbinger: ['blight', 'blightExpiries', 'nextBlightAt', 'cascadingCorruptionStacks', 'meltdownUntil'],
   Ritualist: [
     'activeSpirits',
@@ -656,7 +656,7 @@ test('Necromancer public projection reports neutral inactive specialization reso
 });
 
 const guardianInactiveStateKeys = Object.freeze({
-  Dragonhunter: ['tetherUntil', 'heavyLightReadyAt'],
+  Dragonhunter: ['tetherUntil'],
   Firebrand: [
     'activeTome',
     'tomePages',
@@ -664,9 +664,6 @@ const guardianInactiveStateKeys = Object.freeze({
     'tomeDormantReadyAt',
     'swiftScholarTome',
     'swiftScholarCount',
-    'liberatorsVowReadyAt',
-    'stalwartSpeedReadyAt',
-    'quickfireReadyAt',
     'mantraRechargeReadyAt'
   ],
   Willbender: [
@@ -933,16 +930,7 @@ const revenantSlices = Object.freeze([
 ]);
 
 const revenantSpecializationStateKeys = Object.freeze({
-  Renegade: [
-    'bandTogetherReady',
-    'bandTogetherExpiresAt',
-    'kallasFervor',
-
-    'razorclawsRage',
-    'endlessEnmityReadyAt',
-    'bloodFuryReadyAt',
-    'soulcleaveReadyAt'
-  ],
+  Renegade: ['bandTogetherReady', 'bandTogetherExpiresAt', 'kallasFervor', 'razorclawsRage'],
   Vindicator: ['reaversCurseUntil', 'forerunnerOfDeathUntil'],
   Conduit: [
     'affinity',
@@ -950,8 +938,7 @@ const revenantSpecializationStateKeys = Object.freeze({
     'conduitForm',
     'beguilingHazeCharges',
     'beguilingHazeReadyAt',
-    'energyCostOverrides',
-    'mistfireReadyAt'
+    'energyCostOverrides'
   ]
 });
 

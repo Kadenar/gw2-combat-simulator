@@ -11,7 +11,6 @@ import { applyTraitCondition } from '#gw2/professions/necromancer/core/traits/in
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
-import { scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 
 // Convert eligible Torment applications into Demonic Lore burns while enforcing its resolver-owned cooldown.
 function reactToCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
@@ -19,7 +18,7 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
   if (
     event.condition !== 'Torment' ||
     !hasTrait(context, TRAIT.DEMONIC_LORE) ||
-    !isInternalCooldownReady(event.at, Number(scourgeState.from(context).demonicLoreReadyAt || 0))
+    !isInternalCooldownReady(event.at, Number(context.procs.deadline('necromancer.scourge.demonicLore') || 0))
   ) {
     return;
   }
@@ -30,7 +29,7 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
   if (!effect) return;
   // Advance the ICD before applying the condition so re-entrant Torment events
   // within the same tick cannot double-proc
-  scourgeState.from(context).demonicLoreReadyAt = event.at + balanceProfileNumber(profile, 'cooldown');
+  context.procs.readyAt['necromancer.scourge.demonicLore'] = event.at + balanceProfileNumber(profile, 'cooldown');
   applyTraitCondition(context, event, {
     name: 'Demonic Lore',
     traitId: TRAIT.DEMONIC_LORE,

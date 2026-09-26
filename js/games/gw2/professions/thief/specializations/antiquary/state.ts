@@ -28,8 +28,7 @@ export interface AntiquaryState extends ThiefStealthAttackChargeState {
   artifactSlots: ThiefArtifactSlot[];
   artifactUsesRemaining: number;
   scoundrelsLuck: number;
-  scoundrelsLuckReadyAt: number;
-  improvisationReadyAt: number;
+
   backfireState: Record<string, ThiefBackfireState>;
   initiativeSpentSincePilfer: number;
   activeAntiquarySummons: ThiefAntiquarySummon[];
@@ -51,8 +50,7 @@ export function createAntiquaryState(config: ThiefConfig = {}): AntiquaryState {
     artifactSlots: [],
     artifactUsesRemaining: 0,
     scoundrelsLuck: 0,
-    scoundrelsLuckReadyAt: 0,
-    improvisationReadyAt: 0,
+
     backfireState: {},
     initiativeSpentSincePilfer: 0,
     activeAntiquarySummons: [],
@@ -80,8 +78,7 @@ export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   artifactUsesRemaining: 0,
   initiativeSpentSincePilfer: 0,
   scoundrelsLuck: 0,
-  scoundrelsLuckReadyAt: 0,
-  improvisationReadyAt: 0,
+
   backfireState: {},
   activeAntiquarySummons: [],
   nextSkrittScufflePilferAt: 0,

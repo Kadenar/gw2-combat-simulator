@@ -1,5 +1,4 @@
 import { canonicalTime, EPSILON, isInternalCooldownReady } from '#kernel/core/clock.js';
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { addTimedStacks, consumeNewestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
@@ -220,15 +219,7 @@ export function completeRevenantBrutality(runtime: RevenantRuntime, cast: Runtim
   const boon = requireEffect(profile, 'boon', 'quickness');
   // The cooldown gates only quickness, so a removed boon leaves it ready.
   if (!boon) return;
-  if (
-    !tryConsumeProcCooldown(
-      runtime.profession.core.traitProcReadyAt,
-      'brutality',
-      runtime.time,
-      balanceProfileNumber(profile, 'cooldown')
-    )
-  )
-    return;
+  if (!runtime.procs.claimCooldown('brutality', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
   traitBuff(runtime, {
     sourceId: TRAIT.BRUTALITY,
     skillId: TRAIT.BRUTALITY,
@@ -403,15 +394,7 @@ function viciousReprisal(runtime: RevenantRuntime, event: Gw2ResolverEvent): voi
   const boon = requireEffect(profile, 'boon', 'might');
   // The cooldown gates only might, so a removed boon leaves it ready.
   if (!boon) return;
-  if (
-    !tryConsumeProcCooldown(
-      runtime.profession.core.traitProcReadyAt,
-      'viciousReprisal',
-      runtime.time,
-      balanceProfileNumber(profile, 'cooldown')
-    )
-  )
-    return;
+  if (!runtime.procs.claimCooldown('viciousReprisal', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
   traitBuff(
     runtime,
     {

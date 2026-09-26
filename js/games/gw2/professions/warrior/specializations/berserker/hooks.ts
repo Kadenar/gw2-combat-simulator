@@ -276,11 +276,13 @@ export const berserkerHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
       if (
         !hit.critEligible ||
         !hit.critical.didCrit ||
-        !isInternalCooldownReady(runtime.time, state.kingOfFiresReadyAt)
+        !isInternalCooldownReady(runtime.time, runtime.procs.deadline('warrior.berserker.kingOfFires'))
       )
         return;
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.kingOfFires);
-      state.kingOfFiresReadyAt = canonicalTime(runtime.time + balanceProfileNumber(profile, 'internalCooldown'));
+      runtime.procs.readyAt['warrior.berserker.kingOfFires'] = canonicalTime(
+        runtime.time + balanceProfileNumber(profile, 'internalCooldown')
+      );
       const aura = requireEffect(profile, 'buff', 'fire-aura');
       if (!aura) return;
       const duration = effectNumber(profile, aura, 'duration');

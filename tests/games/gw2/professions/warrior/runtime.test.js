@@ -234,7 +234,7 @@ test('Soldier Focus starts at the arriving burst hit and its party rewards do no
     assert.equal(applications[0].audience.recipients, 'party');
   }
 
-  assert.equal(observedRuntime(result).profession.core.soldierFocusReadyAt, first.at + 10);
+  assert.equal(observedRuntime(result).procs.deadline('warrior.core.soldierFocus'), first.at + 10);
 });
 
 test('heal acceptance grants Protection while Signet Mastery requires completion', () => {
@@ -506,7 +506,7 @@ test('weapon swaps commit the set before Core traits and repeated swaps share on
   const first = run([{ type: 'combat-start' }, { type: 'wait', durationMs: 1000 }, 'Swap Weapons'], config);
   assert.deepEqual(first.warnings, []);
   assert.equal(first.planningState.activeWeaponSet, 2);
-  assert.equal(observedRuntime(first).profession.core.soldierFocusReadyAt, 1);
+  assert.equal(observedRuntime(first).procs.deadline('warrior.core.soldierFocus'), 1);
   assert.equal(
     first.planningState.profession.adrenaline,
     warriorProfession.catalog.balanceProfilesById.get(TRAIT.VERSATILE_RAGE).resourceGain

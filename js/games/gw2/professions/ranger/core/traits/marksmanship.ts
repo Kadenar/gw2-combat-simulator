@@ -74,8 +74,7 @@ export function consumeOpeningStrike(context: RangerResolverContext, event: Gw2R
 // qualifying player strike, using the resolver's cumulative damage state.
 export function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!isPlayerStrike(event) || !hasTrait(context, TRAIT.HUNTERS_GAZE)) return;
-  const state = professionCoreState(context);
-  if (!isInternalCooldownReady(event.at, state.huntersGazeReadyAt)) return;
+  if (!isInternalCooldownReady(event.at, context.procs.deadline('ranger.core.huntersGaze'))) return;
   const health = targetHealthFraction(context);
   const profile = requireBalanceProfileFromContext(context, PROFILE.huntersGaze);
   const might = requireEffect(profile, 'boon', 'might');
@@ -91,7 +90,7 @@ export function triggerHuntersGaze(context: RangerResolverContext, event: Gw2Res
           ? Math.max(0, maximumStacks - 2)
           : 0;
   if (!stacks) return;
-  state.huntersGazeReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+  context.procs.readyAt['ranger.core.huntersGaze'] = event.at + balanceProfileNumber(profile, 'internalCooldown');
   context.recordProc(
     'trait',
     "Hunter's Gaze",

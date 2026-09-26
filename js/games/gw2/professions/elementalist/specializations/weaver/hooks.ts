@@ -311,10 +311,11 @@ function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: 
   if (
     hasTrait(context, 'Superior Elements') &&
     dualAttunements &&
-    isInternalCooldownReady(at, state.superiorElementsReadyAt)
+    isInternalCooldownReady(at, context.procs.deadline('elementalist.weaver.superiorElements'))
   ) {
     const superiorElementsProfile = requireBalanceProfileFromContext(context, PROFILE.superiorElements);
-    state.superiorElementsReadyAt = at + balanceProfileNumber(superiorElementsProfile, 'internalCooldown');
+    context.procs.readyAt['elementalist.weaver.superiorElements'] =
+      at + balanceProfileNumber(superiorElementsProfile, 'internalCooldown');
     emitProfiledCondition(context, at, PROFILE.superiorElements, 'Weakness', skill.name, skill.id);
   }
 
@@ -410,28 +411,23 @@ function onCastComplete(context: ElementalistRuntime, cast: RuntimeCast, skill: 
   }
 }
 
-// Purblinding Plasma recharges faster while an Air bullet is loaded, and Flow
-// State shortens the recharge of dual (slot 3) skills.
-function modifyRechargeDuration(context: ElementalistRuntime, skill: Skill, duration: number): number {
-  let adjusted = duration;
-  if (skill.id === ID.PURBLINDING_PLASMA && professionCoreState(context).pistolBullets.Air) {
-    const purblindingPlasmaProfile = requireBalanceProfileFromContext(context, PROFILE.purblindingPlasma);
-    adjusted *= balanceProfileNumber(purblindingPlasmaProfile, 'rechargeMultiplier');
-  }
-
-  if (String(skill.slot) === 'Weapon_3' && weaverDualAttunements(skill) && hasTrait(context, 'Flow State')) {
-    const flowStateProfile = requireBalanceProfileFromContext(context, PROFILE.flowState);
-    adjusted *= balanceProfileNumber(flowStateProfile, 'rechargeMultiplier');
-  }
-
-  return adjusted;
-}
-
 /** Native tasks own Weave Self and stance pulses; actual controls and swaps own their trait reactions. */
 export const weaverHooks: Partial<RuntimeProfession<ElementalistRuntimeState>> = {
   initialize,
   availability,
-  rechargeWork: modifyRechargeDuration,
+  // The Air bullet and Flow State reductions compose without consuming bullet state during lookup.
+  rechargeRules: [
+    {
+      when: (context, skill) =>
+        skill.id === ID.PURBLINDING_PLASMA && Boolean(professionCoreState(context).pistolBullets.Air),
+      multiplier: { profile: PROFILE.purblindingPlasma, field: 'rechargeMultiplier' }
+    },
+    {
+      trait: 'Flow State',
+      when: (_context, skill) => String(skill.slot) === 'Weapon_3' && Boolean(weaverDualAttunements(skill)),
+      multiplier: { profile: PROFILE.flowState, field: 'rechargeMultiplier' }
+    }
+  ],
   rechargeStart: modifyWeaveSelfRechargeStart,
   prepareEvent(runtime, event) {
     const skill = runtime.helpers.skillsById.get(event.skillId ?? event.sourceId);

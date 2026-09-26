@@ -139,8 +139,11 @@ function firstBurstHit(runtime: WarriorRuntime, event: Gw2ResolverEvent): boolea
     runtime.endurance.grant(
       balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.buildingMomentum), 'resourceGain')
     );
-  if (hasTrait(runtime, TRAIT.MARCHING_ORDERS) && isInternalCooldownReady(runtime.time, state.soldierFocusReadyAt)) {
-    state.soldierFocusReadyAt = canonicalTime(
+  if (
+    hasTrait(runtime, TRAIT.MARCHING_ORDERS) &&
+    isInternalCooldownReady(runtime.time, runtime.procs.deadline('warrior.core.soldierFocus'))
+  ) {
+    runtime.procs.readyAt['warrior.core.soldierFocus'] = canonicalTime(
       runtime.time +
         balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.marchingOrders), 'internalCooldown')
     );
@@ -173,23 +176,7 @@ function criticalTraits(
     Math.max(1, Number(event.hits ?? 1))
   );
   const criticals = opportunity.sampledCriticals;
-  if (criticals > 0 && event.skillId === ID.KEEN_STRIKE) {
-    const buff = {
-      type: 'buff' as const,
-      at: runtime.time,
-      priority: 5,
-      source: 'Trait',
-      sourceId: ID.KEEN_STRIKE,
-      actorType: 'effect' as const,
-      skillId: event.skillId,
-      skillName: event.skillName,
-      name: 'Keen Strike — Critical Might',
-      kind: 'might',
-      stacks: 1,
-      duration: 5
-    };
-    runtime.emitProcedural(buff, { cause: event });
-  }
+  if (criticals > 0 && event.skillId === ID.KEEN_STRIKE) traitEffects(runtime, event, ID.KEEN_STRIKE);
 
   if (hasTrait(runtime, TRAIT.BLOODLUST)) {
     const proc = advanceCriticalProc(opportunity, {
@@ -423,8 +410,7 @@ function empowerPulse(runtime: WarriorRuntime): void {
 
 /** The shared swap commits its destination first; Core then resets Focus, grants adrenaline, and claims Fury once. */
 function weaponSwapTraits(runtime: WarriorRuntime, cast: RuntimeCast): void {
-  const state = runtime.profession.core;
-  if (hasTrait(runtime, TRAIT.MARTIAL_CADENCE)) state.soldierFocusReadyAt = runtime.time;
+  if (hasTrait(runtime, TRAIT.MARTIAL_CADENCE)) runtime.procs.readyAt['warrior.core.soldierFocus'] = runtime.time;
   if (hasTrait(runtime, TRAIT.VERSATILE_RAGE))
     grantWarriorAdrenaline(
       runtime,

@@ -66,12 +66,13 @@ function grantScoundrelsLuck(runtime: ThiefRuntime): void {
   const state = antiquaryState.from(runtime);
   if (
     !hasTrait(runtime, TRAIT.SCOUNDRELS_LUCK) ||
-    !isInternalCooldownReady(runtime.time, Number(state.scoundrelsLuckReadyAt || 0))
+    !isInternalCooldownReady(runtime.time, Number(runtime.procs.deadline('thief.antiquary.scoundrelsLuck') || 0))
   )
     return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.scoundrelsLuck);
   state.scoundrelsLuck = balanceProfileNumber(profile, 'maximumStacks');
-  state.scoundrelsLuckReadyAt = runtime.time + balanceProfileNumber(profile, 'internalCooldown');
+  runtime.procs.readyAt['thief.antiquary.scoundrelsLuck'] =
+    runtime.time + balanceProfileNumber(profile, 'internalCooldown');
 }
 
 /** Combat High replaces its stacks with staggered expiries, losing one stack per interval. */
@@ -93,8 +94,8 @@ function grantCombatHigh(runtime: ThiefRuntime): void {
 /** Improvisation shortens every selected, still-recharging utility once per internal cooldown. */
 function reduceUtilityRecharges(runtime: ThiefRuntime): void {
   if (!hasTrait(runtime, TRAIT.IMPROVISATION)) return;
-  const state = antiquaryState.from(runtime);
-  if (!isInternalCooldownReady(runtime.time, Number(state.improvisationReadyAt || 0))) return;
+  if (!isInternalCooldownReady(runtime.time, Number(runtime.procs.deadline('thief.antiquary.improvisation') || 0)))
+    return;
   const profile = requireBalanceProfileFromContext(runtime, CORE_PROFILE.improvisation);
   const multiplier = balanceProfileNumber(profile, 'rechargeMultiplier');
   for (const name of selectedSkillNameSet(runtime.config.selectedSkills)) {
@@ -103,7 +104,8 @@ function reduceUtilityRecharges(runtime: ThiefRuntime): void {
       runtime.cooldownController.reduceSkillRecharge(skill, gw2BaseRecharge(skill) * (1 - multiplier), runtime.time);
   }
 
-  state.improvisationReadyAt = runtime.time + balanceProfileNumber(profile, 'internalCooldown');
+  runtime.procs.readyAt['thief.antiquary.improvisation'] =
+    runtime.time + balanceProfileNumber(profile, 'internalCooldown');
 }
 
 /**

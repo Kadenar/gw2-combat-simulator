@@ -1,3 +1,4 @@
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
@@ -453,6 +454,7 @@ test('symbol and projectile ignition independently block through 240 ms without 
   const core = { ...createGuardianCoreState(), symbolIgnitionStartsAt: 1, symbolIgnitionUntil: 5 };
   const queued = [];
   const context = {
+    procs: createProcRegistry(() => context),
     catalog: guardianCatalog,
     state: { profession: { core } },
     queue: { enqueue: (e) => queued.push(e) }

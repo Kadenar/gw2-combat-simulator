@@ -280,15 +280,14 @@ export const paragonHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = {
     if (cast.skill.burst)
       for (const activationId of Object.keys(paragonState.from(runtime).commandEchoes))
         consumeEcho(runtime, activationId);
-    const state = paragonState.from(runtime);
     if (
       cast.skill.inputCategory === 'weapon-swap' &&
       castCompleted(cast) &&
       hasTrait(runtime, TRAIT.INSPIRING_IMPLEMENTS) &&
-      isInternalCooldownReady(runtime.time, state.inspiringImplementsReadyAt)
+      isInternalCooldownReady(runtime.time, runtime.procs.deadline('warrior.paragon.inspiringImplements'))
     ) {
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.inspiringImplements);
-      state.inspiringImplementsReadyAt = canonicalTime(
+      runtime.procs.readyAt['warrior.paragon.inspiringImplements'] = canonicalTime(
         runtime.time + balanceProfileNumber(profile, 'internalCooldown')
       );
       grantWarriorAdrenaline(runtime, balanceProfileNumber(profile, 'resourceGain'));

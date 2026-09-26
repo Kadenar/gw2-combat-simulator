@@ -1,5 +1,4 @@
 /** Owns imperative Core Necromancer Soul Reaping trait behavior for ordered dispatcher calls. */
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -7,7 +6,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 import {
@@ -30,10 +28,7 @@ export function applyDhuumfire(
   // Zero or absent intervals bypass the claim so same-time applications remain unrestricted; the claim gates only
   // Burning, so a removed packet leaves it ready.
   if (!effect) return;
-  if (
-    interval > 0 &&
-    !tryConsumeProcCooldown(professionCoreState(context).traitProcReadyAt, 'dhuumfire', event.at, interval)
-  ) {
+  if (interval > 0 && !context.procs.claimCooldown('dhuumfire', event.at, interval)) {
     return;
   }
 

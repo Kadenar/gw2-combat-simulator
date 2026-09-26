@@ -250,10 +250,10 @@ export const firebrandHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = 
     if (
       skill.type === 'Heal' &&
       hasTrait(runtime, TRAIT.LIBERATORS_VOW) &&
-      isInternalCooldownReady(runtime.time, state.liberatorsVowReadyAt)
+      isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.firebrand.liberatorsVow'))
     ) {
       if (boon(runtime, PROFILE.liberatorsVow, 'quickness', causeFor(runtime, cast), true)) {
-        state.liberatorsVowReadyAt = canonicalTime(
+        runtime.procs.readyAt['guardian.firebrand.liberatorsVow'] = canonicalTime(
           runtime.time +
             balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.liberatorsVow), 'internalCooldown')
         );

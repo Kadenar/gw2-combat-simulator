@@ -31,8 +31,7 @@ export interface NecromancerConfig extends Gw2Config {
   readonly professionAssumptions?: Readonly<Record<string, unknown>>;
 }
 
-export interface NecromancerState
-  extends NecromancerCoreState, ReaperState, ScourgeState, HarbingerState, RitualistState {}
+export interface NecromancerState extends NecromancerCoreState, ScourgeState, HarbingerState, RitualistState {}
 
 export interface NecromancerRuntimeState {
   core: NecromancerCoreState;

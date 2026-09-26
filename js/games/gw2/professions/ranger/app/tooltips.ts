@@ -241,11 +241,13 @@ const familySkillIds: Record<keyof typeof familyTooltips, readonly (number | str
 /** Keep companion bonuses and form-dependent alternatives separate while sharing the simulation's balance inputs. */
 export const rangerTooltips: ProfessionTooltips = {
   skillFacts: (balanceContext, entity) => [
+    ...(entity.id === ID.ENDURING_SWING
+      ? [profileFact(balanceContext, ID.ENDURING_SWING, 'resourceGain', 'Endurance gained')]
+      : []),
     ...[
       ['arrowCost', 'Arrows spent'],
       ['windForceGain', 'Wind Force gained'],
-      ['arrowsRestored', 'Arrows restored'],
-      ['resourceGain', 'Endurance gained']
+      ['arrowsRestored', 'Arrows restored']
     ].flatMap(([field, name]) =>
       entity[field] == null ? [] : [{ name, detail: tooltipDecimal(tooltipNumber(entity, field)) }]
     ),

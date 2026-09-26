@@ -54,7 +54,7 @@ export interface RangerPetDefinition {
 export type RangerState = RangerCoreState &
   Partial<
     Pick<DruidState, 'astralClock' | 'celestialAvatarActive' | 'celestialAvatarEndsAt'> &
-      Pick<SoulbeastState, 'beastmodeActive' | 'archetype' | 'oneWolfPackUntil' | 'oneWolfPackReadyAt'> &
+      Pick<SoulbeastState, 'beastmodeActive' | 'archetype' | 'oneWolfPackUntil'> &
       Pick<
         UntamedState,
         | 'rangerUnleashed'
@@ -74,8 +74,6 @@ export type RangerState = RangerCoreState &
         | 'wutheringWindReady'
         | 'wutheringWindReadyAt'
         | 'wutheringWindActivationIds'
-        | 'thrillOfTheCatchReadyAt'
-        | 'flockTogetherReadyAt'
         | 'missileHits'
       >
   >;

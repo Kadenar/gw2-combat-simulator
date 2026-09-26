@@ -186,7 +186,7 @@ test('Sharp as the Wind resolves either action identity before chain checks and 
 test('Gunsaber entry traits respect actual combat and explicit precombat does not consume their cooldown', () => {
   for (const trait of [TRAIT.UNSEEN_SWORD, TRAIT.SHARP_AS_THE_WIND, TRAIT.RIVERS_FLOW]) {
     const result = run(['Unsheathe Gunsaber', combat], { selectedTraitIds: [trait] });
-    assert.equal(state(result).gunsaberSwapTraitReadyAt, 0);
+    assert.equal(observedRuntime(result).procs.deadline('warrior.bladesworn.gunsaberSwapTrait'), 0);
     assert.equal(state(result).traitPositiveFlowUntil, 0);
   }
 
@@ -211,7 +211,7 @@ test('Gunsaber entry grants the selected party boon and resets Martial Cadence w
   assert.equal(might.resolvedAudience.includesSelf, true);
   assert.equal(might.resolvedAudience.alliedPlayerCount, 4);
   close(state(result).flow, 24);
-  close(observedRuntime(result).profession.core.soldierFocusReadyAt, 4);
+  close(observedRuntime(result).procs.deadline('warrior.core.soldierFocus'), 4);
   assert.equal(
     result.events.some((event) => event.sourceId === TRAIT.FURIOUS_BURST),
     false
@@ -233,7 +233,7 @@ test('removed Gunsaber entry components keep their other effects independent', (
     assert.deepEqual(result.warnings, []);
     close(state(result).flow, removed === 'strike' ? 6 : 2);
     assert.equal(result.totalDamage > 0, removed !== 'strike');
-    assert.equal(state(result).gunsaberSwapTraitReadyAt, 4);
+    assert.equal(observedRuntime(result).procs.deadline('warrior.bladesworn.gunsaberSwapTrait'), 4);
   }
 });
 

@@ -12,6 +12,8 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     cooldown: 17,
     effects: [
       {
+        // Precast mines are released by their combat-start owner; ordinary casts use these packets.
+        when: (runtime) => !runtime.combatStartPending,
         type: 'strike',
         coefficient: 3.85,
         hits: 5,
@@ -21,6 +23,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
         damageKind: 'explosion'
       },
       {
+        when: (runtime) => !runtime.combatStartPending,
         type: 'condition',
         ticks: [
           { atMs: 0, condition: 'Crippled', stacks: 1, duration: 2.5 },

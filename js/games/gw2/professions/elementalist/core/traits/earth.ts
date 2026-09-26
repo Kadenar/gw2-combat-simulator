@@ -6,10 +6,8 @@ import {
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import type { Skill } from '#gw2/platform/engine/skills/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/resolver/types.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -71,19 +69,11 @@ export function grantElementalistRockSolid(context: ElementalistRuntime, at: num
 
 /** Grants Earth's Embrace Resistance from an eligible healing skill. */
 export function applyEarthsEmbrace(context: ElementalistRuntime, cast: RuntimeCast, skill: Skill): void {
-  const state = professionCoreState(context);
   const at = cast.effectiveEnd;
   if (!hasTrait(context, "Earth's Embrace")) return;
   const earthsEmbraceProfile = requireBalanceProfileFromContext(context, PROFILE.earthsEmbrace);
   // Claim the existing owner-local timer before any derived effect.
-  if (
-    !tryConsumeProcCooldown(
-      state.procReadyAt,
-      'earthsEmbrace',
-      at,
-      balanceProfileNumber(earthsEmbraceProfile, 'internalCooldown')
-    )
-  )
+  if (!context.procs.claimCooldown('earthsEmbrace', at, balanceProfileNumber(earthsEmbraceProfile, 'internalCooldown')))
     return;
   emitProfiledBuff(context, at, PROFILE.earthsEmbrace, 'Resistance', "Earth's Embrace", skill.id);
 }
@@ -121,12 +111,10 @@ export function applyWrittenInStone(
 /** Applies Strength of Stone after an already-classified immobilize event. */
 export function applyStrengthOfStone(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   if (!hasTrait(context, 'Strength of Stone')) return;
-  const state = professionCoreState(context);
   const strengthOfStoneProfile = requireBalanceProfileFromContext(context, PROFILE.strengthOfStone);
   // Claim the existing owner-local timer before any derived effect.
   if (
-    !tryConsumeProcCooldown(
-      state.procReadyAt,
+    !context.procs.claimCooldown(
       'strengthOfStone',
       event.at,
       balanceProfileNumber(strengthOfStoneProfile, 'internalCooldown')

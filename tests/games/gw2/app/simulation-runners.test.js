@@ -58,7 +58,6 @@ test('rotation-only changes paint the builder once with their matching result', 
     modifierContributionRunner: { schedule() {} },
     relicComparisonRunner: { schedule() {} },
     adapter: {
-      capabilities: { modifierContributions: true },
       renderRotationBuilder(renderedApp) {
         renderedResults.push(renderedApp.results.id);
       }
@@ -390,7 +389,7 @@ test('comparison reference commits only while comparison is still active', (t) =
     randomDistributionRunner: { schedule() {} },
     modifierContributionRunner: { schedule() {} },
     relicComparisonRunner: { schedule() {} },
-    adapter: { capabilities: { modifierContributions: true }, renderRotationBuilder() {} }
+    adapter: { renderRotationBuilder() {} }
   });
 
   app.publishBaselineSimulation(

@@ -95,7 +95,7 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2
     !skill?.petSkill ||
     skill.petFamilySkill ||
     !hasTrait(context, TRAIT.GO_FOR_THE_THROAT) ||
-    !isInternalCooldownReady(event.at, state.goForTheThroatPetReadyAt)
+    !isInternalCooldownReady(event.at, context.procs.deadline('ranger.core.goForTheThroatPet'))
   ) {
     return;
   }
@@ -104,7 +104,7 @@ export function triggerGoForTheThroat(context: RangerResolverContext, event: Gw2
   const lesserSicEm = requireEffect(profile, 'buff', 'lesser-sic-em-pet');
   // The pet cooldown gates only the pet buff, so a removed buff leaves it ready.
   if (!lesserSicEm) return;
-  state.goForTheThroatPetReadyAt = event.at + balanceProfileNumber(profile, 'internalCooldown');
+  context.procs.readyAt['ranger.core.goForTheThroatPet'] = event.at + balanceProfileNumber(profile, 'internalCooldown');
   const duration = effectNumber(profile, lesserSicEm, 'duration');
   context.recordProc(
     'trait',

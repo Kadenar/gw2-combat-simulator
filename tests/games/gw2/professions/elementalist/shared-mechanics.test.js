@@ -1,3 +1,4 @@
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runNative } from '#tests/helpers/elementalist-simulation.js';
@@ -460,7 +461,7 @@ test('Elementalist behavior follows skill IDs after display labels change', () =
     ...elementalistCatalog.skillsById.get(ID.PURBLINDING_PLASMA),
     name: 'Renamed Weaver pistol skill'
   };
-  assert.equal(weaverHooks.rechargeWork(pistolContext, purblindingPlasma, 15), 10);
+  assert.equal(compileProfessionRules(weaverHooks).rechargeWork(pistolContext, purblindingPlasma, 15), 10);
 });
 
 // Fire exit starts a delayed proc; its strike and Burning must land together.

@@ -6,7 +6,6 @@ import {
   requireEffect,
   effectNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { emitElementalistBuff, emitElementalistDamage } from '#gw2/professions/elementalist/core/events.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
@@ -94,10 +93,7 @@ export function triggerEvasiveArcana(context: ElementalistRuntime, cast: Runtime
   const key = `evasiveArcana${attunement}`;
   const evasiveArcanaProfile = requireBalanceProfileFromContext(context, PROFILE.evasiveArcana);
   // Claim the existing owner-local timer before any derived effect.
-  if (
-    !tryConsumeProcCooldown(state.procReadyAt, key, at, balanceProfileNumber(evasiveArcanaProfile, 'internalCooldown'))
-  )
-    return;
+  if (!context.procs.claimCooldown(key, at, balanceProfileNumber(evasiveArcanaProfile, 'internalCooldown'))) return;
   const source =
     attunement === 'Fire'
       ? 'Flame Burst (trait)'
@@ -217,8 +213,7 @@ export function applyElementalLockdown(context: ElementalistRuntime, event: Simu
   const elementalLockdownProfile = requireBalanceProfileFromContext(context, PROFILE.elementalLockdown);
   // Claim the existing owner-local timer before any derived effect.
   if (
-    !tryConsumeProcCooldown(
-      state.procReadyAt,
+    !context.procs.claimCooldown(
       'elementalLockdown',
       event.at,
       balanceProfileNumber(elementalLockdownProfile, 'internalCooldown')

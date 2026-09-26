@@ -149,7 +149,7 @@ test('an empty Protector proc owns neither cooldown nor a proc row', () => {
     ['Shelter'],
     [TRAIT.PROTECTORS_RESTORATION]
   );
-  assert.equal(observedRuntime(result).profession.core.protectorsRestorationReadyAt, 0);
+  assert.equal(observedRuntime(result).procs.deadline('guardian.core.protectorsRestoration'), 0);
   assert.equal(
     result.procSteps.some((step) => step.skill === 'Lesser Symbol of Protection'),
     false
@@ -396,7 +396,7 @@ test('Quickfire window removal leaves its cooldown and charge reactions inactive
     ['Tome of Justice'],
     [TRAIT.QUICKFIRE]
   );
-  assert.equal(result.combatState.profession.quickfireReadyAt, 0);
+  assert.equal(observedRuntime(result).procs.deadline('guardian.firebrand.quickfire'), 0);
   assert.equal(result.combatState.profession.ashes.charges, 0);
   assert.equal(has(result, 'proc', 'name', 'Quickfire'), false);
 });

@@ -1,4 +1,3 @@
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
   balanceProfileNumber,
@@ -223,14 +222,7 @@ function hiddenThief(runtime: ThiefRuntime, cast: RuntimeCast): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.hiddenThief);
   const blindness = requireEffect(profile, 'condition', 'Blindness');
   const weakness = requireEffect(profile, 'condition', 'Weakness');
-  if (
-    !tryConsumeProcCooldown(
-      runtime.profession.core.traitProcReadyAt,
-      TRAIT.HIDDEN_THIEF,
-      runtime.time,
-      balanceProfileNumber(profile, 'internalCooldown')
-    )
-  )
+  if (!runtime.procs.claimCooldown(TRAIT.HIDDEN_THIEF, runtime.time, balanceProfileNumber(profile, 'internalCooldown')))
     return;
   for (const [condition, effect] of [
     ['Blindness', blindness],

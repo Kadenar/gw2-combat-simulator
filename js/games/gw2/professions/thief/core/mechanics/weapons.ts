@@ -281,16 +281,15 @@ export function expireThiefScepterChain(runtime: ThiefRuntime, data: unknown): v
 
 /** Swapping weapons stands up; Quick Pockets grants in-combat initiative once per its cooldown. */
 function completeThiefWeaponSwap(runtime: ThiefRuntime): void {
-  const core = runtime.profession.core;
   setThiefKneeling(runtime, false);
   if (
     !runtime.combatStartedAt() ||
     !hasTrait(runtime, TRAIT.QUICK_POCKETS) ||
-    !isInternalCooldownReady(runtime.time, Number(core.quickPocketsReadyAt || 0))
+    !isInternalCooldownReady(runtime.time, Number(runtime.procs.deadline('thief.core.quickPockets') || 0))
   )
     return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.quickPockets);
-  core.quickPocketsReadyAt = runtime.time + balanceProfileNumber(profile, 'internalCooldown');
+  runtime.procs.readyAt['thief.core.quickPockets'] = runtime.time + balanceProfileNumber(profile, 'internalCooldown');
   grantThiefInitiative(runtime, balanceProfileNumber(profile, 'resourceGain'));
 }
 

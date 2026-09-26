@@ -33,7 +33,6 @@ import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/engine/events/events.js';
 import { materializeSkillEffectApplications, scaleCastBoundTiming } from '#gw2/platform/engine/effects/materializer.js';
 import { applySkillSideEffects } from '#gw2/platform/simulation/side-effects.js';
-import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { selectSkillEffects } from '#gw2/platform/simulation/effect-selection.js';
 import { gw2BaseRecharge } from '#gw2/platform/engine/skills/recharge.js';
 import {
@@ -231,7 +230,6 @@ export function runGw2Runtime<T extends object>({
     rotationEndTime: null,
     cursor,
     cooldownController,
-    procs: createProcRegistry(() => runtime),
     inFlight: new Map(),
     lockouts: new Map(),
     history,

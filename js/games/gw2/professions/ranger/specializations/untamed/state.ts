@@ -9,16 +9,13 @@ export type RangerInitialUntamedState = 'Pet' | 'Ranger';
 export interface UntamedState {
   rangerUnleashed: boolean;
   ambushReadyUntil: number;
-  unleashedPowerReadyAt: number;
-  letLooseReadyAt: number;
-  debilitatingBlowsReadyAt: number;
-  enhancingImpactReadyAt: number;
+
   ferociousSymbiosisPlayerStacks: number;
   ferociousSymbiosisPlayerUntil: number;
-  ferociousSymbiosisPlayerReadyAt: number;
+
   ferociousSymbiosisPetStacks: number;
   ferociousSymbiosisPetUntil: number;
-  ferociousSymbiosisPetReadyAt: number;
+
   letLooseActivations: Record<string, boolean>;
 }
 
@@ -39,19 +36,17 @@ export function createUntamedState(config: RangerConfig = {}): UntamedState {
     // Zero means no grant; an armed ambush is available only before its deadline while Ranger is unleashed.
     ambushReadyUntil: 0,
     // Tracks the 9-second cooldown before Unleashed Power can grant another ambush window.
-    unleashedPowerReadyAt: 0,
+
     // Separate cooldown for Let Loose (weapon-swap trigger), not related to Unleash cooldown.
-    letLooseReadyAt: 0,
-    debilitatingBlowsReadyAt: 0,
-    enhancingImpactReadyAt: 0,
+
     // Player and pet track separate stacks because each cross-triggers the other's buff.
     ferociousSymbiosisPlayerStacks: 0,
     ferociousSymbiosisPlayerUntil: 0,
     // 0.5s ICD per source prevents multi-hit skills from inflating stacks.
-    ferociousSymbiosisPlayerReadyAt: 0,
+
     ferociousSymbiosisPetStacks: 0,
     ferociousSymbiosisPetUntil: 0,
-    ferociousSymbiosisPetReadyAt: 0,
+
     // Keyed by activationId so multi-hit ambush skills only grant Let Loose buffs once per cast.
     letLooseActivations: {}
   };

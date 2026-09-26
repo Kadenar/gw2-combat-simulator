@@ -1,3 +1,4 @@
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -11,7 +12,6 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
   // Both sampled misses and hits during the ICD leave its deadline intact.
   for (const duration of [8, 0]) {
     const core = createMesmerCoreState();
-    core.traitReadyAt[TRAIT.MASTER_FENCER] = 2;
     const events = [];
     const context = {
       state: { profession: { core, specialization: { kind: 'Core', state: {} } } },
@@ -20,12 +20,14 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
       balanceProfile: (id) => ({ ...mesmerCatalog.balanceProfilesById.get(id), internalCooldown: duration }),
       boonDuration: (_boon, duration) => duration,
       addTraitProc(_name, at) {
-        assert.equal(core.traitReadyAt[TRAIT.MASTER_FENCER], at + duration);
+        assert.equal(context.state.procs.readyAt[TRAIT.MASTER_FENCER], at + duration);
       },
       emitEvent(_cause, event) {
         events.push(event);
       }
     };
+    context.state.procs = createProcRegistry(() => context);
+    context.state.procs.readyAt[TRAIT.MASTER_FENCER] = 2;
     const opportunity = (at, didCrit = true) =>
       triggerMesmerCriticalTraits(context, { type: 'damage', actorType: 'player', coefficient: 1, at, didCrit }, 0.5);
     opportunity(1);
@@ -33,12 +35,12 @@ test('Master Fencer only claims its strict ICD on a sampled critical hit', () =>
     opportunity(1);
     assert.equal(events.length, 0);
     opportunity(2);
-    assert.equal(core.traitReadyAt[TRAIT.MASTER_FENCER], 2);
+    assert.equal(context.state.procs.readyAt[TRAIT.MASTER_FENCER], 2);
     opportunity(2.000001, false);
     assert.equal(events.length, 0);
     opportunity(2.000001);
     assert.equal(events.length, 2);
-    assert.equal(core.traitReadyAt[TRAIT.MASTER_FENCER], 2.000001 + duration);
+    assert.equal(context.state.procs.readyAt[TRAIT.MASTER_FENCER], 2.000001 + duration);
     opportunity(2.000001 + duration);
     assert.equal(events.length, 2);
     opportunity(2.000002 + duration);

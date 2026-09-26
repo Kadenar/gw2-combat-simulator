@@ -1,5 +1,4 @@
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import {
   gw2AlliedPlayerAssumptions,
@@ -137,25 +136,6 @@ function heroicCommand(runtime: RevenantRuntime, cast: RuntimeCast): void {
   });
 }
 
-/** Orders from Above materializes its normal or Righteous Rebel pulses, plus Bold Reversal's Protection. */
-function ordersFromAbove(runtime: RevenantRuntime, cast: RuntimeCast): void {
-  const rebel = hasTrait(runtime, TRAIT.RIGHTEOUS_REBEL);
-  const common = {
-    at: cast.start,
-    fullEnd: cast.effectiveEnd,
-    sourceId: cast.skill.id,
-    eventSkill: cast.skill,
-    activationId: cast.id
-  };
-  emitRevenantProfile(
-    runtime,
-    rebel ? requireBalanceProfileFromContext(runtime, PROFILE.ordersFromAboveRighteousRebel) : cast.skill,
-    common
-  );
-  if (rebel && hasTrait(runtime, TRAIT.BOLD_REVERSAL))
-    emitRevenantProfile(runtime, requireBalanceProfileFromContext(runtime, PROFILE.boldReversalRighteousRebel), common);
-}
-
 /** A committed warband summon consumes Band Together at acceptance and selects its enhanced profile. */
 function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast): void {
   const state = renegadeState.from(runtime);
@@ -239,15 +219,7 @@ function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast): void
 function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast): void {
   if (cast.skill.slot !== 'Heal' || !hasTrait(runtime, TRAIT.ASHEN_DEMEANOR)) return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.ashenDemeanor);
-  if (
-    !tryConsumeProcCooldown(
-      runtime.profession.core.traitProcReadyAt,
-      'ashenDemeanor',
-      runtime.time,
-      balanceProfileNumber(profile, 'cooldown')
-    )
-  )
-    return;
+  if (!runtime.procs.claimCooldown('ashenDemeanor', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
   for (let stack = 0; stack < Math.max(0, balanceProfileNumber(profile, 'fervorStacks')); stack += 1)
     grantKallasFervor(runtime, { sourceId: TRAIT.ASHEN_DEMEANOR, sourceName: profile.name });
   for (const effect of profile.effects?.filter((candidate) => candidate.type === 'boon') ?? [])
@@ -277,13 +249,18 @@ function criticalTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent, hit?:
   // A defiant golem never rotates, so flanking/behind positional triggers always apply.
   if (ambush && (Boolean(runtime.config.target?.defiant) || critical))
     grantKallasFervor(runtime, { sourceId: TRAIT.AMBUSH_COMMANDER, sourceName: 'Ambush Commander', cause: event });
-  const state = renegadeState.from(runtime);
-  if (!enmity || !critical || !isInternalCooldownReady(runtime.time, Number(state.endlessEnmityReadyAt || 0))) return;
+  if (
+    !enmity ||
+    !critical ||
+    !isInternalCooldownReady(runtime.time, Number(runtime.procs.deadline('revenant.renegade.endlessEnmity') || 0))
+  )
+    return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.endlessEnmity);
   const effect = requireEffect(profile, 'boon', 'fury');
   // The cooldown gates only fury, so a removed boon leaves it ready.
   if (!effect) return;
-  state.endlessEnmityReadyAt = runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
+  runtime.procs.readyAt['revenant.renegade.endlessEnmity'] =
+    runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
   runtime.emitProcedural(
     {
       type: 'buff',
@@ -363,16 +340,15 @@ function vindication(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
 function soulcleavePlayer(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   const soulcleave = runtime.helpers.skillsById.get(ID.SOULCLEAVES_SUMMIT);
   const proc = runtime.helpers.skillsById.get(PROFILE.soulcleavesSummitProc);
-  const state = renegadeState.from(runtime);
   if (
     !soulcleave ||
     !proc ||
     event.skillId === soulcleave.id ||
     !activeRevenantUpkeep(runtime, soulcleave.id) ||
-    !isInternalCooldownReady(runtime.time, Number(state.soulcleaveReadyAt || 0))
+    !isInternalCooldownReady(runtime.time, Number(runtime.procs.deadline('revenant.renegade.soulcleave') || 0))
   )
     return;
-  state.soulcleaveReadyAt = runtime.time + Math.max(0, Number(proc.cooldown || 0));
+  runtime.procs.readyAt['revenant.renegade.soulcleave'] = runtime.time + Math.max(0, Number(proc.cooldown || 0));
   for (const effect of proc.effects ?? [])
     for (const { event: packet } of materializeSkillEffectApplications({
       skill: proc,
@@ -434,17 +410,17 @@ function soulcleaveAllies(runtime: RevenantRuntime, data: unknown): void {
 /** Received Fury drives Brutal Momentum's Vigor and Blood Fury's Fervor on their own cooldowns. */
 function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if (String(event.kind || '').toLowerCase() !== 'fury') return;
-  const state = renegadeState.from(runtime);
   if (
     hasTrait(runtime, TRAIT.BRUTAL_MOMENTUM) &&
     gw2BoonApplicationRecipients(runtime.config, event).includesSelf &&
-    isInternalCooldownReady(runtime.time, state.brutalMomentumReadyAt)
+    isInternalCooldownReady(runtime.time, runtime.procs.deadline('revenant.renegade.brutalMomentum'))
   ) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.brutalMomentum);
     const effect = requireEffect(profile, 'boon', 'vigor');
     // The cooldown gates only vigor, so a removed boon leaves it ready.
     if (effect) {
-      state.brutalMomentumReadyAt = runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
+      runtime.procs.readyAt['revenant.renegade.brutalMomentum'] =
+        runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
       runtime.emitProcedural(
         {
           type: 'buff',
@@ -465,10 +441,11 @@ function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
 
   if (
     hasTrait(runtime, TRAIT.BLOOD_FURY) &&
-    isInternalCooldownReady(runtime.time, Number(state.bloodFuryReadyAt || 0))
+    isInternalCooldownReady(runtime.time, Number(runtime.procs.deadline('revenant.renegade.bloodFury') || 0))
   ) {
     const profile = requireBalanceProfileFromContext(runtime, PROFILE.bloodFury);
-    state.bloodFuryReadyAt = runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
+    runtime.procs.readyAt['revenant.renegade.bloodFury'] =
+      runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
     grantKallasFervor(runtime, { sourceId: TRAIT.BLOOD_FURY, sourceName: 'Blood Fury', cause: event });
   }
 }
@@ -504,14 +481,12 @@ export const renegadeHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     }
   ],
   modifyEffects(_runtime, cast, effects) {
-    if (cast.skill.id === ID.HEROIC_COMMAND || cast.skill.id === ID.ORDERS_FROM_ABOVE) return [];
+    if (cast.skill.id === ID.HEROIC_COMMAND) return [];
     return bandTogether.get(cast)?.enhanced ? [] : effects;
   },
   onCastStart(runtime, cast) {
     const committed = !cast.cancelled;
-    if (cast.skill.id === ID.ORDERS_FROM_ABOVE) ordersFromAbove(runtime, cast);
-    else if (committed && RENEGADE_ENHANCED_SKILL_BY_ID[Number(cast.skill.id)] != null)
-      beginBandTogether(runtime, cast);
+    if (committed && RENEGADE_ENHANCED_SKILL_BY_ID[Number(cast.skill.id)] != null) beginBandTogether(runtime, cast);
   },
   onCastComplete(runtime, cast) {
     const committed = !cast.cancelled;

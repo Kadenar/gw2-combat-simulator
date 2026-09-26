@@ -306,3 +306,29 @@ test('endurance integration and Dodge readiness follow actual pooled Vigor windo
     assert.equal(dodge.steps[0].start, readyAt * 1000);
   }
 });
+
+// The critical reward reads live profile tuning and stays absent when its packet is removed.
+test('Keen Strike critical Might is patchable and removable', () => {
+  const config = { specialization: 'Spellbreaker', primaryWeapon: 'Dagger', stats: { precision: 4000 } };
+  const native = warriorProfession.runtimeFor(config);
+  for (const removed of [false, true]) {
+    const catalog = applyBalanceProfilePatch(native.catalog, {
+      balanceProfiles: {
+        [ID.KEEN_STRIKE]: removed
+          ? { removeEffects: [{ type: 'boon', name: 'Might' }] }
+          : { effects: [{ type: 'boon', name: 'Might', duration: 9 }] }
+      }
+    });
+    const result = observeGw2Runtime({
+      profession: { ...native, catalog },
+      config,
+      rotation: ['Precise Cut', 'Focused Slash', 'Keen Strike']
+    });
+    assert.deepEqual(result.warnings, []);
+    const might = result.events.filter(
+      (event) => event.type === 'buff' && event.source === 'Trait' && event.sourceId === ID.KEEN_STRIKE
+    );
+    assert.equal(might.length > 0, !removed);
+    assert.ok(might.every((event) => event.duration === 9));
+  }
+});

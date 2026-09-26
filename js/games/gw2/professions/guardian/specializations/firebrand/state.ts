@@ -30,9 +30,7 @@ export interface GuardianFirebrandState {
   tomeDormantReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
   swiftScholarTome: string;
   swiftScholarCount: number;
-  liberatorsVowReadyAt: number;
-  stalwartSpeedReadyAt: number;
-  quickfireReadyAt: number;
+
   mantraRechargeReadyAt: Record<string, number>;
   mantraWakeGenerations: Record<string, number>;
 }
@@ -96,9 +94,7 @@ export function createFirebrandState(config: GuardianConfig = {}): GuardianFireb
     tomeDormantReadyAt: { justice: 0, resolve: 0, courage: 0 },
     swiftScholarTome: '',
     swiftScholarCount: 0,
-    liberatorsVowReadyAt: 0,
-    stalwartSpeedReadyAt: 0,
-    quickfireReadyAt: 0,
+
     mantraRechargeReadyAt: {},
     mantraWakeGenerations: {}
   };
@@ -112,9 +108,7 @@ export const FIREBRAND_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   tomeDormantReadyAt: { justice: 0, resolve: 0, courage: 0 },
   swiftScholarTome: '',
   swiftScholarCount: 0,
-  liberatorsVowReadyAt: 0,
-  stalwartSpeedReadyAt: 0,
-  quickfireReadyAt: 0,
+
   mantraRechargeReadyAt: {}
 } satisfies Partial<GuardianFirebrandState>);
 

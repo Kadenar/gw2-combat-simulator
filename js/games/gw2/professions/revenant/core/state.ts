@@ -43,7 +43,7 @@ export interface RevenantCoreState {
   selfConditions: RevenantSelfCondition[];
   selfConditionCount: number;
   // Brutality, Vicious Reprisal and Impossible Odds store only numeric deadlines here.
-  traitProcReadyAt: Record<string, number>;
+
   /** Live wake generations let a rate change or combat anchor replace pending work without replaying state. */
   energyWakeGeneration: number;
   assassinsPresenceGeneration: number;
@@ -88,7 +88,7 @@ export function createRevenantCoreState(config: RevenantConfig = {}): RevenantCo
     exposeDefensesUsed: false,
     selfConditions: [],
     selfConditionCount: Math.max(0, Math.trunc(Number(config.selfConditionCount || 0))),
-    traitProcReadyAt: {},
+
     energyWakeGeneration: 0,
     assassinsPresenceGeneration: 0
   };

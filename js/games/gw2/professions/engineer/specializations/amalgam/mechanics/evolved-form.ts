@@ -7,7 +7,6 @@ import {
 import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
@@ -259,8 +258,7 @@ export function evolveAmalgam(context: EngineerRuntime): void {
 export function reactToMercurialTendencies(context: EngineerRuntime, event: EngineerResolverEvent): void {
   if (!hasTrait(context.config, TRAIT.MERCURIAL_TENDENCIES) || event.actorType === 'summon') return;
   const at = event.at;
-  const core = professionCoreState(context);
-  if (!isInternalCooldownReady(at, Number(core.traitProcReadyAt.mercurialTendencies || 0))) return;
+  if (!isInternalCooldownReady(at, Number(context.procs.readyAt.mercurialTendencies || 0))) return;
   const profile = requireBalanceProfileFromContext(context, PROFILE.mercurialTendencies);
   let reducedBy = 0;
   for (const id of EVOLVE_SKILL_IDS) {
@@ -274,7 +272,7 @@ export function reactToMercurialTendencies(context: EngineerRuntime, event: Engi
   }
 
   if (!(reducedBy > 0)) return;
-  core.traitProcReadyAt.mercurialTendencies = at + balanceProfileNumber(profile, 'internalCooldown');
+  context.procs.readyAt.mercurialTendencies = at + balanceProfileNumber(profile, 'internalCooldown');
   emitEngineerEvent(context, 'proc', {
     at,
     source: 'Trait',

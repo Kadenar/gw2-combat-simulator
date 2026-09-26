@@ -1360,7 +1360,7 @@ test('Fear of Death follows accepted fear with one cooldown and cannot fund entr
   for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }]) {
     const result = simulate([{ ...cast(ID.REAPERS_MARK), ...flags }, cast(ID.REAPERS_SHROUD)], config);
     assert.equal(result.planningState.profession.lifeForce.value, 0);
-    assert.equal(observedRuntime(result).profession.core.fearOfDeathReadyAt, 0);
+    assert.equal(observedRuntime(result).procs.deadline('necromancer.core.fearOfDeath'), 0);
     assert.ok(result.warnings.some((warning) => warning.includes('life force')));
   }
 

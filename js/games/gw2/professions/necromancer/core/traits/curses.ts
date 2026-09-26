@@ -7,10 +7,8 @@ import {
   balanceProfileNumber,
   procChanceFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { onResolvedCriticalHit } from '#gw2/platform/profession-definition/mechanics.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { applyTraitCondition } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
@@ -79,15 +77,7 @@ export function applyChillingDarkness(context: NecromancerResolverContext, event
   const effect = requireEffect(profile, 'condition', 'Chilled');
   // Claim only after local eligibility, before conditions, resources or queued strikes; the cooldown gates only
   // Chill, so a removed packet leaves it ready.
-  if (
-    !effect ||
-    !tryConsumeProcCooldown(
-      professionCoreState(context).traitProcReadyAt,
-      'chillingDarkness',
-      event.at,
-      balanceProfileNumber(profile, 'cooldown')
-    )
-  )
+  if (!effect || !context.procs.claimCooldown('chillingDarkness', event.at, balanceProfileNumber(profile, 'cooldown')))
     return;
   applyTraitCondition(context, event, {
     name: 'Chilling Darkness',

@@ -12,10 +12,10 @@ import { weaverDualAttunements } from '#gw2/professions/elementalist/specializat
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
 
 const SPECIALIZATION_STATE_KEYS = Object.freeze({
-  Tempest: ['latentStaminaReadyAt'],
-  Weaver: ['secondaryAttunement', 'unravelUntil', 'weaveSelfUntil', 'superiorElementsReadyAt'],
-  Catalyst: ['energy', 'sphereActiveUntil', 'elementalEpitomeReadyAt'],
-  Evoker: ['charges', 'empowered', 'attunementTraitProcReadyAt']
+  Tempest: [],
+  Weaver: ['secondaryAttunement', 'unravelUntil', 'weaveSelfUntil'],
+  Catalyst: ['energy', 'sphereActiveUntil'],
+  Evoker: ['charges', 'empowered']
 });
 
 function modifierIds(module) {

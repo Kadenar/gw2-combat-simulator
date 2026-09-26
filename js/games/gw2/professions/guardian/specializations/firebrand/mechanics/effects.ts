@@ -203,10 +203,10 @@ export function reactToFirebrandBuff(runtime: Runtime, event: Gw2ResolverEvent):
   if (
     (event.kind === 'aegis' || event.kind === 'stability') &&
     hasTrait(runtime, TRAIT.STALWART_SPEED) &&
-    isInternalCooldownReady(runtime.time, state.stalwartSpeedReadyAt)
+    isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.firebrand.stalwartSpeed'))
   ) {
     if (traitBoons(runtime, TRAIT.STALWART_SPEED, PROFILE.stalwartSpeed, event, true))
-      state.stalwartSpeedReadyAt = canonicalTime(
+      runtime.procs.readyAt['guardian.firebrand.stalwartSpeed'] = canonicalTime(
         runtime.time +
           balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.stalwartSpeed), 'internalCooldown')
       );
@@ -215,7 +215,7 @@ export function reactToFirebrandBuff(runtime: Runtime, event: Gw2ResolverEvent):
   if (
     event.kind !== 'quickness' ||
     !hasTrait(runtime, TRAIT.QUICKFIRE) ||
-    !isInternalCooldownReady(runtime.time, state.quickfireReadyAt)
+    !isInternalCooldownReady(runtime.time, runtime.procs.deadline('guardian.firebrand.quickfire'))
   )
     return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.quickfire);
@@ -223,7 +223,9 @@ export function reactToFirebrandBuff(runtime: Runtime, event: Gw2ResolverEvent):
   const ashes = requireBalanceProfileFromContext(runtime, PROFILE.ashes);
   const burn = requireEffect(ashes, 'condition', 'Burning');
   if (!buff || !burn) return;
-  state.quickfireReadyAt = canonicalTime(runtime.time + balanceProfileNumber(profile, 'internalCooldown'));
+  runtime.procs.readyAt['guardian.firebrand.quickfire'] = canonicalTime(
+    runtime.time + balanceProfileNumber(profile, 'internalCooldown')
+  );
   const expiresAt = gw2EffectExpiresAt(runtime.time, effectNumber(profile, buff, 'duration'));
   if (allies > 0) alliedAshes(runtime, event, 1, expiresAt - runtime.time, true);
   else {

@@ -1,5 +1,4 @@
 import { buildResolverStrike, buildResolverBuff, buildResolverCondition } from '#gw2/platform/resolver/packets.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { activeBoonStacks as queryActiveBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { EnqueueGw2OwnedComboFinisherOptions } from '#gw2/platform/resolver/combo-resolution.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
@@ -177,13 +176,6 @@ export function applyEngineerDerivedCondition(
   // Apply resolver-derived conditions immediately so downstream reactions at
   // this timestamp observe the newly inserted condition state.
   context.applyCondition(application);
-}
-
-/** Returns the lazily initialized Core trait proc state shared by Engineer reactions. */
-export function procState(context: EngineerResolverContext): Record<string, number | boolean> {
-  const state = professionCoreState(context);
-  state.traitProcReadyAt ||= {};
-  return state.traitProcReadyAt;
 }
 
 /** Records a trait proc for result attribution without changing combat state. */

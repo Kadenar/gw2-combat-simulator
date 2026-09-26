@@ -58,7 +58,6 @@ test('the GW2 game plug-in exposes the existing lazy profession registry', async
     ['gear', 'traits', 'attributes', 'skills', 'assumptions']
   );
   assert.equal(typeof adapter.presentation.createViewModel, 'function');
-  assert.equal(typeof adapter.capabilities.keybindImport.parse, 'function');
   assert.equal(await loadGameWorkerDriver({ gameId: 'unknown', contentId: 'warrior' }), null);
   assert.equal(await loadGameWorkerDriver({ gameId: 'gw2', contentId: 'unknown' }), null);
   assert.equal(await loadGameContent('gw2', 'unknown'), null);

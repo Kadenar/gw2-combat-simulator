@@ -1,12 +1,10 @@
 import { buildResolverBuff } from '#gw2/platform/resolver/packets.js';
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { queueResolverBoon } from '#gw2/platform/resolver/boons.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -130,10 +128,9 @@ export const unrelentingStrikesCriticalReaction = Object.freeze({
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.UNRELENTING_STRIKES), 'internalCooldown'),
-    readyAt: (context: ThiefResolverContext) =>
-      Number(professionCoreState(context).traitProcReadyAt[TRAIT.UNRELENTING_STRIKES] || 0),
+    readyAt: (context: ThiefResolverContext) => Number(context.procs.readyAt[TRAIT.UNRELENTING_STRIKES] || 0),
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
-      professionCoreState(context).traitProcReadyAt[TRAIT.UNRELENTING_STRIKES] = readyAt;
+      context.procs.readyAt[TRAIT.UNRELENTING_STRIKES] = readyAt;
     }
   },
   attribution: {
@@ -178,10 +175,9 @@ export const noQuarterCriticalReaction = Object.freeze({
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
       balanceProfileNumber(requireBalanceProfileFromContext(context, TRAIT.NO_QUARTER), 'internalCooldown'),
-    readyAt: (context: ThiefResolverContext) =>
-      Number(professionCoreState(context).traitProcReadyAt[TRAIT.NO_QUARTER] || 0),
+    readyAt: (context: ThiefResolverContext) => Number(context.procs.readyAt[TRAIT.NO_QUARTER] || 0),
     setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
-      professionCoreState(context).traitProcReadyAt[TRAIT.NO_QUARTER] = readyAt;
+      context.procs.readyAt[TRAIT.NO_QUARTER] = readyAt;
     }
   },
   attribution: { kind: 'trait' as const, id: TRAIT.NO_QUARTER },
@@ -203,7 +199,6 @@ export function applyAssassinsFury(context: ThiefResolverContext, event: ThiefRe
     !hasTrait(context.config, TRAIT.ASSASSINS_FURY)
   )
     return;
-  const state = professionCoreState(context);
 
   const assassinsFuryProfile = requireBalanceProfileFromContext(context, PROFILE.assassinsFury);
   const might = requireEffect(assassinsFuryProfile, 'boon', 'Might');
@@ -211,8 +206,7 @@ export function applyAssassinsFury(context: ThiefResolverContext, event: ThiefRe
   if (!might) return;
   // Claim this owner's ICD before effects or resource snapshots can re-enter the trait.
   if (
-    !tryConsumeProcCooldown(
-      state.traitProcReadyAt,
+    !context.procs.claimCooldown(
       TRAIT.ASSASSINS_FURY,
       event.at,
       balanceProfileNumber(assassinsFuryProfile, 'internalCooldown')

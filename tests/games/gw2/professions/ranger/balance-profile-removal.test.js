@@ -1,3 +1,4 @@
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -41,7 +42,8 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
 function resolverContext(balanceProfiles, selectedTraitIds, specialization) {
   const config = { specialization: specialization?.kind ?? 'Core', selectedTraitIds };
   const queued = [];
-  return {
+  const context = {
+    procs: createProcRegistry(() => context),
     config,
     catalog: patched(balanceProfiles),
     boons: new Map(),
@@ -51,6 +53,7 @@ function resolverContext(balanceProfiles, selectedTraitIds, specialization) {
     queue: { enqueue: (event) => queued.push(event) },
     profession: { core: createRangerCoreState(config), ...(specialization ? { specialization } : {}) }
   };
+  return context;
 }
 
 test('removing one Eclipse pulse packet never rebinds another Celestial Avatar skill', () => {
@@ -86,6 +89,7 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
   const config = { selectedTraitIds: [TRAIT.QUICK_DRAW] };
   const events = [];
   const context = {
+    procs: createProcRegistry(() => context),
     config,
     catalog: patched({ [CORE.quickDraw]: remove('boon', 'quickness') }),
     combatStartTime: 0,
@@ -96,7 +100,7 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
   applyRangerWeaponSwapTraits(context, rangerCatalog.skillsById.get(ID.SWAP_WEAPONS), 1);
   const core = context.state.profession.core;
   assert.equal(core.quickDrawUntil, 6);
-  assert.equal(core.quickDrawReadyAt, 10);
+  assert.equal(context.procs.deadline('ranger.core.quickDraw'), 10);
   assert.deepEqual(events, []);
 });
 
@@ -121,7 +125,7 @@ test('Bestial Rage keeps its sibling boon and cooldown, and releases the cooldow
     partial.queued.map((event) => event.kind),
     ['fury']
   );
-  assert.equal(partial.profession.specialization.state.bestialRageReadyAt, 1.25);
+  assert.equal(partial.procs.deadline('ranger.soulbeast.bestialRage'), 1.25);
 
   const empty = resolverContext(
     {
@@ -137,7 +141,7 @@ test('Bestial Rage keeps its sibling boon and cooldown, and releases the cooldow
   );
   reactToSoulbeastControl(empty, control);
   assert.deepEqual(empty.queued, []);
-  assert.equal(empty.profession.specialization.state.bestialRageReadyAt, 0);
+  assert.equal(empty.procs.deadline('ranger.soulbeast.bestialRage'), 0);
 });
 
 test('a missing required Ranger scalar fails instead of using a local default', () => {
@@ -145,6 +149,7 @@ test('a missing required Ranger scalar fails instead of using a local default', 
   delete profile.durationMultiplier;
   const config = { selectedTraitIds: [TRAIT.QUICK_DRAW] };
   const context = {
+    procs: createProcRegistry(() => context),
     config,
     catalog: { balanceProfilesById: new Map([[CORE.quickDraw, profile]]) },
     combatStartTime: 0,

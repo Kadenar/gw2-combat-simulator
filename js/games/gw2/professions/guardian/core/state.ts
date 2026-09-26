@@ -19,15 +19,12 @@ export interface GuardianCoreState {
   symbolicAvengerExpirations: number[];
   symbolIgnitionStartsAt: number;
   symbolIgnitionUntil: number;
-  symbolIgnitionReadyAt: number;
-  symbolProjectileIgnitionReadyAt: number;
-  zealotsResolutionReadyAt: number;
+
   resolutionUntil: number;
   righteousInstinctsGeneration: number;
   furiousFocusReadyAt: number;
   furiousFocusRecharge: RechargeProgress | null;
-  healersResolutionReadyAt: number;
-  protectorsRestorationReadyAt: number;
+
   spearIlluminatedArmed: boolean;
   spearIlluminatedUntil: number;
   spearLuminanceUntil: number;
@@ -54,15 +51,12 @@ export function createGuardianCoreState(config: GuardianConfig = {}): GuardianCo
     symbolicAvengerExpirations: [],
     symbolIgnitionStartsAt: -1,
     symbolIgnitionUntil: -1,
-    symbolIgnitionReadyAt: 0,
-    symbolProjectileIgnitionReadyAt: 0,
-    zealotsResolutionReadyAt: 0,
+
     resolutionUntil: 0,
     righteousInstinctsGeneration: 0,
     furiousFocusReadyAt: 0,
     furiousFocusRecharge: null,
-    healersResolutionReadyAt: 0,
-    protectorsRestorationReadyAt: 0,
+
     spearIlluminatedArmed: false,
     spearIlluminatedUntil: 0,
     spearLuminanceUntil: 0
@@ -87,10 +81,9 @@ const GUARDIAN_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof GuardianCoreState)[] 
   'availableFlips',
   'symbolIgnitionStartsAt',
   'symbolIgnitionUntil',
-  'symbolIgnitionReadyAt',
-  'symbolProjectileIgnitionReadyAt',
+
   'symbolicAvengerExpirations',
-  'zealotsResolutionReadyAt',
+
   'resolutionUntil',
   'spearIlluminatedArmed',
   'spearIlluminatedUntil',

@@ -1,4 +1,5 @@
 import type { CriticalSigilDiagnostics } from '#gw2/platform/equipment/sigils/diagnostics.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { Gw2CombatQuery, Gw2CriticalResult } from '#gw2/platform/combat/query/combat-query.js';
 import { createCanonicalTargetConditionStateMap } from '#gw2/platform/combat/state/targets.js';
@@ -67,6 +68,7 @@ export function createGw2ResolverRuntimeState({
     resolved: [],
     procSteps: [],
     procKeys: new Set(),
+    procs: createProcRegistry(() => runtime),
     boons: new Map(),
     totals: {
       strike: 0,
@@ -222,6 +224,7 @@ export function createGw2ResolverRuntimeState({
 // Resolution consumes kernel randomness and generic records without execution dependencies.
 
 export interface Gw2ResolverRuntime {
+  readonly procs: ReturnType<typeof createProcRegistry>;
   readonly sigilDiagnostics?: CriticalSigilDiagnostics;
   readonly reporting: boolean;
   readonly damageDiagnostics: boolean;

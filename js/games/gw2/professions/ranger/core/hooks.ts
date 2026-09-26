@@ -133,12 +133,7 @@ function completeWeapon(runtime: RangerRuntime, cast: RuntimeCast): void {
   const flips = runtime.profession.core.availableFlips;
   if (skill.id === ID.PANTHERS_PROWL)
     for (const flip of spearAttacks) armSkillFlip(flips, flip, runtime.time, runtime.time + 3);
-  if (skill.id === ID.HILT_BASH) {
-    runtime.cooldownController.clear(ID.MAUL_SOULBEAST);
-    runtime.cooldownController.clear(ID.MAUL_BASE);
-  }
 
-  if (skill.id === ID.ENDURING_SWING) runtime.endurance.grant(Number(skill.resourceGain ?? 15));
   if (skill.type !== 'Weapon' || isRangerHammerVariant(skill.id)) return;
   const followUp = followUpOf(runtime.helpers.skillsById, skill);
   if (followUp) armSkillFlip(flips, followUp.id, runtime.time, runtime.time + Number(skill.flipDuration || 5));

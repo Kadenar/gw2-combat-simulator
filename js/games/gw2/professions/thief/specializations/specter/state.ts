@@ -10,7 +10,7 @@ export interface SpecterState {
   shadowShroudExitReadyAt: number;
   shadowClock: ResourceClock;
   shadowShroudActive: boolean;
-  darkSentryReadyAtByAlly: Record<string, number>;
+
   /** Owner generation of the queued live depletion wake; each gain or rate change replaces it. */
   shadowWakeGeneration: number;
 }
@@ -27,7 +27,7 @@ function createSpecterState(config: ThiefConfig = {}): SpecterState {
     shadowShroudActive: false,
     shadowShroudExitReadyAt: 0,
     // Per-ally map so that a barrier given to ally 1 does not lock out ally 2.
-    darkSentryReadyAtByAlly: {},
+
     shadowWakeGeneration: 0
   };
 }

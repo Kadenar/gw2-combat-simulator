@@ -124,7 +124,7 @@ for (const [type, name] of [
       false
     );
     assert.equal(
-      Object.keys(observedRuntime(result).profession.specialization.state.darkSentryReadyAtByAlly).length > 0,
+      Object.keys(observedRuntime(result).procs.readyAt).some((key) => key.startsWith('thief.specter.darkSentry:')),
       type !== 'buff'
     );
   });
@@ -211,7 +211,7 @@ test('removed critical Fury leaves proc progress and cooldown unclaimed', () => 
     selectedTraitIds: [TRAIT.UNRELENTING_STRIKES]
   });
   assert.equal(packet(result, 'buff', TRAIT.UNRELENTING_STRIKES).length, 0);
-  assert.equal(observedRuntime(result).profession.core.traitProcReadyAt[TRAIT.UNRELENTING_STRIKES], undefined);
+  assert.equal(observedRuntime(result).procs.readyAt[TRAIT.UNRELENTING_STRIKES], undefined);
   assert.equal(observedRuntime(result).profession.core.traitProcProgress[TRAIT.UNRELENTING_STRIKES], undefined);
 });
 

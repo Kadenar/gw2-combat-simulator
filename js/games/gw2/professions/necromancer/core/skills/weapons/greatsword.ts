@@ -81,6 +81,8 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     lifeForceGain: 5
   },
   [ID.GRAVEDIGGER]: {
+    // A committed strike samples target health when its full lockout ends, even after an interrupted animation.
+    tasks: [{ type: 'necromancer.gravedigger-reset', timingAnchor: 'castEnd' }],
     castTimeMs: 1080,
     // The strike commits at 840 ms, but cancelling after it lands retains the full skill lockout.
     interruptCommitMs: 840,

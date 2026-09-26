@@ -1,3 +1,4 @@
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
@@ -153,6 +154,7 @@ test('Frigid Flurry can finish combos with either initial ice-bullet state', () 
 test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
   const state = catalystState.create();
   const context = {
+    procs: createProcRegistry(() => context),
     catalog: elementalistCatalog,
     profession: {
       specialization: { kind: 'Catalyst', state }
@@ -223,6 +225,7 @@ test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
 test('Relentless Fire exposes separate strike and condition modifiers for its active window', () => {
   const modifiers = createModifierHooks({ rules: catalystModifierRules });
   const context = {
+    procs: createProcRegistry(() => context),
     catalog: elementalistCatalog,
     time: 1,
     runtime: {
@@ -263,6 +266,7 @@ test('Shattering Ice is proc-only and accepts player-owned effect and field atta
   const skill = elementalistCatalog.skillsByName.get('Shattering Ice');
   const state = catalystState.create();
   const context = {
+    procs: createProcRegistry(() => context),
     catalog: elementalistCatalog,
     profession: { specialization: { kind: 'Catalyst', state } },
     config: {},
@@ -321,5 +325,5 @@ test('Shattering Ice is proc-only and accepts player-owned effect and field atta
     queued.filter((event) => event.type === 'condition').map((event) => event.triggeredBy),
     ['Electric Discharge', 'Deploy Jade Sphere (Air)']
   );
-  assert.equal(state.shatteringIceReadyAt, 3.001);
+  assert.equal(context.procs.deadline('elementalist.catalyst.shatteringIce'), 3.001);
 });

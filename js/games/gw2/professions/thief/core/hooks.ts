@@ -136,10 +136,10 @@ function thiefAvailability(runtime: ThiefRuntime, rawSkill: Skill): Availability
     : denySkillCast(skill, 'thief.initiative', `requires ${skill.initiativeCost} initiative.`, readyAt);
 }
 
-/** Lead Attacks and Sleight of Hand shorten steal-family recharges, multiplicatively unless the skill opts out. */
+/** Additive steal reductions retain their combined formula; ordinary multipliers use declared rules. */
 function thiefRechargeWork(runtime: ThiefRuntime, rawSkill: Skill, work: number): number {
   const skill = rawSkill as ThiefSkill;
-  if (!skill.stealTraitSkill) return work;
+  if (!skill.stealTraitSkill || skill.stealRechargeMode !== 'additive') return work;
   const leadAttacks = hasTrait(runtime, TRAIT.LEAD_ATTACKS);
   const sleightOfHand = hasTrait(runtime, TRAIT.SLEIGHT_OF_HAND);
   const lead = balanceProfileNumber(
@@ -150,9 +150,7 @@ function thiefRechargeWork(runtime: ThiefRuntime, rawSkill: Skill, work: number)
     requireBalanceProfileFromContext(runtime, PROFILE.sleightOfHand),
     'rechargeMultiplier'
   );
-  if (skill.stealRechargeMode === 'additive')
-    return work * (1 - Number(leadAttacks) * (1 - lead) - Number(sleightOfHand) * (1 - sleight));
-  return work * (leadAttacks ? lead : 1) * (sleightOfHand ? sleight : 1);
+  return work * (1 - Number(leadAttacks) * (1 - lead) - Number(sleightOfHand) * (1 - sleight));
 }
 
 const THIEF_CORE_COMPLETE = 'thief.core-complete';
@@ -192,6 +190,18 @@ export const thiefCoreHooks: Partial<RuntimeProfession<ThiefRuntimeState>> = {
     startThievesGuild(runtime);
   },
   availability: thiefAvailability,
+  rechargeRules: [
+    {
+      trait: TRAIT.LEAD_ATTACKS,
+      when: (_runtime, skill) => Boolean(skill.stealTraitSkill) && skill.stealRechargeMode !== 'additive',
+      multiplier: { profile: PROFILE.leadAttacks, field: 'rechargeMultiplier' }
+    },
+    {
+      trait: TRAIT.SLEIGHT_OF_HAND,
+      when: (_runtime, skill) => Boolean(skill.stealTraitSkill) && skill.stealRechargeMode !== 'additive',
+      multiplier: { profile: PROFILE.sleightOfHand, field: 'rechargeMultiplier' }
+    }
+  ],
   rechargeWork: thiefRechargeWork,
   // A Double Edge recast while recharging keeps the running recharge instead of reserving a new one.
   reserveRecharge: (runtime, skill, work) =>

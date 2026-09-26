@@ -24,7 +24,6 @@ import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/type
 import type { InternalWork, WorkOwner } from '#gw2/platform/simulation/internal-work.js';
 import type { SkillFlipWindow } from '#gw2/platform/engine/skills/skill-flips.js';
 import type { SideEffectAction } from '#gw2/platform/simulation/side-effects.js';
-import type { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import type { RechargeRule, TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type {
   AutoattackChainOverride,
@@ -111,7 +110,6 @@ export interface Gw2Runtime<T extends object = object> extends Gw2ResolverRuntim
   readonly lockouts: Map<string, number>;
   readonly inFlight: Map<SkillId, Set<string>>;
   readonly cooldownController: CooldownController;
-  readonly procs: ReturnType<typeof createProcRegistry>;
   readonly history: Gw2ResolverEvent[];
   readonly steps: SimulationStep[];
   resourceController: ReturnType<typeof createRuntimeResources<T>>;

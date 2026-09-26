@@ -1,3 +1,4 @@
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
@@ -52,6 +53,7 @@ test('Amalgam resolver procs honor positive poison fields and zero strike coeffi
     });
     const conditions = [];
     const context = {
+      procs: createProcRegistry(() => context),
       helpers: catalog,
       traits: new Set([TRAIT.CARBOLIC_COMPOSITION]),
       profession: { core: {}, specialization: { kind: 'Amalgam', state: { evolvedUntil: 10, rapaciousUntil: 10 } } },
@@ -81,6 +83,7 @@ test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic 
   });
   const conditions = [];
   const context = {
+    procs: createProcRegistry(() => context),
     helpers: catalog,
     traits: new Set([TRAIT.CARBOLIC_COMPOSITION]),
     queue: new StableEventQueue(),

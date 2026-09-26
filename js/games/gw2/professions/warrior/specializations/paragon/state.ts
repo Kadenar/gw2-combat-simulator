@@ -9,7 +9,7 @@ export interface ParagonState {
   motivation: number;
   maximumMotivation: number;
   activeRefrainId: SkillId | null;
-  inspiringImplementsReadyAt: number;
+
   callToActionActivated: boolean;
   /** Replacing a refrain cancels its queued occurrence without copying live combat state. */
   refrainGeneration: number;
@@ -28,7 +28,7 @@ export function createParagonState(): ParagonState {
     motivation: 0,
     maximumMotivation: 10,
     activeRefrainId: null,
-    inspiringImplementsReadyAt: 0,
+
     callToActionActivated: false,
     refrainGeneration: 0,
     commandEchoes: {}

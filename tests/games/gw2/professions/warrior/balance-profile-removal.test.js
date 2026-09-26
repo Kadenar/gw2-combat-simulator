@@ -45,7 +45,7 @@ test('removed Marching Orders Might preserves Soldier Focus cooldown and sibling
     }
   );
   const hit = result.events.find((event) => event.type === 'damage' && event.skillId === ID.EVISCERATE);
-  assert.equal(observedRuntime(result).profession.core.soldierFocusReadyAt, hit.at + 7);
+  assert.equal(observedRuntime(result).procs.deadline('warrior.core.soldierFocus'), hit.at + 7);
   assert.ok(result.events.some((event) => event.kind === 'protection'));
   assert.ok(result.events.some((event) => event.kind === 'stability'));
   assert.equal(
@@ -180,7 +180,7 @@ for (const trait of [TRAIT.UNSEEN_SWORD, TRAIT.SHARP_AS_THE_WIND, TRAIT.RIVERS_F
     );
     const state = observedRuntime(result).profession.specialization.state;
     assert.equal(state.traitPositiveFlowUntil, 0);
-    assert.equal(state.gunsaberSwapTraitReadyAt, 5);
+    assert.equal(observedRuntime(result).procs.deadline('warrior.bladesworn.gunsaberSwapTrait'), 5);
     assert.ok(result.events.some((event) => event.sourceId === trait));
     assert.equal(
       result.events.some((event) => event.kind === 'positive-flow'),
@@ -340,7 +340,7 @@ test('Warrior live owners reject missing profiles and invalid required scalars c
   profiles.set(CORE.marchingOrders, { ...original, internalCooldown: 0 });
   const result = simulate();
   assert.equal(
-    observedRuntime(result).profession.core.soldierFocusReadyAt,
+    observedRuntime(result).procs.deadline('warrior.core.soldierFocus'),
     result.events.find((event) => event.type === 'damage').at
   );
 });

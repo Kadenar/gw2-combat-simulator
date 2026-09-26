@@ -1,3 +1,4 @@
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
@@ -74,7 +75,7 @@ test('Revenant Brutality claims at swap completion and honors the exclusive ICD 
             )
         }
       );
-    assert.deepEqual(observedRuntime(run([])).profession.core.traitProcReadyAt, {});
+    assert.deepEqual({ ...observedRuntime(run([])).procs.readyAt }, {});
     const result = run([REVENANT_TRAIT_IDS.BRUTALITY]);
     assert.deepEqual(result.warnings, []);
     // The swap at the exact deadline is blocked; one millisecond later claims again from its own completion.
@@ -84,7 +85,7 @@ test('Revenant Brutality claims at swap completion and honors the exclusive ICD 
         .map((event) => event.at),
       [1, 1 + duration + 0.001]
     );
-    closeTo(observedRuntime(result).profession.core.traitProcReadyAt.brutality, 1 + duration + 0.001 + duration);
+    closeTo(observedRuntime(result).procs.readyAt.brutality, 1 + duration + 0.001 + duration);
   }
 });
 
@@ -106,7 +107,7 @@ test('Revenant Vicious Reprisal claims only eligible strikes and honors the excl
       );
     const might = (result) =>
       result.events.filter((event) => event.type === 'buff' && event.sourceId === REVENANT_TRAIT_IDS.VICIOUS_REPRISAL);
-    assert.deepEqual(observedRuntime(run([])).profession.core.traitProcReadyAt, {});
+    assert.deepEqual({ ...observedRuntime(run([])).procs.readyAt }, {});
     assert.deepEqual(might(run([REVENANT_TRAIT_IDS.VICIOUS_REPRISAL], {})), []);
     const result = run([REVENANT_TRAIT_IDS.VICIOUS_REPRISAL]);
     assert.deepEqual(result.warnings, []);
@@ -114,7 +115,7 @@ test('Revenant Vicious Reprisal claims only eligible strikes and honors the excl
       might(result).map((event) => event.at),
       [1, 1 + duration + 0.001]
     );
-    closeTo(observedRuntime(result).profession.core.traitProcReadyAt.viciousReprisal, 1 + duration + 0.001 + duration);
+    closeTo(observedRuntime(result).procs.readyAt.viciousReprisal, 1 + duration + 0.001 + duration);
   }
 });
 
@@ -135,11 +136,11 @@ for (const [key, trait] of [
             ...native,
             initialize(runtime) {
               native.initialize(runtime);
-              runtime.profession.core.traitProcReadyAt[key] = 1;
+              runtime.procs.readyAt[key] = 1;
             }
           }
         });
-        assert.equal(observedRuntime(result).profession.core.traitProcReadyAt[key] > 1, selected && completion > 1);
+        assert.equal(observedRuntime(result).procs.readyAt[key] > 1, selected && completion > 1);
         assert.deepEqual(result.warnings, []);
       }
   });
@@ -168,7 +169,7 @@ for (const [key, trait, invoke, literalDuration] of [
       let effects = 0;
       const bypass = key === 'dhuumfire' && duration === 0;
       const emitted = (event) => {
-        assert.equal(core.traitProcReadyAt[key], bypass ? undefined : event.at + duration);
+        assert.equal(context.procs.readyAt[key], bypass ? undefined : event.at + duration);
         effects += 1;
       };
 
@@ -187,7 +188,7 @@ for (const [key, trait, invoke, literalDuration] of [
       };
 
       opportunity(1);
-      assert.deepEqual(core.traitProcReadyAt, {});
+      assert.deepEqual({ ...context.procs.readyAt }, {});
       context.traits.add(trait);
       opportunity(1);
       assert.ok(effects > 0);
@@ -196,7 +197,7 @@ for (const [key, trait, invoke, literalDuration] of [
       assert.equal(effects, bypass ? count * 2 : count);
       opportunity(1 + duration + 0.000001);
       assert.ok(effects > count);
-      assert.deepEqual(createNecromancerCoreState().traitProcReadyAt, {});
+      assert.equal('traitProcReadyAt' in createNecromancerCoreState(), false);
     }
   });
 }
@@ -207,6 +208,7 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
   const procs = [];
   const conditions = [];
   const context = {
+    procs: createProcRegistry(() => context),
     profession: { id },
     catalog,
     config,
@@ -240,7 +242,6 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
 
 test('Elementalist control traits stay blocked at the exact ICD boundary', () => {
   const state = catalystState.create();
-  state.viciousEmpowermentReadyAt = READY_AT;
   const { context, procs } = professionContext({
     id: 'elementalist',
     catalog: elementalistCatalog,
@@ -249,30 +250,31 @@ test('Elementalist control traits stay blocked at the exact ICD boundary', () =>
     kind: 'Catalyst',
     traits: ['Vicious Empowerment']
   });
+  context.procs.readyAt['elementalist.catalyst.viciousEmpowerment'] = READY_AT;
   const event = { type: 'control', actorType: 'player', at: READY_AT, skillName: 'Boundary Control' };
 
   applyViciousEmpowerment(context, event);
-  assert.equal(state.viciousEmpowermentReadyAt, READY_AT);
+  assert.equal(context.procs.deadline('elementalist.catalyst.viciousEmpowerment'), READY_AT);
   assert.equal(procs.length, 0);
 
   applyViciousEmpowerment(context, { ...event, at: AFTER_READY_AT });
-  assert.ok(state.viciousEmpowermentReadyAt > AFTER_READY_AT);
+  assert.ok(context.procs.deadline('elementalist.catalyst.viciousEmpowerment') > AFTER_READY_AT);
   assert.equal(procs.length, 1);
 });
 
 test('Engineer condition traits stay blocked at the exact ICD boundary', () => {
   const core = createEngineerCoreState();
-  core.traitProcReadyAt.hematicFocus = READY_AT;
   const config = { selectedTraitIds: [ENGINEER_TRAIT_IDS.HEMATIC_FOCUS] };
   const { context } = professionContext({ id: 'engineer', catalog: engineerCatalog, core, config });
+  context.procs.readyAt.hematicFocus = READY_AT;
   const event = { type: 'condition', condition: 'Bleeding', actorType: 'player', at: READY_AT };
 
   reactToEngineerCondition(context, event);
-  assert.equal(core.traitProcReadyAt.hematicFocus, READY_AT);
+  assert.equal(context.procs.readyAt.hematicFocus, READY_AT);
   assert.equal(context.queue.length, 0);
 
   reactToEngineerCondition(context, { ...event, at: AFTER_READY_AT });
-  assert.ok(core.traitProcReadyAt.hematicFocus > AFTER_READY_AT);
+  assert.ok(context.procs.readyAt.hematicFocus > AFTER_READY_AT);
   assert.equal(context.queue.length, 1);
 });
 
@@ -281,9 +283,7 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
   for (const kind of ['one-wolf-pack', 'vulture-stance']) {
     for (const ally of [false, true]) {
       const state = createSoulbeastState();
-      const field = kind === 'one-wolf-pack' ? 'oneWolfPackReadyAt' : 'vultureStanceReadyAt';
-      state[field] = READY_AT;
-      state.alliedStanceReadyAt[`${kind}:1`] = READY_AT;
+      const field = kind === 'one-wolf-pack' ? 'ranger.soulbeast.oneWolfPack' : 'ranger.soulbeast.vultureStance';
       const { context } = professionContext({
         id: 'ranger',
         catalog: rangerCatalog,
@@ -291,6 +291,8 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
         specialization: state,
         kind: 'Soulbeast'
       });
+      context.procs.readyAt[field] = READY_AT;
+      context.procs.readyAt[`ranger.soulbeast.alliedStance:${kind}:1`] = READY_AT;
       context.boons.set(kind, [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } }]);
       const react = ally ? soulbeastEventHandlers['ranger.shared-stance-hit'] : reactToSoulbeastDamage;
       const event = {
@@ -309,13 +311,15 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
       const triggerAt = inclusive ? READY_AT : 1.04;
       react(context, { ...event, at: triggerAt });
       assert.ok(context.queue.length > 0);
-      const deadline = ally ? state.alliedStanceReadyAt[`${kind}:1`] : state[field];
+      const deadline = ally
+        ? context.procs.readyAt[`ranger.soulbeast.alliedStance:${kind}:1`]
+        : context.procs.readyAt[field];
       assert.equal(deadline, triggerAt + (kind === 'one-wolf-pack' ? 1 : 0.25));
       if (ally) {
         const queued = context.queue.length;
         react(context, { ...event, at: 1.04, metadata: { triggeredByAlly: 2 } });
         assert.ok(context.queue.length > queued);
-        assert.equal(state[field], READY_AT);
+        assert.equal(context.procs.readyAt[field], READY_AT);
       }
     }
   }
@@ -323,7 +327,6 @@ test('Soulbeast stance ICDs preserve the personal One Wolf Pack exception and in
 
 test('Ranger boon traits stay blocked at the exact ICD boundary', () => {
   const state = createSoulbeastState();
-  state.essenceOfSpeedReadyAt = READY_AT;
   const config = { selectedTraitIds: [RANGER_TRAIT_IDS.ESSENCE_OF_SPEED] };
   const { context } = professionContext({
     id: 'ranger',
@@ -333,14 +336,15 @@ test('Ranger boon traits stay blocked at the exact ICD boundary', () => {
     kind: 'Soulbeast',
     config
   });
+  context.procs.readyAt['ranger.soulbeast.essenceOfSpeed'] = READY_AT;
   const event = { type: 'buff', kind: 'quickness', at: READY_AT, resolvedAudience: { includesSelf: true } };
 
   reactToSoulbeastBuff(context, event);
-  assert.equal(state.essenceOfSpeedReadyAt, READY_AT);
+  assert.equal(context.procs.deadline('ranger.soulbeast.essenceOfSpeed'), READY_AT);
   assert.equal(context.queue.length, 0);
 
   reactToSoulbeastBuff(context, { ...event, at: AFTER_READY_AT });
-  assert.ok(state.essenceOfSpeedReadyAt > AFTER_READY_AT);
+  assert.ok(context.procs.deadline('ranger.soulbeast.essenceOfSpeed') > AFTER_READY_AT);
   assert.equal(context.queue.length, 1);
 });
 
@@ -355,7 +359,7 @@ test('Revenant boon traits stay blocked at the exact ICD boundary', () => {
     },
     {
       initialize(runtime) {
-        runtime.profession.specialization.state.bloodFuryReadyAt = READY_AT;
+        runtime.procs.readyAt['revenant.renegade.bloodFury'] = READY_AT;
         for (const at of [READY_AT, AFTER_READY_AT])
           runtime.emit({
             type: 'buff',
@@ -376,14 +380,14 @@ test('Revenant boon traits stay blocked at the exact ICD boundary', () => {
       .map((event) => event.at),
     [AFTER_READY_AT]
   );
-  assert.ok(observedRuntime(result).profession.specialization.state.bloodFuryReadyAt > AFTER_READY_AT);
+  assert.ok(observedRuntime(result).procs.deadline('revenant.renegade.bloodFury') > AFTER_READY_AT);
 });
 
 test('Thief boon traits stay blocked at the exact ICD boundary', () => {
   const core = createThiefCoreState();
-  core.traitProcReadyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] = READY_AT;
   const config = { selectedTraitIds: [THIEF_TRAIT_IDS.ASSASSINS_FURY] };
   const { context } = professionContext({ id: 'thief', catalog: thiefCatalog, core, config });
+  context.procs.readyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] = READY_AT;
   const event = {
     type: 'buff',
     kind: 'fury',
@@ -398,11 +402,11 @@ test('Thief boon traits stay blocked at the exact ICD boundary', () => {
   };
 
   reactThiefCoreBuff(context, event);
-  assert.equal(core.traitProcReadyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY], READY_AT);
+  assert.equal(context.procs.readyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY], READY_AT);
   assert.equal(context.queue.length, 0);
 
   reactThiefCoreBuff(context, { ...event, at: AFTER_READY_AT });
-  assert.ok(core.traitProcReadyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] > AFTER_READY_AT);
+  assert.ok(context.procs.readyAt[THIEF_TRAIT_IDS.ASSASSINS_FURY] > AFTER_READY_AT);
   assert.equal(context.queue.length, 1);
 });
 
@@ -480,7 +484,7 @@ test('Necromancer condition traits stay blocked at the exact ICD boundary', () =
         ...native,
         initialize(runtime) {
           native.initialize(runtime);
-          runtime.profession.specialization.state.nourishingAshesReadyAt = READY_AT;
+          runtime.procs.readyAt['necromancer.scourge.nourishingAshes'] = READY_AT;
           runtime.emit({
             type: 'condition',
             condition: 'Burning',
@@ -495,7 +499,7 @@ test('Necromancer condition traits stay blocked at the exact ICD boundary', () =
       }
     });
     assert.equal(
-      observedRuntime(result).profession.specialization.state.nourishingAshesReadyAt > READY_AT,
+      observedRuntime(result).procs.deadline('necromancer.scourge.nourishingAshes') > READY_AT,
       at === AFTER_READY_AT
     );
     assert.deepEqual(result.warnings, []);

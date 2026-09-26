@@ -323,15 +323,16 @@ export const scourgeHooks: Partial<RuntimeProfession<NecromancerRuntimeState>> =
   reactions: {
     'condition.applied'(runtime, event) {
       scourgeResolverEventReactions.condition(runtime, event);
-      const state = scourgeState.from(runtime);
       if (
         event.condition !== 'Burning' ||
         !hasTrait(runtime, TRAIT.NOURISHING_ASHES) ||
-        !isInternalCooldownReady(runtime.time, state.nourishingAshesReadyAt)
+        !isInternalCooldownReady(runtime.time, runtime.procs.deadline('necromancer.scourge.nourishingAshes'))
       )
         return;
       const profile = requireBalanceProfileFromContext(runtime, PROFILE.nourishingAshes);
-      state.nourishingAshesReadyAt = canonicalTime(runtime.time + balanceProfileNumber(profile, 'cooldown'));
+      runtime.procs.readyAt['necromancer.scourge.nourishingAshes'] = canonicalTime(
+        runtime.time + balanceProfileNumber(profile, 'cooldown')
+      );
       grantNecromancerLifeForce(runtime, balanceProfileNumber(profile, 'lifeForceGain'));
     }
   }

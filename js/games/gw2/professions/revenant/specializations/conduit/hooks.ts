@@ -1,3 +1,4 @@
+import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { canonicalTime, isInternalCooldownReady } from '#kernel/core/clock.js';
 import { grantCapped } from '#gw2/platform/combat/resources/pool.js';
@@ -743,12 +744,16 @@ function upkeepDaggers(runtime: RevenantRuntime, data: unknown): void {
 /** Mistfire burns on each accepted control outside Twin Moon's own chain, once per its cooldown. */
 function mistfire(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if ((event.skillId != null && TWIN_MOON_SKILL_IDS.has(event.skillId)) || !hasTrait(runtime, TRAIT.MISTFIRE)) return;
-  const state = conduit(runtime);
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.mistfire);
   const burning = requireEffect(profile, 'condition', 'Burning');
   // The cooldown gates only Burning, so a removed packet leaves it ready.
-  if (!burning || !isInternalCooldownReady(runtime.time, Number(state.mistfireReadyAt || 0))) return;
-  state.mistfireReadyAt = runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
+  if (
+    !burning ||
+    !isInternalCooldownReady(runtime.time, Number(runtime.procs.deadline('revenant.conduit.mistfire') || 0))
+  )
+    return;
+  runtime.procs.readyAt['revenant.conduit.mistfire'] =
+    runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
   runtime.emitDerived(
     event,
     buildResolverCondition({
@@ -768,6 +773,20 @@ function mistfire(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
 }
 
 /** Conduit owns affinity, forms, Entity skills, Release Potential, and Beguiling Haze on the shared live state. */
+// Form selection chooses the base first; trait rules then scale that selected recharge.
+const conduitRecharge = compileRechargeRules<RevenantRuntimeState>([
+  {
+    trait: TRAIT.ENHANCED_EMBODIMENT,
+    when: (runtime, skill) => skill.id === ID.SWAP_LEGENDS && runtime.combatStartedAt(),
+    multiplier: { profile: PROFILE.enhancedEmbodiment, field: 'rechargeMultiplier' }
+  },
+  {
+    trait: TRAIT.KINETIC_INSIGHT,
+    when: (_runtime, skill) => RELEASE_POTENTIAL_IDS.has(skill.id),
+    multiplier: { profile: TRAIT.KINETIC_INSIGHT, field: 'rechargeMultiplier' }
+  }
+]);
+
 export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
   availability(runtime, skill) {
     const state = conduit(runtime);
@@ -813,16 +832,7 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     if (skill.id === ID.SWAP_LEGENDS) {
       // Precombat legend swaps stay free; Enhanced Embodiment scales the base in combat.
       if (work === 0 || !runtime.combatStartedAt() || !hasTrait(runtime, TRAIT.ENHANCED_EMBODIMENT)) return work;
-      return (
-        Math.max(0, Number(skill.cooldown ?? work)) *
-        Math.max(
-          0,
-          balanceProfileNumber(
-            requireBalanceProfileFromContext(runtime, PROFILE.enhancedEmbodiment),
-            'rechargeMultiplier'
-          )
-        )
-      );
+      return conduitRecharge(runtime, skill, Math.max(0, Number(skill.cooldown ?? work)));
     }
 
     const mesmerProfile =
@@ -834,7 +844,7 @@ export const conduitHooks: Partial<RuntimeProfession<RevenantRuntimeState>> = {
     // Mesmer form gives these Demon utilities a recharge; Alacrity still applies to the new base.
     if (mesmerProfile && revenantConduitFormIsActive(conduit(runtime), 'Mesmer', runtime.time))
       return Math.max(0, balanceProfileNumber(requireBalanceProfileFromContext(runtime, mesmerProfile), 'cooldown'));
-    return RELEASE_POTENTIAL_IDS.has(skill.id) && hasTrait(runtime, TRAIT.KINETIC_INSIGHT) ? work * 0.8 : work;
+    return conduitRecharge(runtime, skill, work);
   },
   modifyEffects(runtime, cast, effects) {
     if (CUSTOM_EFFECT_SKILL_IDS.has(cast.skill.id)) return [];

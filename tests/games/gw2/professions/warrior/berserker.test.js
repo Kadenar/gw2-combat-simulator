@@ -132,7 +132,7 @@ test('King of Fires consumes one actual critical aura on completion and cannot r
   assert.equal(state(result).fireAuraUntil, 0);
   assert.equal(detonations[0].ownerActorType, 'player');
   const missed = run([{ name: 'Wild Blow', offTarget: true }], config);
-  assert.equal(state(missed).kingOfFiresReadyAt, 0);
+  assert.equal(observedRuntime(missed).procs.deadline('warrior.berserker.kingOfFires'), 0);
   assert.equal(
     missed.resolvedEvents.some((event) => event.sourceId === TRAIT.KING_OF_FIRES),
     false

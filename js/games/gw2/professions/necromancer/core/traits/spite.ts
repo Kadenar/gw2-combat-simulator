@@ -8,10 +8,8 @@ import {
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import type { BalanceProfile, ConditionEffect } from '#gw2/platform/engine/skills/types.js';
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { queueTraitCoefficientDamage } from '#gw2/professions/necromancer/core/mechanics/trait-effects.js';
@@ -60,15 +58,7 @@ export function applySiphonedPower(context: NecromancerResolverContext, event: N
   const effect = requireEffect(profile, 'boon', 'might');
   // Claim only after local eligibility, before conditions, resources or queued strikes; the cooldown gates only
   // might, so a removed boon leaves it ready.
-  if (
-    !effect ||
-    !tryConsumeProcCooldown(
-      professionCoreState(context).traitProcReadyAt,
-      'siphonedPower',
-      event.at,
-      balanceProfileNumber(profile, 'cooldown')
-    )
-  )
+  if (!effect || !context.procs.claimCooldown('siphonedPower', event.at, balanceProfileNumber(profile, 'cooldown')))
     return;
   queueResolverBoon(
     context,
@@ -99,12 +89,7 @@ export function applyChillOfDeath(context: NecromancerResolverContext, event: Ne
   // there is no proc to gate.
   if (
     (!strike && !chilled) ||
-    !tryConsumeProcCooldown(
-      professionCoreState(context).traitProcReadyAt,
-      'chillOfDeath',
-      event.at,
-      balanceProfileNumber(profile, 'cooldown')
-    )
+    !context.procs.claimCooldown('chillOfDeath', event.at, balanceProfileNumber(profile, 'cooldown'))
   )
     return;
   if (strike)

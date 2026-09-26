@@ -83,7 +83,7 @@ function flowTick(runtime: Runtime): void {
 function gunsaberEntryTraits(runtime: Runtime, cast: RuntimeCast): void {
   if (runtime.hasExplicitCombatStart && !runtime.combatActive) return;
   const state = bladeswornState.from(runtime);
-  if (!isInternalCooldownReady(runtime.time, state.gunsaberSwapTraitReadyAt)) return;
+  if (!isInternalCooldownReady(runtime.time, runtime.procs.deadline('warrior.bladesworn.gunsaberSwapTrait'))) return;
   const trait = [TRAIT.UNSEEN_SWORD, TRAIT.SHARP_AS_THE_WIND, TRAIT.RIVERS_FLOW].find((id) => hasTrait(runtime, id));
   if (trait == null || (trait === TRAIT.UNSEEN_SWORD && !runtime.combatActive)) return;
   const profile = requireBalanceProfileFromContext(runtime, trait);
@@ -138,7 +138,9 @@ function gunsaberEntryTraits(runtime: Runtime, cast: RuntimeCast): void {
       });
   }
 
-  state.gunsaberSwapTraitReadyAt = canonicalTime(runtime.time + balanceProfileNumber(profile, 'internalCooldown'));
+  runtime.procs.readyAt['warrior.bladesworn.gunsaberSwapTrait'] = canonicalTime(
+    runtime.time + balanceProfileNumber(profile, 'internalCooldown')
+  );
   const flow = requireEffect(profile, 'buff', 'positive-flow');
   if (!flow) return;
   if (state.traitPositiveFlowUntil <= runtime.time) state.traitPositiveFlowStartedAt = runtime.time;
@@ -159,7 +161,7 @@ function gunsaberEntryTraits(runtime: Runtime, cast: RuntimeCast): void {
 function swapGunsaber(runtime: Runtime, cast: RuntimeCast, active: boolean): void {
   bladeswornState.from(runtime).gunsaberActive = active;
   resetAutoattackChains(runtime);
-  if (hasTrait(runtime, TRAIT.MARTIAL_CADENCE)) runtime.profession.core.soldierFocusReadyAt = runtime.time;
+  if (hasTrait(runtime, TRAIT.MARTIAL_CADENCE)) runtime.procs.readyAt['warrior.core.soldierFocus'] = runtime.time;
   const swapId = cast.skill.id === ID.DRAGON_TRIGGER ? ID.UNSHEATHE_GUNSABER : cast.skill.id;
   if (cast.skill.id === ID.DRAGON_TRIGGER)
     runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(ID.UNSHEATHE_GUNSABER)!, runtime.time);
@@ -722,7 +724,6 @@ export const bladeswornHooks: Partial<RuntimeProfession<WarriorRuntimeState>> = 
     }
 
     if (cast.skill.id === ID.DRAGON_TRIGGER) enterDragonTrigger(runtime, cast);
-    if (cast.skill.id === ID.DRAGONSPIKE_MINE) runtime.cooldownController.clear(ID.DRAGON_TRIGGER);
     const release = releases.get(cast);
     if (release) {
       if (hasTrait(runtime, TRAIT.BURST_MASTERY)) {

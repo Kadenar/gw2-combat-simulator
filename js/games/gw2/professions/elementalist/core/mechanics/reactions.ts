@@ -108,9 +108,9 @@ export const elementalistCoreCriticalReactions = Object.freeze([
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.ragingStorm), 'internalCooldown'),
-      readyAt: (context) => Number(professionCoreState(context).procReadyAt.ragingStorm || 0),
+      readyAt: (context) => Number(context.procs.readyAt.ragingStorm || 0),
       setReadyAt: (context, readyAt) => {
-        professionCoreState(context).procReadyAt.ragingStorm = readyAt;
+        context.procs.readyAt.ragingStorm = readyAt;
       }
     },
     attribution: { kind: 'trait', id: TRAIT.RAGING_STORM },
@@ -124,9 +124,9 @@ export const elementalistCoreCriticalReactions = Object.freeze([
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.arcanePrecision), 'internalCooldown'),
-      readyAt: (context) => Number(professionCoreState(context).procReadyAt.arcanePrecision || 0),
+      readyAt: (context) => Number(context.procs.readyAt.arcanePrecision || 0),
       setReadyAt: (context, readyAt) => {
-        professionCoreState(context).procReadyAt.arcanePrecision = readyAt;
+        context.procs.readyAt.arcanePrecision = readyAt;
       }
     },
     randomStream: 'elementalist.arcane-precision',
@@ -139,9 +139,9 @@ export const elementalistCoreCriticalReactions = Object.freeze([
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.renewingStamina), 'internalCooldown'),
-      readyAt: (context) => Number(professionCoreState(context).procReadyAt.renewingStamina || 0),
+      readyAt: (context) => Number(context.procs.readyAt.renewingStamina || 0),
       setReadyAt: (context, readyAt) => {
-        professionCoreState(context).procReadyAt.renewingStamina = readyAt;
+        context.procs.readyAt.renewingStamina = readyAt;
       }
     },
     attribution: { kind: 'trait', id: TRAIT.RENEWING_STAMINA },
@@ -154,9 +154,9 @@ export const elementalistCoreCriticalReactions = Object.freeze([
     internalCooldown: {
       duration: (context) =>
         balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.burningPrecision), 'internalCooldown'),
-      readyAt: (context) => Number(professionCoreState(context).procReadyAt.burningPrecision || 0),
+      readyAt: (context) => Number(context.procs.readyAt.burningPrecision || 0),
       setReadyAt: (context, readyAt) => {
-        professionCoreState(context).procReadyAt.burningPrecision = readyAt;
+        context.procs.readyAt.burningPrecision = readyAt;
       }
     },
     randomStream: 'elementalist.burning-precision',

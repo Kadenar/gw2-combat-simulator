@@ -1,3 +1,4 @@
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -273,6 +274,7 @@ test('Kinetic Accelerators grants setup boons from precombat combos', () => {
 test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () => {
   const boons = [];
   const context = {
+    procs: createProcRegistry(() => context),
     catalog: engineerCatalog,
     config: {
       selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS],

@@ -92,7 +92,6 @@ function shadowDepleted(runtime: ThiefRuntime): void {
 
 /** Barrier on allies arms Dark Sentry's per-ally venom and its queued allied Torment. */
 function darkSentry(runtime: ThiefRuntime, data: unknown): void {
-  const state = specterState.from(runtime);
   const party = gw2AlliedPlayerAssumptions(runtime.config);
   const allies = [
     ...new Set(
@@ -100,7 +99,9 @@ function darkSentry(runtime: ThiefRuntime, data: unknown): void {
         .map(Number)
         .filter((ally) => Number.isInteger(ally) && ally >= 1 && ally <= party.count)
     )
-  ].filter((ally) => isInternalCooldownReady(runtime.time, Number(state.darkSentryReadyAtByAlly[String(ally)] || 0)));
+  ].filter((ally) =>
+    isInternalCooldownReady(runtime.time, Number(runtime.procs.readyAt[`thief.specter.darkSentry:${ally}`] || 0))
+  );
   if (!allies.length) return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.darkSentry);
   const venom = requireEffect(profile, 'buff', 'rot-wallow-venom');
@@ -108,7 +109,7 @@ function darkSentry(runtime: ThiefRuntime, data: unknown): void {
   const torment = requireEffect(profile, 'condition', 'Torment');
   const readyAt = runtime.time + balanceProfileNumber(profile, 'internalCooldown');
   const venomDuration = effectNumber(profile, venom, 'duration');
-  for (const ally of allies) state.darkSentryReadyAtByAlly[String(ally)] = readyAt;
+  for (const ally of allies) runtime.procs.readyAt[`thief.specter.darkSentry:${ally}`] = readyAt;
   emitThiefBuff(runtime, null, {
     at: runtime.time,
     source: 'Trait',

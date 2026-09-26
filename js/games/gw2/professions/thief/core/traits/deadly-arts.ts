@@ -1,5 +1,4 @@
 import { buildResolverCondition, buildResolverBuff } from '#gw2/platform/resolver/packets.js';
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import {
   requireBalanceProfileFromContext,
   requireEffect,
@@ -65,8 +64,7 @@ export function applyLotusPoison(context: ThiefResolverContext, event: ThiefReso
 
   const lotusPoisonProfile = requireBalanceProfileFromContext(context, PROFILE.lotusPoison);
   if (
-    !tryConsumeProcCooldown(
-      professionCoreState(context).traitProcReadyAt,
+    !context.procs.claimCooldown(
       TRAIT.LOTUS_POISON,
       event.at,
       balanceProfileNumber(lotusPoisonProfile, 'internalCooldown')
@@ -124,7 +122,6 @@ function targetConditionCount(context: ThiefResolverContext, at: number): number
 export function applyPanicStrike(context: ThiefResolverContext, event: ThiefResolverEvent): void {
   if (event.actorType !== 'player' || !(Number(event.coefficient) > 0) || !hasTrait(context.config, TRAIT.PANIC_STRIKE))
     return;
-  const state = professionCoreState(context);
 
   const panicStrikeProfile = requireBalanceProfileFromContext(context, PROFILE.panicStrike);
   if (targetConditionCount(context, event.at) < balanceProfileNumber(panicStrikeProfile, 'threshold')) return;
@@ -133,8 +130,7 @@ export function applyPanicStrike(context: ThiefResolverContext, event: ThiefReso
   if (!immobilized) return;
   // Claim this owner's ICD before effects or resource snapshots can re-enter the trait.
   if (
-    !tryConsumeProcCooldown(
-      state.traitProcReadyAt,
+    !context.procs.claimCooldown(
       TRAIT.PANIC_STRIKE,
       event.at,
       balanceProfileNumber(panicStrikeProfile, 'internalCooldown')

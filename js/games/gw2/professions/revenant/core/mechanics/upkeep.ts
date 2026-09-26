@@ -275,14 +275,13 @@ function triggersImpossibleOdds(event: Gw2ResolverEvent): boolean {
 /** An accepted qualifying strike launches Impossible Odds' follow-up while the upkeep is active and ready. */
 export function reactRevenantImpossibleOdds(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if (!triggersImpossibleOdds(event) || !activeRevenantUpkeep(runtime, ID.IMPOSSIBLE_ODDS)) return;
-  const core = runtime.profession.core;
   // Integer clock keys allow the expiry instant without admitting hits just before it.
-  if (timeKey(runtime.time) < timeKey(Number(core.traitProcReadyAt.impossibleOdds || 0))) return;
+  if (timeKey(runtime.time) < timeKey(Number(runtime.procs.readyAt.impossibleOdds || 0))) return;
   const impossible = runtime.helpers.skillsById.get(ID.IMPOSSIBLE_ODDS);
   const strike = impossible && requireEffect(impossible, 'strike', 'Impossible Odds');
   // The trigger interval gates only this strike, so a removed strike leaves it ready.
   if (!impossible || !strike) return;
-  core.traitProcReadyAt.impossibleOdds = canonicalTime(runtime.time + Number(impossible.triggerIntervalMs || 0) / 1000);
+  runtime.procs.readyAt.impossibleOdds = canonicalTime(runtime.time + Number(impossible.triggerIntervalMs || 0) / 1000);
   runtime.emitDerived(
     event,
     buildResolverStrike({

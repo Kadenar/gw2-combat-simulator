@@ -3,7 +3,6 @@ import test from 'node:test';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import { untamedCastAvailability } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import { bindUntamedUi } from '#gw2/professions/ranger/specializations/untamed/presentation.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
@@ -27,7 +26,7 @@ test('ambush cast, palette, and display agree at expiry', () => {
       ui.rotationStateSnapshot(context).some((item) => item.id === 'untamed-ambush-window'),
       available
     );
-    assert.equal(untamedState.from(runtime).unleashedPowerReadyAt, 9);
+    assert.equal(runtime.procs.deadline('ranger.untamed.unleashedPower'), 9);
   }
 });
 
@@ -38,7 +37,7 @@ test('Let Loose refresh survives the superseded expiry', () => {
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession.ambushReadyUntil, 5);
-  assert.equal(untamedState.from(observedRuntime(result)).unleashedPowerReadyAt, 0);
+  assert.equal(observedRuntime(result).procs.deadline('ranger.untamed.unleashedPower'), 0);
 });
 
 test('an admitted ambush consumes the grant while its delayed effects finish', () => {

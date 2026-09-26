@@ -18,7 +18,7 @@ import {
   refreshGuardianVirtues
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { modifyGuardianMaximumAmmo } from '#gw2/professions/guardian/core/mechanics/recharge.js';
-import { modifyGuardianRechargeDuration } from '#gw2/professions/guardian/core/mechanics/recharge.js';
+import { guardianRechargeWork } from '#gw2/professions/guardian/core/mechanics/recharge.js';
 import type { Gw2Runtime, RuntimeCast, RuntimeProfession } from '#gw2/platform/simulation/runtime-state.js';
 import type { GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -81,7 +81,6 @@ function completeWeapon(runtime: Runtime, cast: RuntimeCast): void {
   )
     return;
   if (skill.interruptMode === 'per-packet' && castWasInterrupted(cast)) return;
-  if (skill.id === ID.BANISH) runtime.cooldownController.clear(ID.MIGHTY_BLOW);
   if (skill.id === ID.ZEALOTS_FIRE) {
     for (const lockout of runtime.helpers.skillsById.get(ID.ZEALOTS_FLAME)?.lockouts ?? [])
       runtime.lockouts.set(lockout.group, canonicalTime(runtime.time + lockout.durationMs / 1000));
@@ -104,8 +103,7 @@ function completeWeapon(runtime: Runtime, cast: RuntimeCast): void {
 /** Core hooks: accepted virtues, shared recharge, endurance grants, and temporary weapon state. */
 export const guardianCoreHooks: Partial<RuntimeProfession<GuardianRuntimeState>> = {
   endurance: { state: (runtime) => runtime.profession.core, maximum: () => 100, regenerationRate: () => 0 },
-  rechargeWork: (runtime, skill, work) =>
-    modifyGuardianRechargeDuration({ catalog: runtime.helpers, config: runtime.config, skill }, work),
+  rechargeWork: guardianRechargeWork,
   maximumAmmo: (runtime, skill, maximum) =>
     modifyGuardianMaximumAmmo({ catalog: runtime.helpers, config: runtime.config, skill }, maximum),
   modifyComboFields: guardianComboFields,

@@ -9,7 +9,6 @@ import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   activeBoonStacks,
-  procState,
   queueBuff,
   recordTrait
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
@@ -22,7 +21,7 @@ import type { EngineerRuntime, EngineerResolverEvent } from '#gw2/professions/en
 export function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEvent): void | false {
   if (!hasTrait(context, TRAIT.MASS_MOMENTUM) || activeBoonStacks(context, 'stability', 1, event.at) === 0)
     return false;
-  const state = procState(context);
+  const state = context.procs.readyAt;
   const massMomentumProfile = requireBalanceProfileFromContext(context, PROFILE.massMomentum);
   if (Number(state.massMomentum || 0) <= event.at) {
     state.massMomentum = event.at + balanceProfileNumber(massMomentumProfile, 'pulseInterval');
@@ -69,7 +68,7 @@ function reactToScrapperBuff(context: EngineerRuntime, event: EngineerResolverEv
       event.at
     ) >= balanceProfileNumber(requireBalanceProfileFromContext(context, PROFILE.appliedForce), 'threshold')
   ) {
-    const state = procState(context);
+    const state = context.procs.readyAt;
     if (isInternalCooldownReady(event.at, Number(state.appliedForce || 0))) {
       const appliedForceProfile = requireBalanceProfileFromContext(context, PROFILE.appliedForce);
       state.appliedForce = event.at + balanceProfileNumber(appliedForceProfile, 'internalCooldown');

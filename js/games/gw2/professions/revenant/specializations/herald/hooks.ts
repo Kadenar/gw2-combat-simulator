@@ -172,7 +172,7 @@ function grantCompassion(runtime: RevenantRuntime): void {
     stacks: Math.max(1, effectNumber(profile, effect, 'stacks')),
     audience: effect.audience ?? { recipients: 'party', maximumRecipients: 5 }
   });
-  heraldState.from(runtime).elevatedCompassionReadyAt = canonicalTime(
+  runtime.procs.readyAt['revenant.herald.elevatedCompassion'] = canonicalTime(
     runtime.time + Math.max(EPSILON, balanceProfileNumber(profile, 'cooldown'))
   );
 }
@@ -191,10 +191,10 @@ function syncCompassion(runtime: RevenantRuntime): void {
   }
 
   if (state.elevatedCompassionPulseAt != null && state.elevatedCompassionPulseAt >= runtime.time) return;
-  const readyAt = Math.max(runtime.time, Number(state.elevatedCompassionReadyAt || 0));
+  const readyAt = Math.max(runtime.time, Number(runtime.procs.deadline('revenant.herald.elevatedCompassion') || 0));
   if (readyAt <= runtime.time + EPSILON) {
     grantCompassion(runtime);
-    scheduleCompassion(runtime, state.elevatedCompassionReadyAt);
+    scheduleCompassion(runtime, runtime.procs.deadline('revenant.herald.elevatedCompassion'));
   } else scheduleCompassion(runtime, readyAt);
 }
 
@@ -207,7 +207,7 @@ function compassionPulse(runtime: RevenantRuntime): void {
   }
 
   grantCompassion(runtime);
-  scheduleCompassion(runtime, state.elevatedCompassionReadyAt);
+  scheduleCompassion(runtime, runtime.procs.deadline('revenant.herald.elevatedCompassion'));
 }
 
 /** Applied standard boons with at least one recipient grant Shared Empowerment's Might once per cooldown. */
@@ -219,14 +219,14 @@ function sharedEmpowerment(runtime: RevenantRuntime, event: Gw2ResolverEvent): v
     !hasTrait(runtime, TRAIT.SHARED_EMPOWERMENT)
   )
     return;
-  const state = heraldState.from(runtime);
-  if (!isInternalCooldownReady(runtime.time, state.sharedEmpowermentReadyAt)) return;
+  if (!isInternalCooldownReady(runtime.time, runtime.procs.deadline('revenant.herald.sharedEmpowerment'))) return;
   const profile = requireBalanceProfileFromContext(runtime, HERALD_SHARED_EMPOWERMENT_PROFILE_ID);
   const effect = requireEffect(profile, 'boon', 'might');
   // The cooldown gates only might, so a removed boon leaves it ready.
   if (!effect) return;
   // Reserve the ICD before emitting Might so the derived boon cannot recursively trigger the trait.
-  state.sharedEmpowermentReadyAt = runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
+  runtime.procs.readyAt['revenant.herald.sharedEmpowerment'] =
+    runtime.time + Math.max(0, balanceProfileNumber(profile, 'cooldown'));
   runtime.emitProcedural(
     {
       type: 'buff',
@@ -284,14 +284,14 @@ function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if (
     legend !== LEGEND.ASSASSIN ||
     !heraldFacetPassiveActive(core, state, ID.FACET_OF_NATURE, runtime.time) ||
-    !isInternalCooldownReady(runtime.time, state.natureSiphonReadyAt)
+    !isInternalCooldownReady(runtime.time, runtime.procs.deadline('revenant.herald.natureSiphon'))
   )
     return;
   const profile = requireBalanceProfileFromContext(runtime, HERALD_NATURE_ASSASSIN_PROFILE_ID);
   const strike = requireEffect(profile, 'strike', 'Life Siphon');
   // The cooldown gates only the siphon, so a removed strike leaves it ready.
   if (!strike) return;
-  state.natureSiphonReadyAt = runtime.time + balanceProfileNumber(profile, 'cooldown');
+  runtime.procs.readyAt['revenant.herald.natureSiphon'] = runtime.time + balanceProfileNumber(profile, 'cooldown');
   runtime.emitDerived(
     event,
     buildResolverStrike({

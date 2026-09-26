@@ -11,13 +11,7 @@ export interface SoulbeastState {
   beastmodeActive: boolean;
   archetype: string;
   oneWolfPackUntil: number;
-  oneWolfPackReadyAt: number;
-  goForTheEyesReadyAt: number;
-  goForTheThroatReadyAt: number;
-  bestialRageReadyAt: number;
-  essenceOfSpeedReadyAt: number;
-  vultureStanceReadyAt: number;
-  alliedStanceReadyAt: Record<string, number>;
+
   beastAbilityActivations: Record<string, boolean>;
 }
 
@@ -25,8 +19,7 @@ export interface SoulbeastState {
 export const SOULBEAST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
   beastmodeActive: false,
   archetype: '',
-  oneWolfPackUntil: 0,
-  oneWolfPackReadyAt: 0
+  oneWolfPackUntil: 0
 } satisfies Partial<RangerState>);
 
 export function createSoulbeastState(config: RangerConfig = {}): SoulbeastState {
@@ -37,13 +30,7 @@ export function createSoulbeastState(config: RangerConfig = {}): SoulbeastState 
     beastmodeActive: true,
     archetype: pet?.archetype || '',
     oneWolfPackUntil: 0,
-    oneWolfPackReadyAt: 0,
-    goForTheEyesReadyAt: 0,
-    goForTheThroatReadyAt: 0,
-    bestialRageReadyAt: 0,
-    essenceOfSpeedReadyAt: 0,
-    vultureStanceReadyAt: 0,
-    alliedStanceReadyAt: {},
+
     // Tracks per-activation-id whether the beast-ability first-hit proc already fired, preventing multi-hit skills from triggering trait effects more than once per cast.
     beastAbilityActivations: {}
   };

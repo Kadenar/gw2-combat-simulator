@@ -181,7 +181,7 @@ export const engineerCoreModifierRules: readonly Gw2ModifierRule[] = Object.free
     amount: 0.05,
     when: (context) =>
       hasTrait(context, TRAIT.THERMAL_VISION) &&
-      Number(engineerRuntimeState(context).traitProcReadyAt?.thermalVisionUntil || 0) > context.time
+      Number(engineerRuntimeState(context).thermalVisionUntil || 0) > context.time
   },
   {
     id: 'engineer.serrated-steel-duration',

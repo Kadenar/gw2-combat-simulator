@@ -1,4 +1,3 @@
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
@@ -80,14 +79,7 @@ export function startThiefDodge(runtime: ThiefRuntime, cast: RuntimeCast): void 
 function upperHand(runtime: ThiefRuntime): void {
   if (!hasTrait(runtime, TRAIT.UPPER_HAND)) return;
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.upperHand);
-  if (
-    tryConsumeProcCooldown(
-      runtime.profession.core.traitProcReadyAt,
-      TRAIT.UPPER_HAND,
-      runtime.time,
-      balanceProfileNumber(profile, 'internalCooldown')
-    )
-  )
+  if (runtime.procs.claimCooldown(TRAIT.UPPER_HAND, runtime.time, balanceProfileNumber(profile, 'internalCooldown')))
     grantThiefInitiative(runtime, balanceProfileNumber(profile, 'resourceGain'));
 }
 

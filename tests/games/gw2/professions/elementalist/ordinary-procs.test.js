@@ -68,11 +68,11 @@ for (const [trait, key, profile, invoke] of [
       profiles.set(profile, { ...profiles.get(profile), internalCooldown: duration });
       context.helpers = { ...context.helpers, balanceProfilesById: profiles };
       invoke(context);
-      assert.deepEqual(core.procReadyAt, {});
+      assert.deepEqual({ ...context.procs.readyAt }, {});
       context.traits.add(trait);
       const emit = context.emit.bind(context);
       context.emit = (event) => {
-        assert.equal(core.procReadyAt[key], event.at + duration);
+        assert.equal(context.procs.readyAt[key], event.at + duration);
         return emit(event);
       };
 
@@ -85,7 +85,7 @@ for (const [trait, key, profile, invoke] of [
       context.effectiveEnd += 0.000001;
       invoke(context);
       assert.ok(events.length > count);
-      assert.deepEqual(contextFor().core.procReadyAt, {});
+      assert.deepEqual({ ...contextFor().context.procs.readyAt }, {});
     }
   });
 }
@@ -108,21 +108,24 @@ test('Catalyst combo claims stay per element, and per trait, including Water', (
       context.helpers = { ...context.helpers, balanceProfilesById: profiles };
       const combo = { type: 'combo', at: 1, sourceId: 1 };
       invoke(context, combo);
-      assert.deepEqual(state.elementalEpitomeReadyAt, {});
+      assert.deepEqual({ ...context.procs.readyAt }, {});
       context.traits = new Set(['Elemental Epitome', 'Elemental Synergy']);
       for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
         core.primaryAttunement = element;
         invoke(context, { ...combo, attunement: element });
-        assert.equal(state.elementalEpitomeReadyAt[element], 1 + duration);
-        assert.equal(state.elementalSynergyReadyAt[element], 1 + duration);
+        assert.equal(context.procs.readyAt[`elementalist.catalyst.elementalEpitome:${element}`], 1 + duration);
+        assert.equal(context.procs.readyAt[`elementalist.catalyst.elementalSynergy:${element}`], 1 + duration);
         const count = events.length;
         invoke(context, { ...combo, attunement: element, at: 1 + duration });
         assert.equal(events.length, count);
         invoke(context, { ...combo, attunement: element, at: 1 + duration + 0.000001 });
-        assert.equal(state.elementalSynergyReadyAt[element], 1 + duration + 0.000001 + duration);
+        assert.equal(
+          context.procs.readyAt[`elementalist.catalyst.elementalSynergy:${element}`],
+          1 + duration + 0.000001 + duration
+        );
       }
 
-      assert.deepEqual(catalystState.create().elementalSynergyReadyAt, {});
+      assert.equal('elementalSynergyReadyAt' in catalystState.create(), false);
     }
   }
 });
@@ -134,18 +137,18 @@ test('Evoker real and synthetic entry share profile timers without changing trai
   const earth = elementalistCatalog.skillsByName.get('Earth Attunement');
   // Real entry intentionally consults the policy before downstream trait selection.
   completeEvokerAttunement(context, context, earth);
-  assert.equal(state.attunementTraitProcReadyAt[CORE.earthenBlast], 6);
-  assert.equal(state.attunementTraitProcReadyAt[CORE.rockSolid], 6);
+  assert.equal(context.procs.readyAt[CORE.earthenBlast], 6);
+  assert.equal(context.procs.readyAt[CORE.rockSolid], 6);
   context.traits = new Set(['Earthen Blast', 'Rock Solid']);
   core.primaryAttunement = 'Earth';
   context.effectiveEnd = 6;
   triggerSpecializedElementEntry(context, context, skill, 'Earth');
-  assert.equal(state.attunementTraitProcReadyAt[CORE.rockSolid], 6);
+  assert.equal(context.procs.readyAt[CORE.rockSolid], 6);
   context.effectiveEnd += 0.000001;
   triggerSpecializedElementEntry(context, context, skill, 'Earth');
-  assert.equal(state.attunementTraitProcReadyAt[CORE.rockSolid], context.effectiveEnd + 5);
-  assert.equal(state.attunementTraitProcReadyAt[CORE.earthenBlast], context.effectiveEnd + 5);
+  assert.equal(context.procs.readyAt[CORE.rockSolid], context.effectiveEnd + 5);
+  assert.equal(context.procs.readyAt[CORE.earthenBlast], context.effectiveEnd + 5);
   const other = contextFor('Evoker', evokerState.create());
   triggerSpecializedElementEntry(other.context, other.context, skill, 'Earth');
-  assert.deepEqual(other.context.profession.specialization.state.attunementTraitProcReadyAt, {});
+  assert.deepEqual({ ...other.context.procs.readyAt }, {});
 });

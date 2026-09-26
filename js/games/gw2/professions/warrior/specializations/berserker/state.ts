@@ -7,7 +7,7 @@ export interface BerserkerState {
   berserkActive: boolean;
   berserkUntil: number;
   fireAuraUntil: number;
-  kingOfFiresReadyAt: number;
+
   /** Actual completed activations let delayed hits react without reading action history. */
   completedActivations: Record<string, number>;
 }
@@ -25,7 +25,7 @@ function createBerserkerState(): BerserkerState {
     berserkUntil: 0,
     // Aura acquisition, consumption, and expiry share this current window.
     fireAuraUntil: 0,
-    kingOfFiresReadyAt: 0,
+
     completedActivations: {}
   };
 }

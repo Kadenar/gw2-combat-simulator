@@ -22,7 +22,9 @@ export interface EngineerCoreState {
   healingTurretActivationId: string;
   kineticCharges: number;
   pendingMineFieldActivationIds: string[];
-  traitProcReadyAt: Record<string, number | boolean>;
+  thermalVisionUntil: number;
+  explosiveEntranceFired: boolean;
+  aimAssistedRocketCount: number;
 }
 
 // Core owns the stable public fields that exist for every Engineer runtime.
@@ -64,7 +66,9 @@ export function createEngineerCoreState(_config: EngineerConfig = {}): EngineerC
     focusedUntil: 0,
     kineticCharges: 0,
     pendingMineFieldActivationIds: [],
-    traitProcReadyAt: {}
+    thermalVisionUntil: 0,
+    explosiveEntranceFired: false,
+    aimAssistedRocketCount: 0
   };
 }
 

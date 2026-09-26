@@ -35,7 +35,7 @@ test('removed Brutality quickness leaves the weapon-swap cooldown unclaimed', ()
     { catalog: patched({ [CORE.brutality]: remove('boon', 'quickness') }) }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(observedRuntime(result).profession.core.traitProcReadyAt.brutality, undefined);
+  assert.equal(observedRuntime(result).procs.readyAt.brutality, undefined);
   assert.equal(
     result.events.some((event) => event.type === 'buff' && event.skillId === TRAIT.BRUTALITY),
     false

@@ -41,11 +41,10 @@ export interface EvokerState {
   elementalBalanceProgress: number;
   elementalBalanceUntil: number;
   // per-trait-profile Evocation internal cooldowns, shared by real swaps and Specialized Elements entries
-  attunementTraitProcReadyAt: Record<string, number>;
+
   // Ignite reaches and retains its final burning tier until inactivity resets it; passive Might has its own ICD.
   igniteTier: number;
   igniteLastUsedAt: number;
-  ignitePassiveReadyAt: number;
   // most recent empowered familiar cast per basic familiar, used to detect flip-interrupt windows
   lastEmpoweredFamiliarByBasic: Record<
     string,
@@ -90,10 +89,9 @@ export const evokerState = defineProfessionSpecializationState(
       electricEnchantmentGrants: [],
       elementalBalanceProgress: 0,
       elementalBalanceUntil: 0,
-      attunementTraitProcReadyAt: {},
+
       igniteTier: 0,
       igniteLastUsedAt: Number.NEGATIVE_INFINITY, // guarantees first use always starts at tier 0 without a special-case check
-      ignitePassiveReadyAt: 0,
       lastEmpoweredFamiliarByBasic: {},
       cancelledFamiliarActivations: {},
       activeFamiliarCast: null,

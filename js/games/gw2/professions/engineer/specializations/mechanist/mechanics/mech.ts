@@ -9,7 +9,6 @@ import { emitEngineerEvent } from '#gw2/professions/engineer/core/events.js';
 import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { selectedSkillNameSet } from '#gw2/platform/builds/selected-skills.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
@@ -303,11 +302,10 @@ export function applyEngineerMechCastTraits(context: EngineerRuntime, skill: Eng
     skill.type === 'Weapon' &&
     !skill.kit &&
     skill.slot === 'Weapon_3' &&
-    isInternalCooldownReady(at, Number(professionCoreState(context).traitProcReadyAt.rocketPunch || 0))
+    isInternalCooldownReady(at, Number(context.procs.readyAt.rocketPunch || 0))
   ) {
     const rocketPunchProfile = requireBalanceProfileFromContext(context, PROFILE.rocketPunch);
-    professionCoreState(context).traitProcReadyAt.rocketPunch =
-      at + balanceProfileNumber(rocketPunchProfile, 'internalCooldown');
+    context.procs.readyAt.rocketPunch = at + balanceProfileNumber(rocketPunchProfile, 'internalCooldown');
     emitRocketPunch(context, skill, at);
   }
 

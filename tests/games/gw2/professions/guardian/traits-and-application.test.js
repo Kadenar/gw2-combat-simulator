@@ -142,7 +142,10 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
     resolution.every((event) => event.skillWeapon === 'Unequipped'),
     true
   );
-  assert.equal(zealotsResolution.combatState.profession.zealotsResolutionReadyAt, resolution[0].at + 30);
+  assert.equal(
+    observedRuntime(zealotsResolution).procs.deadline('guardian.core.zealotsResolution'),
+    resolution[0].at + 30
+  );
 });
 
 test("Zealot's Resolution requires the enemy to be below its threshold before the hit", () => {
@@ -167,7 +170,7 @@ test("Zealot's Resolution requires the enemy to be below its threshold before th
     (event) => event.type === 'damage' && event.skillName === 'Pure Strike'
   );
   assert.equal(pulses(followup)[0].at, secondHit.at);
-  assert.equal(followup.combatState.profession.zealotsResolutionReadyAt, secondHit.at + 30);
+  assert.equal(observedRuntime(followup).procs.deadline('guardian.core.zealotsResolution'), secondHit.at + 30);
 });
 
 test("Spear's Furious Focus symbol precedes the tether and only later pulses gain Big Game Hunter", () => {
@@ -239,24 +242,24 @@ test("Healer's Resolution grants eight seconds on committed heals with a shared 
     for (const offset of [-0.001, 0, 0.001]) {
       const deadline = completion - offset;
       const result = runGuardian([skillId], settings, (runtime) => {
-        runtime.profession.core.healersResolutionReadyAt = deadline;
+        runtime.procs.readyAt['guardian.core.healersResolution'] = deadline;
       });
       const boons = result.events.filter((event) => event.type === 'buff' && event.kind === 'resolution');
       assert.equal(boons.length > 0, offset > 0);
       assert.equal(
-        observedRuntime(result).profession.core.healersResolutionReadyAt,
+        observedRuntime(result).procs.deadline('guardian.core.healersResolution'),
         offset > 0 ? completion + 20 : deadline
       );
     }
 
     const canceled = runGuardian([{ skillId, interruptAfterMs: 1 }], settings);
-    assert.equal(observedRuntime(canceled).profession.core.healersResolutionReadyAt, 0);
+    assert.equal(observedRuntime(canceled).procs.deadline('guardian.core.healersResolution'), 0);
   }
 
   const utility = runGuardian(['Bane Signet'], settings);
-  assert.equal(observedRuntime(utility).profession.core.healersResolutionReadyAt, 0);
+  assert.equal(observedRuntime(utility).procs.deadline('guardian.core.healersResolution'), 0);
   const untraited = runGuardian(['Shelter']);
-  assert.equal(observedRuntime(untraited).profession.core.healersResolutionReadyAt, 0);
+  assert.equal(observedRuntime(untraited).procs.deadline('guardian.core.healersResolution'), 0);
   const scaled = runGuardian(['Shelter'], { ...settings, stats: { concentration: 750 } });
   assert.equal(
     scaled.events.find((event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.HEALERS_RESOLUTION)
@@ -274,24 +277,24 @@ test("Protector's Restoration shares a fixed twenty-second ICD across committed 
     for (const offset of [-0.001, 0, 0.001]) {
       const deadline = completion - offset;
       const result = runGuardian([skillId], settings, (runtime) => {
-        runtime.profession.core.protectorsRestorationReadyAt = deadline;
+        runtime.procs.readyAt['guardian.core.protectorsRestoration'] = deadline;
       });
       const boons = result.events.filter((event) => event.type === 'buff' && event.kind === 'protection');
       assert.equal(boons.length > 0, offset > 0);
       assert.equal(
-        observedRuntime(result).profession.core.protectorsRestorationReadyAt,
+        observedRuntime(result).procs.deadline('guardian.core.protectorsRestoration'),
         offset > 0 ? completion + 20 : deadline
       );
     }
 
     const canceled = runGuardian([{ skillId, interruptAfterMs: 1 }], settings);
-    assert.equal(observedRuntime(canceled).profession.core.protectorsRestorationReadyAt, 0);
+    assert.equal(observedRuntime(canceled).procs.deadline('guardian.core.protectorsRestoration'), 0);
   }
 
   const utility = runGuardian(['Bane Signet'], settings);
-  assert.equal(observedRuntime(utility).profession.core.protectorsRestorationReadyAt, 0);
+  assert.equal(observedRuntime(utility).procs.deadline('guardian.core.protectorsRestoration'), 0);
   const untraited = runGuardian(['Shelter']);
-  assert.equal(observedRuntime(untraited).profession.core.protectorsRestorationReadyAt, 0);
+  assert.equal(observedRuntime(untraited).procs.deadline('guardian.core.protectorsRestoration'), 0);
 });
 
 test("Protector's Restoration pulses Protection and symbol damage while its Light field enables combos", () => {
@@ -339,7 +342,7 @@ test("Protector's Restoration pulses Protection and symbol damage while its Ligh
       .map((event) => Math.round((event.at - start) * 1000)),
     [0, 1000, 2000]
   );
-  assert.equal(observedRuntime(result).profession.core.protectorsRestorationReadyAt, start + 20);
+  assert.equal(observedRuntime(result).procs.deadline('guardian.core.protectorsRestoration'), start + 20);
   const expired = run(2500);
   assert.deepEqual(expired.warnings, []);
   assert.equal(

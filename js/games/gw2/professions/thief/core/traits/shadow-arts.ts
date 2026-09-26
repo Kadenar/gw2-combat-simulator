@@ -5,8 +5,6 @@ import {
   effectNumber,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { professionCoreState } from '#gw2/platform/engine/profession/state.js';
-import { tryConsumeProcCooldown } from '#gw2/platform/combat/procs.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
@@ -80,14 +78,12 @@ export function applyShadowSiphoning(context: ThiefResolverContext, event: Thief
   const skill = event.skillId == null ? undefined : context.helpers.skillsById?.get(event.skillId);
   const namedSkill = event.skillName == null ? undefined : context.helpers.skillsByName?.get(event.skillName);
   if (!(skill || namedSkill)?.stealthAttack) return;
-  const state = professionCoreState(context);
   // Removing the siphon leaves no packet to claim its proc cooldown.
   const shadowSiphoningProfile = requireBalanceProfileFromContext(context, PROFILE.shadowSiphoning);
   const strike = requireEffect(shadowSiphoningProfile, 'strike', 'Shadow Siphoning');
   if (!strike) return;
   if (
-    !tryConsumeProcCooldown(
-      state.traitProcReadyAt,
+    !context.procs.claimCooldown(
       TRAIT.SHADOW_SIPHONING,
       event.at,
       balanceProfileNumber(shadowSiphoningProfile, 'internalCooldown')

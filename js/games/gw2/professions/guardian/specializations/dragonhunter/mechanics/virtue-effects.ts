@@ -91,7 +91,6 @@ export function reactToDragonhunterJusticeHit(
 }
 
 export function reactToDragonhunterControl(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  const state = dragonhunterState.from(context);
   if (hasTrait(context, GUARDIAN_TRAIT_IDS.DULLED_SENSES)) {
     const dulledSensesProfile = requireBalanceProfileFromContext(context, PROFILE.dulledSenses);
     const crippled = requireEffect(dulledSensesProfile, 'condition', 'Crippled');
@@ -119,7 +118,7 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
 
   if (
     !hasTrait(context, GUARDIAN_TRAIT_IDS.HEAVY_LIGHT) ||
-    !isInternalCooldownReady(event.at, state.heavyLightReadyAt)
+    !isInternalCooldownReady(event.at, context.procs.deadline('guardian.dragonhunter.heavyLight'))
   ) {
     return;
   }
@@ -129,7 +128,8 @@ export function reactToDragonhunterControl(context: GuardianResolverContext, eve
   const heavyLightProfile = requireBalanceProfileFromContext(context, PROFILE.heavyLight);
   const stability = requireEffect(heavyLightProfile, 'boon', 'stability');
   if (!stability) return;
-  state.heavyLightReadyAt = event.at + balanceProfileNumber(heavyLightProfile, 'internalCooldown');
+  context.procs.readyAt['guardian.dragonhunter.heavyLight'] =
+    event.at + balanceProfileNumber(heavyLightProfile, 'internalCooldown');
   queueResolverBoon(
     context,
     event,

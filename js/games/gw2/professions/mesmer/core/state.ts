@@ -7,12 +7,11 @@ import type { MesmerConfig } from '#gw2/professions/mesmer/types.js';
 export interface MesmerCoreState {
   clones: MesmerClone[];
   trackedSkillHits: Record<string, number[]>;
-  traitReadyAt: Record<string, number>;
+
   mimicUntil: number;
   availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   chaosStormCasts: number;
-  ineptitudeReadyAt: number;
   clarityUntil: number;
   signetIllusionsAt: number;
 }
@@ -22,12 +21,11 @@ export function createMesmerCoreState(_config: Partial<MesmerConfig> = {}): Mesm
   return {
     clones: [],
     trackedSkillHits: {},
-    traitReadyAt: {},
+
     mimicUntil: 0,
     availableFlips: {},
     autoattackChains: {},
     chaosStormCasts: 0,
-    ineptitudeReadyAt: 0,
     clarityUntil: 0,
     signetIllusionsAt: Infinity
   };

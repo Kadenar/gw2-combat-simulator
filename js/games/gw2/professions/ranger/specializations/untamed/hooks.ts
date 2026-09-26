@@ -72,8 +72,12 @@ export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       const readyAt = cast.start + balanceProfileNumber(profile, 'recharge');
       runtime.cooldownController.setReadyAt(ID.UNLEASH_RANGER, readyAt);
       runtime.cooldownController.setReadyAt(ID.UNLEASH_PET, readyAt);
-      if (state.rangerUnleashed && isInternalCooldownReady(runtime.time, state.unleashedPowerReadyAt)) {
-        state.unleashedPowerReadyAt = runtime.time + balanceProfileNumber(profile, 'internalCooldown');
+      if (
+        state.rangerUnleashed &&
+        isInternalCooldownReady(runtime.time, runtime.procs.deadline('ranger.untamed.unleashedPower'))
+      ) {
+        runtime.procs.readyAt['ranger.untamed.unleashedPower'] =
+          runtime.time + balanceProfileNumber(profile, 'internalCooldown');
         grantAmbush(runtime);
       }
     }
@@ -82,12 +86,12 @@ export const untamedHooks: Partial<RuntimeProfession<RangerRuntimeState>> = {
       cast.skill.id === ID.SWAP_WEAPONS &&
       runtime.combatActive &&
       hasTrait(runtime, TRAIT.LET_LOOSE) &&
-      isInternalCooldownReady(runtime.time, state.letLooseReadyAt)
+      isInternalCooldownReady(runtime.time, runtime.procs.deadline('ranger.untamed.letLoose'))
     ) {
-      state.letLooseReadyAt =
+      runtime.procs.readyAt['ranger.untamed.letLoose'] =
         runtime.time +
         balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.letLoose), 'internalCooldown');
-      state.unleashedPowerReadyAt = 0;
+      runtime.procs.readyAt['ranger.untamed.unleashedPower'] = 0;
       if (state.rangerUnleashed) grantAmbush(runtime);
     }
   },

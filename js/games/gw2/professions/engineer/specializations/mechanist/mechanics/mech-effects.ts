@@ -10,7 +10,6 @@ import { isInternalCooldownReady } from '#kernel/core/clock.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   applyEngineerDerivedCondition,
-  procState,
   queueBuff,
   recordTrait,
   resolverSkill
@@ -67,9 +66,9 @@ export const mechanistCriticalHitDefinitions = Object.freeze([
           requireBalanceProfileFromContext(context, CORE_PROFILE.incendiaryPowder),
           'internalCooldown'
         ),
-      readyAt: (context) => Number(procState(context)['incendiaryPowder.mech'] || 0),
+      readyAt: (context) => Number(context.procs.readyAt['incendiaryPowder.mech'] || 0),
       setReadyAt: (context, readyAt) => {
-        procState(context)['incendiaryPowder.mech'] = readyAt;
+        context.procs.readyAt['incendiaryPowder.mech'] = readyAt;
       }
     },
     attribution: { kind: 'trait', id: TRAIT.INCENDIARY_POWDER },
@@ -104,7 +103,7 @@ function reactToMechanistDamage(
   _details: NativeResolvedDamageDetails = {}
 ): void {
   if (!(Number(event.coefficient) > 0)) return;
-  const state = procState(context);
+  const state = context.procs.readyAt;
   if (!isEngineerMechEvent(context, event)) return;
 
   if (

@@ -7,7 +7,6 @@ import {
 } from '#gw2/platform/engine/skills/balance-profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
-import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
 import type { EngineerResolverContext } from '#gw2/professions/engineer/types.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 
@@ -20,10 +19,10 @@ export function kineticAcceleratorBoons(context: EngineerResolverContext, event:
   )
     return [];
   if (event.finisherType === 'Whirl') {
-    const state = scrapperState.from(context);
-    if (!isInternalCooldownReady(event.at, state.kineticAcceleratorsWhirlReadyAt)) return [];
+    if (!isInternalCooldownReady(event.at, context.procs.deadline('engineer.scrapper.kineticAcceleratorsWhirl')))
+      return [];
     const kineticAcceleratorsProfile = requireBalanceProfileFromContext(context, PROFILE.kineticAccelerators);
-    state.kineticAcceleratorsWhirlReadyAt =
+    context.procs.readyAt['engineer.scrapper.kineticAcceleratorsWhirl'] =
       event.at + balanceProfileNumber(kineticAcceleratorsProfile, 'internalCooldown');
   }
 

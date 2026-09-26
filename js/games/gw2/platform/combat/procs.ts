@@ -3,23 +3,32 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { SkillId } from '#gw2/platform/engine/skills/types.js';
 
 /** One registry per simulation owns trait deadlines; profile IDs isolate unrelated procs and patches retune claims. */
-export function createProcRegistry(context: () => Gw2Runtime) {
+export function createProcRegistry(context: () => Gw2ResolverRuntime & { readonly time?: number }) {
   const readyAt: Record<string, number> = Object.create(null);
   return {
     /** Live deadlines also support mechanic-owned resets and reconstruction without another private trait map. */
     readyAt,
-    claim(profileId: SkillId, key: SkillId = profileId): boolean {
+    /** Unarmed owners are ready at zero; callers with mechanic-specific boundary rules can inspect the deadline. */
+    deadline(key: SkillId): number {
+      return readyAt[key] ?? 0;
+    },
+    claim(profileId: SkillId, key: SkillId = profileId, at = context().time): boolean {
       const runtime = context();
+      if (at === undefined) throw new TypeError('Resolver proc claims require an event time.');
       return tryConsumeProcCooldown(
         readyAt,
         key,
-        runtime.time,
+        at,
         balanceProfileNumber(requireBalanceProfileFromContext(runtime, profileId), 'internalCooldown')
       );
+    },
+    // Scoped owners and non-ICD profile fields use the same deadline validation and exclusive boundary.
+    claimCooldown(key: SkillId, at: number, duration: number): boolean {
+      return tryConsumeProcCooldown(readyAt, key, at, duration);
     },
     reset(key: SkillId): void {
       delete readyAt[key];

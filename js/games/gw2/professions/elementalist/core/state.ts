@@ -87,7 +87,7 @@ export interface ElementalistCoreState {
   signetOfFireDisabledUntil: number;
   availableFlips: SkillFlipWindows;
   summonedElemental: ElementalistSummonedElementalState;
-  procReadyAt: Record<string, number>;
+
   arcaneEchoUntil: number;
 }
 
@@ -153,7 +153,7 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
       pendingLightningJolt: null,
       started: false
     },
-    procReadyAt: {},
+
     arcaneEchoUntil: 0
   };
 }

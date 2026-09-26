@@ -23,7 +23,7 @@ import { applyGuardianVirtueActivationTraits } from '#gw2/professions/guardian/c
 import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { emitGuardianBoon, triggerGuardianFuriousFocus } from '#gw2/professions/guardian/core/traits/index.js';
 import { recordGuardianTraitProc } from '#gw2/professions/guardian/core/traits/shared.js';
-import { modifyGuardianRechargeDuration } from '#gw2/professions/guardian/core/mechanics/recharge.js';
+import { guardianRechargeWork } from '#gw2/professions/guardian/core/mechanics/recharge.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { LUMINARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/specializations/luminary/profiles.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
@@ -71,10 +71,7 @@ function exitForge(runtime: Runtime, cast?: RuntimeCast): void {
       used <= 1
         ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.forge), 'rechargeReduction')
         : 0;
-    const work = modifyGuardianRechargeDuration(
-      { catalog: runtime.helpers, config: runtime.config, skill: enter },
-      Math.max(0, gw2BaseRecharge(enter) - reduction)
-    );
+    const work = guardianRechargeWork(runtime, enter, Math.max(0, gw2BaseRecharge(enter) - reduction));
     runtime.cooldownController.startRecharge(enter, runtime.time, work);
   }
 

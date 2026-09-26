@@ -1,3 +1,4 @@
+import { createProcRegistry } from '#gw2/platform/combat/procs.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -68,11 +69,11 @@ function internalCooldownClaims(traitId, action, duration, catalog) {
     {
       catalog: (live) => withProfile(catalog(live), traitId ?? CORE.upperHand, { internalCooldown: duration }),
       initialize(runtime) {
-        runtime.profession.core.traitProcReadyAt.unrelated = 99;
+        runtime.procs.readyAt.unrelated = 99;
       },
       probes: [1.0005, 1 + duration + 0.0005, 1 + duration + 0.0015].map((at) => [
         at,
-        (runtime) => readyAt.push({ ...runtime.profession.core.traitProcReadyAt })
+        (runtime) => readyAt.push({ ...runtime.procs.readyAt })
       ])
     }
   );
@@ -121,6 +122,7 @@ function traitContext(selectedTraitIds = [], config = {}) {
   const conditions = [];
   const core = createThiefCoreState(fullConfig);
   const context = {
+    procs: createProcRegistry(() => context),
     profession: { core, specialization: { kind: 'Core', state: {} } },
     catalog: thiefCatalog,
     config: fullConfig,
@@ -192,13 +194,13 @@ for (const [name, traitId, invoke, output] of [
 ]) {
   test(`${name} preserves eligibility, scoped claims, strict boundaries and zero overrides`, () => {
     for (const duration of [2, 0]) {
-      const { context, core } = traitContext([]);
+      const { context } = traitContext([]);
       const profiles = new Map(thiefCatalog.balanceProfilesById);
       profiles.set(traitId, { ...profiles.get(traitId), internalCooldown: duration });
       context.catalog = { ...thiefCatalog, balanceProfilesById: profiles };
-      core.traitProcReadyAt.unrelated = 99;
+      context.procs.readyAt.unrelated = 99;
       invoke(context);
-      assert.deepEqual(core.traitProcReadyAt, { unrelated: 99 });
+      assert.deepEqual({ ...context.procs.readyAt }, { unrelated: 99 });
       context.config.selectedTraitIds = [traitId];
       const owner = output === 'queue' ? context.queue : context;
       const method = output === 'queue' ? 'enqueue' : output;
@@ -206,7 +208,7 @@ for (const [name, traitId, invoke, output] of [
       let emissions = 0;
       let reenter = true;
       owner[method] = (event) => {
-        assert.equal(core.traitProcReadyAt[traitId], context.effectiveEnd + duration);
+        assert.equal(context.procs.readyAt[traitId], context.effectiveEnd + duration);
         emissions += 1;
         if (reenter) {
           reenter = false;
@@ -230,21 +232,21 @@ for (const [name, traitId, invoke, output] of [
       context.effectiveEnd = 1 + duration + 0.000001;
       invoke(context);
       assert.ok(emissions > firstEmissions);
-      assert.equal(core.traitProcReadyAt.unrelated, 99);
-      assert.deepEqual(traitContext([traitId]).core.traitProcReadyAt, {});
+      assert.equal(context.procs.readyAt.unrelated, 99);
+      assert.deepEqual({ ...traitContext([traitId]).context.procs.readyAt }, {});
     }
   });
 }
 
 test('Lotus Poison grants self Might and target Weakness only for the player poisoning a target', () => {
   // Ineligible poison sources cannot consume the cooldown before the player's own poison arrives.
-  const { context, core } = traitContext([TRAIT.LOTUS_POISON]);
+  const { context } = traitContext([TRAIT.LOTUS_POISON]);
   const poison = { type: 'condition', at: 1, actorType: 'player', condition: 'Poisoned', skillName: 'Poison source' };
   for (const overrides of [{ actorType: 'minion' }, { metadata: { triggeredByAlly: 1 } }, { condition: 'Torment' }]) {
     reactThiefCoreCondition(context, { ...poison, ...overrides });
   }
 
-  assert.deepEqual(core.traitProcReadyAt, {});
+  assert.deepEqual({ ...context.procs.readyAt }, {});
   assert.equal(context.queue.length, 0);
   reactThiefCoreCondition(context, poison);
   const might = context.queue.dequeue();
@@ -256,7 +258,7 @@ test('Lotus Poison grants self Might and target Weakness only for the player poi
   assert.equal(weakness.condition, 'Weakness');
   assert.equal(weakness.duration, 4);
   assert.equal(weakness.sourceId, TRAIT.LOTUS_POISON);
-  assert.equal(core.traitProcReadyAt[TRAIT.LOTUS_POISON], 11);
+  assert.equal(context.procs.readyAt[TRAIT.LOTUS_POISON], 11);
   for (const at of [1, 10.999, 11]) reactThiefCoreCondition(context, { ...poison, at });
   assert.equal(context.queue.length, 0);
   reactThiefCoreCondition(context, { ...poison, at: 11.001 });
@@ -602,7 +604,7 @@ test('Shadow Siphoning gates eligible stealth attacks and keeps its cooldown thr
     skillName: stealthAttack.name
   };
   for (const internalCooldown of [1, 0]) {
-    const { context, core } = traitContext([TRAIT.SHADOW_SIPHONING]);
+    const { context } = traitContext([TRAIT.SHADOW_SIPHONING]);
     const profiles = new Map(thiefCatalog.balanceProfilesById);
     profiles.set(TRAIT.SHADOW_SIPHONING, { ...profiles.get(TRAIT.SHADOW_SIPHONING), internalCooldown });
     context.catalog = { ...thiefCatalog, balanceProfilesById: profiles };
@@ -616,12 +618,12 @@ test('Shadow Siphoning gates eligible stealth attacks and keeps its cooldown thr
       reactThiefCoreDamage(context, event, {});
     context.config.selectedTraitIds = [];
     reactThiefCoreDamage(context, hit, {});
-    assert.deepEqual(core.traitProcReadyAt, {});
+    assert.deepEqual({ ...context.procs.readyAt }, {});
     assert.equal(context.queue.length, 0);
     context.config.selectedTraitIds = [TRAIT.SHADOW_SIPHONING];
     const enqueue = context.queue.enqueue.bind(context.queue);
     context.queue.enqueue = (event) => {
-      assert.equal(core.traitProcReadyAt[TRAIT.SHADOW_SIPHONING], event.at + internalCooldown);
+      assert.equal(context.procs.readyAt[TRAIT.SHADOW_SIPHONING], event.at + internalCooldown);
       // A child opportunity sees the armed ICD, and effect actors remain ineligible.
       reactThiefCoreDamage(context, { ...hit, at: event.at }, {});
       reactThiefCoreDamage(context, event, {});
@@ -634,7 +636,7 @@ test('Shadow Siphoning gates eligible stealth attacks and keeps its cooldown thr
     assert.equal(siphon.sourceId, TRAIT.SHADOW_SIPHONING);
     assert.equal(siphon.canCrit, false);
     assert.equal(siphon.lifeSiphon, true);
-    assert.equal(core.traitProcReadyAt[TRAIT.SHADOW_SIPHONING], 1 + internalCooldown);
+    assert.equal(context.procs.readyAt[TRAIT.SHADOW_SIPHONING], 1 + internalCooldown);
     reactThiefCoreDamage(context, { ...hit, at: 1 + internalCooldown }, {});
     assert.equal(context.queue.length, 0);
     // Retain the legacy name fallback when no catalog ID matches.

@@ -60,7 +60,8 @@ export type ProfessionModuleStateBoundaryAssertions = [
   Assert<Rejects<VindicatorState, 'activeLegendId'>>,
   Assert<Owns<VindicatorState, 'reaversCurseUntil'>>,
   Assert<Rejects<RevenantCoreState, 'reaversCurseUntil'>>,
-  Assert<Owns<RenegadeState, 'soulcleaveReadyAt'>>,
+  // Proc deadlines now belong to the runtime registry, not either profession slice.
+  Assert<Rejects<RenegadeState, 'soulcleaveReadyAt'>>,
   Assert<Rejects<RevenantCoreState, 'soulcleaveReadyAt'>>,
   Assert<Owns<ConduitState, 'affinity'>>,
   Assert<Rejects<RevenantCoreState, 'affinity'>>
