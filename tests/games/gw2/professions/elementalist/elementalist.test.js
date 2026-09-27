@@ -135,9 +135,7 @@ test('Elementalist modules expose isolated balance-profile authoring', () => {
     modules.get('Core').balanceProfiles.some((entry) => entry.profile.parentId === ID.FRIGID_FLURRY),
     false
   );
-  assert.deepEqual(modules.get('Core').modifierRules.find((rule) => rule.id === 'elementalist.inferno').parameters, {
-    powerScaling: 0.0825
-  });
+  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.INFERNO).coefficientMultiplier, 0.0825 / 0.155);
 
   const opaqueModifierRules = [...modules.values()].flatMap((module) =>
     module.modifierRules.filter(

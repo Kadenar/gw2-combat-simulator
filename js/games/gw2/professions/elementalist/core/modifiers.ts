@@ -17,7 +17,11 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import {
+  compileGw2ModifierRules,
+  MODIFIER_TARGET,
+  powerScaledConditionAttributes
+} from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import {
@@ -76,36 +80,11 @@ export function elementalistTimedBuffStacks(context: ElementalistModifierContext
   );
 }
 
-// Inferno replaces Burning's condition-damage scaling with a power-scaled
-// variant; express it as a ratio against the canonical Burning rate so the
-// shared condition pipeline stays untouched.
-function infernoBurningFactor(
-  context: ElementalistModifierContext,
-  _target: string,
-  parameters: Readonly<Record<string, number>>
-): number {
-  // Sampling already resolved this application's attributes; direct multiplier queries still need their own read.
-  const stats = context.conditionStats ?? context.query?.statsAt(context.time, context.event, context.runtime);
-  const power = stats?.power || 0;
-  const conditionDamage = stats?.conditionDamage || 0;
-  // Only Inferno's power coefficient is balance-authorable; its shared burning formula stays canonical.
-  const normalBurningRate = 131 + 0.155 * conditionDamage;
-  return normalBurningRate > 0 ? (131 + parameters.powerScaling * power) / normalBurningRate : 1;
-}
-
 /**
  * Declarative Core trait and resource modifiers, evaluated per damage event.
  * Each rule's `when` states the exact trait, buff, or target condition it needs.
  */
 export const elementalistCoreModifierRules = Object.freeze<readonly Gw2ModifierRule[]>([
-  {
-    id: 'elementalist.inferno',
-    target: MODIFIER_TARGET.CONDITION_DAMAGE,
-    operation: 'multiply',
-    parameters: { powerScaling: 0.0825 },
-    factor: infernoBurningFactor,
-    when: (context) => hasTrait(context, TRAIT.INFERNO) && context.condition === 'Burning'
-  },
   {
     id: 'elementalist.bountiful-power',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
@@ -296,6 +275,9 @@ export function modifyElementalistAttributes(context: ElementalistModifierContex
 /** The Core module's `mechanics.modifiers` registration: attribute pass plus rules. */
 export const elementalistCoreModifiers = Object.freeze({
   modifyAttributes: modifyElementalistAttributes,
+  // Inferno uses the same final-Power conversion as Sharpshooter, with Burning's authored coefficient.
+  modifyConditionAttributes: (context: ElementalistModifierContext, attributes: Gw2Stats) =>
+    powerScaledConditionAttributes(context, attributes, 'Burning', TRAIT.INFERNO),
   modifierRules: elementalistCoreModifierRules,
   compileModifierRules: compileGw2ModifierRules
 });

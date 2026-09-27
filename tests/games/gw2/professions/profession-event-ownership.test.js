@@ -6,10 +6,7 @@ import test from 'node:test';
 import { elementalistCoreModifierRules } from '#gw2/professions/elementalist/core/modifiers.js';
 import { weaverModifierRules } from '#gw2/professions/elementalist/specializations/weaver/modifiers.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
-import {
-  applyEngineerSharpshooterConditionDamage,
-  engineerCoreModifierRules
-} from '#gw2/professions/engineer/core/modifiers.js';
+import { engineerCoreModifiers, engineerCoreModifierRules } from '#gw2/professions/engineer/core/modifiers.js';
 import { amalgamModifierRules } from '#gw2/professions/engineer/specializations/amalgam/modifiers.js';
 import { modifyNecromancerCoreAttributes } from '#gw2/professions/necromancer/core/modifiers.js';
 import { reaperModifierRules } from '#gw2/professions/necromancer/specializations/reaper/modifiers.js';
@@ -74,15 +71,14 @@ const PLAYER_MODIFIER_PREDICATES = Object.freeze([
   [
     'Engineer Sharpshooter',
     (event) => {
-      const attributes = { power: 150, conditionDamage: 0 };
-      applyEngineerSharpshooterConditionDamage(
+      const attributes = engineerCoreModifiers.modifyConditionAttributes(
         {
           catalog: engineerCatalog,
           time: 1,
           event: { ...event, condition: 'Bleeding' },
           traits: new Set([ENGINEER_TRAIT_IDS.SHARPSHOOTER])
         },
-        attributes
+        { power: 150, conditionDamage: 0 }
       );
       return attributes.conditionDamage === 100;
     }

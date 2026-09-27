@@ -11,6 +11,35 @@ import type {
 import type { Gw2TimelineIndex } from '#gw2/platform/combat/query/timeline-index.js';
 import type { SimulationEvent } from '#gw2/platform/engine/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2Stats } from '#gw2/platform/combat/types.js';
+import { hasTrait } from '#gw2/platform/combat/state/traits.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/engine/skills/balance-profiles.js';
+
+/** Replace the selected condition's scaling attribute with final Power, preserving its canonical base damage. */
+export function powerScaledConditionAttributes(
+  context: Gw2ModifierContext,
+  attributes: Gw2Stats,
+  condition: string,
+  traitId: number
+): Gw2Stats {
+  if (
+    context.event?.condition !== condition ||
+    !hasTrait(context, traitId) ||
+    !isGw2PlayerModifierOwnedEvent(context.event)
+  ) {
+    return attributes;
+  }
+
+  const profile = requireBalanceProfileFromContext(context, traitId);
+  return {
+    ...attributes,
+    conditionDamage: (attributes.power || 0) * balanceProfileNumber(profile, 'coefficientMultiplier')
+  };
+}
 
 interface NormalizeResolverOptions {
   readonly positive?: boolean;
@@ -584,8 +613,6 @@ export interface Gw2ModifierContext {
   readonly damageInputs?: Gw2DamageInputs;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
   readonly conditionSample?: Gw2ConditionSample;
-  /** Attributes already sampled for this application and instant, never shared across applications. */
-  readonly conditionStats?: Gw2ResolvedStats;
 }
 
 type Gw2ModifierNumericResolver = (

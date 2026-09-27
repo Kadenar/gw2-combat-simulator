@@ -13,7 +13,6 @@ import {
   activeBoonStacks,
   activeEngineerSpecializationState
 } from '#gw2/professions/engineer/core/traits/query-helpers.js';
-import { applyEngineerSharpshooterConditionDamage } from '#gw2/professions/engineer/core/modifiers.js';
 
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/combat/query/combat-query.js';
@@ -83,7 +82,7 @@ export const amalgamModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
   }
 ]);
 
-/** Applies Evolve and Titanic bonuses before finalizing Sharpshooter's replacement attribute. */
+/** Applies Evolve and Titanic bonuses to the player's attributes. */
 function modifyAmalgamAttributes(context: EngineerModifierContext, attributes: Gw2ResolvedStats): Gw2ResolvedStats {
   const modified = { ...attributes };
   if (activeEngineerSpecializationState(context, 'Amalgam', 'evolvedUntil')) {
@@ -110,9 +109,6 @@ function modifyAmalgamAttributes(context: EngineerModifierContext, attributes: G
     modified.conditionDamage += improvedMight;
   }
 
-  // Amalgam modifies Power after Core runs, so finalize Sharpshooter here to
-  // keep its replacement attribute based on Evolve and Titanic Power bonuses.
-  applyEngineerSharpshooterConditionDamage(context, modified);
   return modified;
 }
 

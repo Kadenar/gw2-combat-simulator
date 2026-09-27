@@ -37,6 +37,7 @@ type ProfessionHookEntry = ProfessionHook | readonly ProfessionHook[];
 /** Attribute-phase rules a module contributes, plus its declarative modifier fragments. */
 export interface ProfessionModifierDefinition {
   readonly modifyAttributes?: ProfessionHookEntry;
+  readonly modifyConditionAttributes?: ProfessionHookEntry;
   readonly modifyCriticalChance?: ProfessionHookEntry;
   readonly modifyCriticalDamage?: ProfessionHookEntry;
   readonly modifyStrikeDamage?: ProfessionHookEntry;
@@ -116,6 +117,8 @@ export interface NormalizedProfessionContract<TProfessionState extends object = 
   readonly createState: (config: Readonly<ProfessionConfig>) => TProfessionState;
   readonly projectPlanningState: (...args: never[]) => unknown;
   readonly modifyAttributes: (context: Gw2ModifierContext, attributes: Gw2Stats) => Gw2Stats;
+  /** Condition-specific replacements run after all profession and equipment attribute bonuses. */
+  readonly modifyConditionAttributes: (context: Gw2ModifierContext, attributes: Gw2Stats) => Gw2Stats;
   readonly modifyCriticalChance: (context: Gw2ModifierContext, chance: number) => number;
   readonly modifyCriticalDamage: (context: Gw2ModifierContext, multiplier: number) => number;
   readonly modifyStrikeDamage: (context: Gw2ModifierContext, multiplier: number) => number;

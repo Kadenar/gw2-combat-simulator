@@ -230,6 +230,7 @@ export function defineNativeProfession<
       catalog: source.catalog,
       projectPlanningState: source.projectPlanningState,
       modifyAttributes: source.modifyAttributes,
+      modifyConditionAttributes: source.modifyConditionAttributes,
       modifyCriticalChance: source.modifyCriticalChance,
       modifyCriticalDamage: source.modifyCriticalDamage,
       modifyStrikeDamage: source.modifyStrikeDamage,

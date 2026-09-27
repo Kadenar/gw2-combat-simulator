@@ -42,6 +42,7 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILE_IDS = Object.freeze({
   lightningHammer: 'elementalist.core.lightning-hammer-attributes',
   empoweringFlame: TRAIT.EMPOWERING_FLAME,
   burningPrecision: TRAIT.BURNING_PRECISION,
+  inferno: TRAIT.INFERNO,
   conjurer: TRAIT.CONJURER,
   sunspot: TRAIT.SUNSPOT,
   burningRage: TRAIT.BURNING_RAGE,
@@ -257,6 +258,8 @@ export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Obj
     { attributeBonus: 75, weaponAttributeBonus: 180 }
   ),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.empoweringFlame, 'Empowering Flame', { attributeBonus: 150 }),
+  // Convert Power to the equivalent Condition Damage input for Burning's canonical 0.155 coefficient.
+  trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.inferno, 'Inferno', { coefficientMultiplier: 0.0825 / 0.155 }),
   trait(ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.burningPrecision, 'Burning Precision', {
     procRate: {
       id: 'elementalist.burning-precision',

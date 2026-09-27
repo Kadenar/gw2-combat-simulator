@@ -834,13 +834,10 @@ export const elementalistTooltips: ProfessionTooltips = {
     ),
     [TRAIT.INFERNO]: traitTooltip(
       'Burning scales with power instead of condition damage, retaining the shared burning base damage.',
-      (balanceContext) => [
-        modifierFact(
-          balanceContext,
-          'elementalist.inferno',
-          'powerScaling',
-          'Burning damage per second per power',
-          tooltipDecimal
+      (balanceContext, id) => [
+        // Display the burning rate from the same Power conversion used by the condition query.
+        profileFact(balanceContext, id, 'coefficientMultiplier', 'Burning damage per second per power', (value) =>
+          tooltipDecimal(value * 0.155)
         )
       ]
     ),

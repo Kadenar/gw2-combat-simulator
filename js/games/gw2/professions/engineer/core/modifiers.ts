@@ -5,7 +5,11 @@ import {
   requireBalanceProfileFromContext,
   balanceProfileNumber
 } from '#gw2/platform/engine/skills/balance-profiles.js';
-import { compileGw2ModifierRules, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import {
+  compileGw2ModifierRules,
+  MODIFIER_TARGET,
+  powerScaledConditionAttributes
+} from '#gw2/platform/combat/modifiers.js';
 import { professionStaticRulesApplied } from '#gw2/platform/builds/attribute-provenance.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetConditionActive, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -267,34 +271,14 @@ function modifyEngineerCoreAttributes(context: Gw2ModifierContext, attributes: G
         balanceProfileNumber(explosiveTemperProfile, 'attributePerStack');
   }
 
-  applyEngineerSharpshooterConditionDamage(context, modified);
   return modified;
-}
-
-/**
- * Replaces player-owned bleeding's condition damage with Sharpshooter's Power conversion.
- * Specializations may rerun it after their dynamic Power hooks so those bonuses are included.
- */
-export function applyEngineerSharpshooterConditionDamage(
-  context: Gw2ModifierContext,
-  attributes: Gw2MutableStats
-): void {
-  if (
-    !hasTrait(context, TRAIT.SHARPSHOOTER) ||
-    context.event?.condition !== 'Bleeding' ||
-    !isGw2PlayerModifierOwnedEvent(context.event)
-  ) {
-    return;
-  }
-
-  const sharpshooterProfile = requireBalanceProfileFromContext(context, PROFILE.sharpshooter);
-  // Sharpshooter replaces the attribute only for bleeding that inherits the player's outgoing modifiers.
-  attributes.conditionDamage =
-    (attributes.power || 0) * balanceProfileNumber(sharpshooterProfile, 'coefficientMultiplier');
 }
 
 export const engineerCoreModifiers = Object.freeze({
   modifyAttributes: modifyEngineerCoreAttributes,
+  // Sharpshooter uses final Power after Core, specialization, and equipment bonuses.
+  modifyConditionAttributes: (context: Gw2ModifierContext, attributes: Gw2Stats) =>
+    powerScaledConditionAttributes(context, attributes, 'Bleeding', TRAIT.SHARPSHOOTER),
   modifyConditionBaseDuration: modifyEngineerConditionBaseDuration,
   modifierRules: engineerCoreModifierRules,
   compileModifierRules: compileGw2ModifierRules

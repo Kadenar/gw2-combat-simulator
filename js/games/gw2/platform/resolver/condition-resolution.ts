@@ -282,7 +282,7 @@ export function createGw2ConditionResolution({
               // Retain every contribution, including expiry remainders, for one owner/condition rounding at payout.
               const rawDamage =
                 conditionRate(ctx, group.condition, stats.conditionDamage) *
-                ctx.query.conditionMultiplier(group.condition, at, application, ctx, sample, stats) *
+                ctx.query.conditionMultiplier(group.condition, at, application, ctx, sample) *
                 (elapsedUs / 1_000_000) *
                 application.stacks;
               application.bufferedRawDamage += rawDamage;

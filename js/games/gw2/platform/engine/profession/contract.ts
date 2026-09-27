@@ -32,6 +32,7 @@ type HookCategory = 'modifier' | 'resource';
 const HOOK_DEFINITIONS = Object.freeze([
   ['projectPlanningState', 'resource'],
   ['modifyAttributes', 'modifier'],
+  ['modifyConditionAttributes', 'modifier'],
   ['modifyCriticalChance', 'modifier'],
   ['modifyCriticalDamage', 'modifier'],
   ['modifyStrikeDamage', 'modifier'],
@@ -217,6 +218,7 @@ export function defineProfession<TProfessionState extends object, TBuild extends
   const sources: UnvalidatedFields = {
     projectPlanningState: resources.projectPlanningState,
     modifyAttributes: modifiers.modifyAttributes,
+    modifyConditionAttributes: modifiers.modifyConditionAttributes,
     modifyCriticalChance: modifiers.modifyCriticalChance,
     modifyCriticalDamage: modifiers.modifyCriticalDamage,
     modifyStrikeDamage: modifiers.modifyStrikeDamage,

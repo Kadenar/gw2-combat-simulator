@@ -40,6 +40,7 @@ export type Gw2QueryProfession = Pick<
   | 'id'
   | 'catalog'
   | 'modifyAttributes'
+  | 'modifyConditionAttributes'
   | 'modifyCriticalChance'
   | 'modifyCriticalDamage'
   | 'modifyStrikeDamage'
@@ -70,7 +71,6 @@ interface HookContextOptions {
   readonly damageInputs?: Gw2DamageInputs;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
   readonly conditionSample?: Gw2ConditionSample;
-  readonly conditionStats?: Gw2ResolvedStats;
 }
 
 /** Conditions use their owner's bonuses; summon strike profiles and original actor metadata stay intact. */
@@ -336,7 +336,6 @@ export function createGw2CombatQuery({
       runtime = null,
       damageInputs,
       conditionSample,
-      conditionStats,
       criticalChanceContributors
     }: HookContextOptions = {}
   ): Gw2ModifierContext => ({
@@ -356,7 +355,6 @@ export function createGw2CombatQuery({
     runtime,
     damageInputs,
     conditionSample,
-    conditionStats,
     criticalChanceContributors
   });
 
@@ -367,14 +365,15 @@ export function createGw2CombatQuery({
   ): Gw2ResolvedStats => {
     if (event?.type === 'condition') event = conditionOwnerEvent(event);
     const activeWeaponSet = activeWeaponSetAt(time, runtime);
+    const context = hookContext(time, { event, runtime });
     const modifiedStats = activeProfession.modifyAttributes(
-      hookContext(time, { event, runtime }),
+      context,
       staticAttributesAt(activeWeaponSet, mightStacksAt(time, runtime, event))
     ) as unknown as Gw2ResolvedStats;
     // Time-varying relic Condition Damage (e.g. Relic of Thorns +30/stack) folds
     // into the sampled attribute so every downstream condition tick scales with it.
     const relicConditionDamage = relicConditionDamageBonus(runtime?.relic ? runtime : historicalRelicContext, time);
-    const stats =
+    let stats =
       relicConditionDamage > 0
         ? { ...modifiedStats, conditionDamage: modifiedStats.conditionDamage + relicConditionDamage }
         : modifiedStats;
@@ -390,7 +389,7 @@ export function createGw2CombatQuery({
       const inheritCriticalAttributes = event.summonInheritsCriticalAttributes === true;
       // Fixed-damage summon skills can still receive Fury while opting out of Might's attribute scaling.
       const summonMightStacks = event.summonUsesMight === false ? 0 : summonMightStacksAt(time, runtime, event);
-      return {
+      stats = {
         ...stats,
         power: Number(event.summonBasePower) + summonMightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
         precision: inheritCriticalAttributes ? stats.precision : Number(event.summonBasePrecision ?? 1000),
@@ -404,7 +403,10 @@ export function createGw2CombatQuery({
       };
     }
 
-    return stats;
+    // Apply replacements once, after specialization bonuses, relics, and owner-specific stat profiles.
+    return event?.type === 'condition'
+      ? (activeProfession.modifyConditionAttributes(context, stats) as Gw2ResolvedStats)
+      : stats;
   };
 
   const completedQuery: Readonly<Gw2CombatQuery> = Object.freeze({
@@ -562,8 +564,7 @@ export function createGw2CombatQuery({
       time: number,
       event: SimulationEvent | null = null,
       runtime: Gw2QueryRuntime | null = null,
-      sample?: Gw2ConditionSample,
-      conditionStats?: Gw2ResolvedStats
+      sample?: Gw2ConditionSample
     ) {
       event = conditionOwnerEvent(event);
       const relicContext = runtime?.relic ? runtime : historicalRelicContext;
@@ -589,7 +590,6 @@ export function createGw2CombatQuery({
           condition: name,
           runtime,
           conditionSample: sample,
-          conditionStats,
           damageInputs: { conditionSigilBonus: sigilBonus, equipmentBonus: relicBonus }
         }),
         base
@@ -695,8 +695,7 @@ export interface Gw2CombatQuery {
     time: number,
     event?: SimulationEvent | null,
     runtime?: Gw2QueryRuntime | null,
-    sample?: Gw2ConditionSample,
-    conditionStats?: Gw2ResolvedStats
+    sample?: Gw2ConditionSample
   ): number;
   conditionDurationMultiplier(
     name: string,

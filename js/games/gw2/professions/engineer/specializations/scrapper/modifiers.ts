@@ -8,7 +8,6 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { hasTrait } from '#gw2/platform/combat/state/traits.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
-import { applyEngineerSharpshooterConditionDamage } from '#gw2/professions/engineer/core/modifiers.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { SCRAPPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/scrapper/profiles.js';
 
@@ -36,16 +35,13 @@ const scrapperModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
 function modifyScrapperAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
   if (!hasTrait(context, TRAIT.APPLIED_FORCE)) return attributes;
   const appliedForceProfile = requireBalanceProfileFromContext(context, PROFILE.appliedForce);
-  const modified = {
+  return {
     ...attributes,
     power:
       (attributes.power || 0) +
       activeBoonStacks(context, 'might', balanceProfileNumber(appliedForceProfile, 'maximumStacks')) *
         balanceProfileNumber(appliedForceProfile, 'attributePerStack')
   };
-  // Core converts Power before Applied Force runs, so refresh Sharpshooter with the final Power.
-  applyEngineerSharpshooterConditionDamage(context, modified);
-  return modified;
 }
 
 export const scrapperModifiers = Object.freeze({
